@@ -1,42 +1,58 @@
-```html
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <meta name="theme-color" content="#05070b">
-<meta name="description"
-      content="CrowRules Podcasting — Original podcasts, stories, conversations, audio dramas and entertainment.">
 
-<title>CrowRules Podcasting</title>
+<meta
+  name="description"
+  content="CrowRules Podcasting — independent voices, original podcasts, stories, sports, horror, gaming, commentary and more."
+>
+
+<title>CrowRules Podcasting — Hear Something Different.</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap"
-      rel="stylesheet">
+<link
+  href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&display=swap"
+  rel="stylesheet"
+>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+/* ============================================================
+   CROWRULES PODCASTING
+   FUTURE OF PODCASTING EDITION
+   SINGLE-FILE HTML / CSS / JS
+============================================================ */
+
 :root{
   --bg:#05070b;
-  --bg2:#090d14;
-  --panel:#0d121b;
-  --panel2:#111824;
+  --bg2:#080b12;
+  --panel:#0c111a;
+  --panel2:#101722;
   --line:rgba(255,255,255,.09);
-  --text:#f5f7fb;
-  --muted:#929baa;
-  --red:#e5092f;
-  --red2:#ff3153;
-  --green:#31e981;
-  --shadow:0 20px 60px rgba(0,0,0,.45);
-  --radius:18px;
+  --text:#f4f7fb;
+  --muted:#8f9bab;
+  --cyan:#00e5ff;
+  --cyan2:#6ff6ff;
+  --purple:#9b5cff;
+  --pink:#ff3cac;
+  --green:#00f5a0;
+  --red:#ff4d67;
+  --yellow:#ffd166;
+  --shadow:0 25px 80px rgba(0,0,0,.55);
+  --radius:22px;
+  --max:1400px;
 }
 
 *{
   box-sizing:border-box;
-  margin:0;
-  padding:0;
 }
 
 html{
@@ -44,46 +60,408 @@ html{
 }
 
 body{
-  min-height:100vh;
+  margin:0;
   background:
-    radial-gradient(circle at 75% 15%,rgba(229,9,47,.13),transparent 28%),
-    radial-gradient(circle at 15% 65%,rgba(60,90,255,.07),transparent 30%),
+    radial-gradient(circle at 20% 0%,rgba(0,229,255,.07),transparent 30%),
+    radial-gradient(circle at 80% 20%,rgba(155,92,255,.08),transparent 32%),
     var(--bg);
   color:var(--text);
   font-family:Montserrat,Arial,sans-serif;
-  padding-bottom:110px;
+  overflow-x:hidden;
 }
 
-body::before{
-  content:"";
+body.intro-lock{
+  overflow:hidden;
+}
+
+a{
+  color:inherit;
+  text-decoration:none;
+}
+
+button,
+input,
+textarea,
+select{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+img{
+  max-width:100%;
+  display:block;
+}
+
+/* ============================================================
+   GLOBAL
+============================================================ */
+
+.container{
+  width:min(var(--max),calc(100% - 40px));
+  margin:auto;
+}
+
+.section{
+  padding:100px 0;
+  position:relative;
+}
+
+.section-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  gap:30px;
+  margin-bottom:40px;
+}
+
+.section-kicker{
+  color:var(--cyan);
+  font-family:Orbitron,sans-serif;
+  font-size:11px;
+  letter-spacing:4px;
+  text-transform:uppercase;
+  margin-bottom:12px;
+}
+
+.section-title{
+  font-family:Orbitron,sans-serif;
+  font-size:clamp(28px,4vw,52px);
+  margin:0;
+  line-height:1.05;
+}
+
+.section-description{
+  color:var(--muted);
+  max-width:650px;
+  line-height:1.8;
+  margin-top:16px;
+}
+
+.btn{
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:13px 20px;
+  background:rgba(255,255,255,.04);
+  color:white;
+  transition:.25s ease;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  font-weight:700;
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+  border-color:rgba(0,229,255,.5);
+  background:rgba(0,229,255,.08);
+}
+
+.btn-primary{
+  background:linear-gradient(135deg,var(--cyan),#168eff);
+  color:#001016;
+  border:none;
+  box-shadow:0 10px 35px rgba(0,229,255,.2);
+}
+
+.btn-primary:hover{
+  background:linear-gradient(135deg,#6ff6ff,#42a5ff);
+  box-shadow:0 15px 45px rgba(0,229,255,.3);
+}
+
+.btn-purple{
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  border:none;
+}
+
+.hidden{
+  display:none!important;
+}
+
+/* ============================================================
+   CINEMATIC INTRO
+============================================================ */
+
+.cinematic-intro{
   position:fixed;
   inset:0;
-  pointer-events:none;
-  opacity:.035;
-  z-index:999;
-  background-image:
-    linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);
-  background-size:4px 4px;
+  z-index:99999;
+  background:
+    radial-gradient(circle at center,rgba(0,229,255,.09),transparent 25%),
+    #020307;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  transition:
+    opacity .9s ease,
+    visibility .9s ease;
 }
 
-/* NAV */
+.cinematic-intro.closed{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
 
-.nav{
+.intro-grid{
+  position:absolute;
+  inset:-20%;
+  background-image:
+    linear-gradient(rgba(0,229,255,.08) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,229,255,.08) 1px,transparent 1px);
+  background-size:55px 55px;
+  transform:perspective(500px) rotateX(62deg) translateY(20%);
+  animation:introGrid 8s linear infinite;
+}
+
+@keyframes introGrid{
+  from{
+    background-position:0 0;
+  }
+  to{
+    background-position:0 55px;
+  }
+}
+
+.intro-glow{
+  position:absolute;
+  width:600px;
+  height:600px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(0,229,255,.16),transparent 68%);
+  filter:blur(20px);
+  animation:introPulse 3s ease-in-out infinite;
+}
+
+@keyframes introPulse{
+  0%,100%{
+    transform:scale(.9);
+    opacity:.6;
+  }
+  50%{
+    transform:scale(1.1);
+    opacity:1;
+  }
+}
+
+.intro-scanlines{
+  position:absolute;
+  inset:0;
+  opacity:.16;
+  background:repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 3px,
+    rgba(255,255,255,.06) 4px
+  );
+  pointer-events:none;
+}
+
+.intro-noise{
+  position:absolute;
+  inset:-50%;
+  opacity:.05;
+  background-image:
+    repeating-radial-gradient(
+      circle at 0 0,
+      #fff 0,
+      #fff 1px,
+      transparent 1px,
+      transparent 4px
+    );
+  animation:noise .25s steps(2) infinite;
+}
+
+@keyframes noise{
+  0%{transform:translate(0,0)}
+  25%{transform:translate(3%,1%)}
+  50%{transform:translate(-2%,3%)}
+  75%{transform:translate(2%,-2%)}
+  100%{transform:translate(-1%,1%)}
+}
+
+.intro-content{
+  width:min(900px,calc(100% - 40px));
+  text-align:center;
+  position:relative;
+  z-index:2;
+}
+
+.intro-logo{
+  width:100px;
+  height:100px;
+  margin:0 auto 30px;
+  border:1px solid rgba(0,229,255,.55);
+  display:grid;
+  place-items:center;
+  border-radius:24px;
+  background:rgba(0,229,255,.05);
+  box-shadow:
+    0 0 40px rgba(0,229,255,.18),
+    inset 0 0 35px rgba(0,229,255,.05);
+  animation:logoIn 1.3s ease both;
+}
+
+@keyframes logoIn{
+  from{
+    opacity:0;
+    transform:scale(.4) rotate(-15deg);
+  }
+  to{
+    opacity:1;
+    transform:scale(1) rotate(0);
+  }
+}
+
+.intro-logo span{
+  font-family:Orbitron,sans-serif;
+  font-size:28px;
+  font-weight:900;
+  color:var(--cyan);
+}
+
+.intro-network{
+  font-family:Orbitron,sans-serif;
+  color:var(--cyan);
+  letter-spacing:5px;
+  font-size:11px;
+  text-transform:uppercase;
+  margin-bottom:22px;
+  animation:introText 1s .3s both;
+}
+
+.intro-title{
+  font-family:Orbitron,sans-serif;
+  text-transform:uppercase;
+  font-weight:900;
+  font-size:clamp(38px,8vw,92px);
+  line-height:.95;
+  margin:0;
+  letter-spacing:-3px;
+  animation:introText 1s .55s both;
+}
+
+.intro-title .cyan{
+  color:var(--cyan);
+  text-shadow:0 0 35px rgba(0,229,255,.45);
+}
+
+.intro-tagline{
+  color:#aeb8c6;
+  font-size:16px;
+  line-height:1.8;
+  max-width:650px;
+  margin:30px auto;
+  animation:introText 1s .8s both;
+}
+
+@keyframes introText{
+  from{
+    opacity:0;
+    transform:translateY(25px);
+    filter:blur(10px);
+  }
+  to{
+    opacity:1;
+    transform:none;
+    filter:none;
+  }
+}
+
+.intro-wave{
+  height:45px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  margin:25px auto;
+}
+
+.intro-wave i{
+  display:block;
+  width:3px;
+  border-radius:999px;
+  background:var(--cyan);
+  animation:wave .8s ease-in-out infinite alternate;
+}
+
+.intro-wave i:nth-child(1){height:12px}
+.intro-wave i:nth-child(2){height:25px;animation-delay:.08s}
+.intro-wave i:nth-child(3){height:38px;animation-delay:.16s}
+.intro-wave i:nth-child(4){height:20px;animation-delay:.24s}
+.intro-wave i:nth-child(5){height:45px;animation-delay:.32s}
+.intro-wave i:nth-child(6){height:28px;animation-delay:.4s}
+.intro-wave i:nth-child(7){height:40px;animation-delay:.48s}
+.intro-wave i:nth-child(8){height:18px;animation-delay:.56s}
+.intro-wave i:nth-child(9){height:34px;animation-delay:.64s}
+
+@keyframes wave{
+  to{
+    transform:scaleY(.35);
+    opacity:.5;
+  }
+}
+
+.intro-actions{
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  flex-wrap:wrap;
+  animation:introText 1s 1s both;
+}
+
+.intro-corner{
+  position:absolute;
+  width:80px;
+  height:80px;
+  border-color:rgba(0,229,255,.4);
+  border-style:solid;
+  opacity:.6;
+}
+
+.intro-corner.tl{
+  top:30px;
+  left:30px;
+  border-width:1px 0 0 1px;
+}
+
+.intro-corner.tr{
+  top:30px;
+  right:30px;
+  border-width:1px 1px 0 0;
+}
+
+.intro-corner.bl{
+  bottom:30px;
+  left:30px;
+  border-width:0 0 1px 1px;
+}
+
+.intro-corner.br{
+  bottom:30px;
+  right:30px;
+  border-width:0 1px 1px 0;
+}
+
+/* ============================================================
+   HEADER
+============================================================ */
+
+.site-header{
   position:sticky;
   top:0;
-  z-index:100;
-  height:72px;
+  z-index:1000;
   border-bottom:1px solid var(--line);
-  background:rgba(5,7,11,.86);
+  background:rgba(5,7,11,.82);
   backdrop-filter:blur(18px);
 }
 
-.nav-inner{
-  max-width:1250px;
-  height:100%;
-  margin:auto;
-  padding:0 22px;
+.nav{
+  min-height:76px;
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -94,39 +472,37 @@ body::before{
   display:flex;
   align-items:center;
   gap:12px;
-  text-decoration:none;
-  color:white;
 }
 
 .brand-mark{
-  width:40px;
-  height:40px;
-  border:2px solid var(--red);
+  width:42px;
+  height:42px;
+  border:1px solid rgba(0,229,255,.5);
+  border-radius:12px;
   display:grid;
   place-items:center;
-  transform:rotate(45deg);
-  box-shadow:0 0 20px rgba(229,9,47,.25);
+  background:rgba(0,229,255,.05);
 }
 
 .brand-mark span{
-  transform:rotate(-45deg);
-  font-family:Orbitron;
+  color:var(--cyan);
+  font-family:Orbitron,sans-serif;
+  font-weight:900;
   font-size:14px;
-  font-weight:800;
 }
 
-.brand-text{
-  font-family:Orbitron;
-  font-size:16px;
-  letter-spacing:1.5px;
+.brand-text strong{
+  display:block;
+  font-family:Orbitron,sans-serif;
+  font-size:14px;
+  letter-spacing:1px;
 }
 
 .brand-text small{
   display:block;
-  color:var(--red2);
-  font-family:Montserrat;
-  font-size:8px;
-  letter-spacing:3px;
+  color:var(--cyan);
+  font-size:9px;
+  letter-spacing:2px;
   margin-top:2px;
 }
 
@@ -137,1729 +513,4805 @@ body::before{
 }
 
 .nav-links a{
-  color:var(--muted);
-  text-decoration:none;
-  font-size:13px;
-  font-weight:600;
+  color:#adb6c2;
   padding:10px 12px;
   border-radius:10px;
-  transition:.2s;
+  font-size:13px;
+  font-weight:700;
 }
 
 .nav-links a:hover,
 .nav-links a.active{
   color:white;
-  background:rgba(255,255,255,.06);
+  background:rgba(255,255,255,.05);
 }
 
-.menu-btn{
+.nav-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.mobile-toggle{
   display:none;
   border:1px solid var(--line);
   background:transparent;
   color:white;
-  width:42px;
-  height:42px;
-  border-radius:10px;
-  font-size:20px;
+  width:44px;
+  height:44px;
+  border-radius:12px;
 }
 
-/* HERO */
+/* ============================================================
+   HERO
+============================================================ */
 
 .hero{
-  position:relative;
-  overflow:hidden;
-  min-height:620px;
+  min-height:760px;
   display:flex;
   align-items:center;
+  position:relative;
+  overflow:hidden;
   border-bottom:1px solid var(--line);
 }
 
-.hero::before{
-  content:"";
+.hero-grid{
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:70px 70px;
+  mask-image:linear-gradient(to bottom,#000,transparent);
+}
+
+.hero-orb{
   position:absolute;
   width:650px;
   height:650px;
-  right:-200px;
-  top:-180px;
   border-radius:50%;
-  border:1px solid rgba(229,9,47,.16);
-  box-shadow:
-    0 0 0 80px rgba(229,9,47,.025),
-    0 0 0 160px rgba(229,9,47,.018);
-  animation:pulse 7s infinite ease-in-out;
+  background:radial-gradient(circle,rgba(0,229,255,.12),transparent 65%);
+  right:-200px;
+  top:0;
 }
 
-.hero::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:
-    linear-gradient(90deg,var(--bg) 0%,rgba(5,7,11,.82) 45%,rgba(5,7,11,.25) 100%);
+.hero-orb.two{
+  left:-350px;
+  right:auto;
+  top:250px;
+  background:radial-gradient(circle,rgba(155,92,255,.1),transparent 65%);
 }
 
-@keyframes pulse{
-  0%,100%{transform:scale(.96);opacity:.7}
-  50%{transform:scale(1.04);opacity:1}
-}
-
-.hero-inner{
+.hero-content{
   position:relative;
   z-index:2;
-  max-width:1250px;
-  width:100%;
-  margin:auto;
-  padding:90px 22px;
+  max-width:900px;
 }
 
-.eyebrow{
-  color:var(--red2);
-  font-family:Orbitron;
-  font-size:12px;
-  font-weight:700;
-  letter-spacing:4px;
-  margin-bottom:18px;
-}
-
-.hero h1{
-  max-width:780px;
-  font-family:Orbitron;
-  font-size:clamp(42px,7vw,88px);
-  line-height:.98;
-  letter-spacing:-3px;
-  text-transform:uppercase;
-}
-
-.hero h1 span{
-  color:var(--red);
-  text-shadow:0 0 35px rgba(229,9,47,.35);
-}
-
-.hero-copy{
-  max-width:620px;
-  color:var(--muted);
-  line-height:1.8;
-  font-size:16px;
-  margin:25px 0 32px;
-}
-
-.hero-buttons{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-}
-
-.btn{
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.05);
-  color:white;
-  padding:14px 21px;
-  border-radius:11px;
-  text-decoration:none;
-  cursor:pointer;
-  font-family:Montserrat;
-  font-weight:800;
-  font-size:12px;
-  letter-spacing:.5px;
-  transition:.2s;
-}
-
-.btn:hover{
-  transform:translateY(-2px);
-  border-color:rgba(255,255,255,.2);
-}
-
-.btn.primary{
-  background:var(--red);
-  border-color:var(--red);
-  box-shadow:0 10px 35px rgba(229,9,47,.22);
-}
-
-.btn.primary:hover{
-  background:var(--red2);
-}
-
-/* WAVE */
-
-.wave{
-  position:absolute;
-  right:5%;
-  bottom:55px;
-  width:310px;
-  height:120px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:5px;
-  opacity:.6;
-  z-index:3;
-}
-
-.wave i{
-  display:block;
-  width:4px;
-  height:30px;
-  border-radius:10px;
-  background:var(--red);
-  animation:wave 1.1s ease-in-out infinite;
-}
-
-.wave i:nth-child(2){animation-delay:.1s}
-.wave i:nth-child(3){animation-delay:.2s}
-.wave i:nth-child(4){animation-delay:.3s}
-.wave i:nth-child(5){animation-delay:.4s}
-.wave i:nth-child(6){animation-delay:.5s}
-.wave i:nth-child(7){animation-delay:.6s}
-.wave i:nth-child(8){animation-delay:.7s}
-.wave i:nth-child(9){animation-delay:.8s}
-.wave i:nth-child(10){animation-delay:.9s}
-.wave i:nth-child(11){animation-delay:1s}
-
-@keyframes wave{
-  0%,100%{height:20px}
-  50%{height:90px}
-}
-
-/* CONTENT */
-
-.wrap{
-  max-width:1250px;
-  margin:auto;
-  padding:70px 22px;
-}
-
-.section{
-  margin-bottom:78px;
-}
-
-.section-head{
-  display:flex;
-  align-items:end;
-  justify-content:space-between;
-  gap:20px;
-  margin-bottom:24px;
-}
-
-.section-title{
-  font-family:Orbitron;
-  font-size:24px;
-  letter-spacing:1px;
-}
-
-.section-subtitle{
-  color:var(--muted);
-  font-size:13px;
-  margin-top:7px;
-}
-
-/* FEATURED */
-
-.featured{
-  display:grid;
-  grid-template-columns:1.05fr 1fr;
-  min-height:390px;
-  overflow:hidden;
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  background:linear-gradient(135deg,#111824,#090c12);
-  box-shadow:var(--shadow);
-}
-
-.featured-art{
-  position:relative;
-  min-height:390px;
-  overflow:hidden;
-  background:
-    radial-gradient(circle at 30% 35%,rgba(229,9,47,.6),transparent 28%),
-    linear-gradient(135deg,#171d28,#05070b);
-  display:grid;
-  place-items:center;
-}
-
-.featured-art::before{
-  content:"CR";
-  font-family:Orbitron;
-  font-size:150px;
-  font-weight:800;
-  color:transparent;
-  -webkit-text-stroke:1px rgba(255,255,255,.16);
-}
-
-.featured-art::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:repeating-linear-gradient(
-    0deg,
-    transparent 0,
-    transparent 3px,
-    rgba(255,255,255,.025) 4px
-  );
-}
-
-.featured-content{
-  padding:48px;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-}
-
-.tag{
-  display:inline-flex;
-  width:max-content;
-  padding:7px 10px;
-  border:1px solid rgba(229,9,47,.4);
-  color:var(--red2);
-  border-radius:7px;
-  font-size:9px;
-  font-weight:800;
-  letter-spacing:2px;
-  margin-bottom:17px;
-}
-
-.featured-content h2{
-  font-family:Orbitron;
-  font-size:clamp(28px,4vw,48px);
-  margin-bottom:14px;
-}
-
-.featured-content p{
-  color:var(--muted);
-  line-height:1.7;
-  font-size:14px;
-  max-width:550px;
-  margin-bottom:24px;
-}
-
-/* PODCAST CARDS */
-
-.podcast-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:18px;
-}
-
-.podcast-card{
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:15px;
-  overflow:hidden;
-  cursor:pointer;
-  transition:.25s;
-}
-
-.podcast-card:hover{
-  transform:translateY(-5px);
-  border-color:rgba(229,9,47,.35);
-  box-shadow:0 18px 40px rgba(0,0,0,.3);
-}
-
-.art{
-  aspect-ratio:1/1;
-  position:relative;
-  display:grid;
-  place-items:center;
-  background:
-    radial-gradient(circle at 50% 35%,rgba(229,9,47,.35),transparent 35%),
-    linear-gradient(145deg,#17202e,#080a0f);
-}
-
-.art::before{
-  content:"";
-  width:80px;
-  height:80px;
-  border:2px solid rgba(255,255,255,.15);
-  transform:rotate(45deg);
-}
-
-.art span{
-  position:absolute;
-  font-family:Orbitron;
-  font-size:25px;
-  font-weight:800;
-}
-
-.card-body{
-  padding:17px;
-}
-
-.card-category{
-  color:var(--red2);
-  font-size:9px;
-  font-weight:800;
-  letter-spacing:1.5px;
-  text-transform:uppercase;
-  margin-bottom:8px;
-}
-
-.card-title{
-  font-family:Orbitron;
-  font-size:15px;
-  margin-bottom:8px;
-}
-
-.card-description{
-  color:var(--muted);
-  font-size:11px;
-  line-height:1.6;
-  min-height:35px;
-}
-
-.card-play{
-  width:100%;
-  margin-top:15px;
-  padding:10px;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.04);
-  color:white;
-  border-radius:8px;
-  cursor:pointer;
-  font-size:11px;
-  font-weight:800;
-}
-
-.card-play:hover{
-  background:var(--red);
-  border-color:var(--red);
-}
-
-/* CATEGORIES */
-
-.categories{
-  display:grid;
-  grid-template-columns:repeat(6,1fr);
-  gap:10px;
-}
-
-.category{
-  border:1px solid var(--line);
-  background:var(--panel);
-  border-radius:12px;
-  padding:22px 12px;
-  text-align:center;
-  cursor:pointer;
-  transition:.2s;
-}
-
-.category:hover,
-.category.active{
-  border-color:var(--red);
-  background:rgba(229,9,47,.08);
-}
-
-.category-icon{
-  font-size:25px;
-  margin-bottom:10px;
-}
-
-.category-name{
-  font-size:10px;
-  font-weight:800;
-  text-transform:uppercase;
-  letter-spacing:.7px;
-}
-
-/* EPISODES */
-
-.episode-list{
-  display:grid;
-  gap:10px;
-}
-
-.episode{
-  display:grid;
-  grid-template-columns:70px 1fr auto;
-  align-items:center;
-  gap:18px;
-  padding:14px;
-  border:1px solid var(--line);
-  background:var(--panel);
-  border-radius:13px;
-  transition:.2s;
-}
-
-.episode:hover{
-  background:var(--panel2);
-  border-color:rgba(255,255,255,.14);
-}
-
-.episode-art{
-  width:70px;
-  height:70px;
-  border-radius:10px;
-  display:grid;
-  place-items:center;
-  background:
-    radial-gradient(circle,rgba(229,9,47,.35),transparent 55%),
-    #111721;
-  font-family:Orbitron;
-  font-weight:800;
-}
-
-.episode-info h3{
-  font-family:Orbitron;
-  font-size:14px;
-  margin-bottom:7px;
-}
-
-.episode-info p{
-  color:var(--muted);
-  font-size:11px;
-}
-
-.episode-meta{
-  color:var(--muted);
-  font-size:10px;
-  margin-top:8px;
-}
-
-.play-small{
-  width:42px;
-  height:42px;
-  border-radius:50%;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.04);
-  color:white;
-  cursor:pointer;
-  font-size:15px;
-}
-
-.play-small:hover{
-  background:var(--red);
-  border-color:var(--red);
-}
-
-/* SEARCH */
-
-.search-box{
-  position:relative;
-  max-width:430px;
-}
-
-.search-box input{
-  width:100%;
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:11px;
-  padding:14px 15px;
-  color:white;
-  outline:none;
-  font-family:Montserrat;
-}
-
-.search-box input:focus{
-  border-color:rgba(229,9,47,.6);
-}
-
-/* LIVE */
-
-.live{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  overflow:hidden;
-  background:var(--panel);
-}
-
-.live-content{
-  padding:42px;
-}
-
-.live-badge{
+.hero-kicker{
   display:inline-flex;
   align-items:center;
-  gap:8px;
-  color:var(--red2);
+  gap:10px;
+  border:1px solid rgba(0,229,255,.2);
+  background:rgba(0,229,255,.04);
+  padding:8px 12px;
+  border-radius:999px;
+  color:var(--cyan);
   font-size:10px;
   font-weight:800;
-  letter-spacing:2px;
-  margin-bottom:15px;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  margin-bottom:25px;
 }
 
 .live-dot{
   width:8px;
   height:8px;
   border-radius:50%;
-  background:var(--red);
-  box-shadow:0 0 15px var(--red);
-  animation:blink 1s infinite;
+  background:#ff405e;
+  box-shadow:0 0 15px #ff405e;
+  animation:livePulse 1.2s infinite;
 }
 
-@keyframes blink{
-  50%{opacity:.3}
+@keyframes livePulse{
+  50%{
+    opacity:.35;
+    transform:scale(.65);
+  }
 }
 
-.live h2{
-  font-family:Orbitron;
-  font-size:30px;
-  margin-bottom:12px;
+.hero h1{
+  font-family:Orbitron,sans-serif;
+  font-size:clamp(48px,8vw,105px);
+  line-height:.92;
+  letter-spacing:-4px;
+  margin:0;
+  max-width:1000px;
 }
 
-.live p{
+.hero h1 span{
+  color:var(--cyan);
+  text-shadow:0 0 45px rgba(0,229,255,.3);
+}
+
+.hero p{
+  max-width:700px;
+  color:#9aa5b4;
+  font-size:18px;
+  line-height:1.8;
+  margin:30px 0;
+}
+
+.hero-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+.hero-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:25px;
+  margin-top:45px;
+}
+
+.hero-meta-item{
+  border-left:2px solid var(--cyan);
+  padding-left:12px;
+}
+
+.hero-meta-item strong{
+  display:block;
+  font-family:Orbitron,sans-serif;
+  font-size:20px;
+}
+
+.hero-meta-item small{
   color:var(--muted);
-  font-size:13px;
-  line-height:1.7;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:2px;
 }
 
-.live-visual{
-  min-height:280px;
+/* ============================================================
+   FEATURED
+============================================================ */
+
+.featured-card{
+  display:grid;
+  grid-template-columns:1.2fr .8fr;
+  min-height:460px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:30px;
+  background:
+    linear-gradient(120deg,rgba(0,229,255,.06),rgba(155,92,255,.04)),
+    var(--panel);
+  box-shadow:var(--shadow);
+}
+
+.featured-art{
+  position:relative;
+  min-height:460px;
+  background:
+    radial-gradient(circle at 30% 30%,rgba(0,229,255,.25),transparent 30%),
+    linear-gradient(135deg,#0c1a23,#090b12 65%);
+  display:flex;
+  align-items:end;
+  padding:40px;
+  overflow:hidden;
+}
+
+.featured-art::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(135deg,transparent 40%,rgba(0,229,255,.08)),
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0 14px,
+      rgba(255,255,255,.025) 15px 16px
+    );
+}
+
+.featured-art-content{
+  position:relative;
+  z-index:2;
+}
+
+.featured-art-label{
+  color:var(--cyan);
+  font-family:Orbitron,sans-serif;
+  letter-spacing:3px;
+  font-size:10px;
+}
+
+.featured-art-title{
+  font-family:Orbitron,sans-serif;
+  font-size:clamp(35px,5vw,65px);
+  margin-top:10px;
+}
+
+.featured-info{
+  padding:55px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:18px;
+}
+
+.badge{
+  padding:6px 9px;
+  border-radius:7px;
+  background:rgba(255,255,255,.06);
+  border:1px solid var(--line);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+
+.badge.cyan{
+  color:var(--cyan);
+  border-color:rgba(0,229,255,.25);
+}
+
+.badge.green{
+  color:var(--green);
+}
+
+.badge.purple{
+  color:#c09bff;
+}
+
+.featured-info h3{
+  font-family:Orbitron,sans-serif;
+  font-size:35px;
+  margin:0 0 15px;
+}
+
+.featured-info p{
+  color:var(--muted);
+  line-height:1.8;
+}
+
+.featured-meta{
+  color:#7f8998;
+  font-size:12px;
+  margin:20px 0;
+}
+
+/* ============================================================
+   SEARCH / FILTER
+============================================================ */
+
+.library-toolbar{
+  display:flex;
+  justify-content:space-between;
+  gap:15px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:30px;
+}
+
+.search-box{
+  position:relative;
+  flex:1;
+  min-width:260px;
+}
+
+.search-box input{
+  width:100%;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px 16px 14px 42px;
+  color:white;
+  outline:none;
+}
+
+.search-box input:focus{
+  border-color:rgba(0,229,255,.5);
+  box-shadow:0 0 0 3px rgba(0,229,255,.06);
+}
+
+.search-icon{
+  position:absolute;
+  left:15px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#6d7887;
+}
+
+.filters{
+  display:flex;
+  gap:7px;
+  overflow:auto;
+  max-width:100%;
+  padding-bottom:3px;
+}
+
+.filter-btn{
+  white-space:nowrap;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.025);
+  color:#919baa;
+  border-radius:999px;
+  padding:10px 14px;
+  font-size:11px;
+  font-weight:800;
+}
+
+.filter-btn:hover,
+.filter-btn.active{
+  color:var(--cyan);
+  border-color:rgba(0,229,255,.35);
+  background:rgba(0,229,255,.07);
+}
+
+/* ============================================================
+   EPISODES
+============================================================ */
+
+.episode-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+}
+
+.episode-card{
+  border:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015));
+  border-radius:20px;
+  overflow:hidden;
+  transition:.25s ease;
+}
+
+.episode-card:hover{
+  transform:translateY(-5px);
+  border-color:rgba(0,229,255,.22);
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
+}
+
+.episode-art{
+  aspect-ratio:16/9;
+  position:relative;
+  background:
+    radial-gradient(circle at 50% 50%,rgba(0,229,255,.12),transparent 50%),
+    #0b1017;
+  overflow:hidden;
+}
+
+.episode-art img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.episode-placeholder{
+  height:100%;
   display:grid;
   place-items:center;
+  font-family:Orbitron,sans-serif;
+  font-size:25px;
+  color:rgba(0,229,255,.7);
   background:
-    radial-gradient(circle,rgba(229,9,47,.2),transparent 30%),
-    #080b11;
+    linear-gradient(135deg,transparent,rgba(0,229,255,.06)),
+    repeating-linear-gradient(
+      45deg,
+      transparent 0 12px,
+      rgba(255,255,255,.025) 13px 14px
+    );
 }
 
-.live-visual span{
-  font-family:Orbitron;
-  font-size:70px;
-  color:transparent;
-  -webkit-text-stroke:1px rgba(255,255,255,.2);
+.episode-number{
+  position:absolute;
+  left:12px;
+  top:12px;
+  padding:6px 8px;
+  background:rgba(0,0,0,.7);
+  backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:7px;
+  font-size:9px;
+  font-weight:900;
 }
 
-/* CTA */
+.play-overlay{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  background:rgba(0,0,0,.25);
+  opacity:0;
+  transition:.2s ease;
+}
 
-.cta{
-  padding:70px 30px;
+.episode-card:hover .play-overlay{
+  opacity:1;
+}
+
+.play-button{
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  border:none;
+  background:var(--cyan);
+  color:#001016;
+  display:grid;
+  place-items:center;
+  font-size:19px;
+  box-shadow:0 0 35px rgba(0,229,255,.35);
+}
+
+.episode-body{
+  padding:20px;
+}
+
+.episode-show{
+  color:var(--cyan);
+  font-size:9px;
+  letter-spacing:2px;
+  font-weight:900;
+  text-transform:uppercase;
+}
+
+.episode-title{
+  font-family:Orbitron,sans-serif;
+  font-size:17px;
+  margin:8px 0;
+  line-height:1.3;
+}
+
+.episode-description{
+  color:#7f8997;
+  font-size:12px;
+  line-height:1.7;
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+.episode-footer{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+  margin-top:18px;
+  padding-top:15px;
+  border-top:1px solid var(--line);
+}
+
+.episode-date,
+.episode-duration{
+  color:#687384;
+  font-size:10px;
+}
+
+.empty-state{
+  grid-column:1/-1;
   text-align:center;
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  background:
-    radial-gradient(circle at center,rgba(229,9,47,.12),transparent 45%),
-    var(--panel);
+  border:1px dashed var(--line);
+  padding:70px 20px;
+  border-radius:20px;
+  color:var(--muted);
 }
 
-.cta h2{
-  font-family:Orbitron;
-  font-size:clamp(25px,4vw,42px);
+/* ============================================================
+   PODCASTERS
+============================================================ */
+
+.podcaster-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:18px;
+}
+
+.podcaster-card{
+  position:relative;
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:var(--panel);
+  border-radius:20px;
+  padding:25px;
+  transition:.25s ease;
+}
+
+.podcaster-card:hover{
+  transform:translateY(-5px);
+  border-color:rgba(0,229,255,.25);
+}
+
+.podcaster-avatar{
+  width:85px;
+  height:85px;
+  border-radius:50%;
+  overflow:hidden;
+  border:2px solid rgba(0,229,255,.35);
+  background:#111822;
+  margin-bottom:18px;
+}
+
+.podcaster-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.podcaster-avatar-placeholder{
+  height:100%;
+  display:grid;
+  place-items:center;
+  font-family:Orbitron,sans-serif;
+  color:var(--cyan);
+  font-size:20px;
+}
+
+.podcaster-card h3{
+  font-family:Orbitron,sans-serif;
+  font-size:17px;
+  margin:0 0 8px;
+}
+
+.verified{
+  color:var(--cyan);
+  font-size:11px;
+}
+
+.podcaster-location{
+  color:#657080;
+  font-size:10px;
   margin-bottom:15px;
 }
 
-.cta p{
-  color:var(--muted);
-  max-width:600px;
-  margin:0 auto 25px;
+.podcaster-bio{
+  color:#858f9e;
+  font-size:12px;
   line-height:1.7;
 }
 
-/* PLAYER */
-
-.player{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-  z-index:500;
-  min-height:82px;
-  background:rgba(8,10,15,.96);
-  border-top:1px solid var(--line);
-  backdrop-filter:blur(20px);
-  box-shadow:0 -15px 50px rgba(0,0,0,.4);
+.specialties{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:15px;
 }
 
-.player-inner{
-  max-width:1250px;
-  margin:auto;
-  padding:12px 22px;
+.specialties span{
+  font-size:9px;
+  padding:5px 7px;
+  border-radius:6px;
+  background:rgba(0,229,255,.05);
+  color:#76dce7;
+}
+
+/* ============================================================
+   LIVE
+============================================================ */
+
+.live-section{
+  background:
+    radial-gradient(circle at 20% 50%,rgba(255,60,172,.07),transparent 30%),
+    radial-gradient(circle at 80% 50%,rgba(0,229,255,.07),transparent 30%);
+}
+
+.live-card{
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:28px;
+  padding:45px;
+  background:rgba(255,255,255,.025);
   display:grid;
-  grid-template-columns:280px 1fr 160px;
+  grid-template-columns:1fr 300px;
+  gap:40px;
   align-items:center;
-  gap:22px;
 }
 
-.now{
+.live-card h2{
+  font-family:Orbitron,sans-serif;
+  font-size:38px;
+  margin:0 0 15px;
+}
+
+.live-card p{
+  color:var(--muted);
+  line-height:1.8;
+}
+
+.live-status{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  color:#ff6178;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:15px;
+}
+
+.live-visual{
+  aspect-ratio:1;
+  border-radius:25px;
+  border:1px solid rgba(0,229,255,.2);
+  display:grid;
+  place-items:center;
+  background:
+    radial-gradient(circle,rgba(0,229,255,.15),transparent 60%),
+    #080d14;
+  position:relative;
+  overflow:hidden;
+}
+
+.live-visual::after{
+  content:"";
+  width:150px;
+  height:150px;
+  border-radius:50%;
+  border:1px solid rgba(0,229,255,.25);
+  box-shadow:
+    0 0 0 30px rgba(0,229,255,.025),
+    0 0 0 60px rgba(0,229,255,.018);
+  animation:radar 2.5s ease-out infinite;
+}
+
+@keyframes radar{
+  from{
+    transform:scale(.7);
+    opacity:1;
+  }
+  to{
+    transform:scale(1.6);
+    opacity:0;
+  }
+}
+
+/* ============================================================
+   JOIN
+============================================================ */
+
+.join-section{
+  background:
+    linear-gradient(135deg,rgba(0,229,255,.06),rgba(155,92,255,.06));
+}
+
+.join-layout{
+  display:grid;
+  grid-template-columns:.8fr 1.2fr;
+  gap:50px;
+  align-items:start;
+}
+
+.join-copy h2{
+  font-family:Orbitron,sans-serif;
+  font-size:clamp(35px,5vw,62px);
+  line-height:1;
+  margin:0;
+}
+
+.join-copy p{
+  color:var(--muted);
+  line-height:1.8;
+}
+
+.join-list{
+  list-style:none;
+  padding:0;
+  margin:30px 0 0;
+}
+
+.join-list li{
+  display:flex;
+  gap:12px;
+  color:#adb6c2;
+  margin:15px 0;
+  line-height:1.5;
+}
+
+.join-list li::before{
+  content:"✓";
+  color:var(--cyan);
+  font-weight:900;
+}
+
+.form-card{
+  border:1px solid var(--line);
+  background:rgba(5,7,11,.65);
+  border-radius:25px;
+  padding:30px;
+  box-shadow:var(--shadow);
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+}
+
+.field{
+  margin-bottom:15px;
+}
+
+.field.full{
+  grid-column:1/-1;
+}
+
+.field label{
+  display:block;
+  color:#b4bdc9;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+
+.field input,
+.field textarea,
+.field select{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:13px 14px;
+  color:white;
+  background:#090d14;
+  outline:none;
+}
+
+.field textarea{
+  min-height:130px;
+  resize:vertical;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus{
+  border-color:rgba(0,229,255,.45);
+  box-shadow:0 0 0 3px rgba(0,229,255,.05);
+}
+
+.form-message{
+  margin-top:15px;
+  padding:12px 14px;
+  border-radius:10px;
+  font-size:12px;
+  display:none;
+}
+
+.form-message.success{
+  display:block;
+  color:#6ff6c5;
+  background:rgba(0,245,160,.06);
+  border:1px solid rgba(0,245,160,.2);
+}
+
+.form-message.error{
+  display:block;
+  color:#ff8395;
+  background:rgba(255,77,103,.06);
+  border:1px solid rgba(255,77,103,.2);
+}
+
+/* ============================================================
+   UPLOAD
+============================================================ */
+
+.admin-section{
+  display:none;
+  background:#070a10;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+
+.admin-section.visible{
+  display:block;
+}
+
+.admin-panel{
+  border:1px solid rgba(0,229,255,.15);
+  border-radius:25px;
+  padding:30px;
+  background:rgba(0,229,255,.025);
+}
+
+.admin-header{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+  margin-bottom:25px;
+}
+
+.admin-header h2{
+  font-family:Orbitron,sans-serif;
+  margin:0;
+}
+
+.upload-drop{
+  border:1px dashed rgba(0,229,255,.3);
+  border-radius:18px;
+  padding:35px;
+  text-align:center;
+  background:rgba(0,229,255,.025);
+  transition:.2s ease;
+}
+
+.upload-drop.dragover{
+  border-color:var(--cyan);
+  background:rgba(0,229,255,.07);
+}
+
+.upload-drop strong{
+  display:block;
+  margin-bottom:8px;
+}
+
+.upload-drop span{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.file-info{
+  margin-top:12px;
+  color:var(--cyan);
+  font-size:11px;
+}
+
+.progress{
+  height:8px;
+  border-radius:999px;
+  background:#151c27;
+  overflow:hidden;
+  margin-top:15px;
+  display:none;
+}
+
+.progress-bar{
+  height:100%;
+  width:0;
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  transition:width .2s ease;
+}
+
+.admin-status{
+  margin-top:15px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+/* ============================================================
+   FOOTER
+============================================================ */
+
+footer{
+  padding:60px 0 130px;
+  border-top:1px solid var(--line);
+  background:#030508;
+}
+
+.footer-grid{
+  display:grid;
+  grid-template-columns:1.5fr repeat(3,1fr);
+  gap:40px;
+}
+
+.footer-brand{
+  max-width:400px;
+}
+
+.footer-brand h3{
+  font-family:Orbitron,sans-serif;
+  margin:0 0 15px;
+}
+
+.footer-brand p{
+  color:#687382;
+  line-height:1.8;
+  font-size:12px;
+}
+
+.footer-col h4{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:2px;
+  color:white;
+}
+
+.footer-col a{
+  display:block;
+  color:#6f7988;
+  font-size:12px;
+  margin:11px 0;
+}
+
+.footer-col a:hover{
+  color:var(--cyan);
+}
+
+.footer-bottom{
+  border-top:1px solid var(--line);
+  margin-top:45px;
+  padding-top:25px;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  color:#515b69;
+  font-size:10px;
+}
+
+/* ============================================================
+   AUDIO PLAYER
+============================================================ */
+
+.audio-player{
+  position:fixed;
+  z-index:5000;
+  bottom:15px;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(1100px,calc(100% - 30px));
+  border:1px solid rgba(0,229,255,.18);
+  border-radius:18px;
+  background:rgba(7,11,17,.92);
+  backdrop-filter:blur(20px);
+  box-shadow:0 20px 70px rgba(0,0,0,.55);
+  padding:12px 15px;
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:15px;
+}
+
+.player-info{
   min-width:0;
 }
 
-.now-label{
-  color:var(--red2);
-  font-size:8px;
-  font-weight:800;
-  letter-spacing:2px;
-  margin-bottom:4px;
-}
-
-.now-title{
-  font-family:Orbitron;
+.player-title{
   font-size:12px;
+  font-weight:800;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
 }
 
-.now-show{
-  color:var(--muted);
+.player-show{
+  color:var(--cyan);
   font-size:9px;
   margin-top:3px;
+  text-transform:uppercase;
+  letter-spacing:1px;
 }
 
-.controls{
+.player-controls{
   display:flex;
   align-items:center;
-  justify-content:center;
-  gap:12px;
+  gap:8px;
 }
 
-.control{
-  border:0;
-  background:transparent;
-  color:white;
-  cursor:pointer;
-  font-size:15px;
-}
-
-.control.main{
-  width:43px;
-  height:43px;
+.player-btn{
+  width:38px;
+  height:38px;
   border-radius:50%;
-  background:var(--red);
+  border:1px solid var(--line);
+  color:white;
+  background:rgba(255,255,255,.04);
 }
 
-.progress-wrap{
+.player-btn.main{
+  background:var(--cyan);
+  color:#001016;
+  border:none;
+}
+
+.player-progress{
   position:absolute;
-  left:0;
-  right:0;
-  top:-3px;
+  left:15px;
+  right:15px;
+  bottom:-4px;
   height:3px;
-  background:rgba(255,255,255,.08);
-  cursor:pointer;
+  background:#151b25;
+  border-radius:999px;
+  overflow:hidden;
 }
 
-.progress{
-  width:0%;
+.player-progress-bar{
+  width:0;
   height:100%;
-  background:var(--red);
+  background:var(--cyan);
 }
 
-.time{
-  display:flex;
-  justify-content:flex-end;
-  color:var(--muted);
-  font-size:10px;
-}
-
-audio{
+.audio-player audio{
   display:none;
 }
 
-/* FOOTER */
+/* ============================================================
+   TOAST
+============================================================ */
 
-footer{
-  border-top:1px solid var(--line);
-  padding:45px 22px;
-  text-align:center;
-  color:var(--muted);
+.toast{
+  position:fixed;
+  z-index:10000;
+  right:20px;
+  top:90px;
+  width:min(380px,calc(100% - 40px));
+  border:1px solid var(--line);
+  background:#0b1119;
+  border-radius:15px;
+  padding:15px;
+  box-shadow:var(--shadow);
+  transform:translateX(130%);
+  transition:.3s ease;
+}
+
+.toast.show{
+  transform:none;
+}
+
+.toast-title{
+  font-weight:900;
+  font-size:12px;
+}
+
+.toast-message{
+  color:#85909f;
   font-size:11px;
+  line-height:1.5;
+  margin-top:5px;
 }
 
-footer strong{
-  color:white;
-  font-family:Orbitron;
+/* ============================================================
+   LOADING
+============================================================ */
+
+.loading{
+  display:grid;
+  place-items:center;
+  min-height:180px;
+  color:#697484;
 }
 
-/* RESPONSIVE */
+.spinner{
+  width:35px;
+  height:35px;
+  border:2px solid rgba(255,255,255,.08);
+  border-top-color:var(--cyan);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
 
-@media(max-width:1000px){
-  .podcast-grid{
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media(max-width:1100px){
+
+  .episode-grid{
     grid-template-columns:repeat(2,1fr);
   }
 
-  .categories{
-    grid-template-columns:repeat(3,1fr);
+  .podcaster-grid{
+    grid-template-columns:repeat(2,1fr);
   }
 
-  .featured,
-  .live{
-    grid-template-columns:1fr;
+  .footer-grid{
+    grid-template-columns:1fr 1fr;
   }
 
-  .featured-art{
-    min-height:280px;
-  }
-
-  .wave{
-    display:none;
-  }
-
-  .player-inner{
-    grid-template-columns:1fr auto;
-  }
-
-  .time{
-    display:none;
-  }
 }
 
-@media(max-width:700px){
+@media(max-width:850px){
+
   .nav-links{
-    display:none;
     position:absolute;
-    left:15px;
-    right:15px;
-    top:65px;
+    left:20px;
+    right:20px;
+    top:70px;
     padding:10px;
+    border:1px solid var(--line);
+    border-radius:15px;
+    background:rgba(5,7,11,.97);
+    display:none;
     flex-direction:column;
     align-items:stretch;
-    background:#090c12;
-    border:1px solid var(--line);
-    border-radius:12px;
   }
 
   .nav-links.open{
     display:flex;
   }
 
-  .menu-btn{
-    display:block;
+  .nav-links a{
+    padding:13px;
+  }
+
+  .mobile-toggle{
+    display:grid;
+    place-items:center;
+  }
+
+  .nav-actions .btn{
+    display:none;
+  }
+
+  .featured-card{
+    grid-template-columns:1fr;
+  }
+
+  .featured-art{
+    min-height:350px;
+  }
+
+  .join-layout{
+    grid-template-columns:1fr;
+  }
+
+  .live-card{
+    grid-template-columns:1fr;
+  }
+
+  .live-visual{
+    max-width:300px;
+  }
+
+}
+
+@media(max-width:650px){
+
+  .container{
+    width:min(var(--max),calc(100% - 25px));
+  }
+
+  .section{
+    padding:70px 0;
   }
 
   .hero{
-    min-height:560px;
+    min-height:680px;
   }
 
   .hero h1{
     letter-spacing:-2px;
   }
 
-  .featured-content{
-    padding:28px;
+  .hero p{
+    font-size:15px;
   }
 
-  .podcast-grid{
-    grid-template-columns:1fr 1fr;
-  }
-
-  .categories{
-    grid-template-columns:repeat(2,1fr);
-  }
-
-  .episode{
-    grid-template-columns:55px 1fr auto;
-  }
-
-  .episode-art{
-    width:55px;
-    height:55px;
-  }
-
-  .episode-info p{
-    display:none;
-  }
-
-  .player-inner{
-    padding:11px 15px;
-    grid-template-columns:1fr auto;
-  }
-
-  .controls{
-    gap:7px;
-  }
-
-  .control:not(.main){
-    display:none;
-  }
-}
-
-@media(max-width:430px){
-  .podcast-grid{
+  .episode-grid,
+  .podcaster-grid{
     grid-template-columns:1fr;
   }
 
-  .hero-buttons .btn{
-    width:100%;
-    text-align:center;
+  .form-grid{
+    grid-template-columns:1fr;
   }
 
-  .section-head{
-    align-items:stretch;
+  .field.full{
+    grid-column:auto;
+  }
+
+  .featured-info{
+    padding:30px;
+  }
+
+  .live-card{
+    padding:28px;
+  }
+
+  .live-card h2{
+    font-size:28px;
+  }
+
+  .footer-grid{
+    grid-template-columns:1fr;
+  }
+
+  .footer-bottom{
     flex-direction:column;
   }
 
-  .search-box{
-    max-width:none;
+  .audio-player{
+    grid-template-columns:1fr auto;
   }
+
+  .intro-corner{
+    width:45px;
+    height:45px;
+  }
+
+  .intro-title{
+    font-size:clamp(35px,11vw,65px);
+  }
+
+}
+
+/* Reduced motion */
+@media(prefers-reduced-motion:reduce){
+
+  *,
+  *::before,
+  *::after{
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    scroll-behavior:auto!important;
+    transition:none!important;
+  }
+
 }
 </style>
 </head>
 
-<body>
+<body class="intro-lock">
 
-<!-- NAV -->
-<nav class="nav">
-  <div class="nav-inner">
+<!-- ==========================================================
+     CINEMATIC INTRO
+========================================================== -->
 
-    <a href="#" class="brand">
-      <div class="brand-mark">
-        <span>CR</span>
-      </div>
+<div class="cinematic-intro" id="cinematicIntro">
 
-      <div class="brand-text">
-        CROWRULES
-        <small>PODCASTING</small>
-      </div>
-    </a>
+  <div class="intro-grid"></div>
+  <div class="intro-glow"></div>
+  <div class="intro-scanlines"></div>
+  <div class="intro-noise"></div>
 
-    <div class="nav-links" id="navLinks">
-      <a href="#home" class="active">Home</a>
-      <a href="#shows">Shows</a>
-      <a href="#episodes">Episodes</a>
-      <a href="#live">Live</a>
-      <a href="#about">About</a>
+  <div class="intro-corner tl"></div>
+  <div class="intro-corner tr"></div>
+  <div class="intro-corner bl"></div>
+  <div class="intro-corner br"></div>
+
+  <div class="intro-content">
+
+    <div class="intro-logo">
+      <span>CR</span>
     </div>
 
-    <button class="menu-btn" id="menuBtn">☰</button>
+    <div class="intro-network">
+      CROWRULES PODCASTING NETWORK
+    </div>
 
-  </div>
-</nav>
-
-<!-- HERO -->
-<header class="hero" id="home">
-
-  <div class="hero-inner">
-
-    <div class="eyebrow">CROWRULES ENTERTAINMENT</div>
-
-    <h1>
-      Hear Something<br>
-      <span>Different.</span>
+    <h1 class="intro-title">
+      WELCOME TO<br>
+      THE <span class="cyan">FUTURE</span> OF<br>
+      PODCASTING.
     </h1>
 
-    <p class="hero-copy">
-      Welcome to CrowRules Podcasting — an independent audio network
-      built around original conversations, stories, entertainment,
-      mysteries, audio drama, sports, gaming and the voices behind
-      CrowRules Entertainment.
+    <p class="intro-tagline">
+      Independent voices. Original stories. Real conversations.
+      Welcome to a different kind of podcast network.
     </p>
 
-    <div class="hero-buttons">
-      <a href="#episodes" class="btn primary">▶ LISTEN NOW</a>
-      <a href="#shows" class="btn">EXPLORE SHOWS</a>
+    <div class="intro-wave" aria-hidden="true">
+      <i></i><i></i><i></i><i></i><i></i>
+      <i></i><i></i><i></i><i></i>
     </div>
 
-  </div>
-
-  <div class="wave" aria-hidden="true">
-    <i></i><i></i><i></i><i></i><i></i>
-    <i></i><i></i><i></i><i></i><i></i><i></i>
-  </div>
-
-</header>
-
-<main class="wrap">
-
-  <!-- FEATURED -->
-  <section class="section">
-
-    <div class="section-head">
-      <div>
-        <h2 class="section-title">Featured</h2>
-        <p class="section-subtitle">
-          The latest from the CrowRules Podcasting network.
-        </p>
-      </div>
-    </div>
-
-    <article class="featured">
-
-      <div class="featured-art">
-        <span></span>
-      </div>
-
-      <div class="featured-content">
-
-        <span class="tag">CROWRULES ORIGINAL</span>
-
-        <h2>Tacoma Nights</h2>
-
-        <p>
-          Real conversations. Tacoma stories. Entertainment,
-          mysteries, sports, life and the journey behind
-          CrowRules Entertainment.
-        </p>
-
-        <button
-          class="btn primary"
-          onclick="playEpisode(
-            'Tacoma Nights — The Beginning',
-            'Tacoma Nights'
-          )">
-          ▶ PLAY LATEST
-        </button>
-
-      </div>
-
-    </article>
-
-  </section>
-
-  <!-- SHOWS -->
-  <section class="section" id="shows">
-
-    <div class="section-head">
-      <div>
-        <h2 class="section-title">Original Shows</h2>
-        <p class="section-subtitle">
-          Explore the CrowRules Podcasting universe.
-        </p>
-      </div>
-    </div>
-
-    <div class="podcast-grid">
-
-      <article class="podcast-card"
-               data-category="talk"
-               onclick="playEpisode('Tacoma Nights — Episode 1','Tacoma Nights')">
-
-        <div class="art">
-          <span>TN</span>
-        </div>
-
-        <div class="card-body">
-          <div class="card-category">Talk</div>
-          <div class="card-title">Tacoma Nights</div>
-          <div class="card-description">
-            Conversations about Tacoma, life, entertainment and CrowRules.
-          </div>
-
-          <button class="card-play"
-                  onclick="event.stopPropagation();playEpisode('Tacoma Nights — Episode 1','Tacoma Nights')">
-            ▶ PLAY
-          </button>
-        </div>
-
-      </article>
-
-
-      <article class="podcast-card"
-               data-category="horror"
-               onclick="playEpisode('Voices From The Void — Trailer','Voices From The Void')">
-
-        <div class="art">
-          <span>VV</span>
-        </div>
-
-        <div class="card-body">
-          <div class="card-category">Horror</div>
-          <div class="card-title">Voices From The Void</div>
-          <div class="card-description">
-            Dark stories from the edges of reality.
-          </div>
-
-          <button class="card-play"
-                  onclick="event.stopPropagation();playEpisode('Voices From The Void — Trailer','Voices From The Void')">
-            ▶ PLAY
-          </button>
-        </div>
-
-      </article>
-
-
-      <article class="podcast-card"
-               data-category="drama"
-               onclick="playEpisode('Echoes of Daniel — Chapter 1','Echoes of Daniel')">
-
-        <div class="art">
-          <span>ED</span>
-        </div>
-
-        <div class="card-body">
-          <div class="card-category">Audio Drama</div>
-          <div class="card-title">Echoes of Daniel</div>
-          <div class="card-description">
-            A serialized story of memory, loss and mystery.
-          </div>
-
-          <button class="card-play"
-                  onclick="event.stopPropagation();playEpisode('Echoes of Daniel — Chapter 1','Echoes of Daniel')">
-            ▶ PLAY
-          </button>
-        </div>
-
-      </article>
-
-
-      <article class="podcast-card"
-               data-category="sports"
-               onclick="playEpisode('CrowRules Sports — Weekly Roundup','CrowRules Sports')">
-
-        <div class="art">
-          <span>CS</span>
-        </div>
-
-        <div class="card-body">
-          <div class="card-category">Sports</div>
-          <div class="card-title">CrowRules Sports</div>
-          <div class="card-description">
-            Sports talk, reactions, stories and commentary.
-          </div>
-
-          <button class="card-play"
-                  onclick="event.stopPropagation();playEpisode('CrowRules Sports — Weekly Roundup','CrowRules Sports')">
-            ▶ PLAY
-          </button>
-        </div>
-
-      </article>
-
-    </div>
-
-  </section>
-
-  <!-- CATEGORIES -->
-  <section class="section">
-
-    <div class="section-head">
-      <div>
-        <h2 class="section-title">Explore</h2>
-        <p class="section-subtitle">
-          Find your next favorite show.
-        </p>
-      </div>
-    </div>
-
-    <div class="categories">
-
-      <div class="category active" data-filter="all">
-        <div class="category-icon">🎙️</div>
-        <div class="category-name">All</div>
-      </div>
-
-      <div class="category" data-filter="talk">
-        <div class="category-icon">💬</div>
-        <div class="category-name">Talk</div>
-      </div>
-
-      <div class="category" data-filter="drama">
-        <div class="category-icon">🎭</div>
-        <div class="category-name">Drama</div>
-      </div>
-
-      <div class="category" data-filter="horror">
-        <div class="category-icon">👁️</div>
-        <div class="category-name">Horror</div>
-      </div>
-
-      <div class="category" data-filter="sports">
-        <div class="category-icon">🏆</div>
-        <div class="category-name">Sports</div>
-      </div>
-
-      <div class="category" data-filter="gaming">
-        <div class="category-icon">🎮</div>
-        <div class="category-name">Gaming</div>
-      </div>
-
-    </div>
-
-  </section>
-
-  <!-- EPISODES -->
-  <section class="section" id="episodes">
-
-    <div class="section-head">
-
-      <div>
-        <h2 class="section-title">Latest Episodes</h2>
-        <p class="section-subtitle">
-          Fresh audio from the network.
-        </p>
-      </div>
-
-      <div class="search-box">
-        <input
-          type="search"
-          id="episodeSearch"
-          placeholder="Search episodes..."
-        >
-      </div>
-
-    </div>
-
-    <div class="episode-list" id="episodeList">
-
-      <article class="episode"
-               data-search="tacoma nights beginning talk">
-
-        <div class="episode-art">TN</div>
-
-        <div class="episode-info">
-          <h3>Tacoma Nights — The Beginning</h3>
-          <p>
-            Why I'm starting Tacoma Nights and where CrowRules
-            Entertainment is going next.
-          </p>
-          <div class="episode-meta">
-            TACOMA NIGHTS • EPISODE 01 • 42 MIN
-          </div>
-        </div>
-
-        <button class="play-small"
-                onclick="playEpisode(
-                  'Tacoma Nights — The Beginning',
-                  'Tacoma Nights'
-                )">
-          ▶
-        </button>
-
-      </article>
-
-
-      <article class="episode"
-               data-search="tacoma nights caregiver burden talk">
-
-        <div class="episode-art">TN</div>
-
-        <div class="episode-info">
-          <h3>Tacoma Nights — The Caregiver's Burden</h3>
-          <p>
-            An honest conversation about responsibility,
-            family and pursuing a dream.
-          </p>
-          <div class="episode-meta">
-            TACOMA NIGHTS • EPISODE 03 • 48 MIN
-          </div>
-        </div>
-
-        <button class="play-small"
-                onclick="playEpisode(
-                  'Tacoma Nights — The Caregiver’s Burden',
-                  'Tacoma Nights'
-                )">
-          ▶
-        </button>
-
-      </article>
-
-
-      <article class="episode"
-               data-search="voices void horror">
-
-        <div class="episode-art">VV</div>
-
-        <div class="episode-info">
-          <h3>Voices From The Void — Trailer</h3>
-          <p>
-            Something is listening.
-          </p>
-          <div class="episode-meta">
-            VOICES FROM THE VOID • TRAILER
-          </div>
-        </div>
-
-        <button class="play-small"
-                onclick="playEpisode(
-                  'Voices From The Void — Trailer',
-                  'Voices From The Void'
-                )">
-          ▶
-        </button>
-
-      </article>
-
-
-      <article class="episode"
-               data-search="crowrules sports sports">
-
-        <div class="episode-art">CS</div>
-
-        <div class="episode-info">
-          <h3>CrowRules Sports — Weekly Roundup</h3>
-          <p>
-            The latest sports stories and conversations.
-          </p>
-          <div class="episode-meta">
-            CROWRULES SPORTS • WEEKLY
-          </div>
-        </div>
-
-        <button class="play-small"
-                onclick="playEpisode(
-                  'CrowRules Sports — Weekly Roundup',
-                  'CrowRules Sports'
-                )">
-          ▶
-        </button>
-
-      </article>
-
-    </div>
-
-  </section>
-
-  <!-- LIVE -->
-  <section class="section" id="live">
-
-    <div class="section-head">
-      <div>
-        <h2 class="section-title">Live Podcasting</h2>
-        <p class="section-subtitle">
-          When CrowRules goes live, the conversation continues here.
-        </p>
-      </div>
-    </div>
-
-    <div class="live">
-
-      <div class="live-content">
-
-        <div class="live-badge">
-          <span class="live-dot"></span>
-          LIVE NETWORK
-        </div>
-
-        <h2>Back Deck Live</h2>
-
-        <p>
-          Live conversations, audience interaction, CrowRules
-          updates and everything happening behind the scenes.
-        </p>
-
-        <br>
-
-        <a href="#" class="btn primary">
-          WATCH LIVE
-        </a>
-
-      </div>
-
-      <div class="live-visual">
-        <span>LIVE</span>
-      </div>
-
-    </div>
-
-  </section>
-
-  <!-- CTA -->
-  <section class="section" id="about">
-
-    <div class="cta">
-
-      <h2>Become Part of the Network.</h2>
-
-      <p>
-        CrowRules Podcasting is being built as an independent
-        home for original voices, stories and conversations.
-        More shows are coming.
-      </p>
-
-      <button class="btn primary"
-              onclick="alert('Newsletter integration coming soon.')">
-        JOIN THE NETWORK
+    <div class="intro-actions">
+
+      <button
+        class="btn btn-primary"
+        id="enterIntro"
+        type="button"
+      >
+        ENTER CROWRULES PODCASTING
       </button>
 
-    </div>
-
-  </section>
-
-</main>
-
-<!-- FOOTER -->
-<footer>
-  <strong>CROWRULES PODCASTING</strong>
-  <br><br>
-  A CrowRules Entertainment Network
-  <br><br>
-  © 2026 CrowRules Entertainment. All rights reserved.
-</footer>
-
-<!-- AUDIO PLAYER -->
-<div class="player">
-
-  <div class="progress-wrap" id="progressWrap">
-    <div class="progress" id="progress"></div>
-  </div>
-
-  <div class="player-inner">
-
-    <div class="now">
-
-      <div class="now-label">
-        NOW PLAYING
-      </div>
-
-      <div class="now-title" id="nowTitle">
-        Select an episode
-      </div>
-
-      <div class="now-show" id="nowShow">
-        CrowRules Podcasting
-      </div>
-
-    </div>
-
-    <div class="controls">
-
-      <button class="control"
-              onclick="skip(-15)">
-        ↶15
+      <button
+        class="btn"
+        id="skipIntro"
+        type="button"
+      >
+        SKIP INTRO
       </button>
 
-      <button class="control main"
-              id="playButton"
-              onclick="togglePlay()">
-        ▶
-      </button>
-
-      <button class="control"
-              onclick="skip(15)">
-        15↷
-      </button>
-
-    </div>
-
-    <div class="time">
-      <span id="currentTime">0:00</span>
-      &nbsp;/&nbsp;
-      <span id="duration">0:00</span>
     </div>
 
   </div>
 
 </div>
 
-<audio id="audio"></audio>
+<!-- ==========================================================
+     HEADER
+========================================================== -->
+
+<header class="site-header">
+
+  <div class="container nav">
+
+    <a class="brand" href="#home">
+
+      <div class="brand-mark">
+        <span>CR</span>
+      </div>
+
+      <div class="brand-text">
+        <strong>CROWRULES</strong>
+        <small>PODCASTING</small>
+      </div>
+
+    </a>
+
+    <nav class="nav-links" id="navLinks">
+
+      <a class="active" href="#home">Home</a>
+      <a href="#shows">Shows</a>
+      <a href="#episodes">Episodes</a>
+      <a href="#podcasters">Podcasters</a>
+      <a href="#live">Live</a>
+      <a href="#join">Join</a>
+
+    </nav>
+
+    <div class="nav-actions">
+
+      <button
+        class="btn"
+        type="button"
+        id="loginButton"
+      >
+        Sign In
+      </button>
+
+      <button
+        class="mobile-toggle"
+        type="button"
+        id="mobileToggle"
+        aria-label="Open navigation"
+      >
+        ☰
+      </button>
+
+    </div>
+
+  </div>
+
+</header>
+
+<!-- ==========================================================
+     HERO
+========================================================== -->
+
+<main>
+
+<section class="hero" id="home">
+
+  <div class="hero-grid"></div>
+  <div class="hero-orb"></div>
+  <div class="hero-orb two"></div>
+
+  <div class="container">
+
+    <div class="hero-content">
+
+      <div class="hero-kicker">
+        <span class="live-dot"></span>
+        INDEPENDENT PODCAST NETWORK
+      </div>
+
+      <h1>
+        HEAR<br>
+        SOMETHING<br>
+        <span>DIFFERENT.</span>
+      </h1>
+
+      <p>
+        CrowRules Podcasting is a home for independent voices,
+        original shows, real conversations, strange stories,
+        sports, gaming, commentary and everything in between.
+      </p>
+
+      <div class="hero-actions">
+
+        <a class="btn btn-primary" href="#episodes">
+          ▶ Explore Episodes
+        </a>
+
+        <a class="btn" href="#join">
+          🎙️ Join The Network
+        </a>
+
+      </div>
+
+      <div class="hero-meta">
+
+        <div class="hero-meta-item">
+          <strong id="heroShowCount">—</strong>
+          <small>Shows</small>
+        </div>
+
+        <div class="hero-meta-item">
+          <strong id="heroEpisodeCount">—</strong>
+          <small>Episodes</small>
+        </div>
+
+        <div class="hero-meta-item">
+          <strong id="heroPodcasterCount">—</strong>
+          <small>Creators</small>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ==========================================================
+     FEATURED
+========================================================== -->
+
+<section class="section" id="shows">
+
+  <div class="container">
+
+    <div class="section-head">
+
+      <div>
+        <div class="section-kicker">
+          Featured Signal
+        </div>
+
+        <h2 class="section-title">
+          THE SHOWS
+        </h2>
+
+        <p class="section-description">
+          Original programming from the CrowRules Podcasting
+          network.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="featured-card">
+
+      <div class="featured-art">
+
+        <div class="featured-art-content">
+
+          <div class="featured-art-label">
+            CROWRULES ORIGINAL
+          </div>
+
+          <div class="featured-art-title">
+            TACOMA<br>NIGHTS
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="featured-info">
+
+        <div class="badges">
+
+          <span class="badge cyan">
+            Featured
+          </span>
+
+          <span class="badge">
+            Original
+          </span>
+
+          <span class="badge purple">
+            Tacoma
+          </span>
+
+        </div>
+
+        <h3>Tacoma Nights</h3>
+
+        <p>
+          Real stories, real life, and real Tacoma.
+          A CrowRules original exploring the people,
+          places, conversations and stories that make
+          the Pacific Northwest different.
+        </p>
+
+        <div class="featured-meta">
+          Video podcast • Original programming
+        </div>
+
+        <div>
+
+          <a
+            class="btn btn-primary"
+            href="#episodes"
+            id="featuredPlayButton"
+          >
+            ▶ Listen Now
+          </a>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ==========================================================
+     EPISODES
+========================================================== -->
+
+<section class="section" id="episodes">
+
+  <div class="container">
+
+    <div class="section-head">
+
+      <div>
+
+        <div class="section-kicker">
+          On Demand
+        </div>
+
+        <h2 class="section-title">
+          LATEST EPISODES
+        </h2>
+
+        <p class="section-description">
+          Listen to the latest published episodes from
+          CrowRules Podcasting.
+        </p>
+
+      </div>
+
+    </div>
+
+    <div class="library-toolbar">
+
+      <div class="search-box">
+
+        <span class="search-icon">⌕</span>
+
+        <input
+          id="episodeSearch"
+          type="search"
+          placeholder="Search episodes, shows or topics..."
+          autocomplete="off"
+        >
+
+      </div>
+
+      <div class="filters" id="categoryFilters">
+
+        <button class="filter-btn active" data-category="all">
+          All
+        </button>
+
+        <button class="filter-btn" data-category="talk">
+          Talk
+        </button>
+
+        <button class="filter-btn" data-category="drama">
+          Drama
+        </button>
+
+        <button class="filter-btn" data-category="horror">
+          Horror
+        </button>
+
+        <button class="filter-btn" data-category="sports">
+          Sports
+        </button>
+
+        <button class="filter-btn" data-category="gaming">
+          Gaming
+        </button>
+
+        <button class="filter-btn" data-category="documentary">
+          Documentary
+        </button>
+
+      </div>
+
+    </div>
+
+    <div
+      class="episode-grid"
+      id="episodeGrid"
+    >
+
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ==========================================================
+     PODCASTERS
+========================================================== -->
+
+<section class="section" id="podcasters">
+
+  <div class="container">
+
+    <div class="section-head">
+
+      <div>
+
+        <div class="section-kicker">
+          The Voices
+        </div>
+
+        <h2 class="section-title">
+          PODCASTERS
+        </h2>
+
+        <p class="section-description">
+          Meet the independent creators building the next
+          generation of CrowRules programming.
+        </p>
+
+      </div>
+
+    </div>
+
+    <div
+      class="podcaster-grid"
+      id="podcasterGrid"
+    >
+
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ==========================================================
+     LIVE
+========================================================== -->
+
+<section class="section live-section" id="live">
+
+  <div class="container">
+
+    <div class="live-card">
+
+      <div>
+
+        <div class="live-status">
+          <span class="live-dot"></span>
+          LIVE PROGRAMMING
+        </div>
+
+        <h2>
+          BACK DECK LIVE
+        </h2>
+
+        <p>
+          The live side of CrowRules Podcasting.
+          Conversations, community, commentary and
+          whatever happens when the microphones go live.
+        </p>
+
+        <div class="hero-actions">
+
+          <a
+            class="btn btn-primary"
+            href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/backdecklive.html"
+            target="_blank"
+            rel="noopener"
+          >
+            Open Back Deck Live
+          </a>
+
+          <a class="btn" href="#join">
+            Become a Creator
+          </a>
+
+        </div>
+
+      </div>
+
+      <div class="live-visual">
+        <div class="intro-wave">
+          <i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ==========================================================
+     JOIN
+========================================================== -->
+
+<section class="section join-section" id="join">
+
+  <div class="container">
+
+    <div class="join-layout">
+
+      <div class="join-copy">
+
+        <div class="section-kicker">
+          Creator Network
+        </div>
+
+        <h2>
+          YOUR VOICE<br>
+          BELONGS<br>
+          HERE.
+        </h2>
+
+        <p>
+          Have a podcast idea? Already producing a show?
+          Want to build something independently?
+          Apply to become part of CrowRules Podcasting.
+        </p>
+
+        <ul class="join-list">
+
+          <li>
+            Independent creator-friendly network
+          </li>
+
+          <li>
+            Podcast and episode profiles
+          </li>
+
+          <li>
+            Audio and video episode support
+          </li>
+
+          <li>
+            CrowRules programming opportunities
+          </li>
+
+          <li>
+            Future creator channels and live programming
+          </li>
+
+        </ul>
+
+      </div>
+
+      <div class="form-card">
+
+        <form id="applicationForm">
+
+          <div class="form-grid">
+
+            <div class="field">
+
+              <label for="appName">
+                Full Name *
+              </label>
+
+              <input
+                id="appName"
+                name="full_name"
+                required
+                placeholder="Your name"
+              >
+
+            </div>
+
+            <div class="field">
+
+              <label for="appEmail">
+                Email *
+              </label>
+
+              <input
+                id="appEmail"
+                name="email"
+                type="email"
+                required
+                placeholder="you@example.com"
+              >
+
+            </div>
+
+            <div class="field">
+
+              <label for="appDisplay">
+                Display Name *
+              </label>
+
+              <input
+                id="appDisplay"
+                name="display_name"
+                required
+                placeholder="How you want to appear"
+              >
+
+            </div>
+
+            <div class="field">
+
+              <label for="appPodcast">
+                Podcast Name
+              </label>
+
+              <input
+                id="appPodcast"
+                name="podcast_name"
+                placeholder="Your podcast"
+              >
+
+            </div>
+
+            <div class="field">
+
+              <label for="appCategory">
+                Category
+              </label>
+
+              <select id="appCategory" name="category">
+
+                <option value="">Choose a category</option>
+                <option value="talk">Talk</option>
+                <option value="drama">Drama</option>
+                <option value="horror">Horror</option>
+                <option value="sports">Sports</option>
+                <option value="gaming">Gaming</option>
+                <option value="documentary">Documentary</option>
+                <option value="other">Other</option>
+
+              </select>
+
+            </div>
+
+            <div class="field">
+
+              <label for="appSample">
+                Sample / Existing Link
+              </label>
+
+              <input
+                id="appSample"
+                name="sample_url"
+                type="url"
+                placeholder="https://..."
+              >
+
+            </div>
+
+            <div class="field full">
+
+              <label for="appBio">
+                Creator Bio
+              </label>
+
+              <textarea
+                id="appBio"
+                name="bio"
+                placeholder="Tell us about yourself..."
+              ></textarea>
+
+            </div>
+
+            <div class="field full">
+
+              <label for="appConcept">
+                Podcast Concept
+              </label>
+
+              <textarea
+                id="appConcept"
+                name="podcast_concept"
+                placeholder="What is your show about?"
+              ></textarea>
+
+            </div>
+
+            <div class="field full">
+
+              <label for="appExperience">
+                Podcast / Media Experience
+              </label>
+
+              <textarea
+                id="appExperience"
+                name="experience"
+                placeholder="Tell us about your production experience..."
+              ></textarea>
+
+            </div>
+
+            <div class="field full">
+
+              <label for="appWhy">
+                Why CrowRules Podcasting?
+              </label>
+
+              <textarea
+                id="appWhy"
+                name="why_join"
+                placeholder="What would you like to build with CrowRules?"
+              ></textarea>
+
+            </div>
+
+          </div>
+
+          <button
+            class="btn btn-primary"
+            type="submit"
+            id="applicationSubmit"
+          >
+            Submit Application
+          </button>
+
+          <div
+            class="form-message"
+            id="applicationMessage"
+          ></div>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ==========================================================
+     ADMIN UPLOAD
+========================================================== -->
+
+<section class="section admin-section" id="adminSection">
+
+  <div class="container">
+
+    <div class="admin-panel">
+
+      <div class="admin-header">
+
+        <div>
+
+          <div class="section-kicker">
+            Creator Control Room
+          </div>
+
+          <h2>
+            EPISODE UPLOAD
+          </h2>
+
+        </div>
+
+        <button
+          class="btn"
+          type="button"
+          id="signOutButton"
+        >
+          Sign Out
+        </button>
+
+      </div>
+
+      <form id="uploadForm">
+
+        <div class="form-grid">
+
+          <div class="field">
+
+            <label for="uploadPodcast">
+              Podcast / Show *
+            </label>
+
+            <select
+              id="uploadPodcast"
+              required
+            >
+
+              <option value="">
+                Select podcast
+              </option>
+
+            </select>
+
+          </div>
+
+          <div class="field">
+
+            <label for="uploadTitle">
+              Episode Title *
+            </label>
+
+            <input
+              id="uploadTitle"
+              required
+              placeholder="Episode title"
+            >
+
+          </div>
+
+          <div class="field">
+
+            <label for="uploadSeason">
+              Season
+            </label>
+
+            <input
+              id="uploadSeason"
+              type="number"
+              min="1"
+              placeholder="1"
+            >
+
+          </div>
+
+          <div class="field">
+
+            <label for="uploadEpisode">
+              Episode Number
+            </label>
+
+            <input
+              id="uploadEpisode"
+              type="number"
+              min="1"
+              placeholder="1"
+            >
+
+          </div>
+
+          <div class="field">
+
+            <label for="uploadType">
+              Episode Type
+            </label>
+
+            <select id="uploadType">
+
+              <option value="full">
+                Full Episode
+              </option>
+
+              <option value="bonus">
+                Bonus
+              </option>
+
+              <option value="trailer">
+                Trailer
+              </option>
+
+              <option value="special">
+                Special
+              </option>
+
+            </select>
+
+          </div>
+
+          <div class="field">
+
+            <label for="uploadDate">
+              Publish Date
+            </label>
+
+            <input
+              id="uploadDate"
+              type="datetime-local"
+            >
+
+          </div>
+
+          <div class="field full">
+
+            <label for="uploadDescription">
+              Description
+            </label>
+
+            <textarea
+              id="uploadDescription"
+              placeholder="Episode description..."
+            ></textarea>
+
+          </div>
+
+          <div class="field full">
+
+            <label>
+              Audio File *
+            </label>
+
+            <div
+              class="upload-drop"
+              id="audioDrop"
+            >
+
+              <strong>
+                Drop your audio here
+              </strong>
+
+              <span>
+                MP3, WAV, M4A or AAC
+              </span>
+
+              <br><br>
+
+              <button
+                class="btn"
+                type="button"
+                id="chooseAudio"
+              >
+                Choose Audio
+              </button>
+
+              <input
+                id="audioFile"
+                type="file"
+                accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/mp4,audio/x-m4a,audio/aac,.mp3,.wav,.m4a,.aac"
+                hidden
+              >
+
+              <div
+                class="file-info"
+                id="audioFileInfo"
+              ></div>
+
+            </div>
+
+          </div>
+
+          <div class="field full">
+
+            <label>
+              Thumbnail
+            </label>
+
+            <input
+              id="thumbnailFile"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+            >
+
+          </div>
+
+          <div class="field">
+
+            <label>
+              Published
+            </label>
+
+            <select id="uploadPublished">
+
+              <option value="false">
+                Save as Draft
+              </option>
+
+              <option value="true">
+                Publish
+              </option>
+
+            </select>
+
+          </div>
+
+          <div class="field">
+
+            <label>
+              Featured
+            </label>
+
+            <select id="uploadFeatured">
+
+              <option value="false">
+                No
+              </option>
+
+              <option value="true">
+                Yes
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+        <div class="progress" id="uploadProgress">
+
+          <div
+            class="progress-bar"
+            id="uploadProgressBar"
+          ></div>
+
+        </div>
+
+        <div
+          class="admin-status"
+          id="uploadStatus"
+        ></div>
+
+        <br>
+
+        <button
+          class="btn btn-primary"
+          type="submit"
+          id="uploadSubmit"
+        >
+          Upload Episode
+        </button>
+
+      </form>
+
+    </div>
+
+  </div>
+
+</section>
+
+</main>
+
+<!-- ==========================================================
+     FOOTER
+========================================================== -->
+
+<footer>
+
+  <div class="container">
+
+    <div class="footer-grid">
+
+      <div class="footer-brand">
+
+        <h3>
+          CROWRULES PODCASTING
+        </h3>
+
+        <p>
+          Independent voices. Original programming.
+          A new home for podcasts, stories, conversations
+          and creators.
+        </p>
+
+      </div>
+
+      <div class="footer-col">
+
+        <h4>Explore</h4>
+
+        <a href="#shows">Shows</a>
+        <a href="#episodes">Episodes</a>
+        <a href="#podcasters">Podcasters</a>
+        <a href="#live">Live</a>
+
+      </div>
+
+      <div class="footer-col">
+
+        <h4>CrowRules</h4>
+
+        <a
+          href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/index.html"
+          target="_blank"
+          rel="noopener"
+        >
+          Entertainment
+        </a>
+
+        <a
+          href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/tacomanights.html"
+          target="_blank"
+          rel="noopener"
+        >
+          Tacoma Nights
+        </a>
+
+        <a href="#join">
+          Join Network
+        </a>
+
+      </div>
+
+      <div class="footer-col">
+
+        <h4>Creator</h4>
+
+        <a href="#join">
+          Apply to Join
+        </a>
+
+        <a href="#episodes">
+          Submit Episodes
+        </a>
+
+        <a href="#podcasters">
+          Creator Profiles
+        </a>
+
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+
+      <span>
+        © <span id="year"></span> CrowRules Entertainment
+      </span>
+
+      <span>
+        Hear Something Different.
+      </span>
+
+    </div>
+
+  </div>
+
+</footer>
+
+<!-- ==========================================================
+     AUDIO PLAYER
+========================================================== -->
+
+<div
+  class="audio-player"
+  id="audioPlayer"
+>
+
+  <div class="player-info">
+
+    <div
+      class="player-title"
+      id="playerTitle"
+    >
+      Nothing playing
+    </div>
+
+    <div
+      class="player-show"
+      id="playerShow"
+    >
+      CrowRules Podcasting
+    </div>
+
+  </div>
+
+  <div class="player-controls">
+
+    <button
+      class="player-btn"
+      type="button"
+      id="rewindButton"
+      title="Rewind 15 seconds"
+    >
+      ↶
+    </button>
+
+    <button
+      class="player-btn main"
+      type="button"
+      id="playButton"
+      title="Play"
+    >
+      ▶
+    </button>
+
+    <button
+      class="player-btn"
+      type="button"
+      id="forwardButton"
+      title="Forward 15 seconds"
+    >
+      ↷
+    </button>
+
+  </div>
+
+  <div class="player-progress">
+
+    <div
+      class="player-progress-bar"
+      id="playerProgressBar"
+    ></div>
+
+  </div>
+
+  <audio
+    id="audioElement"
+    preload="metadata"
+  ></audio>
+
+</div>
+
+<!-- ==========================================================
+     TOAST
+========================================================== -->
+
+<div class="toast" id="toast">
+
+  <div
+    class="toast-title"
+    id="toastTitle"
+  >
+    CrowRules
+  </div>
+
+  <div
+    class="toast-message"
+    id="toastMessage"
+  ></div>
+
+</div>
 
 <script>
-/* =========================================================
+/* ============================================================
    CROWRULES PODCASTING
-   SINGLE-FILE APPLICATION
-   ========================================================= */
+   APPLICATION / EPISODE / PROFILE SYSTEM
+============================================================ */
 
-const audio = document.getElementById("audio");
-const playButton = document.getElementById("playButton");
-const nowTitle = document.getElementById("nowTitle");
-const nowShow = document.getElementById("nowShow");
-const progress = document.getElementById("progress");
-const progressWrap = document.getElementById("progressWrap");
-const currentTimeEl = document.getElementById("currentTime");
-const durationEl = document.getElementById("duration");
-
-let currentEpisode = null;
+const SUPABASE_URL =
+  'https://zauxdqyssratvzmomozf.supabase.co';
 
 /*
-  Replace this demo URL with your own MP3 file,
-  Supabase Storage URL, podcast CDN URL, etc.
+ IMPORTANT:
+ Replace this with your actual Supabase publishable/anon key.
 
-  Example:
-  audio.src = "audio/tacoma-nights-001.mp3";
+ NEVER put the service_role key in this file.
 */
 
-const DEMO_AUDIO =
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+const SUPABASE_PUBLISHABLE_KEY =
+  'YOUR_SUPABASE_PUBLISHABLE_KEY';
 
+const {
+  createClient
+} = window.supabase;
 
-function playEpisode(title, show){
+const db = createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
 
-  currentEpisode = {
-    title,
-    show
-  };
+/* ============================================================
+   STATE
+============================================================ */
 
-  nowTitle.textContent = title;
-  nowShow.textContent = show;
+let podcasts = [];
+let episodes = [];
+let podcasters = [];
 
-  /*
-    In production, assign the episode's actual
-    audio URL here.
-  */
+let selectedCategory = 'all';
+let currentEpisode = null;
+let currentUser = null;
 
-  audio.src = DEMO_AUDIO;
+/* ============================================================
+   ELEMENTS
+============================================================ */
 
-  audio.play()
-    .then(()=>{
-      playButton.textContent = "❚❚";
-    })
-    .catch(()=>{
-      playButton.textContent = "▶";
-    });
-}
+const intro =
+  document.getElementById('cinematicIntro');
 
+const body =
+  document.body;
 
-function togglePlay(){
+const navLinks =
+  document.getElementById('navLinks');
 
-  if(!audio.src){
-    return;
+const mobileToggle =
+  document.getElementById('mobileToggle');
+
+const loginButton =
+  document.getElementById('loginButton');
+
+const adminSection =
+  document.getElementById('adminSection');
+
+const audioElement =
+  document.getElementById('audioElement');
+
+const playButton =
+  document.getElementById('playButton');
+
+const rewindButton =
+  document.getElementById('rewindButton');
+
+const forwardButton =
+  document.getElementById('forwardButton');
+
+const playerTitle =
+  document.getElementById('playerTitle');
+
+const playerShow =
+  document.getElementById('playerShow');
+
+const playerProgressBar =
+  document.getElementById('playerProgressBar');
+
+const episodeGrid =
+  document.getElementById('episodeGrid');
+
+const podcasterGrid =
+  document.getElementById('podcasterGrid');
+
+const applicationForm =
+  document.getElementById('applicationForm');
+
+const applicationMessage =
+  document.getElementById('applicationMessage');
+
+/* ============================================================
+   UTILITIES
+============================================================ */
+
+function escapeHTML(value){
+
+  if(value === null || value === undefined){
+    return '';
   }
 
-  if(audio.paused){
+  return String(value)
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
+}
 
-    audio.play()
-      .then(()=>{
-        playButton.textContent = "❚❚";
-      });
+function slugify(value){
+
+  return String(value || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-+|-+$/g,'')
+    .slice(0,90);
+
+}
+
+function formatDuration(seconds){
+
+  if(!seconds){
+    return '—';
+  }
+
+  const total =
+    Math.max(0,Math.floor(Number(seconds)));
+
+  const hours =
+    Math.floor(total / 3600);
+
+  const minutes =
+    Math.floor((total % 3600) / 60);
+
+  const secs =
+    total % 60;
+
+  if(hours > 0){
+
+    return `${hours}:${String(minutes).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+
+  }
+
+  return `${minutes}:${String(secs).padStart(2,'0')}`;
+
+}
+
+function formatDate(date){
+
+  if(!date){
+    return '';
+  }
+
+  const d = new Date(date);
+
+  if(Number.isNaN(d.getTime())){
+    return '';
+  }
+
+  return d.toLocaleDateString(
+    undefined,
+    {
+      year:'numeric',
+      month:'short',
+      day:'numeric'
+    }
+  );
+
+}
+
+function showToast(title,message){
+
+  const toast =
+    document.getElementById('toast');
+
+  document.getElementById('toastTitle')
+    .textContent = title;
+
+  document.getElementById('toastMessage')
+    .textContent = message;
+
+  toast.classList.add('show');
+
+  clearTimeout(
+    window.__crowToastTimer
+  );
+
+  window.__crowToastTimer =
+    setTimeout(
+      () => toast.classList.remove('show'),
+      4000
+    );
+
+}
+
+function setFormMessage(
+  element,
+  message,
+  type
+){
+
+  element.textContent = message;
+
+  element.className =
+    'form-message ' + type;
+
+}
+
+function initials(name){
+
+  return String(name || 'CR')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0,2)
+    .map(x => x[0])
+    .join('')
+    .toUpperCase();
+
+}
+
+/* ============================================================
+   CINEMATIC INTRO
+============================================================ */
+
+function closeIntro(){
+
+  intro.classList.add('closed');
+  body.classList.remove('intro-lock');
+
+  try{
+
+    sessionStorage.setItem(
+      'crowrulesPodcastingIntroSeen',
+      '1'
+    );
+
+  }catch(error){}
+
+}
+
+try{
+
+  if(
+    sessionStorage.getItem(
+      'crowrulesPodcastingIntroSeen'
+    ) === '1'
+  ){
+
+    closeIntro();
+
+  }
+
+}catch(error){}
+
+document
+  .getElementById('enterIntro')
+  .addEventListener(
+    'click',
+    closeIntro
+  );
+
+document
+  .getElementById('skipIntro')
+  .addEventListener(
+    'click',
+    closeIntro
+  );
+
+setTimeout(
+  () => {
+
+    if(
+      !intro.classList.contains('closed')
+    ){
+
+      closeIntro();
+
+    }
+
+  },
+  7500
+);
+
+document.addEventListener(
+  'keydown',
+  event => {
+
+    if(
+      event.key === 'Escape' &&
+      !intro.classList.contains('closed')
+    ){
+
+      closeIntro();
+
+    }
+
+  }
+);
+
+/* ============================================================
+   MOBILE NAV
+============================================================ */
+
+mobileToggle.addEventListener(
+  'click',
+  () => {
+
+    navLinks.classList.toggle('open');
+
+  }
+);
+
+navLinks
+  .querySelectorAll('a')
+  .forEach(link => {
+
+    link.addEventListener(
+      'click',
+      () => navLinks.classList.remove('open')
+    );
+
+  });
+
+/* ============================================================
+   PODCASTS
+============================================================ */
+
+async function loadPodcasts(){
+
+  const {
+    data,
+    error
+  } = await db
+    .from('podcasts')
+    .select('*')
+    .eq('published',true)
+    .order('created_at',{ascending:false});
+
+  if(error){
+
+    console.error(
+      'Podcast loading failed:',
+      error
+    );
+
+    /*
+      Some existing schemas may not have a
+      published column. Retry with a smaller
+      public query if necessary.
+    */
+
+    const retry =
+      await db
+        .from('podcasts')
+        .select('*')
+        .eq('status','active')
+        .order('created_at',{ascending:false});
+
+    if(!retry.error){
+
+      podcasts =
+        retry.data || [];
+
+    }else{
+
+      podcasts = [];
+
+    }
 
   }else{
 
-    audio.pause();
-    playButton.textContent = "▶";
+    podcasts =
+      data || [];
 
   }
+
+  renderPodcastSelect();
+  updateCounts();
+
 }
 
+/* ============================================================
+   EPISODES
+============================================================ */
 
-function skip(seconds){
+async function loadEpisodes(){
 
-  if(!audio.duration) return;
+  episodeGrid.innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+    </div>
+  `;
 
-  audio.currentTime =
-    Math.max(
-      0,
-      Math.min(
-        audio.duration,
-        audio.currentTime + seconds
+  const {
+    data,
+    error
+  } = await db
+    .from('podcast_episodes')
+    .select(`
+      *,
+      podcasts (
+        id,
+        title,
+        slug,
+        category
       )
+    `)
+    .eq('published',true)
+    .order('publish_date',{ascending:false})
+    .limit(100);
+
+  if(error){
+
+    console.error(
+      'Episode loading failed:',
+      error
     );
-}
 
+    episodeGrid.innerHTML = `
+      <div class="empty-state">
+        <strong>Episodes could not be loaded.</strong>
+        <br><br>
+        Check the Supabase connection and published episode permissions.
+      </div>
+    `;
 
-function formatTime(seconds){
+    return;
 
-  if(!Number.isFinite(seconds)){
-    return "0:00";
   }
 
-  const minutes =
-    Math.floor(seconds / 60);
+  episodes =
+    data || [];
 
-  const secs =
-    Math.floor(seconds % 60)
-      .toString()
-      .padStart(2,"0");
+  renderEpisodes();
+  updateCounts();
 
-  return `${minutes}:${secs}`;
 }
 
+/* ============================================================
+   PODCASTERS
+============================================================ */
 
-audio.addEventListener("loadedmetadata",()=>{
+async function loadPodcasters(){
 
-  durationEl.textContent =
-    formatTime(audio.duration);
+  const {
+    data,
+    error
+  } = await db
+    .from('podcaster_profiles')
+    .select('*')
+    .eq('is_active',true)
+    .order('featured',{ascending:false})
+    .order('display_name',{ascending:true});
 
-});
+  if(error){
 
+    console.error(
+      'Podcaster loading failed:',
+      error
+    );
 
-audio.addEventListener("timeupdate",()=>{
+    podcasterGrid.innerHTML = `
+      <div class="empty-state">
+        Podcaster profiles are not available yet.
+      </div>
+    `;
 
-  if(!audio.duration) return;
+    return;
 
-  const percent =
-    (audio.currentTime / audio.duration) * 100;
+  }
 
-  progress.style.width =
-    percent + "%";
+  podcasters =
+    data || [];
 
-  currentTimeEl.textContent =
-    formatTime(audio.currentTime);
+  renderPodcasters();
+  updateCounts();
 
-});
+}
 
+/* ============================================================
+   COUNTS
+============================================================ */
 
-audio.addEventListener("play",()=>{
+function updateCounts(){
 
-  playButton.textContent = "❚❚";
+  document.getElementById(
+    'heroShowCount'
+  ).textContent =
+    podcasts.length;
 
-});
+  document.getElementById(
+    'heroEpisodeCount'
+  ).textContent =
+    episodes.length;
 
+  document.getElementById(
+    'heroPodcasterCount'
+  ).textContent =
+    podcasters.length;
 
-audio.addEventListener("pause",()=>{
+}
 
-  playButton.textContent = "▶";
+/* ============================================================
+   RENDER EPISODES
+============================================================ */
 
-});
+function getEpisodeCategory(ep){
 
+  return (
+    ep?.podcasts?.category ||
+    'other'
+  ).toLowerCase();
 
-audio.addEventListener("ended",()=>{
+}
 
-  playButton.textContent = "▶";
-  progress.style.width = "0%";
+function renderEpisodes(){
 
-});
-
-
-progressWrap.addEventListener("click",(event)=>{
-
-  if(!audio.duration) return;
-
-  const rect =
-    progressWrap.getBoundingClientRect();
-
-  const percent =
-    (event.clientX - rect.left) / rect.width;
-
-  audio.currentTime =
-    percent * audio.duration;
-
-});
-
-
-/* SEARCH */
-
-const searchInput =
-  document.getElementById("episodeSearch");
-
-const episodes =
-  document.querySelectorAll(".episode");
-
-searchInput.addEventListener("input",()=>{
-
-  const query =
-    searchInput.value
+  const search =
+    document.getElementById(
+      'episodeSearch'
+    ).value
       .trim()
       .toLowerCase();
 
-  episodes.forEach(episode=>{
+  const filtered =
+    episodes.filter(ep => {
 
-    const text =
-      episode.dataset.search
-        .toLowerCase();
-
-    episode.style.display =
-      !query || text.includes(query)
-        ? "grid"
-        : "none";
-
-  });
-
-});
-
-
-/* CATEGORY FILTER */
-
-const categories =
-  document.querySelectorAll(".category");
-
-const podcastCards =
-  document.querySelectorAll(".podcast-card");
-
-categories.forEach(category=>{
-
-  category.addEventListener("click",()=>{
-
-    categories.forEach(c =>
-      c.classList.remove("active")
-    );
-
-    category.classList.add("active");
-
-    const filter =
-      category.dataset.filter;
-
-    podcastCards.forEach(card=>{
-
-      const cardCategory =
-        card.dataset.category;
+      const category =
+        getEpisodeCategory(ep);
 
       if(
-        filter === "all" ||
-        cardCategory === filter
+        selectedCategory !== 'all' &&
+        category !== selectedCategory
       ){
-        card.style.display = "";
-      }else{
-        card.style.display = "none";
+
+        return false;
+
       }
+
+      if(!search){
+        return true;
+      }
+
+      const haystack = [
+        ep.title,
+        ep.description,
+        ep.podcasts?.title,
+        ep.podcasts?.category
+      ]
+      .join(' ')
+      .toLowerCase();
+
+      return haystack.includes(search);
 
     });
 
-  });
+  if(!filtered.length){
 
-});
+    episodeGrid.innerHTML = `
+      <div class="empty-state">
+        <strong>No episodes found.</strong>
+        <br>
+        Try another search or category.
+      </div>
+    `;
 
+    return;
 
-/* MOBILE MENU */
+  }
 
-const menuBtn =
-  document.getElementById("menuBtn");
+  episodeGrid.innerHTML =
+    filtered.map(
+      renderEpisodeCard
+    ).join('');
 
-const navLinks =
-  document.getElementById("navLinks");
+  episodeGrid
+    .querySelectorAll('[data-play-episode]')
+    .forEach(button => {
 
-menuBtn.addEventListener("click",()=>{
+      button.addEventListener(
+        'click',
+        () => {
 
-  navLinks.classList.toggle("open");
+          const id =
+            button.dataset.playEpisode;
 
-});
+          const episode =
+            episodes.find(
+              x => String(x.id) === String(id)
+            );
 
+          if(episode){
 
-navLinks.querySelectorAll("a").forEach(link=>{
+            playEpisode(episode);
 
-  link.addEventListener("click",()=>{
+          }
 
-    navLinks.classList.remove("open");
+        }
+      );
 
-  });
+    });
 
-});
+}
 
+function renderEpisodeCard(ep){
 
-/* ACTIVE NAV */
+  const image =
+    ep.thumbnail_url;
 
-const sections =
-  document.querySelectorAll("section[id], header[id]");
+  const show =
+    ep.podcasts?.title ||
+    'CrowRules Podcasting';
 
-const navAnchors =
-  document.querySelectorAll(".nav-links a");
+  const category =
+    getEpisodeCategory(ep);
 
-window.addEventListener("scroll",()=>{
+  const artwork = image
+    ? `
+      <img
+        src="${escapeHTML(image)}"
+        alt="${escapeHTML(ep.title)}"
+        loading="lazy"
+      >
+    `
+    : `
+      <div class="episode-placeholder">
+        CR
+      </div>
+    `;
 
-  let current = "";
+  return `
+    <article class="episode-card">
 
-  sections.forEach(section=>{
+      <div class="episode-art">
 
-    const top =
-      section.offsetTop - 110;
+        ${artwork}
 
-    if(window.scrollY >= top){
-      current = section.id;
-    }
+        <div class="episode-number">
+          ${ep.season_number
+            ? `S${escapeHTML(ep.season_number)}`
+            : ''
+          }
+          ${ep.episode_number
+            ? `E${escapeHTML(ep.episode_number)}`
+            : ''
+          }
+        </div>
 
-  });
+        <div class="play-overlay">
 
-  navAnchors.forEach(anchor=>{
+          <button
+            class="play-button"
+            type="button"
+            data-play-episode="${escapeHTML(ep.id)}"
+            aria-label="Play ${escapeHTML(ep.title)}"
+          >
+            ▶
+          </button>
 
-    anchor.classList.remove("active");
+        </div>
 
-    if(
-      anchor.getAttribute("href") ===
-      "#" + current
-    ){
-      anchor.classList.add("active");
-    }
+      </div>
 
-  });
+      <div class="episode-body">
 
-});
+        <div class="episode-show">
+          ${escapeHTML(show)}
+        </div>
 
+        <div class="episode-title">
+          ${escapeHTML(ep.title)}
+        </div>
 
-/* KEYBOARD SHORTCUT */
+        <div class="episode-description">
+          ${escapeHTML(ep.description || 'No description available.')}
+        </div>
 
-document.addEventListener("keydown",(event)=>{
+        <div class="episode-footer">
 
-  if(
-    event.target.tagName === "INPUT" ||
-    event.target.tagName === "TEXTAREA"
-  ){
+          <span class="episode-date">
+            ${escapeHTML(
+              formatDate(ep.publish_date)
+            )}
+          </span>
+
+          <span class="episode-duration">
+            ${formatDuration(ep.duration_seconds)}
+          </span>
+
+        </div>
+
+      </div>
+
+    </article>
+  `;
+
+}
+
+/* ============================================================
+   RENDER PODCASTERS
+============================================================ */
+
+function renderPodcasters(){
+
+  if(!podcasters.length){
+
+    podcasterGrid.innerHTML = `
+      <div class="empty-state">
+        Podcaster profiles will appear here as creators
+        join the network.
+      </div>
+    `;
+
+    return;
+
+  }
+
+  podcasterGrid.innerHTML =
+    podcasters.map(
+      profile => {
+
+        const avatar =
+          profile.avatar_url
+            ? `
+              <img
+                src="${escapeHTML(profile.avatar_url)}"
+                alt="${escapeHTML(profile.display_name)}"
+                loading="lazy"
+              >
+            `
+            : `
+              <div class="podcaster-avatar-placeholder">
+                ${escapeHTML(
+                  initials(profile.display_name)
+                )}
+              </div>
+            `;
+
+        let specialties = [];
+
+        if(Array.isArray(profile.specialties)){
+
+          specialties =
+            profile.specialties;
+
+        }else if(
+          typeof profile.specialties === 'string'
+        ){
+
+          specialties =
+            profile.specialties
+              .split(',')
+              .map(x => x.trim())
+              .filter(Boolean);
+
+        }
+
+        return `
+          <article class="podcaster-card">
+
+            <div class="podcaster-avatar">
+              ${avatar}
+            </div>
+
+            <h3>
+              ${escapeHTML(profile.display_name)}
+
+              ${
+                profile.verified
+                  ? `<span class="verified"> ✓</span>`
+                  : ''
+              }
+            </h3>
+
+            ${
+              profile.location
+                ? `
+                  <div class="podcaster-location">
+                    ${escapeHTML(profile.location)}
+                  </div>
+                `
+                : ''
+            }
+
+            <div class="podcaster-bio">
+              ${escapeHTML(
+                profile.bio ||
+                'CrowRules Podcasting creator.'
+              )}
+            </div>
+
+            ${
+              specialties.length
+                ? `
+                  <div class="specialties">
+                    ${specialties
+                      .slice(0,6)
+                      .map(
+                        x =>
+                          `<span>${escapeHTML(x)}</span>`
+                      )
+                      .join('')
+                    }
+                  </div>
+                `
+                : ''
+            }
+
+          </article>
+        `;
+
+      }
+    ).join('');
+
+}
+
+/* ============================================================
+   PODCAST SELECT
+============================================================ */
+
+function renderPodcastSelect(){
+
+  const select =
+    document.getElementById(
+      'uploadPodcast'
+    );
+
+  if(!select){
     return;
   }
 
-  if(event.code === "Space"){
+  select.innerHTML = `
+    <option value="">
+      Select podcast
+    </option>
+  `;
+
+  podcasts.forEach(
+    podcast => {
+
+      const option =
+        document.createElement('option');
+
+      option.value =
+        podcast.id;
+
+      option.textContent =
+        podcast.title ||
+        podcast.name ||
+        'Untitled Podcast';
+
+      select.appendChild(option);
+
+    }
+  );
+
+}
+
+/* ============================================================
+   CATEGORY FILTER
+============================================================ */
+
+document
+  .getElementById('categoryFilters')
+  .addEventListener(
+    'click',
+    event => {
+
+      const button =
+        event.target.closest(
+          '.filter-btn'
+        );
+
+      if(!button){
+        return;
+      }
+
+      selectedCategory =
+        button.dataset.category ||
+        'all';
+
+      document
+        .querySelectorAll('.filter-btn')
+        .forEach(
+          x => x.classList.remove('active')
+        );
+
+      button.classList.add('active');
+
+      renderEpisodes();
+
+    }
+  );
+
+document
+  .getElementById('episodeSearch')
+  .addEventListener(
+    'input',
+    renderEpisodes
+  );
+
+/* ============================================================
+   AUDIO PLAYER
+============================================================ */
+
+function playEpisode(episode){
+
+  if(!episode.audio_url){
+
+    showToast(
+      'Audio unavailable',
+      'This episode does not have an audio file yet.'
+    );
+
+    return;
+
+  }
+
+  currentEpisode =
+    episode;
+
+  playerTitle.textContent =
+    episode.title ||
+    'Untitled Episode';
+
+  playerShow.textContent =
+    episode.podcasts?.title ||
+    'CrowRules Podcasting';
+
+  audioElement.src =
+    episode.audio_url;
+
+  audioElement.load();
+
+  audioElement.play()
+    .then(
+      () => {
+
+        playButton.textContent =
+          '❚❚';
+
+      }
+    )
+    .catch(
+      error => {
+
+        console.error(
+          'Playback error:',
+          error
+        );
+
+        showToast(
+          'Playback blocked',
+          'Press the play button to start the episode.'
+        );
+
+      }
+    );
+
+}
+
+playButton.addEventListener(
+  'click',
+  () => {
+
+    if(!audioElement.src){
+
+      showToast(
+        'Nothing selected',
+        'Choose an episode first.'
+      );
+
+      return;
+
+    }
+
+    if(audioElement.paused){
+
+      audioElement.play();
+
+    }else{
+
+      audioElement.pause();
+
+    }
+
+  }
+);
+
+rewindButton.addEventListener(
+  'click',
+  () => {
+
+    audioElement.currentTime =
+      Math.max(
+        0,
+        audioElement.currentTime - 15
+      );
+
+  }
+);
+
+forwardButton.addEventListener(
+  'click',
+  () => {
+
+    audioElement.currentTime =
+      Math.min(
+        audioElement.duration || Infinity,
+        audioElement.currentTime + 15
+      );
+
+  }
+);
+
+audioElement.addEventListener(
+  'play',
+  () => {
+
+    playButton.textContent =
+      '❚❚';
+
+  }
+);
+
+audioElement.addEventListener(
+  'pause',
+  () => {
+
+    playButton.textContent =
+      '▶';
+
+  }
+);
+
+audioElement.addEventListener(
+  'timeupdate',
+  () => {
+
+    if(
+      !audioElement.duration ||
+      !Number.isFinite(audioElement.duration)
+    ){
+
+      return;
+
+    }
+
+    const percent =
+      (
+        audioElement.currentTime /
+        audioElement.duration
+      ) * 100;
+
+    playerProgressBar.style.width =
+      `${percent}%`;
+
+  }
+);
+
+audioElement.addEventListener(
+  'ended',
+  () => {
+
+    playButton.textContent =
+      '▶';
+
+    playerProgressBar.style.width =
+      '0%';
+
+  }
+);
+
+/* ============================================================
+   KEYBOARD AUDIO CONTROLS
+============================================================ */
+
+document.addEventListener(
+  'keydown',
+  event => {
+
+    if(
+      event.target.matches(
+        'input,textarea,select'
+      )
+    ){
+
+      return;
+
+    }
+
+    if(event.code === 'Space'){
+
+      event.preventDefault();
+
+      playButton.click();
+
+    }
+
+    if(event.key === 'ArrowLeft'){
+
+      rewindButton.click();
+
+    }
+
+    if(event.key === 'ArrowRight'){
+
+      forwardButton.click();
+
+    }
+
+  }
+);
+
+/* ============================================================
+   AUTH
+============================================================ */
+
+async function refreshAuth(){
+
+  const {
+    data,
+    error
+  } =
+    await db.auth.getSession();
+
+  if(error){
+
+    console.error(error);
+
+    return;
+
+  }
+
+  currentUser =
+    data.session?.user ||
+    null;
+
+  updateAuthUI();
+
+}
+
+function updateAuthUI(){
+
+  if(currentUser){
+
+    loginButton.textContent =
+      'Creator Control Room';
+
+    /*
+      The actual role check happens before
+      showing the upload interface.
+    */
+
+    checkCreatorAccess();
+
+  }else{
+
+    loginButton.textContent =
+      'Sign In';
+
+    adminSection
+      .classList.remove('visible');
+
+  }
+
+}
+
+/* ============================================================
+   AUTH LOGIN
+============================================================ */
+
+loginButton.addEventListener(
+  'click',
+  async () => {
+
+    if(currentUser){
+
+      adminSection
+        .classList.toggle('visible');
+
+      if(
+        adminSection.classList.contains('visible')
+      ){
+
+        adminSection.scrollIntoView({
+          behavior:'smooth',
+          block:'start'
+        });
+
+      }
+
+      return;
+
+    }
+
+    const email =
+      window.prompt(
+        'Enter your CrowRules account email:'
+      );
+
+    if(!email){
+
+      return;
+
+    }
+
+    const {
+      error
+    } =
+      await db.auth.signInWithOtp({
+        email,
+        options:{
+          emailRedirectTo:
+            window.location.href
+        }
+      });
+
+    if(error){
+
+      showToast(
+        'Sign in failed',
+        error.message
+      );
+
+      return;
+
+    }
+
+    showToast(
+      'Check your email',
+      'A secure CrowRules login link has been sent.'
+    );
+
+  }
+);
+
+/* ============================================================
+   SIGN OUT
+============================================================ */
+
+document
+  .getElementById('signOutButton')
+  .addEventListener(
+    'click',
+    async () => {
+
+      await db.auth.signOut();
+
+      currentUser =
+        null;
+
+      adminSection
+        .classList.remove('visible');
+
+      updateAuthUI();
+
+      showToast(
+        'Signed out',
+        'Your creator session has ended.'
+      );
+
+    }
+  );
+
+/* ============================================================
+   CREATOR ACCESS
+============================================================ */
+
+/*
+  IMPORTANT SECURITY NOTE:
+
+  This frontend check is only a UX gate.
+
+  Real upload authorization MUST be enforced
+  by Supabase RLS policies on storage.objects
+  and podcast_episodes.
+
+  This example recognizes users as signed in.
+  If your project has a creator/admin role table,
+  replace this function with your project's actual
+  role lookup.
+*/
+
+async function checkCreatorAccess(){
+
+  if(!currentUser){
+
+    return;
+
+  }
+
+  /*
+    Default behavior:
+    authenticated users can see the control room.
+
+    Your Supabase RLS policies must decide whether
+    they can actually upload/insert.
+  */
+
+  adminSection
+    .classList.add('visible');
+
+}
+
+/* ============================================================
+   APPLICATION FORM
+============================================================ */
+
+applicationForm.addEventListener(
+  'submit',
+  async event => {
 
     event.preventDefault();
-    togglePlay();
+
+    const submit =
+      document.getElementById(
+        'applicationSubmit'
+      );
+
+    submit.disabled =
+      true;
+
+    submit.textContent =
+      'Submitting...';
+
+    const formData =
+      new FormData(applicationForm);
+
+    const application = {
+
+      user_id:
+        currentUser?.id || null,
+
+      full_name:
+        formData.get('full_name'),
+
+      email:
+        formData.get('email'),
+
+      display_name:
+        formData.get('display_name'),
+
+      podcast_name:
+        formData.get('podcast_name') || null,
+
+      category:
+        formData.get('category') || null,
+
+      bio:
+        formData.get('bio') || null,
+
+      podcast_concept:
+        formData.get('podcast_concept') || null,
+
+      experience:
+        formData.get('experience') || null,
+
+      sample_url:
+        formData.get('sample_url') || null,
+
+      why_join:
+        formData.get('why_join') || null,
+
+      social_links:{},
+
+      status:'pending'
+
+    };
+
+    /*
+      Requires the podcaster_applications
+      table to exist in Supabase.
+    */
+
+    const {
+      error
+    } =
+      await db
+        .from('podcaster_applications')
+        .insert(application);
+
+    if(error){
+
+      console.error(error);
+
+      setFormMessage(
+        applicationMessage,
+        error.message,
+        'error'
+      );
+
+      submit.disabled =
+        false;
+
+      submit.textContent =
+        'Submit Application';
+
+      return;
+
+    }
+
+    applicationForm.reset();
+
+    setFormMessage(
+      applicationMessage,
+      'Application received. The CrowRules team will review your submission.',
+      'success'
+    );
+
+    showToast(
+      'Application received',
+      'Thanks for applying to CrowRules Podcasting.'
+    );
+
+    submit.disabled =
+      false;
+
+    submit.textContent =
+      'Submit Application';
+
+  }
+);
+
+/* ============================================================
+   AUDIO FILE HANDLING
+============================================================ */
+
+const audioFile =
+  document.getElementById(
+    'audioFile'
+  );
+
+const audioDrop =
+  document.getElementById(
+    'audioDrop'
+  );
+
+const audioFileInfo =
+  document.getElementById(
+    'audioFileInfo'
+  );
+
+document
+  .getElementById('chooseAudio')
+  .addEventListener(
+    'click',
+    () => audioFile.click()
+  );
+
+audioFile.addEventListener(
+  'change',
+  () => {
+
+    if(audioFile.files[0]){
+
+      showSelectedAudio(
+        audioFile.files[0]
+      );
+
+    }
+
+  }
+);
+
+function showSelectedAudio(file){
+
+  const sizeMB =
+    file.size /
+    (1024 * 1024);
+
+  audioFileInfo.textContent =
+    `${file.name} • ${sizeMB.toFixed(2)} MB`;
+
+  /*
+    Read local duration before uploading.
+  */
+
+  const objectUrl =
+    URL.createObjectURL(file);
+
+  const audio =
+    new Audio();
+
+  audio.preload =
+    'metadata';
+
+  audio.src =
+    objectUrl;
+
+  audio.addEventListener(
+    'loadedmetadata',
+    () => {
+
+      audioFileInfo.textContent +=
+        ` • ${formatDuration(audio.duration)}`;
+
+      URL.revokeObjectURL(objectUrl);
+
+    }
+  );
+
+}
+
+[
+  'dragenter',
+  'dragover'
+].forEach(
+  eventName => {
+
+    audioDrop.addEventListener(
+      eventName,
+      event => {
+
+        event.preventDefault();
+
+        audioDrop.classList.add(
+          'dragover'
+        );
+
+      }
+    );
+
+  }
+);
+
+[
+  'dragleave',
+  'drop'
+].forEach(
+  eventName => {
+
+    audioDrop.addEventListener(
+      eventName,
+      event => {
+
+        event.preventDefault();
+
+        audioDrop.classList.remove(
+          'dragover'
+        );
+
+      }
+    );
+
+  }
+);
+
+audioDrop.addEventListener(
+  'drop',
+  event => {
+
+    const file =
+      event.dataTransfer.files[0];
+
+    if(
+      file &&
+      file.type.startsWith('audio/')
+    ){
+
+      /*
+        DataTransfer files cannot reliably
+        be assigned to a file input in every
+        browser.
+
+        Store the dropped file separately.
+      */
+
+      window.__droppedAudioFile =
+        file;
+
+      showSelectedAudio(file);
+
+    }
+
+  }
+);
+
+/* ============================================================
+   STORAGE HELPERS
+============================================================ */
+
+function sanitizeFilename(filename){
+
+  return filename
+    .normalize('NFKD')
+    .replace(/[^\w.\-]+/g,'-')
+    .replace(/-+/g,'-')
+    .replace(/^-|-$/g,'');
+
+}
+
+async function uploadFile(
+  bucket,
+  path,
+  file,
+  contentType
+){
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .storage
+      .from(bucket)
+      .upload(
+        path,
+        file,
+        {
+          cacheControl:'3600',
+          upsert:false,
+          contentType:
+            contentType ||
+            file.type
+        }
+      );
+
+  if(error){
+
+    throw error;
 
   }
 
-  if(event.code === "ArrowLeft"){
-    skip(-15);
+  return data;
+
+}
+
+/* ============================================================
+   EPISODE UPLOAD
+============================================================ */
+
+document
+  .getElementById('uploadForm')
+  .addEventListener(
+    'submit',
+    async event => {
+
+      event.preventDefault();
+
+      if(!currentUser){
+
+        showToast(
+          'Sign in required',
+          'You must be signed in to upload episodes.'
+        );
+
+        return;
+
+      }
+
+      const podcastId =
+        document
+          .getElementById('uploadPodcast')
+          .value;
+
+      const title =
+        document
+          .getElementById('uploadTitle')
+          .value
+          .trim();
+
+      const description =
+        document
+          .getElementById('uploadDescription')
+          .value
+          .trim();
+
+      const season =
+        document
+          .getElementById('uploadSeason')
+          .value;
+
+      const episodeNumber =
+        document
+          .getElementById('uploadEpisode')
+          .value;
+
+      const episodeType =
+        document
+          .getElementById('uploadType')
+          .value;
+
+      const publishDate =
+        document
+          .getElementById('uploadDate')
+          .value;
+
+      const published =
+        document
+          .getElementById('uploadPublished')
+          .value === 'true';
+
+      const featured =
+        document
+          .getElementById('uploadFeatured')
+          .value === 'true';
+
+      const selectedAudio =
+        window.__droppedAudioFile ||
+        audioFile.files[0];
+
+      const thumbnailFile =
+        document
+          .getElementById('thumbnailFile')
+          .files[0];
+
+      const status =
+        document.getElementById(
+          'uploadStatus'
+        );
+
+      const progress =
+        document.getElementById(
+          'uploadProgress'
+        );
+
+      const progressBar =
+        document.getElementById(
+          'uploadProgressBar'
+        );
+
+      const submit =
+        document.getElementById(
+          'uploadSubmit'
+        );
+
+      if(!podcastId){
+
+        status.textContent =
+          'Select a podcast first.';
+
+        return;
+
+      }
+
+      if(!title){
+
+        status.textContent =
+          'Enter an episode title.';
+
+        return;
+
+      }
+
+      if(!selectedAudio){
+
+        status.textContent =
+          'Choose an audio file.';
+
+        return;
+
+      }
+
+      submit.disabled =
+        true;
+
+      progress.style.display =
+        'block';
+
+      progressBar.style.width =
+        '5%';
+
+      status.textContent =
+        'Preparing upload...';
+
+      let audioStoragePath =
+        null;
+
+      let thumbnailStoragePath =
+        null;
+
+      let durationSeconds =
+        null;
+
+      try{
+
+        /*
+          Determine local audio duration.
+        */
+
+        durationSeconds =
+          await getAudioDuration(
+            selectedAudio
+          );
+
+        const unique =
+          crypto.randomUUID();
+
+        const safeAudioName =
+          sanitizeFilename(
+            selectedAudio.name
+          );
+
+        audioStoragePath =
+          `podcasts/${podcastId}/${unique}-${safeAudioName}`;
+
+        status.textContent =
+          'Uploading audio...';
+
+        progressBar.style.width =
+          '20%';
+
+        await uploadFile(
+          'podcast-audio',
+          audioStoragePath,
+          selectedAudio,
+          selectedAudio.type
+        );
+
+        progressBar.style.width =
+          '65%';
+
+        /*
+          Optional thumbnail.
+        */
+
+        let thumbnailUrl =
+          null;
+
+        if(thumbnailFile){
+
+          const thumbnailName =
+            sanitizeFilename(
+              thumbnailFile.name
+            );
+
+          thumbnailStoragePath =
+            `podcasts/${podcastId}/thumbnails/${unique}-${thumbnailName}`;
+
+          status.textContent =
+            'Uploading thumbnail...';
+
+          await uploadFile(
+            'podcast-audio',
+            thumbnailStoragePath,
+            thumbnailFile,
+            thumbnailFile.type
+          );
+
+          const {
+            data
+          } =
+            db
+              .storage
+              .from('podcast-audio')
+              .getPublicUrl(
+                thumbnailStoragePath
+              );
+
+          thumbnailUrl =
+            data.publicUrl;
+
+        }
+
+        /*
+          Public audio URL.
+
+          If you use a PRIVATE bucket,
+          replace this with a signed URL workflow.
+        */
+
+        const {
+          data:
+            audioPublic
+        } =
+          db
+            .storage
+            .from('podcast-audio')
+            .getPublicUrl(
+              audioStoragePath
+            );
+
+        const audioUrl =
+          audioPublic.publicUrl;
+
+        progressBar.style.width =
+          '80%';
+
+        status.textContent =
+          'Saving episode metadata...';
+
+        const episodeRow = {
+
+          podcast_id:
+            podcastId,
+
+          title,
+
+          slug:
+            slugify(title),
+
+          description:
+            description || null,
+
+          episode_number:
+            episodeNumber
+              ? Number(episodeNumber)
+              : null,
+
+          season_number:
+            season
+              ? Number(season)
+              : null,
+
+          episode_type:
+            episodeType,
+
+          audio_url:
+            audioUrl,
+
+          thumbnail_url:
+            thumbnailUrl,
+
+          duration_seconds:
+            durationSeconds
+              ? Math.round(durationSeconds)
+              : null,
+
+          publish_date:
+            publishDate
+              ? new Date(
+                  publishDate
+                ).toISOString()
+              : new Date().toISOString(),
+
+          featured,
+
+          published,
+
+          uploaded_by:
+            currentUser.id,
+
+          play_count:0
+
+        };
+
+        /*
+          The following optional metadata columns
+          are used if your upgraded schema contains them.
+          The first insert intentionally uses the
+          existing podcast_episodes columns.
+        */
+
+        const {
+          data,
+          error
+        } =
+          await db
+            .from('podcast_episodes')
+            .insert(episodeRow)
+            .select()
+            .single();
+
+        if(error){
+
+          throw error;
+
+        }
+
+        progressBar.style.width =
+          '100%';
+
+        status.textContent =
+          'Episode uploaded successfully.';
+
+        showToast(
+          'Episode uploaded',
+          `${title} has been saved successfully.`
+        );
+
+        document
+          .getElementById('uploadForm')
+          .reset();
+
+        audioFileInfo.textContent =
+          '';
+
+        window.__droppedAudioFile =
+          null;
+
+        await loadEpisodes();
+
+      }catch(error){
+
+        console.error(
+          'Episode upload failed:',
+          error
+        );
+
+        /*
+          Cleanup uploaded storage if database
+          insertion fails.
+        */
+
+        if(audioStoragePath){
+
+          await db
+            .storage
+            .from('podcast-audio')
+            .remove([
+              audioStoragePath
+            ]);
+
+        }
+
+        if(thumbnailStoragePath){
+
+          await db
+            .storage
+            .from('podcast-audio')
+            .remove([
+              thumbnailStoragePath
+            ]);
+
+        }
+
+        status.textContent =
+          error.message ||
+          'Episode upload failed.';
+
+        showToast(
+          'Upload failed',
+          error.message ||
+          'Could not upload the episode.'
+        );
+
+      }finally{
+
+        submit.disabled =
+          false;
+
+        setTimeout(
+          () => {
+
+            progress.style.display =
+              'none';
+
+            progressBar.style.width =
+              '0%';
+
+          },
+          1500
+        );
+
+      }
+
+    }
+  );
+
+/* ============================================================
+   AUDIO DURATION
+============================================================ */
+
+function getAudioDuration(file){
+
+  return new Promise(
+    resolve => {
+
+      const url =
+        URL.createObjectURL(file);
+
+      const audio =
+        new Audio();
+
+      audio.preload =
+        'metadata';
+
+      audio.src =
+        url;
+
+      audio.onloadedmetadata =
+        () => {
+
+          const duration =
+            Number.isFinite(audio.duration)
+              ? audio.duration
+              : null;
+
+          URL.revokeObjectURL(url);
+
+          resolve(duration);
+
+        };
+
+      audio.onerror =
+        () => {
+
+          URL.revokeObjectURL(url);
+
+          resolve(null);
+
+        };
+
+    }
+  );
+
+}
+
+/* ============================================================
+   AUTH STATE LISTENER
+============================================================ */
+
+db.auth.onAuthStateChange(
+  (
+    event,
+    session
+  ) => {
+
+    currentUser =
+      session?.user ||
+      null;
+
+    updateAuthUI();
+
+  }
+);
+
+/* ============================================================
+   APPLICATION AUTH PRE-FILL
+============================================================ */
+
+async function prefillApplication(){
+
+  if(!currentUser){
+    return;
   }
 
-  if(event.code === "ArrowRight"){
-    skip(15);
+  const email =
+    currentUser.email || '';
+
+  const emailInput =
+    document.getElementById(
+      'appEmail'
+    );
+
+  if(
+    emailInput &&
+    !emailInput.value
+  ){
+
+    emailInput.value =
+      email;
+
   }
 
-});
+}
+
+/* ============================================================
+   SMOOTH ACTIVE NAV
+============================================================ */
+
+const sections =
+  document.querySelectorAll(
+    'main section[id]'
+  );
+
+const navAnchors =
+  document.querySelectorAll(
+    '.nav-links a'
+  );
+
+const observer =
+  new IntersectionObserver(
+    entries => {
+
+      entries.forEach(
+        entry => {
+
+          if(
+            entry.isIntersecting
+          ){
+
+            navAnchors
+              .forEach(
+                link =>
+                  link.classList.remove(
+                    'active'
+                  )
+              );
+
+            const active =
+              document.querySelector(
+                `.nav-links a[href="#${entry.target.id}"]`
+              );
+
+            if(active){
+
+              active.classList.add(
+                'active'
+              );
+
+            }
+
+          }
+
+        }
+      );
+
+    },
+    {
+      rootMargin:
+        '-35% 0px -55% 0px'
+    }
+  );
+
+sections.forEach(
+  section =>
+    observer.observe(section)
+);
+
+/* ============================================================
+   YEAR
+============================================================ */
+
+document.getElementById(
+  'year'
+).textContent =
+  new Date().getFullYear();
+
+/* ============================================================
+   INITIAL LOAD
+============================================================ */
+
+async function init(){
+
+  try{
+
+    await refreshAuth();
+
+    await Promise.all([
+      loadPodcasts(),
+      loadEpisodes(),
+      loadPodcasters()
+    ]);
+
+    await prefillApplication();
+
+  }catch(error){
+
+    console.error(
+      'CrowRules initialization failed:',
+      error
+    );
+
+  }
+
+}
+
+init();
+
+/* ============================================================
+   REAL-TIME CONTENT REFRESH
+============================================================ */
+
+/*
+  When an episode or podcast changes in Supabase,
+  refresh the public library automatically.
+*/
+
+db.channel(
+  'crowrules-podcasting-live'
+)
+.on(
+  'postgres_changes',
+  {
+    event:'*',
+    schema:'public',
+    table:'podcast_episodes'
+  },
+  () => {
+
+    loadEpisodes();
+
+  }
+)
+.on(
+  'postgres_changes',
+  {
+    event:'*',
+    schema:'public',
+    table:'podcasts'
+  },
+  () => {
+
+    loadPodcasts();
+    loadEpisodes();
+
+  }
+)
+.on(
+  'postgres_changes',
+  {
+    event:'*',
+    schema:'public',
+    table:'podcaster_profiles'
+  },
+  () => {
+
+    loadPodcasters();
+
+  }
+)
+.subscribe();
+
+/* ============================================================
+   PREVENT ACCIDENTAL DOUBLE SUBMISSION
+============================================================ */
+
+window.addEventListener(
+  'beforeunload',
+  event => {
+
+    const uploadVisible =
+      adminSection.classList.contains(
+        'visible'
+      );
+
+    const progressVisible =
+      document.getElementById(
+        'uploadProgress'
+      ).style.display === 'block';
+
+    if(
+      uploadVisible &&
+      progressVisible
+    ){
+
+      event.preventDefault();
+
+      event.returnValue =
+        '';
+
+    }
+
+  }
+);
+
+/* ============================================================
+   CONSOLE BRANDING
+============================================================ */
+
+console.log(
+  '%c CROWRULES PODCASTING ',
+  'background:#00e5ff;color:#001016;font-weight:900;padding:8px;'
+);
+
+console.log(
+  'Hear Something Different.'
+);
+
 </script>
 
 </body>
 </html>
-```
