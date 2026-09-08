@@ -1,0 +1,3091 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+
+<title>CrowRules Podcasting — Schedule</title>
+
+<meta name="theme-color" content="#050505">
+<meta name="description" content="CrowRules Podcasting — 24/7 broadcast schedule and programming grid.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --bg:#050505;
+  --panel:#0b0b0b;
+  --panel2:#111;
+  --panel3:#171717;
+  --line:#282828;
+  --line-red:#4b0000;
+  --red:#c00000;
+  --hot:#ff2020;
+  --soft-red:#ff4a4a;
+  --text:#f4f4f4;
+  --muted:#929292;
+  --dim:#5f5f5f;
+  --green:#3cff91;
+  --max:1480px;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(
+      circle at 50% -10%,
+      #4b000022,
+      transparent 42%
+    ),
+    #050505;
+  color:var(--text);
+  font-family:Montserrat,Arial,sans-serif;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:999;
+  opacity:.035;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 3px,
+      #fff 4px
+    );
+}
+
+a{
+  color:inherit;
+  text-decoration:none;
+}
+
+button,
+input{
+  font:inherit;
+}
+
+button{
+  -webkit-tap-highlight-color:transparent;
+}
+
+.wrap{
+  width:min(var(--max),calc(100% - 40px));
+  margin:auto;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+header{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:rgba(5,5,5,.94);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(18px);
+}
+
+.nav{
+  min-height:76px;
+  display:flex;
+  align-items:center;
+  gap:25px;
+}
+
+.brand{
+  flex-shrink:0;
+  font-family:Orbitron,sans-serif;
+  font-size:17px;
+  font-weight:900;
+  letter-spacing:1.5px;
+  white-space:nowrap;
+}
+
+.brand span{
+  color:var(--hot);
+}
+
+.navlinks{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  flex:1;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+
+.navlinks::-webkit-scrollbar{
+  display:none;
+}
+
+.navlinks a{
+  flex-shrink:0;
+  padding:11px 12px;
+  border:1px solid transparent;
+  color:#888;
+  font:800 10px Orbitron,sans-serif;
+  letter-spacing:.7px;
+}
+
+.navlinks a:hover,
+.navlinks a.active{
+  color:#fff;
+  background:#150000;
+  border-color:#470000;
+}
+
+.network-status{
+  flex-shrink:0;
+  padding:10px 12px;
+  border:1px solid var(--line-red);
+  color:#aaa;
+  font:800 9px Orbitron,sans-serif;
+  letter-spacing:1px;
+}
+
+.network-status i{
+  display:inline-block;
+  width:7px;
+  height:7px;
+  margin-right:7px;
+  border-radius:50%;
+  background:var(--hot);
+  box-shadow:0 0 13px var(--hot);
+  animation:livePulse 1.2s infinite;
+}
+
+@keyframes livePulse{
+  50%{
+    opacity:.25;
+  }
+}
+
+/* =========================================================
+   MAIN
+   ========================================================= */
+
+main{
+  padding:52px 0 150px;
+}
+
+.eyebrow{
+  color:var(--hot);
+  font:800 10px Orbitron,sans-serif;
+  letter-spacing:2px;
+}
+
+h1{
+  margin:9px 0 16px;
+  font:900 clamp(42px,7vw,82px)/.95 Orbitron,sans-serif;
+  letter-spacing:-2px;
+  text-transform:uppercase;
+}
+
+.intro{
+  max-width:820px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.75;
+}
+
+/* =========================================================
+   CLOCK
+   ========================================================= */
+
+.clockbar{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:25px;
+  align-items:center;
+  margin-top:32px;
+  padding:20px 22px;
+  border:1px solid #460000;
+  background:
+    linear-gradient(
+      110deg,
+      #170000,
+      #090909 60%
+    );
+}
+
+.clock-left{
+  display:flex;
+  align-items:center;
+  gap:13px;
+}
+
+.clock-dot{
+  width:10px;
+  height:10px;
+  flex-shrink:0;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 16px var(--green);
+}
+
+.clock-label{
+  font:800 10px Orbitron,sans-serif;
+  letter-spacing:1.8px;
+}
+
+.clock-zone{
+  margin-top:5px;
+  color:#666;
+  font-size:9px;
+  letter-spacing:.7px;
+}
+
+.clock{
+  font:800 clamp(22px,4vw,31px) Orbitron,sans-serif;
+  white-space:nowrap;
+  text-align:right;
+}
+
+/* =========================================================
+   DAY SELECTOR
+   ========================================================= */
+
+.daybar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:28px 0 20px;
+}
+
+.day{
+  position:relative;
+  min-width:82px;
+  padding:13px 15px;
+  border:1px solid var(--line);
+  background:#101010;
+  color:#858585;
+  cursor:pointer;
+  font:800 10px Orbitron,sans-serif;
+  letter-spacing:.8px;
+}
+
+.day:hover{
+  color:#fff;
+  border-color:#600000;
+}
+
+.day.active{
+  color:#fff;
+  background:#190000;
+  border-color:var(--red);
+  box-shadow:inset 0 -2px var(--hot);
+}
+
+.day.today::after{
+  content:"";
+  position:absolute;
+  top:5px;
+  right:5px;
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:var(--hot);
+  box-shadow:0 0 7px var(--hot);
+}
+
+/* =========================================================
+   MAIN SCHEDULE GRID
+   ========================================================= */
+
+.schedule-layout{
+  display:grid;
+  grid-template-columns:230px 1fr;
+  gap:16px;
+}
+
+.day-rail{
+  height:max-content;
+  position:sticky;
+  top:98px;
+  padding:22px;
+  border:1px solid #3b0000;
+  background:
+    linear-gradient(
+      180deg,
+      #160000,
+      #0b0b0b 70%
+    );
+}
+
+.rail-label{
+  color:#666;
+  font:800 9px Orbitron,sans-serif;
+  letter-spacing:1.5px;
+}
+
+.rail-date{
+  margin-top:7px;
+  font:900 29px Orbitron,sans-serif;
+}
+
+.rail-day{
+  margin-top:8px;
+  color:var(--hot);
+  font:800 11px Orbitron,sans-serif;
+  letter-spacing:1.7px;
+}
+
+.rail-info{
+  margin-top:28px;
+  color:#6d6d6d;
+  font-size:10px;
+  line-height:1.8;
+}
+
+.rail-info strong{
+  color:#aaa;
+}
+
+.rail-live{
+  margin-top:24px;
+  padding:13px;
+  border-left:3px solid var(--red);
+  background:#110000;
+  color:#777;
+  font-size:9px;
+  line-height:1.65;
+}
+
+.rail-live strong{
+  color:#bbb;
+}
+
+/* =========================================================
+   SLOTS
+   ========================================================= */
+
+.slots{
+  display:grid;
+  gap:10px;
+}
+
+.slot{
+  position:relative;
+  display:grid;
+  grid-template-columns:105px minmax(0,1fr) auto;
+  gap:20px;
+  align-items:center;
+  min-height:108px;
+  padding:18px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  transition:
+    border-color .2s,
+    transform .2s,
+    background .2s;
+}
+
+.slot:hover{
+  transform:translateX(3px);
+  border-color:#5b0000;
+  background:#0e0e0e;
+}
+
+.slot.now{
+  border-color:#8b0000;
+  background:
+    linear-gradient(
+      90deg,
+      #1c0000,
+      #0b0b0b 35%
+    );
+  box-shadow:
+    inset 4px 0 var(--hot),
+    0 0 25px #c0000012;
+}
+
+.time{
+  color:#ddd;
+  font:800 14px Orbitron,sans-serif;
+  white-space:nowrap;
+}
+
+.slot.now .time{
+  color:var(--hot);
+}
+
+.duration{
+  margin-top:6px;
+  color:#555;
+  font-size:9px;
+}
+
+.program-title{
+  margin:0 0 6px;
+  font-size:15px;
+  line-height:1.3;
+}
+
+.program-description{
+  max-width:800px;
+  margin:0;
+  color:#858585;
+  font-size:10px;
+  line-height:1.55;
+}
+
+.program-tag{
+  display:inline-block;
+  margin-top:9px;
+  padding:5px 7px;
+  border:1px solid #333;
+  color:#777;
+  font:800 8px Montserrat,sans-serif;
+  letter-spacing:1px;
+}
+
+.program-tag.live{
+  border-color:#710000;
+  color:#ff5050;
+}
+
+.play-btn{
+  min-width:78px;
+  padding:11px 12px;
+  border:1px solid #430000;
+  background:#150000;
+  color:#eee;
+  cursor:pointer;
+  font:800 9px Orbitron,sans-serif;
+}
+
+.play-btn:hover:not(:disabled){
+  background:var(--red);
+  border-color:var(--hot);
+}
+
+.play-btn:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
+
+/* =========================================================
+   STATES
+   ========================================================= */
+
+.state{
+  min-height:250px;
+  display:grid;
+  place-items:center;
+  padding:35px;
+  border:1px dashed #3c0000;
+  background:#090909;
+  text-align:center;
+}
+
+.state-title{
+  color:#777;
+  font:800 11px Orbitron,sans-serif;
+  letter-spacing:1.5px;
+}
+
+.state-message{
+  max-width:500px;
+  margin-top:10px;
+  color:#555;
+  font-size:10px;
+  line-height:1.7;
+}
+
+.spinner{
+  width:30px;
+  height:30px;
+  margin:0 auto 15px;
+  border:2px solid #320000;
+  border-top-color:var(--hot);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+/* =========================================================
+   LOWER INFORMATION
+   ========================================================= */
+
+.lower{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 370px;
+  gap:16px;
+  margin-top:22px;
+}
+
+.panel{
+  padding:22px;
+  border:1px solid var(--line);
+  background:var(--panel);
+}
+
+.panel-title{
+  margin:0 0 17px;
+  font:800 18px Orbitron,sans-serif;
+}
+
+.rotation-list{
+  display:grid;
+}
+
+.rotation-row{
+  display:flex;
+  justify-content:space-between;
+  gap:15px;
+  padding:13px 0;
+  border-top:1px solid #202020;
+  font-size:10px;
+}
+
+.rotation-row:first-child{
+  border-top:0;
+}
+
+.rotation-row strong{
+  color:#ddd;
+}
+
+.rotation-row span{
+  color:#555;
+  text-align:right;
+}
+
+.panel-text{
+  color:#777;
+  font-size:10px;
+  line-height:1.8;
+}
+
+.data-list{
+  margin-top:20px;
+  display:grid;
+  gap:7px;
+}
+
+.data-item{
+  padding:8px 10px;
+  border-left:2px solid #3b0000;
+  background:#101010;
+  color:#666;
+  font:800 8px Orbitron,sans-serif;
+  letter-spacing:1px;
+}
+
+/* =========================================================
+   PLAYER
+   ========================================================= */
+
+.player{
+  position:fixed;
+  right:0;
+  bottom:0;
+  left:0;
+  z-index:200;
+  border-top:1px solid #430000;
+  background:rgba(7,7,7,.97);
+  box-shadow:0 -12px 45px #000;
+  backdrop-filter:blur(18px);
+}
+
+.player-inner{
+  width:min(var(--max),calc(100% - 40px));
+  min-height:78px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:290px minmax(220px,1fr) 180px;
+  gap:20px;
+  align-items:center;
+  padding:10px 0;
+}
+
+.track-title{
+  display:block;
+  overflow:hidden;
+  color:#eee;
+  font:800 10px Orbitron,sans-serif;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.track-show{
+  display:block;
+  overflow:hidden;
+  margin-top:4px;
+  color:#666;
+  font-size:9px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.player-controls{
+  text-align:center;
+}
+
+.control{
+  margin:0 5px;
+  border:0;
+  background:none;
+  color:#eee;
+  cursor:pointer;
+  font-size:17px;
+}
+
+.control:hover{
+  color:var(--hot);
+}
+
+.control-main{
+  width:39px;
+  height:39px;
+  border:0;
+  background:var(--red);
+  color:#fff;
+  font-size:13px;
+}
+
+.control-main:hover{
+  background:var(--hot);
+}
+
+.progress-track{
+  height:3px;
+  margin-top:8px;
+  background:#2b2b2b;
+  cursor:pointer;
+}
+
+.progress-fill{
+  width:0;
+  height:100%;
+  background:var(--hot);
+  box-shadow:0 0 9px var(--hot);
+}
+
+.volume-box{
+  color:#666;
+  font:800 8px Orbitron,sans-serif;
+  text-align:right;
+  letter-spacing:1px;
+}
+
+.volume-box input{
+  width:95px;
+  margin-left:7px;
+  vertical-align:middle;
+  accent-color:var(--hot);
+}
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+.toast{
+  position:fixed;
+  right:20px;
+  bottom:105px;
+  z-index:300;
+  max-width:360px;
+  padding:14px 16px;
+  border:1px solid #600000;
+  background:#0d0d0d;
+  color:#ddd;
+  font-size:10px;
+  line-height:1.5;
+  box-shadow:0 15px 40px #000;
+  opacity:0;
+  transform:translateY(15px);
+  pointer-events:none;
+  transition:.25s;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translateY(0);
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+footer{
+  padding:38px 0 115px;
+  border-top:1px solid var(--line);
+  color:#555;
+  font-size:9px;
+  letter-spacing:.5px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media(max-width:1000px){
+
+  .navlinks{
+    display:none;
+  }
+
+  .schedule-layout{
+    grid-template-columns:1fr;
+  }
+
+  .day-rail{
+    position:relative;
+    top:auto;
+  }
+
+  .lower{
+    grid-template-columns:1fr;
+  }
+
+  .player-inner{
+    grid-template-columns:250px 1fr;
+  }
+
+  .volume-box{
+    display:none;
+  }
+
+}
+
+@media(max-width:700px){
+
+  .wrap,
+  .player-inner{
+    width:min(var(--max),calc(100% - 28px));
+  }
+
+  main{
+    padding-top:38px;
+  }
+
+  .network-status{
+    display:none;
+  }
+
+  .clockbar{
+    grid-template-columns:1fr;
+  }
+
+  .clock{
+    text-align:left;
+  }
+
+  .slot{
+    grid-template-columns:75px minmax(0,1fr);
+  }
+
+  .play-btn{
+    grid-column:2;
+    width:max-content;
+  }
+
+  .player-inner{
+    grid-template-columns:1fr auto;
+    gap:10px;
+  }
+
+  .player-controls{
+    width:180px;
+  }
+
+  .progress-track{
+    display:none;
+  }
+
+}
+
+@media(max-width:480px){
+
+  h1{
+    font-size:40px;
+  }
+
+  .brand{
+    font-size:14px;
+  }
+
+  .day{
+    min-width:70px;
+    padding:11px 10px;
+  }
+
+  .slot{
+    gap:12px;
+    padding:15px;
+  }
+
+  .program-title{
+    font-size:13px;
+  }
+
+  .player-controls{
+    width:145px;
+  }
+
+  .control{
+    margin:0 2px;
+  }
+
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+  <div class="wrap nav">
+
+    <a
+      href="podcasting.html"
+      class="brand"
+    >
+      CROW<span>RULES</span> // PODCASTING
+    </a>
+
+    <nav class="navlinks">
+
+      <a href="podcasting.html">HOME</a>
+
+      <a href="podcasts.html">PODCASTS</a>
+
+      <a href="live.html">LIVE</a>
+
+      <a
+        href="schedule.html"
+        class="active"
+      >
+        SCHEDULE
+      </a>
+
+      <a href="top.html">TOP 10</a>
+
+      <a href="categories.html">CATEGORIES</a>
+
+      <a href="search.html">SEARCH</a>
+
+      <a href="members.html">MEMBERS</a>
+
+    </nav>
+
+    <div class="network-status">
+      <i></i>
+      NETWORK
+    </div>
+
+  </div>
+
+</header>
+
+
+<main>
+
+  <div class="wrap">
+
+    <div class="eyebrow">
+      CROWRULES BROADCAST GRID // 24/7
+    </div>
+
+    <h1>
+      THE SCHEDULE
+    </h1>
+
+    <p class="intro">
+      The CrowRules Podcasting broadcast grid shows
+      scheduled programming, current broadcasts, and
+      upcoming episodes. Programming is loaded directly
+      from the CrowRules Supabase broadcast system.
+    </p>
+
+
+    <!-- CLOCK -->
+
+    <section class="clockbar">
+
+      <div class="clock-left">
+
+        <i class="clock-dot"></i>
+
+        <div>
+
+          <div class="clock-label">
+            BROADCAST CLOCK
+          </div>
+
+          <div
+            class="clock-zone"
+            id="clockStatus"
+          >
+            PACIFIC TIME
+          </div>
+
+        </div>
+
+      </div>
+
+      <div
+        class="clock"
+        id="clock"
+      >
+        --:--:--
+      </div>
+
+    </section>
+
+
+    <!-- DAYS -->
+
+    <div
+      class="daybar"
+      id="dayButtons"
+    ></div>
+
+
+    <!-- SCHEDULE -->
+
+    <section class="schedule-layout">
+
+      <aside class="day-rail">
+
+        <div class="rail-label">
+          SELECTED DAY
+        </div>
+
+        <div
+          class="rail-date"
+          id="railDate"
+        >
+          --
+        </div>
+
+        <div
+          class="rail-day"
+          id="railDow"
+        >
+          --
+        </div>
+
+        <div class="rail-info">
+
+          ALL TIMES
+
+          <br>
+
+          <strong>PACIFIC TIME</strong>
+
+          <br><br>
+
+          The schedule automatically uses
+          Pacific Time and displays normal
+          12-hour clock notation.
+
+        </div>
+
+        <div class="rail-live">
+
+          <strong>
+            ● BROADCAST STATUS
+          </strong>
+
+          <br><br>
+
+          Live programming is synchronized
+          with the CrowRules Podcasting
+          live-channel system.
+
+        </div>
+
+      </aside>
+
+
+      <section
+        class="slots"
+        id="slots"
+      >
+
+        <div class="state">
+
+          <div>
+
+            <div class="spinner"></div>
+
+            <div class="state-title">
+              CONNECTING TO BROADCAST GRID
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </section>
+
+
+    <!-- LOWER -->
+
+    <section class="lower">
+
+      <div class="panel">
+
+        <h2 class="panel-title">
+          WEEKLY ROTATION
+        </h2>
+
+        <div
+          class="rotation-list"
+          id="weeklyRotation"
+        >
+
+          <div class="rotation-row">
+
+            <strong>
+              LOADING PROGRAMMING
+            </strong>
+
+            <span>
+              SUPABASE
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="panel">
+
+        <h2 class="panel-title">
+          NETWORK DATA
+        </h2>
+
+        <p class="panel-text">
+
+          CrowRules Podcasting schedule data is
+          managed through the network database.
+          Adding or changing scheduled broadcasts
+          does not require editing this page.
+
+        </p>
+
+        <div class="data-list">
+
+          <div class="data-item">
+            podcast_schedule
+          </div>
+
+          <div class="data-item">
+            podcasts
+          </div>
+
+          <div class="data-item">
+            podcast_episodes
+          </div>
+
+          <div class="data-item">
+            podcast_live_channels
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
+
+</main>
+
+
+<!-- PLAYER -->
+
+<div class="player">
+
+  <div class="player-inner">
+
+    <div>
+
+      <span
+        class="track-title"
+        id="trackTitle"
+      >
+        CROWRULES PODCASTING
+      </span>
+
+      <span
+        class="track-show"
+        id="trackSub"
+      >
+        Select an episode from the broadcast grid.
+      </span>
+
+    </div>
+
+
+    <div class="player-controls">
+
+      <button
+        class="control"
+        id="previous"
+        aria-label="Previous"
+      >
+        ↶
+      </button>
+
+      <button
+        class="control control-main"
+        id="play"
+        aria-label="Play"
+      >
+        ▶
+      </button>
+
+      <button
+        class="control"
+        id="next"
+        aria-label="Next"
+      >
+        ↷
+      </button>
+
+      <div
+        class="progress-track"
+        id="progressBar"
+      >
+
+        <div
+          class="progress-fill"
+          id="progress"
+        ></div>
+
+      </div>
+
+    </div>
+
+
+    <div class="volume-box">
+
+      VOLUME
+
+      <input
+        id="vol"
+        type="range"
+        min="0"
+        max="1"
+        step=".05"
+        value=".8"
+      >
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<div
+  class="toast"
+  id="toast"
+></div>
+
+
+<audio
+  id="audio"
+  preload="metadata"
+></audio>
+
+
+<footer>
+
+  <div class="wrap">
+
+    CROWRULES ENTERTAINMENT
+    · CROWRULES PODCASTING
+    · 24/7 BROADCAST NETWORK
+
+  </div>
+
+</footer>
+
+
+<script>
+/* =========================================================
+   CROWRULES PODCASTING
+   SCHEDULE
+   SUPABASE + 12-HOUR PACIFIC CLOCK
+   ========================================================= */
+
+
+/* =========================================================
+   SUPABASE
+   ========================================================= */
+
+const SUPABASE_URL =
+  "https://cevylpnoexugwgygvtgu.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
+
+const {
+  createClient
+} = window.supabase;
+
+const db =
+  createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* =========================================================
+   CONSTANTS
+   ========================================================= */
+
+const TIME_ZONE =
+  "America/Los_Angeles";
+
+
+/* =========================================================
+   DOM
+   ========================================================= */
+
+const clock =
+  document.getElementById("clock");
+
+const clockStatus =
+  document.getElementById("clockStatus");
+
+const dayButtons =
+  document.getElementById("dayButtons");
+
+const railDate =
+  document.getElementById("railDate");
+
+const railDow =
+  document.getElementById("railDow");
+
+const slots =
+  document.getElementById("slots");
+
+const weeklyRotation =
+  document.getElementById("weeklyRotation");
+
+const audio =
+  document.getElementById("audio");
+
+const playButton =
+  document.getElementById("play");
+
+const previousButton =
+  document.getElementById("previous");
+
+const nextButton =
+  document.getElementById("next");
+
+const progressBar =
+  document.getElementById("progressBar");
+
+const progress =
+  document.getElementById("progress");
+
+const volume =
+  document.getElementById("vol");
+
+const toast =
+  document.getElementById("toast");
+
+const trackTitle =
+  document.getElementById("trackTitle");
+
+const trackSub =
+  document.getElementById("trackSub");
+
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+let schedules = [];
+
+let podcasts = [];
+
+let episodes = [];
+
+let liveChannels = [];
+
+let selectedDate =
+  new Date();
+
+let playerQueue = [];
+
+let playerIndex = -1;
+
+let currentEpisode = null;
+
+
+/* =========================================================
+   HTML SAFETY
+   ========================================================= */
+
+function escapeHTML(value){
+
+  return String(
+    value ?? ""
+  )
+  .replace(/&/g,"&amp;")
+  .replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;")
+  .replace(/'/g,"&#039;");
+
+}
+
+
+/* =========================================================
+   PACIFIC TIME HELPERS
+   ========================================================= */
+
+function pacificParts(date){
+
+  const parts =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone:TIME_ZONE,
+        year:"numeric",
+        month:"2-digit",
+        day:"2-digit",
+        weekday:"long",
+        hour:"numeric",
+        minute:"2-digit",
+        second:"2-digit",
+        hour12:true
+      }
+    ).formatToParts(date);
+
+  const result = {};
+
+  parts.forEach(
+    part => {
+      result[part.type] =
+        part.value;
+    }
+  );
+
+  return result;
+
+}
+
+
+function pacificDateKey(date){
+
+  const p =
+    pacificParts(date);
+
+  return (
+    `${p.year}-${p.month}-${p.day}`
+  );
+
+}
+
+
+function startOfPacificDay(date){
+
+  const p =
+    pacificParts(date);
+
+  /*
+   * Construct a stable local calendar object.
+   * Calendar operations are used only for the
+   * seven-day navigation; actual schedule
+   * comparisons remain timestamp based.
+   */
+
+  return new Date(
+    Number(p.year),
+    Number(p.month) - 1,
+    Number(p.day)
+  );
+
+}
+
+
+function addDays(date,count){
+
+  const d =
+    new Date(date);
+
+  d.setDate(
+    d.getDate() + count
+  );
+
+  return d;
+
+}
+
+
+/* =========================================================
+   12-HOUR CLOCK
+   ========================================================= */
+
+function updateClock(){
+
+  const now =
+    new Date();
+
+
+  /*
+   * IMPORTANT:
+   * hour12:true gives normal clock format:
+   *
+   * 1:05:22 PM
+   *
+   * instead of:
+   *
+   * 13:05:22
+   */
+
+  clock.textContent =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone:TIME_ZONE,
+        hour:"numeric",
+        minute:"2-digit",
+        second:"2-digit",
+        hour12:true
+      }
+    ).format(now);
+
+
+  /*
+   * Automatically move the schedule
+   * to today's column after midnight.
+   */
+
+  const today =
+    pacificDateKey(now);
+
+  const selected =
+    pacificDateKey(
+      selectedDate
+    );
+
+
+  if(
+    today !== selected
+  ){
+
+    selectedDate =
+      startOfPacificDay(
+        now
+      );
+
+    renderDayButtons();
+
+    renderSelectedDay();
+
+  }
+
+
+  /*
+   * Refresh current ON AIR highlighting.
+   */
+
+  if(
+    today === selected
+  ){
+
+    renderSelectedDay();
+
+  }
+
+}
+
+
+/* =========================================================
+   DISPLAY HELPERS
+   ========================================================= */
+
+function formatTime(value){
+
+  if(!value){
+    return "--:--";
+  }
+
+  const date =
+    new Date(value);
+
+  if(
+    Number.isNaN(
+      date.getTime()
+    )
+  ){
+
+    return "--:--";
+
+  }
+
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      timeZone:TIME_ZONE,
+      hour:"numeric",
+      minute:"2-digit",
+      hour12:true
+    }
+  ).format(date);
+
+}
+
+
+function formatLongDate(date){
+
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      timeZone:TIME_ZONE,
+      month:"short",
+      day:"2-digit"
+    }
+  ).format(date)
+   .toUpperCase();
+
+}
+
+
+function formatWeekday(date){
+
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      timeZone:TIME_ZONE,
+      weekday:"long"
+    }
+  ).format(date)
+   .toUpperCase();
+
+}
+
+
+function formatDuration(seconds){
+
+  const value =
+    Number(seconds || 0);
+
+  if(!value){
+    return "";
+  }
+
+  const hours =
+    Math.floor(
+      value / 3600
+    );
+
+  const minutes =
+    Math.floor(
+      (value % 3600) / 60
+    );
+
+  const secondsPart =
+    Math.floor(
+      value % 60
+    );
+
+
+  if(hours){
+
+    return (
+      hours +
+      ":" +
+      String(minutes)
+        .padStart(2,"0") +
+      ":" +
+      String(secondsPart)
+        .padStart(2,"0")
+    );
+
+  }
+
+
+  return (
+    minutes +
+    ":" +
+    String(secondsPart)
+      .padStart(2,"0")
+  );
+
+}
+
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+function showToast(message){
+
+  toast.textContent =
+    message;
+
+  toast.classList.add(
+    "show"
+  );
+
+  clearTimeout(
+    showToast.timer
+  );
+
+  showToast.timer =
+    setTimeout(
+      () => {
+
+        toast.classList.remove(
+          "show"
+        );
+
+      },
+      3200
+    );
+
+}
+
+
+/* =========================================================
+   DATA LOOKUPS
+   ========================================================= */
+
+function getPodcast(id){
+
+  return podcasts.find(
+    podcast =>
+      podcast.id === id
+  ) || null;
+
+}
+
+
+function getEpisode(id){
+
+  return episodes.find(
+    episode =>
+      episode.id === id
+  ) || null;
+
+}
+
+
+function getLiveChannel(item){
+
+  return liveChannels.find(
+    channel => {
+
+      if(
+        item.episode_id &&
+        channel.current_episode_id ===
+          item.episode_id
+      ){
+
+        return true;
+
+      }
+
+      if(
+        item.podcast_id &&
+        channel.current_podcast_id ===
+          item.podcast_id
+      ){
+
+        return true;
+
+      }
+
+      return false;
+
+    }
+  ) || null;
+
+}
+
+
+/* =========================================================
+   DATABASE LOAD
+   ========================================================= */
+
+async function loadDatabase(){
+
+  try{
+
+    const [
+      scheduleResponse,
+      podcastResponse,
+      episodeResponse,
+      liveResponse
+    ] =
+      await Promise.all([
+
+        db
+          .from("podcast_schedule")
+          .select(`
+            id,
+            podcast_id,
+            episode_id,
+            title,
+            starts_at,
+            ends_at,
+            timezone,
+            recurrence,
+            status,
+            created_at
+          `)
+          .order(
+            "starts_at",
+            {
+              ascending:true
+            }
+          ),
+
+        db
+          .from("podcasts")
+          .select(`
+            id,
+            title,
+            slug,
+            category,
+            description,
+            artwork_url,
+            status,
+            is_featured,
+            is_live,
+            listener_count,
+            total_plays
+          `),
+
+        db
+          .from("podcast_episodes")
+          .select(`
+            id,
+            podcast_id,
+            title,
+            description,
+            episode_number,
+            season_number,
+            published_at,
+            duration_seconds,
+            audio_url,
+            thumbnail_url,
+            status
+          `)
+          .order(
+            "published_at",
+            {
+              ascending:false,
+              nullsFirst:false
+            }
+          ),
+
+        db
+          .from("podcast_live_channels")
+          .select(`
+            id,
+            name,
+            slug,
+            description,
+            stream_url,
+            stream_type,
+            artwork_url,
+            status,
+            is_active,
+            listener_count,
+            current_title,
+            current_episode_id,
+            current_podcast_id,
+            updated_at
+          `)
+          .eq(
+            "is_active",
+            true
+          )
+
+      ]);
+
+
+    if(
+      scheduleResponse.error
+    ){
+
+      throw scheduleResponse.error;
+
+    }
+
+
+    if(
+      podcastResponse.error
+    ){
+
+      throw podcastResponse.error;
+
+    }
+
+
+    if(
+      episodeResponse.error
+    ){
+
+      throw episodeResponse.error;
+
+    }
+
+
+    if(
+      liveResponse.error
+    ){
+
+      throw liveResponse.error;
+
+    }
+
+
+    schedules =
+      scheduleResponse.data || [];
+
+    podcasts =
+      podcastResponse.data || [];
+
+    episodes =
+      episodeResponse.data || [];
+
+    liveChannels =
+      liveResponse.data || [];
+
+
+    clockStatus.textContent =
+      `${schedules.length} scheduled broadcast${schedules.length === 1 ? "" : "s"} · PACIFIC TIME`;
+
+
+    renderDayButtons();
+
+    renderSelectedDay();
+
+    renderWeeklyRotation();
+
+    refreshLiveStatus();
+
+
+  }catch(error){
+
+    console.error(
+      "CrowRules schedule error:",
+      error
+    );
+
+
+    clockStatus.textContent =
+      "DATABASE CONNECTION ERROR";
+
+
+    slots.innerHTML = `
+
+      <div class="state">
+
+        <div>
+
+          <div class="state-title">
+            BROADCAST DATABASE ERROR
+          </div>
+
+          <div class="state-message">
+
+            ${escapeHTML(
+              error.message ||
+              "Unable to load the CrowRules broadcast schedule."
+            )}
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+/* =========================================================
+   DAY BUTTONS
+   ========================================================= */
+
+function renderDayButtons(){
+
+  dayButtons.innerHTML = "";
+
+  const today =
+    startOfPacificDay(
+      new Date()
+    );
+
+
+  for(
+    let i = 0;
+    i < 7;
+    i++
+  ){
+
+    const date =
+      addDays(
+        today,
+        i
+      );
+
+
+    const button =
+      document.createElement(
+        "button"
+      );
+
+
+    button.type =
+      "button";
+
+    button.className =
+      "day";
+
+
+    const weekday =
+      new Intl.DateTimeFormat(
+        "en-US",
+        {
+          timeZone:TIME_ZONE,
+          weekday:"short"
+        }
+      )
+      .format(date)
+      .toUpperCase();
+
+
+    const day =
+      new Intl.DateTimeFormat(
+        "en-US",
+        {
+          timeZone:TIME_ZONE,
+          day:"2-digit"
+        }
+      )
+      .format(date);
+
+
+    button.textContent =
+      `${weekday} ${day}`;
+
+
+    if(
+      pacificDateKey(date) ===
+      pacificDateKey(today)
+    ){
+
+      button.classList.add(
+        "today"
+      );
+
+    }
+
+
+    if(
+      pacificDateKey(date) ===
+      pacificDateKey(selectedDate)
+    ){
+
+      button.classList.add(
+        "active"
+      );
+
+    }
+
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        selectedDate =
+          date;
+
+        document
+          .querySelectorAll(
+            ".day"
+          )
+          .forEach(
+            item =>
+              item.classList.remove(
+                "active"
+              )
+          );
+
+        button.classList.add(
+          "active"
+        );
+
+        renderSelectedDay();
+
+      }
+    );
+
+
+    dayButtons.appendChild(
+      button
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   DATE MATCHING
+   ========================================================= */
+
+function belongsToSelectedDay(
+  schedule,
+  date
+){
+
+  if(!schedule.starts_at){
+
+    return false;
+
+  }
+
+
+  return (
+    pacificDateKey(
+      new Date(
+        schedule.starts_at
+      )
+    ) ===
+    pacificDateKey(
+      date
+    )
+  );
+
+}
+
+
+/* =========================================================
+   ON AIR
+   ========================================================= */
+
+function isOnAir(item){
+
+  if(
+    !item.starts_at ||
+    !item.ends_at
+  ){
+
+    return false;
+
+  }
+
+
+  const now =
+    Date.now();
+
+  const start =
+    new Date(
+      item.starts_at
+    ).getTime();
+
+  const end =
+    new Date(
+      item.ends_at
+    ).getTime();
+
+
+  return (
+    now >= start &&
+    now < end
+  );
+
+}
+
+
+/* =========================================================
+   RENDER SELECTED DAY
+   ========================================================= */
+
+function renderSelectedDay(){
+
+  railDate.textContent =
+    formatLongDate(
+      selectedDate
+    );
+
+  railDow.textContent =
+    formatWeekday(
+      selectedDate
+    );
+
+
+  const items =
+    schedules
+      .filter(
+        schedule =>
+          belongsToSelectedDay(
+            schedule,
+            selectedDate
+          )
+      )
+      .sort(
+        (a,b) =>
+          new Date(
+            a.starts_at
+          ) -
+          new Date(
+            b.starts_at
+          )
+      );
+
+
+  if(!items.length){
+
+    slots.innerHTML = `
+
+      <div class="state">
+
+        <div>
+
+          <div class="state-title">
+            NO SCHEDULED TRANSMISSIONS
+          </div>
+
+          <div class="state-message">
+
+            There are currently no scheduled
+            CrowRules Podcasting broadcasts
+            for this date.
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  slots.innerHTML =
+    items
+      .map(
+        renderScheduleSlot
+      )
+      .join("");
+
+
+  attachPlayButtons();
+
+}
+
+
+/* =========================================================
+   RENDER SLOT
+   ========================================================= */
+
+function renderScheduleSlot(
+  item
+){
+
+  const podcast =
+    getPodcast(
+      item.podcast_id
+    );
+
+  const episode =
+    getEpisode(
+      item.episode_id
+    );
+
+  const live =
+    getLiveChannel(
+      item
+    );
+
+  const onAir =
+    isOnAir(
+      item
+    );
+
+
+  const title =
+    item.title ||
+    episode?.title ||
+    podcast?.title ||
+    "CrowRules Podcasting";
+
+
+  const description =
+    episode?.description ||
+    podcast?.description ||
+    "CrowRules Podcasting scheduled programming.";
+
+
+  let duration = 0;
+
+
+  if(
+    item.starts_at &&
+    item.ends_at
+  ){
+
+    duration =
+      Math.max(
+        0,
+        (
+          new Date(
+            item.ends_at
+          ) -
+          new Date(
+            item.starts_at
+          )
+        ) / 1000
+      );
+
+  }
+
+
+  if(
+    !duration &&
+    episode?.duration_seconds
+  ){
+
+    duration =
+      episode.duration_seconds;
+
+  }
+
+
+  let tag =
+    "SCHEDULED";
+
+
+  if(onAir){
+
+    tag =
+      "● ON AIR";
+
+  }else if(
+    live &&
+    String(
+      live.status
+    ).toLowerCase() ===
+    "live"
+  ){
+
+    tag =
+      "● LIVE";
+
+  }else if(
+    item.status
+  ){
+
+    tag =
+      String(
+        item.status
+      ).toUpperCase();
+
+  }
+
+
+  const canPlay =
+    Boolean(
+      episode?.audio_url
+    );
+
+
+  return `
+
+    <article
+      class="slot ${onAir ? "now" : ""}"
+    >
+
+      <div>
+
+        <div class="time">
+
+          ${escapeHTML(
+            formatTime(
+              item.starts_at
+            )
+          )}
+
+        </div>
+
+        <div class="duration">
+
+          ${
+            duration
+              ? escapeHTML(
+                  formatDuration(
+                    duration
+                  )
+                )
+              : "SCHEDULED"
+          }
+
+        </div>
+
+      </div>
+
+
+      <div>
+
+        <h3 class="program-title">
+
+          ${escapeHTML(
+            title
+          )}
+
+        </h3>
+
+        <p class="program-description">
+
+          ${escapeHTML(
+            description
+          )}
+
+        </p>
+
+        <span
+          class="program-tag ${onAir ? "live" : ""}"
+        >
+
+          ${escapeHTML(
+            tag
+          )}
+
+        </span>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="play-btn"
+        data-episode-id="${escapeHTML(
+          item.episode_id || ""
+        )}"
+        ${canPlay ? "" : "disabled"}
+      >
+
+        ${
+          canPlay
+            ? "LISTEN"
+            : "NO AUDIO"
+        }
+
+      </button>
+
+    </article>
+
+  `;
+
+}
+
+
+/* =========================================================
+   PLAY BUTTONS
+   ========================================================= */
+
+function attachPlayButtons(){
+
+  document
+    .querySelectorAll(
+      ".play-btn[data-episode-id]"
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const episode =
+              getEpisode(
+                button.dataset.episodeId
+              );
+
+
+            if(!episode){
+
+              showToast(
+                "Episode not found."
+              );
+
+              return;
+
+            }
+
+
+            playerQueue =
+              schedules
+                .filter(
+                  item =>
+                    belongsToSelectedDay(
+                      item,
+                      selectedDate
+                    ) &&
+                    item.episode_id
+                )
+                .map(
+                  item =>
+                    getEpisode(
+                      item.episode_id
+                    )
+                )
+                .filter(
+                  item =>
+                    item &&
+                    item.audio_url
+                );
+
+
+            playerIndex =
+              playerQueue.findIndex(
+                item =>
+                  item.id ===
+                  episode.id
+              );
+
+
+            loadEpisode(
+              episode
+            );
+
+          }
+        );
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   PLAYER
+   ========================================================= */
+
+async function loadEpisode(
+  episode
+){
+
+  if(
+    !episode ||
+    !episode.audio_url
+  ){
+
+    showToast(
+      "This episode does not have playable audio."
+    );
+
+    return;
+
+  }
+
+
+  currentEpisode =
+    episode;
+
+
+  const podcast =
+    getPodcast(
+      episode.podcast_id
+    );
+
+
+  trackTitle.textContent =
+    (
+      episode.title ||
+      "Untitled Episode"
+    ).toUpperCase();
+
+
+  trackSub.textContent =
+    podcast?.title ||
+    "CrowRules Podcasting";
+
+
+  audio.src =
+    episode.audio_url;
+
+
+  audio.load();
+
+
+  try{
+
+    await audio.play();
+
+  }catch(error){
+
+    showToast(
+      "Episode loaded. Press PLAY to begin."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   PLAY / PAUSE
+   ========================================================= */
+
+playButton.addEventListener(
+  "click",
+  async () => {
+
+    if(!audio.src){
+
+      showToast(
+        "Select a scheduled episode first."
+      );
+
+      return;
+
+    }
+
+
+    try{
+
+      if(audio.paused){
+
+        await audio.play();
+
+      }else{
+
+        audio.pause();
+
+      }
+
+    }catch(error){
+
+      console.error(
+        error
+      );
+
+    }
+
+  }
+);
+
+
+audio.addEventListener(
+  "play",
+  () => {
+
+    playButton.textContent =
+      "Ⅱ";
+
+  }
+);
+
+
+audio.addEventListener(
+  "pause",
+  () => {
+
+    playButton.textContent =
+      "▶";
+
+  }
+);
+
+
+/* =========================================================
+   PLAYER PROGRESS
+   ========================================================= */
+
+audio.addEventListener(
+  "timeupdate",
+  () => {
+
+    if(
+      audio.duration &&
+      isFinite(
+        audio.duration
+      )
+    ){
+
+      progress.style.width =
+        (
+          audio.currentTime /
+          audio.duration *
+          100
+        ) + "%";
+
+    }
+
+  }
+);
+
+
+progressBar.addEventListener(
+  "click",
+  event => {
+
+    if(
+      !audio.duration ||
+      !isFinite(
+        audio.duration
+      )
+    ){
+
+      return;
+
+    }
+
+
+    const rect =
+      progressBar.getBoundingClientRect();
+
+
+    const percentage =
+      (
+        event.clientX -
+        rect.left
+      ) /
+      rect.width;
+
+
+    audio.currentTime =
+      Math.max(
+        0,
+        Math.min(
+          1,
+          percentage
+        )
+      ) *
+      audio.duration;
+
+  }
+);
+
+
+/* =========================================================
+   NEXT
+   ========================================================= */
+
+async function playNext(){
+
+  if(
+    !playerQueue.length
+  ){
+
+    return;
+
+  }
+
+
+  if(
+    playerIndex <
+    playerQueue.length - 1
+  ){
+
+    playerIndex++;
+
+  }else{
+
+    playerIndex = 0;
+
+  }
+
+
+  const episode =
+    playerQueue[
+      playerIndex
+    ];
+
+
+  await loadEpisode(
+    episode
+  );
+
+}
+
+
+nextButton.addEventListener(
+  "click",
+  playNext
+);
+
+
+/* =========================================================
+   PREVIOUS
+   ========================================================= */
+
+async function playPrevious(){
+
+  if(
+    !playerQueue.length
+  ){
+
+    return;
+
+  }
+
+
+  if(
+    audio.currentTime > 5
+  ){
+
+    audio.currentTime = 0;
+
+    return;
+
+  }
+
+
+  if(
+    playerIndex > 0
+  ){
+
+    playerIndex--;
+
+  }else{
+
+    playerIndex =
+      playerQueue.length - 1;
+
+  }
+
+
+  const episode =
+    playerQueue[
+      playerIndex
+    ];
+
+
+  await loadEpisode(
+    episode
+  );
+
+}
+
+
+previousButton.addEventListener(
+  "click",
+  playPrevious
+);
+
+
+audio.addEventListener(
+  "ended",
+  playNext
+);
+
+
+/* =========================================================
+   VOLUME
+   ========================================================= */
+
+const savedVolume =
+  localStorage.getItem(
+    "crowrulesPodcastVolume"
+  );
+
+
+if(
+  savedVolume !== null
+){
+
+  volume.value =
+    savedVolume;
+
+}
+
+
+audio.volume =
+  Number(
+    volume.value
+  );
+
+
+volume.addEventListener(
+  "input",
+  event => {
+
+    const value =
+      Number(
+        event.target.value
+      );
+
+
+    audio.volume =
+      value;
+
+
+    localStorage.setItem(
+      "crowrulesPodcastVolume",
+      String(value)
+    );
+
+  }
+);
+
+
+/* =========================================================
+   WEEKLY ROTATION
+   ========================================================= */
+
+function renderWeeklyRotation(){
+
+  const counts =
+    new Map();
+
+
+  schedules.forEach(
+    item => {
+
+      const title =
+        item.title ||
+        getEpisode(
+          item.episode_id
+        )?.title ||
+        getPodcast(
+          item.podcast_id
+        )?.title ||
+        "Untitled Programming";
+
+
+      counts.set(
+        title,
+        (
+          counts.get(title) ||
+          0
+        ) + 1
+      );
+
+    }
+  );
+
+
+  const rows =
+    [...counts.entries()]
+      .sort(
+        (a,b) =>
+          b[1] -
+          a[1]
+      )
+      .slice(
+        0,
+        10
+      );
+
+
+  if(!rows.length){
+
+    weeklyRotation.innerHTML = `
+
+      <div class="rotation-row">
+
+        <strong>
+          NO ROTATION DATA
+        </strong>
+
+        <span>
+          DATABASE
+        </span>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  weeklyRotation.innerHTML =
+    rows
+      .map(
+        ([title,count]) => `
+
+          <div class="rotation-row">
+
+            <strong>
+              ${escapeHTML(
+                title
+              )}
+            </strong>
+
+            <span>
+              ${count}
+              AIR${count === 1 ? "" : "S"}
+            </span>
+
+          </div>
+
+        `
+      )
+      .join("");
+
+}
+
+
+/* =========================================================
+   LIVE STATUS
+   ========================================================= */
+
+function refreshLiveStatus(){
+
+  const live =
+    liveChannels.find(
+      channel =>
+        channel.is_active &&
+        String(
+          channel.status
+        ).toLowerCase() ===
+        "live"
+    );
+
+
+  if(live){
+
+    clockStatus.textContent =
+      `● ON AIR — ${live.name || live.current_title || "CROWRULES PODCASTING"} · PACIFIC TIME`;
+
+  }else{
+
+    clockStatus.textContent =
+      `${schedules.length} scheduled broadcast${schedules.length === 1 ? "" : "s"} · PACIFIC TIME`;
+
+  }
+
+}
+
+
+/* =========================================================
+   LIVE CHANNEL REFRESH
+   ========================================================= */
+
+async function refreshLiveChannels(){
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await db
+        .from(
+          "podcast_live_channels"
+        )
+        .select(`
+          id,
+          name,
+          slug,
+          stream_url,
+          stream_type,
+          status,
+          is_active,
+          listener_count,
+          current_title,
+          current_episode_id,
+          current_podcast_id,
+          updated_at
+        `)
+        .eq(
+          "is_active",
+          true
+        );
+
+
+    if(error){
+
+      throw error;
+
+    }
+
+
+    liveChannels =
+      data || [];
+
+    refreshLiveStatus();
+
+    renderSelectedDay();
+
+  }catch(error){
+
+    console.warn(
+      "Live channel refresh failed:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   AUTO REFRESH
+   ========================================================= */
+
+setInterval(
+  updateClock,
+  1000
+);
+
+
+setInterval(
+  refreshLiveChannels,
+  30000
+);
+
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
+
+selectedDate =
+  startOfPacificDay(
+    new Date()
+  );
+
+updateClock();
+
+loadDatabase();
+
+</script>
+
+</body>
+</html>

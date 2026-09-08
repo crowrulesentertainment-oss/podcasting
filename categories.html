@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050505">
+<meta name="description" content="Explore CrowRules Podcasting categories and discover original shows across the network.">
+<title>CrowRules Podcasting — Categories</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050505;--panel:#0c0c0c;--panel2:#151515;--red:#c00000;--hot:#ff2020;--text:#f5f5f5;--muted:#858585;--line:#292929;--max:1450px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 78% 0%,rgba(150,0,0,.2),transparent 30%),var(--bg);color:var(--text);font-family:Montserrat,Arial,sans-serif;min-height:100vh}body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;opacity:.045;background:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 4px)}a{color:inherit;text-decoration:none}.wrap{width:min(var(--max),100%);margin:auto;padding:0 28px}
+header{position:sticky;top:0;z-index:40;background:rgba(5,5,5,.94);backdrop-filter:blur(14px);border-bottom:1px solid #330000}.nav{min-height:76px;display:flex;align-items:center;gap:26px}.brand{font:800 20px Orbitron;letter-spacing:.08em;white-space:nowrap}.brand span{color:#fff}.brand b{color:var(--hot)}nav{display:flex;justify-content:center;align-items:center;gap:18px;flex:1}nav a{color:#999;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:8px 0}nav a:hover,nav a.active{color:#fff}nav a.active{border-bottom:2px solid var(--hot)}.live{font:800 10px Orbitron;color:#ff5555;display:flex;align-items:center;gap:8px;white-space:nowrap}.dot{width:8px;height:8px;border-radius:50%;background:var(--hot);box-shadow:0 0 15px var(--hot);animation:pulse 1s infinite}@keyframes pulse{50%{opacity:.3;transform:scale(.8)}}
+main{padding:55px 0 120px}.hero{position:relative;padding:48px 0 42px;border-bottom:1px solid var(--line)}.eyebrow{font:800 10px Orbitron;letter-spacing:.22em;color:var(--hot)}h1{font:900 clamp(44px,7vw,90px) Orbitron;line-height:.92;margin:13px 0 22px;text-transform:uppercase}h1 span{color:var(--hot)}.hero p{max-width:760px;color:#aaa;font-size:15px;line-height:1.8;margin:0}.signal{position:absolute;right:28px;top:54px;text-align:right;color:#666;font:700 9px Orbitron;letter-spacing:.12em}.signal strong{display:block;color:#ff3333;font-size:16px;margin-top:6px}
+.toolbar{display:flex;gap:12px;align-items:center;padding:28px 0}.search{flex:1;max-width:620px;background:#090909;border:1px solid #333;color:#fff;padding:15px 17px;outline:none;font:600 12px Montserrat}.search:focus{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}select{background:#0a0a0a;color:#ddd;border:1px solid #333;padding:14px 16px;font:700 11px Montserrat}.count{margin-left:auto;color:#777;font:700 10px Orbitron;letter-spacing:.1em}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.card{position:relative;min-height:205px;padding:23px;background:linear-gradient(145deg,#151515,#080808);border:1px solid #292929;overflow:hidden;transition:.2s}.card:before{content:"";position:absolute;right:-48px;bottom:-58px;width:155px;height:155px;border:1px solid #3a0000;transform:rotate(45deg)}.card:hover{transform:translateY(-3px);border-color:#7b0000;box-shadow:0 14px 32px #000}.card.hot{border-color:#570000}.num{font:800 31px Orbitron;color:#3b3b3b}.icon{font-size:25px;margin:13px 0;color:#ff3838}.card h2{margin:0 0 9px;font:800 17px Orbitron;text-transform:uppercase}.card p{margin:0 0 20px;color:#888;font-size:12px;line-height:1.55;max-width:310px}.meta{position:absolute;left:23px;right:23px;bottom:18px;display:flex;justify-content:space-between;font:700 9px Orbitron;color:#666;letter-spacing:.08em}.meta b{color:#ddd}
+.empty{grid-column:1/-1;border:1px dashed #333;padding:60px 20px;text-align:center;color:#777}.empty strong{display:block;font:800 18px Orbitron;color:#ddd;margin-bottom:10px}.section{padding-top:65px}.section-head{display:flex;justify-content:space-between;align-items:end;border-bottom:1px solid var(--line);padding-bottom:13px;margin-bottom:18px}.section-head h3{margin:0;font:800 19px Orbitron;text-transform:uppercase}.section-head span{color:#666;font-size:10px;letter-spacing:.12em}.shows{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.show{display:flex;align-items:center;gap:14px;background:#0b0b0b;border:1px solid #252525;padding:14px}.show:hover{border-color:#590000}.art{width:70px;height:70px;flex:none;display:grid;place-items:center;background:linear-gradient(135deg,#260000,#111);border:1px solid #450000;color:#ff3333;font:900 17px Orbitron}.show h4{margin:0 0 5px;font:800 12px Orbitron}.show p{margin:0;color:#777;font-size:10px}.show button{margin-left:auto;background:#160000;border:1px solid #4b0000;color:#ff5a5a;padding:8px 10px;font:800 9px Orbitron;cursor:pointer}.show button:hover{background:var(--red);color:#fff}
+.loading{grid-column:1/-1;padding:55px;text-align:center;border:1px solid #242424;background:#0a0a0a;color:#777;font:700 10px Orbitron;letter-spacing:.12em}.spin{display:inline-block;width:18px;height:18px;border:2px solid #333;border-top-color:var(--hot);border-radius:50%;vertical-align:middle;margin-right:9px;animation:rot .8s linear infinite}@keyframes rot{to{transform:rotate(360deg)}}
+.player{position:fixed;bottom:0;left:0;right:0;height:78px;z-index:45;background:rgba(8,8,8,.97);border-top:2px solid var(--red);display:flex;align-items:center;gap:16px;padding:10px 24px;box-shadow:0 -12px 35px #000}.miniart{width:52px;height:52px;display:grid;place-items:center;background:#210000;border:1px solid #430000;font:800 13px Orbitron;color:#f33}.track{min-width:190px}.track b{display:block;font-size:12px}.track small{display:block;color:#777;margin-top:4px}.controls{display:flex;gap:7px}.controls button{width:38px;height:34px;background:#151515;border:1px solid #333;color:#fff;cursor:pointer}.controls .play{background:var(--red);border-color:var(--hot)}.bar{flex:1;height:4px;background:#292929}.bar i{display:block;height:100%;width:0;background:var(--hot);box-shadow:0 0 9px rgba(255,32,32,.55)}.time{font:700 9px Orbitron;color:#777;min-width:85px}.queue{font:700 9px Orbitron;color:#888}
+@media(max-width:1100px){nav{display:none}.grid{grid-template-columns:repeat(2,1fr)}.shows{grid-template-columns:1fr 1fr}.signal{display:none}}@media(max-width:650px){.wrap{padding:0 16px}main{padding-top:30px}.hero{padding-top:25px}.toolbar{flex-wrap:wrap}.search{flex-basis:100%;max-width:none}.count{margin-left:0;width:100%}.grid,.shows{grid-template-columns:1fr}.player{height:70px;padding:8px 12px}.track{min-width:0;flex:1}.bar,.time,.queue{display:none}.miniart{width:45px;height:45px}.controls button{width:32px}.brand{font-size:15px}}
+</style>
+</head>
+<body>
+<header><div class="wrap nav"><a class="brand" href="podcasting.html">CROW<span>RULES</span> <b>PODCASTING</b></a><nav><a href="podcasting.html">Home</a><a href="podcasts.html">Podcasts</a><a href="live.html">Live</a><a href="schedule.html">Schedule</a><a href="top.html">Top 10</a><a class="active" href="categories.html">Categories</a><a href="search.html">Search</a><a href="members.html">Members</a></nav><div class="live"><i class="dot"></i> ON AIR</div></div></header>
+<main class="wrap">
+<section class="hero"><div class="eyebrow">CROWRULES AUDIO NETWORK / CATEGORY INDEX</div><h1>FIND YOUR<br><span>FREQUENCY.</span></h1><p>Explore the voices, stories, conversations and signals moving through CrowRules Podcasting. Categories are powered by the network catalog, so the directory grows as new shows are published.</p><div class="signal">NETWORK INDEX<strong id="signalStatus">LIVE</strong></div></section>
+<div class="toolbar"><input id="filter" class="search" placeholder="SEARCH CATEGORIES..." autocomplete="off"><select id="sort"><option value="popular">MOST ACTIVE</option><option value="az">A — Z</option><option value="count">MOST SHOWS</option></select><div class="count" id="count">LOADING...</div></div>
+<section><div id="categories" class="grid"><div class="loading"><span class="spin"></span>LOADING NETWORK FREQUENCIES</div></div></section>
+<section class="section"><div class="section-head"><h3>Network Picks</h3><span>LIVE FROM THE CATALOG</span></div><div id="shows" class="shows"><div class="loading"><span class="spin"></span>LOADING SHOWS</div></div></section>
+</main>
+<div class="player"><div class="miniart">CR</div><div class="track"><b id="now">CrowRules Podcasting</b><small id="sub">Select an episode to begin</small></div><div class="controls"><button onclick="rewind()">−15</button><button class="play" id="play" onclick="togglePlay()">▶</button><button onclick="forward()">+30</button></div><div class="bar"><i id="progress"></i></div><div class="time" id="time">00:00 / 00:00</div><div class="queue">QUEUE ▷</div></div>
+<script>
+const SUPABASE_URL='https://cevylpnoexugwgygvtgu.supabase.co';
+const SUPABASE_KEY='sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-';
+const filter=document.getElementById('filter'),sort=document.getElementById('sort'),categories=document.getElementById('categories'),count=document.getElementById('count'),shows=document.getElementById('shows');
+let categoryRows=[], podcastRows=[];
+const fallback=[
+ ['originals','ORIGINALS','CrowRules original series, documentaries and audio-first productions.','◉'],
+ ['true-crime','TRUE CRIME','Investigations, mysteries, strange cases and stories from the dark.','✚'],
+ ['news-commentary','NEWS + COMMENTARY','Independent news, culture, local issues and weekly conversations.','▣'],
+ ['talk-radio','TALK RADIO','Long-form interviews, open conversations and community voices.','◌'],
+ ['comedy','COMEDY','Unfiltered laughs, absurd stories, sketches and chaotic conversations.','☻'],
+ ['music','MUSIC','Artists, records, scenes, production and the sounds behind the songs.','♫'],
+ ['gaming','GAMING','Game nights, creator sessions, reviews and gaming culture.','⌁'],
+ ['horror','HORROR','Analog horror, paranormal stories, nightmares and the unexplained.','☠'],
+ ['society-culture','SOCIETY + CULTURE','People, places, identity, community and changing culture.','◆'],
+ ['sports','SPORTS','Local and national sports talk, analysis and fan culture.','◇'],
+ ['tech-creation','TECH + CREATION','Technology, creators, production workflows and digital life.','⌬'],
+ ['storytelling','STORYTELLING','Fiction, memoir, audio drama and voices from the void.','✦']
+];
+function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function slug(v){return String(v||'').toLowerCase().trim().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+function fallbackRows(){return fallback.map((x,i)=>({id:null,slug:x[0],name:x[1],description:x[2],icon:x[3],sort_order:i+1,is_featured:i<4,is_active:true,count:0}));}
+async function api(path){const r=await fetch(SUPABASE_URL+'/rest/v1/'+path,{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function load(){
+ try{
+  const [cats,pods]=await Promise.all([
+   api('podcast_categories?select=id,name,slug,description,icon,sort_order,is_featured,is_active&is_active=eq.true&order=sort_order.asc,name.asc'),
+   api('podcasts?select=id,title,slug,category,category_id,artwork_url,status,is_featured,is_live,listener_count,total_plays&status=eq.published&order=is_featured.desc,total_plays.desc&limit=30')
+  ]);
+  categoryRows=(cats||[]).map((c,i)=>({...c,count:0})); podcastRows=pods||[];
+  if(!categoryRows.length) categoryRows=fallbackRows();
+  const byId=new Map(categoryRows.filter(c=>c.id).map(c=>[c.id,c]));
+  const byName=new Map(categoryRows.map(c=>[String(c.name).toLowerCase(),c]));
+  podcastRows.forEach(p=>{let c=(p.category_id&&byId.get(p.category_id))||byName.get(String(p.category||'').toLowerCase());if(c)c.count++});
+  document.getElementById('signalStatus').textContent='LIVE';
+ }catch(e){
+  console.warn('Supabase category load failed',e);categoryRows=fallbackRows();podcastRows=[];document.getElementById('signalStatus').textContent='LOCAL FALLBACK';
+ }
+ render();renderShows();
+}
+function render(){
+ const q=filter.value.toLowerCase().trim();let a=categoryRows.filter(c=>(c.name+' '+(c.description||'')).toLowerCase().includes(q));
+ if(sort.value==='az')a.sort((x,y)=>x.name.localeCompare(y.name));
+ if(sort.value==='count')a.sort((x,y)=>y.count-x.count||x.name.localeCompare(y.name));
+ if(sort.value==='popular')a.sort((x,y)=>(y.count-x.count)||(Number(x.sort_order||999)-Number(y.sort_order||999)));
+ categories.innerHTML=a.length?a.map((c,i)=>`<a class="card ${c.is_featured||c.count>17?'hot':''}" href="podcasts.html?category=${encodeURIComponent(c.slug||slug(c.name))}"><div class="num">${String(i+1).padStart(2,'0')}</div><div class="icon">${esc(c.icon||'◉')}</div><h2>${esc(c.name)}</h2><p>${esc(c.description||'Explore '+c.name+' programming on CrowRules Podcasting.')}</p><div class="meta"><span>SHOWS</span><b>${c.count}</b></div></a>`).join(''):'<div class="empty"><strong>NO FREQUENCY FOUND</strong>Try another category or search term.</div>';
+ count.textContent=a.length+' FREQUENCIES';
+}
+function renderShows(){
+ const picks=podcastRows.filter(p=>p.is_featured).slice(0,6);const list=(picks.length? picks:podcastRows).slice(0,6);
+ if(!list.length){shows.innerHTML='<div class="empty"><strong>CATALOG READY</strong>Featured shows will appear here as podcasts are published.</div>';return;}
+ shows.innerHTML=list.map(p=>{const cat=p.category||'Podcasting';const art=p.artwork_url?`<img src="${esc(p.artwork_url)}" alt="" style="width:100%;height:100%;object-fit:cover">`:(esc((p.title||'CR').split(/\s+/).map(x=>x[0]).join('').slice(0,3).toUpperCase()));return `<div class="show"><div class="art">${art}</div><div><h4>${esc(p.title)}</h4><p>${esc(cat)}${p.is_live?' · LIVE':''}</p></div><button onclick="location.href='podcast.html?slug=${encodeURIComponent(p.slug||p.id)}'">OPEN</button></div>`}).join('');
+}
+filter.oninput=render;sort.onchange=render;load();
+let playing=false,sec=0,timer=null;function togglePlay(){playing=!playing;document.getElementById('play').textContent=playing?'Ⅱ':'▶';document.getElementById('sub').textContent=playing?'Network preview playing':'Select an episode to begin';if(playing){clearInterval(timer);timer=setInterval(()=>{sec=(sec+1)%600;updatePlayer()},1000)}else clearInterval(timer)}function updatePlayer(){document.getElementById('progress').style.width=(sec/600*100)+'%';document.getElementById('time').textContent=fmt(sec)+' / 10:00'}function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}function rewind(){sec=Math.max(0,sec-15);updatePlayer()}function forward(){sec=Math.min(599,sec+30);updatePlayer()}
+</script>
+</body>
+</html>

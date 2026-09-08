@@ -1,0 +1,3807 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<meta name="theme-color" content="#050505">
+<meta name="description" content="CrowRules Podcasting Member Hub — profiles, follows, saved episodes, listening history and playlists.">
+
+<title>CrowRules Podcasting — Members</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+:root{
+  --bg:#050505;
+  --panel:#0b0b0b;
+  --panel2:#111;
+  --panel3:#161616;
+  --line:#272727;
+  --red:#c80000;
+  --red2:#ff2020;
+  --red3:#650000;
+  --text:#f5f5f5;
+  --muted:#8e8e8e;
+  --green:#39e58a;
+  --yellow:#e4b84c;
+  --max:1440px;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+
+  background:
+    radial-gradient(
+      circle at 85% 0,
+      #260000 0,
+      #090909 28%,
+      #050505 67%
+    );
+
+  color:var(--text);
+  font-family:Montserrat,Arial,sans-serif;
+}
+
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:100;
+  opacity:.055;
+
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 3px,
+      #fff 4px
+    );
+}
+
+a{
+  color:inherit;
+  text-decoration:none;
+}
+
+button,
+input,
+textarea{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+.topline{
+  height:3px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--red),
+      #fff,
+      var(--red),
+      transparent
+    );
+}
+
+.wrap{
+  max-width:var(--max);
+  margin:auto;
+  padding:0 24px;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+header{
+  position:sticky;
+  top:0;
+  z-index:80;
+
+  background:rgba(5,5,5,.96);
+
+  backdrop-filter:blur(14px);
+
+  border-bottom:1px solid #222;
+}
+
+.nav{
+  min-height:74px;
+
+  display:flex;
+  align-items:center;
+  gap:25px;
+}
+
+.brand{
+  font:900 18px Orbitron,sans-serif;
+  letter-spacing:1px;
+  white-space:nowrap;
+}
+
+.brand span{
+  color:var(--red2);
+}
+
+.brand small{
+  font-size:9px;
+  color:#777;
+  letter-spacing:1.5px;
+}
+
+.navlinks{
+  display:flex;
+  flex:1;
+  gap:18px;
+}
+
+.navlinks a{
+  font:700 11px Orbitron,sans-serif;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color:#999;
+}
+
+.navlinks a:hover,
+.navlinks a.active{
+  color:#fff;
+}
+
+.onair{
+  border:1px solid #480000;
+  background:#150000;
+  padding:9px 11px;
+
+  font:700 10px Orbitron,sans-serif;
+  letter-spacing:1px;
+  white-space:nowrap;
+}
+
+.dot{
+  display:inline-block;
+
+  width:7px;
+  height:7px;
+
+  border-radius:50%;
+
+  background:var(--red2);
+
+  box-shadow:
+    0 0 12px var(--red2);
+
+  margin-right:7px;
+}
+
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero{
+  padding:52px 0 28px;
+}
+
+.eyebrow{
+  font:700 11px Orbitron,sans-serif;
+  color:var(--red2);
+  letter-spacing:2px;
+  text-transform:uppercase;
+}
+
+.hero h1{
+  font:900 clamp(38px,7vw,82px) Orbitron,sans-serif;
+  text-transform:uppercase;
+  line-height:.98;
+  margin:10px 0 14px;
+}
+
+.hero p{
+  max-width:780px;
+
+  color:#aaa;
+
+  line-height:1.7;
+
+  font-size:14px;
+}
+
+.red{
+  color:var(--red2);
+}
+
+
+/* =========================================================
+   LAYOUT
+========================================================= */
+
+.layout{
+  display:grid;
+  grid-template-columns:1.7fr .8fr;
+  gap:22px;
+}
+
+.panel{
+  background:
+    linear-gradient(
+      145deg,
+      #101010,
+      #080808
+    );
+
+  border:1px solid #222;
+
+  padding:23px;
+}
+
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+.profile{
+  display:grid;
+
+  grid-template-columns:
+    92px
+    1fr
+    auto;
+
+  gap:18px;
+
+  align-items:center;
+}
+
+.avatar{
+  width:92px;
+  height:92px;
+
+  border:1px solid #520000;
+
+  background:
+    linear-gradient(
+      145deg,
+      #2b0000,
+      #0d0d0d
+    );
+
+  display:grid;
+  place-items:center;
+
+  overflow:hidden;
+
+  font:900 28px Orbitron,sans-serif;
+
+  color:var(--red2);
+}
+
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.profile h2{
+  font:800 21px Orbitron,sans-serif;
+  margin:0 0 7px;
+}
+
+.profile p{
+  margin:0;
+  color:#777;
+  font-size:12px;
+}
+
+.badge{
+  display:inline-block;
+
+  margin-top:10px;
+
+  border:1px solid #4b0000;
+  background:#160000;
+
+  padding:6px 8px;
+
+  font:700 9px Orbitron,sans-serif;
+
+  color:#ff3b3b;
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.btn{
+  border:1px solid #353535;
+
+  background:#111;
+
+  color:#fff;
+
+  padding:11px 14px;
+
+  cursor:pointer;
+
+  font:700 10px Orbitron,sans-serif;
+
+  letter-spacing:1px;
+
+  text-transform:uppercase;
+
+  transition:.15s;
+}
+
+.btn.primary{
+  background:var(--red);
+  border-color:var(--red2);
+}
+
+.btn:hover{
+  border-color:var(--red2);
+  transform:translateY(-1px);
+}
+
+.btn:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+  transform:none;
+}
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
+.stats{
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,1fr);
+
+  gap:1px;
+
+  background:#222;
+
+  border:1px solid #222;
+
+  margin-top:22px;
+}
+
+.stat{
+  background:#0b0b0b;
+  padding:18px;
+}
+
+.stat b{
+  display:block;
+
+  font:800 22px Orbitron,sans-serif;
+}
+
+.stat span{
+  display:block;
+
+  color:#777;
+
+  font-size:10px;
+
+  text-transform:uppercase;
+
+  margin-top:6px;
+
+  letter-spacing:1px;
+}
+
+
+/* =========================================================
+   SECTIONS
+========================================================= */
+
+.section{
+  padding:25px 0;
+}
+
+.sectionhead{
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+
+  gap:15px;
+
+  margin-bottom:15px;
+}
+
+.section h2{
+  font:800 19px Orbitron,sans-serif;
+  text-transform:uppercase;
+  margin:0;
+}
+
+.sectionhead p{
+  margin:5px 0 0;
+  color:#707070;
+  font-size:11px;
+}
+
+
+/* =========================================================
+   LIST
+========================================================= */
+
+.list{
+  border-top:1px solid var(--line);
+}
+
+.item{
+  display:grid;
+
+  grid-template-columns:
+    64px
+    1fr
+    auto;
+
+  gap:15px;
+
+  align-items:center;
+
+  padding:15px 0;
+
+  border-bottom:1px solid var(--line);
+}
+
+.thumb{
+  height:58px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #280000,
+      #0d0d0d
+    );
+
+  border:1px solid #3d0000;
+
+  display:grid;
+  place-items:center;
+
+  overflow:hidden;
+
+  font:700 9px Orbitron,sans-serif;
+
+  color:#f22;
+}
+
+.thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.item h3{
+  margin:0 0 5px;
+  font-size:14px;
+}
+
+.item p{
+  margin:0;
+  color:#777;
+  font-size:11px;
+}
+
+.meta{
+  color:#777;
+  font-size:10px;
+}
+
+
+/* =========================================================
+   PROGRESS
+========================================================= */
+
+.progress{
+  height:4px;
+
+  margin-top:9px;
+
+  background:#222;
+
+  overflow:hidden;
+}
+
+.progress span{
+  display:block;
+
+  height:100%;
+
+  background:var(--red2);
+}
+
+
+/* =========================================================
+   SIDE
+========================================================= */
+
+.side h3{
+  font:700 13px Orbitron,sans-serif;
+  text-transform:uppercase;
+  margin:0 0 14px;
+}
+
+.side p{
+  color:#8a8a8a;
+
+  font-size:12px;
+
+  line-height:1.7;
+}
+
+.quick{
+  display:grid;
+  gap:8px;
+}
+
+.quick a{
+  border:1px solid #242424;
+
+  background:#0b0b0b;
+
+  padding:12px;
+
+  font:700 10px Orbitron,sans-serif;
+
+  text-transform:uppercase;
+}
+
+.quick a:hover{
+  border-color:#5a0000;
+  background:#120000;
+}
+
+
+/* =========================================================
+   RANK
+========================================================= */
+
+.rank{
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+  padding:12px 0;
+
+  border-bottom:1px solid #222;
+}
+
+.ranknum{
+  font:900 19px Orbitron,sans-serif;
+
+  color:#4d4d4d;
+
+  width:25px;
+}
+
+.rank strong{
+  display:block;
+
+  font-size:12px;
+}
+
+.rank span{
+  display:block;
+
+  color:#777;
+
+  font-size:10px;
+
+  margin-top:4px;
+}
+
+
+/* =========================================================
+   AUTH
+========================================================= */
+
+.authbox{
+  border:1px solid #420000;
+
+  background:
+    linear-gradient(
+      145deg,
+      #170000,
+      #090909
+    );
+
+  padding:24px;
+
+  margin-top:22px;
+}
+
+.authbox h3{
+  font:800 15px Orbitron,sans-serif;
+  margin:0 0 8px;
+}
+
+.authbox p{
+  color:#999;
+  font-size:12px;
+  line-height:1.6;
+  margin:0 0 15px;
+}
+
+.input{
+  width:100%;
+
+  background:#070707;
+
+  border:1px solid #2c2c2c;
+
+  color:#fff;
+
+  padding:12px;
+
+  margin-bottom:8px;
+
+  outline:none;
+}
+
+.input:focus{
+  border-color:var(--red);
+}
+
+.auth-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.auth-status{
+  margin-top:12px;
+
+  color:#777;
+
+  font-size:10px;
+}
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.empty{
+  padding:25px;
+
+  border:1px dashed #3b0000;
+
+  color:#777;
+
+  font-size:11px;
+
+  line-height:1.7;
+}
+
+.error{
+  color:#ff6d6d;
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+.toast{
+  position:fixed;
+
+  right:22px;
+  bottom:92px;
+
+  background:#140000;
+
+  border:1px solid #720000;
+
+  color:#fff;
+
+  padding:12px 15px;
+
+  font-size:11px;
+
+  z-index:150;
+
+  opacity:0;
+
+  transform:translateY(10px);
+
+  transition:.2s;
+
+  pointer-events:none;
+}
+
+.toast.show{
+  opacity:1;
+  transform:none;
+}
+
+
+/* =========================================================
+   PLAYER
+========================================================= */
+
+.player{
+  position:fixed;
+
+  left:0;
+  right:0;
+  bottom:0;
+
+  z-index:120;
+
+  background:
+    rgba(8,8,8,.98);
+
+  border-top:2px solid var(--red);
+
+  padding:9px 18px;
+
+  box-shadow:
+    0 -12px 35px #000;
+}
+
+.playerin{
+  max-width:var(--max);
+
+  margin:auto;
+
+  display:grid;
+
+  grid-template-columns:
+    1fr
+    auto
+    1fr;
+
+  align-items:center;
+
+  gap:20px;
+}
+
+.now small{
+  display:block;
+
+  color:var(--red2);
+
+  font:700 9px Orbitron,sans-serif;
+}
+
+.now strong{
+  display:block;
+
+  font-size:12px;
+
+  margin-top:3px;
+}
+
+.controls{
+  text-align:center;
+}
+
+.controls button{
+  background:none;
+  border:0;
+
+  color:#fff;
+
+  font-size:18px;
+
+  cursor:pointer;
+
+  margin:0 5px;
+}
+
+.controls .main{
+  background:var(--red)!important;
+
+  width:38px;
+  height:38px;
+
+  border-radius:0;
+}
+
+.right{
+  text-align:right;
+
+  color:#777;
+
+  font-size:10px;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.bottom{
+  height:90px;
+}
+
+footer{
+  border-top:1px solid #222;
+
+  padding:28px 0 105px;
+
+  color:#666;
+
+  font-size:10px;
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.modal{
+  position:fixed;
+
+  inset:0;
+
+  z-index:200;
+
+  display:none;
+
+  align-items:center;
+
+  justify-content:center;
+
+  padding:20px;
+
+  background:rgba(0,0,0,.78);
+
+  backdrop-filter:blur(7px);
+}
+
+.modal.show{
+  display:flex;
+}
+
+.modalbox{
+  width:min(520px,100%);
+
+  background:#0a0a0a;
+
+  border:1px solid #520000;
+
+  box-shadow:
+    0 25px 100px #000;
+
+  padding:24px;
+}
+
+.modalhead{
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  margin-bottom:20px;
+}
+
+.modalhead h2{
+  font:800 18px Orbitron,sans-serif;
+  margin:0;
+}
+
+.close{
+  border:1px solid #333;
+  background:#111;
+  color:#fff;
+  width:34px;
+  height:34px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media(max-width:1000px){
+
+  .navlinks{
+    display:none;
+  }
+
+  .layout{
+    grid-template-columns:1fr;
+  }
+
+  .profile{
+    grid-template-columns:78px 1fr;
+  }
+
+  .profile .btn{
+    grid-column:2;
+    justify-self:start;
+  }
+
+  .stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+}
+
+@media(max-width:600px){
+
+  .wrap{
+    padding:0 15px;
+  }
+
+  .nav{
+    min-height:64px;
+  }
+
+  .profile{
+    grid-template-columns:64px 1fr;
+  }
+
+  .avatar{
+    width:64px;
+    height:64px;
+    font-size:20px;
+  }
+
+  .profile .btn{
+    grid-column:1/-1;
+  }
+
+  .item{
+    grid-template-columns:55px 1fr;
+  }
+
+  .item .btn{
+    grid-column:2;
+    justify-self:start;
+  }
+
+  .playerin{
+    grid-template-columns:1fr;
+  }
+
+  .controls{
+    order:2;
+  }
+
+  .right{
+    display:none;
+  }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="topline"></div>
+
+
+<header>
+
+  <div class="wrap nav">
+
+    <a class="brand" href="podcasting.html">
+      CROW<span>RULES</span>
+      <small>PODCASTING</small>
+    </a>
+
+    <nav class="navlinks">
+
+      <a href="podcasting.html">Home</a>
+      <a href="podcasts.html">Podcasts</a>
+      <a href="live.html">Live</a>
+      <a href="schedule.html">Schedule</a>
+      <a href="top.html">Top 10</a>
+      <a href="categories.html">Categories</a>
+      <a class="active" href="members.html">Members</a>
+
+    </nav>
+
+    <div class="onair">
+      <i class="dot"></i>
+      <span id="networkStatus">MEMBER NETWORK</span>
+    </div>
+
+  </div>
+
+</header>
+
+
+<main class="wrap">
+
+
+<section class="hero">
+
+  <div class="eyebrow">
+    CROWRULES MEMBER NETWORK
+  </div>
+
+  <h1>
+    MEMBER<br>
+    <span class="red">HUB</span>
+  </h1>
+
+  <p>
+    Your CrowRules Podcasting command center.
+    Follow shows, save episodes, continue listening,
+    build playlists and track your listening activity
+    across the network.
+  </p>
+
+</section>
+
+
+<section class="layout">
+
+
+<!-- =====================================================
+     MAIN COLUMN
+====================================================== -->
+
+<div>
+
+
+  <!-- PROFILE -->
+
+  <div class="panel">
+
+    <div class="profile">
+
+      <div class="avatar" id="avatar">
+        CR
+      </div>
+
+      <div>
+
+        <h2 id="memberName">
+          CrowRules Listener
+        </h2>
+
+        <p id="memberEmail">
+          Sign in to activate your member profile.
+        </p>
+
+        <span class="badge" id="memberBadge">
+          GUEST
+        </span>
+
+      </div>
+
+      <button
+        class="btn primary"
+        id="profileButton">
+        Sign In
+      </button>
+
+    </div>
+
+
+    <div class="stats">
+
+      <div class="stat">
+        <b id="followingCount">0</b>
+        <span>Following</span>
+      </div>
+
+      <div class="stat">
+        <b id="savedCount">0</b>
+        <span>Saved Episodes</span>
+      </div>
+
+      <div class="stat">
+        <b id="listenHours">0</b>
+        <span>Listen Hours</span>
+      </div>
+
+      <div class="stat">
+        <b id="rankValue">—</b>
+        <span>Network Rank</span>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- CONTINUE LISTENING -->
+
+  <section class="section">
+
+    <div class="sectionhead">
+
+      <div>
+
+        <h2>
+          Continue Listening
+        </h2>
+
+        <p>
+          Resume your latest episodes.
+        </p>
+
+      </div>
+
+      <a
+        class="btn"
+        href="playlist.html">
+        My Playlists
+      </a>
+
+    </div>
+
+    <div
+      class="list"
+      id="history">
+
+      <div class="empty">
+        Sign in to see your listening progress.
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- SAVED -->
+
+  <section class="section">
+
+    <div class="sectionhead">
+
+      <div>
+
+        <h2>
+          Saved Episodes
+        </h2>
+
+        <p>
+          Episodes you've saved for later.
+        </p>
+
+      </div>
+
+    </div>
+
+    <div
+      class="list"
+      id="savedEpisodes">
+
+      <div class="empty">
+        No saved episodes yet.
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- FOLLOWING -->
+
+  <section class="section">
+
+    <div class="sectionhead">
+
+      <div>
+
+        <h2>
+          Following
+        </h2>
+
+        <p>
+          Shows you're tracking.
+        </p>
+
+      </div>
+
+      <a
+        class="btn"
+        href="podcasts.html">
+        Discover More
+      </a>
+
+    </div>
+
+    <div
+      class="list"
+      id="followingList">
+
+      <div class="empty">
+        Sign in to see the podcasts you follow.
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- PLAYLISTS -->
+
+  <section class="section">
+
+    <div class="sectionhead">
+
+      <div>
+
+        <h2>
+          My Playlists
+        </h2>
+
+        <p>
+          Your personal podcast collections.
+        </p>
+
+      </div>
+
+      <a
+        class="btn"
+        href="playlist.html">
+        Open Playlists
+      </a>
+
+    </div>
+
+    <div
+      class="list"
+      id="playlists">
+
+      <div class="empty">
+        Sign in to access your playlists.
+      </div>
+
+    </div>
+
+  </section>
+
+
+</div>
+
+
+<!-- =====================================================
+     SIDEBAR
+====================================================== -->
+
+<aside>
+
+
+  <div class="panel side">
+
+    <h3>
+      Member Navigation
+    </h3>
+
+    <div class="quick">
+
+      <a href="playlist.html">
+        ▸ My Playlists
+      </a>
+
+      <a href="search.html">
+        ⌕ Search Podcasts
+      </a>
+
+      <a href="podcasts.html">
+        ◈ Podcast Directory
+      </a>
+
+      <a href="schedule.html">
+        ▣ Programming Guide
+      </a>
+
+      <a href="top.html">
+        ↗ Network Charts
+      </a>
+
+      <a href="profile.html">
+        ◉ My Profile
+      </a>
+
+    </div>
+
+  </div>
+
+
+  <!-- AUTH -->
+
+  <div
+    class="authbox"
+    id="authBox">
+
+    <h3>
+      Member Access
+    </h3>
+
+    <p id="authDescription">
+      Sign in with your CrowRules Podcasting account
+      to synchronize your profile, follows, saved episodes,
+      playlists and listening progress.
+    </p>
+
+    <input
+      class="input"
+      id="email"
+      type="email"
+      autocomplete="email"
+      placeholder="Email address">
+
+    <input
+      class="input"
+      id="password"
+      type="password"
+      autocomplete="current-password"
+      placeholder="Password">
+
+    <div class="auth-actions">
+
+      <button
+        class="btn primary"
+        id="signInBtn">
+        Sign In
+      </button>
+
+      <button
+        class="btn"
+        id="signUpBtn">
+        Create Account
+      </button>
+
+      <button
+        class="btn hidden"
+        id="signOutBtn">
+        Sign Out
+      </button>
+
+    </div>
+
+    <div
+      class="auth-status"
+      id="authStatus">
+      Not signed in.
+    </div>
+
+  </div>
+
+
+  <!-- NETWORK LEADERS -->
+
+  <div
+    class="panel side"
+    style="margin-top:22px">
+
+    <h3>
+      Network Leaders
+    </h3>
+
+    <div id="leaders">
+
+      <div class="empty">
+        Sign in to participate in network listening rankings.
+      </div>
+
+    </div>
+
+  </div>
+
+
+</aside>
+
+
+</section>
+
+</main>
+
+
+<footer>
+
+  <div class="wrap">
+
+    <span class="red">
+      CROWRULES PODCASTING
+    </span>
+
+    — Member Network /
+    Independent voices /
+    Original stories.
+
+  </div>
+
+</footer>
+
+
+<div class="bottom"></div>
+
+
+<!-- =====================================================
+     PLAYER
+====================================================== -->
+
+<div class="player">
+
+  <div class="playerin">
+
+    <div class="now">
+
+      <small>
+        NOW PLAYING
+      </small>
+
+      <strong id="playerTitle">
+        Select an episode
+      </strong>
+
+    </div>
+
+
+    <div class="controls">
+
+      <button
+        id="backBtn"
+        title="Previous">
+        ↶
+      </button>
+
+      <button
+        class="main"
+        id="playBtn"
+        title="Play">
+        ▶
+      </button>
+
+      <button
+        id="forwardBtn"
+        title="Next">
+        ↷
+      </button>
+
+    </div>
+
+
+    <div class="right">
+
+      <span id="playerStatus">
+        READY
+      </span>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<audio
+  id="audio"
+  preload="metadata"
+  playsinline>
+</audio>
+
+
+<!-- =====================================================
+     PROFILE MODAL
+====================================================== -->
+
+<div
+  class="modal"
+  id="profileModal">
+
+  <div class="modalbox">
+
+    <div class="modalhead">
+
+      <h2>
+        MEMBER PROFILE
+      </h2>
+
+      <button
+        class="close"
+        id="closeModal">
+        ×
+      </button>
+
+    </div>
+
+    <input
+      class="input"
+      id="displayNameInput"
+      placeholder="Display name">
+
+    <input
+      class="input"
+      id="usernameInput"
+      placeholder="Username">
+
+    <textarea
+      class="input"
+      id="bioInput"
+      rows="4"
+      placeholder="Tell the CrowRules network about yourself"></textarea>
+
+    <input
+      class="input"
+      id="avatarInput"
+      placeholder="Avatar image URL">
+
+    <button
+      class="btn primary"
+      id="saveProfile">
+      Save Profile
+    </button>
+
+  </div>
+
+</div>
+
+
+<div
+  class="toast"
+  id="toast">
+</div>
+
+
+<script>
+
+/* =========================================================
+   CROWRULES PODCASTING MEMBER HUB
+   SUPABASE CONFIGURATION
+========================================================= */
+
+const SUPABASE_URL =
+  'https://cevylpnoexugwgygvtgu.supabase.co';
+
+const SUPABASE_KEY =
+  'sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-';
+
+
+const db =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY,
+    {
+      auth:{
+        persistSession:true,
+        autoRefreshToken:true,
+        detectSessionInUrl:true
+      }
+    }
+  );
+
+
+/* =========================================================
+   ELEMENTS
+========================================================= */
+
+const $ =
+  id => document.getElementById(id);
+
+const audio =
+  $('audio');
+
+let currentUser =
+  null;
+
+let currentEpisode =
+  null;
+
+let currentProgress =
+  0;
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function esc(value){
+
+  return String(value ?? '')
+    .replace(/[&<>"']/g,function(match){
+
+      return {
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#39;'
+      }[match];
+
+    });
+
+}
+
+
+function initials(name){
+
+  const parts =
+    String(name || 'CR')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0,2);
+
+  return (
+    parts
+      .map(x => x[0])
+      .join('')
+      .toUpperCase()
+  ) || 'CR';
+
+}
+
+
+function formatDuration(seconds){
+
+  const value =
+    Number(seconds || 0);
+
+  if(!value){
+    return '—';
+  }
+
+  const hours =
+    Math.floor(value / 3600);
+
+  const minutes =
+    Math.floor(
+      (value % 3600) / 60
+    );
+
+  const secs =
+    Math.floor(value % 60);
+
+  if(hours){
+
+    return (
+      hours +
+      ':' +
+      String(minutes).padStart(2,'0') +
+      ':' +
+      String(secs).padStart(2,'0')
+    );
+
+  }
+
+  return (
+    minutes +
+    ':' +
+    String(secs).padStart(2,'0')
+  );
+
+}
+
+
+function formatDate(value){
+
+  if(!value){
+    return '—';
+  }
+
+  return new Intl.DateTimeFormat(
+    undefined,
+    {
+      month:'short',
+      day:'numeric',
+      year:'numeric'
+    }
+  ).format(
+    new Date(value)
+  );
+
+}
+
+
+function showToast(message){
+
+  $('toast').textContent =
+    message;
+
+  $('toast').classList.add(
+    'show'
+  );
+
+  clearTimeout(
+    showToast.timer
+  );
+
+  showToast.timer =
+    setTimeout(
+      () => {
+        $('toast').classList.remove(
+          'show'
+        );
+      },
+      2500
+    );
+
+}
+
+
+/* =========================================================
+   GUEST STATE
+========================================================= */
+
+function showGuest(){
+
+  currentUser = null;
+
+  $('memberName').textContent =
+    'CrowRules Listener';
+
+  $('memberEmail').textContent =
+    'Sign in to activate your member profile.';
+
+  $('memberBadge').textContent =
+    'GUEST';
+
+  $('avatar').innerHTML =
+    'CR';
+
+  $('profileButton').textContent =
+    'Sign In';
+
+  $('followingCount').textContent =
+    '0';
+
+  $('savedCount').textContent =
+    '0';
+
+  $('listenHours').textContent =
+    '0';
+
+  $('rankValue').textContent =
+    '—';
+
+  $('history').innerHTML =
+    `<div class="empty">
+      Sign in to see your listening progress.
+    </div>`;
+
+  $('savedEpisodes').innerHTML =
+    `<div class="empty">
+      Sign in to see your saved episodes.
+    </div>`;
+
+  $('followingList').innerHTML =
+    `<div class="empty">
+      Sign in to see the podcasts you follow.
+    </div>`;
+
+  $('playlists').innerHTML =
+    `<div class="empty">
+      Sign in to access your playlists.
+    </div>`;
+
+  $('leaders').innerHTML =
+    `<div class="empty">
+      Sign in to participate in network listening rankings.
+    </div>`;
+
+  $('authDescription').textContent =
+    'Sign in with your CrowRules Podcasting account to synchronize your profile, follows, saved episodes, playlists and listening progress.';
+
+  $('authStatus').textContent =
+    'Not signed in.';
+
+  $('signInBtn').classList.remove(
+    'hidden'
+  );
+
+  $('signUpBtn').classList.remove(
+    'hidden'
+  );
+
+  $('signOutBtn').classList.add(
+    'hidden'
+  );
+
+}
+
+
+/* =========================================================
+   LOAD MEMBER PROFILE
+========================================================= */
+
+async function loadProfile(){
+
+  if(!currentUser){
+    return;
+  }
+
+
+  const result =
+    await db
+      .from('podcast_member_profiles')
+      .select(`
+        user_id,
+        display_name,
+        username,
+        bio,
+        avatar_url,
+        badge,
+        is_public
+      `)
+      .eq(
+        'user_id',
+        currentUser.id
+      )
+      .maybeSingle();
+
+
+  if(result.error){
+
+    console.error(
+      'Profile:',
+      result.error
+    );
+
+    return;
+  }
+
+
+  let profile =
+    result.data;
+
+
+  if(!profile){
+
+    const name =
+      currentUser.email
+        ? currentUser.email
+            .split('@')[0]
+        : 'CrowRules Member';
+
+
+    const insert =
+      await db
+        .from(
+          'podcast_member_profiles'
+        )
+        .insert({
+          user_id:
+            currentUser.id,
+
+          display_name:
+            name,
+
+          username:
+            name
+              .toLowerCase()
+              .replace(/[^a-z0-9_]/g,'')
+              .slice(0,30),
+
+          badge:
+            'CROW MEMBER',
+
+          is_public:
+            true
+        })
+        .select()
+        .single();
+
+
+    if(insert.error){
+
+      console.error(
+        'Profile creation:',
+        insert.error
+      );
+
+      return;
+    }
+
+
+    profile =
+      insert.data;
+
+  }
+
+
+  const name =
+    profile.display_name ||
+    profile.username ||
+    currentUser.email
+      ?.split('@')[0] ||
+    'CrowRules Member';
+
+
+  $('memberName').textContent =
+    name;
+
+  $('memberEmail').textContent =
+    currentUser.email ||
+    'Authenticated member';
+
+  $('memberBadge').textContent =
+    profile.badge ||
+    'CROW MEMBER';
+
+
+  if(profile.avatar_url){
+
+    $('avatar').innerHTML =
+      `<img
+        src="${esc(profile.avatar_url)}"
+        alt="${esc(name)}">`;
+
+  }else{
+
+    $('avatar').textContent =
+      initials(name);
+
+  }
+
+
+  $('profileButton').textContent =
+    'Edit Profile';
+
+
+  $('displayNameInput').value =
+    profile.display_name || '';
+
+  $('usernameInput').value =
+    profile.username || '';
+
+  $('bioInput').value =
+    profile.bio || '';
+
+  $('avatarInput').value =
+    profile.avatar_url || '';
+
+}
+
+
+/* =========================================================
+   AUTH UI
+========================================================= */
+
+function showAuthenticated(){
+
+  $('authDescription').textContent =
+    'Your CrowRules Podcasting member account is active. Your listening activity and saved content can now sync across devices.';
+
+  $('authStatus').textContent =
+    'Authenticated member.';
+
+  $('signInBtn').classList.add(
+    'hidden'
+  );
+
+  $('signUpBtn').classList.add(
+    'hidden'
+  );
+
+  $('signOutBtn').classList.remove(
+    'hidden'
+  );
+
+}
+
+
+async function signIn(){
+
+  const email =
+    $('email').value.trim();
+
+  const password =
+    $('password').value;
+
+
+  if(!email || !password){
+
+    showToast(
+      'Enter your email and password.'
+    );
+
+    return;
+  }
+
+
+  $('signInBtn').disabled =
+    true;
+
+
+  const result =
+    await db.auth.signInWithPassword({
+      email,
+      password
+    });
+
+
+  $('signInBtn').disabled =
+    false;
+
+
+  if(result.error){
+
+    showToast(
+      result.error.message
+    );
+
+    return;
+  }
+
+
+  $('email').value = '';
+  $('password').value = '';
+
+  showToast(
+    'Welcome back to CrowRules.'
+  );
+
+}
+
+
+async function signUp(){
+
+  const email =
+    $('email').value.trim();
+
+  const password =
+    $('password').value;
+
+
+  if(!email || !password){
+
+    showToast(
+      'Enter an email and password.'
+    );
+
+    return;
+  }
+
+
+  if(password.length < 6){
+
+    showToast(
+      'Password must be at least 6 characters.'
+    );
+
+    return;
+  }
+
+
+  $('signUpBtn').disabled =
+    true;
+
+
+  const result =
+    await db.auth.signUp({
+      email,
+      password
+    });
+
+
+  $('signUpBtn').disabled =
+    false;
+
+
+  if(result.error){
+
+    showToast(
+      result.error.message
+    );
+
+    return;
+  }
+
+
+  if(result.data.session){
+
+    showToast(
+      'Your CrowRules member account is active.'
+    );
+
+  }else{
+
+    showToast(
+      'Account created. Check your email to confirm your account.'
+    );
+
+  }
+
+}
+
+
+async function signOut(){
+
+  const result =
+    await db.auth.signOut();
+
+
+  if(result.error){
+
+    showToast(
+      result.error.message
+    );
+
+    return;
+  }
+
+
+  audio.pause();
+
+  audio.removeAttribute(
+    'src'
+  );
+
+  audio.load();
+
+  showGuest();
+
+  showToast(
+    'Signed out.'
+  );
+
+}
+
+
+/* =========================================================
+   LOAD FOLLOWS
+========================================================= */
+
+async function loadFollowing(){
+
+  if(!currentUser){
+    return;
+  }
+
+
+  const result =
+    await db
+      .from('podcast_follows')
+      .select(`
+        id,
+        podcast_id,
+        created_at,
+        podcasts(
+          id,
+          title,
+          slug,
+          description,
+          artwork_url,
+          category
+        )
+      `)
+      .eq(
+        'user_id',
+        currentUser.id
+      )
+      .order(
+        'created_at',
+        {
+          ascending:false
+        }
+      );
+
+
+  if(result.error){
+
+    console.error(
+      'Following:',
+      result.error
+    );
+
+    $('followingList').innerHTML =
+      `<div class="empty error">
+        Unable to load followed podcasts.
+      </div>`;
+
+    return;
+  }
+
+
+  const rows =
+    result.data || [];
+
+
+  $('followingCount').textContent =
+    rows.length;
+
+
+  if(!rows.length){
+
+    $('followingList').innerHTML =
+      `<div class="empty">
+        You aren't following any podcasts yet.
+        <a href="podcasts.html" class="red">
+          Explore the directory.
+        </a>
+      </div>`;
+
+    return;
+  }
+
+
+  $('followingList').innerHTML =
+    rows.map(
+      row => {
+
+        const podcast =
+          row.podcasts;
+
+
+        if(!podcast){
+          return '';
+        }
+
+
+        const artwork =
+          podcast.artwork_url
+            ? `<img
+                src="${esc(podcast.artwork_url)}"
+                alt="${esc(podcast.title)}">`
+            : initials(
+                podcast.title
+              );
+
+
+        return `
+          <article class="item">
+
+            <div class="thumb">
+              ${artwork}
+            </div>
+
+            <div>
+
+              <h3>
+                ${esc(podcast.title)}
+              </h3>
+
+              <p>
+                ${esc(
+                  podcast.category ||
+                  'Podcast'
+                )}
+                · Following since
+                ${esc(
+                  formatDate(
+                    row.created_at
+                  )
+                )}
+              </p>
+
+            </div>
+
+            <a
+              class="btn"
+              href="podcast.html?id=${encodeURIComponent(podcast.id)}">
+              Open
+            </a>
+
+          </article>
+        `;
+
+      }
+    ).join('');
+
+}
+
+
+/* =========================================================
+   LOAD SAVED EPISODES
+========================================================= */
+
+async function loadSaved(){
+
+  if(!currentUser){
+    return;
+  }
+
+
+  const result =
+    await db
+      .from('podcast_saved_episodes')
+      .select(`
+        id,
+        episode_id,
+        created_at,
+        podcast_episodes(
+          id,
+          title,
+          slug,
+          description,
+          thumbnail_url,
+          duration_seconds,
+          audio_url,
+          published_at,
+          podcast_id,
+          podcasts(
+            title,
+            artwork_url
+          )
+        )
+      `)
+      .eq(
+        'user_id',
+        currentUser.id
+      )
+      .order(
+        'created_at',
+        {
+          ascending:false
+        }
+      )
+      .limit(20);
+
+
+  if(result.error){
+
+    console.error(
+      'Saved episodes:',
+      result.error
+    );
+
+    $('savedEpisodes').innerHTML =
+      `<div class="empty error">
+        Unable to load saved episodes.
+      </div>`;
+
+    return;
+  }
+
+
+  const rows =
+    result.data || [];
+
+
+  $('savedCount').textContent =
+    rows.length;
+
+
+  if(!rows.length){
+
+    $('savedEpisodes').innerHTML =
+      `<div class="empty">
+        You haven't saved any episodes yet.
+      </div>`;
+
+    return;
+  }
+
+
+  $('savedEpisodes').innerHTML =
+    rows.map(
+      row => {
+
+        const ep =
+          row.podcast_episodes;
+
+
+        if(!ep){
+          return '';
+        }
+
+
+        const artwork =
+          ep.thumbnail_url ||
+          ep.podcasts?.artwork_url;
+
+
+        const thumb =
+          artwork
+            ? `<img
+                src="${esc(artwork)}"
+                alt="${esc(ep.title)}">`
+            : 'EP';
+
+
+        return `
+          <article class="item">
+
+            <div class="thumb">
+              ${thumb}
+            </div>
+
+            <div>
+
+              <h3>
+                ${esc(ep.title)}
+              </h3>
+
+              <p>
+                ${esc(
+                  ep.podcasts?.title ||
+                  'CrowRules Podcasting'
+                )}
+                ·
+                ${formatDuration(
+                  ep.duration_seconds
+                )}
+              </p>
+
+            </div>
+
+            ${
+              ep.audio_url
+                ? `
+                  <button
+                    class="btn"
+                    onclick='playEpisode(
+                      ${JSON.stringify(ep)}
+                    )'>
+                    Play
+                  </button>
+                `
+                : ''
+            }
+
+          </article>
+        `;
+
+      }
+    ).join('');
+
+}
+
+
+/* =========================================================
+   LOAD LISTENING PROGRESS
+========================================================= */
+
+async function loadProgress(){
+
+  if(!currentUser){
+    return;
+  }
+
+
+  const result =
+    await db
+      .from('podcast_episode_progress')
+      .select(`
+        id,
+        episode_id,
+        position_seconds,
+        duration_seconds,
+        percent_complete,
+        last_played_at,
+        completed,
+        podcast_episodes(
+          id,
+          title,
+          thumbnail_url,
+          audio_url,
+          duration_seconds,
+          podcast_id,
+          podcasts(
+            title,
+            artwork_url
+          )
+        )
+      `)
+      .eq(
+        'user_id',
+        currentUser.id
+      )
+      .eq(
+        'completed',
+        false
+      )
+      .order(
+        'last_played_at',
+        {
+          ascending:false
+        }
+      )
+      .limit(8);
+
+
+  if(result.error){
+
+    console.error(
+      'Progress:',
+      result.error
+    );
+
+    $('history').innerHTML =
+      `<div class="empty error">
+        Unable to load listening progress.
+      </div>`;
+
+    return;
+  }
+
+
+  const rows =
+    result.data || [];
+
+
+  if(!rows.length){
+
+    $('history').innerHTML =
+      `<div class="empty">
+        No unfinished episodes yet.
+        Start listening to a CrowRules podcast and your progress will appear here.
+      </div>`;
+
+    return;
+  }
+
+
+  $('history').innerHTML =
+    rows.map(
+      row => {
+
+        const ep =
+          row.podcast_episodes;
+
+
+        if(!ep){
+          return '';
+        }
+
+
+        const artwork =
+          ep.thumbnail_url ||
+          ep.podcasts?.artwork_url;
+
+
+        const percent =
+          Math.max(
+            0,
+            Math.min(
+              100,
+              Number(
+                row.percent_complete || 0
+              )
+            )
+          );
+
+
+        return `
+          <article class="item">
+
+            <div class="thumb">
+              ${
+                artwork
+                  ? `<img
+                      src="${esc(artwork)}"
+                      alt="${esc(ep.title)}">`
+                  : 'EP'
+              }
+            </div>
+
+            <div>
+
+              <h3>
+                ${esc(ep.title)}
+              </h3>
+
+              <p>
+                ${esc(
+                  ep.podcasts?.title ||
+                  'CrowRules Podcasting'
+                )}
+
+                ·
+
+                ${formatDuration(
+                  row.position_seconds
+                )}
+                /
+                ${formatDuration(
+                  row.duration_seconds ||
+                  ep.duration_seconds
+                )}
+
+                ·
+                ${Math.round(percent)}%
+              </p>
+
+              <div class="progress">
+                <span
+                  style="width:${percent}%">
+                </span>
+              </div>
+
+            </div>
+
+            ${
+              ep.audio_url
+                ? `
+                  <button
+                    class="btn"
+                    onclick='resumeEpisode(
+                      ${JSON.stringify(ep)},
+                      ${Number(
+                        row.position_seconds || 0
+                      )}
+                    )'>
+                    Resume
+                  </button>
+                `
+                : ''
+            }
+
+          </article>
+        `;
+
+      }
+    ).join('');
+
+}
+
+
+/* =========================================================
+   LOAD LISTENING HOURS
+========================================================= */
+
+async function loadListeningHours(){
+
+  if(!currentUser){
+    return;
+  }
+
+
+  const result =
+    await db
+      .from('podcast_listens')
+      .select(
+        'seconds_listened'
+      )
+      .eq(
+        'user_id',
+        currentUser.id
+      );
+
+
+  if(result.error){
+
+    console.error(
+      'Listening hours:',
+      result.error
+    );
+
+    return;
+  }
+
+
+  const rows =
+    result.data || [];
+
+
+  const seconds =
+    rows.reduce(
+      (
+        total,
+        row
+      ) =>
+        total +
+        Number(
+          row.seconds_listened || 0
+        ),
+      0
+    );
+
+
+  const hours =
+    seconds / 3600;
+
+
+  $('listenHours').textContent =
+    hours < 10
+      ? hours.toFixed(1)
+      : Math.round(hours);
+
+}
+
+
+/* =========================================================
+   NETWORK RANKING
+========================================================= */
+
+async function loadRank(){
+
+  if(!currentUser){
+    return;
+  }
+
+
+  /*
+    Ranking is calculated client-side from the
+    aggregate listening totals returned by the table.
+  */
+
+  const result =
+    await db
+      .from('podcast_listens')
+      .select(`
+        user_id,
+        seconds_listened
+      `);
+
+
+  if(result.error){
+
+    console.error(
+      'Rank:',
+      result.error
+    );
+
+    $('rankValue').textContent =
+      '—';
+
+    return;
+  }
+
+
+  const totals =
+    {};
+
+
+  (result.data || [])
+    .forEach(
+      row => {
+
+        const id =
+          row.user_id;
+
+
+        if(!id){
+          return;
+        }
+
+
+        totals[id] =
+          (
+            totals[id] || 0
+          ) +
+          Number(
+            row.seconds_listened || 0
+          );
+
+      }
+    );
+
+
+  const ranking =
+    Object.entries(totals)
+      .sort(
+        (
+          a,
+          b
+        ) =>
+          b[1] -
+          a[1]
+      );
+
+
+  const index =
+    ranking.findIndex(
+      row =>
+        row[0] ===
+        currentUser.id
+    );
+
+
+  $('rankValue').textContent =
+    index >= 0
+      ? `#${index + 1}`
+      : '—';
+
+
+  const leaders =
+    ranking.slice(
+      0,
+      5
+    );
+
+
+  if(!leaders.length){
+
+    $('leaders').innerHTML =
+      `<div class="empty">
+        No listening activity has been recorded yet.
+      </div>`;
+
+    return;
+  }
+
+
+  /*
+    Public display names are loaded from
+    podcast_member_profiles.
+  */
+
+  const ids =
+    leaders.map(
+      row => row[0]
+    );
+
+
+  const profiles =
+    await db
+      .from(
+        'podcast_member_profiles'
+      )
+      .select(
+        'user_id,display_name,username'
+      )
+      .in(
+        'user_id',
+        ids
+      )
+      .eq(
+        'is_public',
+        true
+      );
+
+
+  const profileMap =
+    {};
+
+
+  (profiles.data || [])
+    .forEach(
+      profile => {
+
+        profileMap[
+          profile.user_id
+        ] =
+          profile;
+
+      }
+    );
+
+
+  $('leaders').innerHTML =
+    leaders.map(
+      (
+        row,
+        index
+      ) => {
+
+        const profile =
+          profileMap[
+            row[0]
+          ];
+
+
+        const name =
+          profile?.display_name ||
+          profile?.username ||
+          'Crow Member';
+
+
+        const minutes =
+          Math.floor(
+            row[1] / 60
+          );
+
+
+        return `
+          <div class="rank">
+
+            <div class="ranknum">
+              ${String(
+                index + 1
+              ).padStart(2,'0')}
+            </div>
+
+            <div>
+
+              <strong>
+                ${esc(name)}
+              </strong>
+
+              <span>
+                ${minutes.toLocaleString()}
+                listening minutes
+              </span>
+
+            </div>
+
+          </div>
+        `;
+
+      }
+    ).join('');
+
+}
+
+
+/* =========================================================
+   LOAD PLAYLISTS
+========================================================= */
+
+async function loadPlaylists(){
+
+  if(!currentUser){
+    return;
+  }
+
+
+  const result =
+    await db
+      .from('podcast_playlists')
+      .select(`
+        id,
+        name,
+        description,
+        is_public,
+        created_at,
+        updated_at
+      `)
+      .eq(
+        'user_id',
+        currentUser.id
+      )
+      .order(
+        'updated_at',
+        {
+          ascending:false
+        }
+      )
+      .limit(10);
+
+
+  if(result.error){
+
+    console.error(
+      'Playlists:',
+      result.error
+    );
+
+    $('playlists').innerHTML =
+      `<div class="empty error">
+        Unable to load playlists.
+      </div>`;
+
+    return;
+  }
+
+
+  const playlists =
+    result.data || [];
+
+
+  if(!playlists.length){
+
+    $('playlists').innerHTML =
+      `<div class="empty">
+        You haven't created a playlist yet.
+        <a
+          class="red"
+          href="playlist.html">
+          Create your first playlist.
+        </a>
+      </div>`;
+
+    return;
+  }
+
+
+  /*
+    Load item counts separately so the page
+    does not depend on a specific FK embed.
+  */
+
+  const counts =
+    await Promise.all(
+      playlists.map(
+        async playlist => {
+
+          const items =
+            await db
+              .from(
+                'podcast_playlist_items'
+              )
+              .select(
+                'id',
+                {
+                  count:'exact',
+                  head:true
+                }
+              )
+              .eq(
+                'playlist_id',
+                playlist.id
+              );
+
+
+          return [
+            playlist.id,
+            items.count || 0
+          ];
+
+        }
+      )
+    );
+
+
+  const countMap =
+    Object.fromEntries(
+      counts
+    );
+
+
+  $('playlists').innerHTML =
+    playlists.map(
+      playlist => {
+
+        return `
+          <article class="item">
+
+            <div class="thumb">
+              PL
+            </div>
+
+            <div>
+
+              <h3>
+                ${esc(
+                  playlist.name ||
+                  'Untitled Playlist'
+                )}
+              </h3>
+
+              <p>
+                ${
+                  countMap[
+                    playlist.id
+                  ] || 0
+                }
+                episodes
+                ·
+                ${
+                  playlist.is_public
+                    ? 'Public'
+                    : 'Private'
+                }
+              </p>
+
+            </div>
+
+            <a
+              class="btn"
+              href="playlist.html?id=${encodeURIComponent(playlist.id)}">
+              Open
+            </a>
+
+          </article>
+        `;
+
+      }
+    ).join('');
+
+}
+
+
+/* =========================================================
+   SAVE PROFILE
+========================================================= */
+
+async function saveProfile(){
+
+  if(!currentUser){
+    return;
+  }
+
+
+  const payload = {
+
+    user_id:
+      currentUser.id,
+
+    display_name:
+      $('displayNameInput')
+        .value
+        .trim() ||
+      null,
+
+    username:
+      $('usernameInput')
+        .value
+        .trim() ||
+      null,
+
+    bio:
+      $('bioInput')
+        .value
+        .trim() ||
+      null,
+
+    avatar_url:
+      $('avatarInput')
+        .value
+        .trim() ||
+      null,
+
+    updated_at:
+      new Date().toISOString()
+
+  };
+
+
+  const result =
+    await db
+      .from(
+        'podcast_member_profiles'
+      )
+      .upsert(
+        payload,
+        {
+          onConflict:
+            'user_id'
+        }
+      );
+
+
+  if(result.error){
+
+    console.error(
+      'Save profile:',
+      result.error
+    );
+
+    showToast(
+      result.error.message
+    );
+
+    return;
+  }
+
+
+  $('profileModal')
+    .classList
+    .remove('show');
+
+
+  await loadProfile();
+
+  showToast(
+    'Profile saved.'
+  );
+
+}
+
+
+/* =========================================================
+   PLAYER
+========================================================= */
+
+function updatePlayer(){
+
+  const playing =
+    !audio.paused;
+
+
+  $('playBtn').textContent =
+    playing
+      ? 'Ⅱ'
+      : '▶';
+
+
+  $('playerStatus').textContent =
+    playing
+      ? 'PLAYING'
+      : 'PAUSED';
+
+}
+
+
+async function playEpisode(
+  episode
+){
+
+  if(!episode?.audio_url){
+
+    showToast(
+      'This episode does not have an audio file yet.'
+    );
+
+    return;
+  }
+
+
+  currentEpisode =
+    episode;
+
+
+  currentProgress =
+    0;
+
+
+  audio.src =
+    episode.audio_url;
+
+
+  $('playerTitle').textContent =
+    episode.title ||
+    'Podcast Episode';
+
+
+  $('playerStatus').textContent =
+    'LOADING';
+
+
+  try{
+
+    await audio.play();
+
+    $('playerStatus').textContent =
+      'PLAYING';
+
+  }catch(error){
+
+    console.error(
+      'Playback:',
+      error
+    );
+
+    $('playerStatus').textContent =
+      'READY';
+
+    showToast(
+      'Press Play to start the episode.'
+    );
+
+  }
+
+}
+
+
+window.playEpisode =
+  playEpisode;
+
+
+async function resumeEpisode(
+  episode,
+  position
+){
+
+  await playEpisode(
+    episode
+  );
+
+
+  const seek =
+    Number(
+      position || 0
+    );
+
+
+  if(
+    seek > 0 &&
+    Number.isFinite(
+      audio.duration
+    )
+  ){
+
+    audio.currentTime =
+      Math.min(
+        seek,
+        audio.duration - 1
+      );
+
+  }else{
+
+    audio.addEventListener(
+      'loadedmetadata',
+      function seekOnce(){
+
+        if(audio.duration > 1){
+
+          audio.currentTime =
+            Math.min(
+              seek,
+              audio.duration - 1
+            );
+
+        }
+
+        audio.removeEventListener(
+          'loadedmetadata',
+          seekOnce
+        );
+
+      }
+    );
+
+  }
+
+}
+
+
+window.resumeEpisode =
+  resumeEpisode;
+
+
+$('playBtn').onclick =
+  async function(){
+
+    if(!currentEpisode){
+
+      showToast(
+        'Select an episode first.'
+      );
+
+      return;
+    }
+
+
+    if(audio.paused){
+
+      try{
+
+        await audio.play();
+
+      }catch(error){
+
+        console.error(
+          error
+        );
+
+      }
+
+    }else{
+
+      audio.pause();
+
+    }
+
+  };
+
+
+$('backBtn').onclick =
+  function(){
+
+    audio.currentTime =
+      Math.max(
+        0,
+        audio.currentTime - 15
+      );
+
+  };
+
+
+$('forwardBtn').onclick =
+  function(){
+
+    audio.currentTime =
+      Math.min(
+        audio.duration || 0,
+        audio.currentTime + 30
+      );
+
+  };
+
+
+audio.addEventListener(
+  'play',
+  updatePlayer
+);
+
+audio.addEventListener(
+  'pause',
+  updatePlayer
+);
+
+
+/* =========================================================
+   SAVE LISTENING PROGRESS
+========================================================= */
+
+let progressTimer =
+  null;
+
+
+async function saveProgress(){
+
+  if(
+    !currentUser ||
+    !currentEpisode ||
+    !Number.isFinite(
+      audio.currentTime
+    )
+  ){
+
+    return;
+  }
+
+
+  const duration =
+    Number(
+      audio.duration ||
+      currentEpisode.duration_seconds ||
+      0
+    );
+
+
+  if(!duration){
+    return;
+  }
+
+
+  const position =
+    Math.floor(
+      audio.currentTime
+    );
+
+
+  const percent =
+    Math.min(
+      100,
+      (
+        position /
+        duration
+      ) * 100
+    );
+
+
+  const completed =
+    percent >= 95;
+
+
+  await db
+    .from(
+      'podcast_episode_progress'
+    )
+    .upsert(
+      {
+        user_id:
+          currentUser.id,
+
+        episode_id:
+          currentEpisode.id,
+
+        position_seconds:
+          position,
+
+        duration_seconds:
+          Math.floor(
+            duration
+          ),
+
+        percent_complete:
+          Number(
+            percent.toFixed(2)
+          ),
+
+        last_played_at:
+          new Date().toISOString(),
+
+        completed:
+
+          completed
+
+      },
+      {
+        onConflict:
+          'user_id,episode_id'
+      }
+    );
+
+}
+
+
+audio.addEventListener(
+  'timeupdate',
+  function(){
+
+    if(
+      !currentUser ||
+      !currentEpisode
+    ){
+
+      return;
+    }
+
+
+    clearTimeout(
+      progressTimer
+    );
+
+
+    progressTimer =
+      setTimeout(
+        saveProgress,
+        1500
+      );
+
+  }
+);
+
+
+audio.addEventListener(
+  'ended',
+  async function(){
+
+    await saveProgress();
+
+    $('playerStatus').textContent =
+      'ENDED';
+
+    await loadProgress();
+
+  }
+);
+
+
+window.addEventListener(
+  'beforeunload',
+  function(){
+
+    /*
+      Do not await here.
+      The periodic save above handles
+      normal playback persistence.
+    */
+
+  }
+);
+
+
+/* =========================================================
+   PROFILE MODAL
+========================================================= */
+
+$('profileButton').onclick =
+  function(){
+
+    if(!currentUser){
+
+      $('authBox')
+        .scrollIntoView({
+          behavior:'smooth'
+        });
+
+      $('email').focus();
+
+      return;
+    }
+
+
+    $('profileModal')
+      .classList
+      .add('show');
+
+  };
+
+
+$('closeModal').onclick =
+  function(){
+
+    $('profileModal')
+      .classList
+      .remove('show');
+
+  };
+
+
+$('profileModal').addEventListener(
+  'click',
+  function(event){
+
+    if(
+      event.target ===
+      $('profileModal')
+    ){
+
+      $('profileModal')
+        .classList
+        .remove('show');
+
+    }
+
+  }
+);
+
+
+$('saveProfile').onclick =
+  saveProfile;
+
+
+/* =========================================================
+   AUTH EVENTS
+========================================================= */
+
+$('signInBtn').onclick =
+  signIn;
+
+$('signUpBtn').onclick =
+  signUp;
+
+$('signOutBtn').onclick =
+  signOut;
+
+
+$('password').addEventListener(
+  'keydown',
+  function(event){
+
+    if(
+      event.key ===
+      'Enter'
+    ){
+
+      signIn();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   LOAD MEMBER DATA
+========================================================= */
+
+async function loadMember(){
+
+  if(!currentUser){
+
+    showGuest();
+
+    return;
+  }
+
+
+  showAuthenticated();
+
+
+  await loadProfile();
+
+
+  await Promise.all([
+
+    loadFollowing(),
+
+    loadSaved(),
+
+    loadProgress(),
+
+    loadListeningHours(),
+
+    loadRank(),
+
+    loadPlaylists()
+
+  ]);
+
+}
+
+
+/* =========================================================
+   AUTH STATE
+========================================================= */
+
+db.auth.onAuthStateChange(
+  async function(
+    event,
+    session
+  ){
+
+    currentUser =
+      session?.user ||
+      null;
+
+
+    if(currentUser){
+
+      await loadMember();
+
+    }else{
+
+      showGuest();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   INITIAL SESSION
+========================================================= */
+
+async function init(){
+
+  const result =
+    await db.auth.getSession();
+
+
+  currentUser =
+    result.data.session?.user ||
+    null;
+
+
+  if(currentUser){
+
+    await loadMember();
+
+  }else{
+
+    showGuest();
+
+  }
+
+}
+
+
+init();
+
+
+/* =========================================================
+   PERIODIC MEMBER REFRESH
+========================================================= */
+
+setInterval(
+  async function(){
+
+    if(!currentUser){
+      return;
+    }
+
+
+    await Promise.all([
+
+      loadProgress(),
+
+      loadListeningHours(),
+
+      loadFollowing(),
+
+      loadSaved()
+
+    ]);
+
+  },
+  60000
+);
+
+
+/* =========================================================
+   VISIBILITY REFRESH
+========================================================= */
+
+document.addEventListener(
+  'visibilitychange',
+  function(){
+
+    if(
+      document.visibilityState ===
+      'visible' &&
+      currentUser
+    ){
+
+      loadMember();
+
+    }
+
+  }
+);
+
+</script>
+
+</body>
+</html>

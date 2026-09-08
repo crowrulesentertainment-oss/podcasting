@@ -1,0 +1,2719 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>CrowRules Podcasting — Search</title>
+
+<meta name="theme-color" content="#050505">
+<meta name="description" content="Search the CrowRules Podcasting network for podcasts, episodes, creators and categories.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --bg:#050505;
+  --panel:#0d0d0d;
+  --panel2:#151515;
+  --red:#c00000;
+  --hot:#ff2020;
+  --line:#292929;
+  --text:#f5f5f5;
+  --muted:#929292;
+  --green:#45d483;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(
+      circle at 85% 5%,
+      rgba(192,0,0,.14),
+      transparent 28%
+    ),
+    var(--bg);
+  color:var(--text);
+  font-family:Montserrat,Arial,sans-serif;
+}
+
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.055;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 3px,
+      #fff 4px
+    );
+  z-index:20;
+}
+
+a{
+  color:inherit;
+}
+
+button,
+input,
+select{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+.wrap{
+  max-width:1440px;
+  margin:auto;
+  padding:0 28px;
+}
+
+/* =========================================================
+   TOP
+   ========================================================= */
+
+.topline{
+  height:3px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--hot),
+      var(--red),
+      transparent
+    );
+}
+
+header{
+  position:sticky;
+  top:0;
+  z-index:15;
+  background:rgba(5,5,5,.94);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+
+.nav{
+  min-height:76px;
+  display:flex;
+  align-items:center;
+  gap:28px;
+}
+
+.brand{
+  flex-shrink:0;
+  color:#fff;
+  text-decoration:none;
+  font:800 20px Orbitron,sans-serif;
+  letter-spacing:1.5px;
+  white-space:nowrap;
+}
+
+.brand span{
+  color:var(--hot);
+}
+
+.brand i{
+  font-style:normal;
+  color:#fff;
+}
+
+nav{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+nav a{
+  color:#aaa;
+  text-decoration:none;
+  font-size:12px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+  padding:10px 12px;
+}
+
+nav a:hover,
+nav a.active{
+  color:#fff;
+  background:#111;
+  border-bottom:2px solid var(--hot);
+}
+
+.spacer{
+  flex:1;
+}
+
+.live{
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#fff;
+  font:800 11px Orbitron,sans-serif;
+}
+
+.dot{
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:var(--hot);
+  box-shadow:0 0 15px var(--hot);
+  animation:pulse 1.3s infinite;
+}
+
+@keyframes pulse{
+  50%{
+    opacity:.3;
+  }
+}
+
+/* =========================================================
+   MAIN
+   ========================================================= */
+
+main{
+  padding:58px 0 150px;
+}
+
+.hero{
+  display:grid;
+  grid-template-columns:1fr 390px;
+  gap:35px;
+  align-items:end;
+  margin-bottom:32px;
+}
+
+.eyebrow{
+  color:var(--hot);
+  font:800 11px Orbitron,sans-serif;
+  letter-spacing:3px;
+}
+
+.hero h1{
+  margin:10px 0 14px;
+  font:900 clamp(38px,6vw,78px)/.98 Orbitron,sans-serif;
+  text-transform:uppercase;
+  letter-spacing:-2px;
+}
+
+.hero p{
+  max-width:760px;
+  margin:0;
+  color:var(--muted);
+  line-height:1.75;
+  font-size:13px;
+}
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+.searchbox{
+  padding:16px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  box-shadow:0 0 35px rgba(192,0,0,.06);
+}
+
+.searchrow{
+  display:flex;
+  gap:10px;
+}
+
+.searchrow input{
+  flex:1;
+  min-width:0;
+  background:#070707;
+  border:1px solid #383838;
+  color:#fff;
+  padding:16px;
+  outline:none;
+  font-size:14px;
+}
+
+.searchrow input:focus{
+  border-color:var(--hot);
+  box-shadow:
+    0 0 0 2px rgba(255,32,32,.1);
+}
+
+.searchrow button{
+  border:0;
+  background:var(--red);
+  color:#fff;
+  padding:0 18px;
+  font:800 11px Orbitron,sans-serif;
+  text-transform:uppercase;
+}
+
+.searchrow button:hover{
+  background:var(--hot);
+}
+
+.search-hint{
+  margin-top:10px;
+  color:#555;
+  font-size:9px;
+  line-height:1.5;
+}
+
+/* =========================================================
+   TOOLBAR
+   ========================================================= */
+
+.toolbar{
+  display:flex;
+  gap:15px;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--line);
+  padding:14px 0;
+  margin-bottom:22px;
+}
+
+.filters{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+}
+
+.filter{
+  border:1px solid #292929;
+  background:#111;
+  color:#aaa;
+  padding:9px 12px;
+  font-size:11px;
+  font-weight:800;
+}
+
+.filter:hover,
+.filter.active{
+  color:#fff;
+  border-color:var(--hot);
+  background:#1a0808;
+}
+
+.count{
+  flex-shrink:0;
+  color:#777;
+  font:700 11px Orbitron,sans-serif;
+}
+
+/* =========================================================
+   RESULTS
+   ========================================================= */
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+}
+
+.card{
+  position:relative;
+  min-width:0;
+  display:grid;
+  grid-template-columns:105px minmax(0,1fr);
+  gap:16px;
+  padding:13px;
+  overflow:hidden;
+  background:
+    linear-gradient(
+      135deg,
+      #101010,
+      #090909
+    );
+  border:1px solid var(--line);
+  text-decoration:none;
+  transition:
+    transform .2s,
+    border-color .2s,
+    background .2s;
+}
+
+.card:after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:0;
+  width:0;
+  height:2px;
+  background:var(--hot);
+  transition:.25s;
+}
+
+.card:hover{
+  transform:translateY(-2px);
+  border-color:#4b1111;
+  background:#101010;
+}
+
+.card:hover:after{
+  width:100%;
+}
+
+.art{
+  position:relative;
+  width:105px;
+  height:105px;
+  overflow:hidden;
+  display:flex;
+  align-items:flex-end;
+  padding:9px;
+  border:1px solid #401111;
+  background:
+    radial-gradient(
+      circle at 30% 20%,
+      #500000,
+      #090909 65%
+    );
+  font:800 9px Orbitron,sans-serif;
+  color:#fff;
+}
+
+.art img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.art:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(
+      180deg,
+      transparent 35%,
+      rgba(0,0,0,.8)
+    );
+}
+
+.art-label{
+  position:relative;
+  z-index:2;
+}
+
+.meta{
+  min-width:0;
+}
+
+.type{
+  color:var(--hot);
+  font:700 9px Orbitron,sans-serif;
+  letter-spacing:1.4px;
+  text-transform:uppercase;
+}
+
+.card h3{
+  margin:7px 0;
+  overflow:hidden;
+  color:#fff;
+  font:800 16px Orbitron,sans-serif;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.card p{
+  margin:0 0 10px;
+  overflow:hidden;
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  color:#8e8e8e;
+  font-size:10px;
+  line-height:1.5;
+}
+
+.tags{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+.tag{
+  padding:4px 6px;
+  border:1px solid #292929;
+  color:#777;
+  font-size:8px;
+}
+
+.result-arrow{
+  position:absolute;
+  right:10px;
+  bottom:8px;
+  color:#4d4d4d;
+  font:900 11px Orbitron,sans-serif;
+}
+
+/* =========================================================
+   STATES
+   ========================================================= */
+
+.state{
+  padding:70px 20px;
+  text-align:center;
+  border:1px dashed #333;
+  background:#090909;
+}
+
+.state-icon{
+  margin-bottom:14px;
+  color:#6b0000;
+  font:900 30px Orbitron,sans-serif;
+}
+
+.state strong{
+  display:block;
+  margin-bottom:9px;
+  color:#fff;
+  font:700 20px Orbitron,sans-serif;
+}
+
+.state span{
+  color:#666;
+  font-size:10px;
+  line-height:1.7;
+}
+
+.spinner{
+  width:32px;
+  height:32px;
+  margin:0 auto 15px;
+  border:2px solid #350000;
+  border-top-color:var(--hot);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+/* =========================================================
+   QUICK SIGNALS
+   ========================================================= */
+
+.section{
+  margin-top:44px;
+}
+
+.section h2{
+  margin:0 0 16px;
+  font:800 19px Orbitron,sans-serif;
+}
+
+.quick{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+
+.quick a{
+  padding:18px;
+  border:1px solid var(--line);
+  background:#0c0c0c;
+  color:#bbb;
+  text-decoration:none;
+  transition:.2s;
+}
+
+.quick a:hover{
+  border-color:#560000;
+  transform:translateY(-2px);
+}
+
+.quick a b{
+  display:block;
+  margin-bottom:7px;
+  color:#fff;
+  font:700 12px Orbitron,sans-serif;
+}
+
+.quick a span{
+  color:#777;
+  font-size:10px;
+  line-height:1.5;
+}
+
+/* =========================================================
+   PLAYER
+   ========================================================= */
+
+.player{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:30;
+  min-height:78px;
+  background:rgba(7,7,7,.97);
+  border-top:2px solid var(--red);
+  box-shadow:0 -12px 45px #000;
+}
+
+.playerin{
+  width:100%;
+  max-width:1440px;
+  min-height:76px;
+  margin:auto;
+  padding:10px 28px;
+  display:grid;
+  grid-template-columns:45px 260px auto minmax(120px,1fr) 70px 70px;
+  gap:14px;
+  align-items:center;
+}
+
+.pcover{
+  position:relative;
+  width:45px;
+  height:45px;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  border:1px solid #571010;
+  background:#240000;
+  font:700 9px Orbitron,sans-serif;
+}
+
+.pcover img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.pinfo{
+  min-width:0;
+}
+
+.pinfo b{
+  display:block;
+  overflow:hidden;
+  color:#fff;
+  font-size:11px;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.pinfo span{
+  display:block;
+  overflow:hidden;
+  margin-top:3px;
+  color:#777;
+  font-size:9px;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.play{
+  width:42px;
+  height:42px;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:var(--red);
+  color:#fff;
+  font-size:13px;
+}
+
+.play:hover{
+  background:var(--hot);
+}
+
+.bar{
+  height:4px;
+  background:#252525;
+  cursor:pointer;
+}
+
+.bar span{
+  display:block;
+  width:0;
+  height:100%;
+  background:var(--hot);
+  box-shadow:0 0 9px var(--hot);
+}
+
+.time{
+  color:#777;
+  font:600 9px Orbitron,sans-serif;
+  text-align:center;
+}
+
+.queue{
+  color:#aaa;
+  font:700 9px Orbitron,sans-serif;
+  text-align:center;
+}
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+.toast{
+  position:fixed;
+  right:20px;
+  bottom:100px;
+  z-index:100;
+  max-width:360px;
+  padding:14px 16px;
+  border:1px solid #600000;
+  background:#0c0c0c;
+  color:#ddd;
+  font-size:10px;
+  line-height:1.5;
+  box-shadow:0 15px 40px #000;
+  opacity:0;
+  transform:translateY(12px);
+  pointer-events:none;
+  transition:.25s;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translateY(0);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media(max-width:1150px){
+
+  nav{
+    display:none;
+  }
+
+  .hero{
+    grid-template-columns:1fr;
+  }
+
+  .grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .quick{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .playerin{
+    grid-template-columns:45px 1fr auto minmax(100px,1fr);
+  }
+
+  .time,
+  .queue{
+    display:none;
+  }
+
+}
+
+@media(max-width:700px){
+
+  .wrap{
+    padding:0 16px;
+  }
+
+  main{
+    padding-top:40px;
+  }
+
+  .brand{
+    font-size:15px;
+  }
+
+  .live{
+    display:none;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .quick{
+    grid-template-columns:1fr;
+  }
+
+  .hero h1{
+    font-size:42px;
+  }
+
+  .searchrow{
+    flex-direction:column;
+  }
+
+  .searchrow button{
+    height:48px;
+  }
+
+  .toolbar{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .count{
+    align-self:flex-end;
+  }
+
+  .player{
+    min-height:70px;
+  }
+
+  .playerin{
+    min-height:68px;
+    padding:8px 12px;
+    grid-template-columns:40px 1fr 40px;
+    gap:9px;
+  }
+
+  .pcover{
+    width:40px;
+    height:40px;
+  }
+
+  .play{
+    width:40px;
+    height:40px;
+  }
+
+  .bar{
+    display:none;
+  }
+
+}
+
+@media(max-width:430px){
+
+  .card{
+    grid-template-columns:82px minmax(0,1fr);
+  }
+
+  .art{
+    width:82px;
+    height:82px;
+  }
+
+  .card h3{
+    font-size:13px;
+  }
+
+  .card p{
+    -webkit-line-clamp:2;
+  }
+
+}
+</style>
+</head>
+
+<body>
+
+<div class="topline"></div>
+
+
+<header>
+
+  <div class="wrap nav">
+
+    <a
+      class="brand"
+      href="podcasting.html"
+    >
+      CROW<span>RULES</span>
+      <i>PODCASTING</i>
+    </a>
+
+    <nav>
+
+      <a href="podcasting.html">
+        Home
+      </a>
+
+      <a href="podcasts.html">
+        Podcasts
+      </a>
+
+      <a href="live.html">
+        Live
+      </a>
+
+      <a href="schedule.html">
+        Schedule
+      </a>
+
+      <a href="top.html">
+        Top 10
+      </a>
+
+      <a href="categories.html">
+        Categories
+      </a>
+
+      <a
+        class="active"
+        href="search.html"
+      >
+        Search
+      </a>
+
+      <a href="members.html">
+        Members
+      </a>
+
+    </nav>
+
+    <div class="spacer"></div>
+
+    <div class="live">
+
+      <span class="dot"></span>
+
+      ON AIR
+
+    </div>
+
+  </div>
+
+</header>
+
+
+<main>
+
+  <div class="wrap">
+
+    <section class="hero">
+
+      <div>
+
+        <div class="eyebrow">
+          CROW / SEARCH NETWORK
+        </div>
+
+        <h1>
+          Find The<br>
+          Signal.
+        </h1>
+
+        <p>
+          Search the CrowRules Podcasting network
+          for shows, episodes, creators and categories.
+          Search titles, descriptions, topics and
+          programming directly from the live network
+          database.
+        </p>
+
+      </div>
+
+
+      <div class="searchbox">
+
+        <div class="searchrow">
+
+          <input
+            id="q"
+            type="search"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Search podcasts, episodes, creators..."
+          >
+
+          <button id="go">
+            Search
+          </button>
+
+        </div>
+
+        <div class="search-hint">
+          Try Tacoma, music, horror, gaming,
+          storytelling or a show title.
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <div class="toolbar">
+
+      <div class="filters">
+
+        <button
+          class="filter active"
+          data-type="all"
+          type="button"
+        >
+          All
+        </button>
+
+        <button
+          class="filter"
+          data-type="podcast"
+          type="button"
+        >
+          Podcasts
+        </button>
+
+        <button
+          class="filter"
+          data-type="episode"
+          type="button"
+        >
+          Episodes
+        </button>
+
+        <button
+          class="filter"
+          data-type="creator"
+          type="button"
+        >
+          Creators
+        </button>
+
+        <button
+          class="filter"
+          data-type="category"
+          type="button"
+        >
+          Categories
+        </button>
+
+      </div>
+
+
+      <div
+        class="count"
+        id="count"
+      >
+        LOADING
+      </div>
+
+    </div>
+
+
+    <div
+      class="grid"
+      id="results"
+    >
+
+      <div
+        class="state"
+        style="grid-column:1/-1"
+      >
+
+        <div class="spinner"></div>
+
+        <strong>
+          CONNECTING TO THE SIGNAL
+        </strong>
+
+        <span>
+          Loading CrowRules Podcasting
+          search data...
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <section
+      class="section"
+      id="quickSignals"
+    >
+
+      <h2>
+        QUICK SIGNALS
+      </h2>
+
+      <div class="quick">
+
+        <a
+          href="search.html?q=tacoma"
+        >
+          <b>TACOMA</b>
+
+          <span>
+            Local voices and Pacific Northwest stories
+          </span>
+        </a>
+
+
+        <a
+          href="search.html?q=music"
+        >
+          <b>MUSIC</b>
+
+          <span>
+            Artists, records, culture and sound
+          </span>
+        </a>
+
+
+        <a
+          href="search.html?q=stories"
+        >
+          <b>STORIES</b>
+
+          <span>
+            Original audio storytelling
+          </span>
+        </a>
+
+
+        <a
+          href="search.html?q=gaming"
+        >
+          <b>GAMING</b>
+
+          <span>
+            Game nights, commentary and creators
+          </span>
+        </a>
+
+      </div>
+
+    </section>
+
+  </div>
+
+</main>
+
+
+<!-- =======================================================
+     AUDIO PLAYER
+     ======================================================= -->
+
+<div class="player">
+
+  <div class="playerin">
+
+    <div
+      class="pcover"
+      id="pcover"
+    >
+      CR
+    </div>
+
+
+    <div class="pinfo">
+
+      <b id="now">
+        CrowRules Podcasting
+      </b>
+
+      <span id="sub">
+        Select an episode to listen
+      </span>
+
+    </div>
+
+
+    <button
+      class="play"
+      id="play"
+      type="button"
+      aria-label="Play or pause"
+    >
+      ▶
+    </button>
+
+
+    <div
+      class="bar"
+      id="bar"
+      title="Seek"
+    >
+      <span id="barFill"></span>
+    </div>
+
+
+    <div
+      class="time"
+      id="playerTime"
+    >
+      0:00 / 0:00
+    </div>
+
+
+    <div
+      class="queue"
+      id="queue"
+    >
+      QUEUE 0
+    </div>
+
+  </div>
+
+</div>
+
+
+<div
+  class="toast"
+  id="toast"
+></div>
+
+
+<audio
+  id="audio"
+  preload="metadata"
+></audio>
+
+
+<script>
+/* =========================================================
+   CROWRULES PODCASTING
+   SEARCH
+   SUPABASE LIVE SEARCH ENGINE
+   ========================================================= */
+
+
+/* =========================================================
+   SUPABASE
+   ========================================================= */
+
+const SUPABASE_URL =
+  "https://cevylpnoexugwgygvtgu.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
+
+const {
+  createClient
+} = window.supabase;
+
+const db =
+  createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* =========================================================
+   DOM
+   ========================================================= */
+
+const searchInput =
+  document.getElementById("q");
+
+const searchButton =
+  document.getElementById("go");
+
+const results =
+  document.getElementById("results");
+
+const count =
+  document.getElementById("count");
+
+const audio =
+  document.getElementById("audio");
+
+const playButton =
+  document.getElementById("play");
+
+const bar =
+  document.getElementById("bar");
+
+const barFill =
+  document.getElementById("barFill");
+
+const playerTime =
+  document.getElementById("playerTime");
+
+const nowTitle =
+  document.getElementById("now");
+
+const nowSub =
+  document.getElementById("sub");
+
+const pcover =
+  document.getElementById("pcover");
+
+const queueLabel =
+  document.getElementById("queue");
+
+const toast =
+  document.getElementById("toast");
+
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+let podcasts = [];
+
+let episodes = [];
+
+let categories = [];
+
+let searchIndex = [];
+
+let activeType = "all";
+
+let playerQueue = [];
+
+let playerIndex = -1;
+
+let currentEpisode = null;
+
+
+/* =========================================================
+   URL SEARCH
+   ========================================================= */
+
+const params =
+  new URLSearchParams(
+    window.location.search
+  );
+
+const initialQuery =
+  params.get("q") || "";
+
+searchInput.value =
+  initialQuery;
+
+
+/* =========================================================
+   ESCAPE HTML
+   ========================================================= */
+
+function escapeHTML(value){
+
+  return String(
+    value ?? ""
+  )
+  .replace(/&/g,"&amp;")
+  .replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;")
+  .replace(/'/g,"&#039;");
+
+}
+
+
+/* =========================================================
+   SLUG
+   ========================================================= */
+
+function slugify(value){
+
+  return String(
+    value || ""
+  )
+  .toLowerCase()
+  .trim()
+  .replace(
+    /[^a-z0-9]+/g,
+    "-"
+  )
+  .replace(
+    /^-+|-+$/g,
+    ""
+  );
+
+}
+
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+function showToast(message){
+
+  toast.textContent =
+    message;
+
+  toast.classList.add(
+    "show"
+  );
+
+  clearTimeout(
+    showToast.timer
+  );
+
+  showToast.timer =
+    setTimeout(
+      () => {
+        toast.classList.remove(
+          "show"
+        );
+      },
+      3200
+    );
+
+}
+
+
+/* =========================================================
+   LOAD PODCASTS
+   ========================================================= */
+
+async function loadPodcasts(){
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .from("podcasts")
+      .select(`
+        id,
+        creator_id,
+        title,
+        slug,
+        category,
+        description,
+        artwork_url,
+        trailer_url,
+        website_url,
+        status,
+        is_featured,
+        is_live,
+        listener_count,
+        total_plays,
+        created_at,
+        category_id
+      `)
+      .order(
+        "created_at",
+        {
+          ascending:false,
+          nullsFirst:false
+        }
+      );
+
+
+  if(error){
+
+    throw error;
+
+  }
+
+
+  podcasts =
+    data || [];
+
+}
+
+
+/* =========================================================
+   LOAD EPISODES
+   ========================================================= */
+
+async function loadEpisodes(){
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .from("podcast_episodes")
+      .select(`
+        id,
+        podcast_id,
+        title,
+        slug,
+        description,
+        episode_number,
+        season_number,
+        published_at,
+        duration_seconds,
+        audio_url,
+        video_url,
+        thumbnail_url,
+        transcript,
+        show_notes,
+        status,
+        play_count,
+        is_explicit,
+        created_at
+      `)
+      .order(
+        "published_at",
+        {
+          ascending:false,
+          nullsFirst:false
+        }
+      );
+
+
+  if(error){
+
+    throw error;
+
+  }
+
+
+  episodes =
+    data || [];
+
+}
+
+
+/* =========================================================
+   LOAD CATEGORIES
+   ========================================================= */
+
+async function loadCategories(){
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .from("podcast_categories")
+      .select(`
+        id,
+        name,
+        slug,
+        description,
+        image_url,
+        sort_order,
+        is_active,
+        icon,
+        is_featured
+      `)
+      .eq(
+        "is_active",
+        true
+      )
+      .order(
+        "sort_order",
+        {
+          ascending:true,
+          nullsFirst:false
+        }
+      );
+
+
+  if(error){
+
+    throw error;
+
+  }
+
+
+  categories =
+    data || [];
+
+}
+
+
+/* =========================================================
+   PODCAST LOOKUP
+   ========================================================= */
+
+function getPodcast(id){
+
+  return podcasts.find(
+    podcast =>
+      podcast.id === id
+  ) || null;
+
+}
+
+
+/* =========================================================
+   CATEGORY LOOKUP
+   ========================================================= */
+
+function getCategory(id){
+
+  return categories.find(
+    category =>
+      category.id === id
+  ) || null;
+
+}
+
+
+/* =========================================================
+   SEARCH INDEX
+   ========================================================= */
+
+function buildSearchIndex(){
+
+  searchIndex = [];
+
+
+  /* -------------------------------------------------------
+     PODCASTS
+     ------------------------------------------------------- */
+
+  podcasts.forEach(
+    podcast => {
+
+      const category =
+        getCategory(
+          podcast.category_id
+        );
+
+
+      const categoryName =
+        category?.name ||
+        podcast.category ||
+        "";
+
+
+      searchIndex.push({
+
+        type:"podcast",
+
+        id:podcast.id,
+
+        title:
+          podcast.title ||
+          "Untitled Podcast",
+
+        description:
+          podcast.description ||
+          "",
+
+        artwork:
+          podcast.artwork_url ||
+          "",
+
+        tags:[
+          categoryName,
+          podcast.status,
+          podcast.is_live
+            ? "Live"
+            : "",
+          podcast.is_featured
+            ? "Featured"
+            : ""
+        ].filter(Boolean),
+
+        href:
+          "podcast.html?id=" +
+          encodeURIComponent(
+            podcast.slug ||
+            slugify(
+              podcast.title
+            ) ||
+            podcast.id
+          ),
+
+        searchText:
+          [
+            podcast.title,
+            podcast.description,
+            podcast.category,
+            categoryName,
+            podcast.slug
+          ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+
+      });
+
+    }
+  );
+
+
+  /* -------------------------------------------------------
+     EPISODES
+     ------------------------------------------------------- */
+
+  episodes.forEach(
+    episode => {
+
+      const podcast =
+        getPodcast(
+          episode.podcast_id
+        );
+
+
+      const podcastTitle =
+        podcast?.title ||
+        "";
+
+
+      searchIndex.push({
+
+        type:"episode",
+
+        id:episode.id,
+
+        title:
+          episode.title ||
+          "Untitled Episode",
+
+        description:
+          episode.description ||
+          podcastTitle,
+
+        artwork:
+          episode.thumbnail_url ||
+          podcast?.artwork_url ||
+          "",
+
+        tags:[
+          "Episode",
+          podcastTitle,
+          episode.season_number
+            ? "Season " +
+              episode.season_number
+            : "",
+          episode.episode_number
+            ? "Episode " +
+              episode.episode_number
+            : "",
+          episode.is_explicit
+            ? "Explicit"
+            : ""
+        ].filter(Boolean),
+
+        href:
+          "episode.html?episode=" +
+          encodeURIComponent(
+            episode.slug ||
+            episode.id
+          ),
+
+        searchText:
+          [
+            episode.title,
+            episode.description,
+            episode.slug,
+            podcastTitle,
+            episode.show_notes,
+            episode.transcript
+          ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase(),
+
+        episode
+
+      });
+
+    }
+  );
+
+
+  /* -------------------------------------------------------
+     CATEGORIES
+     ------------------------------------------------------- */
+
+  categories.forEach(
+    category => {
+
+      searchIndex.push({
+
+        type:"category",
+
+        id:category.id,
+
+        title:
+          category.name,
+
+        description:
+          category.description ||
+          "CrowRules Podcasting category.",
+
+        artwork:
+          category.image_url ||
+          "",
+
+        tags:[
+          "Category",
+          category.slug
+        ]
+        .filter(Boolean),
+
+        href:
+          "podcasts.html?category=" +
+          encodeURIComponent(
+            category.slug
+          ),
+
+        searchText:
+          [
+            category.name,
+            category.slug,
+            category.description
+          ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+
+      });
+
+    }
+  );
+
+
+  /*
+   * Creator records are represented through
+   * podcast creator IDs. We don't invent
+   * creator records without a dedicated
+   * creator table.
+   *
+   * The search engine therefore indexes
+   * creator_id values through the podcasts
+   * they own, while creator-type results
+   * are only created when creator information
+   * is actually available from the podcast data.
+   */
+
+}
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+function performSearch(){
+
+  const term =
+    searchInput.value
+      .trim()
+      .toLowerCase();
+
+
+  const tokens =
+    term
+      .split(/\s+/)
+      .filter(Boolean);
+
+
+  let filtered =
+    searchIndex.filter(
+      item => {
+
+        if(
+          activeType !== "all" &&
+          item.type !== activeType
+        ){
+
+          return false;
+
+        }
+
+
+        if(!tokens.length){
+
+          return true;
+
+        }
+
+
+        return tokens.every(
+          token =>
+            item.searchText
+              .includes(token)
+        );
+
+      }
+    );
+
+
+  /*
+   * Put podcasts first, then episodes,
+   * then categories when showing All.
+   */
+
+  if(
+    activeType === "all"
+  ){
+
+    const order = {
+      podcast:0,
+      episode:1,
+      category:2,
+      creator:3
+    };
+
+
+    filtered.sort(
+      (a,b) =>
+        (
+          order[a.type] ?? 9
+        ) -
+        (
+          order[b.type] ?? 9
+        )
+    );
+
+  }
+
+
+  renderResults(
+    filtered
+  );
+
+
+  /*
+   * Keep the URL synchronized with
+   * the active search.
+   */
+
+  const value =
+    searchInput.value.trim();
+
+
+  const url =
+    new URL(
+      window.location.href
+    );
+
+
+  if(value){
+
+    url.searchParams.set(
+      "q",
+      value
+    );
+
+  }else{
+
+    url.searchParams.delete(
+      "q"
+    );
+
+  }
+
+
+  window.history.replaceState(
+    {},
+    "",
+    url
+  );
+
+}
+
+
+/* =========================================================
+   RENDER RESULTS
+   ========================================================= */
+
+function renderResults(items){
+
+  count.textContent =
+    `${items.length} RESULT${items.length === 1 ? "" : "S"}`;
+
+
+  if(!items.length){
+
+    results.innerHTML = `
+
+      <div
+        class="state"
+        style="grid-column:1/-1"
+      >
+
+        <div class="state-icon">
+          //
+        </div>
+
+        <strong>
+          NO SIGNAL FOUND
+        </strong>
+
+        <span>
+          Try another title, topic,
+          creator, category or keyword.
+        </span>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  results.innerHTML =
+    items
+      .map(
+        (item,index) =>
+          renderCard(
+            item,
+            index
+          )
+      )
+      .join("");
+
+
+  attachResultEvents();
+
+}
+
+
+/* =========================================================
+   CARD
+   ========================================================= */
+
+function renderCard(
+  item,
+  index
+){
+
+  const label =
+    String(
+      index + 1
+    )
+    .padStart(
+      2,
+      "0"
+    );
+
+
+  const artwork =
+    item.artwork
+      ? `
+        <img
+          src="${escapeHTML(
+            item.artwork
+          )}"
+          alt=""
+          loading="lazy"
+          onerror="this.remove()"
+        >
+      `
+      : "";
+
+
+  const tags =
+    (item.tags || [])
+      .slice(0,3)
+      .map(
+        tag => `
+          <span class="tag">
+            ${escapeHTML(tag)}
+          </span>
+        `
+      )
+      .join("");
+
+
+  const playable =
+    item.type === "episode" &&
+    item.episode?.audio_url;
+
+
+  const href =
+    item.href ||
+    "#";
+
+
+  return `
+
+    <a
+      class="card"
+      href="${escapeHTML(href)}"
+      data-id="${escapeHTML(item.id)}"
+      data-type="${escapeHTML(item.type)}"
+    >
+
+      <div class="art">
+
+        ${artwork}
+
+        <span class="art-label">
+          ${label}<br>
+          CROW
+        </span>
+
+      </div>
+
+
+      <div class="meta">
+
+        <div class="type">
+          ${escapeHTML(
+            item.type
+          )}
+        </div>
+
+
+        <h3>
+          ${escapeHTML(
+            item.title
+          )}
+        </h3>
+
+
+        <p>
+          ${escapeHTML(
+            item.description
+          )}
+        </p>
+
+
+        <div class="tags">
+          ${tags}
+        </div>
+
+      </div>
+
+
+      <span class="result-arrow">
+        ${playable ? "▶" : "→"}
+      </span>
+
+    </a>
+
+  `;
+
+}
+
+
+/* =========================================================
+   RESULT EVENTS
+   ========================================================= */
+
+function attachResultEvents(){
+
+  document
+    .querySelectorAll(
+      '.card[data-type="episode"]'
+    )
+    .forEach(
+      card => {
+
+        card.addEventListener(
+          "click",
+          event => {
+
+            const item =
+              searchIndex.find(
+                result =>
+                  result.id ===
+                    card.dataset.id &&
+                  result.type ===
+                    "episode"
+              );
+
+
+            if(
+              !item ||
+              !item.episode ||
+              !item.episode.audio_url
+            ){
+
+              return;
+
+            }
+
+
+            /*
+             * Ctrl/Cmd click and middle click
+             * should continue to navigate normally.
+             */
+
+            if(
+              event.ctrlKey ||
+              event.metaKey ||
+              event.shiftKey ||
+              event.button !== 0
+            ){
+
+              return;
+
+            }
+
+
+            event.preventDefault();
+
+
+            playerQueue =
+              searchIndex
+                .filter(
+                  result =>
+                    result.type ===
+                    "episode" &&
+                    result.episode &&
+                    result.episode.audio_url
+                )
+                .map(
+                  result =>
+                    result.episode
+                );
+
+
+            playerIndex =
+              playerQueue.findIndex(
+                episode =>
+                  episode.id ===
+                  item.episode.id
+              );
+
+
+            loadEpisode(
+              item.episode
+            );
+
+          }
+        );
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   PLAYER
+   ========================================================= */
+
+async function loadEpisode(
+  episode
+){
+
+  if(
+    !episode ||
+    !episode.audio_url
+  ){
+
+    showToast(
+      "This episode does not have playable audio."
+    );
+
+    return;
+
+  }
+
+
+  currentEpisode =
+    episode;
+
+
+  const podcast =
+    getPodcast(
+      episode.podcast_id
+    );
+
+
+  nowTitle.textContent =
+    episode.title ||
+    "Untitled Episode";
+
+
+  nowSub.textContent =
+    podcast?.title ||
+    "CrowRules Podcasting";
+
+
+  pcover.innerHTML =
+    episode.thumbnail_url ||
+    podcast?.artwork_url
+      ? `
+        <img
+          src="${escapeHTML(
+            episode.thumbnail_url ||
+            podcast?.artwork_url
+          )}"
+          alt=""
+        >
+      `
+      : "CR";
+
+
+  audio.src =
+    episode.audio_url;
+
+
+  audio.load();
+
+
+  try{
+
+    await audio.play();
+
+  }catch(error){
+
+    playButton.textContent =
+      "▶";
+
+    showToast(
+      "Episode loaded. Press PLAY to begin."
+    );
+
+  }
+
+
+  updateQueueLabel();
+
+}
+
+
+/* =========================================================
+   PLAYER PLAY / PAUSE
+   ========================================================= */
+
+playButton.addEventListener(
+  "click",
+  async () => {
+
+    if(!audio.src){
+
+      showToast(
+        "Select an episode from the search results."
+      );
+
+      return;
+
+    }
+
+
+    try{
+
+      if(audio.paused){
+
+        await audio.play();
+
+      }else{
+
+        audio.pause();
+
+      }
+
+    }catch(error){
+
+      console.error(
+        error
+      );
+
+    }
+
+  }
+);
+
+
+audio.addEventListener(
+  "play",
+  () => {
+
+    playButton.textContent =
+      "Ⅱ";
+
+  }
+);
+
+
+audio.addEventListener(
+  "pause",
+  () => {
+
+    playButton.textContent =
+      "▶";
+
+  }
+);
+
+
+/* =========================================================
+   PLAYER TIME
+   ========================================================= */
+
+function formatTime(seconds){
+
+  if(
+    !Number.isFinite(
+      seconds
+    )
+  ){
+
+    return "0:00";
+
+  }
+
+
+  const minutes =
+    Math.floor(
+      seconds / 60
+    );
+
+  const secondsPart =
+    Math.floor(
+      seconds % 60
+    );
+
+
+  return (
+    minutes +
+    ":" +
+    String(
+      secondsPart
+    )
+    .padStart(
+      2,
+      "0"
+    )
+  );
+
+}
+
+
+audio.addEventListener(
+  "timeupdate",
+  () => {
+
+    const current =
+      audio.currentTime || 0;
+
+    const duration =
+      audio.duration || 0;
+
+
+    playerTime.textContent =
+      `${formatTime(current)} / ${formatTime(duration)}`;
+
+
+    if(
+      duration &&
+      Number.isFinite(duration)
+    ){
+
+      barFill.style.width =
+        (
+          current /
+          duration *
+          100
+        ) +
+        "%";
+
+    }else{
+
+      barFill.style.width =
+        "0%";
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   SEEK
+   ========================================================= */
+
+bar.addEventListener(
+  "click",
+  event => {
+
+    if(
+      !audio.duration ||
+      !Number.isFinite(
+        audio.duration
+      )
+    ){
+
+      return;
+
+    }
+
+
+    const rect =
+      bar.getBoundingClientRect();
+
+
+    const position =
+      (
+        event.clientX -
+        rect.left
+      ) /
+      rect.width;
+
+
+    audio.currentTime =
+      Math.max(
+        0,
+        Math.min(
+          1,
+          position
+        )
+      ) *
+      audio.duration;
+
+  }
+);
+
+
+/* =========================================================
+   NEXT EPISODE
+   ========================================================= */
+
+async function playNext(){
+
+  if(
+    !playerQueue.length
+  ){
+
+    return;
+
+  }
+
+
+  if(
+    playerIndex <
+    playerQueue.length - 1
+  ){
+
+    playerIndex++;
+
+  }else{
+
+    playerIndex = 0;
+
+  }
+
+
+  await loadEpisode(
+    playerQueue[
+      playerIndex
+    ]
+  );
+
+}
+
+
+/* =========================================================
+   PREVIOUS / AUTO NEXT
+   ========================================================= */
+
+audio.addEventListener(
+  "ended",
+  playNext
+);
+
+
+/* =========================================================
+   QUEUE
+   ========================================================= */
+
+function updateQueueLabel(){
+
+  queueLabel.textContent =
+    `QUEUE ${playerQueue.length}`;
+
+}
+
+
+/* =========================================================
+   FILTERS
+   ========================================================= */
+
+document
+  .querySelectorAll(
+    ".filter"
+  )
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          document
+            .querySelectorAll(
+              ".filter"
+            )
+            .forEach(
+              item =>
+                item.classList.remove(
+                  "active"
+                )
+            );
+
+
+          button.classList.add(
+            "active"
+          );
+
+
+          activeType =
+            button.dataset.type;
+
+
+          performSearch();
+
+        }
+      );
+
+    }
+  );
+
+
+/* =========================================================
+   SEARCH BUTTON
+   ========================================================= */
+
+searchButton.addEventListener(
+  "click",
+  performSearch
+);
+
+
+/* =========================================================
+   ENTER
+   ========================================================= */
+
+searchInput.addEventListener(
+  "keydown",
+  event => {
+
+    if(
+      event.key === "Enter"
+    ){
+
+      event.preventDefault();
+
+      performSearch();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   LIVE SEARCH
+   ========================================================= */
+
+let searchTimer;
+
+searchInput.addEventListener(
+  "input",
+  () => {
+
+    clearTimeout(
+      searchTimer
+    );
+
+    searchTimer =
+      setTimeout(
+        performSearch,
+        180
+      );
+
+  }
+);
+
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
+
+async function init(){
+
+  try{
+
+    count.textContent =
+      "LOADING";
+
+
+    const results =
+      await Promise.allSettled([
+
+        loadPodcasts(),
+
+        loadEpisodes(),
+
+        loadCategories()
+
+      ]);
+
+
+    const failed =
+      results.find(
+        result =>
+          result.status ===
+          "rejected"
+      );
+
+
+    if(failed){
+
+      throw failed.reason;
+
+    }
+
+
+    buildSearchIndex();
+
+
+    /*
+     * If there was a URL query, execute it.
+     * Otherwise show the complete network index.
+     */
+
+    performSearch();
+
+
+  }catch(error){
+
+    console.error(
+      "CrowRules search error:",
+      error
+    );
+
+
+    count.textContent =
+      "ERROR";
+
+
+    results.innerHTML = `
+
+      <div
+        class="state"
+        style="grid-column:1/-1"
+      >
+
+        <div class="state-icon">
+          !!
+        </div>
+
+        <strong>
+          SEARCH SIGNAL OFFLINE
+        </strong>
+
+        <span>
+          ${escapeHTML(
+            error?.message ||
+            "Unable to connect to the CrowRules Podcasting database."
+          )}
+        </span>
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+init();
+
+</script>
+
+</body>
+</html>

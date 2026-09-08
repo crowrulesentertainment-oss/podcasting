@@ -1,0 +1,2411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050505">
+<meta name="description" content="CrowRules Podcasting — live audio, broadcast channels, current programs and recent broadcasts.">
+<title>CrowRules Podcasting — Live</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --bg:#050505;
+  --panel:#0b0b0b;
+  --panel2:#111;
+  --panel3:#171717;
+  --line:#292929;
+  --red:#c00000;
+  --bright:#ff2020;
+  --red2:#700000;
+  --text:#f4f4f4;
+  --muted:#929292;
+  --green:#52d273;
+  --yellow:#e8b84b;
+  --max:1400px;
+}
+
+*{box-sizing:border-box}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 80% 0%,rgba(192,0,0,.15),transparent 32%),
+    radial-gradient(circle at 10% 35%,rgba(120,0,0,.06),transparent 25%),
+    var(--bg);
+  color:var(--text);
+  font-family:Montserrat,Arial,sans-serif;
+}
+
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.065;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent 0 3px,
+    #fff 4px
+  );
+  z-index:100;
+}
+
+a{
+  color:inherit;
+}
+
+button,
+input{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+.wrap{
+  max-width:var(--max);
+  margin:auto;
+  padding:0 22px;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.top{
+  position:sticky;
+  top:0;
+  z-index:80;
+  background:rgba(5,5,5,.94);
+  border-bottom:1px solid #252525;
+  backdrop-filter:blur(14px);
+}
+
+.nav{
+  min-height:74px;
+  display:flex;
+  align-items:center;
+  gap:26px;
+}
+
+.brand{
+  font-family:Orbitron,sans-serif;
+  font-size:19px;
+  font-weight:900;
+  letter-spacing:.08em;
+  white-space:nowrap;
+}
+
+.brand b{
+  color:var(--bright);
+}
+
+nav{
+  display:flex;
+  flex:1;
+  gap:6px;
+  overflow:auto;
+}
+
+nav a{
+  color:#999;
+  text-decoration:none;
+  padding:11px 13px;
+  border:1px solid transparent;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+
+nav a:hover,
+nav a.active{
+  color:#fff;
+  border-color:#3d0000;
+  background:#170000;
+}
+
+.air-status{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  background:#170000;
+  border:1px solid #4c0000;
+  padding:10px 13px;
+  font:800 10px Orbitron,sans-serif;
+  letter-spacing:.1em;
+  white-space:nowrap;
+}
+
+.air-status .dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#555;
+}
+
+.air-status.online .dot{
+  background:var(--green);
+  box-shadow:0 0 12px rgba(82,210,115,.7);
+}
+
+/* =========================
+   MAIN
+========================= */
+
+main{
+  padding:38px 0 155px;
+}
+
+.eyebrow{
+  color:#ff3131;
+  font:800 10px Orbitron,sans-serif;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+}
+
+.hero{
+  display:grid;
+  grid-template-columns:1.35fr .65fr;
+  gap:18px;
+  margin-top:14px;
+}
+
+/* =========================
+   LIVE HERO
+========================= */
+
+.broadcast{
+  min-height:470px;
+  position:relative;
+  overflow:hidden;
+  padding:34px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+
+  border:1px solid #430000;
+
+  background:
+    linear-gradient(
+      135deg,
+      #1c0000,
+      #090909 48%,
+      #120000
+    );
+
+  box-shadow:
+    inset 0 0 80px rgba(255,0,0,.035),
+    0 20px 70px rgba(0,0,0,.35);
+}
+
+.broadcast:after{
+  content:"LIVE";
+  position:absolute;
+  right:-45px;
+  bottom:8px;
+  font:900 150px Orbitron,sans-serif;
+  color:rgba(255,0,0,.035);
+  transform:rotate(-10deg);
+  pointer-events:none;
+}
+
+.nowline{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:22px;
+  position:relative;
+  z-index:2;
+}
+
+.pulse{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:var(--bright);
+  animation:pulse 1.4s infinite;
+}
+
+@keyframes pulse{
+  70%{
+    box-shadow:0 0 0 12px transparent;
+  }
+  100%{
+    box-shadow:0 0 0 0 transparent;
+  }
+}
+
+h1,
+h2,
+h3{
+  margin:0;
+  font-family:Orbitron,sans-serif;
+}
+
+h1{
+  position:relative;
+  z-index:2;
+  max-width:720px;
+  font-size:clamp(40px,6vw,78px);
+  line-height:.92;
+  text-transform:uppercase;
+}
+
+h1 span{
+  color:var(--bright);
+}
+
+.showname{
+  position:relative;
+  z-index:2;
+  margin:19px 0 7px;
+  font-size:19px;
+  font-weight:800;
+}
+
+.host{
+  position:relative;
+  z-index:2;
+  max-width:620px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.6;
+}
+
+/* ART */
+
+.art{
+  position:absolute;
+  right:28px;
+  top:88px;
+  width:240px;
+  height:240px;
+
+  border:1px solid #500000;
+  background:
+    linear-gradient(135deg,#320000,#090909);
+
+  display:grid;
+  place-items:center;
+
+  font:900 55px Orbitron,sans-serif;
+  color:#e50909;
+
+  overflow:hidden;
+
+  box-shadow:
+    0 0 70px rgba(180,0,0,.16);
+}
+
+.art img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* METER */
+
+.meter{
+  position:relative;
+  z-index:2;
+  max-width:650px;
+  height:54px;
+  margin-top:20px;
+  padding:7px;
+
+  display:flex;
+  align-items:end;
+  gap:3px;
+
+  border:1px solid #350000;
+  background:#070707;
+}
+
+.meter i{
+  flex:1;
+  display:block;
+  min-height:10%;
+  background:#b80000;
+  opacity:.8;
+  animation:bars .8s ease-in-out infinite alternate;
+}
+
+.meter i:nth-child(2n){
+  animation-delay:.12s;
+}
+
+.meter i:nth-child(3n){
+  animation-delay:.24s;
+}
+
+@keyframes bars{
+  to{
+    height:90%;
+  }
+}
+
+/* CONTROLS */
+
+.controls{
+  position:relative;
+  z-index:3;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.btn{
+  padding:13px 18px;
+  border:1px solid #4b0000;
+  background:#100000;
+  color:#fff;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+
+.btn:hover{
+  filter:brightness(1.25);
+}
+
+.btn.primary{
+  background:var(--red);
+  border-color:var(--bright);
+}
+
+.btn:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
+
+/* =========================
+   MONITOR
+========================= */
+
+.side{
+  padding:25px;
+  background:var(--panel);
+  border:1px solid var(--line);
+}
+
+.side h2{
+  margin:8px 0 18px;
+  font-size:20px;
+}
+
+.stat{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  padding:16px 0;
+  border-top:1px solid #222;
+  font-size:12px;
+}
+
+.stat strong{
+  font-family:Orbitron,sans-serif;
+  text-align:right;
+}
+
+.green{
+  color:var(--green)!important;
+}
+
+.yellow{
+  color:var(--yellow)!important;
+}
+
+.signal{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+}
+
+.signal:before{
+  content:"";
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#555;
+}
+
+.signal.online:before{
+  background:var(--green);
+  box-shadow:0 0 10px rgba(82,210,115,.7);
+}
+
+.notice{
+  margin-top:10px;
+  padding:16px;
+  border-left:3px solid var(--red);
+  background:#100000;
+  color:#aaa;
+  font-size:11px;
+  line-height:1.7;
+}
+
+/* =========================
+   SECTIONS
+========================= */
+
+section{
+  margin-top:44px;
+}
+
+.section-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  gap:15px;
+  margin-bottom:16px;
+}
+
+.section-head h2{
+  font-size:25px;
+}
+
+.section-head p{
+  margin:5px 0 0;
+  color:var(--muted);
+  font-size:12px;
+}
+
+/* =========================
+   SCHEDULE
+========================= */
+
+.schedule{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+
+.slot{
+  position:relative;
+  padding:20px;
+  min-height:180px;
+  background:var(--panel);
+  border:1px solid var(--line);
+}
+
+.slot.live{
+  border-color:#690000;
+  background:
+    linear-gradient(
+      120deg,
+      #190000,
+      #0b0b0b
+    );
+}
+
+.slot .tag{
+  display:inline-block;
+  padding:6px 8px;
+  border:1px solid #3b0000;
+  color:#ff3b3b;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+.time{
+  margin-top:12px;
+  color:#ff2424;
+  font:800 15px Orbitron,sans-serif;
+}
+
+.slot h3{
+  margin:12px 0 7px;
+  font-size:16px;
+}
+
+.slot p{
+  margin:0;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.6;
+}
+
+/* =========================
+   CHANNELS
+========================= */
+
+.channel{
+  display:grid;
+  grid-template-columns:82px 1fr auto;
+  gap:17px;
+  align-items:center;
+}
+
+.channel-art{
+  width:82px;
+  height:82px;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+
+  background:#160000;
+  border:1px solid #430000;
+
+  color:#d20b0b;
+  font:800 24px Orbitron,sans-serif;
+}
+
+.channel-art img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.channel h3{
+  font-size:15px;
+}
+
+.channel .description{
+  margin-top:7px;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.5;
+}
+
+.channel-status{
+  text-align:right;
+  font:800 10px Orbitron,sans-serif;
+}
+
+.channel-status small{
+  display:block;
+  margin-top:7px;
+  color:var(--muted);
+  font:600 9px Montserrat,sans-serif;
+}
+
+/* =========================
+   RECENT
+========================= */
+
+.feed{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.episode{
+  display:flex;
+  gap:16px;
+  min-width:0;
+  padding:18px;
+
+  background:#0b0b0b;
+  border:1px solid var(--line);
+}
+
+.thumb{
+  width:82px;
+  height:82px;
+  flex:none;
+
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+
+  background:linear-gradient(135deg,#260000,#111);
+  border:1px solid #3e0000;
+
+  color:#d20b0b;
+  font:800 22px Orbitron,sans-serif;
+}
+
+.thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.episode-content{
+  min-width:0;
+}
+
+.episode h3{
+  margin:7px 0;
+  font-size:14px;
+  line-height:1.35;
+}
+
+.episode p{
+  margin:0;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.5;
+}
+
+.play-replay{
+  margin-top:10px;
+  padding:8px 11px;
+  border:1px solid #4b0000;
+  background:#120000;
+  color:#fff;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.07em;
+}
+
+/* =========================
+   EMPTY / ERROR
+========================= */
+
+.empty{
+  grid-column:1/-1;
+  padding:25px;
+  background:#090909;
+  border:1px dashed #3b0000;
+  color:#777;
+  font-size:11px;
+  line-height:1.6;
+}
+
+.error{
+  color:#ff7777;
+}
+
+/* =========================
+   MINI PLAYER
+========================= */
+
+.mini{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:90;
+
+  padding:10px 18px;
+
+  background:rgba(7,7,7,.98);
+  border-top:1px solid #470000;
+  box-shadow:0 -15px 50px rgba(0,0,0,.45);
+}
+
+.mini-in{
+  max-width:var(--max);
+  margin:auto;
+
+  display:grid;
+  grid-template-columns:300px 1fr 240px;
+  align-items:center;
+  gap:20px;
+}
+
+.playing{
+  min-width:0;
+  font-size:10px;
+}
+
+.playing b{
+  display:block;
+  margin-bottom:4px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font:800 12px Orbitron,sans-serif;
+}
+
+.playing span{
+  color:var(--muted);
+}
+
+.range{
+  width:100%;
+  accent-color:var(--bright);
+}
+
+.mini-controls{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+}
+
+.mini button{
+  width:38px;
+  height:34px;
+  border:1px solid #3d0000;
+  background:#120000;
+  color:#fff;
+}
+
+.mini button:hover{
+  background:#260000;
+}
+
+/* =========================
+   FOOTER
+========================= */
+
+.footer{
+  padding:35px 0 105px;
+  border-top:1px solid #202020;
+  color:#666;
+  font-size:10px;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:1050px){
+  .hero{
+    grid-template-columns:1fr;
+  }
+
+  .art{
+    width:180px;
+    height:180px;
+    top:115px;
+    font-size:42px;
+  }
+
+  .mini-in{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .mini-controls{
+    justify-content:flex-start;
+  }
+}
+
+@media(max-width:800px){
+  .schedule{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .feed{
+    grid-template-columns:1fr;
+  }
+
+  .nav{
+    flex-wrap:wrap;
+    padding:10px 0;
+  }
+
+  .brand{
+    width:100%;
+  }
+
+  nav{
+    order:3;
+    flex-basis:100%;
+  }
+
+  .air-status{
+    position:absolute;
+    top:12px;
+    right:14px;
+  }
+}
+
+@media(max-width:600px){
+  .wrap{
+    padding:0 14px;
+  }
+
+  main{
+    padding-top:25px;
+  }
+
+  .broadcast{
+    min-height:560px;
+    padding:22px;
+  }
+
+  h1{
+    font-size:42px;
+  }
+
+  .art{
+    position:relative;
+    right:auto;
+    top:auto;
+    width:120px;
+    height:120px;
+    margin:18px 0;
+    font-size:28px;
+  }
+
+  .schedule{
+    grid-template-columns:1fr;
+  }
+
+  .channel{
+    grid-template-columns:64px 1fr;
+  }
+
+  .channel-art{
+    width:64px;
+    height:64px;
+    font-size:18px;
+  }
+
+  .channel-status{
+    grid-column:2;
+    text-align:left;
+  }
+
+  .mini-in{
+    grid-template-columns:1fr;
+  }
+
+  .mini-controls{
+    display:none;
+  }
+
+  .footer{
+    padding-bottom:100px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="top">
+  <div class="wrap nav">
+
+    <div class="brand">
+      CROW<span>RULES</span> <b>PODCASTING</b>
+    </div>
+
+    <nav>
+      <a href="podcasting.html">Home</a>
+      <a href="podcasts.html">Podcasts</a>
+      <a class="active" href="live.html">Live</a>
+      <a href="schedule.html">Schedule</a>
+      <a href="top.html">Top 10</a>
+      <a href="categories.html">Categories</a>
+      <a href="search.html">Search</a>
+      <a href="members.html">Members</a>
+    </nav>
+
+    <div class="air-status" id="airStatus">
+      <span class="dot"></span>
+      <span id="airStatusText">CHECKING</span>
+    </div>
+
+  </div>
+</header>
+
+
+<main>
+<div class="wrap">
+
+  <div class="eyebrow">
+    CrowRules Broadcast Network // Live Audio Division
+  </div>
+
+
+  <!-- =========================
+       HERO
+  ========================== -->
+
+  <div class="hero">
+
+    <article class="broadcast">
+
+      <div>
+
+        <div class="nowline">
+          <span class="pulse"></span>
+          <strong id="onAirLabel">CHECKING SIGNAL</strong>
+          <span style="color:#777">
+            // SUPABASE LIVE FEED
+          </span>
+        </div>
+
+        <h1>
+          THE CROW<br>
+          <span>IS LIVE.</span>
+        </h1>
+
+        <div class="showname" id="liveTitle">
+          Finding live broadcast…
+        </div>
+
+        <div class="host" id="liveDescription">
+          Connecting to the CrowRules live broadcast network.
+        </div>
+
+        <div class="art" id="heroArt">
+          CR
+        </div>
+
+        <div class="meter" aria-label="Broadcast signal meter">
+          <i style="height:35%"></i>
+          <i style="height:68%"></i>
+          <i style="height:48%"></i>
+          <i style="height:82%"></i>
+          <i style="height:60%"></i>
+          <i style="height:92%"></i>
+          <i style="height:45%"></i>
+          <i style="height:73%"></i>
+          <i style="height:54%"></i>
+          <i style="height:88%"></i>
+          <i style="height:39%"></i>
+          <i style="height:67%"></i>
+          <i style="height:51%"></i>
+          <i style="height:76%"></i>
+          <i style="height:43%"></i>
+          <i style="height:90%"></i>
+        </div>
+
+      </div>
+
+
+      <div class="controls">
+
+        <button class="btn primary" id="playBtn">
+          ▶ Play Live
+        </button>
+
+        <button class="btn" id="muteBtn">
+          Mute
+        </button>
+
+        <button class="btn" onclick="location.href='schedule.html'">
+          View Schedule
+        </button>
+
+      </div>
+
+    </article>
+
+
+    <!-- MONITOR -->
+
+    <aside class="side">
+
+      <div class="eyebrow">
+        Broadcast Monitor
+      </div>
+
+      <h2>
+        LIVE SIGNAL
+      </h2>
+
+      <div class="stat">
+        <span>Status</span>
+        <strong id="signalStatus" class="signal">
+          OFFLINE
+        </strong>
+      </div>
+
+      <div class="stat">
+        <span>Listeners</span>
+        <strong id="listeners">
+          0
+        </strong>
+      </div>
+
+      <div class="stat">
+        <span>Quality</span>
+        <strong id="quality">
+          —
+        </strong>
+      </div>
+
+      <div class="stat">
+        <span>Network</span>
+        <strong id="network">
+          CRP-LIVE
+        </strong>
+      </div>
+
+      <div class="stat">
+        <span>Next Program</span>
+        <strong id="nextTime">
+          —
+        </strong>
+      </div>
+
+      <div class="notice" id="monitorNotice">
+        Connecting to the CrowRules Podcasting broadcast system.
+      </div>
+
+    </aside>
+
+  </div>
+
+
+  <!-- =========================
+       UP NEXT
+  ========================== -->
+
+  <section>
+
+    <div class="section-head">
+
+      <div>
+        <h2>UP NEXT</h2>
+        <p>
+          Programs entering the CrowRules live feed.
+        </p>
+      </div>
+
+      <button class="btn"
+              onclick="location.href='schedule.html'">
+        Full Guide
+      </button>
+
+    </div>
+
+    <div class="schedule" id="scheduleGrid">
+      <div class="empty">
+        Loading broadcast schedule…
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       LIVE CHANNELS
+  ========================== -->
+
+  <section>
+
+    <div class="section-head">
+
+      <div>
+        <h2>LIVE CHANNELS</h2>
+        <p>
+          Active CrowRules audio channels and their current signals.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="schedule" id="channelsGrid">
+      <div class="empty">
+        Loading live channels…
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       RECENT BROADCASTS
+  ========================== -->
+
+  <section>
+
+    <div class="section-head">
+
+      <div>
+        <h2>RECENT BROADCASTS</h2>
+        <p>
+          Catch up on programs that recently left the air.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="feed" id="recentFeed">
+      <div class="empty">
+        Loading recent broadcasts…
+      </div>
+    </div>
+
+  </section>
+
+</div>
+</main>
+
+
+<footer class="footer">
+  <div class="wrap">
+    © 2026 CrowRules Entertainment · CrowRules Podcasting · Independent Broadcast Network
+  </div>
+</footer>
+
+
+<!-- =========================
+     PERSISTENT PLAYER
+========================= -->
+
+<div class="mini">
+
+  <div class="mini-in">
+
+    <div class="playing">
+      <b id="miniTitle">
+        CROWRULES LIVE
+      </b>
+
+      <span id="miniStatus">
+        Waiting for a live signal
+      </span>
+    </div>
+
+    <input
+      class="range"
+      id="volume"
+      type="range"
+      min="0"
+      max="1"
+      step=".01"
+      value=".8"
+      aria-label="Volume">
+
+    <div class="mini-controls">
+
+      <button id="miniPlay">
+        ▶
+      </button>
+
+      <button id="stop">
+        ■
+      </button>
+
+      <button onclick="location.href='podcasts.html'">
+        ☰
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<audio
+  id="audio"
+  preload="none"
+  playsinline>
+</audio>
+
+
+<script>
+/* ============================================================
+   CROWRULES PODCASTING — LIVE ENGINE
+============================================================ */
+
+const SUPABASE_URL =
+  'https://cevylpnoexugwgygvtgu.supabase.co';
+
+const SUPABASE_KEY =
+  'sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-';
+
+const db =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY,
+    {
+      auth:{
+        persistSession:false
+      }
+    }
+    );
+
+
+/* ============================================================
+   ELEMENTS
+============================================================ */
+
+const audio =
+  document.getElementById('audio');
+
+const playBtn =
+  document.getElementById('playBtn');
+
+const miniPlay =
+  document.getElementById('miniPlay');
+
+const muteBtn =
+  document.getElementById('muteBtn');
+
+const volume =
+  document.getElementById('volume');
+
+const liveTitle =
+  document.getElementById('liveTitle');
+
+const liveDescription =
+  document.getElementById('liveDescription');
+
+const heroArt =
+  document.getElementById('heroArt');
+
+const miniTitle =
+  document.getElementById('miniTitle');
+
+const miniStatus =
+  document.getElementById('miniStatus');
+
+const listeners =
+  document.getElementById('listeners');
+
+const quality =
+  document.getElementById('quality');
+
+const network =
+  document.getElementById('network');
+
+const nextTime =
+  document.getElementById('nextTime');
+
+const signalStatus =
+  document.getElementById('signalStatus');
+
+const airStatus =
+  document.getElementById('airStatus');
+
+const airStatusText =
+  document.getElementById('airStatusText');
+
+const onAirLabel =
+  document.getElementById('onAirLabel');
+
+const monitorNotice =
+  document.getElementById('monitorNotice');
+
+
+/* ============================================================
+   STATE
+============================================================ */
+
+let channels = [];
+let currentChannel = null;
+let schedule = [];
+let refreshTimer = null;
+
+
+/* ============================================================
+   HELPERS
+============================================================ */
+
+function esc(value){
+  return String(value ?? '')
+    .replace(/[&<>"']/g,function(match){
+      return {
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#39;'
+      }[match];
+    });
+}
+
+
+function initials(value){
+  const result =
+    String(value || 'CR')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0,2)
+      .map(word => word[0])
+      .join('')
+      .toUpperCase();
+
+  return result || 'CR';
+}
+
+
+function fmtTime(value){
+  if(!value) return '—';
+
+  return new Intl.DateTimeFormat([],{
+    hour:'numeric',
+    minute:'2-digit'
+  }).format(new Date(value));
+}
+
+
+function fmtDate(value){
+  if(!value) return '—';
+
+  return new Intl.DateTimeFormat([],{
+    month:'short',
+    day:'numeric',
+    hour:'numeric',
+    minute:'2-digit'
+  }).format(new Date(value));
+}
+
+
+function duration(seconds){
+
+  if(!seconds || Number(seconds) <= 0){
+    return '—';
+  }
+
+  const total =
+    Math.floor(Number(seconds));
+
+  const hours =
+    Math.floor(total / 3600);
+
+  const minutes =
+    Math.floor((total % 3600) / 60);
+
+  const secondsLeft =
+    total % 60;
+
+  if(hours){
+    return `${hours}:${String(minutes).padStart(2,'0')}:${String(secondsLeft).padStart(2,'0')}`;
+  }
+
+  return `${minutes}:${String(secondsLeft).padStart(2,'0')}`;
+}
+
+
+function isOnline(channel){
+
+  if(!channel) return false;
+
+  return [
+    'online',
+    'live',
+    'on_air',
+    'on-air'
+  ].includes(
+    String(channel.status || '').toLowerCase()
+  );
+}
+
+
+/* ============================================================
+   HERO
+============================================================ */
+
+function setHero(channel){
+
+  currentChannel = channel || null;
+
+  if(!channel){
+
+    liveTitle.textContent =
+      'No live channel is currently online';
+
+    liveDescription.textContent =
+      'CrowRules Podcasting is waiting for an active broadcast signal.';
+
+    miniTitle.textContent =
+      'CROWRULES LIVE';
+
+    miniStatus.textContent =
+      'No live signal';
+
+    heroArt.innerHTML =
+      'CR';
+
+    playBtn.disabled = true;
+
+    playBtn.textContent =
+      '▶ Play Live';
+
+    listeners.textContent =
+      '0';
+
+    quality.textContent =
+      '—';
+
+    network.textContent =
+      'CRP-LIVE';
+
+    signalStatus.textContent =
+      'OFFLINE';
+
+    signalStatus.className =
+      'signal';
+
+    airStatus.className =
+      'air-status';
+
+    airStatusText.textContent =
+      'OFFLINE';
+
+    onAirLabel.textContent =
+      'OFFLINE';
+
+    monitorNotice.textContent =
+      'No active live channel is currently broadcasting.';
+
+    return;
+  }
+
+
+  const online =
+    isOnline(channel);
+
+
+  liveTitle.textContent =
+    channel.current_title ||
+    channel.name ||
+    'CrowRules Live';
+
+
+  liveDescription.textContent =
+    channel.description ||
+    'Live CrowRules audio broadcast.';
+
+
+  miniTitle.textContent =
+    (
+      channel.current_title ||
+      channel.name ||
+      'CROWRULES LIVE'
+    ).toUpperCase();
+
+
+  miniStatus.textContent =
+    `${channel.name || 'Live channel'} · ${online ? 'ON AIR' : 'OFFLINE'}`;
+
+
+  playBtn.disabled =
+    !channel.stream_url;
+
+
+  if(channel.artwork_url){
+
+    heroArt.innerHTML =
+      `<img src="${esc(channel.artwork_url)}"
+            alt="${esc(channel.name || 'Live channel')}">`;
+
+  }else{
+
+    heroArt.innerHTML =
+      esc(initials(channel.name));
+
+  }
+
+
+  listeners.textContent =
+    Number(channel.listener_count || 0)
+      .toLocaleString();
+
+
+  quality.textContent =
+    channel.bitrate_kbps
+      ? `${channel.bitrate_kbps} KBPS`
+      : 'LIVE';
+
+
+  network.textContent =
+    (
+      channel.slug ||
+      'CRP-LIVE'
+    ).toUpperCase();
+
+
+  signalStatus.textContent =
+    online ? 'ONLINE' : 'OFFLINE';
+
+
+  signalStatus.className =
+    `signal ${online ? 'online' : ''}`;
+
+
+  airStatus.className =
+    `air-status ${online ? 'online' : ''}`;
+
+
+  airStatusText.textContent =
+    online ? 'ON AIR' : 'OFFLINE';
+
+
+  onAirLabel.textContent =
+    online ? 'ON AIR NOW' : 'CHANNEL OFFLINE';
+
+
+  monitorNotice.textContent =
+    online
+      ? `${channel.name || 'CrowRules Live'} is the active broadcast channel. Stream status and listener information are supplied by Supabase.`
+      : `${channel.name || 'Live channel'} is configured but is not currently marked online.`;
+}
+
+
+/* ============================================================
+   LIVE PLAYER
+============================================================ */
+
+function updateButtons(playing){
+
+  playBtn.textContent =
+    playing
+      ? '❚❚ Playing'
+      : '▶ Play Live';
+
+  miniPlay.textContent =
+    playing
+      ? '❚❚'
+      : '▶';
+}
+
+
+async function playLive(){
+
+  if(!currentChannel){
+    return;
+  }
+
+  if(!currentChannel.stream_url){
+
+    miniStatus.textContent =
+      'No stream URL configured for this channel.';
+
+    return;
+  }
+
+
+  if(
+    audio.src !== currentChannel.stream_url
+  ){
+
+    audio.src =
+      currentChannel.stream_url;
+
+  }
+
+
+  try{
+
+    await audio.play();
+
+    miniTitle.textContent =
+      (
+        currentChannel.current_title ||
+        currentChannel.name ||
+        'CROWRULES LIVE'
+      ).toUpperCase();
+
+    miniStatus.textContent =
+      `${currentChannel.name || 'CrowRules Live'} · Live broadcast`;
+
+    updateButtons(true);
+
+  }catch(error){
+
+    console.error(error);
+
+    miniStatus.textContent =
+      'Playback could not start. Press Play Live again.';
+  }
+}
+
+
+function togglePlayer(){
+
+  if(audio.paused){
+
+    playLive();
+
+  }else{
+
+    audio.pause();
+
+  }
+}
+
+
+playBtn.addEventListener(
+  'click',
+  togglePlayer
+);
+
+miniPlay.addEventListener(
+  'click',
+  togglePlayer
+);
+
+
+muteBtn.addEventListener(
+  'click',
+  function(){
+
+    audio.muted =
+      !audio.muted;
+
+    muteBtn.textContent =
+      audio.muted
+        ? 'Unmute'
+        : 'Mute';
+  }
+);
+
+
+document
+  .getElementById('stop')
+  .addEventListener(
+    'click',
+    function(){
+
+      audio.pause();
+
+      audio.removeAttribute('src');
+
+      audio.load();
+
+      updateButtons(false);
+
+      miniStatus.textContent =
+        currentChannel
+          ? `${currentChannel.name || 'Live channel'} · Stopped`
+          : 'Stopped';
+
+    }
+  );
+
+
+audio.addEventListener(
+  'play',
+  function(){
+    updateButtons(true);
+  }
+);
+
+
+audio.addEventListener(
+  'pause',
+  function(){
+    updateButtons(false);
+  }
+);
+
+
+audio.addEventListener(
+  'error',
+  function(){
+
+    updateButtons(false);
+
+    miniStatus.textContent =
+      'Stream unavailable. Check the live channel configuration.';
+  }
+);
+
+
+/* ============================================================
+   VOLUME
+============================================================ */
+
+const volumeKey =
+  'crowrules-live-volume';
+
+const savedVolume =
+  localStorage.getItem(volumeKey);
+
+
+if(savedVolume !== null){
+
+  audio.volume =
+    Number(savedVolume);
+
+  volume.value =
+    savedVolume;
+
+}else{
+
+  audio.volume =
+    .8;
+
+}
+
+
+volume.addEventListener(
+  'input',
+  function(){
+
+    audio.volume =
+      Number(volume.value);
+
+  }
+);
+
+
+audio.addEventListener(
+  'volumechange',
+  function(){
+
+    localStorage.setItem(
+      volumeKey,
+      audio.volume
+    );
+
+  }
+);
+
+
+/* ============================================================
+   LOAD LIVE CHANNELS
+============================================================ */
+
+async function loadChannels(){
+
+  const result =
+    await db
+      .from('podcast_live_channels')
+      .select(`
+        id,
+        name,
+        slug,
+        description,
+        stream_url,
+        stream_type,
+        artwork_url,
+        status,
+        is_active,
+        listener_count,
+        bitrate_kbps,
+        timezone,
+        current_title,
+        current_episode_id,
+        current_podcast_id,
+        updated_at
+      `)
+      .eq('is_active',true)
+      .order(
+        'listener_count',
+        {
+          ascending:false
+        }
+      );
+
+
+  if(result.error){
+
+    console.error(
+      'Live channel error:',
+      result.error
+    );
+
+    document
+      .getElementById('channelsGrid')
+      .innerHTML =
+      `<div class="empty error">
+        Unable to load live channels:
+        ${esc(result.error.message)}
+      </div>`;
+
+    setHero(null);
+
+    return;
+  }
+
+
+  channels =
+    result.data || [];
+
+
+  const onlineChannels =
+    channels.filter(isOnline);
+
+
+  setHero(
+    onlineChannels[0] ||
+    channels[0] ||
+    null
+  );
+
+
+  renderChannels(channels);
+}
+
+
+/* ============================================================
+   CHANNEL CARDS
+============================================================ */
+
+function renderChannels(items){
+
+  const box =
+    document.getElementById(
+      'channelsGrid'
+    );
+
+
+  if(!items.length){
+
+    box.innerHTML =
+      `<div class="empty">
+        No active live channels are configured yet.
+      </div>`;
+
+    return;
+  }
+
+
+  box.innerHTML =
+    items.slice(0,9).map(
+      function(channel){
+
+        const online =
+          isOnline(channel);
+
+        const artwork =
+          channel.artwork_url
+            ? `<img src="${esc(channel.artwork_url)}"
+                    alt="${esc(channel.name || 'Channel')}">`
+            : esc(initials(channel.name));
+
+
+        return `
+          <div class="slot channel">
+
+            <div class="channel-art">
+              ${artwork}
+            </div>
+
+            <div>
+
+              <span class="tag">
+                ${online ? 'ON AIR' : 'OFFLINE'}
+              </span>
+
+              <h3>
+                ${esc(channel.name || 'CrowRules Live')}
+              </h3>
+
+              <div class="description">
+                ${esc(
+                  channel.current_title ||
+                  channel.description ||
+                  'Live audio channel'
+                )}
+              </div>
+
+            </div>
+
+            <div class="channel-status
+                        ${online ? 'green' : ''}">
+
+              ${online
+                ? '● LIVE'
+                : 'OFFLINE'}
+
+              <small>
+                ${Number(
+                  channel.listener_count || 0
+                ).toLocaleString()}
+                listeners
+              </small>
+
+            </div>
+
+          </div>
+        `;
+      }
+    ).join('');
+}
+
+
+/* ============================================================
+   SCHEDULE
+============================================================ */
+
+async function loadSchedule(){
+
+  const now =
+    new Date().toISOString();
+
+
+  const result =
+    await db
+      .from('podcast_schedule')
+      .select(`
+        id,
+        podcast_id,
+        episode_id,
+        title,
+        starts_at,
+        ends_at,
+        timezone,
+        recurrence,
+        status,
+        podcasts(
+          title,
+          artwork_url
+        ),
+        podcast_episodes(
+          title,
+          thumbnail_url,
+          duration_seconds,
+          audio_url
+        )
+      `)
+      .gte(
+        'ends_at',
+        now
+      )
+      .order(
+        'starts_at',
+        {
+          ascending:true
+        }
+      )
+      .limit(9);
+
+
+  if(result.error){
+
+    console.error(
+      'Schedule error:',
+      result.error
+    );
+
+    document
+      .getElementById('scheduleGrid')
+      .innerHTML =
+      `<div class="empty error">
+        Unable to load schedule:
+        ${esc(result.error.message)}
+      </div>`;
+
+    return;
+  }
+
+
+  schedule =
+    result.data || [];
+
+
+  renderSchedule(
+    schedule
+  );
+
+
+  const next =
+    schedule.find(
+      item =>
+        new Date(item.starts_at) >
+        new Date()
+    );
+
+
+  nextTime.textContent =
+    next
+      ? fmtTime(next.starts_at)
+      : '—';
+}
+
+
+/* ============================================================
+   SCHEDULE CARDS
+============================================================ */
+
+function renderSchedule(items){
+
+  const box =
+    document.getElementById(
+      'scheduleGrid'
+    );
+
+
+  if(!items.length){
+
+    box.innerHTML =
+      `<div class="empty">
+        No upcoming programs are scheduled.
+      </div>`;
+
+    return;
+  }
+
+
+  const now =
+    Date.now();
+
+
+  box.innerHTML =
+    items.slice(0,6).map(
+      function(item,index){
+
+        const start =
+          new Date(
+            item.starts_at
+          ).getTime();
+
+        const end =
+          new Date(
+            item.ends_at
+          ).getTime();
+
+
+        const live =
+          start <= now &&
+          end >= now;
+
+
+        const title =
+          item.title ||
+          item.podcast_episodes?.title ||
+          item.podcasts?.title ||
+          'CrowRules Program';
+
+
+        const podcastName =
+          item.podcasts?.title ||
+          'CrowRules Podcasting';
+
+
+        return `
+          <div class="slot ${live ? 'live' : ''}">
+
+            <span class="tag">
+              ${
+                live
+                  ? 'ON AIR'
+                  : index === 0
+                    ? 'NEXT'
+                    : 'LATER'
+              }
+            </span>
+
+            <div class="time">
+              ${
+                live
+                  ? 'NOW'
+                  : fmtTime(item.starts_at)
+              }
+            </div>
+
+            <h3>
+              ${esc(title)}
+            </h3>
+
+            <p>
+              ${esc(podcastName)}
+              ${
+                item.ends_at
+                  ? ` · Ends ${esc(fmtTime(item.ends_at))}`
+                  : ''
+              }
+            </p>
+
+          </div>
+        `;
+      }
+    ).join('');
+}
+
+
+/* ============================================================
+   RECENT EPISODES
+============================================================ */
+
+async function loadRecent(){
+
+  const result =
+    await db
+      .from('podcast_episodes')
+      .select(`
+        id,
+        podcast_id,
+        title,
+        description,
+        published_at,
+        duration_seconds,
+        thumbnail_url,
+        audio_url,
+        podcasts(
+          title,
+          artwork_url
+        )
+      `)
+      .eq(
+        'status',
+        'published'
+      )
+      .not(
+        'published_at',
+        'is',
+        null
+      )
+      .order(
+        'published_at',
+        {
+          ascending:false
+        }
+      )
+      .limit(6);
+
+
+  if(result.error){
+
+    console.error(
+      'Recent episode error:',
+      result.error
+    );
+
+    document
+      .getElementById('recentFeed')
+      .innerHTML =
+      `<div class="empty error">
+        Unable to load recent broadcasts:
+        ${esc(result.error.message)}
+      </div>`;
+
+    return;
+  }
+
+
+  const episodes =
+    result.data || [];
+
+
+  const box =
+    document.getElementById(
+      'recentFeed'
+    );
+
+
+  if(!episodes.length){
+
+    box.innerHTML =
+      `<div class="empty">
+        No published broadcasts are available yet.
+      </div>`;
+
+    return;
+  }
+
+
+  box.innerHTML =
+    episodes.map(
+      function(episode,index){
+
+        const artwork =
+          episode.thumbnail_url ||
+          episode.podcasts?.artwork_url;
+
+
+        const image =
+          artwork
+            ? `<img
+                src="${esc(artwork)}"
+                alt="${esc(episode.title || 'Episode')}">`
+            : String(index + 1)
+                .padStart(2,'0');
+
+
+        return `
+          <article class="episode">
+
+            <div class="thumb">
+              ${image}
+            </div>
+
+            <div class="episode-content">
+
+              <span class="tag">
+                REPLAY
+              </span>
+
+              <h3>
+                ${esc(
+                  episode.title ||
+                  'Untitled Episode'
+                )}
+              </h3>
+
+              <p>
+                ${esc(
+                  episode.podcasts?.title ||
+                  'CrowRules Podcasting'
+                )}
+
+                ·
+
+                ${duration(
+                  episode.duration_seconds
+                )}
+
+                ·
+
+                ${esc(
+                  fmtDate(
+                    episode.published_at
+                  )
+                )}
+              </p>
+
+              ${
+                episode.description
+                  ? `
+                    <p style="margin-top:6px">
+                      ${esc(
+                        String(
+                          episode.description
+                        ).slice(0,150)
+                      )}
+                      ${
+                        String(
+                          episode.description
+                        ).length > 150
+                          ? '…'
+                          : ''
+                      }
+                    </p>
+                  `
+                  : ''
+              }
+
+              ${
+                episode.audio_url
+                  ? `
+                    <button
+                      class="play-replay"
+                      onclick='playEpisode(
+                        ${JSON.stringify(
+                          episode.audio_url
+                        )},
+                        ${JSON.stringify(
+                          episode.title ||
+                          'Episode'
+                        )}
+                      )'>
+                      ▶ PLAY REPLAY
+                    </button>
+                  `
+                  : ''
+              }
+
+            </div>
+
+          </article>
+        `;
+      }
+    ).join('');
+}
+
+
+/* ============================================================
+   PLAY EPISODE
+============================================================ */
+
+window.playEpisode =
+  function(url,title){
+
+    if(!url){
+      return;
+    }
+
+
+    audio.src =
+      url;
+
+
+    audio.play()
+      .then(
+        function(){
+
+          miniTitle.textContent =
+            String(
+              title ||
+              'Podcast Replay'
+            ).toUpperCase();
+
+          miniStatus.textContent =
+            'Podcast replay';
+
+          updateButtons(true);
+
+        }
+      )
+      .catch(
+        function(error){
+
+          console.error(
+            'Episode playback:',
+            error
+          );
+
+          miniStatus.textContent =
+            'Unable to start replay.';
+        }
+      );
+  };
+
+
+/* ============================================================
+   INITIAL LOAD
+============================================================ */
+
+async function loadAll(){
+
+  await Promise.all([
+    loadChannels(),
+    loadSchedule(),
+    loadRecent()
+  ]);
+
+}
+
+
+/* ============================================================
+   AUTO REFRESH
+============================================================ */
+
+loadAll();
+
+
+refreshTimer =
+  setInterval(
+    loadAll,
+    60000
+  );
+
+
+document.addEventListener(
+  'visibilitychange',
+  function(){
+
+    if(
+      document.visibilityState ===
+      'visible'
+    ){
+
+      loadAll();
+
+    }
+
+  }
+);
+
+
+/* ============================================================
+   KEEP PLAYER STATE
+============================================================ */
+
+window.addEventListener(
+  'beforeunload',
+  function(){
+
+    localStorage.setItem(
+      volumeKey,
+      audio.volume
+    );
+
+  }
+);
+
+</script>
+
+</body>
+</html>

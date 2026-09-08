@@ -1,0 +1,3265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>CrowRules Podcasting — Top 10</title>
+
+<meta name="theme-color" content="#050505">
+<meta name="description" content="Live CrowRules Podcasting Top 10 charts powered by network listening data.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --bg:#050505;
+  --panel:#0d0d0d;
+  --panel2:#151515;
+  --red:#c00000;
+  --hot:#ff2020;
+  --text:#f5f5f5;
+  --muted:#8d8d8d;
+  --line:#292929;
+  --green:#36d77b;
+  --gold:#d6a63c;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(
+      circle at 75% 0,
+      #260000 0,
+      transparent 32%
+    ),
+    var(--bg);
+  color:var(--text);
+  font-family:Montserrat,Arial,sans-serif;
+}
+
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.055;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      #fff 0,
+      #fff 1px,
+      transparent 1px,
+      transparent 5px
+    );
+  z-index:100;
+}
+
+a{
+  color:inherit;
+  text-decoration:none;
+}
+
+button{
+  font-family:inherit;
+  cursor:pointer;
+}
+
+header{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:#070707ee;
+  border-bottom:1px solid #3a0000;
+  backdrop-filter:blur(14px);
+}
+
+.nav{
+  max-width:1380px;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  gap:24px;
+  padding:16px 22px;
+}
+
+.logo{
+  font:900 20px Orbitron,sans-serif;
+  letter-spacing:1px;
+  white-space:nowrap;
+}
+
+.logo b{
+  color:var(--hot);
+}
+
+.logo span{
+  color:#fff;
+}
+
+nav{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+}
+
+nav a{
+  padding:9px 11px;
+  color:#aaa;
+  font-size:12px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+}
+
+nav a:hover,
+nav a.active{
+  color:#fff;
+  background:#260000;
+  border-left:2px solid var(--hot);
+}
+
+.onair{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#fff;
+  font:800 10px Orbitron,sans-serif;
+  letter-spacing:1px;
+}
+
+.onair-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--hot);
+  box-shadow:0 0 12px var(--hot);
+  animation:pulse 1.3s infinite;
+}
+
+@keyframes pulse{
+  50%{
+    opacity:.25;
+  }
+}
+
+.wrap{
+  max-width:1380px;
+  margin:auto;
+  padding:42px 22px 145px;
+}
+
+/* HERO */
+
+.hero{
+  position:relative;
+  overflow:hidden;
+  padding:42px;
+  border:1px solid #3a0808;
+  background:
+    linear-gradient(
+      110deg,
+      #110000,
+      #0b0b0b 55%,
+      #170000
+    );
+}
+
+.hero:after{
+  content:"TOP 10";
+  position:absolute;
+  right:-18px;
+  bottom:-48px;
+  color:#220000;
+  font:900 145px Orbitron,sans-serif;
+  pointer-events:none;
+}
+
+.eyebrow{
+  position:relative;
+  z-index:2;
+  color:var(--hot);
+  font:700 11px Orbitron,sans-serif;
+  letter-spacing:3px;
+  text-transform:uppercase;
+}
+
+.hero h1{
+  position:relative;
+  z-index:2;
+  margin:12px 0 8px;
+  font:900 clamp(42px,7vw,86px)/.95 Orbitron,sans-serif;
+  letter-spacing:-2px;
+}
+
+.hero p{
+  position:relative;
+  z-index:2;
+  max-width:760px;
+  margin:0;
+  color:#aaa;
+  line-height:1.7;
+  font-size:13px;
+}
+
+.tools{
+  position:relative;
+  z-index:3;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:25px;
+}
+
+.chip{
+  border:1px solid #4b1717;
+  background:#100707;
+  padding:10px 14px;
+  color:#bbb;
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+}
+
+.chip:hover,
+.chip.active{
+  border-color:var(--hot);
+  color:#fff;
+  background:#260000;
+}
+
+.refresh{
+  margin-left:auto;
+  border:1px solid #333;
+  background:#111;
+  color:#aaa;
+}
+
+.refresh:hover{
+  color:#fff;
+  border-color:var(--hot);
+}
+
+/* STATUS */
+
+.statusline{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  margin-top:22px;
+  padding:12px 15px;
+  border:1px solid var(--line);
+  background:#0b0b0b;
+}
+
+.status-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:#777;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+}
+
+.status-light{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 10px var(--green);
+}
+
+.status-light.error{
+  background:var(--hot);
+  box-shadow:0 0 10px var(--hot);
+}
+
+.updated{
+  color:#555;
+  font:700 9px Orbitron,sans-serif;
+}
+
+/* SECTIONS */
+
+.section{
+  margin-top:36px;
+}
+
+.section-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  gap:15px;
+  margin-bottom:14px;
+}
+
+.section h2{
+  margin:0;
+  font:800 20px Orbitron,sans-serif;
+}
+
+.section-head span{
+  color:#777;
+  font-size:10px;
+  text-transform:uppercase;
+}
+
+/* RANKINGS */
+
+.rankings{
+  display:grid;
+  gap:10px;
+}
+
+.rank{
+  position:relative;
+  display:grid;
+  grid-template-columns:72px 86px minmax(0,1fr) auto;
+  align-items:center;
+  gap:18px;
+  padding:13px;
+  border:1px solid var(--line);
+  background:
+    linear-gradient(
+      90deg,
+      #0d0d0d,
+      #111
+    );
+  transition:
+    border-color .2s,
+    transform .2s;
+}
+
+.rank:hover{
+  border-color:#650000;
+  transform:translateX(3px);
+}
+
+.rank.first{
+  border-color:#650000;
+  background:
+    linear-gradient(
+      90deg,
+      #170000,
+      #111
+    );
+}
+
+.num{
+  color:#555;
+  text-align:center;
+  font:900 34px Orbitron,sans-serif;
+}
+
+.rank.first .num{
+  color:var(--hot);
+}
+
+.cover{
+  position:relative;
+  width:74px;
+  height:74px;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  border:1px solid #550000;
+  background:
+    linear-gradient(
+      135deg,
+      #300000,
+      #090909
+    );
+  color:#ddd;
+  font:900 13px Orbitron,sans-serif;
+  text-align:center;
+}
+
+.cover img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.cover span{
+  position:relative;
+  z-index:2;
+  text-shadow:0 2px 8px #000;
+}
+
+.meta{
+  min-width:0;
+}
+
+.meta h3{
+  overflow:hidden;
+  margin:0 0 5px;
+  color:#fff;
+  font:800 17px Orbitron,sans-serif;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.meta p{
+  overflow:hidden;
+  margin:0;
+  color:#777;
+  font-size:11px;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.badges{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-top:8px;
+}
+
+.badge{
+  padding:4px 6px;
+  border:1px solid #333;
+  color:#aaa;
+  font-size:8px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+
+.badge.hot{
+  color:#fff;
+  border-color:#720000;
+  background:#210000;
+}
+
+.badge.up{
+  color:var(--green);
+  border-color:#174b2c;
+}
+
+.score{
+  min-width:120px;
+  text-align:right;
+}
+
+.score strong{
+  display:block;
+  color:#fff;
+  font:800 20px Orbitron,sans-serif;
+}
+
+.score small{
+  display:block;
+  margin-top:2px;
+  color:#777;
+  font-size:9px;
+  text-transform:uppercase;
+}
+
+.play{
+  margin-top:7px;
+  border:1px solid #710000;
+  background:#260000;
+  color:#fff;
+  padding:7px 10px;
+  font-size:9px;
+  font-weight:800;
+  text-transform:uppercase;
+}
+
+.play:hover{
+  background:var(--hot);
+}
+
+.empty{
+  padding:70px 20px;
+  border:1px dashed #333;
+  background:#090909;
+  text-align:center;
+}
+
+.empty strong{
+  display:block;
+  margin-bottom:8px;
+  font:800 20px Orbitron,sans-serif;
+}
+
+.empty span{
+  color:#666;
+  font-size:10px;
+  line-height:1.6;
+}
+
+.spinner{
+  width:32px;
+  height:32px;
+  margin:0 auto 15px;
+  border:2px solid #350000;
+  border-top-color:var(--hot);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+/* CHART SIGNALS */
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+
+.card{
+  padding:18px;
+  border:1px solid var(--line);
+  background:#0d0d0d;
+}
+
+.card .big{
+  color:var(--hot);
+  font:900 32px Orbitron,sans-serif;
+}
+
+.card h3{
+  margin:10px 0 6px;
+  font-size:13px;
+}
+
+.card p{
+  margin:0;
+  color:#777;
+  font-size:10px;
+  line-height:1.6;
+}
+
+.card small{
+  display:block;
+  margin-top:10px;
+  color:#555;
+  font-size:8px;
+  text-transform:uppercase;
+}
+
+/* PLAYER */
+
+.player{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:80;
+  padding:10px 18px;
+  background:#080808f7;
+  border-top:1px solid #700000;
+  box-shadow:0 -12px 45px #000;
+  backdrop-filter:blur(14px);
+}
+
+.player-inner{
+  max-width:1380px;
+  min-height:54px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:auto 260px 1fr 150px auto auto;
+  align-items:center;
+  gap:14px;
+}
+
+.status{
+  color:var(--hot);
+  font:800 9px Orbitron,sans-serif;
+  letter-spacing:1px;
+}
+
+.now{
+  min-width:0;
+}
+
+.now strong{
+  display:block;
+  overflow:hidden;
+  color:#fff;
+  font-size:12px;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.now span{
+  display:block;
+  overflow:hidden;
+  margin-top:3px;
+  color:#777;
+  font-size:9px;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.bar{
+  height:4px;
+  background:#333;
+  cursor:pointer;
+}
+
+.bar i{
+  display:block;
+  width:0;
+  height:100%;
+  background:var(--hot);
+  box-shadow:0 0 8px var(--hot);
+}
+
+.player-time{
+  color:#777;
+  font:600 9px Orbitron,sans-serif;
+  text-align:center;
+}
+
+.ctrl{
+  border:1px solid #444;
+  background:#111;
+  color:#fff;
+  padding:8px 12px;
+}
+
+.ctrl:hover{
+  border-color:var(--hot);
+}
+
+/* TOAST */
+
+.toast{
+  position:fixed;
+  right:20px;
+  bottom:90px;
+  z-index:120;
+  max-width:360px;
+  padding:13px 15px;
+  border:1px solid #650000;
+  background:#0b0b0b;
+  color:#ddd;
+  font-size:10px;
+  line-height:1.5;
+  box-shadow:0 15px 40px #000;
+  opacity:0;
+  transform:translateY(10px);
+  pointer-events:none;
+  transition:.25s;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translateY(0);
+}
+
+/* RESPONSIVE */
+
+@media(max-width:1050px){
+
+  nav{
+    display:none;
+  }
+
+  .grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .player-inner{
+    grid-template-columns:auto 1fr auto auto;
+  }
+
+  .bar{
+    display:none;
+  }
+
+  .player-time{
+    display:none;
+  }
+
+}
+
+@media(max-width:720px){
+
+  .wrap{
+    padding:25px 15px 125px;
+  }
+
+  .hero{
+    padding:25px;
+  }
+
+  .hero:after{
+    font-size:80px;
+  }
+
+  .statusline{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .rank{
+    grid-template-columns:48px 62px minmax(0,1fr);
+    gap:12px;
+  }
+
+  .cover{
+    width:60px;
+    height:60px;
+  }
+
+  .score{
+    display:none;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .player-inner{
+    grid-template-columns:auto 1fr auto;
+    gap:9px;
+  }
+
+  .status{
+    display:none;
+  }
+
+}
+
+@media(max-width:480px){
+
+  .logo{
+    font-size:15px;
+  }
+
+  .hero h1{
+    font-size:43px;
+  }
+
+  .section-head{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .meta h3{
+    font-size:13px;
+  }
+
+  .meta p{
+    font-size:9px;
+  }
+
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+  <div class="nav">
+
+    <a
+      class="logo"
+      href="podcasting.html"
+    >
+      CROW<span>RULES</span>
+      <b>PODCASTING</b>
+    </a>
+
+    <nav>
+
+      <a href="podcasting.html">
+        Home
+      </a>
+
+      <a href="podcasts.html">
+        Podcasts
+      </a>
+
+      <a href="live.html">
+        Live
+      </a>
+
+      <a href="schedule.html">
+        Schedule
+      </a>
+
+      <a
+        class="active"
+        href="top.html"
+      >
+        Top 10
+      </a>
+
+      <a href="categories.html">
+        Categories
+      </a>
+
+      <a href="search.html">
+        Search
+      </a>
+
+      <a href="members.html">
+        Members
+      </a>
+
+    </nav>
+
+    <div class="onair">
+
+      <span class="onair-dot"></span>
+
+      CHARTS LIVE
+
+    </div>
+
+  </div>
+
+</header>
+
+
+<main class="wrap">
+
+  <section class="hero">
+
+    <div class="eyebrow">
+      CrowRules Podcasting / Network Charts
+    </div>
+
+    <h1>
+      TOP 10
+    </h1>
+
+    <p>
+      The CrowRules Podcasting network chart,
+      calculated from real listening activity.
+      Rankings update from the network database
+      rather than simulated numbers.
+    </p>
+
+
+    <div class="tools">
+
+      <button
+        class="chip active"
+        data-period="week"
+        type="button"
+      >
+        This Week
+      </button>
+
+      <button
+        class="chip"
+        data-period="month"
+        type="button"
+      >
+        This Month
+      </button>
+
+      <button
+        class="chip"
+        data-period="all"
+        type="button"
+      >
+        All Time
+      </button>
+
+      <button
+        class="chip refresh"
+        id="refresh"
+        type="button"
+      >
+        ↻ Refresh Charts
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <div class="statusline">
+
+    <div class="status-left">
+
+      <span
+        class="status-light"
+        id="statusLight"
+      ></span>
+
+      <span id="statusText">
+        Connecting to chart database
+      </span>
+
+    </div>
+
+    <div
+      class="updated"
+      id="updated"
+    >
+      UPDATING
+    </div>
+
+  </div>
+
+
+  <section class="section">
+
+    <div class="section-head">
+
+      <h2>
+        01—10 / PODCASTS
+      </h2>
+
+      <span id="chartLabel">
+        This Week · Network Ranking
+      </span>
+
+    </div>
+
+
+    <div
+      id="rankings"
+      class="rankings"
+    >
+
+      <div class="empty">
+
+        <div class="spinner"></div>
+
+        <strong>
+          LOADING CHARTS
+        </strong>
+
+        <span>
+          Reading current CrowRules Podcasting
+          listening activity...
+        </span>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <section class="section">
+
+    <div class="section-head">
+
+      <h2>
+        CHART SIGNALS
+      </h2>
+
+      <span>
+        Current network pulse
+      </span>
+
+    </div>
+
+
+    <div class="grid">
+
+      <article class="card">
+
+        <div
+          class="big"
+          id="weeklyPlays"
+        >
+          —
+        </div>
+
+        <h3>
+          Period Plays
+        </h3>
+
+        <p>
+          Total listening starts recorded
+          during the selected chart period.
+        </p>
+
+        <small id="periodLabel">
+          Loading period
+        </small>
+
+      </article>
+
+
+      <article class="card">
+
+        <div
+          class="big"
+          id="momentum"
+        >
+          —
+        </div>
+
+        <h3>
+          Momentum
+        </h3>
+
+        <p>
+          Change compared with the preceding
+          equivalent chart period.
+        </p>
+
+        <small>
+          Compared with previous period
+        </small>
+
+      </article>
+
+
+      <article class="card">
+
+        <div
+          class="big"
+          id="newEntries"
+        >
+          —
+        </div>
+
+        <h3>
+          New Entries
+        </h3>
+
+        <p>
+          Podcasts appearing in the selected
+          chart period that were not ranked
+          in the previous period.
+        </p>
+
+        <small>
+          Chart movement
+        </small>
+
+      </article>
+
+
+      <article class="card">
+
+        <div
+          class="big"
+          id="totalShows"
+        >
+          —
+        </div>
+
+        <h3>
+          Network Shows
+        </h3>
+
+        <p>
+          Podcast shows currently represented
+          in the CrowRules Podcasting database.
+        </p>
+
+        <small>
+          Live database count
+        </small>
+
+      </article>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<!-- PLAYER -->
+
+<div class="player">
+
+  <div class="player-inner">
+
+    <span class="status">
+      ● READY
+    </span>
+
+
+    <div class="now">
+
+      <strong id="nowTitle">
+        CrowRules Podcasting
+      </strong>
+
+      <span id="nowShow">
+        Select a podcast to listen
+      </span>
+
+    </div>
+
+
+    <div
+      class="bar"
+      id="progressBar"
+      title="Seek"
+    >
+
+      <i id="progress"></i>
+
+    </div>
+
+
+    <div
+      class="player-time"
+      id="playerTime"
+    >
+      0:00 / 0:00
+    </div>
+
+
+    <button
+      class="ctrl"
+      id="play"
+      type="button"
+    >
+      ▶
+    </button>
+
+
+    <button
+      class="ctrl"
+      id="mute"
+      type="button"
+    >
+      🔊
+    </button>
+
+  </div>
+
+</div>
+
+
+<div
+  class="toast"
+  id="toast"
+></div>
+
+
+<audio
+  id="audio"
+  preload="metadata"
+></audio>
+
+
+<script>
+/* =========================================================
+   CROWRULES PODCASTING
+   TOP 10
+   SUPABASE LIVE CHARTS
+   ========================================================= */
+
+
+/* =========================================================
+   SUPABASE
+   ========================================================= */
+
+const SUPABASE_URL =
+  "https://cevylpnoexugwgygvtgu.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
+
+const {
+  createClient
+} = window.supabase;
+
+const db =
+  createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* =========================================================
+   DOM
+   ========================================================= */
+
+const rankings =
+  document.getElementById("rankings");
+
+const statusText =
+  document.getElementById("statusText");
+
+const statusLight =
+  document.getElementById("statusLight");
+
+const updated =
+  document.getElementById("updated");
+
+const chartLabel =
+  document.getElementById("chartLabel");
+
+const weeklyPlays =
+  document.getElementById("weeklyPlays");
+
+const momentum =
+  document.getElementById("momentum");
+
+const newEntries =
+  document.getElementById("newEntries");
+
+const totalShows =
+  document.getElementById("totalShows");
+
+const periodLabel =
+  document.getElementById("periodLabel");
+
+const refreshButton =
+  document.getElementById("refresh");
+
+const audio =
+  document.getElementById("audio");
+
+const playButton =
+  document.getElementById("play");
+
+const muteButton =
+  document.getElementById("mute");
+
+const progressBar =
+  document.getElementById("progressBar");
+
+const progress =
+  document.getElementById("progress");
+
+const playerTime =
+  document.getElementById("playerTime");
+
+const nowTitle =
+  document.getElementById("nowTitle");
+
+const nowShow =
+  document.getElementById("nowShow");
+
+const toast =
+  document.getElementById("toast");
+
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+let activePeriod =
+  "week";
+
+let podcasts =
+  [];
+
+let episodes =
+  [];
+
+let listens =
+  [];
+
+let follows =
+  [];
+
+let currentQueue =
+  [];
+
+let currentIndex =
+  -1;
+
+let currentEpisode =
+  null;
+
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+
+function escapeHTML(value){
+
+  return String(
+    value ?? ""
+  )
+  .replace(/&/g,"&amp;")
+  .replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;")
+  .replace(/'/g,"&#039;");
+
+}
+
+
+function formatNumber(value){
+
+  const number =
+    Number(value || 0);
+
+  return number.toLocaleString(
+    "en-US"
+  );
+
+}
+
+
+function compactNumber(value){
+
+  const number =
+    Number(value || 0);
+
+  if(number >= 1000000){
+
+    return (
+      (number / 1000000)
+        .toFixed(
+          number >= 10000000
+            ? 0
+            : 1
+        )
+        .replace(
+          /\.0$/,
+          ""
+        ) +
+      "M"
+    );
+
+  }
+
+
+  if(number >= 1000){
+
+    return (
+      (number / 1000)
+        .toFixed(
+          number >= 10000
+            ? 0
+            : 1
+        )
+        .replace(
+          /\.0$/,
+          ""
+        ) +
+      "K"
+    );
+
+  }
+
+
+  return String(
+    number
+  );
+
+}
+
+
+function formatTime(seconds){
+
+  if(
+    !Number.isFinite(
+      seconds
+    )
+  ){
+
+    return "0:00";
+
+  }
+
+
+  const mins =
+    Math.floor(
+      seconds / 60
+    );
+
+  const secs =
+    Math.floor(
+      seconds % 60
+    );
+
+
+  return (
+    mins +
+    ":" +
+    String(
+      secs
+    ).padStart(
+      2,
+      "0"
+    )
+  );
+
+}
+
+
+function showToast(message){
+
+  toast.textContent =
+    message;
+
+  toast.classList.add(
+    "show"
+  );
+
+  clearTimeout(
+    showToast.timer
+  );
+
+  showToast.timer =
+    setTimeout(
+      () => {
+
+        toast.classList.remove(
+          "show"
+        );
+
+      },
+      3000
+    );
+
+}
+
+
+/* =========================================================
+   PERIOD DATES
+   ========================================================= */
+
+function getPeriodDates(){
+
+  const now =
+    new Date();
+
+  let end =
+    now;
+
+  let start;
+
+  let previousStart;
+
+  let previousEnd;
+
+
+  if(
+    activePeriod ===
+    "week"
+  ){
+
+    start =
+      new Date(
+        now.getTime() -
+        7 * 86400000
+      );
+
+    previousStart =
+      new Date(
+        now.getTime() -
+        14 * 86400000
+      );
+
+    previousEnd =
+      start;
+
+  }else if(
+    activePeriod ===
+    "month"
+  ){
+
+    start =
+      new Date(
+        now.getTime() -
+        30 * 86400000
+      );
+
+    previousStart =
+      new Date(
+        now.getTime() -
+        60 * 86400000
+      );
+
+    previousEnd =
+      start;
+
+  }else{
+
+    start =
+      new Date(
+        0
+      );
+
+    previousStart =
+      null;
+
+    previousEnd =
+      null;
+
+  }
+
+
+  return {
+    start,
+    end,
+    previousStart,
+    previousEnd
+  };
+
+}
+
+
+/* =========================================================
+   LOAD PODCASTS
+   ========================================================= */
+
+async function loadPodcasts(){
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .from("podcasts")
+      .select(`
+        id,
+        creator_id,
+        title,
+        slug,
+        category,
+        description,
+        artwork_url,
+        status,
+        is_featured,
+        is_live,
+        listener_count,
+        total_plays,
+        category_id,
+        created_at
+      `);
+
+
+  if(error){
+
+    throw error;
+
+  }
+
+
+  podcasts =
+    data || [];
+
+}
+
+
+/* =========================================================
+   LOAD EPISODES
+   ========================================================= */
+
+async function loadEpisodes(){
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .from("podcast_episodes")
+      .select(`
+        id,
+        podcast_id,
+        title,
+        slug,
+        description,
+        episode_number,
+        season_number,
+        published_at,
+        duration_seconds,
+        audio_url,
+        thumbnail_url,
+        status,
+        play_count,
+        is_explicit
+      `);
+
+
+  if(error){
+
+    throw error;
+
+  }
+
+
+  episodes =
+    data || [];
+
+}
+
+
+/* =========================================================
+   LOAD LISTENS
+   ========================================================= */
+
+async function loadListens(){
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .from("podcast_listens")
+      .select(`
+        id,
+        user_id,
+        episode_id,
+        started_at,
+        seconds_listened,
+        completed,
+        session_key,
+        created_at
+      `)
+      .order(
+        "started_at",
+        {
+          ascending:false
+        }
+      );
+
+
+  if(error){
+
+    throw error;
+
+  }
+
+
+  listens =
+    data || [];
+
+}
+
+
+/* =========================================================
+   LOAD FOLLOWS
+   ========================================================= */
+
+async function loadFollows(){
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .from("podcast_follows")
+      .select(`
+        id,
+        user_id,
+        podcast_id,
+        created_at
+      `);
+
+
+  /*
+   * Follows are supplementary.
+   * If RLS prevents public reading,
+   * don't fail the entire chart.
+   */
+
+  if(error){
+
+    console.warn(
+      "Follows unavailable:",
+      error
+    );
+
+    follows =
+      [];
+
+    return;
+
+  }
+
+
+  follows =
+    data || [];
+
+}
+
+
+/* =========================================================
+   DATE TEST
+   ========================================================= */
+
+function withinRange(
+  date,
+  start,
+  end
+){
+
+  const value =
+    new Date(
+      date
+    );
+
+
+  if(
+    Number.isNaN(
+      value.getTime()
+    )
+  ){
+
+    return false;
+
+  }
+
+
+  return (
+    value >= start &&
+    value <= end
+  );
+
+}
+
+
+/* =========================================================
+   PODCAST MAP
+   ========================================================= */
+
+function podcastMap(){
+
+  return new Map(
+    podcasts.map(
+      podcast =>
+        [
+          podcast.id,
+          podcast
+        ]
+    )
+  );
+
+}
+
+
+/* =========================================================
+   CALCULATE CHART
+   ========================================================= */
+
+function calculateChart(){
+
+  const map =
+    podcastMap();
+
+  const {
+    start,
+    end
+  } =
+    getPeriodDates();
+
+
+  const counts =
+    new Map();
+
+
+  listens.forEach(
+    listen => {
+
+      if(
+        activePeriod !==
+        "all" &&
+        !withinRange(
+          listen.started_at ||
+          listen.created_at,
+          start,
+          end
+        )
+      ){
+
+        return;
+
+      }
+
+
+      const episode =
+        episodes.find(
+          item =>
+            item.id ===
+            listen.episode_id
+        );
+
+
+      if(!episode){
+
+        return;
+
+      }
+
+
+      const podcast =
+        map.get(
+          episode.podcast_id
+        );
+
+
+      if(!podcast){
+
+        return;
+
+      }
+
+
+      const current =
+        counts.get(
+          podcast.id
+        ) ||
+        {
+          podcast,
+          listens:0
+        };
+
+
+      current.listens++;
+
+      counts.set(
+        podcast.id,
+        current
+      );
+
+    }
+  );
+
+
+  /*
+   * If a podcast has no rows in podcast_listens
+   * but has a legacy total_plays value, don't use
+   * that value for period charts because it would
+   * contaminate the selected date range.
+   *
+   * All-time can use total_plays as a fallback.
+   */
+
+  if(
+    activePeriod ===
+    "all"
+  ){
+
+    podcasts.forEach(
+      podcast => {
+
+        if(
+          counts.has(
+            podcast.id
+          )
+        ){
+
+          return;
+
+        }
+
+
+        const total =
+          Number(
+            podcast.total_plays ||
+            0
+          );
+
+
+        if(
+          total > 0
+        ){
+
+          counts.set(
+            podcast.id,
+            {
+              podcast,
+              listens:total
+            }
+          );
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /*
+   * Supplementary follower count
+   * breaks ties only.
+   */
+
+  const followerCounts =
+    new Map();
+
+
+  follows.forEach(
+    follow => {
+
+      const id =
+        follow.podcast_id;
+
+
+      if(!id){
+
+        return;
+
+      }
+
+
+      followerCounts.set(
+        id,
+        (
+          followerCounts.get(id) ||
+          0
+        ) + 1
+      );
+
+    }
+  );
+
+
+  const ranked =
+    Array.from(
+      counts.values()
+    );
+
+
+  ranked.sort(
+    (a,b) => {
+
+      if(
+        b.listens !==
+        a.listens
+      ){
+
+        return (
+          b.listens -
+          a.listens
+        );
+
+      }
+
+
+      return (
+        (
+          followerCounts.get(
+            b.podcast.id
+          ) || 0
+        ) -
+        (
+          followerCounts.get(
+            a.podcast.id
+          ) || 0
+        )
+      );
+
+    }
+  );
+
+
+  return ranked
+    .slice(
+      0,
+      10
+    );
+
+}
+
+
+/* =========================================================
+   PERIOD TOTAL
+   ========================================================= */
+
+function calculatePeriodTotal(){
+
+  const {
+    start,
+    end
+  } =
+    getPeriodDates();
+
+
+  if(
+    activePeriod ===
+    "all"
+  ){
+
+    return listens.length ||
+      podcasts.reduce(
+        (
+          total,
+          podcast
+        ) =>
+          total +
+          Number(
+            podcast.total_plays ||
+            0
+          ),
+        0
+      );
+
+  }
+
+
+  return listens.filter(
+    listen =>
+      withinRange(
+        listen.started_at ||
+        listen.created_at,
+        start,
+        end
+      )
+  ).length;
+
+}
+
+
+/* =========================================================
+   PREVIOUS PERIOD TOTAL
+   ========================================================= */
+
+function calculatePreviousTotal(){
+
+  if(
+    activePeriod ===
+    "all"
+  ){
+
+    return 0;
+
+  }
+
+
+  const {
+    previousStart,
+    previousEnd
+  } =
+    getPeriodDates();
+
+
+  return listens.filter(
+    listen =>
+      withinRange(
+        listen.started_at ||
+        listen.created_at,
+        previousStart,
+        previousEnd
+      )
+  ).length;
+
+}
+
+
+/* =========================================================
+   MOMENTUM
+   ========================================================= */
+
+function calculateMomentum(){
+
+  if(
+    activePeriod ===
+    "all"
+  ){
+
+    return null;
+
+  }
+
+
+  const current =
+    calculatePeriodTotal();
+
+  const previous =
+    calculatePreviousTotal();
+
+
+  if(
+    previous === 0
+  ){
+
+    return current > 0
+      ? 100
+      : 0;
+
+  }
+
+
+  return (
+    (
+      current -
+      previous
+    ) /
+    previous
+  ) *
+  100;
+
+}
+
+
+/* =========================================================
+   PREVIOUS RANKING IDS
+   ========================================================= */
+
+function calculatePreviousRanking(){
+
+  if(
+    activePeriod ===
+    "all"
+  ){
+
+    return [];
+
+  }
+
+
+  const original =
+    activePeriod;
+
+
+  activePeriod =
+    activePeriod ===
+      "week"
+      ? "week"
+      : "month";
+
+
+  const {
+    start,
+    end
+  } =
+    getPeriodDates();
+
+
+  const previousCounts =
+    new Map();
+
+  const map =
+    podcastMap();
+
+
+  listens.forEach(
+    listen => {
+
+      if(
+        !withinRange(
+          listen.started_at ||
+          listen.created_at,
+          start,
+          end
+        )
+      ){
+
+        return;
+
+      }
+
+
+      const episode =
+        episodes.find(
+          item =>
+            item.id ===
+            listen.episode_id
+        );
+
+
+      const podcast =
+        episode
+          ? map.get(
+              episode.podcast_id
+            )
+          : null;
+
+
+      if(!podcast){
+
+        return;
+
+      }
+
+
+      previousCounts.set(
+        podcast.id,
+        (
+          previousCounts.get(
+            podcast.id
+          ) || 0
+        ) + 1
+      );
+
+    }
+  );
+
+
+  const previous =
+    Array.from(
+      previousCounts.entries()
+    )
+    .sort(
+      (a,b) =>
+        b[1] -
+        a[1]
+    )
+    .slice(
+      0,
+      10
+    )
+    .map(
+      item =>
+        item[0]
+    );
+
+
+  activePeriod =
+    original;
+
+
+  return previous;
+
+}
+
+
+/* =========================================================
+   NEW ENTRIES
+   ========================================================= */
+
+function calculateNewEntries(
+  currentChart
+){
+
+  if(
+    activePeriod ===
+    "all"
+  ){
+
+    return 0;
+
+  }
+
+
+  const previous =
+    new Set(
+      calculatePreviousRanking()
+    );
+
+
+  return currentChart.filter(
+    item =>
+      !previous.has(
+        item.podcast.id
+      )
+  ).length;
+
+}
+
+
+/* =========================================================
+   FIND LATEST EPISODE
+   ========================================================= */
+
+function latestEpisode(
+  podcastId
+){
+
+  return episodes
+    .filter(
+      episode =>
+        episode.podcast_id ===
+        podcastId &&
+        episode.audio_url
+    )
+    .sort(
+      (a,b) =>
+        new Date(
+          b.published_at ||
+          0
+        ) -
+        new Date(
+          a.published_at ||
+          0
+        )
+    )[0] || null;
+
+}
+
+
+/* =========================================================
+   TREND BADGE
+   ========================================================= */
+
+function trendBadge(
+  podcastId
+){
+
+  if(
+    activePeriod ===
+    "all"
+  ){
+
+    return `
+      <span class="badge">
+        ALL TIME
+      </span>
+    `;
+
+  }
+
+
+  const previous =
+    calculatePreviousRanking();
+
+  const index =
+    previous.indexOf(
+      podcastId
+    );
+
+
+  if(index === -1){
+
+    return `
+      <span class="badge hot">
+        NEW
+      </span>
+    `;
+
+  }
+
+
+  return `
+    <span class="badge">
+      CHARTED
+    </span>
+  `;
+
+}
+
+
+/* =========================================================
+   RENDER CHART
+   ========================================================= */
+
+function renderChart(){
+
+  const chart =
+    calculateChart();
+
+
+  if(
+    !chart.length
+  ){
+
+    rankings.innerHTML = `
+
+      <div class="empty">
+
+        <div
+          class="state-icon"
+          style="
+            color:#600000;
+            font:900 30px Orbitron;
+            margin-bottom:12px;
+          "
+        >
+          //
+        </div>
+
+        <strong>
+          NO CHART DATA YET
+        </strong>
+
+        <span>
+          There are currently no recorded
+          listening events for this chart period.
+          Start listening to CrowRules episodes
+          and the rankings will populate automatically.
+        </span>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  const previous =
+    activePeriod === "all"
+      ? []
+      : calculatePreviousRanking();
+
+
+  rankings.innerHTML =
+    chart.map(
+      (item,index) => {
+
+        const podcast =
+          item.podcast;
+
+
+        const episode =
+          latestEpisode(
+            podcast.id
+          );
+
+
+        const artwork =
+          podcast.artwork_url ||
+          episode?.thumbnail_url ||
+          "";
+
+
+        const category =
+          podcast.category ||
+          "CrowRules Podcasting";
+
+
+        const rank =
+          String(
+            index + 1
+          )
+          .padStart(
+            2,
+            "0"
+          );
+
+
+        const isNew =
+          activePeriod !== "all" &&
+          !previous.includes(
+            podcast.id
+          );
+
+
+        const playButton =
+          episode
+            ? `
+              <button
+                class="play"
+                type="button"
+                data-play="${escapeHTML(
+                  episode.id
+                )}"
+              >
+                LISTEN
+              </button>
+            `
+            : `
+              <a
+                class="play"
+                href="podcast.html?id=${encodeURIComponent(
+                  podcast.slug ||
+                  podcast.id
+                )}"
+              >
+                VIEW
+              </a>
+            `;
+
+
+        return `
+
+          <article
+            class="rank ${
+              index === 0
+                ? "first"
+                : ""
+            }"
+          >
+
+            <div class="num">
+              ${rank}
+            </div>
+
+
+            <div class="cover">
+
+              ${
+                artwork
+                  ? `
+                    <img
+                      src="${escapeHTML(
+                        artwork
+                      )}"
+                      alt=""
+                      loading="lazy"
+                      onerror="this.remove()"
+                    >
+                  `
+                  : ""
+              }
+
+              <span>
+                CR<br>
+                ${rank}
+              </span>
+
+            </div>
+
+
+            <div class="meta">
+
+              <h3>
+                ${escapeHTML(
+                  podcast.title ||
+                  "Untitled Podcast"
+                )}
+              </h3>
+
+              <p>
+                ${escapeHTML(
+                  category
+                )}
+                ·
+                ${
+                  podcast.is_live
+                    ? "LIVE"
+                    : "CrowRules Network"
+                }
+              </p>
+
+
+              <div class="badges">
+
+                ${
+                  isNew
+                    ? `
+                      <span class="badge hot">
+                        NEW
+                      </span>
+                    `
+                    : trendBadge(
+                        podcast.id
+                      )
+                }
+
+
+                ${
+                  podcast.is_featured
+                    ? `
+                      <span class="badge">
+                        FEATURED
+                      </span>
+                    `
+                    : ""
+                }
+
+
+                ${
+                  podcast.is_live
+                    ? `
+                      <span class="badge up">
+                        ON AIR
+                      </span>
+                    `
+                    : ""
+                }
+
+              </div>
+
+            </div>
+
+
+            <div class="score">
+
+              <strong>
+                ${formatNumber(
+                  item.listens
+                )}
+              </strong>
+
+              <small>
+                plays
+              </small>
+
+              ${playButton}
+
+            </div>
+
+          </article>
+
+        `;
+
+      }
+    )
+    .join("");
+
+
+  rankings
+    .querySelectorAll(
+      "[data-play]"
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const episode =
+              episodes.find(
+                item =>
+                  item.id ===
+                  button.dataset.play
+              );
+
+
+            if(
+              episode
+            ){
+
+              startEpisode(
+                episode
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   RENDER SIGNALS
+   ========================================================= */
+
+function renderSignals(){
+
+  const total =
+    calculatePeriodTotal();
+
+
+  const previous =
+    calculatePreviousTotal();
+
+
+  const change =
+    calculateMomentum();
+
+
+  const chart =
+    calculateChart();
+
+
+  weeklyPlays.textContent =
+    compactNumber(
+      total
+    );
+
+
+  if(
+    change === null
+  ){
+
+    momentum.textContent =
+      "—";
+
+  }else{
+
+    momentum.textContent =
+      (
+        change >= 0
+          ? "+"
+          : ""
+      ) +
+      change.toFixed(
+        0
+      ) +
+      "%";
+
+  }
+
+
+  newEntries.textContent =
+    String(
+      calculateNewEntries(
+        chart
+      )
+    );
+
+
+  totalShows.textContent =
+    formatNumber(
+      podcasts.length
+    );
+
+
+  if(
+    activePeriod ===
+    "week"
+  ){
+
+    periodLabel.textContent =
+      "Last 7 days";
+
+    chartLabel.textContent =
+      "This Week · Network Ranking";
+
+  }else if(
+    activePeriod ===
+    "month"
+  ){
+
+    periodLabel.textContent =
+      "Last 30 days";
+
+    chartLabel.textContent =
+      "This Month · Network Ranking";
+
+  }else{
+
+    periodLabel.textContent =
+      "All recorded activity";
+
+    chartLabel.textContent =
+      "All Time · Network Ranking";
+
+  }
+
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+function setOnline(){
+
+  statusLight.classList.remove(
+    "error"
+  );
+
+  statusText.textContent =
+    "Chart database online";
+
+  updated.textContent =
+    "UPDATED " +
+    new Date()
+      .toLocaleTimeString(
+        "en-US",
+        {
+          hour:"numeric",
+          minute:"2-digit"
+        }
+      );
+
+}
+
+
+function setOffline(){
+
+  statusLight.classList.add(
+    "error"
+  );
+
+  statusText.textContent =
+    "Chart database unavailable";
+
+  updated.textContent =
+    "OFFLINE";
+
+}
+
+
+/* =========================================================
+   LOAD ALL CHART DATA
+   ========================================================= */
+
+async function loadCharts(){
+
+  rankings.innerHTML = `
+
+    <div class="empty">
+
+      <div class="spinner"></div>
+
+      <strong>
+        UPDATING CHARTS
+      </strong>
+
+      <span>
+        Reading CrowRules Podcasting
+        listening activity...
+      </span>
+
+    </div>
+
+  `;
+
+
+  try{
+
+    await Promise.all([
+      loadPodcasts(),
+      loadEpisodes(),
+      loadListens(),
+      loadFollows()
+    ]);
+
+
+    renderChart();
+
+    renderSignals();
+
+    setOnline();
+
+
+  }catch(error){
+
+    console.error(
+      "Top 10 error:",
+      error
+    );
+
+
+    setOffline();
+
+
+    rankings.innerHTML = `
+
+      <div class="empty">
+
+        <strong>
+          CHART SIGNAL OFFLINE
+        </strong>
+
+        <span>
+          ${escapeHTML(
+            error?.message ||
+            "Unable to load chart data."
+          )}
+        </span>
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+/* =========================================================
+   PERIOD BUTTONS
+   ========================================================= */
+
+document
+  .querySelectorAll(
+    ".chip[data-period]"
+  )
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        async () => {
+
+          document
+            .querySelectorAll(
+              ".chip[data-period]"
+            )
+            .forEach(
+              item =>
+                item.classList.remove(
+                  "active"
+                )
+            );
+
+
+          button.classList.add(
+            "active"
+          );
+
+
+          activePeriod =
+            button.dataset.period;
+
+
+          renderChart();
+
+          renderSignals();
+
+        }
+      );
+
+    }
+  );
+
+
+/* =========================================================
+   REFRESH
+   ========================================================= */
+
+refreshButton.addEventListener(
+  "click",
+  async () => {
+
+    refreshButton.disabled =
+      true;
+
+    refreshButton.textContent =
+      "↻ Updating...";
+
+
+    await loadCharts();
+
+
+    refreshButton.disabled =
+      false;
+
+    refreshButton.textContent =
+      "↻ Refresh Charts";
+
+  }
+);
+
+
+/* =========================================================
+   PLAYER
+   ========================================================= */
+
+function startEpisode(
+  episode
+){
+
+  if(
+    !episode ||
+    !episode.audio_url
+  ){
+
+    showToast(
+      "No playable audio is available for this show."
+    );
+
+    return;
+
+  }
+
+
+  const podcast =
+    podcasts.find(
+      item =>
+        item.id ===
+        episode.podcast_id
+    );
+
+
+  currentEpisode =
+    episode;
+
+
+  currentQueue =
+    episodes
+      .filter(
+        item =>
+          item.audio_url
+      )
+      .sort(
+        (a,b) =>
+          new Date(
+            b.published_at ||
+            0
+          ) -
+          new Date(
+            a.published_at ||
+            0
+          )
+      );
+
+
+  currentIndex =
+    currentQueue.findIndex(
+      item =>
+        item.id ===
+        episode.id
+    );
+
+
+  nowTitle.textContent =
+    episode.title ||
+    "Untitled Episode";
+
+
+  nowShow.textContent =
+    podcast?.title ||
+    "CrowRules Podcasting";
+
+
+  audio.src =
+    episode.audio_url;
+
+
+  audio.load();
+
+
+  audio.play()
+    .catch(
+      () => {
+
+        playButton.textContent =
+          "▶";
+
+        showToast(
+          "Episode loaded. Press PLAY to start."
+        );
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   PLAY BUTTON
+   ========================================================= */
+
+playButton.addEventListener(
+  "click",
+  () => {
+
+    if(
+      !audio.src
+    ){
+
+      showToast(
+        "Select a podcast episode first."
+      );
+
+      return;
+
+    }
+
+
+    if(
+      audio.paused
+    ){
+
+      audio.play()
+        .catch(
+          console.error
+        );
+
+    }else{
+
+      audio.pause();
+
+    }
+
+  }
+);
+
+
+audio.addEventListener(
+  "play",
+  () => {
+
+    playButton.textContent =
+      "Ⅱ";
+
+  }
+);
+
+
+audio.addEventListener(
+  "pause",
+  () => {
+
+    playButton.textContent =
+      "▶";
+
+  }
+);
+
+
+/* =========================================================
+   AUTO NEXT
+   ========================================================= */
+
+audio.addEventListener(
+  "ended",
+  () => {
+
+    if(
+      !currentQueue.length
+    ){
+
+      return;
+
+    }
+
+
+    if(
+      currentIndex <
+      currentQueue.length - 1
+    ){
+
+      currentIndex++;
+
+    }else{
+
+      currentIndex =
+        0;
+
+    }
+
+
+    startEpisode(
+      currentQueue[
+        currentIndex
+      ]
+    );
+
+  }
+);
+
+
+/* =========================================================
+   PROGRESS
+   ========================================================= */
+
+audio.addEventListener(
+  "timeupdate",
+  () => {
+
+    const current =
+      audio.currentTime ||
+      0;
+
+    const duration =
+      audio.duration ||
+      0;
+
+
+    playerTime.textContent =
+      `${formatTime(current)} / ${formatTime(duration)}`;
+
+
+    if(
+      duration &&
+      Number.isFinite(
+        duration
+      )
+    ){
+
+      progress.style.width =
+        (
+          current /
+          duration *
+          100
+        ) +
+        "%";
+
+    }else{
+
+      progress.style.width =
+        "0%";
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   SEEK
+   ========================================================= */
+
+progressBar.addEventListener(
+  "click",
+  event => {
+
+    if(
+      !audio.duration ||
+      !Number.isFinite(
+        audio.duration
+      )
+    ){
+
+      return;
+
+    }
+
+
+    const rect =
+      progressBar.getBoundingClientRect();
+
+
+    const ratio =
+      (
+        event.clientX -
+        rect.left
+      ) /
+      rect.width;
+
+
+    audio.currentTime =
+      Math.max(
+        0,
+        Math.min(
+          1,
+          ratio
+        )
+      ) *
+      audio.duration;
+
+  }
+);
+
+
+/* =========================================================
+   MUTE
+   ========================================================= */
+
+muteButton.addEventListener(
+  "click",
+  () => {
+
+    audio.muted =
+      !audio.muted;
+
+
+    muteButton.textContent =
+      audio.muted
+        ? "🔇"
+        : "🔊";
+
+  }
+);
+
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
+
+loadCharts();
+
+
+/* =========================================================
+   AUTO REFRESH
+   ========================================================= */
+
+setInterval(
+  () => {
+
+    loadCharts();
+
+  },
+  60000
+);
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1940 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050505">
+<meta name="description" content="CrowRules Podcasting Newsroom — network news, creator updates, show announcements and broadcast signals.">
+
+<title>CrowRules Podcasting — Newsroom</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --bg:#050505;
+  --panel:#0b0b0b;
+  --panel2:#111;
+  --panel3:#161616;
+  --red:#c00000;
+  --bright:#ff2020;
+  --red2:#7d0000;
+  --text:#f5f5f5;
+  --muted:#8d8d8d;
+  --line:#292929;
+  --line2:#3b0000;
+  --shadow:0 0 30px rgba(192,0,0,.14);
+}
+
+*{box-sizing:border-box}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 80% 0%,rgba(192,0,0,.13),transparent 32%),
+    radial-gradient(circle at 0% 70%,rgba(192,0,0,.06),transparent 28%),
+    var(--bg);
+  color:var(--text);
+  font-family:Montserrat,Arial,sans-serif;
+}
+
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(rgba(255,255,255,.012) 50%,transparent 50%);
+  background-size:100% 4px;
+  opacity:.25;
+  z-index:30;
+}
+
+.scan{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.045;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent 0 3px,
+    #fff 4px
+  );
+  mix-blend-mode:screen;
+  z-index:40;
+}
+
+a{
+  color:inherit;
+}
+
+button,
+input,
+select{
+  font:inherit;
+}
+
+.wrap{
+  width:min(1240px,92%);
+  margin:auto;
+}
+
+/* HEADER */
+
+header{
+  position:sticky;
+  top:0;
+  z-index:25;
+  background:rgba(5,5,5,.94);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(14px);
+}
+
+.nav{
+  min-height:76px;
+  display:flex;
+  align-items:center;
+  gap:26px;
+}
+
+.brand{
+  font:800 18px Orbitron,sans-serif;
+  letter-spacing:2px;
+  color:#fff;
+  text-decoration:none;
+  white-space:nowrap;
+}
+
+.brand b{
+  color:var(--bright);
+}
+
+nav{
+  display:flex;
+  gap:18px;
+  flex:1;
+  overflow:auto;
+  scrollbar-width:none;
+}
+
+nav::-webkit-scrollbar{
+  display:none;
+}
+
+nav a{
+  color:#888;
+  text-decoration:none;
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  white-space:nowrap;
+}
+
+nav a:hover,
+nav a.active{
+  color:#fff;
+}
+
+.live{
+  font:800 10px Orbitron,sans-serif;
+  color:var(--bright);
+  border:1px solid #5c0000;
+  background:#100000;
+  padding:9px 11px;
+  white-space:nowrap;
+}
+
+/* HERO */
+
+.hero{
+  padding:82px 0 48px;
+  border-bottom:1px solid var(--line);
+  position:relative;
+  overflow:hidden;
+}
+
+.hero:after{
+  content:"NEWS//SIGNAL";
+  position:absolute;
+  right:-25px;
+  bottom:2px;
+  font:900 92px Orbitron,sans-serif;
+  color:rgba(255,32,32,.035);
+  transform:rotate(-7deg);
+  pointer-events:none;
+}
+
+.eyebrow{
+  color:var(--bright);
+  font:800 11px Orbitron,sans-serif;
+  letter-spacing:2px;
+  text-transform:uppercase;
+}
+
+.hero h1{
+  font:900 clamp(42px,7vw,86px) Orbitron,sans-serif;
+  margin:14px 0 12px;
+  line-height:.93;
+  text-transform:uppercase;
+}
+
+.hero p{
+  max-width:760px;
+  color:#999;
+  line-height:1.8;
+  font-size:14px;
+}
+
+/* TOOLS */
+
+.tools{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:28px;
+}
+
+.tools input,
+.tools select{
+  background:#090909;
+  color:#fff;
+  border:1px solid #333;
+  padding:13px 14px;
+  outline:none;
+}
+
+.tools input{
+  min-width:280px;
+  flex:1;
+}
+
+.tools input:focus,
+.tools select:focus{
+  border-color:var(--red);
+}
+
+.refresh{
+  border:1px solid #470000;
+  background:#120000;
+  color:#fff;
+  padding:13px 17px;
+  cursor:pointer;
+  font:800 10px Orbitron,sans-serif;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+
+.refresh:hover{
+  border-color:var(--bright);
+  color:var(--bright);
+}
+
+/* STATUS */
+
+.statusbar{
+  padding:13px 0;
+  border-bottom:1px solid var(--line);
+  background:#080808;
+}
+
+.statusin{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  color:#666;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+
+.statusleft{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.statusdot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#555;
+}
+
+.statusdot.online{
+  background:var(--bright);
+  box-shadow:0 0 12px var(--bright);
+}
+
+.statusmsg{
+  color:#888;
+}
+
+/* SECTIONS */
+
+.section{
+  padding:48px 0;
+}
+
+.sectionhead{
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  gap:20px;
+  margin-bottom:22px;
+}
+
+.section h2{
+  margin:0;
+  font:800 24px Orbitron,sans-serif;
+  text-transform:uppercase;
+}
+
+.count{
+  color:#666;
+  font-size:11px;
+}
+
+/* FEATURED */
+
+.featured{
+  display:grid;
+  grid-template-columns:1.25fr .75fr;
+  gap:18px;
+}
+
+.lead,
+.brief,
+.card{
+  background:
+    linear-gradient(145deg,#111,#090909);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+}
+
+.lead{
+  min-height:390px;
+  padding:31px;
+  display:flex;
+  flex-direction:column;
+  justify-content:end;
+  position:relative;
+  overflow:hidden;
+}
+
+.lead:hover{
+  border-color:#610000;
+}
+
+.lead:before{
+  content:"CR";
+  position:absolute;
+  right:-15px;
+  top:-65px;
+  font:900 250px Orbitron,sans-serif;
+  color:rgba(192,0,0,.075);
+  pointer-events:none;
+}
+
+.leadImage{
+  position:absolute;
+  inset:0;
+  background-size:cover;
+  background-position:center;
+  opacity:.26;
+  display:none;
+}
+
+.leadImage:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    to top,
+    #080808 0%,
+    rgba(8,8,8,.88) 42%,
+    rgba(8,8,8,.15) 100%
+  );
+}
+
+.leadContent{
+  position:relative;
+  z-index:2;
+}
+
+.tag{
+  display:inline-block;
+  width:max-content;
+  background:var(--red);
+  color:#fff;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:1px;
+  padding:7px 9px;
+  margin-bottom:15px;
+}
+
+.lead h3{
+  font:800 clamp(26px,4vw,46px) Orbitron,sans-serif;
+  max-width:800px;
+  margin:0 0 12px;
+  line-height:1.04;
+}
+
+.lead p{
+  color:#aaa;
+  line-height:1.7;
+  max-width:760px;
+  margin:0;
+  font-size:13px;
+}
+
+.meta{
+  font-size:10px;
+  color:#666;
+  margin-top:16px;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+}
+
+.leadLink{
+  display:inline-block;
+  margin-top:20px;
+  width:max-content;
+  padding:11px 15px;
+  border:1px solid #580000;
+  background:#120000;
+  color:#fff;
+  text-decoration:none;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+
+.leadLink:hover{
+  color:var(--bright);
+  border-color:var(--bright);
+}
+
+.side{
+  display:grid;
+  gap:18px;
+}
+
+.brief{
+  padding:23px;
+  min-height:185px;
+}
+
+.brief:hover{
+  border-color:#600000;
+}
+
+.brief .tag{
+  background:#1c1c1c;
+  color:#ff3030;
+}
+
+.brief h3{
+  font:700 19px Orbitron,sans-serif;
+  margin:2px 0 9px;
+  line-height:1.15;
+}
+
+.brief p{
+  font-size:12px;
+  color:#999;
+  line-height:1.65;
+  margin:0;
+}
+
+.briefMeta{
+  margin-top:13px;
+  color:#555;
+  font-size:9px;
+  text-transform:uppercase;
+}
+
+/* CARDS */
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.card{
+  padding:22px;
+  min-height:250px;
+  display:flex;
+  flex-direction:column;
+  transition:.2s;
+}
+
+.card:hover{
+  transform:translateY(-3px);
+  border-color:#600000;
+}
+
+.card .num{
+  font:800 10px Orbitron,sans-serif;
+  color:var(--bright);
+}
+
+.card h3{
+  font:700 19px Orbitron,sans-serif;
+  margin:13px 0 10px;
+  line-height:1.15;
+}
+
+.card p{
+  color:#999;
+  font-size:12px;
+  line-height:1.65;
+  margin:0;
+}
+
+.cardBottom{
+  margin-top:auto;
+}
+
+.cardMeta{
+  margin-top:18px;
+  color:#555;
+  font-size:9px;
+  text-transform:uppercase;
+}
+
+.read{
+  display:inline-block;
+  margin-top:13px;
+  color:#fff;
+  text-decoration:none;
+  font-size:10px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+
+.read:hover{
+  color:var(--bright);
+}
+
+/* LOADING */
+
+.loading{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.skeleton{
+  height:250px;
+  background:
+    linear-gradient(
+      90deg,
+      #0b0b0b,
+      #151515,
+      #0b0b0b
+    );
+  background-size:200% 100%;
+  animation:skeleton 1.4s infinite;
+  border:1px solid #222;
+}
+
+@keyframes skeleton{
+  0%{background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+
+/* EMPTY / ERROR */
+
+.empty{
+  display:none;
+  padding:45px 25px;
+  border:1px dashed #333;
+  text-align:center;
+  color:#777;
+}
+
+.empty strong{
+  display:block;
+  color:#aaa;
+  font:700 16px Orbitron,sans-serif;
+  margin-bottom:8px;
+}
+
+.error{
+  display:none;
+  padding:18px;
+  border:1px solid #500000;
+  background:#120000;
+  color:#ff7a7a;
+  font-size:12px;
+  line-height:1.6;
+}
+
+/* FOOTER */
+
+.footer{
+  border-top:1px solid var(--line);
+  padding:38px 0 115px;
+  color:#666;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+}
+
+/* PLAYER */
+
+.player{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  z-index:35;
+  background:rgba(8,8,8,.97);
+  border-top:1px solid #3d0000;
+  padding:12px 0;
+  backdrop-filter:blur(12px);
+}
+
+.playerin{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+
+.play{
+  width:43px;
+  height:43px;
+  border:1px solid var(--red);
+  background:#130000;
+  color:#fff;
+  cursor:pointer;
+  flex-shrink:0;
+}
+
+.play:hover{
+  border-color:var(--bright);
+  color:var(--bright);
+}
+
+.track{
+  flex:1;
+  min-width:0;
+}
+
+.track strong{
+  display:block;
+  font-size:11px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.track span{
+  display:block;
+  font-size:9px;
+  color:#666;
+  margin-top:3px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.bar{
+  height:3px;
+  background:#252525;
+  margin-top:7px;
+  position:relative;
+  overflow:hidden;
+}
+
+.bar i{
+  display:block;
+  width:0%;
+  height:100%;
+  background:var(--bright);
+  transition:width .2s linear;
+}
+
+.signal{
+  font:800 9px Orbitron,sans-serif;
+  color:var(--bright);
+  white-space:nowrap;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:900px){
+  .nav{
+    gap:14px;
+  }
+
+  .live{
+    display:none;
+  }
+
+  .featured{
+    grid-template-columns:1fr;
+  }
+
+  .grid,
+  .loading{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+@media(max-width:600px){
+  nav{
+    gap:12px;
+  }
+
+  .brand{
+    font-size:15px;
+  }
+
+  .hero{
+    padding:56px 0 38px;
+  }
+
+  .hero:after{
+    font-size:52px;
+  }
+
+  .tools input{
+    min-width:100%;
+  }
+
+  .tools select,
+  .refresh{
+    flex:1;
+  }
+
+  .grid,
+  .loading{
+    grid-template-columns:1fr;
+  }
+
+  .lead{
+    min-height:430px;
+    padding:24px;
+  }
+
+  .statusin{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .signal{
+    display:none;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="scan"></div>
+
+<header>
+  <div class="wrap nav">
+
+    <a class="brand" href="podcasting.html">
+      CROW<b>RULES</b> / PODCASTING
+    </a>
+
+    <nav>
+      <a href="podcasting.html">Home</a>
+      <a href="podcasts.html">Podcasts</a>
+      <a href="live.html">Live</a>
+      <a href="schedule.html">Schedule</a>
+      <a href="top.html">Top 10</a>
+      <a href="categories.html">Categories</a>
+      <a href="search.html">Search</a>
+      <a href="members.html">Members</a>
+      <a class="active" href="news.html">News</a>
+    </nav>
+
+    <span class="live">● ON AIR</span>
+
+  </div>
+</header>
+
+<main>
+
+<!-- HERO -->
+
+<section class="hero">
+
+  <div class="wrap">
+
+    <div class="eyebrow">
+      CrowRules Network / Signal Desk
+    </div>
+
+    <h1>
+      Podcasting<br>
+      News
+    </h1>
+
+    <p>
+      The latest CrowRules Podcasting announcements, creator updates,
+      show launches, programming changes, special events and network
+      stories — pulled directly from the CrowRules newsroom.
+    </p>
+
+    <div class="tools">
+
+      <input
+        id="search"
+        type="search"
+        placeholder="Search the newsroom..."
+        autocomplete="off"
+      >
+
+      <select id="filter">
+        <option value="all">All News</option>
+        <option value="network">Network</option>
+        <option value="shows">Shows</option>
+        <option value="creators">Creators</option>
+        <option value="events">Events</option>
+        <option value="charts">Charts</option>
+        <option value="discovery">Discovery</option>
+      </select>
+
+      <button class="refresh" id="refresh">
+        ↻ Refresh Signal
+      </button>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- STATUS -->
+
+<div class="statusbar">
+
+  <div class="wrap statusin">
+
+    <div class="statusleft">
+      <span class="statusdot" id="statusDot"></span>
+      <span id="statusText">CONNECTING TO NEWSROOM</span>
+    </div>
+
+    <span class="statusmsg" id="lastUpdated">
+      Waiting for signal...
+    </span>
+
+  </div>
+
+</div>
+
+<!-- LEAD -->
+
+<section class="section">
+
+  <div class="wrap">
+
+    <div class="sectionhead">
+      <h2>Lead Signal</h2>
+      <span class="count" id="leadStatus">
+        Latest featured story
+      </span>
+    </div>
+
+    <div class="featured">
+
+      <article class="lead" id="leadStory">
+
+        <div class="leadImage" id="leadImage"></div>
+
+        <div class="leadContent">
+
+          <span class="tag" id="leadTag">
+            NETWORK
+          </span>
+
+          <h3 id="leadTitle">
+            Loading newsroom signal...
+          </h3>
+
+          <p id="leadExcerpt">
+            Connecting to the CrowRules Podcasting newsroom.
+          </p>
+
+          <div class="meta" id="leadMeta">
+            CROW RULES NEWSROOM
+          </div>
+
+          <a
+            class="leadLink"
+            id="leadLink"
+            href="#latest"
+          >
+            Read Signal →
+          </a>
+
+        </div>
+
+      </article>
+
+      <div class="side" id="sideStories">
+
+        <article class="brief">
+          <span class="tag">SIGNAL</span>
+          <h3>Loading Newsroom</h3>
+          <p>
+            The latest CrowRules Podcasting stories are being retrieved.
+          </p>
+        </article>
+
+        <article class="brief">
+          <span class="tag">SYSTEM</span>
+          <h3>Connecting</h3>
+          <p>
+            Establishing a secure read connection to the CrowRules
+            newsroom database.
+          </p>
+        </article>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- LATEST -->
+
+<section class="section" id="latest">
+
+  <div class="wrap">
+
+    <div class="sectionhead">
+
+      <h2>Latest Signals</h2>
+
+      <span class="count" id="count">
+        Loading stories...
+      </span>
+
+    </div>
+
+    <div class="error" id="error"></div>
+
+    <div class="loading" id="loading">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="empty" id="empty">
+
+      <strong>No Newsroom Signals</strong>
+
+      No published stories match your current search or category filter.
+
+    </div>
+
+  </div>
+
+</section>
+
+</main>
+
+<footer class="footer">
+
+  <div class="wrap">
+    CROW RULES ENTERTAINMENT · PODCASTING NEWSROOM ·
+    INDEPENDENT BLACK / RED BROADCAST NETWORK
+  </div>
+
+</footer>
+
+<!-- PLAYER -->
+
+<div class="player">
+
+  <div class="wrap playerin">
+
+    <button
+      class="play"
+      id="play"
+      aria-label="Play audio"
+    >
+      ▶
+    </button>
+
+    <div class="track">
+
+      <strong id="track">
+        CrowRules Podcasting — Newsroom Signal
+      </strong>
+
+      <span id="trackSub">
+        Select an episode from the network to begin listening.
+      </span>
+
+      <div class="bar">
+        <i id="bar"></i>
+      </div>
+
+    </div>
+
+    <span class="signal">
+      ● LIVE
+    </span>
+
+  </div>
+
+</div>
+
+<script>
+
+/* =========================================================
+   CROWRULES PODCASTING — NEWSROOM
+   SUPABASE DATA LAYER
+   ========================================================= */
+
+const SUPABASE_URL =
+  "https://cevylpnoexugwgygvtgu.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
+
+const { createClient } =
+  supabase;
+
+const db =
+  createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth:{
+        persistSession:true,
+        autoRefreshToken:true,
+        detectSessionInUrl:true
+      }
+    }
+  );
+
+
+/* =========================================================
+   DOM
+   ========================================================= */
+
+const searchInput =
+  document.querySelector("#search");
+
+const filter =
+  document.querySelector("#filter");
+
+const refreshButton =
+  document.querySelector("#refresh");
+
+const grid =
+  document.querySelector("#grid");
+
+const loading =
+  document.querySelector("#loading");
+
+const empty =
+  document.querySelector("#empty");
+
+const errorBox =
+  document.querySelector("#error");
+
+const count =
+  document.querySelector("#count");
+
+const statusDot =
+  document.querySelector("#statusDot");
+
+const statusText =
+  document.querySelector("#statusText");
+
+const lastUpdated =
+  document.querySelector("#lastUpdated");
+
+const leadTitle =
+  document.querySelector("#leadTitle");
+
+const leadExcerpt =
+  document.querySelector("#leadExcerpt");
+
+const leadTag =
+  document.querySelector("#leadTag");
+
+const leadMeta =
+  document.querySelector("#leadMeta");
+
+const leadLink =
+  document.querySelector("#leadLink");
+
+const leadImage =
+  document.querySelector("#leadImage");
+
+const sideStories =
+  document.querySelector("#sideStories");
+
+const leadStatus =
+  document.querySelector("#leadStatus");
+
+const play =
+  document.querySelector("#play");
+
+const bar =
+  document.querySelector("#bar");
+
+const track =
+  document.querySelector("#track");
+
+const trackSub =
+  document.querySelector("#trackSub");
+
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+let articles = [];
+
+let filteredArticles = [];
+
+let loadingData = false;
+
+let playerTimer = null;
+
+let playerProgress = 0;
+
+let playerPlaying = false;
+
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+
+function escapeHTML(value){
+
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+
+function categoryLabel(category){
+
+  const labels = {
+    network:"NETWORK",
+    shows:"SHOWS",
+    creators:"CREATORS",
+    events:"EVENTS",
+    charts:"CHARTS",
+    discovery:"DISCOVERY"
+  };
+
+  return labels[category] || "NEWS";
+
+}
+
+
+function formatDate(value){
+
+  if(!value) return "DATE UNKNOWN";
+
+  const date =
+    new Date(value);
+
+  if(Number.isNaN(date.getTime()))
+    return "DATE UNKNOWN";
+
+  return date.toLocaleDateString(
+    undefined,
+    {
+      year:"numeric",
+      month:"short",
+      day:"numeric"
+    }
+  ).toUpperCase();
+
+}
+
+
+function formatDateTime(value){
+
+  if(!value) return "";
+
+  const date =
+    new Date(value);
+
+  if(Number.isNaN(date.getTime()))
+    return "";
+
+  return date.toLocaleString(
+    undefined,
+    {
+      year:"numeric",
+      month:"short",
+      day:"numeric",
+      hour:"numeric",
+      minute:"2-digit"
+    }
+  );
+
+}
+
+
+function slugify(value){
+
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g,"-")
+    .replace(/^-+|-+$/g,"");
+
+}
+
+
+function articleHref(article){
+
+  if(article.slug){
+    return "news-article.html?slug=" +
+      encodeURIComponent(article.slug);
+  }
+
+  return "#latest";
+
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+function setStatus(
+  online,
+  text,
+  timestamp = null
+){
+
+  statusDot.classList.toggle(
+    "online",
+    !!online
+  );
+
+  statusText.textContent =
+    text;
+
+  if(timestamp){
+
+    lastUpdated.textContent =
+      "LAST SIGNAL · " +
+      formatDateTime(timestamp);
+
+  }else{
+
+    lastUpdated.textContent =
+      "Waiting for signal...";
+
+  }
+
+}
+
+
+/* =========================================================
+   FETCH NEWS
+   ========================================================= */
+
+async function loadNews(){
+
+  if(loadingData)
+    return;
+
+  loadingData = true;
+
+  loading.style.display =
+    "grid";
+
+  grid.innerHTML = "";
+
+  empty.style.display =
+    "none";
+
+  errorBox.style.display =
+    "none";
+
+  setStatus(
+    false,
+    "CONNECTING TO NEWSROOM"
+  );
+
+  try{
+
+    const {
+      data,
+      error
+    } = await db
+      .from("podcast_newsroom_articles")
+      .select(`
+        id,
+        slug,
+        title,
+        excerpt,
+        body,
+        category,
+        author_name,
+        image_url,
+        related_podcast_id,
+        related_episode_id,
+        status,
+        is_featured,
+        published_at,
+        created_at,
+        updated_at
+      `)
+      .eq(
+        "status",
+        "published"
+      )
+      .lte(
+        "published_at",
+        new Date().toISOString()
+      )
+      .order(
+        "published_at",
+        {
+          ascending:false
+        }
+      );
+
+    if(error)
+      throw error;
+
+    articles =
+      Array.isArray(data)
+        ? data
+        : [];
+
+    setStatus(
+      true,
+      "NEWSROOM ONLINE",
+      new Date()
+    );
+
+    lastUpdated.textContent =
+      "LAST SYNC · " +
+      formatDateTime(new Date());
+
+    loading.style.display =
+      "none";
+
+    renderLead();
+
+    renderStories();
+
+  }catch(err){
+
+    console.error(
+      "CrowRules newsroom error:",
+      err
+    );
+
+    loading.style.display =
+      "none";
+
+    setStatus(
+      false,
+      "NEWSROOM CONNECTION ERROR"
+    );
+
+    errorBox.style.display =
+      "block";
+
+    errorBox.textContent =
+      "The newsroom signal could not be loaded. " +
+      (err?.message || "Please try again.");
+
+    articles = [];
+
+    renderLead();
+
+    renderStories();
+
+  }finally{
+
+    loadingData = false;
+
+  }
+
+}
+
+
+/* =========================================================
+   LEAD STORY
+   ========================================================= */
+
+function renderLead(){
+
+  if(!articles.length){
+
+    leadTag.textContent =
+      "NEWSROOM";
+
+    leadTitle.textContent =
+      "No Published Signal Yet";
+
+    leadExcerpt.textContent =
+      "The CrowRules Podcasting newsroom is ready for its first published story.";
+
+    leadMeta.textContent =
+      "CROWRULES NEWSROOM · STANDBY";
+
+    leadLink.href =
+      "#latest";
+
+    leadStatus.textContent =
+      "Awaiting published stories";
+
+    leadImage.style.display =
+      "none";
+
+    sideStories.innerHTML = "";
+
+    return;
+
+  }
+
+  const featured =
+    articles.find(
+      article =>
+        article.is_featured === true
+    ) || articles[0];
+
+  leadTag.textContent =
+    categoryLabel(
+      featured.category
+    );
+
+  leadTitle.textContent =
+    featured.title ||
+    "Untitled Signal";
+
+  leadExcerpt.textContent =
+    featured.excerpt ||
+    featured.body?.slice(0,240) ||
+    "No story excerpt available.";
+
+  leadMeta.textContent =
+    [
+      "CROWRULES NEWSROOM",
+      featured.author_name
+        ? "BY " + featured.author_name
+        : null,
+      formatDate(featured.published_at)
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
+  leadLink.href =
+    articleHref(featured);
+
+  if(featured.image_url){
+
+    leadImage.style.backgroundImage =
+      `url("${featured.image_url}")`;
+
+    leadImage.style.display =
+      "block";
+
+  }else{
+
+    leadImage.style.display =
+      "none";
+
+  }
+
+  leadStatus.textContent =
+    featured.is_featured
+      ? "Featured newsroom signal"
+      : "Latest newsroom signal";
+
+
+  const others =
+    articles
+      .filter(
+        article =>
+          article.id !== featured.id
+      )
+      .slice(0,2);
+
+  sideStories.innerHTML =
+    others.length
+      ? others.map(renderBrief).join("")
+      : `
+        <article class="brief">
+          <span class="tag">SYSTEM</span>
+          <h3>Newsroom Online</h3>
+          <p>
+            New CrowRules stories will appear here automatically
+            as they are published.
+          </p>
+          <div class="briefMeta">
+            LIVE NEWSROOM DATABASE
+          </div>
+        </article>
+      `;
+
+}
+
+
+/* =========================================================
+   BRIEF STORIES
+   ========================================================= */
+
+function renderBrief(article){
+
+  return `
+    <article class="brief">
+
+      <span class="tag">
+        ${escapeHTML(
+          categoryLabel(article.category)
+        )}
+      </span>
+
+      <h3>
+        ${escapeHTML(
+          article.title || "Untitled Signal"
+        )}
+      </h3>
+
+      <p>
+        ${escapeHTML(
+          article.excerpt ||
+          article.body?.slice(0,170) ||
+          ""
+        )}
+      </p>
+
+      <div class="briefMeta">
+        ${escapeHTML(
+          formatDate(article.published_at)
+        )}
+      </div>
+
+    </article>
+  `;
+
+}
+
+
+/* =========================================================
+   FILTER
+   ========================================================= */
+
+function applyFilters(){
+
+  const q =
+    searchInput.value
+      .toLowerCase()
+      .trim();
+
+  const category =
+    filter.value;
+
+  filteredArticles =
+    articles.filter(article => {
+
+      const haystack = [
+
+        article.title,
+        article.excerpt,
+        article.body,
+        article.category,
+        article.author_name,
+        article.slug
+
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      const matchesSearch =
+        !q ||
+        haystack.includes(q);
+
+      const matchesCategory =
+        category === "all" ||
+        article.category === category;
+
+      return (
+        matchesSearch &&
+        matchesCategory
+      );
+
+    });
+
+  renderGrid();
+
+}
+
+
+/* =========================================================
+   STORY GRID
+   ========================================================= */
+
+function renderStories(){
+
+  applyFilters();
+
+}
+
+
+function renderGrid(){
+
+  grid.innerHTML = "";
+
+  if(!filteredArticles.length){
+
+    count.textContent =
+      "0 visible stories";
+
+    empty.style.display =
+      "block";
+
+    return;
+
+  }
+
+  empty.style.display =
+    "none";
+
+  count.textContent =
+    filteredArticles.length +
+    (
+      filteredArticles.length === 1
+        ? " visible story"
+        : " visible stories"
+    );
+
+  grid.innerHTML =
+    filteredArticles
+      .map(renderCard)
+      .join("");
+
+}
+
+
+function renderCard(article){
+
+  const category =
+    categoryLabel(
+      article.category
+    );
+
+  const href =
+    articleHref(article);
+
+  const author =
+    article.author_name
+      ? "BY " + article.author_name
+      : "CROWRULES NEWSROOM";
+
+  return `
+    <article
+      class="card"
+      data-id="${escapeHTML(article.id)}"
+    >
+
+      <span class="num">
+        ${escapeHTML(category)}
+      </span>
+
+      <h3>
+        ${escapeHTML(
+          article.title ||
+          "Untitled Signal"
+        )}
+      </h3>
+
+      <p>
+        ${escapeHTML(
+          article.excerpt ||
+          article.body?.slice(0,240) ||
+          "No description available."
+        )}
+      </p>
+
+      <div class="cardBottom">
+
+        <div class="cardMeta">
+          ${escapeHTML(author)}
+          ·
+          ${escapeHTML(
+            formatDate(article.published_at)
+          )}
+        </div>
+
+        <a
+          class="read"
+          href="${href}"
+        >
+          Read Signal →
+        </a>
+
+      </div>
+
+    </article>
+  `;
+
+}
+
+
+/* =========================================================
+   SEARCH / FILTER EVENTS
+   ========================================================= */
+
+searchInput.addEventListener(
+  "input",
+  applyFilters
+);
+
+filter.addEventListener(
+  "change",
+  applyFilters
+);
+
+refreshButton.addEventListener(
+  "click",
+  async () => {
+
+    refreshButton.disabled =
+      true;
+
+    refreshButton.textContent =
+      "SYNCING...";
+
+    await loadNews();
+
+    refreshButton.disabled =
+      false;
+
+    refreshButton.textContent =
+      "↻ Refresh Signal";
+
+  }
+);
+
+
+/* =========================================================
+   AUDIO PLAYER
+   =========================================================
+
+   This player is intentionally lightweight.
+   Episode pages can replace this with the site's
+   global audio engine later.
+
+   ========================================================= */
+
+function stopPlayer(){
+
+  playerPlaying =
+    false;
+
+  clearInterval(
+    playerTimer
+  );
+
+  play.textContent =
+    "▶";
+
+}
+
+
+play.addEventListener(
+  "click",
+  () => {
+
+    playerPlaying =
+      !playerPlaying;
+
+    if(playerPlaying){
+
+      play.textContent =
+        "Ⅱ";
+
+      track.textContent =
+        "CrowRules Podcasting — Newsroom Signal";
+
+      trackSub.textContent =
+        "Preview mode · connect an episode to the player";
+
+      playerTimer =
+        setInterval(
+          () => {
+
+            playerProgress +=
+              .35;
+
+            if(playerProgress >= 100){
+
+              playerProgress =
+                0;
+
+            }
+
+            bar.style.width =
+              playerProgress + "%";
+
+          },
+          350
+        );
+
+    }else{
+
+      stopPlayer();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   OPTIONAL GLOBAL PLAYER API
+   ========================================================= */
+
+window.CrowRulesPodcastPlayer = {
+
+  playEpisode(episode){
+
+    if(!episode)
+      return;
+
+    track.textContent =
+      episode.title ||
+      "CrowRules Podcast Episode";
+
+    trackSub.textContent =
+      "CrowRules Podcasting";
+
+    playerProgress =
+      0;
+
+    bar.style.width =
+      "0%";
+
+    playerPlaying =
+      true;
+
+    play.textContent =
+      "Ⅱ";
+
+    clearInterval(
+      playerTimer
+    );
+
+    playerTimer =
+      setInterval(
+        () => {
+
+          playerProgress +=
+            .35;
+
+          if(playerProgress >= 100)
+            playerProgress = 0;
+
+          bar.style.width =
+            playerProgress + "%";
+
+        },
+        350
+      );
+
+  },
+
+  stop(){
+
+    stopPlayer();
+
+  }
+
+};
+
+
+/* =========================================================
+   AUTO REFRESH
+   ========================================================= */
+
+setInterval(
+  () => {
+
+    if(
+      document.visibilityState ===
+      "visible"
+    ){
+
+      loadNews();
+
+    }
+
+  },
+  60000
+);
+
+
+/* =========================================================
+   VISIBILITY REFRESH
+   ========================================================= */
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+
+    if(
+      document.visibilityState ===
+      "visible"
+    ){
+
+      loadNews();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   INITIAL LOAD
+   ========================================================= */
+
+loadNews();
+
+</script>
+
+</body>
+</html>
