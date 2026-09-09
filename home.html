@@ -1,45 +1,2728 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#050505"><meta name="description" content="CrowRules Podcasting — original shows, live audio, stories, commentary and creator channels.">
+
+<meta charset="utf-8">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,viewport-fit=cover"
+>
+
+<meta
+    name="theme-color"
+    content="#050505"
+>
+
+<meta
+    name="description"
+    content="CrowRules Podcasting — original shows, live audio, stories, commentary and creator channels."
+>
+
 <title>CrowRules Podcasting — The Voice of the Crow</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap"
+    rel="stylesheet"
+>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
-:root{--bg:#050505;--panel:#0c0c0c;--panel2:#141414;--red:#c00000;--hot:#ff2020;--darkred:#380000;--text:#f5f5f5;--muted:#888;--line:#272727;--max:1440px}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 75% -15%,#59000035,transparent 35%),radial-gradient(circle at 5% 45%,#3b000018,transparent 28%),var(--bg);color:var(--text);font-family:Montserrat,Arial,sans-serif;min-height:100vh}body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:99;opacity:.065;background:repeating-linear-gradient(0deg,transparent 0 3px,#fff 4px,#fff 4px);mix-blend-mode:overlay}.wrap{width:min(calc(100% - 32px),var(--max));margin:auto}.topline{height:3px;background:linear-gradient(90deg,transparent,var(--red),var(--hot),var(--red),transparent);box-shadow:0 0 25px #f00}.nav{position:sticky;top:0;z-index:50;background:#050505ef;border-bottom:1px solid #3a0000;backdrop-filter:blur(18px)}.navin{min-height:76px;display:flex;align-items:center;gap:24px}.brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none}.mark{width:43px;height:43px;background:var(--red);clip-path:polygon(0 0,100% 0,100% 73%,73% 100%,0 100%);display:grid;place-items:center;font:900 20px Orbitron;box-shadow:0 0 25px #c0000055}.mark:after{content:"C"}.brand strong{font:800 18px Orbitron;letter-spacing:1px}.brand small{display:block;color:#888;font-size:8px;letter-spacing:3px;margin-top:3px}.links{display:flex;gap:5px;margin-left:auto;overflow:auto}.links a{padding:12px 9px;color:#999;text-decoration:none;font:700 10px Orbitron;letter-spacing:.8px;white-space:nowrap}.links a:hover,.links a.active{color:#fff;background:#180000;border-bottom:2px solid var(--hot)}
-.hero{min-height:620px;display:grid;grid-template-columns:1.25fr .75fr;gap:30px;align-items:center;padding:72px 0 60px}.kicker{font:700 11px Orbitron;letter-spacing:4px;color:var(--hot)}h1,h2,h3{font-family:Orbitron}h1{font-size:clamp(46px,7vw,96px);line-height:.94;margin:16px 0 22px;letter-spacing:-2px;text-transform:uppercase}h1 span{color:var(--hot);text-shadow:0 0 35px #f002}.hero p{max-width:760px;color:#aaa;line-height:1.75;font-size:15px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:45px;padding:0 18px;border:1px solid #520000;background:#150000;color:#fff;text-decoration:none;font:800 10px Orbitron;letter-spacing:1.2px;cursor:pointer}.btn:hover{background:var(--red);border-color:var(--hot)}.btn.secondary{background:#0c0c0c;border-color:#333}.btn.secondary:hover{background:#181818;border-color:#777}.signal{position:relative;min-height:430px;border:1px solid #4c0000;background:linear-gradient(145deg,#150000,#080808 55%,#120000);padding:25px;box-shadow:0 25px 70px #000;overflow:hidden}.signal:before{content:"CR // BROADCAST NODE 001";position:absolute;top:14px;right:18px;color:#620000;font:700 8px Orbitron;letter-spacing:2px}.signalart{height:235px;border:1px solid #4b0000;background:radial-gradient(circle at 50% 45%,#8d000033,transparent 35%),linear-gradient(135deg,#250000,#050505 55%,#1d0000);display:grid;place-items:center;position:relative;overflow:hidden}.signalart:before{content:"CROW";font:900 clamp(52px,8vw,100px) Orbitron;color:#fff0;text-shadow:0 0 35px #f00;letter-spacing:8px}.signalart:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 18px,#ff000008 19px 20px)}.onair{display:flex;align-items:center;gap:9px;margin:18px 0 8px;font:800 11px Orbitron;letter-spacing:2px}.dot{width:9px;height:9px;border-radius:50%;background:var(--hot);box-shadow:0 0 16px var(--hot);animation:pulse 1s infinite}@keyframes pulse{50%{opacity:.35;transform:scale(.7)}}.signal h2{font-size:22px;margin:6px 0}.signal small{color:#777}.meter{height:38px;margin-top:20px;display:flex;align-items:end;gap:3px}.meter i{display:block;flex:1;background:var(--hot);height:var(--h);box-shadow:0 0 8px #f004;animation:meter 1s infinite alternate}@keyframes meter{to{transform:scaleY(.45)}}
-.section{padding:30px 0 52px}.sectionhead{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:20px}.sectionhead h2{font-size:25px;margin:0}.sectionhead span{font-size:10px;color:#666;letter-spacing:1px}.featuregrid{display:grid;grid-template-columns:1.3fr .7fr;gap:16px}.feature{min-height:330px;border:1px solid #3b0000;background:linear-gradient(135deg,#160000,#090909 60%,#180000);padding:28px;position:relative;overflow:hidden}.feature:after{content:"FEATURED SIGNAL";position:absolute;right:20px;top:18px;color:#690000;font:700 9px Orbitron;letter-spacing:2px}.feature .num{font:900 70px Orbitron;color:#ff202012;position:absolute;right:20px;bottom:-8px}.feature h3{font-size:29px;max-width:600px;margin:14px 0 10px}.feature p{color:#999;max-width:600px;line-height:1.65;font-size:12px}.tag{display:inline-block;border:1px solid #650000;background:#160000;color:#ff5b5b;padding:6px 8px;font:800 8px Orbitron;letter-spacing:1px}.miniGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.miniCard{border:1px solid #272727;background:#0d0d0d;padding:20px;min-height:157px}.miniCard:hover{border-color:#690000}.miniCard h3{font-size:16px;margin:10px 0 6px}.miniCard p{color:#777;font-size:10px;line-height:1.5;margin:0}.podgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.card{border:1px solid #242424;background:linear-gradient(150deg,#121212,#090909);overflow:hidden;transition:.2s}.card:hover{transform:translateY(-4px);border-color:#690000}.art{aspect-ratio:1/1;background:linear-gradient(135deg,#320000,#070707 58%,#220000);display:grid;place-items:center;position:relative}.art:before{content:"CR";font:900 55px Orbitron;color:#fff1}.art b{position:absolute;left:10px;top:10px;border:1px solid #720000;background:#000d;color:#ff6666;padding:6px 8px;font:800 8px Orbitron;letter-spacing:1px}.cardbody{padding:15px}.eyebrow{font-size:8px;color:#d33;letter-spacing:1.5px;font-weight:800;text-transform:uppercase}.card h3{font-size:15px;line-height:1.25;margin:7px 0}.card p{color:#777;font-size:10px;line-height:1.5;margin:0}.meta{display:flex;justify-content:space-between;margin-top:13px;color:#555;font-size:8px}.strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.box{border-left:2px solid var(--red);background:#0b0b0b;border-top:1px solid #222;border-right:1px solid #222;border-bottom:1px solid #222;padding:20px}.box strong{font:800 24px Orbitron}.box span{display:block;color:#777;font-size:9px;margin-top:6px}.cta{border:1px solid #4b0000;background:linear-gradient(100deg,#190000,#090909);padding:30px;display:flex;align-items:center;justify-content:space-between;gap:25px}.cta h2{margin:0 0 7px;font-size:24px}.cta p{margin:0;color:#888;font-size:11px}.footer{border-top:1px solid #222;padding:35px 0 110px;color:#666;font-size:10px}.footerin{display:flex;justify-content:space-between;gap:20px}.player{position:fixed;bottom:0;left:0;right:0;height:76px;z-index:80;background:#080808f7;border-top:1px solid #620000;backdrop-filter:blur(18px);box-shadow:0 -15px 50px #000}.playerin{height:100%;display:grid;grid-template-columns:270px 1fr 170px;align-items:center;gap:20px}.now{display:flex;align-items:center;gap:11px;min-width:0}.mini{width:46px;height:46px;background:linear-gradient(135deg,#500,#080808);border:1px solid #700;display:grid;place-items:center;font:900 12px Orbitron}.now b{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.now small{display:block;color:#666;font-size:8px;margin-top:3px}.controls{display:flex;align-items:center;gap:12px}.play{width:40px;height:40px;border:0;background:var(--red);color:#fff;cursor:pointer;clip-path:polygon(0 0,100% 0,100% 75%,75% 100%,0 100%)}.skip{border:0;background:none;color:#aaa;cursor:pointer;font-size:15px}.track{flex:1}.bar{height:4px;background:#292929;cursor:pointer}.bar i{display:block;height:100%;width:0;background:var(--hot);box-shadow:0 0 10px #f00}.times{display:flex;justify-content:space-between;color:#555;font-size:8px;margin-top:4px}.volume{display:flex;align-items:center;gap:7px;color:#666;font:800 8px Orbitron}.volume input{width:95px;accent-color:var(--hot)}
-@media(max-width:1050px){.podgrid{grid-template-columns:repeat(3,1fr)}.playerin{grid-template-columns:220px 1fr 120px}.volume input{width:65px}}@media(max-width:760px){.wrap{width:min(calc(100% - 20px),var(--max))}.navin{flex-wrap:wrap;padding:10px 0}.links{width:100%;order:3;margin:0}.hero{grid-template-columns:1fr;padding-top:42px;min-height:auto}.signal{min-height:370px}.featuregrid{grid-template-columns:1fr}.podgrid{grid-template-columns:repeat(2,1fr)}.strip{grid-template-columns:1fr}.cta{flex-direction:column;align-items:flex-start}.playerin{grid-template-columns:1fr auto;gap:8px}.track,.volume{display:none}.footerin{flex-direction:column}}@media(max-width:460px){.podgrid{grid-template-columns:1fr}.hero h1{font-size:43px}.miniGrid{grid-template-columns:1fr}.brand strong{font-size:15px}}
-</style></head>
+
+:root{
+    --bg:#050505;
+    --panel:#0c0c0c;
+    --panel2:#141414;
+    --red:#c00000;
+    --hot:#ff2020;
+    --darkred:#380000;
+    --text:#f5f5f5;
+    --muted:#888;
+    --line:#272727;
+    --max:1440px;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    margin:0;
+    background:
+        radial-gradient(circle at 75% -15%,#59000035,transparent 35%),
+        radial-gradient(circle at 5% 45%,#3b000018,transparent 28%),
+        var(--bg);
+    color:var(--text);
+    font-family:Montserrat,Arial,sans-serif;
+    min-height:100vh;
+}
+
+body:before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:99;
+    opacity:.065;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent 0 3px,
+            #fff 4px,
+            #fff 4px
+        );
+    mix-blend-mode:overlay;
+}
+
+.wrap{
+    width:min(calc(100% - 32px),var(--max));
+    margin:auto;
+}
+
+.topline{
+    height:3px;
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            var(--red),
+            var(--hot),
+            var(--red),
+            transparent
+        );
+    box-shadow:0 0 25px #f00;
+}
+
+.nav{
+    position:sticky;
+    top:0;
+    z-index:50;
+    background:#050505ef;
+    border-bottom:1px solid #3a0000;
+    backdrop-filter:blur(18px);
+}
+
+.navin{
+    min-height:76px;
+    display:flex;
+    align-items:center;
+    gap:24px;
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:#fff;
+    text-decoration:none;
+}
+
+.mark{
+    width:43px;
+    height:43px;
+    background:var(--red);
+    clip-path:
+        polygon(
+            0 0,
+            100% 0,
+            100% 73%,
+            73% 100%,
+            0 100%
+        );
+    display:grid;
+    place-items:center;
+    font:900 20px Orbitron;
+    box-shadow:0 0 25px #c0000055;
+}
+
+.mark:after{
+    content:"C";
+}
+
+.brand strong{
+    font:800 18px Orbitron;
+    letter-spacing:1px;
+}
+
+.brand small{
+    display:block;
+    color:#888;
+    font-size:8px;
+    letter-spacing:3px;
+    margin-top:3px;
+}
+
+.links{
+    display:flex;
+    gap:5px;
+    margin-left:auto;
+    overflow:auto;
+}
+
+.links a{
+    padding:12px 9px;
+    color:#999;
+    text-decoration:none;
+    font:700 10px Orbitron;
+    letter-spacing:.8px;
+    white-space:nowrap;
+}
+
+.links a:hover,
+.links a.active{
+    color:#fff;
+    background:#180000;
+    border-bottom:2px solid var(--hot);
+}
+
+.hero{
+    min-height:620px;
+    display:grid;
+    grid-template-columns:1.25fr .75fr;
+    gap:30px;
+    align-items:center;
+    padding:72px 0 60px;
+}
+
+.kicker{
+    font:700 11px Orbitron;
+    letter-spacing:4px;
+    color:var(--hot);
+}
+
+h1,
+h2,
+h3{
+    font-family:Orbitron;
+}
+
+h1{
+    font-size:clamp(46px,7vw,96px);
+    line-height:.94;
+    margin:16px 0 22px;
+    letter-spacing:-2px;
+    text-transform:uppercase;
+}
+
+h1 span{
+    color:var(--hot);
+    text-shadow:0 0 35px #f002;
+}
+
+.hero p{
+    max-width:760px;
+    color:#aaa;
+    line-height:1.75;
+    font-size:15px;
+}
+
+.actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:28px;
+}
+
+.btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:45px;
+    padding:0 18px;
+    border:1px solid #520000;
+    background:#150000;
+    color:#fff;
+    text-decoration:none;
+    font:800 10px Orbitron;
+    letter-spacing:1.2px;
+    cursor:pointer;
+}
+
+.btn:hover{
+    background:var(--red);
+    border-color:var(--hot);
+}
+
+.btn.secondary{
+    background:#0c0c0c;
+    border-color:#333;
+}
+
+.btn.secondary:hover{
+    background:#181818;
+    border-color:#777;
+}
+
+.signal{
+    position:relative;
+    min-height:430px;
+    border:1px solid #4c0000;
+    background:
+        linear-gradient(
+            145deg,
+            #150000,
+            #080808 55%,
+            #120000
+        );
+    padding:25px;
+    box-shadow:0 25px 70px #000;
+    overflow:hidden;
+}
+
+.signal:before{
+    content:"CR // BROADCAST NODE 001";
+    position:absolute;
+    top:14px;
+    right:18px;
+    color:#620000;
+    font:700 8px Orbitron;
+    letter-spacing:2px;
+}
+
+.signalart{
+    height:235px;
+    border:1px solid #4b0000;
+    background:
+        radial-gradient(
+            circle at 50% 45%,
+            #8d000033,
+            transparent 35%
+        ),
+        linear-gradient(
+            135deg,
+            #250000,
+            #050505 55%,
+            #1d0000
+        );
+    display:grid;
+    place-items:center;
+    position:relative;
+    overflow:hidden;
+}
+
+.signalart:before{
+    content:"CROW";
+    font:900 clamp(52px,8vw,100px) Orbitron;
+    color:#fff0;
+    text-shadow:0 0 35px #f00;
+    letter-spacing:8px;
+}
+
+.signalart:after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 18px,
+            #ff000008 19px 20px
+        );
+}
+
+.onair{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin:18px 0 8px;
+    font:800 11px Orbitron;
+    letter-spacing:2px;
+}
+
+.dot{
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    background:var(--hot);
+    box-shadow:0 0 16px var(--hot);
+    animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+    50%{
+        opacity:.35;
+        transform:scale(.7);
+    }
+}
+
+.signal h2{
+    font-size:22px;
+    margin:6px 0;
+}
+
+.signal small{
+    color:#777;
+}
+
+.meter{
+    height:38px;
+    margin-top:20px;
+    display:flex;
+    align-items:end;
+    gap:3px;
+}
+
+.meter i{
+    display:block;
+    flex:1;
+    background:var(--hot);
+    height:var(--h);
+    box-shadow:0 0 8px #f004;
+    animation:meter 1s infinite alternate;
+}
+
+@keyframes meter{
+    to{
+        transform:scaleY(.45);
+    }
+}
+
+.section{
+    padding:30px 0 52px;
+}
+
+.sectionhead{
+    display:flex;
+    align-items:end;
+    justify-content:space-between;
+    gap:20px;
+    margin-bottom:20px;
+}
+
+.sectionhead h2{
+    font-size:25px;
+    margin:0;
+}
+
+.sectionhead span{
+    font-size:10px;
+    color:#666;
+    letter-spacing:1px;
+}
+
+.featuregrid{
+    display:grid;
+    grid-template-columns:1.3fr .7fr;
+    gap:16px;
+}
+
+.feature{
+    min-height:330px;
+    border:1px solid #3b0000;
+    background:
+        linear-gradient(
+            135deg,
+            #160000,
+            #090909 60%,
+            #180000
+        );
+    padding:28px;
+    position:relative;
+    overflow:hidden;
+}
+
+.feature:after{
+    content:"FEATURED SIGNAL";
+    position:absolute;
+    right:20px;
+    top:18px;
+    color:#690000;
+    font:700 9px Orbitron;
+    letter-spacing:2px;
+}
+
+.feature .num{
+    font:900 70px Orbitron;
+    color:#ff202012;
+    position:absolute;
+    right:20px;
+    bottom:-8px;
+}
+
+.feature h3{
+    font-size:29px;
+    max-width:600px;
+    margin:14px 0 10px;
+}
+
+.feature p{
+    color:#999;
+    max-width:600px;
+    line-height:1.65;
+    font-size:12px;
+}
+
+.tag{
+    display:inline-block;
+    border:1px solid #650000;
+    background:#160000;
+    color:#ff5b5b;
+    padding:6px 8px;
+    font:800 8px Orbitron;
+    letter-spacing:1px;
+}
+
+.miniGrid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+}
+
+.miniCard{
+    border:1px solid #272727;
+    background:#0d0d0d;
+    padding:20px;
+    min-height:157px;
+}
+
+.miniCard:hover{
+    border-color:#690000;
+}
+
+.miniCard h3{
+    font-size:16px;
+    margin:10px 0 6px;
+}
+
+.miniCard p{
+    color:#777;
+    font-size:10px;
+    line-height:1.5;
+    margin:0;
+}
+
+.podgrid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+}
+
+.card{
+    border:1px solid #242424;
+    background:
+        linear-gradient(
+            150deg,
+            #121212,
+            #090909
+        );
+    overflow:hidden;
+    transition:.2s;
+    text-decoration:none;
+    color:#fff;
+}
+
+.card:hover{
+    transform:translateY(-4px);
+    border-color:#690000;
+}
+
+.art{
+    aspect-ratio:1/1;
+    background:
+        linear-gradient(
+            135deg,
+            #320000,
+            #070707 58%,
+            #220000
+        );
+    display:grid;
+    place-items:center;
+    position:relative;
+    overflow:hidden;
+}
+
+.art:before{
+    content:"CR";
+    font:900 55px Orbitron;
+    color:#fff1;
+}
+
+.art img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    position:absolute;
+    inset:0;
+}
+
+.art b{
+    position:absolute;
+    left:10px;
+    top:10px;
+    border:1px solid #720000;
+    background:#000d;
+    color:#ff6666;
+    padding:6px 8px;
+    font:800 8px Orbitron;
+    letter-spacing:1px;
+    z-index:2;
+}
+
+.cardbody{
+    padding:15px;
+}
+
+.eyebrow{
+    font-size:8px;
+    color:#d33;
+    letter-spacing:1.5px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+.card h3{
+    font-size:15px;
+    line-height:1.25;
+    margin:7px 0;
+}
+
+.card p{
+    color:#777;
+    font-size:10px;
+    line-height:1.5;
+    margin:0;
+}
+
+.meta{
+    display:flex;
+    justify-content:space-between;
+    margin-top:13px;
+    color:#555;
+    font-size:8px;
+}
+
+.strip{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+}
+
+.box{
+    border-left:2px solid var(--red);
+    background:#0b0b0b;
+    border-top:1px solid #222;
+    border-right:1px solid #222;
+    border-bottom:1px solid #222;
+    padding:20px;
+}
+
+.box strong{
+    font:800 24px Orbitron;
+}
+
+.box span{
+    display:block;
+    color:#777;
+    font-size:9px;
+    margin-top:6px;
+}
+
+.episode-row{
+    display:grid;
+    grid-template-columns:70px 1fr auto;
+    gap:15px;
+    align-items:center;
+    border:1px solid #222;
+    background:#0b0b0b;
+    padding:13px;
+    margin-bottom:8px;
+}
+
+.episode-row:hover{
+    border-color:#650000;
+}
+
+.episode-art{
+    width:70px;
+    aspect-ratio:1;
+    background:
+        linear-gradient(
+            135deg,
+            #350000,
+            #080808
+        );
+    display:grid;
+    place-items:center;
+    font:900 14px Orbitron;
+}
+
+.episode-info h3{
+    font-size:13px;
+    margin:0 0 5px;
+}
+
+.episode-info p{
+    color:#777;
+    font-size:9px;
+    margin:0;
+}
+
+.episode-meta{
+    color:#555;
+    font-size:8px;
+    text-align:right;
+}
+
+.play-episode{
+    border:1px solid #570000;
+    background:#160000;
+    color:#fff;
+    min-width:40px;
+    height:40px;
+    cursor:pointer;
+}
+
+.play-episode:hover{
+    background:var(--red);
+}
+
+.cta{
+    border:1px solid #4b0000;
+    background:
+        linear-gradient(
+            100deg,
+            #190000,
+            #090909
+        );
+    padding:30px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:25px;
+}
+
+.cta h2{
+    margin:0 0 7px;
+    font-size:24px;
+}
+
+.cta p{
+    margin:0;
+    color:#888;
+    font-size:11px;
+}
+
+.footer{
+    border-top:1px solid #222;
+    padding:35px 0 110px;
+    color:#666;
+    font-size:10px;
+}
+
+.footerin{
+    display:flex;
+    justify-content:space-between;
+    gap:20px;
+}
+
+.player{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    height:76px;
+    z-index:80;
+    background:#080808f7;
+    border-top:1px solid #620000;
+    backdrop-filter:blur(18px);
+    box-shadow:0 -15px 50px #000;
+}
+
+.playerin{
+    height:100%;
+    display:grid;
+    grid-template-columns:270px 1fr 170px;
+    align-items:center;
+    gap:20px;
+}
+
+.now{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    min-width:0;
+}
+
+.mini{
+    width:46px;
+    height:46px;
+    background:
+        linear-gradient(
+            135deg,
+            #500,
+            #080808
+        );
+    border:1px solid #700;
+    display:grid;
+    place-items:center;
+    font:900 12px Orbitron;
+    flex-shrink:0;
+}
+
+.now b{
+    display:block;
+    font-size:10px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.now small{
+    display:block;
+    color:#666;
+    font-size:8px;
+    margin-top:3px;
+}
+
+.controls{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.play{
+    width:40px;
+    height:40px;
+    border:0;
+    background:var(--red);
+    color:#fff;
+    cursor:pointer;
+    clip-path:
+        polygon(
+            0 0,
+            100% 0,
+            100% 75%,
+            75% 100%,
+            0 100%
+        );
+}
+
+.skip{
+    border:0;
+    background:none;
+    color:#aaa;
+    cursor:pointer;
+    font-size:15px;
+}
+
+.track{
+    flex:1;
+}
+
+.bar{
+    height:4px;
+    background:#292929;
+    cursor:pointer;
+}
+
+.bar i{
+    display:block;
+    height:100%;
+    width:0;
+    background:var(--hot);
+    box-shadow:0 0 10px #f00;
+}
+
+.times{
+    display:flex;
+    justify-content:space-between;
+    color:#555;
+    font-size:8px;
+    margin-top:4px;
+}
+
+.volume{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    color:#666;
+    font:800 8px Orbitron;
+}
+
+.volume input{
+    width:95px;
+    accent-color:var(--hot);
+}
+
+.loading{
+    border:1px solid #242424;
+    background:#0b0b0b;
+    padding:30px;
+    color:#666;
+    text-align:center;
+    font:700 10px Orbitron;
+    letter-spacing:1px;
+}
+
+.empty{
+    border:1px dashed #3a0000;
+    padding:30px;
+    text-align:center;
+    color:#666;
+    font-size:11px;
+}
+
+.error{
+    display:none;
+    position:fixed;
+    top:90px;
+    right:20px;
+    max-width:420px;
+    z-index:100;
+    padding:15px;
+    background:#180000;
+    border:1px solid #850000;
+    color:#ff8b8b;
+    font-size:10px;
+    box-shadow:0 15px 40px #000;
+}
+
+.status{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+}
+
+.status-dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:#555;
+}
+
+.status-dot.live{
+    background:var(--hot);
+    box-shadow:0 0 12px var(--hot);
+    animation:pulse 1s infinite;
+}
+
+@media(max-width:1050px){
+
+    .podgrid{
+        grid-template-columns:repeat(3,1fr);
+    }
+
+    .playerin{
+        grid-template-columns:220px 1fr 120px;
+    }
+
+    .volume input{
+        width:65px;
+    }
+
+}
+
+@media(max-width:760px){
+
+    .wrap{
+        width:min(calc(100% - 20px),var(--max));
+    }
+
+    .navin{
+        flex-wrap:wrap;
+        padding:10px 0;
+    }
+
+    .links{
+        width:100%;
+        order:3;
+        margin:0;
+    }
+
+    .hero{
+        grid-template-columns:1fr;
+        padding-top:42px;
+        min-height:auto;
+    }
+
+    .signal{
+        min-height:370px;
+    }
+
+    .featuregrid{
+        grid-template-columns:1fr;
+    }
+
+    .podgrid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .strip{
+        grid-template-columns:1fr;
+    }
+
+    .cta{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .playerin{
+        grid-template-columns:1fr auto;
+        gap:8px;
+    }
+
+    .track,
+    .volume{
+        display:none;
+    }
+
+    .footerin{
+        flex-direction:column;
+    }
+
+    .episode-row{
+        grid-template-columns:55px 1fr auto;
+    }
+
+    .episode-art{
+        width:55px;
+    }
+
+}
+
+@media(max-width:460px){
+
+    .podgrid{
+        grid-template-columns:1fr;
+    }
+
+    .hero h1{
+        font-size:43px;
+    }
+
+    .miniGrid{
+        grid-template-columns:1fr;
+    }
+
+    .brand strong{
+        font-size:15px;
+    }
+
+}
+
+</style>
+
+</head>
+
 <body>
+
 <div class="topline"></div>
-<header class="nav"><div class="wrap navin">
-<a class="brand" href="podcasting.html"><span class="mark"></span><span><strong>CROWRULES</strong><small>PODCASTING NETWORK</small></span></a>
-<nav class="links"><a class="active" href="podcasting.html">HOME</a><a href="podcasts.html">PODCASTS</a><a href="live.html">LIVE</a><a href="schedule.html">SCHEDULE</a><a href="top.html">TOP 10</a><a href="categories.html">CATEGORIES</a><a href="search.html">SEARCH</a><a href="members.html">MEMBERS</a></nav>
-</div></header>
+
+<div id="errorBox" class="error"></div>
+
+<header class="nav">
+
+<div class="wrap navin">
+
+<a class="brand" href="podcasting.html">
+
+<span class="mark"></span>
+
+<span>
+<strong>CROWRULES</strong>
+<small>PODCASTING NETWORK</small>
+</span>
+
+</a>
+
+<nav class="links">
+
+<a class="active" href="podcasting.html">HOME</a>
+<a href="podcasts.html">PODCASTS</a>
+<a href="live.html">LIVE</a>
+<a href="schedule.html">SCHEDULE</a>
+<a href="top.html">TOP 10</a>
+<a href="categories.html">CATEGORIES</a>
+<a href="search.html">SEARCH</a>
+<a href="members.html">MEMBERS</a>
+
+</nav>
+
+</div>
+
+</header>
+
+
 <main>
+
 <section class="wrap hero">
-<div><div class="kicker">CROWRULES ENTERTAINMENT // AUDIO DIVISION</div><h1>THE<br><span>VOICE</span><br>OF THE CROW.</h1><p>CrowRules Podcasting is the independent audio network for original shows, real conversations, strange stories, local voices, live broadcasts and creators building something different.</p><div class="actions"><a class="btn" href="podcasts.html">EXPLORE PODCASTS</a><a class="btn secondary" href="live.html">LISTEN LIVE</a></div></div>
-<div class="signal"><div class="signalart"></div><div class="onair"><i class="dot"></i> NETWORK STATUS // ONLINE</div><h2>THE SIGNAL IS OPEN.</h2><small>Original programming • 24/7 rotation • Creator channels</small><div class="meter"> <i style="--h:32%"></i><i style="--h:70%"></i><i style="--h:45%"></i><i style="--h:88%"></i><i style="--h:55%"></i><i style="--h:76%"></i><i style="--h:40%"></i><i style="--h:92%"></i><i style="--h:62%"></i><i style="--h:75%"></i><i style="--h:35%"></i><i style="--h:68%"></i><i style="--h:50%"></i><i style="--h:82%"></i><i style="--h:44%"></i><i style="--h:72%"></i></div></div>
+
+<div>
+
+<div class="kicker">
+CROWRULES ENTERTAINMENT // AUDIO DIVISION
+</div>
+
+<h1>
+THE<br>
+<span>VOICE</span><br>
+OF THE CROW.
+</h1>
+
+<p>
+CrowRules Podcasting is the independent audio network for original
+shows, real conversations, strange stories, local voices, live
+broadcasts and creators building something different.
+</p>
+
+<div class="actions">
+
+<a class="btn" href="podcasts.html">
+EXPLORE PODCASTS
+</a>
+
+<a class="btn secondary" href="live.html">
+LISTEN LIVE
+</a>
+
+</div>
+
+</div>
+
+
+<div class="signal">
+
+<div class="signalart"></div>
+
+<div class="onair">
+
+<i id="networkDot" class="dot"></i>
+
+<span id="networkStatus">
+NETWORK STATUS // ONLINE
+</span>
+
+</div>
+
+<h2 id="liveTitle">
+THE SIGNAL IS OPEN.
+</h2>
+
+<small id="liveDescription">
+Loading network signal...
+</small>
+
+<div class="meter">
+
+<i style="--h:32%"></i>
+<i style="--h:70%"></i>
+<i style="--h:45%"></i>
+<i style="--h:88%"></i>
+<i style="--h:55%"></i>
+<i style="--h:76%"></i>
+<i style="--h:40%"></i>
+<i style="--h:92%"></i>
+<i style="--h:62%"></i>
+<i style="--h:75%"></i>
+<i style="--h:35%"></i>
+<i style="--h:68%"></i>
+<i style="--h:50%"></i>
+<i style="--h:82%"></i>
+<i style="--h:44%"></i>
+<i style="--h:72%"></i>
+
+</div>
+
+</div>
+
 </section>
-<section class="wrap section"><div class="sectionhead"><h2>NOW TRANSMITTING</h2><span>LIVE NETWORK SIGNAL</span></div><div class="featuregrid"><article class="feature"><span class="tag">ON AIR NOW</span><h3>THE CROW IS ALWAYS LISTENING.</h3><p>Enter the live CrowRules audio feed for scheduled shows, creator broadcasts and special events. This panel is ready to connect to your Supabase-powered live event and schedule tables.</p><div class="actions"><a class="btn" href="live.html">OPEN LIVE ROOM</a><a class="btn secondary" href="schedule.html">VIEW SCHEDULE</a></div><span class="num">01</span></article><div class="miniGrid"><article class="miniCard"><span class="tag">NEW</span><h3>Original Series</h3><p>Discover new CrowRules voices, stories and experimental audio.</p><a class="btn secondary" style="margin-top:15px" href="podcasts.html">BROWSE</a></article><article class="miniCard"><span class="tag">24/7</span><h3>Broadcast Grid</h3><p>See what is playing, what is next and what just aired.</p><a class="btn secondary" style="margin-top:15px" href="schedule.html">GUIDE</a></article><article class="miniCard"><span class="tag">TOP 10</span><h3>Network Charts</h3><p>Find the shows and episodes gaining the most attention.</p><a class="btn secondary" style="margin-top:15px" href="top.html">CHARTS</a></article><article class="miniCard"><span class="tag">CREATORS</span><h3>Make Your Signal</h3><p>Publish, schedule and manage a CrowRules podcast channel.</p><a class="btn secondary" style="margin-top:15px" href="creator.html">STUDIO</a></article></div></div></section>
-<section class="wrap section"><div class="sectionhead"><h2>FEATURED PODCASTS</h2><span>EDITORIAL ROTATION</span></div><div class="podgrid">
-<a class="card" href="podcast.html?id=voices-from-the-void"><div class="art"><b>ORIGINAL</b></div><div class="cardbody"><span class="eyebrow">STORIES</span><h3>Voices From The Void</h3><p>Stories from the edge of the signal.</p><div class="meta"><span>18 EPISODES</span><span>FEATURED</span></div></div></a>
-<a class="card" href="podcast.html?id=tacoma-nights"><div class="art"><b>TACOMA</b></div><div class="cardbody"><span class="eyebrow">TALK</span><h3>Tacoma Nights</h3><p>Local voices. Real conversations. After dark.</p><div class="meta"><span>24 EPISODES</span><span>NEW</span></div></div></a>
-<a class="card" href="podcast.html?id=back-deck-live"><div class="art"><b>LIVE</b></div><div class="cardbody"><span class="eyebrow">COMMENTARY</span><h3>Back Deck Live</h3><p>The weekend conversation from the CrowRules deck.</p><div class="meta"><span>16 EPISODES</span><span>LIVE</span></div></div></a>
-<a class="card" href="podcast.html?id=bird-brains"><div class="art"><b>CR</b></div><div class="cardbody"><span class="eyebrow">CULTURE</span><h3>Bird Brains</h3><p>Ideas, chaos and conversations that refuse to stay quiet.</p><div class="meta"><span>12 EPISODES</span><span>ORIGINAL</span></div></div></a>
-</div></section>
-<section class="wrap section"><div class="sectionhead"><h2>LATEST EPISODES</h2><span>FRESH SIGNALS</span></div><div class="strip"><div class="box"><strong>01</strong><span>New episode ready to transmit</span><a class="btn secondary" style="margin-top:14px" href="episode.html?episode=latest">LISTEN</a></div><div class="box"><strong>24/7</strong><span>Scheduled audio rotation</span><a class="btn secondary" style="margin-top:14px" href="schedule.html">TV GUIDE STYLE</a></div><div class="box"><strong>∞</strong><span>Independent creator channels</span><a class="btn secondary" style="margin-top:14px" href="creator.html">ENTER STUDIO</a></div></div></section>
-<section class="wrap section"><div class="cta"><div><h2>YOUR VOICE BELONGS ON THE NETWORK.</h2><p>Create a show, publish episodes, build an audience and become part of the CrowRules signal.</p></div><a class="btn" href="creator.html">ENTER CREATOR STUDIO</a></div></section>
+
+
+<section class="wrap section">
+
+<div class="sectionhead">
+
+<h2>NOW TRANSMITTING</h2>
+
+<span>
+<span class="status">
+<i id="scheduleDot" class="status-dot"></i>
+<span id="scheduleStatus">NETWORK FEED</span>
+</span>
+</span>
+
+</div>
+
+
+<div class="featuregrid">
+
+<article class="feature">
+
+<span class="tag" id="liveBadge">
+NETWORK
+</span>
+
+<h3 id="featureTitle">
+THE CROW IS ALWAYS LISTENING.
+</h3>
+
+<p id="featureDescription">
+Loading the current CrowRules Podcasting transmission...
+</p>
+
+<div class="actions">
+
+<button
+    class="btn"
+    id="liveListenBtn"
+    type="button"
+>
+OPEN LIVE ROOM
+</button>
+
+<a
+    class="btn secondary"
+    href="schedule.html"
+>
+VIEW SCHEDULE
+</a>
+
+</div>
+
+<span class="num">
+01
+</span>
+
+</article>
+
+
+<div class="miniGrid">
+
+<article class="miniCard">
+
+<span class="tag">
+NEW
+</span>
+
+<h3>
+Original Series
+</h3>
+
+<p>
+Discover new CrowRules voices, stories and experimental audio.
+</p>
+
+<a
+    class="btn secondary"
+    style="margin-top:15px"
+    href="podcasts.html"
+>
+BROWSE
+</a>
+
+</article>
+
+
+<article class="miniCard">
+
+<span class="tag">
+24/7
+</span>
+
+<h3>
+Broadcast Grid
+</h3>
+
+<p>
+See what is playing, what is next and what just aired.
+</p>
+
+<a
+    class="btn secondary"
+    style="margin-top:15px"
+    href="schedule.html"
+>
+GUIDE
+</a>
+
+</article>
+
+
+<article class="miniCard">
+
+<span class="tag">
+TOP 10
+</span>
+
+<h3>
+Network Charts
+</h3>
+
+<p>
+Find the shows and episodes gaining the most attention.
+</p>
+
+<a
+    class="btn secondary"
+    style="margin-top:15px"
+    href="top.html"
+>
+CHARTS
+</a>
+
+</article>
+
+
+<article class="miniCard">
+
+<span class="tag">
+CREATORS
+</span>
+
+<h3>
+Make Your Signal
+</h3>
+
+<p>
+Publish, schedule and manage a CrowRules podcast channel.
+</p>
+
+<a
+    class="btn secondary"
+    style="margin-top:15px"
+    href="creator.html"
+>
+STUDIO
+</a>
+
+</article>
+
+</div>
+
+</div>
+
+</section>
+
+
+<section class="wrap section">
+
+<div class="sectionhead">
+
+<h2>
+FEATURED PODCASTS
+</h2>
+
+<span>
+LIVE FROM SUPABASE
+</span>
+
+</div>
+
+<div
+    id="podcastGrid"
+    class="podgrid"
+>
+
+<div class="loading">
+LOADING PODCAST NETWORK...
+</div>
+
+</div>
+
+</section>
+
+
+<section class="wrap section">
+
+<div class="sectionhead">
+
+<h2>
+LATEST EPISODES
+</h2>
+
+<span>
+FRESH SIGNALS
+</span>
+
+</div>
+
+<div id="latestEpisodes">
+
+<div class="loading">
+LOADING EPISODES...
+</div>
+
+</div>
+
+</section>
+
+
+<section class="wrap section">
+
+<div class="sectionhead">
+
+<h2>
+NETWORK DATA
+</h2>
+
+<span>
+LIVE DATABASE
+</span>
+
+</div>
+
+<div class="strip">
+
+<div class="box">
+
+<strong id="statShows">
+0
+</strong>
+
+<span>
+ACTIVE PODCASTS
+</span>
+
+</div>
+
+<div class="box">
+
+<strong id="statEpisodes">
+0
+</strong>
+
+<span>
+PUBLISHED EPISODES
+</span>
+
+</div>
+
+<div class="box">
+
+<strong id="statLive">
+OFFLINE
+</strong>
+
+<span>
+NETWORK SIGNAL
+</span>
+
+</div>
+
+</div>
+
+</section>
+
+
+<section class="wrap section">
+
+<div class="cta">
+
+<div>
+
+<h2>
+YOUR VOICE BELONGS ON THE NETWORK.
+</h2>
+
+<p>
+Create a show, publish episodes, build an audience and become part
+of the CrowRules signal.
+</p>
+
+</div>
+
+<a
+    class="btn"
+    href="creator.html"
+>
+ENTER CREATOR STUDIO
+</a>
+
+</div>
+
+</section>
+
 </main>
-<footer class="footer"><div class="wrap footerin"><span>© 2026 CrowRules Entertainment / CrowRules Podcasting</span><span>BLACK / RED • INDEPENDENT • ORIGINAL</span></div></footer>
-<div class="player"><div class="wrap playerin"><div class="now"><div class="mini">CR</div><div><b id="nowTitle">Select an episode</b><small id="nowShow">CrowRules Podcasting</small></div></div><div class="controls"><button class="skip" id="back">↶</button><button class="play" id="play">▶</button><button class="skip" id="next">↷</button><div class="track"><div class="bar" id="bar"><i id="fill"></i></div><div class="times"><span id="cur">0:00</span><span id="dur">0:00</span></div></div></div><div class="volume">VOL <input id="vol" type="range" min="0" max="1" step=".01" value=".8"></div></div></div>
-<audio id="audio" preload="metadata"></audio>
+
+
+<footer class="footer">
+
+<div class="wrap footerin">
+
+<span>
+© 2026 CrowRules Entertainment / CrowRules Podcasting
+</span>
+
+<span>
+BLACK / RED • INDEPENDENT • ORIGINAL
+</span>
+
+</div>
+
+</footer>
+
+
+<!-- ==========================================================
+     AUDIO PLAYER
+========================================================== -->
+
+<div class="player">
+
+<div class="wrap playerin">
+
+<div class="now">
+
+<div class="mini">
+CR
+</div>
+
+<div>
+
+<b id="nowTitle">
+Select an episode
+</b>
+
+<small id="nowShow">
+CrowRules Podcasting
+</small>
+
+</div>
+
+</div>
+
+
+<div class="controls">
+
+<button
+    class="skip"
+    id="back"
+    title="Back 15 seconds"
+>
+↶
+</button>
+
+<button
+    class="play"
+    id="play"
+    title="Play"
+>
+▶
+</button>
+
+<button
+    class="skip"
+    id="next"
+    title="Forward 30 seconds"
+>
+↷
+</button>
+
+<div class="track">
+
+<div
+    class="bar"
+    id="bar"
+>
+<i id="fill"></i>
+</div>
+
+<div class="times">
+
+<span id="cur">
+0:00
+</span>
+
+<span id="dur">
+0:00
+</span>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="volume">
+
+VOL
+
+<input
+    id="vol"
+    type="range"
+    min="0"
+    max="1"
+    step=".01"
+    value=".8"
+>
+
+</div>
+
+</div>
+
+</div>
+
+
+<audio
+    id="audio"
+    preload="metadata"
+></audio>
+
+
 <script>
-const audio=document.getElementById('audio'),play=document.getElementById('play'),bar=document.getElementById('bar'),fill=document.getElementById('fill'),vol=document.getElementById('vol');
-let saved=localStorage.getItem('crpod-volume');if(saved!==null)vol.value=saved;audio.volume=+vol.value;
-play.onclick=()=>{if(audio.paused){if(!audio.src){document.getElementById('nowTitle').textContent='Choose an episode';return}audio.play()}else audio.pause()};audio.onplay=()=>play.textContent='Ⅱ';audio.onpause=()=>play.textContent='▶';audio.ontimeupdate=()=>{const p=audio.duration?audio.currentTime/audio.duration*100:0;fill.style.width=p+'%';document.getElementById('cur').textContent=fmt(audio.currentTime);document.getElementById('dur').textContent=fmt(audio.duration)};vol.oninput=()=>{audio.volume=+vol.value;localStorage.setItem('crpod-volume',vol.value)};bar.onclick=e=>{if(audio.duration)audio.currentTime=((e.clientX-bar.getBoundingClientRect().left)/bar.clientWidth)*audio.duration};document.getElementById('back').onclick=()=>audio.currentTime=Math.max(0,audio.currentTime-15);document.getElementById('next').onclick=()=>audio.currentTime=Math.min(audio.duration||0,audio.currentTime+30);function fmt(s){if(!isFinite(s))return'0:00';s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+
+/* ==========================================================
+   CROWRULES PODCASTING
+   SUPABASE CONFIGURATION
+========================================================== */
+
+const SUPABASE_URL =
+    "https://cevylpnoexugwgygvtgu.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
+
+
+/* ==========================================================
+   SUPABASE CLIENT
+========================================================== */
+
+const {
+    createClient
+} = window.supabase;
+
+const db = createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY,
+    {
+        auth:{
+            persistSession:true,
+            autoRefreshToken:true,
+            detectSessionInUrl:true
+        }
+    }
+);
+
+
+/* ==========================================================
+   DOM
+========================================================== */
+
+const podcastGrid =
+    document.getElementById("podcastGrid");
+
+const latestEpisodes =
+    document.getElementById("latestEpisodes");
+
+const errorBox =
+    document.getElementById("errorBox");
+
+const audio =
+    document.getElementById("audio");
+
+const playButton =
+    document.getElementById("play");
+
+const bar =
+    document.getElementById("bar");
+
+const fill =
+    document.getElementById("fill");
+
+const volume =
+    document.getElementById("vol");
+
+const nowTitle =
+    document.getElementById("nowTitle");
+
+const nowShow =
+    document.getElementById("nowShow");
+
+const currentTime =
+    document.getElementById("cur");
+
+const duration =
+    document.getElementById("dur");
+
+let currentEpisode = null;
+
+let listenStarted = false;
+
+let listenTimer = null;
+
+
+/* ==========================================================
+   ERROR DISPLAY
+========================================================== */
+
+function showError(message){
+
+    console.error(message);
+
+    errorBox.textContent =
+        "CROWRULES PODCASTING ERROR: " + message;
+
+    errorBox.style.display = "block";
+
+    setTimeout(() => {
+
+        errorBox.style.display = "none";
+
+    },8000);
+
+}
+
+
+/* ==========================================================
+   FORMATTERS
+========================================================== */
+
+function escapeHTML(value){
+
+    if(value === null || value === undefined){
+        return "";
+    }
+
+    return String(value)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+}
+
+
+function formatDuration(seconds){
+
+    if(!seconds || !isFinite(seconds)){
+        return "0:00";
+    }
+
+    seconds =
+        Math.floor(seconds);
+
+    const minutes =
+        Math.floor(seconds / 60);
+
+    const secs =
+        seconds % 60;
+
+    return (
+        minutes +
+        ":" +
+        String(secs).padStart(2,"0")
+    );
+}
+
+
+function formatDate(value){
+
+    if(!value){
+        return "";
+    }
+
+    const date =
+        new Date(value);
+
+    return date.toLocaleDateString(
+        undefined,
+        {
+            month:"short",
+            day:"numeric",
+            year:"numeric"
+        }
+    );
+}
+
+
+/* ==========================================================
+   LOAD PODCASTS
+========================================================== */
+
+async function loadPodcasts(){
+
+    podcastGrid.innerHTML =
+        `<div class="loading">
+            LOADING PODCAST NETWORK...
+        </div>`;
+
+    const {
+        data,
+        error
+    } = await db
+        .from("cr_podcasts")
+        .select("*")
+        .eq("status","active")
+        .eq("featured",true)
+        .order("created_at",{
+            ascending:false
+        })
+        .limit(8);
+
+    if(error){
+
+        showError(error.message);
+
+        podcastGrid.innerHTML =
+            `<div class="empty">
+                PODCAST NETWORK UNAVAILABLE.
+            </div>`;
+
+        return [];
+
+    }
+
+    if(!data || !data.length){
+
+        podcastGrid.innerHTML =
+            `<div class="empty">
+                NO FEATURED PODCASTS YET.
+            </div>`;
+
+        return [];
+
+    }
+
+    podcastGrid.innerHTML =
+        data.map(podcast => {
+
+            const cover =
+                podcast.cover_url
+                    ? `<img
+                        src="${escapeHTML(podcast.cover_url)}"
+                        alt="${escapeHTML(podcast.title)}"
+                        loading="lazy"
+                    >`
+                    : "";
+
+            const badge =
+                podcast.is_original
+                    ? "ORIGINAL"
+                    : podcast.is_live
+                        ? "LIVE"
+                        : "FEATURED";
+
+            return `
+
+            <a
+                class="card"
+                href="podcast.html?id=${encodeURIComponent(podcast.slug)}"
+            >
+
+                <div class="art">
+
+                    ${cover}
+
+                    <b>
+                        ${escapeHTML(badge)}
+                    </b>
+
+                </div>
+
+                <div class="cardbody">
+
+                    <span class="eyebrow">
+                        ${escapeHTML(
+                            podcast.category || "PODCAST"
+                        )}
+                    </span>
+
+                    <h3>
+                        ${escapeHTML(podcast.title)}
+                    </h3>
+
+                    <p>
+                        ${escapeHTML(
+                            podcast.description ||
+                            "Original CrowRules programming."
+                        )}
+                    </p>
+
+                    <div class="meta">
+
+                        <span>
+                            ${Number(
+                                podcast.episode_count || 0
+                            )} EPISODES
+                        </span>
+
+                        <span>
+                            ${escapeHTML(
+                                podcast.is_original
+                                    ? "ORIGINAL"
+                                    : "NETWORK"
+                            )}
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+            `;
+
+        }).join("");
+
+    return data;
+}
+
+
+/* ==========================================================
+   LOAD LATEST EPISODES
+========================================================== */
+
+async function loadLatestEpisodes(){
+
+    latestEpisodes.innerHTML =
+        `<div class="loading">
+            LOADING EPISODES...
+        </div>`;
+
+    const {
+        data,
+        error
+    } = await db
+        .from("cr_podcast_episodes")
+        .select(`
+            id,
+            slug,
+            title,
+            description,
+            audio_url,
+            cover_url,
+            duration_seconds,
+            episode_number,
+            season_number,
+            published_at,
+            podcast_id,
+            cr_podcasts (
+                title,
+                slug,
+                cover_url
+            )
+        `)
+        .eq("is_published",true)
+        .order("published_at",{
+            ascending:false
+        })
+        .limit(6);
+
+    if(error){
+
+        showError(error.message);
+
+        latestEpisodes.innerHTML =
+            `<div class="empty">
+                EPISODE FEED UNAVAILABLE.
+            </div>`;
+
+        return [];
+
+    }
+
+    if(!data || !data.length){
+
+        latestEpisodes.innerHTML =
+            `<div class="empty">
+                NO PUBLISHED EPISODES YET.
+            </div>`;
+
+        return [];
+
+    }
+
+    latestEpisodes.innerHTML =
+        data.map(episode => {
+
+            const podcast =
+                episode.cr_podcasts || {};
+
+            const artwork =
+                episode.cover_url ||
+                podcast.cover_url;
+
+            return `
+
+            <article class="episode-row">
+
+                <div class="episode-art">
+
+                    ${
+                        artwork
+                            ? `<img
+                                src="${escapeHTML(artwork)}"
+                                alt=""
+                                style="width:100%;height:100%;object-fit:cover"
+                            >`
+                            : "CR"
+                    }
+
+                </div>
+
+                <div class="episode-info">
+
+                    <h3>
+                        ${escapeHTML(
+                            episode.title
+                        )}
+                    </h3>
+
+                    <p>
+
+                        ${escapeHTML(
+                            podcast.title ||
+                            "CrowRules Podcasting"
+                        )}
+
+                        •
+
+                        ${escapeHTML(
+                            formatDate(
+                                episode.published_at
+                            )
+                        )}
+
+                        ${
+                            episode.duration_seconds
+                                ? " • " +
+                                  formatDuration(
+                                      episode.duration_seconds
+                                  )
+                                : ""
+                        }
+
+                    </p>
+
+                </div>
+
+                <div>
+
+                    <button
+                        class="play-episode"
+                        type="button"
+                        data-episode-id="${escapeHTML(
+                            episode.id
+                        )}"
+                    >
+                        ▶
+                    </button>
+
+                </div>
+
+            </article>
+
+            `;
+
+        }).join("");
+
+    document
+        .querySelectorAll(".play-episode")
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                async event => {
+
+                    event.preventDefault();
+
+                    const id =
+                        button.dataset.episodeId;
+
+                    const episode =
+                        data.find(
+                            item =>
+                                item.id === id
+                        );
+
+                    if(episode){
+
+                        await playEpisode(
+                            episode
+                        );
+
+                    }
+
+                }
+            );
+
+        });
+
+    return data;
+}
+
+
+/* ==========================================================
+   LOAD LIVE BROADCAST
+========================================================== */
+
+async function loadLiveBroadcast(){
+
+    const {
+        data,
+        error
+    } = await db
+        .from("cr_podcast_live")
+        .select("*")
+        .order("updated_at",{
+            ascending:false
+        })
+        .limit(1)
+        .maybeSingle();
+
+    if(error){
+
+        showError(error.message);
+
+        return;
+
+    }
+
+    if(!data){
+
+        return;
+
+    }
+
+    const isLive =
+        Boolean(data.is_live);
+
+    document.getElementById(
+        "networkStatus"
+    ).textContent =
+        isLive
+            ? "NETWORK STATUS // LIVE"
+            : "NETWORK STATUS // STANDBY";
+
+    document.getElementById(
+        "liveTitle"
+    ).textContent =
+        data.title ||
+        "THE SIGNAL IS OPEN.";
+
+    document.getElementById(
+        "liveDescription"
+    ).textContent =
+        data.description ||
+        "CrowRules Podcasting network signal.";
+
+    document.getElementById(
+        "featureTitle"
+    ).textContent =
+        data.show_name ||
+        data.title ||
+        "THE CROW IS ALWAYS LISTENING.";
+
+    document.getElementById(
+        "featureDescription"
+    ).textContent =
+        data.description ||
+        "Enter the CrowRules Podcasting network.";
+
+    document.getElementById(
+        "liveBadge"
+    ).textContent =
+        isLive
+            ? "ON AIR NOW"
+            : "NETWORK";
+
+    document.getElementById(
+        "networkDot"
+    ).classList.toggle(
+        "live",
+        isLive
+    );
+
+    document.getElementById(
+        "scheduleDot"
+    ).classList.toggle(
+        "live",
+        isLive
+    );
+
+    document.getElementById(
+        "scheduleStatus"
+    ).textContent =
+        isLive
+            ? "LIVE NETWORK SIGNAL"
+            : "NETWORK FEED READY";
+
+    document.getElementById(
+        "statLive"
+    ).textContent =
+        isLive
+            ? "LIVE"
+            : "OFFLINE";
+
+    const liveButton =
+        document.getElementById(
+            "liveListenBtn"
+        );
+
+    liveButton.onclick = () => {
+
+        if(data.stream_url){
+
+            window.location.href =
+                "live.html";
+
+        }else{
+
+            window.location.href =
+                "live.html";
+
+        }
+
+    };
+
+}
+
+
+/* ==========================================================
+   LOAD STATISTICS
+========================================================== */
+
+async function loadStats(){
+
+    const podcastsResult =
+        await db
+            .from("cr_podcasts")
+            .select(
+                "id",
+                {
+                    count:"exact",
+                    head:true
+                }
+            )
+            .eq("status","active");
+
+    if(!podcastsResult.error){
+
+        document.getElementById(
+            "statShows"
+        ).textContent =
+            podcastsResult.count || 0;
+
+    }
+
+
+    const episodesResult =
+        await db
+            .from("cr_podcast_episodes")
+            .select(
+                "id",
+                {
+                    count:"exact",
+                    head:true
+                }
+            )
+            .eq("is_published",true);
+
+    if(!episodesResult.error){
+
+        document.getElementById(
+            "statEpisodes"
+        ).textContent =
+            episodesResult.count || 0;
+
+    }
+
+}
+
+
+/* ==========================================================
+   PLAY EPISODE
+========================================================== */
+
+async function playEpisode(episode){
+
+    if(!episode){
+
+        return;
+
+    }
+
+    if(!episode.audio_url){
+
+        showError(
+            "This episode does not have an audio URL yet."
+        );
+
+        return;
+
+    }
+
+    currentEpisode =
+        episode;
+
+    audio.src =
+        episode.audio_url;
+
+    audio.load();
+
+    nowTitle.textContent =
+        episode.title ||
+        "CrowRules Episode";
+
+    nowShow.textContent =
+        episode.cr_podcasts?.title ||
+        "CrowRules Podcasting";
+
+    listenStarted =
+        false;
+
+    try{
+
+        await audio.play();
+
+    }catch(error){
+
+        console.warn(
+            "Browser blocked autoplay.",
+            error
+        );
+
+    }
+
+}
+
+
+/* ==========================================================
+   AUDIO PLAYER
+========================================================== */
+
+let savedVolume =
+    localStorage.getItem(
+        "crpod-volume"
+    );
+
+if(savedVolume !== null){
+
+    volume.value =
+        savedVolume;
+
+}
+
+audio.volume =
+    Number(volume.value);
+
+
+playButton.addEventListener(
+    "click",
+    async () => {
+
+        if(!audio.src){
+
+            showError(
+                "Select an episode first."
+            );
+
+            return;
+
+        }
+
+        if(audio.paused){
+
+            try{
+
+                await audio.play();
+
+            }catch(error){
+
+                showError(
+                    "Unable to play this audio file."
+                );
+
+            }
+
+        }else{
+
+            audio.pause();
+
+        }
+
+    }
+);
+
+
+audio.addEventListener(
+    "play",
+    () => {
+
+        playButton.textContent =
+            "Ⅱ";
+
+        startListenTracking();
+
+    }
+);
+
+
+audio.addEventListener(
+    "pause",
+    () => {
+
+        playButton.textContent =
+            "▶";
+
+        stopListenTracking();
+
+    }
+);
+
+
+audio.addEventListener(
+    "ended",
+    () => {
+
+        playButton.textContent =
+            "▶";
+
+        stopListenTracking();
+
+        recordListen(
+            true
+        );
+
+    }
+);
+
+
+audio.addEventListener(
+    "timeupdate",
+    () => {
+
+        const percent =
+            audio.duration
+                ? (
+                    audio.currentTime /
+                    audio.duration
+                ) * 100
+                : 0;
+
+        fill.style.width =
+            percent + "%";
+
+        currentTime.textContent =
+            formatDuration(
+                audio.currentTime
+            );
+
+        duration.textContent =
+            formatDuration(
+                audio.duration
+            );
+
+    }
+);
+
+
+volume.addEventListener(
+    "input",
+    () => {
+
+        audio.volume =
+            Number(volume.value);
+
+        localStorage.setItem(
+            "crpod-volume",
+            volume.value
+        );
+
+    }
+);
+
+
+bar.addEventListener(
+    "click",
+    event => {
+
+        if(!audio.duration){
+
+            return;
+
+        }
+
+        const rect =
+            bar.getBoundingClientRect();
+
+        const position =
+            (
+                event.clientX -
+                rect.left
+            ) /
+            rect.width;
+
+        audio.currentTime =
+            position *
+            audio.duration;
+
+    }
+);
+
+
+document
+    .getElementById("back")
+    .addEventListener(
+        "click",
+        () => {
+
+            audio.currentTime =
+                Math.max(
+                    0,
+                    audio.currentTime - 15
+                );
+
+        }
+    );
+
+
+document
+    .getElementById("next")
+    .addEventListener(
+        "click",
+        () => {
+
+            audio.currentTime =
+                Math.min(
+                    audio.duration || 0,
+                    audio.currentTime + 30
+                );
+
+        }
+    );
+
+
+/* ==========================================================
+   LISTEN TRACKING
+========================================================== */
+
+function startListenTracking(){
+
+    if(!currentEpisode){
+
+        return;
+
+    }
+
+    if(listenStarted){
+
+        return;
+
+    }
+
+    listenStarted =
+        true;
+
+    stopListenTracking();
+
+    listenTimer =
+        setInterval(
+            () => {
+
+                if(
+                    currentEpisode &&
+                    audio.currentTime > 0
+                ){
+
+                    recordListen(
+                        false
+                    );
+
+                }
+
+            },
+            30000
+        );
+
+}
+
+
+function stopListenTracking(){
+
+    if(listenTimer){
+
+        clearInterval(
+            listenTimer
+        );
+
+        listenTimer =
+            null;
+
+    }
+
+}
+
+
+async function recordListen(
+    completed
+){
+
+    if(!currentEpisode){
+
+        return;
+
+    }
+
+    try{
+
+        await db
+            .from(
+                "cr_podcast_listens"
+            )
+            .insert({
+
+                episode_id:
+                    currentEpisode.id,
+
+                session_id:
+                    getSessionId(),
+
+                seconds_listened:
+                    Math.floor(
+                        audio.currentTime || 0
+                    ),
+
+                completed:
+                    Boolean(completed)
+
+            });
+
+    }catch(error){
+
+        console.warn(
+            "Listen tracking failed:",
+            error
+        );
+
+    }
+
+}
+
+
+/* ==========================================================
+   SESSION ID
+========================================================== */
+
+function getSessionId(){
+
+    let id =
+        localStorage.getItem(
+            "crpod-session"
+        );
+
+    if(!id){
+
+        id =
+            crypto.randomUUID();
+
+        localStorage.setItem(
+            "crpod-session",
+            id
+        );
+
+    }
+
+    return id;
+
+}
+
+
+/* ==========================================================
+   REALTIME
+========================================================== */
+
+function setupRealtime(){
+
+    db
+        .channel(
+            "cr-podcasting-network"
+        )
+
+        .on(
+            "postgres_changes",
+            {
+                event:"*",
+                schema:"public",
+                table:"cr_podcasts"
+            },
+            () => {
+
+                loadPodcasts();
+                loadStats();
+
+            }
+        )
+
+        .on(
+            "postgres_changes",
+            {
+                event:"*",
+                schema:"public",
+                table:"cr_podcast_episodes"
+            },
+            () => {
+
+                loadLatestEpisodes();
+                loadStats();
+                loadPodcasts();
+
+            }
+        )
+
+        .on(
+            "postgres_changes",
+            {
+                event:"*",
+                schema:"public",
+                table:"cr_podcast_live"
+            },
+            () => {
+
+                loadLiveBroadcast();
+
+            }
+        )
+
+        .subscribe();
+
+}
+
+
+/* ==========================================================
+   INITIALIZE
+========================================================== */
+
+async function init(){
+
+    if(
+        SUPABASE_URL.includes(
+            "YOUR_SUPABASE"
+        ) ||
+        SUPABASE_PUBLISHABLE_KEY.includes(
+            "YOUR_SUPABASE"
+        )
+    ){
+
+        showError(
+            "Add your Supabase Project URL and Publishable Key to podcasting.html."
+        );
+
+    }
+
+    await Promise.all([
+        loadPodcasts(),
+        loadLatestEpisodes(),
+        loadLiveBroadcast(),
+        loadStats()
+    ]);
+
+    setupRealtime();
+
+}
+
+
+init();
+
 </script>
-</body></html>
+
+</body>
+</html>
