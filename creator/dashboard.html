@@ -430,7 +430,7 @@ h1{
     <a href="episodes.html">Episodes</a>
     <a href="live.html">Live</a>
     <a href="top10.html">Top 10</a>
-    <a href="creator/dashboard.html">Creator Hub</a>
+    <a href="creator-dashboard.html">Creator Hub</a>
   </nav>
 
   <div class="auth">
@@ -612,388 +612,534 @@ h1{
 <script src="assets/js/supabase.js"></script>
 
 <script>
+"use strict";
 
 let client = null;
 let dashboard = null;
 
-
-/* ------------------------------
-   SUPABASE CLIENT
------------------------------- */
-
-function getClient(){
-
-  if(window.crowSupabase){
-    return window.crowSupabase;
-  }
-
-  if(window.supabaseClient){
-    return window.supabaseClient;
-  }
-
-  if(window.Crow && typeof window.Crow.client === "function"){
-    return window.Crow.client();
-  }
-
-  return null;
-}
-
-
-/* ------------------------------
+/* =========================================================
    HELPERS
------------------------------- */
+========================================================= */
 
-function escapeHTML(value){
-
+function escapeHTML(value) {
   return String(value ?? "")
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
-
-function number(value){
-
+function number(value) {
   return new Intl.NumberFormat("en-US")
-    .format(Number(value || 0));
-
+    .format(Number(value) || 0);
 }
 
+function date(value) {
+  if (!value) return "—";
 
-function date(value){
+  const d = new Date(value);
 
-  if(!value) return "—";
-
-  return new Intl.DateTimeFormat("en-US",{
-    month:"short",
-    day:"numeric",
-    year:"numeric"
-  }).format(new Date(value));
-
-}
-
-
-function setStatus(text,type=""){
-
-  const el=document.getElementById("status");
-
-  el.textContent=text;
-
-  el.className="status "+type;
-
-}
-
-
-/* ------------------------------
-   AUTH
------------------------------- */
-
-async function checkAuth(){
-
-  const {data,error}=await client.auth.getUser();
-
-  if(error || !data.user){
-
-    location.href="login.html";
-
-    return null;
-
+  if (Number.isNaN(d.getTime())) {
+    return "—";
   }
 
-  const user=data.user;
-
-  const label=
-    user.user_metadata?.display_name ||
-    user.user_metadata?.username ||
-    user.email ||
-    "Creator";
-
-  document.getElementById("authUser").innerHTML=
-    "<strong>"+escapeHTML(label)+"</strong>";
-
-  document.getElementById("logoutBtn").style.display="inline-flex";
-
-  return user;
-
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  }).format(d);
 }
 
+function setStatus(text, type = "") {
+  const el = document.getElementById("status");
 
-/* ------------------------------
-   LOAD DASHBOARD
------------------------------- */
+  el.textContent = text;
+  el.className = "status";
 
-async function loadDashboard(){
+  if (type) {
+    el.classList.add(type);
+  }
+}
 
-  setStatus("Loading creator data...");
+/* =========================================================
+   AUTH
+========================================================= */
 
-  const {data,error}=await client
-    .rpc("get_podcast_creator_dashboard");
+async function checkAuth() {
 
-  if(error){
-
-    console.error(error);
-
+  if (!client) {
     setStatus(
-      "Unable to load your creator dashboard: "+error.message,
+      "Supabase client is not initialized.",
       "error"
     );
 
-    return;
-
+    return null;
   }
 
-  dashboard=data;
+  const {
+    data,
+    error
+  } = await client.auth.getUser();
+
+  if (error) {
+
+    console.error(
+      "CrowRules Podcasting authentication error:",
+      error
+    );
+
+    setStatus(
+      "Authentication error: " + error.message,
+      "error"
+    );
+
+    return null;
+  }
+
+  if (!data || !data.user) {
+
+    window.location.href = "login.html";
+
+    return null;
+  }
+
+  const user = data.user;
+
+  const metadata =
+    user.user_metadata || {};
+
+  const label =
+    metadata.display_name ||
+    metadata.username ||
+    metadata.full_name ||
+    user.email ||
+    "Creator";
+
+  document.getElementById("authUser").innerHTML =
+    "<strong>" +
+    escapeHTML(label) +
+    "</strong>";
+
+  document.getElementById("logoutBtn").style.display =
+    "inline-flex";
+
+  return user;
+}
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+async function loadDashboard() {
+
+  setStatus(
+    "Loading your creator dashboard..."
+  );
+
+  const {
+    data,
+    error
+  } = await client.rpc(
+    "get_podcast_creator_dashboard"
+  );
+
+  if (error) {
+
+    console.error(
+      "Creator dashboard RPC error:",
+      error
+    );
+
+    setStatus(
+      "Unable to load your creator dashboard: " +
+      error.message,
+      "error"
+    );
+
+    return false;
+  }
+
+  if (!data) {
+
+    setStatus(
+      "No creator dashboard data was returned.",
+      "error"
+    );
+
+    return false;
+  }
+
+  dashboard = data;
 
   renderStats(data);
 
-  renderPodcasts(data.podcasts || []);
+  renderPodcasts(
+    Array.isArray(data.podcasts)
+      ? data.podcasts
+      : []
+  );
 
-  renderEpisodes(data.recent_episodes || []);
+  renderEpisodes(
+    Array.isArray(data.recent_episodes)
+      ? data.recent_episodes
+      : []
+  );
 
   setStatus(
     "Creator dashboard connected to Supabase.",
     "success"
   );
 
+  return true;
 }
 
-
-/* ------------------------------
+/* =========================================================
    STATS
------------------------------- */
+========================================================= */
 
-function renderStats(data){
+function renderStats(data) {
 
   document.getElementById("podcastCount")
-    .textContent=number(data.podcast_count);
+    .textContent =
+      number(data.podcast_count);
 
   document.getElementById("episodeCount")
-    .textContent=number(data.episode_count);
+    .textContent =
+      number(data.episode_count);
 
   document.getElementById("totalPlays")
-    .textContent=number(data.total_plays);
+    .textContent =
+      number(data.total_plays);
 
   document.getElementById("totalListeners")
-    .textContent=number(data.total_listeners);
+    .textContent =
+      number(data.total_listeners);
 
   document.getElementById("publishedPodcasts")
-    .textContent=number(data.published_podcasts);
+    .textContent =
+      number(data.published_podcasts);
 
   document.getElementById("publishedEpisodes")
-    .textContent=number(data.published_episodes);
-
+    .textContent =
+      number(data.published_episodes);
 }
 
-
-/* ------------------------------
+/* =========================================================
    PODCASTS
------------------------------- */
+========================================================= */
 
-function renderPodcasts(items){
+function renderPodcasts(items) {
 
-  const grid=document.getElementById("podcastGrid");
+  const grid =
+    document.getElementById("podcastGrid");
 
-  if(!items.length){
+  if (!items.length) {
 
-    grid.innerHTML=`
+    grid.innerHTML = `
       <div class="empty">
+
         <h3>No podcasts yet</h3>
+
         <p>
           Create your first CrowRules Podcasting show
           and start building your audience.
         </p>
-        <a class="btn" href="create-podcast.html">
+
+        <a
+          class="btn"
+          href="create-podcast.html"
+        >
           Create Your First Podcast
         </a>
+
       </div>
     `;
 
     return;
-
   }
 
-  grid.innerHTML=items.map(p=>{
+  grid.innerHTML =
+    items.map(p => {
 
-    const status=
-      p.status==="published"
-      ? "published"
-      : "draft";
+      const status =
+        String(p.status || "")
+          .toLowerCase();
 
-    return `
+      const statusClass =
+        status === "published"
+          ? "published"
+          : "draft";
 
-      <article class="card">
+      return `
+        <article class="card">
 
-        <h3>${escapeHTML(p.title)}</h3>
+          <h3>
+            ${escapeHTML(
+              p.title || "Untitled Podcast"
+            )}
+          </h3>
 
-        <div class="card-meta">
+          <div class="card-meta">
 
-          <span class="badge ${status}">
-            ${escapeHTML(p.status)}
-          </span>
+            <span class="badge ${statusClass}">
+              ${escapeHTML(
+                p.status || "draft"
+              )}
+            </span>
 
-          ${
-            p.is_live
-            ? `<span class="badge published">LIVE</span>`
-            : ""
-          }
+            ${
+              p.is_live
+                ? `
+                  <span class="badge published">
+                    LIVE
+                  </span>
+                `
+                : ""
+            }
 
-          ${
-            p.is_featured
-            ? `<span class="badge">FEATURED</span>`
-            : ""
-          }
+            ${
+              p.is_featured
+                ? `
+                  <span class="badge">
+                    FEATURED
+                  </span>
+                `
+                : ""
+            }
 
-        </div>
+          </div>
 
-        <p>
-          ${escapeHTML(
-            p.description ||
-            "No description added yet."
-          )}
-        </p>
+          <p>
+            ${escapeHTML(
+              p.description ||
+              "No description added yet."
+            )}
+          </p>
 
-        <div class="card-footer">
+          <div class="card-footer">
 
-          <span>
-            ${number(p.total_plays)} plays
-          </span>
+            <span>
+              ${number(p.total_plays)}
+              plays
+            </span>
 
-          <span>
-            Updated ${date(p.updated_at)}
-          </span>
+            <span>
+              Updated
+              ${date(p.updated_at)}
+            </span>
 
-        </div>
+          </div>
 
-      </article>
+        </article>
+      `;
 
-    `;
-
-  }).join("");
-
+    }).join("");
 }
 
-
-/* ------------------------------
+/* =========================================================
    EPISODES
------------------------------- */
+========================================================= */
 
-function renderEpisodes(items){
+function renderEpisodes(items) {
 
-  const grid=document.getElementById("episodeGrid");
+  const grid =
+    document.getElementById("episodeGrid");
 
-  if(!items.length){
+  if (!items.length) {
 
-    grid.innerHTML=`
+    grid.innerHTML = `
       <div class="empty">
+
         <h3>No episodes yet</h3>
+
         <p>
           Upload your first episode to begin
           building your podcast library.
         </p>
-        <a class="btn alt" href="upload-episode.html">
+
+        <a
+          class="btn alt"
+          href="upload-episode.html"
+        >
           Upload Episode
         </a>
+
       </div>
     `;
 
     return;
-
   }
 
-  grid.innerHTML=items.map(e=>{
+  grid.innerHTML =
+    items.map(e => {
 
-    const status=
-      e.status==="published"
-      ? "published"
-      : "draft";
+      const status =
+        String(e.status || "")
+          .toLowerCase();
 
-    return `
+      const statusClass =
+        status === "published"
+          ? "published"
+          : "draft";
 
-      <article class="card">
+      return `
+        <article class="card">
 
-        <h3>${escapeHTML(e.title)}</h3>
+          <h3>
+            ${escapeHTML(
+              e.title || "Untitled Episode"
+            )}
+          </h3>
 
-        <div class="card-meta">
+          <div class="card-meta">
 
-          <span class="badge ${status}">
-            ${escapeHTML(e.status)}
-          </span>
+            <span class="badge ${statusClass}">
+              ${escapeHTML(
+                e.status || "draft"
+              )}
+            </span>
 
-        </div>
+          </div>
 
-        <p>
-          <strong>
-            ${escapeHTML(e.podcast_title || "Podcast")}
-          </strong>
-        </p>
+          <p>
+            <strong>
+              ${escapeHTML(
+                e.podcast_title ||
+                "Podcast"
+              )}
+            </strong>
+          </p>
 
-        <div class="card-footer">
+          <div class="card-footer">
 
-          <span>
-            ${number(e.play_count)} plays
-          </span>
+            <span>
+              ${number(e.play_count)}
+              plays
+            </span>
 
-          <span>
-            ${date(e.published_at || e.created_at)}
-          </span>
+            <span>
+              ${date(
+                e.published_at ||
+                e.created_at
+              )}
+            </span>
 
-        </div>
+          </div>
 
-      </article>
+        </article>
+      `;
 
-    `;
-
-  }).join("");
-
+    }).join("");
 }
 
-
-/* ------------------------------
+/* =========================================================
    LOGOUT
------------------------------- */
+========================================================= */
 
-document.getElementById("logoutBtn")
-  .addEventListener("click",async()=>{
+document
+  .getElementById("logoutBtn")
+  .addEventListener(
+    "click",
+    async () => {
 
-    await client.auth.signOut();
+      if (!client) {
+        return;
+      }
 
-    location.href="login.html";
+      const {
+        error
+      } = await client.auth.signOut();
 
-  });
+      if (error) {
 
+        console.error(
+          "CrowRules Podcasting logout error:",
+          error
+        );
 
-/* ------------------------------
+        setStatus(
+          "Unable to sign out: " +
+          error.message,
+          "error"
+        );
+
+        return;
+      }
+
+      window.location.href =
+        "login.html";
+    }
+  );
+
+/* =========================================================
    AUTH STATE
------------------------------- */
+========================================================= */
 
-async function init(){
+if (window.crowSupabase) {
 
-  client=getClient();
+  window.crowSupabase.auth.onAuthStateChange(
+    (event, session) => {
 
-  if(!client){
+      console.log(
+        "CrowRules Podcasting auth event:",
+        event
+      );
+
+      if (
+        event === "SIGNED_OUT" ||
+        (!session &&
+         event !== "INITIAL_SESSION")
+      ) {
+
+        window.location.href =
+          "login.html";
+      }
+    }
+  );
+}
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+async function init() {
+
+  /*
+   * Use the shared client created by
+   * assets/js/supabase.js.
+   */
+  client = window.crowSupabase;
+
+  if (!client) {
+
+    console.error(
+      "CrowRules Podcasting: window.crowSupabase is null."
+    );
 
     setStatus(
-      "Supabase is not configured. Check assets/js/supabase.js.",
+      "Supabase is not configured. Check that the Supabase JS library loads before assets/js/supabase.js.",
       "error"
     );
 
     return;
-
   }
 
-  const user=await checkAuth();
+  console.log(
+    "CrowRules Podcasting: Supabase client ready."
+  );
 
-  if(!user) return;
+  const user =
+    await checkAuth();
+
+  if (!user) {
+    return;
+  }
 
   await loadDashboard();
-
 }
 
-
 init();
-
 </script>
 
 </body>
