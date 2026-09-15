@@ -1,0 +1,1000 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Creator Dashboard | CrowRules Podcasting</title>
+
+<meta name="description"
+      content="Manage your CrowRules Podcasting shows, episodes, uploads and creator analytics.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap"
+      rel="stylesheet">
+
+<link rel="stylesheet" href="assets/css/style.css">
+
+<style>
+:root{
+  --bg:#05050b;
+  --panel:#0b0b15;
+  --panel2:#101020;
+  --line:rgba(255,255,255,.09);
+  --text:#f5f7ff;
+  --muted:#9da3b8;
+  --cyan:#00eaff;
+  --purple:#8b5cf6;
+  --pink:#ec4899;
+  --green:#22c55e;
+  --yellow:#facc15;
+  --red:#ef4444;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 15% 10%,rgba(0,234,255,.10),transparent 30%),
+    radial-gradient(circle at 85% 15%,rgba(139,92,246,.13),transparent 32%),
+    var(--bg);
+  color:var(--text);
+  font-family:Montserrat,Arial,sans-serif;
+}
+
+.nav{
+  position:sticky;
+  top:0;
+  z-index:100;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  padding:16px 5%;
+  background:rgba(5,5,11,.88);
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line);
+}
+
+.brand{
+  color:white;
+  text-decoration:none;
+  font-family:Orbitron,sans-serif;
+  font-weight:900;
+  letter-spacing:1px;
+}
+
+.brand span{
+  color:var(--cyan);
+}
+
+.navlinks{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+}
+
+.navlinks a{
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  font-weight:700;
+}
+
+.navlinks a:hover{
+  color:var(--cyan);
+}
+
+main{
+  width:min(1400px,92%);
+  margin:0 auto;
+  padding:55px 0 90px;
+}
+
+.hero{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:35px;
+  margin-bottom:35px;
+}
+
+.eyebrow{
+  color:var(--cyan);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:3px;
+  margin-bottom:12px;
+}
+
+h1{
+  margin:0 0 12px;
+  font-family:Orbitron,sans-serif;
+  font-size:clamp(34px,5vw,70px);
+  line-height:1;
+}
+
+.hero p{
+  max-width:750px;
+  color:var(--muted);
+  line-height:1.7;
+}
+
+.hero-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:44px;
+  padding:0 18px;
+  border-radius:10px;
+  border:1px solid rgba(0,234,255,.4);
+  background:rgba(0,234,255,.10);
+  color:white;
+  text-decoration:none;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.btn:hover{
+  background:rgba(0,234,255,.18);
+}
+
+.btn.alt{
+  border-color:rgba(139,92,246,.5);
+  background:rgba(139,92,246,.12);
+}
+
+.btn.ghost{
+  border-color:var(--line);
+  background:rgba(255,255,255,.04);
+}
+
+.auth{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.auth strong{
+  color:white;
+}
+
+.status{
+  margin-bottom:25px;
+  padding:13px 16px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.035);
+  color:var(--muted);
+}
+
+.status.success{
+  border-color:rgba(34,197,94,.35);
+}
+
+.status.error{
+  border-color:rgba(239,68,68,.4);
+  color:#fecaca;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+  margin-bottom:35px;
+}
+
+.stat-card{
+  position:relative;
+  overflow:hidden;
+  padding:24px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
+}
+
+.stat-card::after{
+  content:"";
+  position:absolute;
+  width:120px;
+  height:120px;
+  right:-55px;
+  bottom:-65px;
+  border-radius:50%;
+  background:rgba(0,234,255,.08);
+}
+
+.stat-label{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+
+.stat-value{
+  margin-top:8px;
+  font-family:Orbitron,sans-serif;
+  font-size:32px;
+  font-weight:900;
+}
+
+.stat-detail{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.section{
+  margin-top:38px;
+}
+
+.section-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  margin-bottom:16px;
+}
+
+.section-header h2{
+  margin:0;
+  font-family:Orbitron,sans-serif;
+  font-size:22px;
+}
+
+.section-header span{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.card{
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:rgba(255,255,255,.035);
+  padding:20px;
+}
+
+.card:hover{
+  border-color:rgba(0,234,255,.25);
+}
+
+.card h3{
+  margin:0 0 9px;
+}
+
+.card p{
+  color:var(--muted);
+  line-height:1.6;
+  font-size:14px;
+}
+
+.card-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:12px 0;
+}
+
+.badge{
+  display:inline-flex;
+  padding:5px 9px;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  background:rgba(255,255,255,.07);
+  color:var(--muted);
+}
+
+.badge.published{
+  color:#86efac;
+  background:rgba(34,197,94,.1);
+}
+
+.badge.draft{
+  color:#fde68a;
+  background:rgba(250,204,21,.1);
+}
+
+.card-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding-top:14px;
+  border-top:1px solid var(--line);
+  color:var(--muted);
+  font-size:12px;
+}
+
+.empty{
+  padding:35px;
+  text-align:center;
+  border:1px dashed var(--line);
+  border-radius:15px;
+  color:var(--muted);
+}
+
+.quick-actions{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+}
+
+.quick{
+  padding:20px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(255,255,255,.03);
+  color:white;
+  text-decoration:none;
+}
+
+.quick:hover{
+  border-color:rgba(0,234,255,.35);
+  transform:translateY(-2px);
+}
+
+.quick-icon{
+  font-size:24px;
+  margin-bottom:10px;
+}
+
+.quick strong{
+  display:block;
+  margin-bottom:5px;
+}
+
+.quick span{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.loading{
+  opacity:.6;
+}
+
+.footer{
+  padding:30px 5%;
+  border-top:1px solid var(--line);
+  color:var(--muted);
+  text-align:center;
+  font-size:13px;
+}
+
+@media(max-width:1000px){
+  .stats,
+  .quick-actions{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+
+@media(max-width:650px){
+  .nav{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .navlinks{
+    width:100%;
+  }
+
+  .stats,
+  .quick-actions,
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  main{
+    padding-top:35px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="nav">
+
+  <a class="brand" href="index.html">
+    CROWRULES <span>PODCASTING</span>
+  </a>
+
+  <nav class="navlinks">
+    <a href="index.html">Home</a>
+    <a href="podcasts.html">Podcasts</a>
+    <a href="episodes.html">Episodes</a>
+    <a href="live.html">Live</a>
+    <a href="top10.html">Top 10</a>
+    <a href="creator-dashboard.html">Creator Hub</a>
+  </nav>
+
+  <div class="auth">
+    <span id="authUser">Checking...</span>
+    <button id="logoutBtn" class="btn ghost" style="display:none">
+      Sign Out
+    </button>
+  </div>
+
+</header>
+
+
+<main>
+
+  <section class="hero">
+
+    <div>
+
+      <div class="eyebrow">CROWRULES CREATOR NETWORK</div>
+
+      <h1>CREATOR<br>DASHBOARD</h1>
+
+      <p>
+        Your control center for building, publishing and growing
+        your CrowRules Podcasting shows.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn" href="create-podcast.html">
+          + Create Podcast
+        </a>
+
+        <a class="btn alt" href="upload-episode.html">
+          ↑ Upload Episode
+        </a>
+
+        <a class="btn ghost" href="analytics.html">
+          Analytics
+        </a>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <div id="status" class="status">
+    Loading your creator dashboard...
+  </div>
+
+
+  <!-- STATS -->
+
+  <section class="stats">
+
+    <div class="stat-card">
+      <div class="stat-label">Podcasts</div>
+      <div id="podcastCount" class="stat-value">—</div>
+      <div class="stat-detail">
+        <span id="publishedPodcasts">—</span> published
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">Episodes</div>
+      <div id="episodeCount" class="stat-value">—</div>
+      <div class="stat-detail">
+        <span id="publishedEpisodes">—</span> published
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">Total Plays</div>
+      <div id="totalPlays" class="stat-value">—</div>
+      <div class="stat-detail">
+        Across your podcasts
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">Listeners</div>
+      <div id="totalListeners" class="stat-value">—</div>
+      <div class="stat-detail">
+        Current listener count
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- QUICK ACTIONS -->
+
+  <section class="section">
+
+    <div class="section-header">
+      <h2>Creator Tools</h2>
+      <span>Build your show</span>
+    </div>
+
+    <div class="quick-actions">
+
+      <a class="quick" href="create-podcast.html">
+        <div class="quick-icon">🎙️</div>
+        <strong>Create Podcast</strong>
+        <span>Start a new show.</span>
+      </a>
+
+      <a class="quick" href="upload-episode.html">
+        <div class="quick-icon">🎧</div>
+        <strong>Upload Episode</strong>
+        <span>Add new audio episodes.</span>
+      </a>
+
+      <a class="quick" href="my-podcasts.html">
+        <div class="quick-icon">📻</div>
+        <strong>My Podcasts</strong>
+        <span>Manage your shows.</span>
+      </a>
+
+      <a class="quick" href="analytics.html">
+        <div class="quick-icon">📊</div>
+        <strong>Analytics</strong>
+        <span>Review audience activity.</span>
+      </a>
+
+    </div>
+
+  </section>
+
+
+  <!-- PODCASTS -->
+
+  <section class="section">
+
+    <div class="section-header">
+      <h2>My Podcasts</h2>
+      <a class="btn ghost" href="my-podcasts.html">
+        Manage All
+      </a>
+    </div>
+
+    <div id="podcastGrid" class="grid">
+      <div class="empty loading">
+        Loading podcasts...
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- RECENT EPISODES -->
+
+  <section class="section">
+
+    <div class="section-header">
+      <h2>Recent Episodes</h2>
+      <a class="btn ghost" href="upload-episode.html">
+        Upload
+      </a>
+    </div>
+
+    <div id="episodeGrid" class="grid">
+      <div class="empty loading">
+        Loading episodes...
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+
+<footer class="footer">
+  CrowRules Podcasting · Creator Network · Listen. Create. Share.
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/supabase.js"></script>
+
+<script>
+
+let client = null;
+let dashboard = null;
+
+
+/* ------------------------------
+   SUPABASE CLIENT
+------------------------------ */
+
+function getClient(){
+
+  if(window.crowSupabase){
+    return window.crowSupabase;
+  }
+
+  if(window.supabaseClient){
+    return window.supabaseClient;
+  }
+
+  if(window.Crow && typeof window.Crow.client === "function"){
+    return window.Crow.client();
+  }
+
+  return null;
+}
+
+
+/* ------------------------------
+   HELPERS
+------------------------------ */
+
+function escapeHTML(value){
+
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+
+function number(value){
+
+  return new Intl.NumberFormat("en-US")
+    .format(Number(value || 0));
+
+}
+
+
+function date(value){
+
+  if(!value) return "—";
+
+  return new Intl.DateTimeFormat("en-US",{
+    month:"short",
+    day:"numeric",
+    year:"numeric"
+  }).format(new Date(value));
+
+}
+
+
+function setStatus(text,type=""){
+
+  const el=document.getElementById("status");
+
+  el.textContent=text;
+
+  el.className="status "+type;
+
+}
+
+
+/* ------------------------------
+   AUTH
+------------------------------ */
+
+async function checkAuth(){
+
+  const {data,error}=await client.auth.getUser();
+
+  if(error || !data.user){
+
+    location.href="login.html";
+
+    return null;
+
+  }
+
+  const user=data.user;
+
+  const label=
+    user.user_metadata?.display_name ||
+    user.user_metadata?.username ||
+    user.email ||
+    "Creator";
+
+  document.getElementById("authUser").innerHTML=
+    "<strong>"+escapeHTML(label)+"</strong>";
+
+  document.getElementById("logoutBtn").style.display="inline-flex";
+
+  return user;
+
+}
+
+
+/* ------------------------------
+   LOAD DASHBOARD
+------------------------------ */
+
+async function loadDashboard(){
+
+  setStatus("Loading creator data...");
+
+  const {data,error}=await client
+    .rpc("get_podcast_creator_dashboard");
+
+  if(error){
+
+    console.error(error);
+
+    setStatus(
+      "Unable to load your creator dashboard: "+error.message,
+      "error"
+    );
+
+    return;
+
+  }
+
+  dashboard=data;
+
+  renderStats(data);
+
+  renderPodcasts(data.podcasts || []);
+
+  renderEpisodes(data.recent_episodes || []);
+
+  setStatus(
+    "Creator dashboard connected to Supabase.",
+    "success"
+  );
+
+}
+
+
+/* ------------------------------
+   STATS
+------------------------------ */
+
+function renderStats(data){
+
+  document.getElementById("podcastCount")
+    .textContent=number(data.podcast_count);
+
+  document.getElementById("episodeCount")
+    .textContent=number(data.episode_count);
+
+  document.getElementById("totalPlays")
+    .textContent=number(data.total_plays);
+
+  document.getElementById("totalListeners")
+    .textContent=number(data.total_listeners);
+
+  document.getElementById("publishedPodcasts")
+    .textContent=number(data.published_podcasts);
+
+  document.getElementById("publishedEpisodes")
+    .textContent=number(data.published_episodes);
+
+}
+
+
+/* ------------------------------
+   PODCASTS
+------------------------------ */
+
+function renderPodcasts(items){
+
+  const grid=document.getElementById("podcastGrid");
+
+  if(!items.length){
+
+    grid.innerHTML=`
+      <div class="empty">
+        <h3>No podcasts yet</h3>
+        <p>
+          Create your first CrowRules Podcasting show
+          and start building your audience.
+        </p>
+        <a class="btn" href="create-podcast.html">
+          Create Your First Podcast
+        </a>
+      </div>
+    `;
+
+    return;
+
+  }
+
+  grid.innerHTML=items.map(p=>{
+
+    const status=
+      p.status==="published"
+      ? "published"
+      : "draft";
+
+    return `
+
+      <article class="card">
+
+        <h3>${escapeHTML(p.title)}</h3>
+
+        <div class="card-meta">
+
+          <span class="badge ${status}">
+            ${escapeHTML(p.status)}
+          </span>
+
+          ${
+            p.is_live
+            ? `<span class="badge published">LIVE</span>`
+            : ""
+          }
+
+          ${
+            p.is_featured
+            ? `<span class="badge">FEATURED</span>`
+            : ""
+          }
+
+        </div>
+
+        <p>
+          ${escapeHTML(
+            p.description ||
+            "No description added yet."
+          )}
+        </p>
+
+        <div class="card-footer">
+
+          <span>
+            ${number(p.total_plays)} plays
+          </span>
+
+          <span>
+            Updated ${date(p.updated_at)}
+          </span>
+
+        </div>
+
+      </article>
+
+    `;
+
+  }).join("");
+
+}
+
+
+/* ------------------------------
+   EPISODES
+------------------------------ */
+
+function renderEpisodes(items){
+
+  const grid=document.getElementById("episodeGrid");
+
+  if(!items.length){
+
+    grid.innerHTML=`
+      <div class="empty">
+        <h3>No episodes yet</h3>
+        <p>
+          Upload your first episode to begin
+          building your podcast library.
+        </p>
+        <a class="btn alt" href="upload-episode.html">
+          Upload Episode
+        </a>
+      </div>
+    `;
+
+    return;
+
+  }
+
+  grid.innerHTML=items.map(e=>{
+
+    const status=
+      e.status==="published"
+      ? "published"
+      : "draft";
+
+    return `
+
+      <article class="card">
+
+        <h3>${escapeHTML(e.title)}</h3>
+
+        <div class="card-meta">
+
+          <span class="badge ${status}">
+            ${escapeHTML(e.status)}
+          </span>
+
+        </div>
+
+        <p>
+          <strong>
+            ${escapeHTML(e.podcast_title || "Podcast")}
+          </strong>
+        </p>
+
+        <div class="card-footer">
+
+          <span>
+            ${number(e.play_count)} plays
+          </span>
+
+          <span>
+            ${date(e.published_at || e.created_at)}
+          </span>
+
+        </div>
+
+      </article>
+
+    `;
+
+  }).join("");
+
+}
+
+
+/* ------------------------------
+   LOGOUT
+------------------------------ */
+
+document.getElementById("logoutBtn")
+  .addEventListener("click",async()=>{
+
+    await client.auth.signOut();
+
+    location.href="login.html";
+
+  });
+
+
+/* ------------------------------
+   AUTH STATE
+------------------------------ */
+
+async function init(){
+
+  client=getClient();
+
+  if(!client){
+
+    setStatus(
+      "Supabase is not configured. Check assets/js/supabase.js.",
+      "error"
+    );
+
+    return;
+
+  }
+
+  const user=await checkAuth();
+
+  if(!user) return;
+
+  await loadDashboard();
+
+}
+
+
+init();
+
+</script>
+
+</body>
+</html>
