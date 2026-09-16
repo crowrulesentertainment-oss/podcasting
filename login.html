@@ -1,19 +1,18 @@
 <!doctype html>
+
 <html lang="en">
 <head>
   <meta charset="utf-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>Creator Login | CrowRules Podcasting</title>
 
-  <meta
-    name="description"
-    content="Sign in to CrowRules Podcasting and access your creator dashboard."
-  >
+<meta
+name="description"
+content="Sign in to CrowRules Podcasting and access your creator dashboard."
+
+>
 
   <meta name="theme-color" content="#050509">
 
@@ -26,636 +25,573 @@
   >
 
   <style>
-    :root {
-      --bg: #050509;
-      --panel: rgba(14, 14, 24, .94);
-      --text: #f5f5f7;
-      --muted: #a4a4b3;
-      --border: rgba(255,255,255,.10);
-      --cyan: #00e5ff;
-      --purple: #8b5cf6;
-      --green: #22c55e;
-      --red: #ef4444;
+    :root{
+      --bg:#050509;
+      --panel:rgba(14,14,24,.95);
+      --text:#f5f5f7;
+      --muted:#a4a4b3;
+      --border:rgba(255,255,255,.10);
+      --cyan:#00e5ff;
+      --purple:#8b5cf6;
+      --green:#22c55e;
+      --red:#ef4444;
     }
 
-    * {
-      box-sizing: border-box;
+    *{
+      box-sizing:border-box;
     }
 
-    html {
-      min-height: 100%;
-      background: var(--bg);
+    html{
+      min-height:100%;
+      background:var(--bg);
     }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      color: var(--text);
-      font-family: "Montserrat", sans-serif;
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--text);
+      font-family:"Montserrat",sans-serif;
 
       background:
-        radial-gradient(
-          circle at 15% 15%,
-          rgba(0,229,255,.11),
-          transparent 30%
-        ),
-        radial-gradient(
-          circle at 85% 20%,
-          rgba(139,92,246,.13),
-          transparent 32%
-        ),
-        radial-gradient(
-          circle at 50% 100%,
-          rgba(0,229,255,.05),
-          transparent 35%
-        ),
-        linear-gradient(
-          180deg,
-          #050509,
-          #090912,
-          #050509
-        );
+        radial-gradient(circle at 15% 15%,rgba(0,229,255,.11),transparent 30%),
+        radial-gradient(circle at 85% 20%,rgba(139,92,246,.13),transparent 32%),
+        radial-gradient(circle at 50% 100%,rgba(0,229,255,.05),transparent 35%),
+        linear-gradient(180deg,#050509,#090912,#050509);
     }
 
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: .25;
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.25;
 
       background-image:
-        linear-gradient(
-          rgba(255,255,255,.025) 1px,
-          transparent 1px
-        ),
-        linear-gradient(
-          90deg,
-          rgba(255,255,255,.025) 1px,
-          transparent 1px
-        );
+        linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
 
-      background-size: 48px 48px;
+      background-size:48px 48px;
     }
 
-    a {
-      color: inherit;
+    a{
+      color:inherit;
     }
 
     button,
-    input {
-      font: inherit;
+    input{
+      font:inherit;
     }
 
-    /* NAV */
+    .nav{
+      position:relative;
+      z-index:10;
 
-    .nav {
-      position: relative;
-      z-index: 10;
+      min-height:76px;
+      padding:15px 5vw;
 
-      min-height: 76px;
-      padding: 15px 5vw;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
 
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      border-bottom:1px solid var(--border);
 
-      border-bottom: 1px solid var(--border);
-
-      background: rgba(5,5,9,.80);
-      backdrop-filter: blur(18px);
+      background:rgba(5,5,9,.80);
+      backdrop-filter:blur(18px);
     }
 
-    .brand {
-      text-decoration: none;
-
-      font-family: "Orbitron", sans-serif;
-      font-size: 1rem;
-      font-weight: 900;
-      letter-spacing: .08em;
+    .brand{
+      text-decoration:none;
+      font-family:"Orbitron",sans-serif;
+      font-size:1rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      white-space:nowrap;
     }
 
-    .brand-main {
-      color: white;
+    .brand-main{
+      color:white;
     }
 
-    .brand-section {
-      color: var(--cyan);
-      margin-left: 10px;
-      font-size: .68rem;
-      letter-spacing: .13em;
+    .brand-section{
+      color:var(--cyan);
+      margin-left:10px;
+      font-size:.68rem;
+      letter-spacing:.13em;
     }
 
-    .navlinks {
-      display: flex;
-      gap: 20px;
+    .navlinks{
+      display:flex;
+      gap:20px;
     }
 
-    .navlinks a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: .78rem;
-      font-weight: 800;
+    .navlinks a{
+      color:var(--muted);
+      text-decoration:none;
+      font-size:.78rem;
+      font-weight:800;
     }
 
-    .navlinks a:hover {
-      color: var(--cyan);
+    .navlinks a:hover{
+      color:var(--cyan);
     }
 
-    /* MAIN */
+    .page{
+      position:relative;
+      z-index:2;
 
-    .page {
-      position: relative;
-      z-index: 2;
+      min-height:calc(100vh - 76px);
 
-      min-height: calc(100vh - 76px);
+      display:flex;
+      justify-content:center;
+      align-items:center;
 
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      padding: 55px 20px 70px;
+      padding:55px 20px 70px;
     }
 
-    .shell {
-      width: min(100%, 520px);
+    .shell{
+      width:min(100%,520px);
     }
 
-    .eyebrow {
-      margin-bottom: 12px;
+    .eyebrow{
+      margin-bottom:12px;
+      color:var(--cyan);
+      text-align:center;
 
-      color: var(--cyan);
-
-      text-align: center;
-
-      font-family: "Orbitron", sans-serif;
-      font-size: .7rem;
-      font-weight: 800;
-      letter-spacing: .2em;
-      text-transform: uppercase;
+      font-family:"Orbitron",sans-serif;
+      font-size:.7rem;
+      font-weight:800;
+      letter-spacing:.2em;
+      text-transform:uppercase;
     }
 
-    h1 {
-      margin: 0;
+    h1{
+      margin:0;
+      text-align:center;
 
-      text-align: center;
-
-      font-family: "Orbitron", sans-serif;
-      font-size: clamp(2rem, 6vw, 3.2rem);
-      line-height: 1.05;
+      font-family:"Orbitron",sans-serif;
+      font-size:clamp(2rem,6vw,3.2rem);
+      line-height:1.05;
     }
 
-    h1 span {
-      background:
-        linear-gradient(
-          90deg,
-          var(--cyan),
-          white,
-          var(--purple)
-        );
-
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+    h1 span{
+      background:linear-gradient(90deg,var(--cyan),white,var(--purple));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
     }
 
-    .intro {
-      max-width: 430px;
-      margin: 18px auto 30px;
+    .intro{
+      max-width:430px;
+      margin:18px auto 30px;
 
-      color: var(--muted);
+      color:var(--muted);
+      text-align:center;
 
-      text-align: center;
-
-      font-size: .9rem;
-      line-height: 1.7;
+      font-size:.9rem;
+      line-height:1.7;
     }
 
-    .card {
-      padding: 30px;
+    .card{
+      padding:30px;
 
-      border: 1px solid var(--border);
-      border-radius: 22px;
+      border:1px solid var(--border);
+      border-radius:22px;
 
-      background: var(--panel);
+      background:var(--panel);
 
-      box-shadow:
-        0 25px 80px rgba(0,0,0,.55);
+      box-shadow:0 25px 80px rgba(0,0,0,.55);
 
-      backdrop-filter: blur(22px);
+      backdrop-filter:blur(22px);
     }
 
-    /* FIELDS */
-
-    .field {
-      margin-bottom: 19px;
+    .field{
+      margin-bottom:19px;
     }
 
-    label {
-      display: block;
-      margin-bottom: 8px;
+    label{
+      display:block;
+      margin-bottom:8px;
 
-      color: #dedee7;
+      color:#dedee7;
 
-      font-size: .8rem;
-      font-weight: 800;
+      font-size:.8rem;
+      font-weight:800;
     }
 
-    .input-wrap {
-      position: relative;
+    .input-wrap{
+      position:relative;
     }
 
-    .input {
-      width: 100%;
-      height: 52px;
+    .input{
+      width:100%;
+      height:52px;
 
-      padding: 0 15px;
+      padding:0 15px;
 
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      border:1px solid var(--border);
+      border-radius:12px;
 
-      outline: none;
+      outline:none;
 
-      color: var(--text);
-      background: rgba(255,255,255,.045);
+      color:var(--text);
+      background:rgba(255,255,255,.045);
 
-      transition: .2s ease;
+      transition:.2s ease;
     }
 
-    .input.password {
-      padding-right: 60px;
+    .input.password{
+      padding-right:60px;
     }
 
-    .input::placeholder {
-      color: #6f6f7b;
+    .input::placeholder{
+      color:#6f6f7b;
     }
 
-    .input:focus {
-      border-color: rgba(0,229,255,.65);
+    .input:focus{
+      border-color:rgba(0,229,255,.65);
 
       box-shadow:
         0 0 0 3px rgba(0,229,255,.08),
         0 0 25px rgba(0,229,255,.08);
     }
 
-    .input:disabled {
-      opacity: .55;
+    .input:disabled{
+      opacity:.55;
     }
 
-    .toggle {
-      position: absolute;
-      top: 50%;
-      right: 7px;
+    .toggle{
+      position:absolute;
+      top:50%;
+      right:7px;
 
-      width: 44px;
-      height: 38px;
+      width:44px;
+      height:38px;
 
-      transform: translateY(-50%);
+      transform:translateY(-50%);
 
-      border: 0;
-      border-radius: 9px;
+      border:0;
+      border-radius:9px;
 
-      color: var(--muted);
-      background: transparent;
+      color:var(--muted);
+      background:transparent;
 
-      cursor: pointer;
+      cursor:pointer;
 
-      font-size: .68rem;
-      font-weight: 900;
+      font-size:.68rem;
+      font-weight:900;
     }
 
-    .toggle:hover {
-      color: var(--cyan);
-      background: rgba(255,255,255,.06);
+    .toggle:hover{
+      color:var(--cyan);
+      background:rgba(255,255,255,.06);
     }
 
-    /* OPTIONS */
+    .options{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
 
-    .options {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      gap: 15px;
-
-      margin: 3px 0 22px;
+      gap:15px;
+      margin:3px 0 22px;
     }
 
-    .remember {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .remember{
+      display:flex;
+      align-items:center;
+      gap:8px;
 
-      color: var(--muted);
+      color:var(--muted);
 
-      font-size: .75rem;
-      cursor: pointer;
+      font-size:.75rem;
+      cursor:pointer;
     }
 
-    .remember input {
-      width: 15px;
-      height: 15px;
-      accent-color: var(--cyan);
+    .remember input{
+      width:15px;
+      height:15px;
+      accent-color:var(--cyan);
     }
 
-    .forgot {
-      color: var(--cyan);
-      text-decoration: none;
+    .forgot{
+      color:var(--cyan);
+      text-decoration:none;
 
-      font-size: .75rem;
-      font-weight: 800;
+      font-size:.75rem;
+      font-weight:800;
     }
 
-    .forgot:hover {
-      text-decoration: underline;
+    .forgot:hover{
+      text-decoration:underline;
     }
 
-    /* BUTTONS */
+    .btn{
+      width:100%;
+      min-height:52px;
 
-    .btn {
-      width: 100%;
-      min-height: 52px;
+      border:0;
+      border-radius:12px;
 
-      border: 0;
-      border-radius: 12px;
+      color:#020205;
 
-      color: #020205;
+      background:linear-gradient(90deg,var(--cyan),#72f4ff);
 
-      background:
-        linear-gradient(
-          90deg,
-          var(--cyan),
-          #72f4ff
-        );
+      font-size:.84rem;
+      font-weight:900;
+      letter-spacing:.04em;
 
-      font-size: .84rem;
-      font-weight: 900;
-      letter-spacing: .04em;
-
-      cursor: pointer;
-
-      transition: .2s ease;
+      cursor:pointer;
+      transition:.2s ease;
     }
 
-    .btn:hover:not(:disabled) {
-      transform: translateY(-1px);
+    .btn:hover:not(:disabled){
+      transform:translateY(-1px);
 
       box-shadow:
         0 14px 40px rgba(0,229,255,.25);
     }
 
-    .btn:disabled {
-      opacity: .55;
-      cursor: not-allowed;
+    .btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
     }
 
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 14px;
+    .divider{
+      display:flex;
+      align-items:center;
+      gap:14px;
 
-      margin: 24px 0;
+      margin:24px 0;
 
-      color: #666673;
+      color:#666673;
 
-      font-size: .68rem;
-      font-weight: 800;
-      letter-spacing: .1em;
-      text-transform: uppercase;
+      font-size:.68rem;
+      font-weight:800;
+      letter-spacing:.1em;
+      text-transform:uppercase;
     }
 
     .divider::before,
-    .divider::after {
-      content: "";
-      flex: 1;
-
-      height: 1px;
-
-      background: var(--border);
+    .divider::after{
+      content:"";
+      flex:1;
+      height:1px;
+      background:var(--border);
     }
 
-    .google {
-      width: 100%;
-      min-height: 50px;
+    .google{
+      width:100%;
+      min-height:50px;
 
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
 
-      gap: 11px;
+      gap:11px;
 
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      border:1px solid var(--border);
+      border-radius:12px;
 
-      color: white;
-      background: rgba(255,255,255,.045);
+      color:white;
+      background:rgba(255,255,255,.045);
 
-      cursor: pointer;
+      cursor:pointer;
 
-      font-size: .82rem;
-      font-weight: 800;
+      font-size:.82rem;
+      font-weight:800;
     }
 
-    .google:hover:not(:disabled) {
-      background: rgba(255,255,255,.08);
-      border-color: rgba(255,255,255,.22);
+    .google:hover:not(:disabled){
+      background:rgba(255,255,255,.08);
+      border-color:rgba(255,255,255,.22);
     }
 
-    .google:disabled {
-      opacity: .55;
-      cursor: not-allowed;
+    .google:disabled{
+      opacity:.55;
+      cursor:not-allowed;
     }
 
-    .google-icon {
-      width: 20px;
-      height: 20px;
+    .google-icon{
+      width:20px;
+      height:20px;
 
-      display: grid;
-      place-items: center;
+      display:grid;
+      place-items:center;
 
-      border-radius: 50%;
+      border-radius:50%;
 
-      background: #4285f4;
+      background:#4285f4;
 
-      font-family: Arial, sans-serif;
-      font-size: .72rem;
-      font-weight: 900;
+      font-family:Arial,sans-serif;
+      font-size:.72rem;
+      font-weight:900;
     }
 
-    /* MESSAGES */
+    .message{
+      display:none;
 
-    .message {
-      display: none;
+      margin-top:18px;
+      padding:13px 15px;
 
-      margin-top: 18px;
-      padding: 13px 15px;
+      border:1px solid var(--border);
+      border-radius:11px;
 
-      border: 1px solid var(--border);
-      border-radius: 11px;
-
-      font-size: .77rem;
-      line-height: 1.55;
+      font-size:.77rem;
+      line-height:1.55;
     }
 
-    .message.show {
-      display: block;
+    .message.show{
+      display:block;
     }
 
-    .message.error {
-      color: #fecaca;
-      border-color: rgba(239,68,68,.3);
-      background: rgba(239,68,68,.08);
+    .message.error{
+      color:#fecaca;
+      border-color:rgba(239,68,68,.3);
+      background:rgba(239,68,68,.08);
     }
 
-    .message.success {
-      color: #bbf7d0;
-      border-color: rgba(34,197,94,.3);
-      background: rgba(34,197,94,.08);
+    .message.success{
+      color:#bbf7d0;
+      border-color:rgba(34,197,94,.3);
+      background:rgba(34,197,94,.08);
     }
 
-    .message.info {
-      color: #bae6fd;
-      border-color: rgba(0,229,255,.25);
-      background: rgba(0,229,255,.06);
+    .message.info{
+      color:#bae6fd;
+      border-color:rgba(0,229,255,.25);
+      background:rgba(0,229,255,.06);
     }
 
-    .verification {
-      display: none;
+    .verification{
+      display:none;
 
-      margin-top: 18px;
-      padding: 16px;
+      margin-top:18px;
+      padding:16px;
 
-      border: 1px solid rgba(139,92,246,.28);
-      border-radius: 13px;
+      border:1px solid rgba(139,92,246,.28);
+      border-radius:13px;
 
-      background: rgba(139,92,246,.07);
+      background:rgba(139,92,246,.07);
     }
 
-    .verification.show {
-      display: block;
+    .verification.show{
+      display:block;
     }
 
-    .verification strong {
-      display: block;
-      margin-bottom: 7px;
+    .verification strong{
+      display:block;
+      margin-bottom:7px;
 
-      color: #ddd6fe;
-
-      font-size: .8rem;
+      color:#ddd6fe;
+      font-size:.8rem;
     }
 
-    .verification p {
-      margin: 0 0 12px;
+    .verification p{
+      margin:0 0 12px;
 
-      color: var(--muted);
+      color:var(--muted);
 
-      font-size: .73rem;
-      line-height: 1.55;
+      font-size:.73rem;
+      line-height:1.55;
     }
 
-    .verification a {
-      color: var(--cyan);
+    .verification a{
+      color:var(--cyan);
+      text-decoration:none;
 
-      text-decoration: none;
-
-      font-size: .74rem;
-      font-weight: 800;
+      font-size:.74rem;
+      font-weight:800;
     }
 
-    .verification a:hover {
-      text-decoration: underline;
+    .verification a:hover{
+      text-decoration:underline;
     }
 
-    .signup {
-      margin: 25px 0 0;
+    .signup{
+      margin:25px 0 0;
 
-      color: var(--muted);
+      color:var(--muted);
+      text-align:center;
 
-      text-align: center;
-
-      font-size: .8rem;
+      font-size:.8rem;
     }
 
-    .signup a {
-      color: var(--cyan);
-      text-decoration: none;
-      font-weight: 800;
+    .signup a{
+      color:var(--cyan);
+      text-decoration:none;
+      font-weight:800;
     }
 
-    .signup a:hover {
-      text-decoration: underline;
+    .signup a:hover{
+      text-decoration:underline;
     }
 
-    .security {
-      margin-top: 22px;
+    .security{
+      margin-top:22px;
 
-      color: #60606c;
+      color:#60606c;
+      text-align:center;
 
-      text-align: center;
-
-      font-size: .67rem;
-      line-height: 1.55;
+      font-size:.67rem;
+      line-height:1.55;
     }
 
-    /* FOOTER */
+    .footer{
+      position:relative;
+      z-index:2;
 
-    .footer {
-      position: relative;
-      z-index: 2;
+      padding:25px 20px 35px;
 
-      padding: 25px 20px 35px;
+      border-top:1px solid var(--border);
 
-      border-top: 1px solid var(--border);
+      color:#626270;
+      text-align:center;
 
-      color: #626270;
-
-      text-align: center;
-
-      font-size: .68rem;
+      font-size:.68rem;
     }
 
-    .footer-brand {
-      margin-bottom: 6px;
+    .footer-brand{
+      margin-bottom:6px;
 
-      color: #888895;
+      color:#888895;
 
-      font-family: "Orbitron", sans-serif;
-      font-weight: 800;
-      letter-spacing: .08em;
+      font-family:"Orbitron",sans-serif;
+      font-weight:800;
+      letter-spacing:.08em;
     }
 
-    @media (max-width: 600px) {
+    @media(max-width:600px){
 
-      .nav {
-        padding: 14px 18px;
+      .nav{
+        padding:14px 18px;
       }
 
-      .brand-section {
-        display: none;
+      .brand-section{
+        display:none;
       }
 
-      .navlinks {
-        gap: 12px;
+      .navlinks{
+        gap:12px;
       }
 
-      .navlinks a {
-        font-size: .7rem;
+      .navlinks a{
+        font-size:.7rem;
       }
 
-      .page {
-        padding: 40px 15px 55px;
+      .page{
+        padding:40px 15px 55px;
       }
 
-      .card {
-        padding: 22px;
+      .card{
+        padding:22px;
       }
 
-      .options {
-        align-items: flex-start;
+      .options{
+        align-items:flex-start;
       }
-
     }
   </style>
+
 </head>
 
 <body>
@@ -674,192 +610,187 @@
 
 </header>
 
-
 <main class="page">
 
   <section class="shell">
 
-    <div class="eyebrow">
-      Creator Network
+<div class="eyebrow">
+  Creator Network
+</div>
+
+<h1>
+  Creator <span>Login</span>
+</h1>
+
+<p class="intro">
+  Sign in to your CrowRules Podcasting account
+  and access your creator dashboard, shows,
+  episodes, analytics, and creator tools.
+</p>
+
+<div class="card">
+
+  <form id="loginForm" novalidate>
+
+    <div class="field">
+
+      <label for="email">
+        Email Address
+      </label>
+
+      <input
+        id="email"
+        class="input"
+        type="email"
+        autocomplete="email"
+        placeholder="you@example.com"
+        required
+      >
+
     </div>
 
-    <h1>
-      Creator <span>Login</span>
-    </h1>
 
-    <p class="intro">
-      Sign in to your CrowRules Podcasting account
-      and access your creator dashboard, shows,
-      episodes, analytics, and creator tools.
-    </p>
+    <div class="field">
 
+      <label for="password">
+        Password
+      </label>
 
-    <div class="card">
+      <div class="input-wrap">
 
-      <form id="loginForm" novalidate>
-
-        <div class="field">
-
-          <label for="email">
-            Email Address
-          </label>
-
-          <input
-            id="email"
-            class="input"
-            type="email"
-            autocomplete="email"
-            placeholder="you@example.com"
-            required
-          >
-
-        </div>
-
-
-        <div class="field">
-
-          <label for="password">
-            Password
-          </label>
-
-          <div class="input-wrap">
-
-            <input
-              id="password"
-              class="input password"
-              type="password"
-              autocomplete="current-password"
-              placeholder="Enter your password"
-              required
-            >
-
-            <button
-              type="button"
-              class="toggle"
-              id="togglePassword"
-            >
-              SHOW
-            </button>
-
-          </div>
-
-        </div>
-
-
-        <div class="options">
-
-          <label class="remember">
-
-            <input
-              type="checkbox"
-              id="remember"
-              checked
-            >
-
-            <span>
-              Keep me signed in
-            </span>
-
-          </label>
-
-
-          <a
-            href="#"
-            class="forgot"
-            id="forgotPassword"
-          >
-            Forgot password?
-          </a>
-
-        </div>
-
+        <input
+          id="password"
+          class="input password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Enter your password"
+          required
+        >
 
         <button
-          type="submit"
-          class="btn"
-          id="loginButton"
+          type="button"
+          class="toggle"
+          id="togglePassword"
+          aria-label="Show password"
         >
-          Sign In to Creator Dashboard
+          SHOW
         </button>
 
-      </form>
-
-
-      <div class="divider">
-        <span>or</span>
       </div>
-
-
-      <button
-        type="button"
-        class="google"
-        id="googleButton"
-      >
-
-        <span class="google-icon">
-          G
-        </span>
-
-        Continue with Google
-
-      </button>
-
-
-      <div
-        id="message"
-        class="message"
-        role="alert"
-        aria-live="polite"
-      ></div>
-
-
-      <div
-        id="verification"
-        class="verification"
-      >
-
-        <strong>
-          Email verification required
-        </strong>
-
-        <p>
-          Your account may need to be verified before
-          you can sign in. Check your email for the
-          CrowRules Podcasting verification message.
-        </p>
-
-        <a
-          href="verify.html"
-        >
-          Open Account Verification →
-        </a>
-
-      </div>
-
-
-      <p class="signup">
-
-        Don't have a CrowRules Podcasting account?
-
-        <a href="signup.html">
-          Create your account
-        </a>
-
-      </p>
-
-
-      <p class="security">
-        Authentication is securely handled through
-        Supabase Auth. CrowRules Podcasting never
-        needs your Supabase password.
-      </p>
 
     </div>
+
+
+    <div class="options">
+
+      <label class="remember">
+
+        <input
+          type="checkbox"
+          id="remember"
+          checked
+        >
+
+        <span>Keep me signed in</span>
+
+      </label>
+
+
+      <a
+        href="#"
+        class="forgot"
+        id="forgotPassword"
+      >
+        Forgot password?
+      </a>
+
+    </div>
+
+
+    <button
+      type="submit"
+      class="btn"
+      id="loginButton"
+    >
+      Sign In to Creator Dashboard
+    </button>
+
+  </form>
+
+
+  <div class="divider">
+    <span>or</span>
+  </div>
+
+
+  <button
+    type="button"
+    class="google"
+    id="googleButton"
+  >
+
+    <span class="google-icon">G</span>
+
+    Continue with Google
+
+  </button>
+
+
+  <div
+    id="message"
+    class="message"
+    role="alert"
+    aria-live="polite"
+  ></div>
+
+
+  <div
+    id="verification"
+    class="verification"
+  >
+
+    <strong>
+      Email verification required
+    </strong>
+
+    <p>
+      Your account has not been verified yet.
+      Check your email for the CrowRules Podcasting
+      verification message before signing in.
+    </p>
+
+    <a
+      id="verificationLink"
+      href="verify.html"
+    >
+      Open Account Verification →
+    </a>
+
+  </div>
+
+
+  <p class="signup">
+
+    Don't have a CrowRules Podcasting account?
+
+    <a href="signup.html">
+      Create your account
+    </a>
+
+  </p>
+
+
+  <p class="security">
+    Authentication is securely handled through
+    Supabase Auth. CrowRules Podcasting never
+    needs your Supabase password.
+  </p>
+
+</div>
 
   </section>
 
 </main>
-
 
 <footer class="footer">
 
@@ -873,21 +804,21 @@
 
 </footer>
 
-
-<!-- =====================================================
-     SUPABASE
-     ===================================================== -->
+<!-- SUPABASE -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script src="assets/js/supabase.js"></script>
 
-
 <script>
-(function () {
+(function(){
 
   "use strict";
 
+
+  /* =====================================================
+     ELEMENTS
+  ===================================================== */
 
   const form =
     document.getElementById("loginForm");
@@ -919,38 +850,39 @@
   const verification =
     document.getElementById("verification");
 
+  const verificationLink =
+    document.getElementById("verificationLink");
 
-  /*
-   * ------------------------------------------------------
-   * CREATOR DASHBOARD
-   * ------------------------------------------------------
-   */
 
-  function creatorDashboardUrl() {
+  let client = null;
+
+  let redirecting = false;
+
+
+  /* =====================================================
+     URL HELPERS
+  ===================================================== */
+
+  function relativeUrl(path){
 
     return new URL(
-      "creator/dashboard.html",
+      path,
       window.location.href
     ).toString();
 
   }
 
 
-  function goToCreatorDashboard() {
+  function creatorDashboardUrl(){
 
-    window.location.href =
-      creatorDashboardUrl();
+    return relativeUrl(
+      "creator/dashboard.html"
+    );
 
   }
 
 
-  /*
-   * ------------------------------------------------------
-   * VERIFICATION PAGE
-   * ------------------------------------------------------
-   */
-
-  function verificationUrl(email) {
+  function verifyUrl(email){
 
     const url =
       new URL(
@@ -958,7 +890,7 @@
         window.location.href
       );
 
-    if (email) {
+    if(email){
 
       url.searchParams.set(
         "email",
@@ -972,25 +904,54 @@
   }
 
 
-  /*
-   * ------------------------------------------------------
-   * MESSAGE
-   * ------------------------------------------------------
-   */
+  function resetPasswordUrl(){
 
-  function showMessage(text, type) {
+    return relativeUrl(
+      "reset-password.html"
+    );
+
+  }
+
+
+  /* =====================================================
+     REDIRECT
+  ===================================================== */
+
+  function goToCreatorDashboard(){
+
+    if(redirecting){
+      return;
+    }
+
+    redirecting = true;
+
+    window.location.replace(
+      creatorDashboardUrl()
+    );
+
+  }
+
+
+  /* =====================================================
+     MESSAGES
+  ===================================================== */
+
+  function showMessage(
+    text,
+    type="info"
+  ){
 
     message.textContent =
       text;
 
     message.className =
       "message show " +
-      (type || "info");
+      type;
 
   }
 
 
-  function clearMessage() {
+  function clearMessage(){
 
     message.textContent =
       "";
@@ -1001,21 +962,30 @@
   }
 
 
-  /*
-   * ------------------------------------------------------
-   * SUPABASE
-   * ------------------------------------------------------
-   */
+  /* =====================================================
+     CLIENT
+  ===================================================== */
 
-  function getClient() {
+  function getClient(){
 
-    if (
-      !window.supabaseClient ||
-      !window.supabaseClient.auth
-    ) {
+    /*
+      Support both names so the shared
+      Supabase client can use either convention.
+    */
+
+    const possible =
+      window.supabaseClient ||
+      window.crowSupabase ||
+      window.Crow?.client?.();
+
+
+    if(
+      !possible ||
+      !possible.auth
+    ){
 
       showMessage(
-        "Supabase is not configured. Check assets/js/supabase.js.",
+        "Supabase is not configured. Check assets/js/supabase.js and make sure the publishable/anon key is configured.",
         "error"
       );
 
@@ -1023,45 +993,55 @@
 
     }
 
-    return window.supabaseClient;
+
+    client =
+      possible;
+
+    return client;
 
   }
 
 
-  /*
-   * ------------------------------------------------------
-   * PASSWORD SHOW/HIDE
-   * ------------------------------------------------------
-   */
+  /* =====================================================
+     PASSWORD
+  ===================================================== */
 
   togglePassword.addEventListener(
     "click",
-    function () {
+    function(){
 
-      const visible =
+      const showing =
         passwordInput.type === "text";
 
+
       passwordInput.type =
-        visible
+        showing
           ? "password"
           : "text";
 
+
       togglePassword.textContent =
-        visible
+        showing
           ? "SHOW"
           : "HIDE";
+
+
+      togglePassword.setAttribute(
+        "aria-label",
+        showing
+          ? "Show password"
+          : "Hide password"
+      );
 
     }
   );
 
 
-  /*
-   * ------------------------------------------------------
-   * LOADING
-   * ------------------------------------------------------
-   */
+  /* =====================================================
+     LOADING
+  ===================================================== */
 
-  function setLoading(value) {
+  function setLoading(value){
 
     loginButton.disabled =
       value;
@@ -1076,103 +1056,155 @@
       value;
 
 
-    if (value) {
-
-      loginButton.textContent =
-        "Signing In...";
-
-    } else {
-
-      loginButton.textContent =
-        "Sign In to Creator Dashboard";
-
-    }
+    loginButton.textContent =
+      value
+        ? "Signing In..."
+        : "Sign In to Creator Dashboard";
 
   }
 
 
-  /*
-   * ------------------------------------------------------
-   * FRIENDLY ERRORS
-   * ------------------------------------------------------
-   */
+  /* =====================================================
+     FRIENDLY ERRORS
+  ===================================================== */
 
-  function friendlyError(error) {
-
-    if (!error) {
-
-      return "Something went wrong. Please try again.";
-
-    }
-
+  function friendlyError(error){
 
     const text =
       String(
-        error.message || error
+        error?.message ||
+        error ||
+        ""
       );
+
 
     const lower =
       text.toLowerCase();
 
 
-    if (
+    if(
       lower.includes(
         "invalid login credentials"
       )
-    ) {
+    ){
 
       return "The email address or password is incorrect.";
 
     }
 
 
-    if (
+    if(
       lower.includes(
         "email not confirmed"
       )
-    ) {
+    ){
 
       return "Your email address has not been verified yet.";
 
     }
 
 
-    if (
+    if(
       lower.includes(
         "too many requests"
       )
-    ) {
+    ){
 
       return "Too many attempts were made. Please wait a moment and try again.";
 
     }
 
 
-    if (
-      lower.includes(
-        "network"
-      )
-    ) {
+    if(
+      lower.includes("network") ||
+      lower.includes("fetch")
+    ){
 
-      return "A network error occurred. Please check your connection.";
+      return "A network error occurred. Please check your internet connection and try again.";
 
     }
 
 
-    return text;
+    if(
+      lower.includes("failed to fetch")
+    ){
+
+      return "CrowRules could not connect to Supabase. Check your Supabase URL, publishable key, and internet connection.";
+
+    }
+
+
+    return (
+      text ||
+      "Something went wrong. Please try again."
+    );
 
   }
 
 
-  /*
-   * ------------------------------------------------------
-   * LOGIN
-   * ------------------------------------------------------
-   */
+  /* =====================================================
+     LOGIN ACTIVITY
+  ===================================================== */
+
+  async function recordLoginActivity(
+    user,
+    method
+  ){
+
+    if(!user){
+      return;
+    }
+
+
+    try{
+
+      const result =
+        await client
+          .from("podcast_login_activity")
+          .insert({
+
+            user_id:user.id,
+
+            login_method:
+              method
+
+          });
+
+
+      if(result.error){
+
+        console.warn(
+          "Login activity was not recorded:",
+          result.error
+        );
+
+      }
+
+    }catch(error){
+
+      /*
+        Login activity is optional.
+        Never block authentication because
+        activity logging failed.
+      */
+
+      console.warn(
+        "Login activity error:",
+        error
+      );
+
+    }
+
+  }
+
+
+  /* =====================================================
+     EMAIL LOGIN
+  ===================================================== */
 
   form.addEventListener(
     "submit",
-    async function (event) {
+    async function(event){
 
       event.preventDefault();
 
@@ -1183,10 +1215,11 @@
       );
 
 
-      const client =
+      const authClient =
         getClient();
 
-      if (!client) {
+
+      if(!authClient){
         return;
       }
 
@@ -1196,11 +1229,12 @@
           .trim()
           .toLowerCase();
 
+
       const password =
         passwordInput.value;
 
 
-      if (!email) {
+      if(!email){
 
         showMessage(
           "Please enter your email address.",
@@ -1214,9 +1248,11 @@
       }
 
 
-      if (
-        !email.includes("@")
-      ) {
+      if(
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+          email
+        )
+      ){
 
         showMessage(
           "Please enter a valid email address.",
@@ -1230,7 +1266,7 @@
       }
 
 
-      if (!password) {
+      if(!password){
 
         showMessage(
           "Please enter your password.",
@@ -1244,7 +1280,7 @@
       }
 
 
-      try {
+      try{
 
         localStorage.setItem(
           "crowrules_podcast_remember",
@@ -1253,10 +1289,10 @@
             : "false"
         );
 
-      } catch (error) {
+      }catch(error){
 
         console.warn(
-          "Could not save login preference.",
+          "Could not save remember preference:",
           error
         );
 
@@ -1266,32 +1302,37 @@
       setLoading(true);
 
 
-      try {
+      try{
 
         const {
           data,
           error
         } =
-          await client.auth.signInWithPassword({
+          await authClient.auth
+            .signInWithPassword({
 
-            email: email,
+              email,
+              password
 
-            password: password
-
-          });
+            });
 
 
-        if (error) {
+        if(error){
 
-          if (
+          const errorText =
             String(
               error.message || ""
-            )
-            .toLowerCase()
-            .includes(
+            ).toLowerCase();
+
+
+          if(
+            errorText.includes(
               "email not confirmed"
             )
-          ) {
+          ){
+
+            verificationLink.href =
+              verifyUrl(email);
 
             verification.classList.add(
               "show"
@@ -1299,54 +1340,28 @@
 
           }
 
+
           throw error;
 
         }
 
 
-        if (
+        if(
           !data ||
           !data.user
-        ) {
+        ){
 
           throw new Error(
-            "Login succeeded, but Supabase did not return a user."
+            "Login succeeded, but no authenticated user was returned."
           );
 
         }
 
 
-        /*
-         * Record login activity.
-         *
-         * This is optional and must never
-         * block authentication.
-         */
-
-        try {
-
-          await client
-            .from(
-              "podcast_login_activity"
-            )
-            .insert({
-
-              user_id:
-                data.user.id,
-
-              login_method:
-                "email"
-
-            });
-
-        } catch (activityError) {
-
-          console.warn(
-            "Login activity recording failed:",
-            activityError
-          );
-
-        }
+        await recordLoginActivity(
+          data.user,
+          "email"
+        );
 
 
         showMessage(
@@ -1357,14 +1372,14 @@
 
         setTimeout(
           goToCreatorDashboard,
-          500
+          350
         );
 
 
-      } catch (error) {
+      }catch(error){
 
         console.error(
-          "CrowRules Podcasting login:",
+          "CrowRules Podcasting login error:",
           error
         );
 
@@ -1383,15 +1398,13 @@
   );
 
 
-  /*
-   * ------------------------------------------------------
-   * GOOGLE LOGIN
-   * ------------------------------------------------------
-   */
+  /* =====================================================
+     GOOGLE LOGIN
+  ===================================================== */
 
   googleButton.addEventListener(
     "click",
-    async function () {
+    async function(){
 
       clearMessage();
 
@@ -1400,55 +1413,89 @@
       );
 
 
-      const client =
+      const authClient =
         getClient();
 
-      if (!client) {
+
+      if(!authClient){
         return;
       }
 
 
-      try {
+      try{
 
         googleButton.disabled =
           true;
 
-        googleButton.textContent =
+        loginButton.disabled =
+          true;
+
+        googleButton.innerHTML =
           "Connecting to Google...";
 
+
+        /*
+          IMPORTANT:
+          This is a relative URL converted into
+          the full GitHub Pages URL.
+
+          Example:
+
+          https://crowrulesentertainment-oss.github.io/
+          podcasting/creator/dashboard.html
+        */
 
         const redirectTo =
           creatorDashboardUrl();
 
 
         const {
+          data,
           error
         } =
-          await client.auth.signInWithOAuth({
+          await authClient.auth
+            .signInWithOAuth({
 
-            provider: "google",
+              provider:"google",
 
-            options: {
+              options:{
 
-              redirectTo:
-                redirectTo
+                redirectTo,
 
-            }
+                queryParams:{
 
-          });
+                  access_type:"offline",
+
+                  prompt:"select_account"
+
+                }
+
+              }
+
+            });
 
 
-        if (error) {
-
+        if(error){
           throw error;
-
         }
 
 
-      } catch (error) {
+        /*
+          Supabase normally redirects the browser
+          automatically. If it does not, leave the
+          current page in place so the error can be
+          displayed.
+        */
+
+        console.log(
+          "Google OAuth started:",
+          data
+        );
+
+      }catch(error){
 
         console.error(
-          "Google OAuth:",
+          "Google OAuth error:",
           error
         );
 
@@ -1462,9 +1509,11 @@
         googleButton.disabled =
           false;
 
+        loginButton.disabled =
+          false;
+
         googleButton.innerHTML =
-          '<span class="google-icon">G</span>' +
-          'Continue with Google';
+          '<span class="google-icon">G</span> Continue with Google';
 
       }
 
@@ -1472,25 +1521,24 @@
   );
 
 
-  /*
-   * ------------------------------------------------------
-   * PASSWORD RESET
-   * ------------------------------------------------------
-   */
+  /* =====================================================
+     PASSWORD RESET
+  ===================================================== */
 
   forgotPassword.addEventListener(
     "click",
-    async function (event) {
+    async function(event){
 
       event.preventDefault();
 
       clearMessage();
 
 
-      const client =
+      const authClient =
         getClient();
 
-      if (!client) {
+
+      if(!authClient){
         return;
       }
 
@@ -1501,7 +1549,7 @@
           .toLowerCase();
 
 
-      if (!email) {
+      if(!email){
 
         showMessage(
           "Enter your email address first, then click Forgot password.",
@@ -1515,9 +1563,11 @@
       }
 
 
-      if (
-        !email.includes("@")
-      ) {
+      if(
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+          email
+        )
+      ){
 
         showMessage(
           "Please enter a valid email address.",
@@ -1529,7 +1579,7 @@
       }
 
 
-      try {
+      try{
 
         forgotPassword.textContent =
           "Sending...";
@@ -1538,30 +1588,21 @@
           "none";
 
 
-        const resetUrl =
-          new URL(
-            "reset-password.html",
-            window.location.href
-          ).toString();
-
-
         const {
           error
         } =
-          await client.auth
+          await authClient.auth
             .resetPasswordForEmail(
               email,
               {
                 redirectTo:
-                  resetUrl
+                  resetPasswordUrl()
               }
             );
 
 
-        if (error) {
-
+        if(error){
           throw error;
-
         }
 
 
@@ -1571,10 +1612,10 @@
         );
 
 
-      } catch (error) {
+      }catch(error){
 
         console.error(
-          "Password reset:",
+          "Password reset error:",
           error
         );
 
@@ -1585,7 +1626,7 @@
         );
 
 
-      } finally {
+      }finally{
 
         forgotPassword.textContent =
           "Forgot password?";
@@ -1599,37 +1640,31 @@
   );
 
 
-  /*
-   * ------------------------------------------------------
-   * EXISTING SESSION
-   *
-   * If the creator is already logged in,
-   * send them directly to:
-   *
-   * creator/dashboard.html
-   * ------------------------------------------------------
-   */
+  /* =====================================================
+     EXISTING SESSION
+  ===================================================== */
 
-  async function checkExistingSession() {
+  async function checkExistingSession(){
 
-    const client =
+    const authClient =
       getClient();
 
-    if (!client) {
+
+    if(!authClient){
       return;
     }
 
 
-    try {
+    try{
 
       const {
         data,
         error
       } =
-        await client.auth.getSession();
+        await authClient.auth.getSession();
 
 
-      if (error) {
+      if(error){
 
         console.warn(
           "Session check:",
@@ -1641,11 +1676,9 @@
       }
 
 
-      if (
-        data &&
-        data.session &&
-        data.session.user
-      ) {
+      if(
+        data?.session?.user
+      ){
 
         showMessage(
           "You are already signed in. Opening your Creator Dashboard...",
@@ -1655,12 +1688,12 @@
 
         setTimeout(
           goToCreatorDashboard,
-          500
+          350
         );
 
       }
 
-    } catch (error) {
+    }catch(error){
 
       console.warn(
         "Existing session check failed:",
@@ -1672,32 +1705,25 @@
   }
 
 
-  /*
-   * ------------------------------------------------------
-   * AUTH STATE
-   * ------------------------------------------------------
-   */
+  /* =====================================================
+     AUTH STATE
+  ===================================================== */
 
-  function setupAuthListener() {
+  function setupAuthListener(){
 
-    const client =
-      window.supabaseClient;
-
-    if (
+    if(
       !client ||
       !client.auth
-    ) {
-
+    ){
       return;
-
     }
 
 
     client.auth.onAuthStateChange(
-      function (
+      async function(
         event,
         session
-      ) {
+      ){
 
         console.log(
           "[CrowRules Auth]",
@@ -1705,21 +1731,23 @@
         );
 
 
-        if (
+        if(
           event === "SIGNED_IN" &&
-          session &&
-          session.user
-        ) {
+          session?.user
+        ){
 
           /*
-           * Always send successful authentication
-           * to the creator dashboard.
-           */
+            Supabase OAuth/email authentication
+            has completed.
+          */
 
-          setTimeout(
-            goToCreatorDashboard,
-            300
+          await recordLoginActivity(
+            session.user,
+            "auth"
           );
+
+
+          goToCreatorDashboard();
 
         }
 
@@ -1729,15 +1757,46 @@
   }
 
 
-  /*
-   * ------------------------------------------------------
-   * SUPABASE CONFIG ERROR
-   * ------------------------------------------------------
-   */
+  /* =====================================================
+     REMEMBER PREFERENCE
+  ===================================================== */
+
+  function loadRememberPreference(){
+
+    try{
+
+      const saved =
+        localStorage.getItem(
+          "crowrules_podcast_remember"
+        );
+
+
+      if(saved !== null){
+
+        remember.checked =
+          saved === "true";
+
+      }
+
+    }catch(error){
+
+      console.warn(
+        "Could not read remember preference:",
+        error
+      );
+
+    }
+
+  }
+
+
+  /* =====================================================
+     SUPABASE CONFIG ERROR
+  ===================================================== */
 
   window.addEventListener(
     "supabase-config-error",
-    function () {
+    function(){
 
       showMessage(
         "Supabase is not configured. Check assets/js/supabase.js.",
@@ -1748,16 +1807,23 @@
   );
 
 
-  /*
-   * ------------------------------------------------------
-   * START
-   * ------------------------------------------------------
-   */
+  /* =====================================================
+     START
+  ===================================================== */
 
-  setupAuthListener();
+  loadRememberPreference();
 
-  checkExistingSession();
+  client =
+    getClient();
 
+
+  if(client){
+
+    setupAuthListener();
+
+    checkExistingSession();
+
+  }
 
 })();
 </script>
