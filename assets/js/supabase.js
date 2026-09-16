@@ -1,8 +1,3 @@
-/* =========================================================
-   CrowRules Podcasting
-   Supabase Client
-   ========================================================= */
-
 (function () {
   "use strict";
 
@@ -13,43 +8,49 @@
     "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
 
   if (
-    typeof window.supabase === "undefined" ||
+    !window.supabase ||
     typeof window.supabase.createClient !== "function"
   ) {
     console.error(
-      "CrowRules Podcasting: Supabase JS library failed to load."
+      "[CrowRules] Supabase JavaScript library failed to load."
     );
-
-    window.supabaseClient = null;
     return;
   }
 
-  try {
-    window.supabaseClient =
-      window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY,
-        {
-          auth: {
-            autoRefreshToken: true,
-            persistSession: true,
-            detectSessionInUrl: true
-          }
-        }
-      );
-
-    console.log(
-      "CrowRules Podcasting: Supabase connected."
-    );
-
-  } catch (error) {
-
+  if (
+    !SUPABASE_URL ||
+    !SUPABASE_PUBLISHABLE_KEY ||
+    SUPABASE_PUBLISHABLE_KEY ===
+      "YOUR_REAL_PUBLISHABLE_OR_ANON_KEY"
+  ) {
     console.error(
-      "CrowRules Podcasting: Supabase initialization failed.",
-      error
+      "[CrowRules] Supabase publishable key is missing."
     );
 
-    window.supabaseClient = null;
+    window.dispatchEvent(
+      new Event("supabase-config-error")
+    );
+
+    return;
   }
+
+  const client =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        }
+      }
+    );
+
+  window.crowSupabase =
+    client;
+
+  window.supabaseClient =
+    client;
 
 })();
