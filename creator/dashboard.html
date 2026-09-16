@@ -1,4 +1,5 @@
 <!doctype html>
+
 <html lang="en">
 <head>
 
@@ -8,8 +9,9 @@
 <title>Creator Dashboard | CrowRules Podcasting</title>
 
 <meta
-  name="description"
-  content="Manage your CrowRules Podcasting shows, episodes, uploads and creator analytics."
+name="description"
+content="Manage your CrowRules Podcasting shows, episodes, uploads and creator analytics."
+
 >
 
 <meta name="theme-color" content="#05050b">
@@ -22,10 +24,6 @@
   rel="stylesheet"
 >
 
-<!-- IMPORTANT:
-     dashboard.html is inside /creator/
-     so shared assets use ../
--->
 <link rel="stylesheet" href="../assets/css/style.css">
 
 <style>
@@ -109,10 +107,6 @@ input{
   font:inherit;
 }
 
-/* =========================================================
-   NAVIGATION
-========================================================= */
-
 .nav{
   position:sticky;
   top:0;
@@ -165,10 +159,6 @@ input{
   color:var(--cyan);
 }
 
-/* =========================================================
-   AUTH
-========================================================= */
-
 .auth{
   display:flex;
   align-items:center;
@@ -182,10 +172,6 @@ input{
   color:white;
 }
 
-/* =========================================================
-   MAIN
-========================================================= */
-
 main{
   position:relative;
   z-index:2;
@@ -195,10 +181,6 @@ main{
 
   padding:55px 0 90px;
 }
-
-/* =========================================================
-   HERO
-========================================================= */
 
 .hero{
   display:flex;
@@ -246,10 +228,6 @@ h1 span{
   flex-wrap:wrap;
   gap:10px;
 }
-
-/* =========================================================
-   BUTTONS
-========================================================= */
 
 .btn{
   display:inline-flex;
@@ -304,10 +282,6 @@ h1 span{
   transform:none;
 }
 
-/* =========================================================
-   STATUS
-========================================================= */
-
 .status{
   margin-bottom:25px;
 
@@ -337,10 +311,6 @@ h1 span{
 .status.info{
   border-color:rgba(0,234,255,.25);
 }
-
-/* =========================================================
-   STATS
-========================================================= */
 
 .stats{
   display:grid;
@@ -411,10 +381,6 @@ h1 span{
   font-size:12px;
 }
 
-/* =========================================================
-   SECTIONS
-========================================================= */
-
 .section{
   margin-top:38px;
 }
@@ -442,22 +408,11 @@ h1 span{
   font-size:13px;
 }
 
-/* =========================================================
-   GRID
-========================================================= */
-
 .grid{
   display:grid;
-
-  grid-template-columns:
-    repeat(3,1fr);
-
+  grid-template-columns:repeat(3,1fr);
   gap:18px;
 }
-
-/* =========================================================
-   CARDS
-========================================================= */
 
 .card{
   min-width:0;
@@ -481,13 +436,11 @@ h1 span{
 
 .card h3{
   margin:0 0 9px;
-
   font-size:17px;
 }
 
 .card p{
   color:var(--muted);
-
   line-height:1.6;
   font-size:14px;
 }
@@ -495,9 +448,7 @@ h1 span{
 .card-meta{
   display:flex;
   flex-wrap:wrap;
-
   gap:8px;
-
   margin:12px 0;
 }
 
@@ -550,10 +501,6 @@ h1 span{
   font-size:12px;
 }
 
-/* =========================================================
-   EMPTY
-========================================================= */
-
 .empty{
   grid-column:1 / -1;
 
@@ -574,20 +521,12 @@ h1 span{
 .empty p{
   max-width:500px;
   margin:0 auto 20px;
-
   color:var(--muted);
 }
 
-/* =========================================================
-   QUICK ACTIONS
-========================================================= */
-
 .quick-actions{
   display:grid;
-
-  grid-template-columns:
-    repeat(4,1fr);
-
+  grid-template-columns:repeat(4,1fr);
   gap:14px;
 }
 
@@ -626,10 +565,6 @@ h1 span{
   color:var(--muted);
   font-size:12px;
 }
-
-/* =========================================================
-   PROFILE BAR
-========================================================= */
 
 .profile-bar{
   display:flex;
@@ -683,18 +618,6 @@ h1 span{
   letter-spacing:1px;
 }
 
-/* =========================================================
-   LOADING
-========================================================= */
-
-.loading{
-  opacity:.6;
-}
-
-/* =========================================================
-   FOOTER
-========================================================= */
-
 .footer{
   position:relative;
   z-index:2;
@@ -710,25 +633,18 @@ h1 span{
   font-size:13px;
 }
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
-
 @media(max-width:1100px){
 
   .stats{
-    grid-template-columns:
-      repeat(2,1fr);
+    grid-template-columns:repeat(2,1fr);
   }
 
   .quick-actions{
-    grid-template-columns:
-      repeat(2,1fr);
+    grid-template-columns:repeat(2,1fr);
   }
 
   .grid{
-    grid-template-columns:
-      repeat(2,1fr);
+    grid-template-columns:repeat(2,1fr);
   }
 
 }
@@ -786,15 +702,10 @@ h1 span{
 }
 
 </style>
+
 </head>
 
-
 <body>
-
-
-<!-- =======================================================
-     NAVIGATION
-======================================================= -->
 
 <header class="nav">
 
@@ -804,110 +715,82 @@ h1 span{
 
   <nav class="navlinks">
 
-    <a href="../index.html">
-      Home
-    </a>
-
-    <a href="../podcasts.html">
-      Podcasts
-    </a>
-
-    <a href="../episodes.html">
-      Episodes
-    </a>
-
-    <a href="../live.html">
-      Live
-    </a>
-
-    <a href="../top10.html">
-      Top 10
-    </a>
-
-    <a href="dashboard.html">
-      Creator Hub
-    </a>
+<a href="../index.html">Home</a>
+<a href="../podcasts.html">Podcasts</a>
+<a href="../episodes.html">Episodes</a>
+<a href="../live.html">Live</a>
+<a href="../top10.html">Top 10</a>
+<a href="dashboard.html">Creator Hub</a>
 
   </nav>
 
   <div class="auth">
 
-    <span id="authUser">
-      Checking...
-    </span>
+<span id="authUser">
+  Checking session...
+</span>
 
-    <button
-      id="logoutBtn"
-      class="btn ghost"
-      type="button"
-      style="display:none"
-    >
-      Sign Out
-    </button>
+<button
+  id="logoutBtn"
+  class="btn ghost"
+  type="button"
+  style="display:none"
+>
+  Sign Out
+</button>
 
   </div>
 
 </header>
 
-
-<!-- =======================================================
-     MAIN
-======================================================= -->
-
 <main>
-
-
-  <!-- HERO -->
 
   <section class="hero">
 
-    <div>
+<div>
 
-      <div class="eyebrow">
-        CROWRULES CREATOR NETWORK
-      </div>
+  <div class="eyebrow">
+    CROWRULES CREATOR NETWORK
+  </div>
 
-      <h1>
-        CREATOR<br>
-        <span>DASHBOARD</span>
-      </h1>
+  <h1>
+    CREATOR<br>
+    <span>DASHBOARD</span>
+  </h1>
 
-      <p>
-        Your control center for building, publishing and
-        growing your CrowRules Podcasting shows.
-      </p>
+  <p>
+    Your control center for building, publishing and
+    growing your CrowRules Podcasting shows.
+  </p>
 
-      <div class="hero-actions">
+  <div class="hero-actions">
 
-        <a
-          class="btn"
-          href="create-podcast.html"
-        >
-          + Create Podcast
-        </a>
+    <a
+      class="btn"
+      href="create-podcast.html"
+    >
+      + Create Podcast
+    </a>
 
-        <a
-          class="btn alt"
-          href="upload-episode.html"
-        >
-          ↑ Upload Episode
-        </a>
+    <a
+      class="btn alt"
+      href="upload-episode.html"
+    >
+      ↑ Upload Episode
+    </a>
 
-        <a
-          class="btn ghost"
-          href="analytics.html"
-        >
-          Analytics
-        </a>
+    <a
+      class="btn ghost"
+      href="analytics.html"
+    >
+      Analytics
+    </a>
 
-      </div>
+  </div>
 
-    </div>
+</div>
 
   </section>
-
-
-  <!-- PROFILE -->
 
   <section
     id="profileBar"
@@ -915,340 +798,288 @@ h1 span{
     style="display:none"
   >
 
-    <div class="profile-info">
+<div class="profile-info">
 
-      <div
-        id="profileName"
-        class="profile-name"
-      >
-        Creator
-      </div>
+  <div
+    id="profileName"
+    class="profile-name"
+  >
+    Creator
+  </div>
 
-      <div
-        id="profileEmail"
-        class="profile-email"
-      >
-        —
-      </div>
+  <div
+    id="profileEmail"
+    class="profile-email"
+  >
+    —
+  </div>
 
-    </div>
+</div>
 
-    <div class="creator-badge">
-      CREATOR ACCOUNT
-    </div>
+<div class="creator-badge">
+  CREATOR ACCOUNT
+</div>
 
   </section>
-
-
-  <!-- STATUS -->
 
   <div
     id="status"
     class="status info"
   >
-    Connecting to CrowRules Podcasting...
+    Initializing secure creator session...
   </div>
-
-
-  <!-- =====================================================
-       STATS
-  ===================================================== -->
 
   <section class="stats">
 
+<div class="stat-card">
 
-    <div class="stat-card">
+  <div class="stat-label">
+    Podcasts
+  </div>
 
-      <div class="stat-label">
-        Podcasts
-      </div>
+  <div
+    id="podcastCount"
+    class="stat-value"
+  >
+    —
+  </div>
 
-      <div
-        id="podcastCount"
-        class="stat-value"
-      >
-        —
-      </div>
+  <div class="stat-detail">
+    <span id="publishedPodcasts">—</span>
+    published
+  </div>
 
-      <div class="stat-detail">
+</div>
 
-        <span id="publishedPodcasts">
-          —
-        </span>
+<div class="stat-card">
 
-        published
+  <div class="stat-label">
+    Episodes
+  </div>
 
-      </div>
+  <div
+    id="episodeCount"
+    class="stat-value"
+  >
+    —
+  </div>
 
-    </div>
+  <div class="stat-detail">
+    <span id="publishedEpisodes">—</span>
+    published
+  </div>
 
+</div>
 
-    <div class="stat-card">
+<div class="stat-card">
 
-      <div class="stat-label">
-        Episodes
-      </div>
+  <div class="stat-label">
+    Total Plays
+  </div>
 
-      <div
-        id="episodeCount"
-        class="stat-value"
-      >
-        —
-      </div>
+  <div
+    id="totalPlays"
+    class="stat-value"
+  >
+    —
+  </div>
 
-      <div class="stat-detail">
+  <div class="stat-detail">
+    Across your podcasts
+  </div>
 
-        <span id="publishedEpisodes">
-          —
-        </span>
+</div>
 
-        published
+<div class="stat-card">
 
-      </div>
+  <div class="stat-label">
+    Listeners
+  </div>
 
-    </div>
+  <div
+    id="totalListeners"
+    class="stat-value"
+  >
+    —
+  </div>
 
+  <div class="stat-detail">
+    Audience activity
+  </div>
 
-    <div class="stat-card">
-
-      <div class="stat-label">
-        Total Plays
-      </div>
-
-      <div
-        id="totalPlays"
-        class="stat-value"
-      >
-        —
-      </div>
-
-      <div class="stat-detail">
-        Across your podcasts
-      </div>
-
-    </div>
-
-
-    <div class="stat-card">
-
-      <div class="stat-label">
-        Listeners
-      </div>
-
-      <div
-        id="totalListeners"
-        class="stat-value"
-      >
-        —
-      </div>
-
-      <div class="stat-detail">
-        Audience activity
-      </div>
-
-    </div>
-
+</div>
 
   </section>
-
-
-  <!-- =====================================================
-       QUICK ACTIONS
-  ===================================================== -->
 
   <section class="section">
 
-    <div class="section-header">
+<div class="section-header">
 
-      <h2>
-        Creator Tools
-      </h2>
+  <h2>
+    Creator Tools
+  </h2>
 
-      <span>
-        Build your show
-      </span>
+  <span>
+    Build your show
+  </span>
 
+</div>
+
+<div class="quick-actions">
+
+  <a
+    class="quick"
+    href="create-podcast.html"
+  >
+
+    <div class="quick-icon">
+      🎙️
     </div>
 
+    <strong>
+      Create Podcast
+    </strong>
 
-    <div class="quick-actions">
+    <span>
+      Start a new show.
+    </span>
 
+  </a>
 
-      <a
-        class="quick"
-        href="create-podcast.html"
-      >
+  <a
+    class="quick"
+    href="upload-episode.html"
+  >
 
-        <div class="quick-icon">
-          🎙️
-        </div>
-
-        <strong>
-          Create Podcast
-        </strong>
-
-        <span>
-          Start a new show.
-        </span>
-
-      </a>
-
-
-      <a
-        class="quick"
-        href="upload-episode.html"
-      >
-
-        <div class="quick-icon">
-          🎧
-        </div>
-
-        <strong>
-          Upload Episode
-        </strong>
-
-        <span>
-          Add new audio episodes.
-        </span>
-
-      </a>
-
-
-      <a
-        class="quick"
-        href="my-podcasts.html"
-      >
-
-        <div class="quick-icon">
-          📻
-        </div>
-
-        <strong>
-          My Podcasts
-        </strong>
-
-        <span>
-          Manage your shows.
-        </span>
-
-      </a>
-
-
-      <a
-        class="quick"
-        href="analytics.html"
-      >
-
-        <div class="quick-icon">
-          📊
-        </div>
-
-        <strong>
-          Analytics
-        </strong>
-
-        <span>
-          Review audience activity.
-        </span>
-
-      </a>
-
-
+    <div class="quick-icon">
+      🎧
     </div>
+
+    <strong>
+      Upload Episode
+    </strong>
+
+    <span>
+      Add new audio episodes.
+    </span>
+
+  </a>
+
+  <a
+    class="quick"
+    href="my-podcasts.html"
+  >
+
+    <div class="quick-icon">
+      📻
+    </div>
+
+    <strong>
+      My Podcasts
+    </strong>
+
+    <span>
+      Manage your shows.
+    </span>
+
+  </a>
+
+  <a
+    class="quick"
+    href="analytics.html"
+  >
+
+    <div class="quick-icon">
+      📊
+    </div>
+
+    <strong>
+      Analytics
+    </strong>
+
+    <span>
+      Review audience activity.
+    </span>
+
+  </a>
+
+</div>
 
   </section>
-
-
-  <!-- =====================================================
-       PODCASTS
-  ===================================================== -->
 
   <section class="section">
 
-    <div class="section-header">
+<div class="section-header">
 
-      <h2>
-        My Podcasts
-      </h2>
+  <h2>
+    My Podcasts
+  </h2>
 
-      <a
-        class="btn ghost"
-        href="my-podcasts.html"
-      >
-        Manage All
-      </a>
+  <a
+    class="btn ghost"
+    href="my-podcasts.html"
+  >
+    Manage All
+  </a>
 
-    </div>
+</div>
 
+<div
+  id="podcastGrid"
+  class="grid"
+>
 
-    <div
-      id="podcastGrid"
-      class="grid"
-    >
+  <div class="empty">
+    Loading your podcasts...
+  </div>
 
-      <div class="empty loading">
-
-        Loading your podcasts...
-
-      </div>
-
-    </div>
+</div>
 
   </section>
-
-
-  <!-- =====================================================
-       EPISODES
-  ===================================================== -->
 
   <section class="section">
 
-    <div class="section-header">
+<div class="section-header">
 
-      <h2>
-        Recent Episodes
-      </h2>
+  <h2>
+    Recent Episodes
+  </h2>
 
-      <a
-        class="btn ghost"
-        href="upload-episode.html"
-      >
-        Upload
-      </a>
+  <a
+    class="btn ghost"
+    href="upload-episode.html"
+  >
+    Upload
+  </a>
 
-    </div>
+</div>
 
+<div
+  id="episodeGrid"
+  class="grid"
+>
 
-    <div
-      id="episodeGrid"
-      class="grid"
-    >
+  <div class="empty">
+    Loading your episodes...
+  </div>
 
-      <div class="empty loading">
-
-        Loading your episodes...
-
-      </div>
-
-    </div>
+</div>
 
   </section>
-
 
 </main>
 
-
 <footer class="footer">
 
-  CrowRules Podcasting · Creator Network ·
-  Listen. Create. Share.
+CrowRules Podcasting · Creator Network ·
+Listen. Create. Share.
 
 </footer>
 
-
-<!-- =======================================================
-     SUPABASE
-======================================================= -->
+<!-- ======================================================
+     IMPORTANT:
+     LOWERCASE @supabase IS REQUIRED
+====================================================== -->
 
 <script
   src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
@@ -1256,22 +1087,27 @@ h1 span{
 
 <script src="../assets/js/supabase.js"></script>
 
-
 <script>
+
 "use strict";
 
-
-/* =========================================================
-   GLOBALS
-========================================================= */
+/*
+============================================================
+CrowRules Podcasting Creator Dashboard
+Session-safe version
+============================================================
+*/
 
 let client = null;
 let currentUser = null;
+let authSubscription = null;
+let initializationComplete = false;
+let redirecting = false;
 
 
-/* =========================================================
+/* ---------------------------------------------------------
    ELEMENTS
-========================================================= */
+--------------------------------------------------------- */
 
 const statusEl =
   document.getElementById("status");
@@ -1292,9 +1128,9 @@ const profileEmail =
   document.getElementById("profileEmail");
 
 
-/* =========================================================
+/* ---------------------------------------------------------
    HELPERS
-========================================================= */
+--------------------------------------------------------- */
 
 function escapeHTML(value){
 
@@ -1325,17 +1161,14 @@ function date(value){
     return "—";
   }
 
-  const d =
-    new Date(value);
+  const d = new Date(value);
 
   if(
     Number.isNaN(
       d.getTime()
     )
   ){
-
     return "—";
-
   }
 
   return new Intl.DateTimeFormat(
@@ -1355,50 +1188,164 @@ function setStatus(
   type = "info"
 ){
 
-  statusEl.textContent =
-    text;
+  statusEl.textContent = text;
 
   statusEl.className =
-    "status " +
-    type;
+    "status " + type;
 
 }
 
 
-/* =========================================================
-   SUPABASE CLIENT
-========================================================= */
+/* ---------------------------------------------------------
+   CLIENT
+--------------------------------------------------------- */
 
 function getClient(){
 
-  /*
-   * Support both names so the dashboard
-   * works with the shared client file.
-   */
+  if(
+    window.crowSupabase &&
+    typeof window.crowSupabase.auth === "object"
+  ){
+    return window.crowSupabase;
+  }
 
-  return (
-    window.crowSupabase ||
-    window.supabaseClient ||
-    null
+  if(
+    window.supabaseClient &&
+    typeof window.supabaseClient.auth === "object"
+  ){
+    return window.supabaseClient;
+  }
+
+  return null;
+
+}
+
+
+/* ---------------------------------------------------------
+   WAIT FOR SHARED CLIENT
+--------------------------------------------------------- */
+
+async function waitForClient(
+  timeout = 8000
+){
+
+  const started =
+    Date.now();
+
+  while(
+    Date.now() - started < timeout
+  ){
+
+    client =
+      getClient();
+
+    if(client){
+      return client;
+    }
+
+    await new Promise(
+      resolve =>
+        setTimeout(
+          resolve,
+          100
+        )
+    );
+
+  }
+
+  return null;
+
+}
+
+
+/* ---------------------------------------------------------
+   REDIRECT
+--------------------------------------------------------- */
+
+function goToLogin(){
+
+  if(
+    redirecting ||
+    window.location.pathname.endsWith(
+      "/login.html"
+    )
+  ){
+    return;
+  }
+
+  redirecting = true;
+
+  window.location.replace(
+    new URL(
+      "../login.html",
+      window.location.href
+    ).href
   );
 
 }
 
 
-/* =========================================================
-   AUTHENTICATION
-========================================================= */
+/* ---------------------------------------------------------
+   DISPLAY USER
+--------------------------------------------------------- */
 
-async function checkAuthentication(){
+function renderUser(user){
+
+  if(!user){
+    return;
+  }
+
+  const metadata =
+    user.user_metadata || {};
+
+  const displayName =
+    metadata.display_name ||
+    metadata.full_name ||
+    metadata.name ||
+    metadata.username ||
+    user.email?.split("@")[0] ||
+    "Creator";
+
+  authUserEl.innerHTML =
+    "<strong>" +
+    escapeHTML(displayName) +
+    "</strong>";
+
+  profileName.textContent =
+    displayName;
+
+  profileEmail.textContent =
+    user.email ||
+    "No email available";
+
+  profileBar.style.display =
+    "flex";
+
+  logoutBtn.style.display =
+    "inline-flex";
+
+}
+
+
+/* ---------------------------------------------------------
+   AUTHENTICATED DASHBOARD
+--------------------------------------------------------- */
+
+async function establishSession(){
 
   client =
-    getClient();
-
+    await waitForClient();
 
   if(!client){
 
+    /*
+     * IMPORTANT:
+     * Do NOT redirect to login when Supabase itself
+     * failed to load. That creates an endless loop.
+     */
+
     setStatus(
-      "Supabase is not configured. Check ../assets/js/supabase.js.",
+      "Supabase could not be initialized. Check ../assets/js/supabase.js and the Supabase CDN.",
       "error"
     );
 
@@ -1409,62 +1356,112 @@ async function checkAuthentication(){
 
   try{
 
+    /*
+     * Give the browser's Supabase client time to restore
+     * its persisted session.
+     */
+
     const {
       data,
       error
     } =
       await client.auth.getSession();
 
-
     if(error){
 
-      throw error;
+      console.error(
+        "getSession error:",
+        error
+      );
 
-    }
-
-
-    if(
-      !data ||
-      !data.session ||
-      !data.session.user
-    ){
-
-      window.location.href =
-        "../login.html";
+      setStatus(
+        "Supabase could not restore the session. Please refresh the page.",
+        "error"
+      );
 
       return null;
 
     }
 
 
-    const user =
-      data.session.user;
+    let session =
+      data?.session || null;
 
 
     /*
-     * Get the freshest user record.
+     * If the session exists, validate the user.
      */
 
-    const {
-      data:userData,
-      error:userError
-    } =
-      await client.auth.getUser();
+    if(session){
 
+      const {
+        data:userData,
+        error:userError
+      } =
+        await client.auth.getUser();
 
-    if(
-      !userError &&
-      userData &&
-      userData.user
-    ){
+      if(
+        userError ||
+        !userData?.user
+      ){
 
-      currentUser =
-        userData.user;
+        console.warn(
+          "Session exists but user validation failed:",
+          userError
+        );
+
+        /*
+         * Give Supabase one opportunity to refresh
+         * the session before treating it as signed out.
+         */
+
+        const {
+          data:refreshData,
+          error:refreshError
+        } =
+        await client.auth.refreshSession();
+
+        if(
+          refreshError ||
+          !refreshData?.session
+        ){
+
+          console.warn(
+            "Session refresh failed:",
+            refreshError
+          );
+
+          goToLogin();
+
+          return null;
+
+        }
+
+        session =
+          refreshData.session;
+
+        currentUser =
+          refreshData.session.user;
+
+      }else{
+
+        currentUser =
+          userData.user;
+
+      }
 
     }else{
 
-      currentUser =
-        user;
+      /*
+       * No session.
+       *
+       * This is the ONLY normal condition that causes
+       * the dashboard to send the visitor to login.
+       */
+
+      goToLogin();
+
+      return null;
 
     }
 
@@ -1474,32 +1471,34 @@ async function checkAuthentication(){
     );
 
 
+    initializationComplete =
+      true;
+
+
+    setStatus(
+      "Authenticated. Welcome to your CrowRules Creator Dashboard.",
+      "success"
+    );
+
+
     return currentUser;
 
   }catch(error){
 
     console.error(
-      "Authentication error:",
+      "Session initialization error:",
       error
     );
 
+    /*
+     * Do not immediately redirect on unexpected
+     * client/network errors.
+     */
 
     setStatus(
-      "Your session could not be verified. Please sign in again.",
+      "We could not verify the creator session right now. Please refresh the page.",
       "error"
     );
-
-
-    setTimeout(
-      function(){
-
-        window.location.href =
-          "../login.html";
-
-      },
-      1200
-    );
-
 
     return null;
 
@@ -1508,53 +1507,9 @@ async function checkAuthentication(){
 }
 
 
-/* =========================================================
-   USER DISPLAY
-========================================================= */
-
-function renderUser(user){
-
-  const metadata =
-    user.user_metadata || {};
-
-
-  const displayName =
-    metadata.display_name ||
-    metadata.full_name ||
-    metadata.name ||
-    metadata.username ||
-    "Creator";
-
-
-  authUserEl.innerHTML =
-    "<strong>" +
-    escapeHTML(
-      displayName
-    ) +
-    "</strong>";
-
-
-  profileName.textContent =
-    displayName;
-
-
-  profileEmail.textContent =
-    user.email || "No email available";
-
-
-  profileBar.style.display =
-    "flex";
-
-
-  logoutBtn.style.display =
-    "inline-flex";
-
-}
-
-
-/* =========================================================
+/* ---------------------------------------------------------
    SIGN OUT
-========================================================= */
+--------------------------------------------------------- */
 
 logoutBtn.addEventListener(
   "click",
@@ -1564,32 +1519,32 @@ logoutBtn.addEventListener(
       return;
     }
 
-
     logoutBtn.disabled =
       true;
 
     logoutBtn.textContent =
       "Signing Out...";
 
-
     try{
 
       const {
         error
       } =
-        await client.auth.signOut();
-
+      await client.auth.signOut();
 
       if(error){
-
         throw error;
-
       }
 
+      redirecting =
+        true;
 
-      window.location.href =
-        "../login.html";
-
+      window.location.replace(
+        new URL(
+          "../login.html",
+          window.location.href
+        ).href
+      );
 
     }catch(error){
 
@@ -1598,13 +1553,11 @@ logoutBtn.addEventListener(
         error
       );
 
-
       setStatus(
         "Unable to sign out: " +
-        error.message,
+        (error.message || "Unknown error"),
         "error"
       );
-
 
       logoutBtn.disabled =
         false;
@@ -1618,17 +1571,22 @@ logoutBtn.addEventListener(
 );
 
 
-/* =========================================================
-   AUTH STATE LISTENER
-========================================================= */
+/* ---------------------------------------------------------
+   AUTH STATE
+--------------------------------------------------------- */
 
 function setupAuthListener(){
 
-  if(!client){
+  if(
+    !client ||
+    authSubscription
+  ){
     return;
   }
 
-
+  const {
+    data
+  } =
   client.auth.onAuthStateChange(
     function(
       event,
@@ -1636,46 +1594,93 @@ function setupAuthListener(){
     ){
 
       console.log(
-        "CrowRules Auth:",
-        event
+        "[CrowRules Auth]",
+        event,
+        session
+          ? "session present"
+          : "no session"
       );
 
+
+      /*
+       * Do not redirect during initial page loading.
+       * establishSession() already made the initial
+       * authentication decision.
+       */
 
       if(
         event === "SIGNED_OUT"
       ){
 
-        window.location.href =
-          "../login.html";
+        if(
+          initializationComplete &&
+          !redirecting
+        ){
+
+          goToLogin();
+
+        }
+
+        return;
+
+      }
+
+
+      if(
+        event === "SIGNED_IN" &&
+        session?.user
+      ){
+
+        currentUser =
+          session.user;
+
+        renderUser(
+          currentUser
+        );
+
+      }
+
+
+      if(
+        event === "TOKEN_REFRESHED" &&
+        session?.user
+      ){
+
+        currentUser =
+          session.user;
+
+        renderUser(
+          currentUser
+        );
+
+        setStatus(
+          "Creator session refreshed.",
+          "success"
+        );
 
       }
 
     }
   );
 
+  authSubscription =
+    data?.subscription || null;
+
 }
 
 
-/* =========================================================
+/* ---------------------------------------------------------
    CREATOR DATA
-========================================================= */
-
-/*
- * The dashboard first attempts to use the
- * Supabase RPC if it exists.
- *
- * If your database has not created that RPC yet,
- * the page remains functional and shows the
- * creator shell rather than falsely displaying
- * database data.
- */
+--------------------------------------------------------- */
 
 async function loadCreatorDashboard(){
 
-  if(!client || !currentUser){
+  if(
+    !client ||
+    !currentUser
+  ){
     return;
   }
-
 
   setStatus(
     "Loading your creator dashboard...",
@@ -1689,9 +1694,9 @@ async function loadCreatorDashboard(){
       data,
       error
     } =
-      await client.rpc(
-        "get_podcast_creator_dashboard"
-      );
+    await client.rpc(
+      "get_podcast_creator_dashboard"
+    );
 
 
     if(
@@ -1703,24 +1708,15 @@ async function loadCreatorDashboard(){
         data
       );
 
-
       setStatus(
         "Creator dashboard connected to Supabase.",
         "success"
       );
 
-
       return;
 
     }
 
-
-    /*
-     * RPC isn't available yet.
-     *
-     * Do not treat this as an authentication
-     * failure.
-     */
 
     console.info(
       "Creator dashboard RPC unavailable:",
@@ -1732,7 +1728,7 @@ async function loadCreatorDashboard(){
 
 
     setStatus(
-      "You are signed in. Creator data will appear here as your podcast content is connected.",
+      "You are signed in. Your creator workspace is ready.",
       "success"
     );
 
@@ -1740,16 +1736,14 @@ async function loadCreatorDashboard(){
   }catch(error){
 
     console.error(
-      "Creator dashboard:",
+      "Creator dashboard data error:",
       error
     );
 
-
     renderEmptyDashboard();
 
-
     setStatus(
-      "You are signed in, but creator data could not be loaded yet.",
+      "You are signed in. Creator data is not available yet.",
       "success"
     );
 
@@ -1758,24 +1752,19 @@ async function loadCreatorDashboard(){
 }
 
 
-/* =========================================================
+/* ---------------------------------------------------------
    DASHBOARD DATA
-========================================================= */
+--------------------------------------------------------- */
 
 function renderDashboardData(data){
 
   const podcasts =
-    Array.isArray(
-      data.podcasts
-    )
+    Array.isArray(data?.podcasts)
       ? data.podcasts
       : [];
 
-
   const episodes =
-    Array.isArray(
-      data.recent_episodes
-    )
+    Array.isArray(data?.recent_episodes)
       ? data.recent_episodes
       : [];
 
@@ -1784,7 +1773,7 @@ function renderDashboardData(data){
     "podcastCount"
   ).textContent =
     number(
-      data.podcast_count
+      data?.podcast_count
     );
 
 
@@ -1792,7 +1781,7 @@ function renderDashboardData(data){
     "episodeCount"
   ).textContent =
     number(
-      data.episode_count
+      data?.episode_count
     );
 
 
@@ -1800,7 +1789,7 @@ function renderDashboardData(data){
     "totalPlays"
   ).textContent =
     number(
-      data.total_plays
+      data?.total_plays
     );
 
 
@@ -1808,7 +1797,7 @@ function renderDashboardData(data){
     "totalListeners"
   ).textContent =
     number(
-      data.total_listeners
+      data?.total_listeners
     );
 
 
@@ -1816,7 +1805,7 @@ function renderDashboardData(data){
     "publishedPodcasts"
   ).textContent =
     number(
-      data.published_podcasts
+      data?.published_podcasts
     );
 
 
@@ -1824,14 +1813,13 @@ function renderDashboardData(data){
     "publishedEpisodes"
   ).textContent =
     number(
-      data.published_episodes
+      data?.published_episodes
     );
 
 
   renderPodcasts(
     podcasts
   );
-
 
   renderEpisodes(
     episodes
@@ -1840,46 +1828,35 @@ function renderDashboardData(data){
 }
 
 
-/* =========================================================
+/* ---------------------------------------------------------
    EMPTY DASHBOARD
-========================================================= */
+--------------------------------------------------------- */
 
 function renderEmptyDashboard(){
 
   document.getElementById(
     "podcastCount"
-  ).textContent =
-    "0";
-
+  ).textContent = "0";
 
   document.getElementById(
     "episodeCount"
-  ).textContent =
-    "0";
-
+  ).textContent = "0";
 
   document.getElementById(
     "totalPlays"
-  ).textContent =
-    "0";
-
+  ).textContent = "0";
 
   document.getElementById(
     "totalListeners"
-  ).textContent =
-    "0";
-
+  ).textContent = "0";
 
   document.getElementById(
     "publishedPodcasts"
-  ).textContent =
-    "0";
-
+  ).textContent = "0";
 
   document.getElementById(
     "publishedEpisodes"
-  ).textContent =
-    "0";
+  ).textContent = "0";
 
 
   document.getElementById(
@@ -1893,7 +1870,7 @@ function renderEmptyDashboard(){
       </h3>
 
       <p>
-        You are successfully connected to
+        You are successfully signed in to
         CrowRules Podcasting. Create your first
         podcast to begin building your creator
         library.
@@ -1940,9 +1917,9 @@ function renderEmptyDashboard(){
 }
 
 
-/* =========================================================
+/* ---------------------------------------------------------
    PODCASTS
-========================================================= */
+--------------------------------------------------------- */
 
 function renderPodcasts(items){
 
@@ -1989,22 +1966,14 @@ function renderPodcasts(items){
 
         const status =
           String(
-            p.status || "draft"
+            p?.status || "draft"
           ).toLowerCase();
 
 
-        let statusClass =
-          "draft";
-
-
-        if(
+        const statusClass =
           status === "published"
-        ){
-
-          statusClass =
-            "published";
-
-        }
+            ? "published"
+            : "draft";
 
 
         return `
@@ -2012,12 +1981,10 @@ function renderPodcasts(items){
           <article class="card">
 
             <h3>
-              ${
-                escapeHTML(
-                  p.title ||
-                  "Untitled Podcast"
-                )
-              }
+              ${escapeHTML(
+                p?.title ||
+                "Untitled Podcast"
+              )}
             </h3>
 
             <div class="card-meta">
@@ -2025,16 +1992,14 @@ function renderPodcasts(items){
               <span
                 class="badge ${statusClass}"
               >
-                ${
-                  escapeHTML(
-                    p.status ||
-                    "Draft"
-                  )
-                }
+                ${escapeHTML(
+                  p?.status ||
+                  "Draft"
+                )}
               </span>
 
               ${
-                p.is_live
+                p?.is_live
                   ? `
                     <span class="badge live">
                       LIVE
@@ -2046,24 +2011,26 @@ function renderPodcasts(items){
             </div>
 
             <p>
-              ${
-                escapeHTML(
-                  p.description ||
-                  "No description added yet."
-                )
-              }
+              ${escapeHTML(
+                p?.description ||
+                "No description added yet."
+              )}
             </p>
 
             <div class="card-footer">
 
               <span>
-                ${number(p.total_plays)}
+                ${number(
+                  p?.total_plays
+                )}
                 plays
               </span>
 
               <span>
                 Updated
-                ${date(p.updated_at)}
+                ${date(
+                  p?.updated_at
+                )}
               </span>
 
             </div>
@@ -2078,9 +2045,9 @@ function renderPodcasts(items){
 }
 
 
-/* =========================================================
+/* ---------------------------------------------------------
    EPISODES
-========================================================= */
+--------------------------------------------------------- */
 
 function renderEpisodes(items){
 
@@ -2127,7 +2094,7 @@ function renderEpisodes(items){
 
         const status =
           String(
-            e.status || "draft"
+            e?.status || "draft"
           ).toLowerCase();
 
 
@@ -2142,12 +2109,10 @@ function renderEpisodes(items){
           <article class="card">
 
             <h3>
-              ${
-                escapeHTML(
-                  e.title ||
-                  "Untitled Episode"
-                )
-              }
+              ${escapeHTML(
+                e?.title ||
+                "Untitled Episode"
+              )}
             </h3>
 
             <div class="card-meta">
@@ -2155,43 +2120,37 @@ function renderEpisodes(items){
               <span
                 class="badge ${statusClass}"
               >
-                ${
-                  escapeHTML(
-                    e.status ||
-                    "Draft"
-                  )
-                }
+                ${escapeHTML(
+                  e?.status ||
+                  "Draft"
+                )}
               </span>
 
             </div>
 
             <p>
-
               <strong>
-                ${
-                  escapeHTML(
-                    e.podcast_title ||
-                    "Podcast"
-                  )
-                }
+                ${escapeHTML(
+                  e?.podcast_title ||
+                  "Podcast"
+                )}
               </strong>
-
             </p>
 
             <div class="card-footer">
 
               <span>
-                ${number(e.play_count)}
+                ${number(
+                  e?.play_count
+                )}
                 plays
               </span>
 
               <span>
-                ${
-                  date(
-                    e.published_at ||
-                    e.created_at
-                  )
-                }
+                ${date(
+                  e?.published_at ||
+                  e?.created_at
+                )}
               </span>
 
             </div>
@@ -2206,25 +2165,43 @@ function renderEpisodes(items){
 }
 
 
-/* =========================================================
+/* ---------------------------------------------------------
    INITIALIZE
-========================================================= */
+--------------------------------------------------------- */
 
 async function init(){
 
+  console.log(
+    "[CrowRules] Creator Dashboard starting..."
+  );
+
+
   const user =
-    await checkAuthentication();
+    await establishSession();
 
 
   if(!user){
+
+    /*
+     * If this was a configuration/network problem,
+     * stay on this page instead of creating a redirect
+     * loop.
+     */
+
     return;
+
   }
 
 
   setupAuthListener();
 
-
   await loadCreatorDashboard();
+
+
+  console.log(
+    "[CrowRules] Creator Dashboard ready.",
+    currentUser?.id
+  );
 
 }
 
