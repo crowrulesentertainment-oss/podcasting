@@ -1,18 +1,19 @@
 <!doctype html>
-
 <html lang="en">
 <head>
   <meta charset="utf-8">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
 
   <title>Creator Login | CrowRules Podcasting</title>
 
-<meta
-name="description"
-content="Sign in to CrowRules Podcasting and access your creator dashboard."
-
->
+  <meta
+    name="description"
+    content="Sign in to CrowRules Podcasting and access your creator dashboard."
+  >
 
   <meta name="theme-color" content="#050509">
 
@@ -27,7 +28,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
   <style>
     :root{
       --bg:#050509;
-      --panel:rgba(14,14,24,.95);
+      --panel:rgba(14,14,24,.96);
       --text:#f5f5f7;
       --muted:#a4a4b3;
       --border:rgba(255,255,255,.10);
@@ -53,10 +54,27 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
       font-family:"Montserrat",sans-serif;
 
       background:
-        radial-gradient(circle at 15% 15%,rgba(0,229,255,.11),transparent 30%),
-        radial-gradient(circle at 85% 20%,rgba(139,92,246,.13),transparent 32%),
-        radial-gradient(circle at 50% 100%,rgba(0,229,255,.05),transparent 35%),
-        linear-gradient(180deg,#050509,#090912,#050509);
+        radial-gradient(
+          circle at 15% 15%,
+          rgba(0,229,255,.11),
+          transparent 30%
+        ),
+        radial-gradient(
+          circle at 85% 20%,
+          rgba(139,92,246,.13),
+          transparent 32%
+        ),
+        radial-gradient(
+          circle at 50% 100%,
+          rgba(0,229,255,.05),
+          transparent 35%
+        ),
+        linear-gradient(
+          180deg,
+          #050509,
+          #090912,
+          #050509
+        );
     }
 
     body::before{
@@ -67,8 +85,15 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
       opacity:.25;
 
       background-image:
-        linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
-        linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+        linear-gradient(
+          rgba(255,255,255,.025) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(255,255,255,.025) 1px,
+          transparent 1px
+        );
 
       background-size:48px 48px;
     }
@@ -80,6 +105,10 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
     button,
     input{
       font:inherit;
+    }
+
+    button{
+      -webkit-tap-highlight-color:transparent;
     }
 
     .nav{
@@ -96,12 +125,13 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 
       border-bottom:1px solid var(--border);
 
-      background:rgba(5,5,9,.80);
+      background:rgba(5,5,9,.82);
       backdrop-filter:blur(18px);
     }
 
     .brand{
       text-decoration:none;
+
       font-family:"Orbitron",sans-serif;
       font-size:1rem;
       font-weight:900;
@@ -116,6 +146,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
     .brand-section{
       color:var(--cyan);
       margin-left:10px;
+
       font-size:.68rem;
       letter-spacing:.13em;
     }
@@ -128,6 +159,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
     .navlinks a{
       color:var(--muted);
       text-decoration:none;
+
       font-size:.78rem;
       font-weight:800;
     }
@@ -155,6 +187,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 
     .eyebrow{
       margin-bottom:12px;
+
       color:var(--cyan);
       text-align:center;
 
@@ -167,6 +200,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 
     h1{
       margin:0;
+
       text-align:center;
 
       font-family:"Orbitron",sans-serif;
@@ -175,7 +209,14 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
     }
 
     h1 span{
-      background:linear-gradient(90deg,var(--cyan),white,var(--purple));
+      background:
+        linear-gradient(
+          90deg,
+          var(--cyan),
+          white,
+          var(--purple)
+        );
+
       -webkit-background-clip:text;
       background-clip:text;
       color:transparent;
@@ -200,7 +241,8 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 
       background:var(--panel);
 
-      box-shadow:0 25px 80px rgba(0,0,0,.55);
+      box-shadow:
+        0 25px 80px rgba(0,0,0,.55);
 
       backdrop-filter:blur(22px);
     }
@@ -334,13 +376,19 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 
       color:#020205;
 
-      background:linear-gradient(90deg,var(--cyan),#72f4ff);
+      background:
+        linear-gradient(
+          90deg,
+          var(--cyan),
+          #72f4ff
+        );
 
       font-size:.84rem;
       font-weight:900;
       letter-spacing:.04em;
 
       cursor:pointer;
+
       transition:.2s ease;
     }
 
@@ -591,7 +639,6 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
       }
     }
   </style>
-
 </head>
 
 <body>
@@ -614,179 +661,166 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 
   <section class="shell">
 
-<div class="eyebrow">
-  Creator Network
-</div>
-
-<h1>
-  Creator <span>Login</span>
-</h1>
-
-<p class="intro">
-  Sign in to your CrowRules Podcasting account
-  and access your creator dashboard, shows,
-  episodes, analytics, and creator tools.
-</p>
-
-<div class="card">
-
-  <form id="loginForm" novalidate>
-
-    <div class="field">
-
-      <label for="email">
-        Email Address
-      </label>
-
-      <input
-        id="email"
-        class="input"
-        type="email"
-        autocomplete="email"
-        placeholder="you@example.com"
-        required
-      >
-
+    <div class="eyebrow">
+      Creator Network
     </div>
 
+    <h1>
+      Creator <span>Login</span>
+    </h1>
 
-    <div class="field">
+    <p class="intro">
+      Sign in to your CrowRules Podcasting account
+      and access your creator dashboard, shows,
+      episodes, analytics, and creator tools.
+    </p>
 
-      <label for="password">
-        Password
-      </label>
+    <div class="card">
 
-      <div class="input-wrap">
+      <form id="loginForm" novalidate>
 
-        <input
-          id="password"
-          class="input password"
-          type="password"
-          autocomplete="current-password"
-          placeholder="Enter your password"
-          required
-        >
+        <div class="field">
+
+          <label for="email">
+            Email Address
+          </label>
+
+          <input
+            id="email"
+            class="input"
+            type="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="password">
+            Password
+          </label>
+
+          <div class="input-wrap">
+
+            <input
+              id="password"
+              class="input password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Enter your password"
+              required
+            >
+
+            <button
+              type="button"
+              class="toggle"
+              id="togglePassword"
+              aria-label="Show password"
+            >
+              SHOW
+            </button>
+
+          </div>
+
+        </div>
+
+        <div class="options">
+
+          <label class="remember">
+
+            <input
+              type="checkbox"
+              id="remember"
+              checked
+            >
+
+            <span>Keep me signed in</span>
+
+          </label>
+
+          <a
+            href="#"
+            class="forgot"
+            id="forgotPassword"
+          >
+            Forgot password?
+          </a>
+
+        </div>
 
         <button
-          type="button"
-          class="toggle"
-          id="togglePassword"
-          aria-label="Show password"
+          type="submit"
+          class="btn"
+          id="loginButton"
         >
-          SHOW
+          Sign In to Creator Dashboard
         </button>
+
+      </form>
+
+      <div class="divider">
+        <span>or</span>
+      </div>
+
+      <button
+        type="button"
+        class="google"
+        id="googleButton"
+      >
+        <span class="google-icon">G</span>
+        Continue with Google
+      </button>
+
+      <div
+        id="message"
+        class="message"
+        role="alert"
+        aria-live="polite"
+      ></div>
+
+      <div
+        id="verification"
+        class="verification"
+      >
+
+        <strong>
+          Email verification required
+        </strong>
+
+        <p>
+          Your account has not been verified yet.
+          Check your email for the CrowRules Podcasting
+          verification message before signing in.
+        </p>
+
+        <a
+          id="verificationLink"
+          href="verify.html"
+        >
+          Open Account Verification →
+        </a>
 
       </div>
 
-    </div>
+      <p class="signup">
 
+        Don't have a CrowRules Podcasting account?
 
-    <div class="options">
+        <a href="signup.html">
+          Create your account
+        </a>
 
-      <label class="remember">
+      </p>
 
-        <input
-          type="checkbox"
-          id="remember"
-          checked
-        >
-
-        <span>Keep me signed in</span>
-
-      </label>
-
-
-      <a
-        href="#"
-        class="forgot"
-        id="forgotPassword"
-      >
-        Forgot password?
-      </a>
+      <p class="security">
+        Authentication is securely handled through
+        Supabase Auth. CrowRules Podcasting never
+        needs your Supabase password.
+      </p>
 
     </div>
-
-
-    <button
-      type="submit"
-      class="btn"
-      id="loginButton"
-    >
-      Sign In to Creator Dashboard
-    </button>
-
-  </form>
-
-
-  <div class="divider">
-    <span>or</span>
-  </div>
-
-
-  <button
-    type="button"
-    class="google"
-    id="googleButton"
-  >
-
-    <span class="google-icon">G</span>
-
-    Continue with Google
-
-  </button>
-
-
-  <div
-    id="message"
-    class="message"
-    role="alert"
-    aria-live="polite"
-  ></div>
-
-
-  <div
-    id="verification"
-    class="verification"
-  >
-
-    <strong>
-      Email verification required
-    </strong>
-
-    <p>
-      Your account has not been verified yet.
-      Check your email for the CrowRules Podcasting
-      verification message before signing in.
-    </p>
-
-    <a
-      id="verificationLink"
-      href="verify.html"
-    >
-      Open Account Verification →
-    </a>
-
-  </div>
-
-
-  <p class="signup">
-
-    Don't have a CrowRules Podcasting account?
-
-    <a href="signup.html">
-      Create your account
-    </a>
-
-  </p>
-
-
-  <p class="security">
-    Authentication is securely handled through
-    Supabase Auth. CrowRules Podcasting never
-    needs your Supabase password.
-  </p>
-
-</div>
 
   </section>
 
@@ -804,9 +838,13 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 
 </footer>
 
-<!-- SUPABASE -->
+<!-- =====================================================
+     SUPABASE
+===================================================== -->
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+></script>
 
 <script src="assets/js/supabase.js"></script>
 
@@ -814,7 +852,6 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 (function(){
 
   "use strict";
-
 
   /* =====================================================
      ELEMENTS
@@ -857,6 +894,8 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
   let client = null;
 
   let redirecting = false;
+
+  let authSubscription = null;
 
 
   /* =====================================================
@@ -914,7 +953,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 
 
   /* =====================================================
-     REDIRECT
+     DASHBOARD REDIRECT
   ===================================================== */
 
   function goToCreatorDashboard(){
@@ -924,6 +963,11 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
     }
 
     redirecting = true;
+
+    console.log(
+      "[CrowRules Auth] Redirecting to:",
+      creatorDashboardUrl()
+    );
 
     window.location.replace(
       creatorDashboardUrl()
@@ -963,20 +1007,20 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 
 
   /* =====================================================
-     CLIENT
+     SUPABASE CLIENT
   ===================================================== */
 
   function getClient(){
 
     /*
-      Support both names so the shared
-      Supabase client can use either convention.
+      The shared client may expose either
+      convention. Support both.
     */
 
     const possible =
-      window.supabaseClient ||
       window.crowSupabase ||
-      window.Crow?.client?.();
+      window.supabaseClient ||
+      null;
 
 
     if(
@@ -985,8 +1029,12 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
     ){
 
       showMessage(
-        "Supabase is not configured. Check assets/js/supabase.js and make sure the publishable/anon key is configured.",
+        "Supabase is not configured. Check assets/js/supabase.js and make sure your publishable/anon key is configured.",
         "error"
+      );
+
+      console.error(
+        "[CrowRules Auth] Supabase client missing."
       );
 
       return null;
@@ -1003,7 +1051,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 
 
   /* =====================================================
-     PASSWORD
+     PASSWORD VISIBILITY
   ===================================================== */
 
   togglePassword.addEventListener(
@@ -1088,7 +1136,9 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
       )
     ){
 
-      return "The email address or password is incorrect.";
+      return (
+        "The email address or password is incorrect."
+      );
 
     }
 
@@ -1096,10 +1146,15 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
     if(
       lower.includes(
         "email not confirmed"
+      ) ||
+      lower.includes(
+        "email_not_confirmed"
       )
     ){
 
-      return "Your email address has not been verified yet.";
+      return (
+        "Your email address has not been verified yet."
+      );
 
     }
 
@@ -1110,26 +1165,28 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
       )
     ){
 
-      return "Too many attempts were made. Please wait a moment and try again.";
+      return (
+        "Too many attempts were made. Please wait a moment and try again."
+      );
 
     }
 
 
     if(
-      lower.includes("network") ||
-      lower.includes("fetch")
+      lower.includes(
+        "failed to fetch"
+      ) ||
+      lower.includes(
+        "networkerror"
+      ) ||
+      lower.includes(
+        "network error"
+      )
     ){
 
-      return "A network error occurred. Please check your internet connection and try again.";
-
-    }
-
-
-    if(
-      lower.includes("failed to fetch")
-    ){
-
-      return "CrowRules could not connect to Supabase. Check your Supabase URL, publishable key, and internet connection.";
+      return (
+        "CrowRules could not connect to Supabase. Check your internet connection and Supabase configuration."
+      );
 
     }
 
@@ -1151,8 +1208,13 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
     method
   ){
 
-    if(!user){
+    if(
+      !user ||
+      !client
+    ){
+
       return;
+
     }
 
 
@@ -1163,9 +1225,10 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
           .from("podcast_login_activity")
           .insert({
 
-            user_id:user.id,
+            user_id:
+              user.id,
 
-            login_method:
+            event_type:
               method
 
           });
@@ -1174,7 +1237,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
       if(result.error){
 
         console.warn(
-          "Login activity was not recorded:",
+          "[CrowRules Auth] Login activity was not recorded:",
           result.error
         );
 
@@ -1183,13 +1246,12 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
     }catch(error){
 
       /*
-        Login activity is optional.
-        Never block authentication because
-        activity logging failed.
+        Logging is optional.
+        Never block a valid login.
       */
 
       console.warn(
-        "Login activity error:",
+        "[CrowRules Auth] Activity logging error:",
         error
       );
 
@@ -1207,6 +1269,10 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
     async function(event){
 
       event.preventDefault();
+
+      if(redirecting){
+        return;
+      }
 
       clearMessage();
 
@@ -1292,7 +1358,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
       }catch(error){
 
         console.warn(
-          "Could not save remember preference:",
+          "[CrowRules Auth] Could not save remember preference:",
           error
         );
 
@@ -1311,8 +1377,11 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
           await authClient.auth
             .signInWithPassword({
 
-              email,
-              password
+              email:
+                email,
+
+              password:
+                password
 
             });
 
@@ -1328,6 +1397,9 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
           if(
             errorText.includes(
               "email not confirmed"
+            ) ||
+            errorText.includes(
+              "email_not_confirmed"
             )
           ){
 
@@ -1346,20 +1418,51 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
         }
 
 
+        const user =
+          data?.user ||
+          null;
+
+
+        if(!user){
+
+          throw new Error(
+            "Authentication completed, but Supabase did not return an authenticated user."
+          );
+
+        }
+
+
+        /*
+          Verify that Supabase actually has a session.
+          This prevents a false-success state.
+        */
+
+        const sessionResult =
+          await authClient.auth.getSession();
+
+
         if(
-          !data ||
-          !data.user
+          sessionResult.error
+        ){
+
+          throw sessionResult.error;
+
+        }
+
+
+        if(
+          !sessionResult.data?.session
         ){
 
           throw new Error(
-            "Login succeeded, but no authenticated user was returned."
+            "Authentication completed, but no active session was created."
           );
 
         }
 
 
         await recordLoginActivity(
-          data.user,
+          user,
           "email"
         );
 
@@ -1370,27 +1473,34 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
         );
 
 
+        /*
+          ALWAYS go here after successful login.
+        */
+
         setTimeout(
           goToCreatorDashboard,
-          350
+          250
         );
 
 
       }catch(error){
 
         console.error(
-          "CrowRules Podcasting login error:",
+          "[CrowRules Auth] Email login error:",
           error
         );
 
 
-        showMessage(
-          friendlyError(error),
-          "error"
-        );
+        if(!redirecting){
 
+          showMessage(
+            friendlyError(error),
+            "error"
+          );
 
-        setLoading(false);
+          setLoading(false);
+
+        }
 
       }
 
@@ -1405,6 +1515,11 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
   googleButton.addEventListener(
     "click",
     async function(){
+
+      if(redirecting){
+        return;
+      }
+
 
       clearMessage();
 
@@ -1424,29 +1539,24 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 
       try{
 
-        googleButton.disabled =
-          true;
-
         loginButton.disabled =
           true;
 
+        googleButton.disabled =
+          true;
+
         googleButton.innerHTML =
-          "Connecting to Google...";
+          '<span class="google-icon">G</span> Connecting to Google...';
 
-
-        /*
-          IMPORTANT:
-          This is a relative URL converted into
-          the full GitHub Pages URL.
-
-          Example:
-
-          https://crowrulesentertainment-oss.github.io/
-          podcasting/creator/dashboard.html
-        */
 
         const redirectTo =
           creatorDashboardUrl();
+
+
+        console.log(
+          "[CrowRules Auth] Google redirect:",
+          redirectTo
+        );
 
 
         const {
@@ -1456,17 +1566,22 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
           await authClient.auth
             .signInWithOAuth({
 
-              provider:"google",
+              provider:
+                "google",
 
               options:{
 
-                redirectTo,
+                redirectTo:
+
+                  redirectTo,
 
                 queryParams:{
 
-                  access_type:"offline",
+                  access_type:
+                    "offline",
 
-                  prompt:"select_account"
+                  prompt:
+                    "select_account"
 
                 }
 
@@ -1481,23 +1596,37 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 
 
         /*
-          Supabase normally redirects the browser
-          automatically. If it does not, leave the
-          current page in place so the error can be
-          displayed.
+          Normally Supabase redirects automatically.
+
+          If a provider/browser configuration prevents
+          the automatic redirect but Supabase returns a URL,
+          explicitly navigate there.
         */
 
-        console.log(
-          "Google OAuth started:",
-          data
-        );
+        if(
+          data?.url &&
+          !redirecting
+        ){
+
+          redirecting =
+            true;
+
+          window.location.assign(
+            data.url
+          );
+
+        }
 
       }catch(error){
 
         console.error(
-          "Google OAuth error:",
+          "[CrowRules Auth] Google OAuth error:",
           error
         );
+
+
+        redirecting =
+          false;
 
 
         showMessage(
@@ -1506,10 +1635,10 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
         );
 
 
-        googleButton.disabled =
+        loginButton.disabled =
           false;
 
-        loginButton.disabled =
+        googleButton.disabled =
           false;
 
         googleButton.innerHTML =
@@ -1530,6 +1659,11 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
     async function(event){
 
       event.preventDefault();
+
+      if(redirecting){
+        return;
+      }
+
 
       clearMessage();
 
@@ -1574,6 +1708,8 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
           "error"
         );
 
+        emailInput.focus();
+
         return;
 
       }
@@ -1615,7 +1751,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
       }catch(error){
 
         console.error(
-          "Password reset error:",
+          "[CrowRules Auth] Password reset error:",
           error
         );
 
@@ -1667,7 +1803,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
       if(error){
 
         console.warn(
-          "Session check:",
+          "[CrowRules Auth] Session check:",
           error
         );
 
@@ -1680,6 +1816,11 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
         data?.session?.user
       ){
 
+        console.log(
+          "[CrowRules Auth] Existing session found."
+        );
+
+
         showMessage(
           "You are already signed in. Opening your Creator Dashboard...",
           "info"
@@ -1688,7 +1829,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 
         setTimeout(
           goToCreatorDashboard,
-          350
+          150
         );
 
       }
@@ -1696,7 +1837,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
     }catch(error){
 
       console.warn(
-        "Existing session check failed:",
+        "[CrowRules Auth] Existing session check failed:",
         error
       );
 
@@ -1706,7 +1847,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 
 
   /* =====================================================
-     AUTH STATE
+     AUTH STATE LISTENER
   ===================================================== */
 
   function setupAuthListener(){
@@ -1715,44 +1856,68 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
       !client ||
       !client.auth
     ){
+
       return;
+
     }
 
 
-    client.auth.onAuthStateChange(
-      async function(
-        event,
-        session
-      ){
-
-        console.log(
-          "[CrowRules Auth]",
-          event
-        );
-
-
-        if(
-          event === "SIGNED_IN" &&
-          session?.user
+    const result =
+      client.auth.onAuthStateChange(
+        async function(
+          event,
+          session
         ){
 
-          /*
-            Supabase OAuth/email authentication
-            has completed.
-          */
-
-          await recordLoginActivity(
-            session.user,
-            "auth"
+          console.log(
+            "[CrowRules Auth]",
+            event
           );
 
 
-          goToCreatorDashboard();
+          /*
+            SIGNED_IN is used for both normal
+            email login and OAuth.
+          */
+
+          if(
+            event === "SIGNED_IN" &&
+            session?.user
+          ){
+
+            await recordLoginActivity(
+              session.user,
+              "auth"
+            );
+
+
+            goToCreatorDashboard();
+
+          }
+
+
+          /*
+            OAuth may restore a session through
+            INITIAL_SESSION instead of producing
+            a separate visible SIGNED_IN event.
+          */
+
+          if(
+            event === "INITIAL_SESSION" &&
+            session?.user
+          ){
+
+            goToCreatorDashboard();
+
+          }
 
         }
+      );
 
-      }
-    );
+
+    authSubscription =
+      result?.data?.subscription ||
+      null;
 
   }
 
@@ -1781,7 +1946,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
     }catch(error){
 
       console.warn(
-        "Could not read remember preference:",
+        "[CrowRules Auth] Could not read remember preference:",
         error
       );
 
@@ -1799,7 +1964,7 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
     function(){
 
       showMessage(
-        "Supabase is not configured. Check assets/js/supabase.js.",
+        "Supabase is not configured. Check assets/js/supabase.js and make sure the publishable/anon key is configured.",
         "error"
       );
 
@@ -1808,10 +1973,36 @@ content="Sign in to CrowRules Podcasting and access your creator dashboard."
 
 
   /* =====================================================
-     START
+     CLEANUP
+  ===================================================== */
+
+  window.addEventListener(
+    "beforeunload",
+    function(){
+
+      try{
+
+        authSubscription?.unsubscribe?.();
+
+      }catch(error){
+
+        console.warn(
+          "[CrowRules Auth] Subscription cleanup failed:",
+          error
+        );
+
+      }
+
+    }
+  );
+
+
+  /* =====================================================
+     STARTUP
   ===================================================== */
 
   loadRememberPreference();
+
 
   client =
     getClient();
