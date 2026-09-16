@@ -1,1 +1,1260 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Creator · Create Podcast | CrowRules Podcasting</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/css/style.css"></head><body><header class="nav"><a class="brand" href="../index.html">CROWRULES <span>PODCASTING</span></a><nav class="navlinks"></nav></header><main><section class="form"><h1>Create Podcast</h1><div class="field"><label>Title</label><input id="title"></div><div class="field"><label>Slug</label><input id="slug"></div><div class="field"><label>Category</label><input id="category" value="Talk & Commentary"></div><div class="field"><label>Description</label><textarea id="description"></textarea></div><div class="field"><label>Artwork URL</label><input id="artwork_url"></div><button class="btn" onclick="createPodcast()">Save Podcast</button><p id="msg"></p></section></main><footer class="footer">CrowRules Podcasting · Listen. Create. Share.</footer><script src="assets/js/app.js"></script><script>async function createPodcast(){const c=await loadSupabase();const {data:userData}=await c.auth.getUser();if(!userData.user)return location.href="../login.html";const {data,error}=await c.from("podcasts").insert({title:v("title"),slug:v("slug"),category:v("category"),description:v("description"),artwork_url:v("artwork_url"),creator_id:userData.user.id,status:"draft"}).select().single();msg(error?error.message:"Podcast created.");if(data)location.href="my-podcasts.html"}async function uploadEpisode(){const c=await loadSupabase();const {data:userData}=await c.auth.getUser();if(!userData.user)return location.href="../login.html";const f=document.getElementById("audio").files[0];if(!f)return msg("Choose an audio file.");const path=userData.user.id+"/"+Date.now()+"-"+f.name.replace(/[^a-zA-Z0-9._-]/g,"_");const up=await c.storage.from("podcast-audio").upload(path,f,{upsert:false});if(up.error)return msg(up.error.message);const pub=c.storage.from("podcast-audio").getPublicUrl(path).data.publicUrl;const ins=await c.from("podcast_episodes").insert({podcast_id:v("podcast_id"),title:v("title"),slug:(v("title").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""))+"-"+Date.now(),description:v("description"),audio_url:pub,thumbnail_url:v("thumbnail_url"),status:"draft"});msg(ins.error?ins.error.message:"Episode uploaded and saved as draft.")}</script></body></html>
+<!doctype html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Creator · Create Podcast | CrowRules Podcasting</title>
+
+<meta name="description"
+   content="Create and configure your CrowRules Podcasting show.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap"
+      rel="stylesheet">
+
+<link rel="stylesheet" href="assets/css/style.css">
+
+<style>
+:root{
+  --bg:#050509;
+  --panel:#0d0d15;
+  --panel2:#12121d;
+  --line:rgba(255,255,255,.10);
+  --text:#f5f7ff;
+  --muted:#9ca3b8;
+  --cyan:#00eaff;
+  --purple:#8b5cf6;
+  --pink:#ec4899;
+  --green:#22c55e;
+  --red:#ef4444;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 20% 0%,rgba(0,234,255,.10),transparent 30%),
+    radial-gradient(circle at 80% 10%,rgba(139,92,246,.12),transparent 30%),
+    var(--bg);
+  font-family:Montserrat,Arial,sans-serif;
+}
+
+.nav{
+  position:sticky;
+  top:0;
+  z-index:20;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:18px 5%;
+  background:rgba(5,5,9,.88);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);
+}
+
+.brand{
+  color:white;
+  text-decoration:none;
+  font-family:Orbitron,sans-serif;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+
+.brand span{
+  color:var(--cyan);
+}
+
+.navlinks{
+  display:flex;
+  gap:10px;
+}
+
+.navlinks a{
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  font-weight:700;
+}
+
+.navlinks a:hover{
+  color:var(--cyan);
+}
+
+main{
+  width:min(1180px,92%);
+  margin:0 auto;
+  padding:55px 0 80px;
+}
+
+.hero{
+  margin-bottom:30px;
+}
+
+.eyebrow{
+  color:var(--cyan);
+  font-family:Orbitron,sans-serif;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+}
+
+h1{
+  margin:8px 0;
+  font-family:Orbitron,sans-serif;
+  font-size:clamp(30px,5vw,54px);
+}
+
+.hero p{
+  max-width:760px;
+  color:var(--muted);
+  line-height:1.7;
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.6fr) minmax(280px,.8fr);
+  gap:24px;
+}
+
+.card{
+  background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:26px;
+  box-shadow:0 20px 60px rgba(0,0,0,.28);
+}
+
+.card h2{
+  margin:0 0 6px;
+  font-family:Orbitron,sans-serif;
+  font-size:20px;
+}
+
+.card-subtitle{
+  color:var(--muted);
+  font-size:13px;
+  margin:0 0 25px;
+  line-height:1.6;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+
+.field{
+  margin-bottom:18px;
+}
+
+.field.full{
+  grid-column:1/-1;
+}
+
+label{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px;
+  color:#dce2f5;
+  font-size:13px;
+  font-weight:800;
+}
+
+.counter{
+  color:var(--muted);
+  font-weight:600;
+}
+
+input,
+textarea,
+select{
+  width:100%;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;
+  padding:13px 14px;
+  background:#080811;
+  color:white;
+  font:inherit;
+  outline:none;
+  transition:.2s;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(0,234,255,.08);
+}
+
+textarea{
+  min-height:150px;
+  resize:vertical;
+  line-height:1.6;
+}
+
+.help{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.5;
+}
+
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:10px;
+}
+
+.btn{
+  border:0;
+  border-radius:12px;
+  padding:13px 20px;
+  color:white;
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  font:inherit;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.btn.secondary{
+  background:#171725;
+  border:1px solid var(--line);
+}
+
+.btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+.message{
+  display:none;
+  margin-top:18px;
+  padding:13px 15px;
+  border-radius:12px;
+  font-size:13px;
+  line-height:1.5;
+}
+
+.message.show{
+  display:block;
+}
+
+.message.success{
+  background:rgba(34,197,94,.10);
+  border:1px solid rgba(34,197,94,.35);
+  color:#9af0b5;
+}
+
+.message.error{
+  background:rgba(239,68,68,.10);
+  border:1px solid rgba(239,68,68,.35);
+  color:#ffb0b0;
+}
+
+.preview{
+  position:sticky;
+  top:105px;
+}
+
+.artwork{
+  width:100%;
+  aspect-ratio:1;
+  border-radius:18px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:
+    radial-gradient(circle at 30% 20%,rgba(0,234,255,.22),transparent 35%),
+    radial-gradient(circle at 80% 70%,rgba(139,92,246,.25),transparent 40%),
+    #080811;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.artwork img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:none;
+}
+
+.artwork-placeholder{
+  padding:25px;
+  text-align:center;
+}
+
+.artwork-placeholder strong{
+  display:block;
+  font-family:Orbitron,sans-serif;
+  margin-bottom:8px;
+}
+
+.artwork-placeholder span{
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+}
+
+.preview-title{
+  margin:20px 0 7px;
+  font-family:Orbitron,sans-serif;
+  font-size:21px;
+}
+
+.preview-category{
+  color:var(--cyan);
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.preview-description{
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.6;
+  margin-top:14px;
+}
+
+.status-box{
+  margin-top:20px;
+  padding:15px;
+  border-radius:14px;
+  background:rgba(0,0,0,.22);
+  border:1px solid var(--line);
+}
+
+.status-row{
+  display:flex;
+  justify-content:space-between;
+  gap:15px;
+  padding:8px 0;
+  font-size:12px;
+}
+
+.status-row span:first-child{
+  color:var(--muted);
+}
+
+.status-row span:last-child{
+  font-weight:800;
+}
+
+.steps{
+  margin-top:22px;
+}
+
+.step{
+  display:flex;
+  gap:12px;
+  margin:13px 0;
+}
+
+.step-number{
+  flex:0 0 28px;
+  height:28px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:rgba(0,234,255,.10);
+  border:1px solid rgba(0,234,255,.25);
+  color:var(--cyan);
+  font-size:11px;
+  font-weight:900;
+}
+
+.step-text{
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+}
+
+.footer{
+  padding:30px 5%;
+  border-top:1px solid var(--line);
+  color:var(--muted);
+  text-align:center;
+  font-size:12px;
+}
+
+@media(max-width:850px){
+  .layout{
+    grid-template-columns:1fr;
+  }
+
+  .preview{
+    position:static;
+  }
+}
+
+@media(max-width:650px){
+  .form-grid{
+    grid-template-columns:1fr;
+  }
+
+  .field.full{
+    grid-column:auto;
+  }
+
+  .nav{
+    padding:15px 4%;
+  }
+
+  .navlinks{
+    display:none;
+  }
+
+  main{
+    width:94%;
+    padding-top:35px;
+  }
+}
+</style>
+
+</head>
+
+<body>
+
+<header class="nav">
+  <a class="brand" href="../index.html">
+    CROWRULES <span>PODCASTING</span>
+  </a>
+
+  <nav class="navlinks">
+    <a href="my-podcasts.html">My Podcasts</a>
+    <a href="analytics.html">Analytics</a>
+    <a href="../index.html">Podcasting Home</a>
+  </nav>
+</header>
+
+<main>
+
+  <section class="hero">
+    <div class="eyebrow">Creator Studio</div>
+    <h1>Create Your Podcast</h1>
+    <p>
+      Build your podcast profile inside the CrowRules Podcasting network.
+      Your show will initially be saved as a draft so you can configure it,
+      add episodes, artwork and additional information before publishing.
+    </p>
+  </section>
+
+  <div class="layout">
+
+<section class="card">
+
+  <h2>Podcast Information</h2>
+
+  <p class="card-subtitle">
+    Start with the core information for your show. You can change these
+    settings later from your creator dashboard.
+  </p>
+
+  <div class="form-grid">
+
+    <div class="field full">
+      <label for="title">
+        Podcast Title
+      </label>
+
+      <input
+        id="title"
+        maxlength="120"
+        autocomplete="off"
+        placeholder="Enter your podcast title">
+    </div>
+
+    <div class="field">
+      <label for="slug">
+        Slug
+        <span class="counter" id="slugCounter">0/100</span>
+      </label>
+
+      <input
+        id="slug"
+        maxlength="100"
+        autocomplete="off"
+        placeholder="your-podcast-name">
+
+      <div class="help">
+        Used in your podcast URL. It will be generated automatically
+        from the title, but you can customize it.
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="category">
+        Category
+      </label>
+
+      <select id="category">
+        <option value="">Loading categories...</option>
+      </select>
+    </div>
+
+    <div class="field full">
+      <label for="description">
+        Description
+        <span class="counter" id="descriptionCounter">0/2000</span>
+      </label>
+
+      <textarea
+        id="description"
+        maxlength="2000"
+        placeholder="Tell listeners what your podcast is about..."></textarea>
+    </div>
+
+    <div class="field">
+      <label for="artwork_url">
+        Artwork URL
+      </label>
+
+      <input
+        id="artwork_url"
+        type="url"
+        placeholder="https://...">
+
+      <div class="help">
+        Recommended square artwork. You can replace this later.
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="website_url">
+        Website URL
+      </label>
+
+      <input
+        id="website_url"
+        type="url"
+        placeholder="https://...">
+    </div>
+
+    <div class="field">
+      <label for="trailer_url">
+        Trailer URL
+      </label>
+
+      <input
+        id="trailer_url"
+        type="url"
+        placeholder="https://...">
+    </div>
+
+    <div class="field">
+      <label for="rss_url">
+        RSS Feed URL
+      </label>
+
+      <input
+        id="rss_url"
+        type="url"
+        placeholder="https://...">
+
+      <div class="help">
+        Optional. Add your existing RSS feed if you already have one.
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="status">
+        Initial Status
+      </label>
+
+      <select id="status">
+        <option value="draft" selected>Draft</option>
+        <option value="published">Published</option>
+      </select>
+
+      <div class="help">
+        Draft is recommended while building your show.
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="featured">
+        Featured Show
+      </label>
+
+      <select id="featured">
+        <option value="false" selected>No</option>
+        <option value="true">Yes</option>
+      </select>
+
+      <div class="help">
+        Featured placement can be controlled later by CrowRules.
+      </div>
+    </div>
+
+  </div>
+
+  <div class="actions">
+
+    <button
+      class="btn"
+      id="saveBtn"
+      type="button"
+      onclick="createPodcast()">
+      Create Podcast
+    </button>
+
+    <button
+      class="btn secondary"
+      type="button"
+      onclick="resetForm()">
+      Reset
+    </button>
+
+  </div>
+
+  <div id="message" class="message"></div>
+
+</section>
+
+<aside class="card preview">
+
+  <div class="artwork" id="artworkPreview">
+
+    <img id="previewImage" alt="Podcast artwork preview">
+
+    <div class="artwork-placeholder" id="artworkPlaceholder">
+      <strong>PODCAST PREVIEW</strong>
+      <span>
+        Your artwork will appear here when you add an artwork URL.
+      </span>
+    </div>
+
+  </div>
+
+  <div class="preview-category" id="previewCategory">
+    Talk & Commentary
+  </div>
+
+  <div class="preview-title" id="previewTitle">
+    Your Podcast Title
+  </div>
+
+  <div class="preview-description" id="previewDescription">
+    Your podcast description will appear here.
+  </div>
+
+  <div class="status-box">
+
+    <div class="status-row">
+      <span>Creator</span>
+      <span id="creatorStatus">Checking...</span>
+    </div>
+
+    <div class="status-row">
+      <span>Database</span>
+      <span id="databaseStatus">Checking...</span>
+    </div>
+
+    <div class="status-row">
+      <span>Initial Status</span>
+      <span id="previewStatus">DRAFT</span>
+    </div>
+
+  </div>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-number">1</div>
+      <div class="step-text">
+        Create the podcast record.
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">2</div>
+      <div class="step-text">
+        Add yourself as the podcast owner.
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">3</div>
+      <div class="step-text">
+        Add episodes, artwork and show information.
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">4</div>
+      <div class="step-text">
+        Publish when the podcast is ready.
+      </div>
+    </div>
+
+  </div>
+
+</aside>
+
+  </div>
+
+</main>
+
+<footer class="footer">
+  CrowRules Podcasting · Listen. Create. Share.
+</footer>
+
+<script src="assets/js/app.js"></script>
+
+<script>
+let supabaseClient = null;
+
+function $(id){
+  return document.getElementById(id);
+}
+
+function value(id){
+  return $(id)?.value?.trim() || "";
+}
+
+function showMessage(text,type="error"){
+  const box = $("message");
+
+  box.textContent = text;
+  box.className = "message show " + type;
+}
+
+function clearMessage(){
+  $("message").className = "message";
+  $("message").textContent = "";
+}
+
+function slugify(text){
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/['"]/g,"")
+    .replace(/[^a-z0-9]+/g,"-")
+    .replace(/^-+|-+$/g,"")
+    .slice(0,100);
+}
+
+function updatePreview(){
+
+  const title = value("title");
+  const description = value("description");
+  const category = value("category");
+  const artwork = value("artwork_url");
+  const status = value("status");
+
+  $("previewTitle").textContent =
+    title || "Your Podcast Title";
+
+  $("previewDescription").textContent =
+    description ||
+    "Your podcast description will appear here.";
+
+  $("previewCategory").textContent =
+    category || "Talk & Commentary";
+
+  $("previewStatus").textContent =
+    (status || "draft").toUpperCase();
+
+  if(artwork){
+
+    $("previewImage").src = artwork;
+    $("previewImage").style.display = "block";
+    $("artworkPlaceholder").style.display = "none";
+
+  }else{
+
+    $("previewImage").style.display = "none";
+    $("artworkPlaceholder").style.display = "block";
+  }
+
+  $("descriptionCounter").textContent =
+    `${description.length}/2000`;
+
+  $("slugCounter").textContent =
+    `${value("slug").length}/100`;
+}
+
+async function getSupabase(){
+
+  if(supabaseClient){
+    return supabaseClient;
+  }
+
+  if(typeof loadSupabase !== "function"){
+    throw new Error(
+      "Supabase loader is unavailable. Check assets/js/app.js."
+    );
+  }
+
+  supabaseClient = await loadSupabase();
+
+  if(!supabaseClient){
+    throw new Error(
+      "Supabase is not configured. Check your Supabase client configuration."
+    );
+  }
+
+  return supabaseClient;
+}
+
+async function loadCategories(){
+
+  try{
+
+    const db = await getSupabase();
+
+    const {data,error} = await db
+      .from("podcast_categories")
+      .select("id,name,slug")
+      .eq("is_active",true)
+      .order("sort_order",{ascending:true});
+
+    if(error){
+      throw error;
+    }
+
+    const select = $("category");
+
+    select.innerHTML = "";
+
+    if(!data || !data.length){
+
+      select.innerHTML =
+        '<option value="Talk & Commentary">Talk & Commentary</option>';
+
+      updatePreview();
+      return;
+    }
+
+    data.forEach(category => {
+
+      const option = document.createElement("option");
+
+      option.value = category.name;
+      option.textContent = category.name;
+
+      if(category.name === "Talk & Commentary"){
+        option.selected = true;
+      }
+
+      select.appendChild(option);
+    });
+
+    updatePreview();
+
+  }catch(error){
+
+    console.warn("Category loading failed:",error);
+
+    $("category").innerHTML =
+      '<option value="Talk & Commentary">Talk & Commentary</option>';
+
+    updatePreview();
+  }
+}
+
+async function checkCreator(){
+
+  try{
+
+    const db = await getSupabase();
+
+    const {
+      data:userData,
+      error:userError
+    } = await db.auth.getUser();
+
+    if(userError){
+      throw userError;
+    }
+
+    if(!userData?.user){
+
+      $("creatorStatus").textContent = "NOT SIGNED IN";
+      $("databaseStatus").textContent = "READY";
+
+      return false;
+    }
+
+    const {data,error} = await db.rpc(
+      "get_creator_podcast_summary"
+    );
+
+    if(error){
+      throw error;
+    }
+
+    if(!data?.creator_id){
+
+      $("creatorStatus").textContent =
+        "CREATOR PROFILE NEEDED";
+
+      $("databaseStatus").textContent =
+        "CONNECTED";
+
+      return false;
+    }
+
+    $("creatorStatus").textContent =
+      "READY";
+
+    $("databaseStatus").textContent =
+      "CONNECTED";
+
+    return true;
+
+  }catch(error){
+
+    console.warn("Creator check:",error);
+
+    $("creatorStatus").textContent =
+      "CHECK FAILED";
+
+    $("databaseStatus").textContent =
+      "ERROR";
+
+    return false;
+  }
+}
+
+async function createPodcast(){
+
+  clearMessage();
+
+  const saveButton = $("saveBtn");
+
+  try{
+
+    const db = await getSupabase();
+
+    const {
+      data:userData,
+      error:userError
+    } = await db.auth.getUser();
+
+    if(userError){
+      throw userError;
+    }
+
+    if(!userData?.user){
+
+      window.location.href = "../login.html";
+      return;
+    }
+
+    const title = value("title");
+    let slug = value("slug");
+
+    const category = value("category");
+    const description = value("description");
+
+    const artwork_url = value("artwork_url");
+    const website_url = value("website_url");
+    const trailer_url = value("trailer_url");
+    const rss_url = value("rss_url");
+
+    const status = value("status") || "draft";
+    const is_featured = value("featured") === "true";
+
+    if(!title){
+
+      showMessage(
+        "Enter a podcast title.",
+        "error"
+      );
+
+      $("title").focus();
+      return;
+    }
+
+    if(!slug){
+      slug = slugify(title);
+      $("slug").value = slug;
+    }
+
+    if(slug.length < 2){
+
+      showMessage(
+        "Your podcast slug must contain at least two characters.",
+        "error"
+      );
+
+      $("slug").focus();
+      return;
+    }
+
+    if(!category){
+
+      showMessage(
+        "Choose a podcast category.",
+        "error"
+      );
+
+      return;
+    }
+
+    saveButton.disabled = true;
+    saveButton.textContent = "CREATING...";
+
+    /*
+      Resolve the existing CrowRules creators record.
+      The database migration maps the authenticated user to
+      public.creators through public.members.
+    */
+
+    const {
+      data:summary,
+      error:summaryError
+    } = await db.rpc(
+      "get_creator_podcast_summary"
+    );
+
+    if(summaryError){
+      throw summaryError;
+    }
+
+    if(!summary?.creator_id){
+
+      showMessage(
+        "Your CrowRules creator profile could not be resolved. " +
+        "Make sure your member/creator profile exists before creating a podcast.",
+        "error"
+      );
+
+      $("creatorStatus").textContent =
+        "PROFILE NEEDED";
+
+      return;
+    }
+
+    const creatorId = summary.creator_id;
+
+    /*
+      Create the podcast.
+      RLS verifies that creator_id belongs to the
+      authenticated creator.
+    */
+
+    const {
+      data:podcast,
+      error:createError
+    } = await db
+      .from("podcasts")
+      .insert({
+        creator_id: creatorId,
+        title: title,
+        slug: slug,
+        category: category,
+        description: description || null,
+        artwork_url: artwork_url || null,
+        website_url: website_url || null,
+        trailer_url: trailer_url || null,
+        rss_url: rss_url || null,
+        status: status,
+        is_featured: is_featured
+      })
+      .select()
+      .single();
+
+    if(createError){
+
+      if(createError.code === "23505"){
+
+        throw new Error(
+          "That podcast slug is already in use. " +
+          "Choose a different slug."
+        );
+      }
+
+      throw createError;
+    }
+
+    /*
+      Add the authenticated user as the podcast owner.
+    */
+
+    const {
+      error:ownerError
+    } = await db
+      .from("podcast_creators")
+      .insert({
+        podcast_id: podcast.id,
+        user_id: userData.user.id,
+        role: "owner",
+        can_manage: true
+      });
+
+    if(ownerError){
+
+      /*
+        The podcast itself was created successfully.
+        Tell the creator exactly what happened instead
+        of pretending the complete workflow succeeded.
+      */
+
+      console.error(
+        "Podcast owner membership error:",
+        ownerError
+      );
+
+      showMessage(
+        "Podcast created, but the owner membership could not " +
+        "be created automatically. Contact the CrowRules administrator.",
+        "error"
+      );
+
+      return;
+    }
+
+    showMessage(
+      "Podcast created successfully. Opening your podcast dashboard...",
+      "success"
+    );
+
+    $("creatorStatus").textContent = "READY";
+
+    setTimeout(() => {
+
+      window.location.href =
+        "my-podcasts.html?id=" +
+        encodeURIComponent(podcast.id);
+
+    },800);
+
+  }catch(error){
+
+    console.error(
+      "Create podcast error:",
+      error
+    );
+
+    showMessage(
+      error?.message ||
+      "Unable to create the podcast. Please try again.",
+      "error"
+    );
+
+  }finally{
+
+    saveButton.disabled = false;
+    saveButton.textContent = "Create Podcast";
+  }
+}
+
+function resetForm(){
+
+  $("title").value = "";
+  $("slug").value = "";
+  $("category").value = "Talk & Commentary";
+  $("description").value = "";
+  $("artwork_url").value = "";
+  $("website_url").value = "";
+  $("trailer_url").value = "";
+  $("rss_url").value = "";
+  $("status").value = "draft";
+  $("featured").value = "false";
+
+  clearMessage();
+  updatePreview();
+}
+
+$("title").addEventListener("input",() => {
+
+  if(!$("slug").dataset.edited){
+    $("slug").value = slugify(value("title"));
+  }
+
+  updatePreview();
+});
+
+$("slug").addEventListener("input",() => {
+
+  $("slug").dataset.edited = "true";
+
+  $("slug").value = slugify(
+    $("slug").value
+  );
+
+  updatePreview();
+});
+
+$("description").addEventListener(
+  "input",
+  updatePreview
+);
+
+$("category").addEventListener(
+  "change",
+  updatePreview
+);
+
+$("status").addEventListener(
+  "change",
+  updatePreview
+);
+
+$("artwork_url").addEventListener(
+  "input",
+  updatePreview
+);
+
+$("artwork_url").addEventListener(
+  "change",
+  updatePreview
+);
+
+$("previewImage").addEventListener(
+  "error",
+  () => {
+
+    $("previewImage").style.display = "none";
+    $("artworkPlaceholder").style.display = "block";
+
+    $("artworkPlaceholder").innerHTML =
+      "<strong>ARTWORK ERROR</strong>" +
+      "<span>Check that the artwork URL is valid and publicly accessible.</span>";
+  }
+);
+
+document.addEventListener(
+  "DOMContentLoaded",
+  async () => {
+
+    updatePreview();
+
+    try{
+
+      await getSupabase();
+
+      await checkCreator();
+
+      await loadCategories();
+
+    }catch(error){
+
+      console.error(error);
+
+      $("databaseStatus").textContent =
+        "NOT CONFIGURED";
+
+      $("creatorStatus").textContent =
+        "UNAVAILABLE";
+    }
+  }
+);
+</script>
+
+</body>
+</html>
