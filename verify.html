@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>Verify Your Account | CrowRules Podcasting</title>
+
+  <meta
+    name="description"
+    content="Verify your CrowRules Podcasting account."
+  >
+
+  <meta name="theme-color" content="#050509">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap"
+    rel="stylesheet"
+  >
+
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <style>
+    :root {
+      --bg: #050509;
+      --panel: rgba(15,15,23,.95);
+      --text: #f7f7fb;
+      --muted: #9da0ad;
+      --line: rgba(255,255,255,.10);
+      --accent: #b00020;
+      --accent2: #ff1647;
+      --success: #35d49a;
+      --danger: #ff5c76;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(
+          circle at 50% -10%,
+          rgba(176,0,32,.24),
+          transparent 40%
+        ),
+        var(--bg);
+      font-family: Montserrat, sans-serif;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .nav {
+      min-height: 76px;
+      padding: 0 6%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      background: rgba(5,5,9,.88);
+      backdrop-filter: blur(15px);
+    }
+
+    .brand {
+      text-decoration: none;
+      font-family: Orbitron, sans-serif;
+      font-weight: 900;
+      letter-spacing: .08em;
+    }
+
+    .brand span {
+      color: var(--accent2);
+      margin-left: .35rem;
+    }
+
+    .navlinks {
+      display: flex;
+      gap: 1.25rem;
+    }
+
+    .navlinks a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 800;
+    }
+
+    main {
+      min-height: calc(100vh - 150px);
+      display: grid;
+      place-items: center;
+      padding: 60px 18px;
+    }
+
+    .verify-card {
+      width: min(100%, 540px);
+      padding: 42px 36px;
+      border-radius: 22px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 30px 90px rgba(0,0,0,.55);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .verify-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 3px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        var(--accent2),
+        transparent
+      );
+    }
+
+    .icon {
+      width: 86px;
+      height: 86px;
+      margin: 0 auto 25px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      border: 1px solid rgba(255,22,71,.35);
+      background: rgba(176,0,32,.12);
+      font-size: 2.2rem;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Orbitron, sans-serif;
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+    }
+
+    .lead {
+      margin: 15px auto 28px;
+      max-width: 430px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: .94rem;
+    }
+
+    .email-box {
+      display: none;
+      padding: 13px 15px;
+      margin-bottom: 22px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.045);
+      border: 1px solid var(--line);
+      color: #fff;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .email-box.show {
+      display: block;
+    }
+
+    .status {
+      display: none;
+      padding: 13px 15px;
+      margin: 20px 0;
+      border-radius: 10px;
+      font-size: .82rem;
+      line-height: 1.55;
+      font-weight: 600;
+    }
+
+    .status.show {
+      display: block;
+    }
+
+    .status.success {
+      color: #d8fff0;
+      background: rgba(53,212,154,.09);
+      border: 1px solid rgba(53,212,154,.22);
+    }
+
+    .status.error {
+      color: #ffdce2;
+      background: rgba(255,92,118,.09);
+      border: 1px solid rgba(255,92,118,.22);
+    }
+
+    .actions {
+      display: grid;
+      gap: 12px;
+    }
+
+    .btn {
+      width: 100%;
+      min-height: 51px;
+      border: 0;
+      border-radius: 11px;
+      cursor: pointer;
+      font-family: Montserrat, sans-serif;
+      font-weight: 900;
+      transition: .2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(
+        135deg,
+        var(--accent),
+        var(--accent2)
+      );
+      color: white;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,.045);
+      color: white;
+      border: 1px solid var(--line);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .help {
+      margin-top: 26px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line);
+      color: #70737f;
+      font-size: .74rem;
+      line-height: 1.65;
+    }
+
+    .footer {
+      padding: 25px;
+      text-align: center;
+      border-top: 1px solid var(--line);
+      color: #70737f;
+      font-size: .75rem;
+    }
+
+    @media(max-width:560px) {
+      .nav {
+        padding: 0 20px;
+      }
+
+      .navlinks {
+        display: none;
+      }
+
+      .verify-card {
+        padding: 32px 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="nav">
+
+  <a class="brand" href="index.html">
+    CROWRULES <span>PODCASTING</span>
+  </a>
+
+  <nav class="navlinks">
+    <a href="index.html">Home</a>
+    <a href="login.html">Login</a>
+  </nav>
+
+</header>
+
+<main>
+
+  <section class="verify-card">
+
+    <div class="icon" id="icon">
+      ✉
+    </div>
+
+    <h1 id="title">
+      Verify Your Account
+    </h1>
+
+    <p class="lead" id="lead">
+      We've sent a verification email to your email address.
+      Please check your inbox and click the verification link
+      to activate your CrowRules Podcasting account.
+    </p>
+
+    <div
+      class="email-box"
+      id="emailBox"
+    ></div>
+
+    <div
+      class="status"
+      id="status"
+      role="status"
+      aria-live="polite"
+    ></div>
+
+    <div class="actions">
+
+      <button
+        class="btn btn-primary"
+        id="resendButton"
+        type="button"
+      >
+        Resend Verification Email
+      </button>
+
+      <button
+        class="btn btn-secondary"
+        id="loginButton"
+        type="button"
+      >
+        Back to Login
+      </button>
+
+    </div>
+
+    <div class="help">
+      Didn't receive the email?<br>
+      Check your spam, junk, promotions, or filtered folders.
+      If the message still doesn't appear, you can request
+      another verification email above.
+    </div>
+
+  </section>
+
+</main>
+
+<footer class="footer">
+  CrowRules Podcasting · Listen. Create. Share.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/supabase.js"></script>
+
+<script>
+(function () {
+
+  "use strict";
+
+  const title =
+    document.getElementById("title");
+
+  const lead =
+    document.getElementById("lead");
+
+  const icon =
+    document.getElementById("icon");
+
+  const emailBox =
+    document.getElementById("emailBox");
+
+  const status =
+    document.getElementById("status");
+
+  const resendButton =
+    document.getElementById("resendButton");
+
+  const loginButton =
+    document.getElementById("loginButton");
+
+  let client = null;
+  let email = null;
+  let resendLocked = false;
+
+  function showStatus(text, type) {
+
+    status.textContent = text;
+
+    status.className =
+      "status show " + type;
+
+  }
+
+  function getClient() {
+
+    if (
+      !window.supabaseClient
+    ) {
+      throw new Error(
+        "Supabase client is not configured."
+      );
+    }
+
+    return window.supabaseClient;
+  }
+
+  function showEmail(value) {
+
+    if (!value) return;
+
+    email = value;
+
+    emailBox.textContent = value;
+    emailBox.classList.add("show");
+
+  }
+
+  async function initialize() {
+
+    try {
+
+      client = getClient();
+
+      /*
+       * Check the current Auth session.
+       */
+      const {
+        data,
+        error
+      } = await client.auth.getSession();
+
+      if (error) {
+        console.warn(error);
+      }
+
+      if (
+        data &&
+        data.session &&
+        data.session.user
+      ) {
+
+        const user =
+          data.session.user;
+
+        showEmail(user.email);
+
+        /*
+         * email_confirmed_at is populated
+         * by Supabase after verification.
+         */
+        if (
+          user.email_confirmed_at
+        ) {
+
+          showVerified();
+
+          return;
+        }
+      }
+
+      /*
+       * Also check the URL for an email
+       * passed from signup.html.
+       */
+      const params =
+        new URLSearchParams(
+          window.location.search
+        );
+
+      const urlEmail =
+        params.get("email");
+
+      if (urlEmail) {
+        showEmail(urlEmail);
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Verification initialization:",
+        error
+      );
+
+      showStatus(
+        "Supabase could not be initialized. Check assets/js/supabase.js.",
+        "error"
+      );
+
+    }
+
+  }
+
+  function showVerified() {
+
+    icon.textContent = "✓";
+
+    title.textContent =
+      "Account Verified!";
+
+    lead.textContent =
+      "Your CrowRules Podcasting account has been successfully verified. You can now sign in and access your member account.";
+
+    resendButton.style.display =
+      "none";
+
+    showStatus(
+      "Your email address is verified.",
+      "success"
+    );
+
+  }
+
+  async function resendVerification() {
+
+    if (resendLocked) return;
+
+    if (!client) {
+
+      showStatus(
+        "Supabase is not configured.",
+        "error"
+      );
+
+      return;
+    }
+
+    if (!email) {
+
+      showStatus(
+        "We need your email address before we can resend the verification email. Please return to signup or login.",
+        "error"
+      );
+
+      return;
+    }
+
+    resendLocked = true;
+
+    resendButton.disabled = true;
+    resendButton.textContent =
+      "Sending...";
+
+    try {
+
+      const {
+        error
+      } =
+        await client.auth.resend({
+          type: "signup",
+          email: email
+        });
+
+      if (error) {
+
+        console.error(
+          "Resend verification:",
+          error
+        );
+
+        showStatus(
+          error.message ||
+          "We couldn't resend the verification email. Please try again later.",
+          "error"
+        );
+
+      } else {
+
+        showStatus(
+          "A new verification email has been sent. Check your inbox and spam folder.",
+          "success"
+        );
+
+        resendButton.textContent =
+          "Email Sent";
+
+        /*
+         * Prevent repeated requests for 60 seconds.
+         */
+        setTimeout(
+          function () {
+
+            resendLocked = false;
+
+            resendButton.disabled =
+              false;
+
+            resendButton.textContent =
+              "Resend Verification Email";
+
+          },
+          60000
+        );
+
+        return;
+      }
+
+    } catch (error) {
+
+      console.error(error);
+
+      showStatus(
+        "Something went wrong while sending the verification email.",
+        "error"
+      );
+
+    }
+
+    resendLocked = false;
+
+    resendButton.disabled =
+      false;
+
+    resendButton.textContent =
+      "Resend Verification Email";
+
+  }
+
+  resendButton.addEventListener(
+    "click",
+    resendVerification
+  );
+
+  loginButton.addEventListener(
+    "click",
+    function () {
+
+      window.location.href =
+        "login.html";
+
+    }
+  );
+
+  /*
+   * Supabase redirects here after the
+   * verification link is clicked.
+   *
+   * The Auth client detects the session
+   * from the URL automatically.
+   */
+  if (window.supabaseClient) {
+
+    window.supabaseClient.auth
+      .onAuthStateChange(
+        async function (
+          event,
+          session
+        ) {
+
+          if (
+            event === "SIGNED_IN" &&
+            session &&
+            session.user
+          ) {
+
+            showEmail(
+              session.user.email
+            );
+
+            /*
+             * Allow Supabase to finish
+             * processing the confirmation.
+             */
+            setTimeout(
+              async function () {
+
+                try {
+
+                  const {
+                    data
+                  } =
+                    await window
+                      .supabaseClient
+                      .auth.getUser();
+
+                  if (
+                    data &&
+                    data.user &&
+                    data.user.email_confirmed_at
+                  ) {
+
+                    showVerified();
+
+                  }
+
+                } catch (error) {
+
+                  console.warn(
+                    error
+                  );
+
+                }
+
+              },
+              500
+            );
+
+          }
+
+        }
+      );
+
+  }
+
+  initialize();
+
+})();
+</script>
+
+</body>
+</html>
