@@ -1,1 +1,1110 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login | CrowRules Podcasting</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/css/style.css"></head><body><header class="nav"><a class="brand" href="index.html">CROWRULES <span>PODCASTING</span></a><nav class="navlinks"></nav></header><main><section class="form"><h1>Member Login</h1><p>Sign in to listen, follow shows, and manage your podcast.</p><div class="field"><label>Email</label><input id="email" type="email"></div><div class="field"><label>Password</label><input id="password" type="password"></div><button class="btn" onclick="login()">Sign In</button><p id="msg"></p><p><a href="signup.html">Need an account? Sign up.</a></p></section></main><footer class="footer">CrowRules Podcasting · Listen. Create. Share.</footer><script src="assets/js/app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>Member Login | CrowRules Podcasting</title>
+
+  <meta
+    name="description"
+    content="Sign in to CrowRules Podcasting to listen, follow shows, manage your account, and create podcasts."
+  >
+
+  <meta name="theme-color" content="#050509">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap"
+    rel="stylesheet"
+  >
+
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <style>
+    :root {
+      --bg: #050509;
+      --panel: rgba(15, 15, 23, .94);
+      --panel2: rgba(22, 22, 32, .94);
+      --text: #f7f7fb;
+      --muted: #9da0ad;
+      --line: rgba(255,255,255,.10);
+      --accent: #b00020;
+      --accent2: #ff1647;
+      --success: #35d49a;
+      --danger: #ff5c76;
+      --shadow: 0 25px 80px rgba(0,0,0,.55);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 50% -10%, rgba(176,0,32,.22), transparent 38%),
+        radial-gradient(circle at 10% 80%, rgba(120,0,255,.08), transparent 28%),
+        var(--bg);
+      font-family: Montserrat, sans-serif;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .nav {
+      min-height: 76px;
+      padding: 0 6%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      background: rgba(5,5,9,.88);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .brand {
+      text-decoration: none;
+      font-family: Orbitron, sans-serif;
+      font-weight: 900;
+      letter-spacing: .08em;
+      font-size: 1rem;
+    }
+
+    .brand span {
+      color: var(--accent2);
+      margin-left: .35rem;
+    }
+
+    .navlinks {
+      display: flex;
+      gap: 1.25rem;
+    }
+
+    .navlinks a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: .85rem;
+      font-weight: 700;
+    }
+
+    .navlinks a:hover {
+      color: white;
+    }
+
+    main {
+      min-height: calc(100vh - 150px);
+      display: grid;
+      place-items: center;
+      padding: 70px 20px;
+    }
+
+    .login-shell {
+      width: min(100%, 500px);
+    }
+
+    .eyebrow {
+      text-align: center;
+      font-family: Orbitron, sans-serif;
+      color: var(--accent2);
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .18em;
+      margin-bottom: .8rem;
+    }
+
+    .form {
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,.055),
+          rgba(255,255,255,.015)
+        ),
+        var(--panel);
+
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 38px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .form::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--accent2), transparent);
+    }
+
+    h1 {
+      margin: 0;
+      text-align: center;
+      font-family: Orbitron, sans-serif;
+      font-size: clamp(1.65rem, 4vw, 2.35rem);
+      line-height: 1.1;
+    }
+
+    .intro {
+      margin: 13px auto 28px;
+      max-width: 390px;
+      text-align: center;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: .94rem;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      min-height: 50px;
+      padding: 0 50px 0 15px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: rgba(0,0,0,.35);
+      color: white;
+      outline: none;
+      font: inherit;
+      transition: .2s ease;
+    }
+
+    .input-wrap input:focus {
+      border-color: rgba(255,22,71,.75);
+      box-shadow: 0 0 0 3px rgba(255,22,71,.10);
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 8px;
+      font-size: .78rem;
+      font-weight: 800;
+    }
+
+    .password-toggle:hover {
+      color: white;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin: 3px 0 22px;
+      font-size: .78rem;
+    }
+
+    .remember {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .remember input {
+      accent-color: var(--accent2);
+    }
+
+    .forgot {
+      color: #ff8298;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .forgot:hover {
+      color: white;
+    }
+
+    .btn {
+      width: 100%;
+      min-height: 52px;
+      border: 0;
+      border-radius: 11px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      font-family: Montserrat, sans-serif;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .2s ease, filter .2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.1);
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: .65;
+      transform: none;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+      color: #70737f;
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      height: 1px;
+      flex: 1;
+      background: var(--line);
+    }
+
+    .google-btn {
+      width: 100%;
+      min-height: 50px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: rgba(255,255,255,.045);
+      color: white;
+      cursor: pointer;
+      font-weight: 800;
+      transition: .2s ease;
+    }
+
+    .google-btn:hover {
+      background: rgba(255,255,255,.09);
+      border-color: rgba(255,255,255,.2);
+    }
+
+    .google-btn:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    .message {
+      display: none;
+      margin: 18px 0 0;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: .82rem;
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.error {
+      color: #ffdce2;
+      background: rgba(255,92,118,.10);
+      border: 1px solid rgba(255,92,118,.22);
+    }
+
+    .message.success {
+      color: #d9fff1;
+      background: rgba(53,212,154,.09);
+      border: 1px solid rgba(53,212,154,.22);
+    }
+
+    .signup {
+      text-align: center;
+      margin: 25px 0 0;
+      color: var(--muted);
+      font-size: .84rem;
+    }
+
+    .signup a {
+      color: white;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .signup a:hover {
+      color: #ff8298;
+    }
+
+    .security-note {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      text-align: center;
+      color: #6f727e;
+      font-size: .7rem;
+      line-height: 1.6;
+    }
+
+    .footer {
+      padding: 25px;
+      text-align: center;
+      border-top: 1px solid var(--line);
+      color: #70737f;
+      font-size: .75rem;
+    }
+
+    .loading {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .nav {
+        padding: 0 20px;
+      }
+
+      .navlinks {
+        display: none;
+      }
+
+      .form {
+        padding: 27px 21px;
+        border-radius: 17px;
+      }
+
+      main {
+        padding: 35px 14px;
+      }
+
+      .row {
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="nav">
+  <a class="brand" href="index.html">
+    CROWRULES <span>PODCASTING</span>
+  </a>
+
+  <nav class="navlinks" aria-label="Main navigation">
+    <a href="index.html">Home</a>
+    <a href="signup.html">Join</a>
+  </nav>
+</header>
+
+<main>
+  <div class="login-shell">
+
+    <div class="eyebrow">CROWRULES PODCASTING NETWORK</div>
+
+    <section class="form" aria-labelledby="loginTitle">
+
+      <h1 id="loginTitle">Member Login</h1>
+
+      <p class="intro">
+        Sign in to listen, follow shows, manage your podcast account,
+        and access the CrowRules Podcasting creator network.
+      </p>
+
+      <form id="loginForm" novalidate>
+
+        <div class="field">
+          <label for="email">Email Address</label>
+
+          <div class="input-wrap">
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              inputmode="email"
+              placeholder="you@example.com"
+              required
+              maxlength="254"
+            >
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+
+          <div class="input-wrap">
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Enter your password"
+              required
+              minlength="6"
+            >
+
+            <button
+              type="button"
+              class="password-toggle"
+              id="togglePassword"
+              aria-label="Show password"
+            >
+              SHOW
+            </button>
+          </div>
+        </div>
+
+        <div class="row">
+
+          <label class="remember">
+            <input
+              id="remember"
+              type="checkbox"
+              checked
+            >
+            <span>Keep me signed in</span>
+          </label>
+
+          <a
+            class="forgot"
+            href="#"
+            id="forgotPassword"
+          >
+            Forgot password?
+          </a>
+
+        </div>
+
+        <button
+          class="btn"
+          id="loginButton"
+          type="submit"
+        >
+          Sign In
+        </button>
+
+      </form>
+
+      <div class="divider">OR</div>
+
+      <button
+        type="button"
+        class="google-btn"
+        id="googleButton"
+      >
+        Continue with Google
+      </button>
+
+      <div
+        id="message"
+        class="message"
+        role="status"
+        aria-live="polite"
+      ></div>
+
+      <p class="signup">
+        Don't have an account?
+        <a href="signup.html">Create your CrowRules account</a>
+      </p>
+
+      <div class="security-note">
+        Your authentication is handled through Supabase Auth.
+        Never share your password with anyone claiming to represent
+        CrowRules Podcasting.
+      </div>
+
+    </section>
+  </div>
+</main>
+
+<footer class="footer">
+  CrowRules Podcasting · Listen. Create. Share.
+</footer>
+
+<!-- Supabase JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Your shared Supabase configuration -->
+<script src="assets/js/supabase.js"></script>
+
+<script>
+(function () {
+  "use strict";
+
+  const form = document.getElementById("loginForm");
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const loginButton = document.getElementById("loginButton");
+  const googleButton = document.getElementById("googleButton");
+  const togglePassword = document.getElementById("togglePassword");
+  const forgotPassword = document.getElementById("forgotPassword");
+  const rememberInput = document.getElementById("remember");
+  const message = document.getElementById("message");
+
+  let supabaseClient = null;
+  let submitting = false;
+
+  /*
+   * Expected assets/js/supabase.js:
+   *
+   * const SUPABASE_URL = "https://cevylpnoexugwgygvtgu.supabase.co";
+   * const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
+   *
+   * const supabase = window.supabase.createClient(
+   *   SUPABASE_URL,
+   *   SUPABASE_PUBLISHABLE_KEY
+   * );
+   */
+
+  function getClient() {
+    if (typeof window.supabase === "undefined") {
+      throw new Error(
+        "Supabase JavaScript library did not load."
+      );
+    }
+
+    if (
+      window.supabaseClient &&
+      typeof window.supabaseClient.auth !== "undefined"
+    ) {
+      return window.supabaseClient;
+    }
+
+    if (
+      typeof window.supabase.auth !== "undefined" &&
+      typeof window.supabase.auth.signInWithPassword === "function"
+    ) {
+      /*
+       * Supports projects where supabase.js exposes
+       * the initialized client as window.supabaseClient.
+       */
+      return window.supabaseClient || null;
+    }
+
+    return null;
+  }
+
+  function showMessage(text, type) {
+    message.textContent = text;
+    message.className = "message show " + type;
+  }
+
+  function clearMessage() {
+    message.textContent = "";
+    message.className = "message";
+  }
+
+  function setLoading(loading) {
+    submitting = loading;
+
+    loginButton.disabled = loading;
+    googleButton.disabled = loading;
+
+    if (loading) {
+      loginButton.innerHTML =
+        '<span class="loading">' +
+        '<span class="spinner"></span>' +
+        'Signing In...' +
+        '</span>';
+    } else {
+      loginButton.textContent = "Sign In";
+    }
+  }
+
+  function isValidEmail(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  }
+
+  function getRedirectTarget() {
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get("next");
+
+    /*
+     * Only permit relative redirects.
+     * This prevents the login page from becoming an open redirect.
+     */
+    if (
+      requested &&
+      requested.startsWith("/") &&
+      !requested.startsWith("//") &&
+      !requested.includes("://")
+    ) {
+      return requested;
+    }
+
+    return "dashboard.html";
+  }
+
+  async function recordLogin(userId) {
+    try {
+      if (!supabaseClient || !userId) return;
+
+      await supabaseClient
+        .from("podcast_login_activity")
+        .insert({
+          user_id: userId,
+          event_type: "login"
+        });
+
+    } catch (error) {
+      /*
+       * Login should not fail merely because analytics/activity
+       * recording is unavailable.
+       */
+      console.warn(
+        "Podcast login activity could not be recorded:",
+        error
+      );
+    }
+  }
+
+  async function checkExistingSession() {
+    try {
+      if (!supabaseClient) return;
+
+      const {
+        data: { user },
+        error
+      } = await supabaseClient.auth.getUser();
+
+      if (error || !user) return;
+
+      showMessage(
+        "You are already signed in. Redirecting...",
+        "success"
+      );
+
+      window.location.replace(getRedirectTarget());
+
+    } catch (error) {
+      console.warn(
+        "Existing session check failed:",
+        error
+      );
+    }
+  }
+
+  async function login(event) {
+    event.preventDefault();
+
+    if (submitting) return;
+
+    clearMessage();
+
+    const email = emailInput.value.trim().toLowerCase();
+    const password = passwordInput.value;
+
+    if (!email) {
+      showMessage(
+        "Please enter your email address.",
+        "error"
+      );
+      emailInput.focus();
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      showMessage(
+        "Please enter a valid email address.",
+        "error"
+      );
+      emailInput.focus();
+      return;
+    }
+
+    if (!password) {
+      showMessage(
+        "Please enter your password.",
+        "error"
+      );
+      passwordInput.focus();
+      return;
+    }
+
+    if (password.length < 6) {
+      showMessage(
+        "Your password must be at least 6 characters.",
+        "error"
+      );
+      passwordInput.focus();
+      return;
+    }
+
+    if (!supabaseClient) {
+      showMessage(
+        "Supabase is not configured. Check assets/js/supabase.js.",
+        "error"
+      );
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      /*
+       * Supabase v2 email/password authentication.
+       */
+      const {
+        data,
+        error
+      } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        console.error("Login error:", error);
+
+        let friendlyMessage =
+          "We couldn't sign you in. Please check your email and password.";
+
+        const lower = String(error.message || "").toLowerCase();
+
+        if (lower.includes("email not confirmed")) {
+          friendlyMessage =
+            "Your email address has not been confirmed yet. Check your inbox for the confirmation email.";
+        } else if (lower.includes("invalid login")) {
+          friendlyMessage =
+            "The email or password is incorrect.";
+        } else if (lower.includes("rate limit")) {
+          friendlyMessage =
+            "Too many attempts. Please wait a moment and try again.";
+        }
+
+        showMessage(friendlyMessage, "error");
+        setLoading(false);
+        return;
+      }
+
+      if (!data || !data.user) {
+        showMessage(
+          "Login completed, but no user session was returned.",
+          "error"
+        );
+        setLoading(false);
+        return;
+      }
+
+      /*
+       * Record the successful login.
+       */
+      await recordLogin(data.user.id);
+
+      showMessage(
+        "Welcome back. Opening your CrowRules Podcasting account...",
+        "success"
+      );
+
+      /*
+       * Give Supabase a moment to persist the session before navigation.
+       */
+      setTimeout(function () {
+        window.location.replace(getRedirectTarget());
+      }, 350);
+
+    } catch (error) {
+      console.error("Unexpected login failure:", error);
+
+      showMessage(
+        "Something went wrong while signing you in. Please try again.",
+        "error"
+      );
+
+      setLoading(false);
+    }
+  }
+
+  async function googleLogin() {
+    if (submitting) return;
+
+    clearMessage();
+
+    if (!supabaseClient) {
+      showMessage(
+        "Supabase is not configured. Check assets/js/supabase.js.",
+        "error"
+      );
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const redirectTo =
+        window.location.origin +
+        window.location.pathname.replace(
+          /login\.html$/,
+          "dashboard.html"
+        );
+
+      const {
+        error
+      } = await supabaseClient.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo
+        }
+      });
+
+      if (error) {
+        console.error("Google login error:", error);
+
+        showMessage(
+          "Google sign-in is not currently available. Make sure Google OAuth is enabled in Supabase Authentication.",
+          "error"
+        );
+
+        setLoading(false);
+      }
+
+    } catch (error) {
+      console.error(
+        "Unexpected Google login failure:",
+        error
+      );
+
+      showMessage(
+        "Google sign-in could not be started.",
+        "error"
+      );
+
+      setLoading(false);
+    }
+  }
+
+  async function resetPassword(event) {
+    event.preventDefault();
+
+    clearMessage();
+
+    if (!supabaseClient) {
+      showMessage(
+        "Supabase is not configured. Check assets/js/supabase.js.",
+        "error"
+      );
+      return;
+    }
+
+    const email = emailInput.value.trim().toLowerCase();
+
+    if (!email || !isValidEmail(email)) {
+      showMessage(
+        "Enter your email address first, then select Forgot password.",
+        "error"
+      );
+      emailInput.focus();
+      return;
+    }
+
+    try {
+      const redirectTo =
+        window.location.origin +
+        window.location.pathname.replace(
+          /login\.html$/,
+          "reset-password.html"
+        );
+
+      const {
+        error
+      } = await supabaseClient.auth.resetPasswordForEmail(
+        email,
+        {
+          redirectTo
+        }
+      );
+
+      if (error) {
+        console.error(
+          "Password reset error:",
+          error
+        );
+
+        showMessage(
+          "We couldn't start the password reset. Please try again.",
+          "error"
+        );
+
+        return;
+      }
+
+      showMessage(
+        "If an account exists for this email, a password reset link has been sent.",
+        "success"
+      );
+
+    } catch (error) {
+      console.error(
+        "Unexpected password reset failure:",
+        error
+      );
+
+      showMessage(
+        "Password reset could not be started.",
+        "error"
+      );
+    }
+  }
+
+  togglePassword.addEventListener(
+    "click",
+    function () {
+      const showing =
+        passwordInput.type === "text";
+
+      passwordInput.type =
+        showing ? "password" : "text";
+
+      togglePassword.textContent =
+        showing ? "SHOW" : "HIDE";
+
+      togglePassword.setAttribute(
+        "aria-label",
+        showing
+          ? "Show password"
+          : "Hide password"
+      );
+    }
+  );
+
+  form.addEventListener(
+    "submit",
+    login
+  );
+
+  googleButton.addEventListener(
+    "click",
+    googleLogin
+  );
+
+  forgotPassword.addEventListener(
+    "click",
+    resetPassword
+  );
+
+  /*
+   * Persist the user's preference for the checkbox.
+   * Supabase itself controls the authentication session.
+   */
+  const savedRemember =
+    localStorage.getItem(
+      "crowrules_podcasting_remember"
+    );
+
+  if (savedRemember !== null) {
+    rememberInput.checked =
+      savedRemember === "true";
+  }
+
+  rememberInput.addEventListener(
+    "change",
+    function () {
+      localStorage.setItem(
+        "crowrules_podcasting_remember",
+        String(rememberInput.checked)
+      );
+    }
+  );
+
+  /*
+   * Initialize.
+   */
+  document.addEventListener(
+    "DOMContentLoaded",
+    async function () {
+
+      try {
+        supabaseClient = getClient();
+
+        if (!supabaseClient) {
+          showMessage(
+            "Supabase is not configured. Check that assets/js/supabase.js loads the initialized Supabase client.",
+            "error"
+          );
+
+          return;
+        }
+
+        /*
+         * Listen for authentication changes.
+         */
+        supabaseClient.auth.onAuthStateChange(
+          function (event, session) {
+
+            if (
+              event === "SIGNED_OUT"
+            ) {
+              clearMessage();
+            }
+
+            if (
+              event === "PASSWORD_RECOVERY"
+            ) {
+              showMessage(
+                "Password recovery session detected.",
+                "success"
+              );
+            }
+          }
+        );
+
+        await checkExistingSession();
+
+      } catch (error) {
+        console.error(
+          "Supabase initialization error:",
+          error
+        );
+
+        showMessage(
+          "Supabase could not be initialized. Check your Supabase configuration.",
+          "error"
+        );
+      }
+    }
+  );
+
+})();
+</script>
+
+</body>
+</html>
