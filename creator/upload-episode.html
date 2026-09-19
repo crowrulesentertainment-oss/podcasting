@@ -16,7 +16,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap"
       rel="stylesheet">
 
-<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="../assets/css/style.css">
 
 <style>
 
@@ -470,14 +470,14 @@ select option{
 
 <header class="nav">
 
-  <a class="brand" href="index.html">
+  <a class="brand" href="../index.html">
     CROWRULES <span>PODCASTING</span>
   </a>
 
   <nav class="navlinks">
-    <a href="index.html">Home</a>
-    <a href="podcasts.html">Podcasts</a>
-    <a href="creator-dashboard.html">Creator Hub</a>
+    <a href="../index.html">Home</a>
+    <a href="../podcasts.html">Podcasts</a>
+    <a href="dashboard.html">Creator Hub</a>
   </nav>
 
   <div class="auth">
@@ -550,7 +550,7 @@ select option{
       </a>
 
       <a class="btn ghost"
-         href="creator-dashboard.html">
+         href="dashboard.html">
         Creator Dashboard
       </a>
 
@@ -856,7 +856,7 @@ select option{
         </button>
 
         <a class="btn ghost"
-           href="creator-dashboard.html">
+           href="dashboard.html">
 
           Cancel
 
@@ -1026,7 +1026,7 @@ async function requireAuth(){
 
   if(error || !data.user){
 
-    location.href="login.html";
+    location.href="../login.html";
 
     return false;
 
@@ -1791,7 +1791,7 @@ document.getElementById("episodeForm")
 
       if(!currentUser){
 
-        location.href="login.html";
+        location.href="../login.html";
 
         return;
 
@@ -1968,7 +1968,7 @@ document.getElementById("logoutBtn")
 
       await client.auth.signOut();
 
-      location.href="login.html";
+      location.href="../login.html";
 
     }
   );
