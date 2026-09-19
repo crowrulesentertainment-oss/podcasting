@@ -548,7 +548,10 @@
       } =
         await client.auth.resend({
           type: "signup",
-          email: email
+          email: email,
+          options: {
+            emailRedirectTo: new URL("verify.html", window.location.href).toString()
+          }
         });
 
       if (error) {
