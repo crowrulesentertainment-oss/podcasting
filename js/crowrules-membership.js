@@ -1,6 +1,6 @@
 /* =========================================================
    CROWRULES PODCASTING — UNIVERSAL MEMBERSHIP HEADER
-   Adds Universal CrowRules Membership controls beside Donate.
+   Adds Universal CrowRules Membership controls beside the Dreamscapes support link.
    ========================================================= */
 (function(){
   "use strict";
@@ -36,8 +36,8 @@
     let donate=nav.querySelector("[data-cr-pod-donate]");
     if(!donate){
       donate=document.createElement("a");
-      donate.href=p+"donation.html";
-      donate.textContent="Donate";
+      donate.href="https://crowrulesentertainment-oss.github.io/dreamscapes/donation.html";
+      donate.textContent="Support the Dream";
       donate.dataset.crPodDonate="1";
       nav.appendChild(donate);
     }
