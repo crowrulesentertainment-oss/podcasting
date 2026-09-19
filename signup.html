@@ -1296,6 +1296,7 @@
             password,
 
             options: {
+              emailRedirectTo: new URL("verify.html", window.location.href).toString(),
 
               data: {
 
@@ -1338,13 +1339,11 @@
               accountType === "creator"
             ) {
 
-              window.location.href =
-                "creator-dashboard.html";
+              window.location.href = "creator/dashboard.html";
 
             } else {
 
-              window.location.href =
-                "dashboard.html";
+              window.location.href = "member.html";
             }
 
           }, 1000);
