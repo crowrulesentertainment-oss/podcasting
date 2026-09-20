@@ -1,0 +1,1 @@
+(()=>{const d=document;const body=d.body;if(!body)return;const bar=d.createElement('div');bar.className='cr-cinematic-bar';d.documentElement.prepend(bar);const grid=d.createElement('div');grid.className='cr-cinematic-grid';grid.setAttribute('aria-hidden','true');for(let i=0;i<4;i++)grid.appendChild(d.createElement('i'));body.prepend(grid);})();
