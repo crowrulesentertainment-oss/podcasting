@@ -25,10 +25,6 @@
 
   <title>Sign Up | CrowRules Podcasting</title>
 
-  <!-- ============================================================
-       GOOGLE FONTS
-  ============================================================ -->
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -37,20 +33,10 @@
     rel="stylesheet"
   >
 
-
-  <!-- ============================================================
-       SUPABASE
-  ============================================================ -->
-
   <script
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
     defer>
   </script>
-
-
-  <!-- ============================================================
-       STYLES
-  ============================================================ -->
 
   <style>
 
@@ -77,20 +63,13 @@
         0 25px 80px rgba(0,0,0,.55);
     }
 
-
-    /* ============================================================
-       RESET
-    ============================================================ */
-
     * {
       box-sizing: border-box;
     }
 
-
     html {
       scroll-behavior: smooth;
     }
-
 
     body {
       margin: 0;
@@ -125,11 +104,6 @@
 
       overflow-x: hidden;
     }
-
-
-    /* ============================================================
-       STARFIELD
-    ============================================================ */
 
     body::before {
       content: "";
@@ -173,11 +147,8 @@
       z-index: -1;
     }
 
-
     /* ============================================================
        NAVIGATION
-       ONLY LINK ON THIS PAGE:
-       index.html
     ============================================================ */
 
     .nav {
@@ -202,7 +173,6 @@
         1px solid var(--border);
     }
 
-
     .brand {
       color: white;
 
@@ -223,12 +193,10 @@
         transform .2s ease;
     }
 
-
     .brand:hover {
       opacity: .9;
       transform: translateY(-1px);
     }
-
 
     .brand span {
       color: var(--cyan);
@@ -242,7 +210,6 @@
       margin-top: 3px;
     }
 
-
     /* ============================================================
        MAIN
     ============================================================ */
@@ -255,7 +222,6 @@
       padding:
         65px 0 80px;
     }
-
 
     .signup-card {
       position: relative;
@@ -280,7 +246,6 @@
       box-shadow:
         var(--shadow);
     }
-
 
     .signup-card::before {
       content: "";
@@ -308,7 +273,6 @@
         0 0 45px var(--purple);
     }
 
-
     .signup-card::after {
       content: "";
 
@@ -333,7 +297,6 @@
       pointer-events: none;
     }
 
-
     /* ============================================================
        HEADER
     ============================================================ */
@@ -354,7 +317,6 @@
       margin-bottom: 12px;
     }
 
-
     h1 {
       margin: 0;
 
@@ -370,7 +332,6 @@
       letter-spacing: -1px;
     }
 
-
     .lead {
       max-width: 700px;
 
@@ -381,7 +342,6 @@
       margin:
         20px 0 35px;
     }
-
 
     /* ============================================================
        ACCOUNT TYPE
@@ -397,7 +357,6 @@
 
       margin-bottom: 30px;
     }
-
 
     .type-card {
       appearance: none;
@@ -422,7 +381,6 @@
         .25s ease;
     }
 
-
     .type-card:hover {
       transform:
         translateY(-2px);
@@ -433,7 +391,6 @@
       background:
         rgba(0,234,255,.04);
     }
-
 
     .type-card.active {
       border-color:
@@ -451,7 +408,6 @@
         inset 0 0 25px rgba(0,234,255,.025);
     }
 
-
     .type-icon {
       display: block;
 
@@ -459,7 +415,6 @@
 
       margin-bottom: 12px;
     }
-
 
     .type-card strong {
       display: block;
@@ -469,7 +424,6 @@
       margin-bottom: 7px;
     }
 
-
     .type-card small {
       display: block;
 
@@ -477,7 +431,6 @@
 
       line-height: 1.5;
     }
-
 
     /* ============================================================
        FORM
@@ -489,7 +442,6 @@
       z-index: 2;
     }
 
-
     .grid {
       display: grid;
 
@@ -499,11 +451,9 @@
       gap: 18px;
     }
 
-
     .field {
       margin-bottom: 20px;
     }
-
 
     label {
       display: block;
@@ -517,11 +467,9 @@
       font-weight: 800;
     }
 
-
     label span {
       color: var(--pink);
     }
-
 
     input {
       width: 100%;
@@ -549,11 +497,9 @@
         .2s ease;
     }
 
-
     input::placeholder {
       color: #66667b;
     }
-
 
     input:focus {
       border-color:
@@ -563,7 +509,6 @@
         0 0 0 3px
         rgba(0,234,255,.08);
     }
-
 
     .field > small {
       display: block;
@@ -577,7 +522,6 @@
       line-height: 1.5;
     }
 
-
     /* ============================================================
        PASSWORD
     ============================================================ */
@@ -586,11 +530,9 @@
       position: relative;
     }
 
-
     .password-wrap input {
       padding-right: 82px;
     }
-
 
     .show-password {
       position: absolute;
@@ -622,12 +564,10 @@
       font-weight: 800;
     }
 
-
     .show-password:hover {
       background:
         rgba(0,234,255,.08);
     }
-
 
     .strength {
       height: 5px;
@@ -641,7 +581,6 @@
       background:
         rgba(255,255,255,.08);
     }
-
 
     .strength span {
       display: block;
@@ -664,7 +603,6 @@
       transition:
         width .25s ease;
     }
-
 
     /* ============================================================
        TERMS
@@ -689,7 +627,6 @@
       cursor: pointer;
     }
 
-
     .check input {
       width: 18px;
       height: 18px;
@@ -703,7 +640,6 @@
       accent-color:
         var(--cyan);
     }
-
 
     /* ============================================================
        BUTTON
@@ -748,7 +684,6 @@
         .2s ease;
     }
 
-
     .btn:hover:not(:disabled) {
       transform:
         translateY(-2px);
@@ -758,14 +693,12 @@
         rgba(0,234,255,.22);
     }
 
-
     .btn:disabled {
       opacity: .65;
 
       cursor:
         not-allowed;
     }
-
 
     .spinner {
       display: inline-block;
@@ -790,7 +723,6 @@
         spin .7s linear infinite;
     }
 
-
     @keyframes spin {
 
       to {
@@ -799,7 +731,6 @@
       }
 
     }
-
 
     /* ============================================================
        MESSAGE
@@ -821,7 +752,6 @@
       line-height: 1.6;
     }
 
-
     .message.success {
       padding:
         13px 15px;
@@ -837,7 +767,6 @@
         rgba(53,229,140,.06);
     }
 
-
     .message.error {
       padding:
         13px 15px;
@@ -852,7 +781,6 @@
       background:
         rgba(255,77,109,.06);
     }
-
 
     /* ============================================================
        FOOTER
@@ -875,7 +803,6 @@
         .78rem;
     }
 
-
     /* ============================================================
        MOBILE
     ============================================================ */
@@ -889,14 +816,12 @@
           13px 5%;
       }
 
-
       .page {
         width: 94%;
 
         padding:
           35px 0 55px;
       }
-
 
       .signup-card {
         padding:
@@ -906,13 +831,11 @@
           20px;
       }
 
-
       .account-choice,
       .grid {
         grid-template-columns:
           1fr;
       }
-
 
       h1 {
         font-size:
@@ -924,13 +847,10 @@
   </style>
 </head>
 
-
 <body>
-
 
   <!-- ============================================================
        NAVIGATION
-       THE BRAND IS THE ONLY LINK ON THIS PAGE
   ============================================================ -->
 
   <header class="nav">
@@ -963,11 +883,9 @@
         CROWRULES PODCASTING
       </div>
 
-
       <h1>
         Join the Network
       </h1>
-
 
       <p class="lead">
         Create your CrowRules Podcasting account to listen,
@@ -976,9 +894,7 @@
       </p>
 
 
-      <!-- ========================================================
-           ACCOUNT TYPE
-      ======================================================== -->
+      <!-- ACCOUNT TYPE -->
 
       <div class="account-choice">
 
@@ -1028,16 +944,11 @@
       </div>
 
 
-      <!-- ========================================================
-           SIGNUP FORM
-      ======================================================== -->
+      <!-- SIGNUP FORM -->
 
       <form
         id="signupForm"
         novalidate>
-
-
-        <!-- ACCOUNT TYPE -->
 
         <input
           type="hidden"
@@ -1046,12 +957,9 @@
         >
 
 
-        <!-- ======================================================
-             DISPLAY NAME + USERNAME
-        ====================================================== -->
+        <!-- DISPLAY NAME + USERNAME -->
 
         <div class="grid">
-
 
           <div class="field">
 
@@ -1059,7 +967,6 @@
               Display Name
               <span>*</span>
             </label>
-
 
             <input
               id="display_name"
@@ -1081,7 +988,6 @@
               <span>*</span>
             </label>
 
-
             <input
               id="username"
               name="username"
@@ -1092,7 +998,6 @@
               required
             >
 
-
             <small>
               Letters, numbers and underscores only.
             </small>
@@ -1102,9 +1007,7 @@
         </div>
 
 
-        <!-- ======================================================
-             EMAIL
-        ====================================================== -->
+        <!-- EMAIL -->
 
         <div class="field">
 
@@ -1112,7 +1015,6 @@
             Email Address
             <span>*</span>
           </label>
-
 
           <input
             id="email"
@@ -1127,12 +1029,9 @@
         </div>
 
 
-        <!-- ======================================================
-             PASSWORDS
-        ====================================================== -->
+        <!-- PASSWORDS -->
 
         <div class="grid">
-
 
           <div class="field">
 
@@ -1140,7 +1039,6 @@
               Password
               <span>*</span>
             </label>
-
 
             <div class="password-wrap">
 
@@ -1154,7 +1052,6 @@
                 required
               >
 
-
               <button
                 type="button"
                 class="show-password"
@@ -1166,7 +1063,6 @@
 
             </div>
 
-
             <div class="strength">
 
               <span
@@ -1175,12 +1071,9 @@
 
             </div>
 
-
             <small id="passwordHint">
-
               Use 8+ characters with a mix of
               letters, numbers or symbols.
-
             </small>
 
           </div>
@@ -1193,7 +1086,6 @@
               <span>*</span>
             </label>
 
-
             <div class="password-wrap">
 
               <input
@@ -1205,7 +1097,6 @@
                 placeholder="Re-enter password"
                 required
               >
-
 
               <button
                 type="button"
@@ -1223,9 +1114,7 @@
         </div>
 
 
-        <!-- ======================================================
-             TERMS
-        ====================================================== -->
+        <!-- TERMS -->
 
         <label class="check">
 
@@ -1235,21 +1124,16 @@
             required
           >
 
-
           <span>
-
             I agree to the CrowRules Podcasting terms and
             understand that creator accounts may have
             additional creator requirements.
-
           </span>
 
         </label>
 
 
-        <!-- ======================================================
-             SUBMIT
-        ====================================================== -->
+        <!-- SUBMIT -->
 
         <button
           id="signupButton"
@@ -1260,7 +1144,6 @@
             Create Account
           </span>
 
-
           <span
             id="buttonSpinner"
             class="spinner"
@@ -1270,9 +1153,7 @@
         </button>
 
 
-        <!-- ======================================================
-             STATUS
-        ====================================================== -->
+        <!-- STATUS -->
 
         <div
           id="msg"
@@ -1281,7 +1162,6 @@
           aria-live="polite">
         </div>
 
-
       </form>
 
     </section>
@@ -1289,9 +1169,7 @@
   </main>
 
 
-  <!-- ============================================================
-       FOOTER
-  ============================================================ -->
+  <!-- FOOTER -->
 
   <footer class="footer">
 
@@ -1329,9 +1207,7 @@
     ============================================================ */
 
     function $(id) {
-
       return document.getElementById(id);
-
     }
 
 
@@ -1343,20 +1219,16 @@
       const element =
         $("msg");
 
-
       if (!element)
         return;
 
-
       element.textContent =
         text;
-
 
       element.className =
         type
           ? `message ${type}`
           : "message";
-
     }
 
 
@@ -1373,14 +1245,11 @@
       const spinner =
         $("buttonSpinner");
 
-
       if (!button)
         return;
 
-
       button.disabled =
         loading;
-
 
       if (text) {
 
@@ -1391,13 +1260,31 @@
 
       }
 
-
       if (spinner) {
 
         spinner.hidden =
           !loading;
 
       }
+
+    }
+
+
+    /* ============================================================
+       REDIRECT TO PODCASTING HOME
+       ============================================================ */
+
+    function redirectToHome() {
+
+      setTimeout(
+        () => {
+
+          window.location.href =
+            "index.html";
+
+        },
+        1500
+      );
 
     }
 
@@ -1447,52 +1334,36 @@
 
       let score = 0;
 
-
       if (
         password.length >= 8
       ) {
-
         score++;
-
       }
-
 
       if (
         password.length >= 12
       ) {
-
         score++;
-
       }
-
 
       if (
         /[a-z]/.test(password) &&
         /[A-Z]/.test(password)
       ) {
-
         score++;
-
       }
-
 
       if (
         /\d/.test(password)
       ) {
-
         score++;
-
       }
-
 
       if (
         /[^A-Za-z0-9]/.test(password)
       ) {
-
         score++;
-
       }
-
 
       return Math.min(
         score,
@@ -1513,26 +1384,20 @@
       const hint =
         $("passwordHint");
 
-
       if (
         !password ||
         !bar
       ) {
-
         return;
-
       }
-
 
       const score =
         passwordScore(
           password.value
         );
 
-
       bar.style.width =
         `${score * 25}%`;
-
 
       const labels = [
 
@@ -1547,7 +1412,6 @@
         "Strong password"
 
       ];
-
 
       if (hint) {
 
@@ -1574,26 +1438,20 @@
       const button =
         $(buttonId);
 
-
       if (
         !input ||
         !button
       ) {
-
         return;
-
       }
-
 
       const showing =
         input.type === "text";
-
 
       input.type =
         showing
           ? "password"
           : "text";
-
 
       button.textContent =
         showing
@@ -1618,7 +1476,6 @@
           ""
         );
 
-
       if (
         /already registered|already exists/i
           .test(message)
@@ -1627,7 +1484,6 @@
         return "An account with that email already exists. Please use your existing CrowRules account.";
 
       }
-
 
       if (
         /invalid email/i
@@ -1638,7 +1494,6 @@
 
       }
 
-
       if (
         /password/i.test(message) &&
         /weak|short|least/i.test(message)
@@ -1647,7 +1502,6 @@
         return "Your password does not meet the required strength.";
 
       }
-
 
       if (
         /rate limit|too many/i
@@ -1658,7 +1512,6 @@
 
       }
 
-
       if (
         /username/i.test(message)
       ) {
@@ -1666,7 +1519,6 @@
         return "That username is unavailable. Please choose another.";
 
       }
-
 
       return (
         message ||
@@ -1868,12 +1720,19 @@
 
             options: {
 
+              /*
+               * After the user confirms their email,
+               * Supabase will return them here.
+               *
+               * The verification page can also redirect
+               * to index.html after confirmation.
+               */
+
               emailRedirectTo:
                 new URL(
                   "verify.html",
                   window.location.href
                 ).toString(),
-
 
               data: {
 
@@ -1900,90 +1759,38 @@
 
 
         /* ========================================================
-           ACTIVE SESSION
-        ======================================================== */
+           ACCOUNT CREATED
+           ======================================================== */
 
         if (data.session) {
 
           setMessage(
-            "Account created! Taking you to CrowRules Podcasting...",
+            "Account created successfully! Returning to CrowRules Podcasting...",
             "success"
           );
 
-
-          setTimeout(
-            () => {
-
-              if (
-                accountType ===
-                "creator"
-              ) {
-
-                window.location.href =
-                  "creator/dashboard.html";
-
-              } else {
-
-                window.location.href =
-                  "member.html";
-
-              }
-
-            },
-            1000
-          );
-
+          redirectToHome();
 
         }
 
 
         /* ========================================================
            EMAIL CONFIRMATION REQUIRED
-        ======================================================== */
+           ======================================================== */
 
         else {
 
           setMessage(
-            "Account created! Check your email to confirm your address, then log in to CrowRules Podcasting.",
+            "Account created! Check your email to confirm your address. Returning to CrowRules Podcasting...",
             "success"
           );
 
 
-          $("signupForm").reset();
+          /*
+           * Redirect everyone back to index.html.
+           */
 
-
-          $("account_type").value =
-            "listener";
-
-
-          document
-            .querySelectorAll(
-              "[data-account]"
-            )
-            .forEach(
-              card => {
-
-                const active =
-                  card.dataset.account ===
-                  "listener";
-
-
-                card.classList.toggle(
-                  "active",
-                  active
-                );
-
-
-                card.setAttribute(
-                  "aria-pressed",
-                  String(active)
-                );
-
-              }
-            );
-
-
-          updatePasswordStrength();
+          redirectToHome();
 
         }
 
@@ -1995,12 +1802,10 @@
           error
         );
 
-
         setMessage(
           friendlyAuthError(error),
           "error"
         );
-
 
       } finally {
 
