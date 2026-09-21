@@ -77,6 +77,14 @@
     .home-cta{padding:55px 0}.cta-panel{padding:35px;border-radius:24px;border:1px solid rgba(139,92,255,.22);background:linear-gradient(135deg,rgba(0,229,255,.06),rgba(139,92,255,.12),rgba(255,79,216,.06));display:flex;justify-content:space-between;align-items:center;gap:25px}.cta-panel h2{font-family:Orbitron,sans-serif;margin:0 0 10px}.cta-panel p{color:var(--muted);margin:0;line-height:1.6}
     @media(max-width:900px){.feature-shell{grid-template-columns:1fr}.cta-panel{flex-direction:column;align-items:flex-start}}
     @media(prefers-reduced-motion:reduce){.cr-orb{animation:none}.btn,.card{transition:none}}
+  
+    /* CINEMATIC HOME 4.0 — interactive discovery */
+    .home-status{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 0}.status-chip{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.035);color:#cfd4e6;font-size:.7rem;font-weight:800}.status-chip strong{font-family:Orbitron;color:#fff}
+    .discovery-card{display:grid;grid-template-columns:110px 1fr;gap:16px;padding:16px}.discovery-art{width:110px;height:110px;border-radius:16px;object-fit:cover;background:radial-gradient(circle at 30% 30%,rgba(0,229,255,.28),transparent 32%),linear-gradient(135deg,#111126,#24154c)}.discovery-card .card-body{padding:0}.discovery-card .card-actions{margin-top:12px}.play-btn{border-color:rgba(0,229,255,.28);background:rgba(0,229,255,.06)}.play-btn:hover{background:rgba(0,229,255,.1)}
+    .live-card{padding:20px;border-color:rgba(54,226,155,.2);background:linear-gradient(135deg,rgba(54,226,155,.06),rgba(0,229,255,.045)),var(--panel)}.live-card .live-title{font:900 1.05rem Orbitron;margin:10px 0 6px}.live-card .live-meta{color:var(--muted);font-size:.78rem;line-height:1.6}
+    .section-kicker{font:800 .68rem Orbitron;color:var(--cyan);letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px}.section-head-copy{min-width:0}
+    @media(max-width:620px){.discovery-card{grid-template-columns:1fr}.discovery-art{width:100%;height:auto;aspect-ratio:16/9}.home-status{gap:7px}.status-chip{font-size:.64rem}}
+
   </style>
 </head>
 
@@ -118,6 +126,7 @@
         <a class="btn alt" href="signup.html">Create a Podcast</a>
         <a id="heroMembership" class="btn alt" href="membership.html">Universal Membership</a>
       </div>
+      <div id="homeStatus" class="home-status" aria-live="polite"></div>
     </div>
   </section>
 
@@ -137,7 +146,7 @@
 </section>
 <div class="section-divider"></div>
   <section id="continueSection" class="section" hidden>
-    <div class="section-head"><div><h2>Continue Listening</h2><div class="section-sub">Pick up where you left off.</div></div></div>
+    <div class="section-head"><div class="section-head-copy"><div class="section-kicker">Your Queue</div><h2>Continue Listening</h2><div class="section-sub">Pick up where you left off.</div></div><a href="my-podcasts.html" class="mini-btn">My Podcasts</a></div>
     <div id="continueGrid" class="grid"></div>
   </section>
 
@@ -152,7 +161,7 @@
   </section>
 
   <section id="liveSection" class="section" hidden>
-    <div class="section-head"><div><h2>Live Now</h2><div class="section-sub">Hear what's happening across CrowRules Podcasting right now.</div></div><a href="live.html" class="mini-btn">Open Live</a></div>
+    <div class="section-head"><div class="section-head-copy"><div class="section-kicker">On Air</div><h2>Live Now</h2><div class="section-sub">Hear what's happening across CrowRules Podcasting right now.</div></div><a href="live.html" class="mini-btn">Open Live</a></div>
     <div id="liveGrid" class="grid"></div>
   </section>
 
@@ -225,6 +234,42 @@
     }).join("");
   }
 
+
+  function playEpisode(x){
+    if(!x?.audio_url)return;
+    if(typeof window.CrowRulesPlayEpisode==="function"){window.CrowRulesPlayEpisode({episode_id:x.id,title:x.title||"Untitled Episode",show:x.podcast_title||"CrowRules Podcasting",audio_url:x.audio_url,artwork_url:x.thumbnail_url||x.artwork_url||""});return}
+    const audio=$("audio"),player=$("audioPlayer");
+    if(audio){audio.src=x.audio_url;audio.play().catch(()=>{});player?.classList.add("active");$("playerTitle").textContent=x.title||"Now Playing"}
+  }
+  function episodeCard(x,continuation){
+    const pct=Math.max(0,Math.min(100,Number(x.progress||0)));
+    return '<article class="card discovery-card">'+art(x.thumbnail_url||x.artwork_url,"discovery-art")+'<div class="card-body"><h3 class="card-title">'+esc(x.title||"Untitled Episode")+'</h3><div class="card-meta">'+esc(x.podcast_title||"CrowRules Podcasting")+(continuation&&pct?' • '+pct+'% heard':"")+'</div><p class="card-description">'+esc(x.description||"Listen to this CrowRules episode.")+'</p><div class="card-actions">'+(x.audio_url?'<button class="mini-btn play-btn" type="button" data-play-id="'+esc(x.id)+'">▶ '+(continuation?"Resume":"Play")+'</button>':"")+'<a class="mini-btn" href="episode.html?id='+encodeURIComponent(x.id)+'">Open Episode</a></div></div></article>';
+  }
+  function bindPlayButtons(root,rows){root.querySelectorAll("[data-play-id]").forEach(btn=>btn.addEventListener("click",()=>{const x=rows.find(r=>r.id===btn.dataset.playId);if(x)playEpisode(x)}))}
+  async function loadContinue(){
+    const section=$("continueSection"),grid=$("continueGrid");if(!section||!grid)return;
+    try{
+      const {data:{user}}=await client.auth.getUser();if(!user){section.hidden=true;return}
+      const {data,error}=await client.from("podcast_listens").select("id,episode_id,seconds_listened,completed,started_at,created_at,podcast_episodes(id,title,description,audio_url,thumbnail_url,duration_seconds,podcasts(title))").eq("user_id",user.id).order("created_at",{ascending:false}).limit(12);
+      if(error)throw error;
+      const seen=new Set(),rows=[];
+      for(const r of data||[]){const e=r.podcast_episodes;if(!e||r.completed||seen.has(e.id)||!e.audio_url)continue;seen.add(e.id);rows.push({id:e.id,title:e.title,description:e.description,audio_url:e.audio_url,thumbnail_url:e.thumbnail_url,duration_seconds:e.duration_seconds,podcast_title:e.podcasts?.title,progress:e.duration_seconds?Math.round((Number(r.seconds_listened||0)/e.duration_seconds)*100):0});if(rows.length>=4)break}
+      if(!rows.length){section.hidden=true;return}
+      section.hidden=false;grid.innerHTML=rows.map(x=>episodeCard(x,true)).join("");bindPlayButtons(grid,rows);
+    }catch(e){console.warn("[CrowRules Podcasting] continue:",e);section.hidden=true}
+  }
+  async function loadLive(){
+    const section=$("liveSection"),grid=$("liveGrid");if(!section||!grid)return;
+    try{
+      const {data,error}=await client.from("podcasts").select("id,title,description,category,artwork_url,is_live,total_plays,listener_count,created_at").eq("status","published").eq("is_live",true).order("created_at",{ascending:false}).limit(6);
+      if(error)throw error;if(!data?.length){section.hidden=true;return}
+      section.hidden=false;grid.innerHTML=data.map(x=>'<article class="card live-card">'+art(x.artwork_url,"rank-art")+'<div class="live-dot">On Air</div><div class="live-title">'+esc(x.title||"Live Podcast")+'</div><div class="live-meta">'+esc(x.category||"Podcast")+' • '+Number(x.listener_count||0).toLocaleString()+' listening now</div><p class="card-description">'+esc(x.description||"Live from the CrowRules Podcasting network.")+'</p><div class="card-actions"><a class="mini-btn play-btn" href="podcast.html?id='+encodeURIComponent(x.id)+'">Open Live Show</a></div></article>').join("");
+    }catch(e){console.warn("[CrowRules Podcasting] live:",e);section.hidden=true}
+  }
+  async function loadHomeStatus(){
+    try{const {data:{session}}=await client.auth.getSession(),el=$("homeStatus");if(!el)return;const chips=['<span class="status-chip"><strong>24/7</strong> CrowRules Audio Universe</span>'];chips.push(session?'<span class="status-chip"><strong>✓</strong> Account Connected</span>':'<span class="status-chip"><strong>FREE</strong> Explore & Listen</span>');el.innerHTML=chips.join("")}catch(e){}
+  }
+
   async function loadHomeData(){
     try{
       const {data,error}=await client.from("podcasts").select("id,title,slug,category,description,artwork_url,status,is_featured,is_live,total_plays,listener_count,created_at").eq("status","published").order("is_featured",{ascending:false}).order("created_at",{ascending:false}).limit(24);
@@ -295,10 +340,13 @@
   });
 
   client.auth.onAuthStateChange((event,session)=>{
-    if(event==="SIGNED_IN"||event==="SIGNED_OUT"||event==="TOKEN_REFRESHED") loadAccount();
+    if(event==="SIGNED_IN"||event==="SIGNED_OUT"||event==="TOKEN_REFRESHED"){loadAccount();loadContinue();loadHomeStatus();}
   });
 
   loadHomeData();
+  loadContinue();
+  loadLive();
+  loadHomeStatus();
   loadAccount();
 })();
 </script>
