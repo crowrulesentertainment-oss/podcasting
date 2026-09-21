@@ -1,4 +1,464 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Member Hub | CrowRules Podcasting</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="./css/crowrules-cinematic.css">
-</head><body data-crowrules-division="podcasting"><header class="nav"><a class="brand" href="index.html">CROWRULES <span>PODCASTING</span></a><nav class="navlinks"></nav></header><main><h1>Member Hub</h1><p>Your CrowRules Podcasting listening center.</p><div class="grid"><div class="card"><div class="stat">0</div><p>Following</p></div><div class="card"><div class="stat">0</div><p>Episodes Completed</p></div><div class="card"><div class="stat">0</div><p>CrowPoints</p></div></div><div class="actions"><a class="btn" href="following.html">Following</a><a class="btn alt" href="history.html">Listening History</a></div></main><footer class="footer">CrowRules Podcasting · Listen. Create. Share.</footer><script src="assets/js/app.js"></script><script src="js/crowrules-membership.js"></script>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#05050b">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="CrowRules Podcasting Creator Hub — create podcasts, upload episodes, track creator stats and CrowPoints.">
+  <title>Podcast Creator Hub | CrowRules Podcasting</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="./css/crowrules-cinematic.css">
+
+  <style>
+    :root{
+      --cyan:#00eaff;
+      --purple:#9b5cff;
+      --pink:#ff4fd8;
+      --bg:#05050b;
+      --card:rgba(12,13,25,.88);
+      --border:rgba(0,234,255,.18);
+    }
+
+    body{
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 15% 10%,rgba(0,234,255,.08),transparent 30%),
+        radial-gradient(circle at 85% 15%,rgba(155,92,255,.11),transparent 30%),
+        var(--bg);
+    }
+
+    .creator-main{
+      width:min(1150px,calc(100% - 32px));
+      margin:0 auto;
+      padding:65px 0 90px;
+    }
+
+    .creator-hero{text-align:center;margin-bottom:40px}
+    .eyebrow{
+      color:var(--cyan);
+      font:800 .75rem/1 "Orbitron",sans-serif;
+      letter-spacing:.22em;
+      text-transform:uppercase;
+      margin-bottom:14px;
+    }
+    .creator-hero h1{
+      margin:0;
+      font:900 clamp(2rem,6vw,4rem)/1.05 "Orbitron",sans-serif;
+    }
+    .creator-hero h1 span{
+      background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+    .creator-hero p{
+      max-width:720px;
+      margin:18px auto 0;
+      color:rgba(255,255,255,.72);
+      line-height:1.7;
+    }
+
+    .login-message{
+      display:none;
+      max-width:700px;
+      margin:0 auto 35px;
+      padding:22px;
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:18px;
+      background:var(--card);
+      text-align:center;
+    }
+    .login-message.show{display:block}
+    .login-message a{
+      display:inline-flex;
+      margin-top:15px;
+      padding:12px 20px;
+      border-radius:12px;
+      color:#05050b;
+      background:var(--cyan);
+      text-decoration:none;
+      font-weight:900;
+    }
+
+    .stats-title{
+      margin:0 0 16px;
+      font:800 1rem/1 "Orbitron",sans-serif;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .creator-stats{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:16px;
+      margin-bottom:42px;
+    }
+
+    .stat-card{
+      padding:24px 20px;
+      border:1px solid var(--border);
+      border-radius:18px;
+      background:var(--card);
+      box-shadow:0 15px 45px rgba(0,0,0,.24);
+    }
+
+    .stat-icon{font-size:1.3rem;margin-bottom:12px}
+    .stat-number{
+      font:900 clamp(1.6rem,4vw,2.35rem)/1 "Orbitron",sans-serif;
+      color:#fff;
+    }
+    .stat-label{
+      margin-top:9px;
+      color:var(--cyan);
+      font:800 .68rem/1.3 "Montserrat",sans-serif;
+      letter-spacing:.13em;
+      text-transform:uppercase;
+    }
+    .stat-sub{
+      margin-top:8px;
+      color:rgba(255,255,255,.45);
+      font-size:.76rem;
+    }
+
+    .creator-actions{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:22px;
+      margin-bottom:28px;
+    }
+
+    .creator-card{
+      display:flex;
+      flex-direction:column;
+      min-height:285px;
+      padding:32px;
+      border:1px solid var(--border);
+      border-radius:24px;
+      background:
+        linear-gradient(145deg,rgba(0,234,255,.06),rgba(155,92,255,.04)),
+        var(--card);
+      box-shadow:0 20px 60px rgba(0,0,0,.3);
+      transition:.2s ease;
+    }
+    .creator-card:hover{
+      transform:translateY(-4px);
+      border-color:rgba(0,234,255,.42);
+    }
+    .creator-icon{
+      width:62px;height:62px;
+      display:grid;place-items:center;
+      margin-bottom:22px;
+      border-radius:17px;
+      background:rgba(0,234,255,.08);
+      border:1px solid rgba(0,234,255,.18);
+      font-size:1.7rem;
+    }
+    .creator-card h2{
+      margin:0 0 10px;
+      font:800 1.25rem/1.2 "Orbitron",sans-serif;
+    }
+    .creator-card p{
+      margin:0;
+      color:rgba(255,255,255,.67);
+      line-height:1.65;
+      flex:1;
+    }
+    .creator-button{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:50px;
+      margin-top:25px;
+      border-radius:12px;
+      color:#05050b;
+      background:linear-gradient(90deg,var(--cyan),#73f5ff);
+      text-decoration:none;
+      font-weight:900;
+    }
+    .creator-button.secondary{
+      color:#fff;
+      background:linear-gradient(90deg,var(--purple),var(--pink));
+    }
+
+    .creator-note{
+      padding:18px 22px;
+      border-left:3px solid var(--cyan);
+      border-radius:10px;
+      background:rgba(255,255,255,.025);
+      color:rgba(255,255,255,.6);
+      font-size:.88rem;
+      line-height:1.6;
+    }
+
+    .footer{text-align:center;padding:30px 20px}
+
+    @media(max-width:760px){
+      .creator-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .creator-actions{grid-template-columns:1fr}
+    }
+
+    @media(max-width:480px){
+      .creator-stats{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+
+<body data-crowrules-division="podcasting">
+
+<header class="nav">
+  <a class="brand" href="index.html">CROWRULES <span>PODCASTING</span></a>
+  <nav class="navlinks"></nav>
+</header>
+
+<main class="creator-main">
+
+  <section class="creator-hero">
+    <div class="eyebrow">CrowRules Podcasting</div>
+    <h1>Creator <span>Hub</span></h1>
+    <p>
+      Create your podcast, publish episodes, grow your audience,
+      and build your place in the CrowRules universe.
+    </p>
+  </section>
+
+  <section id="loginMessage" class="login-message">
+    <strong>Sign in to access your creator dashboard.</strong>
+    <div>
+      <a href="login.html">Sign In</a>
+    </div>
+  </section>
+
+  <section id="creatorArea">
+
+    <h2 class="stats-title">Creator Stats</h2>
+
+    <section class="creator-stats">
+
+      <article class="stat-card">
+        <div class="stat-icon">🎙️</div>
+        <div class="stat-number" id="podcastCount">0</div>
+        <div class="stat-label">Podcasts</div>
+        <div class="stat-sub">Shows you have created</div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon">📡</div>
+        <div class="stat-number" id="publishedEpisodeCount">0</div>
+        <div class="stat-label">Published Episodes</div>
+        <div class="stat-sub" id="episodeCountSub">0 total episodes</div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-number" id="followerCount">0</div>
+        <div class="stat-label">Followers</div>
+        <div class="stat-sub">People following your podcasts</div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon">▶️</div>
+        <div class="stat-number" id="totalPlays">0</div>
+        <div class="stat-label">Total Plays</div>
+        <div class="stat-sub">Across your published episodes</div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-number" id="listeningHours">0</div>
+        <div class="stat-label">Listening Hours</div>
+        <div class="stat-sub">Total listener time</div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon">💬</div>
+        <div class="stat-number" id="commentCount">0</div>
+        <div class="stat-label">Comments</div>
+        <div class="stat-sub">Approved audience comments</div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon">🔖</div>
+        <div class="stat-number" id="savedCount">0</div>
+        <div class="stat-label">Episode Saves</div>
+        <div class="stat-sub">Episodes saved by members</div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon">🪙</div>
+        <div class="stat-number" id="crowPoints">0</div>
+        <div class="stat-label">CrowPoints</div>
+        <div class="stat-sub">Your CrowRules creator points</div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon">📅</div>
+        <div class="stat-number" id="lastEpisode">—</div>
+        <div class="stat-label">Latest Episode</div>
+        <div class="stat-sub">Most recent episode activity</div>
+      </article>
+
+    </section>
+
+    <section class="creator-actions">
+
+      <article class="creator-card">
+        <div class="creator-icon">🎙️</div>
+        <h2>Create a Podcast</h2>
+        <p>
+          Start a new CrowRules podcast. Set its name, description,
+          artwork, category, host information, and creator details.
+        </p>
+        <a class="creator-button" href="create-podcast.html">
+          Create Podcast
+        </a>
+      </article>
+
+      <article class="creator-card">
+        <div class="creator-icon">⬆️</div>
+        <h2>Upload an Episode</h2>
+        <p>
+          Upload a new episode to one of your podcasts and prepare it
+          for publishing to the CrowRules Podcasting audience.
+        </p>
+        <a class="creator-button secondary" href="upload-episode.html">
+          Upload Episode
+        </a>
+      </article>
+
+    </section>
+
+    <div class="creator-note">
+      <strong>Creator analytics:</strong>
+      Stats are calculated from your CrowRules Podcasting content,
+      followers, listening activity, comments, saves, and CrowPoints ledger.
+      Only your own creator statistics are returned to this page.
+    </div>
+
+  </section>
+
+</main>
+
+<footer class="footer">
+  CrowRules Podcasting · Create. Publish. Grow.
+</footer>
+
+<script src="assets/js/app.js"></script>
+<script src="js/crowrules-membership.js"></script>
 <script src="./js/crowrules-cinematic.js"></script>
-</body></html>
+
+<script>
+(function(){
+  "use strict";
+
+  const SUPABASE_URL = "https://cevylpnoexugwgygvtgu.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
+
+  const ids = [
+    "podcastCount",
+    "publishedEpisodeCount",
+    "episodeCountSub",
+    "followerCount",
+    "totalPlays",
+    "listeningHours",
+    "commentCount",
+    "savedCount",
+    "crowPoints",
+    "lastEpisode"
+  ];
+
+  function set(id,value){
+    const el = document.getElementById(id);
+    if(el) el.textContent = value;
+  }
+
+  function number(value){
+    return Number(value || 0).toLocaleString();
+  }
+
+  function hours(seconds){
+    const h = Number(seconds || 0) / 3600;
+    if(h < 1) return h.toFixed(1);
+    return h.toLocaleString(undefined,{maximumFractionDigits:1});
+  }
+
+  function date(value){
+    if(!value) return "—";
+    const d = new Date(value);
+    if(Number.isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString(undefined,{
+      month:"short",
+      day:"numeric",
+      year:"numeric"
+    });
+  }
+
+  async function load(){
+    try{
+      if(!window.supabase){
+        await new Promise((resolve,reject)=>{
+          const s=document.createElement("script");
+          s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+          s.onload=resolve;
+          s.onerror=reject;
+          document.head.appendChild(s);
+        });
+      }
+
+      const client=window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
+      const {data:{session}}=await client.auth.getSession();
+
+      if(!session){
+        document.getElementById("creatorArea").style.display="none";
+        document.getElementById("loginMessage").classList.add("show");
+        return;
+      }
+
+      const {data,error}=await client
+        .from("podcast_creator_stats")
+        .select("*")
+        .maybeSingle();
+
+      if(error){
+        console.error("[CrowRules Podcast Creator Stats]",error);
+        return;
+      }
+
+      const stats=data || {};
+
+      set("podcastCount",number(stats.podcast_count));
+      set("publishedEpisodeCount",number(stats.published_episode_count));
+      set(
+        "episodeCountSub",
+        number(stats.total_episode_count) + " total episodes"
+      );
+      set("followerCount",number(stats.follower_count));
+      set("totalPlays",number(stats.total_plays));
+      set("listeningHours",hours(stats.listening_seconds));
+      set("commentCount",number(stats.approved_comment_count));
+      set("savedCount",number(stats.saved_episode_count));
+      set("crowPoints",number(stats.crowpoints));
+      set("lastEpisode",date(stats.last_episode_at));
+
+    }catch(error){
+      console.error("[CrowRules Podcast Creator Hub]",error);
+    }
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",load,{once:true});
+  }else{
+    load();
+  }
+})();
+</script>
+
+</body>
+</html>
