@@ -28,6 +28,8 @@ body{margin:0;background:#07080c;color:#e8eaf0;font-family:Montserrat,Arial,sans
 .network-grid{display:grid;gap:8px}.network-row{display:flex;align-items:center;gap:10px;padding:9px;border-radius:9px;background:#181b22}.network-row img,.network-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover}.network-avatar{display:grid;place-items:center;background:#242833;color:var(--c);font:800 14px Orbitron}.network-row a{color:#fff;text-decoration:none;font-weight:700}
 .edit-panel input,.edit-panel textarea,.edit-panel select,.guestbook textarea{width:100%;box-sizing:border-box;padding:11px;border-radius:8px;border:1px solid #3a3f4a;background:#090b10;color:#fff;font:inherit}.edit-panel textarea,.guestbook textarea{min-height:85px;resize:vertical}.field{margin:11px 0}.field label{display:block;color:var(--m);font-size:10px;font-weight:800;margin-bottom:5px}.check{display:block;color:var(--m);font-size:11px;margin:8px 0}.empty{text-align:center;padding:35px;color:var(--m)}.guest{padding:12px 0;border-top:1px solid #242832}.guest:first-child{border-top:0}.guest a{color:#fff;font-weight:800;text-decoration:none}.guest small{display:block;color:var(--m);margin-top:4px}
 @media(max-width:760px){.feed-layout{grid-template-columns:1fr}.profile-cover{height:220px}.profile-head{padding:0 18px 18px}.profile-avatar-wrap{height:74px}.avatar{width:120px;height:120px;top:-58px}.stats .stat{min-width:25%;flex:1 0 25%}}
+
+.profile-tabs{display:flex;gap:4px;padding:0 18px;background:#11131a;border-bottom:1px solid var(--line);overflow:auto}.profile-tabs button{border:0;background:transparent;color:var(--m);padding:14px 16px;font-weight:800;white-space:nowrap;cursor:pointer;border-bottom:3px solid transparent}.profile-tabs button.active{color:#fff;border-bottom-color:#1877f2}.profile-section{display:none}.profile-section.active{display:block}.profile-head .actions{margin-top:14px}.profile-head .meta a{font-weight:700;text-decoration:none}.network-row:hover{background:#20242d}.guest{line-height:1.55}
 </style>
 </head>
 <body data-crowrules-division="podcasting">
@@ -141,7 +143,24 @@ body{margin:0;background:#07080c;color:#e8eaf0;font-family:Montserrat,Arial,sans
       '<div class="detail"><b>NETWORK</b><p>'+fmt(st.member_followers)+' followers · '+fmt(st.member_following)+' following</p></div></div></section>'+
       '<section class="box"><h2>GUESTBOOK</h2><div id="guestbook"></div></section>'+
       '<section class="box"><h2>PUBLIC NETWORK</h2><div id="network"><div class="empty">Loading network…</div></div></section>';
+    html=html.replace('</div><div class="stats">','</div><div class="stats">');
     el.innerHTML=html;
+    const tabs=document.createElement("div");
+    tabs.className="profile-tabs";
+    tabs.innerHTML='<button class="active" data-tab="about">ABOUT</button><button data-tab="networkTab">NETWORK</button><button data-tab="guestbookTab">GUESTBOOK</button>'+(me&&me.id===id?'<button data-tab="editTab">EDIT PROFILE</button>':'');
+    el.appendChild(tabs);
+    const moveSections=function(){
+      const boxes=[...el.querySelectorAll(":scope > .box")];
+      if(boxes.length<3)return;
+      const details=boxes.find(x=>x.querySelector("h2")&&x.querySelector("h2").textContent.includes("MYSPACE"));
+      const guest=boxes.find(x=>x.querySelector("h2")&&x.querySelector("h2").textContent.includes("GUESTBOOK"));
+      const net=boxes.find(x=>x.querySelector("h2")&&x.querySelector("h2").textContent.includes("PUBLIC NETWORK"));
+      [details,guest,net].forEach(function(x){if(x)x.classList.add("profile-section")});
+      if(details)details.dataset.tab="about"; if(guest)guest.dataset.tab="guestbookTab"; if(net)net.dataset.tab="networkTab";
+      const show=function(name){tabs.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));[details,guest,net].forEach(x=>{if(x)x.classList.toggle("active",x.dataset.tab===name)});};
+      tabs.querySelectorAll("button").forEach(b=>b.onclick=function(){show(b.dataset.tab)}); show("about");
+    };
+    moveSections();
     document.getElementById("shareBtn").onclick=async function(){try{if(navigator.share){await navigator.share({title:name+" | CrowRules Podcasting",url:location.href})}else{await navigator.clipboard.writeText(location.href);document.getElementById("status").textContent="Profile link copied."}}catch(e){}};
     if(me&&me.id!==id){
       const followBtn=document.getElementById("followBtn");
