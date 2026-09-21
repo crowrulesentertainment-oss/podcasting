@@ -18,6 +18,7 @@ async function shareShow(){const u=location.href;if(navigator.share)await naviga
 $('search').addEventListener('input',renderEpisodes);document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.filter;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderEpisodes()}));init().catch(e=>{$('title').textContent='Podcast Loading Error';$('desc').textContent=e.message||'Unable to connect to CrowRules Podcasting.';$('episodes').innerHTML='<div class="empty error">Unable to load live podcast data.</div>'});
 </script><script src="js/crowrules-invite.js"></script>
 <script src="js/crowrules-navigation.js"></script>
-<script src="assets/js/crowrules-player.js"></script>
+
 <script src="assets/js/crowrules-site-ux.js"></script>
+<script src="assets/js/crowrules-player.js?v=4"></script>
 </body></html>
