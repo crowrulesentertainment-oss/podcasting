@@ -216,6 +216,25 @@
       opacity:.48;
       filter:grayscale(.65);
     }
+    .badge-card.bronze{border-color:rgba(205,127,50,.38)}
+    .badge-card.silver{border-color:rgba(210,220,235,.42)}
+    .badge-card.gold{border-color:rgba(255,205,60,.48)}
+    .badge-card.legendary{
+      border-color:rgba(0,234,255,.58);
+      box-shadow:0 0 30px rgba(0,234,255,.08);
+    }
+    .badge-card.special{
+      border-color:rgba(255,79,216,.45);
+    }
+    .badge-tier{
+      position:absolute;
+      top:16px;
+      right:16px;
+      font:800 .55rem/1 "Montserrat",sans-serif;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.5);
+    }
     .badge-icon{
       width:54px;height:54px;
       display:grid;place-items:center;
@@ -450,12 +469,14 @@
 
     grid.innerHTML=definitions.map(badge=>{
       const row=earnedMap.get(badge.badge_key);
-      const earnedClass=row ? "" : " locked";
+      const earnedClass=(row ? "" : " locked") + " " + (badge.color_class || "standard");
       const status=row ? "Earned" : "Locked";
       const dateText=row ? date(row.awarded_at) : "Keep creating to unlock this milestone.";
+      const tier=badge.tier || "milestone";
 
       return `
         <article class="badge-card${earnedClass}">
+          <div class="badge-tier">${tier}</div>
           <div class="badge-icon">${badge.icon || "🏆"}</div>
           <div class="badge-name">${badge.name}</div>
           <div class="badge-description">${badge.description}</div>
@@ -555,7 +576,7 @@
 
       const {data:definitions,badgeError}=await client
         .from("podcast_badge_definitions")
-        .select("badge_key,name,description,icon,threshold_type,threshold_value,sort_order")
+        .select("badge_key,name,description,icon,threshold_type,threshold_value,sort_order,tier,color_class,is_special")
         .order("sort_order",{ascending:true});
 
       const {data:earned, error:earnedError}=await client
