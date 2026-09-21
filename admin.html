@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050505">
+<title>Podcasting Analytics Admin | CrowRules</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030303;--panel:#0b0b0d;--panel2:#101014;--line:#2a1518;--red:#ff2020;--cyan:#4de8ff;--muted:#92929b;--green:#57e389}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#220606 0,#030303 42%);color:#f5f5f5;font-family:Montserrat,Arial,sans-serif}a{color:inherit}.top{height:3px;background:linear-gradient(90deg,transparent,var(--red),transparent);box-shadow:0 0 25px #f002}.wrap{max-width:1500px;margin:auto;padding:34px 4% 70px}.head{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap}.eyebrow{font:800 10px Orbitron;letter-spacing:.18em;color:#ff6666}.head h1{font:900 clamp(2.1rem,5vw,4.8rem)/.95 Orbitron;margin:10px 0}.head p{color:var(--muted);max-width:760px}.actions{display:flex;gap:9px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 15px;border:1px solid #5a1a1a;background:#0d0d0f;color:#fff;text-decoration:none;font-weight:800;font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;border-radius:8px;cursor:pointer}.btn:hover{border-color:var(--red)}.btn.primary{background:#a90000;border-color:#ff3030}.status{margin:24px 0;padding:12px 15px;border:1px solid var(--line);background:#090707;border-radius:10px;font-size:.82rem}.status.ok{border-color:#235c3b;color:#83f0ac}.status.bad{border-color:#69202c;color:#ff7182}.hidden{display:none!important}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.stat{background:linear-gradient(145deg,#101014,#070709);border:1px solid var(--line);border-radius:13px;padding:18px;min-height:120px}.stat b{display:block;font:900 clamp(1.55rem,3vw,2.4rem) Orbitron;color:var(--cyan);word-break:break-word}.stat span{display:block;margin-top:8px;color:#92929b;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em}.panel{margin-top:20px;padding:20px;background:linear-gradient(145deg,#0e0e12,#070709);border:1px solid var(--line);border-radius:15px}.panel h2{margin:0 0 5px;font:800 1.1rem Orbitron}.sub{color:var(--muted);font-size:.78rem;margin-bottom:16px}.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:760px}.table th,.table td{text-align:left;padding:11px;border-bottom:1px solid #1b1719;font-size:.78rem}.table th{color:#777;text-transform:uppercase;font-size:.65rem;letter-spacing:.1em}.badge{display:inline-block;padding:4px 7px;border-radius:999px;background:#211010;color:#ff7d7d;font-size:.65rem;font-weight:800}.badge.live{background:#092317;color:#6df1a1}.empty{padding:25px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}.login{max-width:650px;margin:100px auto}.bar{height:9px;background:#18181b;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--red);width:0}.daily{display:grid;grid-template-columns:repeat(30,minmax(24px,1fr));gap:4px;align-items:end;height:180px;overflow-x:auto;padding-top:20px}.day{min-width:25px;height:100%;display:flex;flex-direction:column;justify-content:end;gap:4px}.day i{display:block;background:#b40000;min-height:2px;border-radius:3px 3px 0 0}.day small{font-size:8px;color:#666;transform:rotate(-55deg);transform-origin:left top;white-space:nowrap}.refresh{float:right}.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:850px){.two{grid-template-columns:1fr}.daily{grid-template-columns:repeat(30,30px)}}
+</style>
+</head>
+<body>
+<div class="top"></div>
+<main class="wrap">
+<section id="loginGate" class="panel login hidden">
+<div class="eyebrow">CROWRULES PODCASTING // SECURE AREA</div>
+<h1>Admin Access Required</h1>
+<p id="gateText">Checking your CrowRules administrator session…</p>
+<div class="actions"><a class="btn primary" href="login.html">Sign In</a><a class="btn" href="index.html">Podcasting</a></div>
+</section>
+
+<section id="app" class="hidden">
+<header class="head">
+<div><div class="eyebrow">PODCASTING ANALYTICS // ADMIN</div><h1>Podcasting Command Center</h1><p>One live dashboard for the CrowRules Podcasting catalog, audience, listening, engagement, live channels, schedule, newsroom and creator economy.</p></div>
+<div class="actions"><button class="btn primary" id="refresh">Refresh Stats</button><a class="btn" href="admin/index.html">Content Admin</a><a class="btn" href="index.html">Public Site</a><button class="btn" id="logout">Sign Out</button></div>
+</header>
+<div id="status" class="status">Loading…</div>
+
+<section class="grid" id="stats"></section>
+
+<section class="panel">
+<h2>Audience Activity — Last 30 Days</h2>
+<div class="sub">Listen sessions, follows, comments and saves recorded by Supabase.</div>
+<div id="daily" class="daily"></div>
+</section>
+
+<div class="two">
+<section class="panel"><h2>Podcast Catalog</h2><div class="sub">All podcast records, including draft and archived titles.</div><div id="podcasts"></div></section>
+<section class="panel"><h2>Live Channels</h2><div class="sub">Current channel state and listener counts.</div><div id="channels"></div></section>
+</div>
+
+<section class="panel"><h2>Recent Listening Sessions</h2><div class="sub">Latest 25 recorded listening sessions.</div><div class="table-wrap"><table class="table"><thead><tr><th>Recorded</th><th>Seconds</th><th>Minutes</th><th>Completed</th></tr></thead><tbody id="listens"></tbody></table></div></section>
+</section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co";
+const SUPABASE_KEY="sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const num=v=>Number(v||0).toLocaleString();
+const mins=v=>(Number(v||0)/60).toFixed(1);
+function stat(label,value){return '<article class="stat"><b>'+num(value)+'</b><span>'+label+'</span></article>'}
+function setStatus(msg,bad=false){$("#status").textContent=msg;$("#status").className="status "+(bad?"bad":"ok")}
+async function verify(){
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session){$("#loginGate").classList.remove("hidden");$("#gateText").textContent="You are not signed in.";return false}
+ const {data,error}=await sb.rpc("crowrules_is_admin");
+ if(error||data!==true){$("#loginGate").classList.remove("hidden");$("#gateText").textContent="Your account is signed in, but administrator access was not verified.";return false}
+ $("#app").classList.remove("hidden");return true
+}
+function renderStats(o){
+ const items=[
+ ["Podcasts",o.podcasts],["Published Podcasts",o.published_podcasts],["Draft Podcasts",o.draft_podcasts],["Featured Podcasts",o.featured_podcasts],
+ ["Podcast Plays",o.podcast_plays],["Current Podcast Listeners",o.podcast_listeners],["Episodes",o.episodes],["Published Episodes",o.published_episodes],
+ ["Episode Plays",o.episode_plays],["Creators",o.creators],["Followers",o.follows],["Unique Followers",o.unique_followers],
+ ["Listen Sessions",o.listens],["Listening Minutes",mins(o.listening_seconds)],["Completed Listens",o.completed_listens],["Comments",o.comments],
+ ["Approved Comments",o.approved_comments],["Saved Episodes",o.saved_episodes],["Live Records",o.live_records],["Live Channels",o.live_channels],
+ ["Active Live Channels",o.active_live_channels],["Schedule Items",o.schedule_items],["News Articles",o.news_articles],["Published News",o.published_news],
+ ["Podcast CrowPoints",o.crowpoints_awarded],["Creator Badges Awarded",o.creator_badges_awarded],["Badge Definitions",o.badge_definitions]
+ ];
+ $("#stats").innerHTML=items.map(x=>stat(x[0],x[1])).join("");
+}
+function renderDaily(rows){
+ const max=Math.max(1,...rows.map(x=>Number(x.listens||0)));
+ $("#daily").innerHTML=rows.map(x=>'<div class="day" title="'+esc(x.day)+' — '+num(x.listens)+' listens, '+num(x.follows)+' follows, '+num(x.comments)+' comments, '+num(x.saves)+' saves"><i style="height:'+Math.max(2,Math.round(Number(x.listens||0)/max*130))+'px"></i><small>'+esc(String(x.day).slice(5))+'</small></div>').join("");
+}
+function renderPodcasts(rows){
+ if(!rows.length){$("#podcasts").innerHTML='<div class="empty">No podcasts yet.</div>';return}
+ $("#podcasts").innerHTML='<div class="table-wrap"><table class="table"><thead><tr><th>Podcast</th><th>Status</th><th>Category</th><th>Plays</th><th>Listeners</th></tr></thead><tbody>'+rows.map(p=>'<tr><td><strong>'+esc(p.title)+'</strong></td><td>'+esc(p.status)+'</td><td>'+esc(p.category||"—")+'</td><td>'+num(p.plays)+'</td><td>'+num(p.listeners)+'</td></tr>').join("")+'</tbody></table></div>';
+}
+function renderChannels(rows){
+ if(!rows.length){$("#channels").innerHTML='<div class="empty">No live channels yet.</div>';return}
+ $("#channels").innerHTML='<div class="table-wrap"><table class="table"><thead><tr><th>Channel</th><th>Status</th><th>Listeners</th><th>Now</th></tr></thead><tbody>'+rows.map(c=>'<tr><td><strong>'+esc(c.name)+'</strong></td><td><span class="badge '+(c.active?"live":"")+'">'+esc(c.status|| (c.active?"ACTIVE":"OFFLINE"))+'</span></td><td>'+num(c.listeners)+'</td><td>'+esc(c.current_title||"—")+'</td></tr>').join("")+'</tbody></table></div>';
+}
+function renderListens(rows){
+ $("#listens").innerHTML=rows.length?rows.map(l=>'<tr><td>'+new Date(l.created_at).toLocaleString()+'</td><td>'+num(l.seconds)+'</td><td>'+mins(l.seconds)+'</td><td>'+(l.completed?"Yes":"No")+'</td></tr>').join(""):'<tr><td colspan="4"><div class="empty">No listening sessions yet.</div></td></tr>';
+}
+async function load(){
+ setStatus("Refreshing analytics…");
+ const {data,error}=await sb.rpc("podcasting_admin_stats");
+ if(error){console.error(error);setStatus(error.message||"Unable to load analytics.",true);return}
+ const x=data||{};
+ renderStats(x.overview||{});renderDaily(x.daily||[]);renderPodcasts(x.podcasts||[]);renderChannels(x.channels||[]);renderListens(x.recent_listens||[]);
+ setStatus("ADMIN VERIFIED • Updated "+new Date().toLocaleString());
+}
+$("#refresh").addEventListener("click",load);
+$("#logout").addEventListener("click",async()=>{await sb.auth.signOut();location.href="index.html"});
+(async()=>{if(await verify())await load()})();
+</script>
+</body>
+</html>
