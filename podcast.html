@@ -51,5 +51,6 @@ let creator=null;if(show.creator_id){const cr=await sb.from("podcast_member_prof
 document.getElementById("creator").innerHTML=creator?'<div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">'+(creator.avatar_url?'<img src="'+esc(creator.avatar_url)+'" alt="" style="width:76px;height:76px;border-radius:50%;object-fit:cover">':'')+'<div><div class="creator-name">'+esc(creator.display_name||creator.username||"CrowRules Creator")+'</div><div class="creator-bio">'+esc(creator.bio||"Creator on CrowRules Podcasting.")+'</div></div></div>':'<div class="empty">Creator profile information is not public yet.</div>';
 })();
 </script>
+<script src="js/crowrules-invite.js"></script>
 </body>
 </html>

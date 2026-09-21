@@ -78,4 +78,5 @@ function listensByEpisode(rows){const m=new Map();for(const x of rows){const old
 function formatTime(s){s=Math.floor(s||0);if(s<60)return s+"s";const m=Math.floor(s/60);if(m<60)return m+"m";return Math.floor(m/60)+"h "+(m%60)+"m"}
 run().catch(e=>{console.error(e);$("dashboard").innerHTML='<div class="empty">We could not load your listening dashboard. Please refresh and try again.</div>';$("dashboard").hidden=false});
 </script>
+<script src="js/crowrules-invite.js"></script>
 </body></html>
