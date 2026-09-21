@@ -33,7 +33,7 @@ const {data:u}=await sb.auth.getUser(); if(!u.user){location.href="login.html?ne
 const state={rows:[],filter:"all",profiles:{}};
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const icon=t=>{t=String(t||"").toLowerCase();return t.includes("follow")?"👤":t.includes("comment")?"💬":(t.includes("reaction")||t.includes("like"))?"♥":t.includes("episode")?"🎧":t.includes("badge")?"🏆":t.includes("points")?"⚡":t.includes("live")?"🔴":"🔔"};
-const kind=n=>{const t=String(n.type||"").toLowerCase();if(t.includes("follow"))return"follow";if(t.includes("comment"))return"comment";if(t.includes("reaction")||t.includes("like"))return"reaction";if(t.includes("episode"))return"episode";return"other"};
+const kind=n=>{const t=String(n.type||"").toLowerCase();if(t==="member_follow")return"follow";if(t.includes("follow"))return"follow";if(t.includes("comment"))return"comment";if(t.includes("reaction")||t.includes("like"))return"reaction";if(t.includes("episode"))return"episode";return"other"};
 function actorName(id){const p=state.profiles[id];return p?.display_name||p?.username||"CrowRules member"}
 async function loadProfiles(){const ids=[...new Set(state.rows.map(x=>x.actor_user_id).filter(Boolean))];if(!ids.length)return;const p=await sb.from("podcast_member_profiles").select("user_id,display_name,username,avatar_url").in("user_id",ids);if(!p.error)(p.data||[]).forEach(x=>state.profiles[x.user_id]=x)}
 function render(){
