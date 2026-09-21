@@ -1,1 +1,63 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Top 10 | CrowRules Podcasting</title><meta name="description" content="Explore current CrowRules Podcasting rankings and discover shows gaining attention."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="./css/crowrules-cinematic.css"><style>.rank-hero{padding:75px 0 35px}.rank-intro{max-width:780px;color:#aeb6cb;line-height:1.8}.rank-grid{display:grid;gap:12px;margin:25px 0 75px}.rank-row{display:grid;grid-template-columns:70px 80px 1fr auto;gap:18px;align-items:center;padding:15px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(255,255,255,.035);transition:.2s}.rank-row:hover{transform:translateX(4px);border-color:rgba(0,229,255,.35)}.rank-num{font:900 2rem Orbitron;color:#00e5ff}.rank-art{width:68px;height:68px;border-radius:14px;object-fit:cover;background:#11112a}.rank-title{font-weight:900}.rank-meta,.rank-value{color:#9da5bd;font-size:.78rem}.rank-meta{margin-top:5px}@media(max-width:650px){.rank-row{grid-template-columns:45px 60px 1fr}.rank-value{display:none}.rank-art{width:55px;height:55px}}</style></head><body data-crowrules-division="podcasting"><header class="nav"><a class="brand" href="index.html">CROWRULES <span>PODCASTING</span></a><nav class="navlinks"></nav></header><main><section class="rank-hero"><div class="eyebrow">THE LISTENING SIGNAL</div><h1>TOP 10</h1><p class="rank-intro">A discovery board for current CrowRules Podcasting chart data. Rankings reflect platform data and are presented for discovery.</p></section><section><div id="rankings" class="rank-grid"><div class="rank-note">Loading the current chart…</div></div></section></main><footer class="footer">CrowRules Podcasting · Listen. Create. Share.</footer><script src="assets/js/app.js"></script><script src="assets/js/crowrules-player.js"></script><script src="js/crowrules-membership.js"></script><script src="./js/crowrules-cinematic.js"></script><script>(async()=>{const sb=await loadSupabase(),el=document.getElementById("rankings");const {data,error}=await sb.from("podcast_top10_podcasts_current").select("*").order("rank",{ascending:true}).limit(10);if(error||!data?.length){el.innerHTML='<div class="rank-note">The chart will appear as ranking data is populated.</div>';return}el.innerHTML=data.map((x,i)=>'<a class="rank-row" href="podcasts.html?podcast='+encodeURIComponent(x.slug||"")+'"><div class="rank-num">'+(x.rank||i+1)+'</div><div><img class="rank-art" src="'+(x.artwork_url||"")+'" alt="" onerror="this.style.display=\'none\'"></div><div><div class="rank-title">'+esc(x.title||x.podcast_title||"Podcast")+'</div><div class="rank-meta">'+esc(x.category||"Podcast")+'</div></div><div class="rank-value">'+(x.total_plays??x.plays??"—")+' plays</div></a>').join("")})();</script></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Top 10 | CrowRules Podcasting</title><meta name="description" content="Explore current CrowRules Podcasting rankings and discover shows gaining attention."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="./css/crowrules-cinematic.css"><style>.rank-hero{padding:75px 0 35px}.rank-intro{max-width:780px;color:#aeb6cb;line-height:1.8}.rank-grid{display:grid;gap:12px;margin:25px 0 75px}.rank-row{display:grid;grid-template-columns:70px 80px 1fr auto;gap:18px;align-items:center;padding:15px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(255,255,255,.035);transition:.2s}.rank-row:hover{transform:translateX(4px);border-color:rgba(0,229,255,.35)}.rank-num{font:900 2rem Orbitron;color:#00e5ff}.rank-art{width:68px;height:68px;border-radius:14px;object-fit:cover;background:#11112a}.rank-title{font-weight:900}.rank-meta,.rank-value{color:#9da5bd;font-size:.78rem}.rank-meta{margin-top:5px}@media(max-width:650px){.rank-row{grid-template-columns:45px 60px 1fr}.rank-value{display:none}.rank-art{width:55px;height:55px}}
+.chart-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}
+.chart-tab{border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:10px 16px;background:rgba(255,255,255,.035);color:#aeb6cb;font:800 10px Orbitron;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.chart-tab:hover,.chart-tab.active{border-color:rgba(0,229,255,.45);color:#00e5ff;background:rgba(0,229,255,.07)}
+.rank-host{display:flex;align-items:center;gap:12px}
+.rank-host-avatar{width:68px;height:68px;border-radius:50%;object-fit:cover;background:#11112a}
+.rank-host-initials{display:grid;place-items:center;width:68px;height:68px;border-radius:50%;background:#11112a;color:#00e5ff;font:900 18px Orbitron}
+.rank-stats{display:flex;gap:12px;flex-wrap:wrap;color:#707991;font-size:.72rem;margin-top:6px}
+@media(max-width:650px){.rank-host-avatar,.rank-host-initials{width:55px;height:55px}}
+</style></head><body data-crowrules-division="podcasting"><header class="nav"><a class="brand" href="index.html">CROWRULES <span>PODCASTING</span></a><nav class="navlinks"></nav></header><main><section class="rank-hero"><div class="eyebrow">THE LISTENING SIGNAL</div><h1>TOP 10</h1><p class="rank-intro">A discovery board for current CrowRules Podcasting chart data. Rankings reflect platform data and are presented for discovery.</p></section><section>
+      <div class="chart-tabs" role="tablist" aria-label="Top 10 charts">
+        <button class="chart-tab active" type="button" data-chart="episodes" role="tab" aria-selected="true">Episodes</button>
+        <button class="chart-tab" type="button" data-chart="shows" role="tab" aria-selected="false">Shows</button>
+        <button class="chart-tab" type="button" data-chart="hosts" role="tab" aria-selected="false">Hosts</button>
+      </div>
+      <div id="rankings" class="rank-grid" aria-live="polite"><div class="rank-note">Loading the current chart…</div></div>
+    </section></main><footer class="footer">CrowRules Podcasting · Listen. Create. Share.</footer><script src="assets/js/app.js"></script><script src="assets/js/crowrules-player.js"></script><script src="js/crowrules-membership.js"></script><script src="./js/crowrules-cinematic.js"></script><script>
+(async()=>{
+  const sb=await loadSupabase();
+  const el=document.getElementById("rankings");
+  const tabs=[...document.querySelectorAll(".chart-tab")];
+  let current="episodes";
+
+  function initials(name){
+    return String(name||"CR").split(/\\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"CR";
+  }
+  function stat(n,label){return "<span>"+Number(n||0).toLocaleString()+" "+label+"</span>"}
+  function render(rows,type){
+    if(!rows?.length){el.innerHTML='<div class="rank-note">The '+type+' chart will appear as ranking data is populated.</div>';return}
+    if(type==="hosts"){
+      el.innerHTML=rows.map((x,i)=>{
+        const avatar=x.avatar_url
+          ? '<img class="rank-host-avatar" src="'+esc(x.avatar_url)+'" alt="">'
+          : '<div class="rank-host-initials" aria-hidden="true">'+esc(initials(x.host_name))+'</div>';
+        return '<div class="rank-row"><div class="rank-num">'+(x.rank||i+1)+'</div><div class="rank-host">'+avatar+'</div><div><div class="rank-title">'+esc(x.host_name||"CrowRules Host")+'</div><div class="rank-stats">'+stat(x.shows,"shows")+stat(x.episodes,"episodes")+stat(x.followers,"followers")+'</div></div><div class="rank-value">'+Number(x.plays||0).toLocaleString()+' plays</div></div>';
+      }).join("");
+      return;
+    }
+    el.innerHTML=rows.map((x,i)=>{
+      const href=type==="shows"
+        ? 'podcasts.html?podcast='+encodeURIComponent(x.slug||"")
+        : 'episode.html?episode='+encodeURIComponent(x.episode_id||"");
+      const title=type==="shows" ? x.title : (x.episode_title||"Episode");
+      const meta=type==="shows" ? (x.category||"Podcast") : (x.podcast_title||"Podcast");
+      const art=type==="shows" ? x.artwork_url : "";
+      return '<a class="rank-row" href="'+href+'"><div class="rank-num">'+(x.rank||i+1)+'</div><div><div class="rank-art">'+(art?'<img class="rank-art" src="'+esc(art)+'" alt="">':"CR")+'</div></div><div><div class="rank-title">'+esc(title)+'</div><div class="rank-meta">'+esc(meta)+'</div></div><div class="rank-value">'+Number(x.plays||0).toLocaleString()+' plays</div></a>';
+    }).join("");
+  }
+  async function load(type){
+    current=type;
+    el.innerHTML='<div class="rank-note">Loading '+type+'…</div>';
+    const view=type==="hosts" ? "podcast_top10_hosts_current" : type==="shows" ? "podcast_top10_shows_current" : "podcast_top10_current";
+    const {data,error}=await sb.from(view).select("*").order("rank",{ascending:true}).limit(10);
+    if(error){el.innerHTML='<div class="rank-note">Unable to load the '+type+' chart right now.</div>';return}
+    render(data||[],type);
+  }
+  tabs.forEach(tab=>tab.addEventListener("click",()=>{
+    tabs.forEach(x=>{x.classList.toggle("active",x===tab);x.setAttribute("aria-selected",String(x===tab))});
+    load(tab.dataset.chart);
+  }));
+  await load(current);
+})();
+</script></body></html>
