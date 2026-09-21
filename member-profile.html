@@ -30,6 +30,8 @@ body{margin:0;background:#07080c;color:#e8eaf0;font-family:Montserrat,Arial,sans
 @media(max-width:760px){.feed-layout{grid-template-columns:1fr}.profile-cover{height:220px}.profile-head{padding:0 18px 18px}.profile-avatar-wrap{height:74px}.avatar{width:120px;height:120px;top:-58px}.stats .stat{min-width:25%;flex:1 0 25%}}
 
 .profile-tabs{display:flex;gap:4px;padding:0 18px;background:#11131a;border-bottom:1px solid var(--line);overflow:auto}.profile-tabs button{border:0;background:transparent;color:var(--m);padding:14px 16px;font-weight:800;white-space:nowrap;cursor:pointer;border-bottom:3px solid transparent}.profile-tabs button.active{color:#fff;border-bottom-color:#1877f2}.profile-section{display:none}.profile-section.active{display:block}.profile-head .actions{margin-top:14px}.profile-head .meta a{font-weight:700;text-decoration:none}.network-row:hover{background:#20242d}.guest{line-height:1.55}
+
+.profile-tabs{position:sticky;top:0;z-index:5}.profile-tabs button:focus-visible{outline:2px solid #1877f2;outline-offset:-2px}.profile-tabs::-webkit-scrollbar{height:4px}.profile-tabs::-webkit-scrollbar-thumb{background:#3b404b;border-radius:8px}.profile-section{animation:profileFade .18s ease}@keyframes profileFade{from{opacity:.35;transform:translateY(3px)}to{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){.profile-section{animation:none}}
 </style>
 </head>
 <body data-crowrules-division="podcasting">
@@ -158,9 +160,14 @@ body{margin:0;background:#07080c;color:#e8eaf0;font-family:Montserrat,Arial,sans
       [details,guest,net].forEach(function(x){if(x)x.classList.add("profile-section")});
       if(details)details.dataset.tab="about"; if(guest)guest.dataset.tab="guestbookTab"; if(net)net.dataset.tab="networkTab";
       const show=function(name){tabs.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));[details,guest,net].forEach(x=>{if(x)x.classList.toggle("active",x.dataset.tab===name)});};
-      tabs.querySelectorAll("button").forEach(b=>b.onclick=function(){show(b.dataset.tab)}); show("about");
+      tabs.querySelectorAll("button").forEach(b=>b.onclick=function(){show(b.dataset.tab);history.replaceState(null,"","#"+b.dataset.tab)});
+      const initialTab=(location.hash||"").replace("#","");
+      show(["about","networkTab","guestbookTab","editTab"].includes(initialTab)?initialTab:"about");
     };
     moveSections();
+    const cover=document.querySelector(".profile-cover");
+    if(cover)cover.addEventListener("error",function(){this.style.display="none"});
+    document.addEventListener("keydown",function(e){if(e.key!=="Escape")return;const active=tabs.querySelector("button.active");if(active&&active.dataset.tab!=="about"){const about=tabs.querySelector('[data-tab="about"]');if(about)about.click()}});
     document.getElementById("shareBtn").onclick=async function(){try{if(navigator.share){await navigator.share({title:name+" | CrowRules Podcasting",url:location.href})}else{await navigator.clipboard.writeText(location.href);document.getElementById("status").textContent="Profile link copied."}}catch(e){}};
     if(me&&me.id!==id){
       const followBtn=document.getElementById("followBtn");
