@@ -890,6 +890,15 @@ h1 span{
 <div class="stat-card">
 
   <div class="stat-label">
+    Followers
+  </div>
+  <div id="followers" class="stat-value">—</div>
+  <div class="stat-detail">People following your shows</div>
+</div>
+
+<div class="stat-card">
+
+  <div class="stat-label">
     Listeners
   </div>
 
@@ -906,6 +915,13 @@ h1 span{
 
 </div>
 
+  </section>
+
+  <section class="stats" style="margin-top:-18px">
+<div class="stat-card"><div class="stat-label">Likes</div><div id="likes" class="stat-value">—</div><div class="stat-detail">Episode reactions</div></div>
+<div class="stat-card"><div class="stat-label">Comments</div><div id="comments" class="stat-value">—</div><div class="stat-detail">Community activity</div></div>
+<div class="stat-card"><div class="stat-label">CrowPoints</div><div id="crowpoints" class="stat-value">—</div><div class="stat-detail">Your creator progress</div></div>
+<div class="stat-card"><div class="stat-label">Badges</div><div id="badges" class="stat-value">—</div><div class="stat-detail"><a href="../notifications.html">Notifications: <span id="unread">0</span> unread</a></div></div>
   </section>
 
   <section class="section">
@@ -1790,12 +1806,13 @@ function renderDashboardData(data){
     );
 
 
-  document.getElementById(
-    "totalListeners"
-  ).textContent =
-    number(
-      data?.total_listeners
-    );
+  document.getElementById("totalListeners").textContent = number(data?.total_listeners);
+  document.getElementById("followers").textContent = number(data?.followers);
+  document.getElementById("likes").textContent = number(data?.likes);
+  document.getElementById("comments").textContent = number(data?.comments);
+  document.getElementById("crowpoints").textContent = number(data?.crowpoints);
+  document.getElementById("badges").textContent = number(data?.badges);
+  document.getElementById("unread").textContent = number(data?.unread_notifications);
 
 
   document.getElementById(
@@ -1843,9 +1860,13 @@ function renderEmptyDashboard(){
     "totalPlays"
   ).textContent = "0";
 
-  document.getElementById(
-    "totalListeners"
-  ).textContent = "0";
+  document.getElementById("totalListeners").textContent = "0";
+  document.getElementById("followers").textContent = "0";
+  document.getElementById("likes").textContent = "0";
+  document.getElementById("comments").textContent = "0";
+  document.getElementById("crowpoints").textContent = "0";
+  document.getElementById("badges").textContent = "0";
+  document.getElementById("unread").textContent = "0";
 
   document.getElementById(
     "publishedPodcasts"
