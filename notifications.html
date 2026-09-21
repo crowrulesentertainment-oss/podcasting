@@ -29,21 +29,23 @@ body{background:radial-gradient(circle at 15% 0%,#00e5ff18,transparent 32%),radi
 (async()=>{
 const sb=await loadSupabase(),list=document.getElementById("list"),read=document.getElementById("read"),total=document.getElementById("total"),unread=document.getElementById("unread");
 const {data:u}=await sb.auth.getUser(); if(!u.user){location.href="login.html?next="+encodeURIComponent(location.href);return}
-const state={rows:[],filter:"all"};
+const state={rows:[],filter:"all",profiles:{}};
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const icon=t=>{t=String(t||"").toLowerCase();return t.includes("follow")?"👤":t.includes("comment")?"💬":(t.includes("reaction")||t.includes("like"))?"♥":t.includes("episode")?"🎧":t.includes("badge")?"🏆":t.includes("points")?"⚡":t.includes("live")?"🔴":"🔔"};
 const kind=n=>{const t=String(n.type||"").toLowerCase();if(t.includes("follow"))return"follow";if(t.includes("comment"))return"comment";if(t.includes("reaction")||t.includes("like"))return"reaction";if(t.includes("episode"))return"episode";return"other"};
+function actorName(id){const p=state.profiles[id];return p?.display_name||p?.username||"CrowRules member"}
+async function loadProfiles(){const ids=[...new Set(state.rows.map(x=>x.actor_user_id).filter(Boolean))];if(!ids.length)return;const p=await sb.from("podcast_member_profiles").select("user_id,display_name,username,avatar_url").in("user_id",ids);if(!p.error)(p.data||[]).forEach(x=>state.profiles[x.user_id]=x)}
 function render(){
 const rows=state.rows.filter(n=>state.filter==="all"||(state.filter==="unread"&&!n.is_read)||kind(n)===state.filter);
 total.textContent=state.rows.length;unread.textContent=state.rows.filter(n=>!n.is_read).length;
 if(!rows.length){list.innerHTML='<div class="empty">'+(state.filter==="all"?"You’re all caught up.":"Nothing here yet.")+"</div>";return}
 list.innerHTML=rows.map(x=>{
 let link=x.episode_id?"episode.html?id="+encodeURIComponent(x.episode_id):x.podcast_id?"show.html?id="+encodeURIComponent(x.podcast_id):"";
-return '<article class="n '+(!x.is_read?"unread":"")+'"><div class="icon">'+icon(x.type)+'</div><div><div class="title">'+(!x.is_read?'<span class="dot"></span>':"")+esc(x.title||"CrowRules Podcasting")+'</div><div class="body">'+esc(x.body||"")+'</div><div class="date">'+new Date(x.created_at).toLocaleString()+"</div></div><div class="right">"+(link?'<a class="btn" href="'+link+'">Open</a>':"")+(!x.is_read?'<button class="btn mark" data-id="'+esc(x.id)+'">Read</button>':"")+"</div></article>"
+return '<article class="n '+(!x.is_read?"unread":"")+'"><div class="icon">'+icon(x.type)+'</div><div><div class="title">'+(!x.is_read?'<span class="dot"></span>':"")+esc(x.title||"CrowRules Podcasting")+'</div><div class="body">'+(x.actor_user_id?'<strong>'+esc(actorName(x.actor_user_id))+'</strong> · ':"")+esc(x.body||"")+'</div><div class="date">'+new Date(x.created_at).toLocaleString()+"</div></div><div class="right">"+(link?'<a class="btn" href="'+link+'">Open</a>':"")+(!x.is_read?'<button class="btn mark" data-id="'+esc(x.id)+'">Read</button>':"")+"</div></article>"
 }).join("");
 document.querySelectorAll(".mark").forEach(b=>b.onclick=async()=>{const q=await sb.from("podcast_notifications").update({is_read:true}).eq("id",b.dataset.id).eq("user_id",u.user.id);if(!q.error){const n=state.rows.find(x=>x.id===b.dataset.id);if(n)n.is_read=true;render()}});
 }
-async function load(){const r=await sb.from("podcast_notifications").select("id,user_id,actor_user_id,episode_id,podcast_id,type,title,body,is_read,created_at").eq("user_id",u.user.id).order("created_at",{ascending:false}).limit(200);if(r.error){list.innerHTML='<div class="empty">'+esc(r.error.message)+"</div>";return}state.rows=r.data||[];render()}
+async function load(){const r=await sb.from("podcast_notifications").select("id,user_id,actor_user_id,episode_id,podcast_id,type,title,body,is_read,created_at").eq("user_id",u.user.id).order("created_at",{ascending:false}).limit(200);if(r.error){list.innerHTML='<div class="empty">'+esc(r.error.message)+"</div>";return}state.rows=r.data||[];await loadProfiles();render()}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");state.filter=b.dataset.filter;render()});
 read.onclick=async()=>{const q=await sb.from("podcast_notifications").update({is_read:true}).eq("user_id",u.user.id).eq("is_read",false);if(!q.error){state.rows.forEach(n=>n.is_read=true);render()}};
 load();
