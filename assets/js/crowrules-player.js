@@ -1,127 +1,34 @@
-/* CrowRules Podcasting — Universal persistent audio player V4 */
-(function(){
-  if(window.CrowRulesGlobalPlayer)return;
-  window.CrowRulesGlobalPlayer=true;
-
-  const KEY="crowrules_podcast_player_v4";
-  const state={
-    episode_id:null,title:"",show:"",audio_url:"",artwork_url:"",
-    position:0,playing:false,duration:0,listen_id:null,session_key:null,
-    total_session_seconds:0,completed:false,queue:[],queue_index:-1,
-    speed:1,volume:.9,minimized:false
-  };
-  try{Object.assign(state,JSON.parse(localStorage.getItem(KEY)||"{}"));}catch(_){}
-  const now=()=>Date.now(), save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state));}catch(_){}};
-  let sb=null,syncTimer=null,started=false,audio=null;
-
-  async function client(){
-    if(sb)return sb;
-    if(window.crowSupabase){sb=window.crowSupabase;return sb;}
-    if(window.getSupabaseClient){sb=await window.getSupabaseClient();return sb;}
-    if(window.loadSupabase){sb=await window.loadSupabase();return sb;}
-    return null;
-  }
-
-  async function beginSession(){
-    if(!state.episode_id||started)return;
-    const c=await client(); if(!c)return;
-    started=true;
-    state.session_key=state.session_key||crypto.randomUUID();
-    const {data:{user}}=await c.auth.getUser().catch(()=>({data:{user:null}}));
-    const row={episode_id:state.episode_id,user_id:user?.id||null,started_at:new Date().toISOString(),seconds_listened:0,completed:false,session_key:state.session_key};
-    const {data}=await c.from("podcast_listens").insert(row).select("id").maybeSingle();
-    if(data?.id)state.listen_id=data.id;
-    state.last_synced=now();save();
-  }
-
-  async function syncProgress(force){
-    if(!audio||!state.episode_id||!started)return;
-    const seconds=Math.max(0,Math.floor(audio.currentTime));
-    state.position=audio.currentTime;
-    state.duration=Number.isFinite(audio.duration)?audio.duration:state.duration;
-    if(!force&&seconds<=Number(state.total_session_seconds||0))return;
-    state.total_session_seconds=seconds;
-    const c=await client();if(!c)return;
-    const patch={seconds_listened:seconds,completed:!!state.completed};
-    if(state.listen_id) await c.from("podcast_listens").update(patch).eq("id",state.listen_id);
-    state.last_synced=now();save();
-  }
-
-  function css(){
-    if(document.getElementById("crUniversalPlayerStyles"))return;
-    const s=document.createElement("style");s.id="crUniversalPlayerStyles";s.textContent=`
-      .cr-global-player{position:fixed;left:18px;right:18px;bottom:16px;z-index:12000;display:grid;grid-template-columns:auto 44px minmax(150px,1fr) minmax(180px,2fr) auto auto auto;align-items:center;gap:10px;padding:10px 13px;border:1px solid rgba(0,229,255,.2);border-radius:18px;background:rgba(5,6,14,.95);backdrop-filter:blur(22px);box-shadow:0 20px 70px rgba(0,0,0,.55),0 0 35px rgba(0,229,255,.06);font-family:Montserrat,sans-serif;transition:transform .2s ease,opacity .2s ease}
-      .cr-global-player.is-minimized{left:auto;right:18px;width:300px;grid-template-columns:38px 42px 1fr auto;padding:8px;border-radius:16px}
-      .cr-global-player.is-minimized .cr-global-progress,.cr-global-player.is-minimized .cr-global-select,.cr-global-player.is-minimized .cr-global-volume,.cr-global-player.is-minimized .cr-global-status{display:none}
-      .cr-global-art{width:42px;height:42px;border-radius:10px;object-fit:cover;background:#11111d;border:1px solid rgba(255,255,255,.08)}
-      .cr-global-info{min-width:0}.cr-global-title{font:800 11px Orbitron,sans-serif;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cr-global-show{margin-top:3px;color:#858da3;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-      .cr-global-play,.cr-global-next,.cr-global-prev,.cr-global-min{height:40px;min-width:40px;border:0;border-radius:50%;background:linear-gradient(135deg,#00e5ff,#8b5cf6);color:#05050b;font-weight:900;cursor:pointer}.cr-global-next,.cr-global-prev,.cr-global-min{background:rgba(255,255,255,.08);color:#dce1ef;border-radius:10px}.cr-global-play:disabled{opacity:.35;cursor:not-allowed}
-      .cr-global-progress{min-width:0}.cr-global-range{width:100%;accent-color:#00e5ff;cursor:pointer}.cr-global-meta{display:flex;justify-content:space-between;color:#737b91;font:700 8px Orbitron,sans-serif}
-      .cr-global-select,.cr-global-volume{background:#090a13;color:#dce1ef;border:1px solid rgba(255,255,255,.09);border-radius:9px;padding:7px;font-size:10px}.cr-global-volume{width:82px}.cr-global-status{color:#00e5ff;font:800 8px Orbitron,sans-serif;letter-spacing:.08em;white-space:nowrap}
-      .cr-global-queue{position:absolute;right:8px;bottom:calc(100% + 8px);width:320px;max-height:280px;overflow:auto;padding:8px;border:1px solid rgba(0,229,255,.15);border-radius:14px;background:#080914;box-shadow:0 15px 50px rgba(0,0,0,.5);display:none}.cr-global-queue.open{display:block}.cr-global-queue button{display:block;width:100%;text-align:left;background:transparent;border:0;color:#dce1ef;padding:9px;border-radius:8px;cursor:pointer}.cr-global-queue button.active,.cr-global-queue button:hover{background:rgba(0,229,255,.08)}
-      .cr-global-queue-toggle{height:36px;border:1px solid rgba(255,255,255,.09);border-radius:9px;background:#090a13;color:#dce1ef;cursor:pointer}
-      @media(max-width:900px){.cr-global-player{left:8px;right:8px;bottom:8px;grid-template-columns:auto 40px 1fr auto auto}.cr-global-progress{grid-column:1/-1;grid-row:2}.cr-global-select,.cr-global-volume,.cr-global-status{display:none}.cr-global-player.is-minimized{left:auto;right:8px;width:250px}.cr-global-queue{width:min(320px,calc(100vw - 16px))}}
-      @media(prefers-reduced-motion:reduce){.cr-global-player{transition:none}}
-    `;document.head.appendChild(s);
-  }
-
-  function mount(){
-    if(document.getElementById("crGlobalPlayer"))return;
-    css();
-    const el=document.createElement("aside");el.id="crGlobalPlayer";el.className="cr-global-player";el.setAttribute("aria-label","CrowRules universal audio player");
-    el.innerHTML='<img id="crgpArt" class="cr-global-art" alt="Podcast artwork"><div class="cr-global-info"><div id="crgpTitle" class="cr-global-title">CrowRules Podcasting</div><div id="crgpShow" class="cr-global-show">Universal Audio Player · Ready</div></div><button id="crgpPrev" class="cr-global-prev" type="button" aria-label="Previous">‹</button><button id="crgpPlay" class="cr-global-play" type="button" aria-label="Play">▶</button><button id="crgpNext" class="cr-global-next" type="button" aria-label="Next">›</button><div class="cr-global-progress"><input id="crgpRange" class="cr-global-range" type="range" min="0" max="1000" value="0" aria-label="Seek audio"><div class="cr-global-meta"><span id="crgpTime">0:00</span><span id="crgpDuration">0:00</span></div></div><select id="crgpSpeed" class="cr-global-select" aria-label="Playback speed"><option value="0.75">0.75×</option><option value="1">1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="1.75">1.75×</option><option value="2">2×</option></select><input id="crgpVolume" class="cr-global-volume" type="range" min="0" max="1" step=".01" aria-label="Volume"><button id="crgpQueue" class="cr-global-queue-toggle" type="button" aria-label="Queue">☰</button><button id="crgpMin" class="cr-global-min" type="button" aria-label="Minimize">−</button><span id="crgpStatus" class="cr-global-status">READY</span><div id="crgpQueueList" class="cr-global-queue" role="menu"></div></aside>';
-    document.body.appendChild(el);
-    audio=new Audio();audio.preload="metadata";audio.volume=state.volume;audio.playbackRate=state.speed;
-
-    const $=id=>el.querySelector(id), title=$("#crgpTitle"),show=$("#crgpShow"),art=$("#crgpArt"),play=$("#crgpPlay"),prev=$("#crgpPrev"),next=$("#crgpNext"),range=$("#crgpRange"),time=$("#crgpTime"),duration=$("#crgpDuration"),status=$("#crgpStatus"),speed=$("#crgpSpeed"),volume=$("#crgpVolume"),queueBtn=$("#crgpQueue"),queueList=$("#crgpQueueList"),minBtn=$("#crgpMin");
-    speed.value=String(state.speed);volume.value=String(state.volume);
-
-    const fmt=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");};
-    function render(){
-      title.textContent=state.title||"CrowRules Podcasting";show.textContent=state.show||"Universal Audio Player · Ready";art.src=state.artwork_url||"";art.alt=state.title||"Podcast artwork";
-      play.disabled=!state.audio_url;play.textContent=state.playing?"❚❚":"▶";status.textContent=state.audio_url?(state.playing?"PLAYING":"PAUSED"):"READY";
-      prev.disabled=state.queue_index<=0;next.disabled=state.queue_index<0||state.queue_index>=state.queue.length-1;
-      el.classList.toggle("is-minimized",!!state.minimized);time.textContent=fmt(state.position);duration.textContent=fmt(state.duration);
-      queueList.innerHTML=state.queue.map((q,i)=>'<button type="button" class="'+(i===state.queue_index?"active":"")+'" data-q="'+i+'">'+(i+1)+". "+String(q.title||"Untitled Episode").replace(/[<>&"]/g,"")+'</button>').join("");
-      if(state.audio_url&&audio.src!==state.audio_url){audio.src=state.audio_url;audio.load();}
-    }
-    queueList.addEventListener("click",e=>{const b=e.target.closest("button[data-q]");if(b)playIndex(Number(b.dataset.q));});
-    audio.addEventListener("loadedmetadata",()=>{state.duration=audio.duration||state.duration;if(state.position>0&&state.position<audio.duration)audio.currentTime=state.position;duration.textContent=fmt(audio.duration);save();if(state.playing)audio.play().catch(()=>{state.playing=false;save();render();});});
-    audio.addEventListener("play",async()=>{state.playing=true;save();render();await beginSession();});
-    audio.addEventListener("pause",async()=>{state.playing=false;state.position=audio.currentTime;save();render();await syncProgress(true);});
-    audio.addEventListener("timeupdate",()=>{state.position=audio.currentTime;state.duration=audio.duration||state.duration;range.value=state.duration?Math.round(audio.currentTime/state.duration*1000):0;time.textContent=fmt(audio.currentTime);duration.textContent=fmt(state.duration);if(!syncTimer)syncTimer=setTimeout(async()=>{syncTimer=null;await syncProgress(false);},10000);save();});
-    audio.addEventListener("ended",async()=>{state.position=audio.duration||state.position;state.completed=true;state.playing=false;await syncProgress(true);save();if(state.queue_index>=0&&state.queue_index<state.queue.length-1){await playIndex(state.queue_index+1);return;}render();});
-    play.onclick=()=>{if(!state.audio_url)return;if(audio.paused)audio.play().catch(()=>{});else audio.pause();};
-    prev.onclick=()=>playIndex(state.queue_index-1);next.onclick=()=>playIndex(state.queue_index+1);
-    range.oninput=()=>{if(audio.duration)audio.currentTime=(Number(range.value)/1000)*audio.duration;};
-    speed.onchange=()=>{state.speed=Number(speed.value);audio.playbackRate=state.speed;save();};
-    volume.oninput=()=>{state.volume=Number(volume.value);audio.volume=state.volume;save();};
-    queueBtn.onclick=()=>queueList.classList.toggle("open");minBtn.onclick=()=>{state.minimized=!state.minimized;save();render();};
-    render();
-  }
-
-  async function playIndex(index){
-    if(index<0||index>=state.queue.length)return false;
-    const item=state.queue[index]; if(!item?.audio_url)return false;
-    if(audio&&!audio.paused){audio.pause();await syncProgress(true);}
-    Object.assign(state,{episode_id:item.id||null,title:item.title||"Untitled Episode",show:item.show||item.podcast_title||"",audio_url:item.audio_url,artwork_url:item.artwork_url||item.thumbnail_url||"",position:Number(item.position||0),playing:true,duration:0,listen_id:null,session_key:crypto.randomUUID(),total_session_seconds:0,completed:false,queue_index:index});
-    started=false;save();mount();audio.src=state.audio_url;audio.load();audio.play().catch(()=>{state.playing=false;save();renderPlayer();});return true;
-  }
-
-  window.CrowRulesPlayEpisode=async function(data){
-    if(!data?.audio_url)return false;
-    mount();
-    const normalized={id:data.id||null,title:data.title||"Untitled Episode",show:data.show||data.podcast_title||"",audio_url:data.audio_url,artwork_url:data.artwork_url||data.thumbnail_url||"",position:Number(data.position||0)};
-    const idx=state.queue.findIndex(q=>q.id===normalized.id&&q.audio_url===normalized.audio_url);
-    if(idx>=0){state.queue_index=idx;return playIndex(idx);}
-    state.queue.push(normalized);state.queue_index=state.queue.length-1;return playIndex(state.queue_index);
-  };
-  window.CrowRulesSetQueue=function(items){state.queue=(Array.isArray(items)?items:[]).filter(x=>x?.audio_url).map(x=>({id:x.id||null,title:x.title||"Untitled Episode",show:x.show||x.podcast_title||"",audio_url:x.audio_url,artwork_url:x.artwork_url||x.thumbnail_url||"",position:Number(x.position||0)}));state.queue_index=state.queue.length?Math.max(0,state.queue.findIndex(x=>x.id===state.episode_id)): -1;save();mount();renderPlayer();return state.queue.length;};
-  window.CrowRulesGetQueue=()=>state.queue.map(x=>({...x}));
-  window.CrowRulesGetPlayerState=()=>({...state,queue:[...state.queue]});
-  window.CrowRulesSyncPlayer=()=>syncProgress(true);
-  function renderPlayer(){const e=document.getElementById("crGlobalPlayer");if(e){const p=e.querySelector("#crgpPlay"),st=e.querySelector("#crgpStatus");p.textContent=state.playing?"❚❚":"▶";p.disabled=!state.audio_url;st.textContent=state.audio_url?(state.playing?"PLAYING":"PAUSED"):"READY";}}
-  window.addEventListener("pagehide",()=>{state.position=audio?.currentTime||state.position;save();});
-  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")save();});
-  document.addEventListener("DOMContentLoaded",mount);
+/* CrowRules Podcasting — Universal Audio Player V5 */
+(()=>{"use strict";
+if(window.CrowRulesGlobalPlayerV5)return;window.CrowRulesGlobalPlayerV5=true;
+const KEY="crowrules_podcast_player_v5",safeJSON=()=>{try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch{return{}}};
+const state=Object.assign({episode_id:null,title:"",show:"",audio_url:"",artwork_url:"",position:0,duration:0,playing:false,queue:[],queue_index:-1,speed:1,volume:.9,minimized:false,completed:false},safeJSON());
+let audio,root,syncTimer;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}},fmt=n=>{n=Math.max(0,Math.floor(n||0));return Math.floor(n/60)+":"+String(n%60).padStart(2,"0")};
+function styles(){if(document.getElementById("crPlayerV5Styles"))return;const s=document.createElement("style");s.id="crPlayerV5Styles";s.textContent=`
+#crPlayerV5{position:fixed;left:16px;right:16px;bottom:14px;z-index:12000;padding:11px 14px;border:1px solid rgba(34,211,238,.22);border-radius:20px;background:rgba(5,6,14,.96);backdrop-filter:blur(24px);box-shadow:0 20px 70px rgba(0,0,0,.55);font-family:Montserrat,sans-serif;color:#fff}
+#crPlayerV5 .crp-row{display:grid;grid-template-columns:44px minmax(130px,1fr) auto 46px auto auto;gap:10px;align-items:center}
+#crPlayerV5 .crp-art{width:44px;height:44px;border-radius:11px;object-fit:cover;background:#11131e;border:1px solid rgba(255,255,255,.1)}
+#crPlayerV5 .crp-title{font:800 11px Orbitron,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.crp-show{font-size:9px;color:#8992a8;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#crPlayerV5 button,#crPlayerV5 select{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:#e9edfa;border-radius:10px;min-height:38px;cursor:pointer}#crPlayerV5 .crp-play{border:0;border-radius:50%;background:linear-gradient(135deg,#22d3ee,#8b5cf6);color:#05050b;font-weight:900;width:42px}#crPlayerV5 button:disabled{opacity:.35;cursor:not-allowed}
+#crPlayerV5 .crp-progress{margin-top:7px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}#crPlayerV5 input[type=range]{accent-color:#22d3ee;width:100%}.crp-time{font:700 9px Orbitron,sans-serif;color:#8992a8;min-width:76px;text-align:right}
+#crPlayerV5 .crp-extra{display:flex;gap:8px;align-items:center}.crp-status{font:800 8px Orbitron,sans-serif;color:#22d3ee;letter-spacing:.08em}.crp-speed{padding:7px}
+#crPlayerV5.crp-mini{left:auto;right:16px;width:310px}#crPlayerV5.crp-mini .crp-progress,#crPlayerV5.crp-mini .crp-extra,#crPlayerV5.crp-mini .crp-show{display:none}
+@media(max-width:760px){#crPlayerV5{left:7px;right:7px;bottom:7px;padding:8px}#crPlayerV5 .crp-row{grid-template-columns:40px 1fr 42px 38px}#crPlayerV5 .crp-next,#crPlayerV5 .crp-prev{display:none}#crPlayerV5 .crp-extra{display:none}#crPlayerV5 .crp-progress{grid-template-columns:1fr 48px}#crPlayerV5.crp-mini{right:7px;width:255px}}
+@media(prefers-reduced-motion:reduce){#crPlayerV5{scroll-behavior:auto}}`;
+document.head.appendChild(s)}
+function mount(){if(root)return;styles();root=document.createElement("aside");root.id="crPlayerV5";root.setAttribute("aria-label","CrowRules universal podcast audio player");root.innerHTML=`<div class="crp-row"><img class="crp-art" alt="Podcast artwork"><div><div class="crp-title">CrowRules Podcasting</div><div class="crp-show">Universal Player · Ready</div></div><button class="crp-prev" aria-label="Previous episode">‹</button><button class="crp-play" aria-label="Play or pause">▶</button><button class="crp-next" aria-label="Next episode">›</button><div class="crp-extra"><select class="crp-speed" aria-label="Playback speed"><option>.75</option><option>1</option><option>1.25</option><option>1.5</option><option>1.75</option><option>2</option></select><input class="crp-volume" type="range" min="0" max="1" step=".01" aria-label="Volume"><span class="crp-status">READY</span><button class="crp-mini" aria-label="Minimize player">−</button></div></div><div class="crp-progress"><input class="crp-seek" type="range" min="0" max="1000" value="0" aria-label="Seek"><span class="crp-time">0:00 / 0:00</span></div>`;document.body.append(root);audio=new Audio();audio.preload="metadata";audio.volume=state.volume;audio.playbackRate=state.speed;
+const q=s=>root.querySelector(s),play=q(".crp-play"),seek=q(".crp-seek"),time=q(".crp-time"),speed=q(".crp-speed"),vol=q(".crp-volume"),prev=q(".crp-prev"),next=q(".crp-next");
+speed.value=String(state.speed);vol.value=String(state.volume);
+function render(){q(".crp-title").textContent=state.title||"CrowRules Podcasting";q(".crp-show").textContent=state.show||"Universal Player · Ready";q(".crp-art").src=state.artwork_url||"";q(".crp-art").alt=state.title||"Podcast artwork";play.textContent=state.playing?"❚❚":"▶";play.disabled=!state.audio_url;q(".crp-status").textContent=state.audio_url?(state.playing?"PLAYING":"PAUSED"):"READY";q(".crp-time").textContent=fmt(state.position)+" / "+fmt(state.duration);root.classList.toggle("crp-mini",state.minimized);prev.disabled=state.queue_index<=0;next.disabled=state.queue_index<0||state.queue_index>=state.queue.length-1;if(state.audio_url&&audio.src!==state.audio_url){audio.src=state.audio_url;audio.load()}}
+function choose(i){if(i<0||i>=state.queue.length)return;const x=state.queue[i];Object.assign(state,{episode_id:x.id||null,title:x.title||"Untitled Episode",show:x.show||x.podcast_title||"",audio_url:x.audio_url,artwork_url:x.artwork_url||x.thumbnail_url||"",position:Number(x.position||0),duration:0,queue_index:i,playing:true,completed:false});save();audio.src=state.audio_url;audio.load();audio.play().catch(()=>{state.playing=false;save();render()});}
+audio.onloadedmetadata=()=>{state.duration=audio.duration||0;if(state.position&&state.position<audio.duration)audio.currentTime=state.position;if(state.playing)audio.play().catch(()=>{state.playing=false;render()});render()};
+audio.onplay=()=>{state.playing=true;save();render()};audio.onpause=()=>{state.playing=false;state.position=audio.currentTime;save();render()};
+audio.ontimeupdate=()=>{state.position=audio.currentTime;state.duration=audio.duration||state.duration;seek.value=state.duration?Math.round(state.position/state.duration*1000):0;time.textContent=fmt(state.position)+" / "+fmt(state.duration);if(!syncTimer)syncTimer=setTimeout(()=>{syncTimer=null;save()},10000)};
+audio.onended=()=>{state.completed=true;state.playing=false;save();if(state.queue_index<state.queue.length-1)choose(state.queue_index+1);else render()};
+play.onclick=()=>audio.paused?audio.play().catch(()=>{}):audio.pause();prev.onclick=()=>choose(state.queue_index-1);next.onclick=()=>choose(state.queue_index+1);seek.oninput=()=>{if(audio.duration)audio.currentTime=seek.value/1000*audio.duration};speed.onchange=()=>{state.speed=Number(speed.value);audio.playbackRate=state.speed;save()};vol.oninput=()=>{state.volume=Number(vol.value);audio.volume=state.volume;save()};q(".crp-mini").onclick=()=>{state.minimized=!state.minimized;save();render()};render()}
+window.CrowRulesPlayEpisode=async data=>{if(!data?.audio_url)return false;mount();const x={id:data.id||null,title:data.title||"Untitled Episode",show:data.show||data.podcast_title||"",audio_url:data.audio_url,artwork_url:data.artwork_url||data.thumbnail_url||"",position:Number(data.position||0)};let i=state.queue.findIndex(q=>q.id===x.id&&q.audio_url===x.audio_url);if(i<0){state.queue.push(x);i=state.queue.length-1}choose(i);return true};
+window.CrowRulesSetQueue=items=>{state.queue=(Array.isArray(items)?items:[]).filter(x=>x?.audio_url);state.queue_index=Math.max(-1,state.queue.findIndex(x=>x.id===state.episode_id));save();mount();return state.queue.length};
+window.CrowRulesGetQueue=()=>state.queue.map(x=>({...x}));window.CrowRulesGetPlayerState=()=>({...state,queue:[...state.queue]});window.CrowRulesSyncPlayer=()=>{state.position=audio?.currentTime||state.position;save()};
+addEventListener("pagehide",()=>{state.position=audio?.currentTime||state.position;save()});document.addEventListener("DOMContentLoaded",mount);
 })();
