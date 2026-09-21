@@ -31,6 +31,31 @@ body{background:linear-gradient(180deg,#05050b,#090614 55%,#030308);background-a
 <script src="js/crowrules-membership.js"></script>
 <script src="js/crowrules-cinematic.js"></script>
 <script>
+(function(){
+  const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co";
+  const SUPABASE_KEY=window.CROWRULES_SUPABASE_KEY||"sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
+  let profileSupabase=null;
+  window.loadSupabase=async function(){
+    if(profileSupabase)return profileSupabase;
+    if(window.supabase&&window.supabase.createClient){
+      profileSupabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+      return profileSupabase;
+    }
+    const script=document.createElement("script");
+    script.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+    await new Promise(function(resolve,reject){
+      const timer=setTimeout(function(){reject(new Error("Supabase library timed out loading."))},10000);
+      script.onload=function(){clearTimeout(timer);resolve()};
+      script.onerror=function(){clearTimeout(timer);reject(new Error("Unable to load Supabase library."))};
+      document.head.appendChild(script);
+    });
+    if(!window.supabase||!window.supabase.createClient)throw new Error("Supabase library loaded but was unavailable.");
+    profileSupabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+    return profileSupabase;
+  };
+})();
+</script>
+<script>
 (async function(){
   const el=document.getElementById("profile");
   try{
