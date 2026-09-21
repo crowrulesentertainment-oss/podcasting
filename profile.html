@@ -61,7 +61,7 @@
 
 <main>
   <div class="theme-preview" id="themePreview">MySpace theme: Cyber</div>
-  <div id="loading" class="notice">Loading your CrowRules profile…</div>
+  <div id="loading" class="notice">Loading your CrowRules profile…</div><div id="loadError" class="notice hidden" style="border-color:rgba(255,22,72,.3);color:#ff9ab0" role="alert"></div>
 
   <section id="profileApp" class="hidden">
     <div class="eyebrow">Universal CrowRules Membership</div>
@@ -163,6 +163,7 @@
 
 <footer class="footer">CrowRules Podcasting · Listen. Create. Share.</footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/js/supabase.js"></script>
 <script src="assets/js/app.js"></script>
@@ -277,7 +278,8 @@
   async function init(){
     try{
       client=window.getSupabaseClient?window.getSupabaseClient():window.supabaseClient;
-      if(!client)throw new Error("Supabase client is not available.");
+      if(!client && window.supabase?.createClient){client=window.supabase.createClient("https://cevylpnoexugwgygvtgu.supabase.co",window.CrowRulesSupabaseConfig?.key||"sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-");}
+      if(!client)throw new Error("Supabase client is not available. The Supabase library did not initialize.");
       const {data,error}=await client.auth.getSession();
       if(error)throw error;
       user=data.session?.user||null;
@@ -288,7 +290,7 @@
       await Promise.all([loadStats(),loadBadges()]);
     }catch(e){
       console.error("[CrowRules Profile]",e);
-      $("loading").textContent="We could not load your profile. Please refresh and try again.";
+      $("loading").classList.add("hidden");$("loadError").classList.remove("hidden");$("loadError").innerHTML="<strong>Profile loading failed.</strong><br>"+esc(e.message||"Unknown error")+"<br><button class=\"secondary\" type=\"button\" onclick=\"location.reload()\">Refresh</button>";
     }
   }
 
