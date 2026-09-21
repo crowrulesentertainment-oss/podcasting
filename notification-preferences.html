@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Notification Preferences | CrowRules Podcasting</title>
+<link rel="stylesheet" href="assets/css/cinematic.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:radial-gradient(circle at 15% 0%,#00e5ff18,transparent 30%),radial-gradient(circle at 85% 0%,#8b5cf625,transparent 35%),#030308;color:#fff;font-family:Montserrat,Arial}
+.wrap{width:min(820px,94%);margin:auto;padding:40px 0 110px}.panel{border:1px solid rgba(255,255,255,.1);background:#0b0a14e8;border-radius:24px;padding:28px}.ey{font:900 10px Orbitron;letter-spacing:.18em;color:#00e5ff}h1,h2{font-family:Orbitron}h1{font-size:clamp(30px,6vw,54px);margin:10px 0}.muted{color:#9299ae;line-height:1.7;font-size:12px}.prefs{display:grid;gap:10px;margin-top:24px}.pref{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:17px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:#ffffff04}.pref h3{margin:0 0 5px;font:800 14px Orbitron}.pref p{margin:0;color:#9299ae;font-size:11px;line-height:1.5}.switch{position:relative;width:52px;height:30px;flex:none}.switch input{opacity:0;width:0;height:0}.slider{position:absolute;inset:0;background:#252532;border:1px solid #454557;border-radius:99px;cursor:pointer}.slider:before{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;background:#aaa;border-radius:50%;transition:.2s}.switch input:checked+.slider{background:#00e5ff;border-color:#00e5ff}.switch input:checked+.slider:before{transform:translateX(22px);background:#030308}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:22px}.btn{padding:11px 15px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:#10101a;color:#fff;text-decoration:none;font-weight:900;cursor:pointer}.primary{background:linear-gradient(90deg,#00e5ff,#8b5cf6);color:#030308}.status{min-height:20px;margin-top:14px;color:#00e5ff;font-size:11px;font-weight:800}.error{color:#ff8b8b}@media(max-width:600px){.panel{padding:20px}.pref{align-items:flex-start}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="panel">
+<div class="ey">CROWRULES PODCASTING · SETTINGS</div>
+<h1>Notification Preferences</h1>
+<p class="muted">Choose which Podcasting alerts appear in your CrowRules notification center. Changes apply to future notifications and do not delete existing alerts.</p>
+<div class="prefs">
+<label class="pref"><div><h3>New Episodes</h3><p>Get notified when a podcast you follow publishes a new episode.</p></div><span class="switch"><input id="new_episodes" type="checkbox" checked><span class="slider"></span></span></label>
+<label class="pref"><div><h3>New Followers</h3><p>Creators can receive alerts when someone follows their podcast.</p></div><span class="switch"><input id="follows" type="checkbox" checked><span class="slider"></span></span></label>
+<label class="pref"><div><h3>Comments</h3><p>Creators can receive alerts when listeners comment on their episodes.</p></div><span class="switch"><input id="comments" type="checkbox" checked><span class="slider"></span></span></label>
+<label class="pref"><div><h3>Reactions</h3><p>Creators can receive alerts when listeners react to their episodes.</p></div><span class="switch"><input id="reactions" type="checkbox" checked><span class="slider"></span></span></label>
+</div>
+<div class="actions"><button class="btn primary" id="save">Save Preferences</button><a class="btn" href="notifications.html">Notification Center</a><a class="btn" href="listener-profile.html">Listener Profile</a></div>
+<div class="status" id="status" role="status"></div>
+</section>
+</main>
+<script src="assets/js/app.js"></script>
+<script>
+(async()=>{
+ const status=document.getElementById("status"), save=document.getElementById("save");
+ const ids=["new_episodes","follows","comments","reactions"];
+ try{
+   const sb=await loadSupabase(),{data:u}=await sb.auth.getUser();
+   if(!u.user){location.href="login.html?next="+encodeURIComponent(location.href);return}
+   const r=await sb.from("podcast_notification_preferences").select("*").eq("user_id",u.user.id).maybeSingle();
+   if(r.error)throw r.error;
+   if(r.data)ids.forEach(id=>document.getElementById(id).checked=r.data[id]!==false);
+   save.onclick=async()=>{
+     save.disabled=true;status.textContent="Saving…";status.className="status";
+     try{
+       const values={user_id:u.user.id,new_episodes:document.getElementById("new_episodes").checked,follows:document.getElementById("follows").checked,comments:document.getElementById("comments").checked,reactions:document.getElementById("reactions").checked,updated_at:new Date().toISOString()};
+       const x=await sb.from("podcast_notification_preferences").upsert(values,{onConflict:"user_id"});
+       if(x.error)throw x.error;
+       status.textContent="Preferences saved.";
+     }catch(e){status.textContent=e.message||"Unable to save preferences.";status.className="status error"}
+     finally{save.disabled=false}
+   };
+ }catch(e){status.textContent=e.message||"Unable to load preferences.";status.className="status error"}
+})();
+</script>
+</body>
+</html>
