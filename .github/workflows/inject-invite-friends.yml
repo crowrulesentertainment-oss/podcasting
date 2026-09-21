@@ -9,94 +9,90 @@ permissions:
   contents: write
 
 jobs:
-  inject-invite:
+  enhance-pages:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Normalize categories navigation and Invite Friends on every HTML page
+      - name: Normalize navigation, invite system, and universal audio player
         shell: python
         run: |
           from pathlib import Path
           import re
-          root=Path('.')
-          changed=[]
-          for path in root.rglob('*.html'):
-              if '.git' in path.parts:
+
+          root = Path(".")
+          changed = []
+
+          for path in root.rglob("*.html"):
+              if ".git" in path.parts:
                   continue
-              text=path.read_text(encoding='utf-8')
-              relroot='../' if len(path.parts)>1 else ''
-              canonical=f'<header class="nav"><a class="brand" href="{relroot}index.html">CROWRULES <span>PODCASTING</span></a><nav class="navlinks"></nav></header>'
-              header_re=r'<header\b[^>]*class=["']nav["'][^>]*>[\s\S]*?</header>'
-              if re.search(header_re,text,re.I):
-                  text=re.sub(header_re,canonical,text,count=1,flags=re.I)
-              elif re.search(r'<body\b[^>]*>',text,re.I):
-                  text=re.sub(r'(<body\b[^>]*>)',r'\1'+canonical,text,count=1,flags=re.I)
-              navrel=f'{relroot}js/crowrules-navigation.js'
-              invrel=f'{relroot}js/crowrules-invite.js'
-              tags=[]
-              if navrel not in text: tags.append(f'<script src="{navrel}"></script>')
-              if invrel not in text: tags.append(f'<script src="{invrel}"></script>')
-              if tags:
-                  tag='\n'.join(tags)
-                  m=re.search(r'</body>\s*</html>\s*
-          print(f'Updated {len(changed)} HTML pages')
-          for x in changed: print(x)
 
-      - name: Commit universal page enhancement links
+              text = path.read_text(encoding="utf-8")
+              relroot = "../" if len(path.parts) > 1 else ""
+
+              canonical = (
+                  f'<header class="nav">'
+                  f'<a class="brand" href="{relroot}index.html">CROWRULES <span>PODCASTING</span></a>'
+                  f'<nav class="navlinks"></nav>'
+                  f'</header>'
+              )
+
+              header_re = r'<header\b[^>]*class=["\']nav["\'][^>]*>[\s\S]*?</header>'
+              if re.search(header_re, text, re.I):
+                  text = re.sub(header_re, canonical, text, count=1, flags=re.I)
+              elif re.search(r'<body\b[^>]*>', text, re.I):
+                  text = re.sub(
+                      r'(<body\b[^>]*>)',
+                      r'\1' + canonical,
+                      text,
+                      count=1,
+                      flags=re.I
+                  )
+
+              # Remove legacy cinematic navigation injection so the dropdown
+              # navigation is the only site navigation.
+              text = re.sub(
+                  r'<script>\s*mountNav\([\s\S]*?</script>',
+                  "",
+                  text,
+                  flags=re.I
+              )
+
+              scripts = [
+                  f'<script src="{relroot}js/crowrules-navigation.js"></script>',
+                  f'<script src="{relroot}js/crowrules-invite.js"></script>',
+                  f'<script src="{relroot}assets/js/crowrules-player.js"></script>',
+              ]
+
+              for tag in scripts:
+                  src = re.search(r'src="([^"]+)"', tag).group(1)
+                  if src not in text:
+                      body_end = re.search(r'</body>\s*</html>\s*$', text, re.I)
+                      if body_end:
+                          text = text[:body_end.start()] + tag + "\n" + text[body_end.start():]
+                      else:
+                          text += "\n" + tag + "\n"
+
+              new_text = text
+              if new_text != path.read_text(encoding="utf-8"):
+                  path.write_text(new_text, encoding="utf-8")
+                  changed.append(str(path))
+
+          print(f"Updated {len(changed)} HTML pages")
+          for item in changed:
+              print(item)
+
+      - name: Commit universal page enhancements
         shell: bash
         run: |
-          if git diff --quiet; then echo "No HTML changes needed."; exit 0; fi
-          git config user.name "crowrules-bot"
-          git config user.email "crowrules-bot@users.noreply.github.com"
-          git add '*.html' '**/*.html'
-          git commit -m "Ensure universal CrowRules page enhancements [skip ci]"
-          git push
-,text,re.I)
-                  if m:
-                      text=text[:m.start()]+tag+'\n'+text[m.start():]
-                  elif re.search(r'</body>\s*
-          print(f'Updated {len(changed)} HTML pages')
-          for x in changed: print(x)
+          if git diff --quiet; then
+            echo "No HTML changes needed."
+            exit 0
+          fi
 
-      - name: Commit universal page enhancement links
-        shell: bash
-        run: |
-          if git diff --quiet; then echo "No HTML changes needed."; exit 0; fi
           git config user.name "crowrules-bot"
           git config user.email "crowrules-bot@users.noreply.github.com"
-          git add '*.html' '**/*.html'
-          git commit -m "Ensure universal CrowRules page enhancements [skip ci]"
-          git push
-,text,re.I):
-                      text=re.sub(r'</body>\s*
-          print(f'Updated {len(changed)} HTML pages')
-          for x in changed: print(x)
-
-      - name: Commit universal page enhancement links
-        shell: bash
-        run: |
-          if git diff --quiet; then echo "No HTML changes needed."; exit 0; fi
-          git config user.name "crowrules-bot"
-          git config user.email "crowrules-bot@users.noreply.github.com"
-          git add '*.html' '**/*.html'
-          git commit -m "Ensure universal CrowRules page enhancements [skip ci]"
-          git push
-,tag+'\n</body>',text,flags=re.I)
-                  else:
-                      text+='\n'+tag+'\n'
-              path.write_text(text,encoding='utf-8')
-              changed.append(str(path))
-          print(f'Updated {len(changed)} HTML pages')
-          for x in changed: print(x)
-
-      - name: Commit universal page enhancement links
-        shell: bash
-        run: |
-          if git diff --quiet; then echo "No HTML changes needed."; exit 0; fi
-          git config user.name "crowrules-bot"
-          git config user.email "crowrules-bot@users.noreply.github.com"
-          git add '*.html' '**/*.html'
-          git commit -m "Ensure universal CrowRules page enhancements [skip ci]"
+          git add -- '*.html'
+          git commit -m "Upgrade all pages with universal audio player [skip ci]"
           git push
