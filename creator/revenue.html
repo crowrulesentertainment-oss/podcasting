@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Creator Revenue Center | CrowRules Podcasting</title>
+<link rel="stylesheet" href="../assets/css/cinematic.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--cyan:#00e5ff;--purple:#8b5cf6;--pink:#ff2bd6;--bg:#030308;--panel:rgba(12,11,22,.84);--line:rgba(255,255,255,.09);--muted:#9299ae}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0%,rgba(0,229,255,.1),transparent 32%),radial-gradient(circle at 85% 5%,rgba(139,92,246,.14),transparent 35%),var(--bg);color:#f7f7fb;font-family:Montserrat,Arial,sans-serif}.wrap{width:min(1180px,92%);margin:auto;padding:45px 0 90px}.eyebrow{font:800 11px Orbitron;letter-spacing:.18em;color:var(--cyan)}h1,h2,h3{font-family:Orbitron,sans-serif}h1{font-size:clamp(30px,5vw,55px);margin:10px 0}.muted{color:var(--muted);line-height:1.7}.hero{display:flex;justify-content:space-between;gap:25px;align-items:end;margin-bottom:30px}.btn{border:1px solid var(--line);border-radius:11px;padding:12px 16px;background:#10101a;color:#fff;font-weight:800;cursor:pointer}.btn.primary{background:linear-gradient(90deg,var(--cyan),var(--purple));color:#030308}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.015));border:1px solid var(--line);border-radius:20px;padding:21px}.value{font:900 27px Orbitron}.label{margin-top:7px;color:var(--muted);font-size:11px;font-weight:800}.section{margin-top:22px}.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.products{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.tag{display:inline-block;padding:6px 9px;border-radius:99px;background:rgba(0,229,255,.08);color:var(--cyan);font-size:9px;font-weight:900;letter-spacing:.08em}.price{font:900 25px Orbitron;margin:15px 0}.row{display:flex;justify-content:space-between;gap:15px;padding:15px 0;border-bottom:1px solid var(--line);font-size:12px}.row:last-child{border-bottom:0}.pill{padding:5px 9px;border-radius:99px;background:rgba(34,197,94,.1);color:#8ef0ad;font-size:9px;font-weight:900}.notice{padding:17px;border:1px solid rgba(0,229,255,.18);border-radius:15px;background:rgba(0,229,255,.035);color:#b9c0d2;font-size:12px;line-height:1.6}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.products{grid-template-columns:1fr}.hero{align-items:start;flex-direction:column}}@media(max-width:520px){.grid{grid-template-columns:1fr 1fr}.wrap{width:94%}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="hero"><div><div class="eyebrow">CROWRULES PODCASTING · CREATOR STUDIO</div><h1>Revenue Center</h1><p class="muted">Your home for memberships, listener support, sponsorships and podcast revenue. Payment processing belongs on a secure server-side Stripe integration; this GitHub Pages interface never receives secret keys.</p></div><div class="actions"><a class="btn" href="../monetize.html">Monetization</a><a class="btn primary" href="../create-podcast.html">Create Podcast</a></div></section>
+<section class="grid"><div class="card"><div class="value" id="available">$0.00</div><div class="label">AVAILABLE BALANCE</div></div><div class="card"><div class="value" id="month">$0.00</div><div class="label">THIS MONTH</div></div><div class="card"><div class="value" id="supporters">0</div><div class="label">SUPPORTERS</div></div><div class="card"><div class="value" id="members">0</div><div class="label">MEMBERS</div></div></section>
+<section class="section"><div class="section-title"><h2>Monetization Products</h2><span class="tag">STRIPE + SUPABASE</span></div><div class="products"><article class="card"><span class="tag">MEMBERSHIPS</span><h3>Bonus Feed</h3><p class="muted">Offer member-only episodes, early releases and creator extras through CrowRules Universal Membership.</p><div class="price">$5+/mo</div><span class="pill">ENTITLEMENT READY</span></article><article class="card"><span class="tag">SUPPORT</span><h3>Listener Support</h3><p class="muted">Give listeners a secure path to one-time or recurring support without putting payment secrets in the browser.</p><div class="price">$1+</div><span class="pill">PAYMENT READY</span></article><article class="card"><span class="tag">SPONSORS</span><h3>Sponsorships</h3><p class="muted">Track sponsor campaigns, placements, campaign windows and contracted revenue.</p><div class="price">CUSTOM</div><span class="pill">INVENTORY READY</span></article></div></section>
+<section class="section card"><div class="section-title"><h2>Revenue Activity</h2><button class="btn" onclick="loadData()">Refresh</button></div><div id="activity"><div class="row"><span>No revenue transactions loaded yet.</span><span class="muted">$0.00</span></div></div></section>
+<section class="section notice"><strong>Production architecture:</strong> Stripe Checkout/Payment Links or server-created Checkout Sessions should handle payments. Supabase stores creator/product/price IDs, entitlements and reporting data. Never place a Stripe secret key in HTML, JavaScript, GitHub Pages, or localStorage.</section>
+</main>
+<script src="../assets/js/cinematic.js"></script>
+<script>
+async function loadData(){
+ try{if(typeof loadSupabase!=='function')return;const sb=await loadSupabase();const {data:u}=await sb.auth.getUser();if(!u.user)return;const el=id=>document.getElementById(id);
+ const {data:plans}=await sb.from('membership_plans').select('id').limit(100);if(plans)el('members').textContent='0';
+ }catch(e){console.warn(e)}
+}
+loadData();
+</script>
+</body>
+</html>
