@@ -50,6 +50,33 @@
     .player{position:fixed;left:18px;right:18px;bottom:18px;z-index:200;display:none;align-items:center;gap:16px;padding:14px 18px;background:rgba(12,12,24,.96);backdrop-filter:blur(20px);border:1px solid rgba(0,229,255,.2);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.45)}.player.active{display:flex}.player-info{min-width:180px;flex:1}.player-title{font-weight:900}.player-sub{color:var(--muted);font-size:.75rem;margin-top:3px}.player audio{flex:2;min-width:220px}
     .footer{padding:60px 5% 110px;border-top:1px solid var(--line);color:var(--muted);text-align:center}
     @media(max-width:760px){.nav{align-items:flex-start;flex-direction:column}.navlinks{width:100%;overflow-x:auto}.hero{min-height:570px;padding:70px 6%}.section{width:90%}.account-strip{align-items:flex-start;flex-direction:column}.player{flex-wrap:wrap}.player audio{width:100%;flex-basis:100%}}
+   
+    /* CINEMATIC HOME 3.0 */
+    .cr-atmosphere{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
+    .cr-orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.22;animation:crFloat 14s ease-in-out infinite}
+    .cr-orb.a{width:340px;height:340px;background:var(--cyan);left:-120px;top:18%}.cr-orb.b{width:420px;height:420px;background:var(--purple);right:-170px;top:35%;animation-delay:-5s}.cr-orb.c{width:260px;height:260px;background:var(--pink);left:45%;bottom:-130px;animation-delay:-9s}
+    @keyframes crFloat{50%{transform:translate3d(0,-35px,0) scale(1.08)}}
+    .hero{min-height:720px}
+    .hero:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 75% 50%,rgba(0,229,255,.12),transparent 18%),radial-gradient(circle at 86% 38%,rgba(255,79,216,.13),transparent 20%);pointer-events:none}
+    .hero-content{max-width:980px}
+    .hero h1{font-size:clamp(3.4rem,9.5vw,8.5rem);text-shadow:0 0 45px rgba(0,229,255,.12)}
+    .hero h1 span{background:linear-gradient(90deg,var(--cyan),#fff,var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .hero p{font-size:clamp(1rem,2vw,1.22rem);max-width:780px}
+    .hero-badges{display:flex;flex-wrap:wrap;gap:9px;margin:24px 0}.hero-badge{padding:8px 12px;border:1px solid rgba(255,255,255,.11);border-radius:999px;background:rgba(255,255,255,.035);color:#d8dced;font-size:.68rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+    .hero-badge.live{border-color:rgba(54,226,155,.25);color:var(--green)}
+    .section{position:relative}.section:before{content:"";position:absolute;left:0;top:0;width:90px;height:1px;background:linear-gradient(90deg,var(--cyan),transparent)}
+    .section-head h2{letter-spacing:.01em}
+    .section-head:after{content:"";display:block;flex:1;max-width:120px;height:1px;background:linear-gradient(90deg,rgba(0,229,255,.3),transparent)}
+    .feature-shell{display:grid;grid-template-columns:1.2fr .8fr;gap:20px;margin-top:24px}
+    .feature-panel{min-height:270px;padding:28px;border:1px solid rgba(0,229,255,.14);border-radius:24px;background:linear-gradient(135deg,rgba(0,229,255,.07),rgba(139,92,255,.08)),rgba(10,10,20,.75);position:relative;overflow:hidden}
+    .feature-panel:after{content:"";position:absolute;width:230px;height:230px;right:-90px;bottom:-110px;border-radius:50%;background:rgba(255,79,216,.14);filter:blur(30px)}
+    .feature-kicker{font:800 .68rem Orbitron,sans-serif;letter-spacing:.16em;color:var(--cyan);text-transform:uppercase}.feature-panel h3{font:900 clamp(1.6rem,4vw,2.7rem);margin:12px 0}.feature-panel p{color:var(--muted);line-height:1.7;max-width:620px}
+    .metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.metric{padding:18px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.035)}.metric b{font:900 1.7rem Orbitron,sans-serif}.metric span{display:block;color:var(--muted);font-size:.68rem;margin-top:5px;text-transform:uppercase;font-weight:800}
+    .card{box-shadow:0 14px 50px rgba(0,0,0,.18)}.card:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.035),transparent 35%,rgba(0,229,255,.025));opacity:0;transition:.25s}.card:hover:before{opacity:1}
+    .section-divider{height:1px;width:min(1400px,92%);margin:auto;background:linear-gradient(90deg,transparent,rgba(0,229,255,.25),rgba(255,79,216,.18),transparent)}
+    .home-cta{padding:55px 0}.cta-panel{padding:35px;border-radius:24px;border:1px solid rgba(139,92,255,.22);background:linear-gradient(135deg,rgba(0,229,255,.06),rgba(139,92,255,.12),rgba(255,79,216,.06));display:flex;justify-content:space-between;align-items:center;gap:25px}.cta-panel h2{font-family:Orbitron,sans-serif;margin:0 0 10px}.cta-panel p{color:var(--muted);margin:0;line-height:1.6}
+    @media(max-width:900px){.feature-shell{grid-template-columns:1fr}.cta-panel{flex-direction:column;align-items:flex-start}}
+    @media(prefers-reduced-motion:reduce){.cr-orb{animation:none}.btn,.card{transition:none}}
   </style>
 </head>
 
@@ -79,9 +106,10 @@
   </div>
 </div>
 
+<div class="cr-atmosphere" aria-hidden="true"><i class="cr-orb a"></i><i class="cr-orb b"></i><i class="cr-orb c"></i></div>
 <main>
   <section class="hero">
-    <div class="hero-content">
+    <div class="hero-content"><div class="hero-badges"><span class="hero-badge live">● Creator Network</span><span class="hero-badge">24/7 CrowRules Universe</span><span class="hero-badge">Listen Anywhere</span></div>
       <div class="eyebrow">CROWRULES ENTERTAINMENT • ONE ACCOUNT. ONE UNIVERSE.</div>
       <h1>LISTEN.<br>CREATE.<br><span>SHARE.</span></h1>
       <p>Discover podcasts, follow creators, listen to episodes, save your favorites, pick up where you left off, and build your own show inside the CrowRules universe.</p>
@@ -101,6 +129,13 @@
     </div>
   </section>
 
+  <section class="section">
+<div class="feature-shell">
+<div class="feature-panel"><div class="feature-kicker">The CrowRules Audio Universe</div><h3>Every voice has a place.</h3><p>From first idea to published episode, CrowRules Podcasting connects listeners and creators in one cinematic home. Discover emerging voices, follow shows, save episodes and keep your listening journey connected to your universal CrowRules account.</p><div class="actions"><a class="btn" href="podcasts.html">Explore the Network</a><a class="btn alt" href="signup.html">Become a Creator</a></div></div>
+<div class="feature-panel"><div class="feature-kicker">Built For Discovery</div><div class="metric-grid"><div class="metric"><b>∞</b><span>Stories</span></div><div class="metric"><b>24/7</b><span>Universe</span></div><div class="metric"><b>1</b><span>Account</span></div><div class="metric"><b>100%</b><span>CrowRules</span></div></div></div>
+</div>
+</section>
+<div class="section-divider"></div>
   <section id="continueSection" class="section" hidden>
     <div class="section-head"><div><h2>Continue Listening</h2><div class="section-sub">Pick up where you left off.</div></div></div>
     <div id="continueGrid" class="grid"></div>
@@ -140,6 +175,7 @@
       <article class="card"><div class="card-body"><div class="category-icon">🚀</div><h3 class="card-title">Grow</h3><p class="card-description">One CrowRules account connects your identity, membership, creator activity, and future CrowRules experiences.</p></div></article>
     </div>
   </section>
+<section class="section home-cta"><div class="cta-panel"><div><h2>Your next story starts here.</h2><p>Listen to something new, follow a creator, or start building your own podcast.</p></div><div class="actions"><a class="btn" href="podcasts.html">Listen Now</a><a class="btn alt" href="signup.html">Create Your Show</a></div></div></section>
 </main>
 
 <div id="audioPlayer" class="player">
