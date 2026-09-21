@@ -21,6 +21,7 @@ body{margin:0;background:radial-gradient(circle at 15% 0%,#00e5ff18,transparent 
 <div class="prefs">
 <label class="pref"><div><h3>New Episodes</h3><p>Get notified when a podcast you follow publishes a new episode.</p></div><span class="switch"><input id="new_episodes" type="checkbox" checked><span class="slider"></span></span></label>
 <label class="pref"><div><h3>New Followers</h3><p>Creators can receive alerts when someone follows their podcast.</p></div><span class="switch"><input id="follows" type="checkbox" checked><span class="slider"></span></span></label>
+<label class="pref"><div><h3>Member Follows</h3><p>Get notified when another CrowRules member follows your public profile.</p></div><span class="switch"><input id="member_follows" type="checkbox" checked><span class="slider"></span></span></label>
 <label class="pref"><div><h3>Comments</h3><p>Creators can receive alerts when listeners comment on their episodes.</p></div><span class="switch"><input id="comments" type="checkbox" checked><span class="slider"></span></span></label>
 <label class="pref"><div><h3>Reactions</h3><p>Creators can receive alerts when listeners react to their episodes.</p></div><span class="switch"><input id="reactions" type="checkbox" checked><span class="slider"></span></span></label>
 </div>
@@ -32,7 +33,7 @@ body{margin:0;background:radial-gradient(circle at 15% 0%,#00e5ff18,transparent 
 <script>
 (async()=>{
  const status=document.getElementById("status"), save=document.getElementById("save");
- const ids=["new_episodes","follows","comments","reactions"];
+ const ids=["new_episodes","follows","member_follows","comments","reactions"];
  try{
    const sb=await loadSupabase(),{data:u}=await sb.auth.getUser();
    if(!u.user){location.href="login.html?next="+encodeURIComponent(location.href);return}
@@ -42,7 +43,7 @@ body{margin:0;background:radial-gradient(circle at 15% 0%,#00e5ff18,transparent 
    save.onclick=async()=>{
      save.disabled=true;status.textContent="Saving…";status.className="status";
      try{
-       const values={user_id:u.user.id,new_episodes:document.getElementById("new_episodes").checked,follows:document.getElementById("follows").checked,comments:document.getElementById("comments").checked,reactions:document.getElementById("reactions").checked,updated_at:new Date().toISOString()};
+       const values={user_id:u.user.id,new_episodes:document.getElementById("new_episodes").checked,follows:document.getElementById("follows").checked,member_follows:document.getElementById("member_follows").checked,comments:document.getElementById("comments").checked,reactions:document.getElementById("reactions").checked,updated_at:new Date().toISOString()};
        const x=await sb.from("podcast_notification_preferences").upsert(values,{onConflict:"user_id"});
        if(x.error)throw x.error;
        status.textContent="Preferences saved.";
