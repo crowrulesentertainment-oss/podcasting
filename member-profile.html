@@ -9,18 +9,25 @@
 <link rel="stylesheet" href="css/crowrules-cinematic.css">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
-:root{--c:#00e5ff;--v:#8b5cf6;--m:#9da5bd;--l:#ffffff18}
-body{background:linear-gradient(180deg,#05050b,#090614 55%,#030308);background-attachment:fixed}
-.shell{width:min(820px,94%);margin:auto;padding:72px 0 110px}.card{padding:24px;border:1px solid #8b5cf655;border-radius:16px;background:#090914f5;box-shadow:0 20px 60px #0008}
-.profile-cover{width:100%;height:210px;object-fit:cover;border-radius:14px;margin-bottom:20px;border:1px solid var(--l)}
-.avatar{width:112px;height:112px;border-radius:50%;object-fit:cover;border:2px solid var(--c);display:block;margin:0 auto 16px;background:#10101a}.avatar-fallback{display:grid;place-items:center;font:900 40px Orbitron;color:var(--c)}
-.eyebrow{font:900 10px Orbitron;color:var(--c);letter-spacing:.16em;text-align:center}.name{text-align:center;font:900 clamp(2rem,7vw,3.5rem) Orbitron;margin:10px 0}.handle,.meta,.bio{text-align:center;color:var(--m)}.tagline{text-align:center;color:#fff;font-weight:800;margin:8px 0}.bio{line-height:1.7;max-width:650px;margin:16px auto}
-.actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:20px 0}.btn{border:1px solid var(--l);border-radius:10px;background:#10101a;color:#fff;padding:11px 15px;font-weight:800;text-decoration:none;cursor:pointer}.primary{background:linear-gradient(90deg,var(--c),var(--v));color:#030308}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:20px 0}.stat{padding:12px;text-align:center;border:1px solid var(--l);border-radius:10px;background:#ffffff05}.stat b{display:block;font:900 17px Orbitron;color:#fff}.stat span{display:block;color:var(--m);font-size:9px;font-weight:800;margin-top:5px;letter-spacing:.06em}
-.box{margin-top:18px;padding:16px;border:1px solid var(--l);border-radius:12px;background:#05050caa}.box h2{font:900 13px Orbitron;color:var(--c);letter-spacing:.1em;margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.detail{padding:11px;border:1px solid var(--l);border-radius:9px}.detail b{font-size:9px;color:var(--m)}.detail p{margin:5px 0 0;color:#fff;white-space:pre-wrap}
-.network-grid{display:grid;gap:8px}.network-row{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--l);border-radius:10px}.network-row img,.network-avatar{width:42px;height:42px;border-radius:50%;object-fit:cover}.network-avatar{display:grid;place-items:center;background:#10101a;color:var(--c);font:800 15px Orbitron}.network-row a{color:#fff;text-decoration:none;font-weight:800}
-.edit-panel input,.edit-panel textarea,.edit-panel select,.guestbook textarea{width:100%;box-sizing:border-box;padding:11px;border-radius:9px;border:1px solid var(--l);background:#080812;color:#fff;font:inherit}.edit-panel textarea,.guestbook textarea{min-height:85px;resize:vertical}.field{margin:11px 0}.field label{display:block;color:var(--m);font-size:10px;font-weight:800;margin-bottom:5px}.check{display:block;color:var(--m);font-size:11px;margin:8px 0}.empty{text-align:center;padding:35px;color:var(--m)}.guest{padding:11px 0;border-top:1px solid #ffffff12}.guest:first-child{border-top:0}.guest a{color:#fff;font-weight:800;text-decoration:none}.guest small{display:block;color:var(--m);margin-top:4px}
-@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.shell{padding-top:60px}}
+:root{--c:#00e5ff;--v:#8b5cf6;--m:#a9b0c4;--l:#ffffff18;--fb:#05050b;--panel:#11131a;--panel2:#191c24;--line:#303540}
+*{box-sizing:border-box}
+body{margin:0;background:#07080c;color:#e8eaf0;font-family:Montserrat,Arial,sans-serif}
+.shell{width:min(1120px,96%);margin:auto;padding:24px 0 90px}
+.card{padding:0;border:1px solid var(--line);border-radius:14px;background:#0d0f14;box-shadow:0 14px 45px #0009;overflow:hidden}
+.profile-cover{width:100%;height:300px;object-fit:cover;display:block;background:#151822}
+.profile-head{position:relative;padding:0 28px 22px;border-bottom:1px solid var(--line);background:#11131a}
+.profile-avatar-wrap{height:86px;position:relative}
+.avatar{width:150px;height:150px;border-radius:50%;object-fit:cover;border:5px solid #11131a;display:block;position:absolute;left:4px;top:-70px;background:#181b24}
+.avatar-fallback{display:grid;place-items:center;font:900 48px Orbitron;color:var(--c);background:#181b24}
+.eyebrow{font:900 10px Orbitron;color:var(--c);letter-spacing:.16em}
+.name{font:800 clamp(1.8rem,5vw,2.8rem) Montserrat;margin:4px 0}.handle,.meta{color:var(--m);font-size:13px}.tagline{color:#fff;font-weight:700;margin:8px 0}.bio{color:#d7d9e2;line-height:1.65;max-width:780px;margin:12px 0}
+.actions{display:flex;gap:8px;justify-content:flex-start;flex-wrap:wrap;margin:16px 0 0}.btn{border:1px solid #3a3f4a;border-radius:8px;background:#252932;color:#fff;padding:10px 16px;font-weight:800;text-decoration:none;cursor:pointer}.primary{background:#1877f2;border-color:#1877f2;color:#fff}
+.stats{display:flex;flex-wrap:wrap;gap:0;margin:0;background:#11131a;border-bottom:1px solid var(--line)}.stat{min-width:120px;flex:1;padding:13px 10px;text-align:center;border-right:1px solid #252a34}.stat:last-child{border-right:0}.stat b{display:block;font:800 16px Montserrat;color:#fff}.stat span{display:block;color:var(--m);font-size:9px;font-weight:800;margin-top:4px;letter-spacing:.06em}
+.feed-layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;padding:18px;background:#090a0e}
+.box{margin-top:0;margin-bottom:18px;padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}.box h2{font:800 14px Montserrat;color:#fff;letter-spacing:0;margin:0 0 14px}.grid{display:grid;grid-template-columns:1fr;gap:8px}.detail{padding:10px 0;border-bottom:1px solid #242832}.detail:last-child{border-bottom:0}.detail b{font-size:10px;color:var(--m)}.detail p{margin:4px 0 0;color:#fff;white-space:pre-wrap}
+.network-grid{display:grid;gap:8px}.network-row{display:flex;align-items:center;gap:10px;padding:9px;border-radius:9px;background:#181b22}.network-row img,.network-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover}.network-avatar{display:grid;place-items:center;background:#242833;color:var(--c);font:800 14px Orbitron}.network-row a{color:#fff;text-decoration:none;font-weight:700}
+.edit-panel input,.edit-panel textarea,.edit-panel select,.guestbook textarea{width:100%;box-sizing:border-box;padding:11px;border-radius:8px;border:1px solid #3a3f4a;background:#090b10;color:#fff;font:inherit}.edit-panel textarea,.guestbook textarea{min-height:85px;resize:vertical}.field{margin:11px 0}.field label{display:block;color:var(--m);font-size:10px;font-weight:800;margin-bottom:5px}.check{display:block;color:var(--m);font-size:11px;margin:8px 0}.empty{text-align:center;padding:35px;color:var(--m)}.guest{padding:12px 0;border-top:1px solid #242832}.guest:first-child{border-top:0}.guest a{color:#fff;font-weight:800;text-decoration:none}.guest small{display:block;color:var(--m);margin-top:4px}
+@media(max-width:760px){.feed-layout{grid-template-columns:1fr}.profile-cover{height:220px}.profile-head{padding:0 18px 18px}.profile-avatar-wrap{height:74px}.avatar{width:120px;height:120px;top:-58px}.stats .stat{min-width:25%;flex:1 0 25%}}
 </style>
 </head>
 <body data-crowrules-division="podcasting">
@@ -109,16 +116,16 @@ body{background:linear-gradient(180deg,#05050b,#090614 55%,#030308);background-a
     }
     const avatar=p.avatar_url?'<img class="avatar" src="'+esc(p.avatar_url)+'" alt="'+esc(name)+'">':'<div class="avatar avatar-fallback">'+esc(initial)+'</div>';
     const networkVisible=p.network_public!==false||!!(me&&me.id===id);
-    let html=(p.cover_url?'<img class="profile-cover" src="'+esc(p.cover_url)+'" alt="Profile cover">':"")+avatar+
+    let html=(p.cover_url?'<img class="profile-cover" src="'+esc(p.cover_url)+'" alt="Profile cover">':"")+'<div class="profile-head"><div class="profile-avatar-wrap"></div>'+avatar+
       '<div class="eyebrow">CROWRULES MEMBER</div><h1 class="name">'+esc(name)+'</h1>'+
       (p.username?'<div class="handle">@'+esc(p.username)+'</div>':"")+
       (p.tagline?'<div class="tagline">'+esc(p.tagline)+'</div>':"")+
       (p.location?'<div class="meta">📍 '+esc(p.location)+'</div>':"")+
       (p.website_url?'<div class="meta"><a style="color:var(--c)" target="_blank" rel="noopener" href="'+esc(p.website_url)+'">Visit website ↗</a></div>':"")+
       (p.badge?'<div class="actions"><span class="btn">'+esc(p.badge)+'</span></div>':"")+
-      (p.bio?'<p class="bio">'+esc(p.bio)+'</p>':"");
+      (p.bio?'<p class="bio">'+esc(p.bio)+'</p>':"")+'</div>';
     if(networkVisible){
-      html+='<div class="stats"><div class="stat"><b>'+fmt(st.published_podcasts)+'</b><span>SHOWS</span></div><div class="stat"><b>'+fmt(st.published_episodes)+'</b><span>EPISODES</span></div><div class="stat"><b>'+fmt(st.total_plays)+'</b><span>PLAYS</span></div><div class="stat"><b>'+fmt(st.profile_views)+'</b><span>PROFILE VIEWS</span></div><div class="stat"><b>'+fmt(st.episode_comments)+'</b><span>COMMENTS</span></div><div class="stat"><b>'+fmt(st.episode_reactions)+'</b><span>REACTIONS</span></div><div class="stat"><b>'+hours+'</b><span>LISTENING HOURS</span></div><div class="stat"><b>'+fmt(st.crowpoints)+'</b><span>CROWPOINTS</span></div></div>';
+      html+='</div><div class="stats"><div class="stat"><b>'+fmt(st.published_podcasts)+'</b><span>SHOWS</span></div><div class="stat"><b>'+fmt(st.published_episodes)+'</b><span>EPISODES</span></div><div class="stat"><b>'+fmt(st.total_plays)+'</b><span>PLAYS</span></div><div class="stat"><b>'+fmt(st.profile_views)+'</b><span>PROFILE VIEWS</span></div><div class="stat"><b>'+fmt(st.episode_comments)+'</b><span>COMMENTS</span></div><div class="stat"><b>'+fmt(st.episode_reactions)+'</b><span>REACTIONS</span></div><div class="stat"><b>'+hours+'</b><span>LISTENING HOURS</span></div><div class="stat"><b>'+fmt(st.crowpoints)+'</b><span>CROWPOINTS</span></div></div>';
     }
     html+='<div class="actions">'+(me&&me.id!==id?'<button id="followBtn" class="btn primary">'+(following?"Following":"Follow Member")+'</button>':"")+
       '<button id="shareBtn" class="btn">SHARE PROFILE</button>'+
