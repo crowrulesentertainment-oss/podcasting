@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05050b"><meta name="color-scheme" content="dark">
+<title>My Podcasts | CrowRules Podcasting</title>
+<meta name="description" content="Your CrowRules Podcasting listening dashboard — continue listening, saved episodes, followed shows, listening history and CrowPoints.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="css/crowrules-cinematic.css">
+<style>
+.my-wrap{width:min(1250px,92%);margin:auto;padding:60px 0 120px}
+.my-hero{text-align:center;margin-bottom:42px}.eyebrow{color:var(--cyan);font:800 .72rem Orbitron;letter-spacing:.2em;text-transform:uppercase}
+.my-hero h1{font:900 clamp(2.4rem,7vw,5.5rem)/.95 Orbitron;margin:14px 0}.my-hero h1 span{color:var(--cyan)}.my-hero p{max-width:720px;margin:auto;color:var(--muted)}
+.login-box,.section-panel{border:1px solid var(--line);border-radius:20px;background:rgba(9,12,23,.86);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.login-box{padding:30px;text-align:center;max-width:700px;margin:0 auto 45px}.login-box[hidden]{display:none}.login-box .btn{margin-top:14px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:34px}.stat-card{padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(12,16,29,.8)}.stat-number{font:900 1.7rem Orbitron;color:var(--cyan)}.stat-label{font-size:.68rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:7px}
+.section-panel{padding:24px;margin:20px 0}.section-head{display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:18px}.section-head h2{margin:0;font:800 1.15rem Orbitron}.section-head span{color:var(--muted);font-size:.75rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}.item{padding:14px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025);display:flex;gap:13px;min-width:0}.thumb{width:76px;height:76px;border-radius:11px;object-fit:cover;background:linear-gradient(135deg,#0c1b2d,#281044);flex:none}.item h3{font:800 .82rem Orbitron;margin:2px 0 7px}.item p{font-size:.72rem;margin:0;color:var(--muted)}.item .meta{font-size:.66rem;color:var(--cyan);margin-top:8px}.item-actions{display:flex;gap:7px;margin-top:10px}.mini{border:1px solid rgba(39,230,255,.3);background:rgba(39,230,255,.06);color:#fff;border-radius:8px;padding:6px 9px;font-size:.65rem;font-weight:800;cursor:pointer}.empty{padding:25px;color:var(--muted);text-align:center;border:1px dashed var(--line);border-radius:13px}.history{display:grid;gap:9px}.history-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:12px;border-bottom:1px solid var(--line)}.history-row:last-child{border-bottom:0}.progress{width:130px;height:5px;border-radius:10px;background:#20263a;overflow:hidden}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));width:0}
+@media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}.history-row{grid-template-columns:1fr}.progress{width:100%}}@media(max-width:480px){.stats{grid-template-columns:1fr 1fr}.section-panel{padding:17px}.my-wrap{padding-top:38px}}
+</style>
+</head>
+<body>
+<header class="nav"><a class="brand" href="home.html">CROW<span>RULES</span> PODCASTING</a><nav class="navlinks"><a href="home.html">Home</a><a href="podcasts.html">Podcasts</a><a href="top-10.html">Top 10</a><a href="categories.html">Categories</a><a href="search.html">Search</a><a href="my-podcasts.html">My Podcasts</a><a href="member.html">Creator</a></nav></header>
+<main class="my-wrap">
+<section class="my-hero"><div class="eyebrow">ONE ACCOUNT. ONE UNIVERSE.</div><h1>MY <span>PODCASTS</span></h1><p>Your personal listening space. Pick up where you left off, keep your saved episodes close, follow your favorite shows and see your CrowRules listening journey.</p></section>
+<section id="loginBox" class="login-box" hidden><h2>Sign in to build your listening history</h2><p>Continue Listening, Saved Episodes, Followed Shows and listening statistics appear here when you're signed in.</p><a class="btn" href="login.html">SIGN IN</a><a class="btn alt" href="signup.html">JOIN CROWRULES</a></section>
+<div id="dashboard" hidden>
+<section class="stats"><div class="stat-card"><div id="statTime" class="stat-number">0m</div><div class="stat-label">Listening Time</div></div><div class="stat-card"><div id="statCompleted" class="stat-number">0</div><div class="stat-label">Completed</div></div><div class="stat-card"><div id="statSaved" class="stat-number">0</div><div class="stat-label">Saved</div></div><div class="stat-card"><div id="statFollowed" class="stat-number">0</div><div class="stat-label">Following</div></div></section>
+<section class="section-panel"><div class="section-head"><h2>▶ CONTINUE LISTENING</h2><span>Pick up where you left off</span></div><div id="continue" class="cards"></div></section>
+<section class="section-panel"><div class="section-head"><h2>♡ SAVED EPISODES</h2><span>Your personal library</span></div><div id="saved" class="cards"></div></section>
+<section class="section-panel"><div class="section-head"><h2>✦ FOLLOWED SHOWS</h2><span>Shows you're following</span></div><div id="followed" class="cards"></div></section>
+<section class="section-panel"><div class="section-head"><h2>◷ LISTENING HISTORY</h2><span>Recent sessions</span></div><div id="history" class="history"></div></section>
+</div>
+</main>
+<script src="assets/js/supabase.js"></script><script src="assets/js/crowrules-player.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+let sb,user;
+async function client(){return window.crowSupabase||await window.getSupabaseClient?.()||await window.loadSupabase()}
+function img(url){return url?'<img class="thumb" src="'+esc(url)+'" alt="">':'<div class="thumb"></div>'}
+function card(e,show){
+ const pct=e.duration_seconds?Math.min(100,Math.round(((e.seconds_listened||0)/e.duration_seconds)*100)):0;
+ return '<article class="item">'+img(e.thumbnail_url||e.artwork_url)+'<div><h3>'+esc(e.title)+'</h3><p>'+esc(show||"CrowRules Podcasting")+'</p><div class="meta">'+(e.seconds_listened?Math.floor(e.seconds_listened/60)+' min listened':'Ready to play')+(e.completed?' • COMPLETE':'')+'</div><div class="item-actions"><button class="mini play" data-id="'+esc(e.id)+'">PLAY</button><a class="mini" href="episode.html?id='+encodeURIComponent(e.id)+'">OPEN</a></div></div></article>'
+}
+async function run(){
+ sb=await client();const auth=await sb.auth.getUser();user=auth.data.user;
+ if(!user){$("loginBox").hidden=false;return}
+ $("dashboard").hidden=false;
+ const [listens,saved,follows]=await Promise.all([
+  sb.from("podcast_listens").select("id,episode_id,seconds_listened,completed,started_at,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(40),
+  sb.from("podcast_saved_episodes").select("id,episode_id,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30),
+  sb.from("podcast_follows").select("id,podcast_id,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30)
+ ]);
+ if(listens.error)throw listens.error;if(saved.error)throw saved.error;if(follows.error)throw follows.error;
+ const listenRows=listens.data||[],savedRows=saved.data||[],followRows=follows.data||[];
+ $("statSaved").textContent=savedRows.length;$("statFollowed").textContent=followRows.length;
+ $("statCompleted").textContent=listenRows.filter(x=>x.completed).length;
+ $("statTime").textContent=formatTime(listenRows.reduce((a,x)=>a+(x.seconds_listened||0),0));
+ const ids=[...new Set([...listenRows.map(x=>x.episode_id),...savedRows.map(x=>x.episode_id)])];
+ let episodes=[];
+ if(ids.length){const q=await sb.from("podcast_episodes").select("id,podcast_id,title,description,duration_seconds,audio_url,thumbnail_url,published_at").in("id",ids);if(q.error)throw q.error;episodes=q.data||[]}
+ const pids=[...new Set([...episodes.map(x=>x.podcast_id),...followRows.map(x=>x.podcast_id)])];
+ let podcasts=[];if(pids.length){const q=await sb.from("podcasts").select("id,title,artwork_url,slug").in("id",pids);if(q.error)throw q.error;podcasts=q.data||[]}
+ const em=new Map(episodes.map(x=>[x.id,x])),pm=new Map(podcasts.map(x=>[x.id,x]));
+ const progress=new Map(listenRows.map(x=>[x.episode_id,x]));
+ const continueRows=listensByEpisode(listenRows).filter(x=>!x.completed&&em.has(x.episode_id)).slice(0,8).map(x=>({...em.get(x.episode_id),...x,artwork_url:pm.get(em.get(x.episode_id).podcast_id)?.artwork_url}));
+ $("continue").innerHTML=continueRows.length?continueRows.map(x=>card(x,pm.get(x.podcast_id)?.title)).join(""):'<div class="empty">Nothing waiting for you. Start listening to a podcast and your progress will appear here.</div>';
+ const savedCards=savedRows.map(x=>{const e=em.get(x.episode_id);return e?({...e,artwork_url:pm.get(e.podcast_id)?.artwork_url}):null}).filter(Boolean);
+ $("saved").innerHTML=savedCards.length?savedCards.map(x=>card({...x,seconds_listened:progress.get(x.id)?.seconds_listened},pm.get(x.podcast_id)?.title)).join(""):'<div class="empty">No saved episodes yet.</div>';
+ const followed=followRows.map(x=>pm.get(x.podcast_id)).filter(Boolean);
+ $("followed").innerHTML=followed.length?followed.map(p=>'<article class="item">'+img(p.artwork_url)+'<div><h3>'+esc(p.title)+'</h3><p>Followed show</p><div class="item-actions"><a class="mini" href="podcast.html?id='+encodeURIComponent(p.id)+'">OPEN SHOW</a></div></div></article>').join(""):'<div class="empty">You aren't following any shows yet.</div>';
+ $("history").innerHTML=listenRows.slice(0,12).map(x=>{const e=em.get(x.episode_id);if(!e)return '';const p=pm.get(e.podcast_id);const pct=e.duration_seconds?Math.min(100,Math.round((x.seconds_listened/e.duration_seconds)*100)):0;return '<div class="history-row"><div><strong>'+esc(e.title)+'</strong><div style="color:var(--muted);font-size:.7rem">'+esc(p?.title||"Podcast")+' • '+new Date(x.created_at).toLocaleDateString()+'</div></div><div class="progress"><i style="width:'+pct+'%"></i></div><span style="font-size:.7rem;color:var(--cyan)">'+pct+'%</span></div>'}).join("")||'<div class="empty">Your listening history will appear here.</div>';
+ document.querySelectorAll(".play").forEach(b=>b.onclick=async()=>{const e=em.get(b.dataset.id);const p=e&&pm.get(e.podcast_id);if(e)await window.CrowRulesPlayEpisode({id:e.id,title:e.title,show:p?.title,audio_url:e.audio_url,artwork_url:e.thumbnail_url||p?.artwork_url})});
+}
+function listensByEpisode(rows){const m=new Map();for(const x of rows){const old=m.get(x.episode_id);if(!old||new Date(x.created_at)>new Date(old.created_at))m.set(x.episode_id,x)}return [...m.values()].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))}
+function formatTime(s){s=Math.floor(s||0);if(s<60)return s+"s";const m=Math.floor(s/60);if(m<60)return m+"m";return Math.floor(m/60)+"h "+(m%60)+"m"}
+run().catch(e=>{console.error(e);$("dashboard").innerHTML='<div class="empty">We could not load your listening dashboard. Please refresh and try again.</div>';$("dashboard").hidden=false});
+</script>
+</body></html>
