@@ -194,25 +194,83 @@
       line-height:1.6;
     }
 
+    .milestones{
+      margin:0 0 38px;
+    }
+    .milestone-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:16px;
+    }
+    .badge-card{
+      position:relative;
+      padding:22px 20px;
+      border:1px solid rgba(155,92,255,.25);
+      border-radius:18px;
+      background:
+        radial-gradient(circle at 85% 15%,rgba(255,79,216,.08),transparent 35%),
+        var(--card);
+      box-shadow:0 15px 45px rgba(0,0,0,.22);
+    }
+    .badge-card.locked{
+      opacity:.48;
+      filter:grayscale(.65);
+    }
+    .badge-icon{
+      width:54px;height:54px;
+      display:grid;place-items:center;
+      border-radius:15px;
+      margin-bottom:15px;
+      background:rgba(155,92,255,.1);
+      border:1px solid rgba(155,92,255,.22);
+      font-size:1.6rem;
+    }
+    .badge-name{
+      font:800 .92rem/1.25 "Orbitron",sans-serif;
+      color:#fff;
+    }
+    .badge-description{
+      margin-top:8px;
+      color:rgba(255,255,255,.58);
+      font-size:.78rem;
+      line-height:1.55;
+    }
+    .badge-status{
+      margin-top:13px;
+      color:var(--cyan);
+      font:800 .62rem/1 "Montserrat",sans-serif;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+    .badge-date{
+      margin-top:7px;
+      color:rgba(255,255,255,.38);
+      font-size:.7rem;
+    }
+    .milestone-empty{
+      padding:20px;
+      border:1px dashed rgba(255,255,255,.12);
+      border-radius:16px;
+      color:rgba(255,255,255,.5);
+    }
     .footer{text-align:center;padding:30px 20px}
 
     @media(max-width:760px){
       .creator-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
       .creator-actions{grid-template-columns:1fr}
+      .milestone-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
 
     @media(max-width:480px){
       .creator-stats{grid-template-columns:1fr}
+      .milestone-grid{grid-template-columns:1fr}
     }
   </style>
 </head>
 
 <body data-crowrules-division="podcasting">
 
-<header class="nav">
-  <a class="brand" href="index.html">CROWRULES <span>PODCASTING</span></a>
-  <nav class="navlinks"></nav>
-</header>
+<div id="crowrules-membership" class="membership-only" aria-label="Universal CrowRules Membership"></div>
 
 <main class="creator-main">
 
@@ -303,6 +361,13 @@
 
     </section>
 
+    <section class="milestones">
+      <h2 class="stats-title">Creator Milestones</h2>
+      <div id="badgeGrid" class="milestone-grid">
+        <div class="milestone-empty">Checking your creator milestones…</div>
+      </div>
+    </section>
+
     <section class="creator-actions">
 
       <article class="creator-card">
@@ -370,6 +435,37 @@
     "lastEpisode"
   ];
 
+  function renderBadges(definitions, earned){
+    const grid=document.getElementById("badgeGrid");
+    if(!grid) return;
+
+    const earnedMap=new Map(
+      (earned || []).map(row=>[row.badge_key,row])
+    );
+
+    if(!definitions || !definitions.length){
+      grid.innerHTML='<div class="milestone-empty">No milestones are configured yet.</div>';
+      return;
+    }
+
+    grid.innerHTML=definitions.map(badge=>{
+      const row=earnedMap.get(badge.badge_key);
+      const earnedClass=row ? "" : " locked";
+      const status=row ? "Earned" : "Locked";
+      const dateText=row ? date(row.awarded_at) : "Keep creating to unlock this milestone.";
+
+      return `
+        <article class="badge-card${earnedClass}">
+          <div class="badge-icon">${badge.icon || "🏆"}</div>
+          <div class="badge-name">${badge.name}</div>
+          <div class="badge-description">${badge.description}</div>
+          <div class="badge-status">${status}</div>
+          <div class="badge-date">${dateText}</div>
+        </article>
+      `;
+    }).join("");
+  }
+
   function set(id,value){
     const el = document.getElementById(id);
     if(el) el.textContent = value;
@@ -421,6 +517,16 @@
         return;
       }
 
+      // Backfill milestones for existing creators and award newly reached badges.
+      const {error:badgeAwardError}=await client.rpc(
+        "award_podcast_creator_badges",
+        {p_user_id:session.user.id}
+      );
+
+      if(badgeAwardError){
+        console.warn("[CrowRules Podcast Badges]",badgeAwardError);
+      }
+
       const {data,error}=await client
         .from("podcast_creator_stats")
         .select("*")
@@ -446,6 +552,21 @@
       set("savedCount",number(stats.saved_episode_count));
       set("crowPoints",number(stats.crowpoints));
       set("lastEpisode",date(stats.last_episode_at));
+
+      const {data:definitions,badgeError}=await client
+        .from("podcast_badge_definitions")
+        .select("badge_key,name,description,icon,threshold_type,threshold_value,sort_order")
+        .order("sort_order",{ascending:true});
+
+      const {data:earned, error:earnedError}=await client
+        .from("podcast_creator_badges")
+        .select("badge_key,awarded_at");
+
+      if(badgeError || earnedError){
+        console.warn("[CrowRules Podcast Badges]",badgeError || earnedError);
+      }
+
+      renderBadges(definitions || [], earned || []);
 
     }catch(error){
       console.error("[CrowRules Podcast Creator Hub]",error);
