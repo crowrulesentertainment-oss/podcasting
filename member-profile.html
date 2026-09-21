@@ -32,6 +32,10 @@ body{margin:0;background:#07080c;color:#e8eaf0;font-family:Montserrat,Arial,sans
 .profile-tabs{display:flex;gap:4px;padding:0 18px;background:#11131a;border-bottom:1px solid var(--line);overflow:auto}.profile-tabs button{border:0;background:transparent;color:var(--m);padding:14px 16px;font-weight:800;white-space:nowrap;cursor:pointer;border-bottom:3px solid transparent}.profile-tabs button.active{color:#fff;border-bottom-color:#1877f2}.profile-section{display:none}.profile-section.active{display:block}.profile-head .actions{margin-top:14px}.profile-head .meta a{font-weight:700;text-decoration:none}.network-row:hover{background:#20242d}.guest{line-height:1.55}
 
 .profile-tabs{position:sticky;top:0;z-index:5}.profile-tabs button:focus-visible{outline:2px solid #1877f2;outline-offset:-2px}.profile-tabs::-webkit-scrollbar{height:4px}.profile-tabs::-webkit-scrollbar-thumb{background:#3b404b;border-radius:8px}.profile-section{animation:profileFade .18s ease}@keyframes profileFade{from{opacity:.35;transform:translateY(3px)}to{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){.profile-section{animation:none}}
+
+/* V19 social profile polish */
+.profile-cover{min-height:180px;background:linear-gradient(135deg,#111827,#182033 48%,#0b1020);object-position:center}.profile-head{min-height:205px}.profile-head:after{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,#1877f2,#8b5cf6,#00e5ff);opacity:.9}.profile-avatar-wrap{z-index:2}.avatar{box-shadow:0 4px 20px #0008}.name{letter-spacing:-.035em}.profile-head .handle{margin-top:-2px}.profile-head .actions{margin-top:16px}.profile-head .actions .btn{min-height:40px}.stats{position:relative}.stats .stat{transition:background .15s ease}.stats .stat:hover{background:#171a22}.profile-tabs{background:#0f1117;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.profile-tabs button{font-size:11px}.profile-tabs button.active{box-shadow:inset 0 -2px 0 #1877f2}.box{box-shadow:0 4px 18px #0005}.box h2{display:flex;align-items:center;gap:8px}.box h2:before{content:"";width:3px;height:15px;border-radius:4px;background:#1877f2}.actions .btn:hover{filter:brightness(1.08);transform:translateY(-1px)}.actions .btn{transition:transform .12s ease,filter .12s ease}.profile-empty-state{padding:48px 20px;text-align:center}.profile-status{min-height:20px;margin:10px 0}.profile-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#20242d;border:1px solid #3a3f4a;color:#fff;font-size:11px;font-weight:800}
+@media(max-width:760px){.profile-cover{min-height:150px}.profile-head{min-height:220px}.profile-head .actions{gap:6px}.profile-head .actions .btn{flex:1 1 auto}.stats .stat{min-width:33.333%;flex:1 0 33.333%}.profile-tabs button{padding:13px 14px}}
 </style>
 </head>
 <body data-crowrules-division="podcasting">
@@ -118,7 +122,7 @@ body{margin:0;background:#07080c;color:#e8eaf0;font-family:Montserrat,Arial,sans
       ]);
       following=!!pair[0].data;mutual=!!pair[1].data;
     }
-    const avatar=p.avatar_url?'<img class="avatar" src="'+esc(p.avatar_url)+'" alt="'+esc(name)+'">':'<div class="avatar avatar-fallback">'+esc(initial)+'</div>';
+    const avatar=p.avatar_url?'<img class="avatar" src="'+esc(p.avatar_url)+'" alt="'+esc(name)+'" loading="eager" referrerpolicy="no-referrer">':'<div class="avatar avatar-fallback">'+esc(initial)+'</div>';
     const networkVisible=p.network_public!==false||!!(me&&me.id===id);
     let html=(p.cover_url?'<img class="profile-cover" src="'+esc(p.cover_url)+'" alt="Profile cover">':"")+'<div class="profile-head"><div class="profile-avatar-wrap"></div>'+avatar+
       '<div class="eyebrow">CROWRULES MEMBER</div><h1 class="name">'+esc(name)+'</h1>'+
@@ -126,7 +130,7 @@ body{margin:0;background:#07080c;color:#e8eaf0;font-family:Montserrat,Arial,sans
       (p.tagline?'<div class="tagline">'+esc(p.tagline)+'</div>':"")+
       (p.location?'<div class="meta">📍 '+esc(p.location)+'</div>':"")+
       (p.website_url?'<div class="meta"><a style="color:var(--c)" target="_blank" rel="noopener" href="'+esc(p.website_url)+'">Visit website ↗</a></div>':"")+
-      (p.badge?'<div class="actions"><span class="btn">'+esc(p.badge)+'</span></div>':"")+
+      (p.badge?'<div style="margin-top:10px"><span class="profile-badge">✓ '+esc(p.badge)+'</span></div>':"")+
       (p.bio?'<p class="bio">'+esc(p.bio)+'</p>':"")+'</div>';
     if(networkVisible){
       html+='<div class="stats"><div class="stat"><b>'+fmt(st.published_podcasts)+'</b><span>SHOWS</span></div><div class="stat"><b>'+fmt(st.published_episodes)+'</b><span>EPISODES</span></div><div class="stat"><b>'+fmt(st.total_plays)+'</b><span>PLAYS</span></div><div class="stat"><b>'+fmt(st.profile_views)+'</b><span>PROFILE VIEWS</span></div><div class="stat"><b>'+fmt(st.episode_comments)+'</b><span>COMMENTS</span></div><div class="stat"><b>'+fmt(st.episode_reactions)+'</b><span>REACTIONS</span></div><div class="stat"><b>'+hours+'</b><span>LISTENING HOURS</span></div><div class="stat"><b>'+fmt(st.crowpoints)+'</b><span>CROWPOINTS</span></div></div>';
@@ -135,7 +139,7 @@ body{margin:0;background:#07080c;color:#e8eaf0;font-family:Montserrat,Arial,sans
       '<button id="shareBtn" class="btn">SHARE PROFILE</button>'+
       (me&&me.id!==id?'<button id="blockBtn" class="btn">BLOCK MEMBER</button><button id="reportBtn" class="btn">REPORT MEMBER</button>':"")+
       '<a class="btn" href="member-activity.html">NETWORK</a></div>'+
-      '<div id="status" class="meta"></div>'+
+      '<div id="status" class="meta profile-status" aria-live="polite"></div>'+
       '<section class="box"><h2>MYSPACE DETAILS</h2><div class="grid">'+
       '<div class="detail"><b>MOOD</b><p>'+esc(p.mood||"Online")+'</p></div>'+
       '<div class="detail"><b>INTERESTS</b><p>'+esc(p.interests||"Not added yet.")+'</p></div>'+
