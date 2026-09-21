@@ -127,7 +127,9 @@
             <a class="btn secondary" href="member.html">Creator Hub</a>
             <button id="signOut" class="danger" type="button">Sign Out</button>
           </div>
-          <div id="status" class="status" role="status" aria-live="polite"></div>\n          <div class="profile-complete"><div class="hint">PROFILE COMPLETENESS <strong id="completePct">0%</strong></div><div class="progress"><i id="completeBar"></i></div></div>\n          <div class="share-link"><input id="publicProfileLink" readonly aria-label="Public profile link"><button id="copyProfileLink" class="secondary" type="button">Copy Public Link</button></div>
+          <div id="status" class="status" role="status" aria-live="polite"></div>
+          <div class="profile-complete"><div class="hint">PROFILE COMPLETENESS <strong id="completePct">0%</strong></div><div class="progress"><i id="completeBar"></i></div></div>
+          <div class="share-link"><input id="publicProfileLink" readonly aria-label="Public profile link"><button id="copyProfileLink" class="secondary" type="button">Copy Public Link</button></div>
         </form>
       </section>
 
@@ -208,7 +210,9 @@
     renderPreview(profile);updateCompleteness(profile);updatePublicLink(profile);if(profile.cover_url){$("coverPreview").src=profile.cover_url;$("coverPreviewWrap").classList.remove("hidden")}
   }
 
-  function updateCompleteness(p){const fields=[p.display_name,p.username,p.tagline,p.bio,p.avatar_url,p.cover_url,p.location,p.website_url,p.mood,p.interests,p.favorite_music,p.favorite_movies,p.favorite_games].filter(v=>String(v||"").trim()).length;const pct=Math.round(fields/13*100);text("completePct",pct+"%");$( "completeBar").style.width=pct+"%"}\n  function updatePublicLink(p){const url=new URL("member-profile.html",location.href);if(p.username)url.searchParams.set("username",p.username);else url.searchParams.set("user",p.user_id);$("publicProfileLink").value=url.href}\n  function renderPreview(p){
+  function updateCompleteness(p){const fields=[p.display_name,p.username,p.tagline,p.bio,p.avatar_url,p.cover_url,p.location,p.website_url,p.mood,p.interests,p.favorite_music,p.favorite_movies,p.favorite_games].filter(v=>String(v||"").trim()).length;const pct=Math.round(fields/13*100);text("completePct",pct+"%");$( "completeBar").style.width=pct+"%"}
+  function updatePublicLink(p){const url=new URL("member-profile.html",location.href);if(p.username)url.searchParams.set("username",p.username);else url.searchParams.set("user",p.user_id);$("publicProfileLink").value=url.href}
+  function renderPreview(p){
     const name=p.display_name||"Crow Member";document.body.dataset.profileTheme=p.profile_theme||"cyber";
     text("previewName",name);
     text("previewUsername",p.username?"@"+p.username:"@member");
@@ -289,7 +293,8 @@
   }
 
   $("profileForm").addEventListener("submit",saveProfile);
-  $("copyProfileLink").addEventListener("click",async()=>{try{await navigator.clipboard.writeText($("publicProfileLink").value);setStatus("Public profile link copied.","ok")}catch(e){$("publicProfileLink").select();setStatus("Select and copy the public profile link.","")}});\n  $("signOut").addEventListener("click",async()=>{
+  $("copyProfileLink").addEventListener("click",async()=>{try{await navigator.clipboard.writeText($("publicProfileLink").value);setStatus("Public profile link copied.","ok")}catch(e){$("publicProfileLink").select();setStatus("Select and copy the public profile link.","")}});
+  $("signOut").addEventListener("click",async()=>{
     await client.auth.signOut();
     location.href="index.html";
   });
