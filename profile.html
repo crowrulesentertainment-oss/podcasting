@@ -48,7 +48,7 @@
     .badge-icon{font-size:1.5rem}.badge-row strong{font:800 .8rem Montserrat}.badge-row small{display:block;color:var(--cr-muted);margin-top:3px}
     .locked{opacity:.45;filter:grayscale(1)}
     .notice{padding:18px;border:1px solid rgba(0,229,255,.18);border-radius:14px;background:rgba(0,229,255,.04);color:#cbd1e3}
-    .hidden{display:none!important}
+    .hidden{display:none!important}.theme-preview{padding:10px;border:1px solid var(--cr-line);border-radius:12px;color:var(--cr-muted);font-size:.72rem}
     @media(max-width:820px){.grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
     @media(max-width:560px){main{width:min(100% - 20px,1120px);padding-top:34px}.card{padding:18px}.profile-head{align-items:flex-start}.avatar{width:78px;height:78px}}
   </style>
@@ -60,6 +60,7 @@
 </header>
 
 <main>
+  <div class="theme-preview" id="themePreview">MySpace theme: Cyber</div>
   <div id="loading" class="notice">Loading your CrowRules profile…</div>
 
   <section id="profileApp" class="hidden">
@@ -175,7 +176,7 @@
   }
 
   async function loadProfile(){
-    const {data,error}=await client.from("podcast_member_profiles").select("user_id,display_name,username,bio,tagline,location,website_url,cover_url,avatar_url,badge,is_public,created_at,updated_at").eq("user_id",user.id).maybeSingle();
+    const {data,error}=await client.from("podcast_member_profiles").select("user_id,display_name,username,bio,tagline,location,website_url,cover_url,avatar_url,badge,is_public,mood,interests,favorite_music,favorite_movies,favorite_games,profile_theme,created_at,updated_at").eq("user_id",user.id).maybeSingle();
     if(error)throw error;
 
     let profile=data;
@@ -192,14 +193,14 @@
     $("displayName").value=profile.display_name||"";
     $("username").value=profile.username||"";
     $("bio").value=profile.bio||"";$("tagline").value=profile.tagline||"";$("location").value=profile.location||"";$("websiteUrl").value=profile.website_url||"";$("coverUrl").value=profile.cover_url||"";
-    $("avatarUrl").value=profile.avatar_url||"";
+    $("avatarUrl").value=profile.avatar_url||"";$("mood").value=profile.mood||"";$("interests").value=profile.interests||"";$("favoriteMusic").value=profile.favorite_music||"";$("favoriteMovies").value=profile.favorite_movies||"";$("favoriteGames").value=profile.favorite_games||"";$("profileTheme").value=profile.profile_theme||"cyber";
     $("badge").value=profile.badge||"CROW MEMBER";
     $("isPublic").value=profile.is_public===false?"false":"true";
     renderPreview(profile);updateCompleteness(profile);updatePublicLink(profile);if(profile.cover_url){$("coverPreview").src=profile.cover_url;$("coverPreviewWrap").classList.remove("hidden")}
   }
 
-  function updateCompleteness(p){const fields=[p.display_name,p.username,p.tagline,p.bio,p.avatar_url,p.cover_url,p.location,p.website_url].filter(v=>String(v||"").trim()).length;const pct=Math.round(fields/8*100);text("completePct",pct+"%");$( "completeBar").style.width=pct+"%"}\n  function updatePublicLink(p){const url=new URL("member-profile.html",location.href);if(p.username)url.searchParams.set("username",p.username);else url.searchParams.set("user",p.user_id);$("publicProfileLink").value=url.href}\n  function renderPreview(p){
-    const name=p.display_name||"Crow Member";
+  function updateCompleteness(p){const fields=[p.display_name,p.username,p.tagline,p.bio,p.avatar_url,p.cover_url,p.location,p.website_url,p.mood,p.interests,p.favorite_music,p.favorite_movies,p.favorite_games].filter(v=>String(v||"").trim()).length;const pct=Math.round(fields/13*100);text("completePct",pct+"%");$( "completeBar").style.width=pct+"%"}\n  function updatePublicLink(p){const url=new URL("member-profile.html",location.href);if(p.username)url.searchParams.set("username",p.username);else url.searchParams.set("user",p.user_id);$("publicProfileLink").value=url.href}\n  function renderPreview(p){
+    const name=p.display_name||"Crow Member";document.body.dataset.profileTheme=p.profile_theme||"cyber";
     text("previewName",name);
     text("previewUsername",p.username?"@"+p.username:"@member");
     text("previewBadge",p.badge||"CROW MEMBER");
@@ -218,7 +219,7 @@
       display_name:$("displayName").value.trim().slice(0,80)||null,
       username:username||null,
       bio:$("bio").value.trim().slice(0,500),
-      avatar_url:$("avatarUrl").value.trim().slice(0,1000)||null,tagline:$("tagline").value.trim().slice(0,120)||null,location:$("location").value.trim().slice(0,100)||null,website_url:$("websiteUrl").value.trim().slice(0,500)||null,cover_url:$("coverUrl").value.trim().slice(0,1000)||null,
+      avatar_url:$("avatarUrl").value.trim().slice(0,1000)||null,tagline:$("tagline").value.trim().slice(0,120)||null,location:$("location").value.trim().slice(0,100)||null,website_url:$("websiteUrl").value.trim().slice(0,500)||null,cover_url:$("coverUrl").value.trim().slice(0,1000)||null,mood:$("mood").value.trim().slice(0,80)||null,interests:$("interests").value.trim().slice(0,500)||null,favorite_music:$("favoriteMusic").value.trim().slice(0,300)||null,favorite_movies:$("favoriteMovies").value.trim().slice(0,300)||null,favorite_games:$("favoriteGames").value.trim().slice(0,300)||null,profile_theme:$("profileTheme").value,
       badge:$("badge").value.trim().slice(0,60)||"CROW MEMBER",
       is_public:$("isPublic").value==="true",
       updated_at:new Date().toISOString()
@@ -226,7 +227,7 @@
     setStatus("Saving…");
     const {data,error}=await client.from("podcast_member_profiles").upsert(payload,{onConflict:"user_id"}).select().single();
     if(error){setStatus(error.message||"Could not save your profile.","err");return}
-    renderPreview(data);updateCompleteness(data);updatePublicLink(data);setStatus("Profile saved to Supabase.","ok");
+    renderPreview(data);updateCompleteness(data);updatePublicLink(data);$("themePreview").textContent="MySpace theme: "+(data.profile_theme||"cyber");setStatus("Profile saved to Supabase.","ok");
   }
 
   async function loadStats(){
