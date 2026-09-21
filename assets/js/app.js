@@ -1,6 +1,6 @@
 
 const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co";
-const SUPABASE_KEY=window.CROWRULES_SUPABASE_KEY||"";
+const SUPABASE_KEY=window.CROWRULES_SUPABASE_KEY||"sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
 let sb=null;
 async function loadSupabase(){if(sb)return sb;const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";await new Promise((r,j)=>{s.onload=r;s.onerror=j});sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);return sb}
 async function auth(){const c=await loadSupabase();return c.auth.getUser()}
