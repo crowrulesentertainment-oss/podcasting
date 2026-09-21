@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#050505">
-<meta name="description" content="CrowRules Podcasting launches January 1, 2027 — The Voice of the Crow.">
-<title>CrowRules Podcasting | Launching January 1, 2027</title>
+<meta name="description" content="CrowRules Podcasting — The Voice of the Crow. Original podcasts, independent voices, stories, conversations and live audio across the CrowRules universe.">
+<title>CrowRules Podcasting | The Voice of the Crow</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1094,30 +1094,23 @@ footer{
          SIGN UP
     ========================================================= -->
 
-    <div class="actions">
-
-      <a
-        class="btn p<div class="actions">
+    <div class="actions" aria-label="Podcasting actions">
 
       <a
         class="btn primary"
         href="signup.html"
         aria-label="Sign up for CrowRules Podcasting">
-
         Sign Up for CrowRules Podcasting
-
       </a>
-
-    </div>
 
       <a
         class="btn"
         href="member.html"
         aria-label="Open the CrowRules Podcasting Creator Hub">
-
         Creator Hub
-
       </a>
+
+    </div>
 
 
     <!-- ========================================================
@@ -1279,18 +1272,13 @@ footer{
         'show'
       );
 
+      // The launch page remains usable after launch instead of
+      // redirecting to a page that may not exist.
+      document.querySelector('.status').textContent =
+        '● TRANSMISSION LIVE';
 
-      setTimeout(
-        () => {
-
-          window.location.replace(
-            'home.html'
-          );
-
-        },
-        1200
-      );
-
+      document.querySelector('.sigtext b').textContent =
+        '● ONLINE';
 
       return;
 
