@@ -71,9 +71,16 @@ body{background:linear-gradient(180deg,#05050b,#090614 55%,#030308);background-a
       id=lookup.data.user_id;
       history.replaceState(null,"","member-profile.html?user="+encodeURIComponent(id));
     }
-    if(!id){el.innerHTML='<div class="empty">No member was specified.</div>';return}
     const authResult=await sb.auth.getUser();
     const me=authResult&&authResult.data?authResult.data.user:null;
+    if(!id){
+      if(!me){
+        el.innerHTML='<div class="empty">Please log in to view your member profile.</div>';
+        return;
+      }
+      id=me.id;
+      history.replaceState(null,"","member-profile.html?user="+encodeURIComponent(id));
+    }
     const profileResult=await sb.from("podcast_member_profiles").select("user_id,display_name,username,bio,tagline,location,website_url,cover_url,avatar_url,badge,is_public,activity_public,network_public,followers_public,following_public,mood,interests,favorite_music,favorite_movies,favorite_games,profile_theme,featured_achievement").eq("user_id",id).maybeSingle();
     if(profileResult.error)throw profileResult.error;
     const p=profileResult.data;
