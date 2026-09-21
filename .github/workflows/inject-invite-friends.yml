@@ -1,4 +1,4 @@
-name: CrowRules Universal Page Navigation
+name: CrowRules Universal Page Enhancements
 
 on:
   push:
@@ -9,33 +9,27 @@ permissions:
   contents: write
 
 jobs:
-  inject-navigation:
+  inject-invite:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Add universal invite and navigation scripts to every HTML page
+      - name: Ensure Invite Friends is loaded on every HTML page
         shell: python
         run: |
           from pathlib import Path
           import re
-          root = Path('.')
+          root=Path('.')
           changed=[]
           for path in root.rglob('*.html'):
               if '.git' in path.parts:
                   continue
               text=path.read_text(encoding='utf-8')
-              depth=len(path.parent.parts)
-              rel_js='../js' if depth else 'js'
-              additions=[]
-              if 'crowrules-invite.js' not in text:
-                  additions.append(f'<script src="{rel_js}/crowrules-invite.js"></script>')
-              if 'crowrules-navigation.js' not in text:
-                  additions.append(f'<script src="{rel_js}/crowrules-navigation.js"></script>')
-              if not additions:
+              if 'crowrules-invite.js' in text:
                   continue
-              tag='\n'.join(additions)
+              rel='../js/crowrules-invite.js' if len(path.parts)>1 else 'js/crowrules-invite.js'
+              tag=f'<script src="{rel}"></script>'
               m=re.search(r'</body>\s*</html>\s*$',text,re.I)
               if m:
                   text=text[:m.start()]+tag+'\n'+text[m.start():]
@@ -43,16 +37,17 @@ jobs:
                   text=re.sub(r'</body>\s*$',tag+'\n</body>',text,flags=re.I)
               else:
                   text+='\n'+tag+'\n'
-              path.write_text(text,encoding='utf-8');changed.append(str(path))
+              path.write_text(text,encoding='utf-8')
+              changed.append(str(path))
           print(f'Updated {len(changed)} HTML pages')
           for x in changed: print(x)
 
-      - name: Commit universal navigation
+      - name: Commit universal page enhancement links
         shell: bash
         run: |
           if git diff --quiet; then echo "No HTML changes needed."; exit 0; fi
           git config user.name "crowrules-bot"
           git config user.email "crowrules-bot@users.noreply.github.com"
-          git add '*.html' '**/*.html' .github/workflows/inject-invite-friends.yml js/crowrules-navigation.js
-          git commit -m "Upgrade navigation and fix links across all HTML pages [skip ci]"
+          git add '*.html' '**/*.html'
+          git commit -m "Ensure universal CrowRules page enhancements [skip ci]"
           git push
