@@ -2543,30 +2543,112 @@
 
     try {
 
-      const { data, error } =
-        await client.functions.invoke(
-          "creator-connect-onboarding",
-          {
-            body: {
-              origin: window.location.origin,
-              return_path:
-                window.location.pathname +
-                window.location.search
-            }
-          }
+      /*
+       * Use a direct fetch here instead of functions.invoke().
+       * This lets the browser read the actual JSON error body
+       * returned by the Edge Function, including Stripe's
+       * error message and the exact failing stage.
+       */
+      const {
+        data: sessionData,
+        error: sessionError
+      } = await client.auth.getSession();
+
+      if (sessionError) {
+        throw new Error(
+          "Unable to read your login session: " +
+          sessionError.message
         );
+      }
+
+      const accessToken =
+        sessionData?.session?.access_token;
+
+      if (!accessToken) {
+        throw new Error(
+          "Your login session has expired. Please sign out, sign back in, and try again."
+        );
+      }
+
+      const supabaseUrl =
+        window.CROWRULES_SUPABASE_URL ||
+        window.SUPABASE_URL;
+
+      const publishableKey =
+        window.CROWRULES_SUPABASE_PUBLISHABLE_KEY ||
+        window.SUPABASE_PUBLISHABLE_KEY ||
+        window.SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !publishableKey) {
+        throw new Error(
+          "CrowRules Supabase configuration is missing."
+        );
+      }
+
+      const functionUrl =
+        supabaseUrl.replace(/\\/$/, "") +
+        "/functions/v1/creator-connect-onboarding";
+
+      const response = await fetch(
+        functionUrl,
+        {
+          method: "POST",
+          headers: {
+            "Authorization":
+              "Bearer " + accessToken,
+            "apikey":
+              publishableKey,
+            "Content-Type":
+              "application/json"
+          },
+          body: JSON.stringify({
+            origin:
+              window.location.origin,
+            return_path:
+              window.location.pathname +
+              window.location.search
+          })
+        }
+      );
+
+      const rawBody =
+        await response.text();
+
+      let data = null;
+
+      if (rawBody) {
+        try {
+          data = JSON.parse(rawBody);
+        } catch (_) {
+          data = {
+            error: rawBody
+          };
+        }
+      }
 
       console.info(
         "creator-connect-onboarding response:",
-        { data, error }
+        {
+          status: response.status,
+          statusText: response.statusText,
+          data
+        }
       );
 
-      if (error) {
+      if (!response.ok) {
         const detail =
-          extractEdgeFunctionError(error, data);
+          extractEdgeFunctionError(
+            null,
+            data
+          ) ||
+          response.statusText ||
+          "Unknown Edge Function error.";
 
         throw new Error(
-          "Payout onboarding failed: " + detail
+          "Payout onboarding failed: HTTP " +
+          response.status +
+          " • " +
+          detail
         );
       }
 
@@ -2600,7 +2682,9 @@
         "success"
       );
 
-      window.location.assign(data.onboarding_url);
+      window.location.assign(
+        data.onboarding_url
+      );
 
     } catch (error) {
 
@@ -2614,23 +2698,48 @@
         "Unable to start payout onboarding.";
 
       if (
-        messageText.includes("STRIPE_SECRET_KEY_MISSING")
+        messageText.includes(
+          "STRIPE_SECRET_KEY_MISSING"
+        )
       ) {
         messageText =
           "Stripe payout onboarding is not configured yet. The CrowRules Edge Function needs its server-side Stripe secret configured.";
       }
 
       if (
-        messageText.includes("STRIPE_SECRET_KEY_INVALID")
+        messageText.includes(
+          "STRIPE_SECRET_KEY_INVALID"
+        )
       ) {
         messageText =
           "Stripe payout onboarding has an invalid server-side Stripe secret. Update the Edge Function secret and try again.";
       }
 
       if (
-        messageText.includes("Unauthorized") ||
-        messageText.includes("JWT") ||
-        messageText.includes("HTTP 401")
+        messageText.includes(
+          "SUPABASE_SERVER_CONFIG_MISSING"
+        )
+      ) {
+        messageText =
+          "The payout service is missing its server-side Supabase configuration.";
+      }
+
+      if (
+        messageText.includes(
+          "Authentication required"
+        ) ||
+        messageText.includes(
+          "SESSION_INVALID"
+        ) ||
+        messageText.includes(
+          "HTTP 401"
+        ) ||
+        messageText.includes(
+          "Unauthorized"
+        ) ||
+        messageText.includes(
+          "JWT"
+        )
       ) {
         messageText =
           "Your CrowRules login session was not accepted by the payout service. Sign out, sign back in, and try again.";
@@ -2638,16 +2747,18 @@
 
       if (message) {
         message.textContent =
-          "Payout onboarding could not be started. The detailed service error is shown above.";
+          "Payout onboarding could not be started. The exact service error is shown above.";
       }
 
-      showNotice(messageText, "error");
+      showNotice(
+        messageText,
+        "error"
+      );
 
       button.disabled = false;
       button.textContent = originalText;
     }
   }
-
 
   /* ============================================================
      LOAD PAGE
