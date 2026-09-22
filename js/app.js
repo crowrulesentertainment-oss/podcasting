@@ -101,56 +101,86 @@ function creatorNavCreatorHealthIndex(data){
   const weights={AT_RISK:35,"NEEDS ATTENTION":55,"LIKELY TO COMPLETE":90};
   return Math.round(data.reduce((sum,x)=>{const trend=x.t.direction==="IMPROVING"?10:x.t.direction==="DECLINING"?-10:0;return sum+Math.max(0,Math.min(100,(weights[x.f.status]||50)+trend+(x.f.pct>=75?10:0)));},0)/data.length);
 }
-function creatorNavPlanningRead(){try{return JSON.parse(localStorage.getItem("crowrules_creator_plans_v1")||"{}");}catch{return {};}}
-function creatorNavPlanningWrite(x){try{localStorage.setItem("crowrules_creator_plans_v1",JSON.stringify(x));}catch{}}
-function creatorNavPlanSave(id,plan){const all=creatorNavPlanningRead();all[id]=plan;creatorNavPlanningWrite(all);}
+const CREATOR_NAV_ROADMAP_KEY="crowrules_creator_roadmaps_v1",CREATOR_NAV_SCENARIOS_KEY="crowrules_creator_saved_scenarios_v1";
+function creatorNavPlanningRead(){try{return JSON.parse(localStorage.getItem(CREATOR_NAV_ROADMAP_KEY)||"{}");}catch{return {};}}
+function creatorNavPlanningWrite(x){try{localStorage.setItem(CREATOR_NAV_ROADMAP_KEY,JSON.stringify(x));}catch{}}
+function creatorNavPlanSave(id,plan){const all=creatorNavPlanningRead();all[id]={...(all[id]||{}),...plan,savedAt:new Date().toISOString()};creatorNavPlanningWrite(all);}
 function creatorNavPlanGet(id){return creatorNavPlanningRead()[id]||null;}
 function creatorNavPlanTarget(id){
   const p=creatorNavPlanGet(id);if(!p?.targetDate)return null;
-  const target=new Date(p.targetDate+"T23:59:59").getTime(),remaining=Math.max(0,100-(Number(p.pct)||0)),days=Math.max(0,(target-Date.now())/86400000);
-  return {targetDate:p.targetDate,days:Math.ceil(days),requiredVelocity:days>0?Math.round(remaining/days*10)/10:remaining,remaining};
+  const target=new Date(p.targetDate+"T23:59:59").getTime(),remaining=Math.max(0,100-(Number(p.pct)||0)),ms=target-Date.now(),days=Math.ceil(Math.max(0,ms)/86400000);
+  return {targetDate:p.targetDate,days,requiredVelocity:days>0?Math.round(remaining/days*10)/10:remaining,remaining,countdownMs:ms};
 }
 function creatorNavPlanCompare(f,target){
   if(!target)return {state:"NO TARGET",delta:null};
-  if(f.pct>=100)return {state:"AHEAD",delta:target.days};
+  if(f.pct>=100)return {state:"AHEAD",delta:f.velocity};
   const delta=Math.round((f.velocity-target.requiredVelocity)*10)/10;
   return {state:delta>0.1?"AHEAD":delta<-0.1?"BEHIND":"ON TRACK",delta};
 }
+function creatorNavSavedScenariosRead(){try{const x=JSON.parse(localStorage.getItem(CREATOR_NAV_SCENARIOS_KEY)||"{}");return x&&typeof x==="object"?x:{};}catch{return {};}}
+function creatorNavSavedScenariosWrite(x){try{localStorage.setItem(CREATOR_NAV_SCENARIOS_KEY,JSON.stringify(x));}catch{}}
+function creatorNavScenarioSave(id,name,rate){
+  const all=creatorNavSavedScenariosRead(),rows=Array.isArray(all[id])?all[id]:[];
+  rows.push({id:"s"+Date.now(),name:String(name||"Scenario"),rate:Math.max(0,Number(rate)||0),savedAt:new Date().toISOString()});
+  all[id]=rows.slice(-12);creatorNavSavedScenariosWrite(all);
+}
+function creatorNavScenarioDelete(id,sid){const all=creatorNavSavedScenariosRead();all[id]=(all[id]||[]).filter(x=>x.id!==sid);creatorNavSavedScenariosWrite(all);}
 function creatorNavPlanRecommendations(f,target,cmp){
   const out=[];
-  if(cmp.state==="BEHIND")out.push("Increase completion velocity to at least "+target.requiredVelocity+" pts/day.");
-  if(f.earlyWarning==="ACTIVITY GAP")out.push("Schedule a focused production session to restore recent activity.");
-  if(f.earlyWarning==="LOW VELOCITY")out.push("Break the next milestone into smaller actions and complete one immediately.");
-  if(f.milestoneRemaining>0)out.push("Prioritize the next incomplete milestone before adding new scope.");
-  if(!out.length)out.push("Maintain the current pace and review the forecast after the next milestone.");
+  if(!target)out.push("Set a target completion date to activate deadline planning.");
+  else if(cmp.state==="BEHIND")out.push("Increase planned velocity to at least "+target.requiredVelocity+" pts/day.");
+  if(f.earlyWarning==="ACTIVITY GAP")out.push("Schedule a focused production session to restore activity.");
+  if(f.earlyWarning==="LOW VELOCITY")out.push("Complete the next workflow step before expanding scope.");
+  if(f.earlyWarning==="LONG ETA")out.push("Use the accelerated scenario or move the target date.");
+  if(f.milestoneRemaining>0)out.push("Prioritize the next incomplete roadmap step.");
+  if(!out.length)out.push("Maintain the current pace and review the roadmap after the next milestone.");
   return out;
+}
+function creatorNavRoadmapSteps(x,target){
+  const total=x.c.targets.length,complete=x.f.pct,rate=x.f.velocity;
+  return x.c.targets.map((snap,i)=>{
+    const threshold=total?Math.round((i+1)/total*100):100,done=i< x.f.complete;
+    const remaining=Math.max(0,threshold-complete),days=rate>0?Math.ceil(remaining/rate):null;
+    const projected=days===null?"—":new Date(Date.now()+days*86400000).toLocaleDateString([], {dateStyle:"medium"});
+    const dependency=i?"Step "+i+" completion":"Project start";
+    return {i,name:creatorNavHistorySnapshotName(snap),threshold,done,dependency,projected};
+  });
+}
+function creatorNavRecoveryPlan(x,target,cmp){
+  if(!target||cmp.state!=="BEHIND")return null;
+  const required=target.requiredVelocity,boost=Math.max(required,x.f.velocity)*1.25,recoveryDays=boost>0?Math.ceil(Math.max(0,100-x.f.pct)/boost):null;
+  return {rate:Math.round(boost*10)/10,days:recoveryDays,target:target.targetDate,message:"Temporary recovery pace: "+Math.round(boost*10)/10+" pts/day until the roadmap returns to target trajectory."};
 }
 function creatorNavForecastDashboardRender(){
   const host=document.getElementById("creatorNavForecastDashboard");if(!host)return;
   const cs=creatorNavCollectionsRead(),data=cs.map(c=>{const f=creatorNavCollectionForecast(c.id),t=creatorNavForecastTrend(c.id,f),a=creatorNavForecastAnalytics(c.id,f),target=creatorNavPlanTarget(c.id),cmp=creatorNavPlanCompare(f,target);return {c,f,t,a,target,cmp};});
   const sum=creatorNavPredictiveSummary(data),index=creatorNavCreatorHealthIndex(data),escText=x=>esc(String(x??"")),fmtEta=d=>d===null?"Unknown":d===0?"Complete":d+" day(s)";
-  const queue=data.filter(x=>x.f.earlyWarning||x.f.status==="AT RISK"||x.cmp.state==="BEHIND");
-  host.innerHTML='<div class="card" style="padding:14px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">PREDICTIVE COMMAND CENTER 2.0</div><h2 style="margin:.25rem 0">ACTION & PLANNING ENGINE · HEALTH '+index+'/100</h2><div style="font-size:.84rem;opacity:.75">Set targets, calculate required velocity, compare trajectory, save scenarios, and act on the next priority.</div>'+
-  '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px;margin-top:12px"><div class="card" style="padding:10px"><b>COLLECTIONS</b><div style="font-size:1.2rem">'+sum.total+'</div></div><div class="card" style="padding:10px"><b>ACTION QUEUE</b><div style="font-size:1.2rem">'+queue.length+'</div></div><div class="card" style="padding:10px"><b>AVG ETA</b><div style="font-size:1.2rem">'+fmtEta(sum.avgEta)+'</div></div><div class="card" style="padding:10px"><b>CONFIDENCE</b><div style="font-size:1.2rem">'+sum.confidence+'%</div></div></div>'+
-  '<div style="margin-top:16px"><strong>WHAT NEEDS ATTENTION NEXT?</strong>'+(!queue.length?'<div style="margin-top:7px;font-size:.82rem">No action items detected.</div>':queue.map((x,i)=>'<div class="card" style="padding:9px;margin-top:7px"><b>#'+(i+1)+' '+escText(x.c.name)+'</b><div style="font-size:.8rem;margin-top:3px">'+escText(x.f.earlyWarning||x.cmp.state||x.f.status)+'</div><div style="font-size:.76rem;margin-top:3px">'+escText(creatorNavPlanRecommendations(x.f,x.target,x.cmp)[0])+'</div><button type="button" data-predictive-select="'+escText(x.c.id)+'" style="margin-top:6px">PLAN</button></div>').join(""))+'</div>'+
-  '<div style="margin-top:16px"><strong>COLLECTION PLANNING</strong><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+data.map(x=>'<button type="button" data-predictive-select="'+escText(x.c.id)+'">'+escText(x.c.name)+'</button>').join(""))+'</div><div id="creatorNavPredictiveDetail" style="margin-top:10px"></div></div></div>';
+  const queue=data.filter(x=>x.f.earlyWarning||x.f.status==="AT RISK"||x.cmp.state==="BEHIND").sort((a,b)=>(a.cmp.state==="BEHIND"?3:0)+(a.f.earlyWarning?2:0)-(b.cmp.state==="BEHIND"?3:0)-(b.f.earlyWarning?2:0));
+  host.innerHTML='<div class="card" style="padding:14px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">PREDICTIVE COMMAND CENTER 3.0</div><h2 style="margin:.25rem 0">PRODUCTION ROADMAP ENGINE · HEALTH '+index+'/100</h2><div style="font-size:.84rem;opacity:.75">Targets, dated roadmap steps, workload planning, deadline tracking, plan-versus-actual performance, and recovery planning.</div>'+
+  '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px;margin-top:12px"><div class="card" style="padding:10px"><b>COLLECTIONS</b><div style="font-size:1.2rem">'+sum.total+'</div></div><div class="card" style="padding:10px"><b>RECOVERY QUEUE</b><div style="font-size:1.2rem">'+queue.length+'</div></div><div class="card" style="padding:10px"><b>AVG ETA</b><div style="font-size:1.2rem">'+fmtEta(sum.avgEta)+'</div></div><div class="card" style="padding:10px"><b>CONFIDENCE</b><div style="font-size:1.2rem">'+sum.confidence+'%</div></div></div>'+
+  '<div style="margin-top:16px"><strong>WHAT NEEDS ATTENTION NEXT?</strong>'+(!queue.length?'<div style="margin-top:7px;font-size:.82rem">No roadmap recovery items detected.</div>':queue.map((x,i)=>'<div class="card" style="padding:9px;margin-top:7px"><b>#'+(i+1)+' '+escText(x.c.name)+'</b><div style="font-size:.8rem;margin-top:3px">'+escText(x.cmp.state==="BEHIND"?"DEADLINE BEHIND":x.f.earlyWarning||x.f.status)+'</div><div style="font-size:.76rem;margin-top:3px">'+escText(creatorNavPlanRecommendations(x.f,x.target,x.cmp)[0])+'</div><button type="button" data-roadmap-select="'+escText(x.c.id)+'" style="margin-top:6px">OPEN ROADMAP</button></div>').join(""))+'</div>'+
+  '<div style="margin-top:16px"><strong>PRODUCTION ROADMAPS</strong><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+data.map(x=>'<button type="button" data-roadmap-select="'+escText(x.c.id)+'">'+escText(x.c.name)+'</button>').join(""))+'</div><div id="creatorNavPredictiveDetail" style="margin-top:10px"></div></div></div>';
   const detail=document.getElementById("creatorNavPredictiveDetail");
   function renderDetail(id){
     const x=data.find(y=>y.c.id===id)||data[0];if(!x||!detail)return;
-    const saved=creatorNavPlanGet(id)||{},target=x.target,cmp=x.cmp,recs=creatorNavPlanRecommendations(x.f,target,cmp);
-    detail.innerHTML='<div class="card" style="padding:12px"><b>'+escText(x.c.name)+'</b><div style="font-size:.8rem;margin-top:4px">'+x.f.pct+'% complete · '+x.f.velocity+' pts/day · <b>'+escText(cmp.state)+'</b></div>'+
-    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px"><label>Target completion date<input id="predictiveTargetDate" type="date" value="'+escText(saved.targetDate||"")+'" style="display:block;width:100%;margin-top:4px"></label><label>Scenario velocity<input id="predictiveRate" type="number" min="0" step=".1" value="'+(Number(saved.rate??x.f.velocity)||0)+'" style="display:block;width:100%;margin-top:4px"></label></div>'+
-    '<div style="margin-top:9px;font-size:.82rem">Required velocity: <b id="requiredVelocity">'+(target?target.requiredVelocity+" pts/day":"Set a target date")+'</b> · Target window: '+(target?target.days+" day(s)":"—")+'</div>'+
-    '<div style="margin-top:9px"><strong>MILESTONE PROJECTOR</strong><div style="font-size:.8rem;margin-top:4px">'+x.f.milestoneCount+' complete · '+x.f.milestoneRemaining+' remaining · projected window '+fmtEta(x.f.milestoneEta)+'</div></div>'+
-    '<div style="margin-top:9px"><strong>ACTION PLAN</strong>'+recs.map(r=>'<div style="font-size:.8rem;margin-top:4px">• '+escText(r)+'</div>').join("")+'</div>'+
-    '<div style="margin-top:10px"><button type="button" id="savePredictivePlan">SAVE SCENARIO</button> <span id="planSaved" style="font-size:.78rem;opacity:.7"></span></div></div>';
-    const date=document.getElementById("predictiveTargetDate"),rate=document.getElementById("predictiveRate");
-    date?.addEventListener("input",()=>renderDetail(id));
-    rate?.addEventListener("input",()=>{const r=Number(rate.value)||0;rate.value=r;});
-    document.getElementById("savePredictivePlan")?.addEventListener("click",()=>{creatorNavPlanSave(id,{targetDate:date.value,rate:Number(rate.value)||0,pct:x.f.pct,savedAt:new Date().toISOString()});document.getElementById("planSaved").textContent="Scenario saved.";});
+    const saved=creatorNavPlanGet(id)||{},target=x.target,cmp=x.cmp,recs=creatorNavPlanRecommendations(x.f,target,cmp),recovery=creatorNavRecoveryPlan(x,target,cmp),steps=creatorNavRoadmapSteps(x,target),scenarios=creatorNavSavedScenariosRead()[id]||[];
+    const actualWeekly=Math.round(x.f.velocity*7*10)/10,requiredWeekly=target?Math.round(target.requiredVelocity*7*10)/10:null;
+    detail.innerHTML='<div class="card" style="padding:12px"><b>'+escText(x.c.name)+'</b><div style="font-size:.8rem;margin-top:4px">'+x.f.pct+'% complete · Actual '+x.f.velocity+' pts/day · <b>'+escText(cmp.state)+'</b></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px"><label>Target completion date<input id="roadmapTargetDate" type="date" value="'+escText(saved.targetDate||"")+'" style="display:block;width:100%;margin-top:4px"></label><div><b>DEADLINE</b><div style="margin-top:5px">'+(target?(target.days<=0?"Due now":target.days+" day(s) remaining"):"No target set")+'</div></div><div><b>REQUIRED VELOCITY</b><div style="margin-top:5px">'+(target?target.requiredVelocity+" pts/day":"—")+'</div></div><div><b>WEEKLY WORKLOAD</b><div style="margin-top:5px">'+(requiredWeekly===null?actualWeekly+" pts/week":requiredWeekly+" pts/week required · "+actualWeekly+" actual")+'</div></div></div>'+
+    '<div style="margin-top:12px"><strong>PLAN VS ACTUAL</strong><div style="font-size:.8rem;margin-top:4px">Actual: '+x.f.velocity+' pts/day · Required: '+(target?target.requiredVelocity+" pts/day":"—")+' · Variance: '+(target?(x.f.velocity-target.requiredVelocity>=0?"+":"")+(Math.round((x.f.velocity-target.requiredVelocity)*10)/10):"—")+' pts/day</div></div>'+
+    '<div style="margin-top:12px"><strong>DATED PRODUCTION ROADMAP</strong>'+steps.map(st=>'<div class="card" style="padding:8px;margin-top:6px"><b>'+(st.done?"✓ ":"")+escText(st.name)+'</b><div style="font-size:.76rem;margin-top:3px">Dependency: '+escText(st.dependency)+' · Target: '+st.threshold+'% · Projected: '+escText(st.done?"Completed":st.projected)+'</div></div>').join("")+'</div>'+
+    '<div style="margin-top:12px"><strong>RECOVERY PLAN</strong>'+(recovery?'<div class="card" style="padding:8px;margin-top:6px;font-size:.8rem">'+escText(recovery.message)+' Projected recovery window: '+fmtEta(recovery.days)+'</div>':'<div style="font-size:.8rem;margin-top:5px">No recovery plan required at the current trajectory.</div>')+'</div>'+
+    '<div style="margin-top:12px"><strong>ACTION RECOMMENDATIONS</strong>'+recs.map(r=>'<div style="font-size:.8rem;margin-top:4px">• '+escText(r)+'</div>').join("")+'</div>'+
+    '<div style="margin-top:12px"><strong>SAVED SCENARIOS</strong><div id="roadmapScenarios">'+(scenarios.length?scenarios.map(sc=>'<div style="font-size:.8rem;margin-top:5px">'+escText(sc.name)+' · '+sc.rate+' pts/day · <button type="button" data-apply-scenario="'+escText(sc.id)+'">APPLY</button> <button type="button" data-delete-scenario="'+escText(sc.id)+'">DELETE</button></div>').join(""):'<div style="font-size:.8rem;margin-top:5px">No saved scenarios.</div>')+'</div></div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px"><input id="roadmapScenarioName" placeholder="Scenario name" style="flex:1;min-width:150px"><input id="roadmapScenarioRate" type="number" min="0" step=".1" value="'+(Number(saved.rate??x.f.velocity)||0)+'" style="width:120px"><button type="button" id="saveRoadmap">SAVE ROADMAP</button><button type="button" id="saveScenario">SAVE SCENARIO</button></div><span id="roadmapSaved" style="font-size:.78rem;opacity:.7"></span></div>';
+    document.getElementById("roadmapTargetDate")?.addEventListener("change",e=>{creatorNavPlanSave(id,{targetDate:e.target.value,pct:x.f.pct,rate:Number(document.getElementById("roadmapScenarioRate")?.value)||x.f.velocity});renderDetail(id);});
+    document.getElementById("saveRoadmap")?.addEventListener("click",()=>{creatorNavPlanSave(id,{targetDate:document.getElementById("roadmapTargetDate")?.value||"",pct:x.f.pct,rate:Number(document.getElementById("roadmapScenarioRate")?.value)||x.f.velocity});document.getElementById("roadmapSaved").textContent="Roadmap saved.";renderDetail(id);});
+    document.getElementById("saveScenario")?.addEventListener("click",()=>{creatorNavScenarioSave(id,document.getElementById("roadmapScenarioName")?.value||"Custom scenario",Number(document.getElementById("roadmapScenarioRate")?.value)||0);document.getElementById("roadmapSaved").textContent="Scenario saved.";renderDetail(id);});
+    detail.querySelectorAll("[data-apply-scenario]").forEach(b=>b.addEventListener("click",()=>{const sc=scenarios.find(z=>z.id===b.dataset.applyScenario);if(sc){creatorNavPlanSave(id,{rate:sc.rate});renderDetail(id);}}));
+    detail.querySelectorAll("[data-delete-scenario]").forEach(b=>b.addEventListener("click",()=>{creatorNavScenarioDelete(id,b.dataset.deleteScenario);renderDetail(id);}));
   }
   data[0]&&renderDetail(data[0].c.id);
-  host.querySelectorAll("[data-predictive-select]").forEach(b=>b.addEventListener("click",()=>renderDetail(b.dataset.predictiveSelect)));
+  host.querySelectorAll("[data-roadmap-select]").forEach(b=>b.addEventListener("click",()=>renderDetail(b.dataset.roadmapSelect)));
 }
 
 function creatorNavForecastTrendRead(){try{return JSON.parse(localStorage.getItem("crowrules_creator_forecast_trends_v1")||"{}");}catch{return {};}}
