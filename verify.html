@@ -1,40 +1,1392 @@
-<!doctype html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#05050b"><meta name="color-scheme" content="dark">
-<meta name="description" content="Verify your CrowRules account and continue into CrowRules Podcasting.">
-<meta property="og:title" content="Verify Account | CrowRules Podcasting"><meta property="og:description" content="Complete your CrowRules account verification."><meta property="og:type" content="website">
-<link rel="canonical" href="https://crowrulesentertainment-oss.github.io/podcasting/verify.html">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/podcasting.css"><title>Verify Account | CrowRules Podcasting</title>
-<style>
-.vp{min-height:100vh;display:flex;flex-direction:column}.vh{padding:22px 5vw;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(3,3,8,.72);backdrop-filter:blur(18px)}.vb{font:800 1rem Orbitron,sans-serif;letter-spacing:.08em;color:#fff;text-decoration:none}.vb span{opacity:.65}.vm{flex:1;display:grid;place-items:center;padding:70px 20px}.vc{width:min(100%,560px);padding:clamp(28px,5vw,52px);text-align:center;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:linear-gradient(145deg,rgba(17,17,28,.94),rgba(5,5,12,.94));box-shadow:0 30px 90px rgba(0,0,0,.45)}.vc h1{font:800 clamp(1.8rem,6vw,2.7rem) Orbitron,sans-serif;margin:.35rem 0 .65rem}.vs{color:rgba(255,255,255,.68);line-height:1.7}.vicon{width:76px;height:76px;margin:0 auto 22px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);font-size:2rem}.vstatus{display:none;margin:20px 0;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,.1);line-height:1.55}.vstatus.show{display:block}.vstatus.success{border-color:rgba(80,255,190,.3)}.vstatus.error{border-color:rgba(255,80,110,.35)}.va{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:24px}.vf{text-align:center;padding:25px;color:rgba(255,255,255,.45);font-size:.8rem}
-</style></head><body><div class="vp">
-<header class="vh"><a class="vb" href="index.html">CROWRULES <span>· PODCASTING</span></a></header>
-<main class="vm"><section class="vc" aria-live="polite">
-<div id="icon" class="vicon">✉</div><span class="eyebrow">UNIVERSAL CROWRULES MEMBERSHIP</span>
-<h1 id="title">VERIFYING ACCOUNT</h1><p id="message" class="vs">We're checking your secure verification link.</p>
-<div id="status" class="vstatus"></div><div id="actions" class="va"></div>
-</section></main><footer class="vf"><b>CROWRULES PODCASTING</b> · Your Voice. Your Story. Your Universe.</footer></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <meta
+    name="theme-color"
+    content="#05050b"
+  >
+
+  <meta
+    name="color-scheme"
+    content="dark"
+  >
+
+  <meta
+    name="description"
+    content="Verify your CrowRules Universal Membership and activate your Podcasting account."
+  >
+
+  <title>CrowRules Podcasting | Verify Your Account</title>
+
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+
+  <script src="js/config.js"></script>
+
+  <style>
+    :root {
+      --bg: #05050b;
+      --panel: rgba(10, 11, 24, 0.88);
+      --panel-2: rgba(16, 17, 35, 0.78);
+      --border: rgba(255,255,255,0.10);
+      --text: #f7f8ff;
+      --muted: #9da3bb;
+      --cyan: #22d3ee;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --green: #34d399;
+      --red: #fb7185;
+      --shadow: 0 30px 100px rgba(0,0,0,.55);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Montserrat", sans-serif;
+      background:
+        radial-gradient(
+          circle at 15% 20%,
+          rgba(34,211,238,.13),
+          transparent 30%
+        ),
+        radial-gradient(
+          circle at 85% 15%,
+          rgba(139,92,246,.16),
+          transparent 32%
+        ),
+        radial-gradient(
+          circle at 50% 100%,
+          rgba(236,72,153,.10),
+          transparent 35%
+        ),
+        #05050b;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .28;
+      background-image:
+        linear-gradient(
+          rgba(255,255,255,.025) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(255,255,255,.025) 1px,
+          transparent 1px
+        );
+      background-size: 55px 55px;
+      mask-image: linear-gradient(
+        to bottom,
+        black,
+        transparent 90%
+      );
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .shell {
+      width: min(1080px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header {
+      position: relative;
+      z-index: 5;
+      border-bottom: 1px solid var(--border);
+      background: rgba(5,5,11,.72);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav {
+      min-height: 74px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: "Orbitron", sans-serif;
+      font-weight: 800;
+      letter-spacing: .04em;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background:
+        linear-gradient(
+          135deg,
+          var(--cyan),
+          var(--purple),
+          var(--pink)
+        );
+      color: #05050b;
+      font-size: 15px;
+      box-shadow:
+        0 0 25px rgba(34,211,238,.25),
+        0 0 35px rgba(139,92,246,.20);
+    }
+
+    .brand-text {
+      font-size: 14px;
+    }
+
+    .brand-text span {
+      display: block;
+      color: var(--muted);
+      font-family: "Montserrat", sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .22em;
+      margin-top: 2px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-links a {
+      padding: 9px 12px;
+      border-radius: 9px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      transition: .2s ease;
+    }
+
+    .nav-links a:hover {
+      color: white;
+      background: rgba(255,255,255,.06);
+    }
+
+    main {
+      min-height: calc(100vh - 74px);
+      display: flex;
+      align-items: center;
+      padding: 70px 0;
+    }
+
+    .verify-card {
+      width: min(720px, 100%);
+      margin: 0 auto;
+      padding: 48px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(15,17,36,.94),
+          rgba(7,8,18,.92)
+        );
+      box-shadow: var(--shadow);
+    }
+
+    .verify-card::before {
+      content: "";
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      right: -170px;
+      top: -170px;
+      border-radius: 50%;
+      background: rgba(34,211,238,.10);
+      filter: blur(20px);
+    }
+
+    .verify-card::after {
+      content: "";
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      left: -160px;
+      bottom: -160px;
+      border-radius: 50%;
+      background: rgba(139,92,246,.10);
+      filter: blur(20px);
+    }
+
+    .content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .eyebrow {
+      color: var(--cyan);
+      font-family: "Orbitron", sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .20em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(28px, 5vw, 48px);
+      line-height: 1.08;
+      letter-spacing: -.02em;
+    }
+
+    .subtitle {
+      margin: 18px 0 0;
+      max-width: 590px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .state {
+      margin-top: 32px;
+      padding: 25px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.035);
+    }
+
+    .state.loading {
+      border-color: rgba(34,211,238,.22);
+    }
+
+    .state.success {
+      border-color: rgba(52,211,153,.30);
+      background:
+        linear-gradient(
+          135deg,
+          rgba(52,211,153,.08),
+          rgba(34,211,238,.035)
+        );
+    }
+
+    .state.error {
+      border-color: rgba(251,113,133,.30);
+      background: rgba(251,113,133,.045);
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .status-icon {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      font-size: 22px;
+      font-weight: 800;
+      background: rgba(255,255,255,.06);
+    }
+
+    .success .status-icon {
+      color: var(--green);
+      background: rgba(52,211,153,.10);
+    }
+
+    .error .status-icon {
+      color: var(--red);
+      background: rgba(251,113,133,.10);
+    }
+
+    .loading .status-icon {
+      color: var(--cyan);
+      background: rgba(34,211,238,.10);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(.88);
+        opacity: .55;
+      }
+    }
+
+    .status-title {
+      margin: 0;
+      font-family: "Orbitron", sans-serif;
+      font-size: 16px;
+    }
+
+    .status-copy {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .account {
+      display: none;
+      margin-top: 24px;
+      padding: 20px;
+      border-radius: 16px;
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.07);
+    }
+
+    .account.show {
+      display: block;
+    }
+
+    .account-label {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .account-value {
+      font-size: 14px;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .account-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .membership {
+      margin-top: 22px;
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid rgba(34,211,238,.18);
+      background:
+        linear-gradient(
+          135deg,
+          rgba(34,211,238,.06),
+          rgba(139,92,246,.06)
+        );
+    }
+
+    .membership-title {
+      font-family: "Orbitron", sans-serif;
+      font-size: 14px;
+      margin-bottom: 7px;
+    }
+
+    .membership-copy {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .membership-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 13px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      color: var(--green);
+      background: rgba(52,211,153,.09);
+      border: 1px solid rgba(52,211,153,.20);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .button {
+      min-height: 46px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 18px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 800;
+      transition: .2s ease;
+    }
+
+    .button.primary {
+      border-color: transparent;
+      color: #05050b;
+      background:
+        linear-gradient(
+          135deg,
+          var(--cyan),
+          #60a5fa
+        );
+      box-shadow: 0 8px 30px rgba(34,211,238,.18);
+    }
+
+    .button.secondary {
+      color: white;
+      background: rgba(255,255,255,.045);
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+    }
+
+    .button.primary:hover {
+      box-shadow: 0 12px 38px rgba(34,211,238,.28);
+    }
+
+    .button.hidden {
+      display: none;
+    }
+
+    .universal {
+      margin-top: 34px;
+      padding-top: 25px;
+      border-top: 1px solid var(--border);
+    }
+
+    .universal-title {
+      font-family: "Orbitron", sans-serif;
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .universal-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .universal-item {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .universal-item::before {
+      content: "✓";
+      color: var(--cyan);
+      font-weight: 900;
+      margin-right: 8px;
+    }
+
+    footer {
+      padding: 0 0 35px;
+      text-align: center;
+      color: #697087;
+      font-size: 10px;
+      letter-spacing: .05em;
+    }
+
+    @media (max-width: 700px) {
+      .nav {
+        min-height: 64px;
+      }
+
+      .nav-links a {
+        padding: 8px;
+      }
+
+      .brand-text {
+        display: none;
+      }
+
+      main {
+        padding: 35px 0;
+      }
+
+      .verify-card {
+        padding: 30px 22px;
+        border-radius: 22px;
+      }
+
+      .account-grid,
+      .universal-list {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .button {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="shell nav">
+
+    <a
+      class="brand"
+      href="index.html"
+      aria-label="CrowRules Podcasting Home"
+    >
+      <div class="brand-mark">CR</div>
+
+      <div class="brand-text">
+        CROWRULES PODCASTING
+        <span>ONE ACCOUNT. ONE UNIVERSE.</span>
+      </div>
+    </a>
+
+    <nav class="nav-links" aria-label="Main navigation">
+      <a href="index.html">Home</a>
+      <a href="launch.html">Launch</a>
+      <a href="login.html">Login</a>
+    </nav>
+
+  </div>
+</header>
+
+<main>
+  <div class="shell">
+
+    <section class="verify-card">
+
+      <div class="content">
+
+        <div class="eyebrow">
+          CrowRules Universal Membership
+        </div>
+
+        <h1 id="pageTitle">
+          VERIFY YOUR ACCOUNT
+        </h1>
+
+        <p class="subtitle" id="pageSubtitle">
+          We're checking your CrowRules email verification and activating your
+          universal account.
+        </p>
+
+        <div
+          id="status"
+          class="state loading"
+          role="status"
+          aria-live="polite"
+        >
+
+          <div class="status-row">
+
+            <div
+              id="statusIcon"
+              class="status-icon"
+              aria-hidden="true"
+            >
+              •••
+            </div>
+
+            <div>
+              <h2
+                id="statusTitle"
+                class="status-title"
+              >
+                VERIFYING YOUR ACCOUNT
+              </h2>
+
+              <p
+                id="statusCopy"
+                class="status-copy"
+              >
+                Please wait while CrowRules confirms your email and loads
+                your universal membership.
+              </p>
+            </div>
+
+          </div>
+
+          <div
+            id="account"
+            class="account"
+          >
+
+            <div class="account-grid">
+
+              <div>
+                <div class="account-label">
+                  Email
+                </div>
+
+                <div
+                  id="accountEmail"
+                  class="account-value"
+                >
+                  —
+                </div>
+              </div>
+
+              <div>
+                <div class="account-label">
+                  Display Name
+                </div>
+
+                <div
+                  id="accountName"
+                  class="account-value"
+                >
+                  —
+                </div>
+              </div>
+
+              <div>
+                <div class="account-label">
+                  Username
+                </div>
+
+                <div
+                  id="accountUsername"
+                  class="account-value"
+                >
+                  —
+                </div>
+              </div>
+
+              <div>
+                <div class="account-label">
+                  Account Type
+                </div>
+
+                <div
+                  id="accountType"
+                  class="account-value"
+                >
+                  —
+                </div>
+              </div>
+
+            </div>
+
+            <div class="membership">
+
+              <div class="membership-title">
+                CROWRULES UNIVERSAL MEMBERSHIP
+              </div>
+
+              <div class="membership-copy">
+                Your account is connected to the CrowRules Universe.
+                The same CrowRules account can be used across supported
+                CrowRules experiences without creating separate accounts.
+              </div>
+
+              <div class="membership-badge">
+                <span>●</span>
+                <span id="membershipStatus">
+                  ACTIVE
+                </span>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="actions">
+
+          <a
+            id="profileButton"
+            class="button primary hidden"
+            href="profile.html"
+          >
+            OPEN MY PROFILE
+          </a>
+
+          <a
+            id="podcastingButton"
+            class="button secondary hidden"
+            href="index.html"
+          >
+            ENTER PODCASTING
+          </a>
+
+          <a
+            id="loginButton"
+            class="button secondary hidden"
+            href="login.html"
+          >
+            GO TO LOGIN
+          </a>
+
+          <a
+            id="signupButton"
+            class="button secondary hidden"
+            href="signup.html"
+          >
+            CREATE ACCOUNT
+          </a>
+
+          <a
+            id="launchButton"
+            class="button secondary"
+            href="launch.html"
+          >
+            VIEW LAUNCH
+          </a>
+
+        </div>
+
+        <div class="universal">
+
+          <div class="universal-title">
+            One Account. One Universe.
+          </div>
+
+          <div class="universal-list">
+
+            <div class="universal-item">
+              CrowRules Universal Membership
+            </div>
+
+            <div class="universal-item">
+              Podcasting Profile
+            </div>
+
+            <div class="universal-item">
+              CrowPoints compatibility
+            </div>
+
+            <div class="universal-item">
+              Future CrowRules services
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  © 2026 CrowRules Entertainment · CrowRules Podcasting · Launching January 1, 2027
+</footer>
+
 <script>
-(function(){
-const sb=window.crSupabase,status=document.getElementById("status"),title=document.getElementById("title"),message=document.getElementById("message"),icon=document.getElementById("icon"),actions=document.getElementById("actions");
-function show(t,type){status.textContent=t;status.className="vstatus show "+(type||"")}
-function buttons(html){actions.innerHTML=html}
-function success(){icon.textContent="✓";title.textContent="ACCOUNT VERIFIED";message.textContent="Your CrowRules account has been verified successfully. You're ready to enter the Podcasting universe.";show("Verification complete. Your session is active when Supabase returns one.","success");buttons('<a class="btn primary" href="profile.html">OPEN MY PROFILE</a><a class="btn" href="index.html">ENTER PODCASTING</a>')}
-function fail(msg){icon.textContent="!";title.textContent="VERIFICATION NEEDS ATTENTION";message.textContent="The verification link could not be completed.";show(msg||"The link may be expired or invalid. Request a new verification email from your account flow.","error");buttons('<a class="btn primary" href="login.html">GO TO LOGIN</a><a class="btn" href="signup.html">CREATE ACCOUNT</a>')}
-if(!sb){fail("Authentication is temporarily unavailable. Please try again shortly.");return}
-sb.auth.onAuthStateChange(function(event,session){
-if(event==="SIGNED_IN"||event==="INITIAL_SESSION"){if(session?.user){success();setTimeout(()=>location.replace("profile.html"),2200)}}
-});
-sb.auth.getSession().then(({data,error})=>{
-if(error){fail(error.message);return}
-if(data?.session){success();return}
-const hash=location.hash;
-const query=new URLSearchParams(location.search);
-if(hash.includes("access_token")||hash.includes("type=signup")||query.get("code")){show("Verification link received. Finalizing your session…","success");return}
-title.textContent="CHECK YOUR EMAIL";icon.textContent="✉";message.textContent="If you just created your account, open the verification email from Supabase and follow its link.";show("No active verification session is available on this device yet.","error");buttons('<a class="btn primary" href="login.html">GO TO LOGIN</a><a class="btn" href="signup.html">BACK TO SIGN UP</a>')
-});
-})();
-</script></body></html>
+  (() => {
+
+    "use strict";
+
+    const SUPABASE_URL =
+      "https://cevylpnoexugwgygvtgu.supabase.co";
+
+    const SUPABASE_PUBLISHABLE_KEY =
+      "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD";
+
+    const statusBox =
+      document.getElementById("status");
+
+    const statusIcon =
+      document.getElementById("statusIcon");
+
+    const statusTitle =
+      document.getElementById("statusTitle");
+
+    const statusCopy =
+      document.getElementById("statusCopy");
+
+    const pageTitle =
+      document.getElementById("pageTitle");
+
+    const pageSubtitle =
+      document.getElementById("pageSubtitle");
+
+    const account =
+      document.getElementById("account");
+
+    const accountEmail =
+      document.getElementById("accountEmail");
+
+    const accountName =
+      document.getElementById("accountName");
+
+    const accountUsername =
+      document.getElementById("accountUsername");
+
+    const accountType =
+      document.getElementById("accountType");
+
+    const membershipStatus =
+      document.getElementById("membershipStatus");
+
+    const profileButton =
+      document.getElementById("profileButton");
+
+    const podcastingButton =
+      document.getElementById("podcastingButton");
+
+    const loginButton =
+      document.getElementById("loginButton");
+
+    const signupButton =
+      document.getElementById("signupButton");
+
+    function getConfiguredValue(...names) {
+
+      const configs = [
+        window.CROWRULES_CONFIG,
+        window.CrowRulesConfig,
+        window.SUPABASE_CONFIG
+      ];
+
+      for (const config of configs) {
+
+        if (!config) {
+          continue;
+        }
+
+        for (const name of names) {
+
+          if (
+            typeof config[name] === "string" &&
+            config[name].trim()
+          ) {
+            return config[name].trim();
+          }
+
+        }
+      }
+
+      return null;
+    }
+
+    function getSupabaseClient() {
+
+      const url =
+        getConfiguredValue(
+          "SUPABASE_URL",
+          "supabaseUrl",
+          "url"
+        ) || SUPABASE_URL;
+
+      const key =
+        getConfiguredValue(
+          "SUPABASE_PUBLISHABLE_KEY",
+          "SUPABASE_ANON_KEY",
+          "supabaseKey",
+          "anonKey",
+          "key"
+        ) || SUPABASE_PUBLISHABLE_KEY;
+
+      if (!window.supabase) {
+        throw new Error(
+          "Supabase library failed to load."
+        );
+      }
+
+      return window.supabase.createClient(
+        url,
+        key,
+        {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+          }
+        }
+      );
+    }
+
+    function showSuccess(user, member) {
+
+      statusBox.className = "state success";
+
+      statusIcon.textContent = "✓";
+
+      statusTitle.textContent =
+        "YOUR ACCOUNT IS VERIFIED";
+
+      statusCopy.textContent =
+        "Your email has been verified and your CrowRules Universal Membership is active.";
+
+      pageTitle.textContent =
+        "WELCOME TO THE UNIVERSE";
+
+      pageSubtitle.textContent =
+        "Your CrowRules account is ready. One account can connect you to the growing CrowRules Universe.";
+
+      account.classList.add("show");
+
+      accountEmail.textContent =
+        user.email || "—";
+
+      const metadata =
+        user.user_metadata || {};
+
+      const displayName =
+        metadata.display_name ||
+        [metadata.first_name, metadata.last_name]
+          .filter(Boolean)
+          .join(" ") ||
+        "CrowRules Member";
+
+      const username =
+        metadata.username ||
+        "—";
+
+      const type =
+        metadata.account_type ||
+        "listener";
+
+      accountName.textContent =
+        displayName;
+
+      accountUsername.textContent =
+        username ? `@${username}` : "—";
+
+      accountType.textContent =
+        type === "creator"
+          ? "Creator"
+          : "Listener";
+
+      if (member) {
+
+        const membershipType =
+          member.membership_type ||
+          member.membership_plan ||
+          member.plan_name;
+
+        const memberStatus =
+          member.status ||
+          member.membership_status;
+
+        if (membershipType) {
+
+          membershipStatus.textContent =
+            `${String(membershipType).toUpperCase()} · ${
+              String(memberStatus || "ACTIVE").toUpperCase()
+            }`;
+
+        } else if (memberStatus) {
+
+          membershipStatus.textContent =
+            String(memberStatus).toUpperCase();
+
+        } else {
+
+          membershipStatus.textContent =
+            "ACTIVE";
+
+        }
+
+      } else {
+
+        membershipStatus.textContent =
+          "ACTIVE";
+
+      }
+
+      profileButton.classList.remove("hidden");
+      podcastingButton.classList.remove("hidden");
+
+      loginButton.classList.add("hidden");
+      signupButton.classList.add("hidden");
+    }
+
+    function showError(title, message) {
+
+      statusBox.className = "state error";
+
+      statusIcon.textContent = "!";
+
+      statusTitle.textContent =
+        title;
+
+      statusCopy.textContent =
+        message;
+
+      account.classList.remove("show");
+
+      profileButton.classList.add("hidden");
+      podcastingButton.classList.add("hidden");
+
+      loginButton.classList.remove("hidden");
+      signupButton.classList.remove("hidden");
+
+      pageTitle.textContent =
+        "VERIFICATION NEEDS ATTENTION";
+
+      pageSubtitle.textContent =
+        "We could not complete the verification from this browser session.";
+    }
+
+    function showLoading() {
+
+      statusBox.className = "state loading";
+
+      statusIcon.textContent = "•••";
+
+      statusTitle.textContent =
+        "VERIFYING YOUR ACCOUNT";
+
+      statusCopy.textContent =
+        "Please wait while CrowRules confirms your email and loads your universal membership.";
+    }
+
+    function getAuthErrorFromUrl() {
+
+      const hash =
+        window.location.hash || "";
+
+      const search =
+        window.location.search || "";
+
+      const params = new URLSearchParams(
+        hash.startsWith("#")
+          ? hash.substring(1)
+          : hash
+      );
+
+      const query =
+        new URLSearchParams(search);
+
+      return {
+        error:
+          params.get("error") ||
+          query.get("error"),
+
+        errorCode:
+          params.get("error_code") ||
+          query.get("error_code"),
+
+        description:
+          params.get("error_description") ||
+          query.get("error_description")
+      };
+    }
+
+    async function loadMembership(
+      supabaseClient,
+      user
+    ) {
+
+      /*
+       * The Auth trigger is responsible for creating
+       * the universal CrowRules member record.
+       *
+       * This page only reads the record after authentication.
+       */
+
+      try {
+
+        const { data, error } =
+          await supabaseClient
+            .from("members")
+            .select("*")
+            .eq("id", user.id)
+            .maybeSingle();
+
+        if (error) {
+
+          console.warn(
+            "Universal membership lookup:",
+            error.message
+          );
+
+          return null;
+        }
+
+        return data || null;
+
+      } catch (error) {
+
+        console.warn(
+          "Universal membership lookup failed:",
+          error
+        );
+
+        return null;
+      }
+    }
+
+    async function verifyAccount() {
+
+      showLoading();
+
+      try {
+
+        const authError =
+          getAuthErrorFromUrl();
+
+        if (authError.error) {
+
+          const description =
+            authError.description
+              ? decodeURIComponent(
+                  authError.description
+                )
+              : "The verification link could not be completed.";
+
+          showError(
+            "VERIFICATION FAILED",
+            description
+          );
+
+          return;
+        }
+
+        const supabaseClient =
+          getSupabaseClient();
+
+        /*
+         * Supabase Auth automatically processes
+         * supported auth redirects when the client
+         * initializes with detectSessionInUrl enabled.
+         */
+
+        const {
+          data: sessionData,
+          error: sessionError
+        } = await supabaseClient.auth.getSession();
+
+        if (sessionError) {
+          throw sessionError;
+        }
+
+        let session =
+          sessionData?.session || null;
+
+        /*
+         * Fetch the authoritative user record.
+         */
+        const {
+          data: userData,
+          error: userError
+        } = await supabaseClient.auth.getUser();
+
+        if (userError) {
+
+          /*
+           * In some redirect situations the auth
+           * state may still be settling. Give the
+           * client a moment and retry once.
+           */
+
+          await new Promise(
+            resolve => setTimeout(resolve, 700)
+          );
+
+          const retry =
+            await supabaseClient.auth.getUser();
+
+          if (retry.error) {
+            throw retry.error;
+          }
+
+          userData.user =
+            retry.data.user;
+        }
+
+        const user =
+          userData?.user;
+
+        if (!user) {
+
+          if (!session) {
+
+            showError(
+              "EMAIL VERIFICATION REQUIRED",
+              "Your verification session was not detected. Please open the confirmation email again, or return to Login and sign in after confirming your email."
+            );
+
+            return;
+          }
+
+          showError(
+            "ACCOUNT NOT FOUND",
+            "The verification completed, but CrowRules could not retrieve the authenticated account."
+          );
+
+          return;
+        }
+
+        /*
+         * At this point Supabase has authenticated
+         * the user. Read the universal membership
+         * record created by the database trigger.
+         */
+        const member =
+          await loadMembership(
+            supabaseClient,
+            user
+          );
+
+        showSuccess(
+          user,
+          member
+        );
+
+        /*
+         * Remove sensitive auth parameters from
+         * the visible browser URL while preserving
+         * the authenticated session.
+         */
+        if (
+          window.history &&
+          window.history.replaceState
+        ) {
+
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
+
+        }
+
+      } catch (error) {
+
+        console.error(
+          "CrowRules verification error:",
+          error
+        );
+
+        let message =
+          error?.message ||
+          "Something went wrong while verifying your account.";
+
+        if (
+          /expired|invalid|token/i.test(message)
+        ) {
+
+          message =
+            "This verification link may have expired or already been used. Please request a new confirmation email or sign in if your account has already been verified.";
+
+        }
+
+        showError(
+          "VERIFICATION COULD NOT BE COMPLETED",
+          message
+        );
+      }
+    }
+
+    /*
+     * Wait for the Supabase CDN library before
+     * beginning verification.
+     */
+    function boot() {
+
+      if (window.supabase) {
+
+        verifyAccount();
+        return;
+      }
+
+      let attempts = 0;
+
+      const timer =
+        setInterval(() => {
+
+          attempts++;
+
+          if (window.supabase) {
+
+            clearInterval(timer);
+            verifyAccount();
+
+            return;
+          }
+
+          if (attempts >= 100) {
+
+            clearInterval(timer);
+
+            showError(
+              "SUPABASE COULD NOT LOAD",
+              "The CrowRules authentication service could not be initialized. Please refresh the page and try again."
+            );
+          }
+
+        }, 100);
+
+    }
+
+    boot();
+
+  })();
+</script>
+
+</body>
+</html>
