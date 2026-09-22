@@ -475,7 +475,7 @@ const CREATOR_NAV_NOTIFICATIONS_KEY="crowrules_creator_notifications_v1";
 
 async function creatorNavServerHealthRefresh(){
   try{
-    const x=await creatorNavServerGovernanceCall("health",{});
+    const x=await creatorNavServerCall("health",{});
     if(x&&x.health)window.creatorNavServerHealth=x;
     renderProductionHealthMonitor();
   }catch(e){console.warn("Production health refresh failed",e);}
