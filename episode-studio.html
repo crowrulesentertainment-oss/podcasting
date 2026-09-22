@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#05050b">
+  <meta name="description" content="CrowRules Podcasting Episode Studio">
+  <title>Episode Studio | CrowRules Podcasting</title>
+  <link rel="stylesheet" href="css/podcasting.css">
+  <style>
+    .studio-shell{padding:42px 0 100px}
+    .studio-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:30px}
+    .studio-top h1{font-size:clamp(34px,6vw,64px);margin-bottom:10px}
+    .studio-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,.75fr);gap:20px}
+    .studio-panel{padding:24px;border:1px solid var(--line);border-radius:var(--radius-xl);background:linear-gradient(145deg,rgba(18,18,36,.96),rgba(7,7,15,.96));box-shadow:var(--shadow)}
+    .panel-title{display:flex;justify-content:space-between;gap:15px;align-items:center;margin-bottom:18px}
+    .panel-title h2{font-size:20px;margin:0}
+    .field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}
+    .field.full{grid-column:1/-1}
+    .hint{font-size:10px;color:var(--muted-2);line-height:1.5}
+    .counter{float:right;color:var(--muted-2);font-size:10px}
+    .check-row{display:flex;gap:10px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(7,7,15,.7);margin-top:17px}
+    .check-row input{width:18px;height:18px;accent-color:var(--cyan)}
+    .check-row label{font-size:12px;color:var(--muted)}
+    .sticky{position:sticky;top:92px}
+    .status-pill{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;border:1px solid var(--line);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}
+    .status-pill.draft{color:var(--warning)}
+    .status-pill.scheduled{color:var(--cyan)}
+    .status-pill.published{color:var(--success)}
+    .status-pill.archived{color:var(--muted)}
+    .preview-card{overflow:hidden;border:1px solid var(--line);border-radius:18px;background:#080810}
+    .preview-art{aspect-ratio:16/9;display:grid;place-items:center;background:radial-gradient(circle at 25% 20%,rgba(34,230,255,.2),transparent 30%),linear-gradient(135deg,#101d31,#32135a 55%,#080811);color:rgba(255,255,255,.55);font-family:Orbitron,sans-serif;font-size:28px;overflow:hidden}
+    .preview-art img{width:100%;height:100%;object-fit:cover;display:none}
+    .preview-body{padding:18px}
+    .preview-body h3{font-size:18px;margin-bottom:8px}
+    .preview-body p{font-size:12px;line-height:1.6;margin-bottom:0}
+    .meta-list{display:grid;gap:10px;margin-top:18px}
+    .meta-item{display:flex;justify-content:space-between;gap:15px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.05);font-size:11px}
+    .meta-item span{color:var(--muted)}
+    .meta-item strong{color:#fff;text-align:right}
+    .action-stack{display:grid;gap:10px;margin-top:20px}
+    .action-stack .btn{width:100%}
+    .danger-note{margin-top:15px;color:var(--danger);font-size:11px;line-height:1.55}
+    .success-note{margin-top:15px;color:var(--success);font-size:11px;line-height:1.55}
+    .loading{display:grid;place-items:center;min-height:320px}
+    .hidden{display:none!important}
+    .toast{position:fixed;right:20px;bottom:20px;z-index:500;max-width:min(420px,calc(100vw - 40px));padding:14px 16px;border:1px solid var(--line-bright);border-radius:14px;background:rgba(10,10,20,.96);box-shadow:var(--shadow);font-size:12px}
+    .toast.error{border-color:rgba(255,102,125,.4);color:var(--danger)}
+    .toast.success{border-color:rgba(69,240,165,.4);color:var(--success)}
+    @media(max-width:900px){.studio-grid{grid-template-columns:1fr}.sticky{position:static}}
+    @media(max-width:680px){.field-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.studio-shell{padding-top:28px}}
+  </style>
+</head>
+<body>
+  <div class="site-background" aria-hidden="true">
+    <div class="background-stars"></div>
+    <div class="background-grid"></div>
+    <div class="background-glow background-glow-one"></div>
+    <div class="background-glow background-glow-two"></div>
+    <div class="background-noise"></div>
+  </div>
+
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="home.html" aria-label="CrowRules Podcasting home">
+        <span class="brand-mark">CR</span>
+        <span class="brand-text">
+          <span class="brand-name">CrowRules</span>
+          <span class="brand-section">PODCASTING</span>
+        </span>
+      </a>
+      <nav class="main-navigation" aria-label="Primary navigation">
+        <a href="home.html">Home</a>
+        <a href="podcasts.html">Podcasts</a>
+        <a href="episodes.html">Episodes</a>
+        <a href="creator-studio.html">Creator Studio</a>
+        <a href="profile.html">Profile</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="studio-shell">
+    <div class="wrap">
+      <div id="loading" class="loading">
+        <div class="auth-loading">
+          <span class="loading-spinner"></span>
+          Loading Episode Studio…
+        </div>
+      </div>
+
+      <section id="app" class="hidden">
+        <div class="studio-top">
+          <div>
+            <div class="eyebrow">CROWRULES PODCASTING · CREATOR STUDIO</div>
+            <h1>Episode <span class="glow">Studio</span></h1>
+            <p>Create, save, schedule, and publish episodes without exposing creator IDs to the browser.</p>
+          </div>
+          <div class="actions" style="margin:0">
+            <a class="btn" href="creator-studio.html">← Creator Studio</a>
+          </div>
+        </div>
+
+        <div id="notice" class="notice hidden" role="status"></div>
+
+        <div class="studio-grid">
+          <section class="studio-panel">
+            <div class="panel-title">
+              <h2>Episode Details</h2>
+              <span id="currentStatus" class="status-pill draft">Draft</span>
+            </div>
+
+            <form id="episodeForm" novalidate>
+              <div class="field">
+                <label for="podcast">Podcast *</label>
+                <select id="podcast" required>
+                  <option value="">Loading your podcasts…</option>
+                </select>
+                <div class="hint">Only podcasts you can manage are available.</div>
+              </div>
+
+              <div class="field-grid">
+                <div class="field">
+                  <label for="title">Episode title *</label>
+                  <input id="title" maxlength="300" autocomplete="off" required placeholder="Episode title">
+                  <span id="titleCount" class="counter">0 / 300</span>
+                </div>
+
+                <div class="field">
+                  <label for="slug">Slug</label>
+                  <input id="slug" maxlength="300" autocomplete="off" placeholder="auto-generated-from-title">
+                  <div class="hint">Leave blank to generate automatically.</div>
+                </div>
+
+                <div class="field">
+                  <label for="season">Season</label>
+                  <input id="season" type="number" min="1" step="1" placeholder="1">
+                </div>
+
+                <div class="field">
+                  <label for="episodeNumber">Episode number</label>
+                  <input id="episodeNumber" type="number" min="1" step="1" placeholder="Auto">
+                  <div class="hint">Leave blank to use the next episode number.</div>
+                </div>
+
+                <div class="field full">
+                  <label for="description">Description <span id="descriptionCount" class="counter">0 / 1000</span></label>
+                  <textarea id="description" maxlength="1000" placeholder="What is this episode about?"></textarea>
+                </div>
+
+                <div class="field full">
+                  <label for="showNotes">Show notes <span id="notesCount" class="counter">0 / 5000</span></label>
+                  <textarea id="showNotes" maxlength="5000" placeholder="Links, credits, resources, timestamps, guest information…"></textarea>
+                </div>
+
+                <div class="field full">
+                  <label for="transcript">Transcript</label>
+                  <textarea id="transcript" placeholder="Optional episode transcript…"></textarea>
+                </div>
+              </div>
+
+              <hr>
+
+              <div class="panel-title">
+                <h2>Media</h2>
+                <span class="hint">URLs can be added now; storage upload can be connected separately.</span>
+              </div>
+
+              <div class="field-grid">
+                <div class="field full">
+                  <label for="audioUrl">Audio URL</label>
+                  <input id="audioUrl" type="url" placeholder="https://…/episode.mp3">
+                </div>
+
+                <div class="field full">
+                  <label for="videoUrl">Video URL</label>
+                  <input id="videoUrl" type="url" placeholder="https://…/episode.mp4">
+                </div>
+
+                <div class="field full">
+                  <label for="thumbnailUrl">Thumbnail URL</label>
+                  <input id="thumbnailUrl" type="url" placeholder="https://…/episode-cover.jpg">
+                </div>
+
+                <div class="field">
+                  <label for="duration">Duration (seconds)</label>
+                  <input id="duration" type="number" min="0" step="1" placeholder="Auto / optional">
+                </div>
+
+                <div class="field">
+                  <label for="explicit">Content rating</label>
+                  <div class="check-row" style="margin-top:0;height:46px">
+                    <input id="explicit" type="checkbox">
+                    <label for="explicit">Mark this episode explicit</label>
+                  </div>
+                </div>
+              </div>
+
+              <hr>
+
+              <div class="panel-title">
+                <h2>Publishing</h2>
+              </div>
+
+              <div class="field-grid">
+                <div class="field">
+                  <label for="status">Status</label>
+                  <select id="status">
+                    <option value="draft">Draft</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="publishAt">Publish date & time</label>
+                  <input id="publishAt" type="datetime-local">
+                  <div class="hint">Required for scheduled episodes. Published episodes use now when blank.</div>
+                </div>
+              </div>
+
+              <div class="actions" style="justify-content:flex-start">
+                <button id="saveBtn" class="btn primary" type="submit">Save Episode</button>
+                <button id="resetBtn" class="btn" type="button">Reset</button>
+              </div>
+            </form>
+          </section>
+
+          <aside class="studio-panel sticky">
+            <div class="panel-title">
+              <h2>Live Preview</h2>
+            </div>
+
+            <div class="preview-card">
+              <div class="preview-art">
+                <img id="previewImage" alt="">
+                <span id="previewPlaceholder">CR</span>
+              </div>
+              <div class="preview-body">
+                <div id="previewPodcast" class="eyebrow">SELECT A PODCAST</div>
+                <h3 id="previewTitle">Untitled Episode</h3>
+                <p id="previewDescription">Your episode preview will appear here as you write.</p>
+              </div>
+            </div>
+
+            <div class="meta-list">
+              <div class="meta-item"><span>Season</span><strong id="metaSeason">—</strong></div>
+              <div class="meta-item"><span>Episode</span><strong id="metaEpisode">—</strong></div>
+              <div class="meta-item"><span>Duration</span><strong id="metaDuration">—</strong></div>
+              <div class="meta-item"><span>Publish</span><strong id="metaPublish">Draft</strong></div>
+            </div>
+
+            <div class="action-stack">
+              <a id="podcastLink" class="btn" href="creator-studio.html">Open Creator Studio</a>
+              <a class="btn" href="episodes.html">Browse Episodes</a>
+            </div>
+
+            <div id="sideMessage" class="success-note hidden"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="authError" class="hidden section">
+        <div class="empty-state">
+          <strong>Creator login required</strong>
+          <p>You need to be signed in to create or manage podcast episodes.</p>
+          <div class="actions">
+            <a class="btn primary" href="login.html?redirect=episode-studio.html">Sign In</a>
+            <a class="btn" href="creator-studio.html">Creator Studio</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast" class="toast hidden" role="alert"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const $ = (id) => document.getElementById(id);
+      const params = new URLSearchParams(location.search);
+      const requestedPodcastId = params.get("podcast");
+
+      let client = null;
+      let currentUser = null;
+      let podcasts = [];
+      let busy = false;
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function showToast(message, type = "") {
+        const el = $("toast");
+        el.textContent = message;
+        el.className = "toast" + (type ? " " + type : "");
+        el.classList.remove("hidden");
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(() => el.classList.add("hidden"), 5000);
+      }
+
+      function showNotice(message, type = "") {
+        const el = $("notice");
+        el.textContent = message;
+        el.className = "notice" + (type ? " " + type : "");
+        el.classList.remove("hidden");
+      }
+
+      function clearNotice() {
+        $("notice").classList.add("hidden");
+      }
+
+      function setBusy(value) {
+        busy = value;
+        $("saveBtn").disabled = value;
+        $("resetBtn").disabled = value;
+        $("saveBtn").textContent = value ? "Saving…" : "Save Episode";
+      }
+
+      function formatDuration(seconds) {
+        if (seconds === null || seconds === "" || Number.isNaN(Number(seconds))) return "—";
+        const total = Math.max(0, Math.floor(Number(seconds)));
+        const h = Math.floor(total / 3600);
+        const m = Math.floor((total % 3600) / 60);
+        const s = total % 60;
+        if (h) return h + "h " + String(m).padStart(2, "0") + "m";
+        return m + ":" + String(s).padStart(2, "0");
+      }
+
+      function localDateTimeToIso(value) {
+        if (!value) return null;
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? null : date.toISOString();
+      }
+
+      function setStatusPill(status) {
+        const el = $("currentStatus");
+        el.textContent = status || "Draft";
+        el.className = "status-pill " + (status || "draft");
+      }
+
+      function updateCounts() {
+        $("titleCount").textContent = ($("title").value.length) + " / 300";
+        $("descriptionCount").textContent = ($("description").value.length) + " / 1000";
+        $("notesCount").textContent = ($("showNotes").value.length) + " / 5000";
+      }
+
+      function updatePreview() {
+        const podcast = podcasts.find(p => p.id === $("podcast").value);
+        $("previewPodcast").textContent = podcast ? podcast.title.toUpperCase() : "SELECT A PODCAST";
+        $("previewTitle").textContent = $("title").value.trim() || "Untitled Episode";
+        $("previewDescription").textContent =
+          $("description").value.trim() || "Your episode preview will appear here as you write.";
+        $("metaSeason").textContent = $("season").value || "—";
+        $("metaEpisode").textContent = $("episodeNumber").value || "Auto";
+        $("metaDuration").textContent = formatDuration($("duration").value);
+        $("metaPublish").textContent = $("status").value;
+
+        const image = $("previewImage");
+        const placeholder = $("previewPlaceholder");
+        const url = $("thumbnailUrl").value.trim();
+
+        if (url) {
+          image.src = url;
+          image.style.display = "block";
+          placeholder.style.display = "none";
+        } else {
+          image.removeAttribute("src");
+          image.style.display = "none";
+          placeholder.style.display = "block";
+        }
+
+        $("podcastLink").href = podcast
+          ? "creator-studio.html?podcast=" + encodeURIComponent(podcast.id)
+          : "creator-studio.html";
+
+        setStatusPill($("status").value);
+      }
+
+      function populatePodcasts() {
+        const select = $("podcast");
+        if (!podcasts.length) {
+          select.innerHTML = '<option value="">No podcasts available</option>';
+          showNotice("No podcasts you can manage were found. Create a podcast first in Creator Studio.", "warning");
+          return;
+        }
+
+        select.innerHTML =
+          '<option value="">Choose a podcast…</option>' +
+          podcasts.map(p =>
+            '<option value="' + escapeHtml(p.id) + '">' +
+            escapeHtml(p.title) +
+            ' · ' + escapeHtml(p.status || "draft") +
+            '</option>'
+          ).join("");
+
+        if (requestedPodcastId && podcasts.some(p => p.id === requestedPodcastId)) {
+          select.value = requestedPodcastId;
+        } else if (podcasts.length === 1) {
+          select.value = podcasts[0].id;
+        }
+
+        updatePreview();
+      }
+
+      async function loadPodcasts() {
+        const { data, error } = await client.rpc("get_my_podcast_studio_list");
+        if (error) throw error;
+        podcasts = Array.isArray(data) ? data : [];
+        populatePodcasts();
+      }
+
+      async function saveEpisode(event) {
+        event.preventDefault();
+        if (busy) return;
+        clearNotice();
+
+        const podcastId = $("podcast").value;
+        const title = $("title").value.trim();
+
+        if (!podcastId) {
+          showNotice("Choose a podcast first.", "error");
+          $("podcast").focus();
+          return;
+        }
+
+        if (!title) {
+          showNotice("Episode title is required.", "error");
+          $("title").focus();
+          return;
+        }
+
+        const status = $("status").value;
+        const publishAtValue = $("publishAt").value;
+        const publishAt = localDateTimeToIso(publishAtValue);
+
+        if (status === "scheduled" && !publishAt) {
+          showNotice("Scheduled episodes require a publish date and time.", "error");
+          $("publishAt").focus();
+          return;
+        }
+
+        setBusy(true);
+
+        const payload = {
+          p_podcast_id: podcastId,
+          p_title: title,
+          p_slug: $("slug").value.trim() || null,
+          p_description: $("description").value.trim() || null,
+          p_episode_number: $("episodeNumber").value ? Number($("episodeNumber").value) : null,
+          p_season_number: $("season").value ? Number($("season").value) : null,
+          p_published_at: publishAt,
+          p_duration_seconds: $("duration").value ? Number($("duration").value) : null,
+          p_audio_url: $("audioUrl").value.trim() || null,
+          p_video_url: $("videoUrl").value.trim() || null,
+          p_thumbnail_url: $("thumbnailUrl").value.trim() || null,
+          p_transcript: $("transcript").value || null,
+          p_show_notes: $("showNotes").value || null,
+          p_status: status,
+          p_is_explicit: $("explicit").checked
+        };
+
+        try {
+          const { data, error } = await client.rpc("create_podcast_episode", payload);
+          if (error) throw error;
+
+          showNotice("Episode saved successfully.", "success");
+          showToast("Episode created.", "success");
+
+          if (data && data.id) {
+            $("sideMessage").textContent = "Episode ID: " + data.id;
+            $("sideMessage").classList.remove("hidden");
+
+            const newUrl =
+              "episode-studio.html?podcast=" +
+              encodeURIComponent(podcastId) +
+              "&episode=" +
+              encodeURIComponent(data.id);
+
+            history.replaceState({}, "", newUrl);
+          }
+
+          if (data) {
+            $("slug").value = data.slug || $("slug").value;
+            $("episodeNumber").value = data.episode_number || $("episodeNumber").value;
+            $("season").value = data.season_number || $("season").value;
+            if (data.published_at) {
+              const d = new Date(data.published_at);
+              const pad = n => String(n).padStart(2, "0");
+              const local =
+                d.getFullYear() + "-" +
+                pad(d.getMonth()+1) + "-" +
+                pad(d.getDate()) + "T" +
+                pad(d.getHours()) + ":" +
+                pad(d.getMinutes());
+              $("publishAt").value = local;
+            }
+          }
+
+          updatePreview();
+        } catch (error) {
+          console.error(error);
+          showNotice(error?.message || "Unable to create the episode.", "error");
+          showToast(error?.message || "Unable to create the episode.", "error");
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      function resetForm() {
+        if (busy) return;
+        $("episodeForm").reset();
+        $("status").value = "draft";
+        if (podcasts.length === 1) $("podcast").value = podcasts[0].id;
+        if (requestedPodcastId && podcasts.some(p => p.id === requestedPodcastId)) {
+          $("podcast").value = requestedPodcastId;
+        }
+        $("sideMessage").classList.add("hidden");
+        clearNotice();
+        updateCounts();
+        updatePreview();
+      }
+
+      async function init() {
+        try {
+          const url = window.CROWRULES_SUPABASE_URL || window.SUPABASE_URL;
+          const key =
+            window.CROWRULES_SUPABASE_PUBLISHABLE_KEY ||
+            window.SUPABASE_PUBLISHABLE_KEY ||
+            window.SUPABASE_ANON_KEY;
+
+          if (!url || !key || !window.supabase) {
+            throw new Error("CrowRules Supabase configuration is missing.");
+          }
+
+          client = window.supabase.createClient(url, key);
+
+          const { data: { user }, error } = await client.auth.getUser();
+          if (error) throw error;
+
+          if (!user) {
+            $("loading").classList.add("hidden");
+            $("authError").classList.remove("hidden");
+            return;
+          }
+
+          currentUser = user;
+          await loadPodcasts();
+
+          $("loading").classList.add("hidden");
+          $("app").classList.remove("hidden");
+          document.documentElement.classList.add("page-ready");
+        } catch (error) {
+          console.error(error);
+          $("loading").classList.add("hidden");
+          $("authError").classList.remove("hidden");
+          showToast(error?.message || "Unable to load Episode Studio.", "error");
+        }
+      }
+
+      [
+        "title","description","showNotes","season","episodeNumber",
+        "duration","thumbnailUrl","audioUrl","videoUrl","status","podcast"
+      ].forEach(id => {
+        $(id).addEventListener("input", () => {
+          updateCounts();
+          updatePreview();
+        });
+        $(id).addEventListener("change", () => {
+          updateCounts();
+          updatePreview();
+        });
+      });
+
+      $("episodeForm").addEventListener("submit", saveEpisode);
+      $("resetBtn").addEventListener("click", resetForm);
+
+      $("audioUrl").addEventListener("change", () => {
+        const url = $("audioUrl").value.trim();
+        if (!url || $("duration").value) return;
+
+        const audio = document.createElement("audio");
+        audio.preload = "metadata";
+        audio.addEventListener("loadedmetadata", () => {
+          if (Number.isFinite(audio.duration)) {
+            $("duration").value = Math.round(audio.duration);
+            updatePreview();
+          }
+        });
+        audio.src = url;
+      });
+
+      $("thumbnailUrl").addEventListener("input", updatePreview);
+      $("thumbnailUrl").addEventListener("error", () => {});
+
+      updateCounts();
+      updatePreview();
+      init();
+    })();
+  </script>
+</body>
+</html>
