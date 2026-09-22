@@ -209,6 +209,7 @@ function creatorNavSyncStart(){
   if(creatorNavSyncTimer)return;
   creatorNavSyncSignature="";
   creatorNavRealtimeStart();
+  creatorNavPresenceStart();
   creatorNavSyncRefresh();
   creatorNavSyncTimer=setInterval(()=>creatorNavServerGovernanceRefresh(true).then(()=>creatorNavSyncRefresh()),30000);
   window.addEventListener("storage",e=>{if(e.key===CREATOR_NAV_EVENTS_KEY||e.key===CREATOR_NAV_TEAM_KEY||e.key===CREATOR_NAV_EXECUTION_KEY||e.key===CREATOR_NAV_ROADMAP_KEY)creatorNavSyncRefresh();});
@@ -386,7 +387,7 @@ function renderScheduler(){
   box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:8px">'+cols.map(c=>'<div class="card" data-board-column="'+escText(c.member.id)+'" style="padding:8px"><b>'+escText(c.member.name)+'</b><small> · '+c.tasks.length+'/'+Number(c.member.capacity||0)+' capacity</small>'+c.tasks.map(t=>'<div draggable="'+(t.dep.state==="READY"?"true":"false")+'" data-board-task="'+escText(t.x.c.id)+'|'+escText(t.st.key)+'" style="padding:7px;margin-top:6px;border:1px solid currentColor;border-radius:6px;cursor:'+(t.dep.state==="READY"?"grab":"not-allowed")+'"><b>'+escText(t.st.name)+'</b><br><small>'+escText(t.x.c.name)+' · '+escText(t.dep.state)+(t.deadline.state!=="ON TIME"?" · ⚠ "+escText(t.deadline.state):"")+' · '+escText(t.date.toISOString().slice(0,10))+'</small></div>').join("")+'</div>').join("")+'</div><div style="font-size:.72rem;opacity:.7;margin-top:6px">Blocked tasks cannot be dragged until their dependency is complete. Deadline conflicts are highlighted.</div><div class="card" style="padding:8px;margin-top:8px"><b>ADAPTIVE SCHEDULE ENGINE</b><div id="creatorNavAdaptiveSchedule"></div></div><div class="card" style="padding:8px;margin-top:8px"><b>OPTIMIZED PRODUCTION SEQUENCE</b>'+creatorNavOptimizedSequence(data).map(o=>'<div style="margin-top:6px"><b>'+escText(o.collection)+'</b>'+ (o.steps.length?o.steps.map((r,n)=>'<div style="font-size:.74rem;margin-top:3px">'+(n+1)+'. '+escText(r.st.name)+' · '+escText(r.owner?.name||"Unassigned")+' · '+escText(r.dep.state)+' · '+escText(r.date.toISOString().slice(0,10))+(r.deadline.state!=="ON TIME"?" · ⚠ "+escText(r.deadline.state):"")+'</div>').join(""):'<div style="font-size:.72rem;opacity:.7">Complete.</div>')+'</div>').join("")+'</div>';
   box.querySelectorAll("[data-board-task][draggable=true]").forEach(el=>el.addEventListener("dragstart",e=>e.dataTransfer.setData("text/plain",el.dataset.boardTask)));
   box.querySelectorAll("[data-board-column]").forEach(el=>el.addEventListener("dragover",e=>e.preventDefault()));
-  box.querySelectorAll("[data-board-column]").forEach(el=>el.addEventListener("drop",e=>{e.preventDefault();const raw=e.dataTransfer.getData("text/plain").split("|"),m=team.find(z=>z.id===el.dataset.boardColumn);if(raw.length!==2||!m)return;const x=data.find(z=>z.c.id===raw[0]),steps=creatorNavRoadmapSteps(x,x.target),i=steps.findIndex(z=>z.key===raw[1]),st=steps[i],dep=creatorNavDependencyStatus(x,st,i);if(st&&!st.done&&dep.state==="READY"){creatorNavBoardMove(raw[0],raw[1],m.id);renderProductionBoard();renderAdaptiveSchedule();renderProductionControlRoom();renderProductionEventStream();renderProductionIntelligence();renderCreatorPerformanceIntelligence();renderIntelligentAssignments();renderAutonomousOptimizer();renderOptimizationSimulatorPanel();renderScenarioWorkspace();renderScenarioComparisonMatrix();renderScenarioApprovalEngine();renderChangeManagement();creatorNavSyncStart();renderCalendar(14);renderScheduler();}}));
+  box.querySelectorAll("[data-board-column]").forEach(el=>el.addEventListener("drop",e=>{e.preventDefault();const raw=e.dataTransfer.getData("text/plain").split("|"),m=team.find(z=>z.id===el.dataset.boardColumn);if(raw.length!==2||!m)return;const x=data.find(z=>z.c.id===raw[0]),steps=creatorNavRoadmapSteps(x,x.target),i=steps.findIndex(z=>z.key===raw[1]),st=steps[i],dep=creatorNavDependencyStatus(x,st,i);if(st&&!st.done&&dep.state==="READY"){creatorNavBoardMove(raw[0],raw[1],m.id);renderProductionBoard();renderAdaptiveSchedule();renderProductionControlRoom();\n  renderCollaborativeControlRoom();renderProductionEventStream();renderProductionIntelligence();renderCreatorPerformanceIntelligence();renderIntelligentAssignments();renderAutonomousOptimizer();renderOptimizationSimulatorPanel();renderScenarioWorkspace();renderScenarioComparisonMatrix();renderScenarioApprovalEngine();renderChangeManagement();creatorNavSyncStart();renderCalendar(14);renderScheduler();}}));
 }function renderProductionEventStream(){
   const box=document.getElementById("creatorNavLiveEventStream");if(!box)return;
   const rows=creatorNavEventsRead().slice(-30).reverse();
@@ -451,6 +452,69 @@ async function creatorNavCreateVerificationCertificate(){
 let creatorNavServerGovernanceState={context:null,transactions:[],changes:[],audit:[],assignments:[],lastFetch:0};
 let creatorNavServerGovernanceBusy=false;
 let creatorNavRealtimeChannel=null;
+let creatorNavPresenceChannel=null;
+let creatorNavPresenceState={members:{},taskLocks:{},lastEvent:null};
+let creatorNavPresenceStarted=false;
+
+function creatorNavPresenceIdentity(){
+  const s=creatorNavServerGovernanceState.context||{};
+  return {id:s.userId||"anonymous",name:s.email||"Creator"};
+}
+function creatorNavPresenceBroadcast(type,payload={}){
+  if(!creatorNavPresenceChannel)return;
+  const me=creatorNavPresenceIdentity();
+  creatorNavPresenceChannel.send({type:"broadcast",event:"production-presence",payload:{type,...payload,actorId:me.id,actorName:me.name,at:new Date().toISOString()}});
+}
+function creatorNavPresenceRender(){
+  const box=document.getElementById("creatorNavCollaborativeControlRoom");if(!box)return;
+  const members=Object.values(creatorNavPresenceState.members||{}),locks=Object.values(creatorNavPresenceState.taskLocks||{});
+  box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:7px;margin-top:7px"><div class="card" style="padding:7px"><b>'+members.length+'</b><small> LIVE CREATORS</small></div><div class="card" style="padding:7px"><b>'+locks.length+'</b><small> ACTIVE TASK LOCKS</small></div></div><div style="margin-top:8px"><b>WHO IS HERE</b>'+(members.map(m=>'<div style="font-size:.74rem;margin-top:3px">● '+escText(m.name||"Creator")+' · '+escText(m.state||"viewing")+(m.taskName?' · '+escText(m.taskName):"")+'</div>').join("")||'<div style="font-size:.72rem;opacity:.7">No other creators currently connected.</div>')+'</div><div style="margin-top:8px"><b>ACTIVE WORK</b>'+(locks.map(l=>'<div style="font-size:.72rem;margin-top:3px">🔒 '+escText(l.taskName||l.key||"Task")+' · '+escText(l.ownerName||"Creator")+'</div>').join("")||'<div style="font-size:.72rem;opacity:.7">No active task locks.</div>')+'</div>';
+}
+function creatorNavPresenceStart(){
+  if(creatorNavPresenceStarted||typeof supabase==="undefined"||!supabase?.channel)return;
+  creatorNavPresenceStarted=true;
+  const me=creatorNavPresenceIdentity();
+  creatorNavPresenceChannel=supabase.channel("crowrules-production-presence",{config:{presence:{key:me.id}}});
+  creatorNavPresenceChannel
+    .on("presence",{event:"sync"},()=>{creatorNavPresenceState.members=creatorNavPresenceChannel.presenceState().map?Object.values(creatorNavPresenceChannel.presenceState()).flat().reduce((a,x)=>{if(x?.id)a[x.id]=x;return a;},{}):{};creatorNavPresenceRender();})
+    .on("broadcast",{event:"production-presence"},({payload})=>{
+      creatorNavPresenceState.lastEvent=payload;
+      if(payload.type==="lock")creatorNavPresenceState.taskLocks[payload.lockKey]={...payload};
+      if(payload.type==="unlock")delete creatorNavPresenceState.taskLocks[payload.lockKey];
+      creatorNavPresenceRender(); creatorNavSyncRefresh();
+    })
+    .subscribe(async status=>{
+      if(status==="SUBSCRIBED"){
+        await creatorNavPresenceChannel.track({id:me.id,name:me.name,state:"viewing",at:new Date().toISOString()});
+        creatorNavPresenceRender();
+      }
+      if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){creatorNavPresenceStarted=false;creatorNavPresenceChannel=null;setTimeout(creatorNavPresenceStart,5000);}
+    });
+}
+function creatorNavPresenceStop(){
+  if(creatorNavPresenceChannel&&typeof supabase!=="undefined")supabase.removeChannel(creatorNavPresenceChannel);
+  creatorNavPresenceChannel=null;creatorNavPresenceStarted=false;
+}
+function creatorNavPresenceLock(id,key,name){
+  const me=creatorNavPresenceIdentity(),lockKey=id+"::"+key;
+  const current=creatorNavPresenceState.taskLocks[lockKey];
+  if(current&&current.actorId!==me.id)return {ok:false,owner:current.ownerName||current.actorName};
+  creatorNavPresenceState.taskLocks[lockKey]={lockKey,collectionId:id,key,taskName:name,ownerName:me.name,actorId:me.id,at:new Date().toISOString()};
+  creatorNavPresenceBroadcast("lock",{lockKey,collectionId:id,key,taskName:name,ownerName:me.name});
+  creatorNavPresenceRender();return {ok:true};
+}
+function creatorNavPresenceUnlock(id,key){
+  const lockKey=id+"::"+key,me=creatorNavPresenceIdentity(),current=creatorNavPresenceState.taskLocks[lockKey];
+  if(current&&current.actorId!==me.id)return false;
+  delete creatorNavPresenceState.taskLocks[lockKey];
+  creatorNavPresenceBroadcast("unlock",{lockKey,collectionId:id,key});
+  creatorNavPresenceRender();return true;
+}
+function creatorNavPresenceWorking(id,key,name){
+  const lock=creatorNavPresenceLock(id,key,name);if(!lock.ok)return lock;
+  if(creatorNavPresenceChannel)creatorNavPresenceChannel.track({id:creatorNavPresenceIdentity().id,name:creatorNavPresenceIdentity().name,state:"working",taskName:name,taskKey:key,collectionId:id,at:new Date().toISOString()});
+  return lock;
+}
 let creatorNavRealtimeStarted=false;
 let creatorNavRealtimeDebounce=null;
 
@@ -910,6 +974,10 @@ function renderProductionIntelligence(){
   box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:7px;margin-top:8px">'+[
     ["Completion",p.completion+"%"],["Open Tasks",p.open],["Throughput",p.velocity.toFixed(1)+" pts/day"],["Conflicts",p.conflicts],["Overdue",p.overdue],["Utilization",p.utilization+"%"],["Blocked",p.dependencyBottlenecks],["Recovery",p.recovery]
   ].map(x=>'<div class="card" style="padding:7px"><b>'+escText(String(x[1]))+'</b><small> '+escText(x[0].toUpperCase())+'</small></div>').join("")+'</div><div style="margin-top:10px"><b>CREATOR PERFORMANCE</b>'+p.workload.map(r=>'<div style="font-size:.74rem;margin-top:4px">'+escText(r.member.name)+' · '+r.load+' assigned / '+Number(r.member.capacity||0)+' capacity'+(r.over?' · ⚠ OVER':'')+'</div>').join("")+'</div><div style="margin-top:10px"><b>SCHEDULE HEALTH</b><div style="font-size:.74rem;margin-top:4px">'+(p.conflicts?'Schedule has '+p.conflicts+' active conflict(s), including '+p.overdue+' overdue.':'No active schedule conflicts.')+'</div></div><div style="margin-top:10px"><b>HISTORICAL PRODUCTION TREND</b><div style="display:flex;gap:3px;align-items:flex-end;height:70px;margin-top:6px">'+trend.map(e=>'<span title="'+escText(creatorNavEventTypeLabel(e.type))+'" style="display:block;width:10px;height:'+Math.max(8,Math.min(64,8+((new Date(e.at).getTime()/86400000)%7)*8))+'px;border:1px solid currentColor"></span>').join("")+'</div><small>Recent production-event activity · '+trend.length+' events shown</small></div>';
+}
+function renderCollaborativeControlRoom(){
+  const box=document.getElementById("creatorNavCollaborativeControlRoom");if(!box)return;
+  creatorNavPresenceRender();
 }
 function renderProductionControlRoom(){
   const box=document.getElementById("creatorNavLiveControlRoom");if(!box)return;
