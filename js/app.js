@@ -23,8 +23,8 @@ function creatorNavCollectionDashboard(id){
   const c=creatorNavCollectionsRead().find(x=>x.id===id);if(!c)return;
   const rows=creatorNavHistoryRead(),targets=c.snapshotUrls.map(u=>rows.find(x=>x.url===u)).filter(Boolean);
   const progress=creatorNavCollectionProgressRead(),states=progress[c.id]||{};
-  const complete=targets.filter(e=>states[e.url]==="complete").length,pct=targets.length?Math.round(complete/targets.length*100):0;
-  const html='<div class="section wrap"><div class="card" style="padding:16px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">COLLECTION DASHBOARD</div><h2 style="margin:.25rem 0">'+esc(c.name)+'</h2><div>Progress: '+complete+'/'+targets.length+' Complete — '+pct+'%</div><div style="height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden;margin:8px 0 14px"><div style="height:100%;width:'+pct+'%;background:currentColor"></div></div>'+targets.map((e,n)=>{const st=states[e.url]||"not-started",name=creatorNavHistorySnapshotName(e);return '<div class="card" style="padding:10px;margin-top:8px;display:flex;justify-content:space-between;gap:10px;align-items:center"><div><strong>'+(n+1)+'. '+esc(name)+'</strong><div style="font-size:.8rem;opacity:.7">'+esc(st.replace("-"," "))+'</div></div><div class="actions"><button class="btn" onclick="creatorNavCollectionRunner(\''+c.id+'\','+n+')">OPEN</button><button class="btn" onclick="creatorNavCollectionDashboardStatus(\''+c.id+'\','+n+',\'complete\')">COMPLETE</button></div></div>';}).join("")+'</div></div>';
+  const complete=targets.filter(e=>states[e.url]==="complete").length,pct=targets.length?Math.round(complete/targets.length*100):0,m=creatorNavCollectionMilestoneUpdate(c.id,targets);
+  const html='<div class="section wrap"><div class="card" style="padding:16px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">COLLECTION DASHBOARD</div><h2 style="margin:.25rem 0">'+esc(c.name)+'</h2><div>Progress: '+complete+'/'+targets.length+' Complete — '+pct+'%</div><div style="margin-top:12px"><strong>MILESTONES</strong><div style="font-size:.85rem;margin-top:5px">'+m.events.map(e=>esc(e.label)+' · '+creatorNavCollectionMilestoneDate(e.at)).join(' → ')+'</div><div style="font-size:.8rem;opacity:.7;margin-top:5px">Started: '+creatorNavCollectionMilestoneDate(m.startedAt)+' · Completed: '+creatorNavCollectionMilestoneDate(m.completedAt)+'</div></div><div style="height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden;margin:8px 0 14px"><div style="height:100%;width:'+pct+'%;background:currentColor"></div></div>'+targets.map((e,n)=>{const st=states[e.url]||"not-started",name=creatorNavHistorySnapshotName(e);return '<div class="card" style="padding:10px;margin-top:8px;display:flex;justify-content:space-between;gap:10px;align-items:center"><div><strong>'+(n+1)+'. '+esc(name)+'</strong><div style="font-size:.8rem;opacity:.7">'+esc(st.replace("-"," "))+'</div></div><div class="actions"><button class="btn" onclick="creatorNavCollectionRunner(\''+c.id+'\','+n+')">OPEN</button><button class="btn" onclick="creatorNavCollectionDashboardStatus(\''+c.id+'\','+n+',\'complete\')">COMPLETE</button></div></div>';}).join("")+'</div></div>';
   let host=document.getElementById("creatorNavCollectionDashboard");if(!host){host=document.createElement("div");host.id="creatorNavCollectionDashboard";const h=document.getElementById("creatorNavCollectionsPanel");if(h)h.parentNode.insertBefore(host,h);}host.innerHTML=html;
 }
 function creatorNavCollectionDashboardStatus(id,index,status){
@@ -32,6 +32,19 @@ function creatorNavCollectionDashboardStatus(id,index,status){
   const rows=creatorNavHistoryRead(),targets=c.snapshotUrls.map(u=>rows.find(x=>x.url===u)).filter(Boolean),e=targets[index];if(!e)return;
   creatorNavCollectionProgressSet(id,e.url,status);creatorNavCollectionsHost();
 }
+function creatorNavCollectionMilestonesRead(){try{return JSON.parse(localStorage.getItem("crowrules_creator_collection_milestones_v1")||"{}");}catch{return {};}}
+function creatorNavCollectionMilestonesWrite(x){try{localStorage.setItem("crowrules_creator_collection_milestones_v1",JSON.stringify(x));}catch{}}
+function creatorNavCollectionMilestoneUpdate(id,targets){
+  const all=creatorNavCollectionMilestonesRead(),m=all[id]||{events:[]},p=creatorNavCollectionProgressRead(),st=p[id]||{};
+  const complete=targets.filter(e=>st[e.url]==="complete").length,total=targets.length,pct=total?Math.round(complete/total*100):0;
+  const thresholds=[[0,"Started"],[25,"25%"],[50,"50%"],[75,"75%"],[100,"Completed"]];
+  m.events=m.events||[];
+  if(!m.startedAt&&targets.length)m.startedAt=new Date().toISOString();
+  thresholds.forEach(([n,label])=>{if(pct>=n&&!m.events.some(e=>e.label===label)){m.events.push({label,at:new Date().toISOString()});}});
+  if(pct===100&&!m.completedAt)m.completedAt=new Date().toISOString();
+  all[id]=m;creatorNavCollectionMilestonesWrite(all);return m;
+}
+function creatorNavCollectionMilestoneDate(iso){if(!iso)return "—";try{return new Date(iso).toLocaleString([], {dateStyle:"medium",timeStyle:"short"});}catch{return iso;}}
 function creatorNavCollectionProgressRead(){try{return JSON.parse(localStorage.getItem("crowrules_creator_collection_progress_v1")||"{}");}catch{return {};}}
 function creatorNavCollectionProgressWrite(x){try{localStorage.setItem("crowrules_creator_collection_progress_v1",JSON.stringify(x));}catch{}}
 function creatorNavCollectionProgressStatus(id,url){const a=creatorNavCollectionProgressRead();return (a[id]||{})[url]||"not-started";}
