@@ -589,6 +589,8 @@
       transform: none;
     }
 
+    .achievement-showcase{margin-top:22px;padding:27px}.achievement-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px}.achievement-head h2{margin:0 0 7px;font-family:Orbitron,sans-serif;font-size:20px}.achievement-head p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}.achievement-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}.achievement-card{padding:16px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(255,255,255,.025)}.achievement-icon{font-size:25px}.achievement-title{margin-top:8px;font:800 12px Orbitron,sans-serif}.achievement-meta{margin-top:6px;color:var(--muted);font-size:10px;line-height:1.5}.achievement-date{margin-top:9px;color:var(--cyan);font-size:9px;font-weight:800}@media(max-width:800px){.achievement-grid{grid-template-columns:1fr 1fr}}@media(max-width:520px){.achievement-grid{grid-template-columns:1fr}}
+
     /* --------------------------------
        UNIVERSAL MEMBERSHIP
     -------------------------------- */
@@ -1158,6 +1160,17 @@
 
       </section>
 
+      <section class="card achievement-showcase">
+        <div class="achievement-head">
+          <div>
+            <h2>🏆 Creator Achievements</h2>
+            <p>Milestones you have chosen to share publicly through CrowRules Podcasting.</p>
+          </div>
+          <a id="achievementShowcaseLink" class="btn btn-primary" href="#" hidden>VIEW SHOWCASE</a>
+        </div>
+        <div id="profileAchievements" class="achievement-grid"></div>
+      </section>
+
       <footer>
         CrowRules Entertainment · One Company. One Universe.
       </footer>
@@ -1253,6 +1266,7 @@
     ------------------------------------------------------------ */
 
     let currentUser = null;
+    let currentCreatorId = null;
 
 
     /* ------------------------------------------------------------
@@ -1656,6 +1670,41 @@
 
     }
 
+
+    /* ------------------------------------------------------------
+       CREATOR ACHIEVEMENT SHOWCASE
+    ------------------------------------------------------------ */
+
+    async function loadCreatorAchievements() {
+      const target = document.getElementById("profileAchievements");
+      const link = document.getElementById("achievementShowcaseLink");
+      if (!target || !currentUser) return;
+      try {
+        const member = await supabaseClient.from("members").select("id").eq("user_id", currentUser.id).maybeSingle();
+        if (member.error || !member.data) {
+          target.innerHTML = '<div class="achievement-meta">Creator profile not linked yet.</div>';
+          return;
+        }
+        const creator = await supabaseClient.from("creators").select("id").eq("member_id", member.data.id).eq("is_active", true).maybeSingle();
+        if (creator.error || !creator.data) {
+          target.innerHTML = '<div class="achievement-meta">Complete your Creator profile to start earning public achievements.</div>';
+          return;
+        }
+        currentCreatorId = creator.data.id;
+        link.href = "creator-achievements.html?creator=" + encodeURIComponent(currentCreatorId);
+        link.hidden = false;
+        const q = await supabaseClient.rpc("get_public_creator_achievements", { p_creator_id: currentCreatorId });
+        if (q.error) throw q.error;
+        const icons = {published_episodes:"🎙️",total_plays:"▶️",unique_listeners:"👥",returning_listeners:"🔁",listening_seconds:"⏱️"};
+        const rows = (q.data || []).slice(0,6);
+        target.innerHTML = rows.length
+          ? rows.map(x => '<article class="achievement-card"><div class="achievement-icon">'+(icons[x.goal_type]||"🏆")+'</div><div class="achievement-title">'+escapeDisplay(x.title)+'</div><div class="achievement-meta">'+escapeDisplay(x.description)+'</div><div class="achievement-date">ACHIEVED '+formatDate(x.achieved_at)+'</div></article>').join("")
+          : '<div class="achievement-meta">No public achievements yet. Complete a creator milestone and choose to share it.</div>';
+      } catch(error) {
+        console.warn("Achievement showcase:", error);
+        target.innerHTML = '<div class="achievement-meta">Achievement showcase is temporarily unavailable.</div>';
+      }
+    }
 
     /* ------------------------------------------------------------
        LOAD UNIVERSAL MEMBERSHIP
@@ -2099,6 +2148,7 @@
         renderProfile();
 
         await loadMembership();
+        await loadCreatorAchievements();
 
 
         loadingScreen.style.display =
