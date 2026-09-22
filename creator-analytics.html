@@ -1,1 +1,57 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050b"><title>Creator Analytics | CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"></head><body><div id="app"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script><script src="js/app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05050b"><meta name="color-scheme" content="dark">
+<title>Creator Support Analytics | CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+</head>
+<body>
+<div class="site-background" aria-hidden="true"><div class="background-stars"></div><div class="background-grid"></div><div class="background-glow background-glow-one"></div><div class="background-glow background-glow-two"></div></div>
+<header class="site-header"><div class="site-header-inner">
+<a class="brand" href="index.html"><span class="brand-mark">CR</span><span class="brand-text"><span class="brand-name">CROW<span class="glow">RULES</span></span><span class="brand-section">PODCASTING</span></span></a>
+<nav class="main-navigation"><a href="creator-dashboard.html">Studio</a><a href="creator-revenue.html">Revenue</a><a href="creator-monetization.html">Monetization</a><a href="creator-deal-room.html">Deal Room</a><a href="profile.html">Profile</a></nav>
+</div></header>
+<main><section class="section wrap">
+<div class="studioHero"><span class="eyebrow">CREATOR STUDIO · SUPPORT ANALYTICS</span><h1>SUPPORT <span class="glow">ANALYTICS</span></h1><p>Privacy-safe analytics built from verified listener-support payment records. No Stripe balance, bank balance, or future-income estimate is shown.</p><div class="actions"><a class="btn primary" href="creator-revenue.html">REVENUE LEDGER</a><a class="btn" href="support.html">PUBLIC SUPPORT</a></div></div>
+<div id="gate" class="card">Checking your CrowRules account…</div>
+<div id="app" class="hidden">
+<div id="metrics" class="grid" style="margin-top:25px"></div>
+<section class="section"><div class="section-header"><span class="eyebrow">ACTIVITY</span><h2>Support <span class="glow">Timeline</span></h2><p>Completed listener-support payments grouped by calendar month.</p></div><div id="months" class="card">Loading…</div></section>
+<section class="section"><div class="section-header"><span class="eyebrow">CATALOG</span><h2>Support <span class="glow">By Tier</span></h2><p>Verified payment activity grouped by published support tier.</p></div><div id="tiers" class="card">Loading…</div></section>
+<section class="section"><div class="section-header"><span class="eyebrow">SHOWS</span><h2>Support <span class="glow">By Podcast</span></h2><p>Verified listener-support activity associated with each podcast.</p></div><div id="podcasts" class="card">Loading…</div></section>
+<div class="card"><span class="eyebrow">PRIVACY</span><p>Supporter names, email addresses, card details, and Stripe-sensitive information are not displayed. Analytics use aggregate payment records associated with your creator account.</p></div>
+</div></section></main>
+<footer class="site-footer"><div class="site-footer-inner"><div class="footer-brand"><strong>CROWRULES PODCASTING</strong><span>ONE ACCOUNT. ONE UNIVERSE.</span></div><div class="footer-copy">© 2026 CrowRules Entertainment</div></div></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script>
+<script>
+(async()=>{
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const gate=document.getElementById("gate"),app=document.getElementById("app");
+const money=(c,n)=>((Number(n)||0)/100).toLocaleString(undefined,{style:"currency",currency:String(c||"USD").toUpperCase()});
+try{
+const cfg=window.CrowRulesConfig||{}; if(!cfg.supabaseUrl||!cfg.supabaseAnonKey)throw Error("CrowRules configuration unavailable.");
+const db=supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
+const {data:{user}}=await db.auth.getUser(); if(!user){gate.innerHTML='<span class="eyebrow">LOGIN REQUIRED</span><h2>Sign in to view creator analytics.</h2><a class="btn primary" href="login.html">LOGIN</a>';return;}
+const {data:member,error:me}=await db.from("members").select("id").eq("user_id",user.id).maybeSingle();if(me)throw me;if(!member)throw Error("Universal membership record not found.");
+const {data:creator,error:ce}=await db.from("creators").select("id").eq("member_id",member.id).maybeSingle();if(ce)throw ce;if(!creator)throw Error("Creator profile not found.");
+const {data:payments,error:pe}=await db.from("podcast_support_payments").select("amount_total,currency,payment_status,created_at,tier_id,podcast_id").eq("creator_id",creator.id).order("created_at",{ascending:false});if(pe)throw pe;
+const rows=(payments||[]).filter(x=>x.payment_status==="paid");
+const tierIds=[...new Set(rows.map(x=>x.tier_id).filter(Boolean))],podcastIds=[...new Set(rows.map(x=>x.podcast_id).filter(Boolean))];
+let tierMap={},podcastMap={};
+if(tierIds.length){const {data,error}=await db.from("creator_support_tiers").select("id,tier_name,label,podcast_id").in("id",tierIds);if(error)throw error;(data||[]).forEach(x=>tierMap[x.id]=x);}
+if(podcastIds.length){const {data,error}=await db.from("podcasts").select("id,title").in("id",podcastIds);if(error)throw error;(data||[]).forEach(x=>podcastMap[x.id]=x);}
+const total=rows.reduce((n,x)=>n+(Number(x.amount_total)||0),0),count=rows.length,avg=count?total/count:0,uniqueTiers=new Set(rows.map(x=>x.tier_id).filter(Boolean)).size;
+gate.classList.add("hidden");app.classList.remove("hidden");
+document.getElementById("metrics").innerHTML=[["SUPPORT PAYMENTS",count],["VERIFIED SUPPORT",money(rows[0]?.currency,total)],["AVERAGE SUPPORT",money(rows[0]?.currency,avg)],["ACTIVE TIERS",uniqueTiers]].map(x=>'<div class="card"><span class="eyebrow">'+esc(x[0])+'</span><h2>'+esc(x[1])+'</h2></div>').join("");
+const month={};rows.forEach(x=>{const d=new Date(x.created_at),k=d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0");month[k]=(month[k]||0)+(Number(x.amount_total)||0);});
+const monthKeys=Object.keys(month).sort().reverse();
+document.getElementById("months").innerHTML=monthKeys.length?monthKeys.map(k=>'<div style="padding:16px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:15px"><span>'+esc(k)+'</span><strong>'+esc(money(rows[0]?.currency,month[k]))+'</strong></div>').join(""):'<p class="muted">No completed support activity yet.</p>';
+const tier={};rows.forEach(x=>{const key=x.tier_id||"unassigned";if(!tier[key])tier[key]={count:0,total:0,name:(tierMap[key]?.tier_name||"Unassigned")};tier[key].count++;tier[key].total+=Number(x.amount_total)||0;});
+document.getElementById("tiers").innerHTML=Object.values(tier).sort((a,b)=>b.total-a.total).map(x=>'<div style="padding:16px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap"><div><strong>'+esc(x.name)+'</strong><div class="muted">'+x.count+' verified payment'+(x.count===1?"":"s")+'</div></div><strong>'+esc(money(rows[0]?.currency,x.total))+'</strong></div>').join("")||'<p class="muted">No tier activity yet.</p>';
+const pod={};rows.forEach(x=>{const key=x.podcast_id||"unassigned";if(!pod[key])pod[key]={count:0,total:0,name:(podcastMap[key]?.title||"Creator-wide support")};pod[key].count++;pod[key].total+=Number(x.amount_total)||0;});
+document.getElementById("podcasts").innerHTML=Object.values(pod).sort((a,b)=>b.total-a.total).map(x=>'<div style="padding:16px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap"><div><strong>'+esc(x.name)+'</strong><div class="muted">'+x.count+' verified payment'+(x.count===1?"":"s")+'</div></div><strong>'+esc(money(rows[0]?.currency,x.total))+'</strong></div>').join("")||'<p class="muted">No podcast activity yet.</p>';
+}catch(err){console.error(err);gate.innerHTML='<span class="eyebrow">ANALYTICS UNAVAILABLE</span><h2>Creator analytics could not be loaded.</h2><p>'+esc(err.message||"Nothing was changed.")+'</p><a class="btn" href="creator-revenue.html">OPEN REVENUE LEDGER</a>';}
+})();
+</script>
+</body></html>
