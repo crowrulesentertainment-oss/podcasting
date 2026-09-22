@@ -1,98 +1,59 @@
 <!doctype html>
-
 <html lang="en">
 <head>
   <meta charset="utf-8">
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1, viewport-fit=cover"
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
 
->
+  <meta
+    name="theme-color"
+    content="#000000"
+  >
 
-<meta
-name="theme-color"
-content="#000000"
+  <meta
+    name="color-scheme"
+    content="dark"
+  >
 
->
+  <meta
+    name="description"
+    content="CrowRules Podcasting — Your Voice. Your Story. Your Universe."
+  >
 
-<meta
-name="color-scheme"
-content="dark"
-
->
-
-<meta
-name="description"
-content="CrowRules Podcasting — Your Voice. Your Story. Your Universe."
-
->
-
-<meta
-name="robots"
-content="index,follow"
-
->
+  <meta
+    name="robots"
+    content="index,follow"
+  >
 
   <link
     rel="canonical"
     href="https://crowrulesentertainment-oss.github.io/podcasting/"
   >
 
-<meta
-property="og:type"
-content="website"
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="CrowRules Podcasting">
+  <meta
+    property="og:description"
+    content="Your Voice. Your Story. Your Universe."
+  >
+  <meta
+    property="og:url"
+    content="https://crowrulesentertainment-oss.github.io/podcasting/"
+  >
+  <meta property="og:site_name" content="CrowRules Podcasting">
 
->
-
-<meta
-property="og:title"
-content="CrowRules Podcasting"
-
->
-
-<meta
-property="og:description"
-content="Your Voice. Your Story. Your Universe."
-
->
-
-<meta
-property="og:url"
-content="https://crowrulesentertainment-oss.github.io/podcasting/"
-
->
-
-<meta
-property="og:site_name"
-content="CrowRules Podcasting"
-
->
-
-<meta
-name="twitter:card"
-content="summary_large_image"
-
->
-
-<meta
-name="twitter:title"
-content="CrowRules Podcasting"
-
->
-
-<meta
-name="twitter:description"
-content="Your Voice. Your Story. Your Universe."
-
->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="CrowRules Podcasting">
+  <meta
+    name="twitter:description"
+    content="Your Voice. Your Story. Your Universe."
+  >
 
   <!-- Fonts -->
-
-  <link
-    rel="preconnect"
-    href="https://fonts.googleapis.com"
-  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
 
   <link
     rel="preconnect"
@@ -101,12 +62,11 @@ content="Your Voice. Your Story. Your Universe."
   >
 
   <link
-    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap"
     rel="stylesheet"
   >
 
   <!-- Favicon -->
-
   <link
     rel="icon"
     href="assets/favicon.svg"
@@ -118,8 +78,7 @@ content="Your Voice. Your Story. Your Universe."
     href="assets/apple-touch-icon.png"
   >
 
-  <!-- Page CSS -->
-
+  <!-- Intro CSS -->
   <link
     rel="stylesheet"
     href="css/intro.css"
@@ -132,116 +91,449 @@ content="Your Voice. Your Story. Your Universe."
 
 <body>
 
-  <!-- Cinematic intro -->
-
   <main
     id="intro"
     class="intro"
-    aria-label="CrowRules Podcasting cinematic introduction"
+    aria-label="CrowRules Podcasting introduction"
   >
 
-```
-<!-- Ambient background -->
-<div
-  class="intro__background"
-  aria-hidden="true"
-></div>
+    <!-- =====================================================
+         BACKGROUND
+    ====================================================== -->
 
-<!-- Cinematic letterbox -->
-<div
-  class="letterbox letterbox--top"
-  aria-hidden="true"
-></div>
+    <div
+      class="background"
+      aria-hidden="true"
+    ></div>
 
-<div
-  class="letterbox letterbox--bottom"
-  aria-hidden="true"
-></div>
+    <div
+      class="stars stars--one"
+      aria-hidden="true"
+    ></div>
 
-<!-- Video -->
-<section class="intro__stage">
+    <div
+      class="stars stars--two"
+      aria-hidden="true"
+    ></div>
 
-  <video
-    id="introVideo"
-    class="intro__video"
-    autoplay
-    muted
-    playsinline
-    preload="auto"
-    aria-label="CrowRules Podcasting cinematic introduction"
-  >
-    <source
-      src="assets/podcasting-intro.mp4"
-      type="video/mp4"
+    <div
+      class="ambient-glow ambient-glow--one"
+      aria-hidden="true"
+    ></div>
+
+    <div
+      class="ambient-glow ambient-glow--two"
+      aria-hidden="true"
+    ></div>
+
+    <div
+      class="perspective-grid"
+      aria-hidden="true"
+    ></div>
+
+    <!-- =====================================================
+         CINEMATIC LETTERBOX
+    ====================================================== -->
+
+    <div
+      class="letterbox letterbox--top"
+      aria-hidden="true"
+    ></div>
+
+    <div
+      class="letterbox letterbox--bottom"
+      aria-hidden="true"
+    ></div>
+
+    <!-- =====================================================
+         PERMANENT BRAND
+    ====================================================== -->
+
+    <header class="brand">
+
+      <div class="brand__name">
+        CROW<span>RULES</span>
+      </div>
+
+      <div class="brand__division">
+        PODCASTING
+      </div>
+
+    </header>
+
+    <!-- =====================================================
+         SCENE 1
+         YOUR VOICE
+    ====================================================== -->
+
+    <section
+      id="scene1"
+      class="scene scene--1 active"
+      aria-hidden="false"
     >
 
-    Your browser does not support HTML5 video.
-  </video>
+      <div class="scene-meta">
+        <span>01</span>
+        <span>YOUR VOICE</span>
+      </div>
 
-  <!-- Fallback -->
-  <div
-    id="videoFallback"
-    class="video-fallback"
-    hidden
-  >
-    <div class="video-fallback__logo">
-      CROW<span>RULES</span>
+      <!-- Microphone -->
+
+      <div
+        class="microphone"
+        aria-hidden="true"
+      >
+
+        <div class="microphone__halo"></div>
+
+        <div class="microphone__head">
+
+          <div class="microphone__lines"></div>
+
+        </div>
+
+        <div class="microphone__neck"></div>
+
+        <div class="microphone__arm"></div>
+
+        <div class="microphone__base"></div>
+
+      </div>
+
+      <!-- Sound rings -->
+
+      <div
+        class="sound-rings"
+        aria-hidden="true"
+      >
+
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+
+      </div>
+
+      <!-- Audio bars -->
+
+      <div
+        class="waveform waveform--scene1"
+        aria-hidden="true"
+      >
+
+        <i></i><i></i><i></i><i></i><i></i>
+        <i></i><i></i><i></i><i></i><i></i>
+        <i></i><i></i><i></i><i></i><i></i>
+        <i></i><i></i><i></i><i></i><i></i>
+        <i></i><i></i><i></i><i></i><i></i>
+        <i></i><i></i><i></i><i></i><i></i>
+        <i></i><i></i><i></i>
+
+      </div>
+
+      <!-- Main message -->
+
+      <div class="scene-content">
+
+        <div class="scene-kicker">
+          EVERY VOICE
+        </div>
+
+        <h1>
+          HAS A
+          <strong>STORY.</strong>
+        </h1>
+
+        <p>
+          An idea starts with someone willing to speak.
+        </p>
+
+      </div>
+
+    </section>
+
+    <!-- =====================================================
+         SCENE 2
+         CREATE YOUR PODCAST
+    ====================================================== -->
+
+    <section
+      id="scene2"
+      class="scene scene--2"
+      aria-hidden="true"
+    >
+
+      <div class="scene-meta">
+        <span>02</span>
+        <span>CREATE YOUR PODCAST</span>
+      </div>
+
+      <!-- Studio orb -->
+
+      <div
+        class="studio-orb"
+        aria-hidden="true"
+      >
+
+        <div class="studio-orb__outer"></div>
+
+        <div class="studio-orb__middle"></div>
+
+        <div class="studio-orb__inner">
+
+          <div class="studio-bars">
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Recording display -->
+
+      <div
+        class="recording-panel"
+        aria-hidden="true"
+      >
+
+        <div class="recording-panel__header">
+
+          <div class="recording-status">
+
+            <span class="recording-dot"></span>
+
+            <span>
+              RECORDING
+            </span>
+
+          </div>
+
+          <div class="recording-time">
+            00:00:00
+          </div>
+
+        </div>
+
+        <div class="recording-wave">
+
+          <i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i>
+
+        </div>
+
+        <div class="recording-controls">
+
+          <span></span>
+
+          <strong>
+            ●
+          </strong>
+
+          <span></span>
+
+        </div>
+
+      </div>
+
+      <!-- Message -->
+
+      <div class="scene-content">
+
+        <div class="scene-kicker">
+          BUILD YOUR SHOW
+        </div>
+
+        <h1>
+          CREATE.
+          <strong>RECORD.</strong>
+          SHARE.
+        </h1>
+
+        <p>
+          Turn conversations, ideas and stories
+          into something the world can hear.
+        </p>
+
+      </div>
+
+    </section>
+
+    <!-- =====================================================
+         SCENE 3
+         YOUR UNIVERSE
+    ====================================================== -->
+
+    <section
+      id="scene3"
+      class="scene scene--3"
+      aria-hidden="true"
+    >
+
+      <div class="scene-meta">
+        <span>03</span>
+        <span>YOUR UNIVERSE</span>
+      </div>
+
+      <!-- Universe -->
+
+      <div
+        class="universe"
+        aria-hidden="true"
+      >
+
+        <div class="universe__orbit universe__orbit--1"></div>
+
+        <div class="universe__orbit universe__orbit--2"></div>
+
+        <div class="universe__orbit universe__orbit--3"></div>
+
+        <div class="universe__core">
+
+          <span>
+            CR
+          </span>
+
+        </div>
+
+        <div class="universe__planet universe__planet--1"></div>
+
+        <div class="universe__planet universe__planet--2"></div>
+
+        <div class="universe__planet universe__planet--3"></div>
+
+        <div class="universe__planet universe__planet--4"></div>
+
+        <div class="universe__planet universe__planet--5"></div>
+
+      </div>
+
+      <!-- Network -->
+
+      <div
+        class="network"
+        aria-hidden="true"
+      >
+
+        <span class="network__node network__node--1">
+          STORIES
+        </span>
+
+        <span class="network__node network__node--2">
+          CREATORS
+        </span>
+
+        <span class="network__node network__node--3">
+          EPISODES
+        </span>
+
+        <span class="network__node network__node--4">
+          COMMUNITY
+        </span>
+
+      </div>
+
+      <!-- Final message -->
+
+      <div class="final-message">
+
+        <div class="final-message__brand">
+          CROW<span>RULES</span>
+        </div>
+
+        <div class="final-message__division">
+          PODCASTING
+        </div>
+
+        <div class="final-message__tagline">
+          YOUR VOICE.
+          YOUR STORY.
+          YOUR UNIVERSE.
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- =====================================================
+         BOTTOM STATUS
+    ====================================================== -->
+
+    <div
+      id="status"
+      class="status"
+      aria-live="polite"
+    >
+      FINDING YOUR VOICE
     </div>
 
-    <div class="video-fallback__title">
-      PODCASTING
+    <!-- =====================================================
+         PROGRESS
+    ====================================================== -->
+
+    <div
+      class="progress"
+      aria-hidden="true"
+    >
+
+      <div
+        id="progressBar"
+        class="progress__bar"
+      ></div>
+
     </div>
-  </div>
 
-</section>
+    <!-- =====================================================
+         SCENE DOTS
+    ====================================================== -->
 
-<!-- Branding overlay -->
-<div
-  class="intro__branding"
-  aria-hidden="true"
->
-  <div class="branding__top">
-    CROW<span>RULES</span>
-  </div>
+    <div
+      class="scene-dots"
+      aria-hidden="true"
+    >
 
-  <div class="branding__bottom">
-    PODCASTING
-  </div>
-</div>
+      <span
+        class="scene-dot active"
+        data-scene="1"
+      ></span>
 
-<!-- Bottom status -->
-<div
-  class="intro__status"
-  id="introStatus"
-  aria-live="polite"
->
-  ENTERING THE UNIVERSE
-</div>
+      <span
+        class="scene-dot"
+        data-scene="2"
+      ></span>
 
-<!-- Progress -->
-<div
-  class="intro__progress"
-  aria-hidden="true"
->
-  <div
-    id="progressBar"
-    class="intro__progress-bar"
-  ></div>
-</div>
+      <span
+        class="scene-dot"
+        data-scene="3"
+      ></span>
 
-<!-- Skip -->
-<button
-  id="skipIntro"
-  class="skip-button"
-  type="button"
-  aria-label="Skip cinematic introduction"
->
-  SKIP
-</button>
+    </div>
+
+    <!-- =====================================================
+         SKIP
+    ====================================================== -->
+
+    <button
+      id="skipIntro"
+      class="skip"
+      type="button"
+    >
+      SKIP INTRO
+    </button>
 
   </main>
-
-  <!-- JavaScript -->
 
   <script src="js/intro.js" defer></script>
 
