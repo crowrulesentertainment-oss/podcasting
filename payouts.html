@@ -2461,137 +2461,146 @@
      No Stripe secret is exposed here.
   ============================================================ */
 
+  function extractEdgeFunctionError(error, data) {
+
+    const details = [];
+
+    const add = value => {
+      if (value !== undefined && value !== null && String(value).trim()) {
+        details.push(String(value).trim());
+      }
+    };
+
+    const inspect = body => {
+      if (!body || typeof body !== "object") return;
+
+      add(body.error);
+      add(body.message);
+
+      if (body.stage) add("Stage: " + body.stage);
+      if (body.code) add("Code: " + body.code);
+      if (body.stripe_error) add("Stripe: " + body.stripe_error);
+    };
+
+    inspect(data);
+
+    if (error) {
+      add(error.message);
+
+      try {
+        const context = error.context;
+
+        if (context) {
+          if (context.status) add("HTTP " + context.status);
+          if (context.statusText) add(context.statusText);
+
+          let body = context.body;
+
+          if (typeof body === "string") {
+            try {
+              body = JSON.parse(body);
+            } catch (_) {}
+          }
+
+          inspect(body);
+        }
+      } catch (parseError) {
+        console.warn(
+          "Unable to parse Edge Function error context:",
+          parseError
+        );
+      }
+    }
+
+    return [...new Set(details)].join(" • ") ||
+      "The payout service returned an unknown error.";
+  }
+
+
   async function connectPayouts() {
 
-    if (
-      !client ||
-      !currentUser
-    ) {
-
+    if (!client || !currentUser) {
       showNotice(
         "Please sign in before connecting your payout account.",
         "error"
       );
-
       return;
-
     }
 
+    const button = $("connectBtn");
+    const message = $("connectMessage");
+    const originalText = button.textContent;
 
-    const button =
-      $("connectBtn");
-
-    const message =
-      $("connectMessage");
-
-
-    const originalText =
-      button.textContent;
-
-
-    button.disabled =
-      true;
-
-    button.textContent =
-      "Opening secure setup…";
-
+    button.disabled = true;
+    button.textContent = "Opening secure setup…";
 
     if (message) {
-
       message.textContent =
         "Connecting securely to CrowRules Payments…";
-
     }
-
 
     hideNotice();
 
-
     try {
 
-      /*
-       * Supabase attaches the authenticated
-       * user's session to the Edge Function
-       * invocation.
-       */
-
-      const {
-        data,
-        error
-      } =
+      const { data, error } =
         await client.functions.invoke(
           "creator-connect-onboarding",
           {
             body: {
-
-              origin:
-                window.location.origin,
-
+              origin: window.location.origin,
               return_path:
                 window.location.pathname +
                 window.location.search
-
             }
           }
         );
 
+      console.info(
+        "creator-connect-onboarding response:",
+        { data, error }
+      );
 
       if (error) {
-        throw error;
-      }
+        const detail =
+          extractEdgeFunctionError(error, data);
 
+        throw new Error(
+          "Payout onboarding failed: " + detail
+        );
+      }
 
       if (!data) {
-
         throw new Error(
-          "The payout service returned an empty response."
+          "Payout onboarding failed: the Edge Function returned an empty response."
         );
-
       }
-
 
       if (data.error) {
-
         throw new Error(
-          data.error
+          "Payout onboarding failed: " +
+          extractEdgeFunctionError(null, data)
         );
-
       }
 
-
-      if (
-        !data.onboarding_url
-      ) {
-
+      if (!data.onboarding_url) {
         throw new Error(
-          "No Stripe onboarding URL was returned."
+          "Payout onboarding failed: no Stripe onboarding URL was returned. " +
+          extractEdgeFunctionError(null, data)
         );
-
       }
-
 
       if (message) {
-
         message.textContent =
           "Opening secure payout onboarding…";
-
       }
-
 
       showNotice(
         "Your secure payout setup is opening now.",
         "success"
       );
 
-
-      /*
-       * Stripe-hosted onboarding.
-       */
-
-      window.location.assign(
-        data.onboarding_url
-      );
-
+      window.location.assign(data.onboarding_url);
 
     } catch (error) {
 
@@ -2600,51 +2609,43 @@
         error
       );
 
-
       let messageText =
         error?.message ||
         "Unable to start payout onboarding.";
 
-
-      /*
-       * Make the most common Edge Function
-       * configuration problem understandable.
-       */
-
       if (
-        messageText.includes(
-          "STRIPE_SECRET_KEY_MISSING"
-        )
+        messageText.includes("STRIPE_SECRET_KEY_MISSING")
       ) {
-
         messageText =
           "Stripe payout onboarding is not configured yet. The CrowRules Edge Function needs its server-side Stripe secret configured.";
-
       }
 
+      if (
+        messageText.includes("STRIPE_SECRET_KEY_INVALID")
+      ) {
+        messageText =
+          "Stripe payout onboarding has an invalid server-side Stripe secret. Update the Edge Function secret and try again.";
+      }
+
+      if (
+        messageText.includes("Unauthorized") ||
+        messageText.includes("JWT") ||
+        messageText.includes("HTTP 401")
+      ) {
+        messageText =
+          "Your CrowRules login session was not accepted by the payout service. Sign out, sign back in, and try again.";
+      }
 
       if (message) {
-
         message.textContent =
-          "Payout onboarding could not be started.";
-
+          "Payout onboarding could not be started. The detailed service error is shown above.";
       }
 
+      showNotice(messageText, "error");
 
-      showNotice(
-        messageText,
-        "error"
-      );
-
-
-      button.disabled =
-        false;
-
-      button.textContent =
-        originalText;
-
+      button.disabled = false;
+      button.textContent = originalText;
     }
-
   }
 
 
