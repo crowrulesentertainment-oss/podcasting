@@ -327,6 +327,89 @@ export default {
       }
       return json({escalated:results});
     }
+
+    if (action === "migration-preview") {
+      if(!permissions.includes("create")) return json({error:"MIGRATION_FORBIDDEN"},403);
+      const state=body.state&&typeof body.state==="object"?body.state:{};
+      const sourceHash=String(body.source_hash||"");
+      if(!sourceHash) return json({error:"SOURCE_HASH_REQUIRED"},400);
+      const [existingMigrations,roadmaps,steps,tasks,history,capacity]=await Promise.all([
+        ctx.supabaseAdmin.from("creator_governance_migrations").select("*").eq("user_id",userId).order("created_at",{ascending:false}).limit(20),
+        ctx.supabaseAdmin.from("creator_governance_roadmaps").select("id"),
+        ctx.supabaseAdmin.from("creator_governance_roadmap_steps").select("roadmap_id,step_key"),
+        ctx.supabaseAdmin.from("creator_governance_tasks").select("collection_id,task_key"),
+        ctx.supabaseAdmin.from("creator_governance_execution_history").select("id").eq("user_id",userId),
+        ctx.supabaseAdmin.from("creator_governance_creator_capacity").select("user_id,capacity_units,assigned_units")
+      ]);
+      const committed=(existingMigrations.data||[]).find((m:any)=>m.status==="COMMITTED");
+      if(committed)return json({already_cutover:true,migration:committed});
+      const roadmapsIn=Array.isArray(state.roadmaps)?state.roadmaps:[];
+      const stepsIn=Array.isArray(state.steps)?state.steps:[];
+      const tasksIn=Array.isArray(state.tasks)?state.tasks:[];
+      const historyIn=Array.isArray(state.history)?state.history:[];
+      const conflicts:any[]=[];
+      for(const t of tasksIn){ if(t.owner_user_id && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(t.owner_user_id))) conflicts.push({type:"OWNER_MAPPING",collection_id:t.collection_id,task_key:t.task_key,owner:String(t.owner_user_id)}); }
+      const counts={roadmaps:roadmapsIn.length,steps:stepsIn.length,tasks:tasksIn.length,history:historyIn.length,existing_roadmaps:(roadmaps.data||[]).length,existing_steps:(steps.data||[]).length,existing_tasks:(tasks.data||[]).length,existing_history:(history.data||[]).length,capacity:(capacity.data||[]).length,conflicts:conflicts.length};
+      const preview={counts,conflicts,source_hash:sourceHash,generated_at:new Date().toISOString()};
+      const {data:migration,error}=await ctx.supabaseAdmin.from("creator_governance_migrations").insert({user_id:userId,source_version:String(body.source_version||"9.2"),source_hash:sourceHash,status:"PREVIEW",preview,counts,conflict_count:conflicts.length}).select("*").single();
+      if(error)return json({error:error.message},500);
+      return json({already_cutover:false,migration,preview});
+    }
+
+    if (action === "migration-commit") {
+      if(!permissions.includes("create")) return json({error:"MIGRATION_FORBIDDEN"},403);
+      const migrationId=String(body.migration_id||""),sourceHash=String(body.source_hash||"");
+      if(!migrationId||!sourceHash)return json({error:"MIGRATION_FIELDS_REQUIRED"},400);
+      const {data:migration,error:me}=await ctx.supabaseAdmin.from("creator_governance_migrations").select("*").eq("id",migrationId).eq("user_id",userId).maybeSingle();
+      if(me)return json({error:me.message},500);
+      if(!migration)return json({error:"MIGRATION_NOT_FOUND"},404);
+      if(migration.status==="COMMITTED")return json({migration,verification:migration.verification,cutover:true});
+      if(migration.status!=="PREVIEW")return json({error:"MIGRATION_NOT_COMMITTABLE"},409);
+      if(migration.source_hash!==sourceHash)return json({error:"MIGRATION_HASH_MISMATCH"},409);
+      const committed=await ctx.supabaseAdmin.from("creator_governance_migrations").select("id").eq("user_id",userId).eq("status","COMMITTED").maybeSingle();
+      if(committed.data)return json({error:"ALREADY_CUT_OVER",migration_id:committed.data.id},409);
+      const state=body.state&&typeof body.state==="object"?body.state:{};
+      const roadmaps=Array.isArray(state.roadmaps)?state.roadmaps:[],steps=Array.isArray(state.steps)?state.steps:[],tasks=Array.isArray(state.tasks)?state.tasks:[],history=Array.isArray(state.history)?state.history:[];
+      const conflicts:any[]=[];
+      for(const t of tasks){ if(t.owner_user_id && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(t.owner_user_id))) conflicts.push({type:"OWNER_MAPPING",collection_id:t.collection_id,task_key:t.task_key,owner:String(t.owner_user_id)}); }
+      if(conflicts.length && body.allow_conflicts!==true)return json({error:"MIGRATION_CONFLICTS",conflicts},409);
+      try{
+        await ctx.supabaseAdmin.from("creator_governance_snapshots").insert({migration_id:migrationId,user_id:userId,snapshot_kind:"PRE_CUTOVER",source_hash:sourceHash,state});
+        if(roadmaps.length){const {error:e}=await ctx.supabaseAdmin.from("creator_governance_roadmaps").upsert(roadmaps.map((r:any)=>({id:String(r.id),name:String(r.name||r.id),target_date:r.target_date||null,velocity:Number(r.velocity||0),created_by:userId,updated_at:new Date().toISOString()})),{onConflict:"id"});if(e)throw e;}
+        if(steps.length){const {error:e}=await ctx.supabaseAdmin.from("creator_governance_roadmap_steps").upsert(steps.map((s:any)=>({roadmap_id:String(s.roadmap_id),step_key:String(s.step_key),step_name:String(s.step_name||s.step_key),ordinal:Number(s.ordinal||0),target_date:s.target_date||null,dependency_key:s.dependency_key||null,owner_user_id:/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(s.owner_user_id||""))?s.owner_user_id:null,status:["OPEN","IN_PROGRESS","COMPLETE","BLOCKED"].includes(s.status)?s.status:"OPEN"})),{onConflict:"roadmap_id,step_key"});if(e)throw e;}
+        if(tasks.length){const {error:e}=await ctx.supabaseAdmin.from("creator_governance_tasks").upsert(tasks.map((t:any)=>({collection_id:String(t.collection_id),task_key:String(t.task_key),task_name:t.task_name||null,owner_user_id:/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{3}$/i.test(String(t.owner_user_id||""))?t.owner_user_id:null,status:["OPEN","IN_PROGRESS","COMPLETE","BLOCKED"].includes(t.status)?t.status:"OPEN",target_date:t.target_date||null,started_at:t.started_at||null,completed_at:t.completed_at||null,last_activity_at:t.last_activity_at||null,dependency_key:t.dependency_key||null,version:1})),{onConflict:"collection_id,task_key"});if(e)throw e;}
+        if(history.length){const rows=history.slice(0,5000).map((h:any)=>({roadmap_id:String(h.roadmap_id||h.collection_id),step_key:String(h.step_key||h.task_key),user_id:/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(h.user_id||""))?h.user_id:null,action:String(h.action||"MIGRATED"),from_status:h.from_status||null,to_status:h.to_status||null,occurred_at:h.occurred_at||new Date().toISOString(),metadata:{...(h.metadata||{}),migration_id:migrationId}}));const {error:e}=await ctx.supabaseAdmin.from("creator_governance_execution_history").insert(rows);if(e)throw e;}
+        await ctx.supabaseAdmin.rpc("creator_governance_recalculate_capacity"); await ctx.supabaseAdmin.rpc("creator_governance_refresh_task_health"); await ctx.supabaseAdmin.rpc("creator_governance_run_escalations");
+        const [vr,vs,vt,vh,vc,metrics]=await Promise.all([
+          ctx.supabaseAdmin.from("creator_governance_roadmaps").select("id").in("id",roadmaps.map((r:any)=>String(r.id))),
+          ctx.supabaseAdmin.from("creator_governance_roadmap_steps").select("roadmap_id,step_key"),
+          ctx.supabaseAdmin.from("creator_governance_tasks").select("collection_id,task_key"),
+          ctx.supabaseAdmin.from("creator_governance_execution_history").select("id").contains("metadata",JSON.stringify({migration_id:migrationId})),
+          ctx.supabaseAdmin.from("creator_governance_creator_capacity").select("*"),
+          ctx.supabaseAdmin.rpc("creator_governance_calculate_metrics")
+        ]);
+        const verification={roadmaps:vr.data?.length||0,steps:vs.data?.length||0,tasks:vt.data?.length||0,history:vh.data?.length||0,capacity:vc.data?.length||0,metrics:metrics.data||{},verified_at:new Date().toISOString()};
+        const {data:updated,error:ue}=await ctx.supabaseAdmin.from("creator_governance_migrations").update({status:"COMMITTED",committed_at:new Date().toISOString(),verification,counts:{...migration.counts,committed:true},updated_at:new Date().toISOString()}).eq("id",migrationId).select("*").single();
+        if(ue)throw ue;
+        await ctx.supabaseAdmin.from("creator_governance_snapshots").insert({migration_id:migrationId,user_id:userId,snapshot_kind:"POST_CUTOVER",source_hash:sourceHash,state:{verification}});
+        return json({migration:updated,verification,cutover:true});
+      }catch(err){await ctx.supabaseAdmin.from("creator_governance_migrations").update({status:"FAILED",updated_at:new Date().toISOString(),verification:{error:String(err?.message||err)}}).eq("id",migrationId);return json({error:String(err?.message||err)},500);}
+    }
+
+    if (action === "migration-status") {
+      if(!permissions.includes("view"))return json({error:"MIGRATION_STATUS_FORBIDDEN"},403);
+      const {data,error}=await ctx.supabaseAdmin.from("creator_governance_migrations").select("*").eq("user_id",userId).order("created_at",{ascending:false}).limit(20);
+      if(error)return json({error:error.message},500); return json({migrations:data??[]});
+    }
+
+    if (action === "task-status") {
+      if(!permissions.includes("create"))return json({error:"TASK_STATUS_FORBIDDEN"},403);
+      const collectionId=String(body.collection_id||""),taskKey=String(body.task_key||""),status=String(body.status||"");
+      if(!collectionId||!taskKey)return json({error:"TASK_REQUIRED"},400);
+      const {data,error}=await ctx.supabaseAdmin.rpc("creator_governance_set_task_status",{p_collection_id:collectionId,p_task_key:taskKey,p_user_id:userId,p_status:status,p_expected_version:body.expected_version??null});
+      if(error)return json({error:error.message},409); return json({task:data});
+    }
+
     if (action === "roadmap-sync") {
       if(!permissions.includes("create"))return json({error:"ROADMAP_SYNC_FORBIDDEN"},403);
       const roadmap=body.roadmap||{}; const steps=Array.isArray(body.steps)?body.steps:[];
@@ -346,7 +429,7 @@ export default {
         ctx.supabaseAdmin.from("creator_governance_task_health").select("*"),
         ctx.supabaseAdmin.from("creator_governance_creator_capacity").select("*")
       ]);
-      return json({roadmaps:r.data??[],steps:s.data??[],tasks:t.data??[],health:h.data??[],capacity:caps.data??[]});
+      const metrics=await ctx.supabaseAdmin.rpc("creator_governance_calculate_metrics"); return json({roadmaps:r.data??[],steps:s.data??[],tasks:t.data??[],health:h.data??[],capacity:caps.data??[],metrics:metrics.data??{}});
     }
     if (action === "task-sync") {
       if(!permissions.includes("create"))return json({error:"TASK_SYNC_FORBIDDEN"},403);
