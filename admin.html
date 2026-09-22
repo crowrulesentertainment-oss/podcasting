@@ -86,17 +86,37 @@ async function load(){
  }catch(err){console.error(err);notice(err.message||"Unable to load admin data.",true)}finally{$("refresh").disabled=false}
 }
 async function init(){
+ const showDenied=(message)=>{
+  $("loading").classList.add("hidden");
+  $("denied").classList.remove("hidden");
+  const p=$("denied").querySelector("p");
+  if(p)p.textContent=message||"Administrator access is required. Please sign in with your CrowRules administrator account.";
+ };
  try{
-  const url=window.CROWRULES_SUPABASE_URL||window.SUPABASE_URL,key=window.CROWRULES_SUPABASE_PUBLISHABLE_KEY||window.SUPABASE_PUBLISHABLE_KEY||window.SUPABASE_ANON_KEY;
+  const url=window.CROWRULES_SUPABASE_URL||window.SUPABASE_URL;
+  const key=window.CROWRULES_SUPABASE_PUBLISHABLE_KEY||window.SUPABASE_PUBLISHABLE_KEY||window.SUPABASE_ANON_KEY;
   if(!url||!key||!window.supabase)throw new Error("Supabase configuration is missing.");
-  db=window.supabase.createClient(url,key);
-  const {data:{user},error}=await db.auth.getUser();if(error)throw error;
-  if(!user){$("loading").classList.add("hidden");$("denied").classList.remove("hidden");return}
-  const {data:isAdmin,error:adminError}=await db.rpc("crowrules_is_admin");
-  if(adminError)throw adminError;
-  if(isAdmin!==true){$("loading").classList.add("hidden");$("denied").classList.remove("hidden");return}
-  $("loading").classList.add("hidden");$("app").classList.remove("hidden");await load();
- }catch(err){console.error(err);$("loading").classList.add("hidden");$("denied").classList.remove("hidden")}
+  db=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  const sessionResult=await Promise.race([
+   db.auth.getSession(),
+   new Promise((_,reject)=>setTimeout(()=>reject(new Error("Authentication request timed out. Check your connection and sign in again.")),10000))
+  ]);
+  const session=sessionResult&&sessionResult.data&&sessionResult.data.session;
+  if(!session||!session.user){showDenied("You are not signed in. Sign in to your CrowRules administrator account, then return here.");return}
+  $("loading").querySelector(".auth-loading").innerHTML='<span class="loading-spinner"></span> Checking administrator permissions…';
+  const adminResult=await Promise.race([
+   db.rpc("crowrules_is_admin"),
+   new Promise((_,reject)=>setTimeout(()=>reject(new Error("Administrator verification timed out. Please refresh and try again.")),10000))
+  ]);
+  if(adminResult.error)throw adminResult.error;
+  if(adminResult.data!==true){showDenied("Your signed-in account is not currently marked as a CrowRules administrator.");return}
+  $("loading").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  await load();
+ }catch(err){
+  console.error("CrowRules Admin initialization failed:",err);
+  showDenied(err.message||"Unable to verify administrator access.");
+ }
 }
 $("refresh").addEventListener("click",load);$("addPodcast").onclick=function(){editPodcast(null)};$("addEpisode").onclick=function(){editEpisode(null)};$("addChannel").onclick=function(){editChannel(null)};document.addEventListener("click",function(e){var t=e.target;if(t.dataset.editP)editPodcast(podcasts.find(function(x){return x.id===t.dataset.editP}));if(t.dataset.delP)del("podcast",t.dataset.delP);if(t.dataset.editE)editEpisode(episodes.find(function(x){return x.id===t.dataset.editE}));if(t.dataset.delE)del("episode",t.dataset.delE);if(t.dataset.editC)editChannel(channels.find(function(x){return x.id===t.dataset.editC}));if(t.dataset.delC)del("channel",t.dataset.delC)});$("podcastSearch").addEventListener("input",render);$("episodeSearch").addEventListener("input",render);init();
 })();
