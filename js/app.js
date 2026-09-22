@@ -139,7 +139,7 @@ function creatorNavExecutionGet(id){
 async function creatorNavExecutionToggle(id,key,done,name){
   const lock=creatorNavPresenceState.taskLocks?.[id+"::"+key],me=creatorNavPresenceIdentity();
   if(lock&&lock.actorId!==me.id){alert("Task is currently being worked by "+String(lock.ownerName||lock.actorName||"another creator")+".");return false;}
-  if(done){const claimed=await creatorNavPresenceWorking(id,key,name);if(!claimed?.ok)return false;}else{const released=await creatorNavPresenceUnlock(id,key);if(released===false)return false;}
+  if(done){const claimed=await creatorNavPresenceWorking(id,key,name);if(!claimed?.ok)return false; const srv=await creatorNavServerTaskClaim(id,key); if(!srv?.task){alert("Server could not claim this task. It may have changed on another device.");return false;}}else{const released=await creatorNavPresenceUnlock(id,key);if(released===false)return false;}
   const all=creatorNavExecutionRead(),x=all[id]||{tasks:{},history:[],streak:0,lastDay:null};
   x.tasks[key]=!!done;x.history=x.history||[];x.history.push({key,name,done:!!done,at:new Date().toISOString()});creatorNavEvent(done?"completion":"task-reopened",{collectionId:id,key,name,done:!!done});x.history=x.history.slice(-100);
   const today=new Date().toISOString().slice(0,10);
