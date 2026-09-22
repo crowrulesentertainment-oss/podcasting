@@ -399,6 +399,7 @@ function renderScheduler(){
   renderCollaborativeNotificationPreferences();
   renderCollaborativeNotifications();
   renderEscalationMonitor();
+  creatorNavServerHealthRefresh();
   renderCollaborativeHandoffInbox();renderProductionEventStream();renderProductionIntelligence();renderCreatorPerformanceIntelligence();renderIntelligentAssignments();renderAutonomousOptimizer();renderOptimizationSimulatorPanel();renderScenarioWorkspace();renderScenarioComparisonMatrix();renderScenarioApprovalEngine();renderChangeManagement();creatorNavSyncStart();renderCalendar(14);renderScheduler();}}));
 }function renderProductionEventStream(){
   const box=document.getElementById("creatorNavLiveEventStream");if(!box)return;
@@ -472,6 +473,25 @@ let creatorNavNotificationChannel=null;
 let creatorNavNotifications=[];
 const CREATOR_NAV_NOTIFICATIONS_KEY="crowrules_creator_notifications_v1";
 
+async function creatorNavServerHealthRefresh(){
+  try{
+    const x=await creatorNavServerGovernanceCall("health",{});
+    if(x&&x.health)window.creatorNavServerHealth=x;
+    renderProductionHealthMonitor();
+  }catch(e){console.warn("Production health refresh failed",e);}
+}
+function renderProductionHealthMonitor(){
+  const id="creatorNavProductionHealthMonitor";const old=document.getElementById(id);if(old)old.remove();
+  const x=window.creatorNavServerHealth||{health:[],reports:[]},h=x.health||[],r=x.reports||[];
+  const target=document.getElementById("creatorNavEscalationMonitor");if(!target)return;
+  const critical=h.filter(v=>v.health_status==="CRITICAL"||v.health_status==="OVERDUE"||v.health_status==="BLOCKED"||v.health_status==="STALLED");
+  const avg=h.length?Math.round(h.reduce((a,v)=>a+(Number(v.health_score)||0),0)/h.length):100;
+  const box=document.createElement("div");box.id=id;box.className="card";box.style.cssText="padding:8px;margin-top:8px";
+  box.innerHTML='<b>🩺 PRODUCTION HEALTH MONITOR</b><div style="font-size:.72rem;margin-top:5px">HEALTH '+avg+'/100 · CRITICAL '+critical.length+' · SERVER MONITOR ACTIVE</div>'+
+    (critical.slice(0,6).map(v=>'<div style="margin-top:5px;padding:6px;border:1px solid rgba(255,80,80,.25)"><b>'+escText(v.health_status)+'</b> · '+escText(v.collection_id)+' / '+escText(v.task_key)+' · '+v.health_score+'/100</div>').join("")||'<div style="opacity:.7;font-size:.72rem;margin-top:5px">No critical production-health conditions.</div>')+
+    (r[0]?'<div style="font-size:.68rem;opacity:.7;margin-top:6px">Latest '+escText(r[0].report_type)+' report: '+escText(r[0].report_date)+' · '+r[0].open_tasks+' open · '+r[0].overdue_tasks+' overdue · '+r[0].blocked_tasks+' blocked · '+r[0].stalled_tasks+' stalled</div>':'');
+  target.parentNode?.insertBefore(box,target.nextSibling);
+}
 function renderEscalationMonitor(){
   const id="creatorNavEscalationMonitor";if(document.getElementById(id))return;
   const target=document.getElementById("creatorNavCollaborativeControlRoom")||document.getElementById("creatorNavCollaborativeNotifications");if(!target)return;
