@@ -471,6 +471,14 @@ let creatorNavNotificationChannel=null;
 let creatorNavNotifications=[];
 const CREATOR_NAV_NOTIFICATIONS_KEY="crowrules_creator_notifications_v1";
 
+function creatorNavEscalationSummary(){
+  const rows=creatorNavServerNotifications||[],a=rows.filter(n=>!n.read_at&&n.action_required);
+  return {count:a.length,critical:a.filter(n=>n.priority==="CRITICAL").length};
+}
+function creatorNavAttentionBadgeRender(){
+  const s=creatorNavEscalationSummary();
+  document.querySelectorAll("[data-creator-attention-badge]").forEach(b=>{b.textContent=s.count?s.count+" ACTION"+(s.count===1?"":"S")+" REQUIRED":"";b.hidden=!s.count;});
+}
 function creatorNavNotificationPriority(n){if(n.priority)return n.priority;return n.type==="handoff"?"HIGH":n.type==="assignment"?"NORMAL":"LOW";}
 function creatorNavNotificationBadge(){
   const rows=creatorNavServerNotifications||[],u=rows.filter(n=>!n.read_at).length,a=rows.filter(n=>!n.read_at&&n.action_required).length;
@@ -488,6 +496,7 @@ async function creatorNavServerNotificationsRefresh(){
     const unread=creatorNavServerNotifications.filter(x=>!x.read_at).length;
     document.title=unread?"🔔 "+unread+" · CrowRules Podcasting":"CrowRules Podcasting";
     creatorNavNotificationBadge();
+    creatorNavAttentionBadgeRender();
     return creatorNavServerNotifications;
   }catch{return creatorNavServerNotifications;}
 }
