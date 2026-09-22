@@ -247,20 +247,15 @@ a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{c
       $("bio").placeholder="";
       $("creatorPanel").querySelector(".actions")?.setAttribute("style","margin-top:15px;justify-content:flex-start");
       $("creatorPanel").querySelector(".actions")?.classList.add("public-creator-actions");
-      $("shareProfile").style.display="inline-flex";
+      const shareProfile=$("shareProfile");
+      if(shareProfile) shareProfile.style.display="inline-flex";
     }else{
-      $("shareProfile").style.display="inline-flex";
+      const shareProfile=$("shareProfile");
+      if(shareProfile) shareProfile.style.display="inline-flex";
     }
   }
 
   async function load(){
-    const auth=await Promise.race([
-      client.auth.getUser(),
-      new Promise((_,reject)=>setTimeout(()=>reject(new Error("CrowRules Membership took too long to respond. Please refresh the page and try again.")),12000))
-    ]);
-    if(auth.error) throw auth.error;
-    state.user=auth.data?.user||null;
-
     if(state.publicMode){
       const {data,error}=await client.from("public_member_profiles")
         .select("id,first_name,last_name,username,display_name,membership_type,role,status,points,watch_minutes,bio,avatar_url,created_at")
@@ -270,8 +265,27 @@ a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{c
       if(error) throw error;
       if(!data) throw new Error("No public member profile was found for @"+requestedUsername+".");
       state.member=data;
-      state.ownProfile=Boolean(state.user && data.id && await isOwnMember(data.id));
+
+      // Public profiles must work for signed-out visitors. Authentication is optional here;
+      // it is only used to detect whether the visitor owns this profile.
+      try{
+        const auth=await Promise.race([
+          client.auth.getUser(),
+          new Promise((_,reject)=>setTimeout(()=>reject(new Error("auth-timeout")),4000))
+        ]);
+        state.user=auth.data?.user||null;
+        state.ownProfile=Boolean(state.user && data.id && await isOwnMember(data.id));
+      }catch{
+        state.user=null;
+        state.ownProfile=false;
+      }
     }else{
+      const auth=await Promise.race([
+        client.auth.getUser(),
+        new Promise((_,reject)=>setTimeout(()=>reject(new Error("CrowRules Membership took too long to respond. Please refresh the page and try again.")),12000))
+      ]);
+      if(auth.error) throw auth.error;
+      state.user=auth.data?.user||null;
       if(!state.user){
         location.href="login.html?redirect="+encodeURIComponent("member-profile.html");
         return;
@@ -393,7 +407,8 @@ a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{c
   });
   $("signOut").addEventListener("click",signOut);
 
-  $("shareProfile").addEventListener("click",async()=>{
+  const shareProfileButton=$("shareProfile");
+  if(shareProfileButton) shareProfileButton.addEventListener("click",async()=>{
     const username=state.member?.username;
     if(!username){notice("This member does not have a username yet.","error");return;}
     const url=new URL("member-profile.html?username="+encodeURIComponent(username),location.href).href;
