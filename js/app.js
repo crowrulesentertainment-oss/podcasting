@@ -140,6 +140,13 @@ function creatorNavHistoryUrl(){
   return location.pathname+location.search+location.hash;
 }
 
+function isCreatorStudioRoute(url){
+  try{
+    const p=new URL(url,location.origin).pathname.split("/").pop()||"index.html";
+    return p==="creator-studio.html"||p==="creator-studio-navigation.html"||p.startsWith("creator-")||["create-podcast.html","my-podcasts.html","my-episodes.html","edit-podcast.html","upload-episode.html","episode-studio.html"].includes(p);
+  }catch{return false}
+}
+
 function creatorNavHistoryRecord(url){
   if(!url||creatorNavHistoryBusy)return;
   const rows=creatorNavHistoryRead();
@@ -181,7 +188,7 @@ function updateCreatorNavHistoryControls(){
 }
 
 function initCreatorNavHistory(){
-  creatorNavHistoryRecord(creatorNavHistoryUrl());
+  if(isCreatorStudioRoute(creatorNavHistoryUrl()))creatorNavHistoryRecord(creatorNavHistoryUrl());
   updateCreatorNavHistoryControls();
   if(document.documentElement.dataset.creatorNavHistoryBound)return;
   document.documentElement.dataset.creatorNavHistoryBound="1";
@@ -194,7 +201,8 @@ function initCreatorNavHistory(){
     try{
       const next=new URL(raw,location.href);
       if(next.origin!==location.origin)return;
-      creatorNavHistoryRecord(next.pathname+next.search+next.hash);
+      const nextUrl=next.pathname+next.search+next.hash;
+      if(isCreatorStudioRoute(nextUrl))creatorNavHistoryRecord(nextUrl);
     }catch{}
   },true);
 }
