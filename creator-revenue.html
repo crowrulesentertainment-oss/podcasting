@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05050b">
+<title>Creator Revenue Ledger | CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+</head>
+<body>
+<div class="site-background" aria-hidden="true"><div class="background-stars"></div><div class="background-grid"></div><div class="background-glow background-glow-one"></div><div class="background-glow background-glow-two"></div></div>
+<header class="site-header"><div class="site-header-inner">
+<a class="brand" href="index.html"><span class="brand-mark">CR</span><span class="brand-text"><span class="brand-name">CROW<span class="glow">RULES</span></span><span class="brand-section">PODCASTING</span></span></a>
+<nav class="main-navigation"><a href="creator-dashboard.html">Studio</a><a href="creator-monetization.html">Monetization</a><a href="creator-deal-room.html">Deal Room</a><a href="creator-analytics.html">Analytics</a><a href="profile.html">Profile</a></nav>
+</div></header>
+<main><section class="section wrap">
+<div class="studioHero"><span class="eyebrow">CREATOR STUDIO · REVENUE</span><h1>REVENUE <span class="glow">LEDGER</span></h1><p>A verified-record view of sponsorship amounts associated with your CrowRules Podcasting deals. This page never estimates future income or invents payouts.</p><div class="actions"><a class="btn primary" href="creator-monetization.html">MONETIZATION</a><a class="btn" href="creator-deal-room.html">DEAL ROOM</a></div></div>
+<div id="gate" class="card" aria-live="polite">Checking your CrowRules account…</div>
+<div id="app" class="hidden">
+<div id="metrics" class="grid" style="margin-top:25px"></div>
+<section class="section"><div class="section-header"><span class="eyebrow">VERIFIED DEAL RECORDS</span><h2>Sponsorship <span class="glow">Ledger</span></h2><p>Amounts below come only from sponsorship deal records visible to your authenticated account.</p></div><div id="ledger" class="card">Loading…</div></section>
+<div class="card"><span class="eyebrow">IMPORTANT</span><p>Agreed sponsorship amounts are not the same thing as cash received. Actual payouts should be populated from verified payment records when payment infrastructure is connected. No Stripe balance or payout is inferred here.</p></div>
+</div></section></main>
+<footer class="site-footer"><div class="site-footer-inner"><div class="footer-brand"><strong>CROWRULES PODCASTING</strong><span>ONE ACCOUNT. ONE UNIVERSE.</span></div><div class="footer-copy">© 2026 CrowRules Entertainment</div></div></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script>
+(async()=>{
+ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const gate=document.getElementById("gate"),app=document.getElementById("app");
+ try{
+  const cfg=window.CrowRulesConfig||{};
+  if(!cfg.supabaseUrl||!cfg.supabaseAnonKey)throw new Error("CrowRules configuration unavailable.");
+  const db=supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
+  const {data:{user}}=await db.auth.getUser();
+  if(!user){gate.innerHTML='<span class="eyebrow">LOGIN REQUIRED</span><h2>Sign in to view your private revenue ledger.</h2><a class="btn primary" href="login.html">LOGIN</a>';return;}
+  const {data:deals,error}=await db.from("podcast_sponsorship_deals").select("id,status,agreed_amount,campaign_start,campaign_end,created_at,creator_acknowledged_at,creator_completed_at").order("created_at",{ascending:false});
+  if(error)throw error;
+  const rows=deals||[];
+  const numeric=rows.filter(d=>d.agreed_amount!==null&&d.agreed_amount!==undefined&&Number.isFinite(Number(d.agreed_amount)));
+  const total=numeric.reduce((n,d)=>n+Number(d.agreed_amount),0);
+  const active=rows.filter(d=>["active","accepted","in_progress"].includes(String(d.status).toLowerCase())).length;
+  const completed=rows.filter(d=>String(d.status).toLowerCase()==="completed").length;
+  const pending=rows.filter(d=>!["completed","cancelled","rejected"].includes(String(d.status).toLowerCase())).length;
+  gate.classList.add("hidden");app.classList.remove("hidden");
+  document.getElementById("metrics").innerHTML=[
+   ["DEAL RECORDS",rows.length],["AGREED VALUE",total.toLocaleString(undefined,{style:"currency",currency:"USD"})),["ACTIVE",active],["COMPLETED",completed]
+  ].map(x=>'<div class="card"><span class="eyebrow">'+esc(x[0])+'</span><h2>'+esc(x[1])+'</h2></div>').join("");
+  document.getElementById("ledger").innerHTML=rows.length?rows.map(d=>{
+   const amount=d.agreed_amount===null||d.agreed_amount===undefined?"Pending":Number(d.agreed_amount).toLocaleString(undefined,{style:"currency",currency:"USD"});
+   return '<div style="padding:18px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap"><div><span class="eyebrow">DEAL · '+esc(String(d.id).slice(0,8))+'</span><h3>'+esc(amount)+'</h3></div><span class="pill">'+esc(d.status||"unknown")+'</span></div><p class="muted">'+(d.campaign_start?esc(d.campaign_start):"Start pending")+' → '+(d.campaign_end?esc(d.campaign_end):"End pending")+'</p><small class="muted">Created '+new Date(d.created_at).toLocaleDateString()+'</small></div>';
+  }).join(""):'<p class="muted">No sponsorship deal records are currently visible to your account.</p>';
+ }catch(err){
+  console.error(err);
+  gate.innerHTML='<span class="eyebrow">LEDGER UNAVAILABLE</span><h2>Your account could not load the private deal ledger.</h2><p>Nothing was written or changed.</p><a class="btn" href="creator-deal-room.html">OPEN DEAL ROOM</a>';
+ }
+})();
+</script>
+</body>
+</html>
