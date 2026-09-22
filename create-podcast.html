@@ -1734,6 +1734,44 @@
 
   async function loadCreator() {
 
+    /*
+     * creators.member_id references members.id, while
+     * members.user_id references the authenticated Supabase user.
+     * Resolve that relationship explicitly so RLS can verify ownership.
+     */
+
+    const {
+      data: member,
+      error: memberError
+    } = await client
+      .from("members")
+      .select("id")
+      .eq("user_id", state.user.id)
+      .maybeSingle();
+
+    if (memberError) {
+      throw memberError;
+    }
+
+    if (!member) {
+
+      state.creator = null;
+
+      els.creatorName.textContent =
+        "Membership profile required";
+
+      els.creatorDisplay.value =
+        "No CrowRules member profile found";
+
+      els.creatorStatus.textContent =
+        "Membership profile required";
+
+      setCheck(els.checkCreator, false);
+
+      return;
+
+    }
+
     const {
       data,
       error
@@ -1754,7 +1792,8 @@
         is_active,
         member_id
       `)
-      .eq("member_id", state.user.id)
+      .eq("member_id", member.id)
+      .eq("is_active", true)
       .maybeSingle();
 
     if (error) {
@@ -1769,7 +1808,7 @@
         "Creator profile required";
 
       els.creatorDisplay.value =
-        "No CrowRules creator profile found";
+        "No active CrowRules creator profile found";
 
       els.creatorStatus.textContent =
         "Creator profile required";
