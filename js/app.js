@@ -55,6 +55,19 @@ const CREATOR_NAV_ACTIVITY_KEY="crowrules_creator_collection_activity_v1";
 function creatorNavActivityRead(){try{const x=JSON.parse(localStorage.getItem(CREATOR_NAV_ACTIVITY_KEY)||"[]");return Array.isArray(x)?x:[];}catch{return [];}}
 function creatorNavActivityWrite(x){try{localStorage.setItem(CREATOR_NAV_ACTIVITY_KEY,JSON.stringify(x.slice(-200)));}catch{}}
 function creatorNavActivityAdd(type,id,message,meta){const x=creatorNavActivityRead();x.push({id:"a"+Date.now(),type,collectionId:id,message,meta:meta||{},at:new Date().toISOString()});creatorNavActivityWrite(x);}
+function creatorNavCollectionHealth(id){
+  const c=creatorNavCollectionsRead().find(x=>x.id===id);if(!c)return null;
+  const rows=creatorNavHistoryRead(),targets=c.snapshotUrls.map(u=>rows.find(x=>x.url===u)).filter(Boolean),p=creatorNavCollectionProgressRead()[id]||{},ai=creatorNavActivityIntelligence(id),m=creatorNavCollectionMilestonesRead()[id]||{events:[]};
+  const complete=targets.filter(e=>p[e.url]==="complete").length,inProgress=targets.filter(e=>p[e.url]==="in-progress").length,notStarted=targets.length-complete-inProgress,pct=targets.length?Math.round(complete/targets.length*100):0;
+  const last=ai.lastActivity?new Date(ai.lastActivity).getTime():0,stale=last?Date.now()-last>7*86400000:true;
+  const health=pct===100?"Complete":stale?"Stale":inProgress>0?"Active":"Not Started";
+  return {c,targets,complete,inProgress,notStarted,pct,ai,m,stale,health};
+}
+function creatorNavCollectionHealthRender(){
+  const host=document.getElementById("creatorNavCollectionHealthPanel");if(!host)return;
+  const cs=creatorNavCollectionsRead();
+  host.innerHTML=cs.length?cs.map(c=>{const h=creatorNavCollectionHealth(c.id);return '<div class="card" style="padding:12px 14px;margin-top:8px"><div style="display:flex;justify-content:space-between;gap:10px"><strong>'+esc(c.name)+'</strong><strong>'+esc(h.health)+'</strong></div><div style="margin-top:5px">Progress: '+h.complete+'/'+h.targets.length+' Complete — '+h.pct+'%</div><div style="font-size:.8rem;opacity:.75">In Progress: '+h.inProgress+' · Not Started: '+h.notStarted+' · Activity: '+h.ai.events.length+' · Velocity: '+(h.ai.completionVelocity?h.ai.completionVelocity.toFixed(2):"0")+'/day</div><div style="font-size:.8rem;opacity:.75">Last Activity: '+esc(creatorNavActivityDate(h.ai.lastActivity))+(h.stale?' · ⚠ STALE':'')+'</div><button class="btn" type="button" onclick="creatorNavCollectionDashboard(\''+c.id+'\')">OPEN DASHBOARD</button></div>';}).join(""):'<p style="opacity:.7">No collections yet.</p>';
+}
 function creatorNavActivityIntelligence(id){
   const events=creatorNavActivityFor(id),by={};
   events.forEach(e=>by[e.type]=(by[e.type]||0)+1);
@@ -97,6 +110,7 @@ function creatorNavCollectionDelete(id){const cs=creatorNavCollectionsRead(),c=c
 function renderCreatorNavCollections(){const p=document.getElementById("creatorNavCollectionsPanel");if(!p)return;const cs=creatorNavCollectionsRead();p.innerHTML=cs.length?cs.map(c=>'<div class="card" style="padding:10px 14px;margin-top:8px"><strong>★ '+esc(c.name)+'</strong><div style="font-size:.8rem;opacity:.7">'+c.snapshotUrls.length+' snapshots</div><button class="btn" type="button" onclick="creatorNavCollectionOpen(\''+c.id+'\')">OPEN</button> <button class="btn" type="button" onclick="creatorNavCollectionDelete(\''+c.id+'\')">DELETE</button></div>').join(""):'<p style="opacity:.7">No collections yet.</p>';}
 function creatorNavCollectionsHost(){let p=document.getElementById("creatorNavCollectionsPanel");if(!p){p=document.createElement("div");p.id="creatorNavCollectionsPanel";const h=document.getElementById("creatorNavHistoryPanel");if(h)h.parentNode.insertBefore(p,h);}renderCreatorNavCollections();
   creatorNavCollectionsRead().forEach(c=>creatorNavCollectionDashboard(c.id));
+  let health=document.getElementById("creatorNavCollectionHealthPanel");if(!health){health=document.createElement("div");health.id="creatorNavCollectionHealthPanel";const h=document.getElementById("creatorNavCollectionsPanel");if(h)h.parentNode.insertBefore(health,h);}creatorNavCollectionHealthRender();
   let runner=document.getElementById("creatorNavCollectionRunner");if(!runner){runner=document.createElement("div");runner.id="creatorNavCollectionRunner";const h=document.getElementById("creatorNavHistoryPanel");if(h)h.parentNode.insertBefore(runner,h);}creatorNavCollectionRunnerRender();}
 function renderCreatorNavHistoryPanel(){
   creatorNavHistoryRenderSearchControls();
