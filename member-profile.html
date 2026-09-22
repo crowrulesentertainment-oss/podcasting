@@ -125,8 +125,9 @@ a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{c
   const config = window.CROWRULES_CONFIG || {};
   if (!config.supabaseUrl || !config.supabaseAnonKey) return fatal("CrowRules Supabase configuration is missing. Check js/config.js.");
 
-  const client = window.crSupabase || window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+  const client = window.crSupabase || (window.supabase ? window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey) : null);
   const $ = id => document.getElementById(id);
+  if(!client) return fatal("CrowRules Membership could not initialize. The Supabase client library did not load.");
   const params = new URLSearchParams(location.search);
   const requestedUsername = (params.get("username") || "").trim();
   const state = { user:null, member:null, creator:null, saving:false, publicMode:Boolean(requestedUsername), ownProfile:false };
@@ -253,7 +254,10 @@ a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{c
   }
 
   async function load(){
-    const auth=await client.auth.getUser();
+    const auth=await Promise.race([
+      client.auth.getUser(),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error("CrowRules Membership took too long to respond. Please refresh the page and try again.")),12000))
+    ]);
     if(auth.error) throw auth.error;
     state.user=auth.data?.user||null;
 
@@ -407,7 +411,10 @@ a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{c
     }
   });
 
-  load().catch(error=>{console.error(error);fatal(error?.message||"Unable to load this CrowRules member profile.");});
+  load().catch(error=>{
+    console.error("CrowRules member profile load error:",error);
+    fatal(error?.message||"Unable to load this CrowRules member profile.");
+  });
 })();
 </script>
 </body>
