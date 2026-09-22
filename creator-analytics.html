@@ -45,7 +45,7 @@ const render=()=>{ const rows=activeRows; const total=rows.reduce((n,x)=>n+(Numb
 const selected=document.querySelector("[data-range].primary")?.dataset.range||"all";
 const customFrom=document.getElementById("customFrom")?.value||"";
 const customTo=document.getElementById("customTo")?.value||"";
-const customActive=!!(customFrom&&customTo&&![...document.querySelectorAll("[data-range]")].some(b=>b.classList.contains("primary")));
+const customActive=rangeMode==="custom"&&!!(customFrom&&customTo);
 const currentStatus=statusFilter;
 const comparisonBase=currentStatus==="all"?allRows:allRows.filter(x=>x.payment_status===currentStatus);
 let previous=[];
@@ -121,6 +121,7 @@ const filterSummary=document.createElement("div"); filterSummary.className="mute
 const reportControls=document.querySelector(".card .actions"); if(reportControls&&!document.getElementById("activeFilterSummary")){filterSummary.id="activeFilterSummary";reportControls.parentElement.appendChild(filterSummary);} else if(document.getElementById("activeFilterSummary")){document.getElementById("activeFilterSummary").replaceWith(filterSummary);}
 
 const recentStatusCounts={paid:0,refunded:0,disputed:0};
+rows.forEach(x=>{if(recentStatusCounts[x.payment_status]!==undefined)recentStatusCounts[x.payment_status]++;});
 const recentStatusLabel=document.getElementById("recentStatusSummary");
 if(recentStatusLabel){
   const parts=[];
@@ -129,16 +130,52 @@ if(recentStatusLabel){
   if(recentStatusCounts.disputed) parts.push(`Disputed ${recentStatusCounts.disputed}`);
   recentStatusLabel.textContent=parts.length?parts.join(" • "):"No records in this filtered view";
 }
-rows.forEach(x=>{if(recentStatusCounts[x.payment_status]!==undefined)recentStatusCounts[x.payment_status]++;});
 document.getElementById("recent").innerHTML=rows.slice(0,10).map(x=>{const tierName=tierMap[x.tier_id]?.tier_name||"Creator-wide support";const podName=podcastMap[x.podcast_id]?.title||"Creator-wide support";const cur=String(x.currency||"USD").toUpperCase();const lifecycle=x.payment_status==="paid"?"PAID":x.payment_status==="refunded"?"REFUNDED":"DISPUTED";const badge=x.payment_status==="paid"?"#39ff88":x.payment_status==="refunded"?"#ffcc66":"#ff5577";return '<div style="padding:14px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap"><div><strong>'+esc(tierName)+'</strong><div class="muted">'+esc(podName)+' · '+esc(new Date(x.created_at).toLocaleString())+'</div></div><strong>'+esc(money(cur,x.amount_total))+'</strong></div><div class="muted" style="margin-top:5px"><span style="display:inline-block;border:1px solid '+badge+';color:'+badge+';border-radius:999px;padding:3px 8px;font-size:.72rem;letter-spacing:.08em">'+lifecycle+'</span> · '+esc(cur)+'</div></div>'}).join('')||'<p class="muted">No matching support activity yet.</p>';
 document.getElementById("exportCsv").onclick=()=>{const cols=["date","status","amount_minor","currency","tier","podcast"];const lines=[cols.join(","),...exportRows.map(r=>cols.map(k=>'"'+String(r[k]??"").replace(/"/g,'""')+'"').join(","))];const blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="crowrules-support-analytics.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 document.getElementById("refresh").onclick=()=>location.reload();
 };
 render();
-document.querySelectorAll("[data-range]").forEach(btn=>btn.onclick=()=>{const r=btn.dataset.range;const base=statusFilter==="all"?allRows:allRows.filter(x=>x.payment_status===statusFilter);if(r==="all")activeRows=base;else{const since=Date.now()-Number(r)*86400000;activeRows=base.filter(x=>new Date(x.created_at).getTime()>=since);}document.querySelectorAll("[data-range]").forEach(b=>b.classList.toggle("primary",b===btn));render();});
-document.getElementById("applyCustomRange").onclick=()=>{const from=document.getElementById("customFrom").value,to=document.getElementById("customTo").value;if(!from||!to||from>to){alert("Choose a valid start and end date.");return;}const base=statusFilter==="all"?allRows:allRows.filter(x=>x.payment_status===statusFilter);const start=new Date(from+"T00:00:00").getTime(),end=new Date(to+"T23:59:59.999").getTime();activeRows=base.filter(x=>{const t=new Date(x.created_at).getTime();return t>=start&&t<=end;});document.querySelectorAll("[data-range]").forEach(b=>b.classList.remove("primary"));render();};
-document.getElementById("clearCustomRange").onclick=()=>{document.getElementById("customFrom").value="";document.getElementById("customTo").value="";document.querySelector('[data-range="all"]').click();};
-document.querySelectorAll("[data-status]").forEach(btn=>btn.onclick=()=>{statusFilter=btn.dataset.status;const range=document.querySelector("[data-range].primary")?.dataset.range||"all";const base=statusFilter==="all"?allRows:allRows.filter(x=>x.payment_status===statusFilter);if(range==="all")activeRows=base;else{const since=Date.now()-Number(range)*86400000;activeRows=base.filter(x=>new Date(x.created_at).getTime()>=since);}document.querySelectorAll("[data-status]").forEach(b=>b.classList.toggle("primary",b===btn));render();});
+let rangeMode="all";
+let customRange={from:"",to:""};
+const applyFilters=()=>{
+  const base=statusFilter==="all"?allRows:allRows.filter(x=>x.payment_status===statusFilter);
+  if(rangeMode==="custom"&&customRange.from&&customRange.to){
+    const start=new Date(customRange.from+"T00:00:00").getTime(),end=new Date(customRange.to+"T23:59:59.999").getTime();
+    activeRows=base.filter(x=>{const t=new Date(x.created_at).getTime();return t>=start&&t<=end;});
+  }else if(rangeMode==="all"){
+    activeRows=base;
+  }else{
+    const since=Date.now()-Number(rangeMode)*86400000;
+    activeRows=base.filter(x=>new Date(x.created_at).getTime()>=since);
+  }
+  render();
+};
+document.querySelectorAll("[data-range]").forEach(btn=>btn.onclick=()=>{
+  rangeMode=btn.dataset.range;
+  document.querySelectorAll("[data-range]").forEach(b=>b.classList.toggle("primary",b===btn));
+  applyFilters();
+});
+document.getElementById("applyCustomRange").onclick=()=>{
+  const from=document.getElementById("customFrom").value,to=document.getElementById("customTo").value;
+  if(!from||!to||from>to){alert("Choose a valid start and end date.");return;}
+  customRange={from,to};
+  rangeMode="custom";
+  document.querySelectorAll("[data-range]").forEach(b=>b.classList.remove("primary"));
+  applyFilters();
+};
+document.getElementById("clearCustomRange").onclick=()=>{
+  document.getElementById("customFrom").value="";
+  document.getElementById("customTo").value="";
+  customRange={from:"",to:""};
+  rangeMode="all";
+  document.querySelector('[data-range="all"]').classList.add("primary");
+  applyFilters();
+};
+document.querySelectorAll("[data-status]").forEach(btn=>btn.onclick=()=>{
+  statusFilter=btn.dataset.status;
+  document.querySelectorAll("[data-status]").forEach(b=>b.classList.toggle("primary",b===btn));
+  applyFilters();
+});
 }catch(err){console.error(err);gate.innerHTML='<span class="eyebrow">ANALYTICS UNAVAILABLE</span><h2>Creator analytics could not be loaded.</h2><p>'+esc(err.message||"Nothing was changed.")+'</p><a class="btn" href="creator-revenue.html">OPEN REVENUE LEDGER</a>';}
 })();
 </script>
