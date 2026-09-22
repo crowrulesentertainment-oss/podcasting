@@ -1,0 +1,24 @@
+name: Restore app.js
+on:
+  push:
+    paths:
+      - 'js/app.js'
+      - '.github/workflows/restore-app-js.yml'
+permissions:
+  contents: write
+jobs:
+  restore:
+    if: github.event.head_commit.message != 'Restore app.js from 5.75 parent'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore app.js from last good 5.75 parent
+        run: |
+          git restore --source 2434564175a72b639867c74a006a2b962884d250 -- js/app.js
+          git config user.name 'CrowRules Entertainment'
+          git config user.email 'crowrulesentertainment@gmail.com'
+          git add js/app.js
+          git diff --cached --quiet || git commit -m 'Restore app.js from 5.75 parent'
+          git push
