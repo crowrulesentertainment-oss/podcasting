@@ -1,34 +1,6 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#05050b">
-<title>Podcasting Admin | CrowRules</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/css/style.css">
-<style>
-:root{--red:#ff304f;--cyan:#4de8ff;--purple:#a66cff;--panel:#0b0d18;--line:#252a42}
-body{min-height:100vh}.admin-wrap{max-width:1380px;margin:auto;padding:34px 4% 70px}
-.admin-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;flex-wrap:wrap;margin-bottom:25px}
-.admin-head h1{margin:0;font:900 clamp(2rem,5vw,4rem)/1 Orbitron}.admin-head p{margin:.6rem 0 0}
-.status{padding:8px 11px;border:1px solid var(--line);border-radius:999px;font-size:.75rem;font-weight:800}
-.status.ok{color:#35e58c;border-color:#24583f}.status.bad{color:#ff5b70;border-color:#642333}
-.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:24px}.tab{border:1px solid var(--line);background:#0a0c14;color:#fff;padding:10px 14px;border-radius:9px;font-weight:800;cursor:pointer}.tab.active,.tab:hover{border-color:var(--cyan);background:#071c22}
-.panel{background:linear-gradient(145deg,#0e1020,#080912);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:20px;box-shadow:0 12px 40px #0005}.panel h2{margin:0 0 14px}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.statbox{padding:17px;border:1px solid var(--line);border-radius:12px;background:#080a12}.statbox b{display:block;font:900 2rem Orbitron;color:var(--cyan)}.statbox span{color:#8e97ad;font-size:.78rem}
-.table-wrap{overflow:auto}.table{min-width:720px}.table button{padding:7px 9px}.muted{color:#8992aa}.empty{padding:25px;text-align:center;border:1px dashed var(--line);border-radius:12px;color:#8992aa}
-form.admin-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.full{grid-column:1/-1}.field label{display:block;font-weight:800;font-size:.8rem;margin-bottom:6px}.field input,.field textarea,.field select{width:100%;padding:11px;border-radius:8px;border:1px solid var(--line);background:#070910;color:#fff}.field textarea{min-height:110px;resize:vertical}.checkline{display:flex;gap:9px;align-items:center}.checkline input{width:auto}.form-actions{display:flex;gap:9px;flex-wrap:wrap}.danger{border-color:#7d2635!important;background:#210a10!important}.notice{margin-bottom:15px}
-.modal{position:fixed;inset:0;background:#000b;display:none;place-items:center;padding:20px;z-index:100}.modal.open{display:grid}.modal-card{width:min(760px,100%);max-height:90vh;overflow:auto;background:#0b0d18;border:1px solid var(--line);border-radius:16px;padding:20px}
-#loginGate{max-width:700px;margin:90px auto;text-align:center}.hidden{display:none!important}
-@media(max-width:700px){form.admin-form{grid-template-columns:1fr}.full{grid-column:auto}}
-</style>
-<link rel="stylesheet" href="../css/podcasting-enhanced.css">
-</head>
-<body data-crowrules-division="podcasting">
-<header class="nav"><a class="brand" href="../index.html">CROWRULES <span>PODCASTING</span></a><nav class="navlinks"></nav></header>
-<main class="admin-wrap">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050711"><meta name="color-scheme" content="dark"><meta name="description" content="CrowRules Podcasting — The Voice of the Crow."><title>Podcasting Admin | CrowRules</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet"><link rel="stylesheet" href="../assets/css/podcasting-v6.css"></head><body data-crowrules-division="podcasting" data-page="admin/index.html"><div class="cr-shell"><header class="cr-header"><a class="cr-brand" href="../index.html"><span class="cr-mark">C</span><span>CROWRULES <b>PODCASTING</b></span></a><button class="cr-menu" type="button" aria-label="Open navigation" aria-expanded="false">☰</button><nav class="cr-nav"><a href="../home.html">Home</a><a href="../discover.html">Discover</a><a href="../podcasts.html">Podcasts</a><a href="../following.html">Following</a><a href="../history.html">History</a><a href="../member.html">My Account</a><a href="../creator/dashboard.html">Creator</a></nav><div class="cr-header-actions"><a class="cr-icon-link" href="../search.html">⌕</a><a class="cr-signin" href="../login.html">Sign In</a></div></header><div class="cr-progress-line"></div><main class="cr-main"><div class="cr-content">
+
+
 <section id="loginGate" class="panel hidden">
 <div class="eyebrow">CROWRULES PODCASTING</div><h1>Admin Access Required</h1>
 <p id="gateMessage">Checking your CrowRules administrator session…</p>
@@ -78,21 +50,21 @@ form.admin-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1
 <section id="news" class="tab-panel hidden"><div class="panel"><h2>Podcast Newsroom</h2><form id="newsForm" class="admin-form"><div class="field"><label>Title *</label><input name="title" required></div><div class="field"><label>Slug *</label><input name="slug" required></div><div class="field"><label>Category</label><input name="category"></div><div class="field"><label>Image URL</label><input name="image_url" type="url"></div><div class="field full"><label>Excerpt</label><textarea name="excerpt"></textarea></div><div class="field full"><label>Body</label><textarea name="body"></textarea></div><div class="field"><label>Status</label><select name="status"><option>draft</option><option>published</option><option>archived</option></select></div><div class="full form-actions"><button class="btn" type="submit">Publish / Save Article</button></div></form></div><div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Title</th><th>Status</th><th>Category</th><th>Published</th><th>Actions</th></tr></thead><tbody id="newsRows"></tbody></table></div></div></section>
 <section id="top10" class="tab-panel hidden"><div class="panel"><h2>Top 10</h2><p class="muted">Live ranking data is read from the existing podcast ranking view.</p><div id="top10Rows"></div></div></section>
 </section>
-</main>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="admin.js"></script>
-<script src="../js/crowrules-invite.js"></script>
-<script src="../js/crowrules-navigation.js"></script>
-
-<script src="../assets/js/crowrules-site-ux.js"></script>
 
 
 
 
 
 
-<script src="../js/podcasting-enhanced.js" defer></script>
 
 
-<script src="../assets/js/crowrules-player.js?v=4"></script>
-</body></html>
+
+
+
+
+
+
+</div></main><footer class="cr-footer"><div><strong>CROWRULES PODCASTING</strong><span> // THE VOICE OF THE CROW</span></div><div>One Account. One Universe.</div></footer></div><script src="../assets/js/podcasting-v6.js" defer></script><script src="../assets/js/crowrules-player.js?v=6" defer></script></body></html>
