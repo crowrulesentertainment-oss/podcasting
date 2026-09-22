@@ -310,6 +310,23 @@ export default {
       await ctx.supabaseAdmin.from("creator_governance_notification_audit").insert({notification_id:n.id,actor_user_id:userId,action:"routed",payload:{priority,action_required}});
       return json({routed:true,notification:n});
     }
+    if (action === "escalate") {
+      if(!permissions.includes("govern"))return json({error:"ESCALATION_FORBIDDEN"},403);
+      const {data:candidates,error:ce}=await ctx.supabaseAdmin.rpc("creator_governance_escalation_candidates");
+      if(ce)return json({error:ce.message},500);
+      const results=[];
+      const roles=await ctx.supabaseAdmin.from("creator_governance_roles").select("user_id,role").eq("is_active",true).in("role",["admin","team_lead"]);
+      for(const h of (candidates??[])){
+        const targets=(roles.data??[]).filter((r:any)=>r.user_id!==h.from_user_id&&r.user_id!==h.to_user_id);
+        const target=targets[0]; if(!target)continue;
+        const {data:e}=await ctx.supabaseAdmin.from("creator_governance_escalations").upsert({handoff_id:h.id,collection_id:h.collection_id,task_key:h.task_key,reason:"HANDOFF_UNANSWERED",level:1,target_user_id:target.user_id},{onConflict:"handoff_id,level,target_user_id"}).select("*").maybeSingle();
+        const {data:p}=await ctx.supabaseAdmin.from("creator_governance_notification_preferences").select("*").eq("user_id",target.user_id).maybeSingle();
+        if(e&&p?.enabled!==false)await ctx.supabaseAdmin.from("creator_governance_notifications").upsert({recipient_user_id:target.user_id,actor_user_id:userId,type:"system",priority:"CRITICAL",action_required:true,dedupe_key:"escalation:"+h.id,title:"Handoff Escalated",message:`Handoff for ${h.task_name||h.task_key} was escalated because it was not answered.`,collection_id:h.collection_id,task_key:h.task_key,handoff_id:h.id,payload:{escalation_id:e.id}},{onConflict:"recipient_user_id,dedupe_key"});
+        await ctx.supabaseAdmin.from("creator_governance_handoffs").update({escalated_at:new Date().toISOString()}).eq("id",h.id);
+        results.push(e);
+      }
+      return json({escalated:results});
+    }
     if (action === "notifications") {
       const { data, error } = await ctx.supabaseAdmin.from("creator_governance_notifications").select("*")
         .eq("recipient_user_id", userId).order("created_at",{ascending:false}).limit(100);
