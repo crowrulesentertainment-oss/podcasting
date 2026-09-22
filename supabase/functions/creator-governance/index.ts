@@ -327,6 +327,15 @@ export default {
       }
       return json({escalated:results});
     }
+    if (action === "health") {
+      if(!permissions.includes("view"))return json({error:"HEALTH_FORBIDDEN"},403);
+      const [tasks,health,reports]=await Promise.all([
+        ctx.supabaseAdmin.from("creator_governance_tasks").select("*").order("target_date",{ascending:true,nullsLast:true}),
+        ctx.supabaseAdmin.from("creator_governance_task_health").select("*").order("health_score",{ascending:true}),
+        ctx.supabaseAdmin.from("creator_governance_health_reports").select("*").order("report_date",{ascending:false}).limit(14)
+      ]);
+      return json({tasks:tasks.data??[],health:health.data??[],reports:reports.data??[]});
+    }
     if (action === "notifications") {
       const { data, error } = await ctx.supabaseAdmin.from("creator_governance_notifications").select("*")
         .eq("recipient_user_id", userId).order("created_at",{ascending:false}).limit(100);
