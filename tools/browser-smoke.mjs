@@ -18,6 +18,7 @@ const pages = [
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage();
 const failures = [];
+const allFailures = [];
 
 page.on("console", msg => {
   if (msg.type() === "error") failures.push(`console: ${msg.text()}`);
@@ -35,8 +36,13 @@ for (const path of pages) {
     failures.push(`http: ${response?.status() ?? "no response"}`);
   }
   console.log(`${path}: HTTP ${response?.status() ?? "ERR"}`);
-  for (const failure of failures) console.log(`  - ${failure}`);
+  for (const failure of failures) { console.log(`  - ${failure}`); allFailures.push(`${path}: ${failure}`); }
 }
 
 await browser.close();
-if (failures.length) process.exitCode = 1;
+if (allFailures.length) {
+  console.error(`Browser smoke test found ${allFailures.length} failure(s).`);
+  process.exitCode = 1;
+} else {
+  console.log("Browser smoke test passed.");
+}
