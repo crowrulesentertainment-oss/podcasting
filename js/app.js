@@ -19,6 +19,11 @@ function creatorNavCollectionRunner(id,index){
   try{sessionStorage.setItem("crowrules_creator_collection_runner_v1",JSON.stringify({collectionId:id,index:next}));sessionStorage.setItem("crowrules_creator_nav_restore_v1",JSON.stringify({url:target.url,state:target.state||{}}));}catch{}
   creatorNavHistoryBusy=true;location.href=target.url;
 }
+function creatorNavCollectionProgressRead(){try{return JSON.parse(localStorage.getItem("crowrules_creator_collection_progress_v1")||"{}");}catch{return {};}}
+function creatorNavCollectionProgressWrite(x){try{localStorage.setItem("crowrules_creator_collection_progress_v1",JSON.stringify(x));}catch{}}
+function creatorNavCollectionProgressStatus(id,url){const a=creatorNavCollectionProgressRead();return (a[id]||{})[url]||"not-started";}
+function creatorNavCollectionProgressSet(id,url,status){const a=creatorNavCollectionProgressRead();a[id]=a[id]||{};a[id][url]=status;creatorNavCollectionProgressWrite(a);}
+function creatorNavCollectionProgressSetCurrentStatus(status){const run=creatorNavCollectionRunnerRead();if(!run)return;const c=creatorNavCollectionsRead().find(x=>x.id===run.collectionId);if(!c)return;const rows=creatorNavHistoryRead(),targets=c.snapshotUrls.map(u=>rows.find(x=>x.url===u)).filter(Boolean),e=targets[run.index];if(e){creatorNavCollectionProgressSet(c.id,e.url,status);creatorNavCollectionsHost();}}
 function creatorNavCollectionRunnerRead(){
   try{return JSON.parse(sessionStorage.getItem("crowrules_creator_collection_runner_v1")||"null");}catch{return null;}
 }
@@ -30,10 +35,10 @@ function creatorNavCollectionRunnerRender(){
   const rows=creatorNavHistoryRead(),targets=c.snapshotUrls.map(u=>rows.find(x=>x.url===u)).filter(Boolean);
   if(!targets.length){creatorNavCollectionRunnerClear();host.innerHTML="";return;}
   const idx=Math.max(0,Math.min(Number(run.index)||0,targets.length-1)),entry=targets[idx];
-  const name=creatorNavHistorySnapshotName(entry);
+  const name=creatorNavHistorySnapshotName(entry),p=creatorNavCollectionProgressRead(),st=(p[c.id]||{})[entry.url]||'not-started',done=targets.filter(e=>(p[c.id]||{})[e.url]==='complete').length,pct=targets.length?Math.round(done/targets.length*100):0;
   const prev=idx>0?' <button class="btn" type="button" onclick="creatorNavCollectionRunner(\''+c.id+'\','+(idx-1)+')">← PREVIOUS</button>':'';
   const next=idx<targets.length-1?' <button class="btn" type="button" onclick="creatorNavCollectionRunner(\''+c.id+'\','+(idx+1)+')">NEXT →</button>':'';
-  host.innerHTML='<div class="card" style="padding:12px 14px;margin-bottom:10px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">COLLECTION WORKFLOW</div><strong>'+esc(c.name)+'</strong><div style="margin-top:4px">Step '+(idx+1)+' of '+targets.length+' — '+esc(name)+'</div><div class="actions" style="margin-top:8px">'+prev+next+' <button class="btn" type="button" onclick="creatorNavCollectionRunnerClear();creatorNavCollectionRunnerRender()">EXIT</button></div></div>';
+  host.innerHTML='<div class="card" style="padding:12px 14px;margin-bottom:10px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">COLLECTION WORKFLOW</div><strong>'+esc(c.name)+'</strong><div style="margin-top:4px">Step '+(idx+1)+' of '+targets.length+' — '+esc(name)+'</div><div>Progress: '+done+'/'+targets.length+' Complete — '+pct+'%</div><div class="actions"><button class="btn" onclick="creatorNavCollectionProgressSetCurrentStatus(\\'not-started\\')">NOT STARTED</button> <button class="btn" onclick="creatorNavCollectionProgressSetCurrentStatus(\\'in-progress\\')">IN PROGRESS</button> <button class="btn" onclick="creatorNavCollectionProgressSetCurrentStatus(\\'complete\\')">COMPLETE</button><span style="margin-left:8px">Current: '+esc(st.replace('-',' '))+'</span></div><div class="actions" style="margin-top:8px">'+prev+next+' <button class="btn" type="button" onclick="creatorNavCollectionRunnerClear();creatorNavCollectionRunnerRender()">EXIT</button></div></div>';
 }
 
 function creatorNavCollectionDelete(id){const cs=creatorNavCollectionsRead(),c=cs.find(x=>x.id===id);if(c&&confirm("Delete collection “"+c.name+"”?")){creatorNavCollectionsWrite(cs.filter(x=>x.id!==id));updateCreatorNavHistoryControls();}}
