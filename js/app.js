@@ -473,6 +473,23 @@ let creatorNavNotificationChannel=null;
 let creatorNavNotifications=[];
 const CREATOR_NAV_NOTIFICATIONS_KEY="crowrules_creator_notifications_v1";
 
+async function creatorNavServerTaskBridgeSync(data){
+  try{
+    const tasks=[];
+    (data?.forEach?data:[]).forEach(x=>{
+      const steps=creatorNavRoadmapSteps(x);
+      steps.forEach(s=>tasks.push({collection_id:x.id,task_key:s.key,task_name:s.name,owner_user_id:(creatorNavExecutionGet(x.id).assignments||{})[s.key]||null,status:s.done?"COMPLETE":"OPEN",target_date:s.projected||null,dependency_key:s.dependency||null}));
+    });
+    if(tasks.length) await creatorNavServerCall("task-sync",{tasks});
+    await creatorNavServerHealthRefresh();
+  }catch(e){console.warn("Server task bridge sync failed",e);}
+}
+async function creatorNavServerTaskClaim(id,key){
+  return await creatorNavServerCall("task-claim",{collection_id:id,task_key:key});
+}
+async function creatorNavServerTaskComplete(id,key){
+  return await creatorNavServerCall("task-complete",{collection_id:id,task_key:key});
+}
 async function creatorNavServerHealthRefresh(){
   try{
     const x=await creatorNavServerCall("health",{});
