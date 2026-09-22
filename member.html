@@ -1,298 +1,8 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#05050b">
-  <meta name="color-scheme" content="dark">
-  <meta name="description" content="CrowRules Podcasting Creator Hub — create podcasts, upload episodes, track creator stats and CrowPoints.">
-  <title>Podcast Creator Hub | CrowRules Podcasting</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="stylesheet" href="./css/crowrules-cinematic.css">
-
-  <style>
-    :root{
-      --cyan:#00eaff;
-      --purple:#9b5cff;
-      --pink:#ff4fd8;
-      --bg:#05050b;
-      --card:rgba(12,13,25,.88);
-      --border:rgba(0,234,255,.18);
-    }
-
-    body{
-      min-height:100vh;
-      background:
-        radial-gradient(circle at 15% 10%,rgba(0,234,255,.08),transparent 30%),
-        radial-gradient(circle at 85% 15%,rgba(155,92,255,.11),transparent 30%),
-        var(--bg);
-    }
-
-    .creator-main{
-      width:min(1150px,calc(100% - 32px));
-      margin:0 auto;
-      padding:65px 0 90px;
-    }
-
-    .creator-hero{text-align:center;margin-bottom:40px}
-    .eyebrow{
-      color:var(--cyan);
-      font:800 .75rem/1 "Orbitron",sans-serif;
-      letter-spacing:.22em;
-      text-transform:uppercase;
-      margin-bottom:14px;
-    }
-    .creator-hero h1{
-      margin:0;
-      font:900 clamp(2rem,6vw,4rem)/1.05 "Orbitron",sans-serif;
-    }
-    .creator-hero h1 span{
-      background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));
-      -webkit-background-clip:text;
-      background-clip:text;
-      color:transparent;
-    }
-    .creator-hero p{
-      max-width:720px;
-      margin:18px auto 0;
-      color:rgba(255,255,255,.72);
-      line-height:1.7;
-    }
-
-    .login-message{
-      display:none;
-      max-width:700px;
-      margin:0 auto 35px;
-      padding:22px;
-      border:1px solid rgba(255,255,255,.1);
-      border-radius:18px;
-      background:var(--card);
-      text-align:center;
-    }
-    .login-message.show{display:block}
-    .login-message a{
-      display:inline-flex;
-      margin-top:15px;
-      padding:12px 20px;
-      border-radius:12px;
-      color:#05050b;
-      background:var(--cyan);
-      text-decoration:none;
-      font-weight:900;
-    }
-
-    .stats-title{
-      margin:0 0 16px;
-      font:800 1rem/1 "Orbitron",sans-serif;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-    }
-
-    .creator-stats{
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:16px;
-      margin-bottom:42px;
-    }
-
-    .stat-card{
-      padding:24px 20px;
-      border:1px solid var(--border);
-      border-radius:18px;
-      background:var(--card);
-      box-shadow:0 15px 45px rgba(0,0,0,.24);
-    }
-
-    .stat-icon{font-size:1.3rem;margin-bottom:12px}
-    .stat-number{
-      font:900 clamp(1.6rem,4vw,2.35rem)/1 "Orbitron",sans-serif;
-      color:#fff;
-    }
-    .stat-label{
-      margin-top:9px;
-      color:var(--cyan);
-      font:800 .68rem/1.3 "Montserrat",sans-serif;
-      letter-spacing:.13em;
-      text-transform:uppercase;
-    }
-    .stat-sub{
-      margin-top:8px;
-      color:rgba(255,255,255,.45);
-      font-size:.76rem;
-    }
-
-    .creator-actions{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:22px;
-      margin-bottom:28px;
-    }
-
-    .creator-card{
-      display:flex;
-      flex-direction:column;
-      min-height:285px;
-      padding:32px;
-      border:1px solid var(--border);
-      border-radius:24px;
-      background:
-        linear-gradient(145deg,rgba(0,234,255,.06),rgba(155,92,255,.04)),
-        var(--card);
-      box-shadow:0 20px 60px rgba(0,0,0,.3);
-      transition:.2s ease;
-    }
-    .creator-card:hover{
-      transform:translateY(-4px);
-      border-color:rgba(0,234,255,.42);
-    }
-    .creator-icon{
-      width:62px;height:62px;
-      display:grid;place-items:center;
-      margin-bottom:22px;
-      border-radius:17px;
-      background:rgba(0,234,255,.08);
-      border:1px solid rgba(0,234,255,.18);
-      font-size:1.7rem;
-    }
-    .creator-card h2{
-      margin:0 0 10px;
-      font:800 1.25rem/1.2 "Orbitron",sans-serif;
-    }
-    .creator-card p{
-      margin:0;
-      color:rgba(255,255,255,.67);
-      line-height:1.65;
-      flex:1;
-    }
-    .creator-button{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:50px;
-      margin-top:25px;
-      border-radius:12px;
-      color:#05050b;
-      background:linear-gradient(90deg,var(--cyan),#73f5ff);
-      text-decoration:none;
-      font-weight:900;
-    }
-    .creator-button.secondary{
-      color:#fff;
-      background:linear-gradient(90deg,var(--purple),var(--pink));
-    }
-
-    .creator-note{
-      padding:18px 22px;
-      border-left:3px solid var(--cyan);
-      border-radius:10px;
-      background:rgba(255,255,255,.025);
-      color:rgba(255,255,255,.6);
-      font-size:.88rem;
-      line-height:1.6;
-    }
-
-    .milestones{
-      margin:0 0 38px;
-    }
-    .milestone-grid{
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:16px;
-    }
-    .badge-card{
-      position:relative;
-      padding:22px 20px;
-      border:1px solid rgba(155,92,255,.25);
-      border-radius:18px;
-      background:
-        radial-gradient(circle at 85% 15%,rgba(255,79,216,.08),transparent 35%),
-        var(--card);
-      box-shadow:0 15px 45px rgba(0,0,0,.22);
-    }
-    .badge-card.locked{
-      opacity:.48;
-      filter:grayscale(.65);
-    }
-    .badge-card.bronze{border-color:rgba(205,127,50,.38)}
-    .badge-card.silver{border-color:rgba(210,220,235,.42)}
-    .badge-card.gold{border-color:rgba(255,205,60,.48)}
-    .badge-card.legendary{
-      border-color:rgba(0,234,255,.58);
-      box-shadow:0 0 30px rgba(0,234,255,.08);
-    }
-    .badge-card.special{
-      border-color:rgba(255,79,216,.45);
-    }
-    .badge-tier{
-      position:absolute;
-      top:16px;
-      right:16px;
-      font:800 .55rem/1 "Montserrat",sans-serif;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:rgba(255,255,255,.5);
-    }
-    .badge-icon{
-      width:54px;height:54px;
-      display:grid;place-items:center;
-      border-radius:15px;
-      margin-bottom:15px;
-      background:rgba(155,92,255,.1);
-      border:1px solid rgba(155,92,255,.22);
-      font-size:1.6rem;
-    }
-    .badge-name{
-      font:800 .92rem/1.25 "Orbitron",sans-serif;
-      color:#fff;
-    }
-    .badge-description{
-      margin-top:8px;
-      color:rgba(255,255,255,.58);
-      font-size:.78rem;
-      line-height:1.55;
-    }
-    .badge-status{
-      margin-top:13px;
-      color:var(--cyan);
-      font:800 .62rem/1 "Montserrat",sans-serif;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-    }
-    .badge-date{
-      margin-top:7px;
-      color:rgba(255,255,255,.38);
-      font-size:.7rem;
-    }
-    .milestone-empty{
-      padding:20px;
-      border:1px dashed rgba(255,255,255,.12);
-      border-radius:16px;
-      color:rgba(255,255,255,.5);
-    }
-    .footer{text-align:center;padding:30px 20px}
-
-    @media(max-width:760px){
-      .creator-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .creator-actions{grid-template-columns:1fr}
-      .milestone-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-    }
-
-    @media(max-width:480px){
-      .creator-stats{grid-template-columns:1fr}
-      .milestone-grid{grid-template-columns:1fr}
-    }
-  </style>
-<link rel="stylesheet" href="css/podcasting-enhanced.css">
-</head>
-
-<body data-crowrules-division="podcasting"><header class="nav"><a class="brand" href="index.html">CROWRULES <span>PODCASTING</span></a><nav class="navlinks"></nav></header>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050711"><meta name="color-scheme" content="dark"><meta name="description" content="CrowRules Podcasting Creator Hub — create podcasts, upload episodes, track creator stats and CrowPoints."><title>Podcast Creator Hub | CrowRules Podcasting</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/css/podcasting-v6.css"></head><body data-crowrules-division="podcasting" data-page="member.html"><div class="cr-shell"><header class="cr-header"><a class="cr-brand" href="index.html"><span class="cr-mark">C</span><span>CROWRULES <b>PODCASTING</b></span></a><button class="cr-menu" type="button" aria-label="Open navigation" aria-expanded="false">☰</button><nav class="cr-nav"><a href="home.html">Home</a><a href="discover.html">Discover</a><a href="podcasts.html">Podcasts</a><a href="following.html">Following</a><a href="history.html">History</a><a href="member.html">My Account</a><a href="creator/dashboard.html">Creator</a></nav><div class="cr-header-actions"><a class="cr-icon-link" href="search.html">⌕</a><a class="cr-signin" href="login.html">Sign In</a></div></header><div class="cr-progress-line"></div><main class="cr-main"><div class="cr-content">
 
 <div id="crowrules-membership" class="membership-only" aria-label="Universal CrowRules Membership"></div>
 
-<main class="creator-main">
+
 
   <section class="creator-hero">
     <div class="eyebrow">CrowRules Podcasting</div>
@@ -425,11 +135,9 @@
 
   </section>
 
-</main>
 
-<footer class="footer">
-  CrowRules Podcasting · Create. Publish. Grow.
-</footer>
+
+
 
 <script src="assets/js/app.js"></script>
 <script src="js/crowrules-membership.js"></script>
@@ -603,19 +311,18 @@
 })();
 </script>
 
-<script src="js/crowrules-invite.js"></script>
-<script src="js/crowrules-navigation.js"></script>
-
-<script src="assets/js/crowrules-site-ux.js"></script>
 
 
 
 
 
-<script src="js/podcasting-enhanced.js" defer></script>
 
 
 
-<script src="assets/js/crowrules-player.js?v=4"></script>
-</body>
-</html>
+
+
+
+
+
+
+</div></main><footer class="cr-footer"><div><strong>CROWRULES PODCASTING</strong><span> // THE VOICE OF THE CROW</span></div><div>One Account. One Universe.</div></footer></div><script src="assets/js/podcasting-v6.js" defer></script><script src="assets/js/crowrules-player.js?v=6" defer></script></body></html>
