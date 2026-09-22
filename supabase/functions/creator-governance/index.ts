@@ -366,7 +366,7 @@ export default {
       if(he)return json({error:he.message},500); if(!h)return json({error:"HANDOFF_NOT_FOUND_OR_ALREADY_RESPONDED"},409);
       const {data:p}=await ctx.supabaseAdmin.from("creator_governance_notification_preferences").select("*").eq("user_id",h.from_user_id).maybeSingle();
       if(p?.enabled!==false&&p?.handoffs!==false)await ctx.supabaseAdmin.from("creator_governance_notifications").insert({
-        recipient_user_id:h.from_user_id,actor_user_id:userId,type:"handoff",priority:"HIGH",action_required:true,title:`Handoff ${status==="ACCEPTED"?"Accepted":"Declined"},
+        recipient_user_id:h.from_user_id,actor_user_id:userId,type:"handoff",priority:"HIGH",action_required:true,title:`Handoff ${status==="ACCEPTED"?"Accepted":"Declined"}`,
         message:`Your handoff request for ${h.task_name||h.task_key} was ${status.toLowerCase()}.`,collection_id:h.collection_id,task_key:h.task_key,
         task_name:h.task_name,handoff_id:h.id,payload:{status}
       });
