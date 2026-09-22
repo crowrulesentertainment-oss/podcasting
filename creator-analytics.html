@@ -143,6 +143,17 @@ document.getElementById("exportCsv").onclick=()=>{const cols=["date","status","a
 document.getElementById("refresh").onclick=()=>location.reload();
 };
 render();
+const syncFilterUrl=()=>{
+  const params=new URLSearchParams();
+  if(rangeMode!=="all") params.set("range",rangeMode);
+  if(customRange.from) params.set("from",customRange.from);
+  if(customRange.to) params.set("to",customRange.to);
+  if(statusFilter!=="paid") params.set("status",statusFilter);
+  if(tierFilter!=="all") params.set("tier",tierFilter);
+  if(podcastFilter!=="all") params.set("podcast",podcastFilter);
+  const next=params.toString();
+  history.replaceState(null,"",location.pathname+(next?"?"+next:"")+location.hash);
+};
 const applyFilters=()=>{
   const base=allRows.filter(x=>(statusFilter==="all"||x.payment_status===statusFilter)&&(tierFilter==="all"||x.tier_id===tierFilter)&&(podcastFilter==="all"||x.podcast_id===podcastFilter));
   if(rangeMode==="custom"&&customRange.from&&customRange.to){
@@ -155,6 +166,7 @@ const applyFilters=()=>{
     activeRows=base.filter(x=>new Date(x.created_at).getTime()>=since);
   }
   render();
+  syncFilterUrl();
 };
 document.querySelectorAll("[data-range]").forEach(btn=>btn.onclick=()=>{
   rangeMode=btn.dataset.range;
@@ -190,6 +202,19 @@ const podcastSelect=document.getElementById("podcastFilter");
 Object.values(podcastMap).sort((a,b)=>String(a.title||"").localeCompare(String(b.title||""))).forEach(p=>{
   const o=document.createElement("option");o.value=p.id;o.textContent=p.title||"Untitled podcast";podcastSelect.appendChild(o);
 });
+const urlParams=new URLSearchParams(location.search);
+const urlStatus=urlParams.get("status"),urlRange=urlParams.get("range"),urlFrom=urlParams.get("from")||"",urlTo=urlParams.get("to")||"",urlTier=urlParams.get("tier"),urlPodcast=urlParams.get("podcast");
+if(["paid","refunded","disputed","all"].includes(urlStatus)) statusFilter=urlStatus;
+if(["30","90","all"].includes(urlRange)) rangeMode=urlRange;
+if(urlRange==="custom"&&urlFrom&&urlTo&&urlFrom<=urlTo){customRange={from:urlFrom,to:urlTo};rangeMode="custom";document.getElementById("customFrom").value=urlFrom;document.getElementById("customTo").value=urlTo;}
+if(urlTier&&Object.prototype.hasOwnProperty.call(tierMap,urlTier)) tierFilter=urlTier;
+if(urlPodcast&&Object.prototype.hasOwnProperty.call(podcastMap,urlPodcast)) podcastFilter=urlPodcast;
+tierSelect.value=tierFilter;
+podcastSelect.value=podcastFilter;
+document.querySelectorAll("[data-range]").forEach(b=>b.classList.toggle("primary",b.dataset.range===rangeMode&&rangeMode!=="custom"));
+document.querySelectorAll("[data-status]").forEach(b=>b.classList.toggle("primary",b.dataset.status===statusFilter));
+if(rangeMode==="custom") document.querySelectorAll("[data-range]").forEach(b=>b.classList.remove("primary"));
+applyFilters();
 tierSelect.onchange=()=>{tierFilter=tierSelect.value;applyFilters();};
 podcastSelect.onchange=()=>{podcastFilter=podcastSelect.value;applyFilters();};
 document.getElementById("clearAnalyticsFilters").onclick=()=>{
