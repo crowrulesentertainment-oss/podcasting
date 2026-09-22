@@ -541,12 +541,26 @@ async function creatorNavPresenceLock(id,key,name){
   try{await creatorNavServerLockClaim(id,key,name);creatorNavPresenceBroadcast("lock",{lockKey,collectionId:id,key,taskName:name,ownerName:me.name});return {ok:true};}
   catch(err){await creatorNavServerLocksRefresh();return {ok:false,owner:"another creator",error:String(err?.message||err)};}
 }
+async function creatorNavRequestHandoff(id,key,toMemberId,note=""){
+  const me=creatorNavPresenceIdentity(),lock=creatorNavPresenceState.taskLocks?.[id+"::"+key];
+  if(!lock||lock.actorId!==me.id)return {ok:false,error:"TASK_NOT_OWNED"};
+  creatorNavPresenceBroadcast("handoff-request",{collectionId:id,key,toMemberId,note,fromName:me.name});
+  creatorNavEvent("handoff-request",{collectionId:id,key,toMemberId,note,fromName:me.name});
+  return {ok:true};
+}
+async function creatorNavAcceptHandoff(id,key,fromUserId){
+  const claimed=await creatorNavPresenceLock(id,key,"Handoff");
+  if(!claimed?.ok)return claimed;
+  creatorNavPresenceBroadcast("handoff-accepted",{collectionId:id,key,fromUserId});
+  creatorNavEvent("handoff-accepted",{collectionId:id,key,fromUserId});
+  return claimed;
+}
 async function creatorNavPresenceUnlock(id,key){
   const lockKey=id+"::"+key,me=creatorNavPresenceIdentity(),current=creatorNavPresenceState.taskLocks[lockKey];
   if(current&&current.actorId!==me.id)return false;
   try{await creatorNavServerLockRelease(id,key);creatorNavPresenceBroadcast("unlock",{lockKey,collectionId:id,key});return true;}catch{return false;}
 }
-function creatorNavPresenceWorking(id,key,name){
+async function creatorNavPresenceWorking(id,key,name){
   const lock=await creatorNavPresenceLock(id,key,name);if(!lock.ok)return lock;
   if(creatorNavPresenceChannel)creatorNavPresenceChannel.track({id:creatorNavPresenceIdentity().id,name:creatorNavPresenceIdentity().name,state:"working",taskName:name,taskKey:key,collectionId:id,at:new Date().toISOString()});
   return lock;
