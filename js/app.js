@@ -1,20 +1,7 @@
 const path=location.pathname.split("/").pop()||"index.html";
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const nav='<nav class="nav"><a class="brand" href="index.html">CROWRULES PODCASTING</a><div class="navlinks"><a href="discover.html">Discover</a><a href="podcasts.html">Podcasts</a><a href="episodes.html">Episodes</a><a href="rankings.html">Top 10</a><a href="live.html">Live</a><a href="podcast-dashboard.html">Studio</a><a href="create-podcast.html">Create</a><a href="creators.html">Creators</a><a href="member.html">My Hub</a><a href="feed.html">My Feed</a><a href="members.html">Network</a><a href="activity.html">Activity</a><a id="notificationNav" href="notifications.html">Notifications</a><a href="achievements.html">Achievements</a><a href="reputation.html">Reputation</a><a href="profile.html">Profile</a><a href="login.html">Login</a></div></nav>';
+const nav='<nav class="nav"><a class="brand" href="index.html">CROWRULES PODCASTING</a><div class="navlinks"><a href="discover.html">Discover</a><a href="podcasts.html">Podcasts</a><a href="episodes.html">Episodes</a><a href="rankings.html">Top 10</a><a href="live.html">Live</a><a href="podcast-dashboard.html">Studio</a><a href="create-podcast.html">Create</a><a href="creators.html">Creators</a><a href="member.html">My Hub</a><a href="feed.html">My Feed</a><a href="members.html">Network</a><a href="activity.html">Activity</a><a href="notifications.html">Notifications</a><a href="achievements.html">Achievements</a><a href="reputation.html">Reputation</a><a href="profile.html">Profile</a><a href="login.html">Login</a></div></nav>';
 const footer='<footer><b>CROWRULES PODCASTING</b><p>Your Voice. Your Story. Your Universe.</p><small>Launch January 1, 2027 • One Account. One Universe.</small></footer>';
-let notificationChannel=null;
-async function notificationBadge(){
- const link=document.getElementById("notificationNav");if(!link||!crSupabase)return;
- const r=await crSupabase.auth.getUser();const u=r.data?.user;if(!u)return;
- const seen=new Set(JSON.parse(localStorage.getItem("cr_notifications_seen")||"[]"));
- const d=await crSupabase.from("podcast_sponsorship_deals").select("id").eq("creator_user_id",u.id);
- const ids=(d.data||[]).map(x=>x.id);if(!ids.length){link.innerHTML="Notifications";return}
- const a=await crSupabase.from("podcast_sponsorship_activity").select("id").in("deal_id",ids).order("created_at",{ascending:false}).limit(100);
- const unread=(a.data||[]).filter(x=>!seen.has(x.id)).length;
- link.innerHTML="Notifications"+(unread?'<span class="nav-notification-badge">'+unread+'</span>':"");
- if(notificationChannel)crSupabase.removeChannel(notificationChannel);
- notificationChannel=crSupabase.channel("cr-global-notifications-"+u.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"podcast_sponsorship_activity"},()=>notificationBadge()).subscribe();
-}
 function shell(content){document.getElementById("app").innerHTML=nav+'<main>'+content+'</main>'+footer+'<div class="player" id="player"><b id="now">CrowRules Podcasting</b><audio id="audio" controls></audio></div>';initPlayerTracking();notificationBadge()}
 async function user(){if(!crSupabase)return null;const {data}=await crSupabase.auth.getUser();return data?.user||null}
 async function creatorFor(u){if(!u)return null;const {data:m}=await crSupabase.from("members").select("id").eq("user_id",u.id).maybeSingle();if(!m)return null;const {data:c}=await crSupabase.from("creators").select("id,name,slug,avatar_url").eq("member_id",m.id).maybeSingle();return c||null}
