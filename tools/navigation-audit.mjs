@@ -49,7 +49,7 @@ const required = [
 
 const missingRequired = required.filter(p => !fileSet.has(p));
 const orphanPages = [...inbound.entries()]
-  .filter(([file, from]) => from.length === 0 && !required.includes(file))
+  .filter(([file, from]) => from.length === 0 && !required.includes(file) && file !== "404.html")
   .map(([file]) => file)
   .sort();
 
