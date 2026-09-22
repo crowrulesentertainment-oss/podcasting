@@ -10,11 +10,7 @@ content="width=device-width,initial-scale=1,viewport-fit=cover"
 
 >
 
-<meta
-name="theme-color"
-content="#05050b"
-
->
+  <meta name="theme-color" content="#05050b">
 
 <meta
 name="description"
@@ -24,41 +20,37 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
   <title>Creator Monetization | CrowRules Podcasting</title>
 
-  <link
-    rel="stylesheet"
-    href="css/podcasting.css"
-  >
+  <link rel="stylesheet" href="css/podcasting.css">
 
   <style>
     :root {
-      --cr-bg: #05050b;
-      --cr-panel: rgba(15,15,29,.86);
-      --cr-panel-2: rgba(21,21,39,.94);
-      --cr-border: rgba(255,255,255,.10);
-      --cr-border-hover: rgba(66,232,255,.38);
-      --cr-text: #f5f7ff;
-      --cr-muted: #9ba3b8;
-      --cr-cyan: #42e8ff;
-      --cr-purple: #9b6cff;
-      --cr-pink: #ff4fd8;
-      --cr-green: #4dff9a;
-      --cr-yellow: #ffd166;
-      --cr-red: #ff6479;
-      --cr-radius: 20px;
+      --cr-bg:#05050b;
+      --cr-panel:rgba(15,15,29,.86);
+      --cr-border:rgba(255,255,255,.10);
+      --cr-border-hover:rgba(66,232,255,.38);
+      --cr-text:#f5f7ff;
+      --cr-muted:#9ba3b8;
+      --cr-cyan:#42e8ff;
+      --cr-purple:#9b6cff;
+      --cr-pink:#ff4fd8;
+      --cr-green:#4dff9a;
+      --cr-yellow:#ffd166;
+      --cr-red:#ff6479;
+      --cr-radius:20px;
     }
 
     * {
-      box-sizing: border-box;
+      box-sizing:border-box;
     }
 
     html {
-      scroll-behavior: smooth;
+      scroll-behavior:smooth;
     }
 
     body {
-      margin: 0;
-      min-height: 100vh;
-      color: var(--cr-text);
+      margin:0;
+      min-height:100vh;
+      color:var(--cr-text);
       background:
         radial-gradient(
           circle at 10% 0%,
@@ -76,94 +68,98 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     button,
     input,
     select {
-      font: inherit;
+      font:inherit;
     }
 
     a {
-      color: inherit;
-      text-decoration: none;
+      color:inherit;
+      text-decoration:none;
+    }
+
+    button:disabled {
+      cursor:not-allowed;
+      opacity:.65;
+      transform:none !important;
     }
 
     .monetization-shell {
-      width: min(1450px, calc(100% - 32px));
-      margin: auto;
-      padding: 28px 0 70px;
+      width:min(1450px,calc(100% - 32px));
+      margin:auto;
+      padding:28px 0 70px;
     }
 
-    /* =========================================================
-       HEADER
-       ========================================================= */
+    /* HEADER */
 
     .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 18px;
-      margin-bottom: 24px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:18px;
+      margin-bottom:24px;
     }
 
     .brand {
-      display: flex;
-      align-items: center;
-      gap: 13px;
+      display:flex;
+      align-items:center;
+      gap:13px;
     }
 
     .brand-mark {
-      width: 50px;
-      height: 50px;
-      display: grid;
-      place-items: center;
-      border-radius: 15px;
-      border: 1px solid var(--cr-border);
+      width:50px;
+      height:50px;
+      display:grid;
+      place-items:center;
+      border-radius:15px;
+      border:1px solid var(--cr-border);
       background:
         linear-gradient(
           135deg,
           rgba(66,232,255,.17),
           rgba(155,108,255,.20)
         );
-      font-size: 23px;
+      font-size:23px;
     }
 
     .brand h1 {
-      margin: 0;
-      font-size: 1.25rem;
+      margin:0;
+      font-size:1.25rem;
     }
 
     .brand p {
-      margin: 3px 0 0;
-      color: var(--cr-muted);
-      font-size: .8rem;
+      margin:3px 0 0;
+      color:var(--cr-muted);
+      font-size:.8rem;
     }
 
     .top-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 9px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:9px;
     }
 
     .btn {
-      min-height: 42px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 0 15px;
-      border-radius: 12px;
-      border: 1px solid var(--cr-border);
-      background: rgba(255,255,255,.04);
-      color: var(--cr-text);
-      cursor: pointer;
-      transition: .2s ease;
+      min-height:42px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:0 15px;
+      border-radius:12px;
+      border:1px solid var(--cr-border);
+      background:rgba(255,255,255,.04);
+      color:var(--cr-text);
+      cursor:pointer;
+      transition:.2s ease;
     }
 
     .btn:hover {
-      transform: translateY(-1px);
-      border-color: var(--cr-border-hover);
-      background: rgba(255,255,255,.07);
+      transform:translateY(-1px);
+      border-color:var(--cr-border-hover);
+      background:rgba(255,255,255,.07);
     }
 
     .btn-primary {
-      border-color: rgba(66,232,255,.35);
+      border-color:rgba(66,232,255,.35);
       background:
         linear-gradient(
           135deg,
@@ -173,21 +169,19 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     }
 
     .btn-success {
-      border-color: rgba(77,255,154,.35);
-      background: rgba(77,255,154,.08);
+      border-color:rgba(77,255,154,.35);
+      background:rgba(77,255,154,.08);
     }
 
-    /* =========================================================
-       HERO
-       ========================================================= */
+    /* HERO */
 
     .hero {
-      position: relative;
-      overflow: hidden;
-      padding: clamp(25px,4vw,42px);
-      margin-bottom: 20px;
-      border: 1px solid var(--cr-border);
-      border-radius: 28px;
+      position:relative;
+      overflow:hidden;
+      padding:clamp(25px,4vw,42px);
+      margin-bottom:20px;
+      border:1px solid var(--cr-border);
+      border-radius:28px;
       background:
         linear-gradient(
           135deg,
@@ -196,271 +190,313 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
           rgba(255,79,216,.06)
         ),
         var(--cr-panel);
-      box-shadow: 0 25px 70px rgba(0,0,0,.28);
+      box-shadow:0 25px 70px rgba(0,0,0,.28);
     }
 
     .hero::after {
-      content: "";
-      position: absolute;
-      width: 350px;
-      height: 350px;
-      right: -130px;
-      top: -180px;
-      border-radius: 50%;
-      background: rgba(66,232,255,.08);
-      filter: blur(35px);
+      content:"";
+      position:absolute;
+      width:350px;
+      height:350px;
+      right:-130px;
+      top:-180px;
+      border-radius:50%;
+      background:rgba(66,232,255,.08);
+      filter:blur(35px);
     }
 
     .hero-content {
-      position: relative;
-      z-index: 1;
-      max-width: 900px;
+      position:relative;
+      z-index:1;
+      max-width:900px;
     }
 
     .eyebrow {
-      margin: 0 0 9px;
-      color: var(--cr-cyan);
-      font-size: .75rem;
-      font-weight: 800;
-      letter-spacing: .16em;
-      text-transform: uppercase;
+      margin:0 0 9px;
+      color:var(--cr-cyan);
+      font-size:.75rem;
+      font-weight:800;
+      letter-spacing:.16em;
+      text-transform:uppercase;
     }
 
     .hero h2 {
-      margin: 0;
-      font-size: clamp(2rem,5vw,3.5rem);
-      line-height: 1.02;
+      margin:0;
+      font-size:clamp(2rem,5vw,3.5rem);
+      line-height:1.02;
     }
 
     .hero p {
-      max-width: 760px;
-      margin: 15px 0 0;
-      color: var(--cr-muted);
-      line-height: 1.7;
+      max-width:760px;
+      margin:15px 0 0;
+      color:var(--cr-muted);
+      line-height:1.7;
     }
 
-    /* =========================================================
-       STATUS
-       ========================================================= */
+    /* ALERT */
+
+    .alert {
+      display:none;
+      margin-bottom:20px;
+      padding:15px 17px;
+      border-radius:14px;
+      border:1px solid rgba(255,100,121,.25);
+      background:rgba(255,100,121,.07);
+      color:#ffd8df;
+      line-height:1.45;
+      font-size:.82rem;
+    }
+
+    .alert.visible {
+      display:block;
+    }
+
+    .alert.success {
+      border-color:rgba(77,255,154,.25);
+      background:rgba(77,255,154,.07);
+      color:#d8ffe9;
+    }
+
+    /* AUTH */
+
+    .auth-card {
+      display:none;
+      padding:28px;
+      margin-bottom:20px;
+      text-align:center;
+      border:1px solid var(--cr-border);
+      border-radius:var(--cr-radius);
+      background:var(--cr-panel);
+    }
+
+    .auth-card.visible {
+      display:block;
+    }
+
+    .auth-card h3 {
+      margin:0;
+      font-size:1.3rem;
+    }
+
+    .auth-card p {
+      max-width:600px;
+      margin:10px auto 18px;
+      color:var(--cr-muted);
+      line-height:1.6;
+    }
+
+    /* STATUS */
 
     .status-card {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
-      gap: 16px;
-      padding: 18px 20px;
-      margin-bottom: 20px;
-      border: 1px solid var(--cr-border);
-      border-radius: var(--cr-radius);
-      background: var(--cr-panel);
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      gap:16px;
+      padding:18px 20px;
+      margin-bottom:20px;
+      border:1px solid var(--cr-border);
+      border-radius:var(--cr-radius);
+      background:var(--cr-panel);
     }
 
     .status-icon {
-      width: 48px;
-      height: 48px;
-      display: grid;
-      place-items: center;
-      border-radius: 14px;
-      background: rgba(255,255,255,.05);
-      font-size: 21px;
+      width:48px;
+      height:48px;
+      display:grid;
+      place-items:center;
+      border-radius:14px;
+      background:rgba(255,255,255,.05);
+      font-size:21px;
     }
 
     .status-title {
-      font-weight: 800;
+      font-weight:800;
     }
 
     .status-description {
-      margin-top: 4px;
-      color: var(--cr-muted);
-      font-size: .8rem;
-      line-height: 1.45;
+      margin-top:4px;
+      color:var(--cr-muted);
+      font-size:.8rem;
+      line-height:1.45;
     }
 
     .status-pill {
-      padding: 7px 11px;
-      border-radius: 999px;
-      font-size: .72rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      white-space: nowrap;
+      padding:7px 11px;
+      border-radius:999px;
+      font-size:.72rem;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      white-space:nowrap;
     }
 
     .status-not_started {
-      color: #dce1ef;
-      background: rgba(255,255,255,.08);
+      color:#dce1ef;
+      background:rgba(255,255,255,.08);
     }
 
     .status-pending {
-      color: var(--cr-yellow);
-      background: rgba(255,209,102,.10);
+      color:var(--cr-yellow);
+      background:rgba(255,209,102,.10);
     }
 
     .status-active {
-      color: var(--cr-green);
-      background: rgba(77,255,154,.10);
+      color:var(--cr-green);
+      background:rgba(77,255,154,.10);
     }
 
     .status-restricted {
-      color: var(--cr-red);
-      background: rgba(255,100,121,.10);
+      color:var(--cr-red);
+      background:rgba(255,100,121,.10);
     }
 
-    /* =========================================================
-       MONEY CARDS
-       ========================================================= */
+    /* MONEY */
 
     .money-grid {
-      display: grid;
-      grid-template-columns: repeat(4,1fr);
-      gap: 14px;
-      margin-bottom: 20px;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:14px;
+      margin-bottom:20px;
     }
 
     .money-card {
-      padding: 21px;
-      border: 1px solid var(--cr-border);
-      border-radius: var(--cr-radius);
-      background: var(--cr-panel);
+      padding:21px;
+      border:1px solid var(--cr-border);
+      border-radius:var(--cr-radius);
+      background:var(--cr-panel);
     }
 
     .money-label {
-      color: var(--cr-muted);
-      font-size: .78rem;
+      color:var(--cr-muted);
+      font-size:.78rem;
     }
 
     .money-value {
-      margin-top: 11px;
-      font-size: clamp(1.55rem,3vw,2.25rem);
-      font-weight: 900;
-      letter-spacing: -.035em;
+      margin-top:11px;
+      font-size:clamp(1.55rem,3vw,2.25rem);
+      font-weight:900;
+      letter-spacing:-.035em;
     }
 
     .money-meta {
-      margin-top: 8px;
-      color: var(--cr-muted);
-      font-size: .74rem;
+      margin-top:8px;
+      color:var(--cr-muted);
+      font-size:.74rem;
     }
 
     .money-card.gross .money-value {
-      color: var(--cr-cyan);
+      color:var(--cr-cyan);
     }
 
     .money-card.fees .money-value {
-      color: var(--cr-red);
+      color:var(--cr-red);
     }
 
     .money-card.available .money-value {
-      color: var(--cr-green);
+      color:var(--cr-green);
     }
 
     .money-card.paid .money-value {
-      color: var(--cr-purple);
+      color:var(--cr-purple);
     }
 
-    /* =========================================================
-       GRID
-       ========================================================= */
+    /* GRID */
 
     .main-grid {
-      display: grid;
-      grid-template-columns: minmax(0,1.6fr) minmax(300px,.85fr);
-      gap: 20px;
+      display:grid;
+      grid-template-columns:minmax(0,1.6fr) minmax(300px,.85fr);
+      gap:20px;
     }
 
     .column {
-      display: grid;
-      gap: 20px;
-      align-content: start;
+      display:grid;
+      gap:20px;
+      align-content:start;
     }
 
     .panel {
-      overflow: hidden;
-      border: 1px solid var(--cr-border);
-      border-radius: var(--cr-radius);
-      background: var(--cr-panel);
+      overflow:hidden;
+      border:1px solid var(--cr-border);
+      border-radius:var(--cr-radius);
+      background:var(--cr-panel);
     }
 
     .panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      padding: 19px 21px;
-      border-bottom: 1px solid var(--cr-border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:19px 21px;
+      border-bottom:1px solid var(--cr-border);
     }
 
     .panel-header h3 {
-      margin: 0;
-      font-size: 1rem;
+      margin:0;
+      font-size:1rem;
     }
 
     .panel-header p {
-      margin: 4px 0 0;
-      color: var(--cr-muted);
-      font-size: .76rem;
+      margin:4px 0 0;
+      color:var(--cr-muted);
+      font-size:.76rem;
     }
 
     .panel-body {
-      padding: 21px;
+      padding:21px;
     }
 
-    /* =========================================================
-       REVENUE STREAMS
-       ========================================================= */
+    /* REVENUE */
 
     .revenue-list {
-      display: grid;
-      gap: 10px;
+      display:grid;
+      gap:10px;
     }
 
     .revenue-row {
-      display: grid;
-      grid-template-columns: 42px 1fr auto;
-      align-items: center;
-      gap: 12px;
-      padding: 13px;
-      border: 1px solid transparent;
-      border-radius: 14px;
-      background: rgba(255,255,255,.025);
+      display:grid;
+      grid-template-columns:42px 1fr auto;
+      align-items:center;
+      gap:12px;
+      padding:13px;
+      border:1px solid transparent;
+      border-radius:14px;
+      background:rgba(255,255,255,.025);
     }
 
     .revenue-row:hover {
-      border-color: var(--cr-border);
-      background: rgba(255,255,255,.045);
+      border-color:var(--cr-border);
+      background:rgba(255,255,255,.045);
     }
 
     .revenue-icon {
-      width: 42px;
-      height: 42px;
-      display: grid;
-      place-items: center;
-      border-radius: 12px;
-      background: rgba(255,255,255,.06);
+      width:42px;
+      height:42px;
+      display:grid;
+      place-items:center;
+      border-radius:12px;
+      background:rgba(255,255,255,.06);
     }
 
     .revenue-name {
-      font-weight: 750;
+      font-weight:750;
     }
 
     .revenue-description {
-      margin-top: 3px;
-      color: var(--cr-muted);
-      font-size: .74rem;
+      margin-top:3px;
+      color:var(--cr-muted);
+      font-size:.74rem;
     }
 
     .revenue-amount {
-      font-weight: 850;
+      font-weight:850;
     }
 
-    /* =========================================================
-       PAYOUT
-       ========================================================= */
+    /* CONNECT */
 
     .connect-box {
-      padding: 22px;
-      border-radius: 16px;
-      border: 1px solid rgba(66,232,255,.17);
+      padding:22px;
+      border-radius:16px;
+      border:1px solid rgba(66,232,255,.17);
       background:
         linear-gradient(
           135deg,
@@ -470,71 +506,67 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     }
 
     .connect-box h4 {
-      margin: 0;
-      font-size: 1.05rem;
+      margin:0;
+      font-size:1.05rem;
     }
 
     .connect-box p {
-      margin: 8px 0 0;
-      color: var(--cr-muted);
-      font-size: .82rem;
-      line-height: 1.55;
+      margin:8px 0 0;
+      color:var(--cr-muted);
+      font-size:.82rem;
+      line-height:1.55;
     }
 
     .connect-actions {
-      display: flex;
-      gap: 9px;
-      flex-wrap: wrap;
-      margin-top: 17px;
+      display:flex;
+      gap:9px;
+      flex-wrap:wrap;
+      margin-top:17px;
     }
 
-    /* =========================================================
-       TRANSACTIONS
-       ========================================================= */
+    /* TRANSACTIONS */
 
     .transaction-list {
-      display: grid;
-      gap: 8px;
+      display:grid;
+      gap:8px;
     }
 
     .transaction {
-      display: grid;
-      grid-template-columns: 1fr auto auto;
-      gap: 14px;
-      align-items: center;
-      padding: 13px;
-      border-radius: 12px;
-      background: rgba(255,255,255,.025);
+      display:grid;
+      grid-template-columns:1fr auto auto;
+      gap:14px;
+      align-items:center;
+      padding:13px;
+      border-radius:12px;
+      background:rgba(255,255,255,.025);
     }
 
     .transaction-name {
-      font-weight: 700;
-      font-size: .83rem;
+      font-weight:700;
+      font-size:.83rem;
     }
 
     .transaction-date {
-      margin-top: 4px;
-      color: var(--cr-muted);
-      font-size: .7rem;
+      margin-top:4px;
+      color:var(--cr-muted);
+      font-size:.7rem;
     }
 
     .transaction-status {
-      color: var(--cr-muted);
-      font-size: .7rem;
+      color:var(--cr-muted);
+      font-size:.7rem;
     }
 
     .transaction-amount {
-      font-weight: 800;
+      font-weight:800;
     }
 
-    /* =========================================================
-       CROWPOINTS
-       ========================================================= */
+    /* CROWPOINTS */
 
     .crowpoints {
-      padding: 24px;
-      border: 1px solid rgba(255,209,102,.17);
-      border-radius: var(--cr-radius);
+      padding:24px;
+      border:1px solid rgba(255,209,102,.17);
+      border-radius:var(--cr-radius);
       background:
         radial-gradient(
           circle at 100% 0,
@@ -545,181 +577,163 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     }
 
     .crowpoints-label {
-      color: var(--cr-yellow);
-      font-size: .73rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .13em;
+      color:var(--cr-yellow);
+      font-size:.73rem;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.13em;
     }
 
     .crowpoints-value {
-      margin-top: 7px;
-      font-size: 2.5rem;
-      font-weight: 950;
+      margin-top:7px;
+      font-size:2.5rem;
+      font-weight:950;
     }
 
     .crowpoints p {
-      margin: 7px 0 0;
-      color: var(--cr-muted);
-      font-size: .78rem;
-      line-height: 1.5;
+      margin:7px 0 0;
+      color:var(--cr-muted);
+      font-size:.78rem;
+      line-height:1.5;
     }
 
-    /* =========================================================
-       CHECKLIST
-       ========================================================= */
+    /* CHECKLIST */
 
     .checklist {
-      display: grid;
-      gap: 10px;
+      display:grid;
+      gap:10px;
     }
 
     .check {
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      padding: 11px;
-      border-radius: 12px;
-      background: rgba(255,255,255,.025);
+      display:flex;
+      align-items:center;
+      gap:11px;
+      padding:11px;
+      border-radius:12px;
+      background:rgba(255,255,255,.025);
     }
 
     .check-icon {
-      width: 28px;
-      height: 28px;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background: rgba(255,255,255,.06);
+      width:28px;
+      height:28px;
+      display:grid;
+      place-items:center;
+      border-radius:50%;
+      background:rgba(255,255,255,.06);
     }
 
     .check.complete .check-icon {
-      color: var(--cr-green);
-      background: rgba(77,255,154,.10);
+      color:var(--cr-green);
+      background:rgba(77,255,154,.10);
     }
 
     .check-text {
-      flex: 1;
-      font-size: .8rem;
+      flex:1;
+      font-size:.8rem;
     }
 
     .check-status {
-      color: var(--cr-muted);
-      font-size: .7rem;
+      color:var(--cr-muted);
+      font-size:.7rem;
     }
 
-    /* =========================================================
-       EMPTY / LOADING
-       ========================================================= */
-
     .empty {
-      padding: 32px 15px;
-      text-align: center;
-      color: var(--cr-muted);
-      font-size: .82rem;
-      line-height: 1.55;
+      padding:32px 15px;
+      text-align:center;
+      color:var(--cr-muted);
+      font-size:.82rem;
+      line-height:1.55;
     }
 
     .loading {
-      opacity: .65;
+      opacity:.65;
     }
 
-    /* =========================================================
-       ALERT
-       ========================================================= */
+    /* FOOTER */
 
-    .alert {
-      display: none;
-      margin-bottom: 20px;
-      padding: 15px 17px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,100,121,.25);
-      background: rgba(255,100,121,.07);
-      color: #ffd8df;
-      line-height: 1.45;
-      font-size: .82rem;
+    .footer-note {
+      margin-top:25px;
+      text-align:center;
+      color:var(--cr-muted);
+      font-size:.7rem;
+      line-height:1.6;
     }
 
-    .alert.visible {
-      display: block;
-    }
+    /* MOBILE */
 
-    /* =========================================================
-       MOBILE
-       ========================================================= */
-
-    @media (max-width: 1050px) {
+    @media (max-width:1050px) {
       .money-grid {
-        grid-template-columns: repeat(2,1fr);
+        grid-template-columns:repeat(2,1fr);
       }
 
       .main-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns:1fr;
       }
     }
 
-    @media (max-width: 700px) {
+    @media (max-width:700px) {
       .monetization-shell {
-        width: min(100% - 20px,1450px);
-        padding-top: 17px;
+        width:min(100% - 20px,1450px);
+        padding-top:17px;
       }
 
       .topbar {
-        align-items: flex-start;
-        flex-direction: column;
+        align-items:flex-start;
+        flex-direction:column;
       }
 
       .top-actions {
-        width: 100%;
+        width:100%;
       }
 
       .top-actions .btn {
-        flex: 1;
+        flex:1;
       }
 
       .status-card {
-        grid-template-columns: auto 1fr;
+        grid-template-columns:auto 1fr;
       }
 
       .status-pill {
-        grid-column: 2;
-        justify-self: start;
+        grid-column:2;
+        justify-self:start;
       }
 
       .money-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 9px;
+        grid-template-columns:1fr 1fr;
+        gap:9px;
       }
 
       .money-card {
-        padding: 15px;
+        padding:15px;
       }
 
       .panel-body {
-        padding: 15px;
+        padding:15px;
       }
 
       .transaction {
-        grid-template-columns: 1fr auto;
+        grid-template-columns:1fr auto;
       }
 
       .transaction-status {
-        display: none;
+        display:none;
       }
     }
 
-    @media (max-width: 430px) {
+    @media (max-width:430px) {
       .money-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns:1fr;
       }
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    @media (prefers-reduced-motion:reduce) {
       *,
       *::before,
       *::after {
-        animation: none !important;
-        transition: none !important;
-        scroll-behavior: auto !important;
+        animation:none !important;
+        transition:none !important;
+        scroll-behavior:auto !important;
       }
     }
   </style>
@@ -732,10 +746,6 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
   <div class="monetization-shell">
 
-<!-- =======================================================
-     HEADER
-     ======================================================= -->
-
 <header class="topbar">
 
   <div class="brand">
@@ -745,37 +755,23 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     </div>
 
     <div>
-      <h1>
-        CrowRules Podcasting
-      </h1>
-
-      <p>
-        Creator Monetization
-      </p>
+      <h1>CrowRules Podcasting</h1>
+      <p>Creator Monetization</p>
     </div>
 
   </div>
 
   <nav class="top-actions">
 
-    <a
-      class="btn"
-      href="creator-dashboard.html"
-    >
+    <a class="btn" href="creator-dashboard.html">
       ← Dashboard
     </a>
 
-    <a
-      class="btn"
-      href="creator-studio.html"
-    >
+    <a class="btn" href="creator-studio.html">
       🎚️ Studio
     </a>
 
-    <a
-      class="btn btn-primary"
-      href="payouts.html"
-    >
+    <a class="btn btn-primary" href="payouts.html">
       💳 Payouts
     </a>
 
@@ -784,20 +780,27 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 </header>
 
 
-<!-- =======================================================
-     ALERT
-     ======================================================= -->
-
-<div
-  id="alert"
-  class="alert"
-  role="alert"
-></div>
+<div id="alert" class="alert" role="alert"></div>
 
 
-<!-- =======================================================
-     HERO
-     ======================================================= -->
+<section id="authCard" class="auth-card">
+
+  <h3>
+    Sign in to Creator Monetization
+  </h3>
+
+  <p>
+    Your CrowRules account must be authenticated before
+    private creator earnings, monetization status and
+    payout information can be loaded.
+  </p>
+
+  <a class="btn btn-primary" href="login.html">
+    🔐 Sign In
+  </a>
+
+</section>
+
 
 <section class="hero">
 
@@ -822,50 +825,30 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 </section>
 
 
-<!-- =======================================================
-     MONETIZATION STATUS
-     ======================================================= -->
-
 <section class="status-card">
 
-  <div
-    id="statusIcon"
-    class="status-icon"
-  >
+  <div id="statusIcon" class="status-icon">
     💳
   </div>
 
   <div>
 
-    <div
-      id="statusTitle"
-      class="status-title"
-    >
+    <div id="statusTitle" class="status-title">
       Monetization setup
     </div>
 
-    <div
-      id="statusDescription"
-      class="status-description"
-    >
-      Checking your creator monetization status…
+    <div id="statusDescription" class="status-description">
+      Connecting to CrowRules…
     </div>
 
   </div>
 
-  <div
-    id="statusPill"
-    class="status-pill status-not_started"
-  >
+  <div id="statusPill" class="status-pill status-not_started">
     Loading
   </div>
 
 </section>
 
-
-<!-- =======================================================
-     MONEY OVERVIEW
-     ======================================================= -->
 
 <section class="money-grid">
 
@@ -875,10 +858,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
       Gross Revenue
     </div>
 
-    <div
-      id="grossRevenue"
-      class="money-value"
-    >
+    <div id="grossRevenue" class="money-value">
       $0.00
     </div>
 
@@ -895,10 +875,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
       Platform Fees
     </div>
 
-    <div
-      id="platformFees"
-      class="money-value"
-    >
+    <div id="platformFees" class="money-value">
       $0.00
     </div>
 
@@ -915,10 +892,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
       Available
     </div>
 
-    <div
-      id="availableBalance"
-      class="money-value"
-    >
+    <div id="availableBalance" class="money-value">
       $0.00
     </div>
 
@@ -935,10 +909,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
       Paid Out
     </div>
 
-    <div
-      id="paidBalance"
-      class="money-value"
-    >
+    <div id="paidBalance" class="money-value">
       $0.00
     </div>
 
@@ -951,44 +922,26 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 </section>
 
 
-<!-- =======================================================
-     MAIN
-     ======================================================= -->
-
 <div class="main-grid">
 
 
-  <!-- =====================================================
-       LEFT
-       ===================================================== -->
-
   <div class="column">
 
-
-    <!-- REVENUE STREAMS -->
 
     <section class="panel">
 
       <header class="panel-header">
 
         <div>
-          <h3>
-            Revenue Streams
-          </h3>
-
-          <p>
-            Where your creator revenue comes from.
-          </p>
+          <h3>Revenue Streams</h3>
+          <p>Where your creator revenue comes from.</p>
         </div>
 
       </header>
 
       <div class="panel-body">
 
-        <div
-          id="revenueList"
-          class="revenue-list"
-        >
+        <div id="revenueList" class="revenue-list">
 
           <div class="empty loading">
             Loading revenue streams…
@@ -1001,26 +954,16 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     </section>
 
 
-    <!-- TRANSACTIONS -->
-
     <section class="panel">
 
       <header class="panel-header">
 
         <div>
-          <h3>
-            Recent Transactions
-          </h3>
-
-          <p>
-            Your latest recorded creator revenue.
-          </p>
+          <h3>Recent Transactions</h3>
+          <p>Your latest recorded creator revenue.</p>
         </div>
 
-        <a
-          href="transactions.html"
-          class="btn"
-        >
+        <a href="transactions.html" class="btn">
           View All
         </a>
 
@@ -1028,10 +971,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
       <div class="panel-body">
 
-        <div
-          id="transactionList"
-          class="transaction-list"
-        >
+        <div id="transactionList" class="transaction-list">
 
           <div class="empty loading">
             Loading transactions…
@@ -1044,26 +984,16 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     </section>
 
 
-    <!-- PAYOUTS -->
-
     <section class="panel">
 
       <header class="panel-header">
 
         <div>
-          <h3>
-            Payouts
-          </h3>
-
-          <p>
-            Recent creator payout activity.
-          </p>
+          <h3>Payouts</h3>
+          <p>Recent creator payout activity.</p>
         </div>
 
-        <a
-          href="payouts.html"
-          class="btn"
-        >
+        <a href="payouts.html" class="btn">
           Payout History
         </a>
 
@@ -1071,10 +1001,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
       <div class="panel-body">
 
-        <div
-          id="payoutList"
-          class="transaction-list"
-        >
+        <div id="payoutList" class="transaction-list">
 
           <div class="empty loading">
             Loading payouts…
@@ -1087,20 +1014,13 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     </section>
 
 
-    <!-- FUTURE REVENUE -->
-
     <section class="panel">
 
       <header class="panel-header">
 
         <div>
-          <h3>
-            CrowRules Revenue Opportunities
-          </h3>
-
-          <p>
-            Monetization features planned for the creator ecosystem.
-          </p>
+          <h3>CrowRules Revenue Opportunities</h3>
+          <p>Monetization features for the creator ecosystem.</p>
         </div>
 
       </header>
@@ -1111,9 +1031,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
           <div class="revenue-row">
 
-            <div class="revenue-icon">
-              🎧
-            </div>
+            <div class="revenue-icon">🎧</div>
 
             <div>
               <div class="revenue-name">
@@ -1134,9 +1052,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
           <div class="revenue-row">
 
-            <div class="revenue-icon">
-              ⭐
-            </div>
+            <div class="revenue-icon">⭐</div>
 
             <div>
               <div class="revenue-name">
@@ -1157,9 +1073,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
           <div class="revenue-row">
 
-            <div class="revenue-icon">
-              🤝
-            </div>
+            <div class="revenue-icon">🤝</div>
 
             <div>
               <div class="revenue-name">
@@ -1167,7 +1081,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
               </div>
 
               <div class="revenue-description">
-                Future sponsor opportunities for eligible shows.
+                Sponsor opportunities for eligible shows.
               </div>
             </div>
 
@@ -1180,9 +1094,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
           <div class="revenue-row">
 
-            <div class="revenue-icon">
-              📺
-            </div>
+            <div class="revenue-icon">📺</div>
 
             <div>
               <div class="revenue-name">
@@ -1209,45 +1121,31 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
   </div>
 
 
-  <!-- =====================================================
-       RIGHT
-       ===================================================== -->
-
   <aside class="column">
 
-
-    <!-- CONNECT -->
 
     <section class="panel">
 
       <header class="panel-header">
 
         <div>
-          <h3>
-            Creator Payout Account
-          </h3>
-
-          <p>
-            Manage your payout connection.
-          </p>
+          <h3>Creator Payout Account</h3>
+          <p>Manage your payout connection.</p>
         </div>
 
       </header>
 
       <div class="panel-body">
 
-        <div
-          id="connectBox"
-          class="connect-box"
-        >
+        <div id="connectBox" class="connect-box">
 
           <h4 id="connectTitle">
             Connect your payout account
           </h4>
 
           <p id="connectDescription">
-            Connect your payout account when creator
-            monetization becomes available to you.
+            Connect your payout account to prepare
+            for eligible creator earnings.
           </p>
 
           <div class="connect-actions">
@@ -1277,18 +1175,13 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     </section>
 
 
-    <!-- CROWPOINTS -->
-
     <section class="crowpoints">
 
       <div class="crowpoints-label">
         CrowPoints
       </div>
 
-      <div
-        id="crowPoints"
-        class="crowpoints-value"
-      >
+      <div id="crowPoints" class="crowpoints-value">
         0
       </div>
 
@@ -1309,39 +1202,24 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     </section>
 
 
-    <!-- ELIGIBILITY -->
-
     <section class="panel">
 
       <header class="panel-header">
 
         <div>
-          <h3>
-            Monetization Checklist
-          </h3>
-
-          <p>
-            Creator account setup.
-          </p>
+          <h3>Monetization Checklist</h3>
+          <p>Creator account setup.</p>
         </div>
 
       </header>
 
       <div class="panel-body">
 
-        <div
-          id="checklist"
-          class="checklist"
-        >
+        <div id="checklist" class="checklist">
 
-          <div
-            class="check"
-            data-check="profile"
-          >
+          <div class="check" data-check="profile">
 
-            <div class="check-icon">
-              ○
-            </div>
+            <div class="check-icon">○</div>
 
             <div class="check-text">
               Creator profile
@@ -1354,14 +1232,9 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
           </div>
 
 
-          <div
-            class="check"
-            data-check="podcast"
-          >
+          <div class="check" data-check="podcast">
 
-            <div class="check-icon">
-              ○
-            </div>
+            <div class="check-icon">○</div>
 
             <div class="check-text">
               Podcast created
@@ -1374,14 +1247,9 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
           </div>
 
 
-          <div
-            class="check"
-            data-check="episode"
-          >
+          <div class="check" data-check="episode">
 
-            <div class="check-icon">
-              ○
-            </div>
+            <div class="check-icon">○</div>
 
             <div class="check-text">
               Episode published
@@ -1394,14 +1262,9 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
           </div>
 
 
-          <div
-            class="check"
-            data-check="payout"
-          >
+          <div class="check" data-check="payout">
 
-            <div class="check-icon">
-              ○
-            </div>
+            <div class="check-icon">○</div>
 
             <div class="check-text">
               Payout account
@@ -1420,58 +1283,34 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     </section>
 
 
-    <!-- CREATOR LINKS -->
-
     <section class="panel">
 
       <header class="panel-header">
 
         <div>
-          <h3>
-            Creator Tools
-          </h3>
-
-          <p>
-            Continue building your show.
-          </p>
+          <h3>Creator Tools</h3>
+          <p>Continue building your show.</p>
         </div>
 
       </header>
 
       <div class="panel-body">
 
-        <div
-          style="
-            display:grid;
-            gap:9px;
-          "
-        >
+        <div style="display:grid;gap:9px;">
 
-          <a
-            href="analytics.html"
-            class="btn"
-          >
+          <a href="analytics.html" class="btn">
             📊 Analytics
           </a>
 
-          <a
-            href="creator-studio.html"
-            class="btn"
-          >
+          <a href="creator-studio.html" class="btn">
             🎚️ Creator Studio
           </a>
 
-          <a
-            href="upload-episode.html"
-            class="btn"
-          >
+          <a href="upload-episode.html" class="btn">
             ⬆️ Upload Episode
           </a>
 
-          <a
-            href="profile.html"
-            class="btn"
-          >
+          <a href="profile.html" class="btn">
             👤 Creator Profile
           </a>
 
@@ -1485,23 +1324,74 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
 </div>
 
+
+<div class="footer-note">
+  CrowRules Podcasting · One Account. One Universe.
+  <br>
+  Creator monetary data is protected by Supabase authentication and Row Level Security.
+</div>
+
   </div>
 
 </main>
 
-<!-- ===========================================================
+<!-- =========================================================
      SUPABASE
-     =========================================================== -->
+     ========================================================= -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+/*
+ * CrowRules Podcasting
+ * Supabase connection
+ *
+ * IMPORTANT:
+ * This is the browser-safe publishable key.
+ * Never place a service_role / secret key here.
+ */
+
+window.CROWRULES_SUPABASE_URL =
+  "https://cevylpnoexugwgygvtgu.supabase.co";
+
+window.CROWRULES_SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
+
+
+if (
+  window.supabase &&
+  typeof window.supabase.createClient === "function"
+) {
+
+  window.supabaseClient =
+    window.supabase.createClient(
+      window.CROWRULES_SUPABASE_URL,
+      window.CROWRULES_SUPABASE_PUBLISHABLE_KEY,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        }
+      }
+    );
+
+} else {
+
+  console.error(
+    "CrowRules: Supabase JS failed to load."
+  );
+
+}
+</script>
 
 <script src="js/config.js"></script>
 
 <script src="js/app.js"></script>
 
-<!-- ===========================================================
+<!-- =========================================================
      MONETIZATION ENGINE
-     =========================================================== -->
+     ========================================================= -->
 
 <script>
 (() => {
@@ -1509,72 +1399,53 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
   "use strict";
 
 
-  /* =========================================================
-     CONFIG
-     ========================================================= */
-
   const TABLES = {
-    monetization:
-      "creator_monetization",
-
-    earnings:
-      "creator_earnings",
-
-    payouts:
-      "creator_payouts"
+    monetization:"creator_monetization",
+    earnings:"creator_earnings",
+    payouts:"creator_payouts"
   };
 
 
   const REVENUE_LABELS = {
 
-    subscription: {
-      icon: "⭐",
-      name: "Subscriptions",
-      description:
-        "Recurring listener and membership revenue."
+    subscription:{
+      icon:"⭐",
+      name:"Subscriptions",
+      description:"Recurring listener and membership revenue."
     },
 
-    donation: {
-      icon: "❤️",
-      name: "Listener Support",
-      description:
-        "Direct listener donations and support."
+    donation:{
+      icon:"❤️",
+      name:"Listener Support",
+      description:"Direct listener donations and support."
     },
 
-    sponsorship: {
-      icon: "🤝",
-      name: "Sponsorships",
-      description:
-        "Sponsor and brand revenue."
+    sponsorship:{
+      icon:"🤝",
+      name:"Sponsorships",
+      description:"Sponsor and brand revenue."
     },
 
-    premium_episode: {
-      icon: "🎧",
-      name: "Premium Episodes",
-      description:
-        "Revenue from premium podcast content."
+    premium_episode:{
+      icon:"🎧",
+      name:"Premium Episodes",
+      description:"Revenue from premium podcast content."
     },
 
-    advertising: {
-      icon: "📺",
-      name: "Advertising",
-      description:
-        "Podcast advertising revenue."
+    advertising:{
+      icon:"📺",
+      name:"Advertising",
+      description:"Podcast advertising revenue."
     },
 
-    other: {
-      icon: "✨",
-      name: "Other",
-      description:
-        "Other recorded creator revenue."
+    other:{
+      icon:"✨",
+      name:"Other",
+      description:"Other recorded creator revenue."
     }
 
   };
 
-
-  /* =========================================================
-     HELPERS
-     ========================================================= */
 
   const $ = id =>
     document.getElementById(id);
@@ -1582,31 +1453,42 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
   const getClient = () => {
 
-    return (
-      window.supabaseClient ||
-      window.sb ||
-      window.supabase
-    );
+    if (
+      window.supabaseClient &&
+      window.supabaseClient.auth
+    ) {
+      return window.supabaseClient;
+    }
+
+    return null;
 
   };
 
 
   const money = (
-    cents = 0,
-    currency = "usd"
+    cents=0,
+    currency="usd"
   ) => {
 
-    return new Intl.NumberFormat(
-      "en-US",
-      {
-        style: "currency",
-        currency:
-          String(currency).toUpperCase(),
-        minimumFractionDigits: 2
-      }
-    ).format(
-      Number(cents || 0) / 100
-    );
+    const amount =
+      Number(cents || 0) / 100;
+
+    try {
+
+      return new Intl.NumberFormat(
+        "en-US",
+        {
+          style:"currency",
+          currency:String(currency).toUpperCase()
+        }
+      ).format(amount);
+
+    } catch {
+
+      return "$" +
+        amount.toFixed(2);
+
+    }
 
   };
 
@@ -1631,16 +1513,31 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     return new Intl.DateTimeFormat(
       "en-US",
       {
-        month: "short",
-        day: "numeric",
-        year: "numeric"
+        month:"short",
+        day:"numeric",
+        year:"numeric"
       }
     ).format(d);
 
   };
 
 
-  const showAlert = message => {
+  const escapeHtml = value => {
+
+    return String(value ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+
+  };
+
+
+  const showAlert = (
+    message,
+    success=false
+  ) => {
 
     const el =
       $("alert");
@@ -1651,6 +1548,11 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
     el.textContent =
       message;
+
+    el.classList.toggle(
+      "success",
+      success
+    );
 
     el.classList.add(
       "visible"
@@ -1673,38 +1575,78 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
   };
 
 
-  const escapeHtml = value => {
+  /* =======================================================
+     AUTH
+     ======================================================= */
 
-    return String(
-      value ?? ""
-    )
-      .replaceAll(
-        "&",
-        "&amp;"
-      )
-      .replaceAll(
-        "<",
-        "&lt;"
-      )
-      .replaceAll(
-        ">",
-        "&gt;"
-      )
-      .replaceAll(
-        '"',
-        "&quot;"
-      )
-      .replaceAll(
-        "'",
-        "&#039;"
+  const requireUser =
+    async client => {
+
+      const {
+        data,
+        error
+      } =
+        await client.auth.getUser();
+
+      if (error) {
+        throw error;
+      }
+
+      return data?.user || null;
+
+    };
+
+
+  const showAuthenticatedUI =
+    user => {
+
+      const card =
+        $("authCard");
+
+      if (card) {
+        card.classList.remove(
+          "visible"
+        );
+      }
+
+      if (user) {
+
+        document.body.dataset.userId =
+          user.id;
+
+      }
+
+    };
+
+
+  const showLoggedOutUI = () => {
+
+    $("authCard")
+      ?.classList.add(
+        "visible"
       );
+
+    $("statusTitle")
+      .textContent =
+      "Sign in required";
+
+    $("statusDescription")
+      .textContent =
+      "Sign in to access your private creator monetization data.";
+
+    $("statusPill")
+      .textContent =
+      "Sign In";
+
+    $("statusPill").className =
+      "status-pill status-not_started";
 
   };
 
 
-  /* =========================================================
+  /* =======================================================
      STATUS
-     ========================================================= */
+     ======================================================= */
 
   const applyStatus = row => {
 
@@ -1712,29 +1654,24 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
       row?.status ||
       "not_started";
 
-    const statusNames = {
 
-      not_started:
-        "Not Connected",
+    const names = {
 
-      pending:
-        "Pending",
-
-      active:
-        "Active",
-
-      restricted:
-        "Restricted"
+      not_started:"Not Connected",
+      pending:"Pending",
+      active:"Active",
+      restricted:"Restricted"
 
     };
 
-    const statusDescriptions = {
+
+    const descriptions = {
 
       not_started:
         "Connect your creator payout account when monetization onboarding is available.",
 
       pending:
-        "Your monetization or payout setup is being reviewed.",
+        "Your monetization or payout setup is being processed.",
 
       active:
         "Your creator monetization account is active.",
@@ -1744,102 +1681,101 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
     };
 
-    const statusIcons = {
 
-      not_started:
-        "💳",
+    const icons = {
 
-      pending:
-        "⏳",
-
-      active:
-        "✓",
-
-      restricted:
-        "⚠️"
+      not_started:"💳",
+      pending:"⏳",
+      active:"✓",
+      restricted:"⚠️"
 
     };
 
 
-    $("statusIcon").textContent =
-      statusIcons[status] ||
-      "💳";
+    $("statusIcon")
+      .textContent =
+      icons[status] || "💳";
 
-    $("statusTitle").textContent =
-      statusNames[status] ||
-      "Monetization";
 
-    $("statusDescription").textContent =
-      statusDescriptions[status] ||
+    $("statusTitle")
+      .textContent =
+      names[status] || "Monetization";
+
+
+    $("statusDescription")
+      .textContent =
+      descriptions[status] ||
       "Review your creator monetization status.";
 
 
-    const pill =
-      $("statusPill");
+    $("statusPill")
+      .textContent =
+      names[status] || status;
 
-    pill.textContent =
-      statusNames[status] ||
-      status;
 
-    pill.className =
+    $("statusPill").className =
       "status-pill status-" +
       status;
 
 
-    const connectTitle =
-      $("connectTitle");
-
-    const connectDescription =
-      $("connectDescription");
-
-    const connectButton =
+    const button =
       $("connectButton");
 
 
     if (status === "active") {
 
-      connectTitle.textContent =
+      $("connectTitle")
+        .textContent =
         "Payout account connected";
 
-      connectDescription.textContent =
+      $("connectDescription")
+        .textContent =
         "Your creator payout connection is active.";
 
-      connectButton.textContent =
+      button.textContent =
         "✓ Connected";
 
-      connectButton.disabled =
+      button.disabled =
         true;
 
-      connectButton.classList.add(
+      button.classList.add(
         "btn-success"
       );
 
-    } else if (status === "pending") {
+    }
 
-      connectTitle.textContent =
+    else if (status === "pending") {
+
+      $("connectTitle")
+        .textContent =
         "Payout setup is pending";
 
-      connectDescription.textContent =
-        "Your creator payout connection is still being processed.";
+      $("connectDescription")
+        .textContent =
+        "Your creator payout connection is being processed.";
 
-      connectButton.textContent =
+      button.textContent =
         "↻ Check Status";
 
-      connectButton.disabled =
+      button.disabled =
         false;
 
-    } else {
+    }
 
-      connectTitle.textContent =
+    else {
+
+      $("connectTitle")
+        .textContent =
         "Connect your payout account";
 
-      connectDescription.textContent =
+      $("connectDescription")
+        .textContent =
         "Connect your payout account to prepare for eligible creator earnings.";
 
-      connectButton.textContent =
+      button.textContent =
         "💳 Connect Payouts";
 
-      connectButton.disabled =
+      button.disabled =
         false;
 
     }
@@ -1847,9 +1783,9 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
   };
 
 
-  /* =========================================================
-     REVENUE STREAMS
-     ========================================================= */
+  /* =======================================================
+     REVENUE
+     ======================================================= */
 
   const renderRevenueStreams =
     earnings => {
@@ -1878,8 +1814,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
       earnings.forEach(row => {
 
         const source =
-          row.source ||
-          "other";
+          row.source || "other";
 
         totals[source] =
           (totals[source] || 0) +
@@ -1890,13 +1825,13 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
       });
 
 
-      const html =
+      list.innerHTML =
         Object.entries(totals)
           .sort(
             (a,b) => b[1] - a[1]
           )
           .map(
-            ([source, amount]) => {
+            ([source,amount]) => {
 
               const info =
                 REVENUE_LABELS[source] ||
@@ -1910,6 +1845,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
                   </div>
 
                   <div>
+
                     <div class="revenue-name">
                       ${escapeHtml(info.name)}
                     </div>
@@ -1917,6 +1853,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
                     <div class="revenue-description">
                       ${escapeHtml(info.description)}
                     </div>
+
                   </div>
 
                   <div class="revenue-amount">
@@ -1930,22 +1867,19 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
           )
           .join("");
 
-
-      list.innerHTML =
-        html;
-
     };
 
 
-  /* =========================================================
+  /* =======================================================
      TRANSACTIONS
-     ========================================================= */
+     ======================================================= */
 
   const renderTransactions =
     earnings => {
 
       const list =
         $("transactionList");
+
 
       if (!earnings.length) {
 
@@ -1975,6 +1909,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
               <div class="transaction">
 
                 <div>
+
                   <div class="transaction-name">
                     ${escapeHtml(info.name)}
                   </div>
@@ -1982,6 +1917,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
                   <div class="transaction-date">
                     ${date(row.created_at)}
                   </div>
+
                 </div>
 
                 <div class="transaction-status">
@@ -2006,15 +1942,16 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     };
 
 
-  /* =========================================================
+  /* =======================================================
      PAYOUTS
-     ========================================================= */
+     ======================================================= */
 
   const renderPayouts =
     payouts => {
 
       const list =
         $("payoutList");
+
 
       if (!payouts.length) {
 
@@ -2038,6 +1975,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
               <div class="transaction">
 
                 <div>
+
                   <div class="transaction-name">
                     Creator payout
                   </div>
@@ -2045,6 +1983,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
                   <div class="transaction-date">
                     ${date(row.created_at)}
                   </div>
+
                 </div>
 
                 <div class="transaction-status">
@@ -2069,47 +2008,31 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     };
 
 
-  /* =========================================================
+  /* =======================================================
      CHECKLIST
-     ========================================================= */
+     ======================================================= */
 
   const updateChecklist =
-    async (
-      client,
-      userId,
-      monetization,
-      earnings
-    ) => {
-
-      /*
-       * Profile/podcast/episode checks can later be
-       * populated from your creator/podcast tables.
-       *
-       * For now we can reliably determine payout state
-       * from creator_monetization.
-       */
+    monetization => {
 
       const checks = {
 
-        profile: true,
+        profile:true,
 
-        podcast:
-          earnings.length > 0,
+        podcast:false,
 
-        episode:
-          earnings.length > 0,
+        episode:false,
 
-        payout:
-          Boolean(
-            monetization?.stripe_account_id
-          )
+        payout:Boolean(
+          monetization?.stripe_account_id
+        )
 
       };
 
 
       Object.entries(checks)
         .forEach(
-          ([key, complete]) => {
+          ([key,complete]) => {
 
             const item =
               document.querySelector(
@@ -2129,6 +2052,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
               item.querySelector(
                 ".check-status"
               );
+
 
             if (complete) {
 
@@ -2162,26 +2086,24 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     };
 
 
-  /* =========================================================
-     LOAD DASHBOARD
-     ========================================================= */
+  /* =======================================================
+     LOAD MONETIZATION
+     ======================================================= */
 
   const loadDashboard =
     async () => {
 
       clearAlert();
 
+
       const client =
         getClient();
 
 
-      if (
-        !client ||
-        !client.auth
-      ) {
+      if (!client) {
 
         showAlert(
-          "Supabase is not initialized. Check js/config.js and js/app.js."
+          "CrowRules Supabase could not be initialized."
         );
 
         return;
@@ -2191,43 +2113,33 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
       try {
 
-        const {
-          data: userData,
-          error: userError
-        } =
-          await client.auth.getUser();
-
-
-        if (userError) {
-          throw userError;
-        }
-
-
         const user =
-          userData?.user;
+          await requireUser(
+            client
+          );
 
 
         if (!user) {
 
-          showAlert(
-            "Please sign in to access creator monetization."
-          );
+          showLoggedOutUI();
 
           return;
 
         }
 
 
+        showAuthenticatedUI(
+          user
+        );
+
+
         /*
-         * ---------------------------------------------------
-         * Monetization record
-         * ---------------------------------------------------
+         * Monetization
          */
 
         const {
-          data: monetization,
-          error:
-            monetizationError
+          data:monetization,
+          error:monetizationError
         } =
           await client
             .from(
@@ -2244,7 +2156,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
         if (
           monetizationError &&
           monetizationError.code !==
-            "PGRST116"
+          "PGRST116"
         ) {
 
           throw monetizationError;
@@ -2258,14 +2170,12 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
 
         /*
-         * ---------------------------------------------------
          * Earnings
-         * ---------------------------------------------------
          */
 
         const {
-          data: earnings,
-          error: earningsError
+          data:earnings,
+          error:earningsError
         } =
           await client
             .from(
@@ -2279,7 +2189,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
             .order(
               "created_at",
               {
-                ascending: false
+                ascending:false
               }
             );
 
@@ -2364,20 +2274,19 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
           rows
         );
 
+
         renderTransactions(
           rows
         );
 
 
         /*
-         * ---------------------------------------------------
          * Payouts
-         * ---------------------------------------------------
          */
 
         const {
-          data: payouts,
-          error: payoutsError
+          data:payouts,
+          error:payoutError
         } =
           await client
             .from(
@@ -2391,13 +2300,13 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
             .order(
               "created_at",
               {
-                ascending: false
+                ascending:false
               }
             );
 
 
-        if (payoutsError) {
-          throw payoutsError;
+        if (payoutError) {
+          throw payoutError;
         }
 
 
@@ -2406,27 +2315,13 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
         );
 
 
-        /*
-         * ---------------------------------------------------
-         * Checklist
-         * ---------------------------------------------------
-         */
-
-        await updateChecklist(
-          client,
-          user.id,
-          monetization,
-          rows
+        updateChecklist(
+          monetization
         );
 
 
         /*
-         * ---------------------------------------------------
          * CrowPoints
-         *
-         * Uses an existing global dashboard hook if
-         * app.js provides one.
-         * ---------------------------------------------------
          */
 
         try {
@@ -2434,16 +2329,17 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
           if (
             window.CrowRulesDashboard &&
             typeof
-              window.CrowRulesDashboard.getCrowPoints ===
-              "function"
+            window.CrowRulesDashboard
+              .getCrowPoints ===
+            "function"
           ) {
 
             const points =
               await
-                window.CrowRulesDashboard
-                  .getCrowPoints(
-                    user.id
-                  );
+              window.CrowRulesDashboard
+                .getCrowPoints(
+                  user.id
+                );
 
             $("crowPoints")
               .textContent =
@@ -2456,7 +2352,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
         } catch (error) {
 
           console.warn(
-            "CrowPoints lookup unavailable:",
+            "CrowPoints unavailable:",
             error
           );
 
@@ -2465,13 +2361,13 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
       } catch (error) {
 
         console.error(
-          "CrowRules monetization load failed:",
+          "CrowRules monetization error:",
           error
         );
 
         showAlert(
           error?.message ||
-          "Unable to load your monetization information."
+          "Unable to load your creator monetization data."
         );
 
       }
@@ -2479,41 +2375,32 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     };
 
 
-  /* =========================================================
-     STRIPE CONNECT ENTRY POINT
-     ========================================================= */
+  /* =======================================================
+     STRIPE CONNECT
+     ======================================================= */
 
   const startConnect =
     async () => {
 
-      /*
-       * This intentionally does NOT put a Stripe secret key
-       * in browser code.
-       *
-       * Your future Supabase Edge Function should create
-       * the Stripe Connect onboarding link and return:
-       *
-       * { url: "https://connect.stripe.com/..." }
-       */
+      const client =
+        getClient();
+
+
+      if (!client) {
+
+        showAlert(
+          "Supabase is not initialized."
+        );
+
+        return;
+
+      }
+
 
       try {
 
-        const client =
-          getClient();
-
-
-        if (
-          !client ||
-          !client.auth
-        ) {
-          throw new Error(
-            "Supabase is not initialized."
-          );
-        }
-
-
         const {
-          data: sessionData
+          data:sessionData
         } =
           await client.auth.getSession();
 
@@ -2534,36 +2421,63 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
 
         /*
-         * Preferred future implementation:
+         * Secure backend endpoint.
          *
-         * const { data, error } =
-         *   await client.functions.invoke(
-         *     "stripe-connect-onboarding",
-         *     { body: { return_path: "monetization.html" } }
-         *   );
-         *
-         * if (error) throw error;
-         * if (data?.url)
-         *   window.location.href = data.url;
-         *
-         * Until that Edge Function is deployed, do not
-         * pretend onboarding is active.
+         * The Edge Function will create the Stripe
+         * Connect onboarding link. The Stripe secret
+         * never enters this page.
          */
 
+        const {
+          data,
+          error
+        } =
+          await client.functions.invoke(
+            "stripe-connect-onboarding",
+            {
+              body:{
+                return_path:
+                  "monetization.html"
+              }
+            }
+          );
+
+
+        if (error) {
+          throw error;
+        }
+
+
+        if (
+          data?.url &&
+          typeof data.url ===
+          "string"
+        ) {
+
+          window.location.assign(
+            data.url
+          );
+
+          return;
+
+        }
+
+
         showAlert(
-          "Stripe Connect onboarding is ready for the next backend deployment. Your Stripe secret key must remain server-side."
+          data?.message ||
+          "Stripe Connect onboarding is not available yet."
         );
 
       } catch (error) {
 
         console.error(
-          "Stripe Connect initialization failed:",
+          "Stripe Connect error:",
           error
         );
 
         showAlert(
           error?.message ||
-          "Unable to begin payout setup."
+          "Unable to start payout setup."
         );
 
       }
@@ -2571,9 +2485,9 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     };
 
 
-  /* =========================================================
+  /* =======================================================
      EVENTS
-     ========================================================= */
+     ======================================================= */
 
   $("connectButton")
     .addEventListener(
@@ -2589,9 +2503,44 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     );
 
 
-  /* =========================================================
+  /*
+   * Auth changes
+   */
+
+  const client =
+    getClient();
+
+
+  if (client) {
+
+    client.auth.onAuthStateChange(
+      (
+        event,
+        session
+      ) => {
+
+        if (session?.user) {
+
+          loadDashboard();
+
+        } else if (
+          event ===
+          "SIGNED_OUT"
+        ) {
+
+          showLoggedOutUI();
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
      PUBLIC API
-     ========================================================= */
+     ======================================================= */
 
   window.CrowRulesMonetization = {
 
@@ -2611,9 +2560,9 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
   };
 
 
-  /* =========================================================
-     INITIALIZE
-     ========================================================= */
+  /* =======================================================
+     INITIAL LOAD
+     ======================================================= */
 
   if (
     document.readyState ===
@@ -2623,7 +2572,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     document.addEventListener(
       "DOMContentLoaded",
       loadDashboard,
-      { once: true }
+      {once:true}
     );
 
   } else {
