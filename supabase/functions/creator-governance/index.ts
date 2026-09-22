@@ -194,7 +194,25 @@ export default {
         p_actor_user_id: userId,
       });
       if (error) return json({ error: error.message }, 403);
-      return json({ transaction: data });
+      const { data: executedChanges } = await ctx.supabaseAdmin
+        .from("creator_governance_transaction_changes").select("*").eq("transaction_id",id).order("ordinal",{ascending:true});
+      const uuidLike=(v:any)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v??""));
+      const recipients=new Map<string,any>();
+      for(const ch of (executedChanges??[])){
+        for(const owner of [ch.after_owner,ch.before_owner]){
+          if(uuidLike(owner)&&owner!==userId)recipients.set(String(owner),ch);
+        }
+      }
+      for(const [recipient,ch] of recipients){
+        const {data:p}=await ctx.supabaseAdmin.from("creator_governance_notification_preferences").select("*").eq("user_id",recipient).maybeSingle();
+        if(p?.enabled===false||p?.assignments===false)continue;
+        await ctx.supabaseAdmin.from("creator_governance_notifications").insert({
+          recipient_user_id:recipient,actor_user_id:userId,type:"assignment",title:"Assignment Changed",
+          message:`The assignment for ${ch.task_name||ch.task_key} changed.`,collection_id:ch.collection_id,task_key:ch.task_key,
+          task_name:ch.task_name,transaction_id:id,payload:{before_owner:ch.before_owner,after_owner:ch.after_owner}
+        });
+      }
+      return json({ transaction: data, changes: executedChanges??[] });
     }
 
     if (action === "rollback") {
