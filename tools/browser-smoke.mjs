@@ -12,7 +12,14 @@ const pages = [
   "create-podcast.html",
   "upload-episode.html",
   "monetization.html",
-  "payouts.html"
+  "payouts.html",
+  "search.html",
+  "categories.html",
+  "subscriptions.html",
+  "billing.html",
+  "payout-settings.html",
+  "creator-settings.html",
+  "help-center.html"
 ];
 
 const browser = await chromium.launch({ headless: true });
