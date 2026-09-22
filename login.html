@@ -114,7 +114,7 @@
 
   function destination(){
     const params = new URLSearchParams(location.search);
-    const next = params.get("next");
+    const next = params.get("next") || params.get("redirect");
     return next && /^(?!https?:|javascript:)[^\s]+$/i.test(next) ? next : "profile.html";
   }
 
