@@ -1,25 +1,60 @@
 # CrowRules Podcasting
 
-Cinematic multi-page podcasting platform for CrowRules Entertainment.
+Cinematic podcasting platform for CrowRules Entertainment.
 
-Launch target: **January 1, 2027**.
+**Launch target:** January 1, 2027  
+**Tagline:** Your Voice. Your Story. Your Universe.
 
-## Current foundation
-- Cinematic responsive UI
-- Universal CrowRules membership entry points
-- Supabase client foundation
-- Launch countdown
-- Podcast discovery
-- Rankings UI
-- Creator page
-- Profile/login/signup pages
-- Audio-player shell
-- Live chat shell
+## Repository ecosystem
+
+The repository contains the multi-page Podcasting ecosystem: public discovery, listening, membership, creator publishing, Creator Studio, analytics, monetization, support, administration, and account workflows.
+
+### Navigation
+
+- Master Site Map: site-map.html
+- Public entry: index.html
+- Browse: podcasts.html, episodes.html, creators.html, discover.html, rankings.html
+- Listening: podcast.html, episode.html, live.html, feed.html, my-library.html
+- Membership: signup.html, login.html, verify.html, reset-password.html, profile.html
+- Creator: create-podcast.html, upload-episode.html, episode-studio.html, creator-studio.html, creator-dashboard.html
+- Management: podcast-manager.html, episode-manager.html, edit-podcast.html, edit-episode.html
+- Growth & intelligence: analytics.html, podcast-growth.html, podcast-intelligence.html, creator-analytics.html, creator-insights.html
+- Monetization: monetization.html, creator-monetization.html, creator-monetization-hub.html, payouts.html
+- Support: support.html, support-creator.html
+- Administration: admin.html, admin/sponsorship.html
+
+The Site Map links every HTML page currently present in the repository and groups the ecosystem by purpose.
 
 ## Supabase
-Set the browser-safe Supabase anon key as `window.CROWRULES_SUPABASE_ANON_KEY` before `js/config.js`, or replace the empty value in `js/config.js`. Never place a service-role key in GitHub Pages.
 
-The configured project URL is the CrowRules Supabase project: `cevylpnoexugwgygvtgu.supabase.co`.
+The browser-safe configuration lives in js/config.js. It defines both the current CROWRULES_CONFIG object and legacy aliases used by older pages.
 
-## Planned database layer
-`podcasts`, `podcast_episodes`, `podcast_hosts`, `podcast_profiles`, `podcast_listening_history`, `podcast_featured`, `podcast_live_rooms`, `podcast_live_messages`, `podcast_live_presence`, and `crowpoints_ledger` should connect to the existing Universal CrowRules Membership identity.
+Configured project:
+https://cevylpnoexugwgygvtgu.supabase.co
+
+Never put a Supabase service-role key in a GitHub Pages repository.
+
+## GitHub Pages
+
+This repository is structured as a static GitHub Pages site with a top-level index.html entry point, a root-level 404.html recovery page, and a .nojekyll marker.
+
+## Architecture
+
+/
+├── index.html
+├── site-map.html
+├── 404.html
+├── css/
+│   ├── intro.css
+│   └── podcasting.css
+├── js/
+│   ├── app.js
+│   ├── config.js
+│   └── intro.js
+├── admin/
+├── supabase/
+└── *.html
+
+## Next validation layer
+
+The next hardening step is automated browser-level smoke testing of the major flows: intro → browse → podcast → episode → login/signup → creator studio → create podcast → upload episode → support/monetization.
