@@ -35,8 +35,32 @@ const date=v=>v?new Date(v).toLocaleDateString(undefined,{year:"numeric",month:"
 const dur=s=>{s=Number(s||0);if(!s)return"";const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return h?h+":"+String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0"):m+":"+String(sec).padStart(2,"0")};
 function yt(v){try{const u=new URL(v);if(u.hostname.includes("youtu.be"))return u.pathname.slice(1);if(u.hostname.includes("youtube.com"))return u.searchParams.get("v")||u.pathname.split("/").pop();}catch{}return null}
 function mediaUrl(v){const x=yt(v);return x?"https://img.youtube.com/vi/"+encodeURIComponent(x)+"/hqdefault.jpg":v}
-function youtubeEmbed(v){const x=yt(v);return x?"https://www.youtube.com/embed/"+encodeURIComponent(x)+"?rel=0&modestbranding=1":null}
+function youtubeEmbed(v){const x=yt(v);return x?"https://www.youtube.com/embed/"+encodeURIComponent(x)+"?rel=0&modestbranding=1&enablejsapi=1&origin="+encodeURIComponent(location.origin):null}
 function share(){if(navigator.share)navigator.share({title:episode.title,url:location.href}).catch(()=>{});else navigator.clipboard?.writeText(location.href).then(()=>alert("Episode link copied."))}
+let playRecorded=false;
+async function recordPlay(){
+ if(playRecorded||!episode?.id||!db)return;
+ playRecorded=true;
+ const r=await db.rpc("increment_podcast_episode_play",{p_episode_id:episode.id});
+ if(r.error){console.warn("Play count update failed:",r.error);playRecorded=false;return}
+ const count=Number(r.data||0);
+ document.querySelectorAll("[data-play-count]").forEach(el=>el.textContent=count.toLocaleString());
+}
+function watchNativeMedia(){
+ document.querySelectorAll("audio,video").forEach(media=>{
+  media.addEventListener("play",recordPlay,{once:true});
+ });
+}
+function initYouTubeCounter(){
+ if(!embed)return;
+ window.addEventListener("message",function(event){
+  if(event.origin!=="https://www.youtube.com")return;
+  try{
+   const data=typeof event.data==="string"?JSON.parse(event.data):event.data;
+   if(data?.event==="onStateChange" && Number(data.info)===1)recordPlay();
+  }catch{}
+ });
+}
 async function init(){
  try{
   const url=window.CROWRULES_SUPABASE_URL||window.SUPABASE_URL,key=window.CROWRULES_SUPABASE_PUBLISHABLE_KEY||window.SUPABASE_PUBLISHABLE_KEY||window.SUPABASE_ANON_KEY;
@@ -56,6 +80,8 @@ async function init(){
   const video=episode.video_url?(embed?'<div class="video"><iframe src="'+esc(embed)+'" title="'+esc(episode.title)+'" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share" allowfullscreen></iframe></div>':'<div class="video"><video controls preload="metadata" src="'+esc(episode.video_url)+'"></video></div>'):"";
   $("app").innerHTML='<div class="episode-layout"><div><div class="cover">'+(art?'<img src="'+esc(art)+'" alt="'+esc(episode.title)+' cover art">':'<div class="cover-fallback">CR</div>')+'</div></div><div><div class="eyebrow">'+esc(podcast.title||"CrowRules Podcasting")+'</div><h1 class="episode-title">'+esc(episode.title)+'</h1><div class="chips"><span class="chip">S'+esc(episode.season_number||1)+' · E'+esc(episode.episode_number||"—")+'</span>'+(episode.duration_seconds?'<span class="chip">'+dur(episode.duration_seconds)+'</span>':"")+'<span class="chip">'+Number(episode.play_count||0).toLocaleString()+' plays</span>'+(episode.is_explicit?'<span class="chip">Explicit</span>':"")+'<span class="chip">'+esc(date(episode.published_at))+'</span></div><p class="episode-description">'+esc(episode.description||"No description yet.")+'</p>'+audio+video+'<div class="actions"><button class="btn primary" id="share">Share Episode</button><a class="btn" href="episodes.html">Browse Episodes</a>'+(podcast.slug?'<a class="btn" href="podcast.html?slug='+encodeURIComponent(podcast.slug)+'">View Podcast</a>':"")+'</div></div></div><div class="content-grid">'+(episode.show_notes?'<section class="panel"><h2>Show Notes</h2><div class="panel-body">'+esc(episode.show_notes)+'</div></section>':"")+(episode.transcript?'<section class="panel"><h2>Transcript</h2><div class="panel-body">'+esc(episode.transcript)+'</div></section>':"")+'</div>'+(related.data?.length?'<section><div class="eyebrow">MORE FROM THIS SHOW</div><div class="related">'+related.data.map(x=>'<a class="related-card" href="episode.html?slug='+encodeURIComponent(x.slug||x.id)+'"><div class="eyebrow">S'+esc(x.season_number||1)+' · E'+esc(x.episode_number||"—")+'</div><h3>'+esc(x.title)+'</h3><p>'+Number(x.play_count||0).toLocaleString()+' plays · '+esc(date(x.published_at))+'</p></a>').join("")+'</div></section>':"");
   $("share").onclick=share;
+  watchNativeMedia();
+  initYouTubeCounter();
   document.title=episode.title+" | CrowRules Podcasting";
  }catch(e){$("app").innerHTML='<div class="notice"><h1>Episode unavailable</h1><p>'+esc(e.message)+'</p><a class="btn primary" href="episodes.html">Return to Episodes</a></div>'}
 }
