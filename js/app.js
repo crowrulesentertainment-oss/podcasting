@@ -10,7 +10,7 @@ function creatorNavCollectionOpen(id){
   if(!targets.length){alert("No saved snapshots from this collection are available.");return;}
   const target=targets[0];
   try{sessionStorage.setItem("crowrules_creator_collection_runner_v1",JSON.stringify({collectionId:id,index:0}));sessionStorage.setItem("crowrules_creator_nav_restore_v1",JSON.stringify({url:target.url,state:target.state||{}}));}catch{}
-  creatorNavActivityAdd("snapshot-open",id,"Opened snapshot: "+creatorNavHistorySnapshotName(target),{url:target.url,index:next});creatorNavHistoryBusy=true;location.href=target.url;
+  creatorNavActivityAdd("snapshot-open",id,"Opened snapshot: "+creatorNavHistorySnapshotName(target),{url:target.url,index:0});creatorNavHistoryBusy=true;location.href=target.url;
 }
 function creatorNavCollectionRunner(id,index){
   const c=creatorNavCollectionsRead().find(x=>x.id===id);if(!c)return;
@@ -63,6 +63,24 @@ function creatorNavCollectionHealth(id){
   const health=pct===100?"Complete":stale?"Stale":inProgress>0?"Active":"Not Started";
   return {c,targets,complete,inProgress,notStarted,pct,ai,m,stale,health};
 }
+function creatorNavCollectionAlerts(id){
+  const h=creatorNavCollectionHealth(id);if(!h)return [];
+  const now=Date.now(),last=h.ai.lastActivity?new Date(h.ai.lastActivity).getTime():0,age=last?Math.floor((now-last)/86400000):null,alerts=[];
+  if(h.pct===100)return alerts;
+  if(h.stale)alerts.push({type:"stale-workflow",severity:"WARNING",title:"Stale Workflow",message:last?"No activity for "+age+" day(s).":"No activity has been recorded yet.",action:"OPEN DASHBOARD",fn:"creatorNavCollectionDashboard('"+h.c.id+"')"});
+  else if(h.inProgress>0&&last&&now-last>3*86400000)alerts.push({type:"no-recent-activity",severity:"ATTENTION",title:"No Recent Activity",message:"The active workflow has no activity in the last 3 days.",action:"OPEN DASHBOARD",fn:"creatorNavCollectionDashboard('"+h.c.id+"')"});
+  const blocked=h.targets.find(e=>h.ai.events.some(a=>a.type==="status-change"&&a.meta&&a.meta.url===e.url&&a.meta.status==="in-progress")&&!h.ai.events.some(a=>a.type==="status-change"&&a.meta&&a.meta.url===e.url&&a.meta.status==="complete"));
+  if(blocked){const idx=h.targets.indexOf(blocked),ev=h.ai.events.filter(a=>a.type==="status-change"&&a.meta&&a.meta.url===blocked.url&&a.meta.status==="in-progress"),started=ev.length?new Date(ev[ev.length-1].at).getTime():0;if(started&&now-started>3*86400000)alerts.push({type:"blocked-step",severity:"ATTENTION",title:"Blocked Step",message:"“"+creatorNavHistorySnapshotName(blocked)+"” has been in progress for more than 3 days.",action:"OPEN STEP",fn:"creatorNavCollectionRunner('"+h.c.id+"',"+idx+")"});}
+  const started=h.m.startedAt?new Date(h.m.startedAt).getTime():0;
+  if(started&&now-started>7*86400000&&h.pct<50)alerts.push({type:"completion-behind",severity:"ATTENTION",title:"Completion Falling Behind",message:"Started more than 7 days ago and remains below 50% complete.",action:"OPEN WORKFLOW",fn:"creatorNavCollectionRunner('"+h.c.id+"',"+Math.min(h.complete,Math.max(0,h.targets.length-1))+")"});
+  return alerts;
+}
+function creatorNavCollectionHealthAlertsRender(){
+  const host=document.getElementById("creatorNavCollectionHealthAlertsPanel");if(!host)return;
+  const cs=creatorNavCollectionsRead(),all=[];
+  cs.forEach(c=>creatorNavCollectionAlerts(c.id).forEach(a=>all.push({c,a})));
+  host.innerHTML='<div class="card" style="padding:12px 14px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">HEALTH ALERTS</div><h3 style="margin:.25rem 0">Actionable Collection Warnings</h3>'+(all.length?all.map(x=>'<div class="card" style="padding:10px;margin-top:8px"><strong>'+esc(x.a.severity)+' · '+esc(x.a.title)+'</strong><div style="font-size:.85rem;margin-top:4px"><b>'+esc(x.c.name)+'</b> — '+esc(x.a.message)+'</div><button class="btn" type="button" onclick="'+x.a.fn+'">'+esc(x.a.action)+'</button></div>').join(""):'<div style="font-size:.85rem;opacity:.7;margin-top:8px">✓ No actionable collection health alerts.</div>')+'</div>';
+}
 function creatorNavCollectionHealthRender(){
   const host=document.getElementById("creatorNavCollectionHealthPanel");if(!host)return;
   const cs=creatorNavCollectionsRead();
@@ -110,7 +128,8 @@ function creatorNavCollectionDelete(id){const cs=creatorNavCollectionsRead(),c=c
 function renderCreatorNavCollections(){const p=document.getElementById("creatorNavCollectionsPanel");if(!p)return;const cs=creatorNavCollectionsRead();p.innerHTML=cs.length?cs.map(c=>'<div class="card" style="padding:10px 14px;margin-top:8px"><strong>★ '+esc(c.name)+'</strong><div style="font-size:.8rem;opacity:.7">'+c.snapshotUrls.length+' snapshots</div><button class="btn" type="button" onclick="creatorNavCollectionOpen(\''+c.id+'\')">OPEN</button> <button class="btn" type="button" onclick="creatorNavCollectionDelete(\''+c.id+'\')">DELETE</button></div>').join(""):'<p style="opacity:.7">No collections yet.</p>';}
 function creatorNavCollectionsHost(){let p=document.getElementById("creatorNavCollectionsPanel");if(!p){p=document.createElement("div");p.id="creatorNavCollectionsPanel";const h=document.getElementById("creatorNavHistoryPanel");if(h)h.parentNode.insertBefore(p,h);}renderCreatorNavCollections();
   creatorNavCollectionsRead().forEach(c=>creatorNavCollectionDashboard(c.id));
-  let health=document.getElementById("creatorNavCollectionHealthPanel");if(!health){health=document.createElement("div");health.id="creatorNavCollectionHealthPanel";const h=document.getElementById("creatorNavCollectionsPanel");if(h)h.parentNode.insertBefore(health,h);}creatorNavCollectionHealthRender();
+  let health=document.getElementById("creatorNavCollectionHealthPanel");if(!health){health=document.createElement("div");health.id="creatorNavCollectionHealthPanel";const h=document.getElementById("creatorNavCollectionsPanel");if(h)h.parentNode.insertBefore(health,h);}let alerts=document.getElementById("creatorNavCollectionHealthAlertsPanel");if(!alerts){alerts=document.createElement("div");alerts.id="creatorNavCollectionHealthAlertsPanel";const h=document.getElementById("creatorNavCollectionsPanel");if(h)h.parentNode.insertBefore(alerts,h);}creatorNavCollectionHealthAlertsRender();
+  creatorNavCollectionHealthRender();
   let runner=document.getElementById("creatorNavCollectionRunner");if(!runner){runner=document.createElement("div");runner.id="creatorNavCollectionRunner";const h=document.getElementById("creatorNavHistoryPanel");if(h)h.parentNode.insertBefore(runner,h);}creatorNavCollectionRunnerRender();}
 function renderCreatorNavHistoryPanel(){
   creatorNavHistoryRenderSearchControls();
