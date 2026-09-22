@@ -12,7 +12,7 @@ content="width=device-width, initial-scale=1, viewport-fit=cover"
 
 <meta
 name="theme-color"
-content="#05050b"
+content="#000000"
 
 >
 
@@ -24,7 +24,7 @@ content="dark"
 
 <meta
 name="description"
-content="CrowRules Podcasting — Your Voice. Your Story. Your Universe. Launching January 1, 2027."
+content="CrowRules Podcasting — Your Voice. Your Story. Your Universe."
 
 >
 
@@ -34,14 +34,10 @@ content="index,follow"
 
 >
 
-  <!-- Canonical -->
-
   <link
     rel="canonical"
-    href="https://crowrulesentertainment-oss.github.io/podcasting/launch.html"
+    href="https://crowrulesentertainment-oss.github.io/podcasting/"
   >
-
-  <!-- Open Graph -->
 
 <meta
 property="og:type"
@@ -51,19 +47,19 @@ content="website"
 
 <meta
 property="og:title"
-content="CrowRules Podcasting — Launch"
+content="CrowRules Podcasting"
 
 >
 
 <meta
 property="og:description"
-content="CrowRules Podcasting launches January 1, 2027. Your Voice. Your Story. Your Universe."
+content="Your Voice. Your Story. Your Universe."
 
 >
 
 <meta
 property="og:url"
-content="https://crowrulesentertainment-oss.github.io/podcasting/launch.html"
+content="https://crowrulesentertainment-oss.github.io/podcasting/"
 
 >
 
@@ -73,8 +69,6 @@ content="CrowRules Podcasting"
 
 >
 
-  <!-- Twitter / X -->
-
 <meta
 name="twitter:card"
 content="summary_large_image"
@@ -83,47 +77,13 @@ content="summary_large_image"
 
 <meta
 name="twitter:title"
-content="CrowRules Podcasting — Launch"
+content="CrowRules Podcasting"
 
 >
 
 <meta
 name="twitter:description"
-content="Launching January 1, 2027."
-
->
-
-  <!-- Mobile -->
-
-<meta
-name="mobile-web-app-capable"
-content="yes"
-
->
-
-<meta
-name="apple-mobile-web-app-capable"
-content="yes"
-
->
-
-<meta
-name="apple-mobile-web-app-status-bar-style"
-content="black-translucent"
-
->
-
-<meta
-name="apple-mobile-web-app-title"
-content="CrowRules Podcasting"
-
->
-
-  <!-- Immediate redirect -->
-
-<meta
-http-equiv="refresh"
-content="0; url=launch.html"
+content="Your Voice. Your Story. Your Universe."
 
 >
 
@@ -145,157 +105,145 @@ content="0; url=launch.html"
     rel="stylesheet"
   >
 
+  <!-- Favicon -->
+
   <link
     rel="icon"
     href="assets/favicon.svg"
     type="image/svg+xml"
   >
 
-  <title>CrowRules Podcasting | Launch</title>
+  <link
+    rel="apple-touch-icon"
+    href="assets/apple-touch-icon.png"
+  >
 
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #05050b;
-      --text: #ffffff;
-      --muted: #a7a7b8;
-    }
+  <!-- Page CSS -->
 
-    * {
-      box-sizing: border-box;
-    }
+  <link
+    rel="stylesheet"
+    href="css/intro.css"
+  >
 
-    html,
-    body {
-      margin: 0;
-      min-height: 100%;
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    body {
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-      font-family: "Montserrat", sans-serif;
-    }
-
-    .entry {
-      width: min(620px, 100%);
-      text-align: center;
-    }
-
-    .logo {
-      margin-bottom: 12px;
-      font-family: "Orbitron", sans-serif;
-      font-size: clamp(2rem, 8vw, 4rem);
-      font-weight: 800;
-      letter-spacing: .08em;
-    }
-
-    .logo span {
-      opacity: .65;
-    }
-
-    .title {
-      font-family: "Orbitron", sans-serif;
-      font-size: clamp(1rem, 4vw, 1.5rem);
-      letter-spacing: .25em;
-      margin-bottom: 24px;
-    }
-
-    .message {
-      color: var(--muted);
-      line-height: 1.7;
-      margin-bottom: 24px;
-    }
-
-    .loader {
-      width: 34px;
-      height: 34px;
-      margin: 0 auto 18px;
-      border: 2px solid rgba(255,255,255,.15);
-      border-top-color: currentColor;
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
-
-    .fallback {
-      color: var(--muted);
-      font-size: .9rem;
-    }
-
-    .fallback a {
-      color: inherit;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .loader {
-        animation: none;
-      }
-    }
-  </style>
-
+  <title>
+    CrowRules Podcasting | Your Voice. Your Story. Your Universe.
+  </title>
 </head>
 
 <body>
 
-  <main class="entry" aria-live="polite">
+  <!-- Cinematic intro -->
 
-<div class="logo">
-  CROW<span>RULES</span>
-</div>
+  <main
+    id="intro"
+    class="intro"
+    aria-label="CrowRules Podcasting cinematic introduction"
+  >
 
-<div class="title">
-  PODCASTING
-</div>
-
+```
+<!-- Ambient background -->
 <div
-  class="loader"
+  class="intro__background"
   aria-hidden="true"
 ></div>
 
-<p class="message">
-  Entering the CrowRules Podcasting Universe…
-</p>
+<!-- Cinematic letterbox -->
+<div
+  class="letterbox letterbox--top"
+  aria-hidden="true"
+></div>
 
-<p class="fallback">
-  If you are not redirected automatically,
-  <a href="launch.html">enter the launch page</a>.
-</p>
+<div
+  class="letterbox letterbox--bottom"
+  aria-hidden="true"
+></div>
+
+<!-- Video -->
+<section class="intro__stage">
+
+  <video
+    id="introVideo"
+    class="intro__video"
+    autoplay
+    muted
+    playsinline
+    preload="auto"
+    aria-label="CrowRules Podcasting cinematic introduction"
+  >
+    <source
+      src="assets/podcasting-intro.mp4"
+      type="video/mp4"
+    >
+
+    Your browser does not support HTML5 video.
+  </video>
+
+  <!-- Fallback -->
+  <div
+    id="videoFallback"
+    class="video-fallback"
+    hidden
+  >
+    <div class="video-fallback__logo">
+      CROW<span>RULES</span>
+    </div>
+
+    <div class="video-fallback__title">
+      PODCASTING
+    </div>
+  </div>
+
+</section>
+
+<!-- Branding overlay -->
+<div
+  class="intro__branding"
+  aria-hidden="true"
+>
+  <div class="branding__top">
+    CROW<span>RULES</span>
+  </div>
+
+  <div class="branding__bottom">
+    PODCASTING
+  </div>
+</div>
+
+<!-- Bottom status -->
+<div
+  class="intro__status"
+  id="introStatus"
+  aria-live="polite"
+>
+  ENTERING THE UNIVERSE
+</div>
+
+<!-- Progress -->
+<div
+  class="intro__progress"
+  aria-hidden="true"
+>
+  <div
+    id="progressBar"
+    class="intro__progress-bar"
+  ></div>
+</div>
+
+<!-- Skip -->
+<button
+  id="skipIntro"
+  class="skip-button"
+  type="button"
+  aria-label="Skip cinematic introduction"
+>
+  SKIP
+</button>
 
   </main>
 
-  <script>
-    /*
-     * CrowRules Podcasting Entry Point
-     *
-     * index.html intentionally routes visitors
-     * directly to launch.html.
-     */
+  <!-- JavaScript -->
 
-    (() => {
-      const launchPage = "launch.html";
-
-      /*
-       * Replace the current history entry so that
-       * Back does not create an unnecessary redirect loop.
-       */
-      if (window.location.pathname.endsWith("/index.html")) {
-        window.location.replace(launchPage);
-        return;
-      }
-
-      window.location.replace(launchPage);
-    })();
-  </script>
+  <script src="js/intro.js" defer></script>
 
 </body>
 </html>
