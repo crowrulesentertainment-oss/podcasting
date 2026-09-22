@@ -37,9 +37,21 @@
       margin: 0;
       min-height: 100vh;
       background:
-        radial-gradient(circle at 15% 10%, rgba(0,234,255,.09), transparent 30%),
-        radial-gradient(circle at 85% 15%, rgba(155,92,255,.12), transparent 30%),
-        radial-gradient(circle at 50% 100%, rgba(255,0,110,.06), transparent 35%),
+        radial-gradient(
+          circle at 15% 10%,
+          rgba(0,234,255,.09),
+          transparent 30%
+        ),
+        radial-gradient(
+          circle at 85% 15%,
+          rgba(155,92,255,.12),
+          transparent 30%
+        ),
+        radial-gradient(
+          circle at 50% 100%,
+          rgba(255,0,110,.06),
+          transparent 35%
+        ),
         var(--bg);
       color: var(--text);
       font-family: Montserrat, Arial, sans-serif;
@@ -54,11 +66,21 @@
       font: inherit;
     }
 
+    button:disabled {
+      opacity: .55;
+      cursor: wait;
+      transform: none !important;
+    }
+
     .page {
       width: min(1200px, calc(100% - 32px));
       margin: 0 auto;
       padding: 24px 0 70px;
     }
+
+    /* ----------------------------------------------------------
+       TOPBAR
+    ---------------------------------------------------------- */
 
     .topbar {
       position: sticky;
@@ -148,6 +170,10 @@
       background: var(--red);
     }
 
+    /* ----------------------------------------------------------
+       HERO
+    ---------------------------------------------------------- */
+
     .hero {
       padding: 55px 0 35px;
     }
@@ -178,6 +204,7 @@
     .hero-actions {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 10px;
       margin-top: 24px;
     }
@@ -202,7 +229,12 @@
     }
 
     .button.primary {
-      background: linear-gradient(135deg, rgba(0,234,255,.18), rgba(155,92,255,.22));
+      background:
+        linear-gradient(
+          135deg,
+          rgba(0,234,255,.18),
+          rgba(155,92,255,.22)
+        );
       border-color: rgba(0,234,255,.35);
     }
 
@@ -210,6 +242,10 @@
       border-color: rgba(255,85,119,.25);
       color: #ff9ab0;
     }
+
+    /* ----------------------------------------------------------
+       NOTICE
+    ---------------------------------------------------------- */
 
     .notice {
       display: none;
@@ -236,6 +272,15 @@
       color: #a8ffd0;
     }
 
+    .notice.info {
+      border-color: rgba(0,234,255,.25);
+      color: #a9f8ff;
+    }
+
+    /* ----------------------------------------------------------
+       LAYOUT
+    ---------------------------------------------------------- */
+
     .grid {
       display: grid;
       gap: 18px;
@@ -245,25 +290,47 @@
       grid-template-columns: repeat(4, 1fr);
     }
 
-    .grid-3 {
-      grid-template-columns: repeat(3, 1fr);
-    }
-
-    .grid-2 {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
     .card {
-      background: linear-gradient(
-        145deg,
-        rgba(20,20,35,.92),
-        rgba(9,9,18,.88)
-      );
+      background:
+        linear-gradient(
+          145deg,
+          rgba(20,20,35,.92),
+          rgba(9,9,18,.88)
+        );
       border: 1px solid var(--line);
       border-radius: 18px;
       padding: 22px;
       box-shadow: var(--shadow);
     }
+
+    .section {
+      margin-top: 28px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 15px;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-family: Orbitron, Arial, sans-serif;
+      font-size: 19px;
+      margin: 0;
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 5px 0 0;
+      line-height: 1.5;
+    }
+
+    /* ----------------------------------------------------------
+       STATS
+    ---------------------------------------------------------- */
 
     .stat {
       min-height: 145px;
@@ -305,29 +372,9 @@
       color: var(--yellow);
     }
 
-    .section {
-      margin-top: 28px;
-    }
-
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 15px;
-      margin-bottom: 14px;
-    }
-
-    .section-title {
-      font-family: Orbitron, Arial, sans-serif;
-      font-size: 19px;
-      margin: 0;
-    }
-
-    .section-subtitle {
-      color: var(--muted);
-      font-size: 13px;
-      margin: 5px 0 0;
-    }
+    /* ----------------------------------------------------------
+       STATUS
+    ---------------------------------------------------------- */
 
     .status-card {
       display: flex;
@@ -363,6 +410,7 @@
       color: var(--muted);
       margin-top: 5px;
       font-size: 12px;
+      line-height: 1.5;
     }
 
     .badge {
@@ -401,6 +449,10 @@
       background: rgba(255,255,255,.05);
       color: var(--muted);
     }
+
+    /* ----------------------------------------------------------
+       TABLES
+    ---------------------------------------------------------- */
 
     .table-wrap {
       overflow-x: auto;
@@ -448,6 +500,14 @@
       margin-bottom: 7px;
     }
 
+    .loading {
+      opacity: .6;
+    }
+
+    /* ----------------------------------------------------------
+       CONNECT
+    ---------------------------------------------------------- */
+
     .connect-box {
       position: relative;
       overflow: hidden;
@@ -477,11 +537,31 @@
     }
 
     .connect-copy {
-      max-width: 700px;
+      max-width: 760px;
       color: var(--muted);
       line-height: 1.6;
       font-size: 13px;
     }
+
+    .account-id {
+      margin-top: 15px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: rgba(0,0,0,.2);
+      color: var(--muted);
+      font-size: 11px;
+      word-break: break-all;
+      display: none;
+    }
+
+    .account-id.show {
+      display: block;
+    }
+
+    /* ----------------------------------------------------------
+       CHECKLIST
+    ---------------------------------------------------------- */
 
     .checklist {
       display: grid;
@@ -509,11 +589,16 @@
       text-transform: uppercase;
       letter-spacing: .08em;
       color: var(--muted);
+      white-space: nowrap;
     }
 
     .check-state.complete {
       color: var(--green);
     }
+
+    /* ----------------------------------------------------------
+       FOOTER
+    ---------------------------------------------------------- */
 
     .footer {
       margin-top: 55px;
@@ -524,21 +609,20 @@
       text-align: center;
     }
 
-    .loading {
-      opacity: .6;
-    }
+    /* ----------------------------------------------------------
+       RESPONSIVE
+    ---------------------------------------------------------- */
 
     @media (max-width: 900px) {
+
       .grid-4 {
         grid-template-columns: repeat(2, 1fr);
       }
 
-      .grid-3 {
-        grid-template-columns: 1fr;
-      }
     }
 
     @media (max-width: 650px) {
+
       .topbar-inner {
         padding: 10px 0;
         align-items: flex-start;
@@ -569,14 +653,18 @@
         padding-top: 35px;
       }
 
-      .grid-4,
-      .grid-2 {
+      .grid-4 {
         grid-template-columns: 1fr;
       }
 
       .card {
         padding: 18px;
       }
+
+      .status-card {
+        align-items: flex-start;
+      }
+
     }
   </style>
 </head>
@@ -584,6 +672,7 @@
 <body>
 
 <header class="topbar">
+
   <div class="topbar-inner">
 
     <a class="brand" href="index.html">
@@ -591,47 +680,103 @@
     </a>
 
     <nav class="nav" aria-label="Creator navigation">
-      <a href="dashboard.html">Dashboard</a>
-      <a href="studio.html">Studio</a>
-      <a href="monetization.html">Monetization</a>
-      <a href="payouts.html" class="active">Payouts</a>
-      <button id="logoutBtn" type="button">Log Out</button>
+
+      <a href="dashboard.html">
+        Dashboard
+      </a>
+
+      <a href="studio.html">
+        Studio
+      </a>
+
+      <a href="monetization.html">
+        Monetization
+      </a>
+
+      <a href="payouts.html" class="active">
+        Payouts
+      </a>
+
+      <button
+        id="logoutBtn"
+        type="button">
+        Log Out
+      </button>
+
     </nav>
 
-    <div id="connectionState" class="connection">
+    <div
+      id="connectionState"
+      class="connection">
+
       <span class="connection-dot"></span>
-      <span>Supabase: Connecting</span>
+
+      <span>
+        Supabase: Connecting
+      </span>
+
     </div>
 
   </div>
+
 </header>
+
 
 <main class="page">
 
-  <section class="hero">
-    <div class="eyebrow">CrowRules Podcasting</div>
+  <!-- HERO -->
 
-    <h1>Payouts</h1>
+  <section class="hero">
+
+    <div class="eyebrow">
+      CrowRules Podcasting
+    </div>
+
+    <h1>
+      Payouts
+    </h1>
 
     <p>
-      Track your creator balance, payout history, and payout account
-      status from one place.
+      Track your creator balance, payout history,
+      earnings, and payout account status from
+      one place.
     </p>
 
     <div class="hero-actions">
-      <button id="refreshBtn" class="button primary" type="button">
+
+      <button
+        id="refreshBtn"
+        class="button primary"
+        type="button">
+
         Refresh Payouts
+
       </button>
 
-      <a class="button" href="monetization.html">
+      <a
+        class="button"
+        href="monetization.html">
+
         Monetization
+
       </a>
+
     </div>
+
   </section>
 
-  <div id="notice" class="notice"></div>
 
-  <!-- STATUS -->
+  <!-- NOTICE -->
+
+  <div
+    id="notice"
+    class="notice"
+    role="status"
+    aria-live="polite">
+  </div>
+
+
+  <!-- ACCOUNT STATUS -->
 
   <section class="section">
 
@@ -639,88 +784,161 @@
 
       <div class="status-left">
 
-        <div class="status-icon">💳</div>
+        <div
+          class="status-icon"
+          aria-hidden="true">
+
+          💳
+
+        </div>
 
         <div>
-          <div class="status-name">Payout Account</div>
 
-          <div id="statusDetail" class="status-detail">
-            Loading payout account…
+          <div class="status-name">
+            Payout Account
           </div>
+
+          <div
+            id="statusDetail"
+            class="status-detail">
+
+            Loading payout account…
+
+          </div>
+
         </div>
 
       </div>
 
       <div>
-        <span id="statusBadge" class="badge">
+
+        <span
+          id="statusBadge"
+          class="badge not_started">
+
           Loading
+
         </span>
+
       </div>
 
     </div>
 
   </section>
+
 
   <!-- BALANCES -->
 
   <section class="section">
 
     <div class="section-header">
+
       <div>
-        <h2 class="section-title">Your Balance</h2>
+
+        <h2 class="section-title">
+          Your Balance
+        </h2>
+
         <p class="section-subtitle">
-          Based on your CrowRules creator earnings and payout records.
+          Based on your CrowRules creator earnings
+          and payout records.
         </p>
+
       </div>
+
     </div>
 
     <div class="grid grid-4">
 
       <div class="card stat">
-        <div class="stat-label">Available</div>
-        <div id="availableAmount" class="stat-value positive">
-          $0.00
+
+        <div class="stat-label">
+          Available
         </div>
+
+        <div
+          id="availableAmount"
+          class="stat-value positive">
+
+          $0.00
+
+        </div>
+
         <div class="stat-note">
           Available for payout
         </div>
+
       </div>
 
+
       <div class="card stat">
-        <div class="stat-label">Pending</div>
-        <div id="pendingAmount" class="stat-value yellow">
-          $0.00
+
+        <div class="stat-label">
+          Pending
         </div>
+
+        <div
+          id="pendingAmount"
+          class="stat-value yellow">
+
+          $0.00
+
+        </div>
+
         <div class="stat-note">
           Still processing
         </div>
+
       </div>
 
+
       <div class="card stat">
-        <div class="stat-label">Paid Out</div>
-        <div id="paidOutAmount" class="stat-value cyan">
-          $0.00
+
+        <div class="stat-label">
+          Paid Out
         </div>
+
+        <div
+          id="paidOutAmount"
+          class="stat-value cyan">
+
+          $0.00
+
+        </div>
+
         <div class="stat-note">
           Completed payouts
         </div>
+
       </div>
 
+
       <div class="card stat">
-        <div class="stat-label">Lifetime Earned</div>
-        <div id="lifetimeAmount" class="stat-value purple">
-          $0.00
+
+        <div class="stat-label">
+          Lifetime Earned
         </div>
+
+        <div
+          id="lifetimeAmount"
+          class="stat-value purple">
+
+          $0.00
+
+        </div>
+
         <div class="stat-note">
           Creator earnings
         </div>
+
       </div>
 
     </div>
 
   </section>
 
-  <!-- CONNECT -->
+
+  <!-- CONNECT PAYOUTS -->
 
   <section class="section">
 
@@ -728,17 +946,26 @@
 
       <div class="connect-content">
 
-        <div class="eyebrow">Creator Payments</div>
+        <div class="eyebrow">
+          Creator Payments
+        </div>
 
         <div class="connect-title">
           Connect Your Payout Account
         </div>
 
         <div class="connect-copy">
-          CrowRules will use a secure payout provider to send eligible
-          creator earnings to your connected payout account. Your banking
-          information is never stored in this page or in the CrowRules
-          browser application.
+
+          CrowRules uses secure server-side
+          payout onboarding. Your banking information
+          is handled by the payout provider and is
+          not stored in this browser application.
+
+        </div>
+
+        <div
+          id="stripeAccountId"
+          class="account-id">
         </div>
 
         <div class="hero-actions">
@@ -747,14 +974,18 @@
             id="connectBtn"
             class="button primary"
             type="button">
+
             Connect Payouts
+
           </button>
 
           <span
             id="connectMessage"
             class="section-subtitle">
-            Payout onboarding will be enabled through the secure
-            server-side payout flow.
+
+            Your secure payout account can be
+            connected through CrowRules.
+
           </span>
 
         </div>
@@ -765,6 +996,7 @@
 
   </section>
 
+
   <!-- PAYOUT HISTORY -->
 
   <section class="section">
@@ -772,21 +1004,33 @@
     <div class="section-header">
 
       <div>
-        <h2 class="section-title">Payout History</h2>
+
+        <h2 class="section-title">
+          Payout History
+        </h2>
 
         <p class="section-subtitle">
           Your completed and pending creator payouts.
         </p>
+
       </div>
 
     </div>
 
     <div class="card">
 
-      <div id="payoutTable" class="table-wrap">
+      <div
+        id="payoutTable"
+        class="table-wrap">
 
         <div class="empty loading">
-          Loading payout history…
+
+          <strong>
+            Loading payout history…
+          </strong>
+
+          Please wait.
+
         </div>
 
       </div>
@@ -794,6 +1038,7 @@
     </div>
 
   </section>
+
 
   <!-- EARNINGS -->
 
@@ -802,21 +1047,34 @@
     <div class="section-header">
 
       <div>
-        <h2 class="section-title">Recent Earnings</h2>
+
+        <h2 class="section-title">
+          Recent Earnings
+        </h2>
 
         <p class="section-subtitle">
-          Revenue that contributes to your creator balance.
+          Revenue that contributes to your
+          creator balance.
         </p>
+
       </div>
 
     </div>
 
     <div class="card">
 
-      <div id="earningsTable" class="table-wrap">
+      <div
+        id="earningsTable"
+        class="table-wrap">
 
         <div class="empty loading">
-          Loading earnings…
+
+          <strong>
+            Loading earnings…
+          </strong>
+
+          Please wait.
+
         </div>
 
       </div>
@@ -825,14 +1083,18 @@
 
   </section>
 
-  <!-- CHECKLIST -->
+
+  <!-- READINESS -->
 
   <section class="section">
 
     <div class="section-header">
 
       <div>
-        <h2 class="section-title">Payout Readiness</h2>
+
+        <h2 class="section-title">
+          Payout Readiness
+        </h2>
 
         <p class="section-subtitle">
           Your current creator monetization status.
@@ -847,43 +1109,87 @@
       <div class="checklist">
 
         <div class="check">
+
           <span class="check-label">
             CrowRules account
           </span>
 
-          <span id="checkAccount" class="check-state">
+          <span
+            id="checkAccount"
+            class="check-state">
+
             Checking…
+
           </span>
+
         </div>
 
+
         <div class="check">
+
           <span class="check-label">
             Monetization profile
           </span>
 
-          <span id="checkMonetization" class="check-state">
+          <span
+            id="checkMonetization"
+            class="check-state">
+
             Checking…
+
           </span>
+
         </div>
 
+
         <div class="check">
+
           <span class="check-label">
             Payout account connected
           </span>
 
-          <span id="checkPayout" class="check-state">
+          <span
+            id="checkPayout"
+            class="check-state">
+
             Checking…
+
           </span>
+
         </div>
 
+
         <div class="check">
+
+          <span class="check-label">
+            Charges enabled
+          </span>
+
+          <span
+            id="checkCharges"
+            class="check-state">
+
+            Checking…
+
+          </span>
+
+        </div>
+
+
+        <div class="check">
+
           <span class="check-label">
             Payouts enabled
           </span>
 
-          <span id="checkEnabled" class="check-state">
+          <span
+            id="checkEnabled"
+            class="check-state">
+
             Checking…
+
           </span>
+
         </div>
 
       </div>
@@ -892,13 +1198,20 @@
 
   </section>
 
+
   <footer class="footer">
-    CrowRules Podcasting · Creator Payouts · One Account. One Universe.
+
+    CrowRules Podcasting · Creator Payouts ·
+    One Account. One Universe.
+
   </footer>
 
 </main>
 
-<!-- Supabase -->
+
+<!-- ============================================================
+     SUPABASE
+============================================================ -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -906,165 +1219,39 @@
 
 <script src="js/app.js"></script>
 
+
 <script>
 (() => {
 
   "use strict";
 
+
+  /* ============================================================
+     STATE
+  ============================================================ */
+
   let client = null;
+
   let currentUser = null;
+
   let monetization = null;
+
   let payouts = [];
+
   let earnings = [];
 
-  const $ = (id) => document.getElementById(id);
 
-  /*
-   * ------------------------------------------------------------
-   * SUPABASE INITIALIZATION
-   * ------------------------------------------------------------
-   *
-   * This page first uses an existing CrowRules Supabase client.
-   * If one does not exist, it looks for common configuration
-   * variable names exposed by js/config.js.
-   *
-   * NEVER put a Supabase service_role key here.
-   */
+  /* ============================================================
+     DOM
+  ============================================================ */
 
-  function getExistingClient() {
+  const $ = (id) =>
+    document.getElementById(id);
 
-    if (
-      window.supabaseClient &&
-      window.supabaseClient.auth
-    ) {
-      return window.supabaseClient;
-    }
 
-    if (
-      window.sb &&
-      window.sb.auth
-    ) {
-      return window.sb;
-    }
-
-    return null;
-  }
-
-  function getConfigValue(names) {
-
-    for (const name of names) {
-
-      if (
-        typeof window[name] === "string" &&
-        window[name].trim()
-      ) {
-        return window[name].trim();
-      }
-
-    }
-
-    return "";
-  }
-
-  function initializeSupabase() {
-
-    client = getExistingClient();
-
-    if (client) {
-      window.supabaseClient = client;
-      return client;
-    }
-
-    if (
-      !window.supabase ||
-      typeof window.supabase.createClient !== "function"
-    ) {
-      throw new Error(
-        "Supabase JavaScript library was not loaded."
-      );
-    }
-
-    const url = getConfigValue([
-      "SUPABASE_URL",
-      "CROWRULES_SUPABASE_URL",
-      "supabaseUrl",
-      "SUPABASE_PROJECT_URL"
-    ]);
-
-    const key = getConfigValue([
-      "SUPABASE_ANON_KEY",
-      "SUPABASE_PUBLISHABLE_KEY",
-      "CROWRULES_SUPABASE_ANON_KEY",
-      "CROWRULES_SUPABASE_PUBLISHABLE_KEY",
-      "supabaseAnonKey"
-    ]);
-
-    if (!url || !key) {
-
-      throw new Error(
-        "Supabase configuration was not found. Check js/config.js."
-      );
-
-    }
-
-    client = window.supabase.createClient(
-      url,
-      key,
-      {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true
-        }
-      }
-    );
-
-    window.supabaseClient = client;
-
-    return client;
-  }
-
-  function setConnection(state, message) {
-
-    const el = $("connectionState");
-
-    if (!el) return;
-
-    el.className = "connection " + state;
-
-    el.innerHTML =
-      '<span class="connection-dot"></span>' +
-      '<span>' +
-      escapeHtml(message) +
-      '</span>';
-
-  }
-
-  function showNotice(message, type = "") {
-
-    const el = $("notice");
-
-    if (!el) return;
-
-    el.textContent = message;
-
-    el.className =
-      "notice show" +
-      (type ? " " + type : "");
-
-  }
-
-  function hideNotice() {
-
-    const el = $("notice");
-
-    if (!el) return;
-
-    el.className = "notice";
-
-    el.textContent = "";
-
-  }
+  /* ============================================================
+     ESCAPE HTML
+  ============================================================ */
 
   function escapeHtml(value) {
 
@@ -1077,9 +1264,237 @@
 
   }
 
-  function formatMoney(cents, currency = "USD") {
 
-    const amount = Number(cents || 0) / 100;
+  /* ============================================================
+     SUPABASE CONFIG
+  ============================================================ */
+
+  function getConfigValue(names) {
+
+    for (const name of names) {
+
+      const value = window[name];
+
+      if (
+        typeof value === "string" &&
+        value.trim()
+      ) {
+        return value.trim();
+      }
+
+    }
+
+    return "";
+
+  }
+
+
+  /* ============================================================
+     SUPABASE INITIALIZATION
+  ============================================================ */
+
+  function initializeSupabase() {
+
+    /*
+     * First reuse the universal CrowRules client.
+     */
+
+    if (
+      window.supabaseClient &&
+      window.supabaseClient.auth &&
+      window.supabaseClient.from
+    ) {
+
+      client =
+        window.supabaseClient;
+
+      return client;
+
+    }
+
+
+    /*
+     * Compatibility with older CrowRules pages.
+     */
+
+    if (
+      window.sb &&
+      window.sb.auth &&
+      window.sb.from
+    ) {
+
+      client = window.sb;
+
+      window.supabaseClient =
+        client;
+
+      return client;
+
+    }
+
+
+    /*
+     * The CDN exposes window.supabase as
+     * the library namespace.
+     */
+
+    if (
+      !window.supabase ||
+      typeof window.supabase.createClient !==
+        "function"
+    ) {
+
+      throw new Error(
+        "Supabase JavaScript library was not loaded."
+      );
+
+    }
+
+
+    const url =
+      getConfigValue([
+        "SUPABASE_URL",
+        "CROWRULES_SUPABASE_URL",
+        "supabaseUrl",
+        "SUPABASE_PROJECT_URL"
+      ]);
+
+
+    const key =
+      getConfigValue([
+        "SUPABASE_PUBLISHABLE_KEY",
+        "SUPABASE_ANON_KEY",
+        "CROWRULES_SUPABASE_PUBLISHABLE_KEY",
+        "CROWRULES_SUPABASE_ANON_KEY",
+        "supabasePublishableKey",
+        "supabaseAnonKey"
+      ]);
+
+
+    if (!url) {
+
+      throw new Error(
+        "Supabase URL was not found in js/config.js."
+      );
+
+    }
+
+
+    if (!key) {
+
+      throw new Error(
+        "Supabase publishable key was not found in js/config.js."
+      );
+
+    }
+
+
+    /*
+     * Browser-safe Supabase client.
+     *
+     * NEVER place a service_role key here.
+     */
+
+    client =
+      window.supabase.createClient(
+        url,
+        key,
+        {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+          }
+        }
+      );
+
+
+    window.supabaseClient =
+      client;
+
+
+    return client;
+
+  }
+
+
+  /* ============================================================
+     CONNECTION STATE
+  ============================================================ */
+
+  function setConnection(
+    state,
+    message
+  ) {
+
+    const el =
+      $("connectionState");
+
+    if (!el) return;
+
+    el.className =
+      "connection " +
+      (state || "");
+
+    el.innerHTML =
+      '<span class="connection-dot"></span>' +
+      '<span>' +
+      escapeHtml(message) +
+      '</span>';
+
+  }
+
+
+  /* ============================================================
+     NOTICE
+  ============================================================ */
+
+  function showNotice(
+    message,
+    type = "info"
+  ) {
+
+    const el =
+      $("notice");
+
+    if (!el) return;
+
+    el.textContent =
+      message;
+
+    el.className =
+      "notice show " +
+      type;
+
+  }
+
+
+  function hideNotice() {
+
+    const el =
+      $("notice");
+
+    if (!el) return;
+
+    el.textContent = "";
+
+    el.className =
+      "notice";
+
+  }
+
+
+  /* ============================================================
+     FORMAT MONEY
+  ============================================================ */
+
+  function formatMoney(
+    cents,
+    currency = "USD"
+  ) {
+
+    const amount =
+      Number(cents || 0) / 100;
 
     try {
 
@@ -1087,25 +1502,41 @@
         undefined,
         {
           style: "currency",
-          currency: String(currency || "USD").toUpperCase()
+          currency:
+            String(
+              currency || "USD"
+            ).toUpperCase()
         }
       ).format(amount);
 
     } catch {
 
-      return "$" + amount.toFixed(2);
+      return "$" +
+        amount.toFixed(2);
 
     }
 
   }
 
+
+  /* ============================================================
+     FORMAT DATE
+  ============================================================ */
+
   function formatDate(value) {
 
-    if (!value) return "—";
+    if (!value) {
+      return "—";
+    }
 
-    const date = new Date(value);
+    const date =
+      new Date(value);
 
-    if (Number.isNaN(date.getTime())) {
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
       return "—";
     }
 
@@ -1120,50 +1551,78 @@
 
   }
 
+
+  /* ============================================================
+     SOURCE LABEL
+  ============================================================ */
+
   function sourceName(source) {
 
     const names = {
-      subscription: "Membership",
-      donation: "Donation",
-      sponsorship: "Sponsorship",
-      premium_episode: "Premium Episode",
-      advertising: "Advertising",
-      other: "Other"
+
+      subscription:
+        "Membership",
+
+      donation:
+        "Donation",
+
+      sponsorship:
+        "Sponsorship",
+
+      premium_episode:
+        "Premium Episode",
+
+      advertising:
+        "Advertising",
+
+      other:
+        "Other"
+
     };
 
-    return names[source] || source || "Other";
+    return (
+      names[source] ||
+      source ||
+      "Other"
+    );
 
   }
 
-  function payoutStatus(status) {
 
-    const names = {
-      pending: "Pending",
-      paid: "Paid",
-      failed: "Failed",
-      cancelled: "Cancelled"
-    };
-
-    return names[status] || status || "Unknown";
-
-  }
+  /* ============================================================
+     STATUS LABEL
+  ============================================================ */
 
   function statusName(status) {
 
     const names = {
-      not_started: "Not Started",
-      pending: "Pending",
-      active: "Active",
-      restricted: "Restricted"
+
+      not_started:
+        "Not Started",
+
+      pending:
+        "Pending",
+
+      active:
+        "Active",
+
+      restricted:
+        "Restricted"
+
     };
 
-    return names[status] || "Not Started";
+    return (
+      names[status] ||
+      "Not Started"
+    );
 
   }
+
 
   function statusDescription(status) {
 
     const descriptions = {
+
       not_started:
         "Your creator payout account has not been connected yet.",
 
@@ -1175,31 +1634,69 @@
 
       restricted:
         "Your payout account requires additional information."
+
     };
 
-    return descriptions[status] ||
-      descriptions.not_started;
+    return (
+      descriptions[status] ||
+      descriptions.not_started
+    );
 
   }
 
-  /*
-   * ------------------------------------------------------------
-   * AUTHENTICATION
-   * ------------------------------------------------------------
-   */
+
+  /* ============================================================
+     PAYOUT STATUS
+  ============================================================ */
+
+  function payoutStatus(status) {
+
+    const names = {
+
+      pending:
+        "Pending",
+
+      paid:
+        "Paid",
+
+      failed:
+        "Failed",
+
+      cancelled:
+        "Cancelled"
+
+    };
+
+    return (
+      names[status] ||
+      status ||
+      "Unknown"
+    );
+
+  }
+
+
+  /* ============================================================
+     AUTHENTICATION
+  ============================================================ */
 
   async function requireUser() {
 
     const {
       data,
       error
-    } = await client.auth.getUser();
+    } =
+      await client.auth.getUser();
+
 
     if (error) {
       throw error;
     }
 
-    currentUser = data?.user || null;
+
+    currentUser =
+      data?.user || null;
+
 
     if (!currentUser) {
 
@@ -1209,178 +1706,241 @@
         );
 
       window.location.href =
-        "login.html?redirect=" + redirect;
+        "login.html?redirect=" +
+        redirect;
 
       return null;
+
     }
 
+
     return currentUser;
+
   }
 
-  /*
-   * ------------------------------------------------------------
-   * LOAD MONETIZATION
-   * ------------------------------------------------------------
-   */
+
+  /* ============================================================
+     LOAD MONETIZATION
+  ============================================================ */
 
   async function loadMonetization() {
 
     const {
       data,
       error
-    } = await client
-      .from("creator_monetization")
-      .select([
-        "id",
-        "user_id",
-        "status",
-        "stripe_account_id",
-        "payouts_enabled",
-        "charges_enabled",
-        "currency",
-        "created_at",
-        "updated_at"
-      ].join(","))
-      .eq("user_id", currentUser.id)
-      .maybeSingle();
+    } =
+      await client
+        .from("creator_monetization")
+        .select([
+          "id",
+          "user_id",
+          "status",
+          "stripe_account_id",
+          "payouts_enabled",
+          "charges_enabled",
+          "currency",
+          "created_at",
+          "updated_at"
+        ].join(","))
+        .eq(
+          "user_id",
+          currentUser.id
+        )
+        .maybeSingle();
+
 
     if (error) {
       throw error;
     }
 
-    monetization = data || null;
+
+    monetization =
+      data || null;
 
   }
 
-  /*
-   * ------------------------------------------------------------
-   * LOAD PAYOUTS
-   * ------------------------------------------------------------
-   */
+
+  /* ============================================================
+     LOAD PAYOUTS
+  ============================================================ */
 
   async function loadPayouts() {
 
     const {
       data,
       error
-    } = await client
-      .from("creator_payouts")
-      .select([
-        "id",
-        "user_id",
-        "amount",
-        "currency",
-        "status",
-        "stripe_payout_id",
-        "created_at"
-      ].join(","))
-      .eq("user_id", currentUser.id)
-      .order("created_at", {
-        ascending: false
-      })
-      .limit(100);
+    } =
+      await client
+        .from("creator_payouts")
+        .select([
+          "id",
+          "user_id",
+          "amount",
+          "currency",
+          "status",
+          "stripe_payout_id",
+          "created_at"
+        ].join(","))
+        .eq(
+          "user_id",
+          currentUser.id
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        )
+        .limit(100);
+
 
     if (error) {
       throw error;
     }
 
-    payouts = data || [];
+
+    payouts =
+      data || [];
 
   }
 
-  /*
-   * ------------------------------------------------------------
-   * LOAD EARNINGS
-   * ------------------------------------------------------------
-   */
+
+  /* ============================================================
+     LOAD EARNINGS
+  ============================================================ */
 
   async function loadEarnings() {
 
     const {
       data,
       error
-    } = await client
-      .from("creator_earnings")
-      .select([
-        "id",
-        "user_id",
-        "source",
-        "gross_amount",
-        "platform_fee",
-        "creator_amount",
-        "currency",
-        "status",
-        "created_at"
-      ].join(","))
-      .eq("user_id", currentUser.id)
-      .order("created_at", {
-        ascending: false
-      })
-      .limit(100);
+    } =
+      await client
+        .from("creator_earnings")
+        .select([
+          "id",
+          "user_id",
+          "source",
+          "gross_amount",
+          "platform_fee",
+          "creator_amount",
+          "currency",
+          "status",
+          "created_at"
+        ].join(","))
+        .eq(
+          "user_id",
+          currentUser.id
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        )
+        .limit(100);
+
 
     if (error) {
       throw error;
     }
 
-    earnings = data || [];
+
+    earnings =
+      data || [];
 
   }
 
-  /*
-   * ------------------------------------------------------------
-   * BALANCE CALCULATIONS
-   * ------------------------------------------------------------
-   */
+
+  /* ============================================================
+     CALCULATE BALANCES
+  ============================================================ */
 
   function calculateBalances() {
 
     let available = 0;
+
     let pending = 0;
+
     let lifetime = 0;
+
     let paidOut = 0;
 
-    for (const earning of earnings) {
+
+    for (
+      const earning of earnings
+    ) {
 
       const amount =
-        Number(earning.creator_amount || 0);
+        Number(
+          earning.creator_amount || 0
+        );
+
 
       lifetime += amount;
 
-      if (earning.status === "available") {
-        available += amount;
+
+      if (
+        earning.status ===
+        "available"
+      ) {
+
+        available +=
+          amount;
+
       }
 
-      if (earning.status === "pending") {
-        pending += amount;
+
+      if (
+        earning.status ===
+        "pending"
+      ) {
+
+        pending +=
+          amount;
+
       }
 
     }
 
-    for (const payout of payouts) {
 
-      if (payout.status === "paid") {
+    for (
+      const payout of payouts
+    ) {
+
+      if (
+        payout.status ===
+        "paid"
+      ) {
 
         paidOut +=
-          Number(payout.amount || 0);
+          Number(
+            payout.amount || 0
+          );
 
       }
 
     }
 
+
     return {
+
       available,
+
       pending,
+
       lifetime,
+
       paidOut
+
     };
 
   }
 
-  /*
-   * ------------------------------------------------------------
-   * RENDER STATUS
-   * ------------------------------------------------------------
-   */
+
+  /* ============================================================
+     RENDER STATUS
+  ============================================================ */
 
   function renderStatus() {
 
@@ -1388,62 +1948,133 @@
       monetization?.status ||
       "not_started";
 
-    const badge = $("statusBadge");
+
+    const badge =
+      $("statusBadge");
+
 
     badge.textContent =
       statusName(status);
 
+
     badge.className =
-      "badge " + status;
+      "badge " +
+      status;
+
 
     $("statusDetail").textContent =
       statusDescription(status);
+
 
     const accountConnected =
       Boolean(
         monetization?.stripe_account_id
       );
 
+
+    const chargesEnabled =
+      monetization?.charges_enabled ===
+      true;
+
+
     const payoutsEnabled =
-      monetization?.payouts_enabled === true;
+      monetization?.payouts_enabled ===
+      true;
+
 
     $("checkAccount").textContent =
-      currentUser ? "Complete" : "Not Complete";
+      currentUser
+        ? "Complete"
+        : "Not Complete";
+
 
     $("checkAccount").className =
       "check-state" +
-      (currentUser ? " complete" : "");
+      (
+        currentUser
+          ? " complete"
+          : ""
+      );
+
 
     $("checkMonetization").textContent =
-      monetization ? "Complete" : "Not Started";
+      monetization
+        ? "Complete"
+        : "Not Started";
+
 
     $("checkMonetization").className =
       "check-state" +
-      (monetization ? " complete" : "");
+      (
+        monetization
+          ? " complete"
+          : ""
+      );
+
 
     $("checkPayout").textContent =
-      accountConnected ? "Connected" : "Not Connected";
+      accountConnected
+        ? "Connected"
+        : "Not Connected";
+
 
     $("checkPayout").className =
       "check-state" +
-      (accountConnected ? " complete" : "");
+      (
+        accountConnected
+          ? " complete"
+          : ""
+      );
+
+
+    $("checkCharges").textContent =
+      chargesEnabled
+        ? "Enabled"
+        : "Not Enabled";
+
+
+    $("checkCharges").className =
+      "check-state" +
+      (
+        chargesEnabled
+          ? " complete"
+          : ""
+      );
+
 
     $("checkEnabled").textContent =
-      payoutsEnabled ? "Enabled" : "Not Enabled";
+      payoutsEnabled
+        ? "Enabled"
+        : "Not Enabled";
+
 
     $("checkEnabled").className =
       "check-state" +
-      (payoutsEnabled ? " complete" : "");
+      (
+        payoutsEnabled
+          ? " complete"
+          : ""
+      );
+
 
     const connectBtn =
       $("connectBtn");
 
-    if (accountConnected) {
+
+    if (
+      accountConnected &&
+      payoutsEnabled
+    ) {
 
       connectBtn.textContent =
-        payoutsEnabled
-          ? "Payout Account Connected"
-          : "Continue Payout Setup";
+        "Payout Account Connected";
+
+    } else if (
+      accountConnected
+    ) {
+
+      connectBtn.textContent =
+        "Continue Payout Setup";
 
     } else {
 
@@ -1452,23 +2083,51 @@
 
     }
 
+
+    const accountBox =
+      $("stripeAccountId");
+
+
+    if (
+      monetization?.stripe_account_id
+    ) {
+
+      accountBox.textContent =
+        "Connected account: " +
+        monetization.stripe_account_id;
+
+      accountBox.classList.add(
+        "show"
+      );
+
+    } else {
+
+      accountBox.textContent = "";
+
+      accountBox.classList.remove(
+        "show"
+      );
+
+    }
+
   }
 
-  /*
-   * ------------------------------------------------------------
-   * RENDER BALANCES
-   * ------------------------------------------------------------
-   */
+
+  /* ============================================================
+     RENDER BALANCES
+  ============================================================ */
 
   function renderBalances() {
 
     const balances =
       calculateBalances();
 
+
     const currency =
       monetization?.currency ||
       earnings[0]?.currency ||
       "usd";
+
 
     $("availableAmount").textContent =
       formatMoney(
@@ -1476,17 +2135,20 @@
         currency
       );
 
+
     $("pendingAmount").textContent =
       formatMoney(
         balances.pending,
         currency
       );
 
+
     $("paidOutAmount").textContent =
       formatMoney(
         balances.paidOut,
         currency
       );
+
 
     $("lifetimeAmount").textContent =
       formatMoney(
@@ -1496,284 +2158,596 @@
 
   }
 
-  /*
-   * ------------------------------------------------------------
-   * RENDER PAYOUT TABLE
-   * ------------------------------------------------------------
-   */
+
+  /* ============================================================
+     RENDER PAYOUTS
+  ============================================================ */
 
   function renderPayouts() {
 
     const container =
       $("payoutTable");
 
+
     if (!payouts.length) {
 
       container.innerHTML = `
+
         <div class="empty">
-          <strong>No payouts yet</strong>
-          Your payout history will appear here once a payout is processed.
+
+          <strong>
+            No payouts yet
+          </strong>
+
+          Your payout history will
+          appear here once a payout
+          is processed.
+
         </div>
+
       `;
 
       return;
+
     }
 
+
     container.innerHTML = `
+
       <table>
+
         <thead>
+
           <tr>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Reference</th>
-            <th>Amount</th>
+
+            <th>
+              Date
+            </th>
+
+            <th>
+              Status
+            </th>
+
+            <th>
+              Reference
+            </th>
+
+            <th>
+              Amount
+            </th>
+
           </tr>
+
         </thead>
 
         <tbody>
-          ${payouts.map(payout => `
-            <tr>
-              <td>
-                ${escapeHtml(
-                  formatDate(payout.created_at)
-                )}
-              </td>
 
-              <td>
-                <span class="badge ${
-                  payout.status === "paid"
-                    ? "active"
-                    : payout.status === "pending"
-                      ? "pending"
-                      : payout.status === "failed"
-                        ? "restricted"
-                        : ""
-                }">
-                  ${escapeHtml(
-                    payoutStatus(payout.status)
-                  )}
-                </span>
-              </td>
+          ${
+            payouts.map(
+              payout => `
 
-              <td>
-                ${
-                  payout.stripe_payout_id
-                    ? escapeHtml(
-                        payout.stripe_payout_id
+                <tr>
+
+                  <td>
+                    ${escapeHtml(
+                      formatDate(
+                        payout.created_at
                       )
-                    : "—"
-                }
-              </td>
+                    )}
+                  </td>
 
-              <td class="amount">
-                ${escapeHtml(
-                  formatMoney(
-                    payout.amount,
-                    payout.currency
-                  )
-                )}
-              </td>
-            </tr>
-          `).join("")}
+                  <td>
+
+                    <span class="badge ${
+                      payout.status ===
+                      "paid"
+                        ? "active"
+                        : payout.status ===
+                          "pending"
+                          ? "pending"
+                          : payout.status ===
+                            "failed"
+                            ? "restricted"
+                            : ""
+                    }">
+
+                      ${escapeHtml(
+                        payoutStatus(
+                          payout.status
+                        )
+                      )}
+
+                    </span>
+
+                  </td>
+
+                  <td>
+
+                    ${
+                      payout.stripe_payout_id
+                        ? escapeHtml(
+                            payout.stripe_payout_id
+                          )
+                        : "—"
+                    }
+
+                  </td>
+
+                  <td class="amount">
+
+                    ${escapeHtml(
+                      formatMoney(
+                        payout.amount,
+                        payout.currency
+                      )
+                    )}
+
+                  </td>
+
+                </tr>
+
+              `
+            ).join("")
+          }
+
         </tbody>
+
       </table>
+
     `;
 
   }
 
-  /*
-   * ------------------------------------------------------------
-   * RENDER EARNINGS TABLE
-   * ------------------------------------------------------------
-   */
+
+  /* ============================================================
+     RENDER EARNINGS
+  ============================================================ */
 
   function renderEarnings() {
 
     const container =
       $("earningsTable");
 
+
     if (!earnings.length) {
 
       container.innerHTML = `
+
         <div class="empty">
-          <strong>No earnings yet</strong>
-          Creator revenue will appear here when your podcast generates eligible revenue.
+
+          <strong>
+            No earnings yet
+          </strong>
+
+          Creator revenue will appear
+          here when your podcast generates
+          eligible revenue.
+
         </div>
+
       `;
 
       return;
+
     }
 
+
     container.innerHTML = `
+
       <table>
+
         <thead>
+
           <tr>
-            <th>Date</th>
-            <th>Source</th>
-            <th>Status</th>
-            <th>Gross</th>
-            <th>Creator Amount</th>
+
+            <th>
+              Date
+            </th>
+
+            <th>
+              Source
+            </th>
+
+            <th>
+              Status
+            </th>
+
+            <th>
+              Gross
+            </th>
+
+            <th>
+              Creator Amount
+            </th>
+
           </tr>
+
         </thead>
 
         <tbody>
-          ${earnings.map(earning => `
-            <tr>
 
-              <td>
-                ${escapeHtml(
-                  formatDate(earning.created_at)
-                )}
-              </td>
+          ${
+            earnings.map(
+              earning => `
 
-              <td>
-                ${escapeHtml(
-                  sourceName(earning.source)
-                )}
-              </td>
+                <tr>
 
-              <td>
-                <span class="badge ${
-                  earning.status === "available"
-                    ? "active"
-                    : earning.status === "pending"
-                      ? "pending"
-                      : ""
-                }">
-                  ${escapeHtml(
-                    earning.status
-                  )}
-                </span>
-              </td>
+                  <td>
+                    ${escapeHtml(
+                      formatDate(
+                        earning.created_at
+                      )
+                    )}
+                  </td>
 
-              <td class="amount">
-                ${escapeHtml(
-                  formatMoney(
-                    earning.gross_amount,
-                    earning.currency
-                  )
-                )}
-              </td>
+                  <td>
+                    ${escapeHtml(
+                      sourceName(
+                        earning.source
+                      )
+                    )}
+                  </td>
 
-              <td class="amount positive">
-                ${escapeHtml(
-                  formatMoney(
-                    earning.creator_amount,
-                    earning.currency
-                  )
-                )}
-              </td>
+                  <td>
 
-            </tr>
-          `).join("")}
+                    <span class="badge ${
+                      earning.status ===
+                      "available"
+                        ? "active"
+                        : earning.status ===
+                          "pending"
+                          ? "pending"
+                          : ""
+                    }">
+
+                      ${escapeHtml(
+                        earning.status
+                      )}
+
+                    </span>
+
+                  </td>
+
+                  <td class="amount">
+
+                    ${escapeHtml(
+                      formatMoney(
+                        earning.gross_amount,
+                        earning.currency
+                      )
+                    )}
+
+                  </td>
+
+                  <td class="amount positive">
+
+                    ${escapeHtml(
+                      formatMoney(
+                        earning.creator_amount,
+                        earning.currency
+                      )
+                    )}
+
+                  </td>
+
+                </tr>
+
+              `
+            ).join("")
+          }
+
         </tbody>
+
       </table>
+
     `;
 
   }
 
-  /*
-   * ------------------------------------------------------------
-   * CONNECT PAYOUTS
-   * ------------------------------------------------------------
-   *
-   * The browser deliberately does NOT create Stripe accounts,
-   * write stripe_account_id, or modify creator_monetization.
-   *
-   * Those actions belong in a server-side Edge Function.
-   */
+
+  /* ============================================================
+     CONNECT PAYOUTS
+     ============================================================
+     
+     Browser:
+       Supabase Auth JWT
+          ↓
+       Edge Function
+          ↓
+       Stripe Connect
+          ↓
+       Hosted Stripe onboarding
+
+     No Stripe secret is exposed here.
+  ============================================================ */
 
   async function connectPayouts() {
 
-    if (!currentUser) {
+    if (
+      !client ||
+      !currentUser
+    ) {
+
+      showNotice(
+        "Please sign in before connecting your payout account.",
+        "error"
+      );
+
       return;
+
     }
+
 
     const button =
       $("connectBtn");
 
-    button.disabled = true;
+    const message =
+      $("connectMessage");
+
+
+    const originalText =
+      button.textContent;
+
+
+    button.disabled =
+      true;
 
     button.textContent =
       "Opening secure setup…";
 
+
+    if (message) {
+
+      message.textContent =
+        "Connecting securely to CrowRules Payments…";
+
+    }
+
+
+    hideNotice();
+
+
     try {
 
       /*
-       * Future endpoint:
-       *
-       * const { data, error } = await client.functions.invoke(
-       *   "creator-connect-onboarding",
-       *   { body: { return_path: "payouts.html" } }
-       * );
-       *
-       * if (data?.url) {
-       *   window.location.href = data.url;
-       * }
+       * Supabase attaches the authenticated
+       * user's session to the Edge Function
+       * invocation.
        */
 
+      const {
+        data,
+        error
+      } =
+        await client.functions.invoke(
+          "creator-connect-onboarding",
+          {
+            body: {
+
+              origin:
+                window.location.origin,
+
+              return_path:
+                window.location.pathname +
+                window.location.search
+
+            }
+          }
+        );
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      if (!data) {
+
+        throw new Error(
+          "The payout service returned an empty response."
+        );
+
+      }
+
+
+      if (data.error) {
+
+        throw new Error(
+          data.error
+        );
+
+      }
+
+
+      if (
+        !data.onboarding_url
+      ) {
+
+        throw new Error(
+          "No Stripe onboarding URL was returned."
+        );
+
+      }
+
+
+      if (message) {
+
+        message.textContent =
+          "Opening secure payout onboarding…";
+
+      }
+
+
       showNotice(
-        "Secure payout onboarding is not enabled yet. Your Supabase payout dashboard is connected and ready for the server-side Stripe Connect onboarding flow.",
+        "Your secure payout setup is opening now.",
         "success"
       );
 
-    } finally {
 
-      button.disabled = false;
+      /*
+       * Stripe-hosted onboarding.
+       */
 
-      renderStatus();
+      window.location.assign(
+        data.onboarding_url
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "CrowRules payout onboarding:",
+        error
+      );
+
+
+      let messageText =
+        error?.message ||
+        "Unable to start payout onboarding.";
+
+
+      /*
+       * Make the most common Edge Function
+       * configuration problem understandable.
+       */
+
+      if (
+        messageText.includes(
+          "STRIPE_SECRET_KEY_MISSING"
+        )
+      ) {
+
+        messageText =
+          "Stripe payout onboarding is not configured yet. The CrowRules Edge Function needs its server-side Stripe secret configured.";
+
+      }
+
+
+      if (message) {
+
+        message.textContent =
+          "Payout onboarding could not be started.";
+
+      }
+
+
+      showNotice(
+        messageText,
+        "error"
+      );
+
+
+      button.disabled =
+        false;
+
+      button.textContent =
+        originalText;
 
     }
 
   }
 
-  /*
-   * ------------------------------------------------------------
-   * REFRESH
-   * ------------------------------------------------------------
-   */
+
+  /* ============================================================
+     LOAD PAGE
+  ============================================================ */
 
   async function loadPage() {
 
     hideNotice();
 
+
     setConnection(
       "",
-      "Supabase: Loading"
+      "Supabase: Connecting"
     );
+
 
     try {
 
+      /*
+       * Make absolutely sure the client exists.
+       */
+
       if (!client) {
+
         initializeSupabase();
+
       }
+
+
+      /*
+       * Verify the actual authentication session.
+       */
+
+      const {
+        data,
+        error
+      } =
+        await client.auth.getUser();
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      if (!data?.user) {
+
+        const redirect =
+          encodeURIComponent(
+            "payouts.html"
+          );
+
+        window.location.href =
+          "login.html?redirect=" +
+          redirect;
+
+        return;
+
+      }
+
+
+      currentUser =
+        data.user;
+
 
       setConnection(
         "",
-        "Supabase: Connected"
+        "Supabase: Authenticated"
       );
 
-      await requireUser();
 
-      if (!currentUser) {
-        return;
-      }
+      /*
+       * RLS limits these queries to
+       * auth.uid() = user_id.
+       */
 
       await Promise.all([
+
         loadMonetization(),
+
         loadPayouts(),
+
         loadEarnings()
+
       ]);
 
+
       renderStatus();
+
       renderBalances();
+
       renderPayouts();
+
       renderEarnings();
+
 
       setConnection(
         "connected",
         "Supabase: Connected"
       );
+
 
     } catch (error) {
 
@@ -1782,10 +2756,12 @@
         error
       );
 
+
       setConnection(
         "error",
         "Supabase: Error"
       );
+
 
       showNotice(
         error?.message ||
@@ -1793,33 +2769,51 @@
         "error"
       );
 
+
       $("payoutTable").innerHTML = `
+
         <div class="empty">
-          <strong>Unable to load payouts</strong>
+
+          <strong>
+            Unable to load payouts
+          </strong>
+
           Please refresh the page and try again.
+
         </div>
+
       `;
 
+
       $("earningsTable").innerHTML = `
+
         <div class="empty">
-          <strong>Unable to load earnings</strong>
+
+          <strong>
+            Unable to load earnings
+          </strong>
+
           Please refresh the page and try again.
+
         </div>
+
       `;
 
     }
 
   }
 
-  /*
-   * ------------------------------------------------------------
-   * LOGOUT
-   * ------------------------------------------------------------
-   */
+
+  /* ============================================================
+     LOGOUT
+  ============================================================ */
 
   async function logout() {
 
-    if (!client) return;
+    if (!client) {
+      return;
+    }
+
 
     try {
 
@@ -1828,43 +2822,89 @@
     } catch (error) {
 
       console.error(
-        "Logout error:",
+        "CrowRules logout:",
         error
       );
 
     }
+
 
     window.location.href =
       "login.html";
 
   }
 
-  /*
-   * ------------------------------------------------------------
-   * EVENT LISTENERS
-   * ------------------------------------------------------------
-   */
 
-  $("refreshBtn").addEventListener(
-    "click",
-    loadPage
-  );
+  /* ============================================================
+     AUTH STATE
+  ============================================================ */
 
-  $("connectBtn").addEventListener(
-    "click",
-    connectPayouts
-  );
+  function registerAuthListener() {
 
-  $("logoutBtn").addEventListener(
-    "click",
-    logout
-  );
+    if (!client) {
+      return;
+    }
 
-  /*
-   * ------------------------------------------------------------
-   * AUTH STATE
-   * ------------------------------------------------------------
-   */
+
+    client.auth.onAuthStateChange(
+      (event, session) => {
+
+        if (
+          event ===
+          "SIGNED_OUT"
+        ) {
+
+          window.location.href =
+            "login.html?redirect=payouts.html";
+
+          return;
+
+        }
+
+
+        if (
+          session?.user
+        ) {
+
+          currentUser =
+            session.user;
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /* ============================================================
+     EVENTS
+  ============================================================ */
+
+  $("refreshBtn")
+    .addEventListener(
+      "click",
+      loadPage
+    );
+
+
+  $("connectBtn")
+    .addEventListener(
+      "click",
+      connectPayouts
+    );
+
+
+  $("logoutBtn")
+    .addEventListener(
+      "click",
+      logout
+    );
+
+
+  /* ============================================================
+     INITIALIZE
+  ============================================================ */
 
   async function init() {
 
@@ -1872,32 +2912,23 @@
 
       initializeSupabase();
 
-      client.auth.onAuthStateChange(
-        (event, session) => {
-
-          if (event === "SIGNED_OUT") {
-
-            window.location.href =
-              "login.html";
-
-          }
-
-        }
-      );
+      registerAuthListener();
 
       await loadPage();
 
     } catch (error) {
 
       console.error(
-        "CrowRules initialization:",
+        "CrowRules Payouts initialization:",
         error
       );
+
 
       setConnection(
         "error",
         "Supabase: Not Connected"
       );
+
 
       showNotice(
         error?.message ||
@@ -1908,6 +2939,7 @@
     }
 
   }
+
 
   init();
 
