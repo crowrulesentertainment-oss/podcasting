@@ -282,6 +282,18 @@ function creatorNavHistoryTogglePin(index){
   creatorNavHistoryWrite(rows);
   updateCreatorNavHistoryControls();
 }
+function creatorNavHistoryRename(index){
+  const rows=creatorNavHistoryRead(); if(index<0||index>=rows.length)return;
+  const name=window.prompt("Name this snapshot:",rows[index].name||creatorNavHistorySnapshotName(rows[index]));
+  if(name===null)return; const trimmed=name.trim(); if(!trimmed)return;
+  rows[index].name=trimmed.slice(0,100); creatorNavHistoryWrite(rows); updateCreatorNavHistoryControls();
+}
+function creatorNavHistoryGroup(index){
+  const rows=creatorNavHistoryRead(); if(index<0||index>=rows.length)return;
+  const value=window.prompt("Snapshot group (Production, Episodes, Analytics, Publishing, or custom):",rows[index].group||"");
+  if(value===null)return; rows[index].group=value.trim().slice(0,40); creatorNavHistoryWrite(rows); updateCreatorNavHistoryControls();
+}
+function creatorNavHistoryGroupLabel(group){return group||"Uncategorized";}
 
 function creatorNavHistoryRemove(index){
   const rows=creatorNavHistoryRead();
@@ -292,16 +304,17 @@ function creatorNavHistoryRemove(index){
 }
 
 function renderCreatorNavHistoryPanel(){
-  const panel=document.getElementById("creatorNavHistoryPanel");
-  if(!panel)return;
+  const panel=document.getElementById("creatorNavHistoryPanel"); if(!panel)return;
   const rows=creatorNavHistoryRead();
   const ordered=rows.map((entry,index)=>({entry,index})).sort((a,b)=>(b.entry.pinned?1:0)-(a.entry.pinned?1:0)||b.index-a.index);
-  panel.innerHTML=ordered.length?ordered.map(({entry,index})=>{
+  const groups={}; ordered.forEach(item=>{const key=creatorNavHistoryGroupLabel(item.entry.group);(groups[key]||(groups[key]=[])).push(item);});
+  const groupOrder=["Favorites","Production","Episodes","Analytics","Publishing","Uncategorized"];
+  const keys=Object.keys(groups).sort((a,b)=>{const ai=groupOrder.indexOf(a),bi=groupOrder.indexOf(b);return (ai<0?99:ai)-(bi<0?99:bi)||a.localeCompare(b);});
+  panel.innerHTML=ordered.length?keys.map(group=>'<section style="margin-top:14px"><h4 style="margin:0 0 6px">'+esc(group)+'</h4>'+groups[group].map(({entry,index})=>{
     const current=entry.url===creatorNavHistoryUrl();
-    return '<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;margin-top:8px"><div style="min-width:0"><strong>'+(entry.pinned?'★ ':'')+esc(creatorNavHistorySnapshotName(entry))+(current?' · CURRENT':'')+'</strong><div style="font-size:.8rem;opacity:.65;word-break:break-all">'+esc(entry.url)+'</div><div style="font-size:.8rem;opacity:.8;margin-top:4px">STATE: '+esc(creatorNavHistoryStateSummary(entry.state))+'</div></div><div class="actions"><button class="btn" type="button" onclick="creatorNavHistoryOpen('+index+')">OPEN</button><button class="btn" type="button" onclick="creatorNavHistoryTogglePin('+index+')">'+(entry.pinned?'UNPIN':'PIN')+'</button><button class="btn" type="button" onclick="creatorNavHistoryRemove('+index+')">REMOVE</button></div></div>';
-  }).join(""):'<p style="opacity:.7;margin:10px 0">No saved navigation history.</p>';
+    return '<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;margin-top:8px"><div style="min-width:0"><strong>'+(entry.pinned?'★ ':'')+esc(entry.name||creatorNavHistorySnapshotName(entry))+(current?' · CURRENT':'')+'</strong><div style="font-size:.75rem;opacity:.6">'+esc(creatorNavHistorySnapshotName(entry))+'</div><div style="font-size:.8rem;opacity:.65;word-break:break-all">'+esc(entry.url)+'</div><div style="font-size:.8rem;opacity:.8;margin-top:4px">STATE: '+esc(creatorNavHistoryStateSummary(entry.state))+'</div></div><div class="actions"><button class="btn" type="button" onclick="creatorNavHistoryOpen('+index+')">OPEN</button><button class="btn" type="button" onclick="creatorNavHistoryRename('+index+')">RENAME</button><button class="btn" type="button" onclick="creatorNavHistoryGroup('+index+')">GROUP</button><button class="btn" type="button" onclick="creatorNavHistoryTogglePin('+index+')">'+(entry.pinned?'UNPIN':'PIN')+'</button><button class="btn" type="button" onclick="creatorNavHistoryRemove('+index+')">REMOVE</button></div></div>';
+  }).join('')+'</section>').join(''):'<p style="opacity:.7;margin:10px 0">No saved navigation history.</p>';
 }
-
 function updateCreatorNavHistoryControls(){
   const rows=creatorNavHistoryRead();
   const undo=document.getElementById("creatorNavHistoryUndo");
