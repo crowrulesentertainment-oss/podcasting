@@ -207,7 +207,7 @@ export default {
         const {data:p}=await ctx.supabaseAdmin.from("creator_governance_notification_preferences").select("*").eq("user_id",recipient).maybeSingle();
         if(p?.enabled===false||p?.assignments===false)continue;
         await ctx.supabaseAdmin.from("creator_governance_notifications").insert({
-          recipient_user_id:recipient,actor_user_id:userId,type:"assignment",title:"Assignment Changed",
+          recipient_user_id:recipient,actor_user_id:userId,type:"assignment",priority:"NORMAL",action_required:true,title:"Assignment Changed",
           message:`The assignment for ${ch.task_name||ch.task_key} changed.`,collection_id:ch.collection_id,task_key:ch.task_key,
           task_name:ch.task_name,transaction_id:id,payload:{before_owner:ch.before_owner,after_owner:ch.after_owner}
         });
@@ -284,6 +284,32 @@ export default {
       return json({ released: data });
     }
 
+    if (action === "notification-route") {
+      if(!permissions.includes("create"))return json({error:"NOTIFICATION_ROUTING_FORBIDDEN"},403);
+      const recipient=String(body.recipient_user_id??""); const type=String(body.type??"system");
+      if(!recipient)return json({error:"RECIPIENT_REQUIRED"},400);
+      const priority=["CRITICAL","HIGH","NORMAL","LOW"].includes(String(body.priority))?String(body.priority):"NORMAL";
+      const actionRequired=body.action_required!==false;
+      const dedupeKey=body.dedupe_key?String(body.dedupe_key).slice(0,300):null;
+      const {data:p}=await ctx.supabaseAdmin.from("creator_governance_notification_preferences").select("*").eq("user_id",recipient).maybeSingle();
+      const prefKey=type==="handoff"?"handoffs":type==="assignment"?"assignments":type==="lock"?"locks":"system";
+      if(p?.enabled===false||p?.[prefKey]===false||(p?.action_required_only===true&&!actionRequired))return json({routed:false,reason:"PREFERENCE_FILTER"});
+      const now=new Date(); const quiet=p?.quiet_hours_enabled===true&&p.quiet_start&&p.quiet_end;
+      if(quiet&&priority!=="CRITICAL"&&priority!=="HIGH"){
+        const hm=now.toTimeString().slice(0,5),start=String(p.quiet_start).slice(0,5),end=String(p.quiet_end).slice(0,5);
+        const inside=start<=end?(hm>=start&&hm<end):(hm>=start||hm<end); if(inside)return json({routed:false,reason:"QUIET_HOURS"});
+      }
+      if(dedupeKey){const {data:existing}=await ctx.supabaseAdmin.from("creator_governance_notifications").select("id").eq("recipient_user_id",recipient).eq("dedupe_key",dedupeKey).maybeSingle();if(existing)return json({routed:false,reason:"DEDUPED",notification_id:existing.id});}
+      const {data:n,error}=await ctx.supabaseAdmin.from("creator_governance_notifications").insert({
+        recipient_user_id:recipient,actor_user_id:userId,type,priority,action_required,dedupe_key:dedupeKey,group_key:body.group_key?String(body.group_key).slice(0,300):type,
+        title:String(body.title??"Production Notification").slice(0,200),message:String(body.message??"").slice(0,1000),
+        collection_id:body.collection_id??null,task_key:body.task_key??null,task_name:body.task_name??null,transaction_id:body.transaction_id??null,
+        expires_at:body.expires_at??null,payload:body.payload??{}
+      }).select("*").single();
+      if(error)return json({error:error.message},500);
+      await ctx.supabaseAdmin.from("creator_governance_notification_audit").insert({notification_id:n.id,actor_user_id:userId,action:"routed",payload:{priority,action_required}});
+      return json({routed:true,notification:n});
+    }
     if (action === "notifications") {
       const { data, error } = await ctx.supabaseAdmin.from("creator_governance_notifications").select("*")
         .eq("recipient_user_id", userId).order("created_at",{ascending:false}).limit(100);
@@ -325,7 +351,7 @@ export default {
       if(he)return json({error:he.message},500);
       const {data:p}=await ctx.supabaseAdmin.from("creator_governance_notification_preferences").select("*").eq("user_id",toUserId).maybeSingle();
       if(p?.enabled!==false&&p?.handoffs!==false)await ctx.supabaseAdmin.from("creator_governance_notifications").insert({
-        recipient_user_id:toUserId,actor_user_id:userId,type:"handoff",title:"Incoming Handoff",
+        recipient_user_id:toUserId,actor_user_id:userId,type:"handoff",priority:"HIGH",action_required:true,title:"Incoming Handoff",
         message:`A creator requested a handoff for ${String(body.task_name??taskKey)}.`,collection_id:collectionId,task_key:taskKey,
         task_name:String(body.task_name??taskKey),handoff_id:h.id,payload:{note:String(body.note??"")}
       });
@@ -340,7 +366,7 @@ export default {
       if(he)return json({error:he.message},500); if(!h)return json({error:"HANDOFF_NOT_FOUND_OR_ALREADY_RESPONDED"},409);
       const {data:p}=await ctx.supabaseAdmin.from("creator_governance_notification_preferences").select("*").eq("user_id",h.from_user_id).maybeSingle();
       if(p?.enabled!==false&&p?.handoffs!==false)await ctx.supabaseAdmin.from("creator_governance_notifications").insert({
-        recipient_user_id:h.from_user_id,actor_user_id:userId,type:"handoff",title:`Handoff ${status==="ACCEPTED"?"Accepted":"Declined"}`,
+        recipient_user_id:h.from_user_id,actor_user_id:userId,type:"handoff",priority:"HIGH",action_required:true,title:`Handoff ${status==="ACCEPTED"?"Accepted":"Declined"},
         message:`Your handoff request for ${h.task_name||h.task_key} was ${status.toLowerCase()}.`,collection_id:h.collection_id,task_key:h.task_key,
         task_name:h.task_name,handoff_id:h.id,payload:{status}
       });
