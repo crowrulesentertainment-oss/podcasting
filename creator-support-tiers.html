@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05050b">
+<meta name="color-scheme" content="dark">
+<title>Creator Support Tiers | CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+</head>
+<body>
+<div class="site-background" aria-hidden="true"><div class="background-stars"></div><div class="background-grid"></div><div class="background-glow background-glow-one"></div><div class="background-glow background-glow-two"></div></div>
+<header class="site-header"><div class="site-header-inner">
+<a class="brand" href="index.html"><span class="brand-mark">CR</span><span class="brand-text"><span class="brand-name">CROW<span class="glow">RULES</span></span><span class="brand-section">PODCASTING</span></span></a>
+<nav class="main-navigation"><a href="creator-dashboard.html">Studio</a><a href="creator-monetization-hub.html">Monetization</a><a href="creator-support.html">Support</a><a href="creator-revenue.html">Revenue</a><a href="profile.html">Profile</a></nav>
+</div></header>
+<main><section class="section wrap">
+<div class="studioHero">
+<span class="eyebrow">CREATOR STUDIO · SUPPORT TIERS</span>
+<h1>SUPPORT <span class="glow">TIERS</span></h1>
+<p>Design the listener experience before connecting payment processing. These tiers are planning templates and do not create charges or subscriptions.</p>
+<div class="actions"><a class="btn primary" href="creator-monetization-hub.html">MONETIZATION HUB</a><a class="btn" href="creator-support.html">SUPPORT CENTER</a></div>
+</div>
+<div id="gate" class="card" aria-live="polite">Checking your CrowRules account…</div>
+<div id="app" class="hidden">
+<section class="section">
+<div class="section-header"><span class="eyebrow">YOUR SUPPORT MODEL</span><h2>Build the <span class="glow">experience</span></h2><p>Start with benefits and boundaries. Payment amounts can be connected later through verified infrastructure.</p></div>
+<div id="tiers" class="grid"></div>
+</section>
+<section class="section">
+<div class="section-header"><span class="eyebrow">CREATOR CHECKLIST</span><h2>Before you <span class="glow">launch</span></h2></div>
+<div class="card" id="checklist"></div>
+</section>
+<div class="card"><span class="eyebrow">PAYMENT STATUS</span><h3>Planning mode</h3><p class="muted">No payment product, subscription, price, payout, or balance is created by this page. When payments are implemented, the published tier configuration and verified payment records should become the source of truth.</p></div>
+</div>
+</section></main>
+<footer class="site-footer"><div class="site-footer-inner"><div class="footer-brand"><strong>CROWRULES PODCASTING</strong><span>ONE ACCOUNT. ONE UNIVERSE.</span></div><div class="footer-copy">© 2026 CrowRules Entertainment</div></div></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script>
+(async()=>{
+ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const gate=document.getElementById("gate"),app=document.getElementById("app");
+ try{
+  const cfg=window.CrowRulesConfig||{};
+  if(!cfg.supabaseUrl||!cfg.supabaseAnonKey) throw new Error("CrowRules configuration unavailable.");
+  const db=supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
+  const {data:{user}}=await db.auth.getUser();
+  if(!user){gate.innerHTML='<span class="eyebrow">LOGIN REQUIRED</span><h2>Sign in to design your creator support tiers.</h2><a class="btn primary" href="login.html">LOGIN</a>';return;}
+  const cr=await db.from("creators").select("id,name,display_name").eq("user_id",user.id).maybeSingle();
+  if(cr.error) throw cr.error;
+  if(!cr.data){gate.innerHTML='<span class="eyebrow">CREATOR PROFILE REQUIRED</span><h2>Connect a creator profile before designing support tiers.</h2><a class="btn primary" href="creator-dashboard.html">CREATOR STUDIO</a>';return;}
+  const shows=await db.from("podcasts").select("id,title,description").eq("creator_id",cr.data.id);
+  if(shows.error) throw shows.error;
+  const tiers=[
+   {name:"FREE",label:"OPEN COMMUNITY",price:"$0",desc:"Your public listener experience.",benefits:["Public podcast episodes","Public creator profile","Community discovery"],tag:"FOUNDATION"},
+   {name:"SUPPORTER",label:"CORE SUPPORT",price:"PLANNING",desc:"A future supporter experience for listeners who want to help your work continue.",benefits:["Everything in Free","Supporter recognition","Possible bonus updates"],tag:"DESIGN"},
+   {name:"PREMIUM",label:"DEEPER ACCESS",price:"PLANNING",desc:"A future premium experience built around exclusive creator content.",benefits:["Everything in Supporter","Potential premium episodes","Potential behind-the-scenes content"],tag:"DESIGN"}
+  ];
+  gate.classList.add("hidden");app.classList.remove("hidden");
+  document.getElementById("tiers").innerHTML=tiers.map((t,i)=>'<article class="card"><span class="eyebrow">'+esc(t.label)+'</span><h2>'+esc(t.name)+'</h2><div style="font-size:1.35rem;font-weight:700;margin:12px 0">'+esc(t.price)+'</div><p class="muted">'+esc(t.desc)+'</p><ul>'+t.benefits.map(b=>'<li>'+esc(b)+'</li>').join("")+'</ul><span class="pill">'+esc(t.tag)+'</span></article>').join("");
+  const showCount=(shows.data||[]).length;
+  const checks=[
+   ["Creator profile","READY","Authenticated creator profile is connected."],
+   ["Podcast catalog",showCount>0?"READY":"NEEDS WORK",showCount?showCount+" podcast"+(showCount===1?"":"s")+" available for planning.":"Create a podcast before promoting premium benefits."],
+   ["Benefit definitions","READY","Each planning tier has a distinct listener experience."],
+   ["Payment integration","NOT CONNECTED","No payment setup is performed on this page."]
+  ];
+  document.getElementById("checklist").innerHTML=checks.map(c=>'<div style="padding:16px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap"><div><strong>'+esc(c[0])+'</strong><p class="muted">'+esc(c[2])+'</p></div><span class="pill">'+esc(c[1])+'</span></div>').join("");
+ }catch(err){console.error(err);gate.innerHTML='<span class="eyebrow">TIERS UNAVAILABLE</span><h2>Your support-tier workspace could not be loaded.</h2><p>Nothing was written or changed.</p><a class="btn" href="creator-monetization-hub.html">OPEN MONETIZATION HUB</a>';}
+})();
+</script>
+</body>
+</html>
