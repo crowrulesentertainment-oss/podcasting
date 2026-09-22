@@ -460,6 +460,40 @@ let creatorNavRealtimeChannel=null;
 let creatorNavPresenceChannel=null;
 let creatorNavPresenceState={members:{},taskLocks:{},lastEvent:null};
 let creatorNavPresenceStarted=false;
+let creatorNavLockHeartbeatTimer=null;
+
+async function creatorNavServerLockCall(action,payload={}){
+  return creatorNavServerCall(action,payload);
+}
+async function creatorNavServerLocksRefresh(){
+  try{
+    const r=await creatorNavServerLockCall("locks");
+    const locks={};
+    (r?.locks||[]).forEach(x=>{if(Date.parse(x.expires_at)>Date.now())locks[x.collection_id+"::"+x.task_key]={...x,lockKey:x.collection_id+"::"+x.task_key,ownerName:x.owner_name||"Creator",actorId:x.owner_user_id,at:x.claimed_at};});
+    creatorNavPresenceState.taskLocks=locks;
+    creatorNavPresenceRender();
+    return locks;
+  }catch{return creatorNavPresenceState.taskLocks||{};}
+}
+async function creatorNavServerLockClaim(id,key,name){
+  const r=await creatorNavServerLockCall("lock",{collection_id:id,task_key:key,task_name:name});
+  await creatorNavServerLocksRefresh();
+  return r;
+}
+async function creatorNavServerLockHeartbeat(id,key){
+  return creatorNavServerLockCall("heartbeat",{collection_id:id,task_key:key});
+}
+async function creatorNavServerLockRelease(id,key){
+  const r=await creatorNavServerLockCall("unlock",{collection_id:id,task_key:key});
+  await creatorNavServerLocksRefresh();
+  return r;
+}
+async function creatorNavLockHeartbeat(){
+  const me=creatorNavPresenceIdentity();
+  for(const lock of Object.values(creatorNavPresenceState.taskLocks||{})){
+    if(lock.actorId===me.id)await creatorNavServerLockHeartbeat(lock.collection_id||lock.collectionId,lock.task_key||lock.key).catch(()=>{});
+  }
+}
 
 function creatorNavPresenceIdentity(){
   const s=creatorNavServerGovernanceState.context||{};
@@ -500,23 +534,19 @@ function creatorNavPresenceStop(){
   if(creatorNavPresenceChannel&&typeof supabase!=="undefined")supabase.removeChannel(creatorNavPresenceChannel);
   creatorNavPresenceChannel=null;creatorNavPresenceStarted=false;
 }
-function creatorNavPresenceLock(id,key,name){
-  const me=creatorNavPresenceIdentity(),lockKey=id+"::"+key;
-  const current=creatorNavPresenceState.taskLocks[lockKey];
+async function creatorNavPresenceLock(id,key,name){
+  const me=creatorNavPresenceIdentity(),lockKey=id+"::"+key,current=creatorNavPresenceState.taskLocks[lockKey];
   if(current&&current.actorId!==me.id)return {ok:false,owner:current.ownerName||current.actorName};
-  creatorNavPresenceState.taskLocks[lockKey]={lockKey,collectionId:id,key,taskName:name,ownerName:me.name,actorId:me.id,at:new Date().toISOString()};
-  creatorNavPresenceBroadcast("lock",{lockKey,collectionId:id,key,taskName:name,ownerName:me.name});
-  creatorNavPresenceRender();return {ok:true};
+  try{await creatorNavServerLockClaim(id,key,name);creatorNavPresenceBroadcast("lock",{lockKey,collectionId:id,key,taskName:name,ownerName:me.name});return {ok:true};}
+  catch(err){await creatorNavServerLocksRefresh();return {ok:false,owner:"another creator",error:String(err?.message||err)};}
 }
-function creatorNavPresenceUnlock(id,key){
+async function creatorNavPresenceUnlock(id,key){
   const lockKey=id+"::"+key,me=creatorNavPresenceIdentity(),current=creatorNavPresenceState.taskLocks[lockKey];
   if(current&&current.actorId!==me.id)return false;
-  delete creatorNavPresenceState.taskLocks[lockKey];
-  creatorNavPresenceBroadcast("unlock",{lockKey,collectionId:id,key});
-  creatorNavPresenceRender();return true;
+  try{await creatorNavServerLockRelease(id,key);creatorNavPresenceBroadcast("unlock",{lockKey,collectionId:id,key});return true;}catch{return false;}
 }
 function creatorNavPresenceWorking(id,key,name){
-  const lock=creatorNavPresenceLock(id,key,name);if(!lock.ok)return lock;
+  const lock=await creatorNavPresenceLock(id,key,name);if(!lock.ok)return lock;
   if(creatorNavPresenceChannel)creatorNavPresenceChannel.track({id:creatorNavPresenceIdentity().id,name:creatorNavPresenceIdentity().name,state:"working",taskName:name,taskKey:key,collectionId:id,at:new Date().toISOString()});
   return lock;
 }
