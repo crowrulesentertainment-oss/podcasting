@@ -1,3 +1,12 @@
+const CREATOR_NAV_COLLECTIONS_KEY="crowrules_creator_navigation_collections_v1";
+function creatorNavCollectionsRead(){try{const x=JSON.parse(localStorage.getItem(CREATOR_NAV_COLLECTIONS_KEY)||"[]");return Array.isArray(x)?x:[];}catch{return [];}}
+function creatorNavCollectionsWrite(x){try{localStorage.setItem(CREATOR_NAV_COLLECTIONS_KEY,JSON.stringify(x));}catch{}}
+function creatorNavCollectionSelect(index){const rows=creatorNavHistoryRead();if(!rows[index])return;rows[index]._selected=!rows[index]._selected;creatorNavHistoryWrite(rows);updateCreatorNavHistoryControls();}
+function creatorNavCollectionCreate(){const rows=creatorNavHistoryRead(),selected=rows.filter(x=>x._selected);if(!selected.length){alert("Select at least one snapshot first.");return;}const name=prompt("Collection name:");if(!name||!name.trim())return;const cs=creatorNavCollectionsRead();cs.push({id:"c"+Date.now(),name:name.trim().slice(0,80),snapshotUrls:selected.map(x=>x.url),createdAt:new Date().toISOString()});creatorNavCollectionsWrite(cs);rows.forEach(x=>delete x._selected);creatorNavHistoryWrite(rows);updateCreatorNavHistoryControls();}
+function creatorNavCollectionOpen(id){const c=creatorNavCollectionsRead().find(x=>x.id===id);if(!c)return;const rows=creatorNavHistoryRead(),target=c.snapshotUrls.map(u=>rows.find(x=>x.url===u)).find(Boolean);if(!target){alert("No saved snapshots from this collection are available.");return;}try{sessionStorage.setItem("crowrules_creator_nav_restore_v1",JSON.stringify({url:target.url,state:target.state||{}}));}catch{}creatorNavHistoryBusy=true;location.href=target.url;}
+function creatorNavCollectionDelete(id){const cs=creatorNavCollectionsRead(),c=cs.find(x=>x.id===id);if(c&&confirm("Delete collection “"+c.name+"”?")){creatorNavCollectionsWrite(cs.filter(x=>x.id!==id));updateCreatorNavHistoryControls();}}
+function renderCreatorNavCollections(){const p=document.getElementById("creatorNavCollectionsPanel");if(!p)return;const cs=creatorNavCollectionsRead();p.innerHTML=cs.length?cs.map(c=>'<div class="card" style="padding:10px 14px;margin-top:8px"><strong>★ '+esc(c.name)+'</strong><div style="font-size:.8rem;opacity:.7">'+c.snapshotUrls.length+' snapshots</div><button class="btn" type="button" onclick="creatorNavCollectionOpen(\''+c.id+'\')">OPEN</button> <button class="btn" type="button" onclick="creatorNavCollectionDelete(\''+c.id+'\')">DELETE</button></div>').join(""):'<p style="opacity:.7">No collections yet.</p>';}
+function creatorNavCollectionsHost(){let p=document.getElementById("creatorNavCollectionsPanel");if(!p){p=document.createElement("div");p.id="creatorNavCollectionsPanel";const h=document.getElementById("creatorNavHistoryPanel");if(h)h.parentNode.insertBefore(p,h);}renderCreatorNavCollections();}
 function renderCreatorNavHistoryPanel(){
   creatorNavHistoryRenderSearchControls();
   const panel=document.getElementById("creatorNavHistoryPanel"); if(!panel)return;
@@ -16,6 +25,8 @@ function renderCreatorNavHistoryPanel(){
   }).join('')+'</section>').join(''):'<p style="opacity:.7;margin:10px 0">'+(rows.length?'No snapshots match the current search or filters.':'No saved navigation history.')+'</p>';
 }
 function updateCreatorNavHistoryControls(){
+  creatorNavCollectionsHost();
+
   const rows=creatorNavHistoryRead();
   const undo=document.getElementById("creatorNavHistoryUndo");
   const clear=document.getElementById("creatorNavHistoryClear");
