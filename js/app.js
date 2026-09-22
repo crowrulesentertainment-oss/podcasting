@@ -206,6 +206,7 @@ function creatorNavSyncSignatureGet(data){
 }
 async function creatorNavSyncRefresh(){
   if(typeof data==="undefined")return;
+  await creatorNavServerTaskBridgeSync(data);
   const sig=creatorNavSyncSignatureGet(data);if(sig===creatorNavSyncSignature)return;
   creatorNavSyncSignature=sig;creatorNavSyncWrite({updatedAt:new Date().toISOString(),signature:sig});
   renderCalendar?.(14);renderScheduler?.();renderProductionBoard?.();renderAdaptiveSchedule?.();renderProductionControlRoom?.();renderProductionEventStream?.();renderProductionIntelligence?.();renderCreatorPerformanceIntelligence?.();renderIntelligentAssignments?.();renderAutonomousOptimizer?.();renderOptimizationSimulatorPanel?.();renderScenarioWorkspace?.();renderScenarioComparisonMatrix?.();renderScenarioApprovalEngine?.();renderChangeManagement?.();renderProductionTransactionConsole?.();renderTransactionSafety?.();renderTransactionTimeline?.();renderTransactionForensics?.();renderAuditCompliance?.();renderCryptographicGovernance?.();renderIdentityGovernance?.();
