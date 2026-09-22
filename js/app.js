@@ -103,14 +103,17 @@ function creatorNavCreatorHealthIndex(data){
 }
 function creatorNavForecastDashboardRender(){
   const host=document.getElementById("creatorNavForecastDashboard");if(!host)return;
-  const cs=creatorNavCollectionsRead(),data=cs.map(c=>{const f=creatorNavCollectionForecast(c.id),t=creatorNavForecastTrend(c.id,f),a=creatorNavForecastAnalytics(c.id,f,t);return {c,f,t,a};}),index=creatorNavCreatorHealthIndex(data),escText=x=>esc(String(x??""));
-  host.innerHTML='<div class="card" style="padding:14px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">COLLECTION HEALTH FORECAST ANALYTICS</div><h2 style="margin:.25rem 0">CREATOR STUDIO HEALTH INDEX · '+index+'/100</h2><div style="font-size:.84rem;opacity:.75">Composite operational indicator based on forecast status, progress, and trend direction. It is a workflow signal, not a guarantee.</div>'+
-  '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:12px">'+data.map(x=>'<div class="card" style="padding:10px"><b>'+escText(x.c.name)+'</b><div style="font-size:.82rem;margin-top:4px">'+escText(x.f.status)+' · '+escText(x.t.direction)+'</div><div style="font-size:.8rem;margin-top:3px">'+x.f.pct+'% complete · '+x.f.velocity+' pts/day</div><div style="font-size:.8rem;margin-top:3px">Milestones: '+x.a.milestones+'/'+x.a.milestoneTotal+' ('+x.a.milestonePct+'%)</div><div style="font-size:.8rem;margin-top:3px">Forecast accuracy: '+(x.a.accuracy===null?"Building history":x.a.accuracy+"%")+'</div></div>').join("")+'</div>'+
-  '<div style="margin-top:16px"><strong>VELOCITY VS FORECAST</strong>'+data.map(x=>'<div style="margin-top:9px"><b>'+escText(x.c.name)+'</b><div style="font-size:.8rem;margin-top:3px">Actual velocity: '+x.f.velocity+' pts/day · Forecast trajectory: '+(x.f.velocity>0?Math.round((x.f.pct+x.f.velocity*7)*10)/10: x.f.pct)+'% in 7 days</div><div style="height:7px;background:rgba(127,127,127,.2);border-radius:99px;margin-top:4px;overflow:hidden"><div style="height:100%;width:'+Math.max(0,Math.min(100,x.f.pct))+'%;background:currentColor"></div></div></div>').join("")+'</div>'+
-  '<div style="margin-top:16px"><strong>MILESTONE TRAJECTORY</strong>'+data.map(x=>'<div style="font-size:.82rem;margin-top:7px"><b>'+escText(x.c.name)+'</b> · '+x.a.milestones+'/'+x.a.milestoneTotal+' completed · '+x.a.milestonePct+'% milestone coverage</div>').join("")+'</div>'+
-  '<div style="margin-top:16px"><strong>FORECAST ACCURACY</strong>'+data.map(x=>'<div style="font-size:.82rem;margin-top:7px"><b>'+escText(x.c.name)+'</b> · '+(x.a.accuracy===null?"Not enough history yet":x.a.accuracy+"% historical next-point accuracy")+'</div>').join("")+'</div>'+
-  '<div style="margin-top:16px"><strong>HEALTH TREND</strong>'+data.map(x=>'<div style="font-size:.82rem;margin-top:7px"><b>'+escText(x.c.name)+'</b> · '+escText(x.t.direction)+' · '+x.t.change+' pts · velocity change '+x.t.velocityDelta+' pts/day<div style="font-family:monospace;font-size:.78rem;margin-top:3px">'+x.t.history.slice(-12).map(h=>h.status==="AT RISK"?"▾":h.status==="LIKELY TO COMPLETE"?"▴":"•").join(" ")+'</div></div>').join("")+'</div>'+
-  '<div style="margin-top:16px"><strong>RECENT HISTORY</strong>'+data.map(x=>'<div style="font-size:.78rem;margin-top:7px"><b>'+escText(x.c.name)+'</b> · '+x.a.recent.map(h=>escText(h.day)+': '+h.pct+'% / '+h.velocity+' pts/day').join(" · ")+'</div>').join("")+'</div></div>';
+  const cs=creatorNavCollectionsRead(),data=cs.map(c=>{const f=creatorNavCollectionForecast(c.id),t=creatorNavForecastTrend(c.id,f),a=creatorNavForecastAnalytics(c.id,f,t);return {c,f,t,a};}),sum=creatorNavPredictiveSummary(data),index=creatorNavCreatorHealthIndex(data),escText=x=>esc(String(x??""));
+  const fmtEta=d=>d===null?"Unknown":d===0?"Complete":d+" day(s)";
+  host.innerHTML='<div class="card" style="padding:14px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">COLLECTION HEALTH PREDICTIVE ENGINE</div><h2 style="margin:.25rem 0">CREATOR STUDIO HEALTH INDEX · '+index+'/100</h2><div style="font-size:.84rem;opacity:.75">Continuously recalculated from progress, activity history, velocity, milestones, and forecast confidence.</div>'+
+  '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:12px">'+
+  '<div class="card" style="padding:10px"><b>COLLECTIONS</b><div style="font-size:1.2rem;margin-top:4px">'+sum.total+'</div></div><div class="card" style="padding:10px"><b>EARLY WARNINGS</b><div style="font-size:1.2rem;margin-top:4px">'+sum.warning+'</div></div><div class="card" style="padding:10px"><b>AT RISK</b><div style="font-size:1.2rem;margin-top:4px">'+sum.atRisk+'</div></div><div class="card" style="padding:10px"><b>AVG ETA</b><div style="font-size:1.2rem;margin-top:4px">'+fmtEta(sum.avgEta)+'</div></div><div class="card" style="padding:10px"><b>AVG CONFIDENCE</b><div style="font-size:1.2rem;margin-top:4px">'+sum.confidence+'%</div></div></div>'+
+  '<div style="margin-top:16px"><strong>PREDICTIVE FORECASTS</strong>'+data.map(x=>'<div class="card" style="padding:10px;margin-top:8px"><b>'+escText(x.c.name)+'</b><div style="font-size:.82rem;margin-top:4px">'+escText(x.f.status)+' · '+x.f.pct+'% complete · '+x.f.velocity+' pts/day</div><div style="font-size:.8rem;margin-top:3px">Projected completion: <b>'+fmtEta(x.f.eta)+'</b> · Confidence '+x.f.confidence+'%</div><div style="font-size:.8rem;margin-top:3px">Milestone ETA: '+fmtEta(x.f.milestoneEta)+' · '+x.f.milestoneCount+'/'+Math.max(1,x.f.milestoneCount+x.f.milestoneRemaining)+' milestones</div>'+(x.f.earlyWarning?'<div style="margin-top:5px;font-size:.78rem"><b>EARLY WARNING:</b> '+escText(x.f.earlyWarning)+'</div>':'')+'</div>').join("")+'</div>'+
+  '<div style="margin-top:16px"><strong>VELOCITY SCENARIOS</strong>'+data.map(x=>'<div style="margin-top:8px"><b>'+escText(x.c.name)+'</b>'+x.f.scenarios.map(sc=>'<div style="font-size:.78rem;margin-top:3px">'+escText(sc.name)+': '+fmtEta(sc.days)+' at '+Math.round(sc.rate*10)/10+' pts/day</div>').join("")+'</div>').join("")+'</div>'+
+  '<div style="margin-top:16px"><strong>MILESTONE TRAJECTORY</strong>'+data.map(x=>'<div style="font-size:.8rem;margin-top:7px"><b>'+escText(x.c.name)+'</b> · '+x.f.milestoneCount+' complete · '+x.f.milestoneRemaining+' remaining · projected milestone window '+fmtEta(x.f.milestoneEta)+'</div>').join("")+'</div>'+
+  '<div style="margin-top:16px"><strong>FORECAST ACCURACY & TREND</strong>'+data.map(x=>'<div style="font-size:.8rem;margin-top:7px"><b>'+escText(x.c.name)+'</b> · '+(x.a.accuracy===null?"Building history":x.a.accuracy+"% accuracy")+' · '+escText(x.t.direction)+' · '+x.t.change+' pts · velocity change '+x.t.velocityDelta+' pts/day</div>').join("")+'</div>'+
+  '<div style="margin-top:16px"><strong>EARLY-WARNING MONITOR</strong>'+data.map(x=>'<div style="font-size:.8rem;margin-top:7px"><b>'+escText(x.c.name)+'</b> · '+(x.f.earlyWarning?escText(x.f.earlyWarning):"No predictive warning")+' · activity '+x.f.activeDays+' day(s) · forecast confidence '+x.f.confidence+'%</div>').join("")+'</div>'+
+  '<div style="margin-top:16px"><strong>RECENT HISTORY</strong>'+data.map(x=>'<div style="font-size:.76rem;margin-top:7px"><b>'+escText(x.c.name)+'</b> · '+x.t.history.slice(-7).map(h=>escText(h.day)+': '+h.pct+'% / '+h.velocity+' pts/day').join(" · ")+'</div>').join("")+'</div></div>';
 }
 
 function creatorNavForecastTrendRead(){try{return JSON.parse(localStorage.getItem("crowrules_creator_forecast_trends_v1")||"{}");}catch{return {};}}
@@ -132,18 +135,43 @@ function creatorNavForecastTrend(id,f){
 function creatorNavCollectionForecast(id){
   const h=creatorNavCollectionHealth(id);if(!h)return null;
   const events=creatorNavActivityRead().filter(e=>e.collectionId===id);
-  const pct=Number(h.pct)||0,days=Math.max(1,(Date.now()-new Date(h.startedAt||Date.now()).getTime())/86400000);
-  const velocity=pct/days,remaining=Math.max(0,100-pct),eta=velocity>0?Math.ceil(remaining/velocity):null;
-  const activeDays=new Set(events.filter(e=>e.at).map(e=>String(e.at).slice(0,10))).size;
-  const milestoneCount=(h.milestones||[]).filter(m=>m.completedAt).length;
+  const dated=events.filter(e=>e.at).map(e=>new Date(e.at).getTime()).filter(Number.isFinite);
+  const started=h.startedAt&&Number.isFinite(new Date(h.startedAt).getTime())?new Date(h.startedAt).getTime():(dated.length?Math.min(...dated):Date.now());
+  const pct=Math.max(0,Math.min(100,Number(h.pct)||0)),days=Math.max(1,(Date.now()-started)/86400000);
+  const recent=events.filter(e=>e.at&&Date.now()-new Date(e.at).getTime()<=14*86400000);
+  const recentDays=new Set(recent.map(e=>String(e.at).slice(0,10))).size;
+  const velocity=pct/days,activeDays=new Set(events.filter(e=>e.at).map(e=>String(e.at).slice(0,10))).size;
+  const remaining=Math.max(0,100-pct),eta=velocity>0?Math.ceil(remaining/velocity):null;
+  const milestones=h.milestones||[],milestoneCount=milestones.filter(m=>m.completedAt).length;
+  const milestoneRemaining=Math.max(0,milestones.length-milestoneCount);
+  const milestoneEta=milestoneRemaining&&velocity>0?Math.ceil((milestoneRemaining/Math.max(1,milestones.length))*remaining/velocity):0;
+  const baseline=recent.length>=2?Math.max(.1,Math.max(...recent.map(e=>new Date(e.at).getTime()))>=0?velocity:velocity):velocity;
+  const scenarios=[
+    {name:"Conservative",rate:velocity*.6},
+    {name:"Current pace",rate:velocity},
+    {name:"Accelerated",rate:velocity*1.4}
+  ].map(x=>({...x,days:x.rate>0?Math.ceil(remaining/x.rate):null}));
+  const confidence=Math.round(Math.max(15,Math.min(95,(Math.min(1,events.length/10)*35)+(Math.min(1,days/14)*20)+(recentDays/14*25)+(pct>=25?20:0))));
+  let earlyWarning=null;
+  if(pct<25&&days>=5)earlyWarning="LOW PROGRESS";
+  else if(velocity<2&&days>=3)earlyWarning="LOW VELOCITY";
+  else if(recentDays===0&&pct<75)earlyWarning="ACTIVITY GAP";
+  else if(eta!==null&&eta>30)earlyWarning="LONG ETA";
   let status="NEEDS ATTENTION",reason="Insufficient recent completion activity to establish a reliable finish trajectory.";
   if(pct>=100){status="LIKELY TO COMPLETE";reason="Workflow is already complete.";}
   else if(velocity>=8&&activeDays>=2&&pct>=25){status="LIKELY TO COMPLETE";reason="Recent completion velocity indicates steady forward progress.";}
   else if(pct>=50&&velocity>=4){status="LIKELY TO COMPLETE";reason="Progress and completion velocity are currently sustainable.";}
   else if((pct<25&&days>=7)||(velocity===0&&days>=3)){status="AT RISK";reason="Progress is low relative to elapsed workflow time.";}
   else if(activeDays===0||((days>=7)&&(pct<50))){status="NEEDS ATTENTION";reason="The workflow has not maintained enough recent activity.";}
-  return {status,reason,pct,velocity:Math.round(velocity*10)/10,eta,activeDays,milestoneCount,events:events.length};
+  return {status,reason,pct,velocity:Math.round(velocity*10)/10,eta,activeDays,milestoneCount,milestoneRemaining,milestoneEta,events:events.length,startedAt:new Date(started).toISOString(),days:Math.round(days*10)/10,confidence,scenarios,earlyWarning,baselineVelocity:Math.round(baseline*10)/10};
 }
+function creatorNavPredictiveSummary(data){
+  const total=data.length,atRisk=data.filter(x=>x.f.status==="AT RISK").length,warning=data.filter(x=>x.f.earlyWarning).length;
+  const eta=data.filter(x=>x.f.eta!==null).map(x=>x.f.eta),avgEta=eta.length?Math.round(eta.reduce((a,b)=>a+b,0)/eta.length):null;
+  const confidence=total?Math.round(data.reduce((a,x)=>a+x.f.confidence,0)/total):0;
+  return {total,atRisk,warning,avgEta,confidence};
+}
+
 function creatorNavHealthAlertAnalyze(item){
   const now=Date.now(),events=creatorNavActivityRead().filter(e=>e.collectionId===item.c.id&&(e.type==="alert-ack"||e.type==="alert-restore")&&e.meta?.alertType===item.a.type),last=events.length?new Date(events[0].at).getTime():0;
   const age=Math.max(0,Math.floor((now-new Date(item.a.detectedAt||now).getTime())/86400000));
