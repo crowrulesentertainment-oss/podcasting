@@ -170,6 +170,26 @@ function creatorNavApplySchedule(id,key,memberId){creatorNavAssign(id,key,member
 const CREATOR_NAV_EVENTS_KEY="crowrules_creator_production_events_v1";
 function creatorNavEventsRead(){try{const x=JSON.parse(localStorage.getItem(CREATOR_NAV_EVENTS_KEY)||"[]");return Array.isArray(x)?x:[];}catch{return [];}}
 function creatorNavEventsWrite(x){try{localStorage.setItem(CREATOR_NAV_EVENTS_KEY,JSON.stringify(x.slice(-300)));}catch{}}
+const CREATOR_NAV_SYNC_KEY="crowrules_creator_live_sync_v1";
+let creatorNavSyncTimer=null,creatorNavSyncSignature="";
+function creatorNavSyncRead(){try{return JSON.parse(localStorage.getItem(CREATOR_NAV_SYNC_KEY)||"{}");}catch{return {};}}
+function creatorNavSyncWrite(x){try{localStorage.setItem(CREATOR_NAV_SYNC_KEY,JSON.stringify(x));}catch{}}
+function creatorNavSyncSignatureGet(data){
+  const team=creatorNavTeamEnsure().map(m=>({id:m.id,capacity:m.capacity,active:m.active})),events=creatorNavEventsRead();
+  return JSON.stringify({team,events:events.length,last:events.length?events[events.length-1].id:null,data:data.map(x=>({id:x.c.id,target:x.target?.targetDate||null,execution:creatorNavExecutionGet(x.c.id)}))});
+}
+function creatorNavSyncRefresh(){
+  if(typeof data==="undefined")return;
+  const sig=creatorNavSyncSignatureGet(data);if(sig===creatorNavSyncSignature)return;
+  creatorNavSyncSignature=sig;creatorNavSyncWrite({updatedAt:new Date().toISOString(),signature:sig});
+  renderCalendar?.(14);renderScheduler?.();renderProductionBoard?.();renderAdaptiveSchedule?.();renderProductionControlRoom?.();renderProductionEventStream?.();
+}
+function creatorNavSyncStart(){
+  if(creatorNavSyncTimer)return;
+  creatorNavSyncSignature=creatorNavSyncSignatureGet(data);
+  creatorNavSyncTimer=setInterval(creatorNavSyncRefresh,1000);
+  window.addEventListener("storage",e=>{if(e.key===CREATOR_NAV_EVENTS_KEY||e.key===CREATOR_NAV_TEAM_KEY||e.key===CREATOR_NAV_EXECUTION_KEY||e.key===CREATOR_NAV_ROADMAP_KEY)creatorNavSyncRefresh();});
+}
 function creatorNavEvent(type,payload){
   const rows=creatorNavEventsRead(),e={id:"ev"+Date.now()+"_"+Math.random().toString(36).slice(2,7),type:String(type||"change"),at:new Date().toISOString(),...payload};
   rows.push(e);creatorNavEventsWrite(rows);return e;
@@ -343,7 +363,7 @@ function renderScheduler(){
   box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:8px">'+cols.map(c=>'<div class="card" data-board-column="'+escText(c.member.id)+'" style="padding:8px"><b>'+escText(c.member.name)+'</b><small> · '+c.tasks.length+'/'+Number(c.member.capacity||0)+' capacity</small>'+c.tasks.map(t=>'<div draggable="'+(t.dep.state==="READY"?"true":"false")+'" data-board-task="'+escText(t.x.c.id)+'|'+escText(t.st.key)+'" style="padding:7px;margin-top:6px;border:1px solid currentColor;border-radius:6px;cursor:'+(t.dep.state==="READY"?"grab":"not-allowed")+'"><b>'+escText(t.st.name)+'</b><br><small>'+escText(t.x.c.name)+' · '+escText(t.dep.state)+(t.deadline.state!=="ON TIME"?" · ⚠ "+escText(t.deadline.state):"")+' · '+escText(t.date.toISOString().slice(0,10))+'</small></div>').join("")+'</div>').join("")+'</div><div style="font-size:.72rem;opacity:.7;margin-top:6px">Blocked tasks cannot be dragged until their dependency is complete. Deadline conflicts are highlighted.</div><div class="card" style="padding:8px;margin-top:8px"><b>ADAPTIVE SCHEDULE ENGINE</b><div id="creatorNavAdaptiveSchedule"></div></div><div class="card" style="padding:8px;margin-top:8px"><b>OPTIMIZED PRODUCTION SEQUENCE</b>'+creatorNavOptimizedSequence(data).map(o=>'<div style="margin-top:6px"><b>'+escText(o.collection)+'</b>'+ (o.steps.length?o.steps.map((r,n)=>'<div style="font-size:.74rem;margin-top:3px">'+(n+1)+'. '+escText(r.st.name)+' · '+escText(r.owner?.name||"Unassigned")+' · '+escText(r.dep.state)+' · '+escText(r.date.toISOString().slice(0,10))+(r.deadline.state!=="ON TIME"?" · ⚠ "+escText(r.deadline.state):"")+'</div>').join(""):'<div style="font-size:.72rem;opacity:.7">Complete.</div>')+'</div>').join("")+'</div>';
   box.querySelectorAll("[data-board-task][draggable=true]").forEach(el=>el.addEventListener("dragstart",e=>e.dataTransfer.setData("text/plain",el.dataset.boardTask)));
   box.querySelectorAll("[data-board-column]").forEach(el=>el.addEventListener("dragover",e=>e.preventDefault()));
-  box.querySelectorAll("[data-board-column]").forEach(el=>el.addEventListener("drop",e=>{e.preventDefault();const raw=e.dataTransfer.getData("text/plain").split("|"),m=team.find(z=>z.id===el.dataset.boardColumn);if(raw.length!==2||!m)return;const x=data.find(z=>z.c.id===raw[0]),steps=creatorNavRoadmapSteps(x,x.target),i=steps.findIndex(z=>z.key===raw[1]),st=steps[i],dep=creatorNavDependencyStatus(x,st,i);if(st&&!st.done&&dep.state==="READY"){creatorNavBoardMove(raw[0],raw[1],m.id);renderProductionBoard();renderAdaptiveSchedule();renderProductionControlRoom();renderProductionEventStream();renderCalendar(14);renderScheduler();}}));
+  box.querySelectorAll("[data-board-column]").forEach(el=>el.addEventListener("drop",e=>{e.preventDefault();const raw=e.dataTransfer.getData("text/plain").split("|"),m=team.find(z=>z.id===el.dataset.boardColumn);if(raw.length!==2||!m)return;const x=data.find(z=>z.c.id===raw[0]),steps=creatorNavRoadmapSteps(x,x.target),i=steps.findIndex(z=>z.key===raw[1]),st=steps[i],dep=creatorNavDependencyStatus(x,st,i);if(st&&!st.done&&dep.state==="READY"){creatorNavBoardMove(raw[0],raw[1],m.id);renderProductionBoard();renderAdaptiveSchedule();renderProductionControlRoom();renderProductionEventStream();creatorNavSyncStart();renderCalendar(14);renderScheduler();}}));
 }function renderProductionEventStream(){
   const box=document.getElementById("creatorNavLiveEventStream");if(!box)return;
   const rows=creatorNavEventsRead().slice(-30).reverse();
