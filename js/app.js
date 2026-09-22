@@ -24,9 +24,14 @@ function creatorNavCollectionDashboard(id){
   const c=creatorNavCollectionsRead().find(x=>x.id===id);if(!c)return;
   const rows=creatorNavHistoryRead(),targets=c.snapshotUrls.map(u=>rows.find(x=>x.url===u)).filter(Boolean);
   const progress=creatorNavCollectionProgressRead(),states=progress[c.id]||{};
-  const complete=targets.filter(e=>states[e.url]==="complete").length,pct=targets.length?Math.round(complete/targets.length*100):0,m=creatorNavCollectionMilestoneUpdate(c.id,targets);
+  const complete=targets.filter(e=>states[e.url]==="complete").length,pct=targets.length?Math.round(complete/targets.length*100):0,m=creatorNavCollectionMilestoneUpdate(c.id,targets),ai=creatorNavActivityIntelligence(c.id);
   const html='<div class="section wrap"><div class="card" style="padding:16px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">COLLECTION DASHBOARD</div><h2 style="margin:.25rem 0">'+esc(c.name)+'</h2><div>Progress: '+complete+'/'+targets.length+' Complete — '+pct+'%</div><div style="margin-top:12px"><strong>MILESTONES</strong><div style="font-size:.85rem;margin-top:5px">'+m.events.map(e=>esc(e.label)+' · '+creatorNavCollectionMilestoneDate(e.at)).join(' → ')+'</div><div style="font-size:.8rem;opacity:.7;margin-top:5px">Started: '+creatorNavCollectionMilestoneDate(m.startedAt)+' · Completed: '+creatorNavCollectionMilestoneDate(m.completedAt)+'</div></div><div style="height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden;margin:8px 0 14px"><div style="height:100%;width:'+pct+'%;background:currentColor"></div></div>'+targets.map((e,n)=>{const st=states[e.url]||"not-started",name=creatorNavHistorySnapshotName(e);return '<div class="card" style="padding:10px;margin-top:8px;display:flex;justify-content:space-between;gap:10px;align-items:center"><div><strong>'+(n+1)+'. '+esc(name)+'</strong><div style="font-size:.8rem;opacity:.7">'+esc(st.replace("-"," "))+'</div></div><div class="actions"><button class="btn" onclick="creatorNavCollectionRunner(\''+c.id+'\','+n+')">OPEN</button><button class="btn" onclick="creatorNavCollectionDashboardStatus(\''+c.id+'\','+n+',\'complete\')">COMPLETE</button></div></div>';}).join("")+'</div></div>';
   let host=document.getElementById("creatorNavCollectionDashboard");if(!host){host=document.createElement("div");host.id="creatorNavCollectionDashboard";const h=document.getElementById("creatorNavCollectionsPanel");if(h)h.parentNode.insertBefore(host,h);}host.innerHTML=html;
+}
+function creatorNavActivityDashboardFilter(id,filter){
+  const host=document.getElementById("creatorNavActivityList_"+id);if(!host)return;
+  const events=creatorNavActivityFilter(id,filter).slice(0,25);
+  host.innerHTML=events.length?events.map(a=>'<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08)"><div>'+esc(a.message)+'</div><div style="font-size:.75rem;opacity:.65">'+esc(creatorNavActivityDate(a.at))+'</div></div>').join(""):'<div style="opacity:.7">No matching activity.</div>';
 }
 function creatorNavCollectionDashboardStatus(id,index,status){
   const c=creatorNavCollectionsRead().find(x=>x.id===id);if(!c)return;
@@ -50,6 +55,20 @@ const CREATOR_NAV_ACTIVITY_KEY="crowrules_creator_collection_activity_v1";
 function creatorNavActivityRead(){try{const x=JSON.parse(localStorage.getItem(CREATOR_NAV_ACTIVITY_KEY)||"[]");return Array.isArray(x)?x:[];}catch{return [];}}
 function creatorNavActivityWrite(x){try{localStorage.setItem(CREATOR_NAV_ACTIVITY_KEY,JSON.stringify(x.slice(-200)));}catch{}}
 function creatorNavActivityAdd(type,id,message,meta){const x=creatorNavActivityRead();x.push({id:"a"+Date.now(),type,collectionId:id,message,meta:meta||{},at:new Date().toISOString()});creatorNavActivityWrite(x);}
+function creatorNavActivityIntelligence(id){
+  const events=creatorNavActivityFor(id),by={};
+  events.forEach(e=>by[e.type]=(by[e.type]||0)+1);
+  const stamps=events.map(e=>new Date(e.at).getTime()).filter(Number.isFinite);
+  const last=stamps.length?new Date(Math.max(...stamps)).toISOString():null;
+  const completions=events.filter(e=>e.type==="status-change"&&e.meta&&e.meta.status==="complete");
+  const first=completions.length?new Date(completions[completions.length-1].at).getTime():null;
+  const latest=completions.length?new Date(completions[0].at).getTime():null;
+  return {events,counts:by,lastActivity:last,completionEvents:completions.length,completionVelocity:first&&latest&&latest>first?completions.length/((latest-first)/86400000):completions.length};
+}
+function creatorNavActivityFilter(id,filter){
+  const a=creatorNavActivityIntelligence(id);
+  return filter&&filter!=="all"?a.events.filter(e=>e.type===filter):a.events;
+}
 function creatorNavActivityFor(id){return creatorNavActivityRead().filter(x=>x.collectionId===id).sort((a,b)=>new Date(b.at)-new Date(a.at));}
 function creatorNavActivityDate(iso){try{return new Date(iso).toLocaleString([], {dateStyle:"medium",timeStyle:"short"});}catch{return iso;}}
 function creatorNavCollectionProgressRead(){try{return JSON.parse(localStorage.getItem("crowrules_creator_collection_progress_v1")||"{}");}catch{return {};}}
