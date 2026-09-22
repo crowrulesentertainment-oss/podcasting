@@ -398,6 +398,7 @@ function renderScheduler(){
   renderCollaborativeHandoffPanel();
   renderCollaborativeNotificationPreferences();
   renderCollaborativeNotifications();
+  renderEscalationMonitor();
   renderCollaborativeHandoffInbox();renderProductionEventStream();renderProductionIntelligence();renderCreatorPerformanceIntelligence();renderIntelligentAssignments();renderAutonomousOptimizer();renderOptimizationSimulatorPanel();renderScenarioWorkspace();renderScenarioComparisonMatrix();renderScenarioApprovalEngine();renderChangeManagement();creatorNavSyncStart();renderCalendar(14);renderScheduler();}}));
 }function renderProductionEventStream(){
   const box=document.getElementById("creatorNavLiveEventStream");if(!box)return;
@@ -471,6 +472,15 @@ let creatorNavNotificationChannel=null;
 let creatorNavNotifications=[];
 const CREATOR_NAV_NOTIFICATIONS_KEY="crowrules_creator_notifications_v1";
 
+function renderEscalationMonitor(){
+  const id="creatorNavEscalationMonitor";if(document.getElementById(id))return;
+  const target=document.getElementById("creatorNavCollaborativeControlRoom")||document.getElementById("creatorNavCollaborativeNotifications");if(!target)return;
+  const box=document.createElement("div");box.id=id;box.className="card";box.style.cssText="padding:8px;margin-top:8px";
+  const rows=creatorNavServerNotifications||[],critical=rows.filter(n=>n.priority==="CRITICAL"&&!n.read_at),action=rows.filter(n=>n.action_required&&!n.read_at);
+  box.innerHTML='<b>🚨 ESCALATION MONITOR</b><div style="font-size:.72rem;margin-top:5px">CRITICAL '+critical.length+' · ACTION REQUIRED '+action.length+' · SCHEDULER ACTIVE</div>'+
+    (critical.slice(0,5).map(n=>'<div style="margin-top:5px;padding:6px;border:1px solid rgba(255,80,80,.25)"><b>'+escText(n.title)+'</b><div style="font-size:.72rem">'+escText(n.message)+'</div></div>').join("")||'<div style="opacity:.7;font-size:.72rem;margin-top:5px">No active critical escalations.</div>');
+  target.parentNode?.insertBefore(box,target.nextSibling);
+}
 function creatorNavEscalationSummary(){
   const rows=creatorNavServerNotifications||[],a=rows.filter(n=>!n.read_at&&n.action_required);
   return {count:a.length,critical:a.filter(n=>n.priority==="CRITICAL").length};
