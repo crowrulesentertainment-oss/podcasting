@@ -1,464 +1,182 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#05050b">
-  <meta name="color-scheme" content="dark">
-  <meta name="description" content="CrowRules Podcasting launches January 1, 2027. Create podcasts, publish episodes, discover creators, connect with listeners, earn CrowPoints, and be part of One Account. One Universe.">
-  <meta name="robots" content="index,follow">
-  <meta name="author" content="CrowRules Entertainment">
+<script>
+(() => {
+  "use strict";
 
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="CrowRules Podcasting — Launching January 1, 2027">
-  <meta property="og:description" content="Your Voice. Your Story. Your Universe.">
-  <meta property="og:site_name" content="CrowRules Podcasting">
-  <meta property="og:url" content="https://crowrulesentertainment-oss.github.io/podcasting/launch.html">
+  /*
+   * CrowRules Podcasting
+   * Official Launch:
+   * January 1, 2027 — 12:00:00 AM Pacific Time
+   *
+   * January 1, 2027 is Pacific Standard Time (UTC-8).
+   */
+  const LAUNCH_TIMESTAMP =
+    Date.UTC(2027, 0, 1, 8, 0, 0);
 
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="CrowRules Podcasting — January 1, 2027">
-  <meta name="twitter:description" content="Your Voice. Your Story. Your Universe.">
+  const daysEl =
+    document.getElementById("countdown-days");
 
-  <link rel="canonical" href="https://crowrulesentertainment-oss.github.io/podcasting/launch.html">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/podcasting.css">
+  const hoursEl =
+    document.getElementById("countdown-hours");
 
-<style>
-.launch-page{background:#03030a;overflow-x:hidden}
-.launch-background{position:fixed;inset:0;z-index:-20;overflow:hidden;background:radial-gradient(circle at 50% 35%,rgba(34,230,255,.07),transparent 28%),radial-gradient(circle at 15% 20%,rgba(155,92,255,.16),transparent 30%),radial-gradient(circle at 85% 65%,rgba(255,79,216,.1),transparent 28%),#03030a}
-.launch-background::before{content:"";position:absolute;inset:-20%;background:conic-gradient(from 0deg,transparent,rgba(34,230,255,.07),transparent,rgba(155,92,255,.08),transparent);filter:blur(55px);animation:launch-nebula 22s linear infinite}
-.launch-background::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 0%,rgba(3,3,10,.05) 50%,rgba(3,3,10,.45) 100%);pointer-events:none}
-.launch-stars{position:absolute;inset:-30%;background-image:radial-gradient(circle,rgba(255,255,255,.9) 1px,transparent 1.5px),radial-gradient(circle,rgba(34,230,255,.65) 1px,transparent 1.5px);background-size:90px 90px,170px 170px;animation:launch-stars 65s linear infinite;opacity:.25}
-.launch-grid{position:absolute;left:-20%;right:-20%;bottom:-32%;height:72%;background-image:linear-gradient(rgba(34,230,255,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(34,230,255,.1) 1px,transparent 1px);background-size:52px 52px;transform:perspective(520px) rotateX(63deg);transform-origin:center bottom;mask-image:linear-gradient(to top,#000,transparent 82%);animation:launch-grid 7s ease-in-out infinite}
-.launch-glow{position:absolute;width:42vw;height:42vw;border-radius:50%;filter:blur(90px);opacity:.13;animation:launch-glow 12s ease-in-out infinite alternate}
-.launch-glow--one{top:-18%;left:-12%;background:#9b5cff}.launch-glow--two{right:-15%;top:25%;background:#22e6ff;animation-delay:-6s}
-.launch-header{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:25px;padding:15px clamp(20px,5vw,70px);background:rgba(3,3,10,.68);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
-.launch-brand{display:grid;line-height:1;font-family:Orbitron,sans-serif;font-weight:900;letter-spacing:.08em}
-.launch-brand__crow{color:#fff}.launch-brand__rules{color:#22e6ff}.launch-brand small{margin-top:5px;color:#9da1bd;font-size:7px;letter-spacing:.38em}
-.launch-nav{display:flex;align-items:center;gap:20px;font-size:11px;font-weight:700}.launch-nav a{position:relative;color:#9da1bd}.launch-nav a:hover{color:#fff}.launch-nav a::after{content:"";position:absolute;left:0;right:100%;bottom:-6px;height:1px;background:#22e6ff;transition:right .25s}.launch-nav a:hover::after{right:0}
-.launch-nav__join{padding:9px 15px;border:1px solid rgba(34,230,255,.4);border-radius:999px;background:rgba(34,230,255,.06)}
-.launch-hero{position:relative;min-height:calc(100vh - 72px);display:grid;place-items:center;padding:90px 20px 120px;text-align:center;isolation:isolate}
-.launch-hero::before{content:"";position:absolute;width:min(70vw,850px);aspect-ratio:1;border:1px solid rgba(34,230,255,.08);border-radius:50%;box-shadow:0 0 100px rgba(34,230,255,.05),inset 0 0 100px rgba(155,92,255,.04);animation:launch-orbit 18s linear infinite;z-index:-1}
-.launch-hero::after{content:"";position:absolute;width:min(38vw,430px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(34,230,255,.13),transparent 68%);filter:blur(15px);animation:launch-pulse 5s ease-in-out infinite;z-index:-1}
-.launch-eyebrow,.launch-status,.launch-title__small,.launch-title__main,.launch-title__podcasting,.launch-tagline,.launch-description,.launch-date,.countdown,.launch-actions,.launch-note{animation:launch-rise .8s cubic-bezier(.22,1,.36,1) both}
-.launch-eyebrow{animation-delay:.05s}.launch-status{animation-delay:.12s}.launch-title__small{animation-delay:.18s}.launch-title__main{animation-delay:.25s}.launch-title__podcasting{animation-delay:.32s}.launch-tagline{animation-delay:.4s}.launch-description{animation-delay:.46s}.launch-date{animation-delay:.52s}.countdown{animation-delay:.58s}.launch-actions{animation-delay:.64s}.launch-note{animation-delay:.7s}
-.launch-eyebrow__dot{box-shadow:0 0 14px #22e6ff;animation:launch-dot 2s ease-in-out infinite}
-.launch-title__main{display:block;font-family:Orbitron,sans-serif;font-size:clamp(58px,12vw,150px);font-weight:900;letter-spacing:-.06em;text-shadow:0 0 70px rgba(34,230,255,.08);background:linear-gradient(110deg,#fff,#22e6ff,#9b5cff,#ff4fd8,#fff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:launch-rise .8s .25s both,launch-gradient 8s ease-in-out infinite}
-.launch-title__podcasting{display:block;font-family:Orbitron,sans-serif;font-size:clamp(18px,3vw,34px);letter-spacing:.55em;color:#fff;text-shadow:0 0 30px rgba(34,230,255,.25)}
-.launch-tagline{font-family:Orbitron,sans-serif;font-size:clamp(16px,2.4vw,24px);font-weight:700}.launch-tagline span{color:#22e6ff}
-.launch-description{max-width:700px;color:#9da1bd}
-.launch-date{display:inline-grid;gap:5px;padding:13px 22px;border:1px solid rgba(34,230,255,.18);border-radius:999px;background:rgba(10,10,22,.5);box-shadow:0 0 35px rgba(34,230,255,.05)}.launch-date__label{font-size:9px;letter-spacing:.25em;color:#22e6ff}.launch-date strong{font-family:Orbitron,sans-serif}
-.countdown{position:relative;display:flex;align-items:center;justify-content:center;gap:10px}.countdown__unit{position:relative;min-width:110px;padding:20px 16px;border:1px solid rgba(255,255,255,.1);border-radius:18px;background:rgba(10,10,22,.62);backdrop-filter:blur(12px);overflow:hidden}.countdown__unit::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.08),transparent 65%);transform:translateX(-130%);animation:launch-sheen 5s ease-in-out infinite}.countdown__unit strong{display:block;font:800 clamp(28px,5vw,44px)/1 Orbitron,sans-serif;color:#22e6ff;text-shadow:0 0 25px rgba(34,230,255,.2)}.countdown__unit span{font-size:8px;letter-spacing:.2em;color:#9da1bd}.countdown__separator{font:700 24px Orbitron,sans-serif;color:#9b5cff;animation:launch-blink 1.5s ease-in-out infinite}
-.launch-button{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:190px;min-height:55px;padding:11px 20px;border-radius:999px;border:1px solid rgba(255,255,255,.16);font-weight:800;overflow:hidden;transition:transform .25s,box-shadow .25s}.launch-button::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent,rgba(255,255,255,.14),transparent);transform:translateX(-130%)}.launch-button:hover{transform:translateY(-4px);box-shadow:0 18px 45px rgba(0,0,0,.3)}.launch-button:hover::before{animation:launch-sheen .8s ease}.launch-button--primary{border:0;background:linear-gradient(110deg,#22e6ff,#9b5cff,#ff4fd8);background-size:220% 100%;color:#05050b;animation:launch-button-gradient 7s ease infinite}.launch-button small{font-size:7px;letter-spacing:.16em;margin-top:2px;opacity:.7}.launch-note{font-size:10px;color:#6f7391}
-.launch-scroll-hint{position:absolute;bottom:25px;display:grid;gap:5px;color:#6f7391;font:700 8px/1 Orbitron,sans-serif;letter-spacing:.2em;animation:launch-scroll 2s ease-in-out infinite}
-.launch-section{position:relative;padding:110px 5vw}.launch-section--features{background:linear-gradient(180deg,transparent,rgba(10,10,22,.45),transparent)}
-.section-heading{max-width:760px;margin:0 auto 45px;text-align:center}.section-heading>span{color:#22e6ff;font:800 9px Orbitron,sans-serif;letter-spacing:.3em}.section-heading h2{font-size:clamp(28px,5vw,54px)}.section-heading strong{background:linear-gradient(90deg,#22e6ff,#9b5cff,#ff4fd8);-webkit-background-clip:text;background-clip:text;color:transparent}
-.launch-vision-grid,.feature-grid{width:min(1200px,100%);margin:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}.feature-card{position:relative;overflow:hidden;padding:26px;border:1px solid rgba(255,255,255,.08);border-radius:20px;background:linear-gradient(145deg,rgba(18,18,36,.8),rgba(5,5,12,.82));box-shadow:0 15px 50px rgba(0,0,0,.2);transition:transform .35s cubic-bezier(.22,1,.36,1),border-color .35s,box-shadow .35s}.feature-card::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(34,230,255,.08),transparent 35%,rgba(255,79,216,.06));opacity:0;transition:opacity .35s}.feature-card:hover{transform:translateY(-8px);border-color:rgba(34,230,255,.28);box-shadow:0 25px 65px rgba(0,0,0,.35)}.feature-card:hover::before{opacity:1}.feature-card>*{position:relative}.feature-card__number{color:#22e6ff;font:800 10px Orbitron,sans-serif;letter-spacing:.2em;margin-bottom:18px}.feature-card h3{font-size:16px}.feature-card p{font-size:12px}
-.launch-roadmap{width:min(1050px,100%);margin:auto;display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:18px}.roadmap-card{padding:25px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(10,10,22,.7)}.roadmap-card span{display:block;color:#6f7391;font:700 9px Orbitron,sans-serif;letter-spacing:.2em}.roadmap-card strong{display:block;margin:10px 0;font:800 20px Orbitron,sans-serif}.roadmap-card--active{border-color:rgba(34,230,255,.25);box-shadow:0 0 35px rgba(34,230,255,.06)}.roadmap-line{height:1px;width:60px;background:linear-gradient(90deg,#22e6ff,#9b5cff);box-shadow:0 0 12px rgba(34,230,255,.25)}
-.launch-final{position:relative;padding:130px 20px;text-align:center;overflow:hidden;background:radial-gradient(circle at 50% 40%,rgba(155,92,255,.13),transparent 38%)}.launch-final__content{position:relative;z-index:1}.launch-final span{color:#22e6ff;font:800 10px Orbitron,sans-serif;letter-spacing:.3em}.launch-final h2{font-size:clamp(42px,8vw,90px);margin:15px 0}.launch-final .launch-actions{margin-top:30px}
-.launch-footer{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:25px;padding:45px 5vw 60px;border-top:1px solid rgba(255,255,255,.08);color:#6f7391;font-size:10px}.launch-footer>div:first-child{display:grid;text-align:left;gap:5px}.launch-footer strong{font-family:Orbitron,sans-serif;color:#fff}.launch-footer nav{display:flex;gap:18px}.launch-footer a:hover{color:#22e6ff}.launch-footer>div:last-child{text-align:right}
-@keyframes launch-nebula{to{transform:rotate(360deg) scale(1.15)}}
-@keyframes launch-stars{to{transform:translate3d(180px,140px,0)}}
-@keyframes launch-grid{0%,100%{opacity:.18}50%{opacity:.34}}
-@keyframes launch-glow{to{transform:translate3d(4%,6%,0) scale(1.12)}}
-@keyframes launch-orbit{to{transform:rotate(360deg)}}
-@keyframes launch-pulse{0%,100%{transform:scale(.9);opacity:.5}50%{transform:scale(1.1);opacity:1}}
-@keyframes launch-rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
-@keyframes launch-gradient{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
-@keyframes launch-dot{0%,100%{opacity:.5;transform:scale(.85)}50%{opacity:1;transform:scale(1.15)}}
-@keyframes launch-sheen{from{transform:translateX(-130%)}to{transform:translateX(130%)}}
-@keyframes launch-blink{0%,45%,100%{opacity:1}50%{opacity:.25}}
-@keyframes launch-button-gradient{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
-@keyframes launch-scroll{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(7px);opacity:1}}
-@media(max-width:800px){.launch-header{align-items:flex-start;flex-direction:column}.launch-nav{width:100%;overflow-x:auto;padding-bottom:3px}.launch-title__podcasting{letter-spacing:.3em}.countdown{gap:5px}.countdown__unit{min-width:72px;padding:15px 7px}.countdown__separator{font-size:15px}.launch-roadmap{grid-template-columns:1fr;gap:10px}.roadmap-line{width:100%}.launch-footer{grid-template-columns:1fr;text-align:center}.launch-footer>div:first-child,.launch-footer>div:last-child{text-align:center}.launch-footer nav{justify-content:center}}
-@media(prefers-reduced-motion:reduce){.launch-background::before,.launch-stars,.launch-grid,.launch-glow,.launch-hero::before,.launch-hero::after,.launch-eyebrow,.launch-status,.launch-title__small,.launch-title__main,.launch-title__podcasting,.launch-tagline,.launch-description,.launch-date,.countdown,.launch-actions,.launch-note,.countdown__unit::after,.countdown__separator,.launch-button--primary,.launch-scroll-hint{animation:none!important}}
+  const minutesEl =
+    document.getElementById("countdown-minutes");
 
-/* INTERACTION UPGRADE */
-html{scroll-behavior:smooth}.launch-header{transition:background .3s,border-color .3s,box-shadow .3s}.launch-header.is-scrolled{background:rgba(3,3,10,.9);border-bottom-color:rgba(34,230,255,.16);box-shadow:0 10px 35px rgba(0,0,0,.25)}.launch-nav a.is-active{color:#fff}.launch-nav a.is-active::after{right:0}.reveal{opacity:0;transform:translateY(28px);transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1)}.reveal.is-visible{opacity:1;transform:none}.feature-card{--mx:50%;--my:50%}.feature-card::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at var(--mx) var(--my),rgba(34,230,255,.14),transparent 30%);opacity:0;transition:opacity .25s;pointer-events:none}.feature-card:hover::after{opacity:1}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}.launch-header{transition:none}}
-</style>
-  <title>Launch January 1, 2027 | CrowRules Podcasting</title>
+  const secondsEl =
+    document.getElementById("countdown-seconds");
 
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "CrowRules Podcasting",
-    "url": "https://crowrulesentertainment-oss.github.io/podcasting/",
-    "description": "Podcasting inside the CrowRules Universe.",
-    "publisher": {
-      "@type": "Organization",
-      "name": "CrowRules Entertainment"
+  const countdownEl =
+    document.getElementById("countdown");
+
+  const statusEl =
+    document.getElementById("launch-status");
+
+  const yearEl =
+    document.getElementById("current-year");
+
+  let countdownTimer = null;
+
+  function pad(value, length = 2) {
+    return String(value).padStart(length, "0");
+  }
+
+  function setText(element, value) {
+    if (element) {
+      element.textContent = value;
     }
   }
-  </script>
-</head>
 
-<body class="launch-page">
+  function launchIsLive() {
+    setText(daysEl, "000");
+    setText(hoursEl, "00");
+    setText(minutesEl, "00");
+    setText(secondsEl, "00");
 
-  <a class="skip-link" href="#launch-content">Skip to content</a>
+    if (statusEl) {
+      statusEl.innerHTML =
+        '<span aria-hidden="true">●</span> CROWRULES PODCASTING IS LIVE';
+    }
 
-  <div class="launch-background" aria-hidden="true">
-    <div class="launch-stars"></div>
-    <div class="launch-grid"></div>
-    <div class="launch-glow launch-glow--one"></div>
-    <div class="launch-glow launch-glow--two"></div>
-  </div>
+    if (countdownEl) {
+      countdownEl.setAttribute(
+        "aria-label",
+        "CrowRules Podcasting is now live"
+      );
+    }
 
-  <header class="launch-header">
-    <a class="launch-brand" href="./" aria-label="CrowRules Podcasting home">
-      <span class="launch-brand__crow">CROW</span>
-      <span class="launch-brand__rules">RULES</span>
-      <small>PODCASTING</small>
-    </a>
+    document.body.classList.add(
+      "podcasting-launched"
+    );
 
-    <nav class="launch-nav" aria-label="Launch navigation">
-      <a href="#about">About</a>
-      <a href="#features">Features</a>
-      <a href="#timeline">Roadmap</a>
-      <a href="signup.html" class="launch-nav__join">Join</a>
-    </nav>
-  </header>
+    if (countdownTimer) {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+    }
+  }
 
-  <main id="launch-content">
+  function updateCountdown() {
+    const now = Date.now();
 
-    <section class="launch-hero" aria-labelledby="launch-title">
+    const difference =
+      LAUNCH_TIMESTAMP - now;
 
-      <div class="launch-eyebrow">
-        <span class="launch-eyebrow__dot" aria-hidden="true"></span>
-        CROWRULES ENTERTAINMENT
-      </div>
+    /*
+     * Launch moment has arrived.
+     */
+    if (difference <= 0) {
+      launchIsLive();
+      return;
+    }
 
-      <p class="launch-status" id="launch-status" role="status">
-        <span aria-hidden="true">●</span>
-        COUNTDOWN TO LAUNCH
-      </p>
+    /*
+     * Calculate actual remaining time.
+     */
+    const totalSeconds =
+      Math.floor(difference / 1000);
 
-      <h1 id="launch-title">
-        <span class="launch-title__small">THE NEXT VOICE</span>
-        <span class="launch-title__main">CROW<span>RULES</span></span>
-        <span class="launch-title__podcasting">PODCASTING</span>
-      </h1>
+    const days =
+      Math.floor(totalSeconds / 86400);
 
-      <p class="launch-tagline">
-        Your Voice. <span>Your Story.</span> Your Universe.
-      </p>
+    const hours =
+      Math.floor(
+        (totalSeconds % 86400) / 3600
+      );
 
-      <p class="launch-description">
-        A new home for podcast creators, hosts, listeners, stories,
-        conversations, communities, and audio experiences inside the
-        CrowRules Universe.
-      </p>
+    const minutes =
+      Math.floor(
+        (totalSeconds % 3600) / 60
+      );
 
-      <div class="launch-date" aria-label="Official launch date January 1, 2027">
-        <span class="launch-date__label">OFFICIAL LAUNCH</span>
-        <strong>JANUARY 1, 2027</strong>
-      </div>
+    const seconds =
+      totalSeconds % 60;
 
-      <div class="countdown" id="countdown" aria-live="off" aria-label="Time remaining until CrowRules Podcasting launches">
-        <div class="countdown__unit">
-          <strong id="countdown-days">---</strong>
-          <span>DAYS</span>
-        </div>
-        <div class="countdown__separator" aria-hidden="true">:</div>
-        <div class="countdown__unit">
-          <strong id="countdown-hours">--</strong>
-          <span>HOURS</span>
-        </div>
-        <div class="countdown__separator" aria-hidden="true">:</div>
-        <div class="countdown__unit">
-          <strong id="countdown-minutes">--</strong>
-          <span>MINUTES</span>
-        </div>
-        <div class="countdown__separator" aria-hidden="true">:</div>
-        <div class="countdown__unit">
-          <strong id="countdown-seconds">--</strong>
-          <span>SECONDS</span>
-        </div>
-      </div>
+    /*
+     * Update the actual display.
+     */
+    setText(
+      daysEl,
+      pad(days, 3)
+    );
 
-      <div class="launch-actions">
-        <a href="signup.html" class="launch-button launch-button--primary">
-          <span>JOIN CROWRULES</span>
-          <small>CREATE YOUR ACCOUNT</small>
-        </a>
-        <a href="login.html" class="launch-button launch-button--secondary">LOGIN</a>
-      </div>
+    setText(
+      hoursEl,
+      pad(hours)
+    );
 
-      <p class="launch-note">
-        Free to join • One Account. One Universe.
-      </p>
+    setText(
+      minutesEl,
+      pad(minutes)
+    );
 
-      <div class="launch-scroll-hint" aria-hidden="true">
-        <span>EXPLORE THE VISION</span>
-        <span>↓</span>
-      </div>
-    </section>
+    setText(
+      secondsEl,
+      pad(seconds)
+    );
 
-    <section id="about" class="launch-section reveal" aria-labelledby="about-title">
-      <div class="section-heading">
-        <span>THE VISION</span>
-        <h2 id="about-title">Podcasting Inside <strong>One Universe.</strong></h2>
-        <p>
-          CrowRules Podcasting is being built as part of the larger
-          CrowRules Entertainment ecosystem — connecting creators,
-          audiences, stories, and experiences through one membership.
-        </p>
-      </div>
+    /*
+     * Accessibility label.
+     */
+    if (countdownEl) {
+      countdownEl.setAttribute(
+        "aria-label",
+        `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds until CrowRules Podcasting launches`
+      );
+    }
+  }
 
-      <div class="launch-vision-grid">
-        <article class="feature-card">
-          <div class="feature-card__number">01</div>
-          <h3>ONE ACCOUNT</h3>
-          <p>Your CrowRules membership is designed to connect your identity across the growing universe.</p>
-        </article>
+  /*
+   * Current calendar year.
+   */
+  if (yearEl) {
+    yearEl.textContent =
+      new Date().getFullYear();
+  }
 
-        <article class="feature-card">
-          <div class="feature-card__number">02</div>
-          <h3>YOUR PROFILE</h3>
-          <p>Build a creator or listener presence that can grow with your CrowRules journey.</p>
-        </article>
+  /*
+   * Initial calculation.
+   */
+  updateCountdown();
 
-        <article class="feature-card">
-          <div class="feature-card__number">03</div>
-          <h3>YOUR VOICE</h3>
-          <p>Create shows, publish episodes, discover people, and contribute your own stories.</p>
-        </article>
-      </div>
-    </section>
+  /*
+   * Update every second.
+   */
+  countdownTimer =
+    setInterval(
+      updateCountdown,
+      1000
+    );
 
-    <section id="features" class="launch-section reveal launch-section--features" aria-labelledby="features-title">
-      <div class="section-heading">
-        <span>WHAT'S COMING</span>
-        <h2 id="features-title">Built For <strong>Creators &amp; Listeners.</strong></h2>
-      </div>
-
-      <div class="feature-grid">
-        <article class="feature-card">
-          <div class="feature-card__number">01</div>
-          <h3>CREATE</h3>
-          <p>Build your podcast identity and establish your presence inside the CrowRules Universe.</p>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-card__number">02</div>
-          <h3>PUBLISH</h3>
-          <p>Upload and publish episodes while building an ongoing catalog of your work.</p>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-card__number">03</div>
-          <h3>DISCOVER</h3>
-          <p>Explore podcasts, hosts, episodes, featured creators, rankings, and new voices.</p>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-card__number">04</div>
-          <h3>CONNECT</h3>
-          <p>Follow creators, discover community activity, and build your CrowRules network.</p>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-card__number">05</div>
-          <h3>CROWPOINTS</h3>
-          <p>Participate throughout CrowRules and build your CrowPoints presence over time.</p>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-card__number">06</div>
-          <h3>LIVE</h3>
-          <p>Make room for live podcast experiences alongside on-demand episodes and creator content.</p>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-card__number">07</div>
-          <h3>TOP 10</h3>
-          <p>Surface podcast, host, and episode activity through dedicated ranking experiences.</p>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-card__number">08</div>
-          <h3>MY HUB</h3>
-          <p>Bring your profile, follows, activity, notifications, achievements, and listening experience together.</p>
-        </article>
-      </div>
-    </section>
-
-    <section id="timeline" class="launch-section reveal" aria-labelledby="timeline-title">
-      <div class="section-heading">
-        <span>THE ROAD AHEAD</span>
-        <h2 id="timeline-title">From Launch To <strong>Universe.</strong></h2>
-        <p>
-          January 1, 2027 is the public launch point. The platform can
-          continue expanding as CrowRules grows.
-        </p>
-      </div>
-
-      <div class="launch-roadmap">
-        <article class="roadmap-card roadmap-card--active">
-          <span>NOW</span>
-          <strong>BUILD</strong>
-          <p>Accounts, profiles, creator tools, podcast discovery, and the core platform.</p>
-        </article>
-
-        <div class="roadmap-line" aria-hidden="true"></div>
-
-        <article class="roadmap-card">
-          <span>01.01.2027</span>
-          <strong>LAUNCH</strong>
-          <p>CrowRules Podcasting opens its public front door.</p>
-        </article>
-
-        <div class="roadmap-line" aria-hidden="true"></div>
-
-        <article class="roadmap-card">
-          <span>NEXT</span>
-          <strong>GROW</strong>
-          <p>More creators, shows, episodes, live experiences, community features, and connections across CrowRules.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="launch-final reveal" aria-labelledby="final-title">
-      <div class="launch-final__content">
-        <span>JANUARY 1, 2027</span>
-        <h2 id="final-title">Your Voice<br>Starts Here.</h2>
-        <p>Get your CrowRules account ready before launch.</p>
-
-        <div class="launch-actions">
-          <a href="signup.html" class="launch-button launch-button--primary">
-            <span>CREATE YOUR ACCOUNT</span>
-            <small>ONE ACCOUNT. ONE UNIVERSE.</small>
-          </a>
-          <a href="./" class="launch-button launch-button--secondary">EXPLORE HOME</a>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="launch-footer">
-    <div>
-      <strong>CROWRULES PODCASTING</strong>
-      <span>Your Voice. Your Story. Your Universe.</span>
-    </div>
-
-    <nav aria-label="Footer navigation">
-      <a href="./">Home</a>
-      <a href="signup.html">Join</a>
-      <a href="login.html">Login</a>
-    </nav>
-
-    <div>
-      &copy; <span id="current-year"></span> CrowRules Entertainment
-    </div>
-  </footer>
-
-  <script>
-    (() => {
-      "use strict";
-
-      const launchDate = new Date("2027-01-01T00:00:00-08:00").getTime();
-
-      const els = {
-        days: document.getElementById("countdown-days"),
-        hours: document.getElementById("countdown-hours"),
-        minutes: document.getElementById("countdown-minutes"),
-        seconds: document.getElementById("countdown-seconds"),
-        countdown: document.getElementById("countdown"),
-        status: document.getElementById("launch-status"),
-        year: document.getElementById("current-year")
-      };
-
-      const pad = value => String(value).padStart(2, "0");
-
-      function setLiveState() {
-        document.body.classList.add("podcasting-launched");
-
-        if (els.status) {
-          els.status.innerHTML = '<span aria-hidden="true">●</span> CROWRULES PODCASTING IS LIVE';
-        }
-
-        if (els.countdown) {
-          els.countdown.setAttribute("aria-label", "CrowRules Podcasting is now live");
-        }
-
-        if (els.days) els.days.textContent = "000";
-        if (els.hours) els.hours.textContent = "00";
-        if (els.minutes) els.minutes.textContent = "00";
-        if (els.seconds) els.seconds.textContent = "00";
+  /*
+   * Recalculate when the visitor returns
+   * to the browser tab.
+   */
+  document.addEventListener(
+    "visibilitychange",
+    () => {
+      if (!document.hidden) {
+        updateCountdown();
       }
+    }
+  );
 
-      function updateCountdown() {
-        const distance = launchDate - Date.now();
-
-        if (distance <= 0) {
-          setLiveState();
-          return false;
-        }
-
-        const days = Math.floor(distance / 86400000);
-        const hours = Math.floor((distance % 86400000) / 3600000);
-        const minutes = Math.floor((distance % 3600000) / 60000);
-        const seconds = Math.floor((distance % 60000) / 1000);
-
-        if (els.days) els.days.textContent = String(days).padStart(3, "0");
-        if (els.hours) els.hours.textContent = pad(hours);
-        if (els.minutes) els.minutes.textContent = pad(minutes);
-        if (els.seconds) els.seconds.textContent = pad(seconds);
-
-        return true;
-      }
-
-      if (els.year) {
-        els.year.textContent = new Date().getFullYear();
-      }
-
-      if (!updateCountdown()) return;
-
-      const timer = window.setInterval(() => {
-        if (!updateCountdown()) window.clearInterval(timer);
-      }, 1000);
-
-      document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) updateCountdown();
-      });
-
-      const header = document.querySelector(".launch-header");
-      const sections = [...document.querySelectorAll("main section[id]")];
-      const navLinks = [...document.querySelectorAll(".launch-nav a[href^="#"]")];
-      const syncScrollState = () => {
-        header?.classList.toggle("is-scrolled", window.scrollY > 24);
-        const current = sections.reduce((active, section) => window.scrollY + 140 >= section.offsetTop ? section.id : active, "");
-        navLinks.forEach(link => link.classList.toggle("is-active", link.getAttribute("href") === "#" + current));
-      };
-      window.addEventListener("scroll", syncScrollState, { passive: true });
-      syncScrollState();
-
-      const revealItems = document.querySelectorAll(".reveal");
-      if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        const revealObserver = new IntersectionObserver(entries => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) { entry.target.classList.add("is-visible"); revealObserver.unobserve(entry.target); }
-          });
-        }, { threshold: 0.14, rootMargin: "0px 0px -60px" });
-        revealItems.forEach(item => revealObserver.observe(item));
-      } else { revealItems.forEach(item => item.classList.add("is-visible")); }
-
-      document.querySelectorAll(".feature-card").forEach(card => {
-        card.addEventListener("pointermove", event => {
-          const rect = card.getBoundingClientRect();
-          card.style.setProperty("--mx", ((event.clientX - rect.left) / rect.width * 100) + "%");
-          card.style.setProperty("--my", ((event.clientY - rect.top) / rect.height * 100) + "%");
-        });
-      });
-
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        document.documentElement.classList.add("reduced-motion");
-      }
-    })();
-  </script>
-
-</body>
-</html>
+})();
+</script>
