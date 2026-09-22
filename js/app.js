@@ -531,6 +531,7 @@ function creatorNavPresenceStart(){
     });
 }
 function creatorNavPresenceStop(){
+  clearInterval(creatorNavLockHeartbeatTimer);creatorNavLockHeartbeatTimer=null;
   if(creatorNavPresenceChannel&&typeof supabase!=="undefined")supabase.removeChannel(creatorNavPresenceChannel);
   creatorNavPresenceChannel=null;creatorNavPresenceStarted=false;
 }
@@ -566,6 +567,7 @@ function creatorNavRealtimeStart(){
     .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_transactions"},creatorNavRealtimeScheduleRefresh)
     .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_transaction_changes"},creatorNavRealtimeScheduleRefresh)
     .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_audit_ledger"},creatorNavRealtimeScheduleRefresh)
+    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_task_locks"},()=>{creatorNavServerLocksRefresh();creatorNavRealtimeScheduleRefresh();})
     .subscribe(status=>{
       if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){
         creatorNavRealtimeStarted=false;
