@@ -167,6 +167,28 @@ function creatorNavScheduleSuggestions(data){
   return {suggestions,teamLoad:used};
 }
 function creatorNavApplySchedule(id,key,memberId){creatorNavAssign(id,key,memberId);}
+function creatorNavAdaptiveSchedule(data){
+  const team=creatorNavTeamEnsure().filter(m=>m.active!==false),out=[],conflicts=[],now=new Date();now.setHours(0,0,0,0);
+  data.forEach(x=>{
+    const ex=creatorNavExecutionGet(x.c.id),steps=creatorNavRoadmapSteps(x,x.target),rows=[];
+    let cursor=new Date(now);
+    steps.forEach((st,i)=>{
+      if(st.done)return;
+      const dep=creatorNavDependencyStatus(x,st,i),owner=team.find(m=>m.id===ex.assignments?.[st.key])||null;
+      const capacity=owner?Math.max(1,Number(owner.capacity)||1):1;
+      const scheduled=new Date(cursor);scheduled.setDate(scheduled.getDate()+Math.floor(rows.length/capacity));
+      const deadline=x.target?.targetDate?new Date(x.target.targetDate+"T23:59:59"):null;
+      const daysToDeadline=deadline?Math.ceil((deadline-scheduled)/86400000):null;
+      const status=daysToDeadline!==null?(daysToDeadline<0?"OVERDUE":daysToDeadline<=2?"AT RISK":"ON TIME"):"NO DEADLINE";
+      rows.push({key:st.key,name:st.name,owner,date:scheduled,dependency:dep,state:status,daysToDeadline});
+      if(status==="OVERDUE"||status==="AT RISK")conflicts.push({collection:x.c.name,task:st.name,owner:owner?.name||"Unassigned",status,daysToDeadline});
+    });
+    out.push({id:x.c.id,name:x.c.name,rows});
+  });
+  const recovery=conflicts.map(c=>({...c,action:c.status==="OVERDUE"?"Prioritize immediately":"Move ahead of lower-priority work"}));
+  return {collections:out,conflicts,recovery};
+}
+function creatorNavAdaptiveSummary(a){return {tasks:a.collections.reduce((n,c)=>n+c.rows.length,0),conflicts:a.conflicts.length,overdue:a.conflicts.filter(c=>c.status==="OVERDUE").length,recovery:a.recovery.length};}
 function creatorNavScheduleDate(x,step,index){
   const steps=creatorNavRoadmapSteps(x,x.target),prev=index>0?steps[index-1]:null;
   const base=new Date();base.setHours(0,0,0,0);
@@ -304,8 +326,13 @@ function renderScheduler(){
   const box=document.getElementById("creatorNavProductionBoard");if(!box)return;
   const team=creatorNavTeamEnsure().filter(m=>m.active!==false),cols=team.map(m=>({member:m,tasks:[]}));
   data.forEach(x=>{const ex=creatorNavExecutionGet(x.c.id),steps=creatorNavRoadmapSteps(x,x.target);steps.forEach((st,i)=>{if(st.done)return;const mid=ex.assignments?.[st.key],c=cols.find(z=>z.member.id===mid);if(c)c.tasks.push({x,st,i,dep:creatorNavDependencyStatus(x,st,i),date:creatorNavScheduleDate(x,st,i),deadline:creatorNavDeadlineStatus(x,creatorNavScheduleDate(x,st,i))});});});
-  box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:8px">'+cols.map(c=>'<div class="card" data-board-column="'+escText(c.member.id)+'" style="padding:8px"><b>'+escText(c.member.name)+'</b><small> · '+c.tasks.length+'/'+Number(c.member.capacity||0)+' capacity</small>'+c.tasks.map(t=>'<div draggable="'+(t.dep.state==="READY"?"true":"false")+'" data-board-task="'+escText(t.x.c.id)+'|'+escText(t.st.key)+'" style="padding:7px;margin-top:6px;border:1px solid currentColor;border-radius:6px;cursor:'+(t.dep.state==="READY"?"grab":"not-allowed")+'"><b>'+escText(t.st.name)+'</b><br><small>'+escText(t.x.c.name)+' · '+escText(t.dep.state)+(t.deadline.state!=="ON TIME"?" · ⚠ "+escText(t.deadline.state):"")+' · '+escText(t.date.toISOString().slice(0,10))+'</small></div>').join("")+'</div>').join("")+'</div><div style="font-size:.72rem;opacity:.7;margin-top:6px">Blocked tasks cannot be dragged until their dependency is complete. Deadline conflicts are highlighted.</div><div class="card" style="padding:8px;margin-top:8px"><b>OPTIMIZED PRODUCTION SEQUENCE</b>'+creatorNavOptimizedSequence(data).map(o=>'<div style="margin-top:6px"><b>'+escText(o.collection)+'</b>'+ (o.steps.length?o.steps.map((r,n)=>'<div style="font-size:.74rem;margin-top:3px">'+(n+1)+'. '+escText(r.st.name)+' · '+escText(r.owner?.name||"Unassigned")+' · '+escText(r.dep.state)+' · '+escText(r.date.toISOString().slice(0,10))+(r.deadline.state!=="ON TIME"?" · ⚠ "+escText(r.deadline.state):"")+'</div>').join(""):'<div style="font-size:.72rem;opacity:.7">Complete.</div>')+'</div>').join("")+'</div>';
+  box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:8px">'+cols.map(c=>'<div class="card" data-board-column="'+escText(c.member.id)+'" style="padding:8px"><b>'+escText(c.member.name)+'</b><small> · '+c.tasks.length+'/'+Number(c.member.capacity||0)+' capacity</small>'+c.tasks.map(t=>'<div draggable="'+(t.dep.state==="READY"?"true":"false")+'" data-board-task="'+escText(t.x.c.id)+'|'+escText(t.st.key)+'" style="padding:7px;margin-top:6px;border:1px solid currentColor;border-radius:6px;cursor:'+(t.dep.state==="READY"?"grab":"not-allowed")+'"><b>'+escText(t.st.name)+'</b><br><small>'+escText(t.x.c.name)+' · '+escText(t.dep.state)+(t.deadline.state!=="ON TIME"?" · ⚠ "+escText(t.deadline.state):"")+' · '+escText(t.date.toISOString().slice(0,10))+'</small></div>').join("")+'</div>').join("")+'</div><div style="font-size:.72rem;opacity:.7;margin-top:6px">Blocked tasks cannot be dragged until their dependency is complete. Deadline conflicts are highlighted.</div><div class="card" style="padding:8px;margin-top:8px"><b>ADAPTIVE SCHEDULE ENGINE</b><div id="creatorNavAdaptiveSchedule"></div></div><div class="card" style="padding:8px;margin-top:8px"><b>OPTIMIZED PRODUCTION SEQUENCE</b>'+creatorNavOptimizedSequence(data).map(o=>'<div style="margin-top:6px"><b>'+escText(o.collection)+'</b>'+ (o.steps.length?o.steps.map((r,n)=>'<div style="font-size:.74rem;margin-top:3px">'+(n+1)+'. '+escText(r.st.name)+' · '+escText(r.owner?.name||"Unassigned")+' · '+escText(r.dep.state)+' · '+escText(r.date.toISOString().slice(0,10))+(r.deadline.state!=="ON TIME"?" · ⚠ "+escText(r.deadline.state):"")+'</div>').join(""):'<div style="font-size:.72rem;opacity:.7">Complete.</div>')+'</div>').join("")+'</div>';
   box.querySelectorAll("[data-board-task][draggable=true]").forEach(el=>el.addEventListener("dragstart",e=>e.dataTransfer.setData("text/plain",el.dataset.boardTask)));
   box.querySelectorAll("[data-board-column]").forEach(el=>el.addEventListener("dragover",e=>e.preventDefault()));
-  box.querySelectorAll("[data-board-column]").forEach(el=>el.addEventListener("drop",e=>{e.preventDefault();const raw=e.dataTransfer.getData("text/plain").split("|"),m=team.find(z=>z.id===el.dataset.boardColumn);if(raw.length!==2||!m)return;const x=data.find(z=>z.c.id===raw[0]),steps=creatorNavRoadmapSteps(x,x.target),i=steps.findIndex(z=>z.key===raw[1]),st=steps[i],dep=creatorNavDependencyStatus(x,st,i);if(st&&!st.done&&dep.state==="READY"){creatorNavBoardMove(raw[0],raw[1],m.id);renderProductionBoard();renderCalendar(14);renderScheduler();}}));
-};
+  box.querySelectorAll("[data-board-column]").forEach(el=>el.addEventListener("drop",e=>{e.preventDefault();const raw=e.dataTransfer.getData("text/plain").split("|"),m=team.find(z=>z.id===el.dataset.boardColumn);if(raw.length!==2||!m)return;const x=data.find(z=>z.c.id===raw[0]),steps=creatorNavRoadmapSteps(x,x.target),i=steps.findIndex(z=>z.key===raw[1]),st=steps[i],dep=creatorNavDependencyStatus(x,st,i);if(st&&!st.done&&dep.state==="READY"){creatorNavBoardMove(raw[0],raw[1],m.id);renderProductionBoard();renderAdaptiveSchedule();renderCalendar(14);renderScheduler();}}));
+}function renderAdaptiveSchedule(){
+  const box=document.getElementById("creatorNavAdaptiveSchedule");if(!box)return;
+  const a=creatorNavAdaptiveSchedule(data),q=creatorNavAdaptiveSummary(a);
+  box.innerHTML='<div style="font-size:.75rem;margin-top:6px">'+q.tasks+' open tasks · '+q.conflicts+' conflicts · '+q.overdue+' overdue</div>'+ (a.conflicts.length?'<div style="margin-top:6px">'+a.conflicts.slice(0,15).map(c=>'<div style="font-size:.74rem;margin-top:3px">⚠ '+escText(c.collection)+' · '+escText(c.task)+' · '+escText(c.owner)+' · '+escText(c.status)+' · '+escText(c.action)+'</div>').join("")+'</div>':'<div style="font-size:.74rem;opacity:.7;margin-top:5px">No current schedule conflicts.</div>')+'<div style="margin-top:7px"><b>RECOVERY SCHEDULE</b>'+a.collections.map(c=>'<div style="font-size:.74rem;margin-top:3px"><b>'+escText(c.name)+'</b>: '+(c.rows.slice(0,5).map((r,i)=>(i+1)+'. '+escText(r.name)+' → '+r.date.toISOString().slice(0,10)).join(" · ")||"Complete")+'</div>').join("")+'</div>';
+}
+;
