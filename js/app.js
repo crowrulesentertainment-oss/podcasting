@@ -395,7 +395,9 @@ function renderScheduler(){
   box.querySelectorAll("[data-board-column]").forEach(el=>el.addEventListener("dragover",e=>e.preventDefault()));
   box.querySelectorAll("[data-board-column]").forEach(el=>el.addEventListener("drop",e=>{e.preventDefault();const raw=e.dataTransfer.getData("text/plain").split("|"),m=team.find(z=>z.id===el.dataset.boardColumn);if(raw.length!==2||!m)return;const x=data.find(z=>z.c.id===raw[0]),steps=creatorNavRoadmapSteps(x,x.target),i=steps.findIndex(z=>z.key===raw[1]),st=steps[i],dep=creatorNavDependencyStatus(x,st,i);if(st&&!st.done&&dep.state==="READY"){creatorNavBoardMove(raw[0],raw[1],m.id);renderProductionBoard();renderAdaptiveSchedule();renderProductionControlRoom();\n  renderCollaborativeControlRoom();
   renderCollaborativeNotificationsPanel();
-  renderCollaborativeNotifications();renderProductionEventStream();renderProductionIntelligence();renderCreatorPerformanceIntelligence();renderIntelligentAssignments();renderAutonomousOptimizer();renderOptimizationSimulatorPanel();renderScenarioWorkspace();renderScenarioComparisonMatrix();renderScenarioApprovalEngine();renderChangeManagement();creatorNavSyncStart();renderCalendar(14);renderScheduler();}}));
+  renderCollaborativeHandoffPanel();
+  renderCollaborativeNotifications();
+  renderCollaborativeHandoffInbox();renderProductionEventStream();renderProductionIntelligence();renderCreatorPerformanceIntelligence();renderIntelligentAssignments();renderAutonomousOptimizer();renderOptimizationSimulatorPanel();renderScenarioWorkspace();renderScenarioComparisonMatrix();renderScenarioApprovalEngine();renderChangeManagement();creatorNavSyncStart();renderCalendar(14);renderScheduler();}}));
 }function renderProductionEventStream(){
   const box=document.getElementById("creatorNavLiveEventStream");if(!box)return;
   const rows=creatorNavEventsRead().slice(-30).reverse();
@@ -469,6 +471,26 @@ let creatorNavNotifications=[];
 const CREATOR_NAV_NOTIFICATIONS_KEY="crowrules_creator_notifications_v1";
 
 function creatorNavNotificationsRead(){try{const x=JSON.parse(localStorage.getItem(CREATOR_NAV_NOTIFICATIONS_KEY)||"[]");return Array.isArray(x)?x.slice(0,100):[];}catch{return [];}}
+let creatorNavServerNotifications=[];
+let creatorNavNotificationPreferences={enabled:true,handoffs:true,assignments:true,locks:true,system:true};
+async function creatorNavServerNotificationsRefresh(){
+  try{
+    const [n,p,h]=await Promise.all([creatorNavServerCall("notifications"),creatorNavServerCall("preferences"),creatorNavServerCall("handoffs")]);
+    creatorNavServerNotifications=n.notifications||[];creatorNavNotificationPreferences=p.preferences||creatorNavNotificationPreferences;
+    creatorNavHandoffInbox=h.handoffs||[];
+    renderCollaborativeNotifications();renderCollaborativeHandoffInbox();
+    const unread=creatorNavServerNotifications.filter(x=>!x.read_at).length;
+    document.title=unread?"🔔 "+unread+" · CrowRules Podcasting":"CrowRules Podcasting";
+    return creatorNavServerNotifications;
+  }catch{return creatorNavServerNotifications;}
+}
+async function creatorNavServerNotificationRead(id){
+  try{await creatorNavServerCall("notification-read",{notification_id:id});await creatorNavServerNotificationsRefresh();}catch{}
+}
+async function creatorNavServerPreferencesSave(patch){
+  try{const r=await creatorNavServerCall("preferences",patch);creatorNavNotificationPreferences=r.preferences||creatorNavNotificationPreferences;await creatorNavServerNotificationsRefresh();}catch{}
+}
+let creatorNavHandoffInbox=[];
 function creatorNavNotificationsWrite(x){try{localStorage.setItem(CREATOR_NAV_NOTIFICATIONS_KEY,JSON.stringify(x.slice(0,100)));}catch{}}
 function creatorNavNotify(type,title,message,payload={}){
   const n={id:"n"+Date.now()+Math.random().toString(36).slice(2,7),type,title,message,payload,at:new Date().toISOString(),read:false};
@@ -481,10 +503,18 @@ function creatorNavNotificationsMarkRead(id){
 }
 function renderCollaborativeNotifications(){
   const box=document.getElementById("creatorNavCollaborativeNotifications");if(!box)return;
-  const rows=creatorNavNotificationsRead(),unread=rows.filter(n=>!n.read).length;
+  const rows=creatorNavServerNotifications.length?creatorNavServerNotifications:creatorNavNotificationsRead().map(n=>({...n,read_at:n.read?new Date().toISOString():null}));
+  const unread=rows.filter(n=>!n.read_at).length;
   box.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px"><b>🔔 NOTIFICATIONS</b><span>'+unread+' unread</span></div>'+
-    (rows.slice(0,12).map(n=>'<div data-notification-id="'+escText(n.id)+'" style="padding:6px;margin-top:5px;border:1px solid rgba(255,255,255,.08);opacity:'+(n.read?".65":"1")+'"><b>'+escText(n.title)+'</b><div style="font-size:.72rem">'+escText(n.message)+'</div><small>'+escText(new Date(n.at).toLocaleString())+'</small>'+(n.read?"":' <button type="button" data-notification-read="'+escText(n.id)+'">MARK READ</button>')+'</div>').join("")||'<div style="opacity:.7;font-size:.75rem;margin-top:6px">No production notifications yet.</div>');
-  box.querySelectorAll("[data-notification-read]").forEach(b=>b.onclick=()=>creatorNavNotificationsMarkRead(b.dataset.notificationRead));
+    (rows.slice(0,15).map(n=>'<div style="padding:7px;margin-top:5px;border:1px solid rgba(255,255,255,.08);opacity:'+(n.read_at?".65":"1")+'"><b>'+escText(n.title)+'</b><div style="font-size:.72rem">'+escText(n.message)+'</div><small>'+escText(new Date(n.created_at||n.at).toLocaleString())+'</small>'+(n.read_at?"":' <button type="button" data-server-notification-read="'+escText(n.id)+'">MARK READ</button>')+'</div>').join("")||'<div style="opacity:.7;font-size:.75rem;margin-top:6px">No production notifications yet.</div>');
+  box.querySelectorAll("[data-server-notification-read]").forEach(b=>b.onclick=()=>creatorNavServerNotificationRead(b.dataset.serverNotificationRead));
+}
+function renderCollaborativeHandoffInbox(){
+  const box=document.getElementById("creatorNavHandoffInbox");if(!box)return;
+  const pending=creatorNavHandoffInbox.filter(h=>h.status==="PENDING");
+  box.innerHTML='<b>🤝 HANDOFF INBOX</b><span style="margin-left:8px">'+pending.length+' pending</span>'+
+    (pending.map(h=>'<div style="padding:7px;margin-top:5px;border:1px solid rgba(255,255,255,.08)"><b>'+escText(h.task_name||h.task_key)+'</b><div style="font-size:.72rem">'+escText(h.note||"Handoff requested.")+'</div><button type="button" data-handoff-response="ACCEPTED" data-handoff-id="'+escText(h.id)+'">ACCEPT</button> <button type="button" data-handoff-response="DECLINED" data-handoff-id="'+escText(h.id)+'">DECLINE</button></div>').join("")||'<div style="opacity:.7;font-size:.75rem;margin-top:6px">No pending handoffs.</div>');
+  box.querySelectorAll("[data-handoff-response]").forEach(b=>b.onclick=async()=>{try{await creatorNavServerCall("handoff-response",{handoff_id:b.dataset.handoffId,status:b.dataset.handoffResponse});await creatorNavServerNotificationsRefresh();}catch(e){alert(String(e?.message||e));}});
 }
 function creatorNavNotificationFromPresence(p){
   const me=creatorNavPresenceIdentity();
@@ -495,6 +525,15 @@ function creatorNavNotificationFromPresence(p){
   if(p.type==="unlock")creatorNavNotify("release","Task Released",String(p.actorName||"A creator")+" released "+String(p.key||"a task")+".",p);
 }
 function creatorNavNotificationStart(){
+  creatorNavServerNotificationsRefresh();
+  if(creatorNavNotificationChannel||typeof supabase==="undefined"||!supabase?.channel)return;
+  creatorNavNotificationChannel=supabase.channel("crowrules-production-notifications",{config:{broadcast:{ack:true}}})
+    .on("broadcast",{event:"production-presence"},({payload})=>creatorNavNotificationFromPresence(payload))
+    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_notifications"},()=>creatorNavServerNotificationsRefresh())
+    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_handoffs"},()=>creatorNavServerNotificationsRefresh())
+    .subscribe();
+}
+
   if(creatorNavNotificationChannel||typeof supabase==="undefined"||!supabase?.channel)return;
   creatorNavNotificationChannel=supabase.channel("crowrules-production-notifications",{config:{broadcast:{ack:true}}})
     .on("broadcast",{event:"production-presence"},({payload})=>creatorNavNotificationFromPresence(payload))
@@ -1064,6 +1103,12 @@ function renderProductionIntelligence(){
   box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:7px;margin-top:8px">'+[
     ["Completion",p.completion+"%"],["Open Tasks",p.open],["Throughput",p.velocity.toFixed(1)+" pts/day"],["Conflicts",p.conflicts],["Overdue",p.overdue],["Utilization",p.utilization+"%"],["Blocked",p.dependencyBottlenecks],["Recovery",p.recovery]
   ].map(x=>'<div class="card" style="padding:7px"><b>'+escText(String(x[1]))+'</b><small> '+escText(x[0].toUpperCase())+'</small></div>').join("")+'</div><div style="margin-top:10px"><b>CREATOR PERFORMANCE</b>'+p.workload.map(r=>'<div style="font-size:.74rem;margin-top:4px">'+escText(r.member.name)+' · '+r.load+' assigned / '+Number(r.member.capacity||0)+' capacity'+(r.over?' · ⚠ OVER':'')+'</div>').join("")+'</div><div style="margin-top:10px"><b>SCHEDULE HEALTH</b><div style="font-size:.74rem;margin-top:4px">'+(p.conflicts?'Schedule has '+p.conflicts+' active conflict(s), including '+p.overdue+' overdue.':'No active schedule conflicts.')+'</div></div><div style="margin-top:10px"><b>HISTORICAL PRODUCTION TREND</b><div style="display:flex;gap:3px;align-items:flex-end;height:70px;margin-top:6px">'+trend.map(e=>'<span title="'+escText(creatorNavEventTypeLabel(e.type))+'" style="display:block;width:10px;height:'+Math.max(8,Math.min(64,8+((new Date(e.at).getTime()/86400000)%7)*8))+'px;border:1px solid currentColor"></span>').join("")+'</div><small>Recent production-event activity · '+trend.length+' events shown</small></div>';
+}
+function renderCollaborativeHandoffPanel(){
+  if(document.getElementById("creatorNavHandoffInbox"))return;
+  const target=document.getElementById("creatorNavCollaborativeNotifications");if(!target)return;
+  const box=document.createElement("div");box.id="creatorNavHandoffInbox";box.className="card";box.style.cssText="padding:8px;margin-top:8px";target.parentNode?.insertBefore(box,target.nextSibling);
+  renderCollaborativeHandoffInbox();
 }
 function renderCollaborativeNotificationsPanel(){
   const id="creatorNavCollaborativeNotifications";if(document.getElementById(id))return;
