@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CrowRules Podcasting | Sponsorship Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{margin:0;background:#05050b;color:#f7f7ff;font-family:system-ui,sans-serif}main{max-width:1200px;margin:auto;padding:24px}.brand{font-weight:900;letter-spacing:.12em;color:#00e5ff}.hero{padding:50px 0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{background:#10101d;border:1px solid #292941;border-radius:18px;padding:20px}h1{font-size:clamp(36px,6vw,68px);line-height:1;margin:12px 0}h2{color:#00e5ff}input,textarea,select{width:100%;box-sizing:border-box;margin:7px 0 14px;padding:12px;background:#070710;color:#fff;border:1px solid #30304a;border-radius:10px}button{padding:11px 15px;border:0;border-radius:10px;background:linear-gradient(90deg,#00e5ff,#9b5cff);font-weight:800;cursor:pointer}.row{border-top:1px solid #292941;padding:15px 0}.muted{color:#9d9db8}.danger{color:#ff657a}.hidden{display:none}@media(max-width:800px){.grid{grid-template-columns:1fr}}
+</style></head><body><main>
+<div class="brand">CROWRULES PODCASTING</div>
+<section class="hero"><div class="muted">CREATOR STUDIO • ADMIN</div><h1>Sponsorship Command Center</h1><p class="muted">Manage verified sponsorship opportunities and creator applications. Access is controlled by Supabase RLS.</p></section>
+<div id="gate" class="card">Checking administrator access…</div>
+<section id="admin" class="hidden">
+<div class="grid">
+<div class="card"><h2>Create Opportunity</h2><form id="create"><label>Title<input id="title" required></label><label>Sponsor<input id="sponsor" required></label><label>Category<select id="category"><option>Local</option><option>Technology</option><option>Entertainment</option><option>Community</option></select></label><label>Description<textarea id="description"></textarea></label><label>Minimum budget<input id="min" type="number" min="0"></label><label>Maximum budget<input id="max" type="number" min="0"></label><label>Requirements<textarea id="requirements"></textarea></label><button>Create</button></form><p id="createMsg" class="muted"></p></div>
+<div class="card"><h2>Open Opportunities</h2><div id="ops">Loading…</div></div>
+<div class="card"><h2>Applications</h2><div id="apps">Loading…</div></div>
+</div></section></main>
+<script>
+const URL='https://cevylpnoexugwgygvtgu.supabase.co',KEY='sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-',db=supabase.createClient(URL,KEY);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function init(){const {data:{user}}=await db.auth.getUser();if(!user){gate.innerHTML='<span class="danger">Sign in required.</span>';return}const {data:admin}=await db.from('podcast_sponsorship_admins').select('user_id').eq('user_id',user.id).maybeSingle();if(!admin){gate.innerHTML='<span class="danger">Administrator access denied.</span>';return}gate.classList.add('hidden');document.getElementById('admin').classList.remove('hidden');await refresh()}
+async function refresh(){const {data:ops}=await db.from('podcast_sponsorship_opportunities').select('*').order('created_at',{ascending:false});document.getElementById('ops').innerHTML=(ops||[]).map(o=>'<div class="row"><b>'+esc(o.title)+'</b><br><span class="muted">'+esc(o.sponsor_name)+' • '+esc(o.category)+' • '+esc(o.status)+'</span><br><button onclick="toggle(\''+o.id+'\',\''+(o.status==='open'?'closed':'open')+'\')">'+(o.status==='open'?'Close':'Reopen')+'</button></div>').join('')||'<p class="muted">No opportunities.</p>';const {data:apps}=await db.from('podcast_sponsorship_applications').select('id,podcast_name,status,created_at,opportunity_id').order('created_at',{ascending:false});document.getElementById('apps').innerHTML=(apps||[]).map(a=>'<div class="row"><b>'+esc(a.podcast_name)+'</b><br><span class="muted">'+esc(a.status)+'</span><br><button onclick="setStatus(\''+a.id+'\',\'accepted\')">Accept</button> <button onclick="setStatus(\''+a.id+'\',\'declined\')">Decline</button></div>').join('')||'<p class="muted">No applications.</p>'}
+async function toggle(id,status){await db.from('podcast_sponsorship_opportunities').update({status,updated_at:new Date().toISOString()}).eq('id',id);refresh()}
+async function setStatus(id,status){await db.from('podcast_sponsorship_applications').update({status,updated_at:new Date().toISOString()}).eq('id',id);refresh()}
+document.getElementById('create').onsubmit=async e=>{e.preventDefault();const {error}=await db.from('podcast_sponsorship_opportunities').insert({title:title.value.trim(),sponsor_name:sponsor.value.trim(),category:category.value,description:description.value.trim(),budget_min:min.value||null,budget_max:max.value||null,requirements:requirements.value.trim(),status:'open'});createMsg.textContent=error?error.message:'Opportunity created.';if(!error){e.target.reset();refresh()}}
+init();
+</script></body></html>
