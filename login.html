@@ -93,7 +93,7 @@
 <script src="js/config.js"></script>
 <script>
 (function(){
-  const supabase = window.crSupabase;
+  const supabase = window.supabase.createClient(\n    window.CROWRULES_SUPABASE_URL,\n    window.CROWRULES_SUPABASE_PUBLISHABLE_KEY,\n    { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }\n  );
   const form = document.getElementById("login-form");
   const email = document.getElementById("email");
   const password = document.getElementById("password");
