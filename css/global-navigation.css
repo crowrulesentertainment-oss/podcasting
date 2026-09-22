@@ -1,0 +1,17 @@
+/* CrowRules Podcasting — Global Header & Navigation System 3.0 */
+:root{--cr-nav-bg:rgba(5,5,11,.94);--cr-nav-border:rgba(0,229,255,.18);--cr-nav-text:#f4f7ff;--cr-nav-muted:#9aa7bd;--cr-nav-accent:#00e5ff}
+.cr-global-header{position:sticky;top:0;z-index:9000;background:var(--cr-nav-bg);backdrop-filter:blur(16px);border-bottom:1px solid var(--cr-nav-border)}
+.cr-global-inner{max-width:1400px;margin:0 auto;min-height:68px;padding:0 22px;display:flex;align-items:center;gap:20px}
+.cr-global-brand{display:flex;align-items:center;gap:10px;color:var(--cr-nav-text);text-decoration:none;font-weight:800;letter-spacing:.04em;white-space:nowrap}
+.cr-global-brand-mark{width:34px;height:34px;border:1px solid var(--cr-nav-accent);border-radius:10px;display:grid;place-items:center;color:var(--cr-nav-accent);font-size:17px}
+.cr-global-nav{display:flex;align-items:center;gap:4px;flex:1}
+.cr-global-nav a,.cr-global-actions a{color:var(--cr-nav-muted);text-decoration:none;padding:10px 11px;border-radius:10px;font-size:.9rem;font-weight:650}
+.cr-global-nav a:hover,.cr-global-actions a:hover,.cr-global-nav a[aria-current=page]{color:var(--cr-nav-text);background:rgba(0,229,255,.08)}
+.cr-global-actions{display:flex;align-items:center;gap:4px}
+.cr-global-menu{display:none;background:transparent;border:1px solid var(--cr-nav-border);color:var(--cr-nav-text);border-radius:10px;padding:9px 11px;font-size:18px}
+.cr-global-mobile{display:none}
+.cr-global-mobile.open{display:grid;padding:10px 22px 18px;gap:5px;border-top:1px solid rgba(255,255,255,.06)}
+.cr-global-mobile a{color:var(--cr-nav-muted);text-decoration:none;padding:11px 12px;border-radius:10px}
+.cr-global-mobile a:hover,.cr-global-mobile a[aria-current=page]{color:var(--cr-nav-text);background:rgba(0,229,255,.08)}
+@media(max-width:980px){.cr-global-nav{display:none}.cr-global-actions a:not(.cr-profile-link){display:none}.cr-global-menu{display:block;margin-left:auto}}
+@media(max-width:560px){.cr-global-inner{padding:0 14px;min-height:62px}.cr-global-brand{font-size:.9rem}.cr-global-brand-mark{width:30px;height:30px}.cr-global-mobile{padding-left:14px;padding-right:14px}}
