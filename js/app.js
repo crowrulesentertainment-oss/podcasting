@@ -481,7 +481,16 @@ async function creatorNavServerExecute(transactionId){
   return creatorNavServerCall("execute",{transaction_id:transactionId});
 }
 async function creatorNavServerRollback(transactionId){
-  return creatorNavServerCall("rollback",{transaction_id:transactionId});
+  const result=await creatorNavServerCall("rollback",{transaction_id:transactionId});
+  const changes=creatorNavServerGovernanceState.changes.filter(x=>x.transaction_id===transactionId);
+  changes.forEach(ch=>{
+    const all=creatorNavExecutionRead(),x=all[ch.collection_id]||{tasks:{},history:[],streak:0,lastDay:null,assignments:{},handoffs:[]};
+    x.assignments=x.assignments||{};
+    if(ch.before_owner)x.assignments[ch.task_key]=ch.before_owner;else delete x.assignments[ch.task_key];
+    all[ch.collection_id]=x;creatorNavExecutionWrite(all);
+  });
+  await creatorNavServerGovernanceRefresh(true);
+  return result;
 }
 
 async function creatorNavIdentityContext(){
