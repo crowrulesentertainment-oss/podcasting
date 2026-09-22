@@ -127,7 +127,15 @@ function creatorNavScenarioSave(id,name,rate){
 function creatorNavScenarioDelete(id,sid){const all=creatorNavSavedScenariosRead();all[id]=(all[id]||[]).filter(x=>x.id!==sid);creatorNavSavedScenariosWrite(all);}
 function creatorNavExecutionRead(){try{return JSON.parse(localStorage.getItem(CREATOR_NAV_EXECUTION_KEY)||"{}");}catch{return {};}}
 function creatorNavExecutionWrite(x){try{localStorage.setItem(CREATOR_NAV_EXECUTION_KEY,JSON.stringify(x));}catch{}}
-function creatorNavExecutionGet(id){const x=creatorNavExecutionRead();return x[id]||{tasks:{},history:[],streak:0,lastDay:null};}
+function creatorNavExecutionGet(id){
+  const x=creatorNavExecutionRead(),local=x[id]||{tasks:{},history:[],streak:0,lastDay:null,assignments:{},handoffs:[]};
+  const serverRows=(creatorNavServerGovernanceState?.assignments||[]).filter(a=>a.collection_id===id);
+  if(serverRows.length){
+    local.assignments={...(local.assignments||{})};
+    serverRows.forEach(a=>{if(a.owner_key)local.assignments[a.task_key]=a.owner_key;else delete local.assignments[a.task_key];});
+  }
+  return local;
+}
 function creatorNavExecutionToggle(id,key,done,name){
   const all=creatorNavExecutionRead(),x=all[id]||{tasks:{},history:[],streak:0,lastDay:null};
   x.tasks[key]=!!done;x.history=x.history||[];x.history.push({key,name,done:!!done,at:new Date().toISOString()});creatorNavEvent(done?"completion":"task-reopened",{collectionId:id,key,name,done:!!done});x.history=x.history.slice(-100);
@@ -142,7 +150,20 @@ function creatorNavTodayPlan(x,target){
 function creatorNavTeamRead(){try{const x=JSON.parse(localStorage.getItem(CREATOR_NAV_TEAM_KEY)||"[]");return Array.isArray(x)?x:[];}catch{return [];}}
 function creatorNavTeamWrite(x){try{localStorage.setItem(CREATOR_NAV_TEAM_KEY,JSON.stringify(x.slice(0,50)));}catch{}}
 function creatorNavTeamEnsure(){let t=creatorNavTeamRead();if(!t.length){t=[{id:"me",name:"Me",capacity:4,active:true}];creatorNavTeamWrite(t);}return t;}
-function creatorNavAssign(id,key,memberId){const all=creatorNavExecutionRead(),x=all[id]||{tasks:{},history:[],streak:0,lastDay:null,assignments:{},handoffs:[]};x.assignments=x.assignments||{};x.assignments[key]=memberId;x.history=x.history||[];x.history.push({type:"assignment",key,memberId,at:new Date().toISOString()});creatorNavEvent("assignment",{collectionId:id,key,memberId});x.history=x.history.slice(-100);all[id]=x;creatorNavExecutionWrite(all);}
+function creatorNavAssign(id,key,memberId){
+  const serverRows=creatorNavServerGovernanceState?.assignments||[],serverRow=serverRows.find(a=>a.collection_id===id&&a.task_key===key);
+  if(creatorNavServerGovernanceState?.context?.role){
+    creatorNavServerGovernanceBusy=true;
+    creatorNavServerCall("create",{scenario_id:"direct-assignment",metadata:{source:"7.8-board-assignment"},changes:[{collection_id:id,task_key:key,task_name:key,before_owner:serverRow?.owner_key||null,after_owner:String(memberId||"")}]})
+      .then(tx=>creatorNavServerCall("transition",{transaction_id:tx.transaction.id,status:"REVIEW"}))
+      .then(()=>creatorNavServerGovernanceRefresh(true))
+      .catch(err=>alert("Production assignment requires server governance: "+String(err?.message||err)))
+      .finally(()=>{creatorNavServerGovernanceBusy=false;});
+    return;
+  }
+  const all=creatorNavExecutionRead(),x=all[id]||{tasks:{},history:[],streak:0,lastDay:null,assignments:{},handoffs:[]};
+  x.assignments=x.assignments||{};x.assignments[key]=memberId;x.history=x.history||[];x.history.push({type:"assignment",key,memberId,at:new Date().toISOString()});creatorNavEvent("assignment",{collectionId:id,key,memberId});x.history=x.history.slice(-100);all[id]=x;creatorNavExecutionWrite(all);
+}
 function creatorNavHandoff(id,key,from,to){const all=creatorNavExecutionRead(),x=all[id]||{tasks:{},history:[],streak:0,lastDay:null,assignments:{},handoffs:[]};x.handoffs=x.handoffs||[];x.handoffs.push({key,from,to,at:new Date().toISOString()});x.history=x.history||[];x.history.push({type:"handoff",key,from,to,at:new Date().toISOString()});x.history=x.history.slice(-100);all[id]=x;creatorNavExecutionWrite(all);}
 function creatorNavTeamMemberSave(id,name,role,capacity,active=true){const t=creatorNavTeamEnsure();const i=t.findIndex(m=>m.id===id);const m={id:id||("m"+Date.now()),name:String(name||"Creator").trim()||"Creator",role:String(role||"Creator").trim()||"Creator",capacity:Math.max(0,Number(capacity)||0),active:active!==false};if(i<0)t.push(m);else t[i]={...t[i],...m};creatorNavTeamWrite(t);creatorNavEvent("capacity-change",{memberId:m.id,name:m.name,capacity:m.capacity,active:m.active});return m;}
 function creatorNavTeamMemberDelete(id){let t=creatorNavTeamEnsure();if(t.length<=1)return;t=t.filter(m=>m.id!==id);creatorNavTeamWrite(t);}
@@ -175,19 +196,21 @@ let creatorNavSyncTimer=null,creatorNavSyncSignature="";
 function creatorNavSyncRead(){try{return JSON.parse(localStorage.getItem(CREATOR_NAV_SYNC_KEY)||"{}");}catch{return {};}}
 function creatorNavSyncWrite(x){try{localStorage.setItem(CREATOR_NAV_SYNC_KEY,JSON.stringify(x));}catch{}}
 function creatorNavSyncSignatureGet(data){
-  const team=creatorNavTeamEnsure().map(m=>({id:m.id,capacity:m.capacity,active:m.active})),events=creatorNavEventsRead();
-  return JSON.stringify({team,events:events.length,last:events.length?events[events.length-1].id:null,data:data.map(x=>({id:x.c.id,target:x.target?.targetDate||null,execution:creatorNavExecutionGet(x.c.id)}))});
+  const team=creatorNavTeamEnsure().map(m=>({id:m.id,capacity:m.capacity,active:m.active})),events=creatorNavEventsRead(),server=creatorNavServerGovernanceState||{};
+  return JSON.stringify({team,events:events.length,last:events.length?events[events.length-1].id:null,serverTransactions:(server.transactions||[]).map(t=>({id:t.id,status:t.status,updated_at:t.updated_at})),serverAssignments:(server.assignments||[]).map(a=>({collection_id:a.collection_id,task_key:a.task_key,owner_key:a.owner_key,updated_at:a.updated_at})),data:data.map(x=>({id:x.c.id,target:x.target?.targetDate||null,execution:creatorNavExecutionGet(x.c.id)}))});
 }
-function creatorNavSyncRefresh(){
+async function creatorNavSyncRefresh(){
   if(typeof data==="undefined")return;
+  await creatorNavServerGovernanceRefresh();
   const sig=creatorNavSyncSignatureGet(data);if(sig===creatorNavSyncSignature)return;
   creatorNavSyncSignature=sig;creatorNavSyncWrite({updatedAt:new Date().toISOString(),signature:sig});
   renderCalendar?.(14);renderScheduler?.();renderProductionBoard?.();renderAdaptiveSchedule?.();renderProductionControlRoom?.();renderProductionEventStream?.();renderProductionIntelligence?.();renderCreatorPerformanceIntelligence?.();renderIntelligentAssignments?.();renderAutonomousOptimizer?.();renderOptimizationSimulatorPanel?.();renderScenarioWorkspace?.();renderScenarioComparisonMatrix?.();renderScenarioApprovalEngine?.();renderChangeManagement?.();renderProductionTransactionConsole?.();renderTransactionSafety?.();renderTransactionTimeline?.();renderTransactionForensics?.();renderAuditCompliance?.();renderCryptographicGovernance?.();renderIdentityGovernance?.();
 }
 function creatorNavSyncStart(){
   if(creatorNavSyncTimer)return;
-  creatorNavSyncSignature=creatorNavSyncSignatureGet(data);
-  creatorNavSyncTimer=setInterval(creatorNavSyncRefresh,1000);
+  creatorNavSyncSignature="";
+  creatorNavSyncRefresh();
+  creatorNavSyncTimer=setInterval(creatorNavSyncRefresh,5000);
   window.addEventListener("storage",e=>{if(e.key===CREATOR_NAV_EVENTS_KEY||e.key===CREATOR_NAV_TEAM_KEY||e.key===CREATOR_NAV_EXECUTION_KEY||e.key===CREATOR_NAV_ROADMAP_KEY)creatorNavSyncRefresh();});
 }
 function creatorNavEvent(type,payload){
