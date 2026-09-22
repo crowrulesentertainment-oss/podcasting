@@ -3,10 +3,43 @@ function creatorNavCollectionsRead(){try{const x=JSON.parse(localStorage.getItem
 function creatorNavCollectionsWrite(x){try{localStorage.setItem(CREATOR_NAV_COLLECTIONS_KEY,JSON.stringify(x));}catch{}}
 function creatorNavCollectionSelect(index){const rows=creatorNavHistoryRead();if(!rows[index])return;rows[index]._selected=!rows[index]._selected;creatorNavHistoryWrite(rows);updateCreatorNavHistoryControls();}
 function creatorNavCollectionCreate(){const rows=creatorNavHistoryRead(),selected=rows.filter(x=>x._selected);if(!selected.length){alert("Select at least one snapshot first.");return;}const name=prompt("Collection name:");if(!name||!name.trim())return;const cs=creatorNavCollectionsRead();cs.push({id:"c"+Date.now(),name:name.trim().slice(0,80),snapshotUrls:selected.map(x=>x.url),createdAt:new Date().toISOString()});creatorNavCollectionsWrite(cs);rows.forEach(x=>delete x._selected);creatorNavHistoryWrite(rows);updateCreatorNavHistoryControls();}
-function creatorNavCollectionOpen(id){const c=creatorNavCollectionsRead().find(x=>x.id===id);if(!c)return;const rows=creatorNavHistoryRead(),target=c.snapshotUrls.map(u=>rows.find(x=>x.url===u)).find(Boolean);if(!target){alert("No saved snapshots from this collection are available.");return;}try{sessionStorage.setItem("crowrules_creator_nav_restore_v1",JSON.stringify({url:target.url,state:target.state||{}}));}catch{}creatorNavHistoryBusy=true;location.href=target.url;}
+function creatorNavCollectionOpen(id){
+  const c=creatorNavCollectionsRead().find(x=>x.id===id);if(!c)return;
+  const rows=creatorNavHistoryRead(),targets=c.snapshotUrls.map(u=>rows.find(x=>x.url===u)).filter(Boolean);
+  if(!targets.length){alert("No saved snapshots from this collection are available.");return;}
+  const target=targets[0];
+  try{sessionStorage.setItem("crowrules_creator_collection_runner_v1",JSON.stringify({collectionId:id,index:0}));sessionStorage.setItem("crowrules_creator_nav_restore_v1",JSON.stringify({url:target.url,state:target.state||{}}));}catch{}
+  creatorNavHistoryBusy=true;location.href=target.url;
+}
+function creatorNavCollectionRunner(id,index){
+  const c=creatorNavCollectionsRead().find(x=>x.id===id);if(!c)return;
+  const rows=creatorNavHistoryRead(),targets=c.snapshotUrls.map(u=>rows.find(x=>x.url===u)).filter(Boolean);
+  if(!targets.length){alert("No saved snapshots from this collection are available.");return;}
+  const next=Math.max(0,Math.min(Number(index)||0,targets.length-1)),target=targets[next];
+  try{sessionStorage.setItem("crowrules_creator_collection_runner_v1",JSON.stringify({collectionId:id,index:next}));sessionStorage.setItem("crowrules_creator_nav_restore_v1",JSON.stringify({url:target.url,state:target.state||{}}));}catch{}
+  creatorNavHistoryBusy=true;location.href=target.url;
+}
+function creatorNavCollectionRunnerRead(){
+  try{return JSON.parse(sessionStorage.getItem("crowrules_creator_collection_runner_v1")||"null");}catch{return null;}
+}
+function creatorNavCollectionRunnerClear(){try{sessionStorage.removeItem("crowrules_creator_collection_runner_v1");}catch{}}
+function creatorNavCollectionRunnerRender(){
+  const host=document.getElementById("creatorNavCollectionRunner");if(!host)return;
+  const run=creatorNavCollectionRunnerRead();if(!run){host.innerHTML="";return;}
+  const c=creatorNavCollectionsRead().find(x=>x.id===run.collectionId);if(!c){creatorNavCollectionRunnerClear();host.innerHTML="";return;}
+  const rows=creatorNavHistoryRead(),targets=c.snapshotUrls.map(u=>rows.find(x=>x.url===u)).filter(Boolean);
+  if(!targets.length){creatorNavCollectionRunnerClear();host.innerHTML="";return;}
+  const idx=Math.max(0,Math.min(Number(run.index)||0,targets.length-1)),entry=targets[idx];
+  const name=creatorNavHistorySnapshotName(entry);
+  const prev=idx>0?' <button class="btn" type="button" onclick="creatorNavCollectionRunner(\''+c.id+'\','+(idx-1)+')">← PREVIOUS</button>':'';
+  const next=idx<targets.length-1?' <button class="btn" type="button" onclick="creatorNavCollectionRunner(\''+c.id+'\','+(idx+1)+')">NEXT →</button>':'';
+  host.innerHTML='<div class="card" style="padding:12px 14px;margin-bottom:10px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">COLLECTION WORKFLOW</div><strong>'+esc(c.name)+'</strong><div style="margin-top:4px">Step '+(idx+1)+' of '+targets.length+' — '+esc(name)+'</div><div class="actions" style="margin-top:8px">'+prev+next+' <button class="btn" type="button" onclick="creatorNavCollectionRunnerClear();creatorNavCollectionRunnerRender()">EXIT</button></div></div>';
+}
+
 function creatorNavCollectionDelete(id){const cs=creatorNavCollectionsRead(),c=cs.find(x=>x.id===id);if(c&&confirm("Delete collection “"+c.name+"”?")){creatorNavCollectionsWrite(cs.filter(x=>x.id!==id));updateCreatorNavHistoryControls();}}
 function renderCreatorNavCollections(){const p=document.getElementById("creatorNavCollectionsPanel");if(!p)return;const cs=creatorNavCollectionsRead();p.innerHTML=cs.length?cs.map(c=>'<div class="card" style="padding:10px 14px;margin-top:8px"><strong>★ '+esc(c.name)+'</strong><div style="font-size:.8rem;opacity:.7">'+c.snapshotUrls.length+' snapshots</div><button class="btn" type="button" onclick="creatorNavCollectionOpen(\''+c.id+'\')">OPEN</button> <button class="btn" type="button" onclick="creatorNavCollectionDelete(\''+c.id+'\')">DELETE</button></div>').join(""):'<p style="opacity:.7">No collections yet.</p>';}
-function creatorNavCollectionsHost(){let p=document.getElementById("creatorNavCollectionsPanel");if(!p){p=document.createElement("div");p.id="creatorNavCollectionsPanel";const h=document.getElementById("creatorNavHistoryPanel");if(h)h.parentNode.insertBefore(p,h);}renderCreatorNavCollections();}
+function creatorNavCollectionsHost(){let p=document.getElementById("creatorNavCollectionsPanel");if(!p){p=document.createElement("div");p.id="creatorNavCollectionsPanel";const h=document.getElementById("creatorNavHistoryPanel");if(h)h.parentNode.insertBefore(p,h);}renderCreatorNavCollections();
+  let runner=document.getElementById("creatorNavCollectionRunner");if(!runner){runner=document.createElement("div");runner.id="creatorNavCollectionRunner";const h=document.getElementById("creatorNavHistoryPanel");if(h)h.parentNode.insertBefore(runner,h);}creatorNavCollectionRunnerRender();}
 function renderCreatorNavHistoryPanel(){
   creatorNavHistoryRenderSearchControls();
   const panel=document.getElementById("creatorNavHistoryPanel"); if(!panel)return;
@@ -38,6 +71,7 @@ function updateCreatorNavHistoryControls(){
 }
 
 function initCreatorNavHistory(){
+  creatorNavCollectionRunnerRender();
   creatorNavHistoryRecord(creatorNavHistoryUrl(),creatorNavHistoryCaptureState());
   creatorNavHistoryRestorePending();
   setTimeout(()=>{
