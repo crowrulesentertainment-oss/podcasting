@@ -236,9 +236,43 @@ function creatorNavHistoryLabel(url){
   }catch{return url}
 }
 
+function creatorNavHistoryFieldLabel(key){
+  const labels={
+    status:"Status",statuses:"Status",search:"Search",query:"Search",sort:"Sort",sortBy:"Sort",
+    filter:"Filter",view:"View",tab:"Tab",page:"Page",date:"Date",dateFrom:"From",dateTo:"To",
+    range:"Range",category:"Category",type:"Type"
+  };
+  const normalized=String(key||"").replace(/^.*[._-]/,"");
+  if(labels[normalized])return labels[normalized];
+  return normalized.replace(/([a-z])([A-Z])/g,"$1 $2").replace(/[_-]+/g," ").replace(/\b\w/g,m=>m.toUpperCase());
+}
+
+function creatorNavHistoryDisplayValue(key,value){
+  if(value===true)return "On";
+  if(value===false)return "Off";
+  const raw=String(value);
+  if(/^sort/i.test(key)){
+    const sortLabels={"newest":"Newest","newest-first":"Newest","oldest":"Oldest","oldest-first":"Oldest","asc":"Ascending","desc":"Descending"};
+    return sortLabels[raw.toLowerCase()]||raw;
+  }
+  return raw;
+}
+
+function creatorNavHistorySnapshotName(entry){
+  const base=creatorNavHistoryLabel(entry.url);
+  const state=entry.state||{};
+  const parts=[];
+  Object.entries(state).forEach(([key,item])=>{
+    if(!item||item.value===undefined||item.value==="")return;
+    const label=creatorNavHistoryFieldLabel(key);
+    parts.push(label+": "+creatorNavHistoryDisplayValue(key,item.value));
+  });
+  return parts.length?base+" · "+parts.slice(0,4).join(" · ")+(parts.length>4?" · …":""):base+" · Default View";
+}
+
 function creatorNavHistoryStateSummary(state){
-  const values=Object.values(state||{}).map(x=>x&&x.value).filter(v=>v!==undefined&&v!=="");
-  return values.length?values.slice(0,3).map(v=>String(v)).join(" · ")+(values.length>3?" …":""):"Default view";
+  const entries=Object.entries(state||{}).filter(([,item])=>item&&item.value!==undefined&&item.value!=="");
+  return entries.length?entries.slice(0,4).map(([key,item])=>creatorNavHistoryFieldLabel(key)+": "+creatorNavHistoryDisplayValue(key,item.value)).join(" · ")+(entries.length>4?" · …":""):"Default view";
 }
 
 function creatorNavHistoryRemove(index){
@@ -255,7 +289,7 @@ function renderCreatorNavHistoryPanel(){
   const rows=creatorNavHistoryRead();
   panel.innerHTML=rows.length?rows.slice().reverse().map((entry,i)=>{
     const index=rows.length-1-i;
-    return '<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;margin-top:8px"><div style="min-width:0"><strong>'+esc(creatorNavHistoryLabel(entry.url))+'</strong><div style="font-size:.8rem;opacity:.65;word-break:break-all">'+esc(entry.url)+(i===0?' · CURRENT':'')+'</div><div style="font-size:.8rem;opacity:.8;margin-top:4px">STATE: '+esc(creatorNavHistoryStateSummary(entry.state))+'</div></div><div class="actions"><button class="btn" type="button" onclick="creatorNavHistoryOpen('+index+')">OPEN</button><button class="btn" type="button" onclick="creatorNavHistoryRemove('+index+')">REMOVE</button></div></div>';
+    return '<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;margin-top:8px"><div style="min-width:0"><strong>'+esc(creatorNavHistorySnapshotName(entry))+(i===0?' · CURRENT':'')+'</strong><div style="font-size:.8rem;opacity:.65;word-break:break-all">'+esc(entry.url)+'</div><div style="font-size:.8rem;opacity:.8;margin-top:4px">STATE: '+esc(creatorNavHistoryStateSummary(entry.state))+'</div></div><div class="actions"><button class="btn" type="button" onclick="creatorNavHistoryOpen('+index+')">OPEN</button><button class="btn" type="button" onclick="creatorNavHistoryRemove('+index+')">REMOVE</button></div></div>';
   }).join(""):'<p style="opacity:.7;margin:10px 0">No saved navigation history.</p>';
 }
 
