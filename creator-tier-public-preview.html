@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050b"><meta name="color-scheme" content="dark"><title>Public Support Preview | CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"></head>
+<body>
+<div class="site-background" aria-hidden="true"><div class="background-stars"></div><div class="background-grid"></div><div class="background-glow background-glow-one"></div><div class="background-glow background-glow-two"></div></div>
+<header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html"><span class="brand-mark">CR</span><span class="brand-text"><span class="brand-name">CROW<span class="glow">RULES</span></span><span class="brand-section">PODCASTING</span></span></a><nav class="main-navigation"><a href="creator-tier-publishing-center.html">Publishing</a><a href="creator-support-tier-manager.html">Tier Manager</a><a href="creator-monetization-hub.html">Monetization</a><a href="profile.html">Profile</a></nav></div></header>
+<main><section class="section wrap">
+<div class="studioHero"><span class="eyebrow">CREATOR STUDIO · PUBLIC PREVIEW</span><h1>YOUR SUPPORT <span class="glow">PAGE</span></h1><p>Review exactly what your published support experience can communicate to listeners before a future payment layer is connected.</p><div class="actions"><a class="btn" href="creator-tier-publishing-center.html">BACK TO PUBLISHING</a><a class="btn primary" href="creator-support-tier-editor.html">EDIT TIERS</a></div></div>
+<div id="state" class="card">Loading preview…</div><div id="preview" class="hidden"></div>
+</section></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script>
+<script>
+(async()=>{
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const state=document.getElementById("state"),preview=document.getElementById("preview");
+try{
+const cfg=window.CrowRulesConfig||{};if(!cfg.supabaseUrl||!cfg.supabaseAnonKey)throw Error("Missing config");
+const db=supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
+const {data:{user}}=await db.auth.getUser();
+if(!user){state.innerHTML='<span class="eyebrow">LOGIN REQUIRED</span><h2>Sign in to preview your published support page.</h2><a class="btn primary" href="login.html">LOGIN</a>';return;}
+const cr=await db.from("creators").select("id,name,display_name").eq("user_id",user.id).maybeSingle();
+if(cr.error)throw cr.error;if(!cr.data){state.innerHTML='<h2>Creator profile required.</h2><a class="btn" href="creator-dashboard.html">CREATOR STUDIO</a>';return;}
+const q=await db.from("creator_support_tiers").select("id,tier_name,label,description,benefits,visibility,featured,sort_order").eq("creator_id",cr.data.id).eq("visibility","public").order("sort_order",{ascending:true,nullsFirst:false});
+if(q.error){state.innerHTML='<h2>Preview unavailable</h2><p class="muted">The support-tier table is not connected or permitted for this account. Nothing was changed.</p>';return;}
+const tiers=q.data||[];state.classList.add("hidden");preview.classList.remove("hidden");
+preview.innerHTML='<section class="section"><div class="section-header"><span class="eyebrow">LISTENER-FACING PREVIEW</span><h2>Support '+esc(cr.data.display_name||cr.data.name||"this creator")+'</h2><p>Published tier presentation only. Payment activation is not part of this preview.</p></div><div class="grid">'+(tiers.length?tiers.map(t=>'<article class="card">'+(t.featured?'<span class="eyebrow">FEATURED</span>':'<span class="eyebrow">SUPPORT TIER</span>')+'<h2>'+esc(t.tier_name)+'</h2>'+(t.label?'<p><strong>'+esc(t.label)+'</strong></p>':'')+'<p class="muted">'+esc(t.description||"")+'</p><ul>'+((t.benefits||[]).map(b=>'<li>'+esc(b)+'</li>').join("")||'<li>Benefits coming soon.</li>')+'</ul><div class="actions"><button class="btn" type="button" disabled>SUPPORT — PAYMENT NOT CONNECTED</button></div></article>').join(""):'<article class="card"><h2>No published tiers</h2><p class="muted">Publish a tier from the Creator Tier Publishing Center.</p></article>')+'</div></section>';
+}catch(e){console.error(e);state.innerHTML='<span class="eyebrow">PREVIEW ERROR</span><h2>Unable to load the public preview.</h2><p>Nothing was written or changed.</p>';}
+})();
+</script></body></html>
