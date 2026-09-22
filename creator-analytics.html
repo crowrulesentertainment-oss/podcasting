@@ -80,6 +80,11 @@ if(largestPayment) insightItems.push("Largest verified payment: "+money(String(l
 if(uniqueSupporters) insightItems.push(uniqueSupporters+" identified supporter"+(uniqueSupporters===1?"":"s")+" in this view.");
 if(repeatSupporters) insightItems.push(repeatSupporters+" supporter"+(repeatSupporters===1?"":"s")+" returned with more than one verified payment.");
 if(missingTier||missingCurrency||invalidAmount) insightItems.push("Data quality review is recommended for "+qualityIssues+" paid record"+(qualityIssues===1?"":"s")+".");
+if(previous.length){
+const countChange=count-previous.length;
+insightItems.push("Payment count changed by "+(countChange>=0?"+":"")+countChange+" versus the comparison period.");
+}
+if(customActive) insightItems.push("Custom comparison window: "+customFrom+" through "+customTo+".");
 document.getElementById("insights").innerHTML='<span class="eyebrow">CREATOR INSIGHTS</span><h3>What changed in this view</h3><p class="muted">Descriptive summaries only; no future-income or performance predictions.</p><div style="display:flex;gap:18px;flex-wrap:wrap">'+(insightItems.length?insightItems.map(x=>'<span>'+esc(x)+'</span>').join(""):"<span>No additional insights yet.</span>")+'</div>';
 const month={};rows.forEach(x=>{const d=new Date(x.created_at),k=d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0"),cur=String(x.currency||"USD").toUpperCase();if(!month[k])month[k]={};month[k][cur]=(month[k][cur]||0)+(Number(x.amount_total)||0);});
 const monthKeys=Object.keys(month).sort().reverse();
