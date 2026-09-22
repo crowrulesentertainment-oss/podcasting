@@ -1,1 +1,175 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login | CrowRules</title><link rel="stylesheet" href="css/podcasting.css"></head><body><div id="app"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script><script src="js/app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#05050b">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Sign in to CrowRules Podcasting — One Account. One Universe.">
+  <meta property="og:title" content="Login | CrowRules Podcasting">
+  <meta property="og:description" content="Return to your CrowRules Podcasting universe.">
+  <meta property="og:type" content="website">
+  <link rel="canonical" href="https://crowrulesentertainment-oss.github.io/podcasting/login.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/podcasting.css">
+  <title>Login | CrowRules Podcasting</title>
+  <style>
+    .auth-page{min-height:100vh;display:flex;flex-direction:column}
+    .auth-header{position:relative;z-index:5;padding:22px 5vw;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(3,3,8,.72);backdrop-filter:blur(18px)}
+    .auth-brand{font-family:Orbitron,sans-serif;font-weight:800;letter-spacing:.08em;color:#fff;text-decoration:none}
+    .auth-brand span{opacity:.65}
+    .auth-main{flex:1;display:grid;place-items:center;padding:70px 20px}
+    .auth-card{width:min(100%,520px);padding:clamp(26px,5vw,48px);border:1px solid rgba(255,255,255,.12);border-radius:24px;background:linear-gradient(145deg,rgba(17,17,28,.92),rgba(5,5,12,.92));box-shadow:0 30px 90px rgba(0,0,0,.45)}
+    .auth-card h1{margin:.25rem 0 .5rem;font-family:Orbitron,sans-serif}
+    .auth-sub{color:rgba(255,255,255,.68);line-height:1.7}
+    .auth-divider{display:flex;align-items:center;gap:12px;margin:22px 0;color:rgba(255,255,255,.4);font-size:.75rem;letter-spacing:.14em}
+    .auth-divider:before,.auth-divider:after{content:"";height:1px;flex:1;background:rgba(255,255,255,.1)}
+    .auth-status{display:none;margin:14px 0;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);line-height:1.5}
+    .auth-status.show{display:block}
+    .auth-status.error{border-color:rgba(255,80,110,.35)}
+    .auth-status.success{border-color:rgba(80,255,190,.3)}
+    .auth-google{width:100%;display:flex;justify-content:center;align-items:center;gap:10px}
+    .auth-google svg{width:18px;height:18px}
+    .auth-links{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:18px}
+    .auth-links a{color:rgba(255,255,255,.75)}
+    .auth-footer{text-align:center;padding:25px;color:rgba(255,255,255,.45);font-size:.8rem}
+    .auth-loading{opacity:.7;pointer-events:none}
+  </style>
+</head>
+<body>
+<div class="auth-page">
+  <header class="auth-header">
+    <a class="auth-brand" href="index.html">CROWRULES <span>· PODCASTING</span></a>
+  </header>
+
+  <main class="auth-main">
+    <section class="auth-card" aria-labelledby="login-title">
+      <span class="eyebrow">UNIVERSAL CROWRULES MEMBERSHIP</span>
+      <h1 id="login-title">WELCOME BACK</h1>
+      <p class="auth-sub">One Account. One Universe.<br>Sign in to continue to CrowRules Podcasting.</p>
+
+      <div id="auth-status" class="auth-status" role="status" aria-live="polite"></div>
+
+      <button id="google-login" class="btn primary auth-google" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.35 12.27c0-.72-.06-1.41-.18-2.07H12v3.92h5.24a4.48 4.48 0 0 1-1.94 2.94v2.44h3.14c1.84-1.69 2.91-4.18 2.91-7.23Z"/><path fill="currentColor" d="M12 21.8c2.63 0 4.84-.87 6.45-2.35l-3.14-2.44c-.87.58-1.98.92-3.31.92-2.54 0-4.69-1.72-5.46-4.03H3.3v2.51A9.75 9.75 0 0 0 12 21.8Z"/><path fill="currentColor" d="M6.54 13.9A5.86 5.86 0 0 1 6.23 12c0-.66.11-1.3.31-1.9V7.59H3.3A9.75 9.75 0 0 0 2.25 12c0 1.58.38 3.08 1.05 4.41l3.24-2.51Z"/><path fill="currentColor" d="M12 6.07c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.84 3.16 14.63 2.2 12 2.2a9.75 9.75 0 0 0-8.7 5.39l3.24 2.51C7.31 7.79 9.46 6.07 12 6.07Z"/></svg>
+        CONTINUE WITH GOOGLE
+      </button>
+
+      <div class="auth-divider">OR EMAIL</div>
+
+      <form id="login-form" class="form" novalidate>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required placeholder="you@example.com">
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Your password">
+        </div>
+
+        <button id="login-button" class="btn primary" type="submit">LOGIN TO CROWRULES</button>
+      </form>
+
+      <div class="auth-links">
+        <a href="reset-password.html">Forgot password?</a>
+        <a href="signup.html">Create an account</a>
+      </div>
+
+      <p style="margin-top:25px;font-size:.78rem;color:rgba(255,255,255,.45)">
+        Your CrowRules account can connect you across CrowRules experiences.
+      </p>
+    </section>
+  </main>
+
+  <footer class="auth-footer">
+    <b>CROWRULES PODCASTING</b> · Your Voice. Your Story. Your Universe.
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script>
+(function(){
+  const supabase = window.crSupabase;
+  const form = document.getElementById("login-form");
+  const email = document.getElementById("email");
+  const password = document.getElementById("password");
+  const button = document.getElementById("login-button");
+  const google = document.getElementById("google-login");
+  const status = document.getElementById("auth-status");
+
+  function show(message,type){
+    status.textContent = message || "";
+    status.className = "auth-status show " + (type || "");
+  }
+
+  function setBusy(busy,label){
+    document.body.classList.toggle("auth-loading",busy);
+    button.textContent = busy ? label : "LOGIN TO CROWRULES";
+    google.disabled = busy;
+  }
+
+  function destination(){
+    const params = new URLSearchParams(location.search);
+    const next = params.get("next");
+    return next && /^(?!https?:|javascript:)[^\s]+$/i.test(next) ? next : "profile.html";
+  }
+
+  async function redirectIfLoggedIn(){
+    if(!supabase) return;
+    const {data} = await supabase.auth.getUser();
+    if(data && data.user){
+      location.replace(destination());
+    }
+  }
+
+  if(!supabase){
+    show("CrowRules authentication is temporarily unavailable. Please try again shortly.","error");
+    return;
+  }
+
+  redirectIfLoggedIn();
+
+  supabase.auth.onAuthStateChange(function(event){
+    if(event === "SIGNED_IN") location.replace(destination());
+  });
+
+  google.addEventListener("click",async function(){
+    setBusy(true,"CONNECTING TO GOOGLE…");
+    show("Opening Google sign-in…","success");
+    const {error} = await supabase.auth.signInWithOAuth({
+      provider:"google",
+      options:{redirectTo:location.origin + location.pathname + (location.search || "")}
+    });
+    if(error){
+      setBusy(false);
+      show(error.message || "Google sign-in could not be started.","error");
+    }
+  });
+
+  form.addEventListener("submit",async function(e){
+    e.preventDefault();
+    const eMail=email.value.trim();
+    const pass=password.value;
+    if(!eMail || !pass){
+      show("Enter your email and password.","error");
+      return;
+    }
+    setBusy(true,"SIGNING IN…");
+    show("Checking your CrowRules account…","success");
+    const {error}=await supabase.auth.signInWithPassword({email:eMail,password:pass});
+    if(error){
+      setBusy(false);
+      show(error.message || "Login failed. Please check your credentials.","error");
+      return;
+    }
+    location.replace(destination());
+  });
+})();
+</script>
+<script src="js/app.js"></script>
+</body>
+</html>
