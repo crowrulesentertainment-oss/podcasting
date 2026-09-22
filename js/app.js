@@ -19,6 +19,19 @@ function creatorNavCollectionRunner(id,index){
   try{sessionStorage.setItem("crowrules_creator_collection_runner_v1",JSON.stringify({collectionId:id,index:next}));sessionStorage.setItem("crowrules_creator_nav_restore_v1",JSON.stringify({url:target.url,state:target.state||{}}));}catch{}
   creatorNavHistoryBusy=true;location.href=target.url;
 }
+function creatorNavCollectionDashboard(id){
+  const c=creatorNavCollectionsRead().find(x=>x.id===id);if(!c)return;
+  const rows=creatorNavHistoryRead(),targets=c.snapshotUrls.map(u=>rows.find(x=>x.url===u)).filter(Boolean);
+  const progress=creatorNavCollectionProgressRead(),states=progress[c.id]||{};
+  const complete=targets.filter(e=>states[e.url]==="complete").length,pct=targets.length?Math.round(complete/targets.length*100):0;
+  const html='<div class="section wrap"><div class="card" style="padding:16px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">COLLECTION DASHBOARD</div><h2 style="margin:.25rem 0">'+esc(c.name)+'</h2><div>Progress: '+complete+'/'+targets.length+' Complete — '+pct+'%</div><div style="height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden;margin:8px 0 14px"><div style="height:100%;width:'+pct+'%;background:currentColor"></div></div>'+targets.map((e,n)=>{const st=states[e.url]||"not-started",name=creatorNavHistorySnapshotName(e);return '<div class="card" style="padding:10px;margin-top:8px;display:flex;justify-content:space-between;gap:10px;align-items:center"><div><strong>'+(n+1)+'. '+esc(name)+'</strong><div style="font-size:.8rem;opacity:.7">'+esc(st.replace("-"," "))+'</div></div><div class="actions"><button class="btn" onclick="creatorNavCollectionRunner(\''+c.id+'\','+n+')">OPEN</button><button class="btn" onclick="creatorNavCollectionDashboardStatus(\''+c.id+'\','+n+',\'complete\')">COMPLETE</button></div></div>';}).join("")+'</div></div>';
+  let host=document.getElementById("creatorNavCollectionDashboard");if(!host){host=document.createElement("div");host.id="creatorNavCollectionDashboard";const h=document.getElementById("creatorNavCollectionsPanel");if(h)h.parentNode.insertBefore(host,h);}host.innerHTML=html;
+}
+function creatorNavCollectionDashboardStatus(id,index,status){
+  const c=creatorNavCollectionsRead().find(x=>x.id===id);if(!c)return;
+  const rows=creatorNavHistoryRead(),targets=c.snapshotUrls.map(u=>rows.find(x=>x.url===u)).filter(Boolean),e=targets[index];if(!e)return;
+  creatorNavCollectionProgressSet(id,e.url,status);creatorNavCollectionsHost();
+}
 function creatorNavCollectionProgressRead(){try{return JSON.parse(localStorage.getItem("crowrules_creator_collection_progress_v1")||"{}");}catch{return {};}}
 function creatorNavCollectionProgressWrite(x){try{localStorage.setItem("crowrules_creator_collection_progress_v1",JSON.stringify(x));}catch{}}
 function creatorNavCollectionProgressStatus(id,url){const a=creatorNavCollectionProgressRead();return (a[id]||{})[url]||"not-started";}
@@ -44,6 +57,7 @@ function creatorNavCollectionRunnerRender(){
 function creatorNavCollectionDelete(id){const cs=creatorNavCollectionsRead(),c=cs.find(x=>x.id===id);if(c&&confirm("Delete collection “"+c.name+"”?")){creatorNavCollectionsWrite(cs.filter(x=>x.id!==id));updateCreatorNavHistoryControls();}}
 function renderCreatorNavCollections(){const p=document.getElementById("creatorNavCollectionsPanel");if(!p)return;const cs=creatorNavCollectionsRead();p.innerHTML=cs.length?cs.map(c=>'<div class="card" style="padding:10px 14px;margin-top:8px"><strong>★ '+esc(c.name)+'</strong><div style="font-size:.8rem;opacity:.7">'+c.snapshotUrls.length+' snapshots</div><button class="btn" type="button" onclick="creatorNavCollectionOpen(\''+c.id+'\')">OPEN</button> <button class="btn" type="button" onclick="creatorNavCollectionDelete(\''+c.id+'\')">DELETE</button></div>').join(""):'<p style="opacity:.7">No collections yet.</p>';}
 function creatorNavCollectionsHost(){let p=document.getElementById("creatorNavCollectionsPanel");if(!p){p=document.createElement("div");p.id="creatorNavCollectionsPanel";const h=document.getElementById("creatorNavHistoryPanel");if(h)h.parentNode.insertBefore(p,h);}renderCreatorNavCollections();
+  creatorNavCollectionsRead().forEach(c=>creatorNavCollectionDashboard(c.id));
   let runner=document.getElementById("creatorNavCollectionRunner");if(!runner){runner=document.createElement("div");runner.id="creatorNavCollectionRunner";const h=document.getElementById("creatorNavHistoryPanel");if(h)h.parentNode.insertBefore(runner,h);}creatorNavCollectionRunnerRender();}
 function renderCreatorNavHistoryPanel(){
   creatorNavHistoryRenderSearchControls();
