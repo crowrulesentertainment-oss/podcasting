@@ -1,1 +1,40 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Discover Podcasts | CrowRules</title><link rel="stylesheet" href="css/podcasting.css"></head><body><div id="app"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script><script src="js/app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#05050b">
+<meta name="description" content="CrowRules Podcasting Discovery Intelligence — trending shows, featured voices, new releases, creators, and recommendations.">
+<title>Discovery Intelligence | CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<link rel="stylesheet" href="css/global-navigation.css">
+<style>
+.di-page{width:min(1400px,92vw);margin:auto;padding:24px 0 90px}.di-hero{padding:clamp(35px,7vw,80px);border:1px solid rgba(255,255,255,.1);border-radius:30px;background:linear-gradient(135deg,rgba(34,230,255,.08),rgba(155,92,255,.1),rgba(255,79,216,.06));box-shadow:0 25px 80px rgba(0,0,0,.35)}.di-kicker{color:#22e6ff;font:800 .72rem Orbitron;letter-spacing:.2em}.di-hero h1{font:900 clamp(2.6rem,7vw,6.2rem) Orbitron;line-height:.94;margin:10px 0}.di-hero h1 span{background:linear-gradient(90deg,#fff,#22e6ff,#9b5cff,#ff4fd8);-webkit-background-clip:text;background-clip:text;color:transparent}.di-hero p{max-width:760px;font-size:1.05rem}.di-search{display:grid;grid-template-columns:1fr 190px auto;gap:9px;margin-top:25px}.di-search input,.di-search select,.di-search button{min-height:48px;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:0 14px;background:rgba(255,255,255,.05);color:inherit}.di-search button{background:linear-gradient(135deg,#22e6ff,#9b5cff);color:#05050b;font-weight:900}.di-status{margin-top:14px;color:#9da1bd;font-size:.8rem}.di-section{margin-top:42px}.di-head{display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:15px}.di-head h2{margin:0}.di-head p{margin:5px 0 0;color:#9da1bd}.di-count{color:#9da1bd;font-size:.75rem;white-space:nowrap}.di-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.di-card,.di-creator{overflow:hidden;border:1px solid rgba(255,255,255,.09);border-radius:20px;background:rgba(13,13,24,.82);transition:transform .2s,border-color .2s}.di-card:hover,.di-creator:hover{transform:translateY(-4px);border-color:rgba(34,230,255,.3)}.di-art{position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,rgba(34,230,255,.2),rgba(155,92,255,.25))}.di-art img{width:100%;height:100%;object-fit:cover;display:block}.di-art>span:first-child{display:grid;place-items:center;width:100%;height:100%;font:800 1.4rem Orbitron}.di-badge{position:absolute!important;top:10px;left:10px;width:auto!important;height:auto!important;padding:6px 8px;border-radius:999px;background:rgba(0,0,0,.6);font-size:.6rem!important;font-family:Montserrat!important}.di-body{padding:17px}.di-type{color:#22e6ff;font:800 .62rem Orbitron;letter-spacing:.13em}.di-body h3,.di-creator h3{margin:5px 0;font-size:1rem}.di-body p,.di-creator p{font-size:.78rem;margin:0 0 9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.di-body small{color:#777c99}.di-link{display:inline-block;margin-top:12px;color:#22e6ff;font-size:.75rem;font-weight:800}.di-creator{display:flex;gap:15px;padding:17px}.di-avatar{width:68px;height:68px;flex:0 0 68px;border-radius:16px;overflow:hidden;background:linear-gradient(135deg,rgba(34,230,255,.2),rgba(155,92,255,.25));display:grid;place-items:center;font:800 .8rem Orbitron}.di-avatar img{width:100%;height:100%;object-fit:cover}.di-empty{padding:25px;border:1px dashed rgba(255,255,255,.12);border-radius:16px;color:#9da1bd}.di-note{font-size:.72rem!important;color:#777c99!important}@media(max-width:800px){.di-grid{grid-template-columns:1fr 1fr}.di-search{grid-template-columns:1fr}.di-hero h1{font-size:clamp(2.4rem,13vw,4.5rem)}}@media(max-width:520px){.di-grid{grid-template-columns:1fr}.di-page{width:min(94vw,1400px)}}
+</style>
+</head>
+<body>
+<main class="di-page">
+<section class="di-hero">
+<div class="di-kicker">CROWRULES DISCOVERY INTELLIGENCE 3.0</div>
+<h1>Find what <span>speaks to you.</span></h1>
+<p>A living discovery layer for CrowRules Podcasting — using the catalog you already have to surface trending shows, featured listening, new releases, creators, and browser-level recommendations.</p>
+<form id="discovery-search" class="di-search">
+<input id="discovery-query" type="search" placeholder="Search podcasts, episodes, creators…" aria-label="Search discovery">
+<select id="discovery-category" aria-label="Browse by category"><option value="">Browse a category…</option></select>
+<button type="submit">SEARCH</button>
+</form>
+<div id="di-status" class="di-status" aria-live="polite">Building discovery intelligence…</div>
+</section>
+
+<section class="di-section"><div class="di-head"><div><h2>Trending Podcasts</h2><p>Catalog activity + freshness signals.</p></div><span class="di-count">Loading</span></div><div id="trending" class="di-grid"></div></section>
+<section class="di-section"><div class="di-head"><div><h2>Featured</h2><p>Currently live shows receive the featured spotlight.</p></div><span class="di-count">Loading</span></div><div id="featured" class="di-grid"></div></section>
+<section class="di-section"><div class="di-head"><div><h2>New Releases</h2><p>The newest published episodes.</p></div><span class="di-count">Loading</span></div><div id="new-releases" class="di-grid"></div></section>
+<section class="di-section"><div class="di-head"><div><h2>Popular Creators</h2><p>Creators with the broadest podcast catalog presence.</p></div><span class="di-count">Loading</span></div><div id="popular-creators" class="di-grid"></div></section>
+<section class="di-section"><div class="di-head"><div><h2>Recommended Podcasts</h2><p id="recommendation-note" class="di-note">Personalized signals begin locally and remain lightweight.</p></div><span class="di-count">Loading</span></div><div id="recommended" class="di-grid"></div></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/global-navigation.js"></script>
+<script src="js/discovery-intelligence.js"></script>
+</body>
+</html>
