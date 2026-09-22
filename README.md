@@ -58,3 +58,16 @@ This repository is structured as a static GitHub Pages site with a top-level ind
 ## Next validation layer
 
 The next hardening step is automated browser-level smoke testing of the major flows: intro → browse → podcast → episode → login/signup → creator studio → create podcast → upload episode → support/monetization.
+
+
+## Navigation & User Journey 2.0
+
+The Podcasting ecosystem now includes a dedicated `navigation.html` journey hub plus explicit account, membership, creator-guide, and audio-guide destinations. Legacy creator-dashboard paths were repaired, and a navigation audit runs in GitHub Actions to detect broken local HTML routes and missing core journey pages.
+
+Key entry points:
+- `navigation.html` — central listener/member/creator journey
+- `membership.html` — universal membership hub
+- `account.html` — account center compatibility route
+- `creator-guide.html` — creator onboarding path
+- `audio-guide.html` — audio production path
+- `tools/navigation-audit.mjs` — local route and journey audit
