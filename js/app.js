@@ -2,8 +2,44 @@ const path=location.pathname.split("/").pop()||"index.html";
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const nav='<nav class="nav"><a class="brand" href="index.html">CROWRULES PODCASTING</a><div class="navlinks"><a href="discover.html">Discover</a><a href="podcasts.html">Podcasts</a><a href="episodes.html">Episodes</a><a href="rankings.html">Top 10</a><a href="live.html">Live</a><a href="podcast-dashboard.html">Studio</a><a href="create-podcast.html">Create</a><a href="creators.html">Creators</a><a href="member.html">My Hub</a><a href="feed.html">My Feed</a><a href="members.html">Network</a><a href="activity.html">Activity</a><a href="notifications.html">Notifications</a><a href="achievements.html">Achievements</a><a href="reputation.html">Reputation</a><a href="profile.html">Profile</a><a href="login.html">Login</a></div></nav>';
 const footer='<footer><b>CROWRULES PODCASTING</b><p>Your Voice. Your Story. Your Universe.</p><small>Launch January 1, 2027 • One Account. One Universe.</small></footer>';
-function shell(content){document.getElementById("app").innerHTML=nav+'<main>'+content+'</main>'+footer+'<div class="player" id="player"><b id="now">CrowRules Podcasting</b><audio id="audio" controls></audio></div>';initPlayerTracking();notificationBadge()}
+async function refreshUniversalNav(){
+  const links=document.querySelector(".navlinks");
+  if(!links)return;
+  try{
+    const u=await user();
+    const loginLink=[...links.querySelectorAll("a")].find(a=>a.getAttribute("href")==="login.html");
+    if(u){
+      if(loginLink){loginLink.textContent="My Account";loginLink.href="member.html";}
+      if(!document.getElementById("logout-nav-link")){
+        const logout=document.createElement("a");
+        logout.id="logout-nav-link";logout.href="#";logout.textContent="Logout";
+        logout.addEventListener("click",async e=>{
+          e.preventDefault();
+          try{await crSupabase.auth.signOut()}catch{}
+          location.href="index.html";
+        });
+        links.appendChild(logout);
+      }
+    }else{
+      const logout=document.getElementById("logout-nav-link");
+      if(logout)logout.remove();
+      if(loginLink){loginLink.textContent="Login";loginLink.href="login.html";}
+    }
+  }catch{}
+}
+
+function shell(content){document.getElementById("app").innerHTML=nav+'<main>'+content+'</main>'+footer+'<div class="player" id="player"><b id="now">CrowRules Podcasting</b><audio id="audio" controls></audio></div>';initPlayerTracking();notificationBadge();refreshUniversalNav()}
+function handleAuthRedirect(){
+  const hash=location.hash||"";
+  if(hash.includes("access_token=")||hash.includes("refresh_token=")){
+    setTimeout(()=>{
+      try{history.replaceState({},document.title,location.pathname+location.search)}catch{}
+    },1000);
+  }
+}
+
 async function user(){if(!crSupabase)return null;const {data}=await crSupabase.auth.getUser();return data?.user||null}
+handleAuthRedirect();
 async function creatorFor(u){if(!u)return null;const {data:m}=await crSupabase.from("members").select("id").eq("user_id",u.id).maybeSingle();if(!m)return null;const {data:c}=await crSupabase.from("creators").select("id,name,slug,avatar_url").eq("member_id",m.id).maybeSingle();return c||null}
 function art(url){return url?'<img class="artimg" src="'+esc(url)+'" alt="">':'<div class="art">🎙</div>'}
 function podcastCard(p){return '<article class="card">'+art(p.artwork_url)+'<h3>'+esc(p.title)+'</h3><small>'+esc(p.category||"Podcast")+'</small><p>'+esc(p.description||"")+'</p><a class="btn" href="podcast.html?id='+encodeURIComponent(p.id)+'">VIEW</a></article>'}
