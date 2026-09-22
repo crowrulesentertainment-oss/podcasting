@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#05050b">
-<meta name="description" content="Manage your CrowRules Podcasting member profile, creator identity, membership and CrowPoints.">
+<meta name="description" content="View and manage CrowRules Podcasting member profiles, creator identity, membership and CrowPoints.">
 <title>Member Profile | CrowRules Podcasting</title>
 <link rel="stylesheet" href="css/podcasting.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -52,9 +52,9 @@ a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{c
 
     <main class="shell">
       <section class="hero">
-        <span class="eyebrow">◆ MEMBER PROFILE</span>
-        <h1>Your profile.<br><span>Your CrowRules identity.</span></h1>
-        <p>Manage the identity connected to your universal CrowRules membership, keep your public profile current, and see your Podcasting creator status and CrowPoints.</p>
+        <span class="eyebrow" id="profileEyebrow">◆ MEMBER PROFILE</span>
+        <h1 id="heroTitle">Your profile.<br><span>Your CrowRules identity.</span></h1>
+        <p id="heroDescription">Manage the identity connected to your universal CrowRules membership, keep your public profile current, and see your Podcasting creator status and CrowPoints.</p>
       </section>
 
       <div id="notice" class="notice"></div>
@@ -127,7 +127,9 @@ a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{c
 
   const client = window.crSupabase || window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
   const $ = id => document.getElementById(id);
-  const state = { user:null, member:null, creator:null, saving:false };
+  const params = new URLSearchParams(location.search);
+  const requestedUsername = (params.get("username") || "").trim();
+  const state = { user:null, member:null, creator:null, saving:false, publicMode:Boolean(requestedUsername), ownProfile:false };
 
   function fatal(message){
     const loading = $("loading");
@@ -136,7 +138,9 @@ a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{c
   }
 
   function notice(message,type="info"){
-    const el=$("notice"); el.className="notice show "+type; el.textContent=message;
+    const el=$("notice");
+    el.className="notice show "+type;
+    el.textContent=message;
     window.scrollTo({top:0,behavior:"smooth"});
   }
 
@@ -154,17 +158,25 @@ a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{c
     return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});
   }
 
+  function safeUrl(value){
+    try{
+      const u=new URL(value);
+      return u.protocol==="https:" || u.protocol==="http:" ? u.href : "";
+    }catch{return "";}
+  }
+
   function renderMember(){
     const m=state.member, name=displayName(m), handle=m.username ? "@"+m.username : "";
     $("profileName").textContent=name;
     $("profileHandle").textContent=handle;
     $("membershipChip").textContent=(m.membership_type||"MEMBER").toUpperCase();
     $("statusChip").textContent=(m.status||"ACTIVE").toUpperCase();
+
     $("firstName").value=m.first_name||"";
     $("lastName").value=m.last_name||"";
     $("displayName").value=m.display_name||"";
     $("username").value=m.username||"";
-    $("email").value=state.user?.email||m.email||"";
+    $("email").value=state.publicMode ? "Private" : (state.user?.email||m.email||"");
     $("avatarUrl").value=m.avatar_url||"";
     $("bio").value=m.bio||"";
     $("membershipType").value=m.membership_type||"Member";
@@ -174,7 +186,7 @@ a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{c
     $("points").textContent=Number(m.points||0).toLocaleString();
     $("watchMinutes").textContent=Number(m.watch_minutes||0).toLocaleString();
 
-    const av=m.avatar_url;
+    const av=safeUrl(m.avatar_url);
     $("avatarInitials").textContent=initials(name);
     $("avatarImg").hidden=true;
     if(av){
@@ -182,19 +194,13 @@ a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{c
       $("avatarImg").hidden=false;
       $("avatarImg").onerror=()=>{$("avatarImg").hidden=true;};
     }
+
     renderCompletion();
   }
 
   function renderCompletion(){
     const m=state.member;
-    const checks=[
-      !!m.first_name,
-      !!m.last_name,
-      !!m.display_name,
-      !!m.username,
-      !!m.avatar_url,
-      !!m.bio
-    ];
+    const checks=[!!m.first_name,!!m.last_name,!!m.display_name,!!m.username,!!m.avatar_url,!!m.bio];
     const count=checks.filter(Boolean).length, pct=Math.round(count/checks.length*100);
     $("completionLabel").textContent=pct+"% complete";
     $("completionCount").textContent=count+"/"+checks.length;
@@ -205,45 +211,120 @@ a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{c
     const c=state.creator;
     if(!c){
       $("creatorName").textContent="No creator profile linked";
-      $("creatorRole").textContent="Create or connect a creator profile to use Creator Studio.";
+      $("creatorRole").textContent="This member does not have an active Podcasting creator profile.";
       $("creatorAvatar").textContent="CR";
       $("creatorAvatar").innerHTML="CR";
+      $("studioLink").style.display=state.ownProfile ? "inline-flex" : "none";
       return;
     }
+
     $("creatorName").textContent=c.name||"Creator";
     $("creatorRole").textContent=[c.role,c.discipline].filter(Boolean).join(" · ")||"CrowRules Creator";
-    const av=c.avatar_url||state.member.avatar_url;
+    const av=safeUrl(c.avatar_url||state.member.avatar_url);
     if(av){
-      $("creatorAvatar").innerHTML='<img src="'+String(av).replace(/"/g,"&quot;")+'" alt="" onerror="this.remove()">';
-    }else $("creatorAvatar").textContent=initials(c.name);
+      $("creatorAvatar").innerHTML='<img src="'+av.replace(/"/g,"&quot;")+'" alt="">';
+    }else{
+      $("creatorAvatar").textContent=initials(c.name);
+    }
+    $("studioLink").style.display=state.ownProfile ? "inline-flex" : "none";
+  }
+
+  function configureMode(){
+    if(state.publicMode){
+      $("profileEyebrow").textContent="◆ PUBLIC MEMBER PROFILE";
+      $("heroTitle").innerHTML='Member profile.<br><span>Inside the CrowRules universe.</span>';
+      $("heroDescription").textContent="Explore this member's public CrowRules identity, Podcasting creator status and community activity.";
+      $("signOut").textContent="Log In";
+      $("signOut").onclick=()=>location.href="login.html?redirect="+encodeURIComponent(location.pathname+location.search);
+      $("profileForm").querySelectorAll("input,textarea").forEach(el=>el.disabled=true);
+      $("save").style.display="none";
+      $("cancel").style.display="none";
+      document.querySelectorAll(".field.full").forEach(field=>{
+        if(field.querySelector("#email")) field.style.display="none";
+      });
+      $("avatarUrl").closest(".field").style.display="none";
+      $("bio").placeholder="";
+      $("creatorPanel").querySelector(".actions")?.setAttribute("style","margin-top:15px;justify-content:flex-start");
+      $("creatorPanel").querySelector(".actions")?.classList.add("public-creator-actions");
+      $("shareProfile").style.display="inline-flex";
+    }else{
+      $("shareProfile").style.display="inline-flex";
+    }
   }
 
   async function load(){
-    const {data,error}=await client.auth.getUser();
-    if(error) throw error;
-    if(!data?.user){
-      location.href="login.html?redirect="+encodeURIComponent("member-profile.html");
-      return;
-    }
-    state.user=data.user;
+    const auth=await client.auth.getUser();
+    if(auth.error) throw auth.error;
+    state.user=auth.data?.user||null;
 
-    const memberResult=await client.from("members")
-      .select("id,user_id,first_name,last_name,username,email,membership_type,role,status,points,watch_minutes,bio,avatar_url,last_active_at,created_at,updated_at,display_name")
-      .eq("user_id",state.user.id).maybeSingle();
-    if(memberResult.error) throw memberResult.error;
-    if(!memberResult.data){
-      throw new Error("No CrowRules membership profile is linked to this account yet.");
+    if(state.publicMode){
+      const {data,error}=await client.from("public_member_profiles")
+        .select("id,first_name,last_name,username,display_name,membership_type,role,status,points,watch_minutes,bio,avatar_url,created_at")
+        .ilike("username",requestedUsername)
+        .limit(1)
+        .maybeSingle();
+      if(error) throw error;
+      if(!data) throw new Error("No public member profile was found for @"+requestedUsername+".");
+      state.member=data;
+      state.ownProfile=Boolean(state.user && data.id && await isOwnMember(data.id));
+    }else{
+      if(!state.user){
+        location.href="login.html?redirect="+encodeURIComponent("member-profile.html");
+        return;
+      }
+
+      const {data,error}=await client.from("members")
+        .select("id,user_id,first_name,last_name,username,email,membership_type,role,status,points,watch_minutes,bio,avatar_url,last_active_at,created_at,updated_at,display_name")
+        .eq("user_id",state.user.id)
+        .maybeSingle();
+      if(error) throw error;
+      if(!data) throw new Error("Your CrowRules membership record could not be found.");
+      state.member=data;
+      state.ownProfile=true;
     }
-    state.member=memberResult.data;
 
     const creatorResult=await client.from("creators")
       .select("id,creator_code,name,slug,role,discipline,bio,initials,profile_url,avatar_url,is_featured,is_active,member_id")
-      .eq("member_id",state.member.id).eq("is_active",true).maybeSingle();
-    if(creatorResult.error && creatorResult.error.code!=="PGRST116") throw creatorResult.error;
+      .eq("member_id",state.member.id)
+      .eq("is_active",true)
+      .maybeSingle();
+    if(creatorResult.error) throw creatorResult.error;
     state.creator=creatorResult.data||null;
 
-    renderMember(); renderCreator();
-    $("loading").hidden=true; $("page").hidden=false;
+    configureMode();
+    renderMember();
+    renderCreator();
+
+    $("loading").hidden=true;
+    $("page").hidden=false;
+
+    if(state.publicMode && state.ownProfile){
+      $("profileEyebrow").textContent="◆ YOUR PUBLIC PROFILE";
+      $("heroTitle").innerHTML='Your public profile.<br><span>Your CrowRules identity.</span>';
+      $("heroDescription").textContent="This is the public-facing version of your CrowRules member profile. Use the fields below to keep it current.";
+      $("signOut").textContent="Sign Out";
+      $("signOut").onclick=signOut;
+      $("profileForm").querySelectorAll("input,textarea").forEach(el=>el.disabled=false);
+      $("email").disabled=true;
+      $("membershipType").disabled=true;
+      $("role").disabled=true;
+      $("status").disabled=true;
+      $("createdAt").disabled=true;
+      $("save").style.display="inline-flex";
+      $("cancel").style.display="inline-flex";
+      $("avatarUrl").closest(".field").style.display="";
+      $("bio").closest(".field").style.display="";
+      $("profileForm").querySelectorAll(".field.full").forEach(field=>{
+        if(field.querySelector("#email")) field.style.display="";
+      });
+      $("studioLink").style.display=state.creator ? "inline-flex" : "none";
+    }
+  }
+
+  async function isOwnMember(memberId){
+    if(!state.user) return false;
+    const {data,error}=await client.from("members").select("id").eq("id",memberId).eq("user_id",state.user.id).maybeSingle();
+    return !error && Boolean(data);
   }
 
   function validate(){
@@ -251,20 +332,17 @@ a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{c
     const username=$("username").value.trim();
     const avatar=$("avatarUrl").value.trim();
     if(username && !/^[a-zA-Z0-9._-]{3,50}$/.test(username)) errors.push("Username must be 3–50 characters using letters, numbers, dots, underscores or hyphens.");
-    if(avatar){
-      try{
-        const u=new URL(avatar);
-        if(u.protocol!=="https:" && u.protocol!=="http:") errors.push("Avatar URL must use HTTP or HTTPS.");
-      }catch{ errors.push("Avatar URL is not valid."); }
-    }
+    if(avatar && !safeUrl(avatar)) errors.push("Avatar URL must use HTTP or HTTPS.");
     return errors;
   }
 
   async function save(){
-    if(state.saving) return;
+    if(!state.ownProfile || state.saving) return;
     const errors=validate();
     if(errors.length){notice(errors.join(" "),"error");return;}
-    state.saving=true; $("save").disabled=true; $("save").textContent="Saving…";
+    state.saving=true;
+    $("save").disabled=true;
+    $("save").textContent="Saving…";
     try{
       const patch={
         first_name:$("firstName").value.trim()||null,
@@ -276,36 +354,60 @@ a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}button{c
         updated_at:new Date().toISOString()
       };
       const {data,error}=await client.from("members").update(patch)
-        .eq("id",state.member.id).eq("user_id",state.user.id)
-        .select("id,user_id,first_name,last_name,username,email,membership_type,role,status,points,watch_minutes,bio,avatar_url,last_active_at,created_at,updated_at,display_name").single();
+        .eq("id",state.member.id)
+        .eq("user_id",state.user.id)
+        .select("id,user_id,first_name,last_name,username,email,membership_type,role,status,points,watch_minutes,bio,avatar_url,last_active_at,created_at,updated_at,display_name")
+        .single();
       if(error) throw error;
-      state.member=data; renderMember(); notice("Your CrowRules member profile has been saved.","success");
+      state.member=data;
+      renderMember();
+      renderCreator();
+      notice("Your CrowRules member profile has been saved.","success");
+      if(data.username) history.replaceState(null,"","member-profile.html?username="+encodeURIComponent(data.username));
     }catch(error){
       console.error(error);
       notice(error?.message||"Unable to save your profile.","error");
     }finally{
-      state.saving=false; $("save").disabled=false; $("save").textContent="Save Profile";
+      state.saving=false;
+      $("save").disabled=false;
+      $("save").textContent="Save Profile";
     }
+  }
+
+  async function signOut(){
+    $("signOut").disabled=true;
+    const {error}=await client.auth.signOut();
+    if(error){notice(error.message,"error");$("signOut").disabled=false;return;}
+    location.href="login.html";
   }
 
   $("profileForm").addEventListener("submit",e=>{e.preventDefault();save();});
   $("cancel").addEventListener("click",()=>renderMember());
   $("avatarUrl").addEventListener("input",()=>{
-    const url=$("avatarUrl").value.trim();
+    const url=safeUrl($("avatarUrl").value.trim());
     if(url){$("avatarImg").src=url;$("avatarImg").hidden=false;}else $("avatarImg").hidden=true;
   });
-  $("signOut").addEventListener("click",async()=>{
-    $("signOut").disabled=true;
-    const {error}=await client.auth.signOut();
-    if(error){notice(error.message,"error");$("signOut").disabled=false;return;}
-    location.href="login.html";
+  $("signOut").addEventListener("click",signOut);
+
+  $("shareProfile").addEventListener("click",async()=>{
+    const username=state.member?.username;
+    if(!username){notice("This member does not have a username yet.","error");return;}
+    const url=new URL("member-profile.html?username="+encodeURIComponent(username),location.href).href;
+    try{
+      await navigator.clipboard.writeText(url);
+      notice("Public profile link copied to your clipboard.","success");
+    }catch{
+      window.prompt("Copy this public profile link:",url);
+    }
   });
 
   client.auth.onAuthStateChange((event)=>{
-    if(event==="SIGNED_OUT") location.href="login.html?redirect="+encodeURIComponent("member-profile.html");
+    if(event==="SIGNED_OUT" && !state.publicMode){
+      location.href="login.html?redirect="+encodeURIComponent("member-profile.html");
+    }
   });
 
-  load().catch(error=>{console.error(error);fatal(error?.message||"Unable to load your CrowRules member profile.");});
+  load().catch(error=>{console.error(error);fatal(error?.message||"Unable to load this CrowRules member profile.");});
 })();
 </script>
 </body>
