@@ -209,6 +209,21 @@ export default {
       return json({ transaction: data });
     }
 
+    if (action === "audit") {
+      if (!permissions.includes("govern")) return json({ error: "GOVERNANCE_FORBIDDEN" }, 403);
+      const id = body.transaction_id ? String(body.transaction_id) : null;
+      const auditAction = String(body.audit_action ?? "governance.action").slice(0, 120);
+      const payload = body.payload && typeof body.payload === "object" ? body.payload : {};
+      const { data, error } = await ctx.supabaseAdmin.rpc("creator_governance_audit_append", {
+        p_transaction_id: id,
+        p_actor_user_id: userId,
+        p_action: auditAction,
+        p_payload: payload,
+      });
+      if (error) return json({ error: error.message }, 403);
+      return json({ audit: data });
+    }
+
     return json({ error: "UNKNOWN_ACTION" }, 400);
   }),
 };
