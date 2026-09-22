@@ -327,6 +327,27 @@ export default {
       }
       return json({escalated:results});
     }
+    if (action === "task-sync") {
+      if(!permissions.includes("create"))return json({error:"TASK_SYNC_FORBIDDEN"},403);
+      const tasks=Array.isArray(body.tasks)?body.tasks:[];
+      const rows=tasks.slice(0,500).map((t:any)=>({collection_id:String(t.collection_id||t.collectionId||""),task_key:String(t.task_key||t.key||""),task_name:t.task_name||t.name||null,owner_user_id:t.owner_user_id||t.ownerUserId||null,status:t.status==="COMPLETE"?"COMPLETE":t.status==="BLOCKED"?"BLOCKED":t.status==="IN_PROGRESS"?"IN_PROGRESS":"OPEN",target_date:t.target_date||t.targetDate||null,started_at:t.started_at||null,completed_at:t.completed_at||null,last_activity_at:t.last_activity_at||null,dependency_key:t.dependency_key||t.dependency||null}));
+      const clean=rows.filter((t:any)=>t.collection_id&&t.task_key);
+      const {data,error}=await ctx.supabaseAdmin.from("creator_governance_tasks").upsert(clean,{onConflict:"collection_id,task_key"}).select("*");
+      if(error)return json({error:error.message},500);
+      return json({tasks:data??[]});
+    }
+    if (action === "task-claim") {
+      if(!permissions.includes("create"))return json({error:"TASK_CLAIM_FORBIDDEN"},403);
+      const {collection_id,task_key}=body; if(!collection_id||!task_key)return json({error:"TASK_REQUIRED"},400);
+      const {data,error}=await ctx.supabaseAdmin.from("creator_governance_tasks").update({owner_user_id:userId,status:"IN_PROGRESS",started_at:new Date().toISOString(),last_activity_at:new Date().toISOString()}).eq("collection_id",collection_id).eq("task_key",task_key).select("*").maybeSingle();
+      if(error)return json({error:error.message},500); return json({task:data});
+    }
+    if (action === "task-complete") {
+      if(!permissions.includes("create"))return json({error:"TASK_COMPLETE_FORBIDDEN"},403);
+      const {collection_id,task_key}=body; if(!collection_id||!task_key)return json({error:"TASK_REQUIRED"},400);
+      const {data,error}=await ctx.supabaseAdmin.from("creator_governance_tasks").update({status:"COMPLETE",completed_at:new Date().toISOString(),last_activity_at:new Date().toISOString()}).eq("collection_id",collection_id).eq("task_key",task_key).eq("owner_user_id",userId).select("*").maybeSingle();
+      if(error)return json({error:error.message},500); return json({task:data});
+    }
     if (action === "health") {
       if(!permissions.includes("view"))return json({error:"HEALTH_FORBIDDEN"},403);
       const [tasks,health,reports]=await Promise.all([
