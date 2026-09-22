@@ -506,7 +506,12 @@ async function creatorNavAuthorize(action){
   const ctx=await creatorNavIdentityContext(),permissions=ctx.permissions?.length?ctx.permissions:creatorNavRolePermissions(ctx.role);
   return {allowed:ctx.verified&&ctx.serverAuthorized&&permissions.includes(action),action,context:ctx};
 }
-async function creatorNavGovernanceAction(type,payload={}){const ctx=await creatorNavIdentityContext();return creatorNavAuditLedgerAppend("governance-"+type,{...payload,identity:ctx,authorized:true,approvedAt:new Date().toISOString()});}
+async function creatorNavGovernanceAction(type,payload={}){
+  const ctx=await creatorNavIdentityContext();
+  if(!ctx.serverAuthorized||ctx.role!=="admin")return {error:"SERVER_GOVERNANCE_REQUIRED"};
+  try{return await creatorNavServerCall("audit",{audit_action:"governance-"+type,payload:{...payload,identity:{userId:ctx.userId,email:ctx.email,role:ctx.role},authorized:true,approvedAt:new Date().toISOString()}});}
+  catch(err){return {error:String(err?.message||err)};}
+}
   return creatorNavAuditLedgerAppend("governance-"+type,{...payload,approvedAt:new Date().toISOString()});
 }
 function creatorNavAuditLedgerRead(){try{const x=JSON.parse(localStorage.getItem(CREATOR_NAV_AUDIT_LEDGER_KEY)||"[]");return Array.isArray(x)?x:[]}catch{return [];}}
