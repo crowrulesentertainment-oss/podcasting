@@ -75,6 +75,27 @@ function creatorNavCollectionAlerts(id){
   if(started&&now-started>7*86400000&&h.pct<50)alerts.push({type:"completion-behind",severity:"ATTENTION",title:"Completion Falling Behind",message:"Started more than 7 days ago and remains below 50% complete.",action:"OPEN WORKFLOW",fn:"creatorNavCollectionRunner('"+h.c.id+"',"+Math.min(h.complete,Math.max(0,h.targets.length-1))+")"});
   return alerts;
 }
+const CREATOR_NAV_HEALTH_ALERTS_KEY="crowrules_creator_health_alerts_v1";
+function creatorNavHealthAlertStateRead(){try{return JSON.parse(localStorage.getItem(CREATOR_NAV_HEALTH_ALERTS_KEY)||"{}");}catch{return {};}}
+function creatorNavHealthAlertStateWrite(x){try{localStorage.setItem(CREATOR_NAV_HEALTH_ALERTS_KEY,JSON.stringify(x));}catch{}}
+function creatorNavHealthAlertKey(id,type){return id+"::"+type;}
+function creatorNavHealthAlertIsDismissed(id,type){return !!creatorNavHealthAlertStateRead()[creatorNavHealthAlertKey(id,type)]?.dismissed;}
+function creatorNavHealthAlertSetDismissed(id,type,value){const x=creatorNavHealthAlertStateRead(),k=creatorNavHealthAlertKey(id,type);x[k]={dismissed:!!value,at:new Date().toISOString()};creatorNavHealthAlertStateWrite(x);}
+function creatorNavHealthAlertAcknowledge(id,type){creatorNavHealthAlertSetDismissed(id,type,true);creatorNavActivityAdd("alert-ack",id,"Acknowledged health alert: "+type,{alertType:type});creatorNavCollectionHealthAlertsRender();}
+function creatorNavHealthAlertRestore(id,type){creatorNavHealthAlertSetDismissed(id,type,false);creatorNavActivityAdd("alert-restore",id,"Restored health alert: "+type,{alertType:type});creatorNavCollectionHealthAlertsRender();}
+function creatorNavHealthAlertHistory(){return creatorNavActivityRead().filter(e=>e.type==="alert-ack"||e.type==="alert-restore").sort((a,b)=>new Date(b.at)-new Date(a.at));}
+function creatorNavCollectionHealthAlertCenterRender(){
+  const host=document.getElementById("creatorNavHealthAlertCenter");if(!host)return;
+  const cs=creatorNavCollectionsRead(),all=[];
+  cs.forEach(c=>creatorNavCollectionAlerts(c.id).forEach(a=>all.push({c,a,dismissed:creatorNavHealthAlertIsDismissed(c.id,a.type)})));
+  const query=(document.getElementById("creatorNavHealthAlertSearch")?.value||"").toLowerCase().trim();
+  const severity=document.getElementById("creatorNavHealthAlertSeverity")?.value||"all";
+  const state=document.getElementById("creatorNavHealthAlertState")?.value||"open";
+  const filtered=all.filter(x=>(!query||(x.c.name+" "+x.a.title+" "+x.a.message).toLowerCase().includes(query))&&(severity==="all"||x.a.severity===severity)&&(state==="all"||(state==="open"&&!x.dismissed)||(state==="acknowledged"&&x.dismissed)));
+  const attention=all.filter(x=>!x.dismissed);
+  host.innerHTML='<div class="card" style="padding:14px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">COLLECTION HEALTH ALERT CENTER</div><h2 style="margin:.25rem 0">ATTENTION QUEUE · '+attention.length+'</h2><div class="actions" style="margin:10px 0"><input id="creatorNavHealthAlertSearch" data-history-state="1" type="search" placeholder="Search alerts or collections" style="max-width:260px"><select id="creatorNavHealthAlertSeverity" data-history-state="1"><option value="all">All severity</option><option value="WARNING">Warning</option><option value="ATTENTION">Attention</option></select><select id="creatorNavHealthAlertState" data-history-state="1"><option value="open">Open</option><option value="acknowledged">Acknowledged</option><option value="all">All alerts</option></select></div><div id="creatorNavHealthAlertRows">'+(filtered.length?filtered.map(x=>'<div class="card" style="padding:10px;margin-top:8px"><strong>'+esc(x.a.severity)+' · '+esc(x.a.title)+'</strong><div style="font-size:.85rem;margin-top:4px"><b>'+esc(x.c.name)+'</b> — '+esc(x.a.message)+'</div><div class="actions"><button class="btn" type="button" onclick="'+x.a.fn+'">'+esc(x.a.action)+'</button><button class="btn" type="button" onclick="creatorNavHealthAlert'+(x.dismissed?"Restore":"Acknowledge")+'(\''+x.c.id+'\',\''+x.a.type+'\')">'+(x.dismissed?"RESTORE":"ACKNOWLEDGE")+'</button></div></div>').join(""):'<div style="font-size:.85rem;opacity:.7;margin-top:8px">No alerts match the current filters.</div>')+'</div><div style="margin-top:14px"><strong>ALERT HISTORY</strong>'+(creatorNavHealthAlertHistory().slice(0,20).map(e=>'<div style="font-size:.8rem;margin-top:5px">'+esc(e.message)+' · '+esc(creatorNavActivityDate(e.at))+'</div>').join("")||'<div style="font-size:.8rem;opacity:.7;margin-top:6px">No alert acknowledgements yet.</div>')+'</div></div>';
+  ["creatorNavHealthAlertSearch","creatorNavHealthAlertSeverity","creatorNavHealthAlertState"].forEach(id=>document.getElementById(id)?.addEventListener("input",creatorNavCollectionHealthAlertCenterRender));
+}
 function creatorNavCollectionHealthAlertsRender(){
   const host=document.getElementById("creatorNavCollectionHealthAlertsPanel");if(!host)return;
   const cs=creatorNavCollectionsRead(),all=[];
@@ -129,6 +150,7 @@ function renderCreatorNavCollections(){const p=document.getElementById("creatorN
 function creatorNavCollectionsHost(){let p=document.getElementById("creatorNavCollectionsPanel");if(!p){p=document.createElement("div");p.id="creatorNavCollectionsPanel";const h=document.getElementById("creatorNavHistoryPanel");if(h)h.parentNode.insertBefore(p,h);}renderCreatorNavCollections();
   creatorNavCollectionsRead().forEach(c=>creatorNavCollectionDashboard(c.id));
   let health=document.getElementById("creatorNavCollectionHealthPanel");if(!health){health=document.createElement("div");health.id="creatorNavCollectionHealthPanel";const h=document.getElementById("creatorNavCollectionsPanel");if(h)h.parentNode.insertBefore(health,h);}let alerts=document.getElementById("creatorNavCollectionHealthAlertsPanel");if(!alerts){alerts=document.createElement("div");alerts.id="creatorNavCollectionHealthAlertsPanel";const h=document.getElementById("creatorNavCollectionsPanel");if(h)h.parentNode.insertBefore(alerts,h);}creatorNavCollectionHealthAlertsRender();
+  let center=document.getElementById("creatorNavHealthAlertCenter");if(!center){center=document.createElement("div");center.id="creatorNavHealthAlertCenter";const h=document.getElementById("creatorNavCollectionHealthPanel");if(h)h.parentNode.insertBefore(center,h);}creatorNavCollectionHealthAlertCenterRender();
   creatorNavCollectionHealthRender();
   let runner=document.getElementById("creatorNavCollectionRunner");if(!runner){runner=document.createElement("div");runner.id="creatorNavCollectionRunner";const h=document.getElementById("creatorNavHistoryPanel");if(h)h.parentNode.insertBefore(runner,h);}creatorNavCollectionRunnerRender();}
 function renderCreatorNavHistoryPanel(){
