@@ -209,6 +209,63 @@ export default {
       return json({ transaction: data });
     }
 
+    if (action === "locks") {
+      const { data, error } = await ctx.supabaseAdmin
+        .from("creator_governance_task_locks")
+        .select("*")
+        .gt("expires_at", new Date().toISOString())
+        .order("heartbeat_at", { ascending: false })
+        .limit(1000);
+      if (error) return json({ error: error.message }, 500);
+      return json({ locks: data ?? [] });
+    }
+
+    if (action === "lock") {
+      if (!permissions.includes("create")) return json({ error: "LOCK_FORBIDDEN" }, 403);
+      const collectionId = String(body.collection_id ?? "");
+      const taskKey = String(body.task_key ?? "");
+      const taskName = String(body.task_name ?? taskKey).slice(0, 300);
+      if (!collectionId || !taskKey) return json({ error: "TASK_REQUIRED" }, 400);
+      const { data, error } = await ctx.supabaseAdmin.rpc("creator_governance_claim_task_lock", {
+        p_collection_id: collectionId,
+        p_task_key: taskKey,
+        p_owner_user_id: userId,
+        p_owner_name: email,
+        p_lease_seconds: 45,
+      });
+      if (error) return json({ error: error.message }, 409);
+      return json({ lock: data, task_name: taskName });
+    }
+
+    if (action === "heartbeat") {
+      if (!permissions.includes("create")) return json({ error: "LOCK_FORBIDDEN" }, 403);
+      const collectionId = String(body.collection_id ?? "");
+      const taskKey = String(body.task_key ?? "");
+      if (!collectionId || !taskKey) return json({ error: "TASK_REQUIRED" }, 400);
+      const { data, error } = await ctx.supabaseAdmin.rpc("creator_governance_heartbeat_task_lock", {
+        p_collection_id: collectionId,
+        p_task_key: taskKey,
+        p_owner_user_id: userId,
+        p_lease_seconds: 45,
+      });
+      if (error) return json({ error: error.message }, 409);
+      return json({ lock: data });
+    }
+
+    if (action === "unlock") {
+      if (!permissions.includes("create")) return json({ error: "LOCK_FORBIDDEN" }, 403);
+      const collectionId = String(body.collection_id ?? "");
+      const taskKey = String(body.task_key ?? "");
+      if (!collectionId || !taskKey) return json({ error: "TASK_REQUIRED" }, 400);
+      const { data, error } = await ctx.supabaseAdmin.rpc("creator_governance_release_task_lock", {
+        p_collection_id: collectionId,
+        p_task_key: taskKey,
+        p_owner_user_id: userId,
+      });
+      if (error) return json({ error: error.message }, 409);
+      return json({ released: data });
+    }
+
     if (action === "audit") {
       if (!permissions.includes("govern")) return json({ error: "GOVERNANCE_FORBIDDEN" }, 403);
       const id = body.transaction_id ? String(body.transaction_id) : null;
