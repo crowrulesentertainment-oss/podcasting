@@ -25,7 +25,17 @@ async function createDeliverable(e){e.preventDefault();const {error}=await db.fr
 async function reviewDeliverable(id){const status=document.getElementById('rv_'+id).value;const review_note=document.getElementById('rn_'+id).value.trim()||null;const {error}=await db.from('podcast_sponsorship_deliverables').update({status,review_note,updated_at:new Date().toISOString()}).eq('id',id);if(error)alert(error.message);else loadDeliverables()}
 async function toggle(id,status){await db.from('podcast_sponsorship_opportunities').update({status,updated_at:new Date().toISOString()}).eq('id',id);refresh()}
 async function setStatus(id,status){await db.from('podcast_sponsorship_applications').update({status,updated_at:new Date().toISOString()}).eq('id',id);refresh()}
+let adminRealtime=null;
+function startAdminRealtime(){
+ if(adminRealtime) db.removeChannel(adminRealtime);
+ adminRealtime=db.channel('podcast-sponsorship-admin-live')
+ .on('postgres_changes',{event:'*',schema:'public',table:'podcast_sponsorship_opportunities'},()=>refresh())
+ .on('postgres_changes',{event:'*',schema:'public',table:'podcast_sponsorship_applications'},()=>refresh())
+ .on('postgres_changes',{event:'*',schema:'public',table:'podcast_sponsorship_deals'},()=>refresh())
+ .on('postgres_changes',{event:'*',schema:'public',table:'podcast_sponsorship_deliverables'},()=>{loadDeliverables();loadDeals();refresh()})
+ .subscribe();
+}
 document.getElementById('deliverableCreate').onsubmit=createDeliverable;
 document.getElementById('create').onsubmit=async e=>{e.preventDefault();const {error}=await db.from('podcast_sponsorship_opportunities').insert({title:title.value.trim(),sponsor_name:sponsor.value.trim(),category:category.value,description:description.value.trim(),budget_min:min.value||null,budget_max:max.value||null,requirements:requirements.value.trim(),status:'open'});createMsg.textContent=error?error.message:'Opportunity created.';if(!error){e.target.reset();refresh()}}
-init();
+init();startAdminRealtime();
 </script></body></html>
