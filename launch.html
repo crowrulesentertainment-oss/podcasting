@@ -1,182 +1,2416 @@
-<script>
-(() => {
-  "use strict";
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
 
-  /*
-   * CrowRules Podcasting
-   * Official Launch:
-   * January 1, 2027 — 12:00:00 AM Pacific Time
-   *
-   * January 1, 2027 is Pacific Standard Time (UTC-8).
-   */
-  const LAUNCH_TIMESTAMP =
-    Date.UTC(2027, 0, 1, 8, 0, 0);
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,viewport-fit=cover"
+  >
 
-  const daysEl =
-    document.getElementById("countdown-days");
+  <meta
+    name="theme-color"
+    content="#05050b"
+  >
 
-  const hoursEl =
-    document.getElementById("countdown-hours");
+  <meta
+    name="color-scheme"
+    content="dark"
+  >
 
-  const minutesEl =
-    document.getElementById("countdown-minutes");
+  <meta
+    name="description"
+    content="CrowRules Podcasting launches January 1, 2027. Create podcasts, publish episodes, connect with listeners, earn CrowPoints, and become part of the CrowRules universe."
+  >
 
-  const secondsEl =
-    document.getElementById("countdown-seconds");
+  <title>CrowRules Podcasting | Launching January 1, 2027</title>
 
-  const countdownEl =
-    document.getElementById("countdown");
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  const statusEl =
-    document.getElementById("launch-status");
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  >
 
-  const yearEl =
-    document.getElementById("current-year");
+  <style>
+    :root {
+      --bg: #05050b;
+      --bg-2: #080812;
+      --panel: rgba(10, 10, 24, 0.72);
 
-  let countdownTimer = null;
+      --cyan: #00eaff;
+      --cyan-soft: rgba(0, 234, 255, 0.18);
 
-  function pad(value, length = 2) {
-    return String(value).padStart(length, "0");
-  }
+      --purple: #8b5cff;
+      --purple-soft: rgba(139, 92, 255, 0.18);
 
-  function setText(element, value) {
-    if (element) {
-      element.textContent = value;
+      --pink: #ff3cac;
+      --gold: #ffd166;
+
+      --text: #f7f8ff;
+      --muted: #a7abc2;
+      --muted-2: #777c99;
+
+      --border: rgba(255,255,255,0.09);
+
+      --max-width: 1200px;
+
+      --radius-lg: 28px;
+      --radius-md: 18px;
+      --radius-sm: 12px;
     }
-  }
 
-  function launchIsLive() {
-    setText(daysEl, "000");
-    setText(hoursEl, "00");
-    setText(minutesEl, "00");
-    setText(secondsEl, "00");
-
-    if (statusEl) {
-      statusEl.innerHTML =
-        '<span aria-hidden="true">●</span> CROWRULES PODCASTING IS LIVE';
+    * {
+      box-sizing: border-box;
     }
 
-    if (countdownEl) {
-      countdownEl.setAttribute(
-        "aria-label",
-        "CrowRules Podcasting is now live"
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+
+      background:
+        radial-gradient(
+          circle at 50% 0%,
+          rgba(0, 234, 255, 0.07),
+          transparent 34%
+        ),
+        radial-gradient(
+          circle at 80% 30%,
+          rgba(139, 92, 255, 0.08),
+          transparent 35%
+        ),
+        var(--bg);
+
+      color: var(--text);
+
+      font-family: "Montserrat", sans-serif;
+      line-height: 1.6;
+    }
+
+    body::selection {
+      background: rgba(0, 234, 255, 0.35);
+      color: white;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* =========================================================
+       BACKGROUND
+    ========================================================= */
+
+    .launch-background {
+      position: fixed;
+      inset: 0;
+      z-index: -10;
+      overflow: hidden;
+      pointer-events: none;
+      background: #05050b;
+    }
+
+    .launch-stars {
+      position: absolute;
+      inset: 0;
+
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,.85) 1px, transparent 1px),
+        radial-gradient(circle, rgba(0,234,255,.65) 1px, transparent 1px);
+
+      background-size:
+        110px 110px,
+        170px 170px;
+
+      background-position:
+        20px 30px,
+        80px 90px;
+
+      opacity: .26;
+
+      animation: starsDrift 45s linear infinite;
+    }
+
+    .launch-grid {
+      position: absolute;
+      left: -10%;
+      right: -10%;
+      bottom: -28%;
+      height: 75%;
+
+      background-image:
+        linear-gradient(
+          rgba(0,234,255,.08) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(0,234,255,.08) 1px,
+          transparent 1px
+        );
+
+      background-size: 60px 60px;
+
+      transform:
+        perspective(700px)
+        rotateX(65deg);
+
+      transform-origin: center top;
+
+      mask-image:
+        linear-gradient(
+          to bottom,
+          transparent,
+          black 35%,
+          black
+        );
+
+      opacity: .38;
+
+      animation: gridMove 16s linear infinite;
+    }
+
+    .launch-glow {
+      position: absolute;
+      width: 650px;
+      height: 650px;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: .16;
+    }
+
+    .launch-glow--one {
+      top: -260px;
+      left: -180px;
+      background: var(--cyan);
+      animation: glowOne 12s ease-in-out infinite alternate;
+    }
+
+    .launch-glow--two {
+      right: -240px;
+      top: 25%;
+      background: var(--purple);
+      animation: glowTwo 15s ease-in-out infinite alternate;
+    }
+
+    .launch-glow--three {
+      left: 35%;
+      bottom: -400px;
+      background: var(--pink);
+      animation: glowThree 18s ease-in-out infinite alternate;
+    }
+
+    /* =========================================================
+       HEADER
+    ========================================================= */
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+
+      background: rgba(5,5,11,.72);
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+
+    .header-inner {
+      width: min(
+        calc(100% - 40px),
+        var(--max-width)
       );
+
+      min-height: 76px;
+      margin: 0 auto;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
     }
 
-    document.body.classList.add(
-      "podcasting-launched"
-    );
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
 
-    if (countdownTimer) {
-      clearInterval(countdownTimer);
-      countdownTimer = null;
-    }
-  }
-
-  function updateCountdown() {
-    const now = Date.now();
-
-    const difference =
-      LAUNCH_TIMESTAMP - now;
-
-    /*
-     * Launch moment has arrived.
-     */
-    if (difference <= 0) {
-      launchIsLive();
-      return;
+      font-family: "Orbitron", sans-serif;
+      font-weight: 800;
+      letter-spacing: .04em;
     }
 
-    /*
-     * Calculate actual remaining time.
-     */
-    const totalSeconds =
-      Math.floor(difference / 1000);
+    .brand-mark {
+      width: 38px;
+      height: 38px;
 
-    const days =
-      Math.floor(totalSeconds / 86400);
+      display: grid;
+      place-items: center;
 
-    const hours =
-      Math.floor(
-        (totalSeconds % 86400) / 3600
+      border-radius: 11px;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(0,234,255,.25),
+          rgba(139,92,255,.28)
+        );
+
+      border: 1px solid rgba(0,234,255,.3);
+
+      box-shadow:
+        0 0 25px rgba(0,234,255,.16),
+        inset 0 0 20px rgba(139,92,255,.12);
+
+      color: var(--cyan);
+
+      font-size: 18px;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.05;
+    }
+
+    .brand-main {
+      font-size: 15px;
+    }
+
+    .brand-sub {
+      margin-top: 4px;
+
+      color: var(--muted-2);
+
+      font-family: "Montserrat", sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .main-nav {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .main-nav a {
+      position: relative;
+
+      color: var(--muted);
+
+      font-size: 12px;
+      font-weight: 700;
+
+      letter-spacing: .08em;
+      text-transform: uppercase;
+
+      transition:
+        color .2s ease,
+        transform .2s ease;
+    }
+
+    .main-nav a::after {
+      content: "";
+
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -8px;
+
+      height: 1px;
+
+      transform: scaleX(0);
+      transform-origin: center;
+
+      background: var(--cyan);
+
+      box-shadow: 0 0 8px var(--cyan);
+
+      transition: transform .2s ease;
+    }
+
+    .main-nav a:hover {
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .main-nav a:hover::after {
+      transform: scaleX(1);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* =========================================================
+       BUTTONS
+    ========================================================= */
+
+    .btn {
+      min-height: 44px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 0 18px;
+
+      border-radius: 999px;
+
+      font-size: 11px;
+      font-weight: 800;
+
+      letter-spacing: .08em;
+      text-transform: uppercase;
+
+      transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        border-color .2s ease,
+        background .2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      color: #031014;
+
+      background:
+        linear-gradient(
+          135deg,
+          #00f0ff,
+          #8b5cff
+        );
+
+      box-shadow:
+        0 0 30px rgba(0,234,255,.16);
+    }
+
+    .btn-primary:hover {
+      box-shadow:
+        0 0 40px rgba(0,234,255,.28);
+    }
+
+    .btn-secondary {
+      color: white;
+
+      border: 1px solid rgba(255,255,255,.14);
+
+      background: rgba(255,255,255,.045);
+    }
+
+    .btn-secondary:hover {
+      border-color: rgba(0,234,255,.4);
+      background: rgba(0,234,255,.06);
+    }
+
+    /* =========================================================
+       HERO
+    ========================================================= */
+
+    .hero {
+      position: relative;
+
+      width: min(
+        calc(100% - 40px),
+        1050px
       );
 
-    const minutes =
-      Math.floor(
-        (totalSeconds % 3600) / 60
-      );
+      min-height: calc(100vh - 76px);
 
-    const seconds =
-      totalSeconds % 60;
+      margin: 0 auto;
 
-    /*
-     * Update the actual display.
-     */
-    setText(
-      daysEl,
-      pad(days, 3)
-    );
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
-    setText(
-      hoursEl,
-      pad(hours)
-    );
+      text-align: center;
 
-    setText(
-      minutesEl,
-      pad(minutes)
-    );
-
-    setText(
-      secondsEl,
-      pad(seconds)
-    );
-
-    /*
-     * Accessibility label.
-     */
-    if (countdownEl) {
-      countdownEl.setAttribute(
-        "aria-label",
-        `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds until CrowRules Podcasting launches`
-      );
+      padding: 100px 0 120px;
     }
-  }
 
-  /*
-   * Current calendar year.
-   */
-  if (yearEl) {
-    yearEl.textContent =
-      new Date().getFullYear();
-  }
+    .hero-content {
+      width: 100%;
+    }
 
-  /*
-   * Initial calculation.
-   */
-  updateCountdown();
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
 
-  /*
-   * Update every second.
-   */
-  countdownTimer =
-    setInterval(
-      updateCountdown,
-      1000
-    );
+      margin-bottom: 22px;
 
-  /*
-   * Recalculate when the visitor returns
-   * to the browser tab.
-   */
-  document.addEventListener(
-    "visibilitychange",
-    () => {
-      if (!document.hidden) {
-        updateCountdown();
+      color: var(--cyan);
+
+      font-family: "Orbitron", sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+
+      letter-spacing: .22em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before,
+    .eyebrow::after {
+      content: "";
+
+      width: 32px;
+      height: 1px;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          var(--cyan)
+        );
+
+      box-shadow: 0 0 8px rgba(0,234,255,.6);
+    }
+
+    .eyebrow::after {
+      background:
+        linear-gradient(
+          90deg,
+          var(--cyan),
+          transparent
+        );
+    }
+
+    .hero h1 {
+      margin: 0;
+
+      font-family: "Orbitron", sans-serif;
+
+      font-size:
+        clamp(44px, 8vw, 100px);
+
+      font-weight: 900;
+      line-height: .95;
+
+      letter-spacing: -.045em;
+
+      background:
+        linear-gradient(
+          120deg,
+          #ffffff 15%,
+          #aafaff 42%,
+          #9b7aff 72%,
+          #ffffff 100%
+        );
+
+      -webkit-background-clip: text;
+      background-clip: text;
+
+      color: transparent;
+
+      text-shadow:
+        0 0 45px rgba(0,234,255,.12);
+    }
+
+    .hero-title-line {
+      display: block;
+    }
+
+    .hero-subtitle {
+      max-width: 760px;
+
+      margin: 28px auto 0;
+
+      color: var(--muted);
+
+      font-size:
+        clamp(15px, 2vw, 19px);
+
+      line-height: 1.8;
+    }
+
+    .hero-subtitle strong {
+      color: white;
+    }
+
+    /* =========================================================
+       COUNTDOWN
+    ========================================================= */
+
+    .countdown-wrap {
+      margin: 48px auto 0;
+    }
+
+    .countdown-status {
+      margin-bottom: 16px;
+
+      color: var(--gold);
+
+      font-family: "Orbitron", sans-serif;
+
+      font-size: 11px;
+      font-weight: 800;
+
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .countdown {
+      display: grid;
+
+      grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+      gap: 12px;
+
+      width: min(
+        100%,
+        760px
+      );
+
+      margin: 0 auto;
+    }
+
+    .countdown-card {
+      position: relative;
+
+      min-height: 142px;
+
+      padding: 25px 12px 20px;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: var(--radius-md);
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255,255,255,.06),
+          rgba(255,255,255,.025)
+        );
+
+      border: 1px solid rgba(255,255,255,.1);
+
+      box-shadow:
+        inset 0 1px rgba(255,255,255,.04),
+        0 15px 50px rgba(0,0,0,.25);
+
+      overflow: hidden;
+    }
+
+    .countdown-card::before {
+      content: "";
+
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+
+      height: 1px;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          var(--cyan),
+          transparent
+        );
+
+      box-shadow:
+        0 0 14px rgba(0,234,255,.7);
+    }
+
+    .countdown-number {
+      font-family: "Orbitron", sans-serif;
+
+      font-size:
+        clamp(34px, 6vw, 58px);
+
+      font-weight: 800;
+
+      line-height: 1;
+
+      letter-spacing: -.04em;
+
+      color: white;
+
+      text-shadow:
+        0 0 25px rgba(0,234,255,.15);
+    }
+
+    .countdown-label {
+      margin-top: 13px;
+
+      color: var(--muted-2);
+
+      font-size: 9px;
+      font-weight: 800;
+
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .launch-date {
+      margin-top: 22px;
+
+      color: rgba(255,255,255,.52);
+
+      font-family: "Orbitron", sans-serif;
+
+      font-size: 11px;
+      font-weight: 700;
+
+      letter-spacing: .18em;
+    }
+
+    /* =========================================================
+       HERO CTA
+    ========================================================= */
+
+    .hero-actions {
+      margin-top: 36px;
+
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+
+      gap: 12px;
+    }
+
+    /* =========================================================
+       SECTIONS
+    ========================================================= */
+
+    .section {
+      width: min(
+        calc(100% - 40px),
+        var(--max-width)
+      );
+
+      margin: 0 auto;
+
+      padding: 110px 0;
+    }
+
+    .section-heading {
+      max-width: 720px;
+
+      margin-bottom: 48px;
+    }
+
+    .section-kicker {
+      color: var(--cyan);
+
+      font-family: "Orbitron", sans-serif;
+
+      font-size: 10px;
+      font-weight: 800;
+
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .section-heading h2 {
+      margin: 10px 0 0;
+
+      font-family: "Orbitron", sans-serif;
+
+      font-size:
+        clamp(30px, 5vw, 54px);
+
+      line-height: 1.05;
+    }
+
+    .section-heading p {
+      margin: 20px 0 0;
+
+      color: var(--muted);
+
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    /* =========================================================
+       ABOUT
+    ========================================================= */
+
+    .about-grid {
+      display: grid;
+
+      grid-template-columns:
+        minmax(0, 1.2fr)
+        minmax(300px, .8fr);
+
+      gap: 24px;
+    }
+
+    .glass-panel {
+      border: 1px solid var(--border);
+
+      border-radius: var(--radius-lg);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,.055),
+          rgba(255,255,255,.018)
+        );
+
+      box-shadow:
+        0 30px 80px rgba(0,0,0,.2),
+        inset 0 1px rgba(255,255,255,.035);
+
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .about-copy {
+      padding: 38px;
+    }
+
+    .about-copy h3 {
+      margin: 0 0 16px;
+
+      font-family: "Orbitron", sans-serif;
+      font-size: 24px;
+    }
+
+    .about-copy p {
+      margin: 0;
+
+      color: var(--muted);
+
+      line-height: 1.9;
+    }
+
+    .about-stat {
+      min-height: 100%;
+
+      padding: 38px;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      background:
+        radial-gradient(
+          circle at 20% 10%,
+          rgba(0,234,255,.12),
+          transparent 50%
+        ),
+        radial-gradient(
+          circle at 90% 90%,
+          rgba(139,92,255,.12),
+          transparent 50%
+        );
+    }
+
+    .stat-number {
+      font-family: "Orbitron", sans-serif;
+
+      font-size: 44px;
+      font-weight: 900;
+
+      color: var(--cyan);
+
+      text-shadow:
+        0 0 25px rgba(0,234,255,.3);
+    }
+
+    .stat-label {
+      margin-top: 8px;
+
+      color: white;
+
+      font-size: 13px;
+      font-weight: 700;
+
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    /* =========================================================
+       FEATURES
+    ========================================================= */
+
+    .feature-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+      gap: 16px;
+    }
+
+    .feature-card {
+      position: relative;
+
+      min-height: 220px;
+
+      padding: 30px;
+
+      border-radius: var(--radius-md);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,.055),
+          rgba(255,255,255,.015)
+        );
+
+      border: 1px solid rgba(255,255,255,.08);
+
+      overflow: hidden;
+
+      transition:
+        transform .25s ease,
+        border-color .25s ease,
+        background .25s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-6px);
+
+      border-color:
+        rgba(0,234,255,.3);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(0,234,255,.075),
+          rgba(139,92,255,.035)
+        );
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+
+      display: grid;
+      place-items: center;
+
+      margin-bottom: 22px;
+
+      border-radius: 13px;
+
+      color: var(--cyan);
+
+      background:
+        rgba(0,234,255,.07);
+
+      border: 1px solid
+        rgba(0,234,255,.15);
+
+      font-family: "Orbitron", sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .feature-card h3 {
+      margin: 0 0 10px;
+
+      font-family: "Orbitron", sans-serif;
+
+      font-size: 17px;
+    }
+
+    .feature-card p {
+      margin: 0;
+
+      color: var(--muted);
+
+      font-size: 13px;
+      line-height: 1.75;
+    }
+
+    /* =========================================================
+       ROADMAP
+    ========================================================= */
+
+    .timeline {
+      position: relative;
+
+      display: grid;
+
+      gap: 16px;
+    }
+
+    .timeline::before {
+      content: "";
+
+      position: absolute;
+
+      left: 24px;
+      top: 30px;
+      bottom: 30px;
+
+      width: 1px;
+
+      background:
+        linear-gradient(
+          to bottom,
+          var(--cyan),
+          var(--purple),
+          transparent
+        );
+
+      opacity: .45;
+    }
+
+    .timeline-item {
+      position: relative;
+
+      display: grid;
+
+      grid-template-columns: 50px 1fr;
+
+      gap: 18px;
+
+      align-items: start;
+    }
+
+    .timeline-dot {
+      position: relative;
+      z-index: 2;
+
+      width: 50px;
+      height: 50px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 50%;
+
+      background: #080812;
+
+      border: 1px solid rgba(0,234,255,.3);
+
+      color: var(--cyan);
+
+      font-family: "Orbitron", sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+
+      box-shadow:
+        0 0 20px rgba(0,234,255,.1);
+    }
+
+    .timeline-content {
+      padding: 24px 26px;
+
+      border-radius: var(--radius-md);
+
+      border: 1px solid var(--border);
+
+      background:
+        rgba(255,255,255,.025);
+    }
+
+    .timeline-date {
+      color: var(--cyan);
+
+      font-family: "Orbitron", sans-serif;
+
+      font-size: 10px;
+      font-weight: 800;
+
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    .timeline-content h3 {
+      margin: 7px 0 7px;
+
+      font-family: "Orbitron", sans-serif;
+
+      font-size: 18px;
+    }
+
+    .timeline-content p {
+      margin: 0;
+
+      color: var(--muted);
+
+      font-size: 13px;
+    }
+
+    /* =========================================================
+       FINAL CTA
+    ========================================================= */
+
+    .final-cta {
+      position: relative;
+
+      width: min(
+        calc(100% - 40px),
+        var(--max-width)
+      );
+
+      margin: 40px auto 110px;
+
+      padding: 75px 30px;
+
+      text-align: center;
+
+      overflow: hidden;
+
+      border-radius: 32px;
+
+      border: 1px solid rgba(0,234,255,.14);
+
+      background:
+        radial-gradient(
+          circle at 50% 0%,
+          rgba(0,234,255,.12),
+          transparent 55%
+        ),
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,.045),
+          rgba(139,92,255,.045)
+        );
+    }
+
+    .final-cta::before {
+      content: "";
+
+      position: absolute;
+      inset: 0;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(255,255,255,.04),
+          transparent
+        );
+
+      transform: translateX(-100%);
+
+      animation: scan 7s linear infinite;
+    }
+
+    .final-cta > * {
+      position: relative;
+      z-index: 2;
+    }
+
+    .final-cta h2 {
+      margin: 0;
+
+      font-family: "Orbitron", sans-serif;
+
+      font-size:
+        clamp(30px, 5vw, 58px);
+
+      line-height: 1.05;
+    }
+
+    .final-cta p {
+      max-width: 650px;
+
+      margin: 18px auto 30px;
+
+      color: var(--muted);
+    }
+
+    /* =========================================================
+       FOOTER
+    ========================================================= */
+
+    footer {
+      width: min(
+        calc(100% - 40px),
+        var(--max-width)
+      );
+
+      margin: 0 auto;
+
+      padding: 30px 0 45px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 20px;
+
+      border-top:
+        1px solid rgba(255,255,255,.07);
+
+      color: var(--muted-2);
+
+      font-size: 11px;
+    }
+
+    .footer-brand {
+      font-family: "Orbitron", sans-serif;
+      font-weight: 700;
+    }
+
+    .footer-note {
+      text-align: right;
+    }
+
+    /* =========================================================
+       REVEAL ANIMATION
+    ========================================================= */
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+
+      transition:
+        opacity .8s ease,
+        transform .8s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* =========================================================
+       LIVE STATE
+    ========================================================= */
+
+    body.is-live .countdown-status {
+      color: #70ffb4;
+    }
+
+    body.is-live .countdown-status::before {
+      content: "● ";
+    }
+
+    body.is-live .countdown-card {
+      border-color:
+        rgba(112,255,180,.22);
+    }
+
+    body.is-live .countdown-number {
+      color: #70ffb4;
+
+      text-shadow:
+        0 0 30px rgba(112,255,180,.3);
+    }
+
+    body.is-live .countdown-label {
+      color: rgba(112,255,180,.65);
+    }
+
+    /* =========================================================
+       ANIMATIONS
+    ========================================================= */
+
+    @keyframes starsDrift {
+      from {
+        transform: translate3d(0,0,0);
+      }
+
+      to {
+        transform: translate3d(-110px,-110px,0);
       }
     }
-  );
 
-})();
-</script>
+    @keyframes gridMove {
+      from {
+        background-position: 0 0;
+      }
+
+      to {
+        background-position: 0 60px;
+      }
+    }
+
+    @keyframes glowOne {
+      from {
+        transform: translate(0,0) scale(1);
+      }
+
+      to {
+        transform: translate(120px,80px) scale(1.15);
+      }
+    }
+
+    @keyframes glowTwo {
+      from {
+        transform: translate(0,0) scale(1);
+      }
+
+      to {
+        transform: translate(-100px,100px) scale(1.2);
+      }
+    }
+
+    @keyframes glowThree {
+      from {
+        transform: translate(0,0) scale(1);
+      }
+
+      to {
+        transform: translate(80px,-100px) scale(1.2);
+      }
+    }
+
+    @keyframes scan {
+      0% {
+        transform: translateX(-120%);
+      }
+
+      45%,
+      100% {
+        transform: translateX(120%);
+      }
+    }
+
+    /* =========================================================
+       RESPONSIVE
+    ========================================================= */
+
+    @media (max-width: 900px) {
+      .main-nav {
+        display: none;
+      }
+
+      .about-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .feature-grid {
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .header-inner {
+        width: min(
+          calc(100% - 24px),
+          var(--max-width)
+        );
+      }
+
+      .header-actions .btn-secondary {
+        display: none;
+      }
+
+      .brand-sub {
+        display: none;
+      }
+
+      .hero {
+        width: min(
+          calc(100% - 28px),
+          1050px
+        );
+
+        padding-top: 70px;
+        padding-bottom: 90px;
+      }
+
+      .hero h1 {
+        font-size: clamp(38px, 13vw, 65px);
+      }
+
+      .hero-subtitle {
+        font-size: 14px;
+      }
+
+      .countdown {
+        gap: 7px;
+      }
+
+      .countdown-card {
+        min-height: 105px;
+        padding: 18px 6px;
+      }
+
+      .countdown-number {
+        font-size: clamp(25px, 10vw, 42px);
+      }
+
+      .countdown-label {
+        margin-top: 9px;
+        font-size: 7px;
+      }
+
+      .section {
+        width: min(
+          calc(100% - 28px),
+          var(--max-width)
+        );
+
+        padding: 75px 0;
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .about-copy,
+      .about-stat {
+        padding: 27px;
+      }
+
+      .timeline::before {
+        left: 19px;
+      }
+
+      .timeline-item {
+        grid-template-columns: 40px 1fr;
+        gap: 12px;
+      }
+
+      .timeline-dot {
+        width: 40px;
+        height: 40px;
+        font-size: 9px;
+      }
+
+      .timeline-content {
+        padding: 20px;
+      }
+
+      .final-cta {
+        width: min(
+          calc(100% - 28px),
+          var(--max-width)
+        );
+
+        margin-bottom: 70px;
+
+        padding: 55px 20px;
+      }
+
+      footer {
+        width: min(
+          calc(100% - 28px),
+          var(--max-width)
+        );
+
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .footer-note {
+        text-align: left;
+      }
+    }
+
+    /* =========================================================
+       REDUCED MOTION
+    ========================================================= */
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+
+      .reveal {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  </style>
+</head>
+
+<body class="launch-page">
+
+  <!-- =======================================================
+       CINEMATIC BACKGROUND
+  ======================================================== -->
+
+  <div
+    class="launch-background"
+    aria-hidden="true"
+  >
+    <div class="launch-stars"></div>
+    <div class="launch-grid"></div>
+
+    <div class="launch-glow launch-glow--one"></div>
+    <div class="launch-glow launch-glow--two"></div>
+    <div class="launch-glow launch-glow--three"></div>
+  </div>
+
+
+  <!-- =======================================================
+       HEADER
+  ======================================================== -->
+
+  <header class="site-header">
+
+    <div class="header-inner">
+
+      <a
+        class="brand"
+        href="index.html"
+        aria-label="CrowRules Podcasting home"
+      >
+        <span class="brand-mark">C</span>
+
+        <span class="brand-text">
+          <span class="brand-main">
+            CROWRULES
+          </span>
+
+          <span class="brand-sub">
+            Podcasting
+          </span>
+        </span>
+      </a>
+
+
+      <nav
+        class="main-nav"
+        aria-label="Main navigation"
+      >
+        <a href="#about">About</a>
+        <a href="#features">Features</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="signup.html">Join</a>
+      </nav>
+
+
+      <div class="header-actions">
+
+        <a
+          class="btn btn-secondary"
+          href="login.html"
+        >
+          Login
+        </a>
+
+        <a
+          class="btn btn-primary"
+          href="signup.html"
+        >
+          Join
+        </a>
+
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <main>
+
+    <!-- =====================================================
+         HERO
+    ====================================================== -->
+
+    <section class="hero">
+
+      <div class="hero-content">
+
+        <div class="eyebrow">
+          The Next Chapter
+        </div>
+
+
+        <h1>
+          <span class="hero-title-line">
+            CROWRULES
+          </span>
+
+          <span class="hero-title-line">
+            PODCASTING
+          </span>
+        </h1>
+
+
+        <p class="hero-subtitle">
+          A new home for
+          <strong>podcasters, creators, hosts, and listeners.</strong>
+          Create your show. Publish your episodes. Build your audience.
+          Become part of the CrowRules universe.
+        </p>
+
+
+        <!-- COUNTDOWN -->
+
+        <div
+          class="countdown-wrap"
+          aria-live="polite"
+        >
+
+          <div
+            id="launch-status"
+            class="countdown-status"
+          >
+            COUNTDOWN TO LAUNCH
+          </div>
+
+
+          <div
+            id="countdown"
+            class="countdown"
+            role="timer"
+            aria-label="Countdown to CrowRules Podcasting launch"
+          >
+
+            <div class="countdown-card">
+              <div
+                id="countdown-days"
+                class="countdown-number"
+              >
+                000
+              </div>
+
+              <div class="countdown-label">
+                Days
+              </div>
+            </div>
+
+
+            <div class="countdown-card">
+              <div
+                id="countdown-hours"
+                class="countdown-number"
+              >
+                00
+              </div>
+
+              <div class="countdown-label">
+                Hours
+              </div>
+            </div>
+
+
+            <div class="countdown-card">
+              <div
+                id="countdown-minutes"
+                class="countdown-number"
+              >
+                00
+              </div>
+
+              <div class="countdown-label">
+                Minutes
+              </div>
+            </div>
+
+
+            <div class="countdown-card">
+              <div
+                id="countdown-seconds"
+                class="countdown-number"
+              >
+                00
+              </div>
+
+              <div class="countdown-label">
+                Seconds
+              </div>
+            </div>
+
+          </div>
+
+
+          <div class="launch-date">
+            JANUARY 1, 2027 · 12:00 AM PACIFIC
+          </div>
+
+        </div>
+
+
+        <div class="hero-actions">
+
+          <a
+            class="btn btn-primary"
+            href="signup.html"
+          >
+            Join CrowRules
+          </a>
+
+          <a
+            class="btn btn-secondary"
+            href="#features"
+          >
+            Explore Podcasting
+          </a>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ABOUT
+    ====================================================== -->
+
+    <section
+      id="about"
+      class="section reveal"
+    >
+
+      <div class="section-heading">
+
+        <div class="section-kicker">
+          One Account. One Universe.
+        </div>
+
+        <h2>
+          Podcasting built for the CrowRules universe.
+        </h2>
+
+        <p>
+          CrowRules Podcasting is designed as a creator-first
+          platform connected to the larger CrowRules Entertainment
+          ecosystem.
+        </p>
+
+      </div>
+
+
+      <div class="about-grid">
+
+        <article class="glass-panel about-copy">
+
+          <h3>
+            More than an audio player.
+          </h3>
+
+          <p>
+            Create and discover podcasts, follow hosts, publish
+            episodes, build social profiles, earn CrowPoints and
+            connect your podcasting identity with your CrowRules
+            membership.
+          </p>
+
+          <br>
+
+          <p>
+            The goal is simple:
+            <strong>
+              one account, one identity, one universe.
+            </strong>
+          </p>
+
+        </article>
+
+
+        <aside class="glass-panel about-stat">
+
+          <div class="stat-number">
+            01
+          </div>
+
+          <div class="stat-label">
+            CrowRules Podcasting Universe
+          </div>
+
+          <p style="color:var(--muted);font-size:13px;margin:18px 0 0;">
+            Launching January 1, 2027.
+          </p>
+
+        </aside>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         FEATURES
+    ====================================================== -->
+
+    <section
+      id="features"
+      class="section reveal"
+    >
+
+      <div class="section-heading">
+
+        <div class="section-kicker">
+          Built For Creators
+        </div>
+
+        <h2>
+          Create. Publish. Connect.
+        </h2>
+
+        <p>
+          The first chapter of CrowRules Podcasting brings
+          creators and listeners together inside one connected
+          experience.
+        </p>
+
+      </div>
+
+
+      <div class="feature-grid">
+
+        <article class="feature-card">
+
+          <div class="feature-icon">
+            01
+          </div>
+
+          <h3>
+            Create Podcasts
+          </h3>
+
+          <p>
+            Build your podcast identity, show page, description,
+            artwork, host information and social presence.
+          </p>
+
+        </article>
+
+
+        <article class="feature-card">
+
+          <div class="feature-icon">
+            02
+          </div>
+
+          <h3>
+            Publish Episodes
+          </h3>
+
+          <p>
+            Organize your episodes and give listeners a dedicated
+            place to discover your work.
+          </p>
+
+        </article>
+
+
+        <article class="feature-card">
+
+          <div class="feature-icon">
+            03
+          </div>
+
+          <h3>
+            Audio Player
+          </h3>
+
+          <p>
+            Listen to CrowRules podcasts through a unified,
+            cinematic audio experience.
+          </p>
+
+        </article>
+
+
+        <article class="feature-card">
+
+          <div class="feature-icon">
+            04
+          </div>
+
+          <h3>
+            Creator Profiles
+          </h3>
+
+          <p>
+            Build a public identity connected to your universal
+            CrowRules membership.
+          </p>
+
+        </article>
+
+
+        <article class="feature-card">
+
+          <div class="feature-icon">
+            05
+          </div>
+
+          <h3>
+            CrowPoints
+          </h3>
+
+          <p>
+            Participate throughout the CrowRules universe and
+            build your CrowPoints activity.
+          </p>
+
+        </article>
+
+
+        <article class="feature-card">
+
+          <div class="feature-icon">
+            06
+          </div>
+
+          <h3>
+            Discover
+          </h3>
+
+          <p>
+            Explore featured podcasts, newest episodes, hosts,
+            creators and community favorites.
+          </p>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ROADMAP
+    ====================================================== -->
+
+    <section
+      id="roadmap"
+      class="section reveal"
+    >
+
+      <div class="section-heading">
+
+        <div class="section-kicker">
+          The Road Ahead
+        </div>
+
+        <h2>
+          The podcasting universe starts here.
+        </h2>
+
+        <p>
+          CrowRules Podcasting is being built as part of a larger
+          long-term entertainment ecosystem.
+        </p>
+
+      </div>
+
+
+      <div class="timeline">
+
+        <article class="timeline-item">
+
+          <div class="timeline-dot">
+            01
+          </div>
+
+          <div class="timeline-content">
+
+            <div class="timeline-date">
+              2026
+            </div>
+
+            <h3>
+              Foundation
+            </h3>
+
+            <p>
+              Build the platform, creator experience, membership
+              infrastructure and core podcasting systems.
+            </p>
+
+          </div>
+
+        </article>
+
+
+        <article class="timeline-item">
+
+          <div class="timeline-dot">
+            02
+          </div>
+
+          <div class="timeline-content">
+
+            <div class="timeline-date">
+              January 1, 2027
+            </div>
+
+            <h3>
+              Public Launch
+            </h3>
+
+            <p>
+              CrowRules Podcasting officially opens its doors to
+              creators and listeners.
+            </p>
+
+          </div>
+
+        </article>
+
+
+        <article class="timeline-item">
+
+          <div class="timeline-dot">
+            03
+          </div>
+
+          <div class="timeline-content">
+
+            <div class="timeline-date">
+              Beyond Launch
+            </div>
+
+            <h3>
+              Grow The Universe
+            </h3>
+
+            <p>
+              Expand creator tools, discovery, community features,
+              rankings, CrowPoints and connections across CrowRules.
+            </p>
+
+          </div>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         FINAL CTA
+    ====================================================== -->
+
+    <section class="final-cta reveal">
+
+      <div class="section-kicker">
+        January 1, 2027
+      </div>
+
+      <h2>
+        Your voice belongs here.
+      </h2>
+
+      <p>
+        Get ready for the launch of CrowRules Podcasting.
+        Create your account now and be ready when the universe
+        opens.
+      </p>
+
+
+      <div class="hero-actions">
+
+        <a
+          class="btn btn-primary"
+          href="signup.html"
+        >
+          Create Your Account
+        </a>
+
+        <a
+          class="btn btn-secondary"
+          href="login.html"
+        >
+          Login
+        </a>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- =======================================================
+       FOOTER
+  ======================================================== -->
+
+  <footer>
+
+    <div class="footer-brand">
+      CROWRULES PODCASTING
+    </div>
+
+    <div class="footer-note">
+      Launching January 1, 2027 · Tacoma, Washington
+    </div>
+
+    <div>
+      © <span id="current-year"></span> CrowRules Entertainment
+    </div>
+
+  </footer>
+
+
+  <!-- =======================================================
+       JAVASCRIPT
+  ======================================================== -->
+
+  <script>
+    (() => {
+      "use strict";
+
+      /*
+       * ======================================================
+       * CROWRULES PODCASTING LAUNCH COUNTDOWN
+       *
+       * Launch:
+       * January 1, 2027
+       * 12:00:00 AM Pacific Standard Time
+       *
+       * Pacific Standard Time on January 1 = UTC-8
+       *
+       * Therefore:
+       * 2027-01-01 00:00:00 PST
+       * =
+       * 2027-01-01 08:00:00 UTC
+       *
+       * Using Date.UTC prevents the countdown from changing
+       * based on the visitor's local timezone.
+       * ======================================================
+       */
+
+      const LAUNCH_TIMESTAMP =
+        Date.UTC(
+          2027,
+          0,
+          1,
+          8,
+          0,
+          0
+        );
+
+
+      const daysElement =
+        document.getElementById(
+          "countdown-days"
+        );
+
+      const hoursElement =
+        document.getElementById(
+          "countdown-hours"
+        );
+
+      const minutesElement =
+        document.getElementById(
+          "countdown-minutes"
+        );
+
+      const secondsElement =
+        document.getElementById(
+          "countdown-seconds"
+        );
+
+      const statusElement =
+        document.getElementById(
+          "launch-status"
+        );
+
+      const countdownElement =
+        document.getElementById(
+          "countdown"
+        );
+
+
+      let countdownInterval = null;
+
+
+      function pad(value, length = 2) {
+        return String(value)
+          .padStart(length, "0");
+      }
+
+
+      function setLiveState() {
+
+        document.body.classList.add(
+          "is-live"
+        );
+
+        statusElement.textContent =
+          "CROWRULES PODCASTING IS LIVE";
+
+        daysElement.textContent = "000";
+        hoursElement.textContent = "00";
+        minutesElement.textContent = "00";
+        secondsElement.textContent = "00";
+
+        countdownElement.setAttribute(
+          "aria-label",
+          "CrowRules Podcasting is now live"
+        );
+
+        if (countdownInterval) {
+          clearInterval(
+            countdownInterval
+          );
+
+          countdownInterval = null;
+        }
+      }
+
+
+      function updateCountdown() {
+
+        const now = Date.now();
+
+        const remaining =
+          LAUNCH_TIMESTAMP - now;
+
+
+        if (remaining <= 0) {
+          setLiveState();
+          return;
+        }
+
+
+        const totalSeconds =
+          Math.floor(
+            remaining / 1000
+          );
+
+
+        const days =
+          Math.floor(
+            totalSeconds / 86400
+          );
+
+
+        const hours =
+          Math.floor(
+            (totalSeconds % 86400) / 3600
+          );
+
+
+        const minutes =
+          Math.floor(
+            (totalSeconds % 3600) / 60
+          );
+
+
+        const seconds =
+          totalSeconds % 60;
+
+
+        daysElement.textContent =
+          pad(days, 3);
+
+        hoursElement.textContent =
+          pad(hours);
+
+        minutesElement.textContent =
+          pad(minutes);
+
+        secondsElement.textContent =
+          pad(seconds);
+
+
+        countdownElement.setAttribute(
+          "aria-label",
+          `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds until CrowRules Podcasting launches`
+        );
+      }
+
+
+      /*
+       * Run immediately so the page never waits
+       * for the first interval.
+       */
+
+      updateCountdown();
+
+
+      /*
+       * Update once per second.
+       */
+
+      countdownInterval =
+        setInterval(
+          updateCountdown,
+          1000
+        );
+
+
+      /*
+       * If the browser tab was inactive,
+       * immediately resynchronize when the
+       * visitor returns.
+       */
+
+      document.addEventListener(
+        "visibilitychange",
+        () => {
+
+          if (
+            document.visibilityState ===
+            "visible"
+          ) {
+            updateCountdown();
+          }
+
+        }
+      );
+
+
+      /* =====================================================
+         CURRENT YEAR
+      ====================================================== */
+
+      const currentYear =
+        document.getElementById(
+          "current-year"
+        );
+
+      if (currentYear) {
+        currentYear.textContent =
+          new Date().getFullYear();
+      }
+
+
+      /* =====================================================
+         SCROLL REVEAL
+      ====================================================== */
+
+      const revealElements =
+        document.querySelectorAll(
+          ".reveal"
+        );
+
+
+      if (
+        "IntersectionObserver" in window
+      ) {
+
+        const observer =
+          new IntersectionObserver(
+            entries => {
+
+              entries.forEach(
+                entry => {
+
+                  if (
+                    entry.isIntersecting
+                  ) {
+
+                    entry.target.classList.add(
+                      "visible"
+                    );
+
+                    observer.unobserve(
+                      entry.target
+                    );
+
+                  }
+
+                }
+              );
+
+            },
+            {
+              threshold: 0.12
+            }
+          );
+
+
+        revealElements.forEach(
+          element => {
+            observer.observe(element);
+          }
+        );
+
+      } else {
+
+        revealElements.forEach(
+          element => {
+            element.classList.add(
+              "visible"
+            );
+          }
+        );
+
+      }
+
+
+      /* =====================================================
+         FEATURE CARD POINTER EFFECT
+      ====================================================== */
+
+      const featureCards =
+        document.querySelectorAll(
+          ".feature-card"
+        );
+
+
+      const reducedMotion =
+        window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches;
+
+
+      if (!reducedMotion) {
+
+        featureCards.forEach(
+          card => {
+
+            card.addEventListener(
+              "pointermove",
+              event => {
+
+                const rect =
+                  card.getBoundingClientRect();
+
+                const x =
+                  event.clientX -
+                  rect.left;
+
+                const y =
+                  event.clientY -
+                  rect.top;
+
+                const rotateX =
+                  ((y / rect.height) - 0.5) * -3;
+
+                const rotateY =
+                  ((x / rect.width) - 0.5) * 3;
+
+                card.style.transform =
+                  `translateY(-6px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+
+              }
+            );
+
+
+            card.addEventListener(
+              "pointerleave",
+              () => {
+
+                card.style.transform =
+                  "";
+
+              }
+            );
+
+          }
+        );
+
+      }
+
+    })();
+  </script>
+
+</body>
+</html>
