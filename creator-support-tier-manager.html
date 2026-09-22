@@ -32,7 +32,7 @@ try{
 const cfg=window.CrowRulesConfig||{};if(!cfg.supabaseUrl||!cfg.supabaseAnonKey)throw Error("Missing config");
 db=supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);const {data:{user}}=await db.auth.getUser();
 if(!user){gate.innerHTML='<span class="eyebrow">LOGIN REQUIRED</span><h2>Sign in to manage your support tiers.</h2><a class="btn primary" href="login.html">LOGIN</a>';return;}
-const cr=await db.from("creators").select("id").eq("user_id",user.id).maybeSingle();if(cr.error)throw cr.error;if(!cr.data){gate.innerHTML='<span class="eyebrow">CREATOR PROFILE REQUIRED</span><h2>Connect a creator profile first.</h2><a class="btn primary" href="creator-dashboard.html">CREATOR STUDIO</a>';return;}
+const member=await db.from("members").select("id").eq("user_id",user.id).maybeSingle();if(member.error)throw member.error;const cr=member.data?await db.from("creators").select("id").eq("member_id",member.data.id).maybeSingle():{data:null,error:null};if(cr.error)throw cr.error;if(!cr.data){gate.innerHTML='<span class="eyebrow">CREATOR PROFILE REQUIRED</span><h2>Connect a creator profile first.</h2><a class="btn primary" href="creator-dashboard.html">CREATOR STUDIO</a>';return;}
 creatorId=cr.data.id;gate.classList.add("hidden");app.classList.remove("hidden");await load();
 }catch(e){console.error(e);gate.innerHTML='<span class="eyebrow">MANAGER UNAVAILABLE</span><h2>The support-tier manager could not load.</h2><p>Nothing was written or changed.</p>';}
 })();
