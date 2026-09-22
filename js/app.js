@@ -724,6 +724,8 @@ function creatorNavRealtimeStart(){
     .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_transaction_changes"},creatorNavRealtimeScheduleRefresh)
     .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_audit_ledger"},creatorNavRealtimeScheduleRefresh)
     .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_task_locks"},()=>{creatorNavServerLocksRefresh();creatorNavRealtimeScheduleRefresh();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_tasks"},()=>{creatorNavServerTaskBridgeSync(data);creatorNavRealtimeScheduleRefresh();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_task_health"},()=>{creatorNavServerHealthRefresh();creatorNavRealtimeScheduleRefresh();})
     .subscribe(status=>{
       if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){
         creatorNavRealtimeStarted=false;
