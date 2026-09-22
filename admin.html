@@ -21,9 +21,9 @@
 </div></header>
 <main id="main" class="admin-shell"><div class="wrap">
 <div id="loading" class="loading"><div class="auth-loading"><span class="loading-spinner"></span> Verifying administrator access…</div></div>
-<section id="denied" class="panel hidden"><h2>Administrator access required</h2><p>This dashboard is restricted to CrowRules administrators.</p><a class="btn" href="creator-studio.html">Return to Creator Studio</a></section>
+<section id="denied" class="panel hidden"><h2>Administrator access required</h2><p>This dashboard is restricted to CrowRules administrators.</p><div class="admin-actions"><button id="deniedSignOut" class="btn">Sign Out</button><button id="retryAuth" class="btn primary">Retry Verification</button><a class="btn" href="creator-studio.html">Return to Creator Studio</a></div></section>
 <section id="app" class="hidden">
-<div class="admin-head"><div><div class="eyebrow">CROWRULES PODCASTING · ADMIN</div><h1>Command <span class="glow">Center</span></h1><p>Monitor podcasts, episodes, and live channels from one protected dashboard.</p></div><div class="admin-actions"><button id="refresh" class="btn primary">Refresh</button><a class="btn" href="creator-studio.html">Creator Studio</a></div></div>
+<div class="admin-head"><div><div class="eyebrow">CROWRULES PODCASTING · ADMIN</div><h1>Command <span class="glow">Center</span></h1><p>Monitor podcasts, episodes, and live channels from one protected dashboard.</p></div><div class="admin-actions"><button id="refresh" class="btn primary">Refresh</button><button id="signOut" class="btn">Sign Out</button><a class="btn" href="creator-studio.html">Creator Studio</a></div></div>
 <div id="notice" class="notice hidden"></div>
 <div class="admin-grid">
 <div class="metric"><span>Podcasts</span><strong id="mPodcasts">—</strong></div>
@@ -32,7 +32,7 @@
 <div class="metric"><span>Live Channels</span><strong id="mLive">—</strong></div>
 </div>
 <section class="panel"><div class="panel-head"><h2>Podcasts</h2><div><button class="btn primary" id="addPodcast">+ Add Podcast</button> <input id="podcastSearch" class="search" placeholder="Search podcasts…"></div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Podcast</th><th>Category</th><th>Status</th><th>Featured</th><th>Live</th><th>Plays</th><th>Actions</th></tr></thead><tbody id="podcastRows"></tbody></table></div></section>
-<section class="panel"><div class="panel-head"><h2>Episodes</h2><div><button class="btn primary" id="addEpisode">+ Add Episode</button> <input id="episodeSearch" class="search" placeholder="Search episodes…"></div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Episode</th><th>Podcast</th><th>Season/Episode</th><th>Status</th><th>Published</th><th>Plays</th></tr></thead><tbody id="episodeRows"></tbody></table></div></section>
+<section class="panel"><div class="panel-head"><h2>Episodes</h2><div><button class="btn primary" id="addEpisode">+ Add Episode</button> <input id="episodeSearch" class="search" placeholder="Search episodes…"></div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Episode</th><th>Podcast</th><th>Season/Episode</th><th>Status</th><th>Published</th><th>Plays</th><th>Actions</th></tr></thead><tbody id="episodeRows"></tbody></table></div></section>
 <section class="panel"><div class="panel-head"><h2>Live Channels</h2><button class="btn primary" id="addChannel">+ Add Channel</button></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Channel</th><th>Status</th><th>Active</th><th>Listeners</th><th>Current Show</th><th>Updated</th><th>Actions</th></tr></thead><tbody id="liveRows"></tbody></table></div></section>
 </section>
 </div></main><div id="modalRoot" class="hidden"></div>
@@ -53,20 +53,48 @@ function select(label,id,value,opts){return '<label>'+label+'<select id="'+id+'"
 function podcastForm(p){p=p||{};return '<div class="form-grid">'+field('Title','fTitle',p.title)+field('Slug','fSlug',p.slug)+field('Category','fCategory',p.category||'Talk & Commentary')+select('Status','fStatus',p.status||'draft',['draft','published','archived'])+textarea('Description','fDescription',p.description)+field('Artwork URL','fArtwork',p.artwork_url)+field('Trailer URL','fTrailer',p.trailer_url)+field('Website URL','fWebsite',p.website_url)+'<label class="check"><input id="fFeatured" type="checkbox" '+(p.is_featured?'checked':'')+'> Featured</label><label class="check"><input id="fLive" type="checkbox" '+(p.is_live?'checked':'')+'> Live</label></div>'}
 function episodeForm(e){e=e||{};var ps=podcasts.map(function(p){return '<option value="'+p.id+'" '+(p.id===e.podcast_id?'selected':'')+'>'+esc(p.title)+'</option>'}).join('');return '<div class="form-grid"><label>Podcast<select id="fPodcast">'+ps+'</select></label>'+field('Title','fTitle',e.title)+field('Slug','fSlug',e.slug)+select('Status','fStatus',e.status||'draft',['draft','scheduled','published','archived'])+field('Season','fSeason',e.season_number||1,'number')+field('Episode #','fEpisode',e.episode_number,'number')+field('Published At','fPublished',e.published_at?new Date(e.published_at).toISOString().slice(0,16):'','datetime-local')+field('Duration Seconds','fDuration',e.duration_seconds,'number')+textarea('Description','fDescription',e.description)+field('Audio URL','fAudio',e.audio_url)+field('Video URL','fVideo',e.video_url)+field('Thumbnail URL','fThumb',e.thumbnail_url)+textarea('Show Notes','fNotes',e.show_notes)+textarea('Transcript','fTranscript',e.transcript)+'<label class="check"><input id="fExplicit" type="checkbox" '+(e.is_explicit?'checked':'')+'> Explicit</label></div>'}
 function channelForm(c){c=c||{};var ps=podcasts.map(function(p){return '<option value="'+p.id+'" '+(p.id===c.current_podcast_id?'selected':'')+'>'+esc(p.title)+'</option>'}).join('');var es=episodes.map(function(e){return '<option value="'+e.id+'" '+(e.id===c.current_episode_id?'selected':'')+'>'+esc(e.title)+'</option>'}).join('');return '<div class="form-grid">'+field('Name','fName',c.name)+field('Slug','fSlug',c.slug)+textarea('Description','fDescription',c.description)+field('Stream URL','fStream',c.stream_url)+field('Stream Type','fType',c.stream_type)+field('Artwork URL','fArtwork',c.artwork_url)+select('Status','fStatus',c.status||'offline',['offline','online','live','active'])+field('Listeners','fListeners',c.listener_count||0,'number')+field('Bitrate Kbps','fBitrate',c.bitrate_kbps,'number')+field('Timezone','fTimezone',c.timezone)+field('Current Title','fCurrentTitle',c.current_title)+'<label>Current Podcast<select id="fCurrentPodcast"><option value="">None</option>'+ps+'</select></label><label>Current Episode<select id="fCurrentEpisode"><option value="">None</option>'+es+'</select></label><label class="check"><input id="fActive" type="checkbox" '+(c.is_active?'checked':'')+'> Active</label></div>'}
-function savePodcast(p){return async function(){var r=await db.rpc('admin_upsert_podcast',{p_id:p&&p.id||null,p_title:val('fTitle'),p_slug:val('fSlug'),p_category:val('fCategory'),p_description:val('fDescription'),p_artwork_url:val('fArtwork'),p_trailer_url:val('fTrailer'),p_website_url:val('fWebsite'),p_status:val('fStatus'),p_is_featured:$('fFeatured').checked,p_is_live:$('fLive').checked});if(r.error){alert(r.error.message);return}closeModal();load()}}
-function saveEpisode(e){return async function(){var r=await db.rpc('admin_upsert_episode',{p_id:e&&e.id||null,p_podcast_id:val('fPodcast'),p_title:val('fTitle'),p_slug:val('fSlug'),p_description:val('fDescription'),p_episode_number:Number(val('fEpisode'))||null,p_season_number:Number(val('fSeason'))||null,p_published_at:val('fPublished')?new Date(val('fPublished')).toISOString():null,p_duration_seconds:Number(val('fDuration'))||null,p_audio_url:val('fAudio'),p_video_url:val('fVideo'),p_thumbnail_url:val('fThumb'),p_transcript:val('fTranscript'),p_show_notes:val('fNotes'),p_status:val('fStatus'),p_is_explicit:$('fExplicit').checked});if(r.error){alert(r.error.message);return}closeModal();load()}}
-function saveChannel(c){return async function(){var r=await db.rpc('admin_upsert_live_channel',{p_id:c&&c.id||null,p_name:val('fName'),p_slug:val('fSlug'),p_description:val('fDescription'),p_stream_url:val('fStream'),p_stream_type:val('fType'),p_artwork_url:val('fArtwork'),p_status:val('fStatus'),p_is_active:$('fActive').checked,p_listener_count:Number(val('fListeners'))||0,p_bitrate_kbps:Number(val('fBitrate'))||null,p_timezone:val('fTimezone'),p_current_title:val('fCurrentTitle'),p_current_episode_id:val('fCurrentEpisode')||null,p_current_podcast_id:val('fCurrentPodcast')||null});if(r.error){alert(r.error.message);return}closeModal();load()}}
+function savePodcast(p){return async function(){
+ var button=this;
+ button.disabled=true;button.textContent="Saving…";
+ try{
+  var title=val("fTitle");if(!title)throw new Error("Podcast title is required.");
+  var r=await db.rpc('admin_upsert_podcast',{p_id:p&&p.id||null,p_title:title,p_slug:val('fSlug'),p_category:val('fCategory'),p_description:val('fDescription'),p_artwork_url:val('fArtwork'),p_trailer_url:val('fTrailer'),p_website_url:val('fWebsite'),p_status:val('fStatus'),p_is_featured:$('fFeatured').checked,p_is_live:$('fLive').checked});if(r.error)throw r.error;
+  closeModal();await load();notice(p?"Podcast updated successfully.":"Podcast created successfully.");
+ }catch(err){console.error(err);notice(err.message||"Save failed.",true)}finally{button.disabled=false;button.textContent="Save"}
+}}
+function saveEpisode(e){return async function(){
+ var button=this;
+ button.disabled=true;button.textContent="Saving…";
+ try{
+  var podcastId=val("fPodcast"),title=val("fTitle");if(!podcastId)throw new Error("Podcast is required.");if(!title)throw new Error("Episode title is required.");
+  var r=await db.rpc('admin_upsert_episode',{p_id:e&&e.id||null,p_podcast_id:podcastId,p_title:title,p_slug:val('fSlug'),p_description:val('fDescription'),p_episode_number:Number(val('fEpisode'))||null,p_season_number:Number(val('fSeason'))||null,p_published_at:val('fPublished')?new Date(val('fPublished')).toISOString():null,p_duration_seconds:Number(val('fDuration'))||null,p_audio_url:val('fAudio'),p_video_url:val('fVideo'),p_thumbnail_url:val('fThumb'),p_transcript:val('fTranscript'),p_show_notes:val('fNotes'),p_status:val('fStatus'),p_is_explicit:$('fExplicit').checked});if(r.error)throw r.error;
+  closeModal();await load();notice(e?"Episode updated successfully.":"Episode created successfully.");
+ }catch(err){console.error(err);notice(err.message||"Save failed.",true)}finally{button.disabled=false;button.textContent="Save"}
+}}
+function saveChannel(c){return async function(){
+ var button=this;
+ button.disabled=true;button.textContent="Saving…";
+ try{
+  var name=val("fName");if(!name)throw new Error("Channel name is required.");
+  var r=await db.rpc('admin_upsert_live_channel',{p_id:c&&c.id||null,p_name:name,p_slug:val('fSlug'),p_description:val('fDescription'),p_stream_url:val('fStream'),p_stream_type:val('fType'),p_artwork_url:val('fArtwork'),p_status:val('fStatus'),p_is_active:$('fActive').checked,p_listener_count:Number(val('fListeners'))||0,p_bitrate_kbps:Number(val('fBitrate'))||null,p_timezone:val('fTimezone'),p_current_title:val('fCurrentTitle'),p_current_episode_id:val('fCurrentEpisode')||null,p_current_podcast_id:val('fCurrentPodcast')||null});if(r.error)throw r.error;
+  closeModal();await load();notice(c?"Channel updated successfully.":"Channel created successfully.");
+ }catch(err){console.error(err);notice(err.message||"Save failed.",true)}finally{button.disabled=false;button.textContent="Save"}
+}}
 function val(id){return $(id).value}
 function editPodcast(p){modal(p?'Edit Podcast':'Add Podcast',podcastForm(p),savePodcast(p))}
 function editEpisode(e){modal(e?'Edit Episode':'Add Episode',episodeForm(e),saveEpisode(e))}
 function editChannel(c){modal(c?'Edit Channel':'Add Channel',channelForm(c),saveChannel(c))}
-async function del(kind,id){if(!confirm('Delete this '+kind+'? This cannot be undone.'))return;var fn=kind==='podcast'?'admin_delete_podcast':kind==='episode'?'admin_delete_episode':'admin_delete_live_channel';var r=await db.rpc(fn,{p_id:id});if(r.error){alert(r.error.message);return}load()}
-\nfunction render(){
+async function del(kind,id){if(!confirm('Delete this '+kind+'? This cannot be undone.'))return;var fn=kind==='podcast'?'admin_delete_podcast':kind==='episode'?'admin_delete_episode':'admin_delete_live_channel';var r=await db.rpc(fn,{p_id:id});
+if(r.error){notice(r.error.message||"Delete failed.",true);return}
+await load();notice(kind.charAt(0).toUpperCase()+kind.slice(1)+" deleted successfully.");
+}
+
+function render(){
  const ps=$("podcastSearch").value.toLowerCase(), es=$("episodeSearch").value.toLowerCase();
- $("podcastRows").innerHTML=podcasts.filter(p=>(p.title+" "+(p.category||"")).toLowerCase().includes(ps)).map(p=>'<tr><td><strong>'+esc(p.title)+'</strong><br><small>'+esc(p.slug||"")+'</small></td><td>'+esc(p.category||"—")+'</td><td>'+badge(p.status)+'</td><td>'+esc(p.is_featured?"Yes":"No")+'</td><td>'+esc(p.is_live?"Yes":"No")+'</td><td>'+Number(p.total_plays||0).toLocaleString()+'</td><td><button class="btn" data-edit-p="'+p.id+'">Edit</button> <button class="btn danger" data-del-p="'+p.id+'">Delete</button></td></tr>').join("")||'<tr><td colspan="6" class="empty">No podcasts found.</td></tr>';
+ $("podcastRows").innerHTML=podcasts.filter(p=>(p.title+" "+(p.category||"")).toLowerCase().includes(ps)).map(p=>'<tr><td><strong>'+esc(p.title)+'</strong><br><small>'+esc(p.slug||"")+'</small></td><td>'+esc(p.category||"—")+'</td><td>'+badge(p.status)+'</td><td>'+esc(p.is_featured?"Yes":"No")+'</td><td>'+esc(p.is_live?"Yes":"No")+'</td><td>'+Number(p.total_plays||0).toLocaleString()+'</td><td><button class="btn" data-edit-p="'+p.id+'">Edit</button> <button class="btn danger" data-del-p="'+p.id+'">Delete</button></td></tr>').join("")||'<tr><td colspan="7" class="empty">No podcasts found.</td></tr>';
  const byId=Object.fromEntries(podcasts.map(p=>[p.id,p.title]));
- $("episodeRows").innerHTML=episodes.filter(e=>(e.title+" "+(byId[e.podcast_id]||"")).toLowerCase().includes(es)).map(e=>'<tr><td><strong>'+esc(e.title)+'</strong><br><small>'+esc(e.slug||"")+'</small></td><td>'+esc(byId[e.podcast_id]||"Unknown")+'</td><td>S'+esc(e.season_number||"1")+' · E'+esc(e.episode_number||"—")+'</td><td>'+badge(e.status)+'</td><td>'+esc(e.published_at?new Date(e.published_at).toLocaleString():"—")+'</td><td>'+Number(e.play_count||0).toLocaleString()+'</td><td><button class="btn" data-edit-e="'+e.id+'">Edit</button> <button class="btn danger" data-del-e="'+e.id+'">Delete</button></td></tr>').join("")||'<tr><td colspan="6" class="empty">No episodes found.</td></tr>';
- $("liveRows").innerHTML=channels.map(c=>'<tr><td><strong>'+esc(c.name)+'</strong><br><small>'+esc(c.slug||"")+'</small></td><td>'+badge(c.status)+'</td><td>'+esc(c.is_active?"Yes":"No")+'</td><td>'+Number(c.listener_count||0).toLocaleString()+'</td><td>'+esc(c.current_title||"—")+'</td><td>'+esc(c.updated_at?new Date(c.updated_at).toLocaleString():"—")+'</td><td><button class="btn" data-edit-c="'+c.id+'">Edit</button> <button class="btn danger" data-del-c="'+c.id+'">Delete</button></td></tr>').join("")||'<tr><td colspan="6" class="empty">No live channels found.</td></tr>';
+ $("episodeRows").innerHTML=episodes.filter(e=>(e.title+" "+(byId[e.podcast_id]||"")).toLowerCase().includes(es)).map(e=>'<tr><td><strong>'+esc(e.title)+'</strong><br><small>'+esc(e.slug||"")+'</small></td><td>'+esc(byId[e.podcast_id]||"Unknown")+'</td><td>S'+esc(e.season_number||"1")+' · E'+esc(e.episode_number||"—")+'</td><td>'+badge(e.status)+'</td><td>'+esc(e.published_at?new Date(e.published_at).toLocaleString():"—")+'</td><td>'+Number(e.play_count||0).toLocaleString()+'</td><td><button class="btn" data-edit-e="'+e.id+'">Edit</button> <button class="btn danger" data-del-e="'+e.id+'">Delete</button></td></tr>').join("")||'<tr><td colspan="7" class="empty">No episodes found.</td></tr>';
+ $("liveRows").innerHTML=channels.map(c=>'<tr><td><strong>'+esc(c.name)+'</strong><br><small>'+esc(c.slug||"")+'</small></td><td>'+badge(c.status)+'</td><td>'+esc(c.is_active?"Yes":"No")+'</td><td>'+Number(c.listener_count||0).toLocaleString()+'</td><td>'+esc(c.current_title||"—")+'</td><td>'+esc(c.updated_at?new Date(c.updated_at).toLocaleString():"—")+'</td><td><button class="btn" data-edit-c="'+c.id+'">Edit</button> <button class="btn danger" data-del-c="'+c.id+'">Delete</button></td></tr>').join("")||'<tr><td colspan="7" class="empty">No live channels found.</td></tr>';
 }
 async function load(){
  $("refresh").disabled=true;
@@ -109,7 +137,7 @@ async function init(){
    new Promise((_,reject)=>setTimeout(()=>reject(new Error("Administrator verification timed out. Please refresh and try again.")),10000))
   ]);
   if(adminResult.error)throw adminResult.error;
-  if(adminResult.data!==true){showDenied("Your signed-in account is not currently marked as a CrowRules administrator.");return}
+  if(adminResult.data!==true){showDenied("Your signed-in account is not currently marked as a CrowRules administrator. Verify that this account is listed in the CrowRules admin table.");return}
   $("loading").classList.add("hidden");
   $("app").classList.remove("hidden");
   await load();
@@ -118,7 +146,11 @@ async function init(){
   showDenied(err.message||"Unable to verify administrator access.");
  }
 }
-$("refresh").addEventListener("click",load);$("addPodcast").onclick=function(){editPodcast(null)};$("addEpisode").onclick=function(){editEpisode(null)};$("addChannel").onclick=function(){editChannel(null)};document.addEventListener("click",function(e){var t=e.target;if(t.dataset.editP)editPodcast(podcasts.find(function(x){return x.id===t.dataset.editP}));if(t.dataset.delP)del("podcast",t.dataset.delP);if(t.dataset.editE)editEpisode(episodes.find(function(x){return x.id===t.dataset.editE}));if(t.dataset.delE)del("episode",t.dataset.delE);if(t.dataset.editC)editChannel(channels.find(function(x){return x.id===t.dataset.editC}));if(t.dataset.delC)del("channel",t.dataset.delC)});$("podcastSearch").addEventListener("input",render);$("episodeSearch").addEventListener("input",render);init();
+$("refresh").addEventListener("click",load);
+async function signOut(){try{if(db)await db.auth.signOut()}finally{location.href="creator-studio.html"}}
+$("signOut").addEventListener("click",signOut);
+$("deniedSignOut").addEventListener("click",signOut);
+$("retryAuth").addEventListener("click",function(){location.reload()});$("addPodcast").onclick=function(){editPodcast(null)};$("addEpisode").onclick=function(){editEpisode(null)};$("addChannel").onclick=function(){editChannel(null)};document.addEventListener("click",function(e){var t=e.target;if(t.dataset.editP)editPodcast(podcasts.find(function(x){return x.id===t.dataset.editP}));if(t.dataset.delP)del("podcast",t.dataset.delP);if(t.dataset.editE)editEpisode(episodes.find(function(x){return x.id===t.dataset.editE}));if(t.dataset.delE)del("episode",t.dataset.delE);if(t.dataset.editC)editChannel(channels.find(function(x){return x.id===t.dataset.editC}));if(t.dataset.delC)del("channel",t.dataset.delC)});$("podcastSearch").addEventListener("input",render);$("episodeSearch").addEventListener("input",render);init();
 })();
 </script>
 </body></html>
