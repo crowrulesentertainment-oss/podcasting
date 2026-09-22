@@ -61,7 +61,7 @@
     content="https://crowrulesentertainment-oss.github.io/podcasting/signup.html"
   >
 
-  <!-- Twitter / X -->
+  <!-- Twitter -->
   <meta
     name="twitter:card"
     content="summary"
@@ -77,7 +77,7 @@
     content="Create your CrowRules account and join the universe."
   >
 
-  <!-- Performance -->
+  <!-- Fonts -->
   <link
     rel="preconnect"
     href="https://fonts.googleapis.com"
@@ -89,40 +89,37 @@
     crossorigin
   >
 
-  <!-- Fonts -->
   <link
     href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap"
     rel="stylesheet"
   >
 
-  <!-- Styles -->
+  <!-- Existing CrowRules Podcasting styles -->
   <link
     rel="stylesheet"
     href="css/podcasting.css"
   >
 
-  <!-- Supabase -->
+  <!-- Supabase JS -->
   <script
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
     defer
   ></script>
 
-  <!-- App configuration -->
+  <!-- Existing configuration -->
   <script
     src="js/config.js"
     defer
   ></script>
-
-  <!-- CrowRules Podcasting application -->
-  <script
-    src="js/app.js"
-    defer
-  ></script>
 </head>
+
 
 <body class="podcasting-page signup-page">
 
-  <!-- Skip navigation -->
+  <!-- =====================================================
+       SKIP NAVIGATION
+  ====================================================== -->
+
   <a
     class="skip-link"
     href="#signup-main"
@@ -130,23 +127,38 @@
     Skip to signup
   </a>
 
-  <!-- Cinematic background -->
+
+  <!-- =====================================================
+       CINEMATIC BACKGROUND
+  ====================================================== -->
+
   <div
     class="site-background"
     aria-hidden="true"
   >
+
     <div class="background-stars"></div>
+
     <div class="background-grid"></div>
+
     <div class="background-glow background-glow-one"></div>
+
     <div class="background-glow background-glow-two"></div>
+
     <div class="background-noise"></div>
+
   </div>
 
-  <!-- Header -->
+
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
+
   <header
     class="site-header"
     id="site-header"
   >
+
     <div class="site-header-inner">
 
       <a
@@ -154,31 +166,60 @@
         href="index.html"
         aria-label="CrowRules Podcasting home"
       >
-        <span class="brand-mark" aria-hidden="true">CR</span>
+
+        <span
+          class="brand-mark"
+          aria-hidden="true"
+        >
+          CR
+        </span>
 
         <span class="brand-text">
-          <span class="brand-name">CrowRules</span>
-          <span class="brand-section">PODCASTING</span>
+
+          <span class="brand-name">
+            CrowRules
+          </span>
+
+          <span class="brand-section">
+            PODCASTING
+          </span>
+
         </span>
+
       </a>
+
 
       <nav
         class="main-navigation"
         aria-label="Main navigation"
       >
-        <a href="index.html">Home</a>
-        <a href="launch.html">Launch</a>
-        <a href="login.html">Login</a>
+
+        <a href="index.html">
+          Home
+        </a>
+
+        <a href="launch.html">
+          Launch
+        </a>
+
+        <a href="login.html">
+          Login
+        </a>
+
       </nav>
 
     </div>
+
   </header>
 
-  <!-- Main -->
+
+  <!-- =====================================================
+       MAIN
+  ====================================================== -->
+
   <main
     id="signup-main"
     class="auth-main"
-    aria-live="polite"
   >
 
     <section
@@ -188,38 +229,70 @@
 
       <div class="auth-container">
 
-        <!-- Intro -->
+
+        <!-- =================================================
+             INTRO
+        ================================================== -->
+
         <div class="auth-intro">
 
           <div class="eyebrow">
             ONE ACCOUNT. ONE UNIVERSE.
           </div>
 
+
           <h1 id="signup-title">
+
             JOIN
-            <span>CROWRULES</span>
+
+            <span>
+              CROWRULES
+            </span>
+
           </h1>
+
 
           <p class="auth-lead">
             Create your CrowRules account and become part of
             the universe we're building together.
           </p>
 
+
           <div class="auth-promise">
-            <span class="promise-icon" aria-hidden="true">✦</span>
+
+            <span
+              class="promise-icon"
+              aria-hidden="true"
+            >
+              ✦
+            </span>
 
             <div>
-              <strong>One account.</strong>
-              <span>Across the CrowRules universe.</span>
+
+              <strong>
+                One account.
+              </strong>
+
+              <span>
+                Across the CrowRules universe.
+              </span>
+
             </div>
+
           </div>
 
         </div>
 
-        <!-- Signup card -->
+
+        <!-- =================================================
+             SIGNUP CARD
+        ================================================== -->
+
         <div class="auth-card">
 
+
           <div class="auth-card-header">
+
             <span class="auth-card-kicker">
               CREATE ACCOUNT
             </span>
@@ -229,38 +302,452 @@
             </h2>
 
             <p>
-              Your CrowRules account can connect you to
-              Podcasting and future CrowRules experiences.
+              Your CrowRules account connects you to Podcasting
+              and participating CrowRules experiences.
             </p>
+
           </div>
 
-          <!--
-            app.js can use this container to render the
-            live Supabase signup form and status messages.
-          -->
+
+          <!-- =================================================
+               STATUS
+          ================================================== -->
+
           <div
-            id="signup-app"
-            class="auth-form-container"
+            id="signup-status"
+            class="signup-status"
+            role="status"
+            aria-live="polite"
+            hidden
+          ></div>
+
+
+          <!-- =================================================
+               SUCCESS PANEL
+          ================================================== -->
+
+          <div
+            id="signup-success"
+            class="signup-success"
+            hidden
           >
 
             <div
-              class="auth-loading"
-              role="status"
-              aria-live="polite"
+              class="success-icon"
+              aria-hidden="true"
             >
-              <span
-                class="loading-spinner"
-                aria-hidden="true"
-              ></span>
+              ✓
+            </div>
 
-              <span>
-                Preparing secure signup…
-              </span>
+            <h2>
+              ACCOUNT CREATED
+            </h2>
+
+            <p id="signup-success-message">
+              Your CrowRules account has been created.
+            </p>
+
+            <div class="success-actions">
+
+              <a
+                href="login.html"
+                class="auth-button auth-button-primary"
+              >
+                Continue to Login
+              </a>
+
+              <a
+                href="index.html"
+                class="auth-button auth-button-secondary"
+              >
+                Return Home
+              </a>
+
             </div>
 
           </div>
 
-          <!-- Existing account -->
+
+          <!-- =================================================
+               SIGNUP FORM
+          ================================================== -->
+
+          <form
+            id="signup-form"
+            class="auth-form"
+            novalidate
+          >
+
+
+            <!-- NAME -->
+
+            <div class="form-row">
+
+              <div class="form-field">
+
+                <label for="first-name">
+                  First Name
+                </label>
+
+                <input
+                  id="first-name"
+                  name="first_name"
+                  type="text"
+                  autocomplete="given-name"
+                  maxlength="80"
+                  placeholder="First name"
+                  required
+                >
+
+              </div>
+
+
+              <div class="form-field">
+
+                <label for="last-name">
+                  Last Name
+                </label>
+
+                <input
+                  id="last-name"
+                  name="last_name"
+                  type="text"
+                  autocomplete="family-name"
+                  maxlength="80"
+                  placeholder="Last name"
+                  required
+                >
+
+              </div>
+
+            </div>
+
+
+            <!-- DISPLAY NAME -->
+
+            <div class="form-field">
+
+              <label for="display-name">
+                Display Name
+              </label>
+
+              <input
+                id="display-name"
+                name="display_name"
+                type="text"
+                autocomplete="name"
+                maxlength="100"
+                placeholder="How should CrowRules display your name?"
+                required
+              >
+
+              <small>
+                This can be your real name, creator name, or public identity.
+              </small>
+
+            </div>
+
+
+            <!-- USERNAME -->
+
+            <div class="form-field">
+
+              <label for="username">
+                Username
+              </label>
+
+              <div class="username-input">
+
+                <span aria-hidden="true">
+                  @
+                </span>
+
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  autocomplete="username"
+                  autocapitalize="none"
+                  spellcheck="false"
+                  minlength="3"
+                  maxlength="35"
+                  pattern="[A-Za-z0-9_]+"
+                  placeholder="yourusername"
+                  required
+                >
+
+              </div>
+
+              <small>
+                3–35 characters. Letters, numbers, and underscores.
+              </small>
+
+            </div>
+
+
+            <!-- EMAIL -->
+
+            <div class="form-field">
+
+              <label for="email">
+                Email Address
+              </label>
+
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                autocapitalize="none"
+                spellcheck="false"
+                maxlength="254"
+                placeholder="you@example.com"
+                required
+              >
+
+            </div>
+
+
+            <!-- ACCOUNT TYPE -->
+
+            <fieldset class="account-type-field">
+
+              <legend>
+                I want to join as
+              </legend>
+
+
+              <div class="account-type-grid">
+
+
+                <label class="account-type-option">
+
+                  <input
+                    type="radio"
+                    name="account_type"
+                    value="listener"
+                    checked
+                  >
+
+                  <span class="account-type-card">
+
+                    <span
+                      class="account-type-icon"
+                      aria-hidden="true"
+                    >
+                      ◉
+                    </span>
+
+                    <span class="account-type-content">
+
+                      <strong>
+                        Listener
+                      </strong>
+
+                      <small>
+                        Discover podcasts, follow creators,
+                        listen and participate.
+                      </small>
+
+                    </span>
+
+                  </span>
+
+                </label>
+
+
+                <label class="account-type-option">
+
+                  <input
+                    type="radio"
+                    name="account_type"
+                    value="creator"
+                  >
+
+                  <span class="account-type-card">
+
+                    <span
+                      class="account-type-icon"
+                      aria-hidden="true"
+                    >
+                      ✦
+                    </span>
+
+                    <span class="account-type-content">
+
+                      <strong>
+                        Podcast Creator
+                      </strong>
+
+                      <small>
+                        Build shows, publish episodes and
+                        grow your audience.
+                      </small>
+
+                    </span>
+
+                  </span>
+
+                </label>
+
+
+              </div>
+
+            </fieldset>
+
+
+            <!-- PASSWORD -->
+
+            <div class="form-field">
+
+              <label for="password">
+                Password
+              </label>
+
+              <div class="password-input">
+
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="8"
+                  maxlength="128"
+                  placeholder="Create a strong password"
+                  required
+                >
+
+                <button
+                  type="button"
+                  class="password-toggle"
+                  data-target="password"
+                  aria-label="Show password"
+                >
+                  SHOW
+                </button>
+
+              </div>
+
+
+              <div
+                id="password-strength"
+                class="password-strength"
+                aria-live="polite"
+              >
+
+                <div class="strength-bar">
+                  <span></span>
+                </div>
+
+                <span class="strength-text">
+                  Enter a password
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <!-- CONFIRM PASSWORD -->
+
+            <div class="form-field">
+
+              <label for="password-confirm">
+                Confirm Password
+              </label>
+
+              <div class="password-input">
+
+                <input
+                  id="password-confirm"
+                  name="password_confirm"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="8"
+                  maxlength="128"
+                  placeholder="Enter your password again"
+                  required
+                >
+
+                <button
+                  type="button"
+                  class="password-toggle"
+                  data-target="password-confirm"
+                  aria-label="Show password"
+                >
+                  SHOW
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <!-- TERMS -->
+
+            <label class="terms-field">
+
+              <input
+                id="terms"
+                name="terms"
+                type="checkbox"
+                required
+              >
+
+              <span>
+
+                I agree to the CrowRules terms,
+                community guidelines, and understand that
+                my account is part of the CrowRules universal
+                membership system.
+
+              </span>
+
+            </label>
+
+
+            <!-- SUBMIT -->
+
+            <button
+              id="signup-button"
+              type="submit"
+              class="auth-button auth-button-primary auth-submit"
+            >
+
+              <span
+                id="signup-button-spinner"
+                class="button-spinner"
+                aria-hidden="true"
+                hidden
+              ></span>
+
+              <span id="signup-button-text">
+                CREATE CROWRULES ACCOUNT
+              </span>
+
+            </button>
+
+
+            <!-- SECURITY -->
+
+            <div class="auth-security-inline">
+
+              <span aria-hidden="true">
+                🔒
+              </span>
+
+              <span>
+                Your password is handled by Supabase Auth.
+                Never share your password with anyone.
+              </span>
+
+            </div>
+
+          </form>
+
+
+          <!-- EXISTING ACCOUNT -->
+
           <div class="auth-secondary">
 
             <span>
@@ -278,10 +765,16 @@
 
         </div>
 
-        <!-- Account benefits -->
+
+        <!-- =================================================
+             BENEFITS
+        ================================================== -->
+
         <div class="auth-benefits">
 
+
           <article class="auth-benefit">
+
             <span
               class="benefit-icon"
               aria-hidden="true"
@@ -290,16 +783,23 @@
             </span>
 
             <div>
-              <h3>ONE ACCOUNT</h3>
+
+              <h3>
+                ONE ACCOUNT
+              </h3>
 
               <p>
-                Use your CrowRules identity across
+                Your universal CrowRules identity can connect
                 participating CrowRules projects.
               </p>
+
             </div>
+
           </article>
 
+
           <article class="auth-benefit">
+
             <span
               class="benefit-icon"
               aria-hidden="true"
@@ -308,16 +808,23 @@
             </span>
 
             <div>
-              <h3>YOUR PROFILE</h3>
+
+              <h3>
+                YOUR PROFILE
+              </h3>
 
               <p>
-                Build your creator identity and connect
-                with the CrowRules community.
+                Build your creator identity and connect with
+                the CrowRules community.
               </p>
+
             </div>
+
           </article>
 
+
           <article class="auth-benefit">
+
             <span
               class="benefit-icon"
               aria-hidden="true"
@@ -326,18 +833,28 @@
             </span>
 
             <div>
-              <h3>CROWPOINTS</h3>
+
+              <h3>
+                CROWPOINTS
+              </h3>
 
               <p>
-                Participate, watch, listen and engage as
-                CrowRules experiences expand.
+                Participate, watch, listen and engage as the
+                CrowRules universe expands.
               </p>
+
             </div>
+
           </article>
+
 
         </div>
 
-        <!-- Privacy/security note -->
+
+        <!-- =================================================
+             SECURITY
+        ================================================== -->
+
         <div class="auth-security">
 
           <span
@@ -348,13 +865,18 @@
           </span>
 
           <div>
-            <strong>Your account starts here.</strong>
+
+            <strong>
+              Universal CrowRules Membership
+            </strong>
 
             <p>
-              Signup is handled through CrowRules'
-              Supabase authentication system.
-              Never share your password with anyone.
+              Your account is created through CrowRules'
+              Supabase authentication system. Your universal
+              membership and profile records are synchronized
+              automatically after account creation.
             </p>
+
           </div>
 
         </div>
@@ -365,45 +887,1739 @@
 
   </main>
 
-  <!-- Footer -->
+
+  <!-- =====================================================
+       FOOTER
+  ====================================================== -->
+
   <footer class="site-footer">
 
     <div class="site-footer-inner">
 
       <div class="footer-brand">
-        <strong>CROWRULES</strong>
-        <span>PODCASTING</span>
+
+        <strong>
+          CROWRULES
+        </strong>
+
+        <span>
+          PODCASTING
+        </span>
+
       </div>
+
 
       <div class="footer-links">
-        <a href="index.html">Home</a>
-        <a href="launch.html">Launch</a>
-        <a href="login.html">Login</a>
+
+        <a href="index.html">
+          Home
+        </a>
+
+        <a href="launch.html">
+          Launch
+        </a>
+
+        <a href="login.html">
+          Login
+        </a>
+
       </div>
 
+
       <div class="footer-copy">
-        © <span id="current-year">2026</span>
+
+        ©
+        <span id="current-year">
+          2026
+        </span>
+
         CrowRules Entertainment
+
       </div>
 
     </div>
 
   </footer>
 
-  <!-- Small page-level enhancements -->
+
+  <!-- =====================================================
+       SIGNUP APPLICATION
+  ====================================================== -->
+
   <script>
     (() => {
-      const year = document.getElementById("current-year");
+      "use strict";
 
-      if (year) {
-        year.textContent = new Date().getFullYear();
+      /*
+       * ====================================================
+       * CROWRULES UNIVERSAL MEMBERSHIP SIGNUP
+       * ====================================================
+       *
+       * Supabase project:
+       * cevylpnoexugwgygvtgu
+       *
+       * IMPORTANT:
+       * This is a publishable frontend key.
+       * NEVER put a service_role/secret key here.
+       *
+       * The database already contains Auth triggers that
+       * synchronize new accounts into:
+       *
+       *   public.members
+       *   public.membership_profiles
+       *   public.podcast_member_profiles
+       *
+       * The signup metadata below is intentionally supplied
+       * to those existing triggers.
+       */
+
+
+      const SUPABASE_URL =
+        "https://cevylpnoexugwgygvtgu.supabase.co";
+
+
+      const SUPABASE_PUBLISHABLE_KEY =
+        "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD";
+
+
+      /*
+       * DOM
+       */
+
+      const form =
+        document.getElementById(
+          "signup-form"
+        );
+
+
+      const statusBox =
+        document.getElementById(
+          "signup-status"
+        );
+
+
+      const successBox =
+        document.getElementById(
+          "signup-success"
+        );
+
+
+      const successMessage =
+        document.getElementById(
+          "signup-success-message"
+        );
+
+
+      const signupButton =
+        document.getElementById(
+          "signup-button"
+        );
+
+
+      const signupButtonText =
+        document.getElementById(
+          "signup-button-text"
+        );
+
+
+      const signupSpinner =
+        document.getElementById(
+          "signup-button-spinner"
+        );
+
+
+      const password =
+        document.getElementById(
+          "password"
+        );
+
+
+      const passwordConfirm =
+        document.getElementById(
+          "password-confirm"
+        );
+
+
+      const passwordStrength =
+        document.getElementById(
+          "password-strength"
+        );
+
+
+      const strengthBar =
+        passwordStrength.querySelector(
+          ".strength-bar span"
+        );
+
+
+      const strengthText =
+        passwordStrength.querySelector(
+          ".strength-text"
+        );
+
+
+      /*
+       * Supabase client
+       */
+
+      let supabaseClient = null;
+
+
+      /*
+       * ----------------------------------------------------
+       * CONFIG SUPPORT
+       * ----------------------------------------------------
+       *
+       * If your existing config.js exposes a CrowRules
+       * configuration object, we prefer it.
+       *
+       * Otherwise the current project values above are used.
+       */
+
+      function getConfiguredValue(
+        possibleObjects,
+        possibleKeys,
+        fallback
+      ) {
+
+        for (
+          const objectName of possibleObjects
+        ) {
+
+          const object =
+            window[objectName];
+
+          if (
+            !object ||
+            typeof object !== "object"
+          ) {
+            continue;
+          }
+
+
+          for (
+            const key of possibleKeys
+          ) {
+
+            if (
+              typeof object[key] === "string" &&
+              object[key].trim()
+            ) {
+
+              return object[key].trim();
+
+            }
+
+          }
+
+        }
+
+        return fallback;
+
       }
 
-      window.addEventListener("load", () => {
-        document.documentElement.classList.add("page-ready");
-      });
+
+      function initializeSupabase() {
+
+        if (
+          !window.supabase ||
+          typeof window.supabase.createClient !==
+            "function"
+        ) {
+
+          throw new Error(
+            "Supabase library did not load."
+          );
+
+        }
+
+
+        const url =
+          getConfiguredValue(
+            [
+              "CROWRULES_CONFIG",
+              "CrowRulesConfig",
+              "SUPABASE_CONFIG"
+            ],
+            [
+              "supabaseUrl",
+              "SUPABASE_URL",
+              "url"
+            ],
+            SUPABASE_URL
+          );
+
+
+        const key =
+          getConfiguredValue(
+            [
+              "CROWRULES_CONFIG",
+              "CrowRulesConfig",
+              "SUPABASE_CONFIG"
+            ],
+            [
+              "supabasePublishableKey",
+              "SUPABASE_PUBLISHABLE_KEY",
+              "supabaseAnonKey",
+              "SUPABASE_ANON_KEY",
+              "anonKey",
+              "publishableKey"
+            ],
+            SUPABASE_PUBLISHABLE_KEY
+          );
+
+
+        supabaseClient =
+          window.supabase.createClient(
+            url,
+            key,
+            {
+              auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true
+              }
+            }
+          );
+
+      }
+
+
+      /*
+       * ----------------------------------------------------
+       * STATUS
+       * ----------------------------------------------------
+       */
+
+      function showStatus(
+        message,
+        type = "info"
+      ) {
+
+        statusBox.hidden = false;
+
+        statusBox.textContent =
+          message;
+
+        statusBox.dataset.status =
+          type;
+
+      }
+
+
+      function hideStatus() {
+
+        statusBox.hidden = true;
+
+        statusBox.textContent = "";
+
+      }
+
+
+      /*
+       * ----------------------------------------------------
+       * BUTTON STATE
+       * ----------------------------------------------------
+       */
+
+      function setSubmitting(
+        submitting
+      ) {
+
+        signupButton.disabled =
+          submitting;
+
+        signupSpinner.hidden =
+          !submitting;
+
+
+        if (submitting) {
+
+          signupButtonText.textContent =
+            "CREATING ACCOUNT…";
+
+        } else {
+
+          signupButtonText.textContent =
+            "CREATE CROWRULES ACCOUNT";
+
+        }
+
+      }
+
+
+      /*
+       * ----------------------------------------------------
+       * USERNAME
+       * ----------------------------------------------------
+       */
+
+      const usernameInput =
+        document.getElementById(
+          "username"
+        );
+
+
+      usernameInput.addEventListener(
+        "input",
+        () => {
+
+          let value =
+            usernameInput.value
+              .toLowerCase()
+              .replace(
+                /[^a-z0-9_]/g,
+                ""
+              );
+
+
+          value =
+            value.slice(0, 35);
+
+
+          usernameInput.value =
+            value;
+
+        }
+      );
+
+
+      /*
+       * ----------------------------------------------------
+       * PASSWORD STRENGTH
+       * ----------------------------------------------------
+       */
+
+      function calculatePasswordStrength(
+        value
+      ) {
+
+        let score = 0;
+
+
+        if (
+          value.length >= 8
+        ) {
+          score++;
+        }
+
+
+        if (
+          value.length >= 12
+        ) {
+          score++;
+        }
+
+
+        if (
+          /[a-z]/.test(value) &&
+          /[A-Z]/.test(value)
+        ) {
+          score++;
+        }
+
+
+        if (
+          /\d/.test(value)
+        ) {
+          score++;
+        }
+
+
+        if (
+          /[^A-Za-z0-9]/.test(value)
+        ) {
+          score++;
+        }
+
+
+        return Math.min(
+          score,
+          5
+        );
+
+      }
+
+
+      function updatePasswordStrength() {
+
+        const score =
+          calculatePasswordStrength(
+            password.value
+          );
+
+
+        const labels = [
+          "Enter a password",
+          "Very weak",
+          "Weak",
+          "Fair",
+          "Strong",
+          "Very strong"
+        ];
+
+
+        strengthText.textContent =
+          labels[score];
+
+
+        strengthBar.style.width =
+          `${score * 20}%`;
+
+
+        passwordStrength.dataset.level =
+          String(score);
+
+      }
+
+
+      password.addEventListener(
+        "input",
+        updatePasswordStrength
+      );
+
+
+      /*
+       * ----------------------------------------------------
+       * PASSWORD VISIBILITY
+       * ----------------------------------------------------
+       */
+
+      document
+        .querySelectorAll(
+          ".password-toggle"
+        )
+        .forEach(
+          button => {
+
+            button.addEventListener(
+              "click",
+              () => {
+
+                const target =
+                  document.getElementById(
+                    button.dataset.target
+                  );
+
+
+                if (
+                  !target
+                ) {
+                  return;
+                }
+
+
+                const showing =
+                  target.type ===
+                  "text";
+
+
+                target.type =
+                  showing
+                    ? "password"
+                    : "text";
+
+
+                button.textContent =
+                  showing
+                    ? "SHOW"
+                    : "HIDE";
+
+
+                button.setAttribute(
+                  "aria-label",
+                  showing
+                    ? "Show password"
+                    : "Hide password"
+                );
+
+              }
+            );
+
+          }
+        );
+
+
+      /*
+       * ----------------------------------------------------
+       * EMAIL VALIDATION
+       * ----------------------------------------------------
+       */
+
+      function validEmail(
+        email
+      ) {
+
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+          .test(email);
+
+      }
+
+
+      /*
+       * ----------------------------------------------------
+       * FORM VALIDATION
+       * ----------------------------------------------------
+       */
+
+      function validateForm() {
+
+        const firstName =
+          document
+            .getElementById(
+              "first-name"
+            )
+            .value
+            .trim();
+
+
+        const lastName =
+          document
+            .getElementById(
+              "last-name"
+            )
+            .value
+            .trim();
+
+
+        const displayName =
+          document
+            .getElementById(
+              "display-name"
+            )
+            .value
+            .trim();
+
+
+        const username =
+          usernameInput
+            .value
+            .trim();
+
+
+        const email =
+          document
+            .getElementById(
+              "email"
+            )
+            .value
+            .trim()
+            .toLowerCase();
+
+
+        const confirm =
+          passwordConfirm.value;
+
+
+        const terms =
+          document.getElementById(
+            "terms"
+          ).checked;
+
+
+        if (!firstName) {
+          return "Please enter your first name.";
+        }
+
+
+        if (!lastName) {
+          return "Please enter your last name.";
+        }
+
+
+        if (!displayName) {
+          return "Please enter a display name.";
+        }
+
+
+        if (
+          username.length < 3
+        ) {
+
+          return "Your username must contain at least 3 characters.";
+
+        }
+
+
+        if (
+          !/^[a-z0-9_]+$/.test(
+            username
+          )
+        ) {
+
+          return "Your username may only contain letters, numbers, and underscores.";
+
+        }
+
+
+        if (
+          !validEmail(email)
+        ) {
+
+          return "Please enter a valid email address.";
+
+        }
+
+
+        if (
+          password.length < 8
+        ) {
+
+          return "Your password must contain at least 8 characters.";
+
+        }
+
+
+        if (
+          password.value !==
+          confirm
+        ) {
+
+          return "Your passwords do not match.";
+
+        }
+
+
+        if (!terms) {
+
+          return "Please accept the CrowRules terms and community guidelines.";
+
+        }
+
+
+        return null;
+
+      }
+
+
+      /*
+       * ----------------------------------------------------
+       * SUCCESS UI
+       * ----------------------------------------------------
+       */
+
+      function showSuccess(
+        message
+      ) {
+
+        form.hidden = true;
+
+        successBox.hidden = false;
+
+        successMessage.textContent =
+          message;
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+
+      }
+
+
+      /*
+       * ----------------------------------------------------
+       * SIGNUP
+       * ----------------------------------------------------
+       */
+
+      form.addEventListener(
+        "submit",
+        async event => {
+
+          event.preventDefault();
+
+          hideStatus();
+
+
+          const validationError =
+            validateForm();
+
+
+          if (
+            validationError
+          ) {
+
+            showStatus(
+              validationError,
+              "error"
+            );
+
+            return;
+
+          }
+
+
+          setSubmitting(true);
+
+
+          try {
+
+            if (
+              !supabaseClient
+            ) {
+
+              initializeSupabase();
+
+            }
+
+
+            const firstName =
+              document
+                .getElementById(
+                  "first-name"
+                )
+                .value
+                .trim();
+
+
+            const lastName =
+              document
+                .getElementById(
+                  "last-name"
+                )
+                .value
+                .trim();
+
+
+            const displayName =
+              document
+                .getElementById(
+                  "display-name"
+                )
+                .value
+                .trim();
+
+
+            const username =
+              usernameInput.value
+                .trim()
+                .toLowerCase();
+
+
+            const email =
+              document
+                .getElementById(
+                  "email"
+                )
+                .value
+                .trim()
+                .toLowerCase();
+
+
+            const accountType =
+              document.querySelector(
+                'input[name="account_type"]:checked'
+              )?.value ||
+              "listener";
+
+
+            /*
+             * This metadata is important.
+             *
+             * The existing CrowRules Supabase trigger
+             * handle_podcasting_new_user() reads:
+             *
+             *   app
+             *   account_type
+             *   display_name
+             *   username
+             *
+             * The universal CrowRules trigger also reads
+             * first_name / last_name / display_name /
+             * username.
+             */
+
+            const userMetadata = {
+
+              app: "podcasting",
+
+              account_type:
+                accountType,
+
+              first_name:
+                firstName,
+
+              last_name:
+                lastName,
+
+              display_name:
+                displayName,
+
+              username:
+                username,
+
+              bio:
+                "",
+
+              avatar_url:
+                ""
+
+            };
+
+
+            const redirectUrl =
+              `${window.location.origin}${window.location.pathname
+                .replace(
+                  /\/signup\.html$/,
+                  "/"
+                )}verify.html`;
+
+
+            const {
+              data,
+              error
+            } =
+              await supabaseClient.auth.signUp({
+
+                email,
+
+                password:
+                  password.value,
+
+                options: {
+
+                  data:
+                    userMetadata,
+
+                  emailRedirectTo:
+                    redirectUrl
+
+                }
+
+              });
+
+
+            if (error) {
+              throw error;
+            }
+
+
+            /*
+             * Supabase can return a user without a session
+             * when email confirmation is required.
+             */
+
+            if (
+              data?.user &&
+              !data.session
+            ) {
+
+              showSuccess(
+                `Your CrowRules account has been created. Check ${email} for the verification email, then return to CrowRules Podcasting and sign in.`
+              );
+
+              return;
+
+            }
+
+
+            /*
+             * If email confirmation is disabled,
+             * the user may already have a session.
+             */
+
+            if (
+              data?.session
+            ) {
+
+              showSuccess(
+                "Your CrowRules account is ready. Your universal CrowRules membership profile is being connected."
+              );
+
+
+              setTimeout(
+                () => {
+
+                  window.location.href =
+                    "profile.html";
+
+                },
+                1200
+              );
+
+
+              return;
+
+            }
+
+
+            showSuccess(
+              "Your CrowRules account has been created. Check your email for the next step."
+            );
+
+          } catch (
+            error
+          ) {
+
+            console.error(
+              "CrowRules signup error:",
+              error
+            );
+
+
+            let message =
+              "We couldn't create your CrowRules account. Please try again.";
+
+
+            if (
+              error?.message
+            ) {
+
+              const raw =
+                error.message.toLowerCase();
+
+
+              if (
+                raw.includes(
+                  "user already registered"
+                )
+              ) {
+
+                message =
+                  "An account with this email already exists. Please sign in instead.";
+
+              } else if (
+                raw.includes(
+                  "password"
+                )
+              ) {
+
+                message =
+                  error.message;
+
+              } else if (
+                raw.includes(
+                  "email"
+                )
+              ) {
+
+                message =
+                  error.message;
+
+              } else {
+
+                message =
+                  error.message;
+
+              }
+
+            }
+
+
+            showStatus(
+              message,
+              "error"
+            );
+
+          } finally {
+
+            setSubmitting(false);
+
+          }
+
+        }
+      );
+
+
+      /*
+       * ----------------------------------------------------
+       * INITIALIZATION
+       * ----------------------------------------------------
+       */
+
+      async function initializePage() {
+
+        try {
+
+          /*
+           * Wait briefly for defer-loaded Supabase.
+           */
+
+          let attempts = 0;
+
+          while (
+            !window.supabase &&
+            attempts < 100
+          ) {
+
+            await new Promise(
+              resolve =>
+                setTimeout(
+                  resolve,
+                  50
+                )
+            );
+
+            attempts++;
+
+          }
+
+
+          if (
+            !window.supabase
+          ) {
+
+            throw new Error(
+              "Supabase failed to load."
+            );
+
+          }
+
+
+          initializeSupabase();
+
+
+          /*
+           * If an existing authenticated session
+           * is already present, don't force the user
+           * through signup again.
+           */
+
+          const {
+            data
+          } =
+            await supabaseClient.auth.getSession();
+
+
+          if (
+            data?.session?.user
+          ) {
+
+            showStatus(
+              "You're already signed in to CrowRules.",
+              "success"
+            );
+
+
+            signupButtonText.textContent =
+              "ACCOUNT ALREADY ACTIVE";
+
+
+            signupButton.disabled =
+              true;
+
+          }
+
+        } catch (
+          error
+        ) {
+
+          console.error(
+            "CrowRules initialization error:",
+            error
+          );
+
+
+          showStatus(
+            "Secure signup is temporarily unavailable. Please refresh the page and try again.",
+            "error"
+          );
+
+        }
+
+      }
+
+
+      initializePage();
+
+
+      /*
+       * ----------------------------------------------------
+       * CURRENT YEAR
+       * ----------------------------------------------------
+       */
+
+      const year =
+        document.getElementById(
+          "current-year"
+        );
+
+
+      if (year) {
+
+        year.textContent =
+          new Date().getFullYear();
+
+      }
+
+
+      /*
+       * ----------------------------------------------------
+       * PAGE READY
+       * ----------------------------------------------------
+       */
+
+      window.addEventListener(
+        "load",
+        () => {
+
+          document.documentElement.classList.add(
+            "page-ready"
+          );
+
+        }
+      );
+
     })();
   </script>
+
+
+  <!-- =====================================================
+       SMALL PAGE ENHANCEMENTS
+  ====================================================== -->
+
+  <style>
+
+    /* -----------------------------------------------------
+       STATUS
+    ----------------------------------------------------- */
+
+    .signup-status {
+      margin: 0 0 22px;
+      padding: 15px 17px;
+
+      border-radius: 13px;
+
+      border: 1px solid
+        rgba(255,255,255,.1);
+
+      background:
+        rgba(255,255,255,.035);
+
+      color: #dce1f5;
+
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .signup-status[data-status="error"] {
+      border-color:
+        rgba(255,75,115,.3);
+
+      background:
+        rgba(255,75,115,.07);
+
+      color: #ffb8c8;
+    }
+
+    .signup-status[data-status="success"] {
+      border-color:
+        rgba(80,255,170,.28);
+
+      background:
+        rgba(80,255,170,.06);
+
+      color: #9dffd1;
+    }
+
+
+    /* -----------------------------------------------------
+       FORM
+    ----------------------------------------------------- */
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns:
+        repeat(2, minmax(0,1fr));
+      gap: 14px;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-field label,
+    .account-type-field legend {
+      color: #f5f7ff;
+
+      font-size: 11px;
+      font-weight: 800;
+
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .form-field small {
+      color: #777d98;
+
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .form-field input {
+      width: 100%;
+      min-height: 50px;
+
+      padding: 0 15px;
+
+      border: 1px solid
+        rgba(255,255,255,.11);
+
+      border-radius: 12px;
+
+      outline: none;
+
+      background:
+        rgba(0,0,0,.24);
+
+      color: white;
+
+      font-family: "Montserrat", sans-serif;
+      font-size: 14px;
+
+      transition:
+        border-color .2s ease,
+        box-shadow .2s ease,
+        background .2s ease;
+    }
+
+    .form-field input::placeholder {
+      color: #60657d;
+    }
+
+    .form-field input:focus {
+      border-color:
+        rgba(0,234,255,.55);
+
+      background:
+        rgba(0,234,255,.025);
+
+      box-shadow:
+        0 0 0 3px
+        rgba(0,234,255,.08);
+    }
+
+
+    /* -----------------------------------------------------
+       USERNAME
+    ----------------------------------------------------- */
+
+    .username-input {
+      display: flex;
+      align-items: center;
+
+      min-height: 50px;
+
+      border:
+        1px solid
+        rgba(255,255,255,.11);
+
+      border-radius: 12px;
+
+      background:
+        rgba(0,0,0,.24);
+
+      overflow: hidden;
+    }
+
+    .username-input > span {
+      padding-left: 15px;
+
+      color: #00eaff;
+
+      font-family: "Orbitron", sans-serif;
+      font-weight: 700;
+    }
+
+    .username-input input {
+      min-height: 48px;
+
+      border: 0 !important;
+
+      background: transparent !important;
+
+      box-shadow: none !important;
+    }
+
+
+    /* -----------------------------------------------------
+       ACCOUNT TYPE
+    ----------------------------------------------------- */
+
+    .account-type-field {
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .account-type-field legend {
+      margin-bottom: 10px;
+    }
+
+    .account-type-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(2, minmax(0,1fr));
+      gap: 10px;
+    }
+
+    .account-type-option {
+      cursor: pointer;
+    }
+
+    .account-type-option > input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .account-type-card {
+      min-height: 112px;
+
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+
+      padding: 16px;
+
+      border: 1px solid
+        rgba(255,255,255,.1);
+
+      border-radius: 14px;
+
+      background:
+        rgba(255,255,255,.025);
+
+      transition:
+        border-color .2s ease,
+        background .2s ease,
+        transform .2s ease;
+    }
+
+    .account-type-option:hover
+    .account-type-card {
+      transform: translateY(-2px);
+
+      border-color:
+        rgba(0,234,255,.3);
+    }
+
+    .account-type-option > input:checked
+    + .account-type-card {
+      border-color:
+        rgba(0,234,255,.6);
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(0,234,255,.08),
+          rgba(139,92,255,.07)
+        );
+
+      box-shadow:
+        0 0 25px
+        rgba(0,234,255,.06);
+    }
+
+    .account-type-icon {
+      width: 35px;
+      height: 35px;
+
+      flex: 0 0 auto;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 10px;
+
+      color: #00eaff;
+
+      background:
+        rgba(0,234,255,.07);
+
+      border: 1px solid
+        rgba(0,234,255,.16);
+
+      font-family: "Orbitron", sans-serif;
+    }
+
+    .account-type-content {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .account-type-content strong {
+      font-size: 12px;
+      font-weight: 800;
+
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .account-type-content small {
+      color: #7e849d;
+
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+
+    /* -----------------------------------------------------
+       PASSWORD
+    ----------------------------------------------------- */
+
+    .password-input {
+      position: relative;
+    }
+
+    .password-input input {
+      padding-right: 65px;
+    }
+
+    .password-toggle {
+      position: absolute;
+
+      top: 50%;
+      right: 9px;
+
+      transform: translateY(-50%);
+
+      border: 0;
+
+      background: transparent;
+
+      color: #00eaff;
+
+      font-size: 9px;
+      font-weight: 800;
+
+      letter-spacing: .08em;
+
+      cursor: pointer;
+    }
+
+    .password-strength {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .strength-bar {
+      flex: 1;
+
+      height: 4px;
+
+      overflow: hidden;
+
+      border-radius: 999px;
+
+      background:
+        rgba(255,255,255,.08);
+    }
+
+    .strength-bar span {
+      display: block;
+
+      width: 0;
+      height: 100%;
+
+      border-radius: inherit;
+
+      background:
+        linear-gradient(
+          90deg,
+          #ff496e,
+          #ffd166,
+          #55ffae,
+          #00eaff
+        );
+
+      transition:
+        width .25s ease;
+    }
+
+    .strength-text {
+      min-width: 76px;
+
+      color: #777d98;
+
+      font-size: 9px;
+      font-weight: 700;
+
+      text-align: right;
+    }
+
+
+    /* -----------------------------------------------------
+       TERMS
+    ----------------------------------------------------- */
+
+    .terms-field {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+
+      color: #8b91aa;
+
+      font-size: 11px;
+      line-height: 1.6;
+
+      cursor: pointer;
+    }
+
+    .terms-field input {
+      width: 17px;
+      height: 17px;
+
+      flex: 0 0 auto;
+
+      margin-top: 1px;
+
+      accent-color: #00eaff;
+    }
+
+
+    /* -----------------------------------------------------
+       BUTTON
+    ----------------------------------------------------- */
+
+    .auth-submit {
+      width: 100%;
+
+      min-height: 54px;
+
+      border: 0;
+
+      cursor: pointer;
+
+      font-family: "Montserrat", sans-serif;
+    }
+
+    .auth-submit:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .button-spinner {
+      width: 15px;
+      height: 15px;
+
+      margin-right: 9px;
+
+      border: 2px solid
+        rgba(0,0,0,.25);
+
+      border-top-color:
+        #031014;
+
+      border-radius: 50%;
+
+      animation:
+        signupSpin .7s linear infinite;
+    }
+
+    @keyframes signupSpin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+
+    /* -----------------------------------------------------
+       SECURITY
+    ----------------------------------------------------- */
+
+    .auth-security-inline {
+      display: flex;
+      gap: 9px;
+
+      color: #70768e;
+
+      font-size: 9px;
+      line-height: 1.6;
+    }
+
+
+    /* -----------------------------------------------------
+       SUCCESS
+    ----------------------------------------------------- */
+
+    .signup-success {
+      padding: 15px 0 10px;
+
+      text-align: center;
+    }
+
+    .success-icon {
+      width: 64px;
+      height: 64px;
+
+      display: grid;
+      place-items: center;
+
+      margin: 0 auto 20px;
+
+      border-radius: 50%;
+
+      color: #70ffb4;
+
+      background:
+        rgba(112,255,180,.08);
+
+      border:
+        1px solid
+        rgba(112,255,180,.3);
+
+      font-size: 28px;
+
+      box-shadow:
+        0 0 35px
+        rgba(112,255,180,.1);
+    }
+
+    .signup-success h2 {
+      margin: 0 0 12px;
+
+      font-family: "Orbitron", sans-serif;
+
+      font-size: 20px;
+    }
+
+    .signup-success p {
+      color: #8c92aa;
+
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .success-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      margin-top: 25px;
+    }
+
+
+    /* -----------------------------------------------------
+       MOBILE
+    ----------------------------------------------------- */
+
+    @media (max-width: 620px) {
+
+      .form-row,
+      .account-type-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .account-type-card {
+        min-height: 92px;
+      }
+
+    }
+
+  </style>
 
 </body>
 </html>
