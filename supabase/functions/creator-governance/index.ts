@@ -266,6 +266,68 @@ export default {
       return json({ released: data });
     }
 
+    if (action === "notifications") {
+      const { data, error } = await ctx.supabaseAdmin.from("creator_governance_notifications").select("*")
+        .eq("recipient_user_id", userId).order("created_at",{ascending:false}).limit(100);
+      if(error)return json({error:error.message},500);
+      return json({notifications:data??[]});
+    }
+    if (action === "notification-read") {
+      const id=String(body.notification_id??""); if(!id)return json({error:"NOTIFICATION_REQUIRED"},400);
+      const {data,error}=await ctx.supabaseAdmin.from("creator_governance_notifications").update({read_at:new Date().toISOString()})
+        .eq("id",id).eq("recipient_user_id",userId).select("*").maybeSingle();
+      if(error)return json({error:error.message},500); if(!data)return json({error:"NOTIFICATION_NOT_FOUND"},404);
+      await ctx.supabaseAdmin.from("creator_governance_notification_audit").insert({notification_id:id,actor_user_id:userId,action:"read"});
+      return json({notification:data});
+    }
+    if (action === "preferences") {
+      if(req.method==="GET"){
+        const {data,error}=await ctx.supabaseAdmin.from("creator_governance_notification_preferences").select("*").eq("user_id",userId).maybeSingle();
+        if(error)return json({error:error.message},500);
+        return json({preferences:data??{user_id:userId,enabled:true,handoffs:true,assignments:true,locks:true,system:true}});
+      }
+      const allowed=["enabled","handoffs","assignments","locks","system"]; const patch:any={user_id:userId,updated_at:new Date().toISOString()};
+      for(const k of allowed)if(typeof body[k]==="boolean")patch[k]=body[k];
+      const {data,error}=await ctx.supabaseAdmin.from("creator_governance_notification_preferences").upsert(patch).select("*").single();
+      if(error)return json({error:error.message},500); return json({preferences:data});
+    }
+    if (action === "handoffs") {
+      const {data,error}=await ctx.supabaseAdmin.from("creator_governance_handoffs").select("*")
+        .or(`from_user_id.eq.${userId},to_user_id.eq.${userId}`).order("created_at",{ascending:false}).limit(100);
+      if(error)return json({error:error.message},500); return json({handoffs:data??[]});
+    }
+    if (action === "handoff") {
+      if(!permissions.includes("create"))return json({error:"HANDOFF_FORBIDDEN"},403);
+      const collectionId=String(body.collection_id??""),taskKey=String(body.task_key??""),toUserId=String(body.to_user_id??"");
+      if(!collectionId||!taskKey||!toUserId)return json({error:"HANDOFF_FIELDS_REQUIRED"},400);
+      const {data:h,error:he}=await ctx.supabaseAdmin.from("creator_governance_handoffs").insert({
+        collection_id:collectionId,task_key:taskKey,task_name:String(body.task_name??taskKey).slice(0,300),
+        from_user_id:userId,to_user_id:toUserId,note:String(body.note??"").slice(0,1000)
+      }).select("*").single();
+      if(he)return json({error:he.message},500);
+      const {data:p}=await ctx.supabaseAdmin.from("creator_governance_notification_preferences").select("*").eq("user_id",toUserId).maybeSingle();
+      if(p?.enabled!==false&&p?.handoffs!==false)await ctx.supabaseAdmin.from("creator_governance_notifications").insert({
+        recipient_user_id:toUserId,actor_user_id:userId,type:"handoff",title:"Incoming Handoff",
+        message:`A creator requested a handoff for ${String(body.task_name??taskKey)}.`,collection_id:collectionId,task_key:taskKey,
+        task_name:String(body.task_name??taskKey),handoff_id:h.id,payload:{note:String(body.note??"")}
+      });
+      return json({handoff:h});
+    }
+    if (action === "handoff-response") {
+      if(!permissions.includes("create"))return json({error:"HANDOFF_FORBIDDEN"},403);
+      const id=String(body.handoff_id??""),status=String(body.status??"");
+      if(!id||!["ACCEPTED","DECLINED"].includes(status))return json({error:"HANDOFF_RESPONSE_INVALID"},400);
+      const {data:h,error:he}=await ctx.supabaseAdmin.from("creator_governance_handoffs").update({status,responded_at:new Date().toISOString()})
+        .eq("id",id).eq("to_user_id",userId).eq("status","PENDING").select("*").maybeSingle();
+      if(he)return json({error:he.message},500); if(!h)return json({error:"HANDOFF_NOT_FOUND_OR_ALREADY_RESPONDED"},409);
+      const {data:p}=await ctx.supabaseAdmin.from("creator_governance_notification_preferences").select("*").eq("user_id",h.from_user_id).maybeSingle();
+      if(p?.enabled!==false&&p?.handoffs!==false)await ctx.supabaseAdmin.from("creator_governance_notifications").insert({
+        recipient_user_id:h.from_user_id,actor_user_id:userId,type:"handoff",title:`Handoff ${status==="ACCEPTED"?"Accepted":"Declined"}`,
+        message:`Your handoff request for ${h.task_name||h.task_key} was ${status.toLowerCase()}.`,collection_id:h.collection_id,task_key:h.task_key,
+        task_name:h.task_name,handoff_id:h.id,payload:{status}
+      });
+      return json({handoff:h});
+    }
     if (action === "audit") {
       if (!permissions.includes("govern")) return json({ error: "GOVERNANCE_FORBIDDEN" }, 403);
       const id = body.transaction_id ? String(body.transaction_id) : null;
