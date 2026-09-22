@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05050b">
+<meta name="color-scheme" content="dark">
+<title>Creator Monetization Hub | CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+</head>
+<body>
+<div class="site-background" aria-hidden="true"><div class="background-stars"></div><div class="background-grid"></div><div class="background-glow background-glow-one"></div><div class="background-glow background-glow-two"></div></div>
+<header class="site-header"><div class="site-header-inner">
+<a class="brand" href="index.html"><span class="brand-mark">CR</span><span class="brand-text"><span class="brand-name">CROW<span class="glow">RULES</span></span><span class="brand-section">PODCASTING</span></span></a>
+<nav class="main-navigation"><a href="creator-dashboard.html">Studio</a><a href="creator-support.html">Support</a><a href="creator-monetization.html">Monetization</a><a href="creator-revenue.html">Revenue</a><a href="creator-deal-room.html">Deal Room</a><a href="profile.html">Profile</a></nav>
+</div></header>
+<main><section class="section wrap">
+<div class="studioHero"><span class="eyebrow">CREATOR STUDIO · MONETIZATION</span><h1>MONETIZATION <span class="glow">HUB</span></h1><p>One private workspace for catalog readiness, listener support, premium content, sponsorship records, and CrowPoints engagement.</p><div class="actions"><a class="btn primary" href="creator-support.html">SUPPORT CENTER</a><a class="btn" href="creator-revenue.html">REVENUE LEDGER</a></div></div>
+<div id="gate" class="card" aria-live="polite">Checking your CrowRules account…</div>
+<div id="app" class="hidden">
+<div id="metrics" class="grid" style="margin-top:25px"></div>
+<section class="section"><div class="section-header"><span class="eyebrow">MONETIZATION PATHS</span><h2>Your <span class="glow">workspace</span></h2><p>Each card reports catalog or deal information only. No future earnings are predicted.</p></div>
+<div class="grid">
+<a class="card" href="creator-support.html"><span class="eyebrow">01 · SUPPORT</span><h3>Listener Support</h3><p class="muted">Prepare direct listener support and premium experiences.</p><span class="pill">OPEN CENTER</span></a>
+<a class="card" href="creator-deal-room.html"><span class="eyebrow">02 · SPONSORSHIPS</span><h3>Deal Room</h3><p class="muted">Manage the sponsorship workflow and deal records.</p><span class="pill">OPEN DEAL ROOM</span></a>
+<a class="card" href="creator-revenue.html"><span class="eyebrow">03 · RECORDS</span><h3>Revenue Ledger</h3><p class="muted">Review agreed sponsorship values recorded for your account.</p><span class="pill">OPEN LEDGER</span></a>
+<a class="card" href="creator-analytics.html"><span class="eyebrow">04 · PERFORMANCE</span><h3>Analytics</h3><p class="muted">Review available catalog and audience measurements.</p><span class="pill">OPEN ANALYTICS</span></a>
+</div></section>
+<section class="section"><div class="section-header"><span class="eyebrow">CREATOR READINESS</span><h2>Catalog <span class="glow">health</span></h2></div><div id="health" class="card">Loading…</div></section>
+<div class="card"><span class="eyebrow">IMPORTANT</span><p>Agreed deal value, listener engagement, CrowPoints, and actual cash payments are different data types. This hub keeps them separate. Verified payment records should be the source of truth for money actually received.</p></div>
+</div></section></main>
+<footer class="site-footer"><div class="site-footer-inner"><div class="footer-brand"><strong>CROWRULES PODCASTING</strong><span>ONE ACCOUNT. ONE UNIVERSE.</span></div><div class="footer-copy">© 2026 CrowRules Entertainment</div></div></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script>
+(async()=>{
+ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const gate=document.getElementById("gate"),app=document.getElementById("app");
+ try{
+  const cfg=window.CrowRulesConfig||{};
+  if(!cfg.supabaseUrl||!cfg.supabaseAnonKey) throw new Error("CrowRules configuration unavailable.");
+  const db=supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
+  const {data:{user}}=await db.auth.getUser();
+  if(!user){gate.innerHTML='<span class="eyebrow">LOGIN REQUIRED</span><h2>Sign in to open your private monetization hub.</h2><a class="btn primary" href="login.html">LOGIN</a>';return;}
+  const cr=await db.from("creators").select("id,name,display_name").eq("user_id",user.id).maybeSingle();
+  if(cr.error) throw cr.error;
+  if(!cr.data){gate.innerHTML='<span class="eyebrow">CREATOR PROFILE REQUIRED</span><h2>Your account is signed in, but no creator record is connected yet.</h2><a class="btn primary" href="creator-dashboard.html">CREATOR STUDIO</a>';return;}
+  const creatorId=cr.data.id;
+  const [showsRes,dealsRes]=await Promise.all([
+   db.from("podcasts").select("id,title,description,status,created_at").eq("creator_id",creatorId).order("created_at",{ascending:false}),
+   db.from("podcast_sponsorship_deals").select("id,status,agreed_amount,created_at").order("created_at",{ascending:false})
+  ]);
+  if(showsRes.error) throw showsRes.error;
+  if(dealsRes.error) throw dealsRes.error;
+  const shows=showsRes.data||[], deals=dealsRes.data||[];
+  const ids=shows.map(x=>x.id);
+  let eps=[];
+  if(ids.length){
+   const er=await db.from("podcast_episodes").select("id,podcast_id,status,published_at").in("podcast_id",ids);
+   if(er.error) throw er.error; eps=er.data||[];
+  }
+  const published=eps.filter(e=>["published","active","live"].includes(String(e.status||"").toLowerCase())||e.published_at).length;
+  const activeDeals=deals.filter(d=>["active","accepted","in_progress"].includes(String(d.status||"").toLowerCase())).length;
+  const agreed=deals.filter(d=>Number.isFinite(Number(d.agreed_amount))).reduce((n,d)=>n+Number(d.agreed_amount),0);
+  const completeShows=shows.filter(s=>s.title&&s.description).length;
+  gate.classList.add("hidden");app.classList.remove("hidden");
+  document.getElementById("metrics").innerHTML=[
+   ["SHOWS",shows.length],["PUBLISHED EPISODES",published],["ACTIVE DEALS",activeDeals],["RECORDED DEAL VALUE",agreed.toLocaleString(undefined,{style:"currency",currency:"USD"})]
+  ].map(x=>'<div class="card"><span class="eyebrow">'+esc(x[0])+'</span><h2>'+esc(x[1])+'</h2></div>').join("");
+  const checks=[
+   ["Catalog metadata",completeShows===shows.length && shows.length>0,shows.length?completeShows+"/"+shows.length+" shows have title + description":"Create your first podcast"],
+   ["Published content",published>0,published+" published episode"+(published===1?"":"s")],
+   ["Sponsorship workflow",deals.length>0,deals.length+" deal record"+(deals.length===1?"":"s")],
+   ["Listener support path",shows.length>0,"Support center is available for catalog planning"]
+  ];
+  document.getElementById("health").innerHTML=checks.map(c=>'<div style="padding:16px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap"><div><strong>'+esc(c[0])+'</strong><p class="muted">'+esc(c[2])+'</p></div><span class="pill">'+(c[1]?"READY":"NEEDS WORK")+'</span></div>').join("");
+ }catch(err){console.error(err);gate.innerHTML='<span class="eyebrow">HUB UNAVAILABLE</span><h2>Your creator monetization workspace could not be loaded.</h2><p>Nothing was written or changed.</p><a class="btn" href="creator-dashboard.html">OPEN CREATOR STUDIO</a>';}
+})();
+</script>
+</body>
+</html>
