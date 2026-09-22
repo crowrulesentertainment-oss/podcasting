@@ -1,0 +1,16 @@
+name: Navigation & Journey Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  navigation-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Audit navigation
+        run: node tools/navigation-audit.mjs
