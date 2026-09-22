@@ -8,10 +8,65 @@ async function creatorFor(u){if(!u)return null;const {data:m}=await crSupabase.f
 function art(url){return url?'<img class="artimg" src="'+esc(url)+'" alt="">':'<div class="art">🎙</div>'}
 function podcastCard(p){return '<article class="card">'+art(p.artwork_url)+'<h3>'+esc(p.title)+'</h3><small>'+esc(p.category||"Podcast")+'</small><p>'+esc(p.description||"")+'</p><a class="btn" href="podcast.html?id='+encodeURIComponent(p.id)+'">VIEW</a></article>'}
 function episodeCard(e){return '<article class="card">'+art(e.thumbnail_url)+'<h3>'+esc(e.title)+'</h3><p>'+esc(e.description||"")+'</p><small>'+((e.published_at&&new Date(e.published_at).toString()!=="Invalid Date")?new Date(e.published_at).toLocaleDateString():"Draft")+'</small><div class="actions"><button class="btn primary" onclick="playEpisode('+JSON.stringify(e).replace(/</g,"\\u003c")+')">▶ PLAY</button><a class="btn" href="episode.html?id='+encodeURIComponent(e.id)+'">DETAILS</a></div></article>'}
-let activeEpisode=null,activeUser=null,listenTimer=null,listenSeconds=0,lastProgressSave=0;async function savePlaybackProgress(force=false){if(!activeEpisode||!activeUser)return;const a=document.getElementById("audio");const duration=Math.round(Number(a.duration)||Number(activeEpisode.duration_seconds)||0),position=Math.round(Number(a.currentTime)||0);if(!force&&Math.abs(position-lastProgressSave)<10)return;lastProgressSave=position;const percent=duration?Math.min(100,(position/duration)*100):0;const completed=duration>0&&(position/duration)>=0.9;await crSupabase.from("podcast_episode_progress").upsert({user_id:activeUser.id,episode_id:activeEpisode.id,position_seconds:position,duration_seconds:duration,percent_complete:percent,completed,last_played_at:new Date().toISOString()},{onConflict:"user_id,episode_id"});}
-async function recordListen(completed=false){if(!activeEpisode||!activeUser||listenSeconds<1)return;await crSupabase.from("podcast_listens").insert({user_id:activeUser.id,episode_id:activeEpisode.id,started_at:new Date(Date.now()-listenSeconds*1000).toISOString(),seconds_listened:Math.round(listenSeconds),completed,session_key:crypto.randomUUID()});listenSeconds=0}
-async function playEpisode(e){const p=document.getElementById("player"),a=document.getElementById("audio");p.classList.add("show");document.getElementById("now").textContent=e.title||"Episode";activeEpisode=e;activeUser=await user();listenSeconds=0;lastProgressSave=0;if(e.audio_url){a.src=e.audio_url;try{if(activeUser){const {data}=await crSupabase.from("podcast_episode_progress").select("position_seconds").eq("user_id",activeUser.id).eq("episode_id",e.id).maybeSingle();if(data?.position_seconds)a.currentTime=Number(data.position_seconds)||0}}catch{}try{await a.play()}catch{}}else alert("This episode has no audio file yet.");}
-function initPlayerTracking(){const a=document.getElementById("audio");if(!a||a.dataset.tracking)return;a.dataset.tracking="1";a.addEventListener("timeupdate",()=>{if(!a.paused&&activeUser){listenSeconds+=1;savePlaybackProgress()}});a.addEventListener("pause",()=>{savePlaybackProgress(true);recordListen(false)});a.addEventListener("ended",async()=>{await savePlaybackProgress(true);await recordListen(true)})} 
+let activeEpisode=null,activeUser=null,activeSessionKey=null,listenSeconds=0,lastProgressSave=0,lastTickAt=0;
+async function savePlaybackProgress(force=false){
+  if(!activeEpisode||!activeUser)return;
+  const a=document.getElementById("audio");if(!a)return;
+  const duration=Math.round(Number(a.duration)||Number(activeEpisode.duration_seconds)||0),position=Math.round(Number(a.currentTime)||0);
+  if(!force&&Math.abs(position-lastProgressSave)<10)return;
+  lastProgressSave=position;
+  const percent=duration?Math.min(100,(position/duration)*100):0;
+  const completed=duration>0&&(position/duration)>=0.9;
+  await crSupabase.from("podcast_episode_progress").upsert({user_id:activeUser.id,episode_id:activeEpisode.id,position_seconds:position,duration_seconds:duration,percent_complete:percent,completed,last_played_at:new Date().toISOString()},{onConflict:"user_id,episode_id"});
+}
+async function recordListen(completed=false){
+  if(!activeEpisode||listenSeconds<1)return;
+  const seconds=Math.max(1,Math.round(listenSeconds));
+  const payload={user_id:activeUser?.id||null,episode_id:activeEpisode.id,started_at:new Date(Date.now()-seconds*1000).toISOString(),seconds_listened:seconds,completed:!!completed,session_key:activeSessionKey||crypto.randomUUID()};
+  const {error}=await crSupabase.from("podcast_listens").insert(payload);
+  if(!error)listenSeconds=0;
+}
+function flushListenerClock(){
+  if(!lastTickAt)return;
+  const now=Date.now(),delta=Math.min(5,Math.max(0,(now-lastTickAt)/1000));
+  if(delta>0)listenSeconds+=delta;
+  lastTickAt=now;
+}
+async function stopCurrentEpisode(completed=false){
+  const a=document.getElementById("audio");
+  flushListenerClock();
+  if(activeEpisode){
+    await savePlaybackProgress(true);
+    await recordListen(completed);
+  }
+  if(a)a.removeAttribute("src");
+  lastTickAt=0;
+}
+async function playEpisode(e){
+  const p=document.getElementById("player"),a=document.getElementById("audio");
+  if(!p||!a)return;
+  if(activeEpisode&&activeEpisode.id!==e.id)await stopCurrentEpisode(false);
+  p.classList.add("show");document.getElementById("now").textContent=e.title||"Episode";
+  activeEpisode=e;activeUser=await user();activeSessionKey=crypto.randomUUID();listenSeconds=0;lastProgressSave=0;lastTickAt=0;
+  if(e.audio_url){
+    a.src=e.audio_url;
+    try{
+      if(activeUser){
+        const {data}=await crSupabase.from("podcast_episode_progress").select("position_seconds").eq("user_id",activeUser.id).eq("episode_id",e.id).maybeSingle();
+        if(data?.position_seconds)a.currentTime=Number(data.position_seconds)||0;
+      }
+    }catch{}
+    try{await a.play()}catch{}
+  }else alert("This episode has no audio file yet.");
+}
+function initPlayerTracking(){
+  const a=document.getElementById("audio");if(!a||a.dataset.tracking)return;a.dataset.tracking="1";
+  a.addEventListener("play",()=>{lastTickAt=Date.now()});
+  a.addEventListener("timeupdate",()=>{if(!a.paused){flushListenerClock();savePlaybackProgress(false)}});
+  a.addEventListener("pause",async()=>{flushListenerClock();await savePlaybackProgress(true);await recordListen(false);lastTickAt=0});
+  a.addEventListener("ended",async()=>{flushListenerClock();await savePlaybackProgress(true);await recordListen(true);lastTickAt=0});
+  window.addEventListener("pagehide",()=>{flushListenerClock();if(activeEpisode&&listenSeconds>=1){crSupabase.from("podcast_listens").insert({user_id:activeUser?.id||null,episode_id:activeEpisode.id,started_at:new Date(Date.now()-Math.round(listenSeconds)*1000).toISOString(),seconds_listened:Math.round(listenSeconds),completed:false,session_key:activeSessionKey||crypto.randomUUID()});}});
+}
 function countdown(){const el=document.getElementById("countdown");if(!el)return;const tick=()=>{let d=new Date(CROWRULES_CONFIG.launchDate)-Date.now();if(d<=0){el.innerHTML='<h2 class="glow">CROWRULES PODCASTING IS LIVE</h2>';return}let days=Math.floor(d/864e5);d%=864e5;let h=Math.floor(d/36e5);d%=36e5;let m=Math.floor(d/6e4);let s=Math.floor((d%6e4)/1e3);el.innerHTML=["Days","Hours","Minutes","Seconds"].map((x,i)=>'<div class="time"><b>'+[days,h,m,s][i].toString().padStart(i?2:1,"0")+'</b>'+x+'</div>').join("")};tick();setInterval(tick,1000)}
 async function loadPublic(){if(!crSupabase)return{podcasts:[],episodes:[],rankings:[]};const [p,e,r]=await Promise.all([crSupabase.from("podcasts").select("*").eq("status","published").order("is_featured",{ascending:false}).order("created_at",{ascending:false}).limit(12),crSupabase.from("podcast_episodes").select("*").eq("status","published").order("published_at",{ascending:false}).limit(12),crSupabase.from("podcast_top10_podcasts_current").select("*").order("rank").limit(10)]);return{podcasts:p.data||[],episodes:e.data||[],rankings:r.data||[]}}
 async function home(){const d=await loadPublic();shell('<section class="hero"><div class="wrap"><span class="eyebrow">CROWRULES ENTERTAINMENT PRESENTS</span><h1>YOUR VOICE.<br><span class="glow">YOUR STORY.</span><br>YOUR UNIVERSE.</h1><p>Podcasting built inside the CrowRules universe. Discover voices, create shows, listen to episodes and connect live.</p><div class="actions"><a class="btn primary" href="discover.html">EXPLORE PODCASTS</a><a class="btn" href="signup.html">JOIN CROWRULES</a></div><div id="countdown" class="count"></div></div></section><section class="section wrap"><span class="eyebrow">FEATURED</span><h2>Featured <span class="glow">Podcasts</span></h2><div class="grid">'+(d.podcasts.filter(x=>x.is_featured).slice(0,4).map(podcastCard).join("")||"<p>No published podcasts yet. Create the first show from Creator Studio.</p>")+'</div></section><section class="section wrap"><span class="eyebrow">NEW</span><h2>Newest <span class="glow">Episodes</span></h2><div class="grid">'+(d.episodes.slice(0,6).map(episodeCard).join("")||"<p>No published episodes yet.</p>")+'</div></section>');countdown()}
