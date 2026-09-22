@@ -1,1 +1,238 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050b"><title>CrowRules Podcasting — Your Voice. Your Story. Your Universe.</title><link rel="stylesheet" href="css/podcasting.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><div id="app"></div><script src="js/config.js"></script><script src="js/app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta
+    name="theme-color"
+    content="#05050b"
+  >
+
+  <meta
+    name="color-scheme"
+    content="dark"
+  >
+
+  <meta
+    name="description"
+    content="CrowRules Podcasting — Create podcasts, publish episodes, build your audience, earn CrowPoints, and connect with the CrowRules Universe."
+  >
+
+  <meta
+    name="keywords"
+    content="CrowRules Podcasting, podcasts, podcast creators, podcast episodes, CrowRules, CrowPoints, podcast community"
+  >
+
+  <meta
+    name="author"
+    content="CrowRules Entertainment"
+  >
+
+  <meta
+    name="robots"
+    content="index,follow"
+  >
+
+  <!-- Canonical -->
+  <link
+    rel="canonical"
+    href="https://crowrulesentertainment-oss.github.io/podcasting/"
+  >
+
+  <!-- Open Graph -->
+  <meta
+    property="og:type"
+    content="website"
+  >
+
+  <meta
+    property="og:title"
+    content="CrowRules Podcasting — Your Voice. Your Story. Your Universe."
+  >
+
+  <meta
+    property="og:description"
+    content="Create podcasts, publish episodes, discover creators, earn CrowPoints, and become part of the CrowRules Universe."
+  >
+
+  <meta
+    property="og:url"
+    content="https://crowrulesentertainment-oss.github.io/podcasting/"
+  >
+
+  <meta
+    property="og:site_name"
+    content="CrowRules Podcasting"
+  >
+
+  <!-- Twitter / X -->
+  <meta
+    name="twitter:card"
+    content="summary_large_image"
+  >
+
+  <meta
+    name="twitter:title"
+    content="CrowRules Podcasting"
+  >
+
+  <meta
+    name="twitter:description"
+    content="Your Voice. Your Story. Your Universe."
+  >
+
+  <!-- Mobile browser -->
+  <meta
+    name="mobile-web-app-capable"
+    content="yes"
+  >
+
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  >
+
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+  >
+
+  <meta
+    name="apple-mobile-web-app-title"
+    content="CrowRules Podcasting"
+  >
+
+  <!-- Preconnect -->
+  <link
+    rel="preconnect"
+    href="https://cdn.jsdelivr.net"
+    crossorigin
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
+
+  <!-- Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- Styles -->
+  <link
+    rel="stylesheet"
+    href="css/podcasting.css"
+  >
+
+  <!-- Favicon -->
+  <link
+    rel="icon"
+    href="assets/favicon.svg"
+    type="image/svg+xml"
+  >
+
+  <link
+    rel="apple-touch-icon"
+    href="assets/apple-touch-icon.png"
+  >
+
+  <title>
+    CrowRules Podcasting — Your Voice. Your Story. Your Universe.
+  </title>
+
+  <!-- Supabase JS -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+    defer
+  ></script>
+</head>
+
+<body>
+
+  <!-- Skip navigation -->
+  <a
+    class="skip-link"
+    href="#app"
+  >
+    Skip to content
+  </a>
+
+  <!-- Application -->
+  <main
+    id="app"
+    role="main"
+    aria-live="polite"
+    aria-busy="true"
+  >
+    <div
+      class="app-loader"
+      aria-label="Loading CrowRules Podcasting"
+    >
+      <div class="app-loader__logo">
+        CROW<span>RULES</span>
+      </div>
+
+      <div
+        class="app-loader__title"
+        aria-hidden="true"
+      >
+        PODCASTING
+      </div>
+
+      <div
+        class="app-loader__spinner"
+        aria-hidden="true"
+      ></div>
+
+      <p class="app-loader__text">
+        Entering the CrowRules Universe…
+      </p>
+
+      <noscript>
+        <p>
+          CrowRules Podcasting requires JavaScript to be enabled.
+        </p>
+      </noscript>
+    </div>
+  </main>
+
+  <!-- Global configuration -->
+  <script
+    src="js/config.js"
+    defer
+  ></script>
+
+  <!-- Application -->
+  <script
+    src="js/app.js"
+    defer
+  ></script>
+
+  <!-- Remove loading state once the application has initialized -->
+  <script>
+    window.addEventListener("load", () => {
+      const app = document.getElementById("app");
+
+      if (!app) return;
+
+      setTimeout(() => {
+        app.setAttribute("aria-busy", "false");
+      }, 250);
+    });
+  </script>
+
+</body>
+</html>
