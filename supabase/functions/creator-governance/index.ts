@@ -339,13 +339,13 @@ export default {
     if (action === "task-claim") {
       if(!permissions.includes("create"))return json({error:"TASK_CLAIM_FORBIDDEN"},403);
       const {collection_id,task_key}=body; if(!collection_id||!task_key)return json({error:"TASK_REQUIRED"},400);
-      const {data,error}=await ctx.supabaseAdmin.from("creator_governance_tasks").update({owner_user_id:userId,status:"IN_PROGRESS",started_at:new Date().toISOString(),last_activity_at:new Date().toISOString()}).eq("collection_id",collection_id).eq("task_key",task_key).select("*").maybeSingle();
+      const {data,error}=await ctx.supabaseAdmin.rpc("creator_governance_claim_task",{p_collection_id:collection_id,p_task_key:task_key,p_user_id:userId,p_expected_version:body.expected_version??null});
       if(error)return json({error:error.message},500); return json({task:data});
     }
     if (action === "task-complete") {
       if(!permissions.includes("create"))return json({error:"TASK_COMPLETE_FORBIDDEN"},403);
       const {collection_id,task_key}=body; if(!collection_id||!task_key)return json({error:"TASK_REQUIRED"},400);
-      const {data,error}=await ctx.supabaseAdmin.from("creator_governance_tasks").update({status:"COMPLETE",completed_at:new Date().toISOString(),last_activity_at:new Date().toISOString()}).eq("collection_id",collection_id).eq("task_key",task_key).eq("owner_user_id",userId).select("*").maybeSingle();
+      const {data,error}=await ctx.supabaseAdmin.rpc("creator_governance_complete_task",{p_collection_id:collection_id,p_task_key:task_key,p_user_id:userId,p_expected_version:body.expected_version??null});
       if(error)return json({error:error.message},500); return json({task:data});
     }
     if (action === "health") {
