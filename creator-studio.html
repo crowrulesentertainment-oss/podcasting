@@ -1,1 +1,2562 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050b"><title>Creator Studio | CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"></head><body><div id="app"><div class="section wrap"><p>Loading Creator Studio…</p></div></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script><script src="js/app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,viewport-fit=cover"
+  >
+
+  <meta
+    name="theme-color"
+    content="#05050b"
+  >
+
+  <meta
+    name="color-scheme"
+    content="dark"
+  >
+
+  <meta
+    name="description"
+    content="CrowRules Podcasting Creator Studio — create podcasts, manage episodes, track your audience and build your universe."
+  >
+
+  <title>Creator Studio | CrowRules Podcasting</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  >
+
+  <link
+    rel="stylesheet"
+    href="css/podcasting.css"
+  >
+
+  <style>
+    :root{
+      --studio-bg:#05050b;
+      --studio-panel:rgba(12,13,24,.84);
+      --studio-panel-2:rgba(17,18,32,.9);
+      --studio-border:rgba(130,150,255,.15);
+      --studio-border-strong:rgba(130,150,255,.32);
+      --studio-text:#f6f7ff;
+      --studio-muted:#9ca3bb;
+      --studio-cyan:#55e7ff;
+      --studio-purple:#a879ff;
+      --studio-pink:#ff6edb;
+      --studio-green:#69f5ae;
+      --studio-orange:#ffb86b;
+      --studio-danger:#ff6d83;
+      --studio-shadow:0 25px 80px rgba(0,0,0,.42);
+      --studio-radius:22px;
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    html{
+      scroll-behavior:smooth;
+    }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--studio-text);
+      background:
+        radial-gradient(circle at 10% 0%,rgba(85,231,255,.11),transparent 28%),
+        radial-gradient(circle at 90% 10%,rgba(168,121,255,.12),transparent 30%),
+        radial-gradient(circle at 50% 100%,rgba(255,110,219,.07),transparent 35%),
+        var(--studio-bg);
+      font-family:Montserrat,system-ui,sans-serif;
+    }
+
+    button,
+    input,
+    textarea,
+    select{
+      font:inherit;
+    }
+
+    button{
+      cursor:pointer;
+    }
+
+    a{
+      color:inherit;
+      text-decoration:none;
+    }
+
+    .studio-shell{
+      min-height:100vh;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .studio-shell::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.16;
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+      background-size:60px 60px;
+      mask-image:linear-gradient(to bottom,black,transparent 85%);
+    }
+
+    .studio-topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      min-height:74px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+      padding:14px 28px;
+      background:rgba(5,5,11,.76);
+      border-bottom:1px solid rgba(255,255,255,.08);
+      backdrop-filter:blur(20px);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:13px;
+      min-width:0;
+    }
+
+    .brand-mark{
+      width:42px;
+      height:42px;
+      border-radius:13px;
+      display:grid;
+      place-items:center;
+      position:relative;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 35% 30%,#ffffff,transparent 8%),
+        linear-gradient(135deg,var(--studio-cyan),var(--studio-purple),var(--studio-pink));
+      box-shadow:
+        0 0 25px rgba(85,231,255,.18),
+        0 0 45px rgba(168,121,255,.12);
+    }
+
+    .brand-mark::after{
+      content:"";
+      width:15px;
+      height:20px;
+      border:2px solid #05050b;
+      border-radius:8px;
+      box-shadow:0 7px 0 -5px #05050b;
+    }
+
+    .brand-copy{
+      min-width:0;
+    }
+
+    .brand-title{
+      font-family:Orbitron,sans-serif;
+      font-size:15px;
+      font-weight:800;
+      letter-spacing:.12em;
+      white-space:nowrap;
+    }
+
+    .brand-subtitle{
+      margin-top:2px;
+      color:var(--studio-muted);
+      font-size:10px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .top-actions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .top-link,
+    .top-button{
+      border:1px solid var(--studio-border);
+      background:rgba(255,255,255,.035);
+      color:#e9ebf8;
+      border-radius:12px;
+      padding:10px 14px;
+      font-size:12px;
+      font-weight:700;
+      transition:.2s ease;
+    }
+
+    .top-link:hover,
+    .top-button:hover{
+      border-color:var(--studio-border-strong);
+      transform:translateY(-1px);
+      background:rgba(255,255,255,.07);
+    }
+
+    .user-chip{
+      display:flex;
+      align-items:center;
+      gap:9px;
+      padding:5px 10px 5px 5px;
+      border:1px solid var(--studio-border);
+      background:rgba(255,255,255,.035);
+      border-radius:999px;
+    }
+
+    .user-avatar{
+      width:32px;
+      height:32px;
+      border-radius:50%;
+      object-fit:cover;
+      display:grid;
+      place-items:center;
+      background:
+        linear-gradient(135deg,var(--studio-cyan),var(--studio-purple));
+      color:#05050b;
+      font-size:12px;
+      font-weight:900;
+    }
+
+    .user-name{
+      max-width:150px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .studio-layout{
+      width:min(1500px,100%);
+      margin:0 auto;
+      padding:28px;
+      display:grid;
+      grid-template-columns:240px minmax(0,1fr);
+      gap:24px;
+    }
+
+    .sidebar{
+      position:sticky;
+      top:98px;
+      height:max-content;
+      border:1px solid var(--studio-border);
+      border-radius:var(--studio-radius);
+      background:var(--studio-panel);
+      box-shadow:var(--studio-shadow);
+      padding:14px;
+      backdrop-filter:blur(18px);
+    }
+
+    .sidebar-label{
+      padding:10px 12px 8px;
+      color:#727a96;
+      font-size:9px;
+      font-weight:800;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+    }
+
+    .side-nav{
+      display:grid;
+      gap:5px;
+    }
+
+    .side-nav button,
+    .side-nav a{
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:11px;
+      border:0;
+      border-radius:12px;
+      padding:12px;
+      background:transparent;
+      color:#aeb4ca;
+      text-align:left;
+      font-size:12px;
+      font-weight:700;
+      transition:.2s ease;
+    }
+
+    .side-nav button:hover,
+    .side-nav a:hover,
+    .side-nav .active{
+      color:#fff;
+      background:rgba(85,231,255,.08);
+    }
+
+    .nav-icon{
+      width:28px;
+      height:28px;
+      display:grid;
+      place-items:center;
+      border-radius:9px;
+      background:rgba(255,255,255,.045);
+      font-size:14px;
+    }
+
+    .sidebar-divider{
+      height:1px;
+      margin:14px 4px;
+      background:rgba(255,255,255,.07);
+    }
+
+    .creator-mini{
+      padding:14px;
+      border-radius:15px;
+      background:
+        linear-gradient(135deg,rgba(85,231,255,.08),rgba(168,121,255,.08));
+      border:1px solid rgba(130,150,255,.12);
+    }
+
+    .creator-mini-title{
+      font-family:Orbitron,sans-serif;
+      font-size:11px;
+      letter-spacing:.08em;
+    }
+
+    .creator-mini-text{
+      margin-top:6px;
+      color:var(--studio-muted);
+      font-size:10px;
+      line-height:1.6;
+    }
+
+    .main{
+      min-width:0;
+    }
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      min-height:260px;
+      border:1px solid var(--studio-border);
+      border-radius:28px;
+      padding:34px;
+      background:
+        radial-gradient(circle at 80% 20%,rgba(85,231,255,.13),transparent 24%),
+        radial-gradient(circle at 95% 80%,rgba(255,110,219,.11),transparent 30%),
+        linear-gradient(135deg,rgba(19,20,35,.95),rgba(8,9,17,.96));
+      box-shadow:var(--studio-shadow);
+    }
+
+    .hero::after{
+      content:"";
+      position:absolute;
+      width:330px;
+      height:330px;
+      right:-100px;
+      top:-100px;
+      border:1px solid rgba(85,231,255,.13);
+      border-radius:50%;
+      box-shadow:
+        0 0 0 35px rgba(85,231,255,.025),
+        0 0 0 70px rgba(85,231,255,.018);
+    }
+
+    .eyebrow{
+      color:var(--studio-cyan);
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.2em;
+      text-transform:uppercase;
+    }
+
+    .hero h1{
+      margin:10px 0 8px;
+      max-width:720px;
+      font-family:Orbitron,sans-serif;
+      font-size:clamp(28px,4vw,52px);
+      line-height:1.04;
+      letter-spacing:-.03em;
+    }
+
+    .hero p{
+      max-width:680px;
+      margin:0;
+      color:var(--studio-muted);
+      font-size:14px;
+      line-height:1.8;
+    }
+
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:24px;
+    }
+
+    .primary-btn,
+    .secondary-btn{
+      border-radius:12px;
+      padding:12px 17px;
+      font-size:12px;
+      font-weight:800;
+      border:1px solid transparent;
+      transition:.2s ease;
+    }
+
+    .primary-btn{
+      color:#05050b;
+      background:linear-gradient(135deg,var(--studio-cyan),var(--studio-purple));
+      box-shadow:0 10px 35px rgba(85,231,255,.13);
+    }
+
+    .secondary-btn{
+      color:#fff;
+      background:rgba(255,255,255,.045);
+      border-color:var(--studio-border);
+    }
+
+    .primary-btn:hover,
+    .secondary-btn:hover{
+      transform:translateY(-2px);
+    }
+
+    .stats-grid{
+      margin-top:20px;
+      display:grid;
+      grid-template-columns:repeat(5,minmax(0,1fr));
+      gap:12px;
+    }
+
+    .stat-card{
+      min-width:0;
+      border:1px solid var(--studio-border);
+      border-radius:18px;
+      padding:18px;
+      background:var(--studio-panel);
+      box-shadow:var(--studio-shadow);
+    }
+
+    .stat-label{
+      color:#8088a3;
+      font-size:9px;
+      font-weight:800;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .stat-value{
+      margin-top:8px;
+      font-family:Orbitron,sans-serif;
+      font-size:24px;
+      font-weight:800;
+    }
+
+    .stat-detail{
+      margin-top:5px;
+      color:#777f98;
+      font-size:10px;
+    }
+
+    .section{
+      margin-top:24px;
+    }
+
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:end;
+      gap:15px;
+      margin-bottom:13px;
+    }
+
+    .section-title{
+      font-family:Orbitron,sans-serif;
+      font-size:17px;
+      letter-spacing:.04em;
+    }
+
+    .section-subtitle{
+      margin-top:4px;
+      color:#777f98;
+      font-size:11px;
+    }
+
+    .section-link{
+      color:var(--studio-cyan);
+      font-size:11px;
+      font-weight:800;
+    }
+
+    .workspace-grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.45fr) minmax(300px,.75fr);
+      gap:18px;
+    }
+
+    .panel{
+      min-width:0;
+      border:1px solid var(--studio-border);
+      border-radius:20px;
+      padding:20px;
+      background:var(--studio-panel);
+      box-shadow:var(--studio-shadow);
+    }
+
+    .podcast-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .podcast-row{
+      display:grid;
+      grid-template-columns:54px minmax(0,1fr) auto;
+      align-items:center;
+      gap:14px;
+      padding:12px;
+      border-radius:15px;
+      border:1px solid rgba(255,255,255,.055);
+      background:rgba(255,255,255,.025);
+      transition:.2s ease;
+    }
+
+    .podcast-row:hover{
+      border-color:var(--studio-border-strong);
+      transform:translateY(-1px);
+    }
+
+    .podcast-art{
+      width:54px;
+      height:54px;
+      border-radius:14px;
+      object-fit:cover;
+      background:
+        linear-gradient(135deg,var(--studio-cyan),var(--studio-purple),var(--studio-pink));
+      display:grid;
+      place-items:center;
+      font-family:Orbitron,sans-serif;
+      font-size:13px;
+      font-weight:900;
+      color:#05050b;
+    }
+
+    .podcast-name{
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-size:13px;
+      font-weight:800;
+    }
+
+    .podcast-meta{
+      margin-top:5px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:7px;
+      color:#777f98;
+      font-size:9px;
+    }
+
+    .status{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      border-radius:999px;
+      padding:5px 8px;
+      font-size:9px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .status::before{
+      content:"";
+      width:5px;
+      height:5px;
+      border-radius:50%;
+      background:currentColor;
+    }
+
+    .status-live,
+    .status-published{
+      color:var(--studio-green);
+      background:rgba(105,245,174,.08);
+    }
+
+    .status-draft{
+      color:var(--studio-orange);
+      background:rgba(255,184,107,.08);
+    }
+
+    .status-archived{
+      color:#8790aa;
+      background:rgba(135,144,170,.08);
+    }
+
+    .episode-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .episode-row{
+      display:grid;
+      grid-template-columns:45px minmax(0,1fr) auto;
+      gap:12px;
+      align-items:center;
+      padding:11px;
+      border-radius:14px;
+      background:rgba(255,255,255,.025);
+      border:1px solid rgba(255,255,255,.05);
+    }
+
+    .episode-number{
+      width:45px;
+      height:45px;
+      border-radius:12px;
+      display:grid;
+      place-items:center;
+      background:rgba(168,121,255,.1);
+      color:var(--studio-purple);
+      font-family:Orbitron,sans-serif;
+      font-size:11px;
+      font-weight:800;
+    }
+
+    .episode-title{
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .episode-meta{
+      margin-top:4px;
+      color:#747c95;
+      font-size:9px;
+    }
+
+    .episode-plays{
+      text-align:right;
+      color:#aeb4c8;
+      font-size:10px;
+      white-space:nowrap;
+    }
+
+    .quick-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:10px;
+    }
+
+    .quick-card{
+      min-height:105px;
+      border:1px solid var(--studio-border);
+      border-radius:16px;
+      padding:15px;
+      background:rgba(255,255,255,.025);
+      transition:.2s ease;
+    }
+
+    .quick-card:hover{
+      transform:translateY(-2px);
+      border-color:var(--studio-border-strong);
+      background:rgba(255,255,255,.045);
+    }
+
+    .quick-icon{
+      font-size:20px;
+    }
+
+    .quick-title{
+      margin-top:10px;
+      font-size:11px;
+      font-weight:800;
+    }
+
+    .quick-text{
+      margin-top:5px;
+      color:#737b94;
+      font-size:9px;
+      line-height:1.5;
+    }
+
+    .performance{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .metric{
+      padding:14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.025);
+      border:1px solid rgba(255,255,255,.05);
+    }
+
+    .metric-label{
+      color:#777f98;
+      font-size:9px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    .metric-value{
+      margin-top:7px;
+      font-family:Orbitron,sans-serif;
+      font-size:18px;
+    }
+
+    .empty{
+      padding:30px 15px;
+      text-align:center;
+      color:#737b94;
+      font-size:11px;
+      border:1px dashed rgba(255,255,255,.08);
+      border-radius:15px;
+    }
+
+    .loading{
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:30px;
+    }
+
+    .loading-card{
+      width:min(500px,100%);
+      padding:30px;
+      text-align:center;
+      border:1px solid var(--studio-border);
+      border-radius:25px;
+      background:var(--studio-panel);
+      box-shadow:var(--studio-shadow);
+    }
+
+    .loader{
+      width:46px;
+      height:46px;
+      margin:0 auto 18px;
+      border:2px solid rgba(255,255,255,.08);
+      border-top-color:var(--studio-cyan);
+      border-right-color:var(--studio-purple);
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+    }
+
+    @keyframes spin{
+      to{transform:rotate(360deg)}
+    }
+
+    .toast{
+      position:fixed;
+      right:22px;
+      bottom:22px;
+      z-index:100;
+      max-width:360px;
+      padding:14px 17px;
+      border:1px solid var(--studio-border-strong);
+      border-radius:14px;
+      background:rgba(12,13,24,.94);
+      box-shadow:var(--studio-shadow);
+      transform:translateY(25px);
+      opacity:0;
+      pointer-events:none;
+      transition:.25s ease;
+      font-size:11px;
+    }
+
+    .toast.show{
+      transform:translateY(0);
+      opacity:1;
+    }
+
+    .modal{
+      position:fixed;
+      inset:0;
+      z-index:90;
+      display:none;
+      place-items:center;
+      padding:20px;
+      background:rgba(0,0,0,.7);
+      backdrop-filter:blur(12px);
+    }
+
+    .modal.open{
+      display:grid;
+    }
+
+    .modal-card{
+      width:min(680px,100%);
+      max-height:min(800px,90vh);
+      overflow:auto;
+      padding:25px;
+      border:1px solid var(--studio-border-strong);
+      border-radius:24px;
+      background:#0c0d18;
+      box-shadow:0 30px 100px rgba(0,0,0,.6);
+    }
+
+    .modal-head{
+      display:flex;
+      justify-content:space-between;
+      gap:15px;
+      align-items:start;
+      margin-bottom:20px;
+    }
+
+    .modal-title{
+      font-family:Orbitron,sans-serif;
+      font-size:18px;
+    }
+
+    .close{
+      width:35px;
+      height:35px;
+      border:1px solid var(--studio-border);
+      border-radius:10px;
+      background:rgba(255,255,255,.04);
+      color:#fff;
+    }
+
+    .form-grid{
+      display:grid;
+      gap:14px;
+    }
+
+    .field{
+      display:grid;
+      gap:7px;
+    }
+
+    .field label{
+      color:#9ca3bb;
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .field input,
+    .field textarea,
+    .field select{
+      width:100%;
+      border:1px solid var(--studio-border);
+      border-radius:12px;
+      outline:0;
+      background:#080912;
+      color:#fff;
+      padding:12px 13px;
+    }
+
+    .field textarea{
+      min-height:120px;
+      resize:vertical;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus{
+      border-color:var(--studio-cyan);
+      box-shadow:0 0 0 3px rgba(85,231,255,.07);
+    }
+
+    .modal-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      margin-top:20px;
+    }
+
+    .hidden{
+      display:none!important;
+    }
+
+    @media(max-width:1100px){
+      .stats-grid{
+        grid-template-columns:repeat(3,1fr);
+      }
+
+      .studio-layout{
+        grid-template-columns:1fr;
+      }
+
+      .sidebar{
+        position:static;
+      }
+
+      .side-nav{
+        display:flex;
+        overflow:auto;
+      }
+
+      .side-nav button,
+      .side-nav a{
+        min-width:max-content;
+      }
+
+      .sidebar-label,
+      .sidebar-divider,
+      .creator-mini{
+        display:none;
+      }
+    }
+
+    @media(max-width:800px){
+      .studio-topbar{
+        padding:12px 15px;
+      }
+
+      .top-link{
+        display:none;
+      }
+
+      .studio-layout{
+        padding:15px;
+      }
+
+      .hero{
+        padding:24px;
+      }
+
+      .stats-grid{
+        grid-template-columns:repeat(2,1fr);
+      }
+
+      .workspace-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media(max-width:560px){
+      .brand-subtitle{
+        display:none;
+      }
+
+      .user-name{
+        display:none;
+      }
+
+      .hero h1{
+        font-size:30px;
+      }
+
+      .stats-grid{
+        grid-template-columns:1fr 1fr;
+      }
+
+      .stat-card{
+        padding:14px;
+      }
+
+      .stat-value{
+        font-size:18px;
+      }
+
+      .podcast-row{
+        grid-template-columns:45px minmax(0,1fr);
+      }
+
+      .podcast-row > .status{
+        grid-column:2;
+        width:max-content;
+      }
+
+      .episode-row{
+        grid-template-columns:40px minmax(0,1fr);
+      }
+
+      .episode-plays{
+        grid-column:2;
+        text-align:left;
+      }
+    }
+
+    @media(prefers-reduced-motion:reduce){
+      *,
+      *::before,
+      *::after{
+        scroll-behavior:auto!important;
+        animation-duration:.001ms!important;
+        animation-iteration-count:1!important;
+        transition-duration:.001ms!important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="app">
+
+  <div class="loading">
+    <div class="loading-card">
+      <div class="loader"></div>
+      <div style="font-family:Orbitron;font-size:14px;">
+        INITIALIZING CREATOR STUDIO
+      </div>
+      <div style="margin-top:8px;color:#777f98;font-size:11px;">
+        Connecting to your CrowRules Podcasting universe…
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div
+  id="toast"
+  class="toast"
+  role="status"
+  aria-live="polite"
+></div>
+
+<div
+  id="podcastModal"
+  class="modal"
+  aria-hidden="true"
+>
+  <div class="modal-card">
+
+    <div class="modal-head">
+      <div>
+        <div class="eyebrow">Creator Studio</div>
+        <div class="modal-title">Create A Podcast</div>
+      </div>
+
+      <button
+        class="close"
+        id="closePodcastModal"
+        type="button"
+        aria-label="Close"
+      >
+        ×
+      </button>
+    </div>
+
+    <form id="podcastForm">
+
+      <div class="form-grid">
+
+        <div class="field">
+          <label for="podcastTitle">Podcast Name</label>
+          <input
+            id="podcastTitle"
+            required
+            maxlength="150"
+            placeholder="Enter your podcast name"
+          >
+        </div>
+
+        <div class="field">
+          <label for="podcastCategory">Category</label>
+          <input
+            id="podcastCategory"
+            maxlength="80"
+            placeholder="Comedy, Sports, Stories, News…"
+          >
+        </div>
+
+        <div class="field">
+          <label for="podcastDescription">Description</label>
+          <textarea
+            id="podcastDescription"
+            maxlength="5000"
+            placeholder="What is your podcast about?"
+          ></textarea>
+        </div>
+
+        <div class="field">
+          <label for="podcastArtwork">Artwork URL</label>
+          <input
+            id="podcastArtwork"
+            type="url"
+            placeholder="https://…"
+          >
+        </div>
+
+      </div>
+
+      <div class="modal-actions">
+        <button
+          type="button"
+          class="secondary-btn"
+          id="cancelPodcast"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="primary-btn"
+        >
+          Create Podcast
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+
+<script>
+(() => {
+  "use strict";
+
+  const app = document.getElementById("app");
+  const toast = document.getElementById("toast");
+
+  /*
+   * Supports either:
+   *
+   * window.CROWRULES_SUPABASE_URL
+   * window.CROWRULES_SUPABASE_KEY
+   *
+   * or:
+   *
+   * window.SUPABASE_URL
+   * window.SUPABASE_ANON_KEY
+   *
+   * or:
+   *
+   * window.SUPABASE_PUBLISHABLE_KEY
+   */
+
+  const SUPABASE_URL =
+    window.CROWRULES_SUPABASE_URL ||
+    window.SUPABASE_URL ||
+    "";
+
+  const SUPABASE_KEY =
+    window.CROWRULES_SUPABASE_KEY ||
+    window.SUPABASE_PUBLISHABLE_KEY ||
+    window.SUPABASE_ANON_KEY ||
+    "";
+
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    renderFatal(
+      "Supabase configuration is missing.",
+      "Check js/config.js and make sure the current CrowRules publishable key is configured."
+    );
+    return;
+  }
+
+  if (!window.supabase) {
+    renderFatal(
+      "Supabase failed to load.",
+      "The Supabase JavaScript library could not be initialized."
+    );
+    return;
+  }
+
+  const client = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    }
+  );
+
+  let currentUser = null;
+  let currentProfile = null;
+  let currentStats = null;
+  let podcasts = [];
+  let episodes = [];
+
+  function esc(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function formatNumber(value) {
+    return new Intl.NumberFormat("en-US").format(
+      Number(value || 0)
+    );
+  }
+
+  function formatDuration(seconds) {
+    const total = Number(seconds || 0);
+
+    if (total < 60) {
+      return `${total}s`;
+    }
+
+    const minutes = Math.floor(total / 60);
+
+    if (minutes < 60) {
+      return `${minutes}m`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    const remaining = minutes % 60;
+
+    return `${hours}h ${remaining}m`;
+  }
+
+  function initials(name) {
+    const value = String(name || "CR").trim();
+
+    return value
+      .split(/\s+/)
+      .slice(0, 2)
+      .map(part => part[0])
+      .join("")
+      .toUpperCase();
+  }
+
+  function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add("show");
+
+    clearTimeout(showToast.timer);
+
+    showToast.timer = setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3500);
+  }
+
+  function renderFatal(title, message) {
+    app.innerHTML = `
+      <div class="loading">
+        <div class="loading-card">
+          <div style="font-size:42px;margin-bottom:15px;">⚠️</div>
+          <div style="font-family:Orbitron;font-size:17px;">
+            ${esc(title)}
+          </div>
+          <div style="margin-top:10px;color:#777f98;font-size:11px;line-height:1.7;">
+            ${esc(message)}
+          </div>
+          <div style="margin-top:20px;">
+            <a class="secondary-btn" href="login.html">
+              Return To Login
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderUnauthenticated() {
+    const redirect =
+      encodeURIComponent("creator-studio.html");
+
+    window.location.replace(
+      `login.html?redirect=${redirect}`
+    );
+  }
+
+  async function getAuthenticatedUser() {
+    const {
+      data,
+      error
+    } = await client.auth.getUser();
+
+    if (error) {
+      throw error;
+    }
+
+    return data?.user || null;
+  }
+
+  async function loadProfile(userId) {
+    const result = await client
+      .from("podcast_member_profiles")
+      .select(`
+        user_id,
+        display_name,
+        username,
+        bio,
+        avatar_url,
+        badge,
+        is_public,
+        tagline,
+        location,
+        website_url,
+        cover_url
+      `)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (result.error) {
+      console.warn(
+        "Profile query:",
+        result.error.message
+      );
+
+      return null;
+    }
+
+    return result.data;
+  }
+
+  async function loadStats(userId) {
+    const result = await client
+      .from("podcast_creator_stats")
+      .select(`
+        user_id,
+        podcast_count,
+        published_episode_count,
+        total_episode_count,
+        total_plays,
+        listening_seconds,
+        follower_count,
+        approved_comment_count,
+        saved_episode_count,
+        last_episode_at,
+        crowpoints
+      `)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (result.error) {
+      console.warn(
+        "Creator stats:",
+        result.error.message
+      );
+
+      return null;
+    }
+
+    return result.data;
+  }
+
+  async function loadPodcasts(userId) {
+
+    /*
+     * podcast_creators identifies the user's relationship
+     * with each podcast and avoids assuming podcasts.creator_id
+     * is always the auth user UUID.
+     */
+
+    const memberships = await client
+      .from("podcast_creators")
+      .select(`
+        podcast_id,
+        role,
+        can_manage
+      `)
+      .eq("user_id", userId);
+
+    if (memberships.error) {
+      console.warn(
+        "Podcast creator memberships:",
+        memberships.error.message
+      );
+
+      return [];
+    }
+
+    const ids = [
+      ...new Set(
+        (memberships.data || [])
+          .map(row => row.podcast_id)
+          .filter(Boolean)
+      )
+    ];
+
+    if (!ids.length) {
+      return [];
+    }
+
+    const result = await client
+      .from("podcasts")
+      .select(`
+        id,
+        creator_id,
+        title,
+        slug,
+        category,
+        description,
+        artwork_url,
+        trailer_url,
+        website_url,
+        rss_url,
+        status,
+        is_featured,
+        is_live,
+        listener_count,
+        total_plays,
+        created_at,
+        updated_at,
+        category_id
+      `)
+      .in("id", ids)
+      .order("updated_at", {
+        ascending: false
+      });
+
+    if (result.error) {
+      console.warn(
+        "Podcasts:",
+        result.error.message
+      );
+
+      return [];
+    }
+
+    return result.data || [];
+  }
+
+  async function loadEpisodes(podcastIds) {
+
+    if (!podcastIds.length) {
+      return [];
+    }
+
+    const result = await client
+      .from("podcast_episodes")
+      .select(`
+        id,
+        podcast_id,
+        title,
+        slug,
+        description,
+        episode_number,
+        season_number,
+        published_at,
+        duration_seconds,
+        audio_url,
+        video_url,
+        thumbnail_url,
+        transcript,
+        show_notes,
+        status,
+        play_count,
+        is_explicit,
+        created_at,
+        updated_at
+      `)
+      .in("podcast_id", podcastIds)
+      .order("created_at", {
+        ascending: false
+      })
+      .limit(12);
+
+    if (result.error) {
+      console.warn(
+        "Episodes:",
+        result.error.message
+      );
+
+      return [];
+    }
+
+    return result.data || [];
+  }
+
+  function statusClass(status) {
+    const value = String(status || "").toLowerCase();
+
+    if (
+      value === "published" ||
+      value === "live"
+    ) {
+      return "status-published";
+    }
+
+    if (value === "archived") {
+      return "status-archived";
+    }
+
+    return "status-draft";
+  }
+
+  function statusLabel(status) {
+    const value = String(status || "draft")
+      .replaceAll("_", " ");
+
+    return value;
+  }
+
+  function renderDashboard() {
+
+    const metadata = currentUser.user_metadata || {};
+
+    const displayName =
+      currentProfile?.display_name ||
+      metadata.display_name ||
+      `${metadata.first_name || ""} ${metadata.last_name || ""}`.trim() ||
+      currentUser.email?.split("@")[0] ||
+      "Creator";
+
+    const username =
+      currentProfile?.username ||
+      metadata.username ||
+      "";
+
+    const avatar =
+      currentProfile?.avatar_url ||
+      metadata.avatar_url ||
+      "";
+
+    const avatarMarkup = avatar
+      ? `
+        <img
+          class="user-avatar"
+          src="${esc(avatar)}"
+          alt=""
+          referrerpolicy="no-referrer"
+        >
+      `
+      : `
+        <div class="user-avatar">
+          ${esc(initials(displayName))}
+        </div>
+      `;
+
+    const stats = currentStats || {};
+
+    const podcastCount =
+      stats.podcast_count ??
+      podcasts.length;
+
+    const episodeCount =
+      stats.total_episode_count ??
+      episodes.length;
+
+    const publishedEpisodes =
+      stats.published_episode_count ??
+      episodes.filter(
+        ep => ep.status === "published"
+      ).length;
+
+    const totalPlays =
+      stats.total_plays ??
+      podcasts.reduce(
+        (sum, podcast) =>
+          sum + Number(podcast.total_plays || 0),
+        0
+      );
+
+    const followers =
+      stats.follower_count ?? 0;
+
+    const crowpoints =
+      stats.crowpoints ?? 0;
+
+    app.innerHTML = `
+      <div class="studio-shell">
+
+        <header class="studio-topbar">
+
+          <a
+            href="index.html"
+            class="brand"
+            aria-label="CrowRules Podcasting"
+          >
+            <div class="brand-mark"></div>
+
+            <div class="brand-copy">
+              <div class="brand-title">
+                CROWRULES PODCASTING
+              </div>
+
+              <div class="brand-subtitle">
+                Creator Studio
+              </div>
+            </div>
+          </a>
+
+          <div class="top-actions">
+
+            <a
+              class="top-link"
+              href="index.html"
+            >
+              Explore
+            </a>
+
+            <a
+              class="top-link"
+              href="profile.html"
+            >
+              My Profile
+            </a>
+
+            <div class="user-chip">
+              ${avatarMarkup}
+
+              <div class="user-name">
+                ${esc(username ? "@" + username : displayName)}
+              </div>
+            </div>
+
+            <button
+              class="top-button"
+              id="logoutButton"
+              type="button"
+            >
+              Sign Out
+            </button>
+
+          </div>
+
+        </header>
+
+        <div class="studio-layout">
+
+          <aside class="sidebar">
+
+            <div class="sidebar-label">
+              Studio
+            </div>
+
+            <nav class="side-nav">
+
+              <a
+                class="active"
+                href="#overview"
+              >
+                <span class="nav-icon">⌂</span>
+                Overview
+              </a>
+
+              <a href="#podcasts">
+                <span class="nav-icon">🎙</span>
+                My Podcasts
+              </a>
+
+              <a href="#episodes">
+                <span class="nav-icon">▶</span>
+                Episodes
+              </a>
+
+              <a href="#performance">
+                <span class="nav-icon">◈</span>
+                Performance
+              </a>
+
+              <a href="profile.html">
+                <span class="nav-icon">◎</span>
+                Creator Profile
+              </a>
+
+            </nav>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-label">
+              Create
+            </div>
+
+            <nav class="side-nav">
+
+              <button
+                type="button"
+                data-action="create-podcast"
+              >
+                <span class="nav-icon">＋</span>
+                New Podcast
+              </button>
+
+              <button
+                type="button"
+                data-action="new-episode"
+              >
+                <span class="nav-icon">◉</span>
+                New Episode
+              </button>
+
+            </nav>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="creator-mini">
+
+              <div class="creator-mini-title">
+                ONE ACCOUNT.
+              </div>
+
+              <div class="creator-mini-title">
+                ONE UNIVERSE.
+              </div>
+
+              <div class="creator-mini-text">
+                Your CrowRules membership powers
+                your identity across the universe.
+              </div>
+
+            </div>
+
+          </aside>
+
+          <main class="main" id="overview">
+
+            <section class="hero">
+
+              <div class="eyebrow">
+                Creator Command Center
+              </div>
+
+              <h1>
+                Welcome back,
+                ${esc(displayName)}.
+              </h1>
+
+              <p>
+                This is your podcasting headquarters.
+                Create shows, publish episodes, grow
+                your audience and build your universe.
+              </p>
+
+              <div class="hero-actions">
+
+                <button
+                  class="primary-btn"
+                  data-action="create-podcast"
+                >
+                  ＋ Create Podcast
+                </button>
+
+                <button
+                  class="secondary-btn"
+                  data-action="new-episode"
+                >
+                  ＋ New Episode
+                </button>
+
+                <a
+                  class="secondary-btn"
+                  href="profile.html"
+                >
+                  Edit Creator Profile
+                </a>
+
+              </div>
+
+            </section>
+
+            <section class="stats-grid">
+
+              <div class="stat-card">
+                <div class="stat-label">
+                  Podcasts
+                </div>
+
+                <div class="stat-value">
+                  ${formatNumber(podcastCount)}
+                </div>
+
+                <div class="stat-detail">
+                  Your shows
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-label">
+                  Episodes
+                </div>
+
+                <div class="stat-value">
+                  ${formatNumber(episodeCount)}
+                </div>
+
+                <div class="stat-detail">
+                  ${formatNumber(publishedEpisodes)}
+                  published
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-label">
+                  Plays
+                </div>
+
+                <div class="stat-value">
+                  ${formatNumber(totalPlays)}
+                </div>
+
+                <div class="stat-detail">
+                  Total plays
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-label">
+                  Followers
+                </div>
+
+                <div class="stat-value">
+                  ${formatNumber(followers)}
+                </div>
+
+                <div class="stat-detail">
+                  Audience
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-label">
+                  CrowPoints
+                </div>
+
+                <div class="stat-value">
+                  ${formatNumber(crowpoints)}
+                </div>
+
+                <div class="stat-detail">
+                  Creator activity
+                </div>
+              </div>
+
+            </section>
+
+            <section class="section">
+
+              <div class="workspace-grid">
+
+                <div
+                  class="panel"
+                  id="podcasts"
+                >
+
+                  <div class="section-head">
+
+                    <div>
+                      <div class="section-title">
+                        My Podcasts
+                      </div>
+
+                      <div class="section-subtitle">
+                        Shows you manage
+                      </div>
+                    </div>
+
+                    <button
+                      class="section-link"
+                      data-action="create-podcast"
+                      style="background:none;border:0;"
+                    >
+                      + New
+                    </button>
+
+                  </div>
+
+                  <div class="podcast-list">
+                    ${
+                      podcasts.length
+                      ? podcasts.map(podcast => `
+                        <article class="podcast-row">
+
+                          ${
+                            podcast.artwork_url
+                            ? `
+                              <img
+                                class="podcast-art"
+                                src="${esc(podcast.artwork_url)}"
+                                alt=""
+                                loading="lazy"
+                              >
+                            `
+                            : `
+                              <div class="podcast-art">
+                                ${esc(initials(podcast.title))}
+                              </div>
+                            `
+                          }
+
+                          <div>
+
+                            <div class="podcast-name">
+                              ${esc(podcast.title)}
+                            </div>
+
+                            <div class="podcast-meta">
+
+                              ${
+                                podcast.category
+                                ? `<span>${esc(podcast.category)}</span>`
+                                : ""
+                              }
+
+                              <span>
+                                ${formatNumber(podcast.total_plays)}
+                                plays
+                              </span>
+
+                              <span>
+                                ${formatNumber(podcast.listener_count)}
+                                listeners
+                              </span>
+
+                            </div>
+
+                          </div>
+
+                          <span class="status ${statusClass(podcast.status)}">
+                            ${esc(statusLabel(podcast.status))}
+                          </span>
+
+                        </article>
+                      `).join("")
+                      : `
+                        <div class="empty">
+                          <div style="font-size:28px;margin-bottom:10px;">
+                            🎙️
+                          </div>
+
+                          You haven't created a podcast yet.
+
+                          <div style="margin-top:13px;">
+                            <button
+                              class="primary-btn"
+                              data-action="create-podcast"
+                              type="button"
+                            >
+                              Create Your First Podcast
+                            </button>
+                          </div>
+                        </div>
+                      `
+                    }
+                  </div>
+
+                </div>
+
+                <div class="panel">
+
+                  <div class="section-head">
+
+                    <div>
+                      <div class="section-title">
+                        Studio Tools
+                      </div>
+
+                      <div class="section-subtitle">
+                        Build your next release
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div class="quick-grid">
+
+                    <button
+                      class="quick-card"
+                      data-action="create-podcast"
+                      type="button"
+                    >
+                      <div class="quick-icon">
+                        🎙️
+                      </div>
+
+                      <div class="quick-title">
+                        New Podcast
+                      </div>
+
+                      <div class="quick-text">
+                        Start a new show and define
+                        your podcast universe.
+                      </div>
+                    </button>
+
+                    <button
+                      class="quick-card"
+                      data-action="new-episode"
+                      type="button"
+                    >
+                      <div class="quick-icon">
+                        🎧
+                      </div>
+
+                      <div class="quick-title">
+                        New Episode
+                      </div>
+
+                      <div class="quick-text">
+                        Record, upload and publish
+                        your next episode.
+                      </div>
+                    </button>
+
+                    <a
+                      class="quick-card"
+                      href="profile.html"
+                    >
+                      <div class="quick-icon">
+                        👤
+                      </div>
+
+                      <div class="quick-title">
+                        Creator Profile
+                      </div>
+
+                      <div class="quick-text">
+                        Manage your public creator
+                        identity.
+                      </div>
+                    </a>
+
+                    <a
+                      class="quick-card"
+                      href="index.html"
+                    >
+                      <div class="quick-icon">
+                        🌌
+                      </div>
+
+                      <div class="quick-title">
+                        Explore Network
+                      </div>
+
+                      <div class="quick-text">
+                        Discover podcasts, creators
+                        and episodes.
+                      </div>
+                    </a>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </section>
+
+            <section
+              class="section"
+              id="episodes"
+            >
+
+              <div class="panel">
+
+                <div class="section-head">
+
+                  <div>
+                    <div class="section-title">
+                      Recent Episodes
+                    </div>
+
+                    <div class="section-subtitle">
+                      Your latest podcast activity
+                    </div>
+                  </div>
+
+                  <button
+                    class="section-link"
+                    type="button"
+                    data-action="new-episode"
+                    style="background:none;border:0;"
+                  >
+                    + New Episode
+                  </button>
+
+                </div>
+
+                <div class="episode-list">
+
+                  ${
+                    episodes.length
+                    ? episodes.map((episode, index) => {
+
+                      const podcast =
+                        podcasts.find(
+                          item =>
+                            item.id === episode.podcast_id
+                        );
+
+                      return `
+                        <article class="episode-row">
+
+                          <div class="episode-number">
+                            ${
+                              episode.episode_number ||
+                              index + 1
+                            }
+                          </div>
+
+                          <div>
+
+                            <div class="episode-title">
+                              ${esc(episode.title)}
+                            </div>
+
+                            <div class="episode-meta">
+
+                              ${
+                                podcast
+                                ? esc(podcast.title)
+                                : "Podcast"
+                              }
+
+                              ·
+
+                              ${
+                                episode.duration_seconds
+                                ? formatDuration(
+                                    episode.duration_seconds
+                                  )
+                                : "No duration"
+                              }
+
+                              ·
+
+                              ${esc(
+                                statusLabel(
+                                  episode.status
+                                )
+                              )}
+
+                            </div>
+
+                          </div>
+
+                          <div class="episode-plays">
+                            ${formatNumber(episode.play_count)}
+                            plays
+                          </div>
+
+                        </article>
+                      `;
+
+                    }).join("")
+                    : `
+                      <div class="empty">
+                        No episodes yet.
+                        Your first episode starts here.
+                      </div>
+                    `
+                  }
+
+                </div>
+
+              </div>
+
+            </section>
+
+            <section
+              class="section"
+              id="performance"
+            >
+
+              <div class="panel">
+
+                <div class="section-head">
+
+                  <div>
+                    <div class="section-title">
+                      Creator Performance
+                    </div>
+
+                    <div class="section-subtitle">
+                      Your Podcasting network activity
+                    </div>
+                  </div>
+
+                </div>
+
+                <div class="performance">
+
+                  <div class="metric">
+                    <div class="metric-label">
+                      Listening Time
+                    </div>
+
+                    <div class="metric-value">
+                      ${formatDuration(
+                        stats.listening_seconds || 0
+                      )}
+                    </div>
+                  </div>
+
+                  <div class="metric">
+                    <div class="metric-label">
+                      Saved Episodes
+                    </div>
+
+                    <div class="metric-value">
+                      ${formatNumber(
+                        stats.saved_episode_count || 0
+                      )}
+                    </div>
+                  </div>
+
+                  <div class="metric">
+                    <div class="metric-label">
+                      Approved Comments
+                    </div>
+
+                    <div class="metric-value">
+                      ${formatNumber(
+                        stats.approved_comment_count || 0
+                      )}
+                    </div>
+                  </div>
+
+                  <div class="metric">
+                    <div class="metric-label">
+                      Last Episode
+                    </div>
+
+                    <div class="metric-value">
+                      ${
+                        stats.last_episode_at
+                        ? new Intl.DateTimeFormat(
+                            "en-US",
+                            {
+                              month:"short",
+                              day:"numeric",
+                              year:"numeric"
+                            }
+                          ).format(
+                            new Date(stats.last_episode_at)
+                          )
+                        : "—"
+                      }
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </section>
+
+          </main>
+
+        </div>
+
+      </div>
+    `;
+
+    bindDashboardEvents();
+  }
+
+  function bindDashboardEvents() {
+
+    document
+      .querySelectorAll("[data-action]")
+      .forEach(element => {
+
+        element.addEventListener(
+          "click",
+          () => {
+
+            const action =
+              element.dataset.action;
+
+            if (action === "create-podcast") {
+              openPodcastModal();
+            }
+
+            if (action === "new-episode") {
+              createEpisode();
+            }
+
+          }
+        );
+
+      });
+
+    const logoutButton =
+      document.getElementById("logoutButton");
+
+    logoutButton?.addEventListener(
+      "click",
+      logout
+    );
+  }
+
+  function openPodcastModal() {
+
+    const modal =
+      document.getElementById("podcastModal");
+
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+
+    document
+      .getElementById("podcastTitle")
+      ?.focus();
+  }
+
+  function closePodcastModal() {
+
+    const modal =
+      document.getElementById("podcastModal");
+
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+
+    document
+      .getElementById("podcastForm")
+      ?.reset();
+  }
+
+  async function createPodcast(event) {
+
+    event.preventDefault();
+
+    const title =
+      document
+        .getElementById("podcastTitle")
+        .value
+        .trim();
+
+    const category =
+      document
+        .getElementById("podcastCategory")
+        .value
+        .trim();
+
+    const description =
+      document
+        .getElementById("podcastDescription")
+        .value
+        .trim();
+
+    const artwork =
+      document
+        .getElementById("podcastArtwork")
+        .value
+        .trim();
+
+    if (!title) {
+      showToast(
+        "Enter a name for your podcast."
+      );
+      return;
+    }
+
+    /*
+     * This INSERT intentionally targets podcasts only.
+     *
+     * Membership/profile synchronization remains
+     * controlled by the existing CrowRules auth
+     * architecture.
+     */
+
+    const slugBase =
+      title
+        .toLowerCase()
+        .normalize("NFKD")
+        .replace(/[^\w\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-");
+
+    const slug =
+      `${slugBase || "podcast"}-${crypto.randomUUID().slice(0,8)}`;
+
+    const result = await client
+      .from("podcasts")
+      .insert({
+        creator_id: currentUser.id,
+        title,
+        slug,
+        category: category || null,
+        description: description || null,
+        artwork_url: artwork || null,
+        status: "draft",
+        is_featured: false,
+        is_live: false
+      })
+      .select()
+      .single();
+
+    if (result.error) {
+
+      console.error(
+        "Create podcast:",
+        result.error
+      );
+
+      showToast(
+        result.error.message ||
+        "Unable to create podcast."
+      );
+
+      return;
+    }
+
+    closePodcastModal();
+
+    showToast(
+      "Podcast created successfully."
+    );
+
+    await loadDashboard();
+  }
+
+  function createEpisode() {
+
+    /*
+     * Keep the Studio entry point ready for the
+     * dedicated episode creator/upload workflow.
+     */
+
+    if (!podcasts.length) {
+      showToast(
+        "Create a podcast first, then add your first episode."
+      );
+
+      openPodcastModal();
+
+      return;
+    }
+
+    /*
+     * If an episode editor exists, use it.
+     * Otherwise route to the future dedicated page.
+     */
+
+    const firstPodcast =
+      podcasts[0];
+
+    window.location.href =
+      `episode-studio.html?podcast=${encodeURIComponent(firstPodcast.id)}`;
+  }
+
+  async function logout() {
+
+    const result =
+      await client.auth.signOut();
+
+    if (result.error) {
+      showToast(
+        result.error.message ||
+        "Unable to sign out."
+      );
+
+      return;
+    }
+
+    window.location.replace(
+      "login.html"
+    );
+  }
+
+  async function loadDashboard() {
+
+    try {
+
+      currentUser =
+        await getAuthenticatedUser();
+
+      if (!currentUser) {
+        renderUnauthenticated();
+        return;
+      }
+
+      const [
+        profile,
+        stats
+      ] = await Promise.all([
+        loadProfile(currentUser.id),
+        loadStats(currentUser.id)
+      ]);
+
+      currentProfile = profile;
+      currentStats = stats;
+
+      podcasts =
+        await loadPodcasts(
+          currentUser.id
+        );
+
+      episodes =
+        await loadEpisodes(
+          podcasts.map(
+            podcast => podcast.id
+          )
+        );
+
+      renderDashboard();
+
+    } catch (error) {
+
+      console.error(
+        "Creator Studio initialization:",
+        error
+      );
+
+      renderFatal(
+        "Creator Studio could not load.",
+        error?.message ||
+        "Please refresh the page and try again."
+      );
+
+    }
+  }
+
+  document
+    .getElementById("closePodcastModal")
+    ?.addEventListener(
+      "click",
+      closePodcastModal
+    );
+
+  document
+    .getElementById("cancelPodcast")
+    ?.addEventListener(
+      "click",
+      closePodcastModal
+    );
+
+  document
+    .getElementById("podcastForm")
+    ?.addEventListener(
+      "submit",
+      createPodcast
+    );
+
+  document
+    .getElementById("podcastModal")
+    ?.addEventListener(
+      "click",
+      event => {
+
+        if (
+          event.target.id ===
+          "podcastModal"
+        ) {
+          closePodcastModal();
+        }
+
+      }
+    );
+
+  document.addEventListener(
+    "keydown",
+    event => {
+
+      if (event.key === "Escape") {
+        closePodcastModal();
+      }
+
+    }
+  );
+
+  client.auth.onAuthStateChange(
+    (event, session) => {
+
+      if (
+        event === "SIGNED_OUT" ||
+        !session
+      ) {
+        window.location.replace(
+          "login.html?redirect=creator-studio.html"
+        );
+      }
+
+    }
+  );
+
+  loadDashboard();
+
+})();
+</script>
+
+</body>
+</html>
