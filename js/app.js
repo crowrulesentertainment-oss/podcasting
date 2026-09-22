@@ -201,7 +201,6 @@ function creatorNavSyncSignatureGet(data){
 }
 async function creatorNavSyncRefresh(){
   if(typeof data==="undefined")return;
-  await creatorNavServerGovernanceRefresh();
   const sig=creatorNavSyncSignatureGet(data);if(sig===creatorNavSyncSignature)return;
   creatorNavSyncSignature=sig;creatorNavSyncWrite({updatedAt:new Date().toISOString(),signature:sig});
   renderCalendar?.(14);renderScheduler?.();renderProductionBoard?.();renderAdaptiveSchedule?.();renderProductionControlRoom?.();renderProductionEventStream?.();renderProductionIntelligence?.();renderCreatorPerformanceIntelligence?.();renderIntelligentAssignments?.();renderAutonomousOptimizer?.();renderOptimizationSimulatorPanel?.();renderScenarioWorkspace?.();renderScenarioComparisonMatrix?.();renderScenarioApprovalEngine?.();renderChangeManagement?.();renderProductionTransactionConsole?.();renderTransactionSafety?.();renderTransactionTimeline?.();renderTransactionForensics?.();renderAuditCompliance?.();renderCryptographicGovernance?.();renderIdentityGovernance?.();
@@ -209,8 +208,9 @@ async function creatorNavSyncRefresh(){
 function creatorNavSyncStart(){
   if(creatorNavSyncTimer)return;
   creatorNavSyncSignature="";
+  creatorNavRealtimeStart();
   creatorNavSyncRefresh();
-  creatorNavSyncTimer=setInterval(creatorNavSyncRefresh,5000);
+  creatorNavSyncTimer=setInterval(()=>creatorNavServerGovernanceRefresh(true).then(()=>creatorNavSyncRefresh()),30000);
   window.addEventListener("storage",e=>{if(e.key===CREATOR_NAV_EVENTS_KEY||e.key===CREATOR_NAV_TEAM_KEY||e.key===CREATOR_NAV_EXECUTION_KEY||e.key===CREATOR_NAV_ROADMAP_KEY)creatorNavSyncRefresh();});
 }
 function creatorNavEvent(type,payload){
@@ -450,6 +450,35 @@ async function creatorNavCreateVerificationCertificate(){
 }
 let creatorNavServerGovernanceState={context:null,transactions:[],changes:[],audit:[],assignments:[],lastFetch:0};
 let creatorNavServerGovernanceBusy=false;
+let creatorNavRealtimeChannel=null;
+let creatorNavRealtimeStarted=false;
+let creatorNavRealtimeDebounce=null;
+
+function creatorNavRealtimeScheduleRefresh(){
+  clearTimeout(creatorNavRealtimeDebounce);
+  creatorNavRealtimeDebounce=setTimeout(()=>{creatorNavServerGovernanceRefresh(true).then(()=>creatorNavSyncRefresh());},150);
+}
+
+function creatorNavRealtimeStart(){
+  if(creatorNavRealtimeStarted||typeof supabase==="undefined"||!supabase?.channel)return;
+  creatorNavRealtimeStarted=true;
+  creatorNavRealtimeChannel=supabase.channel("crowrules-production-governance-live")
+    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_assignments"},creatorNavRealtimeScheduleRefresh)
+    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_transactions"},creatorNavRealtimeScheduleRefresh)
+    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_transaction_changes"},creatorNavRealtimeScheduleRefresh)
+    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_audit_ledger"},creatorNavRealtimeScheduleRefresh)
+    .subscribe(status=>{
+      if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){
+        creatorNavRealtimeStarted=false;
+        setTimeout(creatorNavRealtimeStart,5000);
+      }
+    });
+}
+
+function creatorNavRealtimeStop(){
+  if(creatorNavRealtimeChannel&&typeof supabase!=="undefined")supabase.removeChannel(creatorNavRealtimeChannel);
+  creatorNavRealtimeChannel=null;creatorNavRealtimeStarted=false;
+}
 
 async function creatorNavServerCall(action,payload={}){
   if(typeof supabase==="undefined"||!supabase?.functions?.invoke)throw new Error("Supabase client unavailable");
