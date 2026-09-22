@@ -44,7 +44,7 @@ return '<article class="card">'+(t.featured?'<span class="eyebrow">FEATURED TIER
 (p?'<p class="muted">PODCAST · '+esc(p.title||"Untitled Podcast")+'</p>':'<p class="muted">CREATOR-WIDE SUPPORT</p>')+
 '<h2>'+esc(t.tier_name||"Support")+'</h2>'+(t.label?'<p><strong>'+esc(t.label)+'</strong></p>':'')+
 '<p class="muted">'+esc(t.description||"")+'</p><ul>'+((benefits.length?benefits.map(b=>'<li>'+esc(b)+'</li>').join(""):'<li>Benefits coming soon.</li>'))+'</ul>'+
-'<div class="actions"><a class="btn" href="login.html">SIGN IN</a><button class="btn primary" disabled>SUPPORT — COMING SOON</button></div></article>';
+'<div class="actions"><a class="btn" href="support-creator.html?creator='+encodeURIComponent(t.creator_id)+(t.podcast_id?'&podcast='+encodeURIComponent(t.podcast_id):'')">VIEW SUPPORT PROFILE</a><a class="btn" href="login.html">SIGN IN</a><button class="btn primary" disabled>SUPPORT — COMING SOON</button></div></article>';
 }).join(""):'<div class="card"><h2>No matching support tiers</h2><p class="muted">Try another creator or podcast.</p></div>';
 };
 document.getElementById("creatorSelect").addEventListener("change",render);document.getElementById("podcastSelect").addEventListener("change",render);render();
