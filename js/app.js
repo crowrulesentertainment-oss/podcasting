@@ -425,15 +425,77 @@ async function creatorNavCreateVerificationCertificate(){
   const certificate={id:"cert-"+Date.now(),issuedAt:new Date().toISOString(),algorithm:"SHA-256/Web Crypto when available",entries:v.entries,verified:v.valid,headSignature:head?.signature||null,issues:v.issues};
   certificate.digest=await creatorNavCryptoHash(JSON.stringify(certificate));return certificate;
 }
+let creatorNavServerGovernanceState={context:null,transactions:[],changes:[],audit:[],assignments:[],lastFetch:0};
+let creatorNavServerGovernanceBusy=false;
+
+async function creatorNavServerCall(action,payload={}){
+  if(typeof supabase==="undefined"||!supabase?.functions?.invoke)throw new Error("Supabase client unavailable");
+  const {data,error}=await supabase.functions.invoke("creator-governance",{body:{action,...payload}});
+  if(error)throw error;
+  if(data?.error)throw new Error(data.error);
+  return data||{};
+}
+
+async function creatorNavServerGovernanceRefresh(force=false){
+  if(creatorNavServerGovernanceBusy)return creatorNavServerGovernanceState;
+  if(!force&&Date.now()-creatorNavServerGovernanceState.lastFetch<5000)return creatorNavServerGovernanceState;
+  creatorNavServerGovernanceBusy=true;
+  try{
+    const context=await creatorNavServerCall("context");
+    let list={transactions:[],changes:[],audit:[]},assignments={assignments:[]};
+    if(context?.role)list=await creatorNavServerCall("list");
+    if(context?.role)assignments=await creatorNavServerCall("assignments");
+    creatorNavServerGovernanceState={context,transactions:list.transactions||[],changes:list.changes||[],audit:list.audit||[],assignments:assignments.assignments||[],lastFetch:Date.now()};
+    creatorNavServerHydrateLocal();
+  }catch(err){
+    creatorNavServerGovernanceState={...creatorNavServerGovernanceState,lastFetch:Date.now(),error:String(err?.message||err)};
+  }finally{creatorNavServerGovernanceBusy=false;}
+  return creatorNavServerGovernanceState;
+}
+
+function creatorNavServerHydrateLocal(){
+  const rows=creatorNavServerGovernanceState.assignments||[];
+  rows.forEach(a=>{
+    const all=creatorNavExecutionRead(),x=all[a.collection_id]||{tasks:{},history:[],streak:0,lastDay:null,assignments:{},handoffs:[]};
+    x.assignments=x.assignments||{};
+    if(a.owner_key)x.assignments[a.task_key]=a.owner_key;else delete x.assignments[a.task_key];
+    all[a.collection_id]=x;creatorNavExecutionWrite(all);
+  });
+}
+
+async function creatorNavServerCreateTransaction(ws){
+  const changes=Object.entries(ws?.options?.reassign||{}).map(([k,memberId])=>{
+    const parts=k.split("::"),collectionId=parts[0],key=parts.slice(1).join("::"),ex=creatorNavExecutionGet(collectionId);
+    return {collection_id:collectionId,task_key:key,task_name:key,before_owner:ex.assignments?.[key]||null,after_owner:memberId};
+  }).filter(x=>x.collection_id&&x.task_key&&x.after_owner);
+  if(!changes.length)throw new Error("Scenario has no assignment changes.");
+  const result=await creatorNavServerCall("create",{scenario_id:ws.id,metadata:{scenario_name:ws.name,source:"Predictive Command Center 7.7"},changes});
+  await creatorNavServerCall("transition",{transaction_id:result.transaction.id,status:"REVIEW"});
+  return result.transaction;
+}
+
+async function creatorNavServerTransition(transactionId,status){
+  return creatorNavServerCall("transition",{transaction_id:transactionId,status});
+}
+async function creatorNavServerExecute(transactionId){
+  return creatorNavServerCall("execute",{transaction_id:transactionId});
+}
+async function creatorNavServerRollback(transactionId){
+  return creatorNavServerCall("rollback",{transaction_id:transactionId});
+}
+
 async function creatorNavIdentityContext(){
   let user=null;try{user=(await supabase.auth.getUser()).data?.user||null;}catch{}
-  const email=user?.email||"",admin=typeof ds_is_admin==="function"?false:false;
-  return {authenticated:!!user,userId:user?.id||null,email,role:sessionStorage.getItem("crowrules_creator_role_v1")||"creator",verified:!!user};
+  try{
+    const server=await creatorNavServerGovernanceRefresh();
+    const ctx=server.context||{};
+    return {authenticated:!!user,userId:user?.id||ctx.userId||null,email:user?.email||ctx.email||"",role:ctx.role||null,verified:!!user&&!!ctx.verified,serverAuthorized:!!ctx.serverAuthorized,permissions:ctx.permissions||[]};
+  }catch{return {authenticated:!!user,userId:user?.id||null,email:user?.email||"",role:null,verified:!!user,serverAuthorized:false,permissions:[]};}
 }
 function creatorNavRolePermissions(role){return {creator:["view","create"],admin:["view","create","review","approve","execute","rollback","govern"]}[role]||["view"];}
 async function creatorNavAuthorize(action){
-  const ctx=await creatorNavIdentityContext(),permissions=creatorNavRolePermissions(ctx.role);
-  const allowed=ctx.verified&&permissions.includes(action);return {allowed,action,context:ctx};
+  const ctx=await creatorNavIdentityContext(),permissions=ctx.permissions?.length?ctx.permissions:creatorNavRolePermissions(ctx.role);
+  return {allowed:ctx.verified&&ctx.serverAuthorized&&permissions.includes(action),action,context:ctx};
 }
 async function creatorNavGovernanceAction(type,payload={}){const ctx=await creatorNavIdentityContext();return creatorNavAuditLedgerAppend("governance-"+type,{...payload,identity:ctx,authorized:true,approvedAt:new Date().toISOString()});}
   return creatorNavAuditLedgerAppend("governance-"+type,{...payload,approvedAt:new Date().toISOString()});
@@ -508,12 +570,25 @@ function creatorNavRollbackChangeSet(changeSetId){
   (set.applied||[]).slice().reverse().forEach(ch=>{if(ch.before){creatorNavAssign(ch.collectionId,ch.key,ch.before);n++;}});
   set.status="ROLLED_BACK";set.rolledBackAt=new Date().toISOString();set.rollbackCount=n;creatorNavChangeSetsWrite(sets);creatorNavEvent("changeset-rollback",{changeSetId,scenarioId:set.scenarioId,count:n});return n;
 }
-function creatorNavScenarioTransition(id,status,note){
+async function creatorNavScenarioTransition(id,status,note){
   const all=creatorNavScenarioWorkspacesRead(),ws=all[id];if(!ws)return null;
   const allowed={DRAFT:["REVIEW"],REVIEW:["APPROVED","DRAFT"],APPROVED:["APPLIED","REVIEW"],APPLIED:["ARCHIVED"],ARCHIVED:[]};
   if(!(allowed[ws.status]||[]).includes(status))return ws;
-  ws.status=status;ws.audit=Array.isArray(ws.audit)?ws.audit:[];ws.audit.push({from:ws.status===status?status:undefined,to:status,note:String(note||""),at:new Date().toISOString()});
-  ws.updatedAt=new Date().toISOString();all[id]=ws;creatorNavScenarioWorkspacesWrite(all);creatorNavEvent("scenario-status",{scenarioId:id,status,note:String(note||"")});return ws;
+  try{
+    if(status==="REVIEW"&&!ws.serverTransactionId){await creatorNavScenarioWorkspaceApply(data,id);return creatorNavScenarioWorkspacesRead()[id]||ws;}
+    if(!ws.serverTransactionId)throw new Error("SERVER_TRANSACTION_REQUIRED");
+    if(status==="APPLIED"){
+      await creatorNavServerExecute(ws.serverTransactionId);
+      const serverChanges=creatorNavServerGovernanceState.changes.filter(x=>x.transaction_id===ws.serverTransactionId);
+      serverChanges.forEach(ch=>{const ex=creatorNavExecutionGet(ch.collection_id);ex.assignments=ex.assignments||{};if(ch.after_owner)ex.assignments[ch.task_key]=ch.after_owner;else delete ex.assignments[ch.task_key];const allExec=creatorNavExecutionRead();allExec[ch.collection_id]=ex;creatorNavExecutionWrite(allExec);});
+    }else{
+      await creatorNavServerTransition(ws.serverTransactionId,status);
+    }
+    const from=ws.status;ws.status=status;ws.audit=Array.isArray(ws.audit)?ws.audit:[];ws.audit.push({from,to:status,note:String(note||""),at:new Date().toISOString(),serverTransactionId:ws.serverTransactionId});
+    if(status==="APPLIED")ws.appliedAt=new Date().toISOString();
+    ws.updatedAt=new Date().toISOString();all[id]=ws;creatorNavScenarioWorkspacesWrite(all);creatorNavEvent("scenario-status",{scenarioId:id,status,note:String(note||""),serverTransactionId:ws.serverTransactionId});
+    await creatorNavServerGovernanceRefresh(true);renderScenarioApprovalEngine?.();renderProductionTransactionConsole?.();return ws;
+  }catch(err){alert("Server governance rejected this transition: "+String(err?.message||err));return ws;}
 }
 function creatorNavScenarioChangeSummary(data,ws){
   const sim=creatorNavSimulation(data,ws.options),current=creatorNavGlobalOptimization(data),currentMap={};
@@ -521,11 +596,14 @@ function creatorNavScenarioChangeSummary(data,ws){
   const changes=Object.entries(ws.options.reassign||{}).map(([k,v])=>({key:k,before:currentMap[k]||"Unassigned",after:creatorNavTeamEnsure().find(m=>m.id===v)?.name||"Unknown"}));
   return {changes,throughput:sim.throughput,utilization:sim.utilization,blocked:sim.blocked,capacity:sim.capacity};
 }
-function creatorNavScenarioWorkspaceApply(data,id){
+async function creatorNavScenarioWorkspaceApply(data,id){
   const all=creatorNavScenarioWorkspacesRead(),ws=all[id];if(!ws)return 0;
-  let n=0;Object.entries(ws.options.reassign||{}).forEach(([k,memberId])=>{const parts=k.split("::");if(parts.length===2){creatorNavAssign(parts[0],parts[1],memberId);n++;}});
-  ws.status="APPLIED";ws.appliedAt=new Date().toISOString();all[id]=ws;creatorNavScenarioWorkspacesWrite(all);
-  creatorNavEvent("scenario-applied",{scenarioId:id,name:ws.name,changes:n});return n;
+  try{
+    const tx=await creatorNavServerCreateTransaction(ws);
+    ws.serverTransactionId=tx.id;ws.status="REVIEW";ws.serverSubmittedAt=new Date().toISOString();all[id]=ws;creatorNavScenarioWorkspacesWrite(all);
+    creatorNavEvent("scenario-submitted",{scenarioId:id,name:ws.name,transactionId:tx.id});
+    await creatorNavServerGovernanceRefresh(true);renderScenarioWorkspace?.();renderScenarioApprovalEngine?.();renderProductionTransactionConsole?.();return ws;
+  }catch(err){alert("Server governance rejected this scenario: "+String(err?.message||err));return 0;}
 }
 function creatorNavScenarioWorkspaceDelete(id){const all=creatorNavScenarioWorkspacesRead();delete all[id];creatorNavScenarioWorkspacesWrite(all);}
 function creatorNavScenarioMatrix(data){
@@ -643,7 +721,10 @@ function creatorNavProductionIntelligence(data){
 }
 function renderIdentityGovernance(){
   const box=document.getElementById("creatorNavIdentityGovernance");if(!box)return;
-  creatorNavIdentityContext().then(ctx=>{const p=creatorNavRolePermissions(ctx.role);box.innerHTML='<div class="card" style="padding:10px"><b>IDENTITY, ROLES & GOVERNANCE AUTHORIZATION</b><div style="margin-top:5px">Identity: '+escText(ctx.userId||"Not authenticated")+' · Role: '+escText(ctx.role)+' · Verified: '+(ctx.verified?"YES":"NO")+'</div><div style="margin-top:5px">Permissions: '+p.join(", ")+'</div></div>';});
+  creatorNavIdentityContext().then(async ctx=>{
+    const p=ctx.permissions?.length?ctx.permissions:creatorNavRolePermissions(ctx.role),s=creatorNavServerGovernanceState;
+    box.innerHTML='<div class="card" style="padding:10px"><b>IDENTITY, ROLES & SERVER GOVERNANCE · 7.7</b><div style="margin-top:5px">Identity: '+escText(ctx.userId||"Not authenticated")+' · Role: '+escText(ctx.role||"none")+' · Verified: '+(ctx.verified?"YES":"NO")+' · Server Authorized: '+(ctx.serverAuthorized?"YES":"NO")+'</div><div style="margin-top:5px">Permissions: '+p.join(", ")+'</div><div style="margin-top:5px">Server transactions: '+(s.transactions?.length||0)+' · Audit records: '+(s.audit?.length||0)+' · Protected assignments: '+(s.assignments?.length||0)+'</div>'+(s.error?'<div style="margin-top:5px;color:#ff9a9a">Governance service: '+escText(s.error)+'</div>':'')+'</div>';
+  });
 }
 function renderCryptographicGovernance(){
   const box=document.getElementById("creatorNavCryptoGovernance");if(!box)return;
@@ -677,13 +758,25 @@ function renderTransactionSafety(){
 }
 function renderProductionTransactionConsole(){
   const box=document.getElementById("creatorNavTransactionConsole");if(!box)return;
-  const sets=Object.values(creatorNavChangeSetsRead()).slice(-20).reverse();
-  box.innerHTML='<div class="card" style="padding:10px"><b>PRODUCTION TRANSACTION CONSOLE 7.0</b><div style="margin-top:5px"><small>Controlled production changes, preflight validation, execution, checkpoints, rollback, and audit history.</small></div></div>'+sets.map(set=>{
-    const pre=set.preflight||{valid:false,issues:[]},changes=set.changes||[],log=set.executionLog||[],failed=changes.filter(c=>c.status==="FAILED").length;
-    return '<div class="card" style="padding:10px;margin-top:8px"><div><b>'+escText(set.id)+'</b> · <b>'+escText(set.status)+'</b></div><small>Scenario: '+escText(set.scenarioId||"—")+' · Manifest: '+escText(set.manifestHash||"—")+'</small><div style="margin-top:6px">Preflight: '+(pre.valid?"PASS":"FAIL")+' · '+(pre.issues?.length||0)+' issue(s) · Changes: '+changes.length+' · Failed: '+failed+'</div><details style="margin-top:6px"><summary>CHANGE MANIFEST</summary>'+changes.map(c=>'<div style="font-size:.72rem;margin-top:3px">'+escText(c.collectionId)+' / '+escText(c.key)+' · '+escText(c.before||"Unassigned")+' → '+escText(c.after||"Unassigned")+' · <b>'+escText(c.status||"PENDING")+'</b></div>').join("")+'</details><details style="margin-top:5px"><summary>CHECKPOINTS</summary>'+((set.checkpoints||[]).map(c=>'<div style="font-size:.72rem">'+escText(c.type)+' · '+escText(c.at)+' · '+escText(c.count??"")+'</div>').join("")||"<small>None</small>")+'</details><details style="margin-top:5px"><summary>EXECUTION AUDIT</summary>'+((log.slice().reverse()).map(e=>'<div style="font-size:.72rem">'+escText(e.event)+' · '+escText(e.at)+' · '+escText(JSON.stringify(e.detail||{}))+'</div>').join("")||"<small>No execution events.</small>")+'</details><div style="margin-top:7px">'+(set.status==="PENDING"?'<button data-tx-apply="'+set.id+'">CONFIRM & EXECUTE</button>':"")+(["APPLIED","PARTIAL_FAILURE"].includes(set.status)?'<button data-tx-rollback="'+set.id+'">ROLLBACK TRANSACTION</button>':"")+'</div></div>';
-  }).join("")||'<small>No production transactions yet.</small>';
-  box.querySelectorAll("[data-tx-apply]").forEach(b=>b.onclick=()=>{if(confirm("Execute this validated production transaction?")){creatorNavApplyChangeSet(data,b.dataset.txApply);renderProductionTransactionConsole();}});
-  box.querySelectorAll("[data-tx-rollback]").forEach(b=>b.onclick=()=>{if(confirm("Rollback this production transaction?")){creatorNavRollbackChangeSet(b.dataset.txRollback);renderProductionTransactionConsole();}});
+  const render=()=>{
+    const s=creatorNavServerGovernanceState,rows=(s.transactions||[]).slice(0,20);
+    box.innerHTML='<div class="card" style="padding:10px"><b>PRODUCTION TRANSACTION CONSOLE 7.7</b><div style="margin-top:5px"><small>Supabase is authoritative. Browser localStorage cannot execute, approve, or roll back production transactions.</small></div></div>'+rows.map(t=>{
+      const changes=s.changes.filter(c=>c.transaction_id===t.id),next=t.status==="PENDING"?"REVIEW":t.status==="REVIEW"?"APPROVED":t.status==="APPROVED"?"EXECUTE":(["APPLIED","PARTIAL_FAILURE"].includes(t.status)?"ROLLBACK":"");
+      const action=next==="EXECUTE"?"EXECUTE":next;
+      return '<div class="card" style="padding:10px;margin-top:8px"><div><b>'+escText(t.id)+'</b> · <b>'+escText(t.status)+'</b></div><small>Scenario: '+escText(t.scenario_id||"—")+' · Manifest: '+escText(t.manifest_hash||"—")+' · Actor: '+escText(t.actor_user_id||"—")+'</small><div style="margin-top:6px">Changes: '+changes.length+' · Preflight: '+((t.preflight||{}).valid?"PASS":"SERVER CHECKED")+'</div><details style="margin-top:6px"><summary>CHANGE MANIFEST</summary>'+changes.map(c=>'<div style="font-size:.72rem;margin-top:3px">'+escText(c.collection_id)+' / '+escText(c.task_key)+' · '+escText(c.before_owner||"Unassigned")+' → '+escText(c.after_owner||"Unassigned")+' · <b>'+escText(c.status)+'</b></div>').join("")+'</details><div style="margin-top:7px">'+(action?'<button data-server-tx="'+escText(t.id)+'" data-server-action="'+action+'">'+(action==="REVIEW"?"SUBMIT REVIEW":action==="APPROVED"?"APPROVE":action)+'</button>':"")+'</div></div>';
+    }).join("")||'<small>No server-side production transactions yet.</small>';
+    box.querySelectorAll("[data-server-tx]").forEach(b=>b.onclick=async()=>{
+      const id=b.dataset.serverTx,action=b.dataset.serverAction;
+      try{
+        if(action==="REVIEW")await creatorNavServerTransition(id,"REVIEW");
+        else if(action==="APPROVED")await creatorNavServerTransition(id,"APPROVED");
+        else if(action==="EXECUTE")await creatorNavServerExecute(id);
+        else if(action==="ROLLBACK")await creatorNavServerRollback(id);
+        await creatorNavServerGovernanceRefresh(true);render();
+      }catch(err){alert("Server governance rejected this action: "+String(err?.message||err));}
+    });
+  };
+  creatorNavServerGovernanceRefresh().then(render);
 }
 function renderChangeManagement(){
   const box=document.getElementById("creatorNavChangeManagement");if(!box)return;
@@ -695,8 +788,11 @@ function renderChangeManagement(){
 function renderScenarioApprovalEngine(){
   const box=document.getElementById("creatorNavScenarioApproval");if(!box)return;
   const all=creatorNavScenarioWorkspacesRead(),rows=Object.values(all).slice(-12).reverse();
-  box.innerHTML=rows.map(ws=>{const sum=creatorNavScenarioChangeSummary(data,ws);const next={DRAFT:"REVIEW",REVIEW:"APPROVED",APPROVED:"APPLIED",APPLIED:"ARCHIVED"}[ws.status];return '<div class="card" style="padding:8px;margin-top:6px"><b>'+escText(ws.name)+'</b><small> · '+escText(ws.status)+'</small><div style="margin-top:4px">Impact: throughput '+sum.throughput.toFixed(1)+' · utilization '+sum.utilization+'% · blocked '+sum.blocked+' · '+sum.changes.length+' assignment change(s)</div><div style="margin-top:5px">'+(sum.changes.slice(0,5).map(c=>'<div style="font-size:.7rem">'+escText(c.key)+' · '+escText(c.before)+' → '+escText(c.after)+'</div>').join(""))+'<button data-scenario-next="'+ws.id+'" data-next="'+next+'">'+(next||"ARCHIVED")+'</button></div><small>Audit entries: '+(ws.audit?.length||0)+'</small></div>';}).join("")||'<small>No scenarios available for approval.</small>';
-  box.querySelectorAll("[data-scenario-next]").forEach(b=>b.onclick=()=>{const n=b.dataset.next;if(n)creatorNavScenarioTransition(b.dataset.scenarioNext,n);renderScenarioApprovalEngine();});
+  box.innerHTML='<div class="card" style="padding:8px"><b>SERVER-SIDE APPROVAL GATE</b><div style="font-size:.75rem;margin-top:4px">Approval, execution, and rollback are enforced by Supabase; browser state is cache only.</div></div>'+rows.map(ws=>{
+    const sum=creatorNavScenarioChangeSummary(data,ws),next={DRAFT:"REVIEW",REVIEW:"APPROVED",APPROVED:"APPLIED",APPLIED:"ARCHIVED"}[ws.status];
+    return '<div class="card" style="padding:8px;margin-top:6px"><b>'+escText(ws.name)+'</b><small> · '+escText(ws.status)+'</small><div style="margin-top:4px">Impact: throughput '+sum.throughput.toFixed(1)+' · utilization '+sum.utilization+'% · blocked '+sum.blocked+' · '+sum.changes.length+' assignment change(s)</div><div style="font-size:.7rem;margin-top:4px">Server transaction: '+escText(ws.serverTransactionId||"Not submitted")+'</div><div style="margin-top:5px"><button data-scenario-next="'+ws.id+'" data-next="'+next+'">'+(next==="REVIEW"?"SUBMIT FOR REVIEW":next==="APPROVED"?"APPROVE":next==="APPLIED"?"EXECUTE":"ARCHIVE")+'</button></div><small>Audit entries: '+(ws.audit?.length||0)+'</small></div>';
+  }).join("")||'<small>No scenarios available for approval.</small>';
+  box.querySelectorAll("[data-scenario-next]").forEach(b=>b.onclick=async()=>{const n=b.dataset.next;if(n){await creatorNavScenarioTransition(b.dataset.scenarioNext,n);renderScenarioApprovalEngine();}});
 }
 function renderScenarioComparisonMatrix(){
   const box=document.getElementById("creatorNavScenarioComparison");if(!box)return;
@@ -709,7 +805,7 @@ function renderScenarioWorkspace(){
   const all=creatorNavScenarioWorkspacesRead(),rows=Object.values(all).slice(-12).reverse();
   box.innerHTML='<div style="font-size:.75rem">Save and review multi-change production scenarios before applying them.</div><button id="creatorNavSaveWorkspace" style="margin-top:6px">SAVE CURRENT WHAT-IF</button><div style="margin-top:7px">'+rows.map(w=>{const sim=creatorNavSimulation(data,w.options);return '<div class="card" style="padding:7px;margin-top:5px"><b>'+escText(w.name)+'</b><small> · '+escText(w.status)+'</small><div>Throughput '+sim.throughput.toFixed(1)+' · Capacity '+sim.capacity+' · Utilization '+sim.utilization+'% · Blocked '+sim.blocked+'</div><div style="margin-top:4px"><button data-ws-apply="'+w.id+'">APPLY SCENARIO</button> <button data-ws-delete="'+w.id+'">DELETE</button></div></div>';}).join("")+'</div>';
   box.querySelector("#creatorNavSaveWorkspace").onclick=()=>{const name=prompt("Scenario name","Production Scenario");if(name){creatorNavScenarioWorkspaceSave(name,{capacityBoost:Number(box.querySelector("[data-sim-capacity]")?.value||0),rateMultiplier:Number(box.querySelector("[data-sim-rate]")?.value||1),deadlineShift:Number(box.querySelector("[data-sim-days]")?.value||0)});renderScenarioWorkspace();}};
-  box.querySelectorAll("[data-ws-apply]").forEach(b=>b.onclick=()=>{if(confirm("Apply this scenario to production assignments?")){creatorNavScenarioWorkspaceApply(data,b.dataset.wsApply);renderScenarioWorkspace();}});
+  box.querySelectorAll("[data-ws-apply]").forEach(b=>b.onclick=async()=>{if(confirm("Submit this scenario to the server governance approval gate?")){await creatorNavScenarioWorkspaceApply(data,b.dataset.wsApply);renderScenarioWorkspace();renderScenarioApprovalEngine();}});
   box.querySelectorAll("[data-ws-delete]").forEach(b=>b.onclick=()=>{creatorNavScenarioWorkspaceDelete(b.dataset.wsDelete);renderScenarioWorkspace();});
 }
 function renderOptimizationSimulator(){
