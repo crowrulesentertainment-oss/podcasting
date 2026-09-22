@@ -1,1 +1,40 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Verify | CrowRules</title><link rel="stylesheet" href="css/podcasting.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><div id="app"></div><script src="js/config.js"></script><script src="js/app.js"></script></body></html>
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#05050b"><meta name="color-scheme" content="dark">
+<meta name="description" content="Verify your CrowRules account and continue into CrowRules Podcasting.">
+<meta property="og:title" content="Verify Account | CrowRules Podcasting"><meta property="og:description" content="Complete your CrowRules account verification."><meta property="og:type" content="website">
+<link rel="canonical" href="https://crowrulesentertainment-oss.github.io/podcasting/verify.html">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/podcasting.css"><title>Verify Account | CrowRules Podcasting</title>
+<style>
+.vp{min-height:100vh;display:flex;flex-direction:column}.vh{padding:22px 5vw;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(3,3,8,.72);backdrop-filter:blur(18px)}.vb{font:800 1rem Orbitron,sans-serif;letter-spacing:.08em;color:#fff;text-decoration:none}.vb span{opacity:.65}.vm{flex:1;display:grid;place-items:center;padding:70px 20px}.vc{width:min(100%,560px);padding:clamp(28px,5vw,52px);text-align:center;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:linear-gradient(145deg,rgba(17,17,28,.94),rgba(5,5,12,.94));box-shadow:0 30px 90px rgba(0,0,0,.45)}.vc h1{font:800 clamp(1.8rem,6vw,2.7rem) Orbitron,sans-serif;margin:.35rem 0 .65rem}.vs{color:rgba(255,255,255,.68);line-height:1.7}.vicon{width:76px;height:76px;margin:0 auto 22px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);font-size:2rem}.vstatus{display:none;margin:20px 0;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,.1);line-height:1.55}.vstatus.show{display:block}.vstatus.success{border-color:rgba(80,255,190,.3)}.vstatus.error{border-color:rgba(255,80,110,.35)}.va{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:24px}.vf{text-align:center;padding:25px;color:rgba(255,255,255,.45);font-size:.8rem}
+</style></head><body><div class="vp">
+<header class="vh"><a class="vb" href="index.html">CROWRULES <span>· PODCASTING</span></a></header>
+<main class="vm"><section class="vc" aria-live="polite">
+<div id="icon" class="vicon">✉</div><span class="eyebrow">UNIVERSAL CROWRULES MEMBERSHIP</span>
+<h1 id="title">VERIFYING ACCOUNT</h1><p id="message" class="vs">We're checking your secure verification link.</p>
+<div id="status" class="vstatus"></div><div id="actions" class="va"></div>
+</section></main><footer class="vf"><b>CROWRULES PODCASTING</b> · Your Voice. Your Story. Your Universe.</footer></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script>
+<script>
+(function(){
+const sb=window.crSupabase,status=document.getElementById("status"),title=document.getElementById("title"),message=document.getElementById("message"),icon=document.getElementById("icon"),actions=document.getElementById("actions");
+function show(t,type){status.textContent=t;status.className="vstatus show "+(type||"")}
+function buttons(html){actions.innerHTML=html}
+function success(){icon.textContent="✓";title.textContent="ACCOUNT VERIFIED";message.textContent="Your CrowRules account has been verified successfully. You're ready to enter the Podcasting universe.";show("Verification complete. Your session is active when Supabase returns one.","success");buttons('<a class="btn primary" href="profile.html">OPEN MY PROFILE</a><a class="btn" href="index.html">ENTER PODCASTING</a>')}
+function fail(msg){icon.textContent="!";title.textContent="VERIFICATION NEEDS ATTENTION";message.textContent="The verification link could not be completed.";show(msg||"The link may be expired or invalid. Request a new verification email from your account flow.","error");buttons('<a class="btn primary" href="login.html">GO TO LOGIN</a><a class="btn" href="signup.html">CREATE ACCOUNT</a>')}
+if(!sb){fail("Authentication is temporarily unavailable. Please try again shortly.");return}
+sb.auth.onAuthStateChange(function(event,session){
+if(event==="SIGNED_IN"||event==="INITIAL_SESSION"){if(session?.user){success();setTimeout(()=>location.replace("profile.html"),2200)}}
+});
+sb.auth.getSession().then(({data,error})=>{
+if(error){fail(error.message);return}
+if(data?.session){success();return}
+const hash=location.hash;
+const query=new URLSearchParams(location.search);
+if(hash.includes("access_token")||hash.includes("type=signup")||query.get("code")){show("Verification link received. Finalizing your session…","success");return}
+title.textContent="CHECK YOUR EMAIL";icon.textContent="✉";message.textContent="If you just created your account, open the verification email from Supabase and follow its link.";show("No active verification session is available on this device yet.","error");buttons('<a class="btn primary" href="login.html">GO TO LOGIN</a><a class="btn" href="signup.html">BACK TO SIGN UP</a>')
+});
+})();
+</script></body></html>
