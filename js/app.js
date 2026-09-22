@@ -215,6 +215,7 @@ function creatorNavSyncStart(){
   creatorNavSyncSignature="";
   creatorNavRealtimeStart();
   creatorNavPresenceStart();
+  creatorNavNotificationStart();
   creatorNavSyncRefresh();
   creatorNavSyncTimer=setInterval(()=>creatorNavServerGovernanceRefresh(true).then(()=>creatorNavSyncRefresh()),30000);
   window.addEventListener("storage",e=>{if(e.key===CREATOR_NAV_EVENTS_KEY||e.key===CREATOR_NAV_TEAM_KEY||e.key===CREATOR_NAV_EXECUTION_KEY||e.key===CREATOR_NAV_ROADMAP_KEY)creatorNavSyncRefresh();});
@@ -461,7 +462,42 @@ let creatorNavPresenceChannel=null;
 let creatorNavPresenceState={members:{},taskLocks:{},lastEvent:null};
 let creatorNavPresenceStarted=false;
 let creatorNavLockHeartbeatTimer=null;
+let creatorNavNotificationChannel=null;
+let creatorNavNotifications=[];
+const CREATOR_NAV_NOTIFICATIONS_KEY="crowrules_creator_notifications_v1";
 
+function creatorNavNotificationsRead(){try{const x=JSON.parse(localStorage.getItem(CREATOR_NAV_NOTIFICATIONS_KEY)||"[]");return Array.isArray(x)?x.slice(0,100):[];}catch{return [];}}
+function creatorNavNotificationsWrite(x){try{localStorage.setItem(CREATOR_NAV_NOTIFICATIONS_KEY,JSON.stringify(x.slice(0,100)));}catch{}}
+function creatorNavNotify(type,title,message,payload={}){
+  const n={id:"n"+Date.now()+Math.random().toString(36).slice(2,7),type,title,message,payload,at:new Date().toISOString(),read:false};
+  creatorNavNotifications=[n,...creatorNavNotificationsRead()].slice(0,100);creatorNavNotificationsWrite(creatorNavNotifications);
+  document.title="🔔 "+title+" · CrowRules Podcasting";
+  renderCollaborativeNotifications(); renderCollaborativeControlRoom();
+}
+function creatorNavNotificationsMarkRead(id){
+  creatorNavNotifications=creatorNavNotificationsRead().map(n=>n.id===id?{...n,read:true}:n);creatorNavNotificationsWrite(creatorNavNotifications);renderCollaborativeNotifications();
+}
+function renderCollaborativeNotifications(){
+  const box=document.getElementById("creatorNavCollaborativeNotifications");if(!box)return;
+  const rows=creatorNavNotificationsRead(),unread=rows.filter(n=>!n.read).length;
+  box.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px"><b>🔔 NOTIFICATIONS</b><span>'+unread+' unread</span></div>'+
+    (rows.slice(0,12).map(n=>'<div data-notification-id="'+escText(n.id)+'" style="padding:6px;margin-top:5px;border:1px solid rgba(255,255,255,.08);opacity:'+(n.read?".65":"1")+'"><b>'+escText(n.title)+'</b><div style="font-size:.72rem">'+escText(n.message)+'</div><small>'+escText(new Date(n.at).toLocaleString())+'</small>'+(n.read?"":' <button type="button" data-notification-read="'+escText(n.id)+'">MARK READ</button>')+'</div>').join("")||'<div style="opacity:.7;font-size:.75rem;margin-top:6px">No production notifications yet.</div>');
+  box.querySelectorAll("[data-notification-read]").forEach(b=>b.onclick=()=>creatorNavNotificationsMarkRead(b.dataset.notificationRead));
+}
+function creatorNavNotificationFromPresence(p){
+  const me=creatorNavPresenceIdentity();
+  if(!p||p.actorId===me.id)return;
+  if(p.type==="handoff-request")creatorNavNotify("handoff","Incoming Handoff",String(p.fromName||"A creator")+" requested a handoff for "+String(p.key||"a task")+".",p);
+  if(p.type==="handoff-accepted")creatorNavNotify("handoff","Handoff Accepted","Your handoff was accepted for "+String(p.key||"a task")+".",p);
+  if(p.type==="lock")creatorNavNotify("claim","Task Claimed",String(p.ownerName||p.actorName||"A creator")+" is now working on "+String(p.taskName||p.key||"a task")+".",p);
+  if(p.type==="unlock")creatorNavNotify("release","Task Released",String(p.actorName||"A creator")+" released "+String(p.key||"a task")+".",p);
+}
+function creatorNavNotificationStart(){
+  if(creatorNavNotificationChannel||typeof supabase==="undefined"||!supabase?.channel)return;
+  creatorNavNotificationChannel=supabase.channel("crowrules-production-notifications",{config:{broadcast:{ack:true}}})
+    .on("broadcast",{event:"production-presence"},({payload})=>creatorNavNotificationFromPresence(payload))
+    .subscribe();
+}
 async function creatorNavServerLockCall(action,payload={}){
   return creatorNavServerCall(action,payload);
 }
@@ -518,6 +554,7 @@ function creatorNavPresenceStart(){
     .on("presence",{event:"sync"},()=>{creatorNavPresenceState.members=creatorNavPresenceChannel.presenceState().map?Object.values(creatorNavPresenceChannel.presenceState()).flat().reduce((a,x)=>{if(x?.id)a[x.id]=x;return a;},{}):{};creatorNavPresenceRender();})
     .on("broadcast",{event:"production-presence"},({payload})=>{
       creatorNavPresenceState.lastEvent=payload;
+      creatorNavNotificationFromPresence(payload);
       if(payload.type==="lock")creatorNavPresenceState.taskLocks[payload.lockKey]={...payload};
       if(payload.type==="unlock")delete creatorNavPresenceState.taskLocks[payload.lockKey];
       creatorNavPresenceRender(); creatorNavSyncRefresh();
