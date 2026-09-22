@@ -146,6 +146,27 @@ function creatorNavAssign(id,key,memberId){const all=creatorNavExecutionRead(),x
 function creatorNavHandoff(id,key,from,to){const all=creatorNavExecutionRead(),x=all[id]||{tasks:{},history:[],streak:0,lastDay:null,assignments:{},handoffs:[]};x.handoffs=x.handoffs||[];x.handoffs.push({key,from,to,at:new Date().toISOString()});x.history=x.history||[];x.history.push({type:"handoff",key,from,to,at:new Date().toISOString()});x.history=x.history.slice(-100);all[id]=x;creatorNavExecutionWrite(all);}
 function creatorNavTeamMemberSave(id,name,role,capacity,active=true){const t=creatorNavTeamEnsure();const i=t.findIndex(m=>m.id===id);const m={id:id||("m"+Date.now()),name:String(name||"Creator").trim()||"Creator",role:String(role||"Creator").trim()||"Creator",capacity:Math.max(0,Number(capacity)||0),active:active!==false};if(i<0)t.push(m);else t[i]={...t[i],...m};creatorNavTeamWrite(t);return m;}
 function creatorNavTeamMemberDelete(id){let t=creatorNavTeamEnsure();if(t.length<=1)return;t=t.filter(m=>m.id!==id);creatorNavTeamWrite(t);}
+function creatorNavScheduleSuggestions(data){
+  const team=creatorNavTeamEnsure().filter(m=>m.active!==false),used=team.map(m=>({member:m,load:0,tasks:[]}));
+  const suggestions=[];
+  data.forEach(x=>{
+    const ex=creatorNavExecutionGet(x.c.id),steps=creatorNavRoadmapSteps(x,x.target);
+    steps.forEach((st,i)=>{
+      if(st.done)return;
+      const ownerId=ex.assignments?.[st.key],owner=team.find(m=>m.id===ownerId);
+      const blocked=i>0&&!steps[i-1].done;
+      const target=x.target?.targetDate?new Date(x.target.targetDate+"T23:59:59"):null;
+      const candidates=used.filter(r=>!blocked||true).sort((a,b)=>a.load-b.load);
+      const best=candidates[0];
+      if(best&&(!ownerId||!owner||used.find(r=>r.member.id===ownerId)?.load>Number(owner.capacity||0))){
+        if(!ownerId||best.member.id!==ownerId)suggestions.push({collectionId:x.c.id,key:st.key,name:st.name,collection:x.c.name,from:owner?.name||"Unassigned",to:best.member.name,memberId:best.member.id,blocked,deadline:target?target.toISOString().slice(0,10):null});
+      }
+      const assigned=used.find(r=>r.member.id===ownerId)||best;if(assigned)assigned.load++;
+    });
+  });
+  return {suggestions,teamLoad:used};
+}
+function creatorNavApplySchedule(id,key,memberId){creatorNavAssign(id,key,memberId);}
 function creatorNavProductionCalendar(data,days=14){
   const team=creatorNavTeamEnsure(),today=new Date();today.setHours(0,0,0,0);
   const rows=[];
@@ -194,7 +215,7 @@ function creatorNavForecastDashboardRender(){
   const queue=data.filter(x=>x.f.earlyWarning||x.f.status==="AT RISK"||x.cmp.state==="BEHIND").sort((a,b)=>(a.cmp.state==="BEHIND"?3:0)+(a.f.earlyWarning?2:0)-(b.cmp.state==="BEHIND"?3:0)-(b.f.earlyWarning?2:0));
   host.innerHTML='<div class="card" style="padding:14px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">PREDICTIVE COMMAND CENTER 5.0</div><h2 style="margin:.25rem 0">TEAM PRODUCTION ENGINE · HEALTH '+index+'/100</h2><div style="font-size:.84rem;opacity:.75">Coordinate task ownership, team capacity, dependencies, handoffs, and production execution.</div>'+
   '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px;margin-top:12px"><div class="card" style="padding:10px"><b>COLLECTIONS</b><div style="font-size:1.2rem">'+sum.total+'</div></div><div class="card" style="padding:10px"><b>TODAY QUEUE</b><div style="font-size:1.2rem">'+data.reduce((n,x)=>n+creatorNavTodayPlan(x,x.target).today.length,0)+'</div></div><div class="card" style="padding:10px"><b>RECOVERY QUEUE</b><div style="font-size:1.2rem">'+queue.length+'</div></div><div class="card" style="padding:10px"><b>CONFIDENCE</b><div style="font-size:1.2rem">'+sum.confidence+'%</div></div></div>'+
-  '<div style="margin-top:16px"><strong>CREATOR TEAM MANAGER</strong><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">'+workload.map(r=>'<div class="card" style="padding:9px;min-width:180px"><b>'+escText(r.member.name)+'</b><div style="font-size:.75rem">'+escText(r.member.role||"Creator")+' · Capacity '+Number(r.member.capacity||0)+'/day</div><div style="font-size:.8rem;margin-top:4px">'+r.load+' assigned task(s)'+(r.over?' · OVER CAPACITY':'')+'</div><input data-team-name="'+escText(r.member.id)+'" value="'+escText(r.member.name)+'" style="width:100%;margin-top:5px"><input data-team-role="'+escText(r.member.id)+'" value="'+escText(r.member.role||"Creator")+'" style="width:100%;margin-top:4px"><input data-team-capacity="'+escText(r.member.id)+'" type="number" min="0" step=".5" value="'+Number(r.member.capacity||0)+'" style="width:100%;margin-top:4px"><button type="button" data-team-save="'+escText(r.member.id)+'" style="margin-top:5px">SAVE</button> <button type="button" data-team-delete="'+escText(r.member.id)+'">REMOVE</button></div>').join("")+'<button type="button" id="teamAdd">+ ADD CREATOR</button></div></div><div style="margin-top:16px"><strong>SHARED PRODUCTION CALENDAR</strong><div class="card" style="padding:10px;margin-top:7px"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"><button type="button" id="calendar14">14-DAY VIEW</button><button type="button" id="calendar30">30-DAY VIEW</button></div><div id="creatorNavProductionCalendarGrid"></div></div></div><div style="margin-top:16px"><strong>WHAT NEEDS ATTENTION NEXT?</strong>'+(!queue.length?'<div style="margin-top:7px;font-size:.82rem">No execution recovery items detected.</div>':queue.map((x,i)=>'<div class="card" style="padding:9px;margin-top:7px"><b>#'+(i+1)+' '+escText(x.c.name)+'</b><div style="font-size:.8rem;margin-top:3px">'+escText(x.cmp.state==="BEHIND"?"DEADLINE BEHIND":x.f.earlyWarning||x.f.status)+'</div><div style="font-size:.76rem;margin-top:3px">'+escText(creatorNavPlanRecommendations(x.f,x.target,x.cmp)[0])+'</div><button type="button" data-exec-select="'+escText(x.c.id)+'" style="margin-top:6px">OPEN PLAN</button></div>').join(""))+'</div>'+
+  '<div style="margin-top:16px"><strong>CREATOR TEAM MANAGER</strong><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">'+workload.map(r=>'<div class="card" style="padding:9px;min-width:180px"><b>'+escText(r.member.name)+'</b><div style="font-size:.75rem">'+escText(r.member.role||"Creator")+' · Capacity '+Number(r.member.capacity||0)+'/day</div><div style="font-size:.8rem;margin-top:4px">'+r.load+' assigned task(s)'+(r.over?' · OVER CAPACITY':'')+'</div><input data-team-name="'+escText(r.member.id)+'" value="'+escText(r.member.name)+'" style="width:100%;margin-top:5px"><input data-team-role="'+escText(r.member.id)+'" value="'+escText(r.member.role||"Creator")+'" style="width:100%;margin-top:4px"><input data-team-capacity="'+escText(r.member.id)+'" type="number" min="0" step=".5" value="'+Number(r.member.capacity||0)+'" style="width:100%;margin-top:4px"><button type="button" data-team-save="'+escText(r.member.id)+'" style="margin-top:5px">SAVE</button> <button type="button" data-team-delete="'+escText(r.member.id)+'">REMOVE</button></div>').join("")+'<button type="button" id="teamAdd">+ ADD CREATOR</button></div></div><div style="margin-top:16px"><strong>SHARED PRODUCTION CALENDAR</strong><div class="card" style="padding:10px;margin-top:7px"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"><button type="button" id="calendar14">14-DAY VIEW</button><button type="button" id="calendar30">30-DAY VIEW</button></div><div id="creatorNavProductionCalendarGrid"></div><div id="creatorNavScheduler"></div></div></div><div style="margin-top:16px"><strong>WHAT NEEDS ATTENTION NEXT?</strong>'+(!queue.length?'<div style="margin-top:7px;font-size:.82rem">No execution recovery items detected.</div>':queue.map((x,i)=>'<div class="card" style="padding:9px;margin-top:7px"><b>#'+(i+1)+' '+escText(x.c.name)+'</b><div style="font-size:.8rem;margin-top:3px">'+escText(x.cmp.state==="BEHIND"?"DEADLINE BEHIND":x.f.earlyWarning||x.f.status)+'</div><div style="font-size:.76rem;margin-top:3px">'+escText(creatorNavPlanRecommendations(x.f,x.target,x.cmp)[0])+'</div><button type="button" data-exec-select="'+escText(x.c.id)+'" style="margin-top:6px">OPEN PLAN</button></div>').join(""))+'</div>'+
   '<div style="margin-top:16px"><strong>PRODUCTION COLLECTIONS</strong><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+data.map(x=>'<button type="button" data-exec-select="'+escText(x.c.id)+'">'+escText(x.c.name)+'</button>').join(""))+'</div><div id="creatorNavPredictiveDetail" style="margin-top:10px"></div></div></div>';
   const detail=document.getElementById("creatorNavPredictiveDetail");
   function renderDetail(id){
@@ -231,6 +252,13 @@ function creatorNavForecastDashboardRender(){
     html+='</div>';
   }
   grid.innerHTML=html;
+}
+function renderScheduler(){
+  const box=document.getElementById("creatorNavScheduler");if(!box)return;
+  const plan=creatorNavScheduleSuggestions(data);
+  box.innerHTML='<div style="margin-top:8px"><b>RECOMMENDED REBALANCING</b>'+(
+    plan.suggestions.length?plan.suggestions.slice(0,20).map((r,i)=>'<div class="card" style="padding:7px;margin-top:5px;display:flex;gap:6px;align-items:center;justify-content:space-between"><span><b>'+escText(r.name)+'</b> · '+escText(r.collection)+'<br><small>'+escText(r.from)+' → '+escText(r.to)+(r.blocked?' · BLOCKED':'')+(r.deadline?' · Deadline '+escText(r.deadline):'')+'</small></span><button type="button" data-schedule-apply="'+i+'">REASSIGN</button></div>').join(""):'<div style="font-size:.75rem;opacity:.7;margin-top:5px">No rebalancing recommendations.</div>')+'</div>';
+  box.querySelectorAll("[data-schedule-apply]").forEach(b=>b.addEventListener("click",()=>{const r=plan.suggestions[Number(b.dataset.scheduleApply)];creatorNavApplySchedule(r.collectionId,r.key,r.memberId);renderScheduler();renderCalendar(14);renderScheduler();}));
 }
 renderCalendar(14);
 document.getElementById("calendar14")?.addEventListener("click",()=>renderCalendar(14));
