@@ -2,32 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050b"><meta name="color-scheme" content="dark">
-<title>Support Creators | CrowRules Podcasting</title>
-<link rel="stylesheet" href="css/podcasting.css">
+<title>Support Creators | CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css">
 </head>
 <body>
 <div class="site-background" aria-hidden="true"><div class="background-stars"></div><div class="background-grid"></div><div class="background-glow background-glow-one"></div><div class="background-glow background-glow-two"></div></div>
-<header class="site-header"><div class="site-header-inner">
-<a class="brand" href="index.html"><span class="brand-mark">CR</span><span class="brand-text"><span class="brand-name">CROW<span class="glow">RULES</span></span><span class="brand-section">PODCASTING</span></span></span></a>
-<nav class="main-navigation"><a href="podcasts.html">Podcasts</a><a href="support.html" aria-current="page">Support</a><a href="membership.html">Membership</a><a href="profile.html">Profile</a></nav>
-</div></header>
-<main>
-<section class="section wrap">
-<div class="studioHero">
-<span class="eyebrow">CROWRULES PODCASTING · LISTENER SUPPORT</span>
-<h1>SUPPORT <span class="glow">CREATORS</span></h1>
-<p>Discover published creator support tiers and learn what each creator plans to offer. Payment processing is not connected yet.</p>
-</div>
+<header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html"><span class="brand-mark">CR</span><span class="brand-text"><span class="brand-name">CROW<span class="glow">RULES</span></span><span class="brand-section">PODCASTING</span></span></span></a><nav class="main-navigation"><a href="podcasts.html">Podcasts</a><a href="support.html" aria-current="page">Support</a><a href="membership.html">Membership</a><a href="profile.html">Profile</a></nav></div></header>
+<main><section class="section wrap">
+<div class="studioHero"><span class="eyebrow">CROWRULES PODCASTING · LISTENER SUPPORT</span><h1>SUPPORT <span class="glow">CREATORS</span></h1><p>Discover published creator support tiers and the podcasts they support. Payment processing is not connected yet.</p></div>
 <div id="state" class="card">Loading published support tiers…</div>
 <div id="app" class="hidden">
 <div id="creatorFilter" class="card" style="margin-bottom:24px"></div>
 <div id="tiers" class="grid"></div>
-</div>
-</section>
-</main>
+</div></section></main>
 <footer class="site-footer"><div class="site-footer-inner"><div class="footer-brand"><strong>CROWRULES PODCASTING</strong><span>ONE ACCOUNT. ONE UNIVERSE.</span></div><div class="footer-copy">© 2026 CrowRules Entertainment</div></div></footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script>
 <script>
 (async()=>{
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -35,32 +23,31 @@ const state=document.getElementById("state"),app=document.getElementById("app"),
 try{
 const cfg=window.CrowRulesConfig||{};if(!cfg.supabaseUrl||!cfg.supabaseAnonKey)throw Error("Missing configuration");
 const db=supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
-const q=await db.from("creator_support_tiers").select("id,creator_id,tier_name,label,description,benefits,visibility,featured,sort_order");
-if(q.error){state.innerHTML='<span class="eyebrow">SUPPORT CATALOG UNAVAILABLE</span><h2>The public support catalog is not connected yet.</h2><p class="muted">Nothing was changed.</p>';return;}
+const q=await db.from("creator_support_tiers").select("id,creator_id,podcast_id,tier_name,label,description,benefits,visibility,featured,sort_order");
+if(q.error)throw q.error;
 const published=(q.data||[]).filter(t=>t.visibility==="public").sort((a,b)=>(a.sort_order??999999)-(b.sort_order??999999));
-const ids=[...new Set(published.map(t=>t.creator_id).filter(Boolean))];
-let creators=[];
-if(ids.length){
- const c=await db.from("creators").select("id,name,display_name").in("id",ids);
- if(c.error)throw c.error;creators=c.data||[];
-}
-const byId=new Map(creators.map(c=>[c.id,c]));
+const creatorIds=[...new Set(published.map(t=>t.creator_id).filter(Boolean))];
+const podcastIds=[...new Set(published.map(t=>t.podcast_id).filter(Boolean))];
+let creators=[],podcasts=[];
+if(creatorIds.length){const c=await db.from("creators").select("id,name,display_name").in("id",creatorIds);if(c.error)throw c.error;creators=c.data||[];}
+if(podcastIds.length){const p=await db.from("podcasts").select("id,title,creator_id").in("id",podcastIds);if(p.error)throw p.error;podcasts=p.data||[];}
+const byCreator=new Map(creators.map(c=>[c.id,c])),byPodcast=new Map(podcasts.map(p=>[p.id,p]));
 state.classList.add("hidden");app.classList.remove("hidden");
-filter.innerHTML='<span class="eyebrow">SUPPORT CATALOG</span><h2>'+published.length+' published tier'+(published.length===1?"":"s")+'</h2><p class="muted">Choose a creator to focus the catalog.</p><label>Creator<select id="creatorSelect"><option value="">All creators</option>'+creators.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.display_name||c.name||"Creator")+'</option>').join("")+'</select></label>';
-const render=creatorId=>{
- const rows=published.filter(t=>!creatorId||t.creator_id===creatorId);
- tiersEl.innerHTML=rows.length?rows.map(t=>{
-  const c=byId.get(t.creator_id)||{};const benefits=Array.isArray(t.benefits)?t.benefits:[];
-  return '<article class="card">'+(t.featured?'<span class="eyebrow">FEATURED TIER</span>':'<span class="eyebrow">SUPPORT TIER</span>')+
-  '<p><strong>'+esc(c.display_name||c.name||"CrowRules Creator")+'</strong></p><h2>'+esc(t.tier_name||"Support")+'</h2>'+
-  (t.label?'<p><strong>'+esc(t.label)+'</strong></p>':'')+'<p class="muted">'+esc(t.description||"")+'</p>'+
-  '<ul>'+((benefits.length?benefits.map(b=>'<li>'+esc(b)+'</li>').join(""):'<li>Benefits coming soon.</li>'))+'</ul>'+
-  '<div class="actions"><a class="btn" href="login.html">SIGN IN</a><button class="btn primary" disabled>SUPPORT — COMING SOON</button></div></article>';
- }).join(""):'<div class="card"><h2>No published tiers</h2><p class="muted">There are no published creator support tiers matching this selection.</p></div>';
+filter.innerHTML='<span class="eyebrow">SUPPORT CATALOG</span><h2>'+published.length+' published tier'+(published.length===1?"":"s")+'</h2><div class="form-grid"><label>Creator<select id="creatorSelect"><option value="">All creators</option>'+creators.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.display_name||c.name||"Creator")+'</option>').join("")+'</select></label><label>Podcast<select id="podcastSelect"><option value="">All podcasts</option>'+podcasts.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.title||"Untitled Podcast")+'</option>').join("")+'</select></label></div>';
+const render=()=>{
+const creatorId=document.getElementById("creatorSelect").value,podcastId=document.getElementById("podcastSelect").value;
+const rows=published.filter(t=>(!creatorId||t.creator_id===creatorId)&&(!podcastId||t.podcast_id===podcastId));
+tiersEl.innerHTML=rows.length?rows.map(t=>{
+const c=byCreator.get(t.creator_id)||{},p=t.podcast_id?byPodcast.get(t.podcast_id):null,benefits=Array.isArray(t.benefits)?t.benefits:[];
+return '<article class="card">'+(t.featured?'<span class="eyebrow">FEATURED TIER</span>':'<span class="eyebrow">SUPPORT TIER</span>')+
+'<p><strong>'+esc(c.display_name||c.name||"CrowRules Creator")+'</strong></p>'+
+(p?'<p class="muted">PODCAST · '+esc(p.title||"Untitled Podcast")+'</p>':'<p class="muted">CREATOR-WIDE SUPPORT</p>')+
+'<h2>'+esc(t.tier_name||"Support")+'</h2>'+(t.label?'<p><strong>'+esc(t.label)+'</strong></p>':'')+
+'<p class="muted">'+esc(t.description||"")+'</p><ul>'+((benefits.length?benefits.map(b=>'<li>'+esc(b)+'</li>').join(""):'<li>Benefits coming soon.</li>'))+'</ul>'+
+'<div class="actions"><a class="btn" href="login.html">SIGN IN</a><button class="btn primary" disabled>SUPPORT — COMING SOON</button></div></article>';
+}).join(""):'<div class="card"><h2>No matching support tiers</h2><p class="muted">Try another creator or podcast.</p></div>';
 };
-document.getElementById("creatorSelect").addEventListener("change",e=>render(e.target.value));render("");
-}catch(e){console.error(e);state.innerHTML='<span class="eyebrow">SUPPORT ERROR</span><h2>Unable to load the support catalog.</h2><p>Nothing was written or changed.</p>';}
+document.getElementById("creatorSelect").addEventListener("change",render);document.getElementById("podcastSelect").addEventListener("change",render);render();
+}catch(e){console.error(e);state.innerHTML='<span class="eyebrow">SUPPORT CATALOG UNAVAILABLE</span><h2>The public support catalog is not connected yet.</h2><p class="muted">Nothing was changed.</p>';}
 })();
-</script>
-</body>
-</html>
+</script></body></html>
