@@ -1,1 +1,409 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign Up | CrowRules</title><link rel="stylesheet" href="css/podcasting.css"></head><body><div id="app"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script><script src="js/app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta
+    name="theme-color"
+    content="#05050b"
+  >
+
+  <meta
+    name="color-scheme"
+    content="dark"
+  >
+
+  <meta
+    name="description"
+    content="Create your free CrowRules account. One Account. One Universe. Access CrowRules Podcasting and the growing CrowRules Entertainment universe."
+  >
+
+  <meta
+    name="robots"
+    content="index,follow"
+  >
+
+  <meta
+    name="author"
+    content="CrowRules Entertainment"
+  >
+
+  <title>Sign Up | CrowRules Podcasting</title>
+
+  <!-- Open Graph -->
+  <meta
+    property="og:type"
+    content="website"
+  >
+
+  <meta
+    property="og:title"
+    content="Sign Up | CrowRules Podcasting"
+  >
+
+  <meta
+    property="og:description"
+    content="Create your CrowRules account and join One Account. One Universe."
+  >
+
+  <meta
+    property="og:site_name"
+    content="CrowRules"
+  >
+
+  <meta
+    property="og:url"
+    content="https://crowrulesentertainment-oss.github.io/podcasting/signup.html"
+  >
+
+  <!-- Twitter / X -->
+  <meta
+    name="twitter:card"
+    content="summary"
+  >
+
+  <meta
+    name="twitter:title"
+    content="Sign Up | CrowRules Podcasting"
+  >
+
+  <meta
+    name="twitter:description"
+    content="Create your CrowRules account and join the universe."
+  >
+
+  <!-- Performance -->
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
+
+  <!-- Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- Styles -->
+  <link
+    rel="stylesheet"
+    href="css/podcasting.css"
+  >
+
+  <!-- Supabase -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+    defer
+  ></script>
+
+  <!-- App configuration -->
+  <script
+    src="js/config.js"
+    defer
+  ></script>
+
+  <!-- CrowRules Podcasting application -->
+  <script
+    src="js/app.js"
+    defer
+  ></script>
+</head>
+
+<body class="podcasting-page signup-page">
+
+  <!-- Skip navigation -->
+  <a
+    class="skip-link"
+    href="#signup-main"
+  >
+    Skip to signup
+  </a>
+
+  <!-- Cinematic background -->
+  <div
+    class="site-background"
+    aria-hidden="true"
+  >
+    <div class="background-stars"></div>
+    <div class="background-grid"></div>
+    <div class="background-glow background-glow-one"></div>
+    <div class="background-glow background-glow-two"></div>
+    <div class="background-noise"></div>
+  </div>
+
+  <!-- Header -->
+  <header
+    class="site-header"
+    id="site-header"
+  >
+    <div class="site-header-inner">
+
+      <a
+        class="brand"
+        href="index.html"
+        aria-label="CrowRules Podcasting home"
+      >
+        <span class="brand-mark" aria-hidden="true">CR</span>
+
+        <span class="brand-text">
+          <span class="brand-name">CrowRules</span>
+          <span class="brand-section">PODCASTING</span>
+        </span>
+      </a>
+
+      <nav
+        class="main-navigation"
+        aria-label="Main navigation"
+      >
+        <a href="index.html">Home</a>
+        <a href="launch.html">Launch</a>
+        <a href="login.html">Login</a>
+      </nav>
+
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main
+    id="signup-main"
+    class="auth-main"
+    aria-live="polite"
+  >
+
+    <section
+      class="auth-section signup-section"
+      aria-labelledby="signup-title"
+    >
+
+      <div class="auth-container">
+
+        <!-- Intro -->
+        <div class="auth-intro">
+
+          <div class="eyebrow">
+            ONE ACCOUNT. ONE UNIVERSE.
+          </div>
+
+          <h1 id="signup-title">
+            JOIN
+            <span>CROWRULES</span>
+          </h1>
+
+          <p class="auth-lead">
+            Create your CrowRules account and become part of
+            the universe we're building together.
+          </p>
+
+          <div class="auth-promise">
+            <span class="promise-icon" aria-hidden="true">✦</span>
+
+            <div>
+              <strong>One account.</strong>
+              <span>Across the CrowRules universe.</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Signup card -->
+        <div class="auth-card">
+
+          <div class="auth-card-header">
+            <span class="auth-card-kicker">
+              CREATE ACCOUNT
+            </span>
+
+            <h2>
+              Start Your Journey
+            </h2>
+
+            <p>
+              Your CrowRules account can connect you to
+              Podcasting and future CrowRules experiences.
+            </p>
+          </div>
+
+          <!--
+            app.js can use this container to render the
+            live Supabase signup form and status messages.
+          -->
+          <div
+            id="signup-app"
+            class="auth-form-container"
+          >
+
+            <div
+              class="auth-loading"
+              role="status"
+              aria-live="polite"
+            >
+              <span
+                class="loading-spinner"
+                aria-hidden="true"
+              ></span>
+
+              <span>
+                Preparing secure signup…
+              </span>
+            </div>
+
+          </div>
+
+          <!-- Existing account -->
+          <div class="auth-secondary">
+
+            <span>
+              Already have a CrowRules account?
+            </span>
+
+            <a
+              href="login.html"
+              class="auth-link"
+            >
+              Sign In
+            </a>
+
+          </div>
+
+        </div>
+
+        <!-- Account benefits -->
+        <div class="auth-benefits">
+
+          <article class="auth-benefit">
+            <span
+              class="benefit-icon"
+              aria-hidden="true"
+            >
+              ◈
+            </span>
+
+            <div>
+              <h3>ONE ACCOUNT</h3>
+
+              <p>
+                Use your CrowRules identity across
+                participating CrowRules projects.
+              </p>
+            </div>
+          </article>
+
+          <article class="auth-benefit">
+            <span
+              class="benefit-icon"
+              aria-hidden="true"
+            >
+              ◉
+            </span>
+
+            <div>
+              <h3>YOUR PROFILE</h3>
+
+              <p>
+                Build your creator identity and connect
+                with the CrowRules community.
+              </p>
+            </div>
+          </article>
+
+          <article class="auth-benefit">
+            <span
+              class="benefit-icon"
+              aria-hidden="true"
+            >
+              ✦
+            </span>
+
+            <div>
+              <h3>CROWPOINTS</h3>
+
+              <p>
+                Participate, watch, listen and engage as
+                CrowRules experiences expand.
+              </p>
+            </div>
+          </article>
+
+        </div>
+
+        <!-- Privacy/security note -->
+        <div class="auth-security">
+
+          <span
+            class="security-icon"
+            aria-hidden="true"
+          >
+            🔒
+          </span>
+
+          <div>
+            <strong>Your account starts here.</strong>
+
+            <p>
+              Signup is handled through CrowRules'
+              Supabase authentication system.
+              Never share your password with anyone.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+
+    <div class="site-footer-inner">
+
+      <div class="footer-brand">
+        <strong>CROWRULES</strong>
+        <span>PODCASTING</span>
+      </div>
+
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="launch.html">Launch</a>
+        <a href="login.html">Login</a>
+      </div>
+
+      <div class="footer-copy">
+        © <span id="current-year">2026</span>
+        CrowRules Entertainment
+      </div>
+
+    </div>
+
+  </footer>
+
+  <!-- Small page-level enhancements -->
+  <script>
+    (() => {
+      const year = document.getElementById("current-year");
+
+      if (year) {
+        year.textContent = new Date().getFullYear();
+      }
+
+      window.addEventListener("load", () => {
+        document.documentElement.classList.add("page-ready");
+      });
+    })();
+  </script>
+
+</body>
+</html>
