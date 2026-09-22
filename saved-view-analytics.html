@@ -218,7 +218,7 @@ async function boot(){
  const {data,error}=await db.from("podcast_creator_showcase_comparison_archive_views").select("id,name,is_default,last_used_at,created_at,usage_count").eq("creator_id",creator.id).order("name",{ascending:true});
  if(error){$("status").innerHTML='<span class="error">'+esc(error.message)+'</span>';return;}
  views=data||[];
- const params=new URLSearchParams(window.location.search),preferred=params.get("view")||"",requestedDays=Number(params.get("days"));if([7,14,30].includes(requestedDays))$("daysSelect").value=String(requestedDays);const back=$("backToDashboard");if(back){back.href="creator-achievement-manager.html"+([7,14,30].includes(requestedDays)?"?archiveRange="+requestedDays:"");}populateViews(preferred);
+ const params=new URLSearchParams(window.location.search),preferred=params.get("view")||"",requestedDays=Number(params.get("days"));if([7,14,30].includes(requestedDays))$("daysSelect").value=String(requestedDays);const back=$("backToDashboard");if(back){back.href="creator-achievement-manager.html"+([7,14,30].includes(requestedDays)?"?archiveRange="+requestedDays+"&archiveView="+encodeURIComponent(preferred):preferred?"?archiveView="+encodeURIComponent(preferred):"");}populateViews(preferred);
 }
 
 $("viewSelect").addEventListener("change",()=>renderAnalytics($("viewSelect").value));
