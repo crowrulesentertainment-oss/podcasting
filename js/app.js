@@ -101,34 +101,56 @@ function creatorNavCreatorHealthIndex(data){
   const weights={AT_RISK:35,"NEEDS ATTENTION":55,"LIKELY TO COMPLETE":90};
   return Math.round(data.reduce((sum,x)=>{const trend=x.t.direction==="IMPROVING"?10:x.t.direction==="DECLINING"?-10:0;return sum+Math.max(0,Math.min(100,(weights[x.f.status]||50)+trend+(x.f.pct>=75?10:0)));},0)/data.length);
 }
+function creatorNavPlanningRead(){try{return JSON.parse(localStorage.getItem("crowrules_creator_plans_v1")||"{}");}catch{return {};}}
+function creatorNavPlanningWrite(x){try{localStorage.setItem("crowrules_creator_plans_v1",JSON.stringify(x));}catch{}}
+function creatorNavPlanSave(id,plan){const all=creatorNavPlanningRead();all[id]=plan;creatorNavPlanningWrite(all);}
+function creatorNavPlanGet(id){return creatorNavPlanningRead()[id]||null;}
+function creatorNavPlanTarget(id){
+  const p=creatorNavPlanGet(id);if(!p?.targetDate)return null;
+  const target=new Date(p.targetDate+"T23:59:59").getTime(),remaining=Math.max(0,100-(Number(p.pct)||0)),days=Math.max(0,(target-Date.now())/86400000);
+  return {targetDate:p.targetDate,days:Math.ceil(days),requiredVelocity:days>0?Math.round(remaining/days*10)/10:remaining,remaining};
+}
+function creatorNavPlanCompare(f,target){
+  if(!target)return {state:"NO TARGET",delta:null};
+  if(f.pct>=100)return {state:"AHEAD",delta:target.days};
+  const delta=Math.round((f.velocity-target.requiredVelocity)*10)/10;
+  return {state:delta>0.1?"AHEAD":delta<-0.1?"BEHIND":"ON TRACK",delta};
+}
+function creatorNavPlanRecommendations(f,target,cmp){
+  const out=[];
+  if(cmp.state==="BEHIND")out.push("Increase completion velocity to at least "+target.requiredVelocity+" pts/day.");
+  if(f.earlyWarning==="ACTIVITY GAP")out.push("Schedule a focused production session to restore recent activity.");
+  if(f.earlyWarning==="LOW VELOCITY")out.push("Break the next milestone into smaller actions and complete one immediately.");
+  if(f.milestoneRemaining>0)out.push("Prioritize the next incomplete milestone before adding new scope.");
+  if(!out.length)out.push("Maintain the current pace and review the forecast after the next milestone.");
+  return out;
+}
 function creatorNavForecastDashboardRender(){
   const host=document.getElementById("creatorNavForecastDashboard");if(!host)return;
-  const cs=creatorNavCollectionsRead(),data=cs.map(c=>{const f=creatorNavCollectionForecast(c.id),t=creatorNavForecastTrend(c.id,f),a=creatorNavForecastAnalytics(c.id,f,t);return {c,f,t,a};});
+  const cs=creatorNavCollectionsRead(),data=cs.map(c=>{const f=creatorNavCollectionForecast(c.id),t=creatorNavForecastTrend(c.id,f),a=creatorNavForecastAnalytics(c.id,f),target=creatorNavPlanTarget(c.id),cmp=creatorNavPlanCompare(f,target);return {c,f,t,a,target,cmp};});
   const sum=creatorNavPredictiveSummary(data),index=creatorNavCreatorHealthIndex(data),escText=x=>esc(String(x??"")),fmtEta=d=>d===null?"Unknown":d===0?"Complete":d+" day(s)";
-  const queue=data.filter(x=>x.f.earlyWarning||x.f.status==="AT RISK"||x.f.status==="NEEDS ATTENTION").sort((a,b)=>(b.f.earlyWarning?2:0)+(b.f.status==="AT RISK"?2:1)-((a.f.earlyWarning?2:0)+(a.f.status==="AT RISK"?2:1)));
-  host.innerHTML='<div class="card" style="padding:14px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">PREDICTIVE COMMAND CENTER</div><h2 style="margin:.25rem 0">CREATOR STUDIO HEALTH INDEX · '+index+'/100</h2><div style="font-size:.84rem;opacity:.75">Interactive forecast control center for collections, velocity scenarios, milestones, and early warnings.</div>'+
-  '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px;margin-top:12px"><div class="card" style="padding:10px"><b>COLLECTIONS</b><div style="font-size:1.2rem">'+sum.total+'</div></div><div class="card" style="padding:10px"><b>ATTENTION QUEUE</b><div style="font-size:1.2rem">'+queue.length+'</div></div><div class="card" style="padding:10px"><b>AVG ETA</b><div style="font-size:1.2rem">'+fmtEta(sum.avgEta)+'</div></div><div class="card" style="padding:10px"><b>CONFIDENCE</b><div style="font-size:1.2rem">'+sum.confidence+'%</div></div></div>'+
-  '<div style="margin-top:16px"><strong>WHAT NEEDS ATTENTION NEXT?</strong>'+(!queue.length?'<div style="margin-top:7px;font-size:.82rem">No predictive attention items detected.</div>':queue.map((x,i)=>'<div class="card" style="padding:9px;margin-top:7px"><b>#'+(i+1)+' '+escText(x.c.name)+'</b><div style="font-size:.8rem;margin-top:3px">'+escText(x.f.earlyWarning||x.f.status)+' · '+escText(x.f.reason)+'</div><div style="font-size:.76rem;margin-top:3px">ETA '+fmtEta(x.f.eta)+' · Confidence '+x.f.confidence+'%</div><button type="button" data-predictive-open="'+escText(x.c.id)+'" style="margin-top:6px">OPEN COLLECTION</button></div>').join(""))+'</div>'+
-  '<div style="margin-top:16px"><strong>COLLECTION DRILL-DOWN</strong><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+data.map(x=>'<button type="button" data-predictive-select="'+escText(x.c.id)+'">'+escText(x.c.name)+'</button>').join(""))+'</div><div id="creatorNavPredictiveDetail" style="margin-top:10px"></div></div>'+
-  '</div>';
+  const queue=data.filter(x=>x.f.earlyWarning||x.f.status==="AT RISK"||x.cmp.state==="BEHIND");
+  host.innerHTML='<div class="card" style="padding:14px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">PREDICTIVE COMMAND CENTER 2.0</div><h2 style="margin:.25rem 0">ACTION & PLANNING ENGINE · HEALTH '+index+'/100</h2><div style="font-size:.84rem;opacity:.75">Set targets, calculate required velocity, compare trajectory, save scenarios, and act on the next priority.</div>'+
+  '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px;margin-top:12px"><div class="card" style="padding:10px"><b>COLLECTIONS</b><div style="font-size:1.2rem">'+sum.total+'</div></div><div class="card" style="padding:10px"><b>ACTION QUEUE</b><div style="font-size:1.2rem">'+queue.length+'</div></div><div class="card" style="padding:10px"><b>AVG ETA</b><div style="font-size:1.2rem">'+fmtEta(sum.avgEta)+'</div></div><div class="card" style="padding:10px"><b>CONFIDENCE</b><div style="font-size:1.2rem">'+sum.confidence+'%</div></div></div>'+
+  '<div style="margin-top:16px"><strong>WHAT NEEDS ATTENTION NEXT?</strong>'+(!queue.length?'<div style="margin-top:7px;font-size:.82rem">No action items detected.</div>':queue.map((x,i)=>'<div class="card" style="padding:9px;margin-top:7px"><b>#'+(i+1)+' '+escText(x.c.name)+'</b><div style="font-size:.8rem;margin-top:3px">'+escText(x.f.earlyWarning||x.cmp.state||x.f.status)+'</div><div style="font-size:.76rem;margin-top:3px">'+escText(creatorNavPlanRecommendations(x.f,x.target,x.cmp)[0])+'</div><button type="button" data-predictive-select="'+escText(x.c.id)+'" style="margin-top:6px">PLAN</button></div>').join(""))+'</div>'+
+  '<div style="margin-top:16px"><strong>COLLECTION PLANNING</strong><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+data.map(x=>'<button type="button" data-predictive-select="'+escText(x.c.id)+'">'+escText(x.c.name)+'</button>').join(""))+'</div><div id="creatorNavPredictiveDetail" style="margin-top:10px"></div></div></div>';
   const detail=document.getElementById("creatorNavPredictiveDetail");
-  function renderDetail(id,scenarioRate){
+  function renderDetail(id){
     const x=data.find(y=>y.c.id===id)||data[0];if(!x||!detail)return;
-    const rate=Math.max(0,Number(scenarioRate??x.f.velocity)||0),days=rate>0?Math.ceil(Math.max(0,100-x.f.pct)/rate):null;
-    const points=x.t.history.slice(-12),maxPct=Math.max(100,...points.map(h=>Number(h.pct)||0)),bars=points.map(h=>'<span title="'+escText(h.day)+' · '+h.pct+'%" style="display:inline-block;width:'+Math.max(4,(Number(h.pct)||0)/maxPct*100)+'%;height:6px;background:currentColor;margin:2px 0"></span>').join("");
-    detail.innerHTML='<div class="card" style="padding:12px"><b>'+escText(x.c.name)+'</b><div style="font-size:.8rem;margin-top:4px">'+x.f.pct+'% complete · '+x.f.velocity+' pts/day · '+escText(x.t.direction)+'</div>'+
-    '<div style="margin-top:10px"><label>Scenario velocity: <output id="predictiveRateOut">'+Math.round(rate*10)/10+'</output> pts/day</label><input id="predictiveRate" type="range" min="0" max="'+Math.max(10,Math.ceil(x.f.velocity*2+5))+'" step=".1" value="'+Math.min(Math.max(0,rate),Math.max(10,Math.ceil(x.f.velocity*2+5)))+'" style="width:100%"></div>'+
-    '<div style="font-size:.82rem;margin-top:7px">Scenario completion: <b>'+fmtEta(days)+'</b> · Confidence '+x.f.confidence+'%</div>'+
-    '<div style="margin-top:10px"><strong>FORECAST TIMELINE</strong><div style="font-size:.76rem;margin-top:4px">'+points.map(h=>escText(h.day)+': '+h.pct+'%').join(" → ")+'</div><div style="margin-top:6px">'+bars+'</div></div>'+
-    '<div style="margin-top:10px"><strong>MILESTONE CALENDAR</strong><div style="font-size:.8rem;margin-top:4px">'+x.f.milestoneCount+' complete · '+x.f.milestoneRemaining+' remaining · projected window '+fmtEta(x.f.milestoneEta)+'</div></div>'+
-    '<div style="margin-top:10px"><strong>ALERT FORECAST</strong><div style="font-size:.8rem;margin-top:4px">'+(x.f.earlyWarning?escText(x.f.earlyWarning):"No early warning")+' · '+escText(x.f.reason)+'</div></div></div>';
-    const slider=document.getElementById("predictiveRate"),out=document.getElementById("predictiveRateOut");
-    slider?.addEventListener("input",()=>{const r=Number(slider.value)||0,outDays=r>0?Math.ceil(Math.max(0,100-x.f.pct)/r):null;out.textContent=Math.round(r*10)/10;slider.closest(".card").querySelector("div:nth-of-type(2) b").textContent=fmtEta(outDays);});
+    const saved=creatorNavPlanGet(id)||{},target=x.target,cmp=x.cmp,recs=creatorNavPlanRecommendations(x.f,target,cmp);
+    detail.innerHTML='<div class="card" style="padding:12px"><b>'+escText(x.c.name)+'</b><div style="font-size:.8rem;margin-top:4px">'+x.f.pct+'% complete · '+x.f.velocity+' pts/day · <b>'+escText(cmp.state)+'</b></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px"><label>Target completion date<input id="predictiveTargetDate" type="date" value="'+escText(saved.targetDate||"")+'" style="display:block;width:100%;margin-top:4px"></label><label>Scenario velocity<input id="predictiveRate" type="number" min="0" step=".1" value="'+(Number(saved.rate??x.f.velocity)||0)+'" style="display:block;width:100%;margin-top:4px"></label></div>'+
+    '<div style="margin-top:9px;font-size:.82rem">Required velocity: <b id="requiredVelocity">'+(target?target.requiredVelocity+" pts/day":"Set a target date")+'</b> · Target window: '+(target?target.days+" day(s)":"—")+'</div>'+
+    '<div style="margin-top:9px"><strong>MILESTONE PROJECTOR</strong><div style="font-size:.8rem;margin-top:4px">'+x.f.milestoneCount+' complete · '+x.f.milestoneRemaining+' remaining · projected window '+fmtEta(x.f.milestoneEta)+'</div></div>'+
+    '<div style="margin-top:9px"><strong>ACTION PLAN</strong>'+recs.map(r=>'<div style="font-size:.8rem;margin-top:4px">• '+escText(r)+'</div>').join("")+'</div>'+
+    '<div style="margin-top:10px"><button type="button" id="savePredictivePlan">SAVE SCENARIO</button> <span id="planSaved" style="font-size:.78rem;opacity:.7"></span></div></div>';
+    const date=document.getElementById("predictiveTargetDate"),rate=document.getElementById("predictiveRate");
+    date?.addEventListener("input",()=>renderDetail(id));
+    rate?.addEventListener("input",()=>{const r=Number(rate.value)||0;rate.value=r;});
+    document.getElementById("savePredictivePlan")?.addEventListener("click",()=>{creatorNavPlanSave(id,{targetDate:date.value,rate:Number(rate.value)||0,pct:x.f.pct,savedAt:new Date().toISOString()});document.getElementById("planSaved").textContent="Scenario saved.";});
   }
-  detail.innerHTML='<div style="font-size:.8rem;opacity:.7">Select a collection to inspect its predictive timeline.</div>';
-  data[0]&&renderDetail(data[0].c.id,data[0].f.velocity);
+  data[0]&&renderDetail(data[0].c.id);
   host.querySelectorAll("[data-predictive-select]").forEach(b=>b.addEventListener("click",()=>renderDetail(b.dataset.predictiveSelect)));
-  host.querySelectorAll("[data-predictive-open]").forEach(b=>b.addEventListener("click",()=>creatorNavCollectionOpen(b.dataset.predictiveOpen)));
 }
 
 function creatorNavForecastTrendRead(){try{return JSON.parse(localStorage.getItem("crowrules_creator_forecast_trends_v1")||"{}");}catch{return {};}}
