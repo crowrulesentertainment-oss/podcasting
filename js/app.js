@@ -207,6 +207,7 @@ function creatorNavSyncSignatureGet(data){
 async function creatorNavSyncRefresh(){
   if(typeof data==="undefined")return;
   await creatorNavServerTaskBridgeSync(data);
+  await creatorNavServerProductionState();
   const sig=creatorNavSyncSignatureGet(data);if(sig===creatorNavSyncSignature)return;
   creatorNavSyncSignature=sig;creatorNavSyncWrite({updatedAt:new Date().toISOString(),signature:sig});
   renderCalendar?.(14);renderScheduler?.();renderProductionBoard?.();renderAdaptiveSchedule?.();renderProductionControlRoom?.();renderProductionEventStream?.();renderProductionIntelligence?.();renderCreatorPerformanceIntelligence?.();renderIntelligentAssignments?.();renderAutonomousOptimizer?.();renderOptimizationSimulatorPanel?.();renderScenarioWorkspace?.();renderScenarioComparisonMatrix?.();renderScenarioApprovalEngine?.();renderChangeManagement?.();renderProductionTransactionConsole?.();renderTransactionSafety?.();renderTransactionTimeline?.();renderTransactionForensics?.();renderAuditCompliance?.();renderCryptographicGovernance?.();renderIdentityGovernance?.();
@@ -474,6 +475,13 @@ let creatorNavNotificationChannel=null;
 let creatorNavNotifications=[];
 const CREATOR_NAV_NOTIFICATIONS_KEY="crowrules_creator_notifications_v1";
 
+async function creatorNavServerProductionState(){
+  try{
+    const r=await creatorNavServerCall("production-state",{});
+    window.creatorNavServerProductionState=r;
+    return r;
+  }catch(e){console.warn("Server production state unavailable",e);return null;}
+}
 async function creatorNavServerTaskBridgeSync(data){
   try{
     const tasks=[];
@@ -725,7 +733,7 @@ function creatorNavRealtimeStart(){
     .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_audit_ledger"},creatorNavRealtimeScheduleRefresh)
     .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_task_locks"},()=>{creatorNavServerLocksRefresh();creatorNavRealtimeScheduleRefresh();})
     .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_tasks"},()=>{creatorNavServerTaskBridgeSync(data);creatorNavRealtimeScheduleRefresh();})
-    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_task_health"},()=>{creatorNavServerHealthRefresh();creatorNavRealtimeScheduleRefresh();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_task_health"},()=>{creatorNavServerHealthRefresh();creatorNavRealtimeScheduleRefresh();})\n    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_roadmaps"},()=>{creatorNavServerProductionState();creatorNavRealtimeScheduleRefresh();})\n    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_roadmap_steps"},()=>{creatorNavServerProductionState();creatorNavRealtimeScheduleRefresh();})
     .subscribe(status=>{
       if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){
         creatorNavRealtimeStarted=false;
