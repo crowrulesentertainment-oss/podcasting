@@ -327,6 +327,27 @@ export default {
       }
       return json({escalated:results});
     }
+    if (action === "roadmap-sync") {
+      if(!permissions.includes("create"))return json({error:"ROADMAP_SYNC_FORBIDDEN"},403);
+      const roadmap=body.roadmap||{}; const steps=Array.isArray(body.steps)?body.steps:[];
+      if(!roadmap.id)return json({error:"ROADMAP_REQUIRED"},400);
+      const {error:re}=await ctx.supabaseAdmin.from("creator_governance_roadmaps").upsert({id:String(roadmap.id),name:String(roadmap.name||roadmap.id),target_date:roadmap.target_date||null,velocity:Number(roadmap.velocity||0),created_by:userId,updated_at:new Date().toISOString()},{onConflict:"id"});
+      if(re)return json({error:re.message},500);
+      const rows=steps.slice(0,500).map((s:any)=>({roadmap_id:String(roadmap.id),step_key:String(s.step_key||s.key||""),step_name:String(s.step_name||s.name||s.key||"Step"),ordinal:Number(s.ordinal??s.i??0),target_date:s.target_date||null,dependency_key:s.dependency_key||s.dependency||null,owner_user_id:s.owner_user_id||null,status:["OPEN","IN_PROGRESS","COMPLETE","BLOCKED"].includes(s.status)?s.status:"OPEN"})).filter((s:any)=>s.step_key);
+      if(rows.length){const {error:se}=await ctx.supabaseAdmin.from("creator_governance_roadmap_steps").upsert(rows,{onConflict:"roadmap_id,step_key"});if(se)return json({error:se.message},500);}
+      return json({roadmap_id:String(roadmap.id),steps:rows.length});
+    }
+    if (action === "production-state") {
+      if(!permissions.includes("view"))return json({error:"STATE_FORBIDDEN"},403);
+      const [r,s,t,h,caps]=await Promise.all([
+        ctx.supabaseAdmin.from("creator_governance_roadmaps").select("*").order("updated_at",{ascending:false}),
+        ctx.supabaseAdmin.from("creator_governance_roadmap_steps").select("*").order("ordinal",{ascending:true}),
+        ctx.supabaseAdmin.from("creator_governance_tasks").select("*").order("target_date",{ascending:true,nullsLast:true}),
+        ctx.supabaseAdmin.from("creator_governance_task_health").select("*"),
+        ctx.supabaseAdmin.from("creator_governance_creator_capacity").select("*")
+      ]);
+      return json({roadmaps:r.data??[],steps:s.data??[],tasks:t.data??[],health:h.data??[],capacity:caps.data??[]});
+    }
     if (action === "task-sync") {
       if(!permissions.includes("create"))return json({error:"TASK_SYNC_FORBIDDEN"},403);
       const tasks=Array.isArray(body.tasks)?body.tasks:[];
