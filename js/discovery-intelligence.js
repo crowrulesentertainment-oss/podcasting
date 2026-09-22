@@ -79,8 +79,8 @@
 
   async function load() {
     const [p, e, c] = await Promise.all([
-      supabase.from("podcasts").select("id,title,slug,category,description,artwork_url,status,created_at,updated_at").in("status", ["active","published","live"]).limit(200),
-      supabase.from("podcast_episodes").select("id,title,episode_number,published_at,thumbnail_url,status").in("status", ["published","public","live"]).order("published_at", { ascending: false }).limit(40),
+      supabase.from("podcasts").select("id,title,slug,category,description,artwork_url,status,created_at,updated_at,creator_id").in("status", ["active","published","live"]).limit(200),
+      supabase.from("podcast_episodes").select("id,title,episode_number,published_at,thumbnail_url,status,podcast_id").in("status", ["published","public","live"]).order("published_at", { ascending: false }).limit(40),
       supabase.from("creators").select("id,name,slug,role,discipline,bio,avatar_url,is_active,created_at,updated_at").eq("is_active", true).limit(100)
     ]);
 
@@ -91,6 +91,9 @@
     state.podcasts = p.data || [];
     state.episodes = e.data || [];
     state.creators = c.data || [];
+
+    const categories = [...new Set(state.podcasts.map(x => x.category).filter(Boolean))].sort((a,b) => String(a).localeCompare(String(b)));
+    $("#discovery-category").innerHTML = '<option value="">Browse a category…</option>' + categories.map(x => '<option value="' + esc(x) + '">' + esc(x) + '</option>').join("");
 
     const podcastIds = new Set(state.podcasts.map(x => x.id));
     const episodeCounts = {};
