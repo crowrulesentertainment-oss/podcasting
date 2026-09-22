@@ -1497,6 +1497,15 @@
 
       <div class="header-actions">
 
+        <button
+          class="btn btn-secondary"
+          type="button"
+          id="inviteButton"
+          aria-label="Invite someone to CrowRules Podcasting"
+        >
+          Invite
+        </button>
+
         <a
           class="btn btn-secondary"
           href="login.html"
@@ -1654,6 +1663,14 @@
           >
             Explore Podcasting
           </a>
+
+          <button
+            class="btn btn-secondary"
+            type="button"
+            id="inviteButtonHero"
+          >
+            Invite Someone
+          </button>
 
         </div>
 
@@ -2264,6 +2281,61 @@
 
         }
       );
+
+
+      /* =====================================================
+         INVITE
+      ====================================================== */
+
+      function inviteToCrowRules() {
+        const inviteUrl = new URL("launch.html", window.location.href).href;
+        const inviteText =
+          "Join me for the launch of CrowRules Podcasting on January 1, 2027.";
+
+        if (navigator.share) {
+          navigator.share({
+            title: "CrowRules Podcasting",
+            text: inviteText,
+            url: inviteUrl
+          }).catch(() => {});
+          return;
+        }
+
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(
+            inviteText + " " + inviteUrl
+          ).then(() => {
+            const buttons = [
+              document.getElementById("inviteButton"),
+              document.getElementById("inviteButtonHero")
+            ].filter(Boolean);
+
+            buttons.forEach(button => {
+              const original = button.textContent;
+              button.textContent = "Invite Copied";
+              setTimeout(() => {
+                button.textContent = original;
+              }, 2200);
+            });
+          }).catch(() => {
+            window.prompt("Copy this CrowRules Podcasting invite:", inviteUrl);
+          });
+          return;
+        }
+
+        window.prompt("Copy this CrowRules Podcasting invite:", inviteUrl);
+      }
+
+      const inviteButton = document.getElementById("inviteButton");
+      const inviteButtonHero = document.getElementById("inviteButtonHero");
+
+      if (inviteButton) {
+        inviteButton.addEventListener("click", inviteToCrowRules);
+      }
+
+      if (inviteButtonHero) {
+        inviteButtonHero.addEventListener("click", inviteToCrowRules);
+      }
 
 
       /* =====================================================
