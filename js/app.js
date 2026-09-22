@@ -380,19 +380,51 @@ function creatorNavScenarioWorkspaceSave(name,opts={}){
 const CREATOR_NAV_CHANGESETS_KEY="crowrules_creator_change_sets_v1";
 function creatorNavChangeSetsRead(){try{const x=JSON.parse(localStorage.getItem(CREATOR_NAV_CHANGESETS_KEY)||"{}");return x&&typeof x==="object"?x:{};}catch{return {};}}
 function creatorNavChangeSetsWrite(x){try{localStorage.setItem(CREATOR_NAV_CHANGESETS_KEY,JSON.stringify(x));}catch{}}
+function creatorNavPreflightChangeSet(data,set){
+  const issues=[],steps=[];
+  (set?.changes||[]).forEach(ch=>{
+    const x=data.find(v=>v.c.id===ch.collectionId),road=x?creatorNavRoadmapSteps(x,x.target):[],idx=road.findIndex(st=>st.key===ch.key),step=idx>=0?road[idx]:null;
+    if(!x)issues.push({type:"missing-collection",key:ch.key,message:"Collection not found"});
+    else if(!step)issues.push({type:"missing-task",key:ch.key,message:"Task not found"});
+    else if(step.done)issues.push({type:"completed-task",key:ch.key,message:"Task is already complete"});
+    if(x&&idx>0&&!road[idx-1].done)issues.push({type:"dependency",key:ch.key,message:"Task dependency is incomplete"});
+    if(ch.after&&!creatorNavTeamEnsure().some(m=>m.id===ch.after&&m.active!==false))issues.push({type:"inactive-owner",key:ch.key,message:"Target creator is unavailable"});
+    steps.push({collectionId:ch.collectionId,key:ch.key,valid:!!step});
+  });
+  return {valid:issues.length===0,issues,steps,checkedAt:new Date().toISOString()};
+}
+function creatorNavChangeManifestHash(set){
+  const raw=JSON.stringify((set?.changes||[]).map(c=>({id:c.id,collectionId:c.collectionId,key:c.key,before:c.before,after:c.after,status:c.status})));
+  let h=0;for(let i=0;i<raw.length;i++)h=((h<<5)-h+raw.charCodeAt(i))|0;return "sha"+Math.abs(h).toString(16);
+}
+function creatorNavExecutionLog(changeSetId,event,detail){
+  const sets=creatorNavChangeSetsRead(),set=sets[changeSetId];if(!set)return;
+  set.executionLog=Array.isArray(set.executionLog)?set.executionLog:[];set.executionLog.push({event,detail,at:new Date().toISOString()});set.executionLog=set.executionLog.slice(-200);creatorNavChangeSetsWrite(sets);
+}
 function creatorNavBuildChangeSet(data,id){
   const all=creatorNavScenarioWorkspacesRead(),ws=all[id];if(!ws)return null;
   const current=creatorNavGlobalOptimization(data).plan,map={};current.forEach(x=>map[x.collectionId+"::"+x.key]=x.recommended.member.id);
   const changes=Object.entries(ws.options.reassign||{}).map(([key,to])=>{const [collectionId,taskKey]=key.split("::");return {id:"chg"+Date.now()+Math.random().toString(36).slice(2,6),collectionId,key:taskKey,before:map[key]||null,after:to,status:"PENDING"};});
-  const set={id:"cs"+Date.now(),scenarioId:id,createdAt:new Date().toISOString(),status:"PENDING",changes};const sets=creatorNavChangeSetsRead();sets[set.id]=set;creatorNavChangeSetsWrite(sets);return set;
+  const set={id:"cs"+Date.now(),scenarioId:id,createdAt:new Date().toISOString(),status:"PENDING",changes,manifestHash:null,preflight:null,executionLog:[],checkpoints:[]};set.manifestHash=creatorNavChangeManifestHash(set);const sets=creatorNavChangeSetsRead();sets[set.id]=set;creatorNavChangeSetsWrite(sets);return set;
 }
 function creatorNavApplyChangeSet(data,changeSetId){
+  const sets=creatorNavChangeSetsRead(),set=sets[changeSetId];if(!set||set.status!=="PENDING")return 0;
+  const pre=creatorNavPreflightChangeSet(data,set);set.preflight=pre;creatorNavExecutionLog(changeSetId,"preflight",pre);
+  if(!pre.valid){set.status="BLOCKED";creatorNavChangeSetsWrite(sets);creatorNavEvent("changeset-preflight-failed",{changeSetId,count:pre.issues.length});return 0;}
+  const applied=[];set.checkpoints=set.checkpoints||[];set.checkpoints.push({type:"before",at:new Date().toISOString(),manifestHash:set.manifestHash});
+  (set.changes||[]).forEach(ch=>{const before=creatorNavExecutionGet(ch.collectionId).assignments?.[ch.key]||null;try{if(before!==ch.after){creatorNavAssign(ch.collectionId,ch.key,ch.after);ch.status="APPLIED";ch.appliedAt=new Date().toISOString();applied.push({...ch,before});creatorNavExecutionLog(changeSetId,"change-applied",{key:ch.key,collectionId:ch.collectionId});}}catch(err){ch.status="FAILED";creatorNavExecutionLog(changeSetId,"change-failed",{key:ch.key,error:String(err)});}});
+  set.status=applied.length===(set.changes||[]).length?"APPLIED":"PARTIAL_FAILURE";set.appliedAt=new Date().toISOString();set.applied=applied;set.checkpoints.push({type:"after",at:new Date().toISOString(),count:applied.length});creatorNavChangeSetsWrite(sets);creatorNavEvent("changeset-applied",{changeSetId,scenarioId:set.scenarioId,count:applied.length,status:set.status});return applied.length;
+}
   const sets=creatorNavChangeSetsRead(),set=sets[changeSetId];if(!set||set.status!=="PENDING")return 0;
   const applied=[];
   (set.changes||[]).forEach(ch=>{const before=creatorNavExecutionGet(ch.collectionId).assignments?.[ch.key]||null;if(before!==ch.after){creatorNavAssign(ch.collectionId,ch.key,ch.after);ch.status="APPLIED";ch.appliedAt=new Date().toISOString();applied.push({...ch,before});}});
   set.status="APPLIED";set.appliedAt=new Date().toISOString();set.applied=applied;creatorNavChangeSetsWrite(sets);creatorNavEvent("changeset-applied",{changeSetId,scenarioId:set.scenarioId,count:applied.length});return applied.length;
 }
 function creatorNavRollbackChangeSet(changeSetId){
+  const sets=creatorNavChangeSetsRead(),set=sets[changeSetId];if(!set||!["APPLIED","PARTIAL_FAILURE"].includes(set.status))return 0;let n=0;
+  (set.applied||[]).slice().reverse().forEach(ch=>{try{if(ch.before){creatorNavAssign(ch.collectionId,ch.key,ch.before);n++;creatorNavExecutionLog(changeSetId,"rollback-change",{key:ch.key,collectionId:ch.collectionId});}}catch(err){creatorNavExecutionLog(changeSetId,"rollback-failed",{key:ch.key,error:String(err)});}});
+  set.status="ROLLED_BACK";set.rolledBackAt=new Date().toISOString();set.rollbackCount=n;set.checkpoints=set.checkpoints||[];set.checkpoints.push({type:"rollback",at:new Date().toISOString(),count:n});creatorNavChangeSetsWrite(sets);creatorNavEvent("changeset-rollback",{changeSetId,scenarioId:set.scenarioId,count:n});return n;
+}
   const sets=creatorNavChangeSetsRead(),set=sets[changeSetId];if(!set||set.status!=="APPLIED")return 0;let n=0;
   (set.applied||[]).slice().reverse().forEach(ch=>{if(ch.before){creatorNavAssign(ch.collectionId,ch.key,ch.before);n++;}});
   set.status="ROLLED_BACK";set.rolledBackAt=new Date().toISOString();set.rollbackCount=n;creatorNavChangeSetsWrite(sets);creatorNavEvent("changeset-rollback",{changeSetId,scenarioId:set.scenarioId,count:n});return n;
