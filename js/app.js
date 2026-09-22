@@ -396,6 +396,7 @@ function renderScheduler(){
   box.querySelectorAll("[data-board-column]").forEach(el=>el.addEventListener("drop",e=>{e.preventDefault();const raw=e.dataTransfer.getData("text/plain").split("|"),m=team.find(z=>z.id===el.dataset.boardColumn);if(raw.length!==2||!m)return;const x=data.find(z=>z.c.id===raw[0]),steps=creatorNavRoadmapSteps(x,x.target),i=steps.findIndex(z=>z.key===raw[1]),st=steps[i],dep=creatorNavDependencyStatus(x,st,i);if(st&&!st.done&&dep.state==="READY"){creatorNavBoardMove(raw[0],raw[1],m.id);renderProductionBoard();renderAdaptiveSchedule();renderProductionControlRoom();\n  renderCollaborativeControlRoom();
   renderCollaborativeNotificationsPanel();
   renderCollaborativeHandoffPanel();
+  renderCollaborativeNotificationPreferences();
   renderCollaborativeNotifications();
   renderCollaborativeHandoffInbox();renderProductionEventStream();renderProductionIntelligence();renderCreatorPerformanceIntelligence();renderIntelligentAssignments();renderAutonomousOptimizer();renderOptimizationSimulatorPanel();renderScenarioWorkspace();renderScenarioComparisonMatrix();renderScenarioApprovalEngine();renderChangeManagement();creatorNavSyncStart();renderCalendar(14);renderScheduler();}}));
 }function renderProductionEventStream(){
@@ -1103,6 +1104,15 @@ function renderProductionIntelligence(){
   box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:7px;margin-top:8px">'+[
     ["Completion",p.completion+"%"],["Open Tasks",p.open],["Throughput",p.velocity.toFixed(1)+" pts/day"],["Conflicts",p.conflicts],["Overdue",p.overdue],["Utilization",p.utilization+"%"],["Blocked",p.dependencyBottlenecks],["Recovery",p.recovery]
   ].map(x=>'<div class="card" style="padding:7px"><b>'+escText(String(x[1]))+'</b><small> '+escText(x[0].toUpperCase())+'</small></div>').join("")+'</div><div style="margin-top:10px"><b>CREATOR PERFORMANCE</b>'+p.workload.map(r=>'<div style="font-size:.74rem;margin-top:4px">'+escText(r.member.name)+' · '+r.load+' assigned / '+Number(r.member.capacity||0)+' capacity'+(r.over?' · ⚠ OVER':'')+'</div>').join("")+'</div><div style="margin-top:10px"><b>SCHEDULE HEALTH</b><div style="font-size:.74rem;margin-top:4px">'+(p.conflicts?'Schedule has '+p.conflicts+' active conflict(s), including '+p.overdue+' overdue.':'No active schedule conflicts.')+'</div></div><div style="margin-top:10px"><b>HISTORICAL PRODUCTION TREND</b><div style="display:flex;gap:3px;align-items:flex-end;height:70px;margin-top:6px">'+trend.map(e=>'<span title="'+escText(creatorNavEventTypeLabel(e.type))+'" style="display:block;width:10px;height:'+Math.max(8,Math.min(64,8+((new Date(e.at).getTime()/86400000)%7)*8))+'px;border:1px solid currentColor"></span>').join("")+'</div><small>Recent production-event activity · '+trend.length+' events shown</small></div>';
+}
+function renderCollaborativeNotificationPreferences(){
+  const id="creatorNavNotificationPreferences";if(document.getElementById(id))return;
+  const target=document.getElementById("creatorNavCollaborativeNotifications");if(!target)return;
+  const box=document.createElement("div");box.id=id;box.className="card";box.style.cssText="padding:8px;margin-top:8px";
+  box.innerHTML='<b>NOTIFICATION PREFERENCES</b><div style="font-size:.72rem;opacity:.7;margin:4px 0 6px">Choose which collaborative events appear in your notification center.</div>'+
+    ["enabled","handoffs","assignments","locks","system"].map(k=>'<label style="display:inline-flex;gap:5px;margin:4px 8px 4px 0"><input type="checkbox" data-notify-pref="'+k+'" '+(creatorNavNotificationPreferences[k]!==false?"checked":"")+'>'+k.toUpperCase()+'</label>').join("");
+  box.querySelectorAll("[data-notify-pref]").forEach(i=>i.onchange=()=>creatorNavServerPreferencesSave({[i.dataset.notifyPref]:i.checked}));
+  target.parentNode?.insertBefore(box,target.nextSibling);
 }
 function renderCollaborativeHandoffPanel(){
   if(document.getElementById("creatorNavHandoffInbox"))return;
