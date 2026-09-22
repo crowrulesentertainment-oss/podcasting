@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05050b">
+<title>Admin | CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<style>
+.admin-shell{padding:42px 0 100px}.admin-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;flex-wrap:wrap;margin-bottom:28px}
+.admin-head h1{font-size:clamp(34px,6vw,64px);margin:8px 0}.eyebrow{letter-spacing:.16em}.admin-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.metric{padding:20px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(18,18,36,.96),rgba(7,7,15,.96))}.metric span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.12em}.metric strong{display:block;font:700 32px Orbitron,sans-serif;margin-top:8px}.panel{padding:22px;border:1px solid var(--line);border-radius:20px;background:rgba(10,10,20,.9);margin-bottom:20px}.panel-head{display:flex;justify-content:space-between;gap:15px;align-items:center;margin-bottom:15px;flex-wrap:wrap}.panel h2{margin:0;font-size:20px}.table-wrap{overflow:auto}.data-table{width:100%;border-collapse:collapse;min-width:720px}.data-table th,.data-table td{text-align:left;padding:12px;border-bottom:1px solid rgba(255,255,255,.07);font-size:11px}.data-table th{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:9px}.badge{display:inline-flex;padding:5px 8px;border:1px solid var(--line);border-radius:999px;font-size:9px;text-transform:uppercase;letter-spacing:.08em}.badge.published,.badge.live{color:var(--success)}.badge.draft{color:var(--warning)}.badge.archived{color:var(--muted)}.empty{padding:25px;text-align:center;color:var(--muted);font-size:12px}.search{max-width:360px}.notice{margin-bottom:20px}.loading{min-height:320px;display:grid;place-items:center}.hidden{display:none!important}.admin-actions{display:flex;gap:9px;flex-wrap:wrap}.danger{color:var(--danger)}@media(max-width:1000px){.admin-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.admin-grid{grid-template-columns:1fr}.admin-shell{padding-top:28px}}
+</style>
+</head>
+<body>
+<div class="site-background" aria-hidden="true"><div class="background-stars"></div><div class="background-grid"></div><div class="background-glow background-glow-one"></div><div class="background-glow background-glow-two"></div><div class="background-noise"></div></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><div class="site-header-inner">
+<a class="brand" href="home.html"><span class="brand-mark">CR</span><span class="brand-text"><span class="brand-name">CrowRules</span><span class="brand-section">PODCASTING</span></span></a>
+<nav class="main-navigation" aria-label="Primary navigation"><a href="home.html">Home</a><a href="podcasts.html">Podcasts</a><a href="episodes.html">Episodes</a><a href="creator-studio.html">Creator Studio</a><a href="admin.html">Admin</a></nav>
+</div></header>
+<main id="main" class="admin-shell"><div class="wrap">
+<div id="loading" class="loading"><div class="auth-loading"><span class="loading-spinner"></span> Verifying administrator access…</div></div>
+<section id="denied" class="panel hidden"><h2>Administrator access required</h2><p>This dashboard is restricted to CrowRules administrators.</p><a class="btn" href="creator-studio.html">Return to Creator Studio</a></section>
+<section id="app" class="hidden">
+<div class="admin-head"><div><div class="eyebrow">CROWRULES PODCASTING · ADMIN</div><h1>Command <span class="glow">Center</span></h1><p>Monitor podcasts, episodes, and live channels from one protected dashboard.</p></div><div class="admin-actions"><button id="refresh" class="btn primary">Refresh</button><a class="btn" href="creator-studio.html">Creator Studio</a></div></div>
+<div id="notice" class="notice hidden"></div>
+<div class="admin-grid">
+<div class="metric"><span>Podcasts</span><strong id="mPodcasts">—</strong></div>
+<div class="metric"><span>Published Episodes</span><strong id="mEpisodes">—</strong></div>
+<div class="metric"><span>Total Plays</span><strong id="mPlays">—</strong></div>
+<div class="metric"><span>Live Channels</span><strong id="mLive">—</strong></div>
+</div>
+<section class="panel"><div class="panel-head"><h2>Podcasts</h2><input id="podcastSearch" class="search" placeholder="Search podcasts…"></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Podcast</th><th>Category</th><th>Status</th><th>Featured</th><th>Live</th><th>Plays</th></tr></thead><tbody id="podcastRows"></tbody></table></div></section>
+<section class="panel"><div class="panel-head"><h2>Episodes</h2><input id="episodeSearch" class="search" placeholder="Search episodes…"></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Episode</th><th>Podcast</th><th>Season/Episode</th><th>Status</th><th>Published</th><th>Plays</th></tr></thead><tbody id="episodeRows"></tbody></table></div></section>
+<section class="panel"><div class="panel-head"><h2>Live Channels</h2></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Channel</th><th>Status</th><th>Active</th><th>Listeners</th><th>Current Show</th><th>Updated</th></tr></thead><tbody id="liveRows"></tbody></table></div></section>
+</section>
+</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script>
+(()=>{"use strict";
+const $=id=>document.getElementById(id);let db,podcasts=[],episodes=[],channels=[];
+const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+function notice(msg,error=false){$("notice").textContent=msg;$("notice").className="notice"+(error?" error":"");$("notice").classList.remove("hidden")}
+function badge(v){return '<span class="badge '+esc(String(v||"").toLowerCase())+'">'+esc(v||"—")+"</span>"}
+function render(){
+ const ps=$("podcastSearch").value.toLowerCase(), es=$("episodeSearch").value.toLowerCase();
+ $("podcastRows").innerHTML=podcasts.filter(p=>(p.title+" "+(p.category||"")).toLowerCase().includes(ps)).map(p=>'<tr><td><strong>'+esc(p.title)+'</strong><br><small>'+esc(p.slug||"")+'</small></td><td>'+esc(p.category||"—")+'</td><td>'+badge(p.status)+'</td><td>'+esc(p.is_featured?"Yes":"No")+'</td><td>'+esc(p.is_live?"Yes":"No")+'</td><td>'+Number(p.total_plays||0).toLocaleString()+'</td></tr>').join("")||'<tr><td colspan="6" class="empty">No podcasts found.</td></tr>';
+ const byId=Object.fromEntries(podcasts.map(p=>[p.id,p.title]));
+ $("episodeRows").innerHTML=episodes.filter(e=>(e.title+" "+(byId[e.podcast_id]||"")).toLowerCase().includes(es)).map(e=>'<tr><td><strong>'+esc(e.title)+'</strong><br><small>'+esc(e.slug||"")+'</small></td><td>'+esc(byId[e.podcast_id]||"Unknown")+'</td><td>S'+esc(e.season_number||"1")+' · E'+esc(e.episode_number||"—")+'</td><td>'+badge(e.status)+'</td><td>'+esc(e.published_at?new Date(e.published_at).toLocaleString():"—")+'</td><td>'+Number(e.play_count||0).toLocaleString()+'</td></tr>').join("")||'<tr><td colspan="6" class="empty">No episodes found.</td></tr>';
+ $("liveRows").innerHTML=channels.map(c=>'<tr><td><strong>'+esc(c.name)+'</strong><br><small>'+esc(c.slug||"")+'</small></td><td>'+badge(c.status)+'</td><td>'+esc(c.is_active?"Yes":"No")+'</td><td>'+Number(c.listener_count||0).toLocaleString()+'</td><td>'+esc(c.current_title||"—")+'</td><td>'+esc(c.updated_at?new Date(c.updated_at).toLocaleString():"—")+'</td></tr>').join("")||'<tr><td colspan="6" class="empty">No live channels found.</td></tr>';
+}
+async function load(){
+ $("refresh").disabled=true;
+ try{
+  const [p,e,c]=await Promise.all([
+   db.from("podcasts").select("id,title,slug,category,status,is_featured,is_live,total_plays,created_at").order("created_at",{ascending:false}),
+   db.from("podcast_episodes").select("id,podcast_id,title,slug,episode_number,season_number,status,published_at,play_count,created_at").order("created_at",{ascending:false}).limit(500),
+   db.from("podcast_live_channels").select("id,name,slug,status,is_active,listener_count,current_title,updated_at").order("updated_at",{ascending:false})
+  ]);
+  if(p.error)throw p.error;if(e.error)throw e.error;if(c.error)throw c.error;
+  podcasts=p.data||[];episodes=e.data||[];channels=c.data||[];
+  $("mPodcasts").textContent=podcasts.length.toLocaleString();
+  $("mEpisodes").textContent=episodes.filter(x=>x.status==="published").length.toLocaleString();
+  $("mPlays").textContent=podcasts.reduce((n,x)=>n+Number(x.total_plays||0),0).toLocaleString();
+  $("mLive").textContent=channels.filter(x=>x.is_active&&["live","online","active"].includes(String(x.status||"").toLowerCase())).length.toLocaleString();
+  render();notice("Dashboard refreshed.");
+ }catch(err){console.error(err);notice(err.message||"Unable to load admin data.",true)}finally{$("refresh").disabled=false}
+}
+async function init(){
+ try{
+  const url=window.CROWRULES_SUPABASE_URL||window.SUPABASE_URL,key=window.CROWRULES_SUPABASE_PUBLISHABLE_KEY||window.SUPABASE_PUBLISHABLE_KEY||window.SUPABASE_ANON_KEY;
+  if(!url||!key||!window.supabase)throw new Error("Supabase configuration is missing.");
+  db=window.supabase.createClient(url,key);
+  const {data:{user},error}=await db.auth.getUser();if(error)throw error;
+  if(!user){$("loading").classList.add("hidden");$("denied").classList.remove("hidden");return}
+  const {data:isAdmin,error:adminError}=await db.rpc("crowrules_is_admin");
+  if(adminError)throw adminError;
+  if(isAdmin!==true){$("loading").classList.add("hidden");$("denied").classList.remove("hidden");return}
+  $("loading").classList.add("hidden");$("app").classList.remove("hidden");await load();
+ }catch(err){console.error(err);$("loading").classList.add("hidden");$("denied").classList.remove("hidden")}
+}
+$("refresh").addEventListener("click",load);$("podcastSearch").addEventListener("input",render);$("episodeSearch").addEventListener("input",render);init();
+})();
+</script>
+</body></html>
