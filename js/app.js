@@ -187,10 +187,15 @@ function creatorNavHistoryRecord(url,state){
   const last=rows[rows.length-1];
   if(last&&last.url===url){
     last.state=state||last.state||{};
+    if(!last.name)last.name=creatorNavHistoryAutoName(last);
+    if(!last.group)last.group=creatorNavHistoryAutoGroup(last);
     creatorNavHistoryWrite(rows);
     return;
   }
-  rows.push({url,state:state||{}});
+  const entry={url,state:state||{}};
+  entry.name=creatorNavHistoryAutoName(entry);
+  entry.group=creatorNavHistoryAutoGroup(entry);
+  rows.push(entry);
   creatorNavHistoryWrite(rows);
 }
 
@@ -258,16 +263,30 @@ function creatorNavHistoryDisplayValue(key,value){
   return raw;
 }
 
-function creatorNavHistorySnapshotName(entry){
+function creatorNavHistoryAutoGroup(entry){
+  const page=creatorNavHistoryLabel(entry.url).toLowerCase();
+  if(/episode|upload|handoff|review|final gate/.test(page))return "Episodes";
+  if(/insight|metric|analytics|health/.test(page))return "Analytics";
+  if(/release|launch|publishing/.test(page))return "Publishing";
+  if(/production|command center|studio/.test(page))return "Production";
+  return "Production";
+}
+
+function creatorNavHistoryAutoName(entry){
   const base=creatorNavHistoryLabel(entry.url);
   const state=entry.state||{};
   const parts=[];
   Object.entries(state).forEach(([key,item])=>{
     if(!item||item.value===undefined||item.value==="")return;
-    const label=creatorNavHistoryFieldLabel(key);
-    parts.push(label+": "+creatorNavHistoryDisplayValue(key,item.value));
+    parts.push(creatorNavHistoryFieldLabel(key)+": "+creatorNavHistoryDisplayValue(key,item.value));
   });
-  return parts.length?base+" · "+parts.slice(0,4).join(" · ")+(parts.length>4?" · …":""):base+" · Default View";
+  if(/episode health/i.test(base)&&state.status&&state.status.value)return base+" · "+creatorNavHistoryDisplayValue("status",state.status.value)+" Episodes";
+  if(parts.length)return base+" · "+parts.slice(0,3).join(" · ");
+  return base+" · Default View";
+}
+
+function creatorNavHistorySnapshotName(entry){
+  return entry.name||creatorNavHistoryAutoName(entry);
 }
 
 function creatorNavHistoryStateSummary(state){
