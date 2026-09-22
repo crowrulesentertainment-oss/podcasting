@@ -84,15 +84,35 @@ function creatorNavHealthAlertSetDismissed(id,type,value){const x=creatorNavHeal
 function creatorNavHealthAlertAcknowledge(id,type){creatorNavHealthAlertSetDismissed(id,type,true);creatorNavActivityAdd("alert-ack",id,"Acknowledged health alert: "+type,{alertType:type});creatorNavCollectionHealthAlertsRender();}
 function creatorNavHealthAlertRestore(id,type){creatorNavHealthAlertSetDismissed(id,type,false);creatorNavActivityAdd("alert-restore",id,"Restored health alert: "+type,{alertType:type});creatorNavCollectionHealthAlertsRender();}
 function creatorNavHealthAlertHistory(){return creatorNavActivityRead().filter(e=>e.type==="alert-ack"||e.type==="alert-restore").sort((a,b)=>new Date(b.at)-new Date(a.at));}
+function creatorNavForecastAnalytics(id,f,t){
+  const rows=t?.history||[],recent=rows.slice(-8);
+  let actual=0,predicted=0,errors=[];
+  for(let i=0;i<rows.length-1;i++){
+    const a=rows[i],n=rows[i+1],days=Math.max(1,(new Date(n.day)-new Date(a.day))/86400000),v=Number(a.velocity)||0,p=Math.min(100,a.pct+v*days);
+    predicted+=p;actual+=n.pct;errors.push(Math.abs(p-n.pct));
+  }
+  const accuracy=errors.length?Math.max(0,Math.round(100-(errors.reduce((a,b)=>a+b,0)/errors.length))):null;
+  const milestoneTotal=Math.max(1,(creatorNavCollectionHealth(id)?.milestones||[]).length),milestones=f.milestoneCount;
+  const milestonePct=Math.round(milestones/milestoneTotal*100);
+  return {recent,accuracy,predicted,actual,errors,milestonePct,milestones,milestoneTotal};
+}
+function creatorNavCreatorHealthIndex(data){
+  if(!data.length)return 0;
+  const weights={AT_RISK:35,"NEEDS ATTENTION":55,"LIKELY TO COMPLETE":90};
+  return Math.round(data.reduce((sum,x)=>{const trend=x.t.direction==="IMPROVING"?10:x.t.direction==="DECLINING"?-10:0;return sum+Math.max(0,Math.min(100,(weights[x.f.status]||50)+trend+(x.f.pct>=75?10:0)));},0)/data.length);
+}
 function creatorNavForecastDashboardRender(){
   const host=document.getElementById("creatorNavForecastDashboard");if(!host)return;
-  const cs=creatorNavCollectionsRead(),data=cs.map(c=>({c,f:creatorNavCollectionForecast(c.id),t:creatorNavForecastTrend(c.id,creatorNavCollectionForecast(c.id))}));
-  const escText=x=>esc(String(x??""));
-  host.innerHTML='<div class="card" style="padding:14px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">COLLECTION HEALTH FORECAST DASHBOARD</div><h2 style="margin:.25rem 0">FORECAST OVERVIEW</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:10px">'+
-  data.map(x=>'<div class="card" style="padding:10px"><b>'+escText(x.c.name)+'</b><div style="font-size:.82rem;margin-top:4px">'+escText(x.f.status)+'</div><div style="font-size:.8rem;margin-top:3px">'+x.f.pct+'% complete · '+x.f.velocity+' pts/day</div><div style="font-size:.8rem;margin-top:3px">Trend: '+escText(x.t.direction)+' · '+x.t.change+' pts</div></div>').join("")+
-  '</div><div style="margin-top:16px"><strong>TRAJECTORY</strong>'+data.map(x=>'<div style="margin-top:10px"><div style="display:flex;justify-content:space-between;gap:8px;font-size:.82rem"><b>'+escText(x.c.name)+'</b><span>'+x.f.pct+'%</span></div><div style="height:8px;border-radius:99px;background:rgba(127,127,127,.2);overflow:hidden;margin-top:4px"><div style="height:100%;width:'+Math.max(0,Math.min(100,x.f.pct))+'%;background:currentColor"></div></div><div style="font-size:.76rem;opacity:.7;margin-top:3px">Velocity '+x.f.velocity+' pts/day · Trend '+escText(x.t.direction)+' · ETA '+(x.f.eta===null?"unknown":x.f.eta+" day(s)")+'</div></div>').join("")+'</div>'+
-  '<div style="margin-top:16px"><strong>FORECAST HISTORY</strong>'+data.map(x=>'<div style="margin-top:8px;font-size:.8rem"><b>'+escText(x.c.name)+'</b> · '+x.t.history.slice(-7).map(h=>escText(h.day)+': '+h.pct+'% ('+escText(h.status)+')').join(" · ")+'</div>').join("")+'</div></div>';
+  const cs=creatorNavCollectionsRead(),data=cs.map(c=>{const f=creatorNavCollectionForecast(c.id),t=creatorNavForecastTrend(c.id,f),a=creatorNavForecastAnalytics(c.id,f,t);return {c,f,t,a};}),index=creatorNavCreatorHealthIndex(data),escText=x=>esc(String(x??""));
+  host.innerHTML='<div class="card" style="padding:14px"><div style="font-size:.75rem;letter-spacing:.08em;opacity:.7">COLLECTION HEALTH FORECAST ANALYTICS</div><h2 style="margin:.25rem 0">CREATOR STUDIO HEALTH INDEX · '+index+'/100</h2><div style="font-size:.84rem;opacity:.75">Composite operational indicator based on forecast status, progress, and trend direction. It is a workflow signal, not a guarantee.</div>'+
+  '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:12px">'+data.map(x=>'<div class="card" style="padding:10px"><b>'+escText(x.c.name)+'</b><div style="font-size:.82rem;margin-top:4px">'+escText(x.f.status)+' · '+escText(x.t.direction)+'</div><div style="font-size:.8rem;margin-top:3px">'+x.f.pct+'% complete · '+x.f.velocity+' pts/day</div><div style="font-size:.8rem;margin-top:3px">Milestones: '+x.a.milestones+'/'+x.a.milestoneTotal+' ('+x.a.milestonePct+'%)</div><div style="font-size:.8rem;margin-top:3px">Forecast accuracy: '+(x.a.accuracy===null?"Building history":x.a.accuracy+"%")+'</div></div>').join("")+'</div>'+
+  '<div style="margin-top:16px"><strong>VELOCITY VS FORECAST</strong>'+data.map(x=>'<div style="margin-top:9px"><b>'+escText(x.c.name)+'</b><div style="font-size:.8rem;margin-top:3px">Actual velocity: '+x.f.velocity+' pts/day · Forecast trajectory: '+(x.f.velocity>0?Math.round((x.f.pct+x.f.velocity*7)*10)/10: x.f.pct)+'% in 7 days</div><div style="height:7px;background:rgba(127,127,127,.2);border-radius:99px;margin-top:4px;overflow:hidden"><div style="height:100%;width:'+Math.max(0,Math.min(100,x.f.pct))+'%;background:currentColor"></div></div></div>').join("")+'</div>'+
+  '<div style="margin-top:16px"><strong>MILESTONE TRAJECTORY</strong>'+data.map(x=>'<div style="font-size:.82rem;margin-top:7px"><b>'+escText(x.c.name)+'</b> · '+x.a.milestones+'/'+x.a.milestoneTotal+' completed · '+x.a.milestonePct+'% milestone coverage</div>').join("")+'</div>'+
+  '<div style="margin-top:16px"><strong>FORECAST ACCURACY</strong>'+data.map(x=>'<div style="font-size:.82rem;margin-top:7px"><b>'+escText(x.c.name)+'</b> · '+(x.a.accuracy===null?"Not enough history yet":x.a.accuracy+"% historical next-point accuracy")+'</div>').join("")+'</div>'+
+  '<div style="margin-top:16px"><strong>HEALTH TREND</strong>'+data.map(x=>'<div style="font-size:.82rem;margin-top:7px"><b>'+escText(x.c.name)+'</b> · '+escText(x.t.direction)+' · '+x.t.change+' pts · velocity change '+x.t.velocityDelta+' pts/day<div style="font-family:monospace;font-size:.78rem;margin-top:3px">'+x.t.history.slice(-12).map(h=>h.status==="AT RISK"?"▾":h.status==="LIKELY TO COMPLETE"?"▴":"•").join(" ")+'</div></div>').join("")+'</div>'+
+  '<div style="margin-top:16px"><strong>RECENT HISTORY</strong>'+data.map(x=>'<div style="font-size:.78rem;margin-top:7px"><b>'+escText(x.c.name)+'</b> · '+x.a.recent.map(h=>escText(h.day)+': '+h.pct+'% / '+h.velocity+' pts/day').join(" · ")+'</div>').join("")+'</div></div>';
 }
+
 function creatorNavForecastTrendRead(){try{return JSON.parse(localStorage.getItem("crowrules_creator_forecast_trends_v1")||"{}");}catch{return {};}}
 function creatorNavForecastTrendWrite(x){try{localStorage.setItem("crowrules_creator_forecast_trends_v1",JSON.stringify(x));}catch{}}
 function creatorNavForecastTrendRecord(id,f){
