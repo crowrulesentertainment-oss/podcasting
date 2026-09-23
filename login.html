@@ -12,166 +12,274 @@
   <link rel="canonical" href="https://crowrulesentertainment-oss.github.io/podcasting/login.html">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/podcasting.css">
+  <link rel="stylesheet" href="css/professional-experience.css">
   <title>Login | CrowRules Podcasting</title>
   <style>
-    .auth-page{min-height:100vh;display:flex;flex-direction:column}
-    .auth-header{position:relative;z-index:5;padding:22px 5vw;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(3,3,8,.72);backdrop-filter:blur(18px)}
-    .auth-brand{font-family:Orbitron,sans-serif;font-weight:800;letter-spacing:.08em;color:#fff;text-decoration:none}
-    .auth-brand span{opacity:.65}
-    .auth-main{flex:1;display:grid;place-items:center;padding:70px 20px}
-    .auth-card{width:min(100%,520px);padding:clamp(26px,5vw,48px);border:1px solid rgba(255,255,255,.12);border-radius:24px;background:linear-gradient(145deg,rgba(17,17,28,.92),rgba(5,5,12,.92));box-shadow:0 30px 90px rgba(0,0,0,.45)}
-    .auth-card h1{margin:.25rem 0 .5rem;font-family:Orbitron,sans-serif}
-    .auth-sub{color:rgba(255,255,255,.68);line-height:1.7}
-    .auth-divider{display:flex;align-items:center;gap:12px;margin:22px 0;color:rgba(255,255,255,.4);font-size:.75rem;letter-spacing:.14em}
+    :root{--auth-cyan:#45e8ff;--auth-purple:#a56bff;--auth-pink:#ff4fd8}
+    .auth-page{min-height:100vh;position:relative;overflow:hidden;background:#05050b}
+    .auth-page:before{content:"";position:fixed;inset:0;pointer-events:none;background:
+      radial-gradient(circle at 15% 25%,rgba(69,232,255,.13),transparent 28%),
+      radial-gradient(circle at 85% 30%,rgba(165,107,255,.14),transparent 30%),
+      radial-gradient(circle at 50% 100%,rgba(255,79,216,.09),transparent 35%)}
+    .auth-page:after{content:"";position:fixed;inset:0;pointer-events:none;opacity:.22;background-image:
+      linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+      background-size:72px 72px;mask-image:linear-gradient(to bottom,transparent,black 25%,black 75%,transparent)}
+    .auth-main{position:relative;z-index:1;min-height:calc(100vh - 80px);display:grid;place-items:center;padding:70px 20px}
+    .auth-shell{width:min(100%,1080px);display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,520px);gap:50px;align-items:center}
+    .auth-visual{padding:20px 0}
+    .auth-kicker{display:inline-flex;align-items:center;gap:9px;font:700 .72rem/1 Montserrat,sans-serif;letter-spacing:.18em;color:var(--auth-cyan)}
+    .auth-kicker:before{content:"";width:34px;height:1px;background:currentColor;box-shadow:0 0 14px currentColor}
+    .auth-visual h1{margin:18px 0 18px;font:800 clamp(2.8rem,6vw,5.8rem)/.94 Orbitron,sans-serif;letter-spacing:-.04em}
+    .auth-visual h1 span{display:block;background:linear-gradient(100deg,#fff 0%,var(--auth-cyan) 45%,var(--auth-purple) 78%,var(--auth-pink) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .auth-lead{max-width:560px;color:rgba(255,255,255,.66);font-size:1.05rem;line-height:1.8}
+    .auth-signal{position:relative;margin-top:36px;height:92px;display:flex;align-items:center;gap:5px;max-width:560px;overflow:hidden;opacity:.72}
+    .auth-signal:before{content:"";position:absolute;left:0;right:0;height:1px;background:rgba(255,255,255,.1)}
+    .auth-signal i{width:3px;height:var(--h);border-radius:99px;background:linear-gradient(to top,var(--auth-purple),var(--auth-cyan));box-shadow:0 0 12px rgba(69,232,255,.3);animation:signal 1.15s ease-in-out infinite alternate;animation-delay:var(--d)}
+    @keyframes signal{from{transform:scaleY(.45);opacity:.45}to{transform:scaleY(1);opacity:1}}
+    .auth-microcopy{display:flex;gap:22px;flex-wrap:wrap;margin-top:22px;color:rgba(255,255,255,.42);font-size:.78rem}
+    .auth-microcopy span:before{content:"●";margin-right:7px;color:var(--auth-cyan);font-size:.55rem;vertical-align:middle}
+    .auth-card{width:100%;padding:clamp(26px,5vw,48px);border:1px solid rgba(255,255,255,.12);border-radius:26px;background:linear-gradient(145deg,rgba(18,18,31,.94),rgba(5,5,12,.96));box-shadow:0 35px 110px rgba(0,0,0,.55),0 0 70px rgba(69,232,255,.05);backdrop-filter:blur(22px)}
+    .auth-card:focus-within{border-color:rgba(69,232,255,.28);box-shadow:0 35px 110px rgba(0,0,0,.55),0 0 80px rgba(69,232,255,.09)}
+    .auth-card h2{margin:.35rem 0 .5rem;font:800 clamp(1.5rem,4vw,2.15rem)/1.1 Orbitron,sans-serif}
+    .auth-sub{color:rgba(255,255,255,.64);line-height:1.7;margin-bottom:22px}
+    .auth-status{display:none;margin:16px 0;padding:13px 14px;border-radius:13px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);line-height:1.55;font-size:.9rem}
+    .auth-status.show{display:block}.auth-status.error{border-color:rgba(255,80,110,.38);background:rgba(255,60,90,.07)}.auth-status.success{border-color:rgba(80,255,190,.3);background:rgba(80,255,190,.05)}
+    .auth-status.info{border-color:rgba(69,232,255,.25);background:rgba(69,232,255,.05)}
+    .auth-google{width:100%;display:flex;justify-content:center;align-items:center;gap:10px}.auth-google svg{width:18px;height:18px}
+    .auth-divider{display:flex;align-items:center;gap:12px;margin:22px 0;color:rgba(255,255,255,.38);font-size:.7rem;font-weight:700;letter-spacing:.16em}
     .auth-divider:before,.auth-divider:after{content:"";height:1px;flex:1;background:rgba(255,255,255,.1)}
-    .auth-status{display:none;margin:14px 0;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);line-height:1.5}
-    .auth-status.show{display:block}
-    .auth-status.error{border-color:rgba(255,80,110,.35)}
-    .auth-status.success{border-color:rgba(80,255,190,.3)}
-    .auth-google{width:100%;display:flex;justify-content:center;align-items:center;gap:10px}
-    .auth-google svg{width:18px;height:18px}
-    .auth-links{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:18px}
-    .auth-links a{color:rgba(255,255,255,.75)}
-    .auth-footer{text-align:center;padding:25px;color:rgba(255,255,255,.45);font-size:.8rem}
-    .auth-loading{opacity:.7;pointer-events:none}
+    .password-wrap{position:relative}.password-wrap input{padding-right:92px}
+    .password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:rgba(255,255,255,.56);font:700 .68rem Montserrat,sans-serif;letter-spacing:.08em;padding:9px;cursor:pointer}
+    .password-toggle:hover,.password-toggle:focus-visible{color:#fff}
+    .caps-warning{display:none;margin-top:7px;color:#ffcf6e;font-size:.72rem}.caps-warning.show{display:block}
+    .auth-links{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:18px}.auth-links a{color:rgba(255,255,255,.72)}
+    .auth-trust{display:flex;gap:10px;align-items:flex-start;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.43);font-size:.73rem;line-height:1.55}
+    .auth-trust strong{display:block;color:rgba(255,255,255,.68);margin-bottom:2px}
+    .auth-orb{width:9px;height:9px;flex:0 0 9px;margin-top:4px;border-radius:50%;background:var(--auth-cyan);box-shadow:0 0 18px var(--auth-cyan)}
+    .auth-loading{opacity:.78;pointer-events:none}
+    .auth-card .btn{min-height:48px}
+    @media(max-width:900px){.auth-shell{grid-template-columns:1fr;max-width:560px;gap:18px}.auth-visual{text-align:center;padding-top:0}.auth-kicker{justify-content:center}.auth-lead{margin-inline:auto}.auth-signal{margin-inline:auto}.auth-microcopy{justify-content:center}.auth-main{padding-top:45px}}
+    @media(max-width:560px){.auth-main{padding:30px 14px}.auth-visual h1{font-size:2.45rem}.auth-card{padding:24px 20px;border-radius:20px}.auth-links{flex-direction:column;gap:8px}.auth-links a{text-align:center}.auth-signal{height:65px}}
+    @media(prefers-reduced-motion:reduce){.auth-signal i{animation:none}.auth-page:after{display:none}}
   </style>
-<link rel="stylesheet" href="css/global-navigation.css">
-<script src="js/global-navigation.js" defer></script>
 </head>
 <body>
 <div class="auth-page">
-  <header class="auth-header">
-    <a class="auth-brand" href="index.html">CROWRULES <span>· PODCASTING</span></a>
-  </header>
-
   <main class="auth-main">
-    <section class="auth-card" aria-labelledby="login-title">
-      <span class="eyebrow">UNIVERSAL CROWRULES MEMBERSHIP</span>
-      <h1 id="login-title">WELCOME BACK</h1>
-      <p class="auth-sub">One Account. One Universe.<br>Sign in to continue to CrowRules Podcasting.</p>
+    <div class="auth-shell">
+      <section class="auth-visual" aria-label="CrowRules Podcasting">
+        <div class="auth-kicker">UNIVERSAL MEMBERSHIP</div>
+        <h1>YOUR VOICE.<span>YOUR UNIVERSE.</span></h1>
+        <p class="auth-lead">Sign in once and return to the CrowRules Podcasting experience—your podcasts, creators, listening activity, saved episodes, follows, and member features in one connected universe.</p>
+        <div class="auth-signal" aria-hidden="true">
+          <i style="--h:28%;--d:-.2s"></i><i style="--h:54%;--d:-.7s"></i><i style="--h:82%;--d:-.1s"></i><i style="--h:42%;--d:-.5s"></i><i style="--h:95%;--d:-.8s"></i><i style="--h:61%;--d:-.3s"></i><i style="--h:35%;--d:-.9s"></i><i style="--h:76%;--d:-.4s"></i><i style="--h:48%;--d:-.6s"></i><i style="--h:90%;--d:-.15s"></i><i style="--h:58%;--d:-.75s"></i><i style="--h:32%;--d:-.45s"></i><i style="--h:72%;--d:-.25s"></i><i style="--h:46%;--d:-.65s"></i><i style="--h:86%;--d:-.35s"></i><i style="--h:40%;--d:-.55s"></i><i style="--h:68%;--d:-.05s"></i><i style="--h:52%;--d:-.85s"></i><i style="--h:92%;--d:-.42s"></i>
+        </div>
+        <div class="auth-microcopy"><span>ONE ACCOUNT</span><span>CONNECTED EXPERIENCES</span><span>YOUR STORY</span></div>
+      </section>
 
-      <div id="auth-status" class="auth-status" role="status" aria-live="polite"></div>
+      <section class="auth-card" aria-labelledby="login-title">
+        <span class="eyebrow">WELCOME BACK</span>
+        <h2 id="login-title">ENTER THE UNIVERSE</h2>
+        <p class="auth-sub">Sign in to continue to CrowRules Podcasting.</p>
 
-      <button id="google-login" class="btn primary auth-google" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.35 12.27c0-.72-.06-1.41-.18-2.07H12v3.92h5.24a4.48 4.48 0 0 1-1.94 2.94v2.44h3.14c1.84-1.69 2.91-4.18 2.91-7.23Z"/><path fill="currentColor" d="M12 21.8c2.63 0 4.84-.87 6.45-2.35l-3.14-2.44c-.87.58-1.98.92-3.31.92-2.54 0-4.69-1.72-5.46-4.03H3.3v2.51A9.75 9.75 0 0 0 12 21.8Z"/><path fill="currentColor" d="M6.54 13.9A5.86 5.86 0 0 1 6.23 12c0-.66.11-1.3.31-1.9V7.59H3.3A9.75 9.75 0 0 0 2.25 12c0 1.58.38 3.08 1.05 4.41l3.24-2.51Z"/><path fill="currentColor" d="M12 6.07c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.84 3.16 14.63 2.2 12 2.2a9.75 9.75 0 0 0-8.7 5.39l3.24 2.51C7.31 7.79 9.46 6.07 12 6.07Z"/></svg>
-        CONTINUE WITH GOOGLE
-      </button>
+        <div id="auth-status" class="auth-status" role="status" aria-live="polite"></div>
 
-      <div class="auth-divider">OR EMAIL</div>
+        <button id="google-login" class="btn primary auth-google" type="button" aria-label="Continue with Google">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.35 12.27c0-.72-.06-1.41-.18-2.07H12v3.92h5.24a4.48 4.48 0 0 1-1.94 2.94v2.44h3.14c1.84-1.69 2.91-4.18 2.91-7.23Z"/><path fill="currentColor" d="M12 21.8c2.63 0 4.84-.87 6.45-2.35l-3.14-2.44c-.87.58-1.98.92-3.31.92-2.54 0-4.69-1.72-5.46-4.03H3.3v2.51A9.75 9.75 0 0 0 12 21.8Z"/><path fill="currentColor" d="M6.54 13.9A5.86 5.86 0 0 1 6.23 12c0-.66.11-1.3.31-1.9V7.59H3.3A9.75 9.75 0 0 0 2.25 12c0 1.58.38 3.08 1.05 4.41l3.24-2.51Z"/><path fill="currentColor" d="M12 6.07c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.84 3.16 14.63 2.2 12 2.2a9.75 9.75 0 0 0-8.7 5.39l3.24 2.51C7.31 7.79 9.46 6.07 12 6.07Z"/></svg>
+          CONTINUE WITH GOOGLE
+        </button>
 
-      <form id="login-form" class="form" novalidate>
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required placeholder="you@example.com">
+        <div class="auth-divider">OR EMAIL</div>
+
+        <form id="login-form" class="form" novalidate>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required placeholder="you@example.com" spellcheck="false">
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="password-wrap">
+              <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Your password">
+              <button id="password-toggle" class="password-toggle" type="button" aria-controls="password" aria-pressed="false">SHOW</button>
+            </div>
+            <div id="caps-warning" class="caps-warning" role="status">Caps Lock appears to be on.</div>
+          </div>
+
+          <button id="login-button" class="btn primary" type="submit">LOGIN TO CROWRULES</button>
+        </form>
+
+        <div class="auth-links">
+          <a href="reset-password.html">Forgot password?</a>
+          <a href="signup.html">Create an account</a>
         </div>
 
-        <div class="field">
-          <label for="password">Password</label>
-          <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Your password">
+        <div class="auth-trust">
+          <span class="auth-orb" aria-hidden="true"></span>
+          <div><strong>SECURE ACCOUNT ACCESS</strong>Your browser keeps the active session so you can move through connected CrowRules experiences without repeatedly signing in.</div>
         </div>
-
-        <button id="login-button" class="btn primary" type="submit">LOGIN TO CROWRULES</button>
-      </form>
-
-      <div class="auth-links">
-        <a href="reset-password.html">Forgot password?</a>
-        <a href="signup.html">Create an account</a>
-      </div>
-
-      <p style="margin-top:25px;font-size:.78rem;color:rgba(255,255,255,.45)">
-        Your CrowRules account can connect you across CrowRules experiences.
-      </p>
-    </section>
+      </section>
+    </div>
   </main>
-
-  <footer class="auth-footer">
-    <b>CROWRULES PODCASTING</b> · Your Voice. Your Story. Your Universe.
-  </footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script>
 (function(){
-  const supabase = window.supabase.createClient(\n    window.CROWRULES_SUPABASE_URL,\n    window.CROWRULES_SUPABASE_PUBLISHABLE_KEY,\n    { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }\n  );
+  "use strict";
+
+  if(!window.supabase || !window.CROWRULES_SUPABASE_URL || !window.CROWRULES_SUPABASE_PUBLISHABLE_KEY){
+    const status = document.getElementById("auth-status");
+    status.textContent = "CrowRules authentication is temporarily unavailable. Please try again shortly.";
+    status.className = "auth-status show error";
+    return;
+  }
+
+  const client = window.supabase.createClient(
+    window.CROWRULES_SUPABASE_URL,
+    window.CROWRULES_SUPABASE_PUBLISHABLE_KEY,
+    { auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true} }
+  );
+
   const form = document.getElementById("login-form");
   const email = document.getElementById("email");
   const password = document.getElementById("password");
   const button = document.getElementById("login-button");
   const google = document.getElementById("google-login");
   const status = document.getElementById("auth-status");
+  const toggle = document.getElementById("password-toggle");
+  const caps = document.getElementById("caps-warning");
 
   function show(message,type){
     status.textContent = message || "";
-    status.className = "auth-status show " + (type || "");
+    status.className = "auth-status show " + (type || "info");
   }
 
   function setBusy(busy,label){
     document.body.classList.toggle("auth-loading",busy);
-    button.textContent = busy ? label : "LOGIN TO CROWRULES";
+    button.disabled = busy;
     google.disabled = busy;
+    toggle.disabled = busy;
+    button.textContent = busy ? label : "LOGIN TO CROWRULES";
   }
 
   function destination(){
     const params = new URLSearchParams(location.search);
-    const next = params.get("next") || params.get("redirect");
-    return next && /^(?!https?:|javascript:)[^\s]+$/i.test(next) ? next : "profile.html";
+    const raw = params.get("next") || params.get("redirect");
+    if(!raw) return "profile.html";
+
+    try{
+      const decoded = decodeURIComponent(raw);
+      const target = new URL(decoded, location.href);
+      if(target.origin !== location.origin) return "profile.html";
+      if(target.protocol !== location.protocol) return "profile.html";
+      return target.pathname.replace(/^\//,"") + target.search + target.hash;
+    }catch(_){
+      return "profile.html";
+    }
   }
 
   async function redirectIfLoggedIn(){
-    if(!supabase) return;
-    const {data} = await supabase.auth.getUser();
-    if(data && data.user){
-      location.replace(destination());
+    try{
+      const {data,error} = await client.auth.getUser();
+      if(error) throw error;
+      if(data && data.user){
+        show("You are already signed in. Returning to your CrowRules account…","success");
+        location.replace(destination());
+      }
+    }catch(error){
+      console.warn("CrowRules session check failed:",error);
     }
   }
 
-  if(!supabase){
-    show("CrowRules authentication is temporarily unavailable. Please try again shortly.","error");
-    return;
+  function validEmail(value){
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   }
 
-  redirectIfLoggedIn();
+  toggle.addEventListener("click",function(){
+    const visible = password.type === "text";
+    password.type = visible ? "password" : "text";
+    toggle.textContent = visible ? "SHOW" : "HIDE";
+    toggle.setAttribute("aria-pressed",String(!visible));
+    password.focus();
+  });
 
-  supabase.auth.onAuthStateChange(function(event){
-    if(event === "SIGNED_IN") location.replace(destination());
+  ["keydown","keyup"].forEach(function(eventName){
+    password.addEventListener(eventName,function(event){
+      caps.classList.toggle("show",!!event.getModifierState && event.getModifierState("CapsLock"));
+    });
+  });
+  password.addEventListener("blur",function(){ caps.classList.remove("show"); });
+
+  email.addEventListener("input",function(){
+    if(status.classList.contains("show")) status.className = "auth-status";
   });
 
   google.addEventListener("click",async function(){
-    setBusy(true,"CONNECTING TO GOOGLE…");
-    show("Opening Google sign-in…","success");
-    const {error} = await supabase.auth.signInWithOAuth({
-      provider:"google",
-      options:{redirectTo:location.origin + location.pathname + (location.search || "")}
-    });
-    if(error){
+    setBusy(true,"CONNECTING…");
+    show("Opening secure Google sign-in…","success");
+    try{
+      const {error} = await client.auth.signInWithOAuth({
+        provider:"google",
+        options:{
+          redirectTo:location.origin + location.pathname + (location.search || "")
+        }
+      });
+      if(error) throw error;
+    }catch(error){
       setBusy(false);
-      show(error.message || "Google sign-in could not be started.","error");
+      show(error && error.message ? error.message : "Google sign-in could not be started.","error");
     }
   });
 
-  form.addEventListener("submit",async function(e){
-    e.preventDefault();
-    const eMail=email.value.trim();
-    const pass=password.value;
-    if(!eMail || !pass){
-      show("Enter your email and password.","error");
+  form.addEventListener("submit",async function(event){
+    event.preventDefault();
+
+    const address = email.value.trim();
+    const pass = password.value;
+
+    if(!validEmail(address)){
+      show("Enter a valid email address.","error");
+      email.focus();
       return;
     }
+    if(!pass){
+      show("Enter your password.","error");
+      password.focus();
+      return;
+    }
+
     setBusy(true,"SIGNING IN…");
     show("Checking your CrowRules account…","success");
-    const {error}=await supabase.auth.signInWithPassword({email:eMail,password:pass});
-    if(error){
+
+    try{
+      const {data,error} = await client.auth.signInWithPassword({email:address,password:pass});
+      if(error) throw error;
+
+      if(data && data.user){
+        show("Login successful. Entering your CrowRules universe…","success");
+        location.replace(destination());
+      }else{
+        throw new Error("Your account could not be signed in. Please try again.");
+      }
+    }catch(error){
       setBusy(false);
-      show(error.message || "Login failed. Please check your credentials.","error");
-      return;
+      show(error && error.message ? error.message : "Login failed. Please check your credentials.","error");
     }
-    location.replace(destination());
   });
+
+  client.auth.onAuthStateChange(function(event){
+    if(event === "SIGNED_IN") location.replace(destination());
+  });
+
+  redirectIfLoggedIn();
 })();
 </script>
+<script src="js/professional-experience.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
