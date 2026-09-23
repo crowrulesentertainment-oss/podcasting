@@ -65,7 +65,7 @@
     }
   }
   async function load(){
-    const learner=window.CrowRulesRecommendationLearning;if(learner&&state.user)await learner.load();
+    const learner=window.CrowRulesRecommendationLearning;if(learner)await learner.load();
     const [p,e,c]=await Promise.all([
       db.from("podcasts").select("id,creator_id,title,slug,category,description,artwork_url,status,is_featured,is_live,listener_count,total_plays,created_at,updated_at").in("status",["active","published","live"]).limit(300),
       db.from("podcast_episodes").select("id,podcast_id,title,episode_number,published_at,thumbnail_url,status").in("status",["published","public","live"]).order("published_at",{ascending:false}).limit(60),
@@ -78,7 +78,7 @@
     const featured=[...state.podcasts].filter(x=>x.is_featured||x.is_live).sort((a,b)=>score(b)-score(a)).slice(0,6);
     const newest=state.episodes.slice(0,6);
     const creators=[...state.creators].sort((a,b)=>(b.is_featured-a.is_featured)||((b.podcast_count||0)-(a.podcast_count||0))).slice(0,6);
-    const familiar=candidates.filter(x=>state.followed.has(x.p.id)||state.engagement.has(x.p.id));const exploratory=candidates.filter(x=>!state.followed.has(x.p.id)&&!state.engagement.has(x.p.id));const rec=[...familiar.slice(0,4),...exploratory.slice(0,2)].slice(0,6).map(x=>x.p);
+    const candidates=[...state.podcasts].map(p=>({p,s:score(p,true)})).sort((a,b)=>b.s-a.s);const familiar=candidates.filter(x=>state.followed.has(x.p.id)||state.engagement.has(x.p.id));const exploratory=candidates.filter(x=>!state.followed.has(x.p.id)&&!state.engagement.has(x.p.id));const rec=[...familiar.slice(0,4),...exploratory.slice(0,2)].slice(0,6).map(x=>x.p);
     render("trending",trending.map(x=>card(x,"TRENDING")).join(""),trending.length);
     render("featured",featured.map(x=>card(x,x.is_live?"LIVE":"FEATURED")).join(""),featured.length);
     render("new-releases",newest.map(episode).join(""),newest.length);
