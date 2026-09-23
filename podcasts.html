@@ -1922,6 +1922,8 @@
 ></script>
 
 <script src="js/config.js"></script>
+<script src="js/member-state.js"></script>
+<script src="js/member-actions.js"></script>
 
 <script>
 
@@ -2236,6 +2238,16 @@
               )}"
             >
               View Podcast
+            </button>
+            <button
+              class="cr-btn"
+              type="button"
+              data-follow-podcast="${escapeHtml(
+                podcast.id
+              )}"
+              aria-pressed="false"
+            >
+              Follow
             </button>
 
             ${
@@ -3410,5 +3422,6 @@
 </script>
 
 <script src="js/professional-experience.js"></script>
+<script>window.addEventListener("crowrules:member-state",()=>window.CrowRulesMemberActions?.bind());</script>
 </body>
 </html>
