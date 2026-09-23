@@ -1,0 +1,49 @@
+// Supabase Edge Function: create podcast checkout session
+// Deploy with Stripe secret stored as an Edge Function secret.
+// Never expose STRIPE_SECRET_KEY to browser code.
+import Stripe from "https://esm.sh/stripe@18.5.0?target=deno";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { apiVersion: "2026-07-29.dahlia", httpClient: Stripe.createFetchHttpClient() });
+const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+
+const cors={ "Access-Control-Allow-Origin":"*", "Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type" };
+
+Deno.serve(async (req)=>{
+  if(req.method==="OPTIONS") return new Response("ok",{headers:cors});
+  try{
+    if(req.method!=="POST") throw new Error("POST required");
+    const auth=req.headers.get("Authorization");
+    if(!auth) throw new Error("Authentication required");
+    const token=auth.replace(/^Bearer\s+/i,"");
+    const {data:{user},error:ue}=await supabase.auth.getUser(token);
+    if(ue||!user) throw new Error("Invalid session");
+
+    const body=await req.json();
+    const productId=String(body.product_id||"");
+    if(!productId) throw new Error("product_id required");
+
+    const {data:product,error:pe}=await supabase.from("cr_podcast_monetization_products")
+      .select("id,creator_id,name,description,currency,amount_cents,interval,stripe_price_id,active")
+      .eq("id",productId).single();
+    if(pe||!product||!product.active) throw new Error("Product unavailable");
+
+    const recurring=product.interval==="month"||product.interval==="year";
+    if(!product.stripe_price_id) throw new Error("Stripe Price is not configured for this product");
+
+    const mode=recurring?"subscription":"payment";
+    const session=await stripe.checkout.sessions.create({
+      mode,
+      line_items:[{price:product.stripe_price_id,quantity:1}],
+      client_reference_id:user.id,
+      customer_email:user.email,
+      metadata:{creator_id:product.creator_id,product_id:product.id,user_id:user.id},
+      success_url:body.success_url||"https://crowrulesentertainment-oss.github.io/podcasting/thank-you.html?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url:body.cancel_url||"https://crowrulesentertainment-oss.github.io/podcasting/creator-monetization.html"
+    });
+
+    return new Response(JSON.stringify({url:session.url,id:session.id}),{headers:{...cors,"Content-Type":"application/json"}});
+  }catch(e){
+    return new Response(JSON.stringify({error:e instanceof Error?e.message:"Checkout failed"}),{status:400,headers:{...cors,"Content-Type":"application/json"}});
+  }
+});
