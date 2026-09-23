@@ -9,69 +9,72 @@
 <link rel="stylesheet" href="css/podcasting.css">
 <link rel="stylesheet" href="css/professional-experience.css">
 <style>
-:root{--ach-bg:#05050b;--ach-panel:rgba(12,13,25,.84);--ach-line:rgba(255,255,255,.10);--ach-text:#f7f8ff;--ach-muted:rgba(247,248,255,.68);--ach-a:#7df9ff;--ach-b:#b77cff}
-body{background:radial-gradient(circle at 50% -10%,rgba(125,249,255,.10),transparent 35%),radial-gradient(circle at 90% 20%,rgba(183,124,255,.10),transparent 30%),var(--ach-bg);color:var(--ach-text)}
-.cr-achievements-hero,.cr-achievements-wrap{width:min(1180px,calc(100% - 32px));margin-inline:auto}.cr-achievements-hero{text-align:center;padding:70px 0 34px}.cr-ach-kicker,.cr-ach-eyebrow{font-size:.72rem;letter-spacing:.18em;font-weight:800;color:var(--ach-a)}.cr-achievements-hero h1{font-size:clamp(2.6rem,7vw,5.2rem);line-height:.95;margin:.55rem 0 1rem;letter-spacing:-.04em}.cr-achievements-hero p{max-width:720px;margin:auto;color:var(--ach-muted);font-size:1.05rem;line-height:1.7}.cr-ach-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:24px}.cr-ach-btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 17px;border:1px solid var(--ach-line);border-radius:10px;color:var(--ach-text);text-decoration:none;background:rgba(255,255,255,.04);font-weight:700}.cr-ach-btn.primary{border-color:rgba(125,249,255,.45);background:linear-gradient(135deg,rgba(125,249,255,.15),rgba(183,124,255,.15))}
-.cr-ach-status{min-height:24px;text-align:center;color:var(--ach-muted);font-size:.88rem;margin-bottom:14px}.cr-ach-panel,.cr-ach-profile,.cr-ach-stats article,.cr-ach-card{border:1px solid var(--ach-line);background:var(--ach-panel);box-shadow:0 18px 60px rgba(0,0,0,.22);backdrop-filter:blur(16px)}.cr-ach-panel{max-width:680px;margin:auto;text-align:center;padding:42px 24px;border-radius:18px}.cr-ach-icon{font-size:3rem}.cr-ach-panel h2{margin:.5rem 0}.cr-ach-panel p{color:var(--ach-muted);line-height:1.6}
-.cr-ach-profile{border-radius:18px;padding:24px;display:flex;justify-content:space-between;gap:24px;align-items:center}.cr-ach-profile h2{margin:.35rem 0;font-size:1.65rem}.cr-ach-profile p{margin:0;color:var(--ach-muted)}.cr-ach-summary{display:flex;gap:20px;flex-wrap:wrap}.cr-ach-summary div{text-align:center;min-width:70px}.cr-ach-summary strong{display:block;font-size:1.45rem}.cr-ach-summary span{display:block;color:var(--ach-muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;margin-top:3px}
-.cr-ach-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:14px 0 30px}.cr-ach-stats article{border-radius:14px;padding:17px;text-align:center}.cr-ach-stats span{display:block;font-size:1.35rem}.cr-ach-stats strong{display:block;font-size:1.5rem;margin-top:5px}.cr-ach-stats small{display:block;color:var(--ach-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
-.cr-ach-section{margin-top:30px}.cr-ach-head{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:12px}.cr-ach-head h2{margin:.3rem 0 0}.cr-ach-head>span{color:var(--ach-muted);font-size:.8rem}.cr-ach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.cr-ach-card{border-radius:16px;padding:18px;position:relative;overflow:hidden}.cr-ach-card.earned{border-color:rgba(125,249,255,.25)}.cr-ach-card.locked{opacity:.72}.cr-ach-card-top{display:flex;gap:13px;align-items:center}.cr-ach-badge{width:54px;height:54px;display:grid;place-items:center;border-radius:14px;background:rgba(255,255,255,.06);font-size:1.8rem;flex:none}.cr-ach-card h3{margin:0;font-size:1rem}.cr-ach-card p{margin:.45rem 0 0;color:var(--ach-muted);font-size:.84rem;line-height:1.5}.cr-ach-meta{margin-top:13px;font-size:.72rem;color:var(--ach-muted);display:flex;justify-content:space-between;gap:8px}.cr-ach-progress{height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:12px}.cr-ach-progress i{display:block;height:100%;background:linear-gradient(90deg,var(--ach-a),var(--ach-b))}
-@media(max-width:900px){.cr-ach-stats{grid-template-columns:repeat(3,1fr)}.cr-ach-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:640px){.cr-achievements-hero{padding-top:50px}.cr-ach-profile{align-items:flex-start;flex-direction:column}.cr-ach-summary{width:100%;justify-content:space-between}.cr-ach-stats{grid-template-columns:repeat(2,1fr)}.cr-ach-grid{grid-template-columns:1fr}}
+:root{--bg:#05050b;--panel:rgba(12,13,25,.86);--line:rgba(255,255,255,.10);--text:#f7f8ff;--muted:rgba(247,248,255,.68);--a:#7df9ff;--b:#b77cff}
+body{background:radial-gradient(circle at 50% -10%,rgba(125,249,255,.10),transparent 35%),radial-gradient(circle at 90% 20%,rgba(183,124,255,.10),transparent 30%),var(--bg);color:var(--text)}
+.wrap{width:min(1180px,calc(100% - 32px));margin:auto}.hero{text-align:center;padding:70px 0 34px}.kicker,.eyebrow{font-size:.72rem;letter-spacing:.18em;font-weight:800;color:var(--a)}.hero h1{font-size:clamp(2.6rem,7vw,5.2rem);line-height:.95;margin:.55rem 0 1rem;letter-spacing:-.04em}.hero p{max-width:720px;margin:auto;color:var(--muted);line-height:1.7}.actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:24px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 17px;border:1px solid var(--line);border-radius:10px;color:var(--text);text-decoration:none;background:rgba(255,255,255,.04);font-weight:700}.btn.primary{border-color:rgba(125,249,255,.45);background:linear-gradient(135deg,rgba(125,249,255,.15),rgba(183,124,255,.15))}
+.status{min-height:24px;text-align:center;color:var(--muted);font-size:.88rem;margin-bottom:14px}.panel,.profile,.stats article,.card{border:1px solid var(--line);background:var(--panel);box-shadow:0 18px 60px rgba(0,0,0,.22);backdrop-filter:blur(16px)}.panel{max-width:680px;margin:auto;text-align:center;padding:42px 24px;border-radius:18px}.icon{font-size:3rem}.panel h2{margin:.5rem 0}.panel p{color:var(--muted);line-height:1.6}.profile{border-radius:18px;padding:24px;display:flex;justify-content:space-between;gap:24px;align-items:center}.profile h2{margin:.35rem 0;font-size:1.65rem}.profile p{margin:0;color:var(--muted)}.summary{display:flex;gap:20px;flex-wrap:wrap}.summary div{text-align:center;min-width:70px}.summary strong{display:block;font-size:1.45rem}.summary span{display:block;color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em}.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:14px 0 30px}.stats article{border-radius:14px;padding:17px;text-align:center}.stats article span{display:block;font-size:1.35rem}.stats strong{display:block;font-size:1.5rem;margin-top:5px}.stats small{display:block;color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;margin-top:3px}.section{margin-top:30px}.head{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:12px}.head h2{margin:.3rem 0 0}.head>span{color:var(--muted);font-size:.8rem}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.card{border-radius:16px;padding:18px;overflow:hidden}.card.locked{opacity:.72}.top{display:flex;gap:13px;align-items:center}.badge{width:54px;height:54px;display:grid;place-items:center;border-radius:14px;background:rgba(255,255,255,.06);font-size:1.8rem;flex:none}.card h3{margin:0;font-size:1rem}.card p{margin:.45rem 0 0;color:var(--muted);font-size:.84rem;line-height:1.5}.meta{margin-top:13px;font-size:.72rem;color:var(--muted);display:flex;justify-content:space-between;gap:8px}.progress{height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:12px}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--a),var(--b))}
+@media(max-width:900px){.stats{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:640px){.hero{padding-top:50px}.profile{align-items:flex-start;flex-direction:column}.summary{width:100%;justify-content:space-between}.stats,.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:480px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<main id="app">
-<section class="cr-achievements-hero">
-<div class="cr-ach-kicker">CROWRULES PODCASTING</div>
-<h1>Achievements</h1>
-<p>Every episode, every listener, every milestone. Build your podcasting legacy one achievement at a time.</p>
-<div class="cr-ach-actions"><a class="cr-ach-btn primary" href="creator-studio.html">Creator Studio</a><a class="cr-ach-btn" href="profile.html">My Profile</a></div>
-</section>
-<section class="cr-achievements-wrap">
-<div id="achievementStatus" class="cr-ach-status">Loading your achievements…</div>
-<div id="guestPanel" class="cr-ach-panel" hidden><div class="cr-ach-icon">🏆</div><h2>Sign in to track your achievements</h2><p>Your badge collection and personalized milestone progress appear here when you're signed in.</p><a class="cr-ach-btn primary" href="login.html?redirect=achievements.html">Sign In</a></div>
-<div id="achievementApp" hidden>
-<section class="cr-ach-profile"><div><div class="cr-ach-eyebrow">YOUR JOURNEY</div><h2 id="profileName">Podcast Creator</h2><p id="profileEmail">—</p></div><div class="cr-ach-summary"><div><strong id="earnedCount">0</strong><span>Earned</span></div><div><strong id="totalCount">0</strong><span>Available</span></div><div><strong id="completionPercent">0%</strong><span>Collection</span></div></div></section>
-<section class="cr-ach-stats">
-<article><span>🎙️</span><strong id="podcastCount">0</strong><small>Published Podcasts</small></article>
-<article><span>🎧</span><strong id="episodeCount">0</strong><small>Published Episodes</small></article>
-<article><span>▶️</span><strong id="playCount">0</strong><small>Total Plays</small></article>
-<article><span>👥</span><strong id="followerCount">0</strong><small>Followers</small></article>
-<article><span>⏱️</span><strong id="listeningHours">0</strong><small>Listening Hours</small></article>
-<article><span>🪙</span><strong id="crowPoints">0</strong><small>CrowPoints</small></article>
-</section>
-<section class="cr-ach-section"><div class="cr-ach-head"><div><div class="cr-ach-eyebrow">YOUR COLLECTION</div><h2>Earned Badges</h2></div><span id="earnedLabel">0 unlocked</span></div><div id="earnedGrid" class="cr-ach-grid"></div></section>
-<section class="cr-ach-section"><div class="cr-ach-head"><div><div class="cr-ach-eyebrow">NEXT MILESTONES</div><h2>Badges to Unlock</h2></div></div><div id="lockedGrid" class="cr-ach-grid"></div></section>
-<section id="creatorSection" class="cr-ach-section" hidden><div class="cr-ach-head"><div><div class="cr-ach-eyebrow">CREATOR RECOGNITION</div><h2>Creator Achievements</h2></div></div><div id="creatorGrid" class="cr-ach-grid"></div></section>
+<main>
+<section class="hero wrap"><div class="kicker">CROWRULES PODCASTING</div><h1>Achievements</h1><p>Every episode, every listener, every milestone. Build your podcasting legacy one achievement at a time.</p><div class="actions"><a class="btn primary" href="creator-studio.html">Creator Studio</a><a class="btn" href="profile.html">My Profile</a></div></section>
+<section class="wrap">
+<div id="status" class="status">Checking your CrowRules session…</div>
+<div id="guest" class="panel" hidden><div class="icon">🏆</div><h2>Sign in to track your achievements</h2><p>Your badge collection and personalized milestone progress appear here when you're signed in.</p><a class="btn primary" href="login.html?redirect=achievements.html">Sign In</a></div>
+<div id="dashboard" hidden>
+<section class="profile"><div><div class="eyebrow">YOUR JOURNEY</div><h2 id="name">Podcast Creator</h2><p id="email">Signed-in CrowRules member</p></div><div class="summary"><div><strong id="earned">0</strong><span>Earned</span></div><div><strong id="total">0</strong><span>Available</span></div><div><strong id="percent">0%</strong><span>Collection</span></div></div></section>
+<section class="stats"><article><span>🎙️</span><strong id="podcasts">0</strong><small>Published Podcasts</small></article><article><span>🎧</span><strong id="episodes">0</strong><small>Published Episodes</small></article><article><span>▶️</span><strong id="plays">0</strong><small>Total Plays</small></article><article><span>👥</span><strong id="followers">0</strong><small>Followers</small></article><article><span>⏱️</span><strong id="hours">0</strong><small>Listening Hours</small></article><article><span>🪙</span><strong id="points">0</strong><small>CrowPoints</small></article></section>
+<section class="section"><div class="head"><div><div class="eyebrow">YOUR COLLECTION</div><h2>Earned Badges</h2></div><span id="earnedLabel">0 unlocked</span></div><div id="earnedGrid" class="grid"></div></section>
+<section class="section"><div class="head"><div><div class="eyebrow">NEXT MILESTONES</div><h2>Badges to Unlock</h2></div></div><div id="lockedGrid" class="grid"></div></section>
+<section id="creatorSection" class="section" hidden><div class="head"><div><div class="eyebrow">CREATOR RECOGNITION</div><h2>Creator Achievements</h2></div></div><div id="creatorGrid" class="grid"></div></section>
 </div>
 </section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
-<script>const crSupabase=supabase.createClient(CROWRULES_CONFIG.supabaseUrl,CROWRULES_CONFIG.supabaseAnonKey);window.supabaseClient=crSupabase;</script>
-<script src="js/member-state.js"></script>
+<script>window.supabaseClient=supabase.createClient(CROWRULES_CONFIG.supabaseUrl,CROWRULES_CONFIG.supabaseAnonKey);</script>
 <script src="js/professional-experience.js"></script>
 <script>
-(()=>{const client=window.supabaseClient,$=id=>document.getElementById(id),esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),num=n=>Number(n||0).toLocaleString(),hours=s=>{const h=Number(s||0)/3600;return h>=10?Math.floor(h).toLocaleString():h.toFixed(1)},typeLabel=t=>({followers:"followers",plays:"plays",published_episodes:"published episodes",listening_seconds:"listening hours",podcasts:"published podcasts",featured_podcast:"featured podcast",live_shows:"live shows"}[t]||t);
-function prog(d,s){let v=Number(s[d.threshold_type]||0);if(d.threshold_type==="followers")v=Number(s.member_followers||0);if(d.threshold_type==="plays")v=Number(s.total_plays||0);if(d.threshold_type==="published_episodes")v=Number(s.published_episodes||0);if(d.threshold_type==="listening_seconds")v=Number(s.listening_seconds||0);if(d.threshold_type==="podcasts")v=Number(s.published_podcasts||0);const target=Number(d.threshold_value||0);return{v,target,pct:target?Math.min(100,Math.round(v/target*100)):0}}
-function badge(d,earned,s,at){const p=prog(d,s),v=d.threshold_type==="listening_seconds"?hours(p.v)+"h":num(p.v),t=d.threshold_type==="listening_seconds"?hours(p.target)+"h":num(p.target);return '<article class="cr-ach-card '+(earned?"earned":"locked")+'"><div class="cr-ach-card-top"><div class="cr-ach-badge">'+esc(d.icon||"🏆")+'</div><div><h3>'+esc(d.name)+'</h3><p>'+esc(d.description)+'</p></div></div><div class="cr-ach-meta"><span>'+ (earned?"UNLOCKED":v+" / "+t+" "+esc(typeLabel(d.threshold_type))) +'</span><span>'+(earned&&at?esc(new Date(at).toLocaleDateString()):p.pct+"%")+'</span></div>'+(!earned?'<div class="cr-ach-progress"><i style="width:'+p.pct+'%"></i></div>':"")+'</article>'}
-async function load(){try{const {data:{user},error}=await client.auth.getUser();if(error)throw error;$("achievementStatus").textContent="";if(!user){$("guestPanel").hidden=false;return}$("achievementApp").hidden=false;$("profileEmail").textContent=user.email||"Signed-in CrowRules member";$("profileName").textContent=user.user_metadata?.display_name||user.user_metadata?.full_name||(user.email?user.email.split("@")[0]:"Podcast Creator");
-const [defs,badges,stats,links,achievements]=await Promise.all([
-client.from("podcast_badge_definitions").select("badge_key,name,description,icon,threshold_type,threshold_value,sort_order,tier,color_class,is_special").order("sort_order",{ascending:true}),
-client.from("podcast_creator_badges").select("badge_key,awarded_at,metadata").eq("user_id",user.id).order("awarded_at",{ascending:false}),
-client.from("podcast_member_profile_stats").select("published_podcasts,published_episodes,total_plays,member_followers,member_following,episode_comments,episode_reactions,profile_views,listening_seconds,crowpoints,updated_at").eq("user_id",user.id).maybeSingle(),
-client.from("podcast_creators").select("id,podcast_id,role,can_manage").eq("user_id",user.id),
-client.from("podcast_creator_achievements").select("creator_id,achievement_key,title,description,goal_type,target_value,achieved_value,achieved_at,is_public,is_featured,collection_key,showcase_order").order("showcase_order",{ascending:true})
-]);
-for(const r of [defs,badges,stats,links,achievements])if(r.error)throw r.error;
-const s=stats.data||{},ds=defs.data||[],aw=badges.data||[],map=new Map(aw.map(x=>[x.badge_key,x])),earned=ds.filter(d=>map.has(d.badge_key)),locked=ds.filter(d=>!map.has(d.badge_key));
-$("earnedCount").textContent=earned.length;$("totalCount").textContent=ds.length;$("completionPercent").textContent=ds.length?Math.round(earned.length/ds.length*100)+"%":"0%";$("earnedLabel").textContent=earned.length+" unlocked";
-$("podcastCount").textContent=num(s.published_podcasts);$("episodeCount").textContent=num(s.published_episodes);$("playCount").textContent=num(s.total_plays);$("followerCount").textContent=num(s.member_followers);$("listeningHours").textContent=hours(s.listening_seconds);$("crowPoints").textContent=num(s.crowpoints);
-$("earnedGrid").innerHTML=earned.length?earned.map(d=>badge(d,true,s,map.get(d.badge_key)?.awarded_at)).join(""):'<div class="cr-ach-card"><h3>Your first badge is waiting.</h3><p>Create a podcast, publish an episode, or build your audience to begin your collection.</p></div>';
-$("lockedGrid").innerHTML=locked.length?locked.map(d=>badge(d,false,s)).join(""):'<div class="cr-ach-card"><h3>Collection complete.</h3><p>You have unlocked every currently defined Podcasting badge.</p></div>';
-const ids=(links.data||[]).map(x=>x.id).filter(Boolean),ca=(achievements.data||[]).filter(x=>ids.includes(x.creator_id)&&x.is_public!==false);if(ca.length){$("creatorSection").hidden=false;$("creatorGrid").innerHTML=ca.map(x=>{const p=x.target_value?Math.min(100,Math.round(Number(x.achieved_value||0)/Number(x.target_value)*100)):100;return '<article class="cr-ach-card earned"><div class="cr-ach-card-top"><div class="cr-ach-badge">🏅</div><div><h3>'+esc(x.title||x.achievement_key)+'</h3><p>'+esc(x.description||"Creator milestone achieved.")+'</p></div></div><div class="cr-ach-meta"><span>'+esc(x.collection_key||"Creator milestone")+'</span><span>'+esc(x.achieved_at?new Date(x.achieved_at).toLocaleDateString():"Achieved")+'</span></div><div class="cr-ach-progress"><i style="width:'+p+'%"></i></div></article>'}).join("")}
-}catch(e){console.error("Achievements load failed:",e);$("achievementStatus").textContent="Some achievement data could not be loaded. Please refresh and try again.";}}
-load()})();
+(()=>{"use strict";
+const db=window.supabaseClient,$=id=>document.getElementById(id),esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),num=v=>Number(v||0).toLocaleString(),hours=s=>{const h=Number(s||0)/3600;return h>=10?Math.floor(h).toLocaleString():h.toFixed(1)};
+function valueFor(type,s){return({followers:Number(s.member_followers||0),plays:Number(s.total_plays||0),published_episodes:Number(s.published_episodes||0),listening_seconds:Number(s.listening_seconds||0),podcasts:Number(s.published_podcasts||0),featured_podcast:Number(s.featured_podcast||0),live_shows:Number(s.live_shows||0),crowpoints:Number(s.crowpoints||0)})[type]??Number(s[type]||0)}
+function card(d,isEarned,s,unlock){const v=valueFor(d.threshold_type,s),t=Number(d.threshold_value||0),pct=t?Math.min(100,Math.round(v/t*100)):0;const fmt=x=>d.threshold_type==="listening_seconds"?hours(x)+"h":num(x);return '<article class="card '+(isEarned?"":"locked")+'"><div class="top"><div class="badge">'+esc(d.icon||"🏆")+'</div><div><h3>'+esc(d.name||d.badge_key)+'</h3><p>'+esc(d.description||"CrowRules Podcasting milestone.")+'</p></div></div><div class="meta"><span>'+ (isEarned?"UNLOCKED":fmt(v)+" / "+fmt(t)) +'</span><span>'+(isEarned&&unlock?esc(new Date(unlock).toLocaleDateString()):pct+"%")+'</span></div>'+(!isEarned?'<div class="progress"><i style="width:'+pct+'%"></i></div>':"")+'</article>'}
+async function load(){
+ try{
+  const auth=await db.auth.getUser(); if(auth.error)throw auth.error;
+  const user=auth.data?.user;
+  $("status").textContent="";
+  if(!user){$("guest").hidden=false;return}
+  $("dashboard").hidden=false;
+  $("name").textContent=user.user_metadata?.display_name||user.user_metadata?.full_name||(user.email?user.email.split("@")[0]:"Podcast Creator");
+  $("email").textContent=user.email||"Signed-in CrowRules member";
+  const [defsRes,unlockRes,statsRes,linksRes]=await Promise.all([
+   db.from("podcast_badge_definitions").select("badge_key,name,description,icon,threshold_type,threshold_value,sort_order,tier,color_class,is_special").order("sort_order",{ascending:true}),
+   db.from("podcast_profile_achievement_unlocks").select("achievement_key,unlocked_at").eq("user_id",user.id).order("unlocked_at",{ascending:false}),
+   db.from("podcast_member_profile_stats").select("published_podcasts,published_episodes,total_plays,member_followers,listening_seconds,crowpoints").eq("user_id",user.id).maybeSingle(),
+   db.from("podcast_creators").select("id").eq("user_id",user.id)
+  ]);
+  if(defsRes.error)throw defsRes.error;
+  if(unlockRes.error)throw unlockRes.error;
+  if(statsRes.error)throw statsRes.error;
+  const defs=defsRes.data||[],unlocks=unlockRes.data||[],s=statsRes.data||{},map=new Map(unlocks.map(x=>[x.achievement_key,x]));
+  const earned=defs.filter(d=>map.has(d.badge_key)),locked=defs.filter(d=>!map.has(d.badge_key));
+  $("earned").textContent=earned.length;$("total").textContent=defs.length;$("percent").textContent=defs.length?Math.round(earned.length/defs.length*100)+"%":"0%";$("earnedLabel").textContent=earned.length+" unlocked";
+  $("podcasts").textContent=num(s.published_podcasts);$("episodes").textContent=num(s.published_episodes);$("plays").textContent=num(s.total_plays);$("followers").textContent=num(s.member_followers);$("hours").textContent=hours(s.listening_seconds);$("points").textContent=num(s.crowpoints);
+  $("earnedGrid").innerHTML=earned.length?earned.map(d=>card(d,true,s,map.get(d.badge_key)?.unlocked_at)).join(""):'<div class="card"><h3>Your first badge is waiting.</h3><p>Create a podcast, publish an episode, or build your audience to begin your collection.</p></div>';
+  $("lockedGrid").innerHTML=locked.length?locked.map(d=>card(d,false,s)).join(""):'<div class="card"><h3>Collection complete.</h3><p>You have unlocked every currently defined Podcasting badge.</p></div>';
+  if(linksRes.error){console.warn("Creator lookup skipped:",linksRes.error);return}
+  const creatorIds=(linksRes.data||[]).map(x=>x.id).filter(Boolean);
+  if(!creatorIds.length)return;
+  const ca=await db.from("podcast_creator_achievements").select("creator_id,achievement_key,title,description,goal_type,target_value,achieved_value,achieved_at,is_public,is_featured,collection_key,showcase_order").in("creator_id",creatorIds).order("showcase_order",{ascending:true});
+  if(ca.error){console.warn("Creator achievements unavailable:",ca.error);return}
+  const rows=(ca.data||[]).filter(x=>x.is_public!==false);
+  if(rows.length){$("creatorSection").hidden=false;$("creatorGrid").innerHTML=rows.map(x=>'<article class="card"><div class="top"><div class="badge">🏅</div><div><h3>'+esc(x.title||x.achievement_key)+'</h3><p>'+esc(x.description||"Creator milestone achieved.")+'</p></div></div><div class="meta"><span>'+esc(x.collection_key||"Creator milestone")+'</span><span>'+esc(x.achieved_at?new Date(x.achieved_at).toLocaleDateString():"Achieved")+'</span></div></article>').join("")}
+ }catch(e){console.error("Achievements load failed:",e);$("status").textContent="Achievements could not be loaded. Please refresh and try again.";$("status").style.color="#ff9aa2";$("guest").hidden=true;$("dashboard").hidden=false}
+}
+load();
+})();
 </script>
 </body>
 </html>
