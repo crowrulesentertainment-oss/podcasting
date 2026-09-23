@@ -5,6 +5,7 @@ const db=window.supabase.createClient(window.CROWRULES_SUPABASE_URL,window.CROWR
 const FALLBACK={experiment_id:"recommendation_engine_9",model_version:"9.0.0",status:"fallback",source:"bundled_fallback",config:{exploration:{balanced:.30,exploration:.55}}};
 const api={db,release:null,model:FALLBACK,source:"fallback",validated:false,
  async resolve(){
+  try{await db.rpc("podcast_recommendation_verify_active_snapshot");}catch(e){console.debug("snapshot integrity check skipped",e)}
   try{
    const {data,error}=await db.from("podcast_recommendation_active_release").select("id,experiment_id,model_version,status,config,created_at,promoted_at").maybeSingle();
    if(error||!data||data.status!=="promoted")throw error||new Error("no promoted release");
