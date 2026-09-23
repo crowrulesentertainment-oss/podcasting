@@ -2,7 +2,10 @@
 (function(){
 "use strict";
 const db=window.supabase.createClient(window.CROWRULES_SUPABASE_URL,window.CROWRULES_SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-const CONFIG={experiment_id:"recommendation_engine_9",model_version:"9.0.0",variants:["balanced","exploration"],exploration:{balanced:.30,exploration:.55}};
+const runtime=window.CrowRulesRecommendationRuntime;
+const active=runtime?.model||{};
+const rc=active.config?.exploration||{};
+const CONFIG={experiment_id:active.experiment_id||"recommendation_engine_9",model_version:active.model_version||"9.0.0",variants:["balanced","exploration"],exploration:{balanced:Number(rc.balanced??.30),exploration:Number(rc.exploration??.55)}};
 const api={
  db,user:null,variant:"control",cohort:"anonymous",assignment:null,
  hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0)},
