@@ -73,18 +73,23 @@ async function init(){
   const url=window.CROWRULES_SUPABASE_URL||window.SUPABASE_URL,key=window.CROWRULES_SUPABASE_PUBLISHABLE_KEY||window.SUPABASE_PUBLISHABLE_KEY||window.SUPABASE_ANON_KEY;
   if(!url||!key)throw Error("Supabase configuration missing");
   db=window.supabase.createClient(url,key);
-  let q=db.from("podcast_episodes").select("id,podcast_id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,transcript,show_notes,play_count,is_explicit,status");
-  q=slug?q.eq("slug",slug).eq("status","published").maybeSingle():q.eq("id",id).eq("status","published").maybeSingle();
-  const r=await q;if(r.error)throw r.error;if(!r.data)throw Error("Episode not found.");
-  episode=r.data;
+  let q;
+  if(id){ q=await db.rpc("get_podcast_episode_for_viewer",{p_episode_id:id}); }
+  else if(slug){
+   const sr=await db.from("podcast_episodes").select("id").eq("slug",slug).eq("status","published").maybeSingle();
+   if(sr.error)throw sr.error;if(!sr.data)throw Error("Episode not found.");
+   q=await db.rpc("get_podcast_episode_for_viewer",{p_episode_id:sr.data.id});
+  } else throw Error("Episode not found.");
+  if(q.error)throw q.error;if(!q.data?.length)throw Error("Episode not found.");
+  episode=q.data[0];
   const ur=await db.auth.getUser();user=ur.data?.user||null;
   const p=await db.from("podcasts").select("id,title,slug,artwork_url,description,website_url").eq("id",episode.podcast_id).maybeSingle();
   if(p.error)throw p.error;
-  const podcast=p.data||{};
+  const podcast=p.data||{};\n  const premiumLocked=episode.access_level==="premium" && !episode.has_premium_access;
   const related=await db.from("podcast_episodes").select("id,title,slug,episode_number,season_number,published_at,play_count,thumbnail_url").eq("podcast_id",episode.podcast_id).eq("status","published").neq("id",episode.id).order("published_at",{ascending:false}).limit(3);
   const art=mediaUrl(episode.thumbnail_url)||podcast.artwork_url;
   const embed=youtubeEmbed(episode.video_url);
-  const audio=episode.audio_url?'<div class="player"><div class="eyebrow">AUDIO PLAYER</div><audio controls preload="metadata" src="'+esc(episode.audio_url)+'"></audio></div>':"";
+  const audio=premiumLocked?'<div class="player"><div class="eyebrow">PREMIUM EPISODE</div><p>This episode is available to eligible CrowRules members.</p><div class="actions"><a class="btn primary" href="support.html">View Memberships</a></div></div>':(episode.audio_url?'<div class="player"><div class="eyebrow">AUDIO PLAYER</div><audio controls preload="metadata" src="'+esc(episode.audio_url)+'"></audio></div>':"");
   const video=episode.video_url?(embed?'<div class="video"><iframe src="'+esc(embed)+'" title="'+esc(episode.title)+'" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share" allowfullscreen></iframe></div>':'<div class="video"><video controls preload="metadata" src="'+esc(episode.video_url)+'"></video></div>'):"";
   $("app").innerHTML='<div class="episode-layout"><div><div class="cover">'+(art?'<img src="'+esc(art)+'" alt="'+esc(episode.title)+' cover art">':'<div class="cover-fallback">CR</div>')+'</div></div><div><div class="eyebrow">'+esc(podcast.title||"CrowRules Podcasting")+'</div><h1 class="episode-title">'+esc(episode.title)+'</h1><div class="chips"><span class="chip">S'+esc(episode.season_number||1)+' · E'+esc(episode.episode_number||"—")+'</span>'+(episode.duration_seconds?'<span class="chip">'+dur(episode.duration_seconds)+'</span>':"")+'<span class="chip"><span data-play-count>'+Number(episode.play_count||0).toLocaleString()+'</span> plays</span>'+(episode.is_explicit?'<span class="chip">Explicit</span>':"")+'<span class="chip">'+esc(date(episode.published_at))+'</span></div><p class="episode-description">'+esc(episode.description||"No description yet.")+'</p>'+audio+video+'<div class="actions"><button class="btn primary" id="share">Share Episode</button><button class="btn" id="saveEpisode" data-save-episode="${esc(episode.id)}" type="button">Save</button><button class="btn" id="followPodcast" data-follow-podcast="${esc(podcast.id)}" type="button">Follow</button><a class="btn" href="episodes.html">Browse Episodes</a>'+(podcast.slug?'<a class="btn" href="podcast.html?slug='+encodeURIComponent(podcast.slug)+'">View Podcast</a>':"")+'</div></div></div><div class="content-grid">'+(episode.show_notes?'<section class="panel"><h2>Show Notes</h2><div class="panel-body">'+esc(episode.show_notes)+'</div></section>':"")+(episode.transcript?'<section class="panel"><h2>Transcript</h2><div class="panel-body">'+esc(episode.transcript)+'</div></section>':"")+'</div>'+(related.data?.length?'<section><div class="eyebrow">MORE FROM THIS SHOW</div><div class="related">'+related.data.map(x=>'<a class="related-card" href="episode.html?slug='+encodeURIComponent(x.slug||x.id)+'"><div class="eyebrow">S'+esc(x.season_number||1)+' · E'+esc(x.episode_number||"—")+'</div><h3>'+esc(x.title)+'</h3><p>'+Number(x.play_count||0).toLocaleString()+' plays · '+esc(date(x.published_at))+'</p></a>').join("")+'</div></section>':"");
   $("share").onclick=share;
