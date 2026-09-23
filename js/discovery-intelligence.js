@@ -11,7 +11,7 @@
   }
   function reason(p){const r=[];if(state.followed.has(p.id))r.push("you follow this podcast");if(state.creatorIds.has(p.creator_id))r.push("you follow this creator");if(state.categories.has(norm(p.category)))r.push("matches your interests");if(state.completionAffinity.has(p.id))r.push("you often finish related episodes");if(state.engagement.has(p.id))r.push("your recent activity");if(p.is_live)r.push("live now");if(p.is_featured)r.push("featured by CrowRules");return r.slice(0,2).join(" · ")||"popular in CrowRules Podcasting"}
   function score(p,personal=false){
-    let s=Number(p.total_plays||0)/1000+Number(p.listener_count||0)*.5;
+    let s=Number(p.total_plays||0)/1000+Number(p.listener_count||0)*.5;const learner=window.CrowRulesRecommendationLearning;if(personal&&learner){s+=learner.score(p.id);s+=Math.min(35,learner.categoryScore(p.category));}
     s+=Math.max(0,45-ago(p.updated_at||p.created_at))*1.5;
     if(p.is_featured)s+=18;if(p.is_live)s+=10;
     if(personal){if(state.categories.has(norm(p.category)))s+=Math.min(55,(state.categories.get(norm(p.category))||0)*12);if(state.followed.has(p.id))s+=90;if(state.creatorIds.has(p.creator_id))s+=45;s+=state.engagement.get(p.id)||0;s+=state.completionAffinity.get(p.id)||0;s-=state.skipAffinity.get(p.id)||0}
@@ -65,6 +65,7 @@
     }
   }
   async function load(){
+    const learner=window.CrowRulesRecommendationLearning;if(learner&&state.user)await learner.load();
     const [p,e,c]=await Promise.all([
       db.from("podcasts").select("id,creator_id,title,slug,category,description,artwork_url,status,is_featured,is_live,listener_count,total_plays,created_at,updated_at").in("status",["active","published","live"]).limit(300),
       db.from("podcast_episodes").select("id,podcast_id,title,episode_number,published_at,thumbnail_url,status").in("status",["published","public","live"]).order("published_at",{ascending:false}).limit(60),
