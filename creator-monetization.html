@@ -2,11 +2,48 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#05050b">
-<meta name="description" content="CrowRules Podcasting Creator Monetization Center — catalog readiness, business workflow, and monetization paths.">
-<title>Creator Monetization | CrowRules Podcasting</title>
+<meta name="color-scheme" content="dark">
+<meta name="description" content="CrowRules Podcasting Creator Monetization Center — subscriptions, listener support, sponsorships, premium content, revenue records and payouts.">
+<title>Creator Monetization 2.0 | CrowRules Podcasting</title>
 <link rel="stylesheet" href="css/podcasting.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--mx:#42e8ff;--mp:#9b6cff;--mg:#4dff9a;--my:#ffd166;--mr:#ff6b7a;--ml:rgba(255,255,255,.10);--mm:#9ca3b7}
+.monetization-shell{padding-bottom:80px}
+.hero{padding:55px 0 25px}
+.hero h1{font:800 clamp(38px,7vw,76px)/.95 Orbitron;margin:10px 0}
+.hero h1 span{color:var(--mx)}
+.hero p{max-width:820px;color:var(--mm);line-height:1.75}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;border-radius:12px;border:1px solid var(--ml);text-decoration:none}
+.btn.primary{background:linear-gradient(135deg,var(--mx),var(--mp));color:#05050b;border:0;font-weight:800}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}
+.kpi{padding:20px;border:1px solid var(--ml);border-radius:18px;background:rgba(12,13,24,.82)}
+.kpi b{display:block;font:800 28px Orbitron;margin-top:8px}
+.kpi small{color:var(--mm)}
+.section{margin-top:34px}
+.section h2{font:700 22px Orbitron;margin:7px 0}
+.eyebrow{font:800 10px Orbitron;letter-spacing:.18em;color:var(--mx)}
+.channels{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.channel{display:block;padding:22px;border:1px solid var(--ml);border-radius:18px;background:linear-gradient(145deg,rgba(18,19,34,.92),rgba(9,10,19,.88));transition:.2s}
+.channel:hover{transform:translateY(-2px);border-color:rgba(66,232,255,.35)}
+.channel .icon{font-size:25px}
+.channel h3{margin:13px 0 7px;font:700 17px Orbitron}
+.channel p{margin:0;color:var(--mm);font-size:13px;line-height:1.6}
+.channel .status{display:inline-block;margin-top:15px;padding:6px 9px;border-radius:999px;border:1px solid var(--ml);font-size:10px;font-weight:800;letter-spacing:.08em}
+.workflow{display:grid;grid-template-columns:1.3fr .7fr;gap:16px}
+.panel{padding:22px;border:1px solid var(--ml);border-radius:18px;background:rgba(12,13,24,.82)}
+.check{display:flex;justify-content:space-between;gap:15px;padding:14px 0;border-bottom:1px solid var(--ml)}
+.check:last-child{border-bottom:0}
+.muted{color:var(--mm);line-height:1.6;font-size:13px}
+.badge{padding:5px 8px;border-radius:999px;border:1px solid var(--ml);font-size:10px;white-space:nowrap}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.channels{grid-template-columns:repeat(2,1fr)}.workflow{grid-template-columns:1fr}}
+@media(max-width:600px){.kpis,.channels{grid-template-columns:1fr}.hero{padding-top:35px}}
+</style>
 </head>
 <body>
 <div class="site-background" aria-hidden="true"><div class="background-stars"></div><div class="background-grid"></div><div class="background-glow background-glow-one"></div><div class="background-glow background-glow-two"></div></div>
@@ -14,50 +51,83 @@
 <a class="brand" href="index.html"><span class="brand-mark">CR</span><span class="brand-text"><span class="brand-name">CROW<span class="glow">RULES</span></span><span class="brand-section">PODCASTING</span></span></a>
 <nav class="main-navigation" aria-label="Creator navigation"><a href="podcasts.html">Discover</a><a href="create-podcast.html">Create</a><a href="creator-dashboard.html">Studio</a><a href="creator-analytics.html">Analytics</a><a href="profile.html">Profile</a></nav>
 </div></header>
-<main><section class="section wrap">
-<div class="studioHero"><div class="eyebrow">CREATOR STUDIO · MONETIZATION</div><h1>TURN YOUR <span class="glow">CATALOG</span> INTO OPPORTUNITY.</h1><p>Understand what you have built, what is ready, and which business workflow comes next.</p><div class="actions"><a class="btn primary" href="creator-deal-room.html">DEAL ROOM</a><a class="btn" href="creator-analytics.html">ANALYTICS</a><a class="btn" href="creator-dashboard.html">STUDIO</a></div></div>
-<div id="state" class="card" aria-live="polite"><span class="eyebrow">LOADING</span><h2>Reading your creator catalog…</h2><p>No publishing or financial action is performed by this page.</p></div>
-<div id="metrics" class="grid" style="margin-top:25px"></div>
-<section class="section" style="padding-bottom:20px"><div class="section-header"><div class="eyebrow">MONETIZATION PATHS</div><h2>Build the <span class="glow">Foundation</span> First.</h2><p>These are workflow paths, not guaranteed earnings. Eligibility, audience size, agreements, and platform requirements can affect outcomes.</p></div>
-<div class="grid">
-<article class="card"><span class="eyebrow">01 · AUDIENCE</span><h3>Grow the Catalog</h3><p>Consistent episodes, strong descriptions, artwork, and a recognizable show identity create the foundation for future opportunities.</p><a class="btn" href="creator-content-calendar.html">CONTENT CALENDAR</a></article>
-<article class="card"><span class="eyebrow">02 · PARTNERS</span><h3>Sponsorship & Deals</h3><p>Organize prospective partners, deliverables, rights, notes, and agreement workflow.</p><a class="btn" href="creator-deal-room.html">OPEN DEAL ROOM</a></article>
-<article class="card"><span class="eyebrow">03 · PREMIUM</span><h3>Premium Experiences</h3><p>Explore bonus episodes, member experiences, live sessions, or other value-added formats when your audience supports them.</p><a class="btn" href="membership.html">MEMBERSHIP</a></article>
-<article class="card"><span class="eyebrow">04 · DATA</span><h3>Know Your Numbers</h3><p>Use analytics to understand catalog activity and audience signals before making business decisions.</p><a class="btn" href="creator-analytics.html">VIEW ANALYTICS</a></article>
-</div></section>
-<div class="card" id="next-step"><span class="eyebrow">NEXT WORKFLOW</span><h2>Loading…</h2></div>
-</section></main>
+
+<main class="wrap monetization-shell">
+<section class="hero">
+<div class="eyebrow">CREATOR STUDIO · MONETIZATION 2.0</div>
+<h1>BUILD YOUR <span>REVENUE ENGINE.</span></h1>
+<p>One workspace for listener support, memberships, premium podcast content, sponsorships, advertising, affiliate opportunities, digital products, revenue records and payouts. This page organizes monetization workflows; it does not promise earnings.</p>
+<div class="actions"><a class="btn primary" href="payouts.html">💳 PAYOUTS & STRIPE</a><a class="btn" href="creator-revenue.html">📒 REVENUE LEDGER</a><a class="btn" href="creator-deal-room.html">🤝 DEAL ROOM</a><a class="btn" href="creator-analytics.html">📊 ANALYTICS</a></div>
+</section>
+
+<div id="gate" class="panel"><span class="eyebrow">ACCOUNT</span><h2>Checking creator access…</h2><p class="muted">Your private catalog metrics load only after authentication.</p></div>
+<div id="app" hidden>
+<section class="kpis" id="kpis"></section>
+
+<section class="section">
+<div class="eyebrow">REVENUE CHANNELS</div><h2>Choose the workflow that fits your show.</h2>
+<div class="channels">
+<a class="channel" href="creator-support.html"><div class="icon">❤️</div><h3>Listener Support</h3><p>Organize one-time support and supporter experiences around your public catalog.</p><span class="status">SUPPORT</span></a>
+<a class="channel" href="membership.html"><div class="icon">⭐</div><h3>Memberships</h3><p>Connect premium access, bonus content and member experiences to the CrowRules membership ecosystem.</p><span class="status">MEMBERSHIP</span></a>
+<a class="channel" href="creator-deal-room.html"><div class="icon">🤝</div><h3>Sponsorships</h3><p>Track prospects, deliverables, agreements, campaign notes and recorded deal values.</p><span class="status">DEAL ROOM</span></a>
+<a class="channel" href="creator-analytics.html"><div class="icon">📣</div><h3>Advertising</h3><p>Use audience and catalog measurements when evaluating advertising opportunities.</p><span class="status">ANALYTICS</span></a>
+<a class="channel" href="creator-analytics.html"><div class="icon">🔗</div><h3>Affiliate & Referral</h3><p>Keep promotional opportunities tied to content and measurable audience activity.</p><span class="status">TRACK</span></a>
+<a class="channel" href="creator-dashboard.html"><div class="icon">🎁</div><h3>Digital Products</h3><p>Plan companion content, bonus files, events and other creator products alongside your show.</p><span class="status">STUDIO</span></a>
+</div>
+</section>
+
+<section class="section workflow">
+<div class="panel"><div class="eyebrow">MONETIZATION READINESS</div><h2 id="readinessTitle">Loading…</h2><p class="muted" id="readinessText">Reading your current catalog.</p><div id="checks"></div></div>
+<div class="panel"><div class="eyebrow">MONEY CONTROL CENTER</div><h2>Financial records</h2><p class="muted">Keep agreed deal values, actual payments, refunds and payouts as separate records. Verified payment data should remain the source of truth for money actually received.</p>
+<div class="actions"><a class="btn primary" href="payouts.html">Open Payouts</a><a class="btn" href="creator-revenue.html">Open Ledger</a></div></div>
+</section>
+</div>
+</main>
+
 <footer class="site-footer"><div class="site-footer-inner"><div class="footer-brand"><strong>CROWRULES PODCASTING</strong><span>ONE ACCOUNT. ONE UNIVERSE.</span></div><div class="footer-links"><a href="launch.html">Launch</a><a href="signup.html">Join</a><a href="login.html">Login</a><a href="creator-dashboard.html">Creator Studio</a></div><div class="footer-copy">© 2026 CrowRules Entertainment</div></div></footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
 <script>
-(async function(){
+(async()=>{
  const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
- const state=document.getElementById("state"),metrics=document.getElementById("metrics"),next=document.getElementById("next-step");
+ const gate=document.getElementById("gate"),app=document.getElementById("app");
  try{
   const cfg=window.CrowRulesConfig||{};
-  if(!cfg.supabaseUrl||!cfg.supabaseAnonKey) throw new Error("Missing configuration");
+  if(!cfg.supabaseUrl||!cfg.supabaseAnonKey) throw new Error("Missing CrowRules configuration");
   const sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
   const {data:{user}}=await sb.auth.getUser();
-  if(!user){state.innerHTML='<span class="eyebrow">CREATOR ACCESS</span><h2>Sign in to open your Monetization Center.</h2><p>Your catalog data stays behind your CrowRules account.</p><div class="actions"><a class="btn primary" href="login.html">LOGIN</a><a class="btn" href="signup.html">JOIN CROWRULES</a></div>';next.innerHTML='<span class="eyebrow">GET STARTED</span><h2>Create your first show.</h2><p>Once you have a show and episodes, this page can calculate your current catalog readiness.</p><a class="btn primary" href="create-podcast.html">CREATE A SHOW</a>';return;}
-  const {data:creator}=await sb.from("creators").select("id,name,display_name").eq("user_id",user.id).maybeSingle();
-  if(!creator){state.innerHTML='<span class="eyebrow">CREATOR PROFILE</span><h2>Your account is ready. Your creator profile is next.</h2><p>Connect or create a creator identity before building a monetization catalog.</p><a class="btn primary" href="create-podcast.html">BECOME A CREATOR</a>';return;}
-  const {data:shows,error:se}=await sb.from("podcasts").select("id,title,description,artwork_url").eq("creator_id",creator.id).limit(100);if(se)throw se;
-  const list=shows||[],ids=list.map(x=>x.id);let episodes=[];
-  if(ids.length){const {data:eps,error:ee}=await sb.from("podcast_episodes").select("id,podcast_id,title,description,audio_url,duration_seconds,status,published_at").in("podcast_id",ids).limit(500);if(ee)throw ee;episodes=eps||[];}
+  if(!user){gate.innerHTML='<span class="eyebrow">LOGIN REQUIRED</span><h2>Sign in to open your creator monetization center.</h2><p class="muted">Your catalog metrics remain private.</p><div class="actions"><a class="btn primary" href="login.html">LOGIN</a><a class="btn" href="signup.html">JOIN CROWRULES</a></div>';return;}
+  const {data:creator,error:ce}=await sb.from("creators").select("id,name,display_name").eq("user_id",user.id).maybeSingle();
+  if(ce) throw ce;
+  if(!creator){gate.innerHTML='<span class="eyebrow">CREATOR PROFILE</span><h2>Your account is signed in, but no creator record is connected.</h2><p class="muted">Finish your creator profile before using catalog monetization workflows.</p><a class="btn primary" href="profile.html">OPEN PROFILE</a>';return;}
+  const {data:shows,error:se}=await sb.from("podcasts").select("id,title,description,artwork_url").eq("creator_id",creator.id).limit(100);
+  if(se) throw se;
+  const list=shows||[],ids=list.map(x=>x.id); let eps=[];
+  if(ids.length){const {data,error}=await sb.from("podcast_episodes").select("id,podcast_id,title,description,audio_url,duration_seconds,status,published_at").in("podcast_id",ids).limit(500);if(error)throw error;eps=data||[];}
+  const published=eps.filter(e=>String(e.status||"").toLowerCase()==="published"||e.published_at).length;
   const complete=e=>!!e.title?.trim()&&!!e.description?.trim()&&!!e.audio_url?.trim()&&Number(e.duration_seconds||0)>0;
-  const published=episodes.filter(e=>e.status==="published").length,ready=episodes.filter(e=>complete(e)&&e.status!=="published"&&!e.published_at).length,needsWork=episodes.filter(e=>!complete(e)).length,metadata=list.filter(x=>!x.title?.trim()||!x.description?.trim()||!x.artwork_url?.trim()).length;
-  const readiness=list.length===0?"FOUNDATION":metadata?"SHOW SETUP":needsWork?"PRODUCTION":ready?"REVIEW READY":published?"ACTIVE CATALOG":"FOUNDATION";
-  state.innerHTML='<span class="eyebrow">CREATOR · '+esc(creator.display_name||creator.name||user.email)+'</span><h2>'+esc(readiness)+'</h2><p>Readiness is calculated from current catalog records. It is not a revenue forecast.</p>';
-  metrics.innerHTML=[["SHOWS",list.length],["EPISODES",episodes.length],["PUBLISHED",published],["REVIEW READY",ready],["NEEDS WORK",needsWork],["SHOW SETUP ISSUES",metadata]].map(x=>'<div class="card"><span class="eyebrow">'+esc(x[0])+'</span><h2>'+x[1]+'</h2></div>').join("");
-  let h,b,u,l;
-  if(!list.length){h="Create your first show.";b="A monetization workflow starts with a real catalog.";u="create-podcast.html";l="CREATE SHOW";}
-  else if(metadata){h="Complete your show identity.";b=metadata+" show(s) need title, description, or artwork.";u="my-podcasts.html";l="FIX SHOW SETUP";}
-  else if(needsWork){h="Finish episode production.";b=needsWork+" episode(s) need core fields or audio.";u="creator-episode-health.html";l="OPEN EPISODE HEALTH";}
-  else if(ready){h="Move completed episodes into review.";b=ready+" episode(s) are ready for the next release step.";u="creator-episode-review-board.html";l="OPEN REVIEW";}
-  else if(!published){h="Prepare your first release.";b="Your catalog is built but no published episode is detected yet.";u="creator-launch-center.html";l="OPEN LAUNCH CENTER";}
-  else{h="Review performance and build the next opportunity.";b="Your catalog has published work. Use analytics and the Deal Room to organize the next stage.";u="creator-analytics.html";l="VIEW ANALYTICS";}
-  next.innerHTML='<span class="eyebrow">NEXT WORKFLOW</span><h2>'+esc(h)+'</h2><p>'+esc(b)+'</p><a class="btn primary" href="'+u+'">'+l+'</a>';
- }catch(e){console.error(e);state.innerHTML='<span class="eyebrow">STATUS</span><h2>Monetization Center is available.</h2><p>Catalog data could not be loaded right now. No financial action was taken.</p><div class="actions"><a class="btn primary" href="creator-dashboard.html">OPEN STUDIO</a><a class="btn" href="creator-deal-room.html">DEAL ROOM</a></div>';next.innerHTML='<span class="eyebrow">SAFE MODE</span><h2>Use the existing creator workflow.</h2><p>Open Studio or the Deal Room while catalog data is unavailable.</p>';}
+  const production=eps.filter(e=>!complete(e)).length;
+  const setup=list.filter(s=>!s.title?.trim()||!s.description?.trim()||!s.artwork_url?.trim()).length;
+  const ready=Math.max(0,eps.length-production-published);
+  const level=!list.length?"FOUNDATION":setup?"SHOW SETUP":production?"PRODUCTION":!published?"LAUNCH READY":"ACTIVE CATALOG";
+  gate.hidden=true;app.hidden=false;
+  document.getElementById("kpis").innerHTML=[
+   ["SHOWS",list.length],["EPISODES",eps.length],["PUBLISHED",published],["READY FOR RELEASE",ready]
+  ].map(x=>'<div class="kpi"><small>'+esc(x[0])+'</small><b>'+esc(x[1])+'</b></div>').join("");
+  document.getElementById("readinessTitle").textContent=level;
+  document.getElementById("readinessText").textContent=level==="ACTIVE CATALOG"?"Your show has published content. Organize the next revenue workflow around verified audience and business records.":level==="LAUNCH READY"?"Your catalog is built and ready for release workflow.":level==="PRODUCTION"?"Finish episode production before treating the catalog as monetization-ready.":level==="SHOW SETUP"?"Complete show identity and artwork before expanding monetization workflows.":"Create a show and establish a consistent catalog first.";
+  const rows=[
+   ["Show identity",list.length>0&&!setup,setup?setup+" show(s) need setup":"Ready"],
+   ["Episode production",eps.length>0&&production===0,production?production+" episode(s) need work":"Ready"],
+   ["Published catalog",published>0,published+" published episode(s)"],
+   ["Financial controls",true,"Ledger and payout pages available"]
+  ];
+  document.getElementById("checks").innerHTML=rows.map(r=>'<div class="check"><div><strong>'+esc(r[0])+'</strong><div class="muted">'+esc(r[2])+'</div></div><span class="badge">'+(r[1]?"READY":"NEEDS WORK")+'</span></div>').join("");
+ }catch(e){
+  console.error(e);
+  gate.innerHTML='<span class="eyebrow">SAFE MODE</span><h2>Monetization Center is available.</h2><p class="muted">Catalog data could not be loaded right now. No financial action was performed.</p><div class="actions"><a class="btn primary" href="creator-dashboard.html">OPEN STUDIO</a><a class="btn" href="payouts.html">OPEN PAYOUTS</a></div>';
+ }
 })();
 </script>
 </body>
