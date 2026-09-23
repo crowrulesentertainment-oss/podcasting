@@ -1,8 +1,8 @@
 /* CrowRules Podcasting — Professional Experience Layer */
 (()=>{"use strict";
-const pages={home:"Home",discover:"Discover",podcasts:"Podcasts",creators:"Creators","create-podcast":"Create Podcast","creator-studio":"Creator Studio",membership:"Membership",profile:"Profile","help-center":"Help Center"};
+const pages={home:"Home","member-hub":"Member Hub","account-center":"Account Center",discover:"Discover",podcasts:"Podcasts",creators:"Creators","create-podcast":"Create Podcast","creator-studio":"Creator Studio",membership:"Membership",profile:"Profile","help-center":"Help Center"};
 const path=(location.pathname.split("/").pop()||"home.html").replace(".html","").toLowerCase(), current=pages[path]||"Podcasting";
-const nav=[["home.html","Home","home"],["discover.html","Discover","discover"],["podcasts.html","Podcasts","podcasts"],["creators.html","Creators","creators"],["create-podcast.html","Create","create-podcast"],["creator-studio.html","Studio","creator-studio"],["membership.html","Membership","membership"],["profile.html","Profile","profile"],["help-center.html","Help","help-center"]];
+const nav=[["home.html","Home","home"],["member-hub.html","Member Hub","member-hub"],["account-center.html","Account","account-center"],["discover.html","Discover","discover"],["podcasts.html","Podcasts","podcasts"],["creators.html","Creators","creators"],["create-podcast.html","Create","create-podcast"],["creator-studio.html","Studio","creator-studio"],["membership.html","Membership","membership"],["profile.html","Profile","profile"],["help-center.html","Help","help-center"]];
 function init(){
  if(document.querySelector(".cr-pro-bar"))return;
  const skip=document.createElement("a");skip.className="cr-pro-skip";skip.href="#main-content";skip.textContent="Skip to content";document.body.prepend(skip);
