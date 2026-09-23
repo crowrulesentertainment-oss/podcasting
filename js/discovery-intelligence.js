@@ -7,7 +7,7 @@
   const art=(u,l)=>u?'<img src="'+esc(u)+'" alt="" loading="lazy">':'<span>'+esc((l||"CR").slice(0,2).toUpperCase())+'</span>';
   const state={podcasts:[],episodes:[],creators:[],user:null,followed:new Set(),saved:new Set(),history:new Set(),categories:new Map(),creatorIds:new Set(),engagement:new Map(),completionAffinity:new Map(),skipAffinity:new Map()};
   async function track(event_name,property="all",content_id=null,content_type=null,metadata={}){
-    try{await db.from("analytics_events").insert({user_id:state.user?.id||null,event_name,property,page_url:location.href,content_id,content_type,metadata})}catch(e){console.debug("analytics event skipped",e)}
+    try{await db.from("analytics_events").insert({user_id:state.user?.id||null,event_name,property,page_url:location.href,content_id,content_type,metadata:{...(window.CrowRulesRecommendationRuntime?.context()||{}),...metadata}})}catch(e){console.debug("analytics event skipped",e)}
   }
   function reason(p){const r=[];if(state.followed.has(p.id))r.push("you follow this podcast");if(state.creatorIds.has(p.creator_id))r.push("you follow this creator");if(state.categories.has(norm(p.category)))r.push("matches your interests");if(state.completionAffinity.has(p.id))r.push("you often finish related episodes");if(state.engagement.has(p.id))r.push("your recent activity");if(p.is_live)r.push("live now");if(p.is_featured)r.push("featured by CrowRules");return r.slice(0,2).join(" · ")||"popular in CrowRules Podcasting"}
   function score(p,personal=false){
@@ -65,6 +65,7 @@
     }
   }
   async function load(){
+    const runtime=window.CrowRulesRecommendationRuntime;if(runtime)await runtime.resolve();
     const learner=window.CrowRulesRecommendationLearning;if(learner)await learner.load();
     const [p,e,c]=await Promise.all([
       db.from("podcasts").select("id,creator_id,title,slug,category,description,artwork_url,status,is_featured,is_live,listener_count,total_plays,created_at,updated_at").in("status",["active","published","live"]).limit(300),
