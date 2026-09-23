@@ -38,6 +38,7 @@
 <script src="js/config.js"></script>
 <script src="js/global-navigation.js"></script>
 <script src="js/recommendation-learning.js"></script>
+<script src="js/recommendation-experiment.js"></script>
 <script src="js/discovery-intelligence.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded",async()=>{const a=window.CrowRulesRecommendationLearning;if(!a)return;await new Promise(r=>setTimeout(r,700));const box=document.querySelector("#profile-content"),st=document.querySelector("#profile-status");if(!a.user){st.textContent="Sign in required";return}st.textContent="Live profile";const cats=a.profile.categories||[],cr=a.profile.creators||[];box.innerHTML='<div class="di-profile-panel"><h3>TOP INTERESTS</h3>'+((cats.map(x=>'<span class="di-chip">'+String(x.name).replace(/[&<>]/g,"")+' <b>'+x.score+'</b></span>').join(""))||'<p>No category signals yet.</p>')+'</div><div class="di-profile-panel"><h3>CREATOR AFFINITY</h3>'+((cr.map(x=>'<span class="di-chip">'+String(x.name||"Creator")+' <b>'+x.score+'</b></span>').join(""))||'<p>No creator signals yet.</p>')+'</div><div class="di-profile-panel"><h3>LEARNING MODEL</h3><p>Recent actions count more than older actions. Plays, completions, saves, follows and repeat listening strengthen signals; skips reduce them.</p></div>'});
