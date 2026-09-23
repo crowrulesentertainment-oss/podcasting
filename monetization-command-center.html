@@ -1,49 +1,24 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#05050b"><title>Monetization Command Center 2.0 | CrowRules Podcasting</title>
-<link rel="stylesheet" href="css/podcasting.css">
-<style>
-:root{--bg:#05050b;--panel:rgba(14,14,25,.86);--line:rgba(255,255,255,.09);--muted:#9da2b8;--text:#f5f7ff;--cyan:#53e7ff;--purple:#a78bfa}
-body{background:radial-gradient(circle at 15% 0%,rgba(83,231,255,.10),transparent 35%),radial-gradient(circle at 90% 10%,rgba(167,139,250,.12),transparent 35%),var(--bg);color:var(--text)}
-.wrap{max-width:1250px;margin:auto;padding:28px 18px 70px}.hero,.panel,.kpi{background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:0 18px 60px rgba(0,0,0,.22)}
-.hero{padding:34px;margin-bottom:18px}.eyebrow{letter-spacing:.18em;color:var(--cyan);font-size:.72rem;font-weight:800}.hero h1{font-size:clamp(2rem,5vw,4rem);margin:.25rem 0}.hero p{color:var(--muted);max-width:780px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.kpi{padding:20px}.label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}.value{font-size:1.65rem;font-weight:800;margin-top:7px}.panel{padding:22px;margin-top:16px}.panel h2{margin-top:0}.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.links a{display:block;padding:13px 15px;border:1px solid var(--line);border-radius:12px;color:var(--text);text-decoration:none}.links a:hover{border-color:var(--cyan);transform:translateY(-1px)}.status{display:inline-flex;padding:6px 10px;border-radius:999px;border:1px solid var(--line);font-size:.78rem}.muted{color:var(--muted)}.error{color:#ff9b9b}
-</style>
-</head>
-<body>
-<div class="wrap">
-<section class="hero"><div class="eyebrow">CROWRULES PODCASTING · MONETIZATION 40.0</div><h1>COMMAND CENTER 2.0</h1><p>One creator-facing control surface for revenue, growth, customers, products, financial operations, and snapshot health.</p><div id="state" class="status">Checking session…</div></section>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050b"><title>Monetization Command Center 3.0 | CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><style>
+:root{--bg:#05050b;--panel:rgba(14,14,25,.88);--line:rgba(255,255,255,.09);--muted:#9da2b8;--text:#f5f7ff;--cyan:#53e7ff;--purple:#a78bfa}body{background:radial-gradient(circle at 15% 0%,rgba(83,231,255,.1),transparent 35%),radial-gradient(circle at 90% 10%,rgba(167,139,250,.12),transparent 35%),var(--bg);color:var(--text)}.wrap{max-width:1250px;margin:auto;padding:28px 18px 70px}.hero,.panel,.kpi,.action{background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:0 18px 60px rgba(0,0,0,.22)}.hero{padding:34px;margin-bottom:18px}.eyebrow{letter-spacing:.18em;color:var(--cyan);font-size:.72rem;font-weight:800}.hero h1{font-size:clamp(2rem,5vw,4rem);margin:.25rem 0}.hero p,.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.kpi{padding:20px}.label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}.value{font-size:1.65rem;font-weight:800;margin-top:7px}.panel{padding:22px;margin-top:16px}.panel h2{margin-top:0}.status{display:inline-flex;padding:6px 10px;border-radius:999px;border:1px solid var(--line);font-size:.78rem}.error{color:#ff9b9b}.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.action{padding:18px}.action h3{margin:.1rem 0 .45rem}.action p{color:var(--muted);font-size:.9rem;min-height:40px}.btn{display:inline-block;padding:10px 14px;border:1px solid var(--line);border-radius:10px;color:var(--text);text-decoration:none}.btn:hover{border-color:var(--cyan)}.alert{border-left:3px solid var(--cyan);padding:12px 14px;background:rgba(83,231,255,.05);border-radius:8px}.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.links a{padding:13px 15px;border:1px solid var(--line);border-radius:12px;color:var(--text);text-decoration:none}.links a:hover{border-color:var(--cyan)}
+</style></head><body><div class="wrap">
+<section class="hero"><div class="eyebrow">CROWRULES PODCASTING · MONETIZATION 41.0</div><h1>COMMAND CENTER 3.0</h1><p>The action layer for your monetization system — move from intelligence to the next operational step without leaving the command center.</p><div id="state" class="status">Checking session…</div></section>
+<section class="panel"><h2>What Needs Attention</h2><div id="attention" class="alert">Loading operational signals…</div></section>
 <section class="grid" id="kpis"></section>
-<section class="panel"><h2>Revenue Engine</h2><div id="revenue" class="grid"></div></section>
-<section class="panel"><h2>Audience & Product Engine</h2><div id="audience" class="grid"></div></section>
-<section class="panel"><h2>Operations & Security</h2><div id="ops" class="grid"></div></section>
-<section class="panel"><h2>Detailed Intelligence</h2><div class="links">
-<a href="revenue-command-center.html">Revenue Command Center</a><a href="revenue-trends.html">Revenue Trends</a><a href="growth-intelligence.html">Growth Intelligence</a><a href="customer-intelligence.html">Customer Intelligence</a><a href="customer-ltv.html">Customer LTV</a><a href="cohort-intelligence.html">Cohort Intelligence</a><a href="product-ltv.html">Product LTV</a><a href="monetization-matrix.html">Monetization Matrix</a><a href="financial-audit-center.html">Financial Audit</a><a href="financial-exceptions-center.html">Financial Exceptions</a><a href="financial-recovery-center.html">Financial Recovery</a><a href="snapshot-health.html">Snapshot Health</a></div></section>
+<section class="panel"><h2>Creator Actions</h2><div class="actions">
+<div class="action"><h3>Build an Offer</h3><p>Create a Stripe-backed monetization product and price.</p><a class="btn" href="monetization-product-builder.html">Create Product</a></div>
+<div class="action"><h3>Manage Offers</h3><p>Edit, activate, archive, and control premium access.</p><a class="btn" href="product-manager.html">Manage Products</a></div>
+<div class="action"><h3>Premium Content</h3><p>Control which podcast episodes require an active entitlement.</p><a class="btn" href="premium-content-manager.html">Manage Premium</a></div>
+<div class="action"><h3>Financial Exceptions</h3><p>Investigate open financial issues and record resolutions.</p><a class="btn" href="financial-exceptions-center.html">Review Exceptions</a></div>
+<div class="action"><h3>Recovery Queue</h3><p>Review queued and failed webhook recovery work.</p><a class="btn" href="financial-recovery-center.html">Open Recovery</a></div>
+<div class="action"><h3>Payout Operations</h3><p>Review creator payout and settlement ledger information.</p><a class="btn" href="payout-center.html">Open Payouts</a></div>
+<div class="action"><h3>Financial Audit</h3><p>Review monetization audit events and processing history.</p><a class="btn" href="financial-audit-center.html">Open Audit</a></div>
+<div class="action"><h3>Revenue Operations</h3><p>Inspect current revenue scenarios and recurring performance.</p><a class="btn" href="revenue-command-center.html">Open Revenue</a></div>
+</div></section>
+<section class="panel"><h2>Live Intelligence</h2><div id="intelligence" class="grid"></div></section>
+<section class="panel"><h2>Detailed Intelligence</h2><div class="links"><a href="revenue-trends.html">Revenue Trends</a><a href="growth-intelligence.html">Growth Intelligence</a><a href="customer-intelligence.html">Customer Intelligence</a><a href="customer-ltv.html">Customer LTV</a><a href="cohort-intelligence.html">Cohort Intelligence</a><a href="product-ltv.html">Product LTV</a><a href="monetization-matrix.html">Monetization Matrix</a><a href="snapshot-health.html">Snapshot Health</a></div></section>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
-<script>
-const $=id=>document.getElementById(id);
-const money=c=>{const n=Number(c||0)/100;return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n)};
-const pct=n=>Number(n||0).toFixed(1)+'%';
-function card(label,value){return '<div class="kpi"><div class="label">'+label+'</div><div class="value">'+value+'</div></div>'}
-(async()=>{
- try{
-  if(!window.supabase||!window.CrowRulesConfig) throw new Error('Supabase configuration unavailable');
-  const client=supabase.createClient(CrowRulesConfig.url,CrowRulesConfig.anonKey);
-  const {data:{session}}=await client.auth.getSession();
-  if(!session){$('state').textContent='Login required';$('state').className='status error';location.href='login.html?redirect=monetization-command-center.html';return}
-  $('state').textContent='Creator session active';
-  const {data,error}=await client.rpc('get_my_podcast_monetization_command_center');
-  if(error) throw error;
-  const d=data||{}, r=d.revenue||{}, s=d.subscriptions||{}, p=d.products||{}, c=d.customers||{}, m=d.matrix||{}, o=d.operations||{}, h=d.snapshot_health||{};
-  $('kpis').innerHTML=card('Active subscriptions',s.active||0)+card('Products',p.count||0)+card('Customers',c.count||0)+card('Lifetime revenue',money(c.lifetime_revenue_cents))+card('Average LTV',money(c.average_ltv_cents))+card('Repeat rate',pct(c.repeat_rate_pct))+card('Open exceptions',o.open_exceptions||0)+card('Snapshot health',h.status||'unknown');
-  $('revenue').innerHTML=card('Recurring revenue · 30d',money(r.recurring_revenue_30d))+card('Paid transactions · 30d',r.paid_transactions_30d||0)+card('Matrix revenue',money(m.revenue_cents))+card('Top product share',pct(m.top_product_share_pct));
-  $('audience').innerHTML=card('Returning customers',c.returning||0)+card('Lifetime revenue',money(c.lifetime_revenue_cents))+card('Premium catalog value',money(p.premium_catalog_value))+card('Product rows',m.product_rows||0);
-  $('ops').innerHTML=card('Queued recovery',o.queued_recovery||0)+card('Failed recovery',o.failed_recovery||0)+card('Snapshot date',h.snapshot_date||'—')+card('Missing snapshots',h.missing_count||0);
- }catch(e){$('state').textContent='Unable to load command center';$('state').className='status error';$('kpis').innerHTML='<div class="kpi error">'+(e.message||'Unknown error')+'</div>'}
-})();
-</script>
-</body></html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script><script>
+const $=id=>document.getElementById(id), money=c=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(Number(c||0)/100), pct=n=>Number(n||0).toFixed(1)+'%', card=(l,v)=>'<div class="kpi"><div class="label">'+l+'</div><div class="value">'+v+'</div></div>';
+(async()=>{try{if(!window.supabase||!window.CrowRulesConfig)throw Error('Supabase configuration unavailable');const client=supabase.createClient(CrowRulesConfig.url,CrowRulesConfig.anonKey);const {data:{session}}=await client.auth.getSession();if(!session){location.href='login.html?redirect=monetization-command-center.html';return}$('state').textContent='Creator session active';const {data,error}=await client.rpc('get_my_podcast_monetization_command_center');if(error)throw error;const d=data||{},r=d.revenue||{},s=d.subscriptions||{},p=d.products||{},c=d.customers||{},m=d.matrix||{},o=d.operations||{},h=d.snapshot_health||{};$('kpis').innerHTML=card('Active subscriptions',s.active||0)+card('Products',p.count||0)+card('Customers',c.count||0)+card('Lifetime revenue',money(c.lifetime_revenue_cents))+card('Average LTV',money(c.average_ltv_cents))+card('Repeat rate',pct(c.repeat_rate_pct))+card('Open exceptions',o.open_exceptions||0)+card('Snapshot health',h.status||'unknown');$('intelligence').innerHTML=card('Recurring revenue · 30d',money(r.recurring_revenue_30d))+card('Paid transactions · 30d',r.paid_transactions_30d||0)+card('Top product share',pct(m.top_product_share_pct))+card('Returning customers',c.returning||0)+card('Queued recovery',o.queued_recovery||0)+card('Failed recovery',o.failed_recovery||0);const issues=[];if(Number(o.open_exceptions)>0)issues.push(o.open_exceptions+' open financial exception(s)');if(Number(o.failed_recovery)>0)issues.push(o.failed_recovery+' failed recovery job(s)');if(h.status&&h.status!=='healthy'&&h.status!=='unknown')issues.push('snapshot health is '+h.status);$('attention').innerHTML=issues.length?'Review: '+issues.join(' · '):'No open operational signals were returned by the command-center snapshot.'}catch(e){$('state').textContent='Unable to load command center';$('state').className='status error';$('attention').textContent=e.message||'Unknown error'}})();
+</script></body></html>
