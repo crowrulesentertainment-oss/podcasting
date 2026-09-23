@@ -8,7 +8,7 @@ const supabase=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE
 const json=(body:any,status=200)=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json"}});
 
 Deno.serve(async(req)=>{
-  let eventId:string|null=null;
+  let eventId:string|null=null;\n  let creatorIdForError:string|null=null;
   try{
     if(req.method!=="POST") return new Response("POST required",{status:405});
     const signature=req.headers.get("stripe-signature");
@@ -30,7 +30,7 @@ Deno.serve(async(req)=>{
     if(!metadata.creator_id && obj.payment_intent){
       try{const pi:any=await stripe.paymentIntents.retrieve(obj.payment_intent);metadata={...pi.metadata,...metadata};}catch(_e){}
     }
-    const creatorId=metadata.creator_id||null;
+    const creatorId=metadata.creator_id||null;\n    creatorIdForError=creatorId;
     const productId=metadata.product_id||null;
     const userId=metadata.user_id||null;
 
