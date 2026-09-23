@@ -57,10 +57,10 @@
     const ids=[...state.history,...state.saved];
     if(ids.length){
       const er=await db.from("podcast_episodes").select("id,podcast_id").in("id",ids.slice(0,500));
-      const pids=[...(er.data||[])].map(x=>x.podcast_id).filter(Boolean);
+      const episodeToPodcast=new Map((er.data||[]).map(x=>[x.id,x.podcast_id]));const pids=[...(er.data||[])].map(x=>x.podcast_id).filter(Boolean);
       if(pids.length){
         const pr=await db.from("podcasts").select("id,category,creator_id").in("id",[...new Set(pids)].slice(0,500));
-        (pr.data||[]).forEach(x=>{if(x.category)state.categories.set(norm(x.category),(state.categories.get(norm(x.category))||0)+1);if(x.creator_id)state.creatorIds.add(x.creator_id);});
+        (pr.data||[]).forEach(x=>{if(x.category)state.categories.set(norm(x.category),(state.categories.get(norm(x.category))||0)+1);if(x.creator_id)state.creatorIds.add(x.creator_id);let completion=0,skips=0;episodeSignals.forEach((sig,eid)=>{if(episodeToPodcast.get(eid)!==x.id)return;const decay=Math.max(.1,Math.exp(-ago(sig.date)/30));if(sig.completed||sig.percent>=80)completion+=18*decay;else if(sig.percent<30)skips+=4*decay});if(completion)state.completionAffinity.set(x.id,Math.min(35,completion));if(skips)state.skipAffinity.set(x.id,Math.min(12,skips));});
       }
     }
   }
