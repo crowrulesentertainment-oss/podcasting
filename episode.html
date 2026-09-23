@@ -25,6 +25,8 @@
 </div></header>
 <main id="main"><section class="wrap episode-hero"><a class="back" href="episodes.html">← Back to Episodes</a><div id="app"><div class="notice">Loading episode…</div></div></section></main>
 <script src="js/config.js"></script>
+<script src="js/member-state.js"></script>
+<script src="js/member-actions.js"></script>
 <script>
 (()=>{"use strict";
 const $=id=>document.getElementById(id);
@@ -84,10 +86,25 @@ async function init(){
   const embed=youtubeEmbed(episode.video_url);
   const audio=episode.audio_url?'<div class="player"><div class="eyebrow">AUDIO PLAYER</div><audio controls preload="metadata" src="'+esc(episode.audio_url)+'"></audio></div>':"";
   const video=episode.video_url?(embed?'<div class="video"><iframe src="'+esc(embed)+'" title="'+esc(episode.title)+'" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share" allowfullscreen></iframe></div>':'<div class="video"><video controls preload="metadata" src="'+esc(episode.video_url)+'"></video></div>'):"";
-  $("app").innerHTML='<div class="episode-layout"><div><div class="cover">'+(art?'<img src="'+esc(art)+'" alt="'+esc(episode.title)+' cover art">':'<div class="cover-fallback">CR</div>')+'</div></div><div><div class="eyebrow">'+esc(podcast.title||"CrowRules Podcasting")+'</div><h1 class="episode-title">'+esc(episode.title)+'</h1><div class="chips"><span class="chip">S'+esc(episode.season_number||1)+' · E'+esc(episode.episode_number||"—")+'</span>'+(episode.duration_seconds?'<span class="chip">'+dur(episode.duration_seconds)+'</span>':"")+'<span class="chip"><span data-play-count>'+Number(episode.play_count||0).toLocaleString()+'</span> plays</span>'+(episode.is_explicit?'<span class="chip">Explicit</span>':"")+'<span class="chip">'+esc(date(episode.published_at))+'</span></div><p class="episode-description">'+esc(episode.description||"No description yet.")+'</p>'+audio+video+'<div class="actions"><button class="btn primary" id="share">Share Episode</button><a class="btn" href="episodes.html">Browse Episodes</a>'+(podcast.slug?'<a class="btn" href="podcast.html?slug='+encodeURIComponent(podcast.slug)+'">View Podcast</a>':"")+'</div></div></div><div class="content-grid">'+(episode.show_notes?'<section class="panel"><h2>Show Notes</h2><div class="panel-body">'+esc(episode.show_notes)+'</div></section>':"")+(episode.transcript?'<section class="panel"><h2>Transcript</h2><div class="panel-body">'+esc(episode.transcript)+'</div></section>':"")+'</div>'+(related.data?.length?'<section><div class="eyebrow">MORE FROM THIS SHOW</div><div class="related">'+related.data.map(x=>'<a class="related-card" href="episode.html?slug='+encodeURIComponent(x.slug||x.id)+'"><div class="eyebrow">S'+esc(x.season_number||1)+' · E'+esc(x.episode_number||"—")+'</div><h3>'+esc(x.title)+'</h3><p>'+Number(x.play_count||0).toLocaleString()+' plays · '+esc(date(x.published_at))+'</p></a>').join("")+'</div></section>':"");
+  $("app").innerHTML='<div class="episode-layout"><div><div class="cover">'+(art?'<img src="'+esc(art)+'" alt="'+esc(episode.title)+' cover art">':'<div class="cover-fallback">CR</div>')+'</div></div><div><div class="eyebrow">'+esc(podcast.title||"CrowRules Podcasting")+'</div><h1 class="episode-title">'+esc(episode.title)+'</h1><div class="chips"><span class="chip">S'+esc(episode.season_number||1)+' · E'+esc(episode.episode_number||"—")+'</span>'+(episode.duration_seconds?'<span class="chip">'+dur(episode.duration_seconds)+'</span>':"")+'<span class="chip"><span data-play-count>'+Number(episode.play_count||0).toLocaleString()+'</span> plays</span>'+(episode.is_explicit?'<span class="chip">Explicit</span>':"")+'<span class="chip">'+esc(date(episode.published_at))+'</span></div><p class="episode-description">'+esc(episode.description||"No description yet.")+'</p>'+audio+video+'<div class="actions"><button class="btn primary" id="share">Share Episode</button><button class="btn" id="saveEpisode" data-save-episode="${esc(episode.id)}" type="button">Save</button><button class="btn" id="followPodcast" data-follow-podcast="${esc(podcast.id)}" type="button">Follow</button><a class="btn" href="episodes.html">Browse Episodes</a>'+(podcast.slug?'<a class="btn" href="podcast.html?slug='+encodeURIComponent(podcast.slug)+'">View Podcast</a>':"")+'</div></div></div><div class="content-grid">'+(episode.show_notes?'<section class="panel"><h2>Show Notes</h2><div class="panel-body">'+esc(episode.show_notes)+'</div></section>':"")+(episode.transcript?'<section class="panel"><h2>Transcript</h2><div class="panel-body">'+esc(episode.transcript)+'</div></section>':"")+'</div>'+(related.data?.length?'<section><div class="eyebrow">MORE FROM THIS SHOW</div><div class="related">'+related.data.map(x=>'<a class="related-card" href="episode.html?slug='+encodeURIComponent(x.slug||x.id)+'"><div class="eyebrow">S'+esc(x.season_number||1)+' · E'+esc(x.episode_number||"—")+'</div><h3>'+esc(x.title)+'</h3><p>'+Number(x.play_count||0).toLocaleString()+' plays · '+esc(date(x.published_at))+'</p></a>').join("")+'</div></section>':"");
   $("share").onclick=share;
   watchNativeMedia();
   initYouTubeCounter(embed);
+  window.CrowRulesMemberActions?.bind();
+  window.CrowRulesMemberActions?.hydrate();
+  document.querySelectorAll("audio,video").forEach(media=>{
+    let lastSaved=0;
+    const saveProgress=()=>{
+      if(!user||!episode?.id||!Number.isFinite(media.duration)||media.duration<=0)return;
+      const now=Date.now(); if(now-lastSaved<5000)return; lastSaved=now;
+      const position=Math.max(0,Math.floor(media.currentTime||0)), duration=Math.max(0,Math.floor(media.duration||episode.duration_seconds||0));
+      const percent=Math.min(100,(position/duration)*100), completed=percent>=95;
+      db.from("podcast_episode_progress").upsert({user_id:user.id,episode_id:episode.id,position_seconds:position,duration_seconds:duration,percent_complete:percent,last_played_at:new Date().toISOString(),completed},{onConflict:"user_id,episode_id"}).then(r=>{if(r.error)console.debug("progress save skipped",r.error)});
+    };
+    media.addEventListener("timeupdate",saveProgress);
+    media.addEventListener("pause",saveProgress);
+    media.addEventListener("ended",saveProgress);
+  });
   document.title=episode.title+" | CrowRules Podcasting";
  }catch(e){$("app").innerHTML='<div class="notice"><h1>Episode unavailable</h1><p>'+esc(e.message)+'</p><a class="btn primary" href="episodes.html">Return to Episodes</a></div>'}
 }
