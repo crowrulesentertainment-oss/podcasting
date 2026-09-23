@@ -93,98 +93,6 @@
       margin:0 auto;
     }
 
-    .topbar{
-      position:sticky;
-      top:0;
-      z-index:100;
-      border-bottom:1px solid var(--line);
-      background:rgba(4,5,11,.82);
-      backdrop-filter:blur(20px);
-    }
-
-    .topbar-inner{
-      min-height:74px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:18px;
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width:0;
-    }
-
-    .brand-mark{
-      width:42px;
-      height:42px;
-      border-radius:13px;
-      display:grid;
-      place-items:center;
-      font-family:Orbitron,sans-serif;
-      font-weight:800;
-      color:#05050b;
-      background:linear-gradient(135deg,var(--cyan),var(--purple));
-      box-shadow:0 0 35px rgba(66,232,255,.18);
-    }
-
-    .brand-copy{
-      min-width:0;
-    }
-
-    .brand-title{
-      font-family:Orbitron,sans-serif;
-      font-size:14px;
-      letter-spacing:.12em;
-      font-weight:800;
-    }
-
-    .brand-sub{
-      color:var(--muted);
-      font-size:11px;
-      margin-top:2px;
-    }
-
-    .nav{
-      display:flex;
-      gap:8px;
-      align-items:center;
-      overflow:auto;
-      scrollbar-width:none;
-    }
-
-    .nav::-webkit-scrollbar{
-      display:none;
-    }
-
-    .nav a{
-      white-space:nowrap;
-      padding:10px 13px;
-      border-radius:12px;
-      color:var(--muted);
-      font-size:12px;
-      font-weight:700;
-      transition:.2s;
-    }
-
-    .nav a:hover{
-      color:var(--text);
-      background:rgba(255,255,255,.06);
-    }
-
-    .account{
-      border:1px solid var(--line2);
-      background:rgba(255,255,255,.04);
-      padding:10px 14px;
-      border-radius:12px;
-      color:var(--text);
-      font-size:12px;
-      font-weight:800;
-      white-space:nowrap;
-    }
-
     .hero{
       padding:72px 0 38px;
     }
@@ -703,49 +611,6 @@
       background:rgba(66,232,255,.07);
     }
 
-    .loading-screen{
-      min-height:100vh;
-      display:grid;
-      place-items:center;
-      padding:30px;
-    }
-
-    .loading-card{
-      width:min(500px,100%);
-      padding:30px;
-      text-align:center;
-      border:1px solid var(--line);
-      border-radius:24px;
-      background:var(--panel);
-      box-shadow:var(--shadow);
-    }
-
-    .spinner{
-      width:38px;
-      height:38px;
-      margin:0 auto 18px;
-      border-radius:50%;
-      border:3px solid rgba(255,255,255,.10);
-      border-top-color:var(--cyan);
-      animation:spin .8s linear infinite;
-    }
-
-    @keyframes spin{
-      to{transform:rotate(360deg)}
-    }
-
-    .empty{
-      text-align:center;
-      padding:50px 20px;
-      color:var(--muted);
-    }
-
-    .empty h2{
-      color:var(--text);
-      font-family:Orbitron,sans-serif;
-      font-size:18px;
-    }
-
     .tiny{
       font-size:9px;
       color:#626a82;
@@ -831,44 +696,7 @@
 
 <div id="app">
 
-  <div class="loading-screen" id="loadingScreen">
-    <div class="loading-card">
-      <div class="spinner"></div>
-      <strong>Opening Creator Studio…</strong>
-      <p class="tiny">
-        Connecting your CrowRules Podcasting creator account.
-      </p>
-    </div>
-  </div>
-
-  <div id="studio" hidden>
-
-    <header class="topbar">
-      <div class="shell topbar-inner">
-
-        <a href="index.html" class="brand">
-          <div class="brand-mark">CR</div>
-
-          <div class="brand-copy">
-            <div class="brand-title">CROWRULES</div>
-            <div class="brand-sub">PODCASTING CREATOR STUDIO</div>
-          </div>
-        </a>
-
-        <nav class="nav">
-          <a href="index.html">Home</a>
-          <a href="podcasts.html">Podcasts</a>
-          <a href="creators.html">Creators</a>
-          <a href="episodes.html">Episodes</a>
-          <a href="creator-studio.html">Studio</a>
-        </nav>
-
-        <button class="account" id="accountButton">
-          My Account
-        </button>
-
-      </div>
-    </header>
+  <div id="studio">
 
     <main class="shell">
 
@@ -1392,7 +1220,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script><script src="js/member-state.js"></script>
+<script src="js/config.js"></script>\n<script src="js/member-state.js"></script>
 
 <script>
 (() => {
@@ -1434,7 +1262,6 @@
   const $ = (id) => document.getElementById(id);
 
   const els = {
-    loadingScreen: $("loadingScreen"),
     studio: $("studio"),
     notice: $("notice"),
 
@@ -1483,20 +1310,10 @@
 
   function renderFatal(message) {
 
-    els.loadingScreen.innerHTML = `
-      <div class="loading-card">
-        <div style="font-size:34px;margin-bottom:14px">⚠</div>
-        <strong>Creator Studio could not start</strong>
-        <p class="tiny">${escapeHtml(message)}</p>
-        <a
-          class="btn primary"
-          href="index.html"
-          style="display:inline-flex;align-items:center;margin-top:16px"
-        >
-          Return to Podcasting
-        </a>
-      </div>
-    `;
+    showNotice(
+      message || "Creator Studio could not start.",
+      "error"
+    );
 
   }
 
@@ -2412,11 +2229,6 @@
 
       updateChecklist();
 
-      els.loadingScreen.hidden =
-        true;
-
-      els.studio.hidden =
-        false;
 
     } catch (error) {
 
