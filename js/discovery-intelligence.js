@@ -5,19 +5,20 @@
   const $=s=>document.querySelector(s), esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])), norm=v=>String(v??"").toLowerCase().trim();
   const ago=d=>d?Math.max(0,(Date.now()-new Date(d).getTime())/86400000):9999;
   const art=(u,l)=>u?'<img src="'+esc(u)+'" alt="" loading="lazy">':'<span>'+esc((l||"CR").slice(0,2).toUpperCase())+'</span>';
-  const state={podcasts:[],episodes:[],creators:[],user:null,followed:new Set(),saved:new Set(),history:new Set(),categories:new Map(),creatorIds:new Set(),engagement:new Map()};
+  const state={podcasts:[],episodes:[],creators:[],user:null,followed:new Set(),saved:new Set(),history:new Set(),categories:new Map(),creatorIds:new Set(),engagement:new Map(),completionAffinity:new Map(),skipAffinity:new Map()};
   async function track(event_name,property="all",content_id=null,content_type=null,metadata={}){
     try{await db.from("analytics_events").insert({user_id:state.user?.id||null,event_name,property,page_url:location.href,content_id,content_type,metadata})}catch(e){console.debug("analytics event skipped",e)}
   }
+  function reason(p){const r=[];if(state.followed.has(p.id))r.push("you follow this podcast");if(state.creatorIds.has(p.creator_id))r.push("you follow this creator");if(state.categories.has(norm(p.category)))r.push("matches your interests");if(state.completionAffinity.has(p.id))r.push("you often finish related episodes");if(state.engagement.has(p.id))r.push("your recent activity");if(p.is_live)r.push("live now");if(p.is_featured)r.push("featured by CrowRules");return r.slice(0,2).join(" · ")||"popular in CrowRules Podcasting"}
   function score(p,personal=false){
     let s=Number(p.total_plays||0)/1000+Number(p.listener_count||0)*.5;
     s+=Math.max(0,45-ago(p.updated_at||p.created_at))*1.5;
     if(p.is_featured)s+=18;if(p.is_live)s+=10;
-    if(personal){if(state.categories.has(norm(p.category)))s+=55;if(state.followed.has(p.id))s+=90;if(state.creatorIds.has(p.creator_id))s+=45;s+=state.engagement.get(p.id)||0}
+    if(personal){if(state.categories.has(norm(p.category)))s+=Math.min(55,(state.categories.get(norm(p.category))||0)*12);if(state.followed.has(p.id))s+=90;if(state.creatorIds.has(p.creator_id))s+=45;s+=state.engagement.get(p.id)||0;s+=state.completionAffinity.get(p.id)||0;s-=state.skipAffinity.get(p.id)||0}
     return s;
   }
   function card(p,badge){
-    return '<article class="di-card" data-di-type="podcast" data-di-id="'+esc(p.id)+'"><div class="di-art">'+art(p.artwork_url,p.title)+'<span class="di-badge">'+esc(badge||"PODCAST")+'</span></div><div class="di-body"><div class="di-type">PODCAST</div><h3>'+esc(p.title||"Untitled Podcast")+'</h3><p>'+esc(p.description||"Discover this CrowRules podcast.")+'</p><small>'+esc([p.category,Number(p.listener_count||0).toLocaleString()+" listeners",Number(p.total_plays||0).toLocaleString()+" plays"].filter(Boolean).join(" · "))+'</small><a class="di-link" href="podcast.html?slug='+encodeURIComponent(p.slug||p.id)+'">Open Podcast →</a></div></article>';
+    return '<article class="di-card" data-di-type="podcast" data-di-id="'+esc(p.id)+'"><div class="di-art">'+art(p.artwork_url,p.title)+'<span class="di-badge">'+esc(badge||"PODCAST")+'</span></div><div class="di-body"><div class="di-type">PODCAST</div><h3>'+esc(p.title||"Untitled Podcast")+'</h3><p>'+esc(p.description||"Discover this CrowRules podcast.")+'</p><small>'+esc([p.category,Number(p.listener_count||0).toLocaleString()+" listeners",Number(p.total_plays||0).toLocaleString()+" plays"].filter(Boolean).join(" · "))+'</small><div class="di-reason">WHY THIS: '+esc(reason(p))+'</div><a class="di-link" href="podcast.html?slug='+encodeURIComponent(p.slug||p.id)+'">Open Podcast →</a></div></article>';
   }
   function episode(e){
     return '<article class="di-card" data-di-type="episode" data-di-id="'+esc(e.id)+'"><div class="di-art">'+art(e.thumbnail_url,e.title)+'<span class="di-badge">NEW</span></div><div class="di-body"><div class="di-type">EPISODE</div><h3>'+esc(e.title||"Untitled Episode")+'</h3><p>Episode '+esc(e.episode_number||"")+'</p><small>'+esc(e.published_at?new Date(e.published_at).toLocaleDateString():"Recently published")+'</small><a class="di-link" href="episode.html?id='+encodeURIComponent(e.id)+'">Listen →</a></div></article>';
@@ -33,8 +34,8 @@
     const [f,s,l,p,cf,ev]=await Promise.all([
       db.from("podcast_follows").select("podcast_id").eq("user_id",user.id).limit(500),
       db.from("podcast_saved_episodes").select("episode_id").eq("user_id",user.id).limit(500),
-      db.from("podcast_listens").select("episode_id").eq("user_id",user.id).order("created_at",{ascending:false}).limit(500),
-      db.from("podcast_episode_progress").select("episode_id").eq("user_id",user.id).order("last_played_at",{ascending:false}).limit(500),
+      db.from("podcast_listens").select("episode_id,seconds_listened,completed,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(500),
+      db.from("podcast_episode_progress").select("episode_id,percent_complete,completed,last_played_at").eq("user_id",user.id).order("last_played_at",{ascending:false}).limit(500),
       db.from("podcast_member_follows").select("followed_user_id").eq("follower_user_id",user.id).limit(500),
       db.from("analytics_events").select("event_name,content_id,content_type,metadata,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(500)
     ]);
@@ -48,6 +49,9 @@
       const cat=x.metadata?.category;if(cat)state.categories.set(norm(cat),(state.categories.get(norm(cat))||0)+2);
     });
     const hist=[...(l.data||[]),...(p.data||[])];hist.forEach(x=>state.history.add(x.episode_id));
+    const episodeSignals=new Map();
+    (l.data||[]).forEach(x=>episodeSignals.set(x.episode_id,{completed:!!x.completed,percent:x.completed?100:0,date:x.created_at}));
+    (p.data||[]).forEach(x=>{const old=episodeSignals.get(x.episode_id)||{};episodeSignals.set(x.episode_id,{completed:old.completed||!!x.completed,percent:Math.max(old.percent||0,Number(x.percent_complete||0)),date:x.last_played_at||old.date})});
     const followedUsers=(cf.data||[]).map(x=>x.followed_user_id).filter(Boolean);
     if(followedUsers.length){const followedSet=new Set(followedUsers);state.creators.forEach(c=>{if(c.member_id&&followedSet.has(c.member_id))state.creatorIds.add(c.id)})}
     const ids=[...state.history,...state.saved];
@@ -56,7 +60,7 @@
       const pids=[...(er.data||[])].map(x=>x.podcast_id).filter(Boolean);
       if(pids.length){
         const pr=await db.from("podcasts").select("id,category,creator_id").in("id",[...new Set(pids)].slice(0,500));
-        (pr.data||[]).forEach(x=>{if(x.category)state.categories.set(norm(x.category),(state.categories.get(norm(x.category))||0)+1);if(x.creator_id)state.creatorIds.add(x.creator_id)});
+        (pr.data||[]).forEach(x=>{if(x.category)state.categories.set(norm(x.category),(state.categories.get(norm(x.category))||0)+1);if(x.creator_id)state.creatorIds.add(x.creator_id);});
       }
     }
   }
@@ -73,7 +77,7 @@
     const featured=[...state.podcasts].filter(x=>x.is_featured||x.is_live).sort((a,b)=>score(b)-score(a)).slice(0,6);
     const newest=state.episodes.slice(0,6);
     const creators=[...state.creators].sort((a,b)=>(b.is_featured-a.is_featured)||((b.podcast_count||0)-(a.podcast_count||0))).slice(0,6);
-    const rec=[...state.podcasts].map(p=>({p,s:score(p,true)})).sort((a,b)=>b.s-a.s).slice(0,6).map(x=>x.p);
+    const familiar=candidates.filter(x=>state.followed.has(x.p.id)||state.engagement.has(x.p.id));const exploratory=candidates.filter(x=>!state.followed.has(x.p.id)&&!state.engagement.has(x.p.id));const rec=[...familiar.slice(0,4),...exploratory.slice(0,2)].slice(0,6).map(x=>x.p);
     render("trending",trending.map(x=>card(x,"TRENDING")).join(""),trending.length);
     render("featured",featured.map(x=>card(x,x.is_live?"LIVE":"FEATURED")).join(""),featured.length);
     render("new-releases",newest.map(episode).join(""),newest.length);
