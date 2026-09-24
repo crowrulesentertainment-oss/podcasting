@@ -269,38 +269,6 @@ if(!window.CrowRulesMemberState && window.supabase?.createClient){
     }catch(_){}
   }
 
-  function buildAccountPalette(){
-    const dialog=document.createElement("div");
-    dialog.className="cr-command-overlay";dialog.hidden=true;
-    dialog.innerHTML='<div class="cr-command-dialog" role="dialog" aria-modal="true" aria-labelledby="cr-command-title"><div class="cr-command-top"><span class="cr-popover-kicker" id="cr-command-title">CROWRULES COMMAND</span><button type="button" class="cr-icon-button cr-command-close" aria-label="Close command palette">✕</button></div><div class="cr-command-search-wrap"><span>⌘</span><input id="cr-command-input" type="search" autocomplete="off" placeholder="Search your account, library, creator tools…" aria-label="Search account commands"></div><div class="cr-command-status"><span class="cr-presence-status">Guest</span><span class="cr-command-hint">Esc to close · Ctrl/⌘K to open</span></div><div class="cr-command-results" role="listbox" aria-label="Account commands"></div></div>';
-    document.body.appendChild(dialog);
-    const input=dialog.querySelector("#cr-command-input"),results=dialog.querySelector(".cr-command-results");
-    const commands=()=>[
-      ["Profile","Your public and member profile","profile.html","account"],
-      ["My Library","Saved shows, episodes, favorites and listening","my-library.html","library"],
-      ["Membership","Membership status and plan management","membership.html","membership"],
-      ["Premium Library","Your premium podcast access","premium-library.html","premium"],
-      ["Creator Studio","Create and manage podcasts","creator-studio.html","creator"],
-      ["Monetization","Creator revenue and offers","creator-monetization-hub.html","creator"],
-      ["Revenue Center","Live Stripe revenue ledger and financial reporting","creator-billing.html","creator"],
-      ["Playback Security","Devices and playback security","playback-security.html","security"],
-      ["Notifications","Open the full notification center","notifications.html","notifications"],
-      ["Account Settings","Preferences and account controls","account-settings.html","settings"]
-    ].filter(c=>user||c[0]==="Membership"||c[0]==="Notifications");
-    function renderCommands(filter=""){
-      const q=filter.trim().toLowerCase();
-      const list=commands().filter(c=>(c[0]+" "+c[1]).toLowerCase().includes(q));
-      results.innerHTML=list.length?list.map((c,i)=>'<a class="cr-command-item '+(i===0?"active":"")+'" role="option" href="'+href(c[2])+'"><span class="cr-command-icon">'+({account:"◎",library:"▣",membership:"◇",premium:"✦",creator:"◆",security:"⌁",notifications:"◌",settings:"⚙"}[c[3]]||"•")+'</span><span><strong>'+escapeHtml(c[0])+'</strong><small>'+escapeHtml(c[1])+'</small></span><kbd>↵</kbd></a>').join(""):'<div class="cr-command-empty">No matching command.</div>';
-    }
-    function open(){dialog.hidden=false;renderCommands(input.value);setTimeout(()=>input.focus(),0);openPanel="command"}
-    function close(){dialog.hidden=true;if(openPanel==="command")openPanel=null}
-    input.addEventListener("input",()=>renderCommands(input.value));
-    dialog.addEventListener("click",e=>{if(e.target===dialog)close()});
-    dialog.querySelector(".cr-command-close").addEventListener("click",close);
-    window.__crowRulesOpenCommandPalette=open;
-    window.__crowRulesCloseCommandPalette=close;
-  }
-
   function buildHeader(){
     const header=document.createElement("header");header.className="cr-global-header";header.setAttribute("role","banner");
     const inner=document.createElement("div");inner.className="cr-global-inner";
@@ -309,7 +277,6 @@ if(!window.CrowRulesMemberState && window.supabase?.createClient){
     const addLink=(parent,target,label,aliases,group)=>{const a=document.createElement("a");a.href=href(target);a.textContent=label;a.dataset.navGroup=group||"";if(isCurrent(aliases))a.setAttribute("aria-current","page");parent.appendChild(a)};
     nav.forEach(x=>addLink(desktop,x[0],x[1],x[2],x[3]));addLink(desktop,"help-center.html","Help",help,"account");
     const actions=document.createElement("div");actions.className="cr-global-actions";
-    const command=document.createElement("button");command.type="button";command.className="cr-command-trigger";command.setAttribute("aria-label","Open CrowRules command center");command.innerHTML='<span aria-hidden="true">⌘</span><span class="cr-command-trigger-label">Command</span>';actions.appendChild(command);
     const notify=document.createElement("button");notify.type="button";notify.className="cr-notification-trigger";notify.setAttribute("aria-label","Open notifications");notify.setAttribute("aria-expanded","false");notify.innerHTML='<span aria-hidden="true">◌</span><span class="cr-notification-badge" hidden>0</span>';actions.appendChild(notify);
     const account=document.createElement("a");account.href=href("profile.html");account.className="cr-profile-link cr-global-identity";if(isCurrent(accountAliases))account.setAttribute("aria-current","page");account.title="Open Profile";actions.appendChild(account);
     const menu=document.createElement("button");menu.className="cr-global-menu";menu.type="button";menu.setAttribute("aria-label","Open navigation");menu.setAttribute("aria-expanded","false");menu.setAttribute("aria-controls","cr-global-mobile-nav");menu.textContent="☰";
@@ -344,9 +311,6 @@ document.querySelectorAll("link[href*=\"professional-experience.css\"],script[sr
     const ui=buildHeader();
     document.body.insertBefore(ui.header,document.body.firstChild);
     const panel=buildNotificationCenter();
-    buildAccountPalette();
-
-    command.addEventListener("click",()=>window.__crowRulesOpenCommandPalette?.());
     ui.notify.addEventListener("click",()=>{
       const opening=panel.hidden;
       closePanels();panel.hidden=!opening;ui.notify.setAttribute("aria-expanded",String(opening));
@@ -366,19 +330,18 @@ document.querySelectorAll("link[href*=\"professional-experience.css\"],script[sr
       if(!e.target.closest(".cr-global-actions")&&!e.target.closest(".cr-notification-center"))closePanels();
     });
     document.addEventListener("keydown",e=>{
-      if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){e.preventDefault();window.__crowRulesOpenCommandPalette?.()}
-      if(e.key==="Escape"){window.__crowRulesCloseCommandPalette?.();closePanels();ui.mobile.classList.remove("open");ui.menu.setAttribute("aria-expanded","false");ui.menu.textContent="☰"}
+      if(e.key==="Escape"){closePanels();ui.mobile.classList.remove("open");ui.menu.setAttribute("aria-expanded","false");ui.menu.textContent="☰"}
     });
     window.addEventListener("resize",()=>{if(innerWidth>1040){ui.mobile.classList.remove("open");ui.menu.setAttribute("aria-expanded","false");ui.menu.textContent="☰"}},{passive:true});
 
     window.CrowRulesGlobalNavigation={
       version:VERSION,
+      commandsRemoved:true,
       routes:Object.freeze(nav.map(x=>Object.freeze({href:x[0],label:x[1],aliases:Object.freeze(x[2]),group:x[3]}))),
       refresh:()=>window.CrowRulesAccount?.refresh?.().then(s=>{applyAccountState(s);return s}).then(()=>loadNotifications()).then(subscribeRealtime),
       openNotifications:()=>{panel.hidden=false;ui.notify.setAttribute("aria-expanded","true");openPanel="notifications";loadNotifications()},
       markRead,markAllRead,
       pushNotification:n=>{notifyLocal(n);broadcast("notification",n)},
-      openCommandPalette:()=>window.__crowRulesOpenCommandPalette?.()
     };
 
     renderIdentity();renderNotificationCenter();
