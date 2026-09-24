@@ -1,4 +1,4 @@
-/* CrowRules Podcasting — Global Navigation 8.4 — Real-Time Identity Synchronization
+/* CrowRules Podcasting — Global Navigation 8.5 — Real-Time Identity Synchronization
    One shared navigation system.
    Live identity, membership/premium presence, notifications,
    creator state, cross-tab synchronization, and account command palette.
@@ -6,12 +6,12 @@
 */
 (function(){
   "use strict";
-  if(window.__CROWRULES_GLOBAL_NAV_84__) return;
-  window.__CROWRULES_GLOBAL_NAV_84__=true;
+  if(window.__CROWRULES_GLOBAL_NAV_85__) return;
+  window.__CROWRULES_GLOBAL_NAV_85__=true;
 
-  const VERSION="8.4";
-  const CHANNEL_NAME="crowrules-podcasting-global-nav-84";
-  const STORAGE_KEY="crowrules-podcasting-nav-84";
+  const VERSION="8.5";
+  const CHANNEL_NAME="crowrules-podcasting-global-nav-85";
+  const STORAGE_KEY="crowrules-podcasting-nav-85";
   const REFRESH_MS=15000;
   const NOTIFY_LIMIT=12;
   const nav=[
@@ -90,7 +90,7 @@
   }
   function dispatch(type,detail={}){window.dispatchEvent(new CustomEvent("crowrules:global-nav",{detail:{type,...detail}}))}
   function broadcast(type,payload={}){
-    const message={source:"crowrules-global-nav-84",type,payload,at:new Date().toISOString()};
+    const message={source:"crowrules-global-nav-85",type,payload,at:new Date().toISOString()};
     try{
       if("BroadcastChannel"in window){
         if(!window.__crowRulesGlobalNavChannel)window.__crowRulesGlobalNavChannel=new BroadcastChannel(CHANNEL_NAME);
@@ -201,7 +201,7 @@
       memberRecord=null;memberId=null;membership=null;premium=false;creator=false;notifications=[];unreadCount=0;
       renderIdentity();renderNotificationCenter();return;
     }
-    const member=await client.from("members").select("id").eq("user_id",user.id).maybeSingle();
+    const member=await client.from("members").select("id,display_name,username,first_name,last_name").eq("user_id",user.id).maybeSingle();
     if(request!==identityRequest)return;
     memberId=member.data?.id||"00000000-0000-0000-0000-000000000000"; memberRecord=member.data||null;
     const [creatorResult,membershipResult,premiumResult]=await Promise.all([
