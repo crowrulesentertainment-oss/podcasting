@@ -7,7 +7,6 @@
 <meta name="description" content="CrowRules Podcasting achievements, badges, milestones, and creator recognition.">
 <title>Achievements | CrowRules Podcasting</title>
 <link rel="stylesheet" href="css/podcasting.css">
-<link rel="stylesheet" href="css/professional-experience.css">
 <style>
 :root{--bg:#05050b;--panel:rgba(12,13,25,.86);--line:rgba(255,255,255,.10);--text:#f7f8ff;--muted:rgba(247,248,255,.68);--a:#7df9ff;--b:#b77cff}
 body{background:radial-gradient(circle at 50% -10%,rgba(125,249,255,.10),transparent 35%),radial-gradient(circle at 90% 20%,rgba(183,124,255,.10),transparent 30%),var(--bg);color:var(--text)}
@@ -36,7 +35,6 @@ body{background:radial-gradient(circle at 50% -10%,rgba(125,249,255,.10),transpa
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script>window.supabaseClient=supabase.createClient(CROWRULES_CONFIG.supabaseUrl,CROWRULES_CONFIG.supabaseAnonKey);</script>
-<script src="js/professional-experience.js"></script>
 <script>
 (()=>{"use strict";
 const db=window.supabaseClient,$=id=>document.getElementById(id),esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),num=v=>Number(v||0).toLocaleString(),hours=s=>{const h=Number(s||0)/3600;return h>=10?Math.floor(h).toLocaleString():h.toFixed(1)};
