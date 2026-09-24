@@ -49,6 +49,28 @@
 </section><div class="columns">
 <div style="display:grid;gap:18px">
 <section class="card">
+<div class="head"><div><h2>Live Transaction Ledger</h2><p>Authoritative Stripe-backed creator revenue, attributed to podcast and episode.</p></div><div class="actions"><button id="ledgerRefresh" class="btn">Refresh Ledger</button><span id="ledgerLive" class="badge ok">LIVE</span></div></div>
+<div class="body">
+<div class="analytics-summary" style="margin:0 0 15px">
+<div class="mini"><span class="label">Ledger Transactions</span><b id="ledgerCount">0</b></div>
+<div class="mini"><span class="label">Ledger Revenue</span><b id="ledgerRevenue">$0.00</b></div>
+<div class="mini"><span class="label">Attributed</span><b id="ledgerAttributed">0%</b></div>
+</div>
+<div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Podcast → Episode</th><th>Customer</th><th>Gross</th><th>Fee</th><th>Creator</th><th>Status</th><th>Stripe</th></tr></thead><tbody id="ledger"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody></table></div>
+</div>
+</section>
+
+<section class="card">
+<div class="head"><div><h2>Revenue Attribution</h2><p>Podcast and episode revenue sourced from the authoritative ledger.</p></div></div>
+<div class="table-wrap"><table><thead><tr><th>Podcast / Episode</th><th>Transactions</th><th>Creator Revenue</th></tr></thead><tbody id="revenueAttribution"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody></table></div>
+</section>
+
+<section class="card">
+<div class="head"><div><h2>Subscribers & Customers</h2><p>Billing customers synchronized from Stripe.</p></div></div>
+<div class="body"><div class="analytics-summary"><div class="mini"><span class="label">Customers</span><b id="customerCount">0</b></div><div class="mini"><span class="label">Tax Customers</span><b id="taxCustomers">0</b></div><div class="mini"><span class="label">Mapped Transactions</span><b id="mappedTransactions">0</b></div></div></div>
+</section>
+
+<section class="card">
 <div class="head"><div><h2>Subscriptions</h2><p>Synced from Stripe Billing webhooks.</p></div><span id="subscriptionCount" class="badge">0</span></div>
 <div class="table-wrap"><table><thead><tr><th>Status</th><th>Plan / Price</th><th>Period End</th><th>Cancellation</th><th>Invoice</th></tr></thead><tbody id="subscriptions"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody></table></div>
 </section>
@@ -130,6 +152,17 @@ client.from("creator_earnings").select("source,gross_amount,platform_fee,creator
 client.from("stripe_billing_webhook_events").select("event_type,received_at").order("received_at",{ascending:false}).limit(500),\nclient.from("cr_creator_revenue_transactions").select("*").eq("user_id",user.id).order("occurred_at",{ascending:false}).limit(5000)
 ]);
 if(se)throw se;if(ce)throw ce;if(ee)throw ee;if(ve)throw ve;if(te)throw te; revenueRows=earnings||[];subscriptionRows=subs||[];customerRows=customers||[];transactionRows=transactions||[];
+$("ledgerCount").textContent=transactionRows.length;
+const ledgerRevenue=transactionRows.reduce((n,t)=>n+Number(t.creator_amount||0),0);
+$("ledgerRevenue").textContent=money(ledgerRevenue);
+const mapped=transactionRows.filter(t=>t.podcast_id||t.episode_id).length;
+$("ledgerAttributed").textContent=transactionRows.length?Math.round(mapped/transactionRows.length*100)+"%":"0%";
+$("mappedTransactions").textContent=mapped;
+$("ledger").innerHTML=transactionRows.length?transactionRows.slice(0,200).map(t=>{
+ const path=[t.podcast_title,t.episode_title].filter(Boolean).join(" → ")||([t.podcast_id,t.episode_id].filter(Boolean).join(" → ")||"Unattributed");
+ const stripe=t.stripe_payment_id||t.stripe_invoice_id||t.stripe_checkout_session_id||t.stripe_transaction_id||"—";
+ return '<tr><td>'+date(t.occurred_at||t.created_at)+'</td><td>'+badge(t.transaction_type||"payment")+'</td><td>'+String(path)+'</td><td>'+String(t.stripe_customer_id||"—")+'</td><td class="money">'+money(t.gross_amount,t.currency)+'</td><td class="money">'+money(t.platform_fee,t.currency)+'</td><td class="money">'+money(t.creator_amount,t.currency)+'</td><td>'+badge(t.status)+'</td><td>'+String(stripe)+'</td></tr>';
+}).join(""):'<tr><td colspan="9" class="empty">No authoritative Stripe revenue transactions yet.</td></tr>';
 $("customer").textContent=customers?.[0]?.stripe_customer_id||"Not created";$("customerCount").textContent=(customers||[]).length;$("taxCustomers").textContent=(customers||[]).filter(x=>Array.isArray(x.tax_ids)&&x.tax_ids.length).length;
 
 const active=(subs||[]).filter(s=>["active","trialing"].includes(s.status));
@@ -149,7 +182,9 @@ $("attention").innerHTML=needs.length?needs.slice(0,8).map(s=>'<div style="paddi
 }
 async function portal(){
 try{clearError();if(!accountId)throw new Error("Connect Stripe before opening the Billing Portal.");const {data:session}=await client.auth.getSession();const token=session?.session?.access_token;if(!token)throw new Error("Your login session has expired.");const r=await fetch(SUPABASE_URL+"/functions/v1/stripe-connect-demo?action=billing-portal",{method:"POST",headers:{Authorization:"Bearer "+token,apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({accountId})});const d=await r.json();if(!r.ok||d.error)throw new Error(d.error||"Unable to open Billing Portal.");location.href=d.url}catch(e){error(e.message)}}
-$("refresh").onclick=()=>load().catch(e=>error(e.message));$("exportCsv").onclick=exportRevenue;$("statement").onclick=statement;
+$("refresh").onclick=()=>load().catch(e=>error(e.message));
+const ledgerChannel=client.channel("creator-revenue-ledger-"+Math.random().toString(36).slice(2));
+ledgerChannel.on("postgres_changes",{event:"*",schema:"public",table:"cr_creator_revenue_transactions",filter:"user_id=eq."+user?.id},()=>{ $("ledgerLive").textContent="UPDATED"; setTimeout(()=>$("ledgerLive").textContent="LIVE",1800); load().catch(()=>{}); }).subscribe();$("ledgerRefresh").onclick=()=>load().catch(e=>error(e.message));$("exportCsv").onclick=exportRevenue;$("statement").onclick=statement;
 $("portal").onclick=portal;$("portal2").onclick=portal;document.querySelectorAll("[data-range]").forEach(b=>b.onclick=()=>{analyticsRange=b.dataset.range;document.querySelectorAll("[data-range]").forEach(x=>x.classList.remove("active"));b.classList.add("active");load().catch(e=>error(e.message));});
 load().catch(e=>error(e.message));
 })();
