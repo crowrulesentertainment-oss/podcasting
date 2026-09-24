@@ -28,7 +28,7 @@ const addPoints=n=>{state.points+=n;localStorage.setItem("cr_points",state.point
 
 function nav(){
  const el=document.querySelector("[data-nav]"); if(!el)return;
- el.innerHTML='<header class="nav"><a class="wordmark" href="home.html">CROWRULES<span>/ PODCASTING</span></a><nav><a href="home.html">Home</a><a href="discover.html">Discover</a><a href="charts.html">Charts</a><a href="live.html">Live</a><a href="schedule.html">Schedule</a><a href="library.html">Library</a><a href="studio.html">Create</a></nav><div class="nav-actions"><a href="notifications.html" class="points-pill" aria-label="Notifications">◌</a><a href="crowpoints.html" class="points-pill" aria-label="CrowPoints">◉ <b>'+state.points+'</b></a><a class="points-pill github-link" href="https://github.com/crowrulesentertainment-oss/podcasting" target="_blank" rel="noopener noreferrer">GitHub</a><a href="account.html" class="avatar" id="accountAvatar">CR</a></div></header><div class="network-bar"><a href="search.html">⌕ Search</a><a href="creators.html">Creators</a><a href="subscriptions.html">Subscriptions</a><a href="crowpoints.html">CrowPoints</a><a href="help.html">Help</a></div>';
+ el.innerHTML='<header class="nav"><a class="wordmark" href="home.html">CROWRULES<span>/ PODCASTING</span></a><nav><a href="home.html">Home</a><a href="discover.html">Discover</a><a href="charts.html">Charts</a><a href="live.html">Live</a><a href="schedule.html">Schedule</a><a href="library.html">Library</a><a href="studio.html">Studio</a></nav><div class="nav-actions"><a href="notifications.html" class="points-pill" aria-label="Notifications">◌</a><a href="crowpoints.html" class="points-pill" aria-label="CrowPoints">◉ <b>'+state.points+'</b></a><a href="account.html" class="avatar" id="accountAvatar">CR</a></div></header><div class="network-bar"><a href="search.html">⌕ Search</a><a href="creators.html">Creators</a><a href="subscriptions.html">Subscriptions</a><a href="subscribers.html">Subscribers</a><a href="earnings.html">Earnings</a><a href="payouts.html">Payouts</a><a href="help.html">Help</a></div>';
  window.addEventListener("scroll",()=>document.querySelector(".nav")?.classList.toggle("scrolled",scrollY>12),{passive:true});
 }
 
@@ -193,8 +193,165 @@ function creator(){
 }
 function schedule(){const el=document.getElementById("schedule");if(!el)return;el.innerHTML=state.shows.slice(0,8).map((s,i)=>'<div class="slot"><time>'+["03:00 PM","05:30 PM","08:00 PM","09:30 PM","10:00 PM","11:30 PM","12:30 AM","01:30 AM"][i]+'</time><div><h3>'+esc(s.title)+'</h3><p>'+esc(s.host)+' • '+esc(s.tag)+'</p></div><a class="btn" href="podcast.html?show='+encodeURIComponent(s.slug||s.id)+'">Open</a></div>').join("")}
 
+
+async function saveEpisodeReal(episodeId,button){
+ if(!state.supabase||!state.user){toast("Sign in to save episodes");return}
+ const {data:existing}=await state.supabase.from("podcast_saved_episodes").select("id").eq("user_id",state.user.id).eq("episode_id",episodeId).maybeSingle();
+ if(existing){
+  await state.supabase.from("podcast_saved_episodes").delete().eq("id",existing.id);
+  if(button)button.textContent="☆ Save";
+  toast("Removed from Saved");
+ }else{
+  const {error}=await state.supabase.from("podcast_saved_episodes").insert({user_id:state.user.id,episode_id:episodeId});
+  if(error){toast("Could not save episode");return}
+  if(button)button.textContent="★ Saved";
+  addPoints(4);toast("+4 CrowPoints • episode saved");
+ }
+}
+
+async function followReal(podcastId,button){
+ if(!state.supabase||!state.user){toast("Sign in to follow");return}
+ const {data:existing}=await state.supabase.from("podcast_follows").select("id").eq("user_id",state.user.id).eq("podcast_id",podcastId).maybeSingle();
+ if(existing){
+  await state.supabase.from("podcast_follows").delete().eq("id",existing.id);
+  if(button)button.textContent="＋ Follow";
+  toast("Unfollowed");
+ }else{
+  const {error}=await state.supabase.from("podcast_follows").insert({user_id:state.user.id,podcast_id:podcastId});
+  if(error){toast("Could not follow");return}
+  if(button)button.textContent="Following";
+  addPoints(5);toast("+5 CrowPoints • following");
+ }
+}
+
+let progressTimer=null;
+async function persistProgress(){
+ const a=document.getElementById("crAudio"),ep=state.current;
+ if(!a||!ep||!state.supabase||!state.user||!Number.isFinite(a.currentTime))return;
+ const duration=Math.round(a.duration||state.duration||0),position=Math.round(a.currentTime||0);
+ if(!duration)return;
+ const percent=Math.min(100,Math.round((position/duration)*10000)/100);
+ await state.supabase.from("podcast_episode_progress").upsert({
+  user_id:state.user.id,episode_id:ep.id,position_seconds:position,duration_seconds:duration,
+  percent_complete:percent,completed:percent>=95,last_played_at:new Date().toISOString(),updated_at:new Date().toISOString()
+ },{onConflict:"user_id,episode_id"});
+}
+
+function wireProgress(){
+ const a=document.getElementById("crAudio");if(!a||a._crProgress)return;
+ a._crProgress=true;
+ a.addEventListener("timeupdate",()=>{clearTimeout(progressTimer);progressTimer=setTimeout(persistProgress,1500)});
+ a.addEventListener("pause",persistProgress);
+ a.addEventListener("ended",persistProgress);
+}
+
+async function subscribeToProduct(productId){
+ if(!state.supabase||!state.user){toast("Sign in before subscribing");return}
+ try{
+  const {data,error}=await state.supabase.functions.invoke("create-podcast-checkout",{
+   body:{product_id:productId,origin:location.origin+location.pathname.replace(/[^/]*$/,""),success_url:location.origin+location.pathname+"?checkout=success",cancel_url:location.href}
+  });
+  if(error)throw error;
+  if(!data?.url)throw new Error(data?.error||"Checkout URL missing");
+  location.href=data.url;
+ }catch(e){toast(e.message||"Unable to start Stripe Checkout")}
+}
+
+async function loadSubscriptionPage(){
+ const el=document.getElementById("subscriptionsPage");if(!el||!state.supabase)return;
+ if(!state.user){el.innerHTML='<div class="panel empty"><h2>Sign in to subscribe.</h2><a class="btn primary" href="account.html">Sign in with Google</a></div>';return}
+ const showKey=new URLSearchParams(location.search).get("show");
+ let q=state.supabase.from("cr_podcast_monetization_products").select("id,name,description,amount_cents,interval,podcast_id,grants_premium_access,stripe_price_id").eq("product_type","membership").eq("active",true);
+ if(showKey){const show=state.shows.find(s=>String(s.slug||s.id)===showKey);if(show?.dbId)q=q.eq("podcast_id",show.dbId)}
+ const {data,error}=await q.order("amount_cents",{ascending:true});
+ if(error){el.innerHTML='<div class="panel empty"><h2>Subscription catalog unavailable.</h2><p>'+esc(error.message)+'</p></div>';return}
+ const rows=data||[];
+ el.innerHTML=rows.length?rows.map(p=>'<article class="price-card '+(Number(p.amount_cents)>=700?'featured':'')+'"><p class="eyebrow">MEMBERSHIP</p><h2>$'+(Number(p.amount_cents)/100).toFixed(2)+'<span>/'+esc(p.interval||"month")+'</span></h2><h3>'+esc(p.name)+'</h3><p>'+esc(p.description||"Premium access to a CrowRules podcast.")+'</p><button class="btn primary" data-subscribe-product="'+esc(p.id)+'">Subscribe with Stripe</button></article>').join(""):'<div class="panel empty"><h2>No paid podcast tiers yet.</h2><p>Creators can create a real Stripe-backed membership from Monetization.</p><a class="btn primary" href="monetization.html">Open monetization</a></div>';
+}
+
+async function loadCreatorDashboard(){
+ const el=document.getElementById("creatorDashboard");if(!el)return;
+ if(!state.supabase||!state.user){el.innerHTML='<div class="panel empty"><h2>Sign in to open Creator Studio.</h2><a class="btn primary" href="account.html">Sign in</a></div>';return}
+ const [stats,products,mon]=await Promise.all([
+  state.supabase.from("podcast_creator_stats").select("*").eq("user_id",state.user.id).maybeSingle(),
+  state.supabase.from("cr_podcast_monetization_products").select("id,name,amount_cents,interval,podcast_id,active").eq("active",true),
+  state.supabase.from("creator_monetization").select("status,payouts_enabled,charges_enabled,stripe_account_id").eq("user_id",state.user.id).maybeSingle()
+ ]);
+ const s=stats.data||{};
+ el.innerHTML='<div class="panel"><p class="eyebrow">AUDIENCE</p><h2>Network snapshot</h2><div class="stats"><span><b>'+Number(s.podcast_count||0)+'</b> shows</span><span><b>'+Number(s.published_episode_count||0)+'</b> published</span><span><b>'+Number(s.total_plays||0).toLocaleString()+'</b> plays</span><span><b>'+Number(s.follower_count||0).toLocaleString()+'</b> followers</span></div></div><div class="panel"><p class="eyebrow">MEMBERS</p><h2>Paid subscribers</h2><p class="metric">'+(mon.data?.status==="active"?"Connected":"Not connected")+'</p><a class="btn" href="subscribers.html">View subscribers</a></div><div class="panel"><p class="eyebrow">EARNINGS</p><h2>Revenue ledger</h2><p class="metric">$'+(Number(s.total_plays||0)*0).toFixed(2)+'</p><a class="btn" href="earnings.html">Open earnings</a></div><div class="panel"><p class="eyebrow">PAYOUTS</p><h2>'+(mon.data?.payouts_enabled?"Payouts enabled":"Connect Stripe")+'</h2><a class="btn primary" href="payouts.html">'+(mon.data?.payouts_enabled?"Manage payouts":"Connect creator account")+'</a></div>';
+}
+
+async function loadPayoutsPage(){
+ const el=document.getElementById("payoutsPage");if(!el)return;
+ if(!state.supabase||!state.user){el.innerHTML='<h2>Sign in required.</h2><a class="btn primary" href="account.html">Sign in</a>';return}
+ const {data,error}=await state.supabase.functions.invoke("creator-connect-status",{body:{}});
+ if(error||data?.error){el.innerHTML='<h2>Stripe status unavailable.</h2><p>'+esc(data?.error||error?.message||"Try again.")+'</p><button class="btn primary" data-connect-stripe>Connect Stripe</button>';return}
+ const states=[["not_connected","Not Connected"],["setup_started","Setup Started"],["action_required","Action Required"],["payouts_enabled","Payouts Enabled"]];
+ el.innerHTML='<p class="eyebrow">LIVE STRIPE STATE</p><h2>'+esc(data.label)+'</h2><p>'+esc(data.detail)+'</p><div class="status-list">'+states.map(x=>'<span>'+x[1]+' <b>'+(x[0]===data.state?"CURRENT":"")+'</b></span>').join("")+'</div><div class="actions"><button class="btn primary" data-connect-stripe>'+(data.state==="not_connected"?"Connect Account":"Continue Setup")+'</button><a class="btn" href="studio.html">Back to Studio</a></div>';
+}
+
+async function connectStripe(){
+ if(!state.supabase||!state.user){toast("Sign in before connecting Stripe");return}
+ const {data,error}=await state.supabase.functions.invoke("creator-connect-onboarding",{body:{}});
+ if(error||data?.error){toast(data?.error||error?.message||"Stripe onboarding failed");return}
+ if(data?.onboarding_url)location.href=data.onboarding_url;
+}
+
+async function loadSubscribersPage(){
+ const el=document.getElementById("subscribersPage");if(!el)return;
+ if(!state.supabase||!state.user){el.innerHTML='<div class="panel empty"><h2>Sign in required.</h2><a class="btn primary" href="account.html">Sign in</a></div>';return}
+ const {data:creatorRows}=await state.supabase.from("podcast_creators").select("podcast_id").eq("user_id",state.user.id);
+ const ids=(creatorRows||[]).map(x=>x.podcast_id);
+ if(!ids.length){el.innerHTML='<div class="panel empty"><h2>No creator shows yet.</h2><a class="btn primary" href="create-podcast.html">Create podcast</a></div>';return}
+ const {data}=await state.supabase.from("podcast_subscriptions").select("podcast_id,status,started_at,current_period_end,cancel_at_period_end").in("podcast_id",ids).order("started_at",{ascending:false});
+ el.innerHTML='<div class="table-like">'+((data||[]).map(x=>'<div class="slot"><div><h3>'+esc(state.shows.find(s=>s.dbId===x.podcast_id)?.title||"Podcast")+'</h3><p>'+esc(x.status)+' • '+(x.current_period_end?new Date(x.current_period_end).toLocaleDateString():"")+'</p></div><span>'+(x.cancel_at_period_end?"Ending":"Active")+'</span></div>').join("")||'<div class="panel empty"><p>No paid subscribers yet.</p></div>')+'</div>';
+}
+
+async function loadEarningsPage(){
+ const el=document.getElementById("earningsPage");if(!el)return;
+ if(!state.supabase||!state.user){el.innerHTML='<div class="panel empty"><h2>Sign in required.</h2></div>';return}
+ const {data,error}=await state.supabase.from("cr_creator_revenue_transactions").select("gross_amount,platform_fee,creator_amount,stripe_fee,currency,status,description,occurred_at,podcast_title").eq("user_id",state.user.id).order("occurred_at",{ascending:false}).limit(100);
+ if(error){el.innerHTML='<div class="panel empty"><p>'+esc(error.message)+'</p></div>';return}
+ const rows=data||[],gross=rows.reduce((a,x)=>a+Number(x.gross_amount||0),0),net=rows.reduce((a,x)=>a+Number(x.creator_amount||0),0);
+ el.innerHTML='<div class="panel"><p class="eyebrow">GROSS</p><h2>$'+(gross/100).toFixed(2)+'</h2><p>Verified Stripe revenue</p></div><div class="panel"><p class="eyebrow">CREATOR SHARE</p><h2>$'+(net/100).toFixed(2)+'</h2><p>After recorded platform fees</p></div><div class="panel"><p class="eyebrow">TRANSACTIONS</p><h2>'+rows.length+'</h2><p>Webhook-backed ledger entries</p></div><div class="panel"><p class="eyebrow">LATEST</p><div class="table-like">'+rows.slice(0,10).map(x=>'<div class="slot"><div><h3>'+esc(x.description||x.podcast_title||"Revenue")+'</h3><p>'+new Date(x.occurred_at).toLocaleString()+'</p></div><strong>$'+(Number(x.creator_amount||0)/100).toFixed(2)+'</strong></div>').join("")+'</div></div>';
+}
+
+async function loadMonetizationPage(){
+ const el=document.getElementById("monetizationPage");if(!el)return;
+ if(!state.supabase||!state.user){el.innerHTML='<div class="panel empty"><h2>Sign in to monetize a show.</h2><a class="btn primary" href="account.html">Sign in</a></div>';return}
+ const {data:products}=await state.supabase.from("cr_podcast_monetization_products").select("id,name,amount_cents,interval,podcast_id,active,grants_premium_access").eq("active",true).order("created_at",{ascending:false});
+ el.innerHTML='<div class="panel"><p class="eyebrow">STRIPE CONNECT</p><h2>Creator payout account</h2><p>Connect once; the live Stripe state is checked whenever you return.</p><a class="btn primary" href="payouts.html">Open payout onboarding</a></div><div class="panel"><p class="eyebrow">PRODUCTS</p><h2>Membership tiers</h2><div class="table-like">'+((products||[]).map(p=>'<div class="slot"><div><h3>'+esc(p.name)+'</h3><p>$'+(Number(p.amount_cents)/100).toFixed(2)+'/'+esc(p.interval||"one-time")+'</p></div><a class="btn" href="subscriptions.html?show='+encodeURIComponent(state.shows.find(s=>s.dbId===p.podcast_id)?.slug||"")+'">View checkout</a></div>').join("")||'<p>No membership products yet.</p>')+'</div></div><div class="panel"><p class="eyebrow">CREATE</p><h2>Create a paid membership</h2><form class="form" data-product-form><label>Podcast<select name="podcast_id">'+state.shows.map(s=>'<option value="'+esc(s.dbId)+'">'+esc(s.title)+'</option>').join("")+'</select></label><label>Name<input required name="name" value="Supporter Membership"></label><label>Monthly price<input required name="amount_cents" type="number" min="100" step="1" value="499"></label><label>Description<textarea name="description" rows="3">Bonus episodes and supporter access.</textarea></label><button class="btn primary">Create Stripe product + price</button></form></div>';
+ const pf=document.querySelector("[data-product-form]");if(pf)pf.onsubmit=async e=>{e.preventDefault();const fd=new FormData(pf);const {data,error}=await state.supabase.functions.invoke("create-podcast-product",{body:{name:fd.get("name"),description:fd.get("description"),amount_cents:Number(fd.get("amount_cents")),interval:"month",product_type:"membership",podcast_id:fd.get("podcast_id")}});if(error||data?.error){toast(data?.error||error?.message||"Unable to create product");return}toast("Stripe product created");loadMonetizationPage()};
+}
+
+async function adminBootstrap(){
+ if(!state.supabase||!state.user)return null;
+ const {data,error}=await state.supabase.functions.invoke("podcasting-admin-bootstrap",{body:{}});
+ return error?null:data;
+}
+async function loadAdminPage(){
+ const el=document.getElementById("adminDashboard");if(!el)return;
+ if(!state.supabase||!state.user){el.innerHTML='<div class="panel empty"><h2>Administrator sign-in required.</h2><a class="btn primary" href="account.html">Sign in</a></div>';return}
+ const admin=await adminBootstrap();
+ if(!admin||admin.status==="pending"||admin.status==="disabled"){el.innerHTML='<div class="panel empty"><h2>Administrator access is not active.</h2><p>'+esc(admin?.message||admin?.error||"Your request has been recorded for review.")+'</p></div>';return}
+ const [p,e,c]=await Promise.all([
+  state.supabase.from("podcasts").select("id,status",{count:"exact",head:true}),
+  state.supabase.from("podcast_episodes").select("id,status",{count:"exact",head:true}),
+  state.supabase.from("podcast_chat_messages").select("id",{count:"exact",head:true}).eq("is_hidden",false)
+ ]);
+ el.innerHTML='<a class="panel" href="admin-shows.html"><p class="eyebrow">PUBLISHING</p><h2>Shows & episodes</h2><p>'+(p.count||0)+' shows • '+(e.count||0)+' episodes</p></a><a class="panel" href="admin-chat.html"><p class="eyebrow">MODERATION</p><h2>Chat</h2><p>'+(c.count||0)+' visible messages</p></a><a class="panel" href="subscribers.html"><p class="eyebrow">MEMBERS</p><h2>Subscribers</h2><p>Review creator subscriber relationships.</p></a><a class="panel" href="earnings.html"><p class="eyebrow">MONETIZATION</p><h2>Earnings</h2><p>Verified Stripe revenue ledger.</p></a>';
+}
+
+function wireOperatingSystem(){
+ wireProgress();
+ document.querySelectorAll("[data-subscribe-product]").forEach(b=>b.onclick=()=>subscribeToProduct(b.dataset.subscribeProduct));
+ document.querySelectorAll("[data-connect-stripe]").forEach(b=>b.onclick=connectStripe);
+ loadSubscriptionPage();loadCreatorDashboard();loadPayoutsPage();loadSubscribersPage();loadEarningsPage();loadMonetizationPage();loadAdminPage();
+ document.querySelectorAll("[data-demo-form]").forEach(f=>f.addEventListener("submit",()=>setTimeout(()=>wireProgress(),50)));
+}
+
 async function boot(){
- nav();player();await loadData();await loadAuth();await renderRails();await loadLibrary();discover();showPage();charts();chat();forms();actions();creators();creator();schedule();
- if(state.supabase)state.supabase.auth.onAuthStateChange((_e,s)=>{state.user=s?.user||null;const a=document.getElementById("accountAvatar");if(a)a.textContent=state.user?(state.user.email||"CR").slice(0,2).toUpperCase():"CR"});
+ nav();player();await loadData();await loadAuth();await renderRails();await loadLibrary();discover();showPage();charts();chat();forms();actions();creators();creator();schedule();wireOperatingSystem();
+ if(state.supabase)state.supabase.auth.onAuthStateChange(async(_e,s)=>{state.user=s?.user||null;const a=document.getElementById("accountAvatar");if(a)a.textContent=state.user?(state.user.email||"CR").slice(0,2).toUpperCase():"CR";await renderRails();await loadLibrary();wireOperatingSystem()});
 }
 boot();
