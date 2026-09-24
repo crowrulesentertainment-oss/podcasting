@@ -3,7 +3,7 @@
    accessible mobile navigation, and repository linking. */
 (function(){
   if(window.__CROWRULES_GLOBAL_NAV_62__) return;
-  window.__CROWRULES_GLOBAL_NAV_61__=true;
+  window.__CROWRULES_GLOBAL_NAV_62__=true;
 
   function removeDuplicateHeaders(){
     [...document.querySelectorAll(".cr-global-header")].slice(1).forEach(h=>h.remove());
