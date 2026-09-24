@@ -26,13 +26,13 @@
     ["podcasting/creator-monetization-hub.html","Monetization",["podcasting/creator-monetization-hub.html","podcasting/monetization.html"],"growth"],
     ["podcasting/playback-security.html","Security",["podcasting/playback-security.html","podcasting/playback-devices.html"],"account"]
   ];
-  const help=["podcasting/help-center.html","podcasting/podcasting/help.html","podcasting/podcasting/support.html"];
+  const help=["podcasting/help-center.html","podcasting/help.html","podcasting/podcasting/support.html"];
   const accountAliases=["podcasting/profile.html","podcasting/account.html","podcasting/account-center.html","podcasting/account-settings.html"];
 
   const path=location.pathname;
   const hasFile=/\/[^/]+\.[^/]+$/.test(path);
   const rawParts=path.split("/").filter(Boolean);
-  const current=(hasFile?(rawParts.pop()||"index.html"):"index.html").toLowerCase();
+  const current=(hasFile?(rawParts.pop()||"podcasting/index.html"):"index.html").toLowerCase();
   const prefix=hasFile&&rawParts.length?"../".repeat(rawParts.length):"";
   const href=target=>prefix+target;
   const isCurrent=aliases=>aliases.includes(current);
