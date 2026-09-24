@@ -2131,94 +2131,15 @@
 
         hideAlert();
 
-        const client =
-          findSupabaseClient();
-
-
-        /*
-         * If app.js already owns dashboard initialization,
-         * don't break that architecture.
-         */
-
-        if (
-          typeof window.initCreatorDashboard ===
-          "function"
-        ) {
-
-          try {
-
-            await window.initCreatorDashboard();
-
-            return;
-
-          } catch (error) {
-
-            console.error(
-              "CrowRules dashboard initialization failed:",
-              error
-            );
-
-          }
-
-        }
-
-
-        /*
-         * Otherwise perform a lightweight auth check.
-         */
-
-        if (
-          !client ||
-          !client.auth ||
-          typeof client.auth.getUser !==
-            "function"
-        ) {
-
-          console.warn(
-            "Supabase client not found. app.js should initialize it."
-          );
-
+        const client=findSupabaseClient();
+        const shared=window.CrowRulesAccount;
+        const account=await Promise.resolve(shared?.ready);
+        const user=account?.user;
+        if(!user){
+          showAlert("Sign-in required","Please sign in to access your Creator Dashboard.");
           return;
-
         }
-
-
-        try {
-
-          const {
-            data,
-            error
-          } = await client.auth.getUser();
-
-
-          if (error) {
-            throw error;
-          }
-
-
-          const user =
-            data &&
-            data.user;
-
-
-          if (!user) {
-
-            showAlert(
-              "Sign-in required",
-              "Please sign in to access your Creator Dashboard."
-            );
-
-            return;
-
-          }
-
-
-          /*
-           * Fallback profile information from Auth.
-           */
-
-          const metadata =
-            user.user_metadata || {};
+        const metadata={...(user.user_metadata||{}),...(account.profile||{})};
 
 
           applyCreatorProfile({
