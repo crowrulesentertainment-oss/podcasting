@@ -34,6 +34,9 @@ Deno.serve(async(req)=>{
     const creatorId=metadata.creator_id||null;
     const financeAlert=async(type:string,title:string,message:string,threshold:number|null=null,currency:string|null=null)=>{
       if(!creatorId)return;
+      const {data:prefs}=await supabase.from("cr_podcast_finance_notification_preferences").select("*").eq("creator_id",creatorId).maybeSingle();
+      const enabled=prefs ? prefs[type=== "milestone"?"milestones":type=== "payout"?"payouts":type=== "refund"?"refunds":type=== "dispute"?"disputes":type=== "account"?"account":"system"] !== false : true;
+      if(!enabled)return;
       const {error}=await supabase.from("cr_podcast_finance_alerts").insert({creator_id:creatorId,alert_type:type,title,message,threshold_cents:threshold,currency});
       if(error) console.error("finance alert:",error.message);
     };
