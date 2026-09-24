@@ -47,7 +47,7 @@ async function loadObservability(){
   kpi(data.worker_completed_24h??0,"WORKER RUNS · 24H"),
   kpi(data.worker_failed_24h??0,"WORKER FAILURES · 24H",data.worker_failed_24h?"bad":""),
   kpi(data.worker_completed_24h?last:"—","LAST COMPLETED"),
-  kpi(data.recovered_stale??0,"STALE JOBS DETECTED",data.stale_processing?"warn":""),
+  kpi(data.stale_processing??0,"STALE JOBS DETECTED",data.stale_processing?"warn":""),
   kpi(data.queue_queued??0,"CURRENT BACKLOG")
  ].join("");
 }
