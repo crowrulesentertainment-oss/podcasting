@@ -1,1 +1,242 @@
-(()=>{"use strict";const C=window.CROW_CONFIG||{};const S=window.supabase.createClient(C.supabaseUrl,C.supabaseKey);window.CrowRules={supabase:S,config:C};const NAV=[["home.html","Home"],["discover.html","Discover"],["search.html","Search"],["podcasts.html","Podcasts"],["creators.html","Creators"],["member-hub.html","Member Hub"],["my-library.html","Library"],["create-podcast.html","Create"],["creator-studio.html","Studio"],["membership.html","Membership"]],esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));function current(){return location.pathname.split("/").pop().toLowerCase()||"index.html"}function nav(){if(document.body.dataset.noNav==="true")return;document.body.insertAdjacentHTML("afterbegin",'<header class="nav"><div class="shell nav-in"><a class="brand" href="home.html"><span class="mark">CR</span><span>CROWRULES<small>PODCASTING</small></span></a><nav class="links">'+NAV.map(x=>'<a href="'+x[0]+'" class="'+(current()===x[0]?"active":"")+'">'+x[1]+"</a>").join("")+'</nav><div class="nav-actions"><a class="btn" href="login.html">Login</a><a class="btn primary" href="account-center.html">Account</a></div></div></header>')}function foot(){if(document.body.dataset.noNav==="true")return;document.body.insertAdjacentHTML("beforeend",'<footer class="footer"><div class="shell footer-in"><span>CROWRULES PODCASTING · ONE VOICE. ONE UNIVERSE.</span><span>© '+new Date().getFullYear()+" CrowRules Entertainment</span></div></footer>")}async function user(){return(await S.auth.getSession()).data.session?.user||null}async function need(){const u=await user();if(!u){location.href="login.html?next="+encodeURIComponent(current());return null}return u}function card(p){return '<article class="card"><img class="art" src="'+(p.artwork_url||"assets/podcast-placeholder.svg")+'"><span class="pill">'+esc(p.category||"Podcast")+'</span><h3>'+esc(p.title)+'</h3><p>'+esc(p.description||"")+'</p><a class="btn" href="podcast.html?id='+p.id+'">Open Show</a></article>'}async function loadShows(){const b=document.querySelector("#podcastGrid");if(!b)return;const r=await S.from("podcasts").select("id,title,category,description,artwork_url,is_featured").order("is_featured",{ascending:false}).order("created_at",{ascending:false}).limit(24);b.innerHTML=r.error?'<div class="notice">'+esc(r.error.message)+'</div>':r.data?.length?r.data.map(card).join(""):'<div class="empty">No podcasts published yet.</div>'}async function loadCreators(){const b=document.querySelector("#creatorGrid");if(!b)return;const r=await S.from("creators").select("id,name,role,discipline,bio").eq("is_active",true).order("sort_order").limit(24);b.innerHTML=r.error?'<div class="notice">'+esc(r.error.message)+'</div>':r.data?.length?r.data.map(c=>'<article class="card"><span class="pill">'+esc(c.role||c.discipline||"Creator")+'</span><h3>'+esc(c.name)+'</h3><p>'+esc(c.bio||"")+'</p><a class="btn" href="creator.html?id='+c.id+'">View Creator</a></article>').join(""):'<div class="empty">No creators published yet.</div>'}async function detail(){const b=document.querySelector("#podcastDetail");if(!b)return;const id=new URLSearchParams(location.search).get("id");if(!id){b.innerHTML='<div class="empty">Select a podcast first.</div>';return}const p=await S.from("podcasts").select("*").eq("id",id).maybeSingle();if(!p.data){b.innerHTML='<div class="notice">Podcast not found.</div>';return}const e=await S.from("episodes").select("id,title,description,audio_url,episode_number,season_number").eq("show_id",id).eq("is_published",true).order("season_number",{ascending:false}).order("episode_number",{ascending:false});const u=await user();let following=false;if(u){const fr=await S.from("podcast_follows").select("id").eq("user_id",u.id).eq("podcast_id",id).maybeSingle();following=!!fr.data}b.innerHTML='<section class="hero"><div><span class="pill">'+esc(p.data.category||"Podcast")+'</span><h1>'+esc(p.data.title)+'</h1><p>'+esc(p.data.description||"")+'</p><div class="actions"><button class="btn primary" id="subscribe">'+(following?"Subscribed ✓":"Subscribe to Show")+'</button><span id="subscribeStatus" class="muted"></span></div></div><img class="art" src="'+(p.data.artwork_url||"assets/podcast-placeholder.svg")+'"></section><section class="section"><h2>Episodes</h2><div class="grid">'+(e.data?.length?e.data.map(x=>'<article class="card"><span class="pill">S'+(x.season_number||1)+' · E'+(x.episode_number||"")+'</span><h3>'+esc(x.title)+'</h3><p>'+esc(x.description||"")+'</p>'+(x.audio_url?'<audio controls src="'+x.audio_url+'" style="width:100%"></audio>':"")+'</article>').join(""):'<div class="empty">No published episodes yet.</div>')+'</div></section>';document.querySelector("#subscribe").onclick=async()=>{const userNow=await need();if(!userNow)return;const btn=document.querySelector("#subscribe"),status=document.querySelector("#subscribeStatus");btn.disabled=true;status.textContent="Saving…";const fn=btn.textContent.includes("Subscribed")?"unfollow_my_podcast":"follow_my_podcast";const r=await S.rpc(fn,{p_podcast_id:id});if(r.error){status.textContent=r.error.message;btn.disabled=false;return}const on=fn==="follow_my_podcast";btn.textContent=on?"Subscribed ✓":"Subscribe to Show";status.textContent=on?"You'll see this show in your Library.":"Unsubscribed.";btn.disabled=false}}}async function account(){const b=document.querySelector("#account");if(!b)return;const u=await user();if(!u){b.innerHTML='<div class="notice">Not signed in. <a href="login.html">Login</a></div>';return}const m=await S.from("members").select("*").eq("user_id",u.id).maybeSingle();b.innerHTML='<div class="card"><span class="pill">Signed in</span><h2>'+esc(m.data?.display_name||u.email)+'</h2><p class="muted">'+esc(u.email)+'</p><div class="row"><span>Membership</span><strong>'+esc(m.data?.membership_type||"CROW")+'</strong></div><div class="row"><span>CrowPoints</span><strong>'+Number(m.data?.points||0)+'</strong></div><div class="actions"><a class="btn primary" href="creator-studio.html">Creator Studio</a><button class="btn" id="logout">Sign Out</button></div></div>';document.querySelector("#logout").onclick=async()=>{await S.auth.signOut();location.href="login.html"}}async function auth(){const lf=document.querySelector("#loginForm");if(lf)lf.onsubmit=async e=>{e.preventDefault();const r=await S.auth.signInWithPassword({email:email.value,password:password.value});loginStatus.textContent=r.error?r.error.message:"";if(!r.error)location.href=new URLSearchParams(location.search).get("next")||"home.html"};document.querySelector("#google")?.addEventListener("click",()=>S.auth.signInWithOAuth({provider:"google",options:{redirectTo:C.siteUrl+"/home.html"}}));const sf=document.querySelector("#signupForm");if(sf)sf.onsubmit=async e=>{e.preventDefault();const r=await S.auth.signUp({email:email.value,password:password.value,options:{data:{display_name:name.value}}});signupStatus.textContent=r.error?r.error.message:(r.data.session?"Account created.":"Check your email to confirm your account.")}}async function plans(){const b=document.querySelector("#planGrid");if(!b)return;const r=await S.from("membership_plans").select("plan_key,name,price_cents,billing_interval,description,features,is_featured").eq("is_active",true).order("sort_order");b.innerHTML=r.data?.map(p=>'<article class="card plan"><span class="pill">'+esc(p.name)+'</span><div class="price">'+(p.price_cents?"$"+(p.price_cents/100).toFixed(2):"FREE")+' <small class="muted">/'+esc(p.billing_interval)+'</small></div><p>'+esc(p.description)+'</p><ul>'+((p.features||[]).map(x=>"<li>"+esc(x)+"</li>").join(""))+'</ul><button class="btn '+(p.is_featured?"primary":"")+'" data-plan="'+p.plan_key+'">'+(p.price_cents?"Join "+esc(p.name):"Join Free")+'</button></article>').join("")||'<div class="empty">Membership plans unavailable.</div>';b.querySelectorAll("[data-plan]").forEach(x=>x.onclick=async()=>{const u=await need();if(!u)return;if(x.dataset.plan==="crow"){location.href="member-hub.html";return}const r=await S.functions.invoke("membership-checkout",{body:{plan_key:x.dataset.plan,success_url:C.siteUrl+"/membership.html?checkout=success",cancel_url:C.siteUrl+"/membership.html?checkout=cancelled"}});if(r.data?.url)location.href=r.data.url;else alert(r.error?.message||r.data?.error||"Checkout unavailable")})}async function studio(){const root=document.querySelector("#studio");if(!root)return;root.innerHTML='<div class="notice">Loading Creator Studio…</div>';const u=await need();if(!u)return;const m=await S.from("members").select("id,display_name").eq("user_id",u.id).maybeSingle();if(m.error||!m.data){root.innerHTML='<div class="notice">'+esc(m.error?.message||"Member profile required.")+'</div>';return}const c=await S.from("creators").select("id,name").eq("member_id",m.data.id).eq("is_active",true).maybeSingle();if(c.error||!c.data){root.innerHTML='<div class="notice">No active creator profile is connected to this account.</div>';return}const all=await S.from("podcasts").select("*").eq("creator_id",c.data.id).order("created_at",{ascending:false});if(all.error){root.innerHTML='<div class="notice">'+esc(all.error.message)+'</div>';return}const qs=new URLSearchParams(location.search),pid=qs.get("id");if(pid){const p=(all.data||[]).find(x=>String(x.id)===String(pid));if(!p){root.innerHTML='<div class="notice">That podcast is not part of your creator account.</div>';return}return studioWorkspace(root,p)}const ids=(all.data||[]).map(x=>x.id);let ep=[],sub=0;if(ids.length){const er=await S.from("episodes").select("*").in("show_id",ids).order("created_at",{ascending:false});if(!er.error)ep=er.data||[];const sr=await S.from("podcast_subscriptions").select("id").in("podcast_id",ids).in("status",["trialing","active","past_due","paused"]);if(!sr.error)sub=sr.data?.length||0}root.innerHTML='<section class="section" style="padding-top:35px"><div class="section-head"><div><span class="kicker">CREATOR STUDIO</span><h1>'+esc(c.data.name||"Creator")+'</h1><p class="muted">Choose a podcast to open its production workspace.</p></div><a class="btn primary" href="create-podcast.html">+ New Podcast</a></div><div class="grid">'+(all.data?.length?all.data.map(p=>'<article class="card"><span class="pill">'+esc(p.status||"draft")+'</span><h3>'+esc(p.title)+'</h3><p>'+esc(p.description||"No description yet.")+'</p><p class="muted">'+ep.filter(e=>e.show_id===p.id).length+' episodes · '+Number(p.total_plays||0)+' plays</p><a class="btn primary" href="creator-studio.html?id='+p.id+'">Open Studio</a></article>').join(""):'<div class="empty">No podcasts yet. Create your first show.</div>')+'</div></section>'}async function studioWorkspace(root,p){let ep=[],subs=[],revenue=[];const er=await S.from("episodes").select("*").eq("show_id",p.id).order("season_number",{ascending:false}).order("episode_number",{ascending:false});if(!er.error)ep=er.data||[];const sr=await S.from("podcast_subscriptions").select("id,status,created_at").eq("podcast_id",p.id).in("status",["trialing","active","past_due","paused"]);if(!sr.error)subs=sr.data||[];const rr=await S.from("cr_creator_revenue_transactions").select("creator_amount,currency,status,occurred_at,episode_title").eq("podcast_id",p.id).order("occurred_at",{ascending:false});if(!rr.error)revenue=rr.data||[];const stripe=await S.functions.invoke("creator-connect-status",{body:{}});const stripeData=stripe.data||{};let tab="overview";const render=()=>{const pub=ep.filter(x=>x.is_published).length,draft=ep.length-pub,active=subs.length,totalRev=revenue.reduce((n,x)=>n+Number(x.creator_amount||0),0);root.innerHTML='<section class="section" style="padding-top:25px"><div class="section-head"><div><a class="muted" href="creator-studio.html">← All Podcasts</a><span class="kicker">PRODUCTION WORKSPACE</span><h1>'+esc(p.title)+'</h1><p class="muted">'+esc(p.description||"")+'</p></div><a class="btn primary" href="#new-episode" id="newEpisodeTop">+ New Episode</a></div><div class="studio-tabs">'+["overview","episodes","drafts","audience","analytics","monetization","settings"].map(x=>'<button class="btn '+(tab===x?"primary":"")+'" data-tab="'+x+'">'+x[0].toUpperCase()+x.slice(1)+'</button>').join("")+'</div><div id="studioPanel"></div></section>';const panel=root.querySelector("#studioPanel");if(tab==="overview")panel.innerHTML='<div class="grid"><div class="card"><span class="pill">Episodes</span><h2>'+ep.length+'</h2><p>'+pub+' published · '+draft+' drafts</p></div><div class="card"><span class="pill">Audience</span><h2>'+active+'</h2><p>Active subscription records</p></div><div class="card"><span class="pill">Plays</span><h2>'+Number(p.total_plays||0)+'</h2><p>Recorded podcast plays</p></div><div class="card"><span class="pill">Revenue</span><h2>$'+(totalRev/100).toFixed(2)+'</h2><p>Creator revenue records</p></div></div><div class="card" style="margin-top:20px"><span class="pill">Production</span><h2>Recent Episodes</h2>'+(ep.slice(0,5).map(x=>'<div class="row"><span>'+esc(x.title)+'</span><span class="muted">'+(x.is_published?"Published":"Draft")+'</span></div>').join("")||'<p class="muted">No episodes yet.</p>')+'</div>';else if(tab==="episodes"||tab==="drafts"){const list=tab==="drafts"?ep.filter(x=>!x.is_published):ep;panel.innerHTML='<div class="section-head"><div><h2>'+ (tab==="drafts"?"Drafts":"Episodes")+'</h2><p class="muted">'+list.length+' items</p></div><button class="btn primary" id="newEpisode">+ New Episode</button></div><div class="grid">'+(list.length?list.map(x=>'<article class="card"><span class="pill">'+(x.is_published?"Published":"Draft")+'</span><h3>'+esc(x.title)+'</h3><p>S'+(x.season_number||1)+' · E'+(x.episode_number||"")+'</p><p>'+esc(x.description||"")+'</p><div class="actions"><button class="btn" data-edit="'+x.id+'">Edit</button>'+(x.is_published?'':'<button class="btn primary" data-publish="'+x.id+'">Publish</button>')+'</div></article>').join(""):'<div class="empty">Nothing here yet.</div>')+'</div><div id="episodeEditor"></div>'}else if(tab==="audience")panel.innerHTML='<div class="card"><span class="pill">Audience</span><h2>'+active+' active subscriptions</h2><p class="muted">Subscription status is read from CrowRules Podcasting.</p></div><div class="grid">'+subs.slice(0,50).map(x=>'<div class="card"><strong>'+esc(x.status)+'</strong><p class="muted">'+new Date(x.created_at).toLocaleDateString()+'</p></div>').join("")+'</div>';else if(tab==="analytics")panel.innerHTML='<div class="grid"><div class="card"><span class="pill">Total Plays</span><h2>'+Number(p.total_plays||0)+'</h2></div><div class="card"><span class="pill">Listeners</span><h2>'+Number(p.listener_count||0)+'</h2></div><div class="card"><span class="pill">Published</span><h2>'+pub+'</h2></div></div><div class="card" style="margin-top:20px"><h2>Revenue Activity</h2>'+(revenue.length?revenue.slice(0,20).map(x=>'<div class="row"><span>'+esc(x.episode_title||"Podcast revenue")+'</span><strong>$'+(Number(x.creator_amount||0)/100).toFixed(2)+'</strong></div>').join(""):'<p class="muted">No revenue records yet.</p>')+'</div>';else if(tab==="monetization")panel.innerHTML='<div class="grid"><div class="card"><span class="pill">Stripe Connect</span><h2>'+esc(stripeData.payouts_enabled?"Payouts Enabled":stripeData.onboarding_status||"Not Connected")+'</h2><p>Charges: '+(stripeData.charges_enabled?"Enabled":"Not enabled")+' · Payouts: '+(stripeData.payouts_enabled?"Enabled":"Not enabled")+'</p><a class="btn primary" href="payout-center.html">Open Payout Center</a></div><div class="card"><span class="pill">Revenue</span><h2>$'+(totalRev/100).toFixed(2)+'</h2><p>Recorded creator earnings</p><a class="btn" href="monetization.html">Monetization Settings</a></div></div>';else panel.innerHTML='<form class="card" id="podcastSettings"><label>Title<input id="stTitle" value="'+esc(p.title)+'"></label><label>Description<textarea id="stDescription">'+esc(p.description||"")+'</textarea></label><label>Category<input id="stCategory" value="'+esc(p.category||"")+'"></label><label>Status<select id="stStatus"><option value="draft">Draft</option><option value="published">Published</option></select></label><button class="btn primary">Save Podcast</button><span id="settingsStatus" class="muted"></span></form>';root.querySelectorAll("[data-tab]").forEach(x=>x.onclick=()=>{tab=x.dataset.tab;render()});root.querySelector("#newEpisode")?.addEventListener("click",()=>episodeEditor(null));root.querySelector("#newEpisodeTop")?.addEventListener("click",e=>{e.preventDefault();tab="episodes";render();setTimeout(()=>episodeEditor(null),0)});root.querySelectorAll("[data-edit]").forEach(x=>x.onclick=()=>episodeEditor(ep.find(e=>e.id===x.dataset.edit)));root.querySelectorAll("[data-publish]").forEach(x=>x.onclick=async()=>{const r=await S.from("episodes").update({is_published:true,status:"published",published_at:new Date().toISOString()}).eq("id",x.dataset.publish).eq("show_id",p.id);if(r.error)alert(r.error.message);else{const e=ep.find(v=>v.id===x.dataset.publish);if(e){e.is_published=true;e.status="published";}render()}});root.querySelector("#stStatus")&&(root.querySelector("#stStatus").value=p.status||"draft");root.querySelector("#podcastSettings")?.addEventListener("submit",async e=>{e.preventDefault();const r=await S.from("podcasts").update({title:stTitle.value,description:stDescription.value,category:stCategory.value,status:stStatus.value}).eq("id",p.id);settingsStatus.textContent=r.error?r.error.message:"Saved.";if(!r.error){p.title=stTitle.value;p.description=stDescription.value;p.category=stCategory.value;p.status=stStatus.value}})};const episodeEditor=x=>{const box=root.querySelector("#episodeEditor");if(!box)return;box.innerHTML='<form class="card" id="epForm"><h2>'+(x?"Edit Episode":"New Episode")+'</h2><label>Title<input id="epTitle" required value="'+esc(x?.title||"")+'"></label><label>Description<textarea id="epDescription">'+esc(x?.description||"")+'</textarea></label><div class="grid"><label>Season<input id="epSeason" type="number" value="'+(x?.season_number||1)+'"></label><label>Episode<input id="epNumber" type="number" value="'+(x?.episode_number||((ep.length)+1))+'"></label></div><label>Audio URL<input id="epAudio" type="url" value="'+esc(x?.audio_url||"")+'" placeholder="https://…"></label><div class="actions"><button class="btn primary">Save Draft</button><button type="button" class="btn" id="cancelEp">Cancel</button></div><span id="epStatus" class="muted"></span></form>';root.querySelector("#cancelEp").onclick=()=>box.innerHTML="";root.querySelector("#epForm").onsubmit=async e=>{e.preventDefault();const data={show_id:p.id,title:epTitle.value,description:epDescription.value,season_number:Number(epSeason.value)||1,episode_number:Number(epNumber.value)||1,audio_url:epAudio.value||null,status:"draft",is_published:false};const r=x?await S.from("episodes").update(data).eq("id",x.id).eq("show_id",p.id):await S.from("episodes").insert(data).select("*").single();epStatus.textContent=r.error?r.error.message:"Saved.";if(!r.error){if(x)Object.assign(x,r.data?.[0]||r.data||data);else ep.unshift(r.data);setTimeout(render,250)}}};render()}async function create(){const f=document.querySelector("#createForm");if(!f)return;const u=await need();if(!u)return;f.onsubmit=async e=>{e.preventDefault();const m=await S.from("members").select("id").eq("user_id",u.id).maybeSingle();if(!m.data){createStatus.textContent="Membership profile required.";return}let c=await S.from("creators").select("id").eq("member_id",m.data.id).eq("is_active",true).maybeSingle();if(!c.data){const n=await S.from("creators").insert({member_id:m.data.id,name:creatorName.value,slug:creatorName.value.toLowerCase().replace(/[^a-z0-9]+/g,"-"),is_active:true}).select("id").single();if(n.error){createStatus.textContent=n.error.message;return}c.data=n.data}const p=await S.from("podcasts").insert({creator_id:c.data.id,title:title.value,slug:title.value.toLowerCase().replace(/[^a-z0-9]+/g,"-"),category:category.value,description:description.value,status:"draft"}).select("id").single();createStatus.textContent=p.error?p.error.message:"Podcast created.";if(p.data)location.href="creator-studio.html?id="+p.data.id}}async function connect(){const b=document.querySelector("#connectStripe");if(!b)return;b.onclick=async()=>{const u=await need();if(!u)return;const r=await S.functions.invoke("creator-connect-onboarding",{body:{origin:location.origin,return_path:"/podcasting/payout-center.html"}});if(r.data?.onboarding_url)location.href=r.data.onboarding_url;else stripeStatus.textContent=r.error?.message||r.data?.error||"Unable to start Stripe onboarding."}}async function payout(){const b=document.querySelector("#payoutStatus");if(!b)return;const u=await need();if(!u)return;const r=await S.functions.invoke("creator-connect-status",{body:{}});b.innerHTML=r.error?'<div class="notice">'+esc(r.error.message)+'</div>':'<div class="row"><span>Onboarding</span><strong>'+esc(r.data?.onboarding_status||"pending")+'</strong></div><div class="row"><span>Charges</span><strong>'+((r.data?.charges_enabled)?"Enabled":"Not enabled")+'</strong></div><div class="row"><span>Payouts</span><strong>'+((r.data?.payouts_enabled)?"Enabled":"Not enabled")+'</strong></div>'}document.addEventListener("DOMContentLoaded",async()=>{nav();foot();await loadShows();await loadCreators();await detail();await account();await auth();await plans();await studio();await create();await connect();await payout()})})();
+/* CrowRules Podcasting — Universal Application Engine 10.0
+   One platform shell. Supabase-native. Stripe via Edge Functions.
+   Navigation is owned exclusively by js/global-navigation.js.
+*/
+(()=>{"use strict";
+if(window.__CROWRULES_APP_100__)return;
+window.__CROWRULES_APP_100__=true;
+
+const C=window.CROW_CONFIG||{};
+const SUPABASE_URL=C.supabaseUrl||window.CROWRULES_SUPABASE_URL||"https://cevylpnoexugwgygvtgu.supabase.co";
+const SUPABASE_KEY=C.supabaseKey||window.CROWRULES_SUPABASE_PUBLISHABLE_KEY||"";
+const SITE=(C.siteUrl||"https://crowrulesentertainment-oss.github.io/podcasting/").replace(/\/$/,"");
+const S=window.supabase?.createClient?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
+window.CrowRules=window.CrowRules||{};
+window.CrowRules.supabase=S;
+window.CrowRules.config=C;
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const file=()=>location.pathname.split("/").filter(Boolean).pop()?.toLowerCase()||"home.html";
+const nextUrl=()=>encodeURIComponent(location.pathname.split("/").pop()+location.search+location.hash);
+
+function requireDb(){
+ if(!S)throw new Error("CrowRules data service is not available.");
+ return S;
+}
+async function user(){
+ const db=requireDb(),r=await db.auth.getSession();
+ return r.data?.session?.user||null;
+}
+async function need(){
+ const u=await user();
+ if(!u){location.href="login.html?next="+nextUrl();return null}
+ return u;
+}
+function artwork(url,cls="art"){
+ return url?'<img class="'+cls+'" src="'+esc(url)+'" alt="" loading="lazy">':'<div class="'+cls+' placeholder-art" aria-hidden="true">CR</div>';
+}
+function showUrl(id){return "podcast.html?id="+encodeURIComponent(id)}
+function loginUrl(){return "login.html?next="+nextUrl()}
+
+async function isFollowing(id,u){
+ if(!u)return false;
+ const r=await requireDb().from("podcast_follows").select("id").eq("user_id",u.id).eq("podcast_id",id).maybeSingle();
+ return !!r.data&&!r.error;
+}
+async function toggleFollow(id,button,status){
+ const u=await need();if(!u)return;
+ const db=requireDb();
+ const following=button.getAttribute("aria-pressed")==="true";
+ button.disabled=true;
+ if(status)status.textContent=following?"Removing…":"Subscribing…";
+ const rpc=following?"unfollow_my_podcast":"follow_my_podcast";
+ const r=await db.rpc(rpc,{p_podcast_id:id});
+ if(r.error){
+   button.disabled=false;
+   if(status)status.textContent=r.error.message;
+   return;
+ }
+ const on=!following;
+ button.setAttribute("aria-pressed",String(on));
+ button.classList.toggle("is-following",on);
+ button.textContent=on?"Subscribed ✓":"Subscribe to Show";
+ if(status)status.textContent=on?"Added to your Library.":"Removed from your Library.";
+ button.disabled=false;
+}
+function followButton(id,following=false){
+ return '<button type="button" class="directory-follow follow-directory '+(following?"is-following":"")+'" data-follow="'+esc(id)+'" aria-pressed="'+String(following)+'">'+(following?"Subscribed ✓":"Subscribe to Show")+'</button>';
+}
+function wireFollowButtons(root=document){
+ $$(".follow-directory,[data-follow]",root).forEach(btn=>{
+   if(btn.dataset.followBound)return;
+   btn.dataset.followBound="1";
+   btn.addEventListener("click",async e=>{
+     e.preventDefault();e.stopPropagation();
+     const status=btn.parentElement?.querySelector("[data-follow-status]");
+     await toggleFollow(btn.dataset.follow,btn,status);
+   });
+ });
+}
+
+function card(p,following=false){
+ return '<article class="card podcast-card">'+
+   artwork(p.artwork_url,"art")+
+   '<span class="pill">'+esc(p.category||"Podcast")+'</span>'+
+   '<h3>'+esc(p.title||"Untitled Podcast")+'</h3>'+
+   '<p>'+esc(p.description||"")+'</p>'+
+   '<div class="actions"><a class="btn" href="'+showUrl(p.id)+'">Open Show</a>'+followButton(p.id,following)+'</div>'+
+   '<span class="muted" data-follow-status></span></article>';
+}
+
+async function loadShows(){
+ const b=$("#podcastGrid");if(!b||!S)return;
+ const r=await S.from("podcasts").select("id,title,category,description,artwork_url,is_featured,created_at,status").order("is_featured",{ascending:false}).order("created_at",{ascending:false}).limit(24);
+ if(r.error){b.innerHTML='<div class="notice">'+esc(r.error.message)+'</div>';return}
+ const data=r.data||[];
+ let followed=new Set();
+ try{
+   const u=await user();
+   if(u&&data.length){
+     const fr=await S.from("podcast_follows").select("podcast_id").eq("user_id",u.id).in("podcast_id",data.map(x=>x.id));
+     if(!fr.error)followed=new Set((fr.data||[]).map(x=>x.podcast_id));
+   }
+ }catch(_){}
+ b.innerHTML=data.length?data.map(p=>card(p,followed.has(p.id))).join(""):'<div class="empty">No podcasts published yet.</div>';
+ wireFollowButtons(b);
+}
+
+async function loadCreators(){
+ const b=$("#creatorGrid");if(!b||!S)return;
+ const r=await S.from("creators").select("id,name,role,discipline,bio").eq("is_active",true).order("sort_order").limit(24);
+ b.innerHTML=r.error?'<div class="notice">'+esc(r.error.message)+'</div>':r.data?.length?r.data.map(c=>'<article class="card"><span class="pill">'+esc(c.role||c.discipline||"Creator")+'</span><h3>'+esc(c.name)+'</h3><p>'+esc(c.bio||"")+'</p><a class="btn" href="creator.html?id='+c.id+'">View Creator</a></article>').join(""):'<div class="empty">No creators published yet.</div>';
+}
+
+async function detail(){
+ const b=$("#podcastDetail");if(!b||!S)return;
+ const id=new URLSearchParams(location.search).get("id");
+ if(!id){b.innerHTML='<div class="empty">Select a podcast first.</div>';return}
+ const p=await S.from("podcasts").select("*").eq("id",id).maybeSingle();
+ if(p.error||!p.data){b.innerHTML='<div class="notice">Podcast not found.</div>';return}
+ const e=await S.from("episodes").select("id,title,description,audio_url,episode_number,season_number").eq("show_id",id).eq("is_published",true).order("season_number",{ascending:false}).order("episode_number",{ascending:false});
+ const u=await user();const following=await isFollowing(id,u);
+ const eps=e.data||[];
+ b.innerHTML='<section class="hero"><div><span class="pill">'+esc(p.data.category||"Podcast")+'</span><h1>'+esc(p.data.title)+'</h1><p>'+esc(p.data.description||"")+'</p><div class="actions"><button class="btn primary" id="subscribe" aria-pressed="'+String(following)+'">'+(following?"Subscribed ✓":"Subscribe to Show")+'</button><a class="btn" href="my-library.html">My Library</a><span id="subscribeStatus" class="muted"></span></div></div>'+artwork(p.data.artwork_url,"art")+'</section><section class="section"><h2>Episodes</h2><div class="grid">'+(eps.length?eps.map(x=>'<article class="card"><span class="pill">S'+(x.season_number||1)+' · E'+(x.episode_number||"")+'</span><h3>'+esc(x.title)+'</h3><p>'+esc(x.description||"")+'</p>'+(x.audio_url?'<audio controls preload="none" src="'+esc(x.audio_url)+'" style="width:100%"></audio>':"")+'</article>').join(""):'<div class="empty">No published episodes yet.</div>')+'</div></section>';
+ $("#subscribe")?.addEventListener("click",()=>toggleFollow(id,$("#subscribe"),$("#subscribeStatus")));
+}
+
+async function account(){
+ const b=$("#account");if(!b||!S)return;
+ const u=await user();
+ if(!u){b.innerHTML='<div class="notice">Not signed in. <a href="login.html">Login</a></div>';return}
+ const m=await S.from("members").select("*").eq("user_id",u.id).maybeSingle();
+ b.innerHTML='<div class="card"><span class="pill">Signed in</span><h2>'+esc(m.data?.display_name||u.email)+'</h2><p class="muted">'+esc(u.email)+'</p><div class="row"><span>Membership</span><strong>'+esc(m.data?.membership_type||"CROW")+'</strong></div><div class="row"><span>CrowPoints</span><strong>'+Number(m.data?.points||0)+'</strong></div><div class="actions"><a class="btn primary" href="creator-studio.html">Creator Studio</a><a class="btn" href="my-library.html">My Library</a><button class="btn" id="logout">Sign Out</button></div></div>';
+ $("#logout")?.addEventListener("click",async()=>{await S.auth.signOut();location.href="login.html"});
+}
+
+async function auth(){
+ if(!S)return;
+ const lf=$("#loginForm");
+ if(lf)lf.onsubmit=async e=>{
+   e.preventDefault();
+   const r=await S.auth.signInWithPassword({email:$("#email")?.value,password:$("#password")?.value});
+   const out=$("#loginStatus");if(out)out.textContent=r.error?r.error.message:"";
+   if(!r.error)location.href=new URLSearchParams(location.search).get("next")||"home.html";
+ };
+ $("#google")?.addEventListener("click",async()=>{
+   const r=await S.auth.signInWithOAuth({provider:"google",options:{redirectTo:SITE+"/home.html"}});
+   if(r.error&&$("#loginStatus"))$("#loginStatus").textContent=r.error.message;
+ });
+ const sf=$("#signupForm");
+ if(sf)sf.onsubmit=async e=>{
+   e.preventDefault();
+   const r=await S.auth.signUp({email:$("#email")?.value,password:$("#password")?.value,options:{data:{display_name:$("#name")?.value||""}}});
+   const out=$("#signupStatus");if(out)out.textContent=r.error?r.error.message:(r.data.session?"Account created.":"Check your email to confirm your account.");
+ };
+}
+
+async function plans(){
+ const b=$("#planGrid");if(!b||!S)return;
+ const r=await S.from("membership_plans").select("plan_key,name,price_cents,billing_interval,description,features,is_featured").eq("is_active",true).order("sort_order");
+ if(r.error){b.innerHTML='<div class="notice">'+esc(r.error.message)+'</div>';return}
+ b.innerHTML=(r.data||[]).map(p=>'<article class="card plan"><span class="pill">'+esc(p.name)+'</span><div class="price">'+(p.price_cents?"$"+(p.price_cents/100).toFixed(2):"FREE")+' <small class="muted">/'+esc(p.billing_interval||"once")+'</small></div><p>'+esc(p.description||"")+'</p><ul>'+((p.features||[]).map(x=>"<li>"+esc(x)+"</li>").join(""))+'</ul><button class="btn '+(p.is_featured?"primary":"")+'" data-plan="'+esc(p.plan_key)+'">'+(p.price_cents?"Join "+esc(p.name):"Join Free")+'</button></article>').join("")||'<div class="empty">Membership plans unavailable.</div>';
+ $$("[data-plan]",b).forEach(x=>x.onclick=async()=>{
+   const u=await need();if(!u)return;
+   if(x.dataset.plan==="crow"){location.href="member-hub.html";return}
+   const r=await S.functions.invoke("membership-checkout",{body:{plan_key:x.dataset.plan,success_url:SITE+"/membership.html?checkout=success",cancel_url:SITE+"/membership.html?checkout=cancelled"}});
+   if(r.data?.url)location.href=r.data.url;else alert(r.error?.message||r.data?.error||"Checkout unavailable");
+ });
+}
+
+async function studio(){
+ const root=$("#studio");if(!root||!S)return;
+ const u=await need();if(!u)return;
+ root.innerHTML='<div class="notice">Loading Creator Studio…</div>';
+ const m=await S.from("members").select("id,display_name").eq("user_id",u.id).maybeSingle();
+ if(m.error||!m.data){root.innerHTML='<div class="notice">'+esc(m.error?.message||"Member profile required.")+'</div>';return}
+ const c=await S.from("creators").select("id,name").eq("member_id",m.data.id).eq("is_active",true).maybeSingle();
+ if(c.error||!c.data){root.innerHTML='<div class="notice">No active creator profile is connected to this account.</div>';return}
+ const all=await S.from("podcasts").select("*").eq("creator_id",c.data.id).order("created_at",{ascending:false});
+ if(all.error){root.innerHTML='<div class="notice">'+esc(all.error.message)+'</div>';return}
+ const ids=(all.data||[]).map(x=>x.id);let ep=[];
+ if(ids.length){const er=await S.from("episodes").select("*").in("show_id",ids).order("created_at",{ascending:false});if(!er.error)ep=er.data||[]}
+ root.innerHTML='<section class="section" style="padding-top:35px"><div class="section-head"><div><span class="kicker">CREATOR STUDIO</span><h1>'+esc(c.data.name||"Creator")+'</h1><p class="muted">Your podcasts, episodes, audience and monetization in one workspace.</p></div><a class="btn primary" href="create-podcast.html">+ New Podcast</a></div><div class="grid">'+((all.data||[]).map(p=>'<article class="card"><span class="pill">'+esc(p.status||"draft")+'</span><h3>'+esc(p.title)+'</h3><p>'+esc(p.description||"No description yet.")+'</p><p class="muted">'+ep.filter(e=>e.show_id===p.id).length+' episodes · '+Number(p.total_plays||0)+' plays</p><a class="btn primary" href="creator-studio.html?id='+encodeURIComponent(p.id)+'">Open Studio</a></article>').join("")||'<div class="empty">No podcasts yet. Create your first show.</div>')+'</div></section>';
+}
+
+async function create(){
+ const f=$("#createForm");if(!f||!S)return;
+ const u=await need();if(!u)return;
+ f.onsubmit=async e=>{
+   e.preventDefault();
+   const val=id=>$("#"+id)?.value?.trim()||"";
+   const m=await S.from("members").select("id").eq("user_id",u.id).maybeSingle();
+   if(!m.data){$("#createStatus").textContent="Membership profile required.";return}
+   let c=await S.from("creators").select("id").eq("member_id",m.data.id).eq("is_active",true).maybeSingle();
+   if(!c.data){
+     const name=val("creatorName")||val("name")||"New Creator";
+     const n=await S.from("creators").insert({member_id:m.data.id,name,slug:name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""),is_active:true}).select("id").single();
+     if(n.error){$("#createStatus").textContent=n.error.message;return} c.data=n.data;
+   }
+   const title=val("title")||"Untitled Podcast";
+   const p=await S.from("podcasts").insert({creator_id:c.data.id,title,slug:title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""),category:val("category"),description:val("description"),status:"draft"}).select("id").single();
+   $("#createStatus").textContent=p.error?p.error.message:"Podcast created.";
+   if(p.data)location.href="creator-studio.html?id="+encodeURIComponent(p.data.id);
+ };
+}
+
+async function connect(){
+ const b=$("#connectStripe");if(!b||!S)return;
+ b.onclick=async()=>{
+   const u=await need();if(!u)return;
+   const r=await S.functions.invoke("creator-connect-onboarding",{body:{origin:location.origin,return_path:"/podcasting/payout-center.html"}});
+   if(r.data?.onboarding_url)location.href=r.data.onboarding_url;else if($("#stripeStatus"))$("#stripeStatus").textContent=r.error?.message||r.data?.error||"Unable to start Stripe onboarding.";
+ };
+}
+
+async function payout(){
+ const b=$("#payoutStatus");if(!b||!S)return;
+ const u=await need();if(!u)return;
+ const r=await S.functions.invoke("creator-connect-status",{body:{}});
+ b.innerHTML=r.error?'<div class="notice">'+esc(r.error.message)+'</div>':'<div class="row"><span>Onboarding</span><strong>'+esc(r.data?.onboarding_status||"pending")+'</strong></div><div class="row"><span>Charges</span><strong>'+((r.data?.charges_enabled)?"Enabled":"Not enabled")+'</strong></div><div class="row"><span>Payouts</span><strong>'+((r.data?.payouts_enabled)?"Enabled":"Not enabled")+'</strong></div>';
+}
+
+async function library(){
+ const b=$("#libraryGrid");if(!b||!S)return;
+ const u=await user();if(!u){b.innerHTML='<div class="notice">Sign in to view your subscribed shows.</div>';return}
+ const r=await S.rpc("get_my_podcast_following");
+ if(r.error){b.innerHTML='<div class="notice">'+esc(r.error.message)+'</div>';return}
+ const rows=r.data||[];
+ b.innerHTML=rows.length?rows.map(x=>{
+   const p=x.podcast||x;
+   return '<article class="card"><h3>'+esc(p.title||x.title||"Podcast")+'</h3><p>'+esc(p.description||x.description||"")+'</p><a class="btn" href="'+showUrl(p.id||x.podcast_id)+'">Open Show</a></article>';
+ }).join(""):'<div class="empty">You have not subscribed to any podcasts yet.</div>';
+}
+
+async function boot(){
+ if(!S){console.warn("CrowRules: Supabase client unavailable");return}
+ await Promise.allSettled([loadShows(),loadCreators(),detail(),account(),auth(),plans(),studio(),create(),connect(),payout(),library()]);
+ wireFollowButtons();
+}
+document.readyState==="loading"?document.addEventListener("DOMContentLoaded",boot,{once:true}):boot();
+})();
