@@ -311,11 +311,11 @@
     return{header,notify,account,menu,mobile};
   }
 
-  function removeLegacyNavigation(){
+  function removeLegacyNavigation(){\n    // Remove legacy/duplicate navigation shells so the injected Global Navigation is the only site header.\n    document.querySelectorAll("link[href*=\"professional-experience.css\"],script[src*=\"professional-experience.js\"]").forEach(el=>el.remove());
     document.querySelectorAll("header.site-header,header.topbar").forEach(h=>{
       if(h.querySelector(".main-navigation,nav.main-navigation")||h.classList.contains("topbar"))h.remove();
     });
-    document.querySelectorAll(".main-navigation,[data-cr-global-navigation],[data-crowrules-nav],.cr-nav").forEach(el=>el.remove());
+    document.querySelectorAll(".main-navigation,[data-cr-global-navigation],[data-crowrules-nav],.cr-nav,.professional-experience,.professional-navigation,[class*=\"professional-experience\"],[class*=\"professional-navigation\"]").forEach(el=>el.remove());
   }
   function removeDuplicateHeaders(){
     [...document.querySelectorAll(".cr-global-header")].slice(1).forEach(h=>h.remove());
