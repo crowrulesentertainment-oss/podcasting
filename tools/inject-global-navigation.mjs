@@ -30,7 +30,6 @@ for(const file of walk(root)){
   const runtimeJs=prefix+"js/platform-runtime.js";
   const dataCss=prefix+"css/platform-data.css";
   const dataJs=prefix+"js/platform-data.js";
-  const serviceLoader=prefix+"js/domain-service-loader.js";
 
   next=next.replace(/<link\b[^>]*href=["'][^"']*professional-experience\.css(?:\?[^"']*)?["'][^>]*>\s*/gi,"");
   next=next.replace(/<script\b[^>]*src=["'][^"']*professional-experience\.js(?:\?[^"']*)?["'][^>]*>\s*<\/script>\s*/gi,"");
