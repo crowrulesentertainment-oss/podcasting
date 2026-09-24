@@ -20,7 +20,7 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
   <title>Creator Monetization | CrowRules Podcasting</title>
 
-  <link rel="stylesheet" href="css/podcasting.css">
+  <link rel="stylesheet" href="/podcasting/css/podcasting.css">
 
   <style>
     :root {
@@ -738,26 +738,14 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
     }
   </style>
 
-<link rel="stylesheet" href="css/global-navigation.css">
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/global-navigation.js" defer></script>
+<link rel="stylesheet" href="/podcasting/css/global-navigation.css">
+<script src="/podcasting/js/config.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="/podcasting/js/platform-data.js" defer></script>
+<script src="/podcasting/js/domain-service-loader.js" defer></script>
+<script src="/podcasting/js/account-command-center.js" defer></script>
+<script src="/podcasting/js/account-command-center-ui.js" defer></script>
+<script src="/podcasting/js/global-navigation.js" defer></script>
 </head>
 
 <body>
@@ -791,7 +779,9 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
       🎚️ Studio
     </a>
 
-    <a class="btn btn-primary" href="creator-billing.html">\n      📊 Billing & Analytics\n    </a>\n\n    <a class="btn btn-primary" href="payouts.html">
+    <a class="btn btn-primary" href="creator-billing.html">📊 Billing & Analytics</a>
+    
+    <a class="btn btn-primary" href="payouts.html">
       💳 Payouts
     </a>
 
@@ -870,6 +860,17 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 </section>
 
 
+<section class="panel" id="onboardingTimeline" style="margin-bottom:20px">
+<header class="panel-header"><div><h3>Stripe Connect Onboarding</h3><p>Live connection progress from your CrowRules account to Stripe payouts.</p></div><span id="syncBadge" class="status-pill status-not_started">Connecting</span></header>
+<div class="panel-body">
+<div id="timeline" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+<div class="check" data-step="account"><div class="check-icon">1</div><div class="check-text"><b>Account</b><br><span class="check-status">Checking</span></div></div>
+<div class="check" data-step="setup"><div class="check-icon">2</div><div class="check-text"><b>Setup Started</b><br><span class="check-status">Waiting</span></div></div>
+<div class="check" data-step="action"><div class="check-icon">3</div><div class="check-text"><b>Action Required</b><br><span class="check-status">Waiting</span></div></div>
+<div class="check" data-step="ready"><div class="check-icon">4</div><div class="check-text"><b>Payouts Ready</b><br><span class="check-status">Waiting</span></div></div>
+</div>
+<div id="connectionMeta" class="status-description" style="margin-top:15px">Connecting to Supabase and Stripe…</div>
+</div></section>
 <section class="money-grid">
 
   <article class="money-card gross">
@@ -1355,1254 +1356,127 @@ content="CrowRules Podcasting Creator Monetization — earnings, revenue streams
 
 </main>
 
-<!-- =========================================================
-     SUPABASE
-     ========================================================= -->
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+<!-- CrowRules Supabase + Stripe Connect runtime -->
 <script>
-/*
- * CrowRules Podcasting
- * Supabase connection
- *
- * IMPORTANT:
- * This is the browser-safe publishable key.
- * Never place a service_role / secret key here.
- */
+(()=>{"use strict";
+const BASE="/podcasting/";
+const SUPABASE_URL=window.CROWRULES_CONFIG?.supabaseUrl||"https://cevylpnoexugwgygvtgu.supabase.co";
+const SUPABASE_KEY=window.CROWRULES_CONFIG?.supabasePublishableKey||window.CROWRULES_SUPABASE_PUBLISHABLE_KEY;
+let db=null,user=null,busy=false,channel=null,authSub=null;
 
-window.CROWRULES_SUPABASE_URL =
-  "https://cevylpnoexugwgygvtgu.supabase.co";
+const $=id=>document.getElementById(id);
+const money=(c=0,currency="usd")=>{try{return new Intl.NumberFormat("en-US",{style:"currency",currency:String(currency||"usd").toUpperCase()}).format(Number(c||0)/100)}catch{return "$"+(Number(c||0)/100).toFixed(2)}};
+const date=v=>v?new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"}).format(new Date(v)):"—";
+const alert=(m,ok=false)=>{const e=$("alert");if(!e)return;e.textContent=m;e.classList.toggle("success",ok);e.classList.add("visible")};
+const clearAlert=()=>$("alert")?.classList.remove("visible");
+const setText=(id,v)=>{const e=$(id);if(e)e.textContent=String(v??"—")};
 
-window.CROWRULES_SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
+function client(){return db||window.supabaseClient||(window.supabase?.createClient?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null)}
+async function waitClient(){for(let i=0;i<60;i++){const c=client();if(c)return db=c;await new Promise(r=>setTimeout(r,100))}return null}
+async function accessToken(){const {data,error}=await db.auth.getSession();if(error)throw error;if(!data.session)throw new Error("Your CrowRules session has expired. Please sign in again.");return data.session.access_token}
+function canonicalLogin(){location.replace(BASE+"login.html?redirect="+encodeURIComponent("monetization.html"))}
 
-
-if (
-  window.supabase &&
-  typeof window.supabase.createClient === "function"
-) {
-
-  window.supabaseClient =
-    window.supabase.createClient(
-      window.CROWRULES_SUPABASE_URL,
-      window.CROWRULES_SUPABASE_PUBLISHABLE_KEY,
-      {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true
-        }
-      }
-    );
-
-} else {
-
-  console.error(
-    "CrowRules: Supabase JS failed to load."
-  );
-
+function timeline(state){
+ const order={not_connected:0,setup_started:1,action_required:2,payouts_enabled:3};
+ const n=order[state]??0;
+ document.querySelectorAll("[data-step]").forEach((el,i)=>{
+   const done=(state==="payouts_enabled"?i<4:i<n+1);
+   const active=(state!=="payouts_enabled"&&((state==="setup_started"&&i===1)||(state==="action_required"&&i===2)||(state==="not_connected"&&i===0)));
+   el.classList.toggle("complete",done);
+   el.classList.toggle("loading",active);
+   const s=el.querySelector(".check-status"); if(s)s.textContent=done?"Complete":active?"Current":"Waiting";
+   const icon=el.querySelector(".check-icon"); if(icon&&done)icon.textContent="✓";
+ });
 }
-</script>
 
-<script src="js/config.js"></script>
-
-<script src="js/app.js"></script>
-
-<!-- =========================================================
-     MONETIZATION ENGINE
-     ========================================================= -->
-
-<script>
-(() => {
-
-  "use strict";
-
-
-  const TABLES = {
-    monetization:"creator_monetization",
-    earnings:"creator_earnings",
-    payouts:"creator_payouts"
-  };
-
-
-  const REVENUE_LABELS = {
-
-    subscription:{
-      icon:"⭐",
-      name:"Subscriptions",
-      description:"Recurring listener and membership revenue."
-    },
-
-    donation:{
-      icon:"❤️",
-      name:"Listener Support",
-      description:"Direct listener donations and support."
-    },
-
-    sponsorship:{
-      icon:"🤝",
-      name:"Sponsorships",
-      description:"Sponsor and brand revenue."
-    },
-
-    premium_episode:{
-      icon:"🎧",
-      name:"Premium Episodes",
-      description:"Revenue from premium podcast content."
-    },
-
-    advertising:{
-      icon:"📺",
-      name:"Advertising",
-      description:"Podcast advertising revenue."
-    },
-
-    other:{
-      icon:"✨",
-      name:"Other",
-      description:"Other recorded creator revenue."
-    }
-
-  };
-
-
-  const $ = id =>
-    document.getElementById(id);
-
-
-  const getClient = () => {
-
-    if (
-      window.supabaseClient &&
-      window.supabaseClient.auth
-    ) {
-      return window.supabaseClient;
-    }
-
-    return null;
-
-  };
-
-
-  const money = (
-    cents=0,
-    currency="usd"
-  ) => {
-
-    const amount =
-      Number(cents || 0) / 100;
-
-    try {
-
-      return new Intl.NumberFormat(
-        "en-US",
-        {
-          style:"currency",
-          currency:String(currency).toUpperCase()
-        }
-      ).format(amount);
-
-    } catch {
-
-      return "$" +
-        amount.toFixed(2);
-
-    }
-
-  };
-
-
-  const date = value => {
-
-    if (!value) {
-      return "—";
-    }
-
-    const d =
-      new Date(value);
-
-    if (
-      Number.isNaN(
-        d.getTime()
-      )
-    ) {
-      return "—";
-    }
-
-    return new Intl.DateTimeFormat(
-      "en-US",
-      {
-        month:"short",
-        day:"numeric",
-        year:"numeric"
-      }
-    ).format(d);
-
-  };
-
-
-  const escapeHtml = value => {
-
-    return String(value ?? "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-
-  };
-
-
-  const showAlert = (
-    message,
-    success=false
-  ) => {
-
-    const el =
-      $("alert");
-
-    if (!el) {
-      return;
-    }
-
-    el.textContent =
-      message;
-
-    el.classList.toggle(
-      "success",
-      success
-    );
-
-    el.classList.add(
-      "visible"
-    );
-
-  };
-
-
-  const clearAlert = () => {
-
-    const el =
-      $("alert");
-
-    if (el) {
-      el.classList.remove(
-        "visible"
-      );
-    }
-
-  };
-
-
-  /* =======================================================
-     AUTH
-     ======================================================= */
-
-  const requireUser =
-    async client => {
-
-      const {
-        data,
-        error
-      } =
-        await client.auth.getUser();
-
-      if (error) {
-        throw error;
-      }
-
-      return data?.user || null;
-
-    };
-
-
-  const showAuthenticatedUI =
-    user => {
-
-      const card =
-        $("authCard");
-
-      if (card) {
-        card.classList.remove(
-          "visible"
-        );
-      }
-
-      if (user) {
-
-        document.body.dataset.userId =
-          user.id;
-
-      }
-
-    };
-
-
-  const showLoggedOutUI = () => {
-
-    $("authCard")
-      ?.classList.add(
-        "visible"
-      );
-
-    $("statusTitle")
-      .textContent =
-      "Sign in required";
-
-    $("statusDescription")
-      .textContent =
-      "Sign in to access your private creator monetization data.";
-
-    $("statusPill")
-      .textContent =
-      "Sign In";
-
-    $("statusPill").className =
-      "status-pill status-not_started";
-
-  };
-
-
-  /* =======================================================
-     STATUS
-     ======================================================= */
-
-  const applyStatus = row => {
-
-    const status =
-      row?.status ||
-      "not_started";
-
-
-    const names = {
-
-      not_started:"Not Connected",
-      pending:"Pending",
-      active:"Active",
-      restricted:"Restricted"
-
-    };
-
-
-    const descriptions = {
-
-      not_started:
-        "Connect your creator payout account when monetization onboarding is available.",
-
-      pending:
-        "Your monetization or payout setup is being processed.",
-
-      active:
-        "Your creator monetization account is active.",
-
-      restricted:
-        "Your account currently has a monetization restriction that may require attention."
-
-    };
-
-
-    const icons = {
-
-      not_started:"💳",
-      pending:"⏳",
-      active:"✓",
-      restricted:"⚠️"
-
-    };
-
-
-    $("statusIcon")
-      .textContent =
-      icons[status] || "💳";
-
-
-    $("statusTitle")
-      .textContent =
-      names[status] || "Monetization";
-
-
-    $("statusDescription")
-      .textContent =
-      descriptions[status] ||
-      "Review your creator monetization status.";
-
-
-    $("statusPill")
-      .textContent =
-      names[status] || status;
-
-
-    $("statusPill").className =
-      "status-pill status-" +
-      status;
-
-
-    const button =
-      $("connectButton");
-
-
-    if (status === "active") {
-
-      $("connectTitle")
-        .textContent =
-        "Payout account connected";
-
-      $("connectDescription")
-        .textContent =
-        "Your creator payout connection is active.";
-
-      button.textContent =
-        "✓ Connected";
-
-      button.disabled =
-        true;
-
-      button.classList.add(
-        "btn-success"
-      );
-
-    }
-
-    else if (status === "pending") {
-
-      $("connectTitle")
-        .textContent =
-        "Payout setup is pending";
-
-      $("connectDescription")
-        .textContent =
-        "Your creator payout connection is being processed.";
-
-      button.textContent =
-        "↻ Check Status";
-
-      button.disabled =
-        false;
-
-    }
-
-    else {
-
-      $("connectTitle")
-        .textContent =
-        "Connect your payout account";
-
-      $("connectDescription")
-        .textContent =
-        "Connect your payout account to prepare for eligible creator earnings.";
-
-      button.textContent =
-        "💳 Connect Payouts";
-
-      button.disabled =
-        false;
-
-    }
-
-  };
-
-
-  /* =======================================================
-     REVENUE
-     ======================================================= */
-
-  const renderRevenueStreams =
-    earnings => {
-
-      const list =
-        $("revenueList");
-
-      if (!earnings.length) {
-
-        list.innerHTML = `
-          <div class="empty">
-            No creator revenue has been recorded yet.
-            Your revenue activity will appear here once
-            eligible monetization events occur.
-          </div>
-        `;
-
-        return;
-
-      }
-
-
-      const totals = {};
-
-
-      earnings.forEach(row => {
-
-        const source =
-          row.source || "other";
-
-        totals[source] =
-          (totals[source] || 0) +
-          Number(
-            row.creator_amount || 0
-          );
-
-      });
-
-
-      list.innerHTML =
-        Object.entries(totals)
-          .sort(
-            (a,b) => b[1] - a[1]
-          )
-          .map(
-            ([source,amount]) => {
-
-              const info =
-                REVENUE_LABELS[source] ||
-                REVENUE_LABELS.other;
-
-              return `
-                <div class="revenue-row">
-
-                  <div class="revenue-icon">
-                    ${info.icon}
-                  </div>
-
-                  <div>
-
-                    <div class="revenue-name">
-                      ${escapeHtml(info.name)}
-                    </div>
-
-                    <div class="revenue-description">
-                      ${escapeHtml(info.description)}
-                    </div>
-
-                  </div>
-
-                  <div class="revenue-amount">
-                    ${money(amount)}
-                  </div>
-
-                </div>
-              `;
-
-            }
-          )
-          .join("");
-
-    };
-
-
-  /* =======================================================
-     TRANSACTIONS
-     ======================================================= */
-
-  const renderTransactions =
-    earnings => {
-
-      const list =
-        $("transactionList");
-
-
-      if (!earnings.length) {
-
-        list.innerHTML = `
-          <div class="empty">
-            No transactions yet.
-          </div>
-        `;
-
-        return;
-
-      }
-
-
-      list.innerHTML =
-        earnings
-          .slice(0,10)
-          .map(row => {
-
-            const info =
-              REVENUE_LABELS[
-                row.source
-              ] ||
-              REVENUE_LABELS.other;
-
-            return `
-              <div class="transaction">
-
-                <div>
-
-                  <div class="transaction-name">
-                    ${escapeHtml(info.name)}
-                  </div>
-
-                  <div class="transaction-date">
-                    ${date(row.created_at)}
-                  </div>
-
-                </div>
-
-                <div class="transaction-status">
-                  ${escapeHtml(
-                    row.status || "pending"
-                  )}
-                </div>
-
-                <div class="transaction-amount">
-                  ${money(
-                    row.creator_amount,
-                    row.currency
-                  )}
-                </div>
-
-              </div>
-            `;
-
-          })
-          .join("");
-
-    };
-
-
-  /* =======================================================
-     PAYOUTS
-     ======================================================= */
-
-  const renderPayouts =
-    payouts => {
-
-      const list =
-        $("payoutList");
-
-
-      if (!payouts.length) {
-
-        list.innerHTML = `
-          <div class="empty">
-            No payouts have been recorded yet.
-          </div>
-        `;
-
-        return;
-
-      }
-
-
-      list.innerHTML =
-        payouts
-          .slice(0,8)
-          .map(row => {
-
-            return `
-              <div class="transaction">
-
-                <div>
-
-                  <div class="transaction-name">
-                    Creator payout
-                  </div>
-
-                  <div class="transaction-date">
-                    ${date(row.created_at)}
-                  </div>
-
-                </div>
-
-                <div class="transaction-status">
-                  ${escapeHtml(
-                    row.status || "pending"
-                  )}
-                </div>
-
-                <div class="transaction-amount">
-                  ${money(
-                    row.amount,
-                    row.currency
-                  )}
-                </div>
-
-              </div>
-            `;
-
-          })
-          .join("");
-
-    };
-
-
-  /* =======================================================
-     CHECKLIST
-     ======================================================= */
-
-  const updateChecklist =
-    monetization => {
-
-      const checks = {
-
-        profile:true,
-
-        podcast:false,
-
-        episode:false,
-
-        payout:Boolean(
-          monetization?.stripe_account_id
-        )
-
-      };
-
-
-      Object.entries(checks)
-        .forEach(
-          ([key,complete]) => {
-
-            const item =
-              document.querySelector(
-                `[data-check="${key}"]`
-              );
-
-            if (!item) {
-              return;
-            }
-
-            const icon =
-              item.querySelector(
-                ".check-icon"
-              );
-
-            const status =
-              item.querySelector(
-                ".check-status"
-              );
-
-
-            if (complete) {
-
-              item.classList.add(
-                "complete"
-              );
-
-              icon.textContent =
-                "✓";
-
-              status.textContent =
-                "Complete";
-
-            } else {
-
-              item.classList.remove(
-                "complete"
-              );
-
-              icon.textContent =
-                "○";
-
-              status.textContent =
-                "Pending";
-
-            }
-
-          }
-        );
-
-    };
-
-
-  /* =======================================================
-     LOAD MONETIZATION
-     ======================================================= */
-
-  const loadDashboard =
-    async () => {
-
-      clearAlert();
-
-
-      const client =
-        getClient();
-
-
-      if (!client) {
-
-        showAlert(
-          "CrowRules Supabase could not be initialized."
-        );
-
-        return;
-
-      }
-
-
-      try {
-
-        const user =
-          await requireUser(
-            client
-          );
-
-
-        if (!user) {
-
-          showLoggedOutUI();
-
-          return;
-
-        }
-
-
-        showAuthenticatedUI(
-          user
-        );
-
-
-        /*
-         * Monetization
-         */
-
-        const {
-          data:monetization,
-          error:monetizationError
-        } =
-          await client
-            .from(
-              TABLES.monetization
-            )
-            .select("*")
-            .eq(
-              "user_id",
-              user.id
-            )
-            .maybeSingle();
-
-
-        if (
-          monetizationError &&
-          monetizationError.code !==
-          "PGRST116"
-        ) {
-
-          throw monetizationError;
-
-        }
-
-
-        applyStatus(
-          monetization
-        );
-
-
-        /*
-         * Earnings
-         */
-
-        const {
-          data:earnings,
-          error:earningsError
-        } =
-          await client
-            .from(
-              TABLES.earnings
-            )
-            .select("*")
-            .eq(
-              "user_id",
-              user.id
-            )
-            .order(
-              "created_at",
-              {
-                ascending:false
-              }
-            );
-
-
-        if (earningsError) {
-          throw earningsError;
-        }
-
-
-        const rows =
-          earnings || [];
-
-
-        let gross = 0;
-        let fees = 0;
-        let available = 0;
-        let paid = 0;
-
-
-        rows.forEach(row => {
-
-          gross +=
-            Number(
-              row.gross_amount || 0
-            );
-
-          fees +=
-            Number(
-              row.platform_fee || 0
-            );
-
-
-          if (
-            row.status ===
-            "available"
-          ) {
-
-            available +=
-              Number(
-                row.creator_amount || 0
-              );
-
-          }
-
-
-          if (
-            row.status ===
-            "paid"
-          ) {
-
-            paid +=
-              Number(
-                row.creator_amount || 0
-              );
-
-          }
-
-        });
-
-
-        $("grossRevenue")
-          .textContent =
-          money(gross);
-
-
-        $("platformFees")
-          .textContent =
-          money(fees);
-
-
-        $("availableBalance")
-          .textContent =
-          money(available);
-
-
-        $("paidBalance")
-          .textContent =
-          money(paid);
-
-
-        renderRevenueStreams(
-          rows
-        );
-
-
-        renderTransactions(
-          rows
-        );
-
-
-        /*
-         * Payouts
-         */
-
-        const {
-          data:payouts,
-          error:payoutError
-        } =
-          await client
-            .from(
-              TABLES.payouts
-            )
-            .select("*")
-            .eq(
-              "user_id",
-              user.id
-            )
-            .order(
-              "created_at",
-              {
-                ascending:false
-              }
-            );
-
-
-        if (payoutError) {
-          throw payoutError;
-        }
-
-
-        renderPayouts(
-          payouts || []
-        );
-
-
-        updateChecklist(
-          monetization
-        );
-
-
-        /*
-         * CrowPoints
-         */
-
-        try {
-
-          if (
-            window.CrowRulesDashboard &&
-            typeof
-            window.CrowRulesDashboard
-              .getCrowPoints ===
-            "function"
-          ) {
-
-            const points =
-              await
-              window.CrowRulesDashboard
-                .getCrowPoints(
-                  user.id
-                );
-
-            $("crowPoints")
-              .textContent =
-              Number(
-                points || 0
-              ).toLocaleString();
-
-          }
-
-        } catch (error) {
-
-          console.warn(
-            "CrowPoints unavailable:",
-            error
-          );
-
-        }
-
-      } catch (error) {
-
-        console.error(
-          "CrowRules monetization error:",
-          error
-        );
-
-        showAlert(
-          error?.message ||
-          "Unable to load your creator monetization data."
-        );
-
-      }
-
-    };
-
-
-  /* =======================================================
-     STRIPE CONNECT
-     ======================================================= */
-
-  const startConnect =
-    async () => {
-
-      const client =
-        getClient();
-
-
-      if (!client) {
-
-        showAlert(
-          "Supabase is not initialized."
-        );
-
-        return;
-
-      }
-
-
-      try {
-
-        const {
-          data:sessionData
-        } =
-          await client.auth.getSession();
-
-
-        const session =
-          sessionData?.session;
-
-
-        if (!session) {
-
-          showAlert(
-            "Please sign in before connecting your payout account."
-          );
-
-          return;
-
-        }
-
-
-        /*
-         * Secure backend endpoint.
-         *
-         * The Edge Function will create the Stripe
-         * Connect onboarding link. The Stripe secret
-         * never enters this page.
-         */
-
-        const {
-          data,
-          error
-        } =
-          await client.functions.invoke(
-            "creator-connect-onboarding",
-            {
-              body:{
-                return_path:
-                  "monetization.html"
-              }
-            }
-          );
-
-
-        if (error) {
-          throw error;
-        }
-
-
-        if (
-          data?.onboarding_url &&
-          typeof data.onboarding_url ===
-          "string"
-        ) {
-
-          window.location.assign(
-            data.onboarding_url
-          );
-
-          return;
-
-        }
-
-
-        showAlert(
-          data?.message ||
-          "Stripe Connect onboarding is not available yet."
-        );
-
-      } catch (error) {
-
-        console.error(
-          "Stripe Connect error:",
-          error
-        );
-
-        showAlert(
-          error?.message ||
-          "Unable to start payout setup."
-        );
-
-      }
-
-    };
-
-
-  /* =======================================================
-     EVENTS
-     ======================================================= */
-
-  $("connectButton")
-    .addEventListener(
-      "click",
-      startConnect
-    );
-
-
-  $("refreshButton")
-    .addEventListener(
-      "click",
-      loadDashboard
-    );
-
-
-  /*
-   * Auth changes
-   */
-
-  const client =
-    getClient();
-
-
-  if (client) {
-
-    client.auth.onAuthStateChange(
-      (
-        event,
-        session
-      ) => {
-
-        if (session?.user) {
-
-          loadDashboard();
-
-        } else if (
-          event ===
-          "SIGNED_OUT"
-        ) {
-
-          showLoggedOutUI();
-
-        }
-
-      }
-    );
-
-  }
-
-
-  /* =======================================================
-     PUBLIC API
-     ======================================================= */
-
-  window.CrowRulesMonetization = {
-
-    refresh:
-      loadDashboard,
-
-    startConnect,
-
-    applyStatus,
-
-    renderRevenueStreams,
-
-    renderTransactions,
-
-    renderPayouts
-
-  };
-
-
-  /* =======================================================
-     INITIAL LOAD
-     ======================================================= */
-
-  if (
-    document.readyState ===
-    "loading"
-  ) {
-
-    document.addEventListener(
-      "DOMContentLoaded",
-      loadDashboard,
-      {once:true}
-    );
-
-  } else {
-
-    loadDashboard();
-
-  }
-
+function applyStatus(row){
+ const s=row?.state||"not_connected";
+ const labels={not_connected:"Not Connected",setup_started:"Setup Started",action_required:"Action Required",payouts_enabled:"Payouts Ready"};
+ const desc={not_connected:"Connect Stripe to begin creator payout onboarding.",setup_started:"Your Stripe account exists. Continue onboarding to provide remaining information.",action_required:"Stripe requires additional information before payouts can be enabled.",payouts_enabled:"Your Stripe Connect account is ready for creator payouts."};
+ const icons={not_connected:"💳",setup_started:"⏳",action_required:"⚠️",payouts_enabled:"✓"};
+ const status=row?.status||"not_started";
+ $("statusIcon").textContent=icons[s]||"💳";$("statusTitle").textContent=labels[s]||"Monetization setup";$("statusDescription").textContent=desc[s]||row?.detail||"Review your creator monetization status.";
+ $("statusPill").textContent=labels[s]||"Loading";$("statusPill").className="status-pill "+(status==="active"?"status-active":status==="restricted"?"status-restricted":s==="action_required"?"status-pending":"status-not_started");
+ $("syncBadge").textContent=labels[s]||"Connecting";$("syncBadge").className="status-pill "+(status==="active"?"status-active":status==="restricted"?"status-restricted":s==="action_required"?"status-pending":"status-not_started");
+ $("connectTitle").textContent=s==="payouts_enabled"?"Payout account connected":s==="setup_started"?"Continue Stripe setup":s==="action_required"?"Finish required Stripe information":"Connect your payout account";
+ $("connectDescription").textContent=row?.detail||desc[s];
+ const b=$("connectButton");b.disabled=false;b.classList.remove("btn-success");b.textContent=s==="payouts_enabled"?"✓ Payouts Ready":s==="setup_started"?"↻ Continue Setup":s==="action_required"?"⚠️ Fix Required Information":"💳 Connect Payouts";
+ if(s==="payouts_enabled"){b.disabled=true;b.classList.add("btn-success")}
+ timeline(s);setText("connectionMeta",(row?.stripe_account_id?"Stripe account "+row.stripe_account_id+" · ":"")+"Supabase ↔ Stripe status synchronized.");
+}
+
+async function stripeStatus(){
+ const token=await accessToken();
+ const r=await fetch(SUPABASE_URL+"/functions/v1/creator-connect-status",{method:"POST",headers:{Authorization:"Bearer "+token,apikey:SUPABASE_KEY,"Content-Type":"application/json"},body:"{}"});
+ let data=null;try{data=await r.json()}catch{}
+ if(!r.ok)throw new Error(data?.error||"Unable to synchronize Stripe Connect status.");
+ return data;
+}
+
+async function load(){
+ if(busy)return;busy=true;clearAlert();
+ try{
+  db=await waitClient();if(!db)throw new Error("Supabase could not be initialized.");
+  const {data,error}=await db.auth.getUser();if(error)throw error;user=data?.user||null;if(!user){canonicalLogin();return}
+  document.body.dataset.userId=user.id;
+  const [monRes,earnRes,payRes,stRes]=await Promise.allSettled([
+   db.from("creator_monetization").select("id,status,stripe_account_id,payouts_enabled,charges_enabled,currency,updated_at").eq("user_id",user.id).maybeSingle(),
+   db.from("creator_earnings").select("source,gross_amount,platform_fee,creator_amount,currency,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(100),
+   db.from("creator_payouts").select("amount,currency,status,stripe_payout_id,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(50),
+   stripeStatus()
+  ]);
+  const mon=monRes.status==="fulfilled"?monRes.value.data:null, earnings=earnRes.status==="fulfilled"?(earnRes.value.data||[]):[], payouts=payRes.status==="fulfilled"?(payRes.value.data||[]):[], live=stRes.status==="fulfilled"?stRes.value:null;
+  const row=live||mon||{state:"not_connected",status:"not_started"};
+  applyStatus(row);
+  let gross=0,fees=0,available=0,paid=0;earnings.forEach(x=>{gross+=Number(x.gross_amount||0);fees+=Number(x.platform_fee||0);if(x.status==="available")available+=Number(x.creator_amount||0);if(x.status==="paid")paid+=Number(x.creator_amount||0)});
+  setText("grossRevenue",money(gross));setText("platformFees",money(fees));setText("availableBalance",money(available));setText("paidBalance",money(paid));
+  const totals={};earnings.forEach(x=>{const k=x.source||"other";totals[k]=(totals[k]||0)+Number(x.creator_amount||0)});
+  const labels={subscription:["⭐","Subscriptions","Recurring listener and membership revenue."],donation:["❤️","Listener Support","Direct listener donations and support."],sponsorship:["🤝","Sponsorships","Sponsor and brand revenue."],premium_episode:["🎧","Premium Episodes","Revenue from premium podcast content."],advertising:["📺","Advertising","Podcast advertising revenue."],other:["✨","Other","Other recorded creator revenue."]};
+  $("revenueList").innerHTML=Object.entries(totals).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{const x=labels[k]||labels.other;return '<div class="revenue-row"><div class="revenue-icon">'+x[0]+'</div><div><div class="revenue-name">'+x[1]+'</div><div class="revenue-description">'+x[2]+'</div></div><div class="revenue-amount">'+money(v)+'</div></div>'}).join("")||'<div class="empty">No creator revenue has been recorded yet.</div>';
+  $("transactionList").innerHTML=earnings.slice(0,10).map(x=>'<div class="transaction"><div><div class="transaction-name">'+(labels[x.source]?.[1]||"Creator revenue")+'</div><div class="transaction-date">'+date(x.created_at)+'</div></div><div class="transaction-status">'+String(x.status||"pending")+'</div><div class="transaction-amount">'+money(x.creator_amount,x.currency)+'</div></div>').join("")||'<div class="empty">No transactions yet.</div>';
+  $("payoutList").innerHTML=payouts.slice(0,8).map(x=>'<div class="transaction"><div><div class="transaction-name">Creator payout</div><div class="transaction-date">'+date(x.created_at)+'</div></div><div class="transaction-status">'+String(x.status||"pending")+'</div><div class="transaction-amount">'+money(x.amount,x.currency)+'</div></div>').join("")||'<div class="empty">No payouts have been recorded yet.</div>';
+  document.querySelector('[data-check="profile"] .check-status').textContent="Complete";
+  document.querySelector('[data-check="profile"] .check-icon').textContent="✓";
+  const hasPodcast=!!(await db.from("podcasts").select("id",{count:"exact",head:true}).eq("user_id",user.id)).count;
+  const hasEpisode=!!(await db.from("episodes").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("published",true)).count;
+  [["podcast",hasPodcast],["episode",hasEpisode],["payout",!!row?.stripe_account_id&&!!row?.payouts_enabled]].forEach(([k,ok])=>{const e=document.querySelector('[data-check="'+k+'"]');if(!e)return;e.classList.toggle("complete",ok);e.querySelector(".check-icon").textContent=ok?"✓":"○";e.querySelector(".check-status").textContent=ok?"Complete":"Pending"});
+  setText("crowPoints",document.querySelector("#crowPoints")?.textContent||"0");
+ }catch(e){console.error(e);alert(e?.message||"Unable to load creator monetization data.");setText("connectionMeta","Supabase ↔ Stripe synchronization needs attention. Use Refresh to retry.")}finally{busy=false}
+}
+
+async function connect(){
+ const b=$("connectButton");b.disabled=true;clearAlert();
+ try{
+  const token=await accessToken();
+  const r=await fetch(SUPABASE_URL+"/functions/v1/creator-connect-onboarding",{method:"POST",headers:{Authorization:"Bearer "+token,apikey:SUPABASE_KEY,"Content-Type":"application/json"},body:JSON.stringify({return_path:"monetization.html"})});
+  let data=null;try{data=await r.json()}catch{}
+  if(!r.ok)throw new Error(data?.error||"Unable to start Stripe Connect onboarding.");
+  if(data?.onboarding_url){location.assign(data.onboarding_url);return}
+  throw new Error(data?.message||"Stripe did not return an onboarding URL.");
+ }catch(e){console.error(e);alert(e?.message||"Unable to start payout setup.");b.disabled=false}
+}
+
+function realtime(){
+ if(!db||!user)return;
+ try{
+  channel=db.channel("crowrules-monetization-"+user.id);
+  ["creator_monetization","creator_earnings","creator_payouts"].forEach(t=>channel.on("postgres_changes",{event:"*",schema:"public",table:t,filter:"user_id=eq."+user.id},()=>load()));
+  channel.subscribe();
+ }catch(e){console.warn("Monetization realtime unavailable",e)}
+}
+async function init(){
+ await new Promise(r=>window.addEventListener("load",r,{once:true}));
+ db=await waitClient();if(!db)return;
+ const {data}=await db.auth.getUser();if(!data?.user){showLoggedOutUI();return}
+ user=data.user;await load();realtime();
+ authSub=db.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_OUT"||!session)canonicalLogin();else{user=session.user;load()}});
+}
+$("connectButton")?.addEventListener("click",connect);
+$("refreshButton")?.addEventListener("click",load);
+window.CrowRulesMonetization={refresh:load,startConnect:connect,applyStatus,timeline};
+window.addEventListener("pagehide",()=>{try{authSub?.data?.subscription?.unsubscribe()}catch{}try{if(channel)db?.removeChannel(channel)}catch{}},{once:true});
+init().catch(e=>{console.error(e);alert("Creator Monetization could not finish loading.")});
 })();
 </script>
-
 </body>
 </html>
