@@ -6,12 +6,12 @@
 */
 (function(){
   "use strict";
-  if(window.__CROWRULES_GLOBAL_NAV_91__) return;
-  window.__CROWRULES_GLOBAL_NAV_90__=true;
+  if(window.__CROWRULES_GLOBAL_NAV_92__) return;
+  window.__CROWRULES_GLOBAL_NAV_92__=true;
 
-  const VERSION="9.1";
-  const CHANNEL_NAME="crowrules-podcasting-global-nav-91";
-  const STORAGE_KEY="crowrules-podcasting-nav-91";
+  const VERSION="9.2";
+  const CHANNEL_NAME="crowrules-podcasting-global-nav-92";
+  const STORAGE_KEY="crowrules-podcasting-nav-92";
   const REFRESH_MS=15000;
   const PODCASTING_BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
   const NOTIFY_LIMIT=12;
@@ -23,7 +23,8 @@
     ["creators.html","Creators",["creators.html","creator.html"],"discover"],
     ["create-podcast.html","Create",["create-podcast.html"],"create"],
     ["creator-studio.html","Studio",["creator-studio.html","creator-dashboard.html"],"create"],
-    ["membership.html","Membership",["membership.html","subscriptions.html"],"account"]
+    ["membership.html","Membership",["membership.html","subscriptions.html"],"account"],
+    ["account-center.html","Account Center",["account-center.html","account.html","account-settings.html","member-settings.html"],"account"]
     ];
   const help=["help-center.html","help.html","support.html"];
   const accountAliases=["profile.html","account.html","account-center.html","account-settings.html"];
@@ -92,7 +93,7 @@
   }
   function dispatch(type,detail={}){window.dispatchEvent(new CustomEvent("crowrules:global-nav",{detail:{type,...detail}}))}
   function broadcast(type,payload={}){
-    const message={source:"crowrules-global-nav-91",type,payload,at:new Date().toISOString()};
+    const message={source:"crowrules-global-nav-92",type,payload,at:new Date().toISOString()};
     try{
       if("BroadcastChannel"in window){
         if(!window.__crowRulesGlobalNavChannel)window.__crowRulesGlobalNavChannel=new BroadcastChannel(CHANNEL_NAME);
@@ -387,7 +388,7 @@
   }
 
   function handleCrossTab(m){
-    if(!m||m.source!=="crowrules-global-nav-90")return;
+    if(!m||m.source!=="crowrules-global-nav-92")return;
     if(m.type==="auth-change"||m.type==="identity-refresh"){loadIdentity().then(subscribeRealtime);return}
     if(m.type==="notification"&&m.payload)notifyLocal(m.payload);
     if(m.type==="notification-read"&&m.payload?.id){
