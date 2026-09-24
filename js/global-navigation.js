@@ -1,4 +1,4 @@
-/* CrowRules Podcasting — Global Navigation 9.4.1 — GitHub Pages Canonical Navigation
+/* CrowRules Podcasting — Global Navigation 10.0.0 — GitHub Pages Canonical Navigation
    One shared navigation system.
    Live identity, membership/premium presence, notifications,
    creator state, cross-tab synchronization, and account command palette.
@@ -6,25 +6,27 @@
 */
 (function(){
   "use strict";
-  if(window.__CROWRULES_GLOBAL_NAV_941__) return;
-  window.__CROWRULES_GLOBAL_NAV_94__=true;
+  if(window.__CROWRULES_GLOBAL_NAV_100__) return;
+  window.__CROWRULES_GLOBAL_NAV_100__=true;
 
-  const VERSION="9.4.1";
-  const CHANNEL_NAME="crowrules-podcasting-global-nav-941";
-  const STORAGE_KEY="crowrules-podcasting-nav-941";
+  const VERSION="10.0.0";
+  const CHANNEL_NAME="crowrules-podcasting-global-nav-100";
+  const STORAGE_KEY="crowrules-podcasting-nav-100";
   const REFRESH_MS=120000;
   const PODCASTING_BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
   const NOTIFY_LIMIT=12;
   const nav=[
     ["home.html","Home",["index.html","home.html"],"home"],
-    ["member-hub.html","Member Hub",["member-hub.html"],"account"],
-    ["discover.html","Discover",["discover.html","search.html","categories.html"],"discover"],
+    ["discover.html","Discover",["discover.html","categories.html"],"discover"],
+    ["search.html","Search",["search.html"],"discover"],
     ["podcasts.html","Podcasts",["podcasts.html","podcast.html","episodes.html","episode.html"],"listen"],
     ["creators.html","Creators",["creators.html"],"discover"],
+    ["member-hub.html","Member Hub",["member-hub.html"],"account"],
+    ["my-library.html","Library",["my-library.html","library.html"],"library"],
     ["create-podcast.html","Create",["create-podcast.html"],"create"],
     ["creator-studio.html","Studio",["creator-studio.html","creator-dashboard.html"],"create"],
     ["membership.html","Membership",["membership.html","subscriptions.html"],"account"],
-    ["account-center.html","Account Center",["account-center.html","account-settings.html","member-settings.html"],"account"]
+    ["account-center.html","Account",["account-center.html","account-settings.html","member-settings.html"],"account"]
     ];
   const help=["help-center.html","help.html","support.html"];
   const accountAliases=["profile.html","account-center.html","account-settings.html","member-settings.html"];
@@ -95,7 +97,7 @@ if(!window.CrowRulesMemberState && window.supabase?.createClient){
   }
   function dispatch(type,detail={}){window.dispatchEvent(new CustomEvent("crowrules:global-nav",{detail:{type,...detail}}))}
   function broadcast(type,payload={}){
-    const message={source:"crowrules-global-nav-941",type,payload,at:new Date().toISOString()};
+    const message={source:"crowrules-global-nav-100",type,payload,at:new Date().toISOString()};
     try{
       if("BroadcastChannel"in window){
         if(!window.__crowRulesGlobalNavChannel)window.__crowRulesGlobalNavChannel=new BroadcastChannel(CHANNEL_NAME);
@@ -301,6 +303,7 @@ if(!window.CrowRulesMemberState && window.supabase?.createClient){
     const addLink=(parent,target,label,aliases,group)=>{const a=document.createElement("a");a.href=href(target);a.textContent=label;a.dataset.navGroup=group||"";if(isCurrent(aliases))a.setAttribute("aria-current","page");parent.appendChild(a)};
     nav.forEach(x=>addLink(desktop,x[0],x[1],x[2],x[3]));addLink(desktop,"help-center.html","Help",help,"account");
     const actions=document.createElement("div");actions.className="cr-global-actions";
+    const command=document.createElement("button");command.type="button";command.className="cr-command-trigger";command.setAttribute("aria-label","Open CrowRules command center");command.innerHTML='<span aria-hidden="true">⌘</span><span class="cr-command-trigger-label">Command</span>';actions.appendChild(command);
     const notify=document.createElement("button");notify.type="button";notify.className="cr-notification-trigger";notify.setAttribute("aria-label","Open notifications");notify.setAttribute("aria-expanded","false");notify.innerHTML='<span aria-hidden="true">◌</span><span class="cr-notification-badge" hidden>0</span>';actions.appendChild(notify);
     const account=document.createElement("a");account.href=href("profile.html");account.className="cr-profile-link cr-global-identity";if(isCurrent(accountAliases))account.setAttribute("aria-current","page");account.title="Open Profile";actions.appendChild(account);
     const menu=document.createElement("button");menu.className="cr-global-menu";menu.type="button";menu.setAttribute("aria-label","Open navigation");menu.setAttribute("aria-expanded","false");menu.setAttribute("aria-controls","cr-global-mobile-nav");menu.textContent="☰";
@@ -308,7 +311,7 @@ if(!window.CrowRulesMemberState && window.supabase?.createClient){
     nav.forEach(x=>addLink(mobile,x[0],x[1],x[2],x[3]));addLink(mobile,"help-center.html","Help",help,"account");
     const mobileAccount=document.createElement("a");mobileAccount.href=href("profile.html");mobileAccount.textContent="Account & Command";mobileAccount.dataset.navGroup="account";mobile.appendChild(mobileAccount);
     inner.appendChild(desktop);inner.appendChild(actions);inner.appendChild(menu);header.appendChild(inner);header.appendChild(mobile);
-    return{header,notify,account,menu,mobile};
+    return{header,notify,account,menu,mobile,command};
   }
 
   function removeLegacyNavigation(){
@@ -337,6 +340,7 @@ document.querySelectorAll("link[href*=\"professional-experience.css\"],script[sr
     const panel=buildNotificationCenter();
     buildAccountPalette();
 
+    command.addEventListener("click",()=>window.__crowRulesOpenCommandPalette?.());
     ui.notify.addEventListener("click",()=>{
       const opening=panel.hidden;
       closePanels();panel.hidden=!opening;ui.notify.setAttribute("aria-expanded",String(opening));
@@ -363,6 +367,7 @@ document.querySelectorAll("link[href*=\"professional-experience.css\"],script[sr
 
     window.CrowRulesGlobalNavigation={
       version:VERSION,
+      routes:Object.freeze(nav.map(x=>Object.freeze({href:x[0],label:x[1],aliases:Object.freeze(x[2]),group:x[3]}))),
       refresh:()=>window.CrowRulesAccount?.refresh?.().then(s=>{applyAccountState(s);return s}).then(()=>loadNotifications()).then(subscribeRealtime),
       openNotifications:()=>{panel.hidden=false;ui.notify.setAttribute("aria-expanded","true");openPanel="notifications";loadNotifications()},
       markRead,markAllRead,
@@ -393,7 +398,7 @@ document.querySelectorAll("link[href*=\"professional-experience.css\"],script[sr
   }
 
   function handleCrossTab(m){
-    if(!m||m.source!=="crowrules-global-nav-94")return;
+    if(!m||m.source!=="crowrules-global-nav-100")return;
     if(m.type==="auth-change"||m.type==="identity-refresh"){window.CrowRulesAccount?.refresh?.().then(applyAccountState).catch(()=>{});return}
     if(m.type==="notification"&&m.payload)notifyLocal(m.payload);
     if(m.type==="notification-read"&&m.payload?.id){
