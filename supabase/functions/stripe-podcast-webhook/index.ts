@@ -45,6 +45,21 @@ Deno.serve(async(req)=>{
       },{onConflict:"stripe_checkout_session_id"});
       if(splitError) throw splitError;
     }
+    // Refunds and disputes reconcile against the original revenue split.
+    if ((event.type==="charge.refunded" || event.type==="charge.dispute.created" || event.type==="charge.dispute.closed") && creatorId) {
+      const paymentIntentId=String(obj.payment_intent||"");
+      const {data:split}=await supabase.from("cr_podcast_revenue_splits").select("id,gross_cents,platform_fee_cents,creator_net_cents,refund_cents,dispute_cents").eq("creator_id",creatorId).eq("stripe_payment_intent_id",paymentIntentId).maybeSingle();
+      if (split) {
+        const refund=event.type==="charge.refunded"?Number(obj.amount_refunded||obj.amount||0):Number(split.refund_cents||0);
+        const disputeStatus=event.type==="charge.dispute.created"?"disputed":event.type==="charge.dispute.closed"?(obj.status==="won"?"paid":"disputed"):null;
+        const status=event.type==="charge.refunded"?"refunded":(disputeStatus||"disputed");
+        const revisedNet=Math.max(0,Number(split.gross_cents||0)-Number(split.platform_fee_cents||0)-refund);
+        const q=await supabase.from("cr_podcast_revenue_splits").update({
+          refund_cents:refund, creator_net_cents:revisedNet, status, reconciled_at:new Date().toISOString(), updated_at:new Date().toISOString()
+        }).eq("id",split.id);
+        if(q.error)throw q.error;
+      }
+    }
     const productId=metadata.product_id||null;
     const userId=metadata.user_id||null;
 
