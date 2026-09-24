@@ -3,7 +3,7 @@
   if(window.__CROWRULES_GLOBAL_NAV_4__) return;
   window.__CROWRULES_GLOBAL_NAV_4__=true;
   const nav=[
-    ["home.html","Home"],["discover.html","Discover"],["podcasts.html","Podcasts"],["creators.html","Creators"],
+    ["home.html","Home"],["discover.html","Discover"],["podcasts.html","Podcasts"],["episodes.html","Episodes"],["creators.html","Creators"],
     ["create-podcast.html","Create"],["creator-studio.html","Studio"],["membership.html","Membership"],
     ["premium-library.html","Premium"],["creator-monetization-hub.html","Monetization"],["playback-security.html","Security"],
     ["profile.html","Profile"],["help-center.html","Help"]
