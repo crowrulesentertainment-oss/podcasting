@@ -17,5 +17,6 @@ async function personal(){const u=await window.CrowRulesData.getUser();if(!u)ret
 async function episodes(ids){if(!ids.length)return [];const db=await api(),r=await db.from("podcast_episodes").select("id,podcast_id").in("id",ids.slice(0,500));if(r.error)throw r.error;return r.data||[]}
 async function podcasts(ids){if(!ids.length)return [];const db=await api(),r=await db.from("podcasts").select("id,category,creator_id").in("id",[...new Set(ids)].slice(0,500));if(r.error)throw r.error;return r.data||[]}
 async function track(event_name,property="all",content_id=null,content_type=null,metadata={}){const db=await api();const u=await window.CrowRulesData.getUser();const r=await db.from("analytics_events").insert({user_id:u?.id||null,event_name,property,page_url:location.href,content_id,content_type,metadata:{...(window.CrowRulesRecommendationRuntime?.context()||{}),...metadata}});if(r.error)throw r.error}
-window.CrowRulesDiscovery={version:"1.0",publicCatalog,personal,episodes,podcasts,track};
+const contract=fn=>async(...args)=>window.CrowRulesData.execute(()=>fn(...args));
+window.CrowRulesDiscovery={version:"2.0",publicCatalog:contract(publicCatalog),personal:contract(personal),episodes:contract(episodes),podcasts:contract(podcasts),track:contract(track)};
 })();
