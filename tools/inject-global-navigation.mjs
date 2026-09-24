@@ -20,6 +20,9 @@ function walk(dir){
 for(const file of walk(root)){
   total++;
   const html=fs.readFileSync(file,"utf8");
+  const relFromRoot=path.relative(root,file).replaceAll(path.sep,"/");
+  // Cinematic entry sequence stays completely navigation-free.
+  if(relFromRoot==="index.html" || relFromRoot==="launch.html") continue;
   let next=html;
   const rel=path.relative(path.dirname(file),root).split(path.sep).filter(Boolean);
   const prefix=rel.length ? rel.map(()=>"..").join("/")+"/" : "";
