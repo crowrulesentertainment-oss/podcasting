@@ -25,20 +25,28 @@ for(const file of walk(root)){
   const navCss=prefix+"css/global-navigation.css";
   const navJs=prefix+"js/global-navigation.js";
 
-  // Remove legacy navigation assets so every page uses the same Global Navigation.\n  next=next.replace(/<link\\b[^>]*href=["'][^"']*professional-experience\\.css(?:\\?[^"']*)?["'][^>]*>\\s*/gi,"");\n  next=next.replace(/<script\\b[^>]*src=["'][^"']*professional-experience\\.js(?:\\?[^"']*)?["'][^>]*>\\s*<\\/script>\\s*/gi,"");\n\n  const cssRe=/<link\b[^>]*href=["'][^"']*css\/global-navigation\.css(?:\?[^"']*)?["'][^>]*>\s*/gi;
+  // Remove legacy navigation assets so every page uses the same Global Navigation.
+  next=next.replace(/<link\\b[^>]*href=["'][^"']*professional-experience\\.css(?:\\?[^"']*)?["'][^>]*>\\s*/gi,"");
+  next=next.replace(/<script\\b[^>]*src=["'][^"']*professional-experience\\.js(?:\\?[^"']*)?["'][^>]*>\\s*<\\/script>\\s*/gi,"");
+
+  const cssRe=/<link\b[^>]*href=["'][^"']*css\/global-navigation\.css(?:\?[^"']*)?["'][^>]*>\s*/gi;
   const jsRe=/<script\b[^>]*src=["'][^"']*js\/global-navigation\.js(?:\?[^"']*)?["'][^>]*>\s*<\/script>\s*/gi;
 
   let cssSeen=false;
-  next=next.replace(cssRe,()=>cssSeen ? "" : (cssSeen=true, "<link rel=\"stylesheet\" href=\"" + navCss + "\">\n"));
+  next=next.replace(cssRe,()=>cssSeen ? "" : (cssSeen=true, "<link rel=\"stylesheet\" href=\"" + navCss + "\">
+"));
 
   let jsSeen=false;
-  next=next.replace(jsRe,()=>jsSeen ? "" : (jsSeen=true, "<script src=\"" + navJs + "\" defer></script>\n"));
+  next=next.replace(jsRe,()=>jsSeen ? "" : (jsSeen=true, "<script src=\"" + navJs + "\" defer></script>
+"));
 
   if(!cssSeen && /<\/head>/i.test(next)){
-    next=next.replace(/<\/head>/i,"<link rel=\"stylesheet\" href=\"" + navCss + "\">\n</head>");
+    next=next.replace(/<\/head>/i,"<link rel=\"stylesheet\" href=\"" + navCss + "\">
+</head>");
   }
   if(!jsSeen && /<\/head>/i.test(next)){
-    next=next.replace(/<\/head>/i,"<script src=\"" + navJs + "\" defer></script>\n</head>");
+    next=next.replace(/<\/head>/i,"<script src=\"" + navJs + "\" defer></script>
+</head>");
   }
 
   if(next!==html){
@@ -47,4 +55,4 @@ for(const file of walk(root)){
   }
 }
 
-console.log("Global Navigation 8.4 sync: scanned " + total + " HTML pages; updated " + changed + ".");
+console.log("Global Navigation 9.2 sync: scanned " + total + " HTML pages; updated " + changed + ".");
