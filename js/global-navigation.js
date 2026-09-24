@@ -32,7 +32,7 @@
   const path=location.pathname;
   const hasFile=/\/[^/]+\.[^/]+$/.test(path);
   const rawParts=path.split("/").filter(Boolean);
-  const current=(hasFile?(rawParts.pop()||"podcasting/index.html"):"index.html").toLowerCase();
+  const current=(hasFile?(rawParts.pop()||"podcasting/index.html"):"podcasting/index.html").toLowerCase();
   const prefix=hasFile&&rawParts.length?"../".repeat(rawParts.length):"";
   const href=target=>prefix+target;
   const isCurrent=aliases=>aliases.includes(current);
