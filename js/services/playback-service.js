@@ -20,5 +20,6 @@ async function episodes(ids=[]){if(!ids.length)return [];const db=await api(),r=
 async function registerDevice(id,ua,type){return rpc("register_my_podcast_playback_device",{p_client_instance_id:id,p_user_agent:ua,p_device_type:type,p_device_name:type==="desktop"?"My Desktop":type==="mobile"?"My Phone":type==="tablet"?"My Tablet":"My Device"})}
 async function renameDevice(id,name){return rpc("rename_my_podcast_playback_device",{p_client_instance_id:id,p_device_name:name})}
 async function revokeDevice(id){return rpc("revoke_my_podcast_playback_device",{p_client_instance_id:id})}
-window.CrowRulesPlayback={version:"1.1",conflicts,devices,events,progress,start,heartbeat,finish,takeover,expireStale,securitySummary,library,state,summary,episodes,registerDevice,renameDevice,revokeDevice,run};
+const contract=fn=>async(...args)=>window.CrowRulesData.execute(()=>fn(...args));
+window.CrowRulesPlayback={version:"2.0",conflicts:contract(conflicts),devices:contract(devices),events:contract(events),progress:contract(progress),start:contract(start),heartbeat:contract(heartbeat),finish:contract(finish),takeover:contract(takeover),expireStale:contract(expireStale),securitySummary:contract(securitySummary),library:contract(library),state:contract(state),summary:contract(summary),episodes:contract(episodes),registerDevice:contract(registerDevice),renameDevice:contract(renameDevice),revokeDevice:contract(revokeDevice)};
 })();
