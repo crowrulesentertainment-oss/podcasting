@@ -1899,7 +1899,7 @@
       body: JSON.stringify({
         podcast_id: podcastId,
         origin: window.location.origin,
-        return_path: "/podcasting/payouts.html"
+        return_path: "/podcasting/payout-center.html"
       })
     });
 
@@ -2056,7 +2056,7 @@
 
       setTimeout(() => {
         window.location.href =
-          `payouts.html?podcast_id=${encodeURIComponent(data.id)}&stripe_setup=1`;
+          `payout-center.html?podcast_id=${encodeURIComponent(data.id)}&stripe_setup=1`;
       }, 900);
 
     } catch (error) {
