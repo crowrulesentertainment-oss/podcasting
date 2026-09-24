@@ -172,7 +172,11 @@ function actions(){
   if(b.dataset.share!==undefined){try{await navigator.clipboard?.writeText(location.href);toast("Link copied")}catch{toast(location.href)}addPoints(3)}
   else if(b.dataset.like!==undefined){b.textContent=b.textContent==="♡"?"♥":"♡";if(b.textContent==="♥"){addPoints(2);toast("+2 CrowPoints")}}
   else if(b.dataset.follow!==undefined){const showId=document.querySelector("[data-play-show]")?.dataset.playShow;await followPodcast(showId,b)}
-  else if(b.dataset.save!==undefined){b.textContent=b.textContent.includes("Save")||b.textContent==="☆"?"★ Saved":"☆ Save";if(b.textContent.includes("Saved")){addPoints(4);toast("+4 CrowPoints • saved")}}
+  else if(b.dataset.save!==undefined){
+  const episodeId=b.dataset.episodeId||b.closest(".episode")?.querySelector("[data-episode-id]")?.dataset.episodeId;
+  if(episodeId) await saveEpisodeReal(episodeId,b);
+  else {b.textContent=b.textContent.includes("Save")||b.textContent==="☆"?"★ Saved":"☆ Save";if(b.textContent.includes("Saved")){addPoints(4);toast("+4 CrowPoints • saved")}}
+}
   else if(b.dataset.playShow!==undefined)startShow(b.dataset.playShow);
   else if(b.dataset.episodeId!==undefined){const ep=state.episodes.find(x=>x.id===b.dataset.episodeId);if(ep)playEpisode(ep)}
   else if(b.dataset.toggle!==undefined){const a=document.getElementById("crAudio");if(!a.src){toast("Choose an episode first");return}if(a.paused){await a.play();state.playing=true;b.textContent="Ⅱ"}else{a.pause();state.playing=false;b.textContent="▶"}}
