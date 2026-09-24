@@ -26,9 +26,11 @@
   ];
 
   const help=["help-center.html","help.html","support.html"];
-  const rawParts=location.pathname.split("/").filter(Boolean);
-  const current=(rawParts.pop()||"index.html").toLowerCase();
-  const prefix=rawParts.length?"../".repeat(rawParts.length):"";
+  const path=location.pathname;
+  const hasFile=/\/[^/]+\.[^/]+$/.test(path);
+  const rawParts=path.split("/").filter(Boolean);
+  const current=(hasFile?(rawParts.pop()||"index.html"):"index.html").toLowerCase();
+  const prefix=hasFile&&rawParts.length?"../".repeat(rawParts.length):"";
   const isCurrent=aliases=>aliases.includes(current);
   const href=target=>prefix+target;
 
