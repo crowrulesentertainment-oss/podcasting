@@ -1,4 +1,4 @@
-/* CrowRules Podcasting — Global Navigation 9.0 — Real-Time Identity Synchronization
+/* CrowRules Podcasting — Global Navigation 9.1 — GitHub Pages Canonical Navigation
    One shared navigation system.
    Live identity, membership/premium presence, notifications,
    creator state, cross-tab synchronization, and account command palette.
@@ -6,13 +6,14 @@
 */
 (function(){
   "use strict";
-  if(window.__CROWRULES_GLOBAL_NAV_90__) return;
+  if(window.__CROWRULES_GLOBAL_NAV_91__) return;
   window.__CROWRULES_GLOBAL_NAV_90__=true;
 
-  const VERSION="9.0";
-  const CHANNEL_NAME="crowrules-podcasting-global-nav-90";
-  const STORAGE_KEY="crowrules-podcasting-nav-90";
+  const VERSION="9.1";
+  const CHANNEL_NAME="crowrules-podcasting-global-nav-91";
+  const STORAGE_KEY="crowrules-podcasting-nav-91";
   const REFRESH_MS=15000;
+  const PODCASTING_BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
   const NOTIFY_LIMIT=12;
   const nav=[
     ["home.html","Home",["index.html","home.html"],"home"],
@@ -31,8 +32,7 @@
   const hasFile=/\/[^/]+\.[^/]+$/.test(path);
   const rawParts=path.split("/").filter(Boolean);
   const current=(hasFile?(rawParts.pop()||"index.html"):"index.html").toLowerCase();
-  const prefix=rawParts.length?"../".repeat(rawParts.length):"";
-  const href=target=>prefix+target;
+  const href=target=>PODCASTING_BASE+String(target||"").replace(/^\/+/, "");
   const isCurrent=aliases=>aliases.includes(current);
 
   let db=null,user=null,realtimeChannel=null,authSubscription=null,memberId=null,memberRecord=null;
@@ -92,7 +92,7 @@
   }
   function dispatch(type,detail={}){window.dispatchEvent(new CustomEvent("crowrules:global-nav",{detail:{type,...detail}}))}
   function broadcast(type,payload={}){
-    const message={source:"crowrules-global-nav-90",type,payload,at:new Date().toISOString()};
+    const message={source:"crowrules-global-nav-91",type,payload,at:new Date().toISOString()};
     try{
       if("BroadcastChannel"in window){
         if(!window.__crowRulesGlobalNavChannel)window.__crowRulesGlobalNavChannel=new BroadcastChannel(CHANNEL_NAME);
@@ -340,9 +340,7 @@
       closePanels();panel.hidden=!opening;ui.notify.setAttribute("aria-expanded",String(opening));
       if(opening){openPanel="notifications";loadNotifications()}
     });
-    ui.account.addEventListener("click",e=>{
-      if(user&&window.__crowRulesOpenCommandPalette){e.preventDefault();window.__crowRulesOpenCommandPalette()}
-    });
+    /* Profile remains a real link. Command palette is available through Ctrl/⌘K. */
     ui.menu.addEventListener("click",()=>{
       const open=ui.mobile.classList.toggle("open");
       ui.menu.setAttribute("aria-expanded",String(open));
