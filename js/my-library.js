@@ -1,6 +1,6 @@
-const sb=window.CROWRULES_SUPABASE||window.crSupabase||supabase.createClient(CROWRULES_CONFIG.supabaseUrl,CROWRULES_CONFIG.supabaseAnonKey);
+const sb=window.CROWRULES_SUPABASE||window.crSupabase||window.CrowRulesData.getClient();
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-async function q(){const {data:{user}}=await sb.auth.getUser();return user;}
+async function q(){const {data:{user}}=await window.CrowRulesData.getUser().then(user=>({data:{user}}));return user;}
 async function loadLibrary(){
  const user=await q(); if(!user){document.getElementById("gate").hidden=false;return;}
  document.getElementById("gate").hidden=true;
