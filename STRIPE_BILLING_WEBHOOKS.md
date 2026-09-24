@@ -103,3 +103,52 @@ Do not put that secret in GitHub Pages or browser JavaScript.
 
 The webhook infrastructure is deployed. Once the Stripe Billing endpoint is configured with its signing secret, subscription lifecycle events will flow into CrowRules automatically.
 
+
+
+## Creator Revenue Ledger — Live Attribution
+
+Stripe Billing webhook processing now writes authoritative creator revenue rows to `public.cr_creator_revenue_transactions`.
+
+### Ledger flow
+
+1. Stripe sends the connected-account webhook to `stripe-billing-webhook`.
+2. `checkout.session.completed` records successful one-time Checkout purchases.
+3. `invoice.paid` records recurring subscription revenue.
+4. `charge.refunded` records negative refund adjustments, including partial refunds.
+5. The webhook resolves the connected Stripe account to the CrowRules creator.
+6. The Stripe Price/Product is resolved through `cr_podcast_monetization_products`.
+7. Podcast and episode metadata is verified against `cr_podcasts` and `cr_podcast_episodes`.
+8. Gross, CrowRules application fee, creator amount, Stripe fee (when available), Stripe IDs, event type, and podcast/episode titles are stored in the ledger.
+9. `stripe_event_id` provides webhook-level idempotency.
+10. The Revenue Center listens to Supabase Realtime and refreshes the ledger when a new transaction arrives.
+
+### Checkout attribution
+
+Podcast storefront and Commerce Manager checkouts now accept:
+
+- `podcastId`
+- `episodeId`
+- `productId`
+- `priceId`
+
+Those values are carried in Stripe metadata. Server-side attribution is still verified against the CrowRules catalog rather than trusting browser-supplied creator ownership.
+
+### Creator Revenue Center
+
+`creator-billing.html` now includes:
+
+- live transaction ledger
+- podcast → episode attribution
+- customer and Stripe IDs
+- gross / platform fee / creator amount
+- transaction status
+- live update indicator
+- revenue attribution table
+- customer counts
+- CSV and financial statement tools
+
+The ledger is protected by RLS so authenticated creators can only read rows where `user_id = auth.uid()`.
+
+### Realtime
+
+`cr_creator_revenue_transactions` is enabled in the `supabase_realtime` publication so the creator billing UI can react to inserts and updates without waiting for a manual refresh.
