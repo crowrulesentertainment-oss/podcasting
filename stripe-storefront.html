@@ -4,7 +4,7 @@
 <body><div class="wrap"><h1>Creator Storefront</h1><p id="intro" class="muted">Loading products…</p><div id="products" class="grid"></div></div>
 <script>
 const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co";
-const SUPABASE_ANON_KEY="__SUPABASE_ANON_KEY_PLACEHOLDER__"; // TODO: Replace with CrowRules Supabase anon/publishable key.
+const SUPABASE_ANON_KEY=window.CROWRULES_CONFIG?.supabasePublishableKey||""; // Browser-safe publishable key loaded from js/config.js.
 const accountId=new URLSearchParams(location.search).get("accountId");
 const root=SUPABASE_URL+"/functions/v1/stripe-connect-demo";
 async function load(){
