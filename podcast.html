@@ -23,10 +23,83 @@ db.from("creators").select("id,name,avatar_url").eq("id",p.creator_id).maybeSing
 db.from("podcast_episodes").select("id,title,description,episode_number,season_number,published_at,duration_seconds,thumbnail_url,play_count,access_level,status").eq("podcast_id",pid).eq("status","published").order("published_at",{ascending:false}),
 db.from("cr_podcast_monetization_products").select("id,name,description,currency,amount_cents,interval,active").eq("podcast_id",pid).eq("product_type","membership").eq("active",true).order("created_at",{ascending:false}).limit(1).maybeSingle()
 ]);render(p,cr.data,ep.data||[],prod.data||null)}
-function render(p,c,eps,prod){document.title=(p.title||"Podcast")+" | CrowRules Podcasting";const cover=p.artwork_url?'<img id="cover" src="'+esc(p.artwork_url)+'" alt="'+esc(p.title)+' cover artwork">':'<div class="fallback">CR</div>';const creator=c?'<div class="podcast-detail-creator">'+(c.avatar_url?'<img src="'+esc(c.avatar_url)+'" alt="">':'<div class="podcast-detail-creator-mark">CR</div>')+'<div><small>CREATED BY</small><b>'+esc(c.name)+'</b></div></div>':'';const cards=eps.map(e=>'<article class="podcast-detail-episode"><div class="podcast-detail-episode-main">'+(e.thumbnail_url?'<img class="podcast-detail-episode-art" src="'+esc(e.thumbnail_url)+'" alt="">':'<div class="episode-art fallback">CR</div>')+'<div class="podcast-detail-episode-copy"><h3>'+esc(e.title)+(e.access_level==="premium"?'<span class="premium">PREMIUM</span>':'')+'</h3><p>'+esc(e.episode_number?"Episode "+e.episode_number:"Episode")+(e.published_at?" · "+esc(new Date(e.published_at).toLocaleDateString()):"")+" · "+esc(dur(e.duration_seconds))+(Number(e.play_count)?" · "+esc(e.play_count)+" plays":"")+'</p><p>'+esc(e.description||"")+'</p></div></div><a class="btn" href="episode.html?id='+encodeURIComponent(e.id)+'">OPEN</a></article>').join("");
-const member=prod?'<section class="podcast-detail-section podcast-detail-membership"><div><h2>'+esc(prod.name||"Podcast Membership")+'</h2><p class="podcast-detail-description">'+esc(prod.description||"Support this podcast and unlock premium access.")+'</p></div><div><div class="podcast-detail-price">'+money(prod.amount_cents,prod.currency)+' <small>/ '+esc(prod.interval||"month")+'</small></div><a class="btn subscribe" href="support.html?podcast_id='+encodeURIComponent(p.id)+'">SUBSCRIBE</a></div></section>':'';
-app.innerHTML='<main class="podcast-detail-page"><div class="wrap"><section class="podcast-detail-hero"><div class="podcast-detail-art">'+cover+'</div><div class="podcast-detail-copy"><span class="eyebrow">'+esc((p.category||"PODCAST").toUpperCase())+(p.is_live?" · LIVE":"")+'</span><h1><span>'+esc(p.title)+'</span></h1><p class="desc">'+esc(p.description||"No description yet.")+'</p>'+creator+'<div class="podcast-detail-stats"><div class="podcast-detail-stat"><b>'+eps.length+'</b><small>EPISODES</small></div><div class="stat"><b>'+esc(p.listener_count??0)+'</b><small>LISTENERS</small></div><div class="stat"><b>'+esc(p.total_plays??0)+'</b><small>PLAYS</small></div></div><div class="podcast-detail-actions"><a class="btn subscribe" href="'+(prod?"support.html?podcast_id="+encodeURIComponent(p.id):"support.html")+'">'+(prod?"SUBSCRIBE · "+money(prod.amount_cents,prod.currency)+"/MO":"MEMBERSHIP")+'</a><button class="btn" id="share" type="button">↗ SHARE</button>'+(p.website_url?'<a class="btn primary" href="'+esc(p.website_url)+'" target="_blank" rel="noopener">WEBSITE</a>':'')+'<a class="btn" href="podcasts.html">← ALL PODCASTS</a></div><div id="shareStatus"></div></div></section>'+member+'<section class="podcast-detail-section"><h2>Episodes</h2>'+(cards||'<p class="podcast-detail-empty">No published episodes are available yet.</p>')+'</section><section class="podcast-detail-section"><h2>Keep Exploring</h2><div class="podcast-detail-actions"><a class="btn primary" href="podcasts.html">PODCAST DIRECTORY</a><a class="btn" href="discover.html">DISCOVER</a><a class="btn" href="my-library.html">MY LIBRARY</a></div></section></div></main>';
-const sh=document.getElementById("share"),ss=document.getElementById("shareStatus");sh.onclick=async()=>{try{if(navigator.share)await navigator.share({title:p.title,text:"Listen to "+p.title+" on CrowRules Podcasting.",url:location.href});else{await navigator.clipboard?.writeText(location.href);ss.textContent="Link copied."}}catch(e){if(e.name!=="AbortError")ss.textContent="Share unavailable."}}}
+function render(p,c,eps,prod){
+  document.title=(p.title||"Podcast")+" | CrowRules Podcasting";
+  const cover=p.artwork_url
+    ? '<img src="'+esc(p.artwork_url)+'" alt="'+esc(p.title)+' cover artwork">'
+    : '<div class="fallback">CR</div>';
+  const creator=c
+    ? '<div class="showroom-creator">'+(c.avatar_url
+      ? '<img src="'+esc(c.avatar_url)+'" alt="">'
+      : '<div class="showroom-creator-mark">CR</div>')+
+      '<div><small>CREATED BY</small><b>'+esc(c.name)+'</b></div></div>'
+    : '';
+  const tiles=eps.map(e=>{
+    const art=e.thumbnail_url
+      ? '<img src="'+esc(e.thumbnail_url)+'" alt="'+esc(e.title)+' artwork" loading="lazy">'
+      : '<div class="fallback">CR</div>';
+    const premium=e.access_level==="premium"
+      ? '<span class="episode-tile-badge">PREMIUM</span>' : '';
+    return '<article class="episode-tile">'+
+      '<div class="episode-tile-art">'+art+premium+'</div>'+
+      '<div class="episode-tile-body">'+
+        '<h3>'+esc(e.title)+'</h3>'+
+        '<div class="episode-tile-meta">'+
+          esc(e.episode_number?"Episode "+e.episode_number:"Episode")+
+          (e.published_at?" · "+esc(new Date(e.published_at).toLocaleDateString()):"")+
+          " · "+esc(dur(e.duration_seconds))+
+          (Number(e.play_count)?" · "+esc(e.play_count)+" plays":"")+
+        '</div>'+
+        '<p class="episode-tile-description">'+esc(e.description||"No description yet.")+'</p>'+
+        '<div class="episode-tile-actions"><span></span><a class="btn" href="episode.html?id='+encodeURIComponent(e.id)+'">OPEN EPISODE</a></div>'+
+      '</div></article>';
+  }).join("");
+  const member=prod
+    ? '<section class="showroom-membership">'+
+        '<div><h2>'+esc(prod.name||"Podcast Membership")+'</h2>'+
+        '<p>'+esc(prod.description||"Support this podcast and unlock premium access.")+'</p></div>'+
+        '<div><div class="showroom-membership-price">'+money(prod.amount_cents,prod.currency)+
+        '<small>/ '+esc(prod.interval||"month")+'</small></div>'+
+        '<a class="btn subscribe" href="support.html?podcast_id='+encodeURIComponent(p.id)+'">SUBSCRIBE</a></div>'+
+      '</section>'
+    : '';
+  app.innerHTML='<main class="podcast-showroom"><div class="wrap">'+
+    '<section class="showroom-hero"><div class="showroom-grid">'+
+      '<div class="showroom-cover">'+cover+
+        (p.is_live?'<span class="showroom-cover-badge">● LIVE NOW</span>':'')+
+      '</div>'+
+      '<div class="showroom-copy">'+
+        '<div class="showroom-kicker">'+esc((p.category||"PODCAST").toUpperCase())+
+          (p.is_featured?" · FEATURED":"")+'</div>'+
+        '<h1><span>'+esc(p.title)+'</span></h1>'+
+        '<p class="showroom-description">'+esc(p.description||"No description yet.")+'</p>'+
+        creator+
+        '<div class="showroom-actions">'+
+          '<a class="btn subscribe" href="'+(prod?"support.html?podcast_id="+encodeURIComponent(p.id):"support.html")+'">'+(prod?"JOIN MEMBERSHIP":"MEMBERSHIP")+'</a>'+
+          '<button class="btn" id="share" type="button">↗ SHARE</button>'+
+          (p.website_url?'<a class="btn primary" href="'+esc(p.website_url)+'" target="_blank" rel="noopener">WEBSITE</a>':'')+
+          '<a class="btn" href="podcasts.html">ALL PODCASTS</a>'+
+        '</div>'+
+        '<div id="shareStatus" class="podcast-detail-share-status"></div>'+
+      '</div>'+
+      '<aside class="showroom-side">'+
+        '<div class="showroom-stat"><b>'+eps.length+'</b><span>EPISODES</span></div>'+
+        '<div class="showroom-stat"><b>'+esc(p.listener_count??0)+'</b><span>LISTENERS</span></div>'+
+        '<div class="showroom-stat"><b>'+esc(p.total_plays??0)+'</b><span>TOTAL PLAYS</span></div>'+
+      '</aside>'+
+    '</div></section>'+
+    (member?'<section class="showroom-section">'+member+'</section>':'')+
+    '<section class="showroom-section">'+
+      '<div class="showroom-section-head"><div><h2>Latest Episodes</h2><p>Explore the latest stories from '+esc(p.title)+'</p></div></div>'+
+      (tiles?'<div class="episode-wall">'+tiles+'</div>':'<div class="showroom-empty"><strong>No published episodes yet</strong><span>New episodes will appear here when they are published.</span></div>')+
+    '</section>'+
+    '<section class="showroom-section"><div class="showroom-section-head"><div><h2>Explore CrowRules</h2><p>Keep discovering podcasts and member experiences.</p></div></div>'+
+      '<div class="showroom-footer-nav"><a class="btn primary" href="podcasts.html">PODCAST DIRECTORY</a><a class="btn" href="discover.html">DISCOVER</a><a class="btn" href="my-library.html">MY LIBRARY</a><a class="btn" href="creators.html">CREATORS</a></div>'+
+    '</section>'+
+  '</div></main>';
+  const sh=document.getElementById("share"),ss=document.getElementById("shareStatus");
+  sh.onclick=async()=>{try{if(navigator.share)await navigator.share({title:p.title,text:"Listen to "+p.title+" on CrowRules Podcasting.",url:location.href});else{await navigator.clipboard?.writeText(location.href);ss.textContent="Link copied."}}catch(e){if(e.name!=="AbortError")ss.textContent="Share unavailable."}};
+}
 load().catch(e=>{console.error(e);fail("Unable to load podcast",e.message||"Please try again.")});
 })();
 </script></body></html>
