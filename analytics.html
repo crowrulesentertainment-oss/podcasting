@@ -54,17 +54,12 @@ function initials(v){return String(v||"CR").split(/\s+/).filter(Boolean).slice(0
 async function load(){
   $("refresh").disabled=true;
   try{
-    const auth=await client.auth.getUser();
-    if(auth.error) throw auth.error;
-    if(!auth.data.user){location.href="login.html?redirect="+encodeURIComponent("analytics.html");return}
-    user=auth.data.user;
-    const m=await client.from("members").select("id").eq("user_id",user.id).maybeSingle();
-    if(m.error) throw m.error;
-    if(!m.data){throw new Error("No CrowRules membership profile was found for this account.")}
-    const cr=await client.from("creators").select("id,name").eq("member_id",m.data.id).eq("is_active",true).maybeSingle();
-    if(cr.error) throw cr.error;
-    if(!cr.data){throw new Error("No active CrowRules creator profile was found for this account.")}
-    creator=cr.data;
+    const shared=window.CrowRulesAccount;
+    const account=await Promise.resolve(shared?.ready);
+    if(!account?.user){location.href="login.html?redirect="+encodeURIComponent("analytics.html");return}
+    if(!account.creatorRecord){throw new Error("No active CrowRules creator profile was found for this account.")}
+    user=account.user;
+    creator=account.creatorRecord;
     const q=await client.from("podcasts").select("id,title,slug,category,status,artwork_url,listener_count,total_plays,created_at").eq("creator_id",creator.id).order("created_at",{ascending:false});
     if(q.error) throw q.error;
     render(q.data||[]);
