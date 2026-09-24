@@ -6,5 +6,6 @@ async function subscriptions(){const u=await user(),db=await api();return db.fro
 async function current(){const r=await subscriptions();if(r.error)throw r.error;return (r.data||[]).find(x=>["active","trialing","past_due"].includes(x.status))||null}
 async function plans(){const db=await api();return db.from("membership_plans").select("*").eq("is_active",true).order("sort_order",{ascending:true})}
 async function podcastSubscriptions(){const u=await user(),db=await api();return db.from("podcast_subscriptions").select("*").eq("user_id",u.id).order("created_at",{ascending:false})}
-window.CrowRulesMembership={version:"1.1",user,subscriptions,current,plans,podcastSubscriptions};
+async function entitlement(){const u=await user(),db=await api();return db.from("cr_podcast_entitlements").select("*").eq("member_user_id",u.id).eq("status","active").order("updated_at",{ascending:false}).limit(1).maybeSingle()}
+window.CrowRulesMembership={version:"1.1",user,subscriptions,current,plans,podcastSubscriptions,entitlement};
 })();
