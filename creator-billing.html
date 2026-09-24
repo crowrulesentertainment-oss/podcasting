@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05050b">
+<meta name="robots" content="noindex,nofollow">
+<title>Creator Billing | CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<link rel="stylesheet" href="css/global-navigation.css">
+<style>
+:root{--bg:#05050b;--panel:rgba(15,15,28,.9);--line:rgba(255,255,255,.1);--text:#f5f7ff;--muted:#9ca3b7;--cyan:#42e8ff;--purple:#9b6cff;--green:#4dff9a;--yellow:#ffd166;--red:#ff5d73}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 12% 0%,rgba(66,232,255,.1),transparent 30%),radial-gradient(circle at 88% 8%,rgba(155,108,255,.13),transparent 32%),var(--bg);color:var(--text);font-family:Montserrat,Arial,sans-serif}.shell{width:min(1250px,calc(100% - 30px));margin:auto;padding:28px 0 70px}.top{display:flex;justify-content:space-between;gap:18px;align-items:center;margin-bottom:26px}.brand{font:800 20px Orbitron,Arial,sans-serif;letter-spacing:.08em}.brand span{color:var(--cyan)}.nav{display:flex;gap:8px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 15px;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);text-decoration:none;cursor:pointer}.btn.primary{border-color:rgba(66,232,255,.35);background:linear-gradient(135deg,rgba(66,232,255,.14),rgba(155,108,255,.18))}.hero,.card{border:1px solid var(--line);border-radius:20px;background:var(--panel);box-shadow:0 18px 55px rgba(0,0,0,.2)}.hero{padding:34px;margin-bottom:18px}.eyebrow{color:var(--cyan);font:700 11px Orbitron,Arial,sans-serif;letter-spacing:.15em}.hero h1{font:800 clamp(30px,6vw,54px) Orbitron,Arial,sans-serif;margin:10px 0}.hero p{max-width:760px;color:var(--muted);line-height:1.65;margin:0}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin:18px 0}.stat{padding:21px;min-height:140px}.label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.1em}.value{font:800 clamp(25px,4vw,36px) Orbitron,Arial,sans-serif;margin-top:13px}.green{color:var(--green)}.yellow{color:var(--yellow)}.cyan{color:var(--cyan)}.purple{color:#bb91ff}.note{font-size:11px;color:var(--muted);margin-top:8px}.columns{display:grid;grid-template-columns:1.6fr .9fr;gap:18px}.card{overflow:hidden}.head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:15px;align-items:center}.head h2{font:700 17px Orbitron,Arial,sans-serif;margin:0}.head p{margin:4px 0 0;color:var(--muted);font-size:12px}.body{padding:20px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:13px 10px;border-bottom:1px solid var(--line);font-size:12px}th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em}.badge{display:inline-flex;padding:6px 9px;border-radius:99px;background:rgba(255,255,255,.06);color:var(--muted);font-size:10px;text-transform:uppercase;font-weight:700}.badge.ok{color:var(--green);background:rgba(77,255,154,.08)}.badge.warn{color:var(--yellow);background:rgba(255,209,102,.08)}.badge.bad{color:#ff9db0;background:rgba(255,93,115,.08)}.money{font:700 12px Orbitron,Arial,sans-serif}.empty{padding:28px;text-align:center;color:var(--muted);font-size:13px}.status-list{display:grid;gap:11px}.status-row{display:flex;justify-content:space-between;gap:15px;padding:12px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.025)}.status-row span:first-child{color:var(--muted);font-size:12px}.status-row span:last-child{font-weight:700;font-size:12px;text-align:right}.alert{display:none;padding:13px 15px;border:1px solid rgba(255,93,115,.3);border-radius:12px;color:#ffc1cb;background:rgba(255,93,115,.07);margin-bottom:18px}.alert.show{display:block}.footer{margin-top:30px;color:var(--muted);font-size:11px;text-align:center}@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.columns{grid-template-columns:1fr}}@media(max-width:600px){.shell{width:min(100% - 18px,1250px)}.top{align-items:flex-start;flex-direction:column}.nav{width:100%}.nav .btn{flex:1}.grid{grid-template-columns:1fr}.hero{padding:24px}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header class="top">
+<div class="brand">CROW<span>RULES</span> <small style="font:600 11px Montserrat;color:var(--muted);letter-spacing:0">PODCASTING</small></div>
+<nav class="nav" aria-label="Creator navigation">
+<a class="btn" href="creator-dashboard.html">Dashboard</a>
+<a class="btn" href="creator-studio.html">Studio</a>
+<a class="btn" href="payouts.html">Payouts</a>
+<a class="btn primary" href="stripe-connect-demo.html">Commerce</a>
+</nav>
+</header>
+
+<section class="hero">
+<div class="eyebrow">CREATOR COMMERCE</div>
+<h1>Billing Dashboard</h1>
+<p>See your subscription activity, recurring billing, payment issues, cancellations, billing periods, and payout readiness in one place.</p>
+<div class="actions"><button id="refresh" class="btn primary">Refresh Billing</button><a class="btn" href="payouts.html">View Payouts</a><button id="portal" class="btn">Open Billing Portal</button></div>
+</section>
+
+<div id="alert" class="alert" role="alert"></div>
+
+<section class="grid">
+<div class="card stat"><div class="label">Active Subscriptions</div><div id="active" class="value cyan">0</div><div class="note">Currently active or trialing</div></div>
+<div class="card stat"><div class="label">Monthly Revenue</div><div id="monthly" class="value green">$0.00</div><div class="note">Successful creator earnings in the current month</div></div>
+<div class="card stat"><div class="label">Failed Payments</div><div id="failed" class="value yellow">0</div><div class="note">Invoices needing attention</div></div>
+<div class="card stat"><div class="label">Cancellations</div><div id="cancelled" class="value purple">0</div><div class="note">Subscriptions canceled or ending</div></div>
+</section>
+
+<div class="columns">
+<div style="display:grid;gap:18px">
+<section class="card">
+<div class="head"><div><h2>Subscriptions</h2><p>Synced from Stripe Billing webhooks.</p></div><span id="subscriptionCount" class="badge">0</span></div>
+<div class="table-wrap"><table><thead><tr><th>Status</th><th>Plan / Price</th><th>Period End</th><th>Cancellation</th><th>Invoice</th></tr></thead><tbody id="subscriptions"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody></table></div>
+</section>
+
+<section class="card">
+<div class="head"><div><h2>Recent Creator Earnings</h2><p>Successful earnings recorded by CrowRules.</p></div></div>
+<div class="table-wrap"><table><thead><tr><th>Date</th><th>Source</th><th>Gross</th><th>Platform Fee</th><th>Creator Amount</th><th>Status</th></tr></thead><tbody id="earnings"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody></table></div>
+</section>
+</div>
+
+<aside style="display:grid;gap:18px">
+<section class="card">
+<div class="head"><div><h2>Billing Status</h2><p>Account-level billing and payout readiness.</p></div></div>
+<div class="body"><div class="status-list">
+<div class="status-row"><span>Stripe Account</span><span id="stripeAccount">—</span></div>
+<div class="status-row"><span>Charges</span><span id="charges">—</span></div>
+<div class="status-row"><span>Payouts</span><span id="payouts">—</span></div>
+<div class="status-row"><span>Billing Customer</span><span id="customer">—</span></div>
+<div class="status-row"><span>Last Sync</span><span id="sync">—</span></div>
+</div></div>
+</section>
+
+<section class="card">
+<div class="head"><div><h2>Payment Attention</h2><p>Recent invoices requiring action.</p></div></div>
+<div class="body" id="attention"><div class="empty">Loading…</div></div>
+</section>
+
+<section class="card">
+<div class="head"><div><h2>Billing Tools</h2><p>Hosted Stripe controls.</p></div></div>
+<div class="body" style="display:grid;gap:10px">
+<a class="btn" href="stripe-connect-demo.html">Commerce Manager</a>
+<button id="portal2" class="btn primary">Manage Subscription & Payment Method</button>
+</div>
+</section>
+</aside>
+</div>
+
+<footer class="footer">CrowRules Podcasting • Creator Billing • Stripe remains the source of truth for billing.</footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script>
+(() => {
+"use strict";
+const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co";
+const KEY=window.CROWRULES_CONFIG?.supabasePublishableKey||"";
+const client=window.supabase.createClient(SUPABASE_URL,KEY);
+const $=id=>document.getElementById(id);
+let user=null, accountId=null;
+const money=(cents,currency="usd")=>new Intl.NumberFormat("en-US",{style:"currency",currency:String(currency||"usd").toUpperCase()}).format((Number(cents)||0)/100);
+const date=v=>v?new Intl.DateTimeFormat("en-US",{dateStyle:"medium"}).format(new Date(v)):"—";
+const badge=(status)=>{const s=String(status||"unknown");const cls=["active","trialing","paid","succeeded"].includes(s)?"ok":["past_due","unpaid","payment_failed","requires_action","canceled"].includes(s)?"bad":"warn";return '<span class="badge '+cls+'">'+s.replaceAll("_"," ")+"</span>"};
+function error(message){$("alert").textContent=message;$("alert").classList.add("show")}
+function clearError(){$("alert").classList.remove("show")}
+async function load(){
+clearError();
+const {data,error:authError}=await client.auth.getUser();
+if(authError||!data?.user){location.href="login.html?redirect=creator-billing.html";return}
+user=data.user;
+const {data:map,error:mapError}=await client.from("creator_monetization").select("stripe_account_id,charges_enabled,payouts_enabled,updated_at").eq("user_id",user.id).maybeSingle();
+if(mapError)throw mapError;
+if(!map?.stripe_account_id){$("stripeAccount").textContent="Not connected";$("charges").textContent="Not enabled";$("payouts").textContent="Not enabled";$("subscriptions").innerHTML='<tr><td colspan="5" class="empty">Connect Stripe to begin billing.</td></tr>';$("earnings").innerHTML='<tr><td colspan="6" class="empty">No creator billing activity yet.</td></tr>';return}
+accountId=map.stripe_account_id;
+$("stripeAccount").textContent=accountId;
+$("charges").innerHTML=map.charges_enabled?'<span class="badge ok">Enabled</span>':'<span class="badge warn">Pending</span>';
+$("payouts").innerHTML=map.payouts_enabled?'<span class="badge ok">Enabled</span>':'<span class="badge warn">Pending</span>';
+$("sync").textContent=date(map.updated_at);
+
+const [{data:subs,error:se},{data:customers,error:ce},{data:earnings,error:ee}]=await Promise.all([
+client.from("stripe_billing_subscriptions").select("*").order("updated_at",{ascending:false}).limit(50),
+client.from("stripe_billing_customers").select("*").order("updated_at",{ascending:false}).limit(10),
+client.from("creator_earnings").select("source,gross_amount,platform_fee,creator_amount,currency,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(50)
+]);
+if(se)throw se;if(ce)throw ce;if(ee)throw ee;
+$("customer").textContent=customers?.[0]?.stripe_customer_id||"Not created";
+
+const active=(subs||[]).filter(s=>["active","trialing"].includes(s.status));
+const canceled=(subs||[]).filter(s=>s.status==="canceled"||s.cancel_at_period_end);
+const monthStart=new Date();monthStart.setUTCDate(1);monthStart.setUTCHours(0,0,0,0);
+const monthly=(earnings||[]).filter(e=>new Date(e.created_at)>=monthStart&&["paid","succeeded","complete","completed"].includes(String(e.status||"").toLowerCase())).reduce((n,e)=>n+Number(e.creator_amount||0),0);
+const failed=(subs||[]).filter(s=>["past_due","unpaid"].includes(s.status)).length;
+$("active").textContent=active.length;$("monthly").textContent=money(monthly);$("failed").textContent=failed;$("cancelled").textContent=canceled.length;$("subscriptionCount").textContent=(subs||[]).length;
+
+$("subscriptions").innerHTML=(subs||[]).length?subs.map(s=>'<tr><td>'+badge(s.status)+'</td><td><span class="money">'+(s.price_id||"—")+'</span></td><td>'+date(s.current_period_end)+'</td><td>'+(s.cancel_at_period_end?"Ends "+date(s.current_period_end):s.canceled_at?date(s.canceled_at):"—")+'</td><td>'+((s.last_invoice_status||"—"))+'</td></tr>').join(""):'<tr><td colspan="5" class="empty">No subscriptions have been synchronized yet.</td></tr>';
+
+$("earnings").innerHTML=(earnings||[]).length?earnings.map(e=>'<tr><td>'+date(e.created_at)+'</td><td>'+String(e.source||"—")+'</td><td class="money">'+money(e.gross_amount,e.currency)+'</td><td class="money">'+money(e.platform_fee,e.currency)+'</td><td class="money">'+money(e.creator_amount,e.currency)+'</td><td>'+badge(e.status)+'</td></tr>').join(""):'<tr><td colspan="6" class="empty">No creator earnings have been recorded yet.</td></tr>';
+
+const needs=(subs||[]).filter(s=>["past_due","unpaid"].includes(s.status)||["payment_failed","requires_action","open"].includes(String(s.last_invoice_status||"")));
+$("attention").innerHTML=needs.length?needs.slice(0,8).map(s=>'<div style="padding:11px 0;border-bottom:1px solid var(--line)"><strong>'+String(s.price_id||"Subscription")+'</strong><div class="note">'+badge(s.status)+' • Invoice: '+String(s.last_invoice_status||"—")+'</div></div>').join(""):'<div class="empty">No recent payment issues.</div>';
+}
+async function portal(){
+try{clearError();if(!accountId)throw new Error("Connect Stripe before opening the Billing Portal.");const {data:session}=await client.auth.getSession();const token=session?.session?.access_token;if(!token)throw new Error("Your login session has expired.");const r=await fetch(SUPABASE_URL+"/functions/v1/stripe-connect-demo?action=billing-portal",{method:"POST",headers:{Authorization:"Bearer "+token,apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({accountId})});const d=await r.json();if(!r.ok||d.error)throw new Error(d.error||"Unable to open Billing Portal.");location.href=d.url}catch(e){error(e.message)}}
+$("refresh").onclick=()=>load().catch(e=>error(e.message));
+$("portal").onclick=portal;$("portal2").onclick=portal;
+load().catch(e=>error(e.message));
+})();
+</script>
+</body>
+</html>
