@@ -74,7 +74,7 @@ async function init(){
  try{
   const url=window.CROWRULES_SUPABASE_URL||window.SUPABASE_URL,key=window.CROWRULES_SUPABASE_PUBLISHABLE_KEY||window.SUPABASE_PUBLISHABLE_KEY||window.SUPABASE_ANON_KEY;
   if(!url||!key)throw Error("Supabase configuration missing");
-  db=window.supabase.createClient(url,key);
+  db=window.CrowRulesData.getClient()
   let q;
   if(id){ q=await db.rpc("get_podcast_episode_for_viewer",{p_episode_id:id}); }
   else if(slug){
@@ -121,7 +121,7 @@ init();
 <script>
 (function(){
  const cfg=window.CROWRULES_CONFIG||{}; if(!cfg.supabaseUrl||!cfg.supabasePublishableKey)return;
- const db=supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey);
+ const db = window.CrowRulesData.getClient();
  const params=new URLSearchParams(location.search),episodeId=params.get("id")||params.get("episode_id");
  if(!episodeId)return;
  async function protect(){
