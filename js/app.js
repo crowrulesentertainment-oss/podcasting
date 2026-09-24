@@ -673,7 +673,7 @@ function creatorNavPresenceStart(){
 
 function creatorNavPresenceStop(){
   clearInterval(creatorNavLockHeartbeatTimer);creatorNavLockHeartbeatTimer=null;
-  if(creatorNavPresenceChannel&&typeof supabase!=="undefined")supabase.removeChannel(creatorNavPresenceChannel);
+  window.CrowRulesCreator?.governanceRealtime?.().then(rt=>rt.stop("crowrules-production-presence")).catch(()=>{});
   creatorNavPresenceChannel=null;creatorNavPresenceStarted=false;
 }
 async function creatorNavPresenceLock(id,key,name){
@@ -726,7 +726,7 @@ function creatorNavRealtimeStart(){
 }
 
 function creatorNavRealtimeStop(){
-  if(creatorNavRealtimeChannel&&typeof supabase!=="undefined")supabase.removeChannel(creatorNavRealtimeChannel);
+  window.CrowRulesCreator?.governanceRealtime?.().then(rt=>rt.stop("crowrules-production-governance-live")).catch(()=>{});
   creatorNavRealtimeChannel=null;creatorNavRealtimeStarted=false;
 }
 
