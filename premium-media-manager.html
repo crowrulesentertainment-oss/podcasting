@@ -69,12 +69,13 @@ async function loadObservability(){
  ].join("");
 }
 async function loadEpisodes(){
- const {data,error}=await db.from("podcast_episodes").select("id,title,access_level,audio_url,video_url,podcasts!inner(creator_id)").eq("access_level","premium").order("title");
+ const {data,error}=await db.rpc("get_my_podcast_premium_media_catalog");
  if(error){$("catalog").innerHTML='<div class="muted">Catalog unavailable.</div>';return}
  const {data:map}=await db.rpc("get_my_podcast_premium_media_map"),m=new Map((map||[]).map(x=>[x.episode_id+"|"+x.media_type,x]));
- catalogEpisodes=data||[];catalogMap=m;renderCatalogActions(); const mine=(data||[]).filter(e=>m.has(e.id+"|audio")||m.has(e.id+"|video")||e.audio_url||e.video_url);
+ const data2=(data||[]).map(e=>({id:e.episode_id,title:e.title,access_level:e.access_level,audio_url:e.audio_url,video_url:e.video_url,audio_private:e.audio_private,video_private:e.video_private}));
+ catalogEpisodes=data2;catalogMap=m;renderCatalogActions(); const mine=data2.filter(e=>e.audio_private||e.video_private||e.audio_url||e.video_url);
  $("catalog").innerHTML=mine.map(e=>{
-  const a=m.has(e.id+"|audio"),v=m.has(e.id+"|video");
+  const a=!!e.audio_private||m.has(e.id+"|audio"),v=!!e.video_private||m.has(e.id+"|video");
   return '<div class="episode"><div><strong>'+esc(e.title)+'</strong><div class="mini">'+(e.audio_url?"Legacy audio source":"No legacy audio source")+' · '+(e.video_url?"Legacy video source":"No legacy video source")+'</div></div><div><span class="badge '+(a?"ok":"warn")+'">AUDIO '+(a?"PRIVATE":"LEGACY")+'</span> <span class="badge '+(v?"ok":"warn")+'">VIDEO '+(v?"PRIVATE":"LEGACY")+'</span></div></div>'
  }).join("")||'<div class="muted">No premium media slots found.</div>';
  $("episode").innerHTML=(data||[]).map(e=>'<option value="'+e.id+'">'+esc(e.title)+'</option>').join("")||'<option>No premium episodes</option>';
