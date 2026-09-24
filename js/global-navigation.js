@@ -31,7 +31,14 @@
   const help=["help-center.html","help.html","support.html"];
   const accountAliases=["profile.html","account-center.html","account-settings.html","member-settings.html"];
 
-  const path=location.pathname;\n  /* Canonical GitHub Pages base guard: recover from any stale /podcasting/podcasting/... route. */\n  if(/^\\/podcasting(?:\\/podcasting)+(?:\\/|$)/i.test(path)){\n    const normalized=path.replace(/^\\/podcasting(?:\\/podcasting)+/i,"/podcasting");\n    location.replace(normalized+(location.search||"")+(location.hash||""));\n    return;\n  }\n  const hasFile=/\\/[^/]+\\.[^/]+$/.test(path);
+  const path=location.pathname;
+  /* Canonical GitHub Pages base guard: recover from any stale /podcasting/podcasting/... route. */
+  if(/^\/podcasting(?:\/podcasting)+(?:\/|$)/i.test(path)){
+    const normalized=path.replace(/^\/podcasting(?:\/podcasting)+/i,"/podcasting");
+    location.replace(normalized+(location.search||"")+(location.hash||""));
+    return;
+  }
+  const hasFile=/\/[^/]+\.[^/]+$/.test(path);
   const rawParts=path.split("/").filter(Boolean);
   const current=(hasFile?(rawParts.pop()||"index.html"):"index.html").toLowerCase();
   const href=target=>new URL(PODCASTING_BASE+String(target||"").replace(/^\/+/, "").replace(/^(?:podcasting\/)+/i,""),location.origin).href;
