@@ -1,256 +1,46 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050b"><meta name="description" content="CrowRules Podcasting Member Hub — your personalized home for listening, creators, CrowPoints and membership."><title>Member Hub | CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><link rel="stylesheet" href="css/professional-experience.css"><style>
-.mh{width:min(1400px,calc(100% - 32px));margin:auto;padding:40px 0 70px}.hero{padding:clamp(32px,6vw,70px);border:1px solid rgba(255,255,255,.1);border-radius:28px;background:linear-gradient(135deg,rgba(57,231,255,.09),rgba(169,108,255,.09),rgba(255,79,216,.05));box-shadow:0 25px 80px rgba(0,0,0,.35)}.eyebrow{color:#39e7ff;font:800 .7rem Orbitron;letter-spacing:.18em}.hero h1{font:800 clamp(2.5rem,7vw,5.8rem) Orbitron;line-height:.95;margin:12px 0}.hero h1 span{color:#39e7ff}.hero p{max-width:720px;color:#bfc2d0;line-height:1.7}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-top:22px}.card{padding:23px;border:1px solid rgba(255,255,255,.1);border-radius:20px;background:rgba(13,15,28,.8)}.card h2{margin:0 0 8px;font:700 1rem Orbitron}.card p{color:#9da4bd;font-size:.8rem;line-height:1.6}.card a{display:inline-block;margin-top:10px;color:#39e7ff;font-size:.74rem;font-weight:800}.welcome{font-size:1rem;color:#fff;margin-top:8px}.status{padding:15px;border:1px solid rgba(255,255,255,.1);border-radius:14px;color:#9da4bd;background:rgba(0,0,0,.18);margin-top:18px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}.stat{padding:16px;border:1px solid rgba(255,255,255,.09);border-radius:15px;background:rgba(0,0,0,.18)}.stat strong{display:block;font-size:1.4rem}.stat span{color:#8f96ae;font-size:.65rem;text-transform:uppercase;letter-spacing:.08em}@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}}@media(max-width:520px){.grid{grid-template-columns:1fr}}
-</style><link rel="stylesheet" href="css/global-navigation.css">
-<script src="js/global-navigation.js" defer></script>
-</head><body><main id="main-content" class="mh"><section class="hero"><div class="eyebrow">CROWRULES MEMBER HUB</div><h1>Your <span>Universe.</span></h1><div id="welcome" class="welcome">Loading your member experience…</div><p>Your personalized Podcasting dashboard: listening, saved episodes, follows, CrowPoints, membership, creator tools and account controls.</p><div class="stats"><div class="stat"><strong id="memberState">—</strong><span>Account</span></div><div class="stat"><strong id="plan">—</strong><span>Membership</span></div><div class="stat"><strong id="points">—</strong><span>CrowPoints</span></div><div class="stat"><strong id="shows">—</strong><span>Podcasts</span></div></div><div id="status" class="status">Connecting to your CrowRules account…</div></section><section class="grid">
-<article class="card"><h2>▶ Continue Listening</h2><div id="history">Loading…</div><a href="listening-history.html">Full History →</a></article>
-<article class="card"><h2>🔖 Saved Episodes</h2><div id="saved">Loading…</div><a href="saved.html">Open Saved →</a></article>
-<article class="card"><h2>❤️ Following</h2><div id="following">Loading…</div><a href="following.html">Manage Following →</a></article>
-<article class="card"><h2>🔔 Notifications</h2><div id="notifications">Loading…</div><a href="notifications.html">View Notifications →</a></article>
-<article class="card"><h2>🎙️ Creator Center</h2><div id="creator">Checking creator status…</div><a href="creator-studio.html">Open Studio →</a></article>
-<article class="card"><h2>⭐ Membership</h2><div id="membership">Loading membership…</div><a href="membership.html">Manage Membership →</a></article>
-<article class="card"><h2>👤 My Profile</h2><p>Update your public member identity and Podcasting profile.</p><a href="profile.html">Open Profile →</a></article>
-<article class="card"><h2>⚙️ Account Center</h2><p>Identity, security, sessions, password and account controls live here.</p><a href="account-center.html">Open Account Center →</a></article>
-<article class="card"><h2>🛠 Preferences</h2><p>Control Podcasting notifications and member-experience preferences.</p><a href="member-settings.html">Open Preferences →</a></article>
-</section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
-<script src="js/member-state.js"></script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050b"><title>Member Hub | CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><link rel="stylesheet" href="css/global-navigation.css"><style>
+:root{--bg:#05050b;--panel:rgba(13,15,28,.82);--line:rgba(255,255,255,.1);--text:#f5f7ff;--muted:#9da4bd;--cyan:#39e7ff;--purple:#a96cff;--green:#42f59b;--yellow:#ffd166;--red:#ff6f87}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 0%,rgba(57,231,255,.08),transparent 28%),radial-gradient(circle at 90% 20%,rgba(169,108,255,.09),transparent 30%),var(--bg);color:var(--text);font-family:Montserrat,Arial,sans-serif}.shell{width:min(1400px,calc(100% - 32px));margin:auto;padding:38px 0 80px}.hero,.card{border:1px solid var(--line);border-radius:22px;background:var(--panel);box-shadow:0 20px 70px rgba(0,0,0,.25)}.hero{padding:clamp(28px,5vw,58px);background:linear-gradient(135deg,rgba(57,231,255,.08),rgba(169,108,255,.09))}.eyebrow{color:var(--cyan);font:800 .68rem Orbitron;letter-spacing:.18em}.hero h1{font:800 clamp(2.5rem,7vw,5.8rem) Orbitron;line-height:.94;margin:12px 0}.hero h1 span{color:var(--cyan)}.hero p{max-width:780px;color:var(--muted);line-height:1.7}.welcome{font-size:1.05rem;margin:12px 0;color:#fff}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.04);color:#fff;text-decoration:none;font-size:.72rem;font-weight:800}.btn.primary{border-color:rgba(57,231,255,.3);background:linear-gradient(135deg,rgba(57,231,255,.16),rgba(169,108,255,.18))}.btn.danger{border-color:rgba(255,111,135,.3);color:#ff9caf}.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:22px}.stat{padding:16px;border:1px solid rgba(255,255,255,.08);border-radius:15px;background:rgba(0,0,0,.18)}.stat strong{display:block;font:800 1.15rem Orbitron}.stat span{display:block;margin-top:5px;color:#8f96ae;font-size:.6rem;text-transform:uppercase;letter-spacing:.08em}.section{margin-top:24px}.section-title{font:800 1rem Orbitron;margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{padding:20px}.card h2{margin:0 0 8px;font:800 1rem Orbitron}.card p{margin:0;color:var(--muted);font-size:.76rem;line-height:1.6}.status{display:inline-flex;margin-top:12px;padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--muted);font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em}.status.ok{color:var(--green);background:rgba(66,245,155,.08)}.status.warn{color:var(--yellow);background:rgba(255,209,102,.08)}.status.bad{color:var(--red);background:rgba(255,111,135,.08)}.meta{margin-top:10px;color:#858ca4;font-size:.68rem;line-height:1.5}.row{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)}.row:last-child{border-bottom:0}.label{color:#858ca4;font-size:.63rem;text-transform:uppercase;letter-spacing:.08em}.value{font-size:.76rem;text-align:right;word-break:break-word}.notice{margin-top:14px;padding:12px;border-radius:11px;background:rgba(57,231,255,.05);color:var(--muted);font-size:.7rem;line-height:1.5}.loading{opacity:.55}@media(max-width:1000px){.stats{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr 1fr}}@media(max-width:600px){.shell{width:calc(100% - 20px);padding-top:24px}.stats{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.hero{padding:25px 20px}}
+</style><script src="js/global-navigation.js" defer></script></head><body><main id="main-content" class="shell">
+<section class="hero"><div class="eyebrow">CROWRULES · CONNECTED ACCOUNT</div><h1>Your <span>Universe.</span></h1><div id="welcome" class="welcome">Connecting to your CrowRules account…</div><p>One connected account experience for your member identity, membership, creator tools, security, notifications, Stripe payouts and everyday Podcasting actions.</p>
+<div class="stats"><div class="stat"><strong id="account">—</strong><span>Account</span></div><div class="stat"><strong id="membership">—</strong><span>Membership</span></div><div class="stat"><strong id="points">—</strong><span>CrowPoints</span></div><div class="stat"><strong id="podcasts">—</strong><span>Podcasts</span></div><div class="stat"><strong id="creator">—</strong><span>Creator</span></div><div class="stat"><strong id="payout">—</strong><span>Payouts</span></div></div>
+<div class="actions"><a class="btn primary" href="profile.html">Edit Profile</a><a class="btn" href="account-center.html">Account Center</a><a class="btn" href="membership.html">Membership</a><a class="btn" href="creator-studio.html">Creator Studio</a><a class="btn" href="notifications.html">Notifications</a><button id="signout" class="btn danger" type="button">Sign Out</button></div>
+<div id="status" class="notice">Live account sync starting…</div></section>
+<section class="section"><h2 class="section-title">ACCOUNT AT A GLANCE</h2><div class="grid">
+<article class="card"><h2>👤 Profile & Identity</h2><p id="profileCopy">Loading your connected identity…</p><div id="profileState" class="status">Checking</div><div class="actions"><a class="btn" href="profile.html">Manage Profile</a><a class="btn" href="member-profile.html">Public Profile</a></div></article>
+<article class="card"><h2>⭐ Membership</h2><p id="membershipCopy">Loading membership status…</p><div id="membershipState" class="status">Checking</div><div class="actions"><a class="btn" href="membership.html">Manage Membership</a><a class="btn" href="premium-library.html">Premium Library</a></div></article>
+<article class="card"><h2>🎙️ Creator</h2><p id="creatorCopy">Checking creator access…</p><div id="creatorState" class="status">Checking</div><div class="actions"><a class="btn" href="creator-studio.html">Open Studio</a><a class="btn" href="create-podcast.html">Create Podcast</a></div></article>
+<article class="card"><h2>💳 Stripe & Payouts</h2><p id="stripeCopy">Checking payout connection…</p><div id="stripeState" class="status">Checking</div><div class="actions"><a class="btn" href="creator-monetization-hub.html">Monetization</a><a class="btn" href="payout-center.html">Payout Center</a></div></article>
+<article class="card"><h2>🔔 Notifications</h2><p id="notificationCopy">Checking notifications…</p><div id="notificationState" class="status">Checking</div><div class="actions"><a class="btn" href="notifications.html">Open Notifications</a><a class="btn" href="member-settings.html">Preferences</a></div></article>
+<article class="card"><h2>🔐 Security</h2><p id="securityCopy">Checking authentication and verification…</p><div id="securityState" class="status">Checking</div><div class="actions"><a class="btn" href="reset-password.html">Reset Password</a><a class="btn" href="verify.html">Verification</a><a class="btn" href="playback-security.html">Playback Security</a></div></article>
+</div></section>
+<section class="section"><h2 class="section-title">QUICK ACTIONS</h2><div class="grid">
+<article class="card"><h2>▶ Continue Listening</h2><p id="history">Loading listening history…</p><div class="actions"><a class="btn" href="listening-history.html">History</a><a class="btn" href="my-library.html">My Library</a></div></article>
+<article class="card"><h2>🔖 Saved & Following</h2><p id="library">Loading saved and followed content…</p><div class="actions"><a class="btn" href="saved.html">Saved</a><a class="btn" href="following.html">Following</a></div></article>
+<article class="card"><h2>⚡ Account Controls</h2><p>Manage your connected CrowRules identity from one place.</p><div class="actions"><a class="btn primary" href="account-center.html">Open Account Center</a><a class="btn" href="help-center.html">Help Center</a></div></article>
+</div></section></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script><script src="js/member-state.js"></script>
 <script>
-(() => {
-  "use strict";
-
-  let client = null;
-  let currentUser = null;
-  let refreshTimer = null;
-  let refreshBusy = false;
-
-  const $ = id => document.getElementById(id);
-  const esc = v => String(v ?? "").replace(/[&<>"]/g, m => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"
-  }[m]));
-
-  function set(id, value) {
-    const el = $(id);
-    if (el) el.textContent = value;
-  }
-
-  function setStatus(message) {
-    const el = $("status");
-    if (el) el.textContent = message;
-  }
-
-  async function getClient() {
-    if (client) return client;
-    client = window.supabaseClient || window.supabase?.createClient(
-      window.CROWRULES_SUPABASE_URL,
-      window.CROWRULES_SUPABASE_PUBLISHABLE_KEY
-    );
-    return client;
-  }
-
-  async function loadDashboard() {
-    const db = await getClient();
-    if (!db || !currentUser || refreshBusy) return;
-
-    refreshBusy = true;
-    try {
-      const uid = currentUser.id;
-
-      const [
-        profile,
-        stats,
-        subscription,
-        podcastFollows,
-        memberFollows,
-        saved,
-        history,
-        notifications,
-        creator
-      ] = await Promise.all([
-        db.from("podcast_member_profiles")
-          .select("display_name,username")
-          .eq("user_id", uid)
-          .maybeSingle(),
-
-        db.from("podcast_member_profile_stats")
-          .select("crowpoints,published_podcasts,published_episodes,listening_seconds")
-          .eq("user_id", uid)
-          .maybeSingle(),
-
-        db.from("membership_subscriptions")
-          .select("status,plan_id,membership_plans:plan_id(name,plan_key)")
-          .eq("user_id", uid)
-          .order("created_at", { ascending:false })
-          .limit(1)
-          .maybeSingle(),
-
-        db.from("podcast_follows")
-          .select("id", { count:"exact", head:true })
-          .eq("user_id", uid),
-
-        db.from("podcast_member_follows")
-          .select("id", { count:"exact", head:true })
-          .eq("follower_user_id", uid),
-
-        db.from("podcast_saved_episodes")
-          .select("id", { count:"exact", head:true })
-          .eq("user_id", uid),
-
-        db.from("podcast_episode_progress")
-          .select("episode_id,position_seconds,duration_seconds,percent_complete,last_played_at")
-          .eq("user_id", uid)
-          .order("last_played_at", { ascending:false })
-          .limit(1)
-          .maybeSingle(),
-
-        db.from("podcast_notifications")
-          .select("id", { count:"exact", head:true })
-          .eq("user_id", uid)
-          .eq("is_read", false),
-
-        db.from("creator_profiles")
-          .select("display_name,username,availability")
-          .eq("user_id", uid)
-          .maybeSingle()
-      ]);
-
-      const meta = currentUser.user_metadata || {};
-      const name =
-        profile.data?.display_name ||
-        profile.data?.username ||
-        meta.display_name ||
-        meta.first_name ||
-        currentUser.email?.split("@")[0] ||
-        "Member";
-
-      const stat = stats.data || {};
-      const podcastFollowCount = podcastFollows.count || 0;
-      const memberFollowCount = memberFollows.count || 0;
-      const savedCount = saved.count || 0;
-      const unreadCount = notifications.count || 0;
-      const plan =
-        subscription.data?.membership_plans?.name ||
-        subscription.data?.status ||
-        "Member";
-
-      set("memberState", "Active");
-      set("welcome", "Welcome back, " + name + ".");
-      set("plan", plan);
-      set("points", Number(stat.crowpoints || 0).toLocaleString());
-      set("shows", Number(stat.published_podcasts || 0));
-
-      set("following",
-        podcastFollowCount + " podcast" +
-        (podcastFollowCount === 1 ? "" : "s") +
-        (memberFollowCount ? " · " + memberFollowCount + " member" +
-          (memberFollowCount === 1 ? "" : "s") : "")
-      );
-
-      set("saved",
-        savedCount + " saved episode" +
-        (savedCount === 1 ? "" : "s")
-      );
-
-      set("notifications",
-        unreadCount + " unread notification" +
-        (unreadCount === 1 ? "" : "s")
-      );
-
-      set("membership",
-        plan + (subscription.data?.status ? " · " + subscription.data.status : "")
-      );
-
-      set("creator",
-        creator.data
-          ? "Creator profile active"
-          : "Member profile — ready to become a creator"
-      );
-
-      const h = history.data;
-      if (h) {
-        $("history").innerHTML =
-          "<p>" + esc(h.title || "Recent episode") +
-          " · " + Math.round(Number(h.percent_complete || 0)) +
-          "% complete</p>";
-      } else {
-        set("history", "No recent listening yet.");
-      }
-
-      setStatus("Live member sync active · updated " +
-        new Date().toLocaleTimeString([], { hour:"numeric", minute:"2-digit" })
-      );
-    } catch (error) {
-      console.error("Member Hub sync failed:", error);
-      setStatus("Live sync is connected, but some dashboard data could not be loaded.");
-    } finally {
-      refreshBusy = false;
-    }
-  }
-
-  async function initialize() {
-    const db = await getClient();
-    if (!db) {
-      setStatus("CrowRules account services are unavailable.");
-      return;
-    }
-
-    const auth = await db.auth.getUser();
-    currentUser = auth.data?.user || null;
-
-    if (!currentUser) {
-      set("memberState", "Guest");
-      set("welcome", "Welcome to CrowRules.");
-      set("plan", "Guest");
-      set("points", "—");
-      set("shows", "—");
-      set("history", "Sign in to continue listening.");
-      set("saved", "Sign in to view saved episodes.");
-      set("following", "Sign in to view following.");
-      set("notifications", "Sign in to view notifications.");
-      set("creator", "Sign in to access creator tools.");
-      set("membership", "Sign in to view membership.");
-      setStatus("");
-      $("status").innerHTML =
-        'Sign in to unlock your personalized Member Hub. <a href="login.html?redirect=member-hub.html" style="color:#39e7ff;font-weight:800">Sign in →</a>';
-      return;
-    }
-
-    await loadDashboard();
-
-    window.addEventListener("crowrules:member-state", event => {
-      const reason = event.detail?.reason;
-      if (reason === "database-change" ||
-          reason === "auth-change" ||
-          reason === "focus-sync" ||
-          reason === "visibility-sync" ||
-          reason === "sync-pulse") {
-        loadDashboard();
-      }
-    });
-
-    db.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT" || !session) {
-        location.replace("login.html?redirect=member-hub.html");
-      } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
-        currentUser = session.user;
-        loadDashboard();
-      }
-    });
-
-    refreshTimer = window.setInterval(loadDashboard, 30000);
-  }
-
-  window.addEventListener("beforeunload", () => {
-    if (refreshTimer) clearInterval(refreshTimer);
-  });
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initialize, { once:true });
-  } else {
-    initialize();
-  }
-})();
-</script>
-<script src="js/professional-experience.js"></script>
-</body>
-</html>
+(()=>{"use strict";let db=null,user=null,timer=null;const $=id=>document.getElementById(id),set=(id,v)=>{const e=$(id);if(e)e.textContent=v},state=(id,v,c="")=>{const e=$(id);if(e){e.textContent=v;e.className="status "+c}},async function init(){db=window.supabaseClient||window.supabase?.createClient(window.CROWRULES_SUPABASE_URL,window.CROWRULES_SUPABASE_PUBLISHABLE_KEY);if(!db){set("status","Account services unavailable.");return}const r=await db.auth.getUser();user=r.data?.user;if(!user){location.href="login.html?redirect=member-hub.html";return}await load();db.auth.onAuthStateChange((ev,s)=>{if(ev==="SIGNED_OUT"||!s)location.href="login.html?redirect=member-hub.html";else{user=s.user;load()}});timer=setInterval(load,30000)}
+async function load(){if(!user||!db)return;const uid=user.id,m=user.user_metadata||{};const results=await Promise.allSettled([
+db.from("podcast_member_profiles").select("display_name,username,badge").eq("user_id",uid).maybeSingle(),
+db.from("podcast_member_profile_stats").select("crowpoints,published_podcasts,published_episodes").eq("user_id",uid).maybeSingle(),
+db.from("membership_subscriptions").select("status,plan_id,membership_plans:plan_id(name,plan_key)").eq("user_id",uid).order("created_at",{ascending:false}).limit(1).maybeSingle(),
+db.from("creator_profiles").select("display_name,username,availability").eq("user_id",uid).maybeSingle(),
+db.from("cr_podcast_stripe_accounts").select("onboarding_status,charges_enabled,payouts_enabled,details_submitted,requirements_currently_due,disabled_reason").eq("user_id",uid).order("updated_at",{ascending:false}).limit(1).maybeSingle(),
+db.from("podcast_notifications").select("id",{count:"exact",head:true}).eq("user_id",uid).eq("is_read",false),
+db.from("podcast_saved_episodes").select("id",{count:"exact",head:true}).eq("user_id",uid),
+db.from("podcast_follows").select("id",{count:"exact",head:true}).eq("user_id",uid),
+db.from("podcast_episode_progress").select("episode_id,position_seconds,duration_seconds,percent_complete").eq("user_id",uid).order("last_played_at",{ascending:false}).limit(1).maybeSingle()
+]);const val=i=>results[i].status==="fulfilled"?results[i].value:null;const profile=val(0)?.data||{},stats=val(1)?.data||{},sub=val(2)?.data,creator=val(3)?.data,stripe=val(4)?.data,notes=val(5)?.count||0,saved=val(6)?.count||0,follows=val(7)?.count||0,hist=val(8)?.data;
+const name=profile.display_name||profile.username||m.display_name||m.first_name||user.email?.split("@")[0]||"Member";set("welcome","Welcome back, "+name+".");set("account","Active");set("membership",sub?.membership_plans?.name||sub?.status||"Member");set("points",Number(stats.crowpoints||0).toLocaleString());set("podcasts",Number(stats.published_podcasts||0));set("creator",creator?"Active":"Ready");set("payout",stripe?.payouts_enabled?"Ready":stripe?"Setup":"—");
+set("profileCopy",(profile.username?"@"+profile.username+" · ":"")+name);state("profileState","Connected","ok");
+set("membershipCopy",sub?((sub.membership_plans?.name||"Membership")+" · "+(sub.status||"active")):"No active membership plan connected.");state("membershipState",sub?.status||"Member",sub?"ok":"warn");
+set("creatorCopy",creator?"Creator profile connected"+(creator.availability?" · "+creator.availability:""):"You have a member account and can start the creator workflow.");state("creatorState",creator?"Creator Active":"Become a Creator",creator?"ok":"warn");
+if(stripe?.payouts_enabled){set("stripeCopy","Stripe Connect is payout-enabled. Your creator payout connection is ready.");state("stripeState","Payouts Ready","ok")}else if(stripe){set("stripeCopy",stripe.requirements_currently_due?"Stripe onboarding has information that still needs attention.":"Stripe connection exists but payouts are not enabled yet.");state("stripeState",stripe.requirements_currently_due?"Action Required":"Setup In Progress","warn")}else{set("stripeCopy","No Stripe Connect payout account is linked yet.");state("stripeState","Not Connected","warn")}
+set("notificationCopy",notes+" unread notification"+(notes===1?"":"s"));state("notificationState",notes?"Unread":"All Clear",notes?"warn":"ok");
+const verified=user.email_confirmed_at;set("securityCopy",(user.email||"No email")+" · "+(verified?"Email verified":"Email verification needed"));state("securityState",verified?"Verified":"Action Required",verified?"ok":"warn");
+set("history",hist?("Latest listening session · "+Math.round(Number(hist.percent_complete||0))+"% complete"):"No recent listening session.");set("library",saved+" saved episode"+(saved===1?"":"s")+" · "+follows+" followed podcast"+(follows===1?"":"s"));
+set("status","Live account sync active · "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}))}
+$("signout").addEventListener("click",async()=>{if(db)await db.auth.signOut()});init().catch(e=>{console.error(e);set("status","Some account services could not be loaded.")});window.addEventListener("beforeunload",()=>timer&&clearInterval(timer))})();
+</script></body></html>
