@@ -20,14 +20,14 @@
     ["member-hub.html","Member Hub",["member-hub.html"],"account"],
     ["discover.html","Discover",["discover.html","search.html","categories.html"],"discover"],
     ["podcasts.html","Podcasts",["podcasts.html","podcast.html","episodes.html","episode.html"],"listen"],
-    ["creators.html","Creators",["creators.html","creator.html"],"discover"],
+    ["creators.html","Creators",["creators.html"],"discover"],
     ["create-podcast.html","Create",["create-podcast.html"],"create"],
     ["creator-studio.html","Studio",["creator-studio.html","creator-dashboard.html"],"create"],
     ["membership.html","Membership",["membership.html","subscriptions.html"],"account"],
-    ["account-center.html","Account Center",["account-center.html","account.html","account-settings.html","member-settings.html"],"account"]
+    ["account-center.html","Account Center",["account-center.html","account-settings.html","member-settings.html"],"account"]
     ];
   const help=["help-center.html","help.html","support.html"];
-  const accountAliases=["profile.html","account.html","account-center.html","account-settings.html"];
+  const accountAliases=["profile.html","account-center.html","account-settings.html","member-settings.html"];
 
   const path=location.pathname;
   const hasFile=/\/[^/]+\.[^/]+$/.test(path);
