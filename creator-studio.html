@@ -1371,14 +1371,10 @@
   --------------------------------------------------------- */
 
   async function getAuthenticatedUser() {
-    const result =
-      await client.auth.getUser();
-
-    if (result.error) {
-      throw result.error;
-    }
-
-    return result.data?.user || null;
+    const shared=window.CrowRulesAccount;
+    if(!shared) throw new Error("CrowRules account services are unavailable.");
+    const state=await Promise.resolve(shared.ready);
+    return state?.user||null;
   }
 
   /* ---------------------------------------------------------
@@ -1386,69 +1382,7 @@
   --------------------------------------------------------- */
 
   async function loadCreator() {
-
-    if (!currentUser?.id) {
-      return null;
-    }
-
-    const memberResult =
-      await client
-        .from("members")
-        .select("id,user_id")
-        .eq("user_id", currentUser.id)
-        .maybeSingle();
-
-    if (memberResult.error) {
-      console.error(
-        "Member lookup failed:",
-        memberResult.error
-      );
-
-      throw memberResult.error;
-    }
-
-    if (!memberResult.data?.id) {
-      return null;
-    }
-
-    const creatorResult =
-      await client
-        .from("creators")
-        .select(`
-          id,
-          creator_code,
-          name,
-          slug,
-          role,
-          discipline,
-          bio,
-          initials,
-          profile_url,
-          avatar_url,
-          is_active,
-          member_id
-        `)
-        .eq(
-          "member_id",
-          memberResult.data.id
-        )
-        .eq("is_active", true)
-        .order("created_at", {
-          ascending: true
-        })
-        .limit(1)
-        .maybeSingle();
-
-    if (creatorResult.error) {
-      console.error(
-        "Creator lookup failed:",
-        creatorResult.error
-      );
-
-      throw creatorResult.error;
-    }
-
-    return creatorResult.data || null;
+    return window.CrowRulesAccount?.getState?.()?.creatorRecord || null;
   }
 
   /* ---------------------------------------------------------
@@ -1456,39 +1390,7 @@
   --------------------------------------------------------- */
 
   async function loadProfile() {
-
-    const result =
-      await client
-        .from("podcast_member_profiles")
-        .select(`
-          user_id,
-          display_name,
-          username,
-          bio,
-          avatar_url,
-          badge,
-          is_public,
-          tagline,
-          location,
-          website_url,
-          cover_url
-        `)
-        .eq(
-          "user_id",
-          currentUser.id
-        )
-        .maybeSingle();
-
-    if (result.error) {
-      console.warn(
-        "Profile query:",
-        result.error
-      );
-
-      return null;
-    }
-
-    return result.data;
+    return window.CrowRulesAccount?.getState?.()?.profile || null;
   }
 
   /* ---------------------------------------------------------
