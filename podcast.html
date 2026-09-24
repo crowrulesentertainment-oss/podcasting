@@ -13,8 +13,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script><script src="js/member-state.js"></script><script src="js/member-actions.js"></script><script src="js/global-navigation.js" defer></script>
 <script>
 (()=>{"use strict";
-const cfg=window.CROWRULES_CONFIG||{},app=document.getElementById("app"),db=window.supabase&&cfg.supabaseUrl&&cfg.supabaseAnonKey?window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true}}):null;
-const q=new URLSearchParams(location.search),esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])),money=(n,c="usd")=>new Intl.NumberFormat(undefined,{style:"currency",currency:String(c).toUpperCase()}).format((Number(n)||0)/100),dur=n=>{n=Number(n||0);if(!n)return"—";const h=Math.floor(n/3600),m=Math.floor(n%3600/60),s=n%60;return h?h+"h "+String(m).padStart(2,"0")+"m":m+"m "+String(s).padStart(2,"0")+"s"};
+const cfg=window.CROWRULES_CONFIG||{},app=document.getElementById("app"),db=window.supabase&&cfg.supabaseUrl&&cfg.supabaseAnonKey?window.CrowRulesData.getClient()if(!n)return"—";const h=Math.floor(n/3600),m=Math.floor(n%3600/60),s=n%60;return h?h+"h "+String(m).padStart(2,"0")+"m":m+"m "+String(s).padStart(2,"0")+"s"};
 function fail(t,m){app.innerHTML='<div class="error"><strong>'+esc(t)+'</strong><span>'+esc(m)+'</span><a class="btn" href="podcasts.html">BACK TO PODCASTS</a></div>'}
 async function load(){if(!db)return fail("Configuration error","The CrowRules data connection could not initialize.");
 let pid=q.get("id")||q.get("podcast_id"),slug=q.get("slug")||(!pid?"bonded-in-mystery":null);
