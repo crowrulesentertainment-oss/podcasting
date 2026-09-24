@@ -35,7 +35,7 @@
   const hasFile=/\/[^/]+\.[^/]+$/.test(path);
   const rawParts=path.split("/").filter(Boolean);
   const current=(hasFile?(rawParts.pop()||"index.html"):"index.html").toLowerCase();
-  const href=target=>PODCASTING_BASE+String(target||"").replace(/^\/+/, "");
+  const href=target=>new URL(PODCASTING_BASE+String(target||"").replace(/^\/+/, "").replace(/^(?:podcasting\/)+/i,""),location.origin).href;
   const isCurrent=aliases=>aliases.includes(current);
 
   let db=null,user=null,realtimeChannel=null,authSubscription=null,memberId=null,memberRecord=null,accountState=null,accountUnsubscribe=null;
