@@ -1229,56 +1229,13 @@ const signOutButton2 =
     ------------------------------------------------------------ */
 
     async function loadUser() {
-
       hideStatus();
-
-      const {
-        data,
-        error
-      } =
-        await supabaseClient.auth.getUser();
-
-      if (error) {
-
-        console.error(
-          "CrowRules Auth Error:",
-          error
-        );
-
-        showStatus(
-          "We could not verify your CrowRules session. " +
-          "Please sign in again.",
-          "error"
-        );
-
-        setTimeout(() => {
-          window.location.href =
-            "login.html?redirect=profile.html";
-        }, 1800);
-
-        return false;
-      }
-
-      if (!data?.user) {
-
-        showStatus(
-          "You must be signed in to view your profile.",
-          "error"
-        );
-
-        setTimeout(() => {
-          window.location.href =
-            "login.html?redirect=profile.html";
-        }, 1200);
-
-        return false;
-      }
-
-      currentUser =
-        data.user;
-
+      const shared=window.CrowRulesAccount;
+      if(!shared){showStatus("Account services are unavailable. Please refresh.","error");return false;}
+      const state=await Promise.resolve(shared.ready);
+      if(!state?.user){showStatus("You must be signed in to view your profile.","error");setTimeout(()=>{window.location.href="login.html?redirect=profile.html";},1200);return false;}
+      currentUser=state.user;
       return true;
-
     }
 
 
@@ -1292,8 +1249,8 @@ const signOutButton2 =
         return;
       }
 
-      const metadata =
-        currentUser.user_metadata || {};
+      const sharedProfile = window.CrowRulesAccount?.getState()?.profile || {};
+      const metadata = { ...(currentUser.user_metadata || {}), ...sharedProfile };
 
 
       const firstName =
@@ -1486,17 +1443,12 @@ const signOutButton2 =
       const link = document.getElementById("achievementShowcaseLink");
       if (!target || !currentUser) return;
       try {
-        const member = await supabaseClient.from("members").select("id").eq("user_id", currentUser.id).maybeSingle();
-        if (member.error || !member.data) {
-          target.innerHTML = '<div class="achievement-meta">Creator profile not linked yet.</div>';
-          return;
-        }
-        const creator = await supabaseClient.from("creators").select("id").eq("member_id", member.data.id).eq("is_active", true).maybeSingle();
-        if (creator.error || !creator.data) {
+        const creator = window.CrowRulesAccount?.getState?.()?.creatorRecord;
+        if (!creator) {
           target.innerHTML = '<div class="achievement-meta">Complete your Creator profile to start earning public achievements.</div>';
           return;
         }
-        currentCreatorId = creator.data.id;
+        currentCreatorId = creator.id;
         link.href = "creator-achievements.html?creator=" + encodeURIComponent(currentCreatorId);
         link.hidden = false;
         const q = await supabaseClient.rpc("get_public_creator_achievements", { p_creator_id: currentCreatorId });
@@ -1517,123 +1469,12 @@ const signOutButton2 =
     ------------------------------------------------------------ */
 
     async function loadMembership() {
-
-      if (!currentUser) {
-        return;
-      }
-
-      /*
-        We only request the authenticated user's own membership.
-
-        RLS should determine whether this row is visible.
-
-        We do NOT create or modify membership records here.
-        Universal membership is created/synchronized by the
-        database authentication workflow.
-      */
-
-      const {
-        data,
-        error
-      } =
-        await supabaseClient
-          .from("members")
-          .select("*")
-          .eq(
-            "user_id",
-            currentUser.id
-          )
-          .maybeSingle();
-
-
-      if (error) {
-
-        console.warn(
-          "Membership profile lookup:",
-          error
-        );
-
-        /*
-          The profile itself still works if the members table
-          is temporarily unavailable through the Data API.
-        */
-
-        document.getElementById(
-          "membershipType"
-        ).textContent =
-          "Universal";
-
-
-        document.getElementById(
-          "membershipStatus"
-        ).textContent =
-          "Authenticated";
-
-        return;
-
-      }
-
-
-      if (!data) {
-
-        document.getElementById(
-          "membershipType"
-        ).textContent =
-          "Universal";
-
-
-        document.getElementById(
-          "membershipStatus"
-        ).textContent =
-          "Active";
-
-        return;
-
-      }
-
-
-      /*
-        These fields are intentionally read defensively because
-        CrowRules has evolved its membership schema over time.
-      */
-
-      const membershipType =
-        data.membership_type ||
-        data.membership_plan ||
-        data.plan_name ||
-        data.tier ||
-        "Free";
-
-
-      const status =
-        data.status ||
-        data.membership_status ||
-        "Active";
-
-
-      document.getElementById(
-        "membershipType"
-      ).textContent =
-        String(
-          membershipType
-        );
-
-
-      document.getElementById(
-        "membershipStatus"
-      ).textContent =
-        String(
-          status
-        );
-
-
-      document.getElementById(
-        "membershipPill"
-      ).textContent =
-        String(
-          status
-        ).toUpperCase();
-
+      if (!currentUser) return;
+      const s=window.CrowRulesAccount?.getState?.()||{};
+      const membershipType=document.getElementById("membershipType");
+      const membershipStatus=document.getElementById("membershipStatus");
+      if(membershipType) membershipType.textContent=s.membership?.membership_plans?.name||"Universal";
+      if(membershipStatus) membershipStatus.textContent=s.membership?.status||"Authenticated";
     }
 
 
