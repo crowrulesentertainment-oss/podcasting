@@ -12,5 +12,8 @@ async function finish(sessionId,status,position){return rpc("finish_my_podcast_p
 async function takeover(episodeId,type){return rpc("takeover_my_podcast_playback",{p_episode_id:episodeId,p_media_type:type})}
 async function expireStale(){return rpc("expire_my_stale_podcast_playback_sessions")}
 async function securitySummary(){return rpc("get_my_podcast_playback_security_summary")}
-window.CrowRulesPlayback={version:"1.0",conflicts,devices,events,progress,start,heartbeat,finish,takeover,expireStale,securitySummary};
+async function registerDevice(id,ua,type){return rpc("register_my_podcast_playback_device",{p_client_instance_id:id,p_user_agent:ua,p_device_type:type,p_device_name:type==="desktop"?"My Desktop":type==="mobile"?"My Phone":type==="tablet"?"My Tablet":"My Device"})}
+async function renameDevice(id,name){return rpc("rename_my_podcast_playback_device",{p_client_instance_id:id,p_device_name:name})}
+async function revokeDevice(id){return rpc("revoke_my_podcast_playback_device",{p_client_instance_id:id})}
+window.CrowRulesPlayback={version:"1.0",conflicts,devices,events,progress,start,heartbeat,finish,takeover,expireStale,securitySummary,registerDevice,renameDevice,revokeDevice};
 })();
