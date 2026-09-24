@@ -158,8 +158,20 @@ async function forms(){
   if(f.matches('[data-demo-form]')&&f.closest("main")?.querySelector("h1")?.textContent.includes("Create a podcast")){
    if(!state.supabase||!state.user){toast("Sign in before creating a podcast");return}
    const fd=new FormData(f);const {error}=await state.supabase.from("podcasts").insert({title:fd.get("name"),slug:String(fd.get("name")).toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""),description:fd.get("description")||"",category:fd.get("genre")||"Podcast",artwork_url:fd.get("artwork_url")||null,status:"draft"});
-   if(error){toast("Could not create podcast: "+error.message);return}toast("Podcast draft created in Supabase");
-  }else toast("Draft saved • connect the creator workflow to persist");
+   if(error){toast("Could not create podcast: "+error.message);return}
+   const {data:creator}=await state.supabase.from("podcast_creators").select("id").eq("user_id",state.user.id).limit(1).maybeSingle();
+   if(creator){const {data:newPodcast}=await state.supabase.from("podcasts").select("id").eq("title",fd.get("name")).order("created_at",{ascending:false}).limit(1).maybeSingle();if(newPodcast)await state.supabase.from("podcast_creators").update({can_manage:true}).eq("id",creator.id).eq("podcast_id",newPodcast.id)}
+   toast("Podcast draft created in Supabase");
+  }else if(f.closest("main")?.querySelector("h1")?.textContent.includes("Add an episode.")){
+   if(!state.supabase||!state.user){toast("Sign in before publishing an episode");return}
+   const fd=new FormData(f),podcastTitle=String(fd.get("podcast")||""),podcast=state.shows.find(s=>s.title===podcastTitle);
+   if(!podcast?.dbId){toast("Choose a database podcast");return}
+   const {data:owner}=await state.supabase.from("podcast_creators").select("id").eq("user_id",state.user.id).eq("podcast_id",podcast.dbId).eq("can_manage",true).maybeSingle();
+   if(!owner){toast("You do not have publishing access to this show");return}
+   const {error}=await state.supabase.from("podcast_episodes").insert({podcast_id:podcast.dbId,title:String(fd.get("title")||""),audio_url:String(fd.get("audio_url")||""),show_notes:String(fd.get("notes")||""),access_level:fd.get("premium")?"premium":"free",status:"draft"});
+   if(error){toast("Could not create episode: "+error.message);return}
+   toast("Episode draft created • ready for publishing");
+  }else toast("Draft saved");
  });
  document.querySelectorAll("[data-login]").forEach(b=>b.onclick=async()=>{if(!state.supabase){toast("Add public Supabase config to enable Google Auth");return}const {error}=await state.supabase.auth.signInWithOAuth({provider:"google",options:{redirectTo:location.href}});if(error)toast(error.message)});
  document.querySelectorAll("[data-stripe]").forEach(b=>b.onclick=()=>toast(STRIPE_PUBLISHABLE_KEY?"Stripe publishable key detected • server Checkout/Connect flow required":"Add Stripe publishable configuration before connecting payments"));
