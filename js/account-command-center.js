@@ -13,9 +13,9 @@ db.from("podcast_member_profiles").select("*").eq("user_id",uid).maybeSingle(),
 db.from("podcast_member_profile_stats").select("*").eq("user_id",uid).maybeSingle(),
 db.from("membership_subscriptions").select("*,membership_plans:plan_id(*)").eq("user_id",uid).order("created_at",{ascending:false}).limit(1).maybeSingle(),
 db.from("creator_profiles").select("*").eq("user_id",uid).maybeSingle(),
-db.from("cr_podcast_stripe_accounts").select("*").eq("user_id",uid).order("updated_at",{ascending:false}).limit(1).maybeSingle(),
+window.CrowRulesStripe.status(),
 db.from("cr_podcast_entitlements").select("*").eq("member_user_id",uid).eq("status","active").order("updated_at",{ascending:false}).limit(1).maybeSingle(),
-db.from("podcast_notifications").select("id",{count:"exact",head:true}).eq("user_id",uid).eq("is_read",false)
+window.CrowRulesNotifications.unread()
 ]);const v=i=>q[i].status==="fulfilled"?q[i].value:null;state.member=v(0)?.data||null;state.profile=v(1)?.data||null;state.stats=v(2)?.data||null;state.membership=v(3)?.data||null;state.creator=v(4)?.data||null;state.stripe=v(5)?.data||null;state.entitlement=v(6)?.data||null;state.premium=!!state.entitlement;state.notifications=v(7)?.count||0;state.creatorRecord=null;if(state.member?.id){const cr=await db.from("creators").select("*").eq("member_id",state.member.id).eq("is_active",true).order("created_at",{ascending:true}).limit(1).maybeSingle();if(!cr.error)state.creatorRecord=cr.data||null}derive();emit();return state}
 const scheduleLoad=()=>{clearTimeout(reloadTimer);reloadTimer=setTimeout(()=>load().catch(()=>{}),CFG.loadDebounceMs)};
 const stopRealtime=()=>{if(channel){try{db?.removeChannel(channel)}catch{}channel=null}clearTimeout(reloadTimer)};
