@@ -747,13 +747,7 @@ function creatorNavRealtimeStop(){
   creatorNavRealtimeChannel=null;creatorNavRealtimeStarted=false;
 }
 
-async function creatorNavServerCall(action,payload={}){
-  if(typeof supabase==="undefined"||!supabase?.functions?.invoke)throw new Error("Supabase client unavailable");
-  const {data,error}=await supabase.functions.invoke("creator-governance",{body:{action,...payload}});
-  if(error)throw error;
-  if(data?.error)throw new Error(data.error);
-  return data||{};
-}
+async function creatorNavServerCall(action,payload={}){return window.CrowRulesCreator?.governance(action,payload)||Promise.reject(new Error("Creator services unavailable."));}
 
 async function creatorNavServerGovernanceRefresh(force=false){
   if(creatorNavServerGovernanceBusy)return creatorNavServerGovernanceState;
