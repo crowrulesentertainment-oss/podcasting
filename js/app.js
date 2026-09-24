@@ -598,19 +598,16 @@ function creatorNavNotificationFromPresence(p){
 }
 function creatorNavNotificationStart(){
   creatorNavServerNotificationsRefresh();
-  if(creatorNavNotificationChannel||typeof supabase==="undefined"||!supabase?.channel)return;
-  creatorNavNotificationChannel=supabase.channel("crowrules-production-notifications",{config:{broadcast:{ack:true}}})
-    .on("broadcast",{event:"production-presence"},({payload})=>creatorNavNotificationFromPresence(payload))
-    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_notifications"},()=>creatorNavServerNotificationsRefresh())
-    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_handoffs"},()=>creatorNavServerNotificationsRefresh())
-    .subscribe();
+  if(creatorNavNotificationChannel)return;
+  window.CrowRulesCreator?.governanceRealtime?.().then(rt=>{
+    creatorNavNotificationChannel=rt.start("crowrules-production-notifications",[
+      {type:"broadcast",filter:{event:"production-presence"},handler:({payload})=>creatorNavNotificationFromPresence(payload)},
+      {type:"postgres_changes",filter:{event:"*",schema:"public",table:"creator_governance_notifications"},handler:()=>creatorNavServerNotificationsRefresh()},
+      {type:"postgres_changes",filter:{event:"*",schema:"public",table:"creator_governance_handoffs"},handler:()=>creatorNavServerNotificationsRefresh()}
+    ],{config:{broadcast:{ack:true}}});
+  }).catch(()=>{});
 }
 
-  if(creatorNavNotificationChannel||typeof supabase==="undefined"||!supabase?.channel)return;
-  creatorNavNotificationChannel=supabase.channel("crowrules-production-notifications",{config:{broadcast:{ack:true}}})
-    .on("broadcast",{event:"production-presence"},({payload})=>creatorNavNotificationFromPresence(payload))
-    .subscribe();
-}
 async function creatorNavServerLockCall(action,payload={}){
   return creatorNavServerCall(action,payload);
 }
@@ -659,27 +656,21 @@ function creatorNavPresenceRender(){
   box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:7px;margin-top:7px"><div class="card" style="padding:7px"><b>'+members.length+'</b><small> LIVE CREATORS</small></div><div class="card" style="padding:7px"><b>'+locks.length+'</b><small> ACTIVE TASK LOCKS</small></div></div><div style="margin-top:8px"><b>WHO IS HERE</b>'+(members.map(m=>'<div style="font-size:.74rem;margin-top:3px">● '+escText(m.name||"Creator")+' · '+escText(m.state||"viewing")+(m.taskName?' · '+escText(m.taskName):"")+'</div>').join("")||'<div style="font-size:.72rem;opacity:.7">No other creators currently connected.</div>')+'</div><div style="margin-top:8px"><b>ACTIVE WORK</b>'+(locks.map(l=>'<div style="font-size:.72rem;margin-top:3px">🔒 '+escText(l.taskName||l.key||"Task")+' · '+escText(l.ownerName||"Creator")+'</div>').join("")||'<div style="font-size:.72rem;opacity:.7">No active task locks.</div>')+'</div>';
 }
 function creatorNavPresenceStart(){
-  if(creatorNavPresenceStarted||typeof supabase==="undefined"||!supabase?.channel)return;
+  if(creatorNavPresenceStarted)return;
   creatorNavPresenceStarted=true;
   const me=creatorNavPresenceIdentity();
-  creatorNavPresenceChannel=supabase.channel("crowrules-production-presence",{config:{presence:{key:me.id}}});
-  creatorNavPresenceChannel
-    .on("presence",{event:"sync"},()=>{creatorNavPresenceState.members=creatorNavPresenceChannel.presenceState().map?Object.values(creatorNavPresenceChannel.presenceState()).flat().reduce((a,x)=>{if(x?.id)a[x.id]=x;return a;},{}):{};creatorNavPresenceRender();})
-    .on("broadcast",{event:"production-presence"},({payload})=>{
-      creatorNavPresenceState.lastEvent=payload;
-      creatorNavNotificationFromPresence(payload);
-      if(payload.type==="lock")creatorNavPresenceState.taskLocks[payload.lockKey]={...payload};
-      if(payload.type==="unlock")delete creatorNavPresenceState.taskLocks[payload.lockKey];
-      creatorNavPresenceRender(); creatorNavSyncRefresh();
-    })
-    .subscribe(async status=>{
-      if(status==="SUBSCRIBED"){
-        await creatorNavPresenceChannel.track({id:me.id,name:me.name,state:"viewing",at:new Date().toISOString()});
-        creatorNavPresenceRender();
-      }
-      if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){creatorNavPresenceStarted=false;creatorNavPresenceChannel=null;setTimeout(creatorNavPresenceStart,5000);}
-    });
+  window.CrowRulesCreator?.governanceRealtime?.().then(rt=>{
+    const stop=rt.start("crowrules-production-presence",[
+      {type:"presence",filter:{event:"sync"},handler:()=>{creatorNavPresenceState.members=Object.values(creatorNavPresenceChannel?.presenceState?.()||{}).flat().reduce((a,x)=>{if(x?.id)a[x.id]=x;return a;},{});creatorNavPresenceRender();}},
+      {type:"broadcast",filter:{event:"production-presence"},handler:({payload})=>{creatorNavPresenceState.lastEvent=payload;creatorNavNotificationFromPresence(payload);if(payload.type==="lock")creatorNavPresenceState.taskLocks[payload.lockKey]={...payload};if(payload.type==="unlock")delete creatorNavPresenceState.taskLocks[payload.lockKey];creatorNavPresenceRender();creatorNavSyncRefresh();}}
+    ],{config:{presence:{key:me.id}}});
+    creatorNavPresenceChannel=window.CrowRulesCreatorRealtimeChannel||creatorNavPresenceChannel;
+    if(creatorNavPresenceChannel?.track)creatorNavPresenceChannel.track({id:me.id,name:me.name,state:"viewing",at:new Date().toISOString()});
+    creatorNavPresenceRender();
+    return stop;
+  }).catch(()=>{creatorNavPresenceStarted=false;});
 }
+
 function creatorNavPresenceStop(){
   clearInterval(creatorNavLockHeartbeatTimer);creatorNavLockHeartbeatTimer=null;
   if(creatorNavPresenceChannel&&typeof supabase!=="undefined")supabase.removeChannel(creatorNavPresenceChannel);
@@ -724,22 +715,14 @@ function creatorNavRealtimeScheduleRefresh(){
 }
 
 function creatorNavRealtimeStart(){
-  if(creatorNavRealtimeStarted||typeof supabase==="undefined"||!supabase?.channel)return;
+  if(creatorNavRealtimeStarted)return;
   creatorNavRealtimeStarted=true;
-  creatorNavRealtimeChannel=supabase.channel("crowrules-production-governance-live")
-    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_assignments"},creatorNavRealtimeScheduleRefresh)
-    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_transactions"},creatorNavRealtimeScheduleRefresh)
-    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_transaction_changes"},creatorNavRealtimeScheduleRefresh)
-    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_audit_ledger"},creatorNavRealtimeScheduleRefresh)
-    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_task_locks"},()=>{creatorNavServerLocksRefresh();creatorNavRealtimeScheduleRefresh();})
-    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_tasks"},()=>{creatorNavServerTaskBridgeSync(data);creatorNavRealtimeScheduleRefresh();})
-    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_task_health"},()=>{creatorNavServerHealthRefresh();creatorNavRealtimeScheduleRefresh();})\n    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_roadmaps"},()=>{creatorNavServerProductionState();creatorNavRealtimeScheduleRefresh();})\n    .on("postgres_changes",{event:"*",schema:"public",table:"creator_governance_roadmap_steps"},()=>{creatorNavServerProductionState();creatorNavRealtimeScheduleRefresh();})
-    .subscribe(status=>{
-      if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){
-        creatorNavRealtimeStarted=false;
-        setTimeout(creatorNavRealtimeStart,5000);
-      }
-    });
+  window.CrowRulesCreator?.governanceRealtime?.().then(rt=>{
+    creatorNavRealtimeChannel=rt.start("crowrules-production-governance-live",[
+      ...["creator_governance_assignments","creator_governance_transactions","creator_governance_transaction_changes","creator_governance_audit_ledger","creator_governance_tasks","creator_governance_task_health","creator_governance_roadmaps","creator_governance_roadmap_steps"].map(table=>({type:"postgres_changes",filter:{event:"*",schema:"public",table},handler:()=>creatorNavRealtimeScheduleRefresh()})),
+      {type:"postgres_changes",filter:{event:"*",schema:"public",table:"creator_governance_task_locks"},handler:()=>{creatorNavServerLocksRefresh();creatorNavRealtimeScheduleRefresh();}}
+    ]);
+  }).catch(()=>{creatorNavRealtimeStarted=false;});
 }
 
 function creatorNavRealtimeStop(){
