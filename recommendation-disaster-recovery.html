@@ -40,5 +40,6 @@
 <script src="js/domain-service-loader.js" defer></script>
 <script src="js/domain-service-loader.js" defer></script>
 <script src="js/domain-service-loader.js" defer></script>
+<script src="js/domain-service-loader.js" defer></script>
 <script src="js/global-navigation.js" defer></script>
 <script src="js/recommendation-runtime.js"></script><script>(async()=>{const s=document.querySelector("#status"),d=document.querySelector("#details"),rt=window.CrowRulesRecommendationRuntime;await rt.resolve();s.textContent=rt.validated?"Active release verified.":"No verified promoted release; bundled emergency fallback is active.";s.className=rt.validated?"ok":"warn";d.innerHTML='<div class="item"><b>Model:</b> '+rt.model.model_version+'</div><div class="item"><b>Source:</b> '+rt.source+'</div><div class="item"><b>Release:</b> '+(rt.release?.id||"none")+'</div><p class="muted">Recovery is performed server-side. Each generation is explicitly ordered, quarantined releases are excluded from future recovery, and the newest verified release is restored before the bundled model is considered.</p>})().catch(e=>{document.querySelector("#status").textContent="Recovery status unavailable.";console.error(e)})</script></body></html>
