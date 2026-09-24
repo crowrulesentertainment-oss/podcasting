@@ -1,7 +1,13 @@
-/* CrowRules Podcasting — Global Header & Navigation System 4.0 */
+/* CrowRules Podcasting — Global Header & Navigation System 5.0 — single-instance navigation */
 (function(){
-  if(window.__CROWRULES_GLOBAL_NAV_4__) return;
-  window.__CROWRULES_GLOBAL_NAV_4__=true;
+  if(window.__CROWRULES_GLOBAL_NAV_5__) return;
+  window.__CROWRULES_GLOBAL_NAV_5__=true;
+  function removeDuplicateHeaders(){
+    const headers=[...document.querySelectorAll('.cr-global-header')];
+    headers.slice(1).forEach(h=>h.remove());
+    const old=[...document.querySelectorAll('[data-cr-global-navigation],[data-crowrules-nav],.cr-nav')];
+    old.forEach(el=>el.remove());
+  }
   const nav=[
     ["home.html","Home"],["discover.html","Discover"],["podcasts.html","Podcasts"],["episodes.html","Episodes"],["creators.html","Creators"],
     ["create-podcast.html","Create"],["creator-studio.html","Studio"],["membership.html","Membership"],
@@ -18,6 +24,10 @@
   const actions=document.createElement("div");actions.className="cr-global-actions";const profile=document.createElement("a");profile.href=prefix+"profile.html";profile.textContent="Account";profile.className="cr-profile-link";actions.appendChild(profile);
   const menu=document.createElement("button");menu.className="cr-global-menu";menu.type="button";menu.setAttribute("aria-label","Open navigation");menu.setAttribute("aria-expanded","false");menu.textContent="☰";
   inner.appendChild(desktop);inner.appendChild(actions);inner.appendChild(menu);header.appendChild(inner);header.appendChild(mobile);
-  function mount(){document.body.insertBefore(header,document.body.firstChild);menu.addEventListener("click",()=>{const open=mobile.classList.toggle("open");menu.setAttribute("aria-expanded",String(open));menu.textContent=open?"✕":"☰"});if(!document.body.hasAttribute("data-cr-no-monetization-strip")){const css=prefix+"css/monetization-integration.css";if(!document.querySelector('link[href="'+css+'"]')){const l=document.createElement("link");l.rel="stylesheet";l.href=css;document.head.appendChild(l)}const s=document.createElement("script");s.src=prefix+"js/monetization-integration.js";s.defer=true;document.head.appendChild(s)}}
+  function mount(){
+    removeDuplicateHeaders();
+    if(document.querySelector('.cr-global-header')) return;
+    document.body.insertBefore(header,document.body.firstChild);menu.addEventListener("click",()=>{const open=mobile.classList.toggle("open");menu.setAttribute("aria-expanded",String(open));menu.textContent=open?"✕":"☰"});if(!document.body.hasAttribute("data-cr-no-monetization-strip")){const css=prefix+"css/monetization-integration.css";if(!document.querySelector('link[href="'+css+'"]')){const l=document.createElement("link");l.rel="stylesheet";l.href=css;document.head.appendChild(l)}const s=document.createElement("script");s.src=prefix+"js/monetization-integration.js";s.defer=true;document.head.appendChild(s)}}
   if(document.body)mount();else document.addEventListener("DOMContentLoaded",mount,{once:true});
+  window.addEventListener('load',removeDuplicateHeaders,{once:true});
 })();
