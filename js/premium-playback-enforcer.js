@@ -1,27 +1,14 @@
-/* CrowRules Podcasting — Premium Playback Enforcer 88.0 */
+/* CrowRules Podcasting — Premium Playback Session Engine 90.0 */
 (()=>{"use strict";
 const cfg=window.CROWRULES_CONFIG||{},url=cfg.supabaseUrl,key=cfg.supabasePublishableKey;if(!url||!key||!window.supabase)return;
-const db=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true}});
-const params=new URLSearchParams(location.search);
-async function gate(){
- let episodeId=params.get("id")||params.get("episode_id");
- if(!episodeId&&params.get("slug")){const r=await db.from("podcast_episodes").select("id").eq("slug",params.get("slug")).eq("status","published").maybeSingle();episodeId=r.data?.id||null}
- if(!episodeId)return;
- const q=await db.rpc("get_podcast_episode_for_viewer",{p_episode_id:episodeId});if(q.error||!q.data?.length)return;
- const e=q.data[0];if(e.access_level!=="premium")return;
- const auth=await db.auth.getSession(),token=auth.data.session?.access_token;
- const media=[...document.querySelectorAll("audio,video")],iframe=[...document.querySelectorAll(".video iframe")];
- if(e.has_premium_access!==true){media.forEach(x=>{x.removeAttribute("src");x.load();x.controls=false});iframe.forEach(x=>x.closest(".video")?.remove());return}
- if(!token)return;
- async function authorize(type){const r=await fetch(url+"/functions/v1/premium-media-playback",{method:"POST",headers:{Authorization:"Bearer "+token,"apikey":key,"Content-Type":"application/json"},body:JSON.stringify({episode_id:e.id,media_type:type})});return r.ok?r.json():null}
- const a=await authorize("audio"),audio=document.querySelector("audio");
- if(audio){if(a?.signed_url){audio.src=a.signed_url;audio.dataset.privatePlayback="true";audio.load()}else{audio.removeAttribute("src");audio.load();audio.closest(".player")?.insertAdjacentHTML("beforeend",'<p class="notice">Private premium audio is not available yet. Legacy premium playback is blocked.</p>')}}
- const v=await authorize("video");
- let nativeVideo=document.querySelector("video");
- if(v?.signed_url){
-  if(!nativeVideo){const box=document.querySelector(".video");if(box){box.innerHTML="";nativeVideo=document.createElement("video");nativeVideo.controls=true;nativeVideo.preload="metadata";nativeVideo.playsInline=true;box.appendChild(nativeVideo)}}
-  if(nativeVideo){nativeVideo.src=v.signed_url;nativeVideo.dataset.privatePlayback="true";nativeVideo.load()}
- }else{if(nativeVideo)nativeVideo.remove();iframe.forEach(x=>x.closest(".video")?.remove())}
-}
+const db=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true}});const params=new URLSearchParams(location.search);let episode=null,user=null,token=null,sessionId=null,sessionType=null,lastPosition=0,heartbeatTimer=null,renewTimer=null;
+async function episodeId(){let id=params.get("id")||params.get("episode_id");if(!id&&params.get("slug")){const r=await db.from("podcast_episodes").select("id").eq("slug",params.get("slug")).eq("status","published").maybeSingle();id=r.data?.id||null}return id}
+async function authorize(type){const r=await fetch(url+"/functions/v1/premium-media-playback",{method:"POST",headers:{Authorization:"Bearer "+token,apikey:key,"Content-Type":"application/json"},body:JSON.stringify({episode_id:episode.id,media_type:type})});return r.ok?r.json():null}
+async function logEvent(type,pos=0,metadata={}){if(!sessionId)return;await db.from("cr_podcast_playback_events").insert({session_id:sessionId,user_id:user.id,episode_id:episode.id,event_type:type,position_seconds:Math.max(0,Math.floor(pos)),metadata})}
+async function heartbeat(el){if(!sessionId)return;const pos=Math.max(0,Math.floor(el.currentTime||0)),delta=Math.max(0,pos-lastPosition);await db.from("cr_podcast_playback_sessions").update({last_seen_at:new Date().toISOString(),seconds_played:delta}).eq("id",sessionId).eq("user_id",user.id);lastPosition=pos;await logEvent("heartbeat",pos,{delta})}
+async function renew(){if(!sessionId||!sessionType)return;const el=document.querySelector(sessionType);if(!el||el.dataset.privatePlayback!=="true")return;const pos=el.currentTime||0,playing=!el.paused,a=await authorize(sessionType);if(!a?.signed_url){await logEvent("error",pos,{reason:"renewal_failed"});return}el.src=a.signed_url;el.dataset.privatePlayback="true";el.load();try{el.currentTime=pos}catch{}if(playing)el.play().catch(()=>{});await logEvent("renew",pos,{expires_in:a.expires_in||300});clearTimeout(renewTimer);renewTimer=setTimeout(renew,240000)}
+function bind(el,type){el.addEventListener("play",()=>logEvent("play",el.currentTime));el.addEventListener("pause",()=>logEvent("pause",el.currentTime));el.addEventListener("seeking",()=>logEvent("seek",el.currentTime));el.addEventListener("error",()=>logEvent("error",el.currentTime,{code:el.error?.code||null}));el.addEventListener("ended",async()=>{await heartbeat(el);await logEvent("ended",el.currentTime);await db.from("cr_podcast_playback_sessions").update({status:"ended",ended_at:new Date().toISOString(),last_seen_at:new Date().toISOString()}).eq("id",sessionId).eq("user_id",user.id);clearInterval(heartbeatTimer);clearTimeout(renewTimer)});el.addEventListener("play",()=>{clearTimeout(renewTimer);renewTimer=setTimeout(renew,240000)});heartbeatTimer=setInterval(()=>heartbeat(el),15000)}
+async function start(type){if(sessionId)return;const el=document.querySelector(type);if(!el)return;const a=await authorize(type);if(!a?.signed_url)return;el.src=a.signed_url;el.dataset.privatePlayback="true";el.load();const r=await db.from("cr_podcast_playback_sessions").insert({user_id:user.id,episode_id:episode.id,media_type:type,user_agent:navigator.userAgent,metadata:{expires_in:a.expires_in||300}}).select("id").single();if(r.error||!r.data)return;sessionId=r.data.id;sessionType=type;lastPosition=0;await logEvent("play",0,{session_started:true});bind(el,type);clearTimeout(renewTimer);renewTimer=setTimeout(renew,240000)}
+async function gate(){const id=await episodeId();if(!id)return;const q=await db.rpc("get_podcast_episode_for_viewer",{p_episode_id:id});if(q.error||!q.data?.length)return;episode=q.data[0];if(episode.access_level!=="premium")return;const auth=await db.auth.getSession();user=auth.data.session?.user;token=auth.data.session?.access_token;if(episode.has_premium_access!==true){document.querySelectorAll("audio,video").forEach(x=>{x.removeAttribute("src");x.load();x.controls=false});document.querySelectorAll(".video iframe").forEach(x=>x.closest(".video")?.remove());return}if(!token||!user)return;await start("audio");await start("video")}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(gate,350),{once:true});else setTimeout(gate,350);
 })();
