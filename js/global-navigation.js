@@ -74,11 +74,11 @@
   function addExternalLink(parent){
     const a=document.createElement("a");
     a.href="https://github.com/crowrulesentertainment-oss/podcasting";
-    a.textContent="GitHub";
+    a.textContent="GitHub Repository";
     a.target="_blank";
     a.rel="noopener noreferrer";
     a.className="cr-github-link";
-    a.setAttribute("aria-label","CrowRules Podcasting GitHub repository (opens in a new tab)");
+    a.setAttribute("aria-label","Open the CrowRules Podcasting GitHub repository (opens in a new tab)");
     parent.appendChild(a);
   }
   addExternalLink(desktop);
