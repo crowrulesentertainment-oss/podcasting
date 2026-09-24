@@ -27,8 +27,8 @@ Deno.serve(async(req)=>{
     }
     const link=await stripe.accountLinks.create({
       account:connection.stripe_account_id,
-      refresh_url:"https://crowrulesentertainment-oss.github.io/podcasting/payouts.html?stripe_refresh=1",
-      return_url:"https://crowrulesentertainment-oss.github.io/podcasting/payouts.html?stripe_return=1",
+      refresh_url:"https://crowrulesentertainment-oss.github.io/podcasting/payout-center.html?stripe_refresh=1",
+      return_url:"https://crowrulesentertainment-oss.github.io/podcasting/payout-center.html?stripe_return=1",
       type:"account_onboarding"
     });
     return json({onboarding_url:link.url,payouts_enabled:true});
