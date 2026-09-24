@@ -1723,7 +1723,7 @@
       data,
       error
     } =
-      await client.auth.getUser();
+      await window.CrowRulesData.getUser().then(user => ({data:{user}}));
 
 
     if (error) {
@@ -2946,7 +2946,7 @@
         data,
         error
       } =
-        await client.auth.getUser();
+        await window.CrowRulesData.getUser().then(user => ({data:{user}}));
 
 
       if (error) {
