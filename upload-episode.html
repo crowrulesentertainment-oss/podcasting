@@ -16,7 +16,7 @@ body{margin:0;background:#05050b;color:#f7f8ff;font-family:Montserrat,Arial,sans
 </form>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script><script>
-(()=>{"use strict";const $=x=>document.getElementById(x);const db=supabase.createClient(window.CROWRULES_SUPABASE_URL,window.CROWRULES_SUPABASE_PUBLISHABLE_KEY);let user,creator;
+(()=>{"use strict";const $=x=>document.getElementById(x);const db = window.CrowRulesData.getClient();let user,creator;
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 function msg(v){$("notice").textContent=v;$("notice").classList.add("show")}
 function slug(v){return String(v).toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,120)}
