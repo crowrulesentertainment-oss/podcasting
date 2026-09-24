@@ -3190,3 +3190,57 @@ footer,
 .podcast-detail-empty strong{display:block;margin-bottom:7px;color:var(--text);font:700 16px Orbitron}
 @media(max-width:800px){.podcast-detail-hero{grid-template-columns:1fr}.podcast-detail-art{max-width:430px;margin:auto}.podcast-detail-membership{flex-direction:column;align-items:flex-start}.podcast-detail-episode{align-items:flex-start}}
 @media(max-width:560px){.podcast-detail-page{padding-top:28px}.podcast-detail-stats{grid-template-columns:1fr}.podcast-detail-episode-art{width:60px;height:60px}.podcast-detail-section{padding:18px}.podcast-detail-price{font-size:20px}}
+
+
+/* =========================================================
+   PODCAST DETAIL — NEW IMMERSIVE SHOWROOM LAYOUT
+   ========================================================= */
+.podcast-showroom{min-height:100vh;padding:34px 0 90px}
+.showroom-hero{position:relative;overflow:hidden;border:1px solid var(--glass-border);border-radius:30px;background:linear-gradient(115deg,rgba(10,12,24,.96),rgba(15,10,30,.88));box-shadow:0 35px 110px rgba(0,0,0,.4)}
+.showroom-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 12% 35%,rgba(34,230,255,.12),transparent 32%),radial-gradient(circle at 85% 20%,rgba(155,92,255,.15),transparent 30%);pointer-events:none}
+.showroom-grid{position:relative;display:grid;grid-template-columns:260px minmax(0,1fr) 220px;gap:28px;padding:28px;align-items:stretch}
+.showroom-cover{position:relative;aspect-ratio:1;overflow:hidden;border-radius:22px;border:1px solid rgba(255,255,255,.12);background:#0d1020;box-shadow:0 25px 65px rgba(0,0,0,.5)}
+.showroom-cover img{display:block;width:100%;height:100%;object-fit:cover}
+.showroom-cover-badge{position:absolute;left:12px;top:12px;padding:7px 9px;border-radius:999px;background:rgba(5,5,11,.78);border:1px solid rgba(34,230,255,.3);color:var(--cyan);font:800 9px Montserrat;letter-spacing:.1em;backdrop-filter:blur(12px)}
+.showroom-copy{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.showroom-kicker{color:var(--cyan);font:800 10px Montserrat;letter-spacing:.14em;text-transform:uppercase}
+.showroom-copy h1{margin:10px 0 14px;font:800 clamp(34px,5vw,64px)/1.02 Orbitron;letter-spacing:-.035em}
+.showroom-copy h1 span{background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+.showroom-description{max-width:720px;color:var(--muted);font-size:14px;line-height:1.8}
+.showroom-creator{display:flex;align-items:center;gap:10px;margin:20px 0}
+.showroom-creator img,.showroom-creator-mark{width:40px;height:40px;border-radius:50%;object-fit:cover}
+.showroom-creator-mark{display:grid;place-items:center;background:rgba(34,230,255,.08);border:1px solid rgba(34,230,255,.18);color:var(--cyan);font:800 10px Orbitron}
+.showroom-creator small{display:block;color:var(--muted);font-size:8px;letter-spacing:.1em}
+.showroom-creator b{font-size:11px}
+.showroom-actions{display:flex;gap:8px;flex-wrap:wrap}
+.showroom-side{display:flex;flex-direction:column;justify-content:center;gap:9px}
+.showroom-stat{padding:15px;border:1px solid var(--glass-border);border-radius:15px;background:rgba(255,255,255,.035)}
+.showroom-stat b{display:block;font:800 19px Orbitron}
+.showroom-stat span{display:block;margin-top:5px;color:var(--muted);font-size:8px;letter-spacing:.1em}
+.showroom-section{margin-top:24px}
+.showroom-section-head{display:flex;align-items:end;justify-content:space-between;gap:15px;margin-bottom:12px}
+.showroom-section-head h2{margin:0;font:700 20px Orbitron}
+.showroom-section-head p{margin:4px 0 0;color:var(--muted);font-size:10px}
+.episode-wall{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.episode-tile{overflow:hidden;border:1px solid var(--glass-border);border-radius:18px;background:linear-gradient(145deg,rgba(14,16,29,.94),rgba(8,9,18,.9));transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+.episode-tile:hover{transform:translateY(-4px);border-color:rgba(34,230,255,.25);box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.episode-tile-art{position:relative;aspect-ratio:16/9;background:#11152a;overflow:hidden}
+.episode-tile-art img{width:100%;height:100%;display:block;object-fit:cover}
+.episode-tile-art .fallback{font-size:26px}
+.episode-tile-badge{position:absolute;left:9px;top:9px;padding:5px 7px;border-radius:999px;background:rgba(5,5,11,.8);border:1px solid rgba(255,79,216,.25);color:#ff9ce9;font:800 8px Montserrat;letter-spacing:.08em}
+.episode-tile-body{padding:14px}
+.episode-tile h3{margin:0 0 7px;font-size:13px;line-height:1.35}
+.episode-tile-meta{color:var(--muted);font-size:9px;line-height:1.5}
+.episode-tile-description{margin:9px 0 13px;color:var(--muted);font-size:10px;line-height:1.6;min-height:32px}
+.episode-tile-actions{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.showroom-membership{display:grid;grid-template-columns:1fr auto;gap:25px;align-items:center;padding:22px;border:1px solid rgba(255,79,216,.18);border-radius:20px;background:radial-gradient(circle at 100% 0,rgba(255,79,216,.09),transparent 34%),rgba(15,10,26,.85)}
+.showroom-membership h2{margin:0 0 7px;font:700 17px Orbitron}
+.showroom-membership p{margin:0;color:var(--muted);font-size:11px;line-height:1.7}
+.showroom-membership-price{text-align:right;font:800 22px Orbitron}
+.showroom-membership-price small{display:block;color:var(--muted);font:500 9px Montserrat;margin-top:4px}
+.showroom-empty{padding:55px 20px;text-align:center;border:1px dashed rgba(255,255,255,.12);border-radius:18px;color:var(--muted)}
+.showroom-empty strong{display:block;margin-bottom:7px;color:var(--text);font:700 16px Orbitron}
+.showroom-footer-nav{display:flex;gap:8px;flex-wrap:wrap;padding:18px 0}
+@media(max-width:1050px){.showroom-grid{grid-template-columns:220px minmax(0,1fr)}.showroom-side{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr)}.episode-wall{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.podcast-showroom{padding-top:20px}.showroom-grid{grid-template-columns:1fr;padding:18px}.showroom-cover{max-width:330px;margin:auto;width:100%}.showroom-copy{text-align:left}.showroom-side{grid-template-columns:1fr 1fr}.episode-wall{grid-template-columns:1fr}.showroom-membership{grid-template-columns:1fr}.showroom-membership-price{text-align:left}}
+@media(prefers-reduced-motion:reduce){.episode-tile{transition:none}.episode-tile:hover{transform:none}}
