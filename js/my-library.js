@@ -27,6 +27,6 @@ function card(x,kind){
 }
 function render(id,rows){const host=document.querySelector('[data-section="'+id+'"]');host.innerHTML=rows.length?rows.map(x=>card(x,id==="favorites"?"FAVORITE":"SAVED")).join(""):'<div class="muted">Nothing here yet.</div>';bind();}
 function renderProgress(id,rows){const host=document.querySelector('[data-section="'+id+'"]');host.innerHTML=rows.length?rows.map(x=>card(x,id==="completed"?"COMPLETED":"CONTINUE")).join(""):'<div class="muted">Nothing here yet.</div>';}
-function bind(){document.querySelectorAll("[data-remove]").forEach(b=>b.onclick=async()=>{await window.CrowRulesMember.unsaveEpisode(b.dataset.remove);loadLibrary().catch(showError);});}
+function bind(){document.querySelectorAll("[data-remove]").forEach(b=>b.onclick=async()=>{await (b.dataset.type==="favorite"?window.CrowRulesMember.unfavoriteEpisode(b.dataset.remove):window.CrowRulesMember.unsaveEpisode(b.dataset.remove));loadLibrary().catch(showError);});}
 function showError(e){console.error(e);document.getElementById("error").textContent="Library could not refresh. Please try again.";document.getElementById("error").hidden=false;}
 window.CrowRulesData.on(()=>loadLibrary().catch(showError)); loadLibrary().catch(showError);
