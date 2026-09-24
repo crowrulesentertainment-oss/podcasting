@@ -1,17 +1,16 @@
-/* CrowRules Podcasting — Canonical Navigation 12.0 */
-:root{--nav-bg:rgba(4,5,12,.94);--nav-line:rgba(34,230,255,.18);--nav-text:#f7f8ff;--nav-muted:#9da3bf;--nav-cyan:#22e6ff;--nav-purple:#9b5cff;--nav-pink:#ff4fd8;--nav-h:74px}
-.cr-global-header{position:sticky;top:0;z-index:10000;width:100%;background:var(--nav-bg);border-bottom:1px solid var(--nav-line);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);box-shadow:0 15px 50px rgba(0,0,0,.32)}
-.cr-global-header:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--nav-cyan),var(--nav-purple),var(--nav-pink),transparent);opacity:.65}
-.cr-global-inner{width:min(1440px,calc(100% - 28px));min-height:var(--nav-h);margin:auto;display:flex;align-items:center;gap:14px}
-.cr-global-brand{display:flex;align-items:center;gap:10px;flex:0 0 auto;text-decoration:none;color:#fff;font:800 .78rem/1 Orbitron,Montserrat,sans-serif;letter-spacing:.06em}
-.cr-global-brand-mark{width:40px;height:40px;display:grid;place-items:center;border:1px solid rgba(34,230,255,.5);border-radius:12px;color:var(--nav-cyan);background:linear-gradient(135deg,rgba(34,230,255,.12),rgba(155,92,255,.14));box-shadow:0 0 28px rgba(34,230,255,.08)}
-.cr-global-brand small{display:block;color:var(--nav-muted);font:700 .5rem/1.2 Montserrat,sans-serif;letter-spacing:.16em;margin-top:3px}
-.cr-global-nav{display:flex;align-items:center;justify-content:center;gap:3px;min-width:0;flex:1;overflow:auto;scrollbar-width:none}.cr-global-nav::-webkit-scrollbar{display:none}
-.cr-global-nav a,.cr-global-actions a,.cr-global-actions button{min-height:40px;display:inline-flex;align-items:center;justify-content:center;padding:8px 10px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--nav-muted);text-decoration:none;font:750 .65rem/1 Montserrat,Arial,sans-serif;white-space:nowrap;cursor:pointer;transition:.2s ease}
-.cr-global-nav a:hover,.cr-global-actions a:hover,.cr-global-actions button:hover{color:#fff;background:rgba(34,230,255,.06);border-color:rgba(34,230,255,.16);transform:translateY(-1px)}
-.cr-global-nav a[aria-current=page]{color:#fff;background:linear-gradient(135deg,rgba(34,230,255,.11),rgba(155,92,255,.09));border-color:rgba(34,230,255,.2)}
-.cr-global-actions{display:flex;align-items:center;gap:5px;flex:0 0 auto}.cr-account{border-color:rgba(155,92,255,.25)!important;background:rgba(155,92,255,.07)!important}
-.cr-mobile-toggle{display:none}
-@media(max-width:1080px){.cr-global-nav a:nth-child(n+7){display:none}.cr-global-nav{justify-content:flex-start}}
-@media(max-width:760px){:root{--nav-h:64px}.cr-global-inner{width:min(100% - 18px,1440px)}.cr-global-brand-text{display:none}.cr-global-nav{order:3;position:absolute;left:9px;right:9px;top:calc(100% + 8px);display:none;padding:8px;border:1px solid var(--nav-line);border-radius:14px;background:#080914;box-shadow:0 25px 60px rgba(0,0,0,.5);flex-wrap:wrap}.cr-global-nav.is-open{display:flex}.cr-global-nav a{flex:1 1 30%}.cr-mobile-toggle{display:inline-flex!important}.cr-global-actions{margin-left:auto}.cr-global-actions .cr-extra{display:none}}
-body.cr-has-global-nav{padding-top:0}.cr-nav-spacer{height:0}
+/* CrowRules Podcasting — Navigation 14.0 */
+:root{--nav-bg:rgba(3,4,10,.92);--nav-line:#ffffff18;--nav-text:#f7f8ff;--nav-muted:#9ba4bd;--nav-cyan:#22e6ff;--nav-purple:#9b5cff;--nav-pink:#ff4fd8;--nav-h:70px}
+.cr-global-header{position:sticky;top:0;z-index:10000;background:var(--nav-bg);border-bottom:1px solid var(--nav-line);backdrop-filter:blur(24px) saturate(150%);-webkit-backdrop-filter:blur(24px) saturate(150%);box-shadow:0 15px 50px #0007}
+.cr-global-header:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--nav-cyan),var(--nav-purple),var(--nav-pink),transparent);opacity:.7}
+.cr-global-inner{width:min(1500px,calc(100% - 24px));min-height:var(--nav-h);margin:auto;display:flex;align-items:center;gap:12px}
+.cr-global-brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:#fff;font:800 12px/1 Orbitron;letter-spacing:.06em;flex:0 0 auto}
+.cr-global-brand-mark{width:38px;height:38px;display:grid;place-items:center;border:1px solid #22e6ff66;border-radius:11px;color:var(--nav-cyan);background:linear-gradient(135deg,#22e6ff12,#9b5cff1a);box-shadow:0 0 25px #22e6ff10}
+.cr-global-brand small{display:block;margin-top:4px;color:var(--nav-muted);font:700 7px/1 Montserrat;letter-spacing:.2em}
+.cr-global-nav{display:flex;align-items:center;justify-content:center;gap:2px;min-width:0;flex:1;overflow:auto;scrollbar-width:none}
+.cr-global-nav::-webkit-scrollbar{display:none}
+.cr-global-nav a,.cr-global-actions a,.cr-global-actions button{min-height:38px;padding:8px 9px;display:inline-flex;align-items:center;justify-content:center;border:1px solid transparent;border-radius:9px;background:transparent;color:var(--nav-muted);text-decoration:none;font:800 9px/1 Montserrat;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;transition:.2s}
+.cr-global-nav a:hover,.cr-global-actions a:hover{color:#fff;background:#22e6ff09;border-color:#22e6ff22}
+.cr-global-nav a[aria-current=page]{color:#fff;background:linear-gradient(135deg,#22e6ff12,#9b5cff10);border-color:#22e6ff2b}
+.cr-global-actions{display:flex;align-items:center;gap:5px;flex:0 0 auto}.cr-account{background:#9b5cff0f!important;border-color:#9b5cff2b!important;color:#fff!important}.cr-mobile-toggle{display:none}
+@media(max-width:1050px){.cr-global-nav a:nth-child(n+7){display:none}}
+@media(max-width:760px){:root{--nav-h:62px}.cr-global-inner{width:calc(100% - 14px)}.cr-global-brand-text{display:none}.cr-mobile-toggle{display:inline-flex!important;border:1px solid var(--nav-line);background:#ffffff08;color:#fff;border-radius:9px;padding:9px 11px;font-size:16px}.cr-global-nav{position:absolute;left:7px;right:7px;top:calc(100% + 7px);display:none;padding:8px;flex-wrap:wrap;border:1px solid var(--nav-line);border-radius:14px;background:#080914;box-shadow:0 25px 60px #0008}.cr-global-nav.is-open{display:flex}.cr-global-nav a{flex:1 1 28%}.cr-global-actions .cr-extra{display:none}}
