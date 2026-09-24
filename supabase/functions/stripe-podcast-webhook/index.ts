@@ -150,9 +150,9 @@ Deno.serve(async(req)=>{
         },{onConflict:"stripe_payout_id"});
         if(q.error)throw q.error;
         await financeAlert("payout",status==="paid"?"Payout completed":"Payout status updated",
-          await evaluateFinanceRules("payout",payout.id,Number(payout.amount_cents),payout.currency);
           "Stripe reported a payout lifecycle event for your creator account.",
           Number(payout.amount||0),payout.currency||"usd");
+        await evaluateFinanceRules("payout",payout.id,Number(payout.amount||0),payout.currency||"usd");
       }
     }
 
