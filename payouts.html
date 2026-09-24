@@ -1013,6 +1013,24 @@
   </section>
 
 
+  <!-- CREATOR COMMERCE -->
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Creator Commerce</h2>
+        <p class="section-subtitle">Create products and give your audience a simple Stripe-hosted checkout storefront.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="hero-actions">
+        <a id="commerceManageLink" class="button primary" href="stripe-connect-demo.html">Open Commerce Manager</a>
+        <a id="commerceStoreLink" class="button" href="stripe-storefront.html">Open Storefront</a>
+      </div>
+      <p id="commerceNote" class="section-subtitle">Connect Stripe first. Your connected account ID is used only to route creator commerce requests.</p>
+    </div>
+  </section>
+
+
   <!-- PAYOUT HISTORY -->
 
   <section class="section">
@@ -2152,7 +2170,7 @@
     } else {
 
       connectBtn.textContent =
-        "Connect Payouts";
+        "Connect with Stripe";
 
     }
 
@@ -2176,6 +2194,21 @@
       });
       timeline.querySelectorAll(".timeline-line").forEach((line,index)=>line.classList.toggle("complete",index<activeIndex));
     }
+
+    const commerceManageLink = $("commerceManageLink");
+    const commerceStoreLink = $("commerceStoreLink");
+    const commerceNote = $("commerceNote");
+    if (accountConnected) {
+      const query = "?accountId=" + encodeURIComponent(monetization.stripe_account_id);
+      if (commerceManageLink) commerceManageLink.href = "stripe-connect-demo.html" + query;
+      if (commerceStoreLink) commerceStoreLink.href = "stripe-storefront.html" + query;
+      if (commerceNote) commerceNote.textContent = "Your creator commerce tools are connected to your Stripe account.";
+    } else {
+      if (commerceManageLink) commerceManageLink.href = "stripe-connect-demo.html";
+      if (commerceStoreLink) commerceStoreLink.href = "stripe-storefront.html";
+      if (commerceNote) commerceNote.textContent = "Connect Stripe first. Your connected account ID is used only to route creator commerce requests.";
+    }
+
 
     const accountBox =
       $("stripeAccountId");
