@@ -4,95 +4,69 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#03040a">
+<title>CrowRules Podcasting — Launch Countdown</title>
 <meta name="description" content="CrowRules Podcasting launches January 1, 2027.">
-<title>CrowRules Podcasting | Launch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#03040a;--text:#f7f8ff;--muted:#9da5bc;--cyan:#63e9ff;--purple:#9b6cff;--pink:#ff64d8}
+:root{--bg:#03040a;--cyan:#55e7ff;--purple:#a66cff;--pink:#ff4fd8;--text:#f5f7ff;--muted:#9ba3b8}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Montserrat,Arial,sans-serif}
-body{overflow:hidden}
-.launch{position:relative;min-height:100vh;display:grid;place-items:center;isolation:isolate;overflow:hidden;background:
-radial-gradient(circle at 50% 48%,rgba(99,233,255,.12),transparent 17%),
-radial-gradient(circle at 20% 20%,rgba(155,108,255,.10),transparent 28%),
-radial-gradient(circle at 82% 78%,rgba(255,100,216,.08),transparent 25%),#03040a}
-.noise{position:absolute;inset:0;opacity:.12;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E")}
-.stars,.stars:before,.stars:after{position:absolute;inset:-20%;content:"";background-image:radial-gradient(circle,rgba(255,255,255,.8) 0 1px,transparent 1.5px);background-size:120px 120px;animation:drift 28s linear infinite}
-.stars:before{transform:scale(1.7);opacity:.35;animation-duration:45s}.stars:after{transform:scale(2.4);opacity:.18;animation-duration:65s}
-.grid{position:absolute;left:-10%;right:-10%;bottom:-28%;height:65%;transform:perspective(420px) rotateX(63deg);transform-origin:bottom;opacity:.28;background-image:linear-gradient(rgba(99,233,255,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(99,233,255,.13) 1px,transparent 1px);background-size:70px 70px;animation:gridmove 9s linear infinite;mask-image:linear-gradient(to top,black,transparent)}
-.ring{position:absolute;border:1px solid rgba(99,233,255,.18);border-radius:50%;left:50%;top:50%;transform:translate(-50%,-50%);animation:expand 5s ease-out infinite}
-.r1{width:28vw;height:28vw}.r2{width:48vw;height:48vw;animation-delay:1.2s}.r3{width:72vw;height:72vw;animation-delay:2.4s}
-.core{position:absolute;left:50%;top:50%;width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 18px 6px var(--cyan),0 0 55px 18px rgba(155,108,255,.45);animation:core 2s ease-in-out infinite}
-.content{position:relative;z-index:5;width:min(920px,92vw);text-align:center;padding:28px}
-.mark{width:78px;height:78px;margin:0 auto 28px;border:1px solid rgba(99,233,255,.6);border-radius:22px;display:grid;place-items:center;font:700 25px Orbitron,sans-serif;letter-spacing:-2px;background:rgba(8,12,24,.7);box-shadow:0 0 40px rgba(99,233,255,.14);animation:mark 1.2s ease both}
-.eyebrow{font:600 11px Orbitron,sans-serif;letter-spacing:.38em;color:var(--cyan);text-transform:uppercase;margin-bottom:22px}
-h1{font:700 clamp(42px,8vw,94px)/.92 Orbitron,sans-serif;letter-spacing:-.055em;margin:0;text-transform:uppercase;text-shadow:0 0 35px rgba(99,233,255,.13);animation:title 1.3s .2s ease both}
-h1 span{display:block;background:linear-gradient(90deg,#fff 20%,var(--cyan) 48%,#fff 72%);background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 5s linear infinite}
-.subtitle{max-width:620px;margin:25px auto 30px;color:var(--muted);font-size:15px;line-height:1.8;animation:rise 1.2s .45s ease both}
-.date{font:600 14px Orbitron,sans-serif;letter-spacing:.22em;color:#fff;margin-bottom:24px;animation:rise 1.2s .55s ease both}
-.countdown{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:680px;margin:0 auto 28px;animation:rise 1.2s .65s ease both}
-.unit{min-width:0;padding:18px 8px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.035);backdrop-filter:blur(12px);border-radius:14px;box-shadow:inset 0 1px rgba(255,255,255,.06)}
-.number{font:600 clamp(27px,5vw,54px)/1 Orbitron,sans-serif;letter-spacing:-.04em;color:#fff}.label{margin-top:9px;font-size:9px;letter-spacing:.25em;color:#7f899f;text-transform:uppercase}
-.status{font:600 10px Orbitron,sans-serif;letter-spacing:.25em;color:var(--cyan);text-transform:uppercase;animation:pulse 2s infinite}
-.progress{height:2px;width:min(680px,80vw);margin:18px auto 0;background:rgba(255,255,255,.08);overflow:hidden}.bar{height:100%;width:0;background:linear-gradient(90deg,var(--purple),var(--cyan),var(--pink));box-shadow:0 0 16px var(--cyan);transition:width 1s linear}
-.live{display:none}.live .countdown{display:none}.live .status{color:#fff}.live .status:after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cyan);margin-left:9px;box-shadow:0 0 14px var(--cyan)}
-@keyframes drift{to{transform:translate3d(90px,55px,0)}}@keyframes gridmove{to{background-position:0 70px,70px 0}}@keyframes expand{0%{opacity:0;transform:translate(-50%,-50%) scale(.35)}25%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.3)}}@keyframes core{50%{transform:scale(1.8);box-shadow:0 0 30px 10px var(--cyan),0 0 80px 28px rgba(155,108,255,.5)}}@keyframes mark{from{opacity:0;transform:scale(.7) rotate(-8deg)}to{opacity:1;transform:none}}@keyframes title{from{opacity:0;transform:translateY(20px);filter:blur(10px)}to{opacity:1;transform:none;filter:none}}@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}@keyframes shine{to{background-position:220% center}}@keyframes pulse{50%{opacity:.45}}
-@media(max-width:560px){.countdown{gap:6px}.unit{padding:14px 4px}.subtitle{font-size:13px}.eyebrow{letter-spacing:.22em}.date{font-size:11px}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+body{overflow-x:hidden}.space{position:fixed;inset:0;z-index:0;background:radial-gradient(circle at 50% 38%,#111637 0,#080b19 30%,#03040a 72%);overflow:hidden}
+.space:before{content:"";position:absolute;inset:-20%;background:conic-gradient(from 0deg,transparent,#55e7ff0d,transparent 25%,#a66cff10,transparent 48%,#ff4fd80b,transparent 72%);filter:blur(55px);animation:spin 30s linear infinite}
+canvas{position:absolute;inset:0;width:100%;height:100%}.orb{position:absolute;left:50%;top:37%;width:min(62vw,760px);height:min(62vw,760px);transform:translate(-50%,-50%);border-radius:50%;border:1px solid #55e7ff20;box-shadow:0 0 100px #55e7ff0c,inset 0 0 100px #a66cff0b}.orb:before,.orb:after{content:"";position:absolute;border-radius:50%;inset:9%;border:1px solid #a66cff20;animation:spin 20s linear infinite}.orb:after{inset:22%;border-color:#ff4fd81b;animation:spin 13s linear infinite reverse}
+.page{position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column}.top{display:flex;justify-content:space-between;align-items:center;padding:24px 30px}.logo{font-family:Orbitron,sans-serif;font-weight:800;letter-spacing:.12em;font-size:12px}.logo b{color:var(--cyan)}.back{color:#788197;text-decoration:none;font-size:10px;letter-spacing:.18em;text-transform:uppercase}.main{width:min(1180px,92vw);margin:auto;text-align:center;padding:60px 0 90px}.eyebrow{font-family:Orbitron,sans-serif;font-size:10px;letter-spacing:.38em;color:var(--cyan);text-transform:uppercase}.title{font-family:Orbitron,sans-serif;font-size:clamp(38px,7vw,84px);line-height:1;margin:20px 0 12px;letter-spacing:.05em}.title span{background:linear-gradient(110deg,#fff,#55e7ff 42%,#a66cff 70%,#fff);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:220% auto;animation:shine 6s linear infinite}.date{font-family:Orbitron,sans-serif;letter-spacing:.25em;color:#dce1ef;font-size:clamp(12px,1.5vw,17px)}.countdown{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:55px auto 35px;max-width:920px}.unit{padding:25px 12px 20px;border:1px solid #ffffff12;background:#070a14a8;backdrop-filter:blur(12px);border-radius:18px;box-shadow:inset 0 1px #ffffff08,0 20px 80px #00000030}.num{font-family:Orbitron,sans-serif;font-size:clamp(42px,7vw,86px);font-weight:700;line-height:1;letter-spacing:-.04em;text-shadow:0 0 30px #55e7ff14}.label{margin-top:12px;font-size:9px;letter-spacing:.3em;color:#788197;text-transform:uppercase}.status{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:#788197}.status i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan);margin-right:9px;animation:blink 1.4s infinite}
+.mission{margin:65px auto 0;max-width:980px}.mission h2{font-family:Orbitron,sans-serif;font-size:14px;letter-spacing:.28em}.mission p{color:var(--muted);line-height:1.8;font-size:14px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:28px}.card{padding:26px;text-align:left;border:1px solid #ffffff10;background:#070a13b8;border-radius:18px}.icon{font-size:22px}.card h3{font-family:Orbitron,sans-serif;font-size:12px;letter-spacing:.14em;margin:18px 0 8px}.card p{margin:0;color:#7f879c;font-size:12px;line-height:1.7}.road{margin-top:55px;padding:28px;border:1px solid #ffffff0d;border-radius:18px;background:#070a13a8}.road h2{font-family:Orbitron,sans-serif;font-size:11px;letter-spacing:.25em}.steps{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:20px}.step{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8c94a8;padding:10px 12px;border:1px solid #ffffff0d;border-radius:999px}.step.live{color:#dffcff;border-color:#55e7ff55}.cta{display:inline-flex;margin-top:38px;padding:15px 23px;border-radius:999px;border:1px solid #55e7ff55;color:#fff;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:#07101a99;box-shadow:0 0 40px #55e7ff0c;transition:.3s}.cta:hover{transform:translateY(-2px);border-color:var(--cyan);box-shadow:0 0 45px #55e7ff20}.live-screen{display:none}.is-live .countdown,.is-live .status,.is-live .mission,.is-live .road{display:none}.is-live .live-screen{display:block;padding:80px 20px}.live-screen h2{font-family:Orbitron,sans-serif;font-size:clamp(48px,10vw,130px);margin:0;background:linear-gradient(110deg,#fff,#55e7ff,#a66cff,#fff);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:220% auto;animation:shine 4s linear infinite}.live-screen p{color:var(--muted);letter-spacing:.18em;text-transform:uppercase;font-size:11px}.live-screen .cta{margin-top:30px}
+@keyframes spin{to{transform:rotate(360deg)}}@keyframes shine{to{background-position:220% center}}@keyframes blink{50%{opacity:.25}}
+@media(max-width:700px){.countdown{grid-template-columns:repeat(2,1fr);margin-top:40px}.cards{grid-template-columns:1fr}.main{padding-top:35px}.top{padding:20px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 </style>
-<link rel="stylesheet" href="css/global-navigation.css">
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/global-navigation.js" defer></script>
 </head>
 <body>
-<main class="launch" id="launch">
-<div class="stars"></div><div class="grid"></div><div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div><div class="core"></div><div class="noise"></div>
-<section class="content" aria-label="CrowRules Podcasting launch countdown">
-<div class="mark">CR</div>
-<div class="eyebrow">CROWRULES ENTERTAINMENT · PODCASTING</div>
-<h1>THE SIGNAL<br><span>GOES LIVE.</span></h1>
-<p class="subtitle">A new audio universe is forming. Shows, voices, stories and creators come together January 1st, 2027.</p>
-<div class="date">LAUNCH · JANUARY 1 · 2027 · 12:00 AM PACIFIC</div>
-<div class="countdown" aria-live="polite">
-<div class="unit"><div class="number" id="days">000</div><div class="label">Days</div></div>
-<div class="unit"><div class="number" id="hours">00</div><div class="label">Hours</div></div>
-<div class="unit"><div class="number" id="minutes">00</div><div class="label">Minutes</div></div>
-<div class="unit"><div class="number" id="seconds">00</div><div class="label">Seconds</div></div>
+<div class="space"><canvas id="stars"></canvas><div class="orb"></div></div>
+<div class="page">
+<header class="top"><div class="logo">CROWRULES <b>/</b> PODCASTING</div><a class="back" href="index.html">Intro</a></header>
+<main class="main" id="app">
+<div class="eyebrow">The universe is initializing</div>
+<h1 class="title"><span>THE COUNTDOWN<br>HAS BEGUN</span></h1>
+<div class="date">LAUNCHING JANUARY 1, 2027</div>
+<section class="countdown" aria-label="Countdown to launch">
+<div class="unit"><div class="num" id="days">000</div><div class="label">Days</div></div>
+<div class="unit"><div class="num" id="hours">00</div><div class="label">Hours</div></div>
+<div class="unit"><div class="num" id="minutes">00</div><div class="label">Minutes</div></div>
+<div class="unit"><div class="num" id="seconds">00</div><div class="label">Seconds</div></div>
+</section>
+<div class="status"><i></i><span id="statusText">SYSTEM STATUS: INITIALIZING</span></div>
+<section class="mission">
+<h2>A NEW UNIVERSE OF VOICES IS COMING</h2>
+<p>CrowRules Podcasting is being built as a cinematic home for podcasts, creators, live conversations, original shows and the stories that bring a community together.</p>
+<div class="cards">
+<article class="card"><div class="icon">🎧</div><h3>DISCOVER</h3><p>Find podcasts, episodes, creators, live transmissions and new voices.</p></article>
+<article class="card"><div class="icon">🎙️</div><h3>CREATE</h3><p>Build a podcast, publish episodes and grow an audience inside the CrowRules universe.</p></article>
+<article class="card"><div class="icon">◉</div><h3>CONNECT</h3><p>Follow shows, support creators and carry one CrowRules account across the universe.</p></article>
 </div>
-<div class="status" id="status">TRANSMISSION COUNTDOWN ACTIVE</div>
-<div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
+<div class="road"><h2>ROAD TO LAUNCH</h2><div class="steps"><span class="step live">Platform Architecture</span><span class="step live">Creator Studio</span><span class="step live">Episode Engine</span><span class="step live">Membership</span><span class="step live">Monetization</span><span class="step">Final Testing</span><span class="step">Launch</span></div></div>
+<a class="cta" href="home.html">Preview the podcast universe</a>
+</section>
+<section class="live-screen">
+<div class="eyebrow">Transmission established</div><h2>WE'RE LIVE.</h2><p>CrowRules Podcasting has entered the universe.</p><a class="cta" href="home.html">Enter CrowRules Podcasting</a>
 </section>
 </main>
+</div>
 <script>
-(function(){
-"use strict";
-const target=Date.parse("2027-01-01T00:00:00-08:00");
-const start=Date.parse("2026-01-01T00:00:00-08:00");
-const root=document.getElementById("launch");
-const d=document.getElementById("days"),h=document.getElementById("hours"),m=document.getElementById("minutes"),s=document.getElementById("seconds"),status=document.getElementById("status"),bar=document.getElementById("bar");
-function pad(v,n){return String(v).padStart(n,"0")}
-function tick(){
- const now=Date.now(), left=target-now;
- if(left<=0){
-   d.textContent="000";h.textContent="00";m.textContent="00";s.textContent="00";
-   status.textContent="NOW LIVE · ENTERING PODCASTING";
-   root.classList.add("live");
-   bar.style.width="100%";
-   setTimeout(()=>window.location.replace("home.html"),900);
-   return;
- }
- const total=Math.floor(left/1000);
- d.textContent=pad(Math.floor(total/86400),3);
- h.textContent=pad(Math.floor(total/3600)%24,2);
- m.textContent=pad(Math.floor(total/60)%60,2);
- s.textContent=pad(total%60,2);
- const pct=Math.max(0,Math.min(100,((now-start)/(target-start))*100));
- bar.style.width=pct+"%";
+(()=>{"use strict";
+const target=new Date("2027-01-01T00:00:00-08:00").getTime(),app=document.getElementById("app");
+const $=id=>document.getElementById(id);
+function tick(){let d=target-Date.now();if(d<=0){app.classList.add("is-live");document.title="CrowRules Podcasting — We're Live";return}
+let s=Math.floor(d/1000),days=Math.floor(s/86400);s%=86400;let h=Math.floor(s/3600);s%=3600;let m=Math.floor(s/60);s%=60;
+$("days").textContent=String(days).padStart(3,"0");$("hours").textContent=String(h).padStart(2,"0");$("minutes").textContent=String(m).padStart(2,"0");$("seconds").textContent=String(s).padStart(2,"0");
+$("statusText").textContent="SYSTEM STATUS: "+(days<100?"FINAL APPROACH":"INITIALIZING");
 }
-tick();
-setInterval(tick,1000);
+tick();setInterval(tick,1000);
+const c=document.getElementById("stars"),x=c.getContext("2d");let w,h,p=[];
+function resize(){w=innerWidth;h=innerHeight;c.width=w*devicePixelRatio;c.height=h*devicePixelRatio;x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);p=Array.from({length:Math.min(260,Math.floor(w*h/6000))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.3+.15,a:Math.random()*.65+.1,s:Math.random()*.25+.02}))}
+function draw(){x.clearRect(0,0,w,h);for(const q of p){q.y-=q.s;if(q.y<0)q.y=h;x.beginPath();x.arc(q.x,q.y,q.r,0,Math.PI*2);x.fillStyle="rgba(220,235,255,"+q.a+")";x.fill()}requestAnimationFrame(draw)}
+addEventListener("resize",resize,{passive:true});resize();draw();
 })();
 </script>
 </body>
