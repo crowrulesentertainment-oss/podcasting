@@ -25,10 +25,7 @@
     if (client) return client;
     if (window.supabaseClient) return (client = window.supabaseClient);
     if (window.supabase && window.CROWRULES_SUPABASE_URL && window.CROWRULES_SUPABASE_PUBLISHABLE_KEY) {
-      client = window.supabase.createClient(
-        window.CROWRULES_SUPABASE_URL,
-        window.CROWRULES_SUPABASE_PUBLISHABLE_KEY
-      );
+      client = window.window.CrowRulesData.getClient();
     }
     return client;
   }
@@ -123,7 +120,7 @@
     if (!db) return;
     started = true;
 
-    const auth = await db.auth.getUser();
+    const auth = await window.CrowRulesData.getUser().then(user=>({data:{user}}));
     userId = auth.data?.user?.id || null;
     if (!userId) {
       emit("signed-out");
