@@ -991,7 +991,7 @@
             class="button primary"
             type="button">
 
-            Connect Payouts
+            Connect with Stripe
 
           </button>
 
@@ -2789,6 +2789,27 @@
       let messageText =
         error?.message ||
         "Unable to start payout onboarding.";
+
+      if (
+        messageText.includes(
+          "STRIPE_CONNECT_NOT_ENABLED"
+        )
+      ) {
+        messageText =
+          "Stripe Connect is not enabled for CrowRules yet. Enable Stripe Connect in the CrowRules Stripe platform, then return here and click Connect with Stripe again.";
+        showNotice(
+          messageText +
+          " <a href="https://dashboard.stripe.com/connect" target="_blank" rel="noopener">Open Stripe Connect setup</a>",
+          "error"
+        );
+        if (message) {
+          message.textContent =
+            "Stripe Connect needs to be enabled once before creators can connect their payout accounts.";
+        }
+        button.disabled = false;
+        button.textContent = originalText;
+        return;
+      }
 
       if (
         messageText.includes(
