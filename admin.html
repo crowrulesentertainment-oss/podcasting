@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#03040a">
+<title>Admin | CrowRules Podcasting</title>
+<meta name="description" content="CrowRules Podcasting administration dashboard.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/podcasting.css">
+<link rel="stylesheet" href="css/global-navigation.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/global-navigation.js" defer></script>
+<style>
+:root{--bg:#03040a;--panel:#080b15;--panel2:#0c1020;--line:#1b2740;--cyan:#55e7ff;--purple:#a66cff;--pink:#ff4fd8;--green:#63f5a6;--yellow:#ffd166;--text:#f5f7ff;--muted:#9da7bc}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:Montserrat,Arial,sans-serif}body{min-height:100vh}.page{width:min(1450px,94vw);margin:0 auto;padding:105px 0 60px}.admin-hero{display:flex;justify-content:space-between;gap:30px;align-items:end;padding:35px 0 28px;border-bottom:1px solid var(--line)}.eyebrow{font:700 10px Orbitron;letter-spacing:.3em;color:var(--cyan);text-transform:uppercase}.title{font:800 clamp(34px,5vw,68px) Orbitron;letter-spacing:.04em;line-height:1;margin:12px 0}.lede{max-width:720px;color:var(--muted);line-height:1.7;margin:0}.status{min-width:230px;border:1px solid var(--line);background:linear-gradient(145deg,#0b1120,#060812);padding:18px;border-radius:16px}.status b{display:block;font:700 11px Orbitron;letter-spacing:.14em;margin-bottom:8px}.status span{font-size:12px;color:var(--yellow)}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:22px}.card{border:1px solid var(--line);background:linear-gradient(145deg,var(--panel2),var(--panel));border-radius:16px;padding:20px;min-height:125px}.metric{font:800 32px Orbitron;margin:12px 0 5px}.label{font-size:10px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}.delta{font-size:10px;color:var(--green)}.section{margin-top:38px}.section-head{display:flex;justify-content:space-between;align-items:center}.section h2{font:700 18px Orbitron;letter-spacing:.08em;margin:0}.section-head a{font-size:10px;color:var(--cyan);text-decoration:none}.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}.action{display:block;padding:20px;border:1px solid var(--line);border-radius:14px;background:#070a13;color:var(--text);text-decoration:none;transition:.25s}.action:hover{border-color:#55e7ff66;transform:translateY(-2px)}.action strong{display:block;font:700 12px Orbitron;letter-spacing:.08em;margin-bottom:8px}.action span{font-size:11px;color:var(--muted);line-height:1.6}.feed{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-top:20px}.row{display:grid;grid-template-columns:150px 1fr 130px;padding:15px 18px;border-bottom:1px solid var(--line);font-size:11px;align-items:center}.row:last-child{border-bottom:0}.row .type{color:var(--cyan);font:700 9px Orbitron;letter-spacing:.12em}.row .date{color:var(--muted);text-align:right}.notice{display:none;margin-top:18px;padding:14px 16px;border:1px solid #ff4fd866;background:#ff4fd80b;border-radius:12px;color:#ffd9f5;font-size:11px}.notice.show{display:block}@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.actions{grid-template-columns:1fr}.admin-hero{display:block}.status{margin-top:24px}}@media(max-width:520px){.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr;gap:6px}.row .date{text-align:left}}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="admin-hero">
+<div><div class="eyebrow">CrowRules Podcasting • Command Center</div><h1 class="title">ADMIN</h1><p class="lede">Manage the podcast universe, creators, episodes, subscriptions and monetization from one cinematic control room.</p></div>
+<div class="status"><b id="authTitle">AUTHENTICATING</b><span id="authStatus">Checking your CrowRules account…</span></div>
+</header>
+<div id="accessNotice" class="notice">Admin access could not be verified. This dashboard is display-only until an authorized CrowRules administrator is authenticated.</div>
+<section class="section"><div class="section-head"><h2>UNIVERSE OVERVIEW</h2><a href="home.html">Return to Podcasting</a></div>
+<div class="grid">
+<div class="card"><div class="label">Podcasts</div><div class="metric" id="podcastCount">—</div><div class="delta">Live database count</div></div>
+<div class="card"><div class="label">Episodes</div><div class="metric" id="episodeCount">—</div><div class="delta">Published catalog</div></div>
+<div class="card"><div class="label">Creators</div><div class="metric" id="creatorCount">—</div><div class="delta">Creator universe</div></div>
+<div class="card"><div class="label">Subscribers</div><div class="metric" id="subscriberCount">—</div><div class="delta">Podcast subscriptions</div></div>
+</div></section>
+<section class="section"><div class="section-head"><h2>COMMANDS</h2></div><div class="actions">
+<a class="action" href="create-podcast.html"><strong>CREATE PODCAST</strong><span>Create and configure a new podcast, creator profile and monetization path.</span></a>
+<a class="action" href="create-episode.html"><strong>CREATE EPISODE</strong><span>Publish a new episode and connect it to an existing podcast.</span></a>
+<a class="action" href="monetization.html"><strong>MONETIZATION</strong><span>Review Stripe Connect, payout onboarding and creator revenue controls.</span></a>
+<a class="action" href="podcasts.html"><strong>PODCAST CATALOG</strong><span>Browse and inspect the complete podcast catalog.</span></a>
+<a class="action" href="episodes.html"><strong>EPISODE CATALOG</strong><span>Review published and scheduled episodes.</span></a>
+<a class="action" href="discover.html"><strong>DISCOVERY</strong><span>Preview the listener-facing discovery experience.</span></a>
+</div></section>
+<section class="section"><div class="section-head"><h2>ADMIN ACTIVITY</h2><span id="lastRefresh" style="font-size:10px;color:var(--muted)">Loading…</span></div><div class="feed" id="activity"><div class="row"><span class="type">SYSTEM</span><span>Connecting to the CrowRules podcast universe…</span><span class="date">NOW</span></div></div></section>
+</div>
+<script>
+(()=>{'use strict';
+const SUPABASE_URL=window.CROWRULES_SUPABASE_URL||'https://cevylpnoexugwgygvtgu.supabase.co';
+const SUPABASE_ANON_KEY=window.CROWRULES_SUPABASE_ANON_KEY||'';
+const $=id=>document.getElementById(id);
+function set(id,v){$(id).textContent=v}
+async function count(client,table,column='id'){try{const r=await client.from(table).select(column,{count:'exact',head:true});return r.error?'—':(r.count??0)}catch(e){return '—'}}
+async function init(){
+ if(!SUPABASE_ANON_KEY){set('authTitle','CONFIGURATION');set('authStatus','Supabase client key is not exposed in this page.');$('accessNotice').classList.add('show');return}
+ const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+ try{const {data:{session}}=await client.auth.getSession();if(session?.user){set('authTitle','SIGNED IN');set('authStatus',session.user.email||'CrowRules account authenticated')}else{set('authTitle','NOT SIGNED IN');set('authStatus','Sign in with your CrowRules account');$('accessNotice').classList.add('show')}}catch(e){set('authTitle','AUTH ERROR');set('authStatus','Unable to verify session');$('accessNotice').classList.add('show')}
+ const [p,e,c]=await Promise.all([count(client,'podcasts'),count(client,'cr_podcast_episodes'),count(client,'creators')]);set('podcastCount',p);set('episodeCount',e);set('creatorCount',c);
+ const s=await count(client,'podcast_subscriptions');set('subscriberCount',s);
+ set('lastRefresh','REFRESHED '+new Date().toLocaleTimeString());
+ $('activity').innerHTML='<div class="row"><span class="type">DATABASE</span><span>Podcasting metrics synchronized with Supabase.</span><span class="date">LIVE</span></div><div class="row"><span class="type">SECURITY</span><span>Admin page uses the current authenticated Supabase session.</span><span class="date">CHECKED</span></div>';
+}
+if(window.supabase)init();else window.addEventListener('load',init);
+})();
+</script>
+</body>
+</html>
