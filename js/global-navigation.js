@@ -185,7 +185,36 @@
     rows.forEach(x=>accountMenu.appendChild(x));
   }
 
+  function paintContext(state){
+    context.innerHTML="";
+    if(!state || !state.authenticated) return;
+    const label=state.name||"Member";
+    const member=document.createElement("span");
+    member.className="cr-context-chip";
+    member.innerHTML='◎ <strong>'+escapeHtml(label)+'</strong> · '+(state.creator?"Creator":state.premium?"Premium Member":"Member");
+    context.appendChild(member);
+    if(state.premium){
+      const premium=document.createElement("span");
+      premium.className="cr-context-chip premium";
+      premium.textContent="✦ Premium Access";
+      context.appendChild(premium);
+    }
+    if(state.creator){
+      const creator=document.createElement("span");
+      creator.className="cr-context-chip creator";
+      creator.textContent="◆ Creator";
+      context.appendChild(creator);
+    }
+    if(state.unread){
+      const notice=document.createElement("span");
+      notice.className="cr-context-chip";
+      notice.textContent="🔔 "+state.unread+" unread";
+      context.appendChild(notice);
+    }
+  }
+
   function paintGuest(){
+    context.innerHTML="";
     notifications.hidden=true;
     accountButton.innerHTML='<span class="cr-account-avatar" aria-hidden="true">CR</span><span class="cr-account-copy"><strong>Account</strong><small>Guest</small></span><span class="cr-account-chevron" aria-hidden="true">⌄</span>';
     accountButton.classList.remove("is-member","is-premium","is-creator");
@@ -193,6 +222,7 @@
   }
 
   function paintMember(state){
+    paintContext({...state,authenticated:true});
     notifications.hidden=false;
     notifications.dataset.unread=String(state.unread||0);
     notifications.title=state.unread?state.unread+" unread notification"+(state.unread===1?"":"s"):"Notifications";
