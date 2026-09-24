@@ -9,9 +9,9 @@
   if(window.__CROWRULES_GLOBAL_NAV_85__) return;
   window.__CROWRULES_GLOBAL_NAV_85__=true;
 
-  const VERSION="8.5";
-  const CHANNEL_NAME="crowrules-podcasting-global-nav-85";
-  const STORAGE_KEY="crowrules-podcasting-nav-85";
+  const VERSION="8.6";
+  const CHANNEL_NAME="crowrules-podcasting-global-nav-86";
+  const STORAGE_KEY="crowrules-podcasting-nav-86";
   const REFRESH_MS=15000;
   const NOTIFY_LIMIT=12;
   const nav=[
@@ -25,6 +25,7 @@
     ["podcasting/membership.html","Membership",["podcasting/membership.html","podcasting/subscriptions.html"],"account"],
     ["podcasting/premium-library.html","Premium",["podcasting/premium-library.html","podcasting/premium.html"],"account"],
     ["podcasting/creator-monetization-hub.html","Monetization",["podcasting/creator-monetization-hub.html","podcasting/monetization.html"],"growth"],
+    ["podcasting/creator-billing.html","Revenue",["podcasting/creator-billing.html","podcasting/creator-revenue.html","podcasting/creator-revenue-analytics.html"],"growth"],
     ["podcasting/playback-security.html","Security",["podcasting/playback-security.html","podcasting/playback-devices.html"],"account"]
     ]; 
   const help=["podcasting/help-center.html","podcasting/help.html","podcasting/support.html"];
@@ -90,7 +91,7 @@
   }
   function dispatch(type,detail={}){window.dispatchEvent(new CustomEvent("crowrules:global-nav",{detail:{type,...detail}}))}
   function broadcast(type,payload={}){
-    const message={source:"crowrules-global-nav-85",type,payload,at:new Date().toISOString()};
+    const message={source:"crowrules-global-nav-86",type,payload,at:new Date().toISOString()};
     try{
       if("BroadcastChannel"in window){
         if(!window.__crowRulesGlobalNavChannel)window.__crowRulesGlobalNavChannel=new BroadcastChannel(CHANNEL_NAME);
@@ -272,6 +273,7 @@
       ["Premium Library","Your premium podcast access","premium-library.html","premium"],
       ["Creator Studio","Create and manage podcasts","creator-studio.html","creator"],
       ["Monetization","Creator revenue and offers","creator-monetization-hub.html","creator"],
+      ["Revenue Center","Live Stripe revenue ledger and financial reporting","creator-billing.html","creator"],
       ["Playback Security","Devices and playback security","playback-security.html","security"],
       ["Notifications","Open the full notification center","notifications.html","notifications"],
       ["Account Settings","Preferences and account controls","account-settings.html","settings"]
@@ -386,7 +388,7 @@
   }
 
   function handleCrossTab(m){
-    if(!m||m.source!=="crowrules-global-nav-84")return;
+    if(!m||m.source!=="crowrules-global-nav-86")return;
     if(m.type==="auth-change"||m.type==="identity-refresh"){loadIdentity().then(subscribeRealtime);return}
     if(m.type==="notification"&&m.payload)notifyLocal(m.payload);
     if(m.type==="notification-read"&&m.payload?.id){
