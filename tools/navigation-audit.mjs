@@ -47,9 +47,13 @@ for(const p of required) if(!fileSet.has(p)) issues.push(`MISSING_REQUIRED||${p}
 const orphan=[...inbound.entries()].filter(([f,from])=>!from.length&&!required.includes(f)&&f!=="404.html").map(([f])=>f).sort();
 
 console.log("CrowRules Podcasting — Repository Health Audit 3.0");
-console.log(`HTML pages: ${fileSet.size}`);
-console.log(`Issues: ${issues.length}`);
-console.log(`Orphan HTML pages: ${orphan.length}`);\nfor(const file of jsFiles){\n  const rel=path.relative(root,file).replaceAll(path.sep,"/");\n  const {spawnSync}=await import("node:child_process");\n  const check=spawnSync(process.execPath,["--check",file],{encoding:"utf8"});\n  if(check.status!==0) issues.push(`JS_SYNTAX|${rel}|${(check.stderr||"").trim().replace(/\\s+/g," ").slice(0,240)}`);\n}\nconsole.log(`JavaScript files syntax-checked: ${jsFiles.length}`);
+const {spawnSync}=await import("node:child_process");
+for(const file of jsFiles){
+  const rel=path.relative(root,file).replaceAll(path.sep,"/");
+  const check=spawnSync(process.execPath,["--check",file],{encoding:"utf8"});
+  if(check.status!==0) issues.push(`JS_SYNTAX|${rel}|${(check.stderr||"").trim().replace(/\s+/g," ").slice(0,240)}`);
+}
+console.log(`HTML pages: ${fileSet.size}`);\nconsole.log(`JavaScript files syntax-checked: ${jsFiles.length}`);
 if(issues.length){console.log("\nISSUES");for(const i of issues)console.log("- "+i)}
 if(orphan.length){console.log("\nORPHAN HTML PAGES");for(const o of orphan)console.log("- "+o)}
 if(issues.length) process.exit(1);
