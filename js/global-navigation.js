@@ -1,4 +1,4 @@
-/* CrowRules Podcasting — Global Navigation 10.0.0 — GitHub Pages Canonical Navigation
+/* CrowRules Podcasting — Global Navigation 11.0.0 — GitHub Pages Canonical Navigation
    One shared navigation system.
    Live identity, membership/premium presence, notifications,
    creator state, cross-tab synchronization, and account command palette.
@@ -6,14 +6,15 @@
 */
 (function(){
   "use strict";
-  if(window.__CROWRULES_GLOBAL_NAV_100__) return;
-  window.__CROWRULES_GLOBAL_NAV_100__=true;
+  if(window.__CROWRULES_GLOBAL_NAV_110__) return;
+  window.__CROWRULES_GLOBAL_NAV_110__=true;
 
-  const VERSION="10.0.0";
+  const VERSION="11.0.0";
   const CHANNEL_NAME="crowrules-podcasting-global-nav-100";
   const STORAGE_KEY="crowrules-podcasting-nav-100";
   const REFRESH_MS=120000;
   const PODCASTING_BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
+  const CANONICAL_PREFIX="/podcasting";
   const NOTIFY_LIMIT=12;
   const nav=[
     ["home.html","Home",["index.html","home.html"],"home"],
@@ -32,16 +33,21 @@
   const accountAliases=["profile.html","account-center.html","account-settings.html","member-settings.html"];
 
   const path=location.pathname;
-  /* Canonical GitHub Pages base guard: recover from any stale /podcasting/podcasting/... route. */
-  if(/^\/podcasting(?:\/podcasting)+(?:\/|$)/i.test(path)){
-    const normalized=path.replace(/^\/podcasting(?:\/podcasting)+/i,"/podcasting");
+  /* Canonical GitHub Pages guard: collapse any repeated /podcasting/ segments before UI mounts. */
+  if(new RegExp("^"+CANONICAL_PREFIX.replace(/\//g,"\\/")+"(?:\\/podcasting)+(?:\\/|$)","i").test(path)){
+    const normalized=path.replace(new RegExp("^"+CANONICAL_PREFIX.replace(/\//g,"\\/")+"(?:\\/podcasting)+","i"),CANONICAL_PREFIX);
     location.replace(normalized+(location.search||"")+(location.hash||""));
     return;
   }
   const hasFile=/\/[^/]+\.[^/]+$/.test(path);
   const rawParts=path.split("/").filter(Boolean);
   const current=(hasFile?(rawParts.pop()||"index.html"):"index.html").toLowerCase();
-  const href=target=>new URL(PODCASTING_BASE+String(target||"").replace(/^\/+/, "").replace(/^(?:podcasting\/)+/i,""),location.origin).href;
+  const href=target=>{
+    const raw=String(target||"").trim();
+    if(/^https?:\/\//i.test(raw))return raw;
+    const clean=raw.replace(/^\/+/, "").replace(/^(?:podcasting\/)+/i,"");
+    return new URL(PODCASTING_BASE+clean,location.origin).href;
+  };
   const isCurrent=aliases=>aliases.includes(current);
 
   let db=null,user=null,realtimeChannel=null,authSubscription=null,memberId=null,memberRecord=null,accountState=null,accountUnsubscribe=null;
@@ -341,19 +347,26 @@ document.querySelectorAll("link[href*=\"professional-experience.css\"],script[sr
       refresh:()=>window.CrowRulesAccount?.refresh?.().then(s=>{applyAccountState(s);return s}).then(()=>loadNotifications()).then(subscribeRealtime),
       openNotifications:()=>{panel.hidden=false;ui.notify.setAttribute("aria-expanded","true");openPanel="notifications";loadNotifications()},
       markRead,markAllRead,
-      pushNotification:n=>{notifyLocal(n);broadcast("notification",n)},
+      pushNotification:n=>{if(!n?.id)return;notifyLocal(n);broadcast("notification",n)},
     };
 
     renderIdentity();renderNotificationCenter();
     if(window.CrowRulesAccount){
-      accountUnsubscribe=window.CrowRulesAccount.on(applyAccountState);
+      try{accountUnsubscribe=window.CrowRulesAccount.on(applyAccountState)}catch(_){}
       Promise.resolve(window.CrowRulesAccount.ready).then(s=>applyAccountState(s||window.CrowRulesAccount.getState())).catch(()=>{});
     }
     setupAuthSync();
     Promise.resolve(window.CrowRulesAccount?.ready).then(()=>loadIdentity()).then(subscribeRealtime);
     clearInterval(pollTimer);
     pollTimer=setInterval(()=>{if(!document.hidden)window.CrowRulesAccount?.refresh?.().then(applyAccountState).catch(()=>{})},REFRESH_MS);
-    window.addEventListener("pagehide",()=>{clearInterval(pollTimer);try{if(realtimeChannel)getDb()?.removeChannel(realtimeChannel)}catch(_){}});
+    window.addEventListener("pagehide",()=>{
+      clearInterval(pollTimer);
+      clearTimeout(refreshTimer);
+      try{authSubscription?.unsubscribe?.()}catch(_){}
+      try{accountUnsubscribe?.()}catch(_){}
+      try{if(realtimeChannel)getDb()?.removeChannel(realtimeChannel)}catch(_){}
+      realtimeChannel=null;
+    },{once:true});
     window.addEventListener("focus",()=>window.CrowRulesAccount?.refresh?.().then(applyAccountState).catch(()=>{}));
     document.addEventListener("visibilitychange",()=>{if(!document.hidden)window.CrowRulesAccount?.refresh?.().then(applyAccountState).catch(()=>{})});
     window.addEventListener("crowrules:member-state",e=>{
@@ -398,5 +411,5 @@ document.querySelectorAll("link[href*=\"professional-experience.css\"],script[sr
     if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mount,{once:true});
     else mount();
   }
-  start();
+  start().catch(()=>{});
 })();
