@@ -6,6 +6,7 @@ async function conflicts(){return rpc("get_my_podcast_playback_conflicts")}
 async function devices(){return rpc("get_my_podcast_playback_devices")}
 async function events(limit=50){return rpc("get_my_podcast_playback_device_events",{p_limit:limit})}
 async function progress(episodeId){return rpc("get_my_podcast_playback_progress",{p_episode_id:episodeId})}
+async function run(task){return window.CrowRulesData.run(task)}
 async function start(episodeId,type,userAgent,clientId){return rpc("start_my_podcast_playback_session",{p_episode_id:episodeId,p_media_type:type,p_user_agent:userAgent,p_client_instance_id:clientId})}
 async function heartbeat(sessionId,position,delta){return rpc("record_my_podcast_playback_heartbeat",{p_session_id:sessionId,p_position_seconds:position,p_delta_seconds:delta})}
 async function finish(sessionId,status,position){return rpc("finish_my_podcast_playback_session",{p_session_id:sessionId,p_status:status,p_position_seconds:position})}
@@ -15,5 +16,5 @@ async function securitySummary(){return rpc("get_my_podcast_playback_security_su
 async function registerDevice(id,ua,type){return rpc("register_my_podcast_playback_device",{p_client_instance_id:id,p_user_agent:ua,p_device_type:type,p_device_name:type==="desktop"?"My Desktop":type==="mobile"?"My Phone":type==="tablet"?"My Tablet":"My Device"})}
 async function renameDevice(id,name){return rpc("rename_my_podcast_playback_device",{p_client_instance_id:id,p_device_name:name})}
 async function revokeDevice(id){return rpc("revoke_my_podcast_playback_device",{p_client_instance_id:id})}
-window.CrowRulesPlayback={version:"1.0",conflicts,devices,events,progress,start,heartbeat,finish,takeover,expireStale,securitySummary,registerDevice,renameDevice,revokeDevice};
+window.CrowRulesPlayback={version:"1.1",conflicts,devices,events,progress,start,heartbeat,finish,takeover,expireStale,securitySummary,registerDevice,renameDevice,revokeDevice,run};
 })();
