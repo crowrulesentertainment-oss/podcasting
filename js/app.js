@@ -153,7 +153,9 @@ async function forms(){
    const fd=new FormData(f);
    const title=String(fd.get("name")||"").trim();
    const slug=title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-   const {data:newPodcast,error}=await state.supabase.from("podcasts").insert({title,slug,description:fd.get("description")||"",category:fd.get("genre")||"Podcast",artwork_url:fd.get("artwork_url")||null,status:"draft"}).select("id").single();
+   const {data:member}=await state.supabase.from("members").select("id").eq("user_id",state.user.id).maybeSingle();
+   const {data:creator}=member?await state.supabase.from("creators").select("id").eq("member_id",member.id).maybeSingle():{data:null};
+   const {data:newPodcast,error}=await state.supabase.from("podcasts").insert({title,slug,description:fd.get("description")||"",category:fd.get("genre")||"Podcast",artwork_url:fd.get("artwork_url")||null,status:"draft",creator_id:creator?.id||null}).select("id").single();
    if(error){toast("Could not create podcast: "+error.message);return}
    const {error:mapError}=await state.supabase.from("podcast_creators").insert({podcast_id:newPodcast.id,user_id:state.user.id,role:"owner",can_manage:true});
    if(mapError){await state.supabase.from("podcasts").delete().eq("id",newPodcast.id);toast("Could not create creator ownership: "+mapError.message);return}
