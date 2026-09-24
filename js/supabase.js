@@ -1,5 +1,5 @@
-export const SUPABASE_URL=window.CROWRULES_CONFIG?.SUPABASE_URL||"";
-export const SUPABASE_ANON_KEY=window.CROWRULES_CONFIG?.SUPABASE_ANON_KEY||"";
+export const SUPABASE_URL=window.CROWRULES_CONFIG?.SUPABASE_URL||"https://cevylpnoexugwgygvtgu.supabase.co";
+export const SUPABASE_ANON_KEY=window.CROWRULES_CONFIG?.SUPABASE_ANON_KEY||"sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
 export const STRIPE_PUBLISHABLE_KEY=window.CROWRULES_CONFIG?.STRIPE_PUBLISHABLE_KEY||"";
 export const isConfigured=Boolean(SUPABASE_URL&&SUPABASE_ANON_KEY);
 export async function getSupabase(){
