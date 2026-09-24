@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 if(window.CrowRulesData)return;
-const CFG={url:window.CROWRULES_SUPABASE_URL||"https://cevylpnoexugwgygvtgu.supabase.co",key:window.CROWRULES_SUPABASE_PUBLISHABLE_KEY||"",refreshMs:120000};
+const CFG=Object.assign({url:"https://cevylpnoexugwgygvtgu.supabase.co",key:"",refreshMs:120000},window.CROW_CONFIG||{}, {url:window.CROW_CONFIG?.supabaseUrl||window.CROWRULES_SUPABASE_URL||"https://cevylpnoexugwgygvtgu.supabase.co",key:window.CROW_CONFIG?.supabaseKey||window.CROWRULES_SUPABASE_PUBLISHABLE_KEY||""});
 let db=null,session=null,channel=null,readyPromise=null,timer=null;
 const state={status:"booting",user:null,session:null,error:null,lastSync:null,realtime:"offline",permission:"guest"};
 const channels=new Map(),listeners=new Set();
