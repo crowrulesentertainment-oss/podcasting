@@ -2027,5 +2027,5 @@ const signOutButton2 =
   </script>
 
 
-</body>
+<script>window.CrowRulesAccount?.on(s=>{const p=s.profile||{},m=s.membership;const txt=(i,v)=>{const e=document.getElementById(i);if(e)e.textContent=v??'—'};txt('identityName',p.display_name||p.username||'Member');txt('identityUsername',p.username?'@'+p.username:'—');txt('identityEmail',s.user?.email||'—');txt('accountType','CrowRules Member');txt('membershipType',m?.membership_plans?.name||'Member');txt('membershipStatus',m?.status||'Not Active');txt('joinedDate',s.user?.created_at?new Date(s.user.created_at).toLocaleDateString():'—');});</script></body>
 </html>
