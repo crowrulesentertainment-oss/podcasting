@@ -6,7 +6,7 @@ const load=(src,attr)=>new Promise((resolve,reject)=>{const s=document.createEle
 (async()=>{try{
  if(!window.CrowRulesData){await load(root+"js/platform-data.js");}
  await (window.CrowRulesData?.ready||Promise.resolve());
- for(const name of ["membership-service.js","notification-service.js","playback-service.js","creator-service.js","stripe-service.js","finance-service.js"]){
+ for(const name of ["membership-service.js","notification-service.js","playback-service.js","creator-service.js","stripe-service.js","finance-service.js","member-service.js"]){
    if(!document.querySelector('script[data-cr-service="'+name+'"]')) await load(base+name,name);
  }
  window.dispatchEvent(new CustomEvent("crowrules:services-ready"));
