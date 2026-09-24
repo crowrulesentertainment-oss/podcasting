@@ -9,7 +9,8 @@
 <link rel="stylesheet" href="css/podcasting.css">
 <link rel="stylesheet" href="css/global-navigation.css">
 <script src="js/global-navigation.js" defer></script>
-<script src="js/account-command-center.js"></script><script src="js/account-command-center-ui.js"></script></head>
+<script src="js/account-command-center.js"></script><script src="js/account-command-center-ui.js"></script><script src="js/platform-data.js" defer></script>
+</head>
 <body>
 <div class="site-background" aria-hidden="true"><div class="background-stars"></div><div class="background-grid"></div><div class="background-glow background-glow-one"></div><div class="background-glow background-glow-two"></div></div>
 <main><section class="section wrap">
@@ -37,7 +38,7 @@
  try{
   const cfg=window.CrowRulesConfig||{};
   if(!cfg.supabaseUrl||!cfg.supabaseAnonKey) throw new Error("CrowRules configuration unavailable.");
-  const db=window.supabaseClient||supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
+  const db=window.CrowRulesData?.getClient?.() || window.supabaseClient||supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
   const shared=window.CrowRulesAccount;
   const state=await Promise.resolve(shared?.ready);
   if(!state?.user){gate.innerHTML='<span class="eyebrow">LOGIN REQUIRED</span><h2>Sign in to open your private monetization hub.</h2><a class="btn primary" href="login.html">LOGIN</a>';return;}
