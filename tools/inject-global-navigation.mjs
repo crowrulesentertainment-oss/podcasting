@@ -29,6 +29,7 @@ for(const file of walk(root)){
   const runtimeJs=prefix+"js/platform-runtime.js";
   const dataCss=prefix+"css/platform-data.css";
   const dataJs=prefix+"js/platform-data.js";
+  const serviceLoader=prefix+"js/domain-service-loader.js";
 
   next=next.replace(/<link\b[^>]*href=["'][^"']*professional-experience\.css(?:\?[^"']*)?["'][^>]*>\s*/gi,"");
   next=next.replace(/<script\b[^>]*src=["'][^"']*professional-experience\.js(?:\?[^"']*)?["'][^>]*>\s*<\/script>\s*/gi,"");
@@ -45,7 +46,9 @@ for(const file of walk(root)){
     next=next.replace(/<\/head>/i,`<link rel="stylesheet" href="${navCss}">\n</head>`);
   }
   if(!jsSeen && /<\/head>/i.test(next)){
-    next=next.replace(/<\/head>/i,`<script src="${navJs}" defer></script>\n</head>`);
+    next=next.replace(/<\/head>/i,`<script src="${serviceLoader}" defer></script>\n<script src="${navJs}" defer></script>\n</head>`);
+  } else if(jsSeen){
+    next=next.replace(`<script src="${navJs}" defer></script>`,`<script src="${serviceLoader}" defer></script>\n<script src="${navJs}" defer></script>`);
   }
 
   if(next!==html){
