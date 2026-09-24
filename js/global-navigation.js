@@ -1,358 +1,63 @@
-/* CrowRules Podcasting — Global Header & Navigation System 8.1
-   Context-aware single navigation layer.
-   Adds signed-in/member/creator/premium state, notifications,
-   unified account menu, responsive navigation, and auth-aware UI. */
-(function(){
-  "use strict";
-  if(window.__CROWRULES_GLOBAL_NAV_81__) return;
-  window.__CROWRULES_GLOBAL_NAV_81__=true;
-
-  const NAV=[
-    ["home.html","Home",["index.html","home.html"],"home"],
-    ["discover.html","Discover",["discover.html","search.html","categories.html","rankings.html"],"discover"],
-    ["podcasts.html","Podcasts",["podcasts.html","podcast.html"],"listen"],
-    ["episodes.html","Episodes",["episodes.html","episode.html","live.html"],"listen"],
-    ["creators.html","Creators",["creators.html","creator.html"],"create"],
-    ["create-podcast.html","Create",["create-podcast.html"],"create"],
-    ["creator-studio.html","Studio",["creator-studio.html","creator-dashboard.html","upload-episode.html"],"create"],
-    ["membership.html","Membership",["membership.html","subscriptions.html"],"account"],
-    ["premium-library.html","Premium",["premium-library.html","premium.html"],"account"],
-    ["creator-monetization-hub.html","Monetization",["creator-monetization-hub.html","monetization.html","monetization-suite.html","monetization-command-center.html"],"growth"],
-    ["playback-security.html","Security",["playback-security.html","playback-devices.html"],"account"]
-  ];
-  const HELP=["help-center.html","help.html","support.html"];
-  const path=location.pathname;
-  const hasFile=/\/[^/]+\.[^/]+$/.test(path);
-  const rawParts=path.split("/").filter(Boolean);
-  const current=(hasFile?(rawParts.pop()||"index.html"):"index.html").toLowerCase();
-  const prefix=hasFile&&rawParts.length?"../".repeat(rawParts.length):"";
-  const href=target=>prefix+target;
-  const active=aliases=>aliases.includes(current);
-
-  function getClient(){
-    if(window.supabaseClient) return window.supabaseClient;
-    if(window.supabase && window.CROWRULES_SUPABASE_URL && window.CROWRULES_SUPABASE_PUBLISHABLE_KEY){
-      try{
-        window.supabaseClient=window.supabase.createClient(
-          window.CROWRULES_SUPABASE_URL,
-          window.CROWRULES_SUPABASE_PUBLISHABLE_KEY
-        );
-        return window.supabaseClient;
-      }catch(_){}
-    }
-    return null;
-  }
-
-  function removeDuplicateHeaders(){
-    [...document.querySelectorAll(".cr-global-header")].slice(1).forEach(h=>h.remove());
-    document.querySelectorAll("[data-cr-global-navigation],[data-crowrules-nav],.cr-nav").forEach(el=>el.remove());
-  }
-
-  const header=document.createElement("header");
-  header.className="cr-global-header";
-  header.setAttribute("role","banner");
-
-  const inner=document.createElement("div");
-  inner.className="cr-global-inner";
-
-  const brand=document.createElement("a");
-  brand.className="cr-global-brand";
-  brand.href=href("home.html");
-  brand.setAttribute("aria-label","CrowRules Podcasting home");
-  brand.innerHTML='<span class="cr-global-brand-mark" aria-hidden="true">CR</span><span>CrowRules Podcasting</span>';
-  inner.appendChild(brand);
-
-  const desktop=document.createElement("nav");
-  desktop.className="cr-global-nav";
-  desktop.setAttribute("aria-label","Primary");
-
-  const actions=document.createElement("div");
-  actions.className="cr-global-actions";
-
-  const mobile=document.createElement("nav");
-  mobile.className="cr-global-mobile";
-  mobile.setAttribute("aria-label","Mobile primary");
-
-  const menu=document.createElement("button");
-  menu.className="cr-global-menu";
-  menu.type="button";
-  menu.setAttribute("aria-label","Open navigation");
-  menu.setAttribute("aria-expanded","false");
-  menu.setAttribute("aria-controls","cr-global-mobile-nav");
-  menu.textContent="☰";
-  mobile.id="cr-global-mobile-nav";
-
-  const context=document.createElement("div");
-  context.className="cr-global-context";
-  context.setAttribute("aria-live","polite");
-
-  function addLink(parent,target,label,aliases,group){
-    const a=document.createElement("a");
-    a.href=href(target);
-    a.textContent=label;
-    a.dataset.navGroup=group||"";
-    if(active(aliases)) a.setAttribute("aria-current","page");
-    parent.appendChild(a);
-    return a;
-  }
-
-  NAV.forEach(([target,label,aliases,group])=>{
-    addLink(desktop,target,label,aliases,group);
-    addLink(mobile,target,label,aliases,group);
-  });
-  addLink(desktop,"help-center.html","Help",HELP,"account");
-  addLink(mobile,"help-center.html","Help",HELP,"account");
-
-  function externalLink(parent){
-    const a=document.createElement("a");
-    a.href="https://github.com/crowrulesentertainment-oss/podcasting";
-    a.textContent="GitHub Repository";
-    a.target="_blank";
-    a.rel="noopener noreferrer";
-    a.className="cr-github-link";
-    a.setAttribute("aria-label","Open the CrowRules Podcasting GitHub repository (opens in a new tab)");
-    parent.appendChild(a);
-  }
-  externalLink(desktop);
-  externalLink(mobile);
-
-  function makeIconLink(target,label,icon,className){
-    const a=document.createElement("a");
-    a.href=href(target);
-    a.className=className||"";
-    a.setAttribute("aria-label",label);
-    a.innerHTML='<span aria-hidden="true">'+icon+'</span><span class="cr-context-label">'+label+'</span>';
-    return a;
-  }
-
-  const notifications=makeIconLink("notifications.html","Notifications","🔔","cr-notification-link");
-  notifications.hidden=true;
-  actions.appendChild(notifications);
-
-  const accountWrap=document.createElement("div");
-  accountWrap.className="cr-account";
-  const accountButton=document.createElement("button");
-  accountButton.type="button";
-  accountButton.className="cr-account-button";
-  accountButton.setAttribute("aria-haspopup","menu");
-  accountButton.setAttribute("aria-expanded","false");
-  accountButton.setAttribute("aria-controls","cr-account-menu");
-  accountButton.innerHTML='<span class="cr-account-avatar" aria-hidden="true">CR</span><span class="cr-account-copy"><strong>Account</strong><small>Guest</small></span><span class="cr-account-chevron" aria-hidden="true">⌄</span>';
-  const accountMenu=document.createElement("div");
-  accountMenu.className="cr-account-menu";
-  accountMenu.id="cr-account-menu";
-  accountMenu.setAttribute("role","menu");
-  accountMenu.setAttribute("aria-label","Account menu");
-  accountMenu.hidden=true;
-  accountWrap.append(accountButton,accountMenu);
-  actions.appendChild(accountWrap);
-
-  inner.append(desktop,actions,menu);
-  header.append(inner,mobile,context);
-
-  function menuItem(hrefValue,label,meta,action){
-    const a=document.createElement("a");
-    a.href=hrefValue;
-    a.setAttribute("role","menuitem");
-    a.innerHTML='<span class="cr-account-item-icon" aria-hidden="true">'+(meta?.icon||"•")+'</span><span><strong>'+label+'</strong>'+(meta?.sub?'<small>'+meta.sub+'</small>':"")+'</span>';
-    if(action) a.dataset.action=action;
-    return a;
-  }
-
-  function guestMenu(){
-    accountMenu.innerHTML="";
-    accountMenu.append(
-      menuItem(href("login.html"),"Sign In",{icon:"↪",sub:"Access your CrowRules account"}),
-      menuItem(href("signup.html"),"Create Account",{icon:"＋",sub:"Join the CrowRules universe"}),
-      menuItem(href("membership.html"),"Membership",{icon:"✦",sub:"Explore member benefits"}),
-      menuItem(href("help-center.html"),"Help Center",{icon:"?",sub:"Get platform support"})
-    );
-  }
-
-  function memberMenu(state){
-    accountMenu.innerHTML="";
-    const name=state.name||"Member";
-    const rows=[
-      menuItem(href("profile.html"),"My Profile",{icon:"◎",sub:name}),
-      menuItem(href("my-library.html"),"My Library",{icon:"▣",sub:"Saved shows, episodes and progress"}),
-      menuItem(href("membership.html"),state.premium?"Premium Member":"Membership",{icon:"✦",sub:state.premium?"Premium access active":"Manage membership"}),
-      menuItem(href("notifications.html"),"Notifications",{icon:"🔔",sub:state.unread?state.unread+" unread":"All caught up"}),
-      menuItem(href("playback-security.html"),"Playback & Security",{icon:"◈",sub:"Devices and playback controls"})
-    ];
-    if(state.creator) rows.splice(2,0,menuItem(href("creator-studio.html"),"Creator Studio",{icon:"◆",sub:"Manage your shows and episodes"}));
-    rows.push(menuItem(href("account-settings.html"),"Account Settings",{icon:"⚙",sub:"Identity and preferences"}));
-    rows.push(menuItem("#","Sign Out",{icon:"↩",sub:"Sign out of this device"},"signout"));
-    rows.forEach(x=>accountMenu.appendChild(x));
-  }
-
-  function paintContext(state){
-    context.innerHTML="";
-    if(!state || !state.authenticated) return;
-    const label=state.name||"Member";
-    const member=document.createElement("span");
-    member.className="cr-context-chip";
-    member.innerHTML='◎ <strong>'+escapeHtml(label)+'</strong> · '+(state.creator?"Creator":state.premium?"Premium Member":"Member");
-    context.appendChild(member);
-    if(state.premium){
-      const premium=document.createElement("span");
-      premium.className="cr-context-chip premium";
-      premium.textContent="✦ Premium Access";
-      context.appendChild(premium);
-    }
-    if(state.creator){
-      const creator=document.createElement("span");
-      creator.className="cr-context-chip creator";
-      creator.textContent="◆ Creator";
-      context.appendChild(creator);
-    }
-    if(state.unread){
-      const notice=document.createElement("span");
-      notice.className="cr-context-chip";
-      notice.textContent="🔔 "+state.unread+" unread";
-      context.appendChild(notice);
-    }
-  }
-
-  function paintGuest(){
-    context.innerHTML="";
-    notifications.hidden=true;
-    accountButton.innerHTML='<span class="cr-account-avatar" aria-hidden="true">CR</span><span class="cr-account-copy"><strong>Account</strong><small>Guest</small></span><span class="cr-account-chevron" aria-hidden="true">⌄</span>';
-    accountButton.classList.remove("is-member","is-premium","is-creator");
-    guestMenu();
-  }
-
-  function paintMember(state){
-    paintContext({...state,authenticated:true});
-    notifications.hidden=false;
-    notifications.dataset.unread=String(state.unread||0);
-    notifications.title=state.unread?state.unread+" unread notification"+(state.unread===1?"":"s"):"Notifications";
-    const first=(state.name||state.email||"Member").trim();
-    const initials=first.split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase()||"CR";
-    accountButton.innerHTML='<span class="cr-account-avatar" aria-hidden="true">'+initials+'</span><span class="cr-account-copy"><strong>'+escapeHtml(first)+'</strong><small>'+ (state.creator?"Creator":state.premium?"Premium Member":"Member") +'</small></span><span class="cr-account-chevron" aria-hidden="true">⌄</span>';
-    accountButton.classList.toggle("is-member",true);
-    accountButton.classList.toggle("is-premium",!!state.premium);
-    accountButton.classList.toggle("is-creator",!!state.creator);
-    memberMenu(state);
-  }
-
-  function escapeHtml(value){
-    return String(value||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  }
-
-  async function loadContext(){
-    const db=getClient();
-    if(!db){ paintGuest(); return; }
-    try{
-      const {data:{user}}=await db.auth.getUser();
-      if(!user){ paintGuest(); return; }
-
-      const state={
-        email:user.email||"",
-        name:user.user_metadata?.full_name||user.user_metadata?.name||user.email?.split("@")[0]||"Member",
-        creator:false,
-        premium:false,
-        unread:0
-      };
-
-      const results=await Promise.allSettled([
-        db.from("creators").select("id").eq("member_id",user.id).limit(1),
-        db.from("membership_subscriptions").select("id,status,plan_name,expires_at").eq("user_id",user.id).limit(10),
-        db.from("podcast_notifications").select("id",{count:"exact",head:true}).eq("user_id",user.id).is("read_at",null)
-      ]);
-      const creatorResult=results[0];
-      const membershipResult=results[1];
-      const notificationResult=results[2];
-
-      state.creator=creatorResult.status==="fulfilled" && !creatorResult.value.error && (creatorResult.value.data||[]).length>0;
-      if(membershipResult.status==="fulfilled" && !membershipResult.value.error){
-        const rows=membershipResult.value.data||[];
-        state.premium=rows.some(row=>{
-          const status=String(row.status||"").toLowerCase();
-          if(!["active","trialing","paid","current"].includes(status)) return false;
-          if(row.expires_at && new Date(row.expires_at).getTime()<Date.now()) return false;
-          return true;
-        });
-      }
-      if(notificationResult.status==="fulfilled" && !notificationResult.value.error){
-        state.unread=notificationResult.value.count||0;
-      }
-      paintMember(state);
-    }catch(_){ paintGuest(); }
-  }
-
-  function closeAccount(){
-    accountMenu.hidden=true;
-    accountButton.setAttribute("aria-expanded","false");
-  }
-  function openAccount(){
-    accountMenu.hidden=false;
-    accountButton.setAttribute("aria-expanded","true");
-  }
-
-  function closeMobile(){
-    mobile.classList.remove("open");
-    menu.setAttribute("aria-expanded","false");
-    menu.setAttribute("aria-label","Open navigation");
-    menu.textContent="☰";
-  }
-
-  function mount(){
-    removeDuplicateHeaders();
-    if(document.querySelector(".cr-global-header")) return;
-    document.body.insertBefore(header,document.body.firstChild);
-
-    accountButton.addEventListener("click",()=>{
-      const open=accountButton.getAttribute("aria-expanded")==="true";
-      open?closeAccount():openAccount();
-    });
-
-    accountMenu.addEventListener("click",async event=>{
-      const item=event.target.closest("[data-action='signout']");
-      if(!item) return;
-      event.preventDefault();
-      closeAccount();
-      const db=getClient();
-      try{ if(db) await db.auth.signOut(); }catch(_){}
-      paintGuest();
-      location.href=href("login.html");
-    });
-
-    menu.addEventListener("click",()=>{
-      const open=mobile.classList.toggle("open");
-      menu.setAttribute("aria-expanded",String(open));
-      menu.setAttribute("aria-label",open?"Close navigation":"Open navigation");
-      menu.textContent=open?"✕":"☰";
-    });
-    mobile.addEventListener("click",event=>{
-      if(event.target.closest("a")) closeMobile();
-    });
-
-    document.addEventListener("click",event=>{
-      if(!accountWrap.contains(event.target)) closeAccount();
-    });
-    document.addEventListener("keydown",event=>{
-      if(event.key==="Escape"){ closeAccount(); closeMobile(); }
-    });
-    window.addEventListener("resize",()=>{
-      if(window.innerWidth>1040) closeMobile();
-    },{passive:true});
-
-    window.addEventListener("crowrules:member-state",loadContext);
-    loadContext();
-
-    if(!document.body.hasAttribute("data-cr-no-monetization-strip")){
-      const css=href("css/monetization-integration.css");
-      if(!document.querySelector('link[data-cr-monetization-css]')){
-        const l=document.createElement("link");
-        l.rel="stylesheet"; l.href=css; l.dataset.crMonetizationCss="1"; document.head.appendChild(l);
-      }
-      if(!document.querySelector('script[data-cr-monetization-js]')){
-        const s=document.createElement("script");
-        s.src=href("js/monetization-integration.js"); s.defer=true; s.dataset.crMonetizationJs="1"; document.head.appendChild(s);
-      }
-    }
-  }
-
-  if(document.body) mount(); else document.addEventListener("DOMContentLoaded",mount,{once:true});
-  window.addEventListener("load",removeDuplicateHeaders,{once:true});
+/* CrowRules Podcasting — Global Navigation 8.2
+   Real-time identity synchronization: auth, membership, creator, notifications and premium. */
+(()=>{"use strict";
+if(window.__CROWRULES_GLOBAL_NAV_82__)return;window.__CROWRULES_GLOBAL_NAV_82__=1;
+const U=window.CROWRULES_SUPABASE_URL||"https://cevylpnoexugwgygvtgu.supabase.co",K=window.CROWRULES_SUPABASE_PUBLISHABLE_KEY||"sb_publishable_AdfM5y6RqF3tbvEVzDZSg_JuGTQLD-",S={db:null,user:null,membership:false,premium:false,creator:false,unread:0,name:"Account",ready:false};
+const nav=[["home.html","Home",["index.html","home.html"],"home"],["discover.html","Discover",["discover.html","search.html","categories.html"],"discover"],["podcasts.html","Podcasts",["podcasts.html","podcast.html"],"listen"],["episodes.html","Episodes",["episodes.html","episode.html"],"listen"],["creators.html","Creators",["creators.html","creator.html"],"discover"],["create-podcast.html","Create",["create-podcast.html"],"create"],["creator-studio.html","Studio",["creator-studio.html","creator-dashboard.html"],"create"],["membership.html","Membership",["membership.html","subscriptions.html"],"account"],["premium-library.html","Premium",["premium-library.html","premium.html"],"listen"],["creator-monetization-hub.html","Monetization",["creator-monetization-hub.html","monetization.html"],"growth"],["playback-security.html","Security",["playback-security.html","playback-devices.html"],"account"]],help=["help-center.html","help.html","support.html"],accounts=["profile.html","account.html","account-center.html","account-settings.html"];
+const parts=location.pathname.split("/").filter(Boolean),file=/\/[^/]+\.[^/]+$/.test(location.pathname),cur=(file?(parts.pop()||"index.html"):"index.html").toLowerCase(),pre=file&&parts.length?"../".repeat(parts.length):"",href=x=>pre+x,current=x=>x.includes(cur);
+let bc=null,channels=[],timer=0;
+const esc=x=>String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+function signal(reason){const d={source:"cr-nav-82",reason,userId:S.user?.id||null,at:Date.now()};window.dispatchEvent(new CustomEvent("crowrules:global-navigation-state",{detail:d}));try{bc?.postMessage(d);localStorage.setItem("cr-nav-82",JSON.stringify(d));localStorage.removeItem("cr-nav-82")}catch(_){}}
+function build(){
+ document.querySelectorAll(".cr-global-header").forEach((x,i)=>i&&x.remove());document.querySelectorAll("[data-cr-global-navigation],[data-crowrules-nav],.cr-nav").forEach(x=>x.remove());if(document.querySelector(".cr-global-header"))return;
+ const h=document.createElement("header");h.className="cr-global-header";h.setAttribute("role","banner");
+ const inner=document.createElement("div");inner.className="cr-global-inner";
+ const brand=document.createElement("a");brand.className="cr-global-brand";brand.href=href("home.html");brand.setAttribute("aria-label","CrowRules Podcasting home");brand.innerHTML='<span class="cr-global-brand-mark" aria-hidden="true">CR</span><span>CrowRules Podcasting</span>';inner.append(brand);
+ const desktop=document.createElement("nav"),mobile=document.createElement("nav");desktop.className="cr-global-nav";mobile.className="cr-global-mobile";desktop.setAttribute("aria-label","Primary");mobile.setAttribute("aria-label","Mobile primary");mobile.id="cr-global-mobile-nav";
+ const add=(p,t,l,a,g)=>{const x=document.createElement("a");x.href=href(t);x.textContent=l;x.dataset.navGroup=g;if(t==="premium-library.html")x.dataset.navPremium=1;if(t==="creator-studio.html")x.dataset.navCreator=1;if(current(a))x.setAttribute("aria-current","page");p.append(x)};
+ nav.forEach(x=>{add(desktop,...x);add(mobile,...x)});add(desktop,"help-center.html","Help",help,"account");add(mobile,"help-center.html","Help",help,"account");
+ [["desktop",desktop],["mobile",mobile]].forEach(([_,p])=>{const x=document.createElement("a");x.className="cr-github-link";x.href="https://github.com/crowrulesentertainment-oss/podcasting";x.target="_blank";x.rel="noopener noreferrer";x.textContent="GitHub Repository";x.setAttribute("aria-label","Open the CrowRules Podcasting GitHub repository (opens in a new tab)");p.append(x)});
+ const actions=document.createElement("div");actions.className="cr-global-actions";
+ const account=document.createElement("a");account.className="cr-profile-link";account.href=href("login.html");account.textContent="Sign In";account.setAttribute("aria-expanded","false");actions.append(account);
+ const live=document.createElement("span");live.className="cr-nav-live-indicator";live.textContent="SYNCING";live.setAttribute("aria-label","Identity synchronization status");actions.append(live);
+ const btn=document.createElement("button");btn.className="cr-global-menu";btn.type="button";btn.textContent="☰";btn.setAttribute("aria-label","Open navigation");btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-controls",mobile.id);
+ const menu=document.createElement("div");menu.className="cr-account-menu";document.body.append(menu);
+ inner.append(desktop,actions,btn);h.append(inner,mobile);document.body.insertBefore(h,document.body.firstChild);
+ btn.onclick=()=>{const o=mobile.classList.toggle("open");btn.setAttribute("aria-expanded",o);btn.textContent=o?"✕":"☰"};
+ mobile.onclick=e=>{if(e.target.closest("a")){mobile.classList.remove("open");btn.setAttribute("aria-expanded","false");btn.textContent="☰"}};
+ document.addEventListener("click",e=>{if(!e.target.closest(".cr-profile-link,.cr-account-menu")){menu.classList.remove("open");account.setAttribute("aria-expanded","false")}});
+ account.onclick=e=>{if(!S.user)return; e.preventDefault();menu.classList.toggle("open");account.setAttribute("aria-expanded",menu.classList.contains("open"));};
+ window.addEventListener("resize",()=>{if(innerWidth>1040){mobile.classList.remove("open");btn.setAttribute("aria-expanded","false");btn.textContent="☰"}},{passive:true});
+ window.__crNavRender=()=>{const tags=[S.membership&&"Member",S.creator&&"Creator",S.premium&&"Premium"].filter(Boolean);account.href=href(S.user?"profile.html":"login.html");account.textContent=S.user?(S.name+(tags.length?" · "+tags.join(" · "):"")):"Sign In";account.classList.toggle("is-member",S.membership);account.classList.toggle("is-creator",S.creator);account.classList.toggle("is-premium",S.premium);if(S.unread)account.insertAdjacentHTML("beforeend",'<span class="cr-nav-badge" aria-label="'+S.unread+' unread notifications">'+(S.unread>99?"99+":S.unread)+"</span>");live.textContent=S.ready?(S.user?"SYNCED":"GUEST"):"SYNCING";
+ menu.innerHTML=S.user?'<div class="cr-account-menu-head"><strong>'+esc(S.name)+'</strong><span>'+esc(S.user.email)+'</span><div class="cr-account-tags">'+(S.membership?'<span class="cr-account-tag member">MEMBER</span>':"")+(S.creator?'<span class="cr-account-tag creator">CREATOR</span>':"")+(S.premium?'<span class="cr-account-tag premium">PREMIUM</span>':"")+'</div></div><a href="'+href("profile.html")+'">Profile</a><a href="'+href("my-library.html")+'">My Library</a><a href="'+href("membership.html")+'">Membership</a><a href="'+href("premium-library.html")+'">Premium Library</a>'+(S.creator?'<a href="'+href("creator-studio.html")+'">Creator Studio</a>':"")+'<a href="'+href("notifications.html")+'">Notifications'+(S.unread?' <span class="cr-nav-badge">'+S.unread+"</span>":"")+'</a><a href="'+href("account-settings.html")+'">Account Settings</a><button type="button" data-nav-signout>Sign Out</button>':'<div class="cr-account-menu-head"><strong>Welcome to CrowRules</strong><span>One Account. One Universe.</span></div><a href="'+href("login.html")+'">Sign In</a><a href="'+href("signup.html")+'">Create Account</a>';
+ menu.querySelector("[data-nav-signout]")?.addEventListener("click",()=>S.db?.auth.signOut());
+ };
+ window.__crNavRender();
+}
+async function dep(){if(window.supabase?.createClient)return;await new Promise((ok,no)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";s.onload=ok;s.onerror=no;document.head.append(s)})}
+async function sync(reason="sync"){
+ if(!S.db)S.db=window.CrowRulesMemberState?.client||window.supabase?.createClient(U,K);if(!S.db)return;
+ const {data:{session}}=await S.db.auth.getSession();S.user=session?.user||null;
+ if(!S.user){S.membership=S.premium=S.creator=false;S.unread=0;S.name="Account";S.ready=true;window.__crNavRender?.();signal(reason);return}
+ const id=S.user.id;
+ const [p,m,e,n,c]=await Promise.all([
+  S.db.from("podcast_member_profiles").select("display_name,username").eq("user_id",id).maybeSingle(),
+  S.db.from("membership_subscriptions").select("status,current_period_end").eq("user_id",id).order("updated_at",{ascending:false}).limit(1).maybeSingle(),
+  S.db.from("cr_podcast_entitlements").select("status,ends_at").eq("member_user_id",id).in("status",["active","past_due"]).limit(20),
+  S.db.from("podcast_notifications").select("id",{count:"exact",head:true}).eq("user_id",id).eq("is_read",false),
+  S.db.from("creators").select("id,name").eq("member_id",id).eq("is_active",true).maybeSingle()
+ ]);
+ S.name=p.data?.display_name||p.data?.username||c.data?.name||S.user.email?.split("@")[0]||"Member";
+ S.membership=["active","trialing","past_due"].includes(String(m.data?.status||"").toLowerCase());
+ S.premium=(e.data||[]).some(x=>x.status==="active"&&(!x.ends_at||new Date(x.ends_at)>new Date()));
+ S.creator=!!c.data;S.unread=n.count||0;S.ready=true;window.__crNavRender?.();signal(reason);
+}
+function realtime(){
+ if(!S.db||!S.user)return;channels.forEach(x=>S.db.removeChannel(x));channels=[];const id=S.user.id,refresh=()=>{clearTimeout(timer);timer=setTimeout(()=>sync("realtime-change"),150)};
+ [["membership_subscriptions","user_id"],["podcast_notifications","user_id"],["cr_podcast_entitlements","member_user_id"],["podcast_member_profiles","user_id"],["creators","member_id"]].forEach(([table,col])=>{const ch=S.db.channel("cr-nav-82-"+table+"-"+id.slice(0,8)).on("postgres_changes",{event:"*",schema:"public",table,filter:col+"=eq."+id},refresh).subscribe();channels.push(ch)});
+}
+async function start(){build();try{await dep();S.db=S.db||window.CrowRulesMemberState?.client||window.supabase?.createClient(U,K);if(!S.db)return;S.db.auth.onAuthStateChange(async(e)=>{await sync(e);realtime()});await sync("initial");realtime();window.addEventListener("focus",()=>sync("focus"));document.addEventListener("visibilitychange",()=>!document.hidden&&sync("visibility"))}catch(e){S.ready=true;window.__crNavRender?.();signal("error")}}
+try{bc=new BroadcastChannel("crowrules-global-identity-82");bc.onmessage=e=>e.data?.source==="cr-nav-82"&&sync("cross-tab")}catch(_){}
+window.addEventListener("storage",e=>e.key==="cr-nav-82"&&sync("storage-sync"));
+document.readyState==="loading"?document.addEventListener("DOMContentLoaded",start,{once:true}):start();
 })();
