@@ -1,14 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const root=process.cwd(), htmlFiles=[], issues=[];
+const root=process.cwd(), htmlFiles=[], jsFiles=[], issues=[];
 const skip=new Set([".git","node_modules"]);
 function walk(dir){
   for(const e of fs.readdirSync(dir,{withFileTypes:true})){
     if(skip.has(e.name)) continue;
     const full=path.join(dir,e.name);
     if(e.isDirectory()) walk(full);
-    else if(e.isFile()&&e.name.toLowerCase().endsWith(".html")) htmlFiles.push(full);
+    else if(e.isFile()&&e.name.toLowerCase().endsWith(".html")) htmlFiles.push(full);\n    else if(e.isFile()&&e.name.toLowerCase().endsWith(".js")) jsFiles.push(full);
   }
 }
 walk(root);
@@ -49,7 +49,7 @@ const orphan=[...inbound.entries()].filter(([f,from])=>!from.length&&!required.i
 console.log("CrowRules Podcasting — Repository Health Audit 3.0");
 console.log(`HTML pages: ${fileSet.size}`);
 console.log(`Issues: ${issues.length}`);
-console.log(`Orphan HTML pages: ${orphan.length}`);
+console.log(`Orphan HTML pages: ${orphan.length}`);\nfor(const file of jsFiles){\n  const rel=path.relative(root,file).replaceAll(path.sep,"/");\n  const {spawnSync}=await import("node:child_process");\n  const check=spawnSync(process.execPath,["--check",file],{encoding:"utf8"});\n  if(check.status!==0) issues.push(`JS_SYNTAX|${rel}|${(check.stderr||"").trim().replace(/\\s+/g," ").slice(0,240)}`);\n}\nconsole.log(`JavaScript files syntax-checked: ${jsFiles.length}`);
 if(issues.length){console.log("\nISSUES");for(const i of issues)console.log("- "+i)}
 if(orphan.length){console.log("\nORPHAN HTML PAGES");for(const o of orphan)console.log("- "+o)}
 if(issues.length) process.exit(1);
