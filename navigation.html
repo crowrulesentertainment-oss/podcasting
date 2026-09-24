@@ -1,21 +1,237 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050b"><title>Navigation | CrowRules Podcasting</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05050b">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="CrowRules Podcasting global navigation hub — one unified place to reach listener, creator, membership, monetization and support experiences.">
+<title>Global Navigation | CrowRules Podcasting</title>
 <link rel="stylesheet" href="css/podcasting.css">
 <link rel="stylesheet" href="css/global-navigation.css">
-<script src="js/global-navigation.js" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --hub-cyan:#22e6ff;
+  --hub-purple:#9b5cff;
+  --hub-pink:#ff4fd8;
+  --hub-text:#f7f8ff;
+  --hub-muted:#a6aac2;
+  --hub-panel:rgba(12,13,24,.76);
+  --hub-border:rgba(255,255,255,.10);
+}
+body{min-height:100vh;background:
+  radial-gradient(circle at 12% 8%,rgba(34,230,255,.09),transparent 27%),
+  radial-gradient(circle at 88% 14%,rgba(155,92,255,.11),transparent 30%),
+  linear-gradient(180deg,#05050b 0%,#070711 48%,#05050b 100%);
+}
+.cr-nav-hub{min-height:calc(100vh - 72px)}
+.hub-hero{position:relative;overflow:hidden;padding:clamp(68px,10vw,118px) 0 52px}
+.hub-hero:before{content:"";position:absolute;inset:0;pointer-events:none;background:
+  linear-gradient(90deg,rgba(34,230,255,.05),transparent 35%,rgba(155,92,255,.05)),
+  radial-gradient(circle at 50% 0%,rgba(255,79,216,.08),transparent 32%)}
+.hub-eyebrow{position:relative;display:inline-flex;align-items:center;gap:8px;color:var(--hub-cyan);font:800 11px/1 Orbitron,sans-serif;letter-spacing:.22em;text-transform:uppercase}
+.hub-eyebrow:before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--hub-cyan),var(--hub-purple))}
+.hub-hero h1{position:relative;max-width:1000px;margin:16px 0 18px;font:800 clamp(42px,7vw,86px)/.98 Orbitron,sans-serif;letter-spacing:-.035em}
+.hub-hero h1 span{background:linear-gradient(90deg,var(--hub-cyan),#fff 42%,var(--hub-purple),var(--hub-pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hub-hero p{position:relative;max-width:760px;margin:0;color:var(--hub-muted);font:500 clamp(15px,2vw,19px)/1.75 Montserrat,sans-serif}
+.hub-actions{position:relative;display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.hub-button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 16px;border:1px solid var(--hub-border);border-radius:12px;color:var(--hub-text);background:rgba(255,255,255,.035);text-decoration:none;font:800 12px/1 Montserrat,sans-serif;transition:.2s ease}
+.hub-button:hover{transform:translateY(-2px);border-color:rgba(34,230,255,.32);background:rgba(34,230,255,.07)}
+.hub-button.primary{border-color:transparent;background:linear-gradient(135deg,var(--hub-cyan),var(--hub-purple));color:#05050b}
+.hub-toolbar{position:relative;display:grid;grid-template-columns:minmax(240px,1fr) auto;gap:12px;align-items:center;margin:8px 0 30px}
+.hub-search{width:100%;min-height:48px;padding:0 15px;border:1px solid var(--hub-border);border-radius:14px;outline:none;background:rgba(5,5,11,.62);color:#fff;font:600 13px Montserrat,sans-serif;box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
+.hub-search:focus{border-color:rgba(34,230,255,.48);box-shadow:0 0 0 3px rgba(34,230,255,.08)}
+.hub-count{color:var(--hub-muted);font:700 11px Montserrat,sans-serif;white-space:nowrap}
+.hub-section{padding:28px 0 38px}
+.hub-section-head{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:16px}
+.hub-section-head h2{margin:0;font:800 clamp(22px,3vw,31px) Orbitron,sans-serif}
+.hub-section-head p{margin:5px 0 0;color:var(--hub-muted);font:500 12px/1.6 Montserrat,sans-serif}
+.hub-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.hub-card{position:relative;display:flex;flex-direction:column;min-height:205px;padding:21px;border:1px solid var(--hub-border);border-radius:20px;background:linear-gradient(145deg,rgba(13,15,29,.86),rgba(8,9,18,.74));box-shadow:inset 0 1px 0 rgba(255,255,255,.025);overflow:hidden;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+.hub-card:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 100% 0%,rgba(34,230,255,.09),transparent 34%)}
+.hub-card:hover{transform:translateY(-4px);border-color:rgba(34,230,255,.24);box-shadow:0 20px 50px rgba(0,0,0,.25),0 0 28px rgba(34,230,255,.035)}
+.hub-card[data-hidden="true"]{display:none}
+.hub-card-top{position:relative;display:flex;justify-content:space-between;gap:12px;align-items:start}
+.hub-icon{width:42px;height:42px;display:grid;place-items:center;border:1px solid rgba(34,230,255,.2);border-radius:13px;color:var(--hub-cyan);background:linear-gradient(145deg,rgba(34,230,255,.09),rgba(155,92,255,.08));font:800 16px Orbitron,sans-serif}
+.hub-card-tag{padding:6px 8px;border:1px solid rgba(255,255,255,.08);border-radius:99px;color:#bfc4db;background:rgba(255,255,255,.025);font:800 9px Montserrat,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.hub-card h3{position:relative;margin:18px 0 8px;font:800 18px Orbitron,sans-serif}
+.hub-card p{position:relative;margin:0;color:var(--hub-muted);font:500 12px/1.65 Montserrat,sans-serif}
+.hub-links{position:relative;display:flex;flex-wrap:wrap;gap:7px;margin-top:auto;padding-top:18px}
+.hub-links a{display:inline-flex;align-items:center;min-height:32px;padding:7px 10px;border:1px solid rgba(255,255,255,.09);border-radius:9px;color:#e9ebf8;background:rgba(255,255,255,.025);text-decoration:none;font:700 10px Montserrat,sans-serif;transition:.18s ease}
+.hub-links a:hover{color:#fff;border-color:rgba(34,230,255,.3);background:rgba(34,230,255,.06)}
+.hub-feature{grid-column:span 2;border-color:rgba(34,230,255,.16);background:linear-gradient(135deg,rgba(34,230,255,.08),rgba(155,92,255,.08) 48%,rgba(255,79,216,.05))}
+.hub-feature h3{font-size:22px}
+.hub-footer{padding:42px 0 70px;border-top:1px solid rgba(255,255,255,.07);margin-top:20px}
+.hub-footer-inner{display:flex;justify-content:space-between;gap:20px;align-items:center}
+.hub-footer strong{font:800 13px Orbitron,sans-serif;letter-spacing:.08em}
+.hub-footer span{display:block;margin-top:5px;color:var(--hub-muted);font:600 10px Montserrat,sans-serif;letter-spacing:.1em}
+.hub-footer a{color:var(--hub-cyan);text-decoration:none;font:800 11px Montserrat,sans-serif}
+.hub-empty{display:none;padding:30px;border:1px dashed rgba(255,255,255,.14);border-radius:16px;color:var(--hub-muted);text-align:center;font:600 13px Montserrat,sans-serif}
+@media(max-width:900px){.hub-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hub-feature{grid-column:span 2}}
+@media(max-width:650px){.hub-toolbar{grid-template-columns:1fr}.hub-grid{grid-template-columns:1fr}.hub-feature{grid-column:span 1}.hub-footer-inner{align-items:flex-start;flex-direction:column}.hub-hero{padding-top:58px}}
+@media(prefers-reduced-motion:reduce){.hub-button,.hub-card,.hub-links a{transition:none}.hub-button:hover,.hub-card:hover{transform:none}}
+</style>
 </head>
 <body>
-<header class="site-header"><div class="site-header-inner"><a class="brand" href="index.html"><span class="brand-mark">CR</span><span class="brand-text"><span class="brand-name">CROW<span class="glow">RULES</span></span><span class="brand-section">PODCASTING</span></span></a><nav class="main-navigation"><a href="home.html">Home</a><a href="podcasts.html">Podcasts</a><a href="creators.html">Creators</a><a href="creator-studio.html">Creator Studio</a><a href="profile.html">Profile</a></nav></div></header>
-<main><section class="section wrap"><div class="studioHero"><span class="eyebrow">CROWRULES PODCASTING · JOURNEY 2.0</span><h1>WHERE DO YOU <span class="glow">WANT TO GO?</span></h1><p>Central navigation for every major listener, member and creator journey.</p></div>
-<div class="grid">
-<article class="card"><h2>Discover</h2><p>Find podcasts, categories, rankings and creators.</p><div class="actions"><a class="btn" href="discover.html">Discover</a><a class="btn" href="categories.html">Categories</a><a class="btn" href="rankings.html">Rankings</a><a class="btn" href="creators.html">Creators</a><a class="btn" href="search.html">Search</a></div></article>
-<article class="card"><h2>Listen</h2><p>Move into your library, subscriptions, episodes and live audio.</p><div class="actions"><a class="btn" href="podcasts.html">Podcasts</a><a class="btn" href="episodes.html">Episodes</a><a class="btn" href="my-library.html">My Library</a><a class="btn" href="subscriptions.html">Subscriptions</a><a class="btn" href="live.html">Live</a></div></article>
-<article class="card"><h2>Create</h2><p>Start a show, upload an episode or enter Creator Studio.</p><div class="actions"><a class="btn primary" href="create-podcast.html">Create Podcast</a><a class="btn" href="upload-episode.html">Upload Episode</a><a class="btn" href="creator-studio.html">Creator Studio</a><a class="btn" href="creator-guide.html">Creator Guide</a><a class="btn" href="audio-guide.html">Audio Guide</a></div></article>
-<article class="card"><h2>Account</h2><p>Manage your profile, membership, settings, CrowPoints and achievements.</p><div class="actions"><a class="btn" href="profile.html">Profile</a><a class="btn" href="membership.html">Membership</a><a class="btn" href="account.html">Account Center</a><a class="btn" href="account-settings.html">Settings</a><a class="btn" href="creator-settings.html">Creator Settings</a><a class="btn" href="payout-settings.html">Payout Settings</a><a class="btn" href="crowpoints.html">CrowPoints</a></div></article>
-<article class="card"><h2>Earn & Grow</h2><p>Track performance, monetization and creator revenue.</p><div class="actions"><a class="btn" href="analytics.html">Analytics</a><a class="btn" href="creator-growth.html">Growth</a><a class="btn primary" href="monetization-suite.html">Monetization Suite</a><a class="btn" href="monetization-command-center.html">Command Center</a><a class="btn" href="creator-monetization.html">Monetization</a><a class="btn" href="payouts.html">Payouts</a><a class="btn" href="transactions.html">Transactions</a></div></article>
-<article class="card"><h2>Help</h2><p>Get listener or creator support and recover your account.</p><div class="actions"><a class="btn" href="help-center.html">Help Center</a><a class="btn" href="support.html">Support</a><a class="btn" href="support-creator.html">Creator Support</a><a class="btn" href="reset-password.html">Reset Password</a><a class="btn" href="site-map.html">Site Map</a></div></article>
-</div></section></main>
-<footer class="site-footer"><div class="site-footer-inner"><div class="footer-brand"><strong>CROWRULES PODCASTING</strong><span>ONE ACCOUNT. ONE UNIVERSE.</span></div><div class="footer-copy">© 2026 CrowRules Entertainment</div></div></footer>
-</body></html>
+<main class="cr-nav-hub">
+  <div class="wrap">
+    <section class="hub-hero" aria-labelledby="hub-title">
+      <span class="hub-eyebrow">CROWRULES PODCASTING · PLATFORM HUB</span>
+      <h1 id="hub-title">ONE PLATFORM.<br><span>EVERY JOURNEY.</span></h1>
+      <p>Use the shared CrowRules Podcasting navigation for the core listener, creator, membership, monetization and support experiences. This page is the deeper directory when you want to see the whole platform at once.</p>
+      <div class="hub-actions">
+        <a class="hub-button primary" href="home.html">← Back to Home</a>
+        <a class="hub-button" href="site-map.html">Open Site Map</a>
+        <a class="hub-button" href="help-center.html">Help Center</a>
+      </div>
+    </section>
+
+    <section class="hub-toolbar" aria-label="Navigation directory controls">
+      <label>
+        <span class="sr-only">Search the navigation directory</span>
+        <input id="hub-search" class="hub-search" type="search" placeholder="Search the platform…  (press /)" autocomplete="off">
+      </label>
+      <div id="hub-count" class="hub-count" aria-live="polite">Showing all destinations</div>
+    </section>
+
+    <div id="hub-directory">
+      <section class="hub-section" aria-labelledby="listen-title">
+        <div class="hub-section-head"><div><h2 id="listen-title">Listen & Discover</h2><p>Everything for finding shows, episodes and live programming.</p></div></div>
+        <div class="hub-grid">
+          <article class="hub-card hub-feature" data-search="discover podcasts categories rankings creators search featured trending">
+            <div class="hub-card-top"><span class="hub-icon" aria-hidden="true">01</span><span class="hub-card-tag">Discovery</span></div>
+            <h3>Discover the Universe</h3><p>Find your next show, browse categories, explore creators, search the catalog and see what is gaining attention.</p>
+            <div class="hub-links"><a href="discover.html">Discover</a><a href="podcasts.html">Podcasts</a><a href="categories.html">Categories</a><a href="rankings.html">Rankings</a><a href="creators.html">Creators</a><a href="search.html">Search</a></div>
+          </article>
+          <article class="hub-card" data-search="episodes listen playback audio video">
+            <div class="hub-card-top"><span class="hub-icon" aria-hidden="true">02</span><span class="hub-card-tag">Listening</span></div>
+            <h3>Listen</h3><p>Move from the catalog into individual episodes, playback and your personal listening experience.</p>
+            <div class="hub-links"><a href="episodes.html">Episodes</a><a href="my-library.html">My Library</a><a href="live.html">Live</a><a href="premium-library.html">Premium</a></div>
+          </article>
+          <article class="hub-card" data-search="following saved favorites subscriptions library">
+            <div class="hub-card-top"><span class="hub-icon" aria-hidden="true">03</span><span class="hub-card-tag">Your Library</span></div>
+            <h3>Your Listening Space</h3><p>Keep track of followed shows, saved episodes, favorites, subscriptions and playback progress.</p>
+            <div class="hub-links"><a href="my-library.html">My Library</a><a href="subscriptions.html">Subscriptions</a><a href="membership.html">Membership</a></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="hub-section" aria-labelledby="create-title">
+        <div class="hub-section-head"><div><h2 id="create-title">Create & Publish</h2><p>Tools for turning an idea into a podcast and managing the production lifecycle.</p></div></div>
+        <div class="hub-grid">
+          <article class="hub-card hub-feature" data-search="create podcast upload episode creator studio publishing">
+            <div class="hub-card-top"><span class="hub-icon" aria-hidden="true">04</span><span class="hub-card-tag">Creator</span></div>
+            <h3>Build Your Show</h3><p>Start a podcast, enter Creator Studio, upload episodes and use the creator resources that support your publishing workflow.</p>
+            <div class="hub-links"><a href="create-podcast.html">Create Podcast</a><a href="creator-studio.html">Creator Studio</a><a href="upload-episode.html">Upload Episode</a><a href="creator-guide.html">Creator Guide</a><a href="audio-guide.html">Audio Guide</a></div>
+          </article>
+          <article class="hub-card" data-search="creator dashboard analytics performance growth">
+            <div class="hub-card-top"><span class="hub-icon" aria-hidden="true">05</span><span class="hub-card-tag">Growth</span></div>
+            <h3>Creator Intelligence</h3><p>Review creator performance, analytics and growth tools as your audience develops.</p>
+            <div class="hub-links"><a href="creator-dashboard.html">Dashboard</a><a href="analytics.html">Analytics</a><a href="creator-growth.html">Growth</a></div>
+          </article>
+          <article class="hub-card" data-search="creator settings podcast settings profile">
+            <div class="hub-card-top"><span class="hub-icon" aria-hidden="true">06</span><span class="hub-card-tag">Management</span></div>
+            <h3>Creator Settings</h3><p>Manage creator-facing settings and the operational pieces behind your podcast presence.</p>
+            <div class="hub-links"><a href="creator-settings.html">Creator Settings</a><a href="profile.html">Profile</a></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="hub-section" aria-labelledby="account-title">
+        <div class="hub-section-head"><div><h2 id="account-title">Account & Membership</h2><p>One CrowRules identity connected to the podcasting experience.</p></div></div>
+        <div class="hub-grid">
+          <article class="hub-card" data-search="profile account center settings identity">
+            <div class="hub-card-top"><span class="hub-icon" aria-hidden="true">07</span><span class="hub-card-tag">Identity</span></div>
+            <h3>Your Account</h3><p>Manage your profile, account center and personal settings.</p>
+            <div class="hub-links"><a href="profile.html">Profile</a><a href="account.html">Account Center</a><a href="account-settings.html">Settings</a></div>
+          </article>
+          <article class="hub-card hub-feature" data-search="membership subscriptions crowpoints achievements member">
+            <div class="hub-card-top"><span class="hub-icon" aria-hidden="true">08</span><span class="hub-card-tag">Member</span></div>
+            <h3>Membership & CrowPoints</h3><p>Explore membership, subscriptions, CrowPoints and member achievements across the CrowRules universe.</p>
+            <div class="hub-links"><a href="membership.html">Membership</a><a href="subscriptions.html">Subscriptions</a><a href="crowpoints.html">CrowPoints</a><a href="profile.html">Profile</a></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="hub-section" aria-labelledby="earn-title">
+        <div class="hub-section-head"><div><h2 id="earn-title">Monetization & Operations</h2><p>Connected tools for offers, premium content, financial activity and creator revenue.</p></div></div>
+        <div class="hub-grid">
+          <article class="hub-card hub-feature" data-search="monetization revenue premium support sponsorship advertising affiliate digital products">
+            <div class="hub-card-top"><span class="hub-icon" aria-hidden="true">09</span><span class="hub-card-tag">Revenue</span></div>
+            <h3>Monetization Suite</h3><p>Move from monetization planning to offers, premium access, creator revenue and operational controls.</p>
+            <div class="hub-links"><a href="monetization-suite.html">Monetization Suite</a><a href="monetization-command-center.html">Command Center</a><a href="creator-monetization.html">Monetization</a><a href="payouts.html">Payouts</a><a href="transactions.html">Transactions</a></div>
+          </article>
+          <article class="hub-card" data-search="payout settings financial operations">
+            <div class="hub-card-top"><span class="hub-icon" aria-hidden="true">10</span><span class="hub-card-tag">Finance</span></div>
+            <h3>Financial Settings</h3><p>Access creator payout configuration and transaction history.</p>
+            <div class="hub-links"><a href="payout-settings.html">Payout Settings</a><a href="payouts.html">Payouts</a><a href="transactions.html">Transactions</a></div>
+          </article>
+          <article class="hub-card" data-search="security playback devices premium">
+            <div class="hub-card-top"><span class="hub-icon" aria-hidden="true">11</span><span class="hub-card-tag">Security</span></div>
+            <h3>Playback Security</h3><p>Manage playback devices and security controls for the listening experience.</p>
+            <div class="hub-links"><a href="playback-security.html">Security</a><a href="playback-devices.html">Devices</a></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="hub-section" aria-labelledby="help-title">
+        <div class="hub-section-head"><div><h2 id="help-title">Help & Platform</h2><p>Support, recovery and the complete CrowRules Podcasting map.</p></div></div>
+        <div class="hub-grid">
+          <article class="hub-card" data-search="help support creator support password recovery">
+            <div class="hub-card-top"><span class="hub-icon" aria-hidden="true">12</span><span class="hub-card-tag">Support</span></div>
+            <h3>Get Help</h3><p>Find listener support, creator support and account recovery resources.</p>
+            <div class="hub-links"><a href="help-center.html">Help Center</a><a href="support.html">Support</a><a href="support-creator.html">Creator Support</a><a href="reset-password.html">Reset Password</a></div>
+          </article>
+          <article class="hub-card hub-feature" data-search="site map navigation complete pages repository">
+            <div class="hub-card-top"><span class="hub-icon" aria-hidden="true">13</span><span class="hub-card-tag">Platform Map</span></div>
+            <h3>See Everything</h3><p>Use the site map for the complete page inventory. The shared global header remains the single primary navigation layer throughout the platform.</p>
+            <div class="hub-links"><a href="site-map.html">Site Map</a><a href="navigation.html">Journey Map</a><a href="home.html">Home</a></div>
+          </article>
+        </div>
+      </section>
+
+      <div id="hub-empty" class="hub-empty">No destinations match your search. Try “creator”, “membership”, “library”, “monetization” or “support”.</div>
+    </div>
+
+    <footer class="hub-footer">
+      <div class="hub-footer-inner">
+        <div><strong>CROWRULES PODCASTING</strong><span>ONE ACCOUNT. ONE UNIVERSE.</span></div>
+        <a href="site-map.html">View complete site map →</a>
+      </div>
+    </footer>
+  </div>
+</main>
+
+<script src="js/global-navigation.js" defer></script>
+<script>
+(function(){
+  const input=document.getElementById("hub-search");
+  const cards=[...document.querySelectorAll(".hub-card")];
+  const count=document.getElementById("hub-count");
+  const empty=document.getElementById("hub-empty");
+  function filter(){
+    const q=input.value.trim().toLowerCase();
+    let visible=0;
+    cards.forEach(card=>{
+      const match=!q||((card.dataset.search||"")+" "+card.textContent).toLowerCase().includes(q);
+      card.dataset.hidden=String(!match);
+      if(match) visible++;
+    });
+    count.textContent=q?(visible+" destination"+(visible===1?"":"s")+" matching “"+q+"”"):"Showing all "+cards.length+" destination groups";
+    empty.style.display=visible?"none":"block";
+  }
+  input.addEventListener("input",filter);
+  document.addEventListener("keydown",e=>{
+    if(e.key==="/"&&document.activeElement!==input&&document.activeElement?.tagName!=="INPUT"){
+      e.preventDefault();input.focus();
+    }
+    if(e.key==="Escape"&&document.activeElement===input){input.value="";filter();input.blur();}
+  });
+  filter();
+})();
+</script>
+</body>
+</html>
