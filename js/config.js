@@ -3,5 +3,7 @@ window.CROW_CONFIG={
   supabaseKey:"sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-",
   siteUrl:"https://crowrulesentertainment-oss.github.io/podcasting/",
   stripePublishableKey:"",
+  stripeContext:"acct_1UDu0CAJsZjQLrFQ",
+  stripeLivemode:true,
   stripeFunctionsBase:"/functions/v1/"
 };
