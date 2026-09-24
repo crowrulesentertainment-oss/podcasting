@@ -6,7 +6,7 @@
 */
 (function(){
   "use strict";
-  if(window.__CROWRULES_GLOBAL_NAV_94__) return;
+  if(window.__CROWRULES_GLOBAL_NAV_941__) return;
   window.__CROWRULES_GLOBAL_NAV_94__=true;
 
   const VERSION="9.4.1";
@@ -95,7 +95,7 @@ if(!window.CrowRulesMemberState && window.supabase?.createClient){
   }
   function dispatch(type,detail={}){window.dispatchEvent(new CustomEvent("crowrules:global-nav",{detail:{type,...detail}}))}
   function broadcast(type,payload={}){
-    const message={source:"crowrules-global-nav-94",type,payload,at:new Date().toISOString()};
+    const message={source:"crowrules-global-nav-941",type,payload,at:new Date().toISOString()};
     try{
       if("BroadcastChannel"in window){
         if(!window.__crowRulesGlobalNavChannel)window.__crowRulesGlobalNavChannel=new BroadcastChannel(CHANNEL_NAME);
