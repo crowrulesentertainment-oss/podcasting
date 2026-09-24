@@ -11,3 +11,4 @@ const service={creator,podcasts,episodes,getEpisode,savePodcast,saveEpisode,gove
 const contract=fn=>async(...args)=>window.CrowRulesData.execute(()=>fn(...args));
 window.CrowRulesCreator={version:"2.0",creator:contract(creator),podcasts:contract(podcasts),episodes:contract(episodes),getEpisode:contract(getEpisode),savePodcast:contract(savePodcast),saveEpisode:contract(saveEpisode),governance:contract(governance),governanceRealtime};
 })();
+window.addEventListener("crowrules:data-realtime-reset",()=>{Object.keys(realtime).forEach(realtimeStop)});
