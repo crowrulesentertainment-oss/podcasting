@@ -108,14 +108,7 @@ function charts(){
  el.innerHTML=rows||'<div class="panel empty"><h2>Charts are warming up.</h2></div>';
 }
 
-async function followPodcast(id,button){
- if(!state.supabase||!state.user){toast("Sign in to follow a podcast");return}
- const podcast=state.shows.find(s=>s.id===id||s.dbId===id);
- if(!podcast?.dbId){toast("Follow is available for database podcasts");return}
- const {error}=await state.supabase.from("podcast_follows").upsert({user_id:state.user.id,podcast_id:podcast.dbId},{onConflict:"user_id,podcast_id"});
- if(error){toast("Unable to follow right now");return}
- button.textContent="Following";addPoints(5);toast("+5 CrowPoints • following");
-}
+async function followPodcast(id,button){return followReal(id,button)}
 
 async function playEpisode(e){
  player();
@@ -140,8 +133,16 @@ function startShow(id){
 
 async function chat(){
  const f=document.getElementById("chatForm");if(!f)return;
- const room=new URLSearchParams(location.search).get("room")||"community";document.getElementById("roomTitle").textContent=room.replaceAll("-"," ");
- f.onsubmit=async e=>{e.preventDefault();const input=document.getElementById("chatInput"),box=document.getElementById("messages"),textValue=input.value.trim();if(!textValue)return;box.insertAdjacentHTML("beforeend",'<div><b>You</b><span>'+esc(textValue)+'</span></div>');input.value="";box.scrollTop=box.scrollHeight;addPoints(2);toast("+2 CrowPoints • message sent")};
+ if(!state.supabase){document.getElementById("messages").innerHTML='<div class="panel empty"><p>Live chat requires the database connection.</p></div>';return}
+ const slug=new URLSearchParams(location.search).get("room")||"community";
+ const {data:room,error:roomError}=await state.supabase.from("podcast_chat_rooms").select("id,name,slug,is_live").eq("slug",slug).maybeSingle();
+ if(roomError||!room){document.getElementById("messages").innerHTML='<div class="panel empty"><p>This live room has not been provisioned yet.</p></div>';return}
+ document.getElementById("roomTitle").textContent=room.name;
+ const render=rows=>document.getElementById("messages").innerHTML=(rows||[]).map(m=>'<div><b>'+esc(m.display_name)+'</b><span>'+esc(m.message)+'</span></div>').join("")||'<div class="panel empty"><p>No messages yet.</p></div>';
+ const {data:messages}=await state.supabase.from("podcast_chat_messages").select("id,display_name,message,created_at").eq("room_id",room.id).eq("is_hidden",false).order("created_at",{ascending:true}).limit(100);
+ render(messages);
+ state.supabase.channel("podcast-chat-"+room.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"podcast_chat_messages",filter:"room_id=eq."+room.id},payload=>{if(payload.new&&!payload.new.is_hidden)document.getElementById("messages").insertAdjacentHTML("beforeend",'<div><b>'+esc(payload.new.display_name)+'</b><span>'+esc(payload.new.message)+'</span></div>')}).subscribe();
+ f.onsubmit=async e=>{e.preventDefault();if(!state.user){toast("Sign in to chat");return}const input=document.getElementById("chatInput"),textValue=input.value.trim();if(!textValue)return;const displayName=state.user.user_metadata?.name||state.user.email?.split("@")[0]||"Member";const {error}=await state.supabase.from("podcast_chat_messages").insert({room_id:room.id,user_id:state.user.id,display_name:displayName,message:textValue});if(error){toast(error.message);return}input.value="";addPoints(2);toast("+2 CrowPoints • message sent")};
 }
 
 async function forms(){
