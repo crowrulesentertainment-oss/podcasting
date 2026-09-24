@@ -1,4 +1,4 @@
-/* CrowRules Podcasting — Global Navigation 8.3.1
+/* CrowRules Podcasting — Global Navigation 8.4 — Real-Time Identity Synchronization
    One shared navigation system.
    Live identity, membership/premium presence, notifications,
    creator state, cross-tab synchronization, and account command palette.
@@ -6,40 +6,68 @@
 */
 (function(){
   "use strict";
-  if(window.__CROWRULES_GLOBAL_NAV_831__) return;
-  window.__CROWRULES_GLOBAL_NAV_831__=true;
+  if(window.__CROWRULES_GLOBAL_NAV_84__) return;
+  window.__CROWRULES_GLOBAL_NAV_84__=true;
 
-  const VERSION="8.3.1";
-  const CHANNEL_NAME="crowrules-podcasting-global-nav-83";
-  const STORAGE_KEY="crowrules-podcasting-nav-83";
+  const VERSION="8.4";
+  const CHANNEL_NAME="crowrules-podcasting-global-nav-84";
+  const STORAGE_KEY="crowrules-podcasting-nav-84";
+  const REFRESH_MS=15000;
   const NOTIFY_LIMIT=12;
   const nav=[
-    ["podcasting/home.html","Home",["podcasting/index.html","podcasting/home.html"],"home"],
-    ["podcasting/discover.html","Discover",["podcasting/discover.html","podcasting/search.html","podcasting/categories.html"],"discover"],
-    ["podcasting/podcasts.html","Podcasts",["podcasting/podcasts.html","podcasting/podcast.html"],"listen"],
-    ["podcasting/episodes.html","Episodes",["podcasting/episodes.html","podcasting/episode.html"],"listen"],
-    ["podcasting/creators.html","Creators",["podcasting/creators.html","podcasting/creator.html"],"discover"],
-    ["podcasting/create-podcast.html","Create",["podcasting/create-podcast.html"],"create"],
-    ["podcasting/creator-studio.html","Studio",["podcasting/creator-studio.html","podcasting/creator-dashboard.html"],"create"],
-    ["podcasting/membership.html","Membership",["podcasting/membership.html","podcasting/subscriptions.html"],"account"],
-    ["podcasting/premium-library.html","Premium",["podcasting/premium-library.html","podcasting/premium.html"],"account"],
-    ["podcasting/creator-monetization-hub.html","Monetization",["podcasting/creator-monetization-hub.html","podcasting/monetization.html"],"growth"],
-    ["podcasting/playback-security.html","Security",["podcasting/playback-security.html","podcasting/playback-devices.html"],"account"]
+    ["home.html","Home",["index.html","home.html"],"home"],
+    ["discover.html","Discover",["discover.html","search.html","categories.html"],"discover"],
+    ["podcasts.html","Podcasts",["podcasts.html","podcast.html"],"listen"],
+    ["episodes.html","Episodes",["episodes.html","episode.html"],"listen"],
+    ["creators.html","Creators",["creators.html","creator.html"],"discover"],
+    ["create-podcast.html","Create",["create-podcast.html"],"create"],
+    ["creator-studio.html","Studio",["creator-studio.html","creator-dashboard.html"],"create"],
+    ["membership.html","Membership",["membership.html","subscriptions.html"],"account"],
+    ["premium-library.html","Premium",["premium-library.html","premium.html"],"account"],
+    ["creator-monetization-hub.html","Monetization",["creator-monetization-hub.html","monetization.html"],"growth"],
+    ["playback-security.html","Security",["playback-security.html","playback-devices.html"],"account"]
   ];
-  const help=["podcasting/help-center.html","podcasting/help.html","podcasting/podcasting/support.html"];
-  const accountAliases=["podcasting/profile.html","podcasting/account.html","podcasting/account-center.html","podcasting/account-settings.html"];
+  const help=["help-center.html","help.html","podcasting/support.html"];
+  const accountAliases=["profile.html","account.html","account-center.html","account-settings.html"];
 
   const path=location.pathname;
   const hasFile=/\/[^/]+\.[^/]+$/.test(path);
   const rawParts=path.split("/").filter(Boolean);
-  const current=(hasFile?(rawParts.pop()||"podcasting/index.html"):"podcasting/index.html").toLowerCase();
-  const prefix=hasFile&&rawParts.length?"../".repeat(rawParts.length):"";
+  const current=(hasFile?(rawParts.pop()||"index.html"):"index.html").toLowerCase();
+  const prefix=rawParts.length?"../".repeat(rawParts.length):"";
   const href=target=>prefix+target;
   const isCurrent=aliases=>aliases.includes(current);
 
   let db=null,user=null,realtimeChannel=null,authSubscription=null;
   let notifications=[],unreadCount=0,membership=null,premium=false,creator=false;
-  let openPanel=null,refreshTimer=null,identityRequest=0;
+  let openPanel=null,refreshTimer=null,pollTimer=null,identityRequest=0,dependencyPromise=null;
+
+  function loadScriptOnce(src,key){
+    return new Promise((resolve,reject)=>{
+      if(key && document.querySelector('script[data-cr-nav-dependency="'+key+'"]')){resolve();return}
+      const s=document.createElement("script");s.src=src;s.defer=true;
+      if(key)s.dataset.crNavDependency=key;
+      s.onload=()=>resolve();s.onerror=()=>reject(new Error("Failed to load "+src));
+      document.head.appendChild(s);
+    });
+  }
+  async function ensureDependencies(){
+    if(dependencyPromise)return dependencyPromise;
+    dependencyPromise=(async()=>{
+      try{
+        if(!window.CROWRULES_SUPABASE_URL||!window.CROWRULES_SUPABASE_PUBLISHABLE_KEY){
+          await loadScriptOnce(href("js/config.js"),"config");
+        }
+        if(!window.supabase?.createClient){
+          await loadScriptOnce("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2","supabase");
+        }
+        if(!window.CrowRulesMemberState && window.supabase?.createClient){
+          try{await loadScriptOnce(href("js/member-state.js"),"member-state")}catch(_){}
+        }
+      }catch(_){}
+    })();
+    return dependencyPromise;
+  }
 
   function getDb(){
     if(db)return db;
@@ -62,7 +90,7 @@
   }
   function dispatch(type,detail={}){window.dispatchEvent(new CustomEvent("crowrules:global-nav",{detail:{type,...detail}}))}
   function broadcast(type,payload={}){
-    const message={source:"crowrules-global-nav-83",type,payload,at:new Date().toISOString()};
+    const message={source:"crowrules-global-nav-84",type,payload,at:new Date().toISOString()};
     try{
       if("BroadcastChannel"in window){
         if(!window.__crowRulesGlobalNavChannel)window.__crowRulesGlobalNavChannel=new BroadcastChannel(CHANNEL_NAME);
@@ -278,9 +306,15 @@
     return{header,notify,account,menu,mobile};
   }
 
+  function removeLegacyNavigation(){
+    document.querySelectorAll("header.site-header").forEach(h=>{
+      if(h.querySelector(".main-navigation,nav.main-navigation"))h.remove();
+    });
+    document.querySelectorAll(".main-navigation,[data-cr-global-navigation],[data-crowrules-nav],.cr-nav").forEach(el=>el.remove());
+  }
   function removeDuplicateHeaders(){
     [...document.querySelectorAll(".cr-global-header")].slice(1).forEach(h=>h.remove());
-    document.querySelectorAll("[data-cr-global-navigation],[data-crowrules-nav],.cr-nav").forEach(el=>el.remove());
+    removeLegacyNavigation();
   }
   function closePanels(){
     document.querySelectorAll(".cr-nav-popover").forEach(p=>p.hidden=true);
@@ -334,7 +368,9 @@
     renderIdentity();renderNotificationCenter();
     setupAuthSync();
     loadIdentity().then(subscribeRealtime);
-
+    clearInterval(pollTimer);
+    pollTimer=setInterval(()=>{if(!document.hidden)loadIdentity().then(subscribeRealtime)},REFRESH_MS);
+    window.addEventListener("pagehide",()=>{clearInterval(pollTimer);try{if(realtimeChannel)getDb()?.removeChannel(realtimeChannel)}catch(_){}});
     window.addEventListener("focus",()=>loadIdentity().then(subscribeRealtime));
     document.addEventListener("visibilitychange",()=>{if(!document.hidden)loadIdentity().then(subscribeRealtime)});
     window.addEventListener("crowrules:member-state",e=>{
@@ -373,5 +409,10 @@
     try{handleCrossTab(JSON.parse(e.newValue))}catch(_){}
   });
 
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mount,{once:true});else mount();
+  async function start(){
+    await ensureDependencies();
+    if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mount,{once:true});
+    else mount();
+  }
+  start();
 })();
