@@ -14,20 +14,20 @@
   const STORAGE_KEY="crowrules-podcasting-nav-83";
   const NOTIFY_LIMIT=12;
   const nav=[
-    ["home.html","Home",["index.html","home.html"],"home"],
-    ["discover.html","Discover",["discover.html","search.html","categories.html"],"discover"],
-    ["podcasts.html","Podcasts",["podcasts.html","podcast.html"],"listen"],
-    ["episodes.html","Episodes",["episodes.html","episode.html"],"listen"],
-    ["creators.html","Creators",["creators.html","creator.html"],"discover"],
-    ["create-podcast.html","Create",["create-podcast.html"],"create"],
-    ["creator-studio.html","Studio",["creator-studio.html","creator-dashboard.html"],"create"],
-    ["membership.html","Membership",["membership.html","subscriptions.html"],"account"],
-    ["premium-library.html","Premium",["premium-library.html","premium.html"],"account"],
-    ["creator-monetization-hub.html","Monetization",["creator-monetization-hub.html","monetization.html"],"growth"],
-    ["playback-security.html","Security",["playback-security.html","playback-devices.html"],"account"]
+    ["podcasting/home.html","Home",["podcasting/index.html","podcasting/home.html"],"home"],
+    ["podcasting/discover.html","Discover",["podcasting/discover.html","podcasting/search.html","podcasting/categories.html"],"discover"],
+    ["podcasting/podcasts.html","Podcasts",["podcasting/podcasts.html","podcasting/podcast.html"],"listen"],
+    ["podcasting/episodes.html","Episodes",["podcasting/episodes.html","podcasting/episode.html"],"listen"],
+    ["podcasting/creators.html","Creators",["podcasting/creators.html","podcasting/creator.html"],"discover"],
+    ["podcasting/create-podcast.html","Create",["podcasting/create-podcast.html"],"create"],
+    ["podcasting/creator-studio.html","Studio",["podcasting/creator-studio.html","podcasting/creator-dashboard.html"],"create"],
+    ["podcasting/membership.html","Membership",["podcasting/membership.html","podcasting/subscriptions.html"],"account"],
+    ["podcasting/premium-library.html","Premium",["podcasting/premium-library.html","podcasting/premium.html"],"account"],
+    ["podcasting/creator-monetization-hub.html","Monetization",["podcasting/creator-monetization-hub.html","podcasting/monetization.html"],"growth"],
+    ["podcasting/playback-security.html","Security",["podcasting/playback-security.html","podcasting/playback-devices.html"],"account"]
   ];
-  const help=["help-center.html","help.html","support.html"];
-  const accountAliases=["profile.html","account.html","account-center.html","account-settings.html"];
+  const help=["podcasting/help-center.html","podcasting/podcasting/help.html","podcasting/podcasting/support.html"];
+  const accountAliases=["podcasting/profile.html","podcasting/account.html","podcasting/account-center.html","podcasting/account-settings.html"];
 
   const path=location.pathname;
   const hasFile=/\/[^/]+\.[^/]+$/.test(path);
