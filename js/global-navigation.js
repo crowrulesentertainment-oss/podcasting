@@ -11,18 +11,21 @@
   }
 
   const nav=[
-    ["home.html","Home",["index.html","home.html"]],
-    ["discover.html","Discover",["discover.html","search.html","categories.html"]],
-    ["podcasts.html","Podcasts",["podcasts.html","podcast.html"]],
-    ["episodes.html","Episodes",["episodes.html","episode.html"]],
-    ["creators.html","Creators",["creators.html","creator.html"]],
-    ["create-podcast.html","Create",["create-podcast.html"]],
-    ["creator-studio.html","Studio",["creator-studio.html","creator-dashboard.html"]],
-    ["membership.html","Membership",["membership.html","subscriptions.html"]],
-    ["premium-library.html","Premium",["premium-library.html","premium.html"]],
-    ["creator-monetization-hub.html","Monetization",["creator-monetization-hub.html","monetization.html"]],
-    ["playback-security.html","Security",["playback-security.html","playback-devices.html"]],
-    ["profile.html","Profile",["profile.html","account.html","account-center.html","account-settings.html"]]
+    ["home.html","Home",["index.html","home.html"],"home"],
+    ["discover.html","Discover",["discover.html","categories.html"],"discover"],
+    ["search.html","Search",["search.html"],"discover"],
+    ["rankings.html","Rankings",["rankings.html"],"discover"],
+    ["podcasts.html","Podcasts",["podcasts.html","podcast.html"],"listen"],
+    ["episodes.html","Episodes",["episodes.html","episode.html"],"listen"],
+    ["live.html","Live",["live.html"],"listen"],
+    ["my-library.html","My Library",["my-library.html"],"listen"],
+    ["creators.html","Creators",["creators.html","creator.html"],"create"],
+    ["creator-studio.html","Studio",["creator-studio.html","creator-dashboard.html"],"create"],
+    ["create-podcast.html","Create",["create-podcast.html"],"create"],
+    ["membership.html","Membership",["membership.html","subscriptions.html"],"account"],
+    ["premium-library.html","Premium",["premium-library.html","premium.html"],"account"],
+    ["creator-monetization-hub.html","Monetization",["creator-monetization-hub.html","monetization.html"],"growth"],
+    ["playback-security.html","Security",["playback-security.html","playback-devices.html"],"account"]
   ];
 
   const help=["help-center.html","help.html","support.html"];
@@ -56,19 +59,20 @@
   mobile.className="cr-global-mobile";
   mobile.setAttribute("aria-label","Mobile primary");
 
-  function addLink(parent,target,label,aliases){
+  function addLink(parent,target,label,aliases,group){
     const a=document.createElement("a");
     a.href=href(target);
     a.textContent=label;
+    if(group) a.dataset.navGroup=group;
     if(isCurrent(aliases)){
       a.setAttribute("aria-current","page");
     }
     parent.appendChild(a);
   }
 
-  nav.forEach(([target,label,aliases])=>{
-    addLink(desktop,target,label,aliases);
-    addLink(mobile,target,label,aliases);
+  nav.forEach(([target,label,aliases,group])=>{
+    addLink(desktop,target,label,aliases,group);
+    addLink(mobile,target,label,aliases,group);
   });
   addLink(desktop,"help-center.html","Help",help);
   addLink(mobile,"help-center.html","Help",help);
