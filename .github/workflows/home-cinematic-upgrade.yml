@@ -1,0 +1,38 @@
+name: CrowRules Podcasting Home Upgrade
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  upgrade:
+    if: ${{ !contains(github.event.head_commit.message, '[home-upgrade]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upgrade cinematic home
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          p=Path('home.html')
+          s=p.read_text()
+          if 'home-cinematic-14' in s:
+              raise SystemExit(0)
+          css='''\n/* CrowRules Podcasting Home Cinematic 14.0 */\n.home-command{display:grid;grid-template-columns:1.3fr .7fr;gap:16px;margin:8px 0 30px}.home-command-card{position:relative;overflow:hidden;border:1px solid #ffffff18;border-radius:16px;padding:26px;background:radial-gradient(circle at 85% 15%,#20e6ff20,transparent 38%),linear-gradient(145deg,#0d1020,#090a11 70%)}.home-command-card h2{font:800 clamp(24px,3vw,38px)/1.05 Orbitron;margin:8px 0 10px}.home-command-card p{color:#aeb5c8;font-size:12px;line-height:1.7;margin:0 0 16px}.home-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.metric{border:1px solid #ffffff12;border-radius:10px;padding:14px;background:#ffffff05}.metric b{display:block;font:800 21px Orbitron;color:#fff}.metric span{display:block;margin-top:4px;color:#8992a8;font-size:8px;text-transform:uppercase;letter-spacing:.12em}.quick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.quick{display:flex;min-height:70px;align-items:center;padding:13px;border:1px solid #ffffff12;border-radius:11px;background:#ffffff05;color:#fff;text-decoration:none;transition:.2s}.quick:hover{border-color:#20e6ff55;transform:translateY(-2px);background:#20e6ff09}.quick strong{font:800 12px Orbitron}.quick small{display:block;color:#8f98ad;font-size:8px;margin-top:4px}.section-divider{height:1px;background:linear-gradient(90deg,transparent,#20e6ff33,#8e5cff33,transparent);margin:20px 0}.home-search-wrap{position:relative}.home-search-wrap .searchbar{max-width:760px}.home-search-wrap .hint{margin-top:9px;color:#737d94;font-size:9px}.discovery-banner{display:flex;justify-content:space-between;gap:20px;align-items:center;border:1px solid #20e6ff22;border-radius:15px;padding:22px;background:linear-gradient(105deg,#07131a,#0d0b19 65%,#08090f)}.discovery-banner h2{margin:0 0 6px;font:800 22px Orbitron}.discovery-banner p{margin:0;color:#a9b1c2;font-size:11px;line-height:1.6}.discovery-banner .actions{flex-shrink:0}@media(max-width:800px){.home-command{grid-template-columns:1fr}.home-metrics{grid-template-columns:repeat(3,1fr)}.discovery-banner{align-items:flex-start;flex-direction:column}.discovery-banner .actions{width:100%}}@media(max-width:520px){.home-metrics{grid-template-columns:1fr}.quick-grid{grid-template-columns:1fr}}\n'''
+          s=s.replace('</style>',css+'</style>',1)
+          block='''\n<section class="section" id="home-command-14"><div class="home-command">\n<div class="home-command-card"><span class="eyebrow">CROWRULES PODCASTING · THE FRONT DOOR</span><h2>Find your next obsession.</h2><p>Jump from the biggest shows to new voices, explore by genre, or search the universe in seconds.</p><div class="home-metrics"><div class="metric"><b id="metricShows">—</b><span>Shows</span></div><div class="metric"><b id="metricGenres">—</b><span>Genres</span></div><div class="metric"><b id="metricPlays">—</b><span>Total Plays</span></div></div></div>\n<div class="home-command-card"><span class="eyebrow">QUICK LAUNCH</span><div class="quick-grid"><a class="quick" href="discover.html"><div><strong>Discover</strong><small>Explore everything</small></div></a><a class="quick" href="podcasts.html"><div><strong>All Podcasts</strong><small>Browse the catalog</small></div></a><a class="quick" href="create.html"><div><strong>Create</strong><small>Launch a show</small></div></a><a class="quick" href="membership.html"><div><strong>Membership</strong><small>Join the universe</small></div></a></div></div>\n</div></section>\n<div class="section-divider"></div>\n'''
+          s=s.replace('<main class="page">','<main class="page">'+block,1)
+          banner='''\n<section class="section"><div class="discovery-banner"><div><span class="eyebrow">ONE UNIVERSE · MANY VOICES</span><h2>Ready to make your next listen count?</h2><p>Discover independent creators, CrowRules originals and conversations built for curious listeners.</p></div><div class="actions"><a class="btn primary" href="discover.html">Start Discovering</a><a class="btn" href="create.html">Create a Podcast</a></div></div></section>\n'''
+          s=s.replace('</main>',banner+'</main>',1)
+          js='''\n<script>\n(()=>{const m=id=>document.getElementById(id);const cards=[...document.querySelectorAll('.card')];const cats=[...new Set(cards.map(c=>c.querySelector('.pill')?.textContent.trim()).filter(Boolean))];const nums=cards.map(c=>Number((c.querySelector('.stats')?.textContent||'').replace(/[^0-9]/g,''))).filter(Number.isFinite);if(m('metricShows'))m('metricShows').textContent=cards.length?cards.length+'+':'—';if(m('metricGenres'))m('metricGenres').textContent=cats.length||'—';if(m('metricPlays'))m('metricPlays').textContent=nums.length?nums.reduce((a,b)=>a+b,0).toLocaleString():'—';})();\n</script>\n'''
+          s=s.replace('</body>',js+'</body>',1)
+          p.write_text(s)
+          PY
+      - name: Commit upgrade
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add home.html
+          git diff --cached --quiet && exit 0
+          git commit -m "feat: cinematic podcast home 14.0 [home-upgrade]"
+          git push
