@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const podcastId = body.podcast_id ? String(body.podcast_id) : null;
     const origin = String(body.origin || "https://crowrulesentertainment-oss.github.io").replace(/\/$/, "");
-    const returnPath = String(body.return_path || "/podcasting/payouts.html");
+    const returnPath = String(body.return_path || "/podcasting/payout-center.html");
 
     const { data: member, error: memberError } = await supabase
       .from("members")
