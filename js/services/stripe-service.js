@@ -1,9 +1,12 @@
-/* CrowRules Podcasting — Stripe Connect Domain Service 1.0 */
+/* CrowRules Podcasting — Stripe Connect Domain Service 3.0 */
 (()=>{"use strict";if(window.CrowRulesStripe)return;
+const base=()=>window.CROWRULES_CONFIG?.supabaseUrl||window.CROWRULES_SUPABASE_URL;
+const key=()=>window.CROWRULES_CONFIG?.supabasePublishableKey||window.CROWRULES_SUPABASE_PUBLISHABLE_KEY;
 async function token(){return window.CrowRulesData.getAccessToken()}
-async function status(){const u=await window.CrowRulesData.guard("creator"),db=await window.CrowRulesData.getClientAsync();return db.from("cr_podcast_stripe_accounts").select("*").eq("user_id",u.id).maybeSingle()}
-async function begin(){const t=await token();if(!t)throw new Error("Authentication required");const r=await fetch((window.CROWRULES_CONFIG?.supabaseUrl||"")+"/functions/v1/create-stripe-connect-account",{method:"POST",headers:{Authorization:"Bearer "+t,apikey:window.CROWRULES_CONFIG?.supabasePublishableKey||"","Content-Type":"application/json"}});if(!r.ok)throw new Error("Unable to start Stripe Connect onboarding.");return r.json()}
-async function refresh(){const t=await token();if(!t)throw new Error("Authentication required");const r=await fetch((window.CROWRULES_CONFIG?.supabaseUrl||"")+"/functions/v1/stripe-connect-status",{method:"GET",headers:{Authorization:"Bearer "+t,apikey:window.CROWRULES_CONFIG?.supabasePublishableKey||""}});if(!r.ok)throw new Error("Unable to refresh Stripe Connect status.");return r.json()}
+async function call(path,body={}){const t=await token();if(!t)throw new Error("Authentication required");const r=await fetch(base()+"/functions/v1/"+path,{method:"POST",headers:{Authorization:"Bearer "+t,apikey:key()||"","Content-Type":"application/json"},body:JSON.stringify(body)});let data=null;try{data=await r.json()}catch{}if(!r.ok)throw new Error(data?.error||"Stripe Connect request failed.");return data}
+async function status(){await window.CrowRulesData.guard("creator");return call("creator-connect-status",{})}
+async function begin(){await window.CrowRulesData.guard("creator");return call("creator-connect-onboarding",{return_path:"monetization.html"})}
+async function refresh(){await window.CrowRulesData.guard("creator");return call("creator-connect-status",{})}
 const contract=fn=>async(...args)=>window.CrowRulesData.execute(()=>fn(...args));
-window.CrowRulesStripe={version:"2.0",status:contract(status),begin:contract(begin),refresh:contract(refresh)};
+window.CrowRulesStripe={version:"3.0",status:contract(status),begin:contract(begin),refresh:contract(refresh)};
 })();
