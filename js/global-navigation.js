@@ -7,7 +7,7 @@
 (function(){
   "use strict";
   if(window.__CROWRULES_GLOBAL_NAV_94__) return;
-  window.__CROWRULES_GLOBAL_NAV_93__=true;
+  window.__CROWRULES_GLOBAL_NAV_94__=true;
 
   const VERSION="9.4";
   const CHANNEL_NAME="crowrules-podcasting-global-nav-94";
@@ -64,7 +64,9 @@
         if(!window.supabase?.createClient){
           await loadScriptOnce("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2","supabase");
         }
-        if(!window.CrowRulesAccount){try{await loadScriptOnce(href("js/account-command-center.js"),"account-command-center")}catch(_){} }\n        if(!window.CrowRulesAccountUI && window.CrowRulesAccount){try{await loadScriptOnce(href("js/account-command-center-ui.js"),"account-command-center-ui")}catch(_){} }\n        if(!window.CrowRulesMemberState && window.supabase?.createClient){
+        if(!window.CrowRulesAccount){try{await loadScriptOnce(href("js/account-command-center.js"),"account-command-center")}catch(_){} }
+if(!window.CrowRulesAccountUI && window.CrowRulesAccount){try{await loadScriptOnce(href("js/account-command-center-ui.js"),"account-command-center-ui")}catch(_){} }
+if(!window.CrowRulesMemberState && window.supabase?.createClient){
           try{await loadScriptOnce(href("js/member-state.js"),"member-state")}catch(_){}
         }
       }catch(_){}
@@ -309,7 +311,9 @@
     return{header,notify,account,menu,mobile};
   }
 
-  function removeLegacyNavigation(){\n    // Remove legacy/duplicate navigation shells so the injected Global Navigation is the only site header.\n    document.querySelectorAll("link[href*=\"professional-experience.css\"],script[src*=\"professional-experience.js\"]").forEach(el=>el.remove());
+  function removeLegacyNavigation(){
+// Remove legacy/duplicate navigation shells so the injected Global Navigation is the only site header.
+document.querySelectorAll("link[href*=\"professional-experience.css\"],script[src*=\"professional-experience.js\"]").forEach(el=>el.remove());
     document.querySelectorAll("header.site-header,header.topbar").forEach(h=>{
       if(h.querySelector(".main-navigation,nav.main-navigation")||h.classList.contains("topbar"))h.remove();
     });
@@ -389,7 +393,7 @@
   }
 
   function handleCrossTab(m){
-    if(!m||m.source!=="crowrules-global-nav-92")return;
+    if(!m||m.source!=="crowrules-global-nav-94")return;
     if(m.type==="auth-change"||m.type==="identity-refresh"){window.CrowRulesAccount?.refresh?.().then(applyAccountState).catch(()=>{});return}
     if(m.type==="notification"&&m.payload)notifyLocal(m.payload);
     if(m.type==="notification-read"&&m.payload?.id){
