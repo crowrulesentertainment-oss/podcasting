@@ -1,4 +1,4 @@
-/* CrowRules Podcasting — Playback Session Multiplexing Engine 111.0 */
+/* CrowRules Podcasting — Playback Intelligence Engine 112.0 */
 (()=>{"use strict";
 const cfg=window.CROWRULES_CONFIG||{},url=cfg.supabaseUrl,key=cfg.supabasePublishableKey;if(!url||!key||!window.supabase)return;
 const db=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true}});
