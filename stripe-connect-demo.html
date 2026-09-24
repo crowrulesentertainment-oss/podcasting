@@ -61,7 +61,7 @@ button{border:0;border-radius:10px;padding:12px 16px;background:#6d5dfc;color:wh
 </div>
 <script>
 const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co";
-const SUPABASE_ANON_KEY="__SUPABASE_ANON_KEY_PLACEHOLDER__"; // TODO: Replace with CrowRules Supabase anon/publishable key.
+const SUPABASE_ANON_KEY=window.CROWRULES_CONFIG?.supabasePublishableKey||""; // Browser-safe publishable key loaded from js/config.js.
 const FN=SUPABASE_URL+"/functions/v1/stripe-connect-demo";
 const $=id=>document.getElementById(id);
 let token=null, accountId=new URLSearchParams(location.search).get("accountId");
@@ -117,7 +117,7 @@ $("subscriptionBtn").onclick=async()=>{try{const d=await call("subscription",{ac
 $("portalBtn").onclick=async()=>{try{const d=await call("billing-portal",{accountId});location.href=d.url;}catch(e){setStatus(e.message,"error");}};
 refresh();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script><script src="js/config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>window.addEventListener("load",refresh);</script>
 </body>
 </html>
