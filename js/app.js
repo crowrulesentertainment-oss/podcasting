@@ -1,17 +1,8 @@
 import {SUPABASE_URL,SUPABASE_ANON_KEY,STRIPE_PUBLISHABLE_KEY,getSupabase,isConfigured} from "./supabase.js";
 
-const FALLBACK_SHOWS=[
- {id:"bonded-in-mystery",title:"Bonded in Mystery",host:"CrowRules Originals",genre:"mystery",tag:"True mystery, strange stories",art:"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1000&q=85",episodes:12,subscribers:184,plays:0},
- {id:"tacoma-nights",title:"Tacoma Nights",host:"CrowRules",genre:"storytelling",tag:"Building CrowRules in real time",art:"https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1000&q=85",episodes:25,subscribers:327,plays:0},
- {id:"bird-brains",title:"Bird Brains",host:"Crow + KingCrow",genre:"conversation",tag:"Unfiltered conversations",art:"https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1000&q=85",episodes:42,subscribers:291,plays:0},
- {id:"back-deck-live",title:"Back Deck Live",host:"CrowRules Community",genre:"conversation",tag:"Live community transmissions",art:"https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1000&q=85",episodes:5,subscribers:119,plays:0},
- {id:"night-shift",title:"The Night Shift",host:"CrowRules Network",genre:"comedy",tag:"Late-night stories and laughs",art:"https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?auto=format&fit=crop&w=1000&q=85",episodes:18,subscribers:156,plays:0},
- {id:"dreamscapes",title:"Dreamscapes",host:"CrowRules Originals",genre:"storytelling",tag:"Ideas become worlds",art:"https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1000&q=85",episodes:9,subscribers:204,plays:0}
-];
-
 const state={
- points:Number(localStorage.getItem("cr_points")||0),
- shows:FALLBACK_SHOWS,
+ points:0,
+ shows:[],
  episodes:[],
  playing:false,
  current:null,
@@ -42,11 +33,11 @@ function player(){
 }
 
 function card(s){
- return '<article class="show-card" data-genre="'+esc(s.genre)+'"><a href="podcast.html?show='+encodeURIComponent(s.slug||s.id)+'"><img src="'+esc(s.art)+'" alt="'+esc(s.title)+' artwork" loading="lazy" onerror="this.style.display=\'none\'"><div class="card-copy"><span class="badge">'+esc(s.genre)+'</span><h3>'+esc(s.title)+'</h3><p>'+esc(s.tag||s.description||"")+'</p><small>'+Number(s.episodes||0)+' episodes • '+esc(s.host||"CrowRules Creator")+'</small></div></a><div class="card-tools"><button data-like>♡</button><button data-follow>Follow</button><button data-share>Share</button><button data-save>☆</button></div></article>';
+ return '<article class="show-card" data-genre="'+esc(s.genre)+'"><a href="podcast.html?show='+encodeURIComponent(s.slug||s.id)+'"><img src="'+esc(s.art)+'" alt="'+esc(s.title)+' artwork" loading="lazy" onerror="this.style.display=\'none\'"><div class="card-copy"><span class="badge">'+esc(s.genre)+'</span><h3>'+esc(s.title)+'</h3><p>'+esc(s.tag||s.description||"")+'</p><small>'+Number(s.episodes||0)+' episodes • '+esc(s.host||"CrowRules Creator")+'</small></div></a><div class="card-tools"><button data-follow>Follow</button><button data-share>Share</button><button data-save>☆</button></div></article>';
 }
 
 async function loadData(){
- if(!isConfigured){state.shows=FALLBACK_SHOWS;return}
+ if(!isConfigured){state.shows=[];return}
  try{
   state.supabase=await getSupabase();
   const {data,error}=await state.supabase.from("podcasts").select("id,title,slug,category,description,artwork_url,status,is_featured,is_live,listener_count,total_plays,creator_id,creators(name)").eq("status","published").order("is_featured",{ascending:false}).order("created_at",{ascending:false});
@@ -54,11 +45,12 @@ async function loadData(){
   const rows=data||[];
   if(rows.length){
    const ep=await state.supabase.from("podcast_episodes").select("id,podcast_id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,transcript,show_notes,status,play_count,access_level").eq("status","published").order("published_at",{ascending:false});
+   if(ep.error)throw ep.error;
    state.episodes=ep.data||[];
-   state.shows=rows.map(p=>{const es=state.episodes.filter(e=>e.podcast_id===p.id);return {id:p.id,dbId:p.id,slug:p.slug,title:p.title,host:p.creators?.name||"CrowRules Creator",genre:(p.category||"Podcast").toLowerCase(),tag:p.description||"CrowRules Podcasting transmission",description:p.description,art:p.artwork_url||"https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1000&q=85",episodes:es.length,subscribers:0,plays:Number(p.total_plays||0),listener_count:Number(p.listener_count||0),live:Boolean(p.is_live),episodeRows:es}};
+   state.shows=rows.map(p=>{const es=state.episodes.filter(e=>e.podcast_id===p.id);return {id:p.id,dbId:p.id,slug:p.slug,title:p.title,host:p.creators?.name||"CrowRules Creator",genre:(p.category||"Podcast").toLowerCase(),tag:p.description||"CrowRules Podcasting transmission",description:p.description,art:p.artwork_url||"",episodes:es.length,subscribers:0,plays:Number(p.total_plays||0),listener_count:Number(p.listener_count||0),live:Boolean(p.is_live),episodeRows:es}};
   });
   }
- }catch(err){console.warn("Podcasting data fallback:",err);state.shows=FALLBACK_SHOWS;toast("Live database unavailable • demo catalog active")}
+ }catch(err){console.warn("Podcasting database load failed:",err);state.shows=[];state.episodes=[];toast("Live catalog unavailable • check the database connection")}
 }
 
 async function loadAuth(){
@@ -157,10 +149,13 @@ async function forms(){
   e.preventDefault();
   if(f.matches('[data-demo-form]')&&f.closest("main")?.querySelector("h1")?.textContent.includes("Create a podcast")){
    if(!state.supabase||!state.user){toast("Sign in before creating a podcast");return}
-   const fd=new FormData(f);const {error}=await state.supabase.from("podcasts").insert({title:fd.get("name"),slug:String(fd.get("name")).toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""),description:fd.get("description")||"",category:fd.get("genre")||"Podcast",artwork_url:fd.get("artwork_url")||null,status:"draft"});
+   const fd=new FormData(f);
+   const title=String(fd.get("name")||"").trim();
+   const slug=title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+   const {data:newPodcast,error}=await state.supabase.from("podcasts").insert({title,slug,description:fd.get("description")||"",category:fd.get("genre")||"Podcast",artwork_url:fd.get("artwork_url")||null,status:"draft"}).select("id").single();
    if(error){toast("Could not create podcast: "+error.message);return}
-   const {data:creator}=await state.supabase.from("podcast_creators").select("id").eq("user_id",state.user.id).limit(1).maybeSingle();
-   if(creator){const {data:newPodcast}=await state.supabase.from("podcasts").select("id").eq("title",fd.get("name")).order("created_at",{ascending:false}).limit(1).maybeSingle();if(newPodcast)await state.supabase.from("podcast_creators").update({can_manage:true}).eq("id",creator.id).eq("podcast_id",newPodcast.id)}
+   const {error:mapError}=await state.supabase.from("podcast_creators").insert({podcast_id:newPodcast.id,user_id:state.user.id,role:"owner",can_manage:true});
+   if(mapError){await state.supabase.from("podcasts").delete().eq("id",newPodcast.id);toast("Could not create creator ownership: "+mapError.message);return}
    toast("Podcast draft created in Supabase");
   }else if(f.closest("main")?.querySelector("h1")?.textContent.includes("Add an episode.")){
    if(!state.supabase||!state.user){toast("Sign in before publishing an episode");return}
@@ -207,7 +202,10 @@ function creator(){
  const host=new URLSearchParams(location.search).get("host")||state.shows[0]?.host,shows=state.shows.filter(s=>s.host===host),s=shows[0]||state.shows[0];
  if(!s)return;el.innerHTML='<section class="profile-head"><img class="profile-art" src="'+esc(s.art)+'" alt=""><div><p class="eyebrow">CREATOR PROFILE</p><h1>'+esc(host)+'</h1><p>Creator profile in the CrowRules Podcasting network.</p><div class="actions"><button class="btn primary" data-follow>＋ Follow creator</button><button class="btn" data-share>Share profile</button></div></div></section><section class="section"><div class="section-head"><div><p class="eyebrow">SHOWS</p><h2>From this creator</h2></div></div><div class="card-grid">'+shows.map(card).join("")+'</div></section>';
 }
-function schedule(){const el=document.getElementById("schedule");if(!el)return;el.innerHTML=state.shows.slice(0,8).map((s,i)=>'<div class="slot"><time>'+["03:00 PM","05:30 PM","08:00 PM","09:30 PM","10:00 PM","11:30 PM","12:30 AM","01:30 AM"][i]+'</time><div><h3>'+esc(s.title)+'</h3><p>'+esc(s.host)+' • '+esc(s.tag)+'</p></div><a class="btn" href="podcast.html?show='+encodeURIComponent(s.slug||s.id)+'">Open</a></div>').join("")}
+async function schedule(){const el=document.getElementById("schedule");if(!el)return;if(!state.supabase){el.innerHTML='<div class="panel empty"><p>Live schedule requires the database connection.</p></div>';return}
+ const {data,error}=await state.supabase.from("podcast_schedule").select("id,podcast_id,episode_id,title,starts_at,ends_at,timezone,status").eq("status","scheduled").gte("starts_at",new Date().toISOString()).order("starts_at",{ascending:true}).limit(30);
+ if(error){el.innerHTML='<div class="panel empty"><p>'+esc(error.message)+'</p></div>';return}
+ el.innerHTML=(data||[]).map(x=>{const s=state.shows.find(v=>v.dbId===x.podcast_id);const href=x.episode_id?'episode.html?episode='+encodeURIComponent(x.episode_id):s?'podcast.html?show='+encodeURIComponent(s.slug||s.id):'#';return '<div class="slot"><time>'+new Date(x.starts_at).toLocaleString()+'</time><div><h3>'+esc(x.title||s?.title||"Scheduled transmission")+'</h3><p>'+esc(s?.host||"CrowRules Creator")+'</p></div><a class="btn" href="'+href+'">Open</a></div>'}).join("")||'<div class="panel empty"><p>No scheduled transmissions.</p></div>'}
 
 
 async function saveEpisodeReal(episodeId,button){
