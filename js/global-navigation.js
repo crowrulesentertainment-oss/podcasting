@@ -19,12 +19,12 @@ const links=[
 ];
 function current(){return(location.pathname.split("/").filter(Boolean).pop()||"index.html").toLowerCase()}
 function mount(){
- document.querySelectorAll("header,nav").forEach(el=>el.remove());
+ document.querySelectorAll("header:not(.cr-global-header),nav:not(.cr-global-nav)").forEach(el=>el.remove());
  document.body.classList.add("cr-has-global-nav");
  const c=current(),nav=links.map(([href,label,aliases])=>'<a href="'+BASE+href+'" '+(aliases.includes(c)?"aria-current=\"page\"":"")+'>'+label+"</a>").join("");
  const h=document.createElement("header");h.className="cr-global-header";
  h.innerHTML='<div class="cr-global-inner"><a class="cr-global-brand" href="'+BASE+'"><span class="cr-global-brand-mark">CR</span><span class="cr-global-brand-text">CROWRULES <small>PODCASTING</small></span></a><button class="cr-mobile-toggle" type="button" aria-label="Open navigation" aria-expanded="false">☰</button><nav class="cr-global-nav" aria-label="Primary">'+nav+'</nav><div class="cr-global-actions"><a class="cr-extra" href="'+BASE+'login.html">Login</a><a class="cr-account" href="'+BASE+'account-center.html">Account</a></div></div>';
- document.body.prepend(h);
+ document.body.prepend(h);\n new MutationObserver(m=>{m.forEach(x=>x.addedNodes.forEach(n=>{if(n.nodeType===1){if(n.matches?.("header:not(.cr-global-header),nav:not(.cr-global-nav)"))n.remove();n.querySelectorAll?.("header:not(.cr-global-header),nav:not(.cr-global-nav)").forEach(el=>el.remove())}})}).observe(document.body,{childList:true,subtree:true});
  const b=h.querySelector(".cr-mobile-toggle"),n=h.querySelector(".cr-global-nav");
  b.addEventListener("click",()=>{const open=n.classList.toggle("is-open");b.setAttribute("aria-expanded",String(open));b.textContent=open?"×":"☰"});
 }
