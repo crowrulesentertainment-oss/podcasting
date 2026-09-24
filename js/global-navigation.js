@@ -234,7 +234,8 @@
         })
         .on("postgres_changes",{event:"*",schema:"public",table:"membership_subscriptions",filter:"user_id=eq."+id},()=>{loadIdentity();broadcast("identity-refresh")})
         .on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_entitlements",filter:"member_user_id=eq."+id},()=>{loadIdentity();broadcast("identity-refresh")})
-        .on("postgres_changes",{event:"*",schema:"public",table:"creators",filter:"member_id=eq."+memberId},()=>{loadIdentity();broadcast("identity-refresh")})\n        .on("postgres_changes",{event:"*",schema:"public",table:"members",filter:"user_id=eq."+id},()=>{loadIdentity();broadcast("identity-refresh")})
+        .on("postgres_changes",{event:"*",schema:"public",table:"creators",filter:"member_id=eq."+memberId},()=>{loadIdentity();broadcast("identity-refresh")})
+        .on("postgres_changes",{event:"*",schema:"public",table:"members",filter:"user_id=eq."+id},()=>{loadIdentity();broadcast("identity-refresh")})
         .subscribe();
     }catch(_){}
   }
