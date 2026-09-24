@@ -1,0 +1,29 @@
+import {getSupabase} from "./supabase.js";
+const db=await getSupabase(),root=document.querySelector("#liveCommand");let state={ids:[],episodes:[],podcasts:[],events:[],follows:[],subs:[],revenue:[]},channels=[];
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
+const fmt=n=>Number(n||0).toLocaleString(),name=id=>state.episodes.find(e=>e.id===id)?.title||state.podcasts.find(p=>p.id===id)?.title||"Podcast";
+async function boot(){
+ if(!db){root.innerHTML='<div class="panel empty">Supabase is not configured.</div>';return}
+ const {data:{user}}=await db.auth.getUser();if(!user){root.innerHTML='<div class="panel empty"><h2>Sign in to open Live Creator OS.</h2><a class="btn primary" href="account.html">Open account</a></div>';return}
+ const {data:owned,error}=await db.from("podcast_creators").select("podcast_id").eq("user_id",user.id).eq("can_manage",true);if(error)throw error;
+ state.ids=(owned||[]).map(x=>x.podcast_id);if(!state.ids.length){root.innerHTML='<div class="panel empty"><h2>No managed podcasts yet.</h2><a class="btn primary" href="create-podcast.html">Create podcast</a></div>';return}
+ const [p,e]=await Promise.all([db.from("podcasts").select("id,title").in("id",state.ids),db.from("podcast_episodes").select("id,podcast_id,title,status,play_count").in("podcast_id",state.ids)]);
+ state.podcasts=p.data||[];state.episodes=e.data||[];render();subscribe();poll();
+}
+function render(){
+ const cutoff=Date.now()-90000,live=state.events.filter(e=>new Date(e.occurred_at).getTime()>cutoff&&["play_start","progress","play_pause"].includes(e.event_type)),plays=state.events.filter(e=>new Date(e.occurred_at).getTime()>Date.now()-60000&&["play_start","play_complete"].includes(e.event_type)).length,completed=state.events.filter(e=>new Date(e.occurred_at).getTime()>Date.now()-3600000&&e.event_type==="play_complete").length,active=new Set(live.filter(e=>e.session_key).map(e=>e.session_key)).size,listeners=new Set(live.filter(e=>e.user_id).map(e=>e.user_id)).size,followers=state.follows.length,subs=state.subs.filter(x=>x.status==="active").length;
+ const counts={};state.events.filter(e=>e.event_type==="play_start").forEach(e=>counts[e.episode_id]=(counts[e.episode_id]||0)+1);const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0],topName=top?name(top[0]):"Waiting for playback";
+ const events=state.events.slice(-40).reverse().map(e=>'<div class="event"><b>'+esc(e.event_type.replaceAll("_"," ").toUpperCase())+'</b><span>'+esc(name(e.episode_id||e.podcast_id))+' • '+new Date(e.occurred_at).toLocaleTimeString()+'</span></div>').join("");
+ const momentum=top?Math.min(100,top[1]*20):0;
+ root.innerHTML='<section class="kpis"><div class="panel kpi"><span class="muted">Currently active</span><strong>'+fmt(active)+'</strong></div><div class="panel kpi"><span class="muted">Live listeners</span><strong>'+fmt(listeners)+'</strong></div><div class="panel kpi"><span class="muted">Plays / minute</span><strong>'+fmt(plays)+'</strong></div><div class="panel kpi"><span class="muted">Completions / hour</span><strong>'+fmt(completed)+'</strong></div><div class="panel kpi"><span class="muted">Live followers</span><strong>'+fmt(followers)+'</strong></div><div class="panel kpi"><span class="muted">Active subscribers</span><strong>'+fmt(subs)+'</strong></div></section><section class="live-grid"><article class="panel live-card"><p class="eyebrow">LIVE NOW</p><h2>Currently listening</h2><div class="insight">'+(active?fmt(active)+" active playback sessions detected in the last 90 seconds.":"No active playback detected right now.")+'</div><div class="insight">'+fmt(listeners)+' identified listeners currently active.</div></article><article class="panel live-card"><p class="eyebrow">EPISODE MOMENTUM</p><h2>'+esc(topName)+'</h2><div class="momentum"><i style="width:'+momentum+'%"></i></div><p class="muted">'+(top?fmt(top[1])+" play-start events observed since this dashboard loaded.":"Waiting for playback activity.")+'</p></article><article class="panel live-card"><p class="eyebrow">CREATOR ALERTS</p><h2>Live event stream</h2><div class="event-list">'+(events||'<div class="empty-state muted">Waiting for real events…</div>')+'</div></article></section>';
+}
+function subscribe(){
+ const filter=state.ids.map(id=>"podcast_id.eq."+id).join(",");
+ channels.push(db.channel("creator-live-events").on("postgres_changes",{event:"INSERT",schema:"public",table:"podcast_analytics_events"},p=>{if(state.ids.includes(p.new.podcast_id)){state.events.push(p.new);render()}}).on("postgres_changes",{event:"INSERT",schema:"public",table:"podcast_follows"},p=>{if(state.ids.includes(p.new.podcast_id)){state.follows.push(p.new);render()}}).on("postgres_changes",{event:"postgres_changes",schema:"public",table:"podcast_subscriptions"},p=>{}).subscribe());
+}
+async function poll(){
+ const since=new Date(Date.now()-600000).toISOString(),eid=state.episodes.map(e=>e.id);if(eid.length){const q=await db.from("podcast_analytics_events").select("*").in("episode_id",eid).gte("occurred_at",since).order("occurred_at");if(!q.error)state.events=q.data||[]}
+ const f=await db.from("podcast_follows").select("*").in("podcast_id",state.ids).gte("created_at",since);if(!f.error)state.follows=f.data||[];
+ const s=await db.from("podcast_subscriptions").select("*").in("podcast_id",state.ids).eq("status","active");if(!s.error)state.subs=s.data||[];render();setTimeout(poll,30000);
+}
+boot().catch(e=>{console.error(e);root.innerHTML='<div class="panel empty"><h2>Live Creator OS could not load.</h2><p>'+esc(e.message||e)+'</p></div>'});
