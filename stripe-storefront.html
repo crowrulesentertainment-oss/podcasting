@@ -6,7 +6,10 @@
 <script>
 const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co";
 const SUPABASE_ANON_KEY=window.CROWRULES_CONFIG?.supabasePublishableKey||""; // Browser-safe publishable key loaded from js/config.js.
-const accountId=new URLSearchParams(location.search).get("accountId");
+const params=new URLSearchParams(location.search);
+const accountId=params.get("accountId");
+const defaultPodcastId=params.get("podcastId")||"";
+const defaultEpisodeId=params.get("episodeId")||"";
 const root=SUPABASE_URL+"/functions/v1/stripe-connect-demo";
 async function load(){
  if(!accountId){document.getElementById("intro").textContent="Missing connected account ID.";return;}
@@ -21,8 +24,8 @@ async function load(){
  }).join("");
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-async function buy(priceId){
- const r=await fetch(root+"?action=checkout",{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_ANON_KEY},body:JSON.stringify({accountId,priceId})});
+async function buy(priceId,podcastId="",episodeId=""){
+ const r=await fetch(root+"?action=checkout",{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_ANON_KEY},body:JSON.stringify({accountId,priceId,podcastId,episodeId})});
  const d=await r.json(); if(!r.ok||d.error){alert(d.error||"Checkout failed.");return;} location.href=d.url;
 }
 load();
