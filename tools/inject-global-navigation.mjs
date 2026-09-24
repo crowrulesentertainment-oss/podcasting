@@ -55,4 +55,4 @@ for(const file of walk(root)){
   }
 }
 
-console.log("Global Navigation 9.2 sync: scanned " + total + " HTML pages; updated " + changed + ".");
+console.log("Global Navigation 9.3 sync: scanned " + total + " HTML pages; updated " + changed + ".");
