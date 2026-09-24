@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stripe Connect | CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<style>
+body{background:#05050b;color:#f5f7ff;font-family:Montserrat,Arial,sans-serif}
+.wrap{max-width:1050px;margin:40px auto;padding:24px}.hero,.card{background:rgba(16,16,30,.9);border:1px solid rgba(130,100,255,.28);border-radius:18px;padding:24px;margin-bottom:20px}
+h1,h2{font-family:Orbitron,Arial,sans-serif}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+button{border:0;border-radius:10px;padding:12px 16px;background:#6d5dfc;color:white;font-weight:700;cursor:pointer}button.secondary{background:#22243a}button:disabled{opacity:.55;cursor:not-allowed}
+.status{padding:12px;border-radius:10px;background:#101426;margin:12px 0}.muted{color:#aab0c5}.error{color:#ff9eaa}.ok{color:#8ff0c1}input{width:100%;box-sizing:border-box;padding:11px;margin:7px 0 12px;border-radius:9px;border:1px solid #343753;background:#090b14;color:#fff}
+</style>
+</head>
+<body>
+<div class="wrap">
+<section class="hero">
+<h1>Stripe Connect</h1>
+<p class="muted">CrowRules creator monetization demo — connect, onboard, create products, and sell.</p>
+<div id="status" class="status">Checking your Stripe Connect status…</div>
+<button id="connectBtn">Onboard to collect payments</button>
+<button id="refreshBtn" class="secondary">Refresh status</button>
+</section>
+
+<div class="grid">
+<section class="card">
+<h2>Create Product</h2>
+<p class="muted">Products are created directly on the connected creator account.</p>
+<input id="productName" placeholder="Product name">
+<input id="productDescription" placeholder="Description">
+<input id="productPrice" type="number" min="0.50" step="0.01" placeholder="Price in USD">
+<button id="productBtn">Create Product</button>
+<div id="productMessage" class="status"></div>
+</section>
+
+<section class="card">
+<h2>Subscription</h2>
+<p class="muted">Uses PRICE_ID configured on the server. Replace the placeholder secret with a real recurring Price ID.</p>
+<button id="subscriptionBtn">Start Subscription Checkout</button>
+<button id="portalBtn" class="secondary">Open Billing Portal</button>
+</section>
+</div>
+
+<section class="card">
+<h2>Creator Storefront</h2>
+<p class="muted">Open the connected-account storefront using the account ID after onboarding.</p>
+<div id="storeLink"></div>
+</section>
+
+<section class="card">
+<h2>Configuration checklist</h2>
+<ul class="muted">
+<li>Set STRIPE_SECRET_KEY in Supabase secrets. Never put it in HTML.</li>
+<li>Set APPLICATION_FEE_AMOUNT for the CrowRules application fee in cents.</li>
+<li>Set PRICE_ID to a recurring Price for the subscription demo.</li>
+<li>Set STRIPE_WEBHOOK_SECRET on the webhook function.</li>
+<li>Enable Stripe Connect for the CrowRules platform.</li>
+</ul>
+</section>
+</div>
+<script>
+const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co";
+const SUPABASE_ANON_KEY="__SUPABASE_ANON_KEY_PLACEHOLDER__"; // TODO: Replace with CrowRules Supabase anon/publishable key.
+const FN=SUPABASE_URL+"/functions/v1/stripe-connect-demo";
+const $=id=>document.getElementById(id);
+let token=null, accountId=new URLSearchParams(location.search).get("accountId");
+
+function setStatus(text,kind=""){ $("status").textContent=text; $("status").className="status "+kind; }
+async function session(){
+  if(window.supabase?.auth) {
+    const {data}=await window.supabase.auth.getSession();
+    token=data?.session?.access_token||null;
+  }
+  return token;
+}
+async function call(action,body){
+  if(!token) throw new Error("Please sign in to CrowRules first.");
+  const r=await fetch(FN+"?action="+encodeURIComponent(action),{
+    method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json","apikey":SUPABASE_ANON_KEY},
+    body:JSON.stringify(body||{})
+  });
+  const data=await r.json().catch(()=>({error:"Invalid server response."}));
+  if(!r.ok||data.error) throw new Error(data.error||"Request failed.");
+  return data;
+}
+async function refresh(){
+  try{
+    await session();
+    if(!token){setStatus("Sign in to connect your creator payout account.","error");$("connectBtn").disabled=true;return;}
+    const d=await call("status");
+    accountId=d.accountId;
+    setStatus(d.readyToProcessPayments?"Payments enabled":"Account found — onboarding still needs attention.","ok");
+    $("storeLink").innerHTML='<a href="stripe-storefront.html?accountId='+encodeURIComponent(accountId)+'">Open creator storefront</a>';
+  }catch(e){
+    if(String(e.message).includes("not connected")){setStatus("Not connected — click Onboard to collect payments.");}
+    else setStatus(e.message,"error");
+  }
+}
+$("connectBtn").onclick=async()=>{
+  try{
+    await session();
+    if(!accountId){ const created=await call("create-account"); accountId=created.accountId; }
+    const d=await call("account-link");
+    location.href=d.url;
+  }catch(e){setStatus(e.message,"error");}
+};
+$("refreshBtn").onclick=refresh;
+$("productBtn").onclick=async()=>{
+  try{
+    const cents=Math.round(Number($("productPrice").value)*100);
+    const d=await call("create-product",{name:$("productName").value,description:$("productDescription").value,priceInCents:cents,currency:"usd"});
+    $("productMessage").textContent="Created "+d.product.name+" ("+d.product.id+").";
+  }catch(e){$("productMessage").textContent=e.message;$("productMessage").className="status error";}
+};
+$("subscriptionBtn").onclick=async()=>{try{const d=await call("subscription",{accountId});location.href=d.url;}catch(e){setStatus(e.message,"error");}};
+$("portalBtn").onclick=async()=>{try{const d=await call("billing-portal",{accountId});location.href=d.url;}catch(e){setStatus(e.message,"error");}};
+refresh();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>window.addEventListener("load",refresh);</script>
+</body>
+</html>
