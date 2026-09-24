@@ -29,7 +29,9 @@ function player(){
  const a=document.getElementById("crAudio");
  a.addEventListener("timeupdate",()=>{if(!a.duration)return;state.progress=(a.currentTime/a.duration)*100;document.getElementById("playerProgress").style.width=state.progress+"%";});
  a.addEventListener("loadedmetadata",()=>state.duration=a.duration);
- a.addEventListener("ended",()=>{addPoints(10);toast("+10 CrowPoints • episode completed");playNext()});
+ a.addEventListener("play",()=>{const ep=state.current;if(ep)recordAnalyticsEvent("play_start",{podcast_id:ep.podcast_id,episode_id:ep.id,position_seconds:Math.floor(a.currentTime||0),session_key:state.sessionKey||null})});
+ a.addEventListener("pause",()=>{const ep=state.current;if(ep)recordAnalyticsEvent("play_pause",{podcast_id:ep.podcast_id,episode_id:ep.id,seconds_listened:Math.floor(a.currentTime||0),position_seconds:Math.floor(a.currentTime||0),session_key:state.sessionKey||null})});
+ a.addEventListener("ended",()=>{const ep=state.current;if(ep)recordAnalyticsEvent("play_complete",{podcast_id:ep.podcast_id,episode_id:ep.id,seconds_listened:Math.floor(a.duration||a.currentTime||0),position_seconds:Math.floor(a.duration||a.currentTime||0),session_key:state.sessionKey||null});addPoints(10);toast("+10 CrowPoints • episode completed");playNext()});
 }
 
 function card(s){
