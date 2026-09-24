@@ -1878,6 +1878,42 @@
     return data.publicUrl;
   }
 
+  async function startStripeOnboarding(podcastId) {
+    const { data: sessionData, error: sessionError } = await client.auth.getSession();
+    if (sessionError) throw sessionError;
+
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken) throw new Error("Your login session expired. Please sign in again.");
+
+    const functionUrl =
+      config.supabaseUrl.replace(/\/$/, "") +
+      "/functions/v1/creator-connect-onboarding";
+
+    const response = await fetch(functionUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + accessToken,
+        "apikey": config.supabaseAnonKey,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        podcast_id: podcastId,
+        origin: window.location.origin,
+        return_path: "/podcasting/payouts.html"
+      })
+    });
+
+    const raw = await response.text();
+    let result = {};
+    try { result = raw ? JSON.parse(raw) : {}; } catch (_) { result = { error: raw }; }
+
+    if (!response.ok || !result.onboarding_url) {
+      throw new Error(result.error || "Stripe payout onboarding could not be started.");
+    }
+
+    return result.onboarding_url;
+  }
+
   async function createPodcast(status) {
 
     clearNotice();
@@ -1990,31 +2026,38 @@
 
       state.dirty = false;
 
-      if (status === "published") {
-
-        showNotice(
-          "Podcast published successfully. Opening your new show…",
-          "success"
-        );
-
-      } else {
-
-        showNotice(
-          "Podcast saved as a draft. Opening your new show…",
-          "success"
-        );
-
+      /*
+       * Every newly-created podcast now starts Stripe Connect onboarding.
+       * The creator completes identity/bank details in Stripe's hosted flow;
+       * CrowRules never collects or stores raw bank information.
+       */
+      let onboardingUrl = null;
+      try {
+        onboardingUrl = await startStripeOnboarding(data.id);
+      } catch (stripeError) {
+        console.error("Stripe Connect onboarding:", stripeError);
       }
 
-      /*
-       * Supports the planned individual podcast page.
-       */
+      if (onboardingUrl) {
+        showNotice(
+          "Podcast created. Opening secure Stripe payout setup…",
+          "success"
+        );
+        setTimeout(() => {
+          window.location.assign(onboardingUrl);
+        }, 450);
+        return;
+      }
+
+      showNotice(
+        "Podcast created. Stripe payout setup still needs to be completed from the Payouts Center.",
+        "info"
+      );
+
       setTimeout(() => {
-
         window.location.href =
-          `podcast.html?id=${encodeURIComponent(data.id)}`;
-
-      }, 700);
+          `payouts.html?podcast_id=${encodeURIComponent(data.id)}&stripe_setup=1`;
+      }, 900);
 
     } catch (error) {
 
