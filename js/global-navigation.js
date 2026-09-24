@@ -1,8 +1,8 @@
-/* CrowRules Podcasting — Global Header & Navigation System 6.1
-   Hardened link routing, nested-path support, active-section detection,
-   and accessible mobile navigation. */
+/* CrowRules Podcasting — Global Header & Navigation System 6.2
+    Hardened root/nested-path routing, active-section detection,
+   accessible mobile navigation, and repository linking. */
 (function(){
-  if(window.__CROWRULES_GLOBAL_NAV_61__) return;
+  if(window.__CROWRULES_GLOBAL_NAV_62__) return;
   window.__CROWRULES_GLOBAL_NAV_61__=true;
 
   function removeDuplicateHeaders(){
