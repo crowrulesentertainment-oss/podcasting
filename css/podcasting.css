@@ -3280,3 +3280,90 @@ footer,
 .psv2-bottom{display:flex;gap:8px;flex-wrap:wrap;padding:4px 0}
 @media(max-width:900px){.psv2-hero{grid-template-columns:1fr;min-height:auto}.psv2-art-panel{order:-1;padding:30px 30px 0}.psv2-art{width:min(300px,80vw);transform:none}.psv2-content{padding:30px}.psv2-episodes{grid-template-columns:1fr}}
 @media(max-width:560px){.psv2-metrics{grid-template-columns:1fr}.psv2-episode{grid-template-columns:100px 1fr}.psv2-membership{grid-template-columns:1fr}.psv2-price{text-align:left}.psv2-episode-actions .btn{padding:8px 9px;font-size:9px}}
+
+
+/* =========================================================
+   PODCAST SHOWROOM — LAYOUT FIX / 3.0 POLISH
+   ========================================================= */
+.podcast-showroom-v2 .wrap{width:min(1360px,calc(100% - 32px))}
+.psv2-hero{
+  min-height:520px;
+  grid-template-columns:minmax(0,1.3fr) minmax(320px,.7fr);
+}
+.psv2-content{padding:clamp(28px,4vw,58px)}
+.psv2-art-panel{padding:42px}
+.psv2-art{position:relative}
+.psv2-art img{min-width:0}
+.psv2-live{z-index:2}
+.psv2-actions .btn,.psv2-member-row .btn{min-height:42px;padding:10px 16px;font-size:11px}
+.psv2-member-row{margin-top:14px}
+.psv2-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+.psv2-section{margin-top:34px}
+.psv2-section-head{
+  padding:0 2px 10px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.psv2-episodes{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+}
+.psv2-episode{
+  min-width:0;
+  grid-template-columns:132px minmax(0,1fr);
+  min-height:190px;
+}
+.psv2-episode-art{min-width:0}
+.psv2-episode-copy{display:flex;flex-direction:column;min-width:0}
+.psv2-episode-desc{flex:1}
+.psv2-episode-actions{margin-top:auto}
+.psv2-episode-actions .btn{min-height:36px;padding:8px 12px;font-size:10px}
+.psv2-membership{min-width:0}
+.psv2-price .btn{display:inline-flex}
+.psv2-bottom{justify-content:flex-start;padding-top:6px}
+
+@media(max-width:1100px){
+  .psv2-hero{grid-template-columns:minmax(0,1fr) 300px}
+  .psv2-art-panel{padding:32px 24px}
+  .psv2-art{width:270px}
+}
+@media(max-width:900px){
+  .podcast-showroom-v2 .wrap{width:min(760px,calc(100% - 24px))}
+  .psv2-hero{grid-template-columns:1fr;min-height:0}
+  .psv2-art-panel{order:-1;padding:28px 24px 4px}
+  .psv2-art{width:min(300px,72vw)}
+  .psv2-content{padding:28px 24px 32px}
+  .psv2-title{font-size:clamp(38px,9vw,68px)}
+  .psv2-episodes{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .podcast-showroom-v2{padding:14px 0 70px}
+  .podcast-showroom-v2 .wrap{width:calc(100% - 16px)}
+  .psv2-hero{border-radius:22px}
+  .psv2-art-panel{padding:20px 16px 0}
+  .psv2-art{width:min(250px,74vw);border-radius:20px}
+  .psv2-content{padding:22px 18px 24px}
+  .psv2-title{font-size:clamp(34px,11vw,52px);letter-spacing:-.04em}
+  .psv2-description{font-size:12px;line-height:1.75}
+  .psv2-actions .btn,.psv2-member-row .btn{flex:1 1 auto}
+  .psv2-metrics{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .psv2-metric{padding:11px 9px}
+  .psv2-metric b{font-size:14px}
+  .psv2-metric span{font-size:7px}
+  .psv2-episode{
+    grid-template-columns:88px minmax(0,1fr);
+    min-height:0;
+    gap:11px;
+    padding:10px;
+  }
+  .psv2-episode-art{border-radius:10px}
+  .psv2-episode-copy h3{font-size:12px}
+  .psv2-episode-meta{font-size:8px}
+  .psv2-episode-desc{font-size:9px;-webkit-line-clamp:2}
+  .psv2-episode-actions .btn{flex:1;padding:7px 8px;font-size:8px}
+  .psv2-membership{padding:18px}
+  .psv2-price{font-size:21px}
+}
+@media(prefers-reduced-motion:reduce){
+  .psv2-episode{transition:none}
+  .psv2-episode:hover{transform:none}
+}
