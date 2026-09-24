@@ -1726,39 +1726,72 @@
   async function loadMonetization() {
 
     const {
-      data,
-      error
-    } =
-      await client
-        .from("creator_monetization")
-        .select([
-          "id",
-          "user_id",
-          "status",
-          "stripe_account_id",
-          "payouts_enabled",
-          "charges_enabled",
-          "currency",
-          "created_at",
-          "updated_at"
-        ].join(","))
-        .eq(
-          "user_id",
-          currentUser.id
-        )
-        .maybeSingle();
+      data: sessionData,
+      error: sessionError
+    } = await client.auth.getSession();
 
+    if (sessionError) throw sessionError;
 
-    if (error) {
-      throw error;
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken) throw new Error("Your login session has expired. Please sign in again.");
+
+    const supabaseUrl =
+      window.CROWRULES_SUPABASE_URL ||
+      window.SUPABASE_URL;
+
+    const publishableKey =
+      window.CROWRULES_SUPABASE_PUBLISHABLE_KEY ||
+      window.SUPABASE_PUBLISHABLE_KEY ||
+      window.SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !publishableKey) {
+      throw new Error("CrowRules Supabase configuration is missing.");
     }
 
+    const response = await fetch(
+      supabaseUrl.replace(/\/$/, "") +
+        "/functions/v1/creator-connect-status",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + accessToken,
+          "apikey": publishableKey,
+          "Content-Type": "application/json"
+        }
+      }
+    );
 
-    monetization =
-      data || null;
+    const rawBody = await response.text();
+    let data = null;
 
+    try {
+      data = rawBody ? JSON.parse(rawBody) : null;
+    } catch (_) {
+      data = { error: rawBody };
+    }
+
+    if (!response.ok || data?.error) {
+      throw new Error(
+        data?.error ||
+        ("Payout status synchronization failed: HTTP " + response.status)
+      );
+    }
+
+    monetization = data?.stripe_account_id
+      ? {
+          id: null,
+          user_id: currentUser.id,
+          status: data.status || "not_started",
+          stripe_account_id: data.stripe_account_id,
+          payouts_enabled: data.payouts_enabled === true,
+          charges_enabled: data.charges_enabled === true,
+          currency: "usd",
+          ui_state: data.state || "not_connected",
+          ui_label: data.label || "Not Connected",
+          ui_detail: data.detail || ""
+        }
+      : null;
   }
-
 
   /* ============================================================
      LOAD PAYOUTS
@@ -1948,13 +1981,36 @@
       monetization?.status ||
       "not_started";
 
+    const uiState =
+      monetization?.ui_state ||
+      (status === "active"
+        ? "payouts_enabled"
+        : status === "restricted"
+          ? "action_required"
+          : status === "pending"
+            ? "setup_started"
+            : "not_connected");
+
+    const uiLabel =
+      monetization?.ui_label ||
+      (uiState === "payouts_enabled"
+        ? "Payouts Enabled"
+        : uiState === "action_required"
+          ? "Action Required"
+          : uiState === "setup_started"
+            ? "Setup Started"
+            : "Not Connected");
+
 
     const badge =
       $("statusBadge");
 
 
     badge.textContent =
-      statusName(status);
+      uiLabel;
+
+    badge.dataset.state =
+      uiState;
 
 
     badge.className =
@@ -1963,6 +2019,7 @@
 
 
     $("statusDetail").textContent =
+      monetization?.ui_detail ||
       statusDescription(status);
 
 
