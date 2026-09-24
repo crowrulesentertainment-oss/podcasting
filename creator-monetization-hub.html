@@ -37,13 +37,13 @@
  try{
   const cfg=window.CrowRulesConfig||{};
   if(!cfg.supabaseUrl||!cfg.supabaseAnonKey) throw new Error("CrowRules configuration unavailable.");
-  const db=supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
-  const {data:{user}}=await db.auth.getUser();
-  if(!user){gate.innerHTML='<span class="eyebrow">LOGIN REQUIRED</span><h2>Sign in to open your private monetization hub.</h2><a class="btn primary" href="login.html">LOGIN</a>';return;}
-  const cr=await db.from("creators").select("id,name,display_name").eq("user_id",user.id).maybeSingle();
-  if(cr.error) throw cr.error;
-  if(!cr.data){gate.innerHTML='<span class="eyebrow">CREATOR PROFILE REQUIRED</span><h2>Your account is signed in, but no creator record is connected yet.</h2><a class="btn primary" href="creator-dashboard.html">CREATOR STUDIO</a>';return;}
-  const creatorId=cr.data.id;
+  const db=window.supabaseClient||supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
+  const shared=window.CrowRulesAccount;
+  const state=await Promise.resolve(shared?.ready);
+  if(!state?.user){gate.innerHTML='<span class="eyebrow">LOGIN REQUIRED</span><h2>Sign in to open your private monetization hub.</h2><a class="btn primary" href="login.html">LOGIN</a>';return;}
+  const cr=state.creatorRecord;
+  if(!cr){gate.innerHTML='<span class="eyebrow">CREATOR PROFILE REQUIRED</span><h2>Your account is signed in, but no creator record is connected yet.</h2><a class="btn primary" href="creator-dashboard.html">CREATOR STUDIO</a>';return;}
+  const creatorId=cr.id;
   const [showsRes,dealsRes]=await Promise.all([
    db.from("podcasts").select("id,title,description,status,created_at").eq("creator_id",creatorId).order("created_at",{ascending:false}),
    db.from("podcast_sponsorship_deals").select("id,status,agreed_amount,created_at").order("created_at",{ascending:false})
