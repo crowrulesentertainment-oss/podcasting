@@ -120,7 +120,7 @@ const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co";
 const KEY=window.CROWRULES_CONFIG?.supabasePublishableKey||"";
 const client=window.supabase.createClient(SUPABASE_URL,KEY);
 const $=id=>document.getElementById(id);
-let user=null, accountId=null, analyticsRange="weekly", revenueRows=[], subscriptionRows=[], customerRows=[], transactionRows=[];
+let user=null, accountId=null, analyticsRange="weekly", revenueRows=[], subscriptionRows=[], customerRows=[], transactionRows=[], ledgerChannel=null;
 const money=(cents,currency="usd")=>new Intl.NumberFormat("en-US",{style:"currency",currency:String(currency||"usd").toUpperCase()}).format((Number(cents)||0)/100);
 const date=v=>v?new Intl.DateTimeFormat("en-US",{dateStyle:"medium"}).format(new Date(v)):"—";
 const badge=(status)=>{const s=String(status||"unknown");const cls=["active","trialing","paid","succeeded"].includes(s)?"ok":["past_due","unpaid","payment_failed","requires_action","canceled"].includes(s)?"bad":"warn";return '<span class="badge '+cls+'">'+s.replaceAll("_"," ")+"</span>"};
@@ -136,6 +136,9 @@ clearError();
 const {data,error:authError}=await client.auth.getUser();
 if(authError||!data?.user){location.href="login.html?redirect=creator-billing.html";return}
 user=data.user;
+if(ledgerChannel){try{client.removeChannel(ledgerChannel)}catch(_){}}
+ledgerChannel=client.channel("creator-revenue-ledger-"+user.id.slice(0,12));
+ledgerChannel.on("postgres_changes",{event:"*",schema:"public",table:"cr_creator_revenue_transactions",filter:"user_id=eq."+user.id},()=>{ $("ledgerLive").textContent="UPDATED"; setTimeout(()=>$("ledgerLive").textContent="LIVE",1800); load().catch(()=>{}); }).subscribe();
 const {data:map,error:mapError}=await client.from("creator_monetization").select("stripe_account_id,charges_enabled,payouts_enabled,updated_at").eq("user_id",user.id).maybeSingle();
 if(mapError)throw mapError;
 if(!map?.stripe_account_id){$("stripeAccount").textContent="Not connected";$("charges").textContent="Not enabled";$("payouts").textContent="Not enabled";$("subscriptions").innerHTML='<tr><td colspan="5" class="empty">Connect Stripe to begin billing.</td></tr>';$("earnings").innerHTML='<tr><td colspan="6" class="empty">No creator billing activity yet.</td></tr>';return}
@@ -149,7 +152,8 @@ const [{data:subs,error:se},{data:customers,error:ce},{data:earnings,error:ee},{
 client.from("stripe_billing_subscriptions").select("*").order("updated_at",{ascending:false}).limit(50),
 client.from("stripe_billing_customers").select("*").order("updated_at",{ascending:false}).limit(10),
 client.from("creator_earnings").select("source,gross_amount,platform_fee,creator_amount,currency,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(5000),
-client.from("stripe_billing_webhook_events").select("event_type,received_at").order("received_at",{ascending:false}).limit(500),\nclient.from("cr_creator_revenue_transactions").select("*").eq("user_id",user.id).order("occurred_at",{ascending:false}).limit(5000)
+client.from("stripe_billing_webhook_events").select("event_type,received_at").order("received_at",{ascending:false}).limit(500),
+client.from("cr_creator_revenue_transactions").select("*").eq("user_id",user.id).order("occurred_at",{ascending:false}).limit(5000)
 ]);
 if(se)throw se;if(ce)throw ce;if(ee)throw ee;if(ve)throw ve;if(te)throw te; revenueRows=earnings||[];subscriptionRows=subs||[];customerRows=customers||[];transactionRows=transactions||[];
 $("ledgerCount").textContent=transactionRows.length;
@@ -182,9 +186,7 @@ $("attention").innerHTML=needs.length?needs.slice(0,8).map(s=>'<div style="paddi
 }
 async function portal(){
 try{clearError();if(!accountId)throw new Error("Connect Stripe before opening the Billing Portal.");const {data:session}=await client.auth.getSession();const token=session?.session?.access_token;if(!token)throw new Error("Your login session has expired.");const r=await fetch(SUPABASE_URL+"/functions/v1/stripe-connect-demo?action=billing-portal",{method:"POST",headers:{Authorization:"Bearer "+token,apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({accountId})});const d=await r.json();if(!r.ok||d.error)throw new Error(d.error||"Unable to open Billing Portal.");location.href=d.url}catch(e){error(e.message)}}
-$("refresh").onclick=()=>load().catch(e=>error(e.message));
-const ledgerChannel=client.channel("creator-revenue-ledger-"+Math.random().toString(36).slice(2));
-ledgerChannel.on("postgres_changes",{event:"*",schema:"public",table:"cr_creator_revenue_transactions",filter:"user_id=eq."+user?.id},()=>{ $("ledgerLive").textContent="UPDATED"; setTimeout(()=>$("ledgerLive").textContent="LIVE",1800); load().catch(()=>{}); }).subscribe();$("ledgerRefresh").onclick=()=>load().catch(e=>error(e.message));$("exportCsv").onclick=exportRevenue;$("statement").onclick=statement;
+$("refresh").onclick=()=>load().catch(e=>error(e.message));$("ledgerRefresh").onclick=()=>load().catch(e=>error(e.message));$("exportCsv").onclick=exportRevenue;$("statement").onclick=statement;
 $("portal").onclick=portal;$("portal2").onclick=portal;document.querySelectorAll("[data-range]").forEach(b=>b.onclick=()=>{analyticsRange=b.dataset.range;document.querySelectorAll("[data-range]").forEach(x=>x.classList.remove("active"));b.classList.add("active");load().catch(e=>error(e.message));});
 load().catch(e=>error(e.message));
 })();
