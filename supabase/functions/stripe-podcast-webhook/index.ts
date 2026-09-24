@@ -44,7 +44,7 @@ Deno.serve(async(req)=>{
       });
       if(error)console.error("cumulative finance rules:",error.message);
     };
-    const financeAlert=async(type:string,title:string,message:string,threshold:number|null=null,currency:string|null=null)=>{
+    const recordAdjustment=async(transactionId:string,type:string,amount:number,currency:string,reason:string)=>{ if(!transactionId||!amount||amount<=0)return; const {error}=await supabase.from("cr_podcast_finance_adjustments").upsert({creator_id:creatorId,transaction_id:transactionId,adjustment_type:type,amount_cents:Math.round(amount),currency:(currency||"usd").toLowerCase(),source_event_id:event.id,reason},{onConflict:"source_event_id,adjustment_type,transaction_id"}); if(error)console.error("finance adjustment:",error.message); };\n    const financeAlert=async(type:string,title:string,message:string,threshold:number|null=null,currency:string|null=null)=>{
       if(!creatorId)return;
       const {data:prefs}=await supabase.from("cr_podcast_finance_notification_preferences").select("*").eq("creator_id",creatorId).maybeSingle();
       const enabled=prefs ? prefs[type=== "milestone"?"milestones":type=== "payout"?"payouts":type=== "refund"?"refunds":type=== "dispute"?"disputes":type=== "account"?"account":"system"] !== false : true;
@@ -64,7 +64,7 @@ Deno.serve(async(req)=>{
         currency:obj.currency||"usd", status:"paid", updated_at:new Date().toISOString()
       },{onConflict:"stripe_checkout_session_id"});
       if(splitError) throw splitError;
-      await financeAlert("milestone","Payment received","A podcast payment was successfully recorded in your creator finance ledger.",gross,obj.currency||"usd");
+      await recordAdjustment((await supabase.from("cr_podcast_revenue_splits").select("id").eq("creator_id",creatorId).eq("stripe_checkout_session_id",obj.id).maybeSingle()).data?.id,"platform_fee",platformFee,obj.currency||"usd","Platform fee recorded from checkout split");\n      await financeAlert("milestone","Payment received","A podcast payment was successfully recorded in your creator finance ledger.",gross,obj.currency||"usd");
       await evaluateFinanceRules("payment",obj.id,gross,obj.currency||"usd");
       await evaluateFinanceRules("revenue",obj.id,gross,obj.currency||"usd");
     }
