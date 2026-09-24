@@ -282,9 +282,9 @@ if(!window.CrowRulesMemberState && window.supabase?.createClient){
     const menu=document.createElement("button");menu.className="cr-global-menu";menu.type="button";menu.setAttribute("aria-label","Open navigation");menu.setAttribute("aria-expanded","false");menu.setAttribute("aria-controls","cr-global-mobile-nav");menu.textContent="☰";
     const mobile=document.createElement("nav");mobile.className="cr-global-mobile";mobile.id="cr-global-mobile-nav";mobile.setAttribute("aria-label","Mobile primary");
     nav.forEach(x=>addLink(mobile,x[0],x[1],x[2],x[3]));addLink(mobile,"help-center.html","Help",help,"account");
-    const mobileAccount=document.createElement("a");mobileAccount.href=href("profile.html");mobileAccount.textContent="Account & Command";mobileAccount.dataset.navGroup="account";mobile.appendChild(mobileAccount);
+    const mobileAccount=document.createElement("a");mobileAccount.href=href("profile.html");mobileAccount.textContent="Account";mobileAccount.dataset.navGroup="account";mobile.appendChild(mobileAccount);
     inner.appendChild(desktop);inner.appendChild(actions);inner.appendChild(menu);header.appendChild(inner);header.appendChild(mobile);
-    return{header,notify,account,menu,mobile,command};
+    return{header,notify,account,menu,mobile};
   }
 
   function removeLegacyNavigation(){
@@ -316,7 +316,7 @@ document.querySelectorAll("link[href*=\"professional-experience.css\"],script[sr
       closePanels();panel.hidden=!opening;ui.notify.setAttribute("aria-expanded",String(opening));
       if(opening){openPanel="notifications";loadNotifications()}
     });
-    /* Profile remains a real link. Command palette is available through Ctrl/⌘K. */
+    /* Profile remains a real link. */
     ui.menu.addEventListener("click",()=>{
       const open=ui.mobile.classList.toggle("open");
       ui.menu.setAttribute("aria-expanded",String(open));
