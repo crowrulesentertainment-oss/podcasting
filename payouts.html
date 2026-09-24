@@ -667,7 +667,9 @@
 
     }
   </style>
-</head>
+<style>
+.onboarding-timeline{display:grid;grid-template-columns:1fr;gap:0}.timeline-step{display:grid;grid-template-columns:44px minmax(0,1fr);gap:16px;align-items:start;padding:14px 0}.timeline-marker{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);font-weight:700;background:rgba(255,255,255,.04)}.timeline-step.current .timeline-marker{border-color:var(--cyan);background:rgba(0,234,255,.1)}.timeline-step.complete .timeline-marker{border-color:var(--green);background:rgba(66,245,155,.1)}.timeline-step.attention .timeline-marker{border-color:var(--yellow);background:rgba(255,209,102,.1)}.timeline-title{font-weight:700}.timeline-detail{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.5}.timeline-action{margin-top:10px;min-height:44px}.timeline-action[hidden]{display:none}.timeline-line{width:2px;height:20px;margin-left:17px;background:var(--line)}.timeline-line.complete{background:var(--green)}@media(min-width:760px){.onboarding-timeline{grid-template-columns:1fr 20px 1fr 20px 1fr 20px 1fr;align-items:start}.timeline-step{display:block;padding:8px 0}.timeline-marker{margin-bottom:12px}.timeline-line{width:auto;height:2px;margin:25px 4px 0}}
+</style></head>
 
 <body>
 
@@ -937,6 +939,20 @@
 
   </section>
 
+
+  <!-- 4-STEP PAYOUT ONBOARDING TIMELINE -->
+  <section class="section">
+    <div class="section-header"><div><h2 class="section-title">Payout Onboarding</h2><p class="section-subtitle">Live Stripe Connect progress, synchronized with your payout account.</p></div></div>
+    <div class="card onboarding-timeline" id="payoutTimeline" aria-label="Payout onboarding progress">
+      <div class="timeline-step" data-step="not_connected"><div class="timeline-marker">1</div><div class="timeline-content"><div class="timeline-title">Connect Account</div><div class="timeline-detail">Create your secure creator payout account.</div><button type="button" class="button timeline-action" data-action="connect">Connect Account</button></div></div>
+      <div class="timeline-line" aria-hidden="true"></div>
+      <div class="timeline-step" data-step="setup_started"><div class="timeline-marker">2</div><div class="timeline-content"><div class="timeline-title">Complete Setup</div><div class="timeline-detail">Finish the Stripe onboarding requirements.</div><button type="button" class="button timeline-action" data-action="setup">Continue Setup</button></div></div>
+      <div class="timeline-line" aria-hidden="true"></div>
+      <div class="timeline-step" data-step="action_required"><div class="timeline-marker">3</div><div class="timeline-content"><div class="timeline-title">Resolve Requirements</div><div class="timeline-detail">Additional information is required by Stripe.</div><button type="button" class="button timeline-action" data-action="action">Fix Required Information</button></div></div>
+      <div class="timeline-line" aria-hidden="true"></div>
+      <div class="timeline-step" data-step="payouts_enabled"><div class="timeline-marker">4</div><div class="timeline-content"><div class="timeline-title">Payouts Enabled</div><div class="timeline-detail">Your creator payout account is ready for eligible payouts.</div><button type="button" class="button timeline-action" data-action="ready" disabled>Payouts Ready</button></div></div>
+    </div>
+  </section>
 
   <!-- CONNECT PAYOUTS -->
 
@@ -2141,6 +2157,26 @@
     }
 
 
+    const timeline = $("payoutTimeline");
+    if (timeline) {
+      const activeIndex = {not_connected:0, setup_started:1, action_required:2, payouts_enabled:3}[uiState] ?? 0;
+      timeline.querySelectorAll(".timeline-step").forEach((step,index)=>{
+        step.classList.toggle("complete",index<activeIndex);
+        step.classList.toggle("current",index===activeIndex);
+        step.classList.toggle("attention",uiState==="action_required"&&index===2);
+        const action=step.querySelector(".timeline-action");
+        if(!action)return;
+        const current=index===activeIndex;
+        action.hidden=!current;
+        action.disabled=!current||uiState==="payouts_enabled";
+        if(index===0)action.textContent=uiState==="not_connected"?"Connect Account":"Account Connected";
+        if(index===1)action.textContent=uiState==="setup_started"?"Continue Setup":"Setup Complete";
+        if(index===2)action.textContent=uiState==="action_required"?"Fix Required Information":"Requirements Clear";
+        if(index===3)action.textContent="Payouts Ready";
+      });
+      timeline.querySelectorAll(".timeline-line").forEach((line,index)=>line.classList.toggle("complete",index<activeIndex));
+    }
+
     const accountBox =
       $("stripeAccountId");
 
@@ -3049,6 +3085,10 @@
   /* ============================================================
      EVENTS
   ============================================================ */
+
+  document.querySelectorAll(".timeline-action").forEach((button)=>{
+    button.addEventListener("click",()=>{ if(button.dataset.action!=="ready") connectPayouts(); });
+  });
 
   $("refreshBtn")
     .addEventListener(
