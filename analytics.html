@@ -45,7 +45,7 @@
 (() => {
 "use strict";
 const $=id=>document.getElementById(id);
-const client=supabase.createClient(window.CROWRULES_SUPABASE_URL,window.CROWRULES_SUPABASE_PUBLISHABLE_KEY);
+const client = window.CrowRulesData.getClient();
 let user=null,creator=null;
 const fmt=n=>new Intl.NumberFormat().format(Number(n||0));
 const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
