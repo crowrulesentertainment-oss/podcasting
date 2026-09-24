@@ -2433,7 +2433,7 @@ if (
           error
         } =
           await client.functions.invoke(
-            "stripe-connect-onboarding",
+            "creator-connect-onboarding",
             {
               body:{
                 return_path:
@@ -2449,13 +2449,13 @@ if (
 
 
         if (
-          data?.url &&
-          typeof data.url ===
+          data?.onboarding_url &&
+          typeof data.onboarding_url ===
           "string"
         ) {
 
           window.location.assign(
-            data.url
+            data.onboarding_url
           );
 
           return;
