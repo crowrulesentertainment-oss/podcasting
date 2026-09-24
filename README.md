@@ -87,3 +87,7 @@ Key entry points:
 - `creator-guide.html` — creator onboarding path
 - `audio-guide.html` — audio production path
 - `tools/navigation-audit.mjs` — local route and journey audit
+
+
+## Domain Service Runtime 1.0
+Centralized membership, notifications, playback, creator/episode, Stripe Connect, and finance services load through `CrowRulesData`, keeping page-level business logic thin and browser clients free of Stripe secrets.
