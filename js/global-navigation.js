@@ -27,7 +27,7 @@
     ["creator-monetization-hub.html","Monetization",["creator-monetization-hub.html","monetization.html"],"growth"],
     ["playback-security.html","Security",["playback-security.html","playback-devices.html"],"account"]
   ];
-  const help=["help-center.html","help.html","podcasting/support.html"];
+  const help=["help-center.html","help.html","support.html"];
   const accountAliases=["profile.html","account.html","account-center.html","account-settings.html"];
 
   const path=location.pathname;
@@ -384,7 +384,7 @@
   }
 
   function handleCrossTab(m){
-    if(!m||m.source!=="crowrules-global-nav-83")return;
+    if(!m||m.source!=="crowrules-global-nav-84")return;
     if(m.type==="auth-change"||m.type==="identity-refresh"){loadIdentity().then(subscribeRealtime);return}
     if(m.type==="notification"&&m.payload)notifyLocal(m.payload);
     if(m.type==="notification-read"&&m.payload?.id){
