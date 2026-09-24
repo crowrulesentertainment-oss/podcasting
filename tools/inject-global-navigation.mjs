@@ -25,7 +25,7 @@ for(const file of walk(root)){
   const navCss=prefix+"css/global-navigation.css";
   const navJs=prefix+"js/global-navigation.js";
 
-  const cssRe=/<link\b[^>]*href=["'][^"']*css\/global-navigation\.css(?:\?[^"']*)?["'][^>]*>\s*/gi;
+  // Remove legacy navigation assets so every page uses the same Global Navigation.\n  next=next.replace(/<link\\b[^>]*href=["'][^"']*professional-experience\\.css(?:\\?[^"']*)?["'][^>]*>\\s*/gi,"");\n  next=next.replace(/<script\\b[^>]*src=["'][^"']*professional-experience\\.js(?:\\?[^"']*)?["'][^>]*>\\s*<\\/script>\\s*/gi,"");\n\n  const cssRe=/<link\b[^>]*href=["'][^"']*css\/global-navigation\.css(?:\?[^"']*)?["'][^>]*>\s*/gi;
   const jsRe=/<script\b[^>]*src=["'][^"']*js\/global-navigation\.js(?:\?[^"']*)?["'][^>]*>\s*<\/script>\s*/gi;
 
   let cssSeen=false;
