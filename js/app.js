@@ -256,7 +256,7 @@ async function followReal(podcastId,button){
 }
 
 let progressTimer=null;
-async async function recordAnalyticsEvent(eventType, payload={}){try{if(!state.user||!db)return;const row={user_id:state.user.id,podcast_id:payload.podcast_id||null,episode_id:payload.episode_id||null,event_type:eventType,session_key:payload.session_key||null,seconds_listened:Math.max(0,Math.floor(payload.seconds_listened||0)),position_seconds:Math.max(0,Math.floor(payload.position_seconds||0)),metadata:payload.metadata||{}};await db.from("podcast_analytics_events").insert(row)}catch(e){console.debug("analytics event skipped",e)}}
+async function recordAnalyticsEvent(eventType, payload={}){try{if(!state.user||!state.supabase)return;const row={user_id:state.user.id,podcast_id:payload.podcast_id||null,episode_id:payload.episode_id||null,event_type:eventType,session_key:payload.session_key||null,seconds_listened:Math.max(0,Math.floor(payload.seconds_listened||0)),position_seconds:Math.max(0,Math.floor(payload.position_seconds||0)),metadata:payload.metadata||{}};await state.supabase.from("podcast_analytics_events").insert(row)}catch(e){console.debug("analytics event skipped",e)}}
 async function persistProgress(){
  const a=document.getElementById("crAudio"),ep=state.current;
  if(!a||!ep||!state.supabase||!state.user||!Number.isFinite(a.currentTime))return;
