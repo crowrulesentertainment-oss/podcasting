@@ -71,6 +71,19 @@
   addLink(desktop,"help-center.html","Help",help);
   addLink(mobile,"help-center.html","Help",help);
 
+  function addExternalLink(parent){
+    const a=document.createElement("a");
+    a.href="https://github.com/crowrulesentertainment-oss/podcasting";
+    a.textContent="GitHub";
+    a.target="_blank";
+    a.rel="noopener noreferrer";
+    a.className="cr-github-link";
+    a.setAttribute("aria-label","CrowRules Podcasting GitHub repository (opens in a new tab)");
+    parent.appendChild(a);
+  }
+  addExternalLink(desktop);
+  addExternalLink(mobile);
+
   const actions=document.createElement("div");
   actions.className="cr-global-actions";
 
