@@ -40,7 +40,7 @@ for(const file of walk(root)){
   let cssSeen=false;
   next=next.replace(cssRe,()=>cssSeen ? "" : (cssSeen=true, `<link rel="stylesheet" href="${navCss}">\n`));
   let jsSeen=false;
-  next=next.replace(jsRe,()=>jsSeen ? "" : (jsSeen=true, `<script src="${navJs}" defer></script>\n`));
+  next=next.replace(jsRe,()=>jsSeen ? "" : (jsSeen=true, `<script src="${serviceLoader}" defer></script>\n<script src="${navJs}" defer></script>\n`));
 
   if(!cssSeen && /<\/head>/i.test(next)){
     next=next.replace(/<\/head>/i,`<link rel="stylesheet" href="${navCss}">\n</head>`);
