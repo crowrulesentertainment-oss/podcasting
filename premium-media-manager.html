@@ -55,7 +55,6 @@ async function loadActivation(){
  (cron ? "A successful cron submission has been recorded." : "No successful cron submission has been recorded yet.")+
  '</p>';
 }
-async function loadActivation(){const {data,error}=await db.rpc("get_my_podcast_premium_media_migration_health");if(error){$("activation").innerHTML='<div class="muted">Activation status unavailable.</div>';return}const secret=data.worker_auth_configured===true,cron=!!data.cron_last_submission_at;$("activation").innerHTML=[kpi(secret?"READY":"BLOCKED","SECRET CONFIG",secret?"":"bad"),kpi("ACTIVE","CRON SCHEDULE"),kpi(cron?"SEEN":"WAITING","CRON SUCCESS",cron?"":"warn"),kpi(secret&&cron?"ARMED":"SETUP NEEDED","WORKER STATE",secret&&cron?"":"warn")].join("")+'<p class="muted" style="grid-column:1/-1">'+(secret?"The Vault service secret is present. ":"The Vault secret <b>crowrules_secret_key</b> is not configured. Store the same service-to-service secret used by the Edge Function before scheduled migrations can authenticate. ")+(cron?"A successful cron submission has been recorded.":"No successful cron submission has been recorded yet.")+'</p>';}
 async function loadObservability(){
  const {data,error}=await db.rpc("get_my_podcast_premium_media_worker_observability");
  if(error){$("observability").innerHTML='<div class="muted">Worker telemetry unavailable: '+esc(error.message)+'</div>';return}
