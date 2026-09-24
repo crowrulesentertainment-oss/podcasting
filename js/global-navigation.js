@@ -38,7 +38,7 @@
   const href=target=>prefix+target;
   const isCurrent=aliases=>aliases.includes(current);
 
-  let db=null,user=null,realtimeChannel=null,authSubscription=null;
+  let db=null,user=null,realtimeChannel=null,authSubscription=null,memberId=null,memberRecord=null;
   let notifications=[],unreadCount=0,membership=null,premium=false,creator=false;
   let openPanel=null,refreshTimer=null,pollTimer=null,identityRequest=0,dependencyPromise=null;
 
@@ -203,7 +203,7 @@
     }
     const member=await client.from("members").select("id").eq("user_id",user.id).maybeSingle();
     if(request!==identityRequest)return;
-    const memberId=member.data?.id||"00000000-0000-0000-0000-000000000000";
+    memberId=member.data?.id||"00000000-0000-0000-0000-000000000000"; memberRecord=member.data||null;
     const [creatorResult,membershipResult,premiumResult]=await Promise.all([
       client.from("creators").select("id").eq("member_id",memberId).eq("is_active",true).maybeSingle(),
       client.from("membership_subscriptions").select("id,status,plan_id,current_period_end").eq("user_id",user.id).in("status",["active","trialing","past_due"]).order("updated_at",{ascending:false}).limit(1).maybeSingle(),
