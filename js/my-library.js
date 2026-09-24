@@ -5,7 +5,7 @@ async function loadLibrary(){
  const user=await q(); if(!user){document.getElementById("gate").hidden=false;return;}
  document.getElementById("gate").hidden=true;
  const [{data:lib,error:e1},{data:prog,error:e2},{data:done,error:e3}]=await Promise.all([
-  sb.rpc("get_my_podcast_library"),sb.rpc("get_my_podcast_playback_progress"),sb.rpc("get_my_podcast_playback_summary")
+  sb.rpc("get_my_podcast_library"),sb.rpc("get_my_podcast_playback_state"),sb.rpc("get_my_podcast_playback_summary")
  ]);
  if(e1) throw e1;
  const rows=lib||[], epIds=[...new Set(rows.filter(x=>x.episode_id).map(x=>x.episode_id))];
