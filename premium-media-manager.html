@@ -6,6 +6,7 @@
 
 <section class="card"><div class="health-head"><div><h2>PROTECTION HEALTH</h2><div class="muted">Coverage is measured against premium episode audio/video slots that currently have legacy source URLs.</div></div><button id="refresh">REFRESH HEALTH</button></div><div id="health" class="grid" style="margin-top:16px"><div class="muted">Loading health…</div></div><div id="worker" style="margin-top:16px"></div></section>
 
+<section class="card"><h2>WORKER ACTIVATION CENTER</h2><div id="activation" class="grid"><div class="muted">Checking worker activation…</div></div></section>
 <section class="card"><h2>WORKER OBSERVABILITY</h2><div id="observability" class="grid"><div class="muted">Loading worker telemetry…</div></div></section>
 
 <section class="card"><h2>MEDIA PROTECTION MAP</h2><div id="catalog" class="stack"><div class="muted">Loading catalog…</div></div></section>
@@ -53,6 +54,7 @@ async function loadActivation(){
  (cron ? "A successful cron submission has been recorded." : "No successful cron submission has been recorded yet.")+
  '</p>';
 }
+async function loadActivation(){const {data,error}=await db.rpc("get_my_podcast_premium_media_migration_health");if(error){$("activation").innerHTML='<div class="muted">Activation status unavailable.</div>';return}const secret=data.worker_auth_configured===true,cron=!!data.cron_last_submission_at;$("activation").innerHTML=[kpi(secret?"READY":"BLOCKED","SECRET CONFIG",secret?"":"bad"),kpi("ACTIVE","CRON SCHEDULE"),kpi(cron?"SEEN":"WAITING","CRON SUCCESS",cron?"":"warn"),kpi(secret&&cron?"ARMED":"SETUP NEEDED","WORKER STATE",secret&&cron?"":"warn")].join("")+'<p class="muted" style="grid-column:1/-1">'+(secret?"The Vault service secret is present. ":"The Vault secret <b>crowrules_secret_key</b> is not configured. Store the same service-to-service secret used by the Edge Function before scheduled migrations can authenticate. ")+(cron?"A successful cron submission has been recorded.":"No successful cron submission has been recorded yet.")+'</p>';}
 async function loadObservability(){
  const {data,error}=await db.rpc("get_my_podcast_premium_media_worker_observability");
  if(error){$("observability").innerHTML='<div class="muted">Worker telemetry unavailable: '+esc(error.message)+'</div>';return}
