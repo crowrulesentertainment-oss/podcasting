@@ -1,4 +1,4 @@
-/* CrowRules Podcasting — Global Navigation 9.3 — GitHub Pages Canonical Navigation
+/* CrowRules Podcasting — Global Navigation 9.4 — GitHub Pages Canonical Navigation
    One shared navigation system.
    Live identity, membership/premium presence, notifications,
    creator state, cross-tab synchronization, and account command palette.
@@ -6,13 +6,13 @@
 */
 (function(){
   "use strict";
-  if(window.__CROWRULES_GLOBAL_NAV_93__) return;
+  if(window.__CROWRULES_GLOBAL_NAV_94__) return;
   window.__CROWRULES_GLOBAL_NAV_93__=true;
 
-  const VERSION="9.3";
-  const CHANNEL_NAME="crowrules-podcasting-global-nav-93";
-  const STORAGE_KEY="crowrules-podcasting-nav-93";
-  const REFRESH_MS=15000;
+  const VERSION="9.4";
+  const CHANNEL_NAME="crowrules-podcasting-global-nav-94";
+  const STORAGE_KEY="crowrules-podcasting-nav-94";
+  const REFRESH_MS=120000;
   const PODCASTING_BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
   const NOTIFY_LIMIT=12;
   const nav=[
@@ -93,7 +93,7 @@
   }
   function dispatch(type,detail={}){window.dispatchEvent(new CustomEvent("crowrules:global-nav",{detail:{type,...detail}}))}
   function broadcast(type,payload={}){
-    const message={source:"crowrules-global-nav-93",type,payload,at:new Date().toISOString()};
+    const message={source:"crowrules-global-nav-94",type,payload,at:new Date().toISOString()};
     try{
       if("BroadcastChannel"in window){
         if(!window.__crowRulesGlobalNavChannel)window.__crowRulesGlobalNavChannel=new BroadcastChannel(CHANNEL_NAME);
@@ -114,7 +114,7 @@
       crowpoints=Number(s.stats?.crowpoints||0);
       payoutState=s.status?.stripe||"not_connected";
       unreadCount=Number(s.notifications||0);
-      premium=payoutState==="payouts_ready" ? premium : premium;
+      premium=!!s.premium;memberId=s.member?.id||null;
     }else{
       user=null;memberRecord=null;membership=null;creator=false;crowpoints=0;unreadCount=0;payoutState="not_connected";
     }
@@ -212,28 +212,15 @@
   }
 
   async function loadIdentity(){
-    const client=getDb();if(!client)return;
-    const request=++identityRequest;
-    const auth=await client.auth.getUser();
-    if(request!==identityRequest)return;
-    user=auth.data?.user||null;
-    if(!user){
-      memberRecord=null;memberId=null;membership=null;premium=false;creator=false;notifications=[];unreadCount=0;
-      renderIdentity();renderNotificationCenter();return;
+    const shared=window.CrowRulesAccount;
+    if(shared){
+      try{
+        const s=await Promise.resolve(shared.ready);
+        if(s) applyAccountState(s);
+        else applyAccountState(shared.getState());
+        await shared.refresh();
+      }catch(_){}
     }
-    const member=await client.from("members").select("id,display_name,username,first_name,last_name").eq("user_id",user.id).maybeSingle();
-    if(request!==identityRequest)return;
-    memberId=member.data?.id||"00000000-0000-0000-0000-000000000000"; memberRecord=member.data||null;
-    const [creatorResult,membershipResult,premiumResult]=await Promise.all([
-      client.from("creators").select("id").eq("member_id",memberId).eq("is_active",true).maybeSingle(),
-      client.from("membership_subscriptions").select("id,status,plan_id,current_period_end").eq("user_id",user.id).in("status",["active","trialing","past_due"]).order("updated_at",{ascending:false}).limit(1).maybeSingle(),
-      client.from("cr_podcast_entitlements").select("id,status,ends_at").eq("member_user_id",user.id).eq("status","active").order("updated_at",{ascending:false}).limit(1).maybeSingle()
-    ]);
-    if(request!==identityRequest)return;
-    creator=!!creatorResult.data;
-    membership=membershipResult.data||null;
-    premium=!!premiumResult.data;
-    renderIdentity();
     await loadNotifications();
   }
 
@@ -242,21 +229,15 @@
     try{if(realtimeChannel)client.removeChannel(realtimeChannel)}catch(_){}
     realtimeChannel=null;
     try{
-      realtimeChannel=client.channel("crowrules-global-nav-"+id.slice(0,12)+"-"+Math.random().toString(36).slice(2,7));
-      realtimeChannel
-        .on("postgres_changes",{event:"*",schema:"public",table:"podcast_notifications",filter:"user_id=eq."+id},p=>{
-          if(p.eventType==="INSERT"){notifyLocal(p.new);broadcast("notification",p.new)}
-          else if(p.eventType==="UPDATE"){
-            notifications=notifications.map(n=>n.id===p.new.id?p.new:n);
-            unreadCount=notifications.filter(n=>!n.is_read).length;
-            renderNotificationCenter();renderIdentity();broadcast("notification-update",{notification:p.new});
-          }
-        })
-        .on("postgres_changes",{event:"*",schema:"public",table:"membership_subscriptions",filter:"user_id=eq."+id},()=>{loadIdentity();broadcast("identity-refresh")})
-        .on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_entitlements",filter:"member_user_id=eq."+id},()=>{loadIdentity();broadcast("identity-refresh")})
-        .on("postgres_changes",{event:"*",schema:"public",table:"creators",filter:"member_id=eq."+memberId},()=>{loadIdentity();broadcast("identity-refresh")})
-        .on("postgres_changes",{event:"*",schema:"public",table:"members",filter:"user_id=eq."+id},()=>{loadIdentity();broadcast("identity-refresh")})
-        .subscribe();
+      realtimeChannel=client.channel("crowrules-global-nav-notifications-"+id.slice(0,12));
+      realtimeChannel.on("postgres_changes",{event:"*",schema:"public",table:"podcast_notifications",filter:"user_id=eq."+id},p=>{
+        if(p.eventType==="INSERT"){notifyLocal(p.new);broadcast("notification",p.new)}
+        else if(p.eventType==="UPDATE"){
+          notifications=notifications.map(n=>n.id===p.new.id?p.new:n);
+          unreadCount=notifications.filter(n=>!n.is_read).length;
+          renderNotificationCenter();renderIdentity();broadcast("notification-update",{notification:p.new});
+        }
+      }).subscribe();
     }catch(_){}
   }
 
@@ -272,8 +253,7 @@
         renderIdentity();renderNotificationCenter();
         broadcast("auth-change",{event});
         dispatch("auth-change",{event,user});
-        clearTimeout(refreshTimer);
-        refreshTimer=setTimeout(()=>loadIdentity().then(subscribeRealtime),0);
+        clearTimeout(refreshTimer); refreshTimer=setTimeout(()=>loadIdentity().then(subscribeRealtime),0);
       });
       authSubscription=result.data?.subscription||null;
     }catch(_){}
@@ -379,7 +359,7 @@
 
     window.CrowRulesGlobalNavigation={
       version:VERSION,
-      refresh:()=>loadIdentity().then(subscribeRealtime),
+      refresh:()=>window.CrowRulesAccount?.refresh?.().then(s=>{applyAccountState(s);return s}).then(()=>loadNotifications()).then(subscribeRealtime),
       openNotifications:()=>{panel.hidden=false;ui.notify.setAttribute("aria-expanded","true");openPanel="notifications";loadNotifications()},
       markRead,markAllRead,
       pushNotification:n=>{notifyLocal(n);broadcast("notification",n)},
@@ -392,12 +372,12 @@
       Promise.resolve(window.CrowRulesAccount.ready).then(s=>applyAccountState(s||window.CrowRulesAccount.getState())).catch(()=>{});
     }
     setupAuthSync();
-    loadIdentity().then(subscribeRealtime);
+    Promise.resolve(window.CrowRulesAccount?.ready).then(()=>loadIdentity()).then(subscribeRealtime);
     clearInterval(pollTimer);
-    pollTimer=setInterval(()=>{if(!document.hidden)loadIdentity().then(subscribeRealtime)},REFRESH_MS);
+    pollTimer=setInterval(()=>{if(!document.hidden)window.CrowRulesAccount?.refresh?.().then(applyAccountState).catch(()=>{})},REFRESH_MS);
     window.addEventListener("pagehide",()=>{clearInterval(pollTimer);try{if(realtimeChannel)getDb()?.removeChannel(realtimeChannel)}catch(_){}});
-    window.addEventListener("focus",()=>loadIdentity().then(subscribeRealtime));
-    document.addEventListener("visibilitychange",()=>{if(!document.hidden)loadIdentity().then(subscribeRealtime)});
+    window.addEventListener("focus",()=>window.CrowRulesAccount?.refresh?.().then(applyAccountState).catch(()=>{}));
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden)window.CrowRulesAccount?.refresh?.().then(applyAccountState).catch(()=>{})});
     window.addEventListener("crowrules:member-state",e=>{
       const r=e.detail?.reason;
       if(["signed-out","auth-change","ready","database-change","focus-sync","visibility-sync","sync-pulse"].includes(r)){
@@ -410,7 +390,7 @@
 
   function handleCrossTab(m){
     if(!m||m.source!=="crowrules-global-nav-92")return;
-    if(m.type==="auth-change"||m.type==="identity-refresh"){loadIdentity().then(subscribeRealtime);return}
+    if(m.type==="auth-change"||m.type==="identity-refresh"){window.CrowRulesAccount?.refresh?.().then(applyAccountState).catch(()=>{});return}
     if(m.type==="notification"&&m.payload)notifyLocal(m.payload);
     if(m.type==="notification-read"&&m.payload?.id){
       notifications=notifications.map(n=>n.id===m.payload.id?{...n,is_read:true}:n);
