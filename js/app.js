@@ -208,7 +208,7 @@ function creator(){
 async function schedule(){const el=document.getElementById("schedule");if(!el)return;if(!state.supabase){el.innerHTML='<div class="panel empty"><p>Live schedule requires the database connection.</p></div>';return}
  const {data,error}=await state.supabase.from("podcast_schedule").select("id,podcast_id,episode_id,title,starts_at,ends_at,timezone,status").eq("status","scheduled").gte("starts_at",new Date().toISOString()).order("starts_at",{ascending:true}).limit(30);
  if(error){el.innerHTML='<div class="panel empty"><p>'+esc(error.message)+'</p></div>';return}
- el.innerHTML=(data||[]).map(x=>{const s=state.shows.find(v=>v.dbId===x.podcast_id);const href=x.episode_id?'episode.html?episode='+encodeURIComponent(x.episode_id):s?'podcast.html?show='+encodeURIComponent(s.slug||s.id):'#';return '<div class="slot"><time>'+new Date(x.starts_at).toLocaleString()+'</time><div><h3>'+esc(x.title||s?.title||"Scheduled transmission")+'</h3><p>'+esc(s?.host||"CrowRules Creator")+'</p></div><a class="btn" href="'+href+'">Open</a></div>'}).join("")||'<div class="panel empty"><p>No scheduled transmissions.</p></div>'}
+ el.innerHTML=(data||[]).map(x=>{const s=state.shows.find(v=>v.dbId===x.podcast_id);const href=s?'podcast.html?show='+encodeURIComponent(s.slug||s.id):'#';return '<div class="slot"><time>'+new Date(x.starts_at).toLocaleString()+'</time><div><h3>'+esc(x.title||s?.title||"Scheduled transmission")+'</h3><p>'+esc(s?.host||"CrowRules Creator")+'</p></div><a class="btn" href="'+href+'">Open</a></div>'}).join("")||'<div class="panel empty"><p>No scheduled transmissions.</p></div>'}
 
 
 async function saveEpisodeReal(episodeId,button){
