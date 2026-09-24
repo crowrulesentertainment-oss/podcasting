@@ -792,6 +792,7 @@
   </style>
 <link rel="stylesheet" href="css/global-navigation.css">
 <script src="js/global-navigation.js" defer></script>
+<script src="js/platform-data.js" defer></script>
 </head>
 
 <body>
@@ -2112,14 +2113,14 @@
          *
          * window.supabase
          *
-         * window.supabaseClient
+         * window.CrowRulesData?.getClient?.() || window.supabaseClient
          *
          * window.sb
          *
          */
 
         return (
-          window.supabaseClient ||
+          window.CrowRulesData?.getClient?.() || window.supabaseClient ||
           window.sb ||
           window.supabase
         );
