@@ -130,7 +130,7 @@ client.from("creator_earnings").select("source,gross_amount,platform_fee,creator
 client.from("stripe_billing_webhook_events").select("event_type,received_at").order("received_at",{ascending:false}).limit(500),\nclient.from("cr_creator_revenue_transactions").select("*").eq("user_id",user.id).order("occurred_at",{ascending:false}).limit(5000)
 ]);
 if(se)throw se;if(ce)throw ce;if(ee)throw ee;if(ve)throw ve;if(te)throw te; revenueRows=earnings||[];subscriptionRows=subs||[];customerRows=customers||[];transactionRows=transactions||[];
-$("customer").textContent=customers?.[0]?.stripe_customer_id||"Not created";
+$("customer").textContent=customers?.[0]?.stripe_customer_id||"Not created";$("customerCount").textContent=(customers||[]).length;$("taxCustomers").textContent=(customers||[]).filter(x=>Array.isArray(x.tax_ids)&&x.tax_ids.length).length;
 
 const active=(subs||[]).filter(s=>["active","trialing"].includes(s.status));
 const canceled=(subs||[]).filter(s=>s.status==="canceled"||s.cancel_at_period_end);
@@ -141,7 +141,7 @@ $("active").textContent=active.length;$("monthly").textContent=money(monthly);$(
 
 $("subscriptions").innerHTML=(subs||[]).length?subs.map(s=>'<tr><td>'+badge(s.status)+'</td><td><span class="money">'+(s.price_id||"—")+'</span></td><td>'+date(s.current_period_end)+'</td><td>'+(s.cancel_at_period_end?"Ends "+date(s.current_period_end):s.canceled_at?date(s.canceled_at):"—")+'</td><td>'+((s.last_invoice_status||"—"))+'</td></tr>').join(""):'<tr><td colspan="5" class="empty">No subscriptions have been synchronized yet.</td></tr>';
 
-$("earnings").innerHTML=(earnings||[]).length?earnings.map(e=>'<tr><td>'+date(e.created_at)+'</td><td>'+String(e.source||"—")+'</td><td class="money">'+money(e.gross_amount,e.currency)+'</td><td class="money">'+money(e.platform_fee,e.currency)+'</td><td class="money">'+money(e.creator_amount,e.currency)+'</td><td>'+badge(e.status)+'</td></tr>').join(""):'<tr><td colspan="6" class="empty">No creator earnings have been recorded yet.</td></tr>';
+const attribution={};(transactions||[]).forEach(t=>{const m=t.metadata||{},key=m.episode_id?"Episode "+m.episode_id:m.podcast_id?"Podcast "+m.podcast_id:(t.description||t.transaction_type||"Unattributed");if(!attribution[key])attribution[key]={count:0,total:0};attribution[key].count++;attribution[key].total+=Number(t.creator_amount||0)});$("revenueAttribution").innerHTML=Object.keys(attribution).length?Object.entries(attribution).sort((a,b)=>b[1].total-a[1].total).slice(0,25).map(([k,v])=>`<tr><td>${k}</td><td>${v.count}</td><td class="money">${money(v.total)}</td></tr>`).join(""):`<tr><td colspan="3" class="empty">No attributed revenue transactions yet.</td></tr>`;$("earnings").innerHTML=(earnings||[]).length?earnings.map(e=>'<tr><td>'+date(e.created_at)+'</td><td>'+String(e.source||"—")+'</td><td class="money">'+money(e.gross_amount,e.currency)+'</td><td class="money">'+money(e.platform_fee,e.currency)+'</td><td class="money">'+money(e.creator_amount,e.currency)+'</td><td>'+badge(e.status)+'</td></tr>').join(""):'<tr><td colspan="6" class="empty">No creator earnings have been recorded yet.</td></tr>';
 
 const needs=(subs||[]).filter(s=>["past_due","unpaid"].includes(s.status)||["payment_failed","requires_action","open"].includes(String(s.last_invoice_status||"")));
 renderAnalytics(earnings||[],subs||[],events||[],analyticsRange);
