@@ -1,4 +1,4 @@
-/* CrowRules Podcasting — Global Navigation 9.4 — GitHub Pages Canonical Navigation
+/* CrowRules Podcasting — Global Navigation 9.4.1 — GitHub Pages Canonical Navigation
    One shared navigation system.
    Live identity, membership/premium presence, notifications,
    creator state, cross-tab synchronization, and account command palette.
