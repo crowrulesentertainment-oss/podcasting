@@ -25,6 +25,8 @@ for(const file of walk(root)){
   const prefix=rel.length ? rel.map(()=>"..").join("/")+"/" : "";
   const navCss=prefix+"css/global-navigation.css";
   const navJs=prefix+"js/global-navigation.js";
+  const runtimeCss=prefix+"css/platform-runtime.css";
+  const runtimeJs=prefix+"js/platform-runtime.js";
 
   next=next.replace(/<link\b[^>]*href=["'][^"']*professional-experience\.css(?:\?[^"']*)?["'][^>]*>\s*/gi,"");
   next=next.replace(/<script\b[^>]*src=["'][^"']*professional-experience\.js(?:\?[^"']*)?["'][^>]*>\s*<\/script>\s*/gi,"");
@@ -50,4 +52,4 @@ for(const file of walk(root)){
   }
 }
 
-console.log("Global Navigation 9.4.1 sync: scanned " + total + " HTML pages; updated " + changed + ".");
+console.log("Platform Runtime 4.0 sync: scanned " + total + " HTML pages; updated " + changed + ".");
