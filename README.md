@@ -55,6 +55,23 @@ This repository is structured as a static GitHub Pages site with a top-level ind
 ├── supabase/
 └── *.html
 
+## CrowRules Podcasting 4.0
+
+The platform is organized around one universal account, one shared navigation shell, a listener experience, Creator Studio, monetization, analytics, and Supabase-backed realtime state. Global Navigation 9.4 is the canonical header across the HTML application.
+
+### Canonical account routes
+- `account-center.html` — unified account command center
+- `member-hub.html` — member experience
+- `profile.html` — public/member profile
+- `account-settings.html` and `member-settings.html` — account preferences
+
+### Canonical creator routes
+- `creators.html` — creator discovery
+- `create-podcast.html` — podcast creation
+- `creator-studio.html` — creator workspace
+- `creator-dashboard.html` — creator overview
+- `creator-monetization-hub.html` — creator monetization and Stripe Connect
+
 ## Next validation layer
 
 The next hardening step is automated browser-level smoke testing of the major flows: intro → browse → podcast → episode → login/signup → creator studio → create podcast → upload episode → support/monetization.
@@ -67,7 +84,6 @@ The Podcasting ecosystem now includes a dedicated `navigation.html` journey hub 
 Key entry points:
 - `navigation.html` — central listener/member/creator journey
 - `membership.html` — universal membership hub
-- `account.html` — account center compatibility route
 - `creator-guide.html` — creator onboarding path
 - `audio-guide.html` — audio production path
 - `tools/navigation-audit.mjs` — local route and journey audit
