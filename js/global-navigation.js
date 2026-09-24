@@ -1,4 +1,4 @@
-/* CrowRules Podcasting — Global Navigation 8.5 — Real-Time Identity Synchronization
+/* CrowRules Podcasting — Global Navigation 8.6 — Real-Time Identity Synchronization
    One shared navigation system.
    Live identity, membership/premium presence, notifications,
    creator state, cross-tab synchronization, and account command palette.
@@ -6,8 +6,8 @@
 */
 (function(){
   "use strict";
-  if(window.__CROWRULES_GLOBAL_NAV_85__) return;
-  window.__CROWRULES_GLOBAL_NAV_85__=true;
+  if(window.__CROWRULES_GLOBAL_NAV_86__) return;
+  window.__CROWRULES_GLOBAL_NAV_86__=true;
 
   const VERSION="8.6";
   const CHANNEL_NAME="crowrules-podcasting-global-nav-86";
