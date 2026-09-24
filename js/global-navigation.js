@@ -24,8 +24,8 @@
     ["creator-studio.html","Studio",["creator-studio.html","creator-dashboard.html"],"create"],
     ["membership.html","Membership",["membership.html","subscriptions.html"],"account"]
     ];
-  const help=["podcasting/help-center.html","podcasting/help.html","podcasting/support.html"];
-  const accountAliases=["podcasting/profile.html","podcasting/account.html","podcasting/account-center.html","podcasting/account-settings.html"];
+  const help=["help-center.html","help.html","support.html"];
+  const accountAliases=["profile.html","account.html","account-center.html","account-settings.html"];
 
   const path=location.pathname;
   const hasFile=/\/[^/]+\.[^/]+$/.test(path);
