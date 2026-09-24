@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Creator Storefront | CrowRules Podcasting</title>
+<style>body{margin:0;background:#05050b;color:#f5f7ff;font-family:Montserrat,Arial,sans-serif}.wrap{max-width:1100px;margin:40px auto;padding:24px}h1{font-family:Orbitron,Arial,sans-serif}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}.card{background:#10101e;border:1px solid #292947;border-radius:18px;padding:20px}button{padding:11px 15px;border:0;border-radius:9px;background:#6d5dfc;color:#fff;font-weight:700;cursor:pointer}.muted{color:#aab0c5}.error{color:#ff9eaa}</style></head>
+<body><div class="wrap"><h1>Creator Storefront</h1><p id="intro" class="muted">Loading products…</p><div id="products" class="grid"></div></div>
+<script>
+const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co";
+const SUPABASE_ANON_KEY="__SUPABASE_ANON_KEY_PLACEHOLDER__"; // TODO: Replace with CrowRules Supabase anon/publishable key.
+const accountId=new URLSearchParams(location.search).get("accountId");
+const root=SUPABASE_URL+"/functions/v1/stripe-connect-demo";
+async function load(){
+ if(!accountId){document.getElementById("intro").textContent="Missing connected account ID.";return;}
+ const r=await fetch(root+"?action=list-products&accountId="+encodeURIComponent(accountId),{headers:{apikey:SUPABASE_ANON_KEY}});
+ const d=await r.json();
+ if(!r.ok||d.error){document.getElementById("intro").textContent=d.error||"Unable to load products.";document.getElementById("intro").className="error";return;}
+ document.getElementById("intro").textContent="Products from this connected creator.";
+ document.getElementById("products").innerHTML=d.products.map(p=>{
+   const price=p.default_price;
+   const amount=price?.unit_amount!=null?(price.unit_amount/100).toFixed(2):"";
+   return '<article class="card"><h2>'+escapeHtml(p.name)+'</h2><p class="muted">'+escapeHtml(p.description||"")+'</p><strong>$'+amount+'</strong><br><br><button onclick="buy(\''+price.id+'\')">Buy</button></article>';
+ }).join("");
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+async function buy(priceId){
+ const r=await fetch(root+"?action=checkout",{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_ANON_KEY},body:JSON.stringify({accountId,priceId})});
+ const d=await r.json(); if(!r.ok||d.error){alert(d.error||"Checkout failed.");return;} location.href=d.url;
+}
+load();
+</script></body></html>
