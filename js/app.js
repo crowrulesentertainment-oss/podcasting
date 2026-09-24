@@ -813,7 +813,7 @@ async function creatorNavServerRollback(transactionId){
 }
 
 async function creatorNavIdentityContext(){
-  let user=null;try{user=(await supabase.auth.getUser()).data?.user||null;}catch{}
+  let user=null;try{user=await window.CrowRulesData.getUser();}catch{}
   try{
     const server=await creatorNavServerGovernanceRefresh();
     const ctx=server.context||{};
