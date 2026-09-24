@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
+// Global Header Navigation 9.4 — repo-wide canonical HTML sync
 const root=process.cwd();
 const skip=new Set(["node_modules",".git",".github"]);
 let changed=0,total=0;
