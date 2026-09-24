@@ -6,5 +6,6 @@ async function unread(){const u=await window.CrowRulesData.requireAuth(),db=awai
 async function markRead(id){const u=await window.CrowRulesData.requireAuth(),db=await api();return db.from("podcast_notifications").update({is_read:true}).eq("id",id).eq("user_id",u.id)}
 async function markAllRead(){const u=await window.CrowRulesData.requireAuth(),db=await api();return db.from("podcast_notifications").update({is_read:true}).eq("user_id",u.id).eq("is_read",false)}
 function subscribe(handler){return window.CrowRulesData.subscribe("podcast_notifications",null,handler)}
-window.CrowRulesNotifications={version:"1.1",list,unread,markRead,markAllRead,subscribe};
+const contract=fn=>async(...args)=>window.CrowRulesData.execute(()=>fn(...args));
+window.CrowRulesNotifications={version:"2.0",list:contract(list),unread:contract(unread),markRead:contract(markRead),markAllRead:contract(markAllRead),subscribe};
 })();
