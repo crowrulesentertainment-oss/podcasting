@@ -75,5 +75,5 @@
  }catch(err){console.error(err);gate.innerHTML='<span class="eyebrow">HUB UNAVAILABLE</span><h2>Your creator monetization workspace could not be loaded.</h2><p>Nothing was written or changed.</p><a class="btn" href="creator-dashboard.html">OPEN CREATOR STUDIO</a>';}
 })();
 </script>
-</body>
+<script>window.CrowRulesAccount?.on(s=>{const gate=document.getElementById('gate');if(gate&&s.user)gate.dataset.accountReady='true';document.body.dataset.accountCreator=s.creator?'active':'available';document.body.dataset.accountPayouts=s.stripe?.payouts_enabled?'ready':s.stripe?'setup':'not-connected';});</script></body>
 </html>
