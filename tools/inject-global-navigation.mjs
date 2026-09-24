@@ -25,20 +25,20 @@ for(const file of walk(root)){
   const navCss=prefix+"css/global-navigation.css";
   const navJs=prefix+"js/global-navigation.js";
 
-  const cssRe=/<link\\b[^>]*href=["'][^"']*css\\/global-navigation\\.css(?:\\?[^"']*)?["'][^>]*>\\s*/gi;
-  const jsRe=/<script\\b[^>]*src=["'][^"']*js\\/global-navigation\\.js(?:\\?[^"']*)?["'][^>]*>\\s*<\\/script>\\s*/gi;
+  const cssRe=/<link\b[^>]*href=["'][^"']*css\/global-navigation\.css(?:\?[^"']*)?["'][^>]*>\s*/gi;
+  const jsRe=/<script\b[^>]*src=["'][^"']*js\/global-navigation\.js(?:\?[^"']*)?["'][^>]*>\s*<\/script>\s*/gi;
 
   let cssSeen=false;
-  next=next.replace(cssRe,()=>cssSeen ? "" : (cssSeen=true, "<link rel=\"stylesheet\" href=\"" + navCss + "\">\\n"));
+  next=next.replace(cssRe,()=>cssSeen ? "" : (cssSeen=true, "<link rel=\"stylesheet\" href=\"" + navCss + "\">\n"));
 
   let jsSeen=false;
-  next=next.replace(jsRe,()=>jsSeen ? "" : (jsSeen=true, "<script src=\"" + navJs + "\" defer></script>\\n"));
+  next=next.replace(jsRe,()=>jsSeen ? "" : (jsSeen=true, "<script src=\"" + navJs + "\" defer></script>\n"));
 
-  if(!cssSeen && /<\\/head>/i.test(next)){
-    next=next.replace(/<\\/head>/i,"<link rel=\"stylesheet\" href=\"" + navCss + "\">\\n</head>");
+  if(!cssSeen && /<\/head>/i.test(next)){
+    next=next.replace(/<\/head>/i,"<link rel=\"stylesheet\" href=\"" + navCss + "\">\n</head>");
   }
-  if(!jsSeen && /<\\/head>/i.test(next)){
-    next=next.replace(/<\\/head>/i,"<script src=\"" + navJs + "\" defer></script>\\n</head>");
+  if(!jsSeen && /<\/head>/i.test(next)){
+    next=next.replace(/<\/head>/i,"<script src=\"" + navJs + "\" defer></script>\n</head>");
   }
 
   if(next!==html){
