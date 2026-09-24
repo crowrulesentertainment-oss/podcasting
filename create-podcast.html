@@ -1876,10 +1876,7 @@
   }
 
   async function startStripeOnboarding(podcastId) {
-    const { data: sessionData, error: sessionError } = await client.auth.getSession();
-    if (sessionError) throw sessionError;
-
-    const accessToken = sessionData?.session?.access_token;
+    const accessToken = await window.CrowRulesData.getAccessToken();
     if (!accessToken) throw new Error("Your login session expired. Please sign in again.");
 
     const functionUrl =
