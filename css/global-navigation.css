@@ -104,3 +104,6 @@
 @media(prefers-reduced-motion:reduce){
   .cr-notification-trigger,.cr-global-identity{transition:none}
 }
+
+/* Legacy navigation suppression: the shared Global Navigation is the only site header. */
+.site-header:has(.main-navigation){display:none!important}
