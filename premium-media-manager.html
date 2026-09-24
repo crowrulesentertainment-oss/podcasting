@@ -38,6 +38,21 @@ async function loadHealth(){
  const cron=data.cron_last_submission_at?new Date(data.cron_last_submission_at).toLocaleString():"No successful cron submission recorded";
  $("worker").innerHTML='<div class="grid"><div class="kpi"><strong>'+(data.worker_auth_configured?"READY":"ACTION")+'</strong><span>WORKER AUTH CONFIG</span><div class="mini">'+(data.worker_auth_configured?"Vault worker key is present.":"Vault key <b>crowrules_secret_key</b> is not configured; scheduled HTTP calls may reach the function without the required secret.")+'</div></div><div class="kpi"><strong>5 MIN</strong><span>WORKER SCHEDULE</span><div class="mini">Last cron submission: '+esc(cron)+'</div></div></div>';
 }
+async function loadActivation(){
+ const {data,error}=await db.rpc("get_my_podcast_premium_media_migration_health");
+ if(error){$("activation").innerHTML='<div class="muted">Activation status unavailable: '+esc(error.message)+'</div>';return}
+ const secret=data.worker_auth_configured===true;
+ const cron=!!data.cron_last_submission_at;
+ $("activation").innerHTML=[
+  kpi(secret?"READY":"BLOCKED","SECRET CONFIG",secret?"":"bad"),
+  kpi("ACTIVE","CRON SCHEDULE"),
+  kpi(cron?"SEEN":"WAITING","CRON SUCCESS",cron?"":"warn"),
+  kpi(secret&&cron?"ARMED":"SETUP NEEDED","WORKER STATE",secret&&cron?"":"warn")
+ ].join("") + '<p class="muted" style="grid-column:1/-1;margin:8px 0 0">'+
+ (secret ? "The required Vault secret is present. " : "The Vault secret <b>crowrules_secret_key</b> is not present. Store the same service-to-service secret used by the Edge Function before expecting scheduled migrations to execute. ")+
+ (cron ? "A successful cron submission has been recorded." : "No successful cron submission has been recorded yet.")+
+ '</p>';
+}
 async function loadObservability(){
  const {data,error}=await db.rpc("get_my_podcast_premium_media_worker_observability");
  if(error){$("observability").innerHTML='<div class="muted">Worker telemetry unavailable: '+esc(error.message)+'</div>';return}
@@ -73,6 +88,6 @@ async function processJob(id){const s=await session();if(!s)return;status("Proce
 async function cancelJob(id){const {data,error}=await db.rpc("cancel_my_podcast_premium_media_migration",{p_job_id:id});status(error?error.message:(data?"Migration canceled.":"Job could not be canceled."));await loadQueue();await loadHealth()}
 $("upload").onclick=async()=>{const s=await session(),f=$("file").files[0],ep=$("episode").value,type=$("type").value;if(!s)return;if(!f||!ep){status("Choose an episode and file.");return}status("Uploading…");const form=new FormData();form.append("episode_id",ep);form.append("media_type",type);form.append("file",f);const r=await fetch(cfg.supabaseUrl+"/functions/v1/premium-media-upload",{method:"POST",headers:{Authorization:"Bearer "+s.access_token},body:form});const j=await r.json().catch(()=>({}));status(r.ok?"Uploaded and mapped to private Storage.":(j.error||"Upload failed."));await Promise.all([loadEpisodes(),loadHealth()])}
 $("migrate").onclick=async()=>{const ep=$("episode").value,type=$("type").value,src=$("source").value.trim();if(!ep||!src){status("Choose an episode and source URL.");return}const {data,error}=await db.rpc("queue_my_podcast_premium_media_migration",{p_episode_id:ep,p_media_type:type,p_source_url:src});if(error){status(error.message||"Unable to queue migration.");return}status("Migration queued.");await Promise.all([loadQueue(),loadHealth()])}
-$("refresh").onclick=async()=>{await Promise.all([loadHealth(),loadObservability(),loadEpisodes(),loadQueue()])};
-(async()=>{if(await session()){await Promise.all([loadHealth(),loadObservability(),loadEpisodes(),loadQueue()]);setInterval(loadHealth,30000);setInterval(loadObservability,30000);setInterval(loadQueue,30000)}})();
+$("refresh").onclick=async()=>{await Promise.all([loadHealth(),loadActivation(),loadObservability(),loadEpisodes(),loadQueue()])};
+(async()=>{if(await session()){await Promise.all([loadHealth(),loadActivation(),loadObservability(),loadEpisodes(),loadQueue()]);setInterval(loadHealth,30000);setInterval(loadActivation,30000);setInterval(loadObservability,30000);setInterval(loadQueue,30000)}})();
 </script></body></html>
