@@ -25,6 +25,7 @@ for(const file of walk(root)){
   const prefix=rel.length ? rel.map(()=>"..").join("/")+"/" : "";
   const navCss=prefix+"css/global-navigation.css";
   const navJs=prefix+"js/global-navigation.js";
+  const serviceLoader=prefix+"js/domain-service-loader.js";
   const runtimeCss=prefix+"css/platform-runtime.css";
   const runtimeJs=prefix+"js/platform-runtime.js";
   const dataCss=prefix+"css/platform-data.css";
@@ -48,7 +49,7 @@ for(const file of walk(root)){
   if(!jsSeen && /<\/head>/i.test(next)){
     next=next.replace(/<\/head>/i,`<script src="${serviceLoader}" defer></script>\n<script src="${navJs}" defer></script>\n</head>`);
   } else if(jsSeen){
-    next=next.replace(`<script src="${navJs}" defer></script>`,`<script src="${serviceLoader}" defer></script>\n<script src="${navJs}" defer></script>`);
+    next=next.replace(`<script src="${serviceLoader}" defer></script>\n<script src="${navJs}" defer></script>`,`<script src="${serviceLoader}" defer></script>\n<script src="${navJs}" defer></script>`);
   }
 
   if(next!==html){
