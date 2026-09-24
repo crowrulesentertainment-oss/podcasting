@@ -258,6 +258,8 @@ async function followReal(podcastId,button){
 }
 
 let progressTimer=null;
+async function createCreatorNotification(type,title,message,opts={}){try{if(!state.supabase||!state.user)return;await state.supabase.from("podcast_creator_notifications").insert({user_id:state.user.id,podcast_id:opts.podcast_id||null,episode_id:opts.episode_id||null,notification_type:type,title,message,action_url:opts.action_url||null,metadata:opts.metadata||{}})}catch(e){console.debug("notification skipped",e)}}
+
 async function recordAnalyticsEvent(eventType, payload={}){try{if(!state.user||!state.supabase)return;const row={user_id:state.user.id,podcast_id:payload.podcast_id||null,episode_id:payload.episode_id||null,event_type:eventType,session_key:payload.session_key||null,seconds_listened:Math.max(0,Math.floor(payload.seconds_listened||0)),position_seconds:Math.max(0,Math.floor(payload.position_seconds||0)),metadata:payload.metadata||{}};await state.supabase.from("podcast_analytics_events").insert(row)}catch(e){console.debug("analytics event skipped",e)}}
 async function persistProgress(){
  const a=document.getElementById("crAudio"),ep=state.current;
