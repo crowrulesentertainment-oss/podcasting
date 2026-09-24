@@ -27,6 +27,8 @@ for(const file of walk(root)){
   const navJs=prefix+"js/global-navigation.js";
   const runtimeCss=prefix+"css/platform-runtime.css";
   const runtimeJs=prefix+"js/platform-runtime.js";
+  const dataCss=prefix+"css/platform-data.css";
+  const dataJs=prefix+"js/platform-data.js";
 
   next=next.replace(/<link\b[^>]*href=["'][^"']*professional-experience\.css(?:\?[^"']*)?["'][^>]*>\s*/gi,"");
   next=next.replace(/<script\b[^>]*src=["'][^"']*professional-experience\.js(?:\?[^"']*)?["'][^>]*>\s*<\/script>\s*/gi,"");
