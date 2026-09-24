@@ -1442,11 +1442,11 @@ async function load(){
   $("payoutList").innerHTML=payouts.slice(0,8).map(x=>'<div class="transaction"><div><div class="transaction-name">Creator payout</div><div class="transaction-date">'+date(x.created_at)+'</div></div><div class="transaction-status">'+String(x.status||"pending")+'</div><div class="transaction-amount">'+money(x.amount,x.currency)+'</div></div>').join("")||'<div class="empty">No payouts have been recorded yet.</div>';
   document.querySelector('[data-check="profile"] .check-status').textContent="Complete";
   document.querySelector('[data-check="profile"] .check-icon').textContent="✓";
-  const profileStats=(await db.from("podcast_member_profile_stats").select("published_podcasts,published_episodes").eq("user_id",user.id).maybeSingle()).data||{};
+  const profileStats=(await db.from("podcast_member_profile_stats").select("published_podcasts,published_episodes,crowpoints").eq("user_id",user.id).maybeSingle()).data||{};
   const hasPodcast=Number(profileStats.published_podcasts||0)>0;
   const hasEpisode=Number(profileStats.published_episodes||0)>0;
   [["podcast",hasPodcast],["episode",hasEpisode],["payout",!!row?.stripe_account_id&&!!row?.payouts_enabled]].forEach(([k,ok])=>{const e=document.querySelector('[data-check="'+k+'"]');if(!e)return;e.classList.toggle("complete",ok);e.querySelector(".check-icon").textContent=ok?"✓":"○";e.querySelector(".check-status").textContent=ok?"Complete":"Pending"});
-  setText("crowPoints",document.querySelector("#crowPoints")?.textContent||"0");
+  setText("crowPoints",Number(profileStats.crowpoints||0).toLocaleString());
  }catch(e){console.error(e);alert(e?.message||"Unable to load creator monetization data.");setText("connectionMeta","Supabase ↔ Stripe synchronization needs attention. Use Refresh to retry.")}finally{busy=false}
 }
 
