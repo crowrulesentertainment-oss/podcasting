@@ -34,9 +34,12 @@ const money=(c,n)=>((Number(n)||0)/100).toLocaleString(undefined,{style:"currenc
 try{
 const cfg=window.CrowRulesConfig||{}; if(!cfg.supabaseUrl||!cfg.supabaseAnonKey)throw Error("CrowRules configuration unavailable.");
 const db=supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
-const {data:{user}}=await db.auth.getUser(); if(!user){gate.innerHTML='<span class="eyebrow">LOGIN REQUIRED</span><h2>Sign in to view creator analytics.</h2><a class="btn primary" href="login.html">LOGIN</a>';return;}
-const {data:member,error:me}=await db.from("members").select("id").eq("user_id",user.id).maybeSingle();if(me)throw me;if(!member)throw Error("Universal membership record not found.");
-const {data:creator,error:ce}=await db.from("creators").select("id").eq("member_id",member.id).maybeSingle();if(ce)throw ce;if(!creator)throw Error("Creator profile not found.");
+const shared=window.CrowRulesAccount;
+const account=await Promise.resolve(shared?.ready);
+if(!account?.user){gate.innerHTML='<span class="eyebrow">LOGIN REQUIRED</span><h2>Sign in to view creator analytics.</h2><a class="btn primary" href="login.html">LOGIN</a>';return;}
+if(!account.creatorRecord)throw Error("Creator profile not found.");
+const user=account.user;
+const creator={id:account.creatorRecord.id};
 const {data:payments,error:pe}=await db.from("podcast_support_payments").select("amount_total,currency,payment_status,created_at,tier_id,podcast_id,supporter_user_id").eq("creator_id",creator.id).order("created_at",{ascending:false});if(pe)throw pe;
 const allRows=[...(payments||[])]; const rows=allRows.filter(x=>x.payment_status==="paid"); const paidRows=rows; const refundedRows=allRows.filter(x=>x.payment_status==="refunded"); const disputedRows=allRows.filter(x=>x.payment_status==="disputed"); let activeRows=rows; let statusFilter="paid"; let rangeMode="all"; let customRange={from:"",to:""}; let tierFilter="all"; let podcastFilter="all";
 const tierIds=[...new Set(allRows.map(x=>x.tier_id).filter(Boolean))],podcastIds=[...new Set(allRows.map(x=>x.podcast_id).filter(Boolean))];
