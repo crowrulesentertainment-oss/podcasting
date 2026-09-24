@@ -5,5 +5,6 @@
 <script src="js/domain-service-loader.js" defer></script>
 <script src="js/domain-service-loader.js" defer></script>
 <script src="js/domain-service-loader.js" defer></script>
+<script src="js/domain-service-loader.js" defer></script>
 <script src="js/global-navigation.js" defer></script>
 </head><body><main><section class="section shell"><div id="studio"></div></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script><script src="js/app.js" defer></script><script>document.addEventListener('click',e=>{const edit=e.target.closest('[data-edit]');if(edit){e.preventDefault();const id=new URLSearchParams(location.search).get('id');location.href='episode-studio.html?id='+encodeURIComponent(edit.dataset.edit)+'&show='+encodeURIComponent(id||'');return}const create=e.target.closest('#newEpisode,#newEpisodeTop');if(create){e.preventDefault();const id=new URLSearchParams(location.search).get('id');if(id)location.href='episode-studio.html?show='+encodeURIComponent(id);}});</script></body></html>
