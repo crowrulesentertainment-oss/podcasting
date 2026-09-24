@@ -8,19 +8,19 @@
   window.__CROWRULES_GLOBAL_NAV_83__=true;
   const CHANNEL_NAME="crowrules-podcasting-global-nav-83",STORAGE_KEY="crowrules-podcasting-nav-83",NOTIFY_LIMIT=12;
   const nav=[
-    ["home.html","Home",["index.html","home.html"],"home"],
-    ["discover.html","Discover",["discover.html","search.html","categories.html"],"discover"],
-    ["podcasts.html","Podcasts",["podcasts.html","podcast.html"],"listen"],
-    ["episodes.html","Episodes",["episodes.html","episode.html"],"listen"],
-    ["creators.html","Creators",["creators.html","creator.html"],"discover"],
-    ["create-podcast.html","Create",["create-podcast.html"],"create"],
-    ["creator-studio.html","Studio",["creator-studio.html","creator-dashboard.html"],"create"],
-    ["membership.html","Membership",["membership.html","subscriptions.html"],"account"],
-    ["premium-library.html","Premium",["premium-library.html","premium.html"],"account"],
-    ["creator-monetization-hub.html","Monetization",["creator-monetization-hub.html","monetization.html"],"growth"],
-    ["playback-security.html","Security",["playback-security.html","playback-devices.html"],"account"]
+    ["podcasting/home.html","Home",["index.html","home.html"],"home"],
+    ["podcasting/discover.html","Discover",["discover.html","search.html","categories.html"],"discover"],
+    ["podcasting/podcasts.html","Podcasts",["podcasts.html","podcast.html"],"listen"],
+    ["podcasting/episodes.html","Episodes",["episodes.html","episode.html"],"listen"],
+    ["podcasting/creators.html","Creators",["creators.html","creator.html"],"discover"],
+    ["podcasting/create-podcast.html","Create",["create-podcast.html"],"create"],
+    ["podcasting/creator-studio.html","Studio",["creator-studio.html","creator-dashboard.html"],"create"],
+    ["podcasting/membership.html","Membership",["membership.html","subscriptions.html"],"account"],
+    ["podcasting/premium-library.html","Premium",["premium-library.html","premium.html"],"account"],
+    ["podcasting/creator-monetization-hub.html","Monetization",["creator-monetization-hub.html","monetization.html"],"growth"],
+    ["podcasting/playback-security.html","Security",["playback-security.html","playback-devices.html"],"account"]
   ];
-  const help=["help-center.html","help.html","support.html"],accountAliases=["profile.html","account.html","account-center.html","account-settings.html"];
+  const help=["podcasting/help-center.html","help.html","support.html"],accountAliases=["profile.html","account.html","account-center.html","account-settings.html"];
   const path=location.pathname,hasFile=/\/[^/]+\.[^/]+$/.test(path),rawParts=path.split("/").filter(Boolean);
   const current=(hasFile?(rawParts.pop()||"index.html"):"index.html").toLowerCase(),prefix=hasFile&&rawParts.length?"../".repeat(rawParts.length):"";
   const href=target=>prefix+target,isCurrent=aliases=>aliases.includes(current);
