@@ -33,23 +33,16 @@ Deno.serve(async(req)=>{
 
     const creatorId=metadata.creator_id||null;
     const evaluateFinanceRules=async(eventType:string,eventRecordId:string,actualCents:number,currency:string)=>{
-      if(!creatorId)return;
-      const {data:rules,error}=await supabase.from("cr_podcast_finance_alert_rules").select("*").eq("creator_id",creatorId).eq("enabled",true).eq("currency",currency.toLowerCase());
-      if(error){console.error("finance rules:",error.message);return;}
-      for(const rule of (rules||[])){
-        const matches=(rule.rule_type==="payment_milestone"&&eventType==="payment")||(rule.rule_type==="revenue_milestone"&&eventType==="revenue")||(rule.rule_type==="payout_milestone"&&eventType==="payout");
-        if(!matches||actualCents<Number(rule.threshold_cents))continue;
-        if(!rule.repeatable){
-          const {data:existing}=await supabase.from("cr_podcast_finance_alert_rule_triggers").select("id").eq("rule_id",rule.id).limit(1);
-          if(existing?.length)continue;
-        }
-        const {error:te}=await supabase.from("cr_podcast_finance_alert_rule_triggers").insert({rule_id:rule.id,creator_id:creatorId,event_type:eventType,event_record_id:eventRecordId,threshold_cents:rule.threshold_cents,actual_cents:actualCents,currency:currency.toLowerCase()});
-        if(te && !te.message.includes("duplicate")) console.error("rule trigger:",te.message);
-        if(!te){
-          await supabase.from("cr_podcast_finance_alerts").insert({creator_id:creatorId,alert_type:"milestone",title:rule.rule_name,message:"Smart finance rule reached: "+rule.rule_name+".",threshold_cents:rule.threshold_cents,currency:currency.toLowerCase()});
-          await supabase.from("cr_podcast_finance_alert_rules").update({last_triggered_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",rule.id);
-        }
-      }
+      if(!creatorId||!actualCents||actualCents<=0)return;
+      const {error}=await supabase.rpc("evaluate_creator_finance_rule_cumulative",{
+        p_creator_id:creatorId,
+        p_event_type:eventType,
+        p_event_record_id:eventRecordId,
+        p_actual_cents:Math.round(actualCents),
+        p_currency:(currency||"usd").toLowerCase(),
+        p_occurred_at:new Date(event.created*1000).toISOString()
+      });
+      if(error)console.error("cumulative finance rules:",error.message);
     };
     const financeAlert=async(type:string,title:string,message:string,threshold:number|null=null,currency:string|null=null)=>{
       if(!creatorId)return;
@@ -72,6 +65,8 @@ Deno.serve(async(req)=>{
       },{onConflict:"stripe_checkout_session_id"});
       if(splitError) throw splitError;
       await financeAlert("milestone","Payment received","A podcast payment was successfully recorded in your creator finance ledger.",gross,obj.currency||"usd");
+      await evaluateFinanceRules("payment",obj.id,gross,obj.currency||"usd");
+      await evaluateFinanceRules("revenue",obj.id,gross,obj.currency||"usd");
     }
     // Refunds and disputes reconcile against the original revenue split.
     if ((event.type==="charge.refunded" || event.type==="charge.dispute.created" || event.type==="charge.dispute.closed") && creatorId) {
