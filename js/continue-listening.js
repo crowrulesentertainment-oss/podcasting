@@ -2,11 +2,11 @@
 (()=>{"use strict";
 const cfg=window.CROWRULES_CONFIG||{},url=cfg.supabaseUrl,key=cfg.supabasePublishableKey;
 if(!url||!key||!window.supabase)return;
-const db=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true}});
+const db=window.window.CrowRulesData.getClient();
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 async function load(){
  const mount=document.querySelector("[data-continue-listening]"); if(!mount)return;
- const {data:{session}}=await db.auth.getSession();
+ const {data:{session}}=await window.CrowRulesData.getClientAsync().then(db=>db.auth.getSession());
  if(!session){mount.hidden=true;return}
  const r=await db.rpc("get_my_podcast_playback_progress",{p_episode_id:null});
  if(r.error||!Array.isArray(r.data)){mount.hidden=true;return}
