@@ -32,6 +32,19 @@ Deno.serve(async(req)=>{
     }
 
     const creatorId=metadata.creator_id||null;
+    // Record a transparent creator/platform split for completed checkout payments.
+    if ((event.type==="checkout.session.completed" || event.type==="checkout.session.async_payment_succeeded") && creatorId && obj.id?.startsWith("cs_")) {
+      const gross=Number(obj.amount_total||0);
+      const {data:rule}=await supabase.from("cr_podcast_revenue_split_rules").select("platform_fee_bps").eq("creator_id",creatorId).eq("active",true).maybeSingle();
+      const platformBps=Math.max(0,Math.min(2500,Number(rule?.platform_fee_bps||0)));
+      const platformFee=Math.round(gross*platformBps/10000);
+      const {error:splitError}=await supabase.from("cr_podcast_revenue_splits").upsert({
+        creator_id:creatorId, stripe_checkout_session_id:obj.id, stripe_payment_intent_id:obj.payment_intent||null,
+        gross_cents:gross, platform_fee_cents:platformFee, creator_net_cents:gross-platformFee,
+        currency:obj.currency||"usd", status:"paid", updated_at:new Date().toISOString()
+      },{onConflict:"stripe_checkout_session_id"});
+      if(splitError) throw splitError;
+    }
     const productId=metadata.product_id||null;
     const userId=metadata.user_id||null;
 
