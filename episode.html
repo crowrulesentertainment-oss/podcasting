@@ -27,6 +27,7 @@
 </div></header>
 <main id="main"><section class="wrap episode-hero"><a class="back" href="episodes.html">← Back to Episodes</a><div id="app"><div class="notice">Loading episode…</div></div></section></main>
 <script src="js/config.js"></script>
+<script src="js/platform-data.js"></script>
 <script src="js/member-state.js"></script>
 <script src="js/member-actions.js"></script>
 <script>
@@ -84,7 +85,7 @@ async function init(){
   } else throw Error("Episode not found.");
   if(q.error)throw q.error;if(!q.data?.length)throw Error("Episode not found.");
   episode=q.data[0];
-  const ur=await db.auth.getUser();user=ur.data?.user||null;
+  const ur=await window.CrowRulesData.getUser().then(user => ({data:{user}}));user=ur.data?.user||null;
   const p=await db.from("podcasts").select("id,title,slug,artwork_url,description,website_url").eq("id",episode.podcast_id).maybeSingle();
   if(p.error)throw p.error;
   const podcast=p.data||{};\n  const premiumLocked=episode.access_level==="premium" && !episode.has_premium_access;
