@@ -1,4 +1,4 @@
-name: Deploy CrowRules Podcasting to GitHub Pages
+name: Deploy CrowRules Podcasting
 on:
   push:
     branches: [main]
@@ -17,11 +17,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-      - name: Build repository-wide navigation shell
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Build clean cinematic site
         shell: bash
         run: |
           set -euo pipefail
@@ -29,19 +27,40 @@ jobs:
           mkdir -p _site
           cp -a . _site
           rm -rf _site/.git _site/.github _site/_site
-          find _site -type f -name '*.html' -print0 | while IFS= read -r -d '' file; do
-            if ! grep -q 'js/global-navigation.js' "$file"; then
-              if grep -qi '</body>' "$file"; then
-                sed -i 's#</body>#<script src="/podcasting/js/global-navigation.js" defer></script></body>#I' "$file"
-              elif grep -qi '</html>' "$file"; then
-                sed -i 's#</html>#<script src="/podcasting/js/global-navigation.js" defer></script></html>#I' "$file"
-              else
-                printf '\n<script src="/podcasting/js/global-navigation.js" defer></script>\n' >> "$file"
-              fi
-            fi
-          done
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("_site")
+          keep={
+            "index.html","launch.html","home.html","discover.html","search.html",
+            "podcasts.html","podcast.html","creators.html","member-hub.html",
+            "my-library.html","login.html","signup.html","account-center.html",
+            "membership.html","create-podcast.html","creator-studio.html",
+            "monetization.html","stripe-connect.html","payout-center.html",
+            "support.html","404.html"
+          }
+          def target(name):
+            n=name.lower()
+            if n in keep:return None
+            if "launch" in n:return "launch.html"
+            if "creator" in n and any(x in n for x in ("finance","monet","payout","billing")):return "monetization.html"
+            if "creator" in n:return "creator-studio.html"
+            if any(x in n for x in ("finance","billing","transaction","revenue")):return "monetization.html"
+            if "admin" in n:return "account-center.html"
+            if "episode" in n:return "podcasts.html"
+            if "podcast" in n:return "podcasts.html"
+            if any(x in n for x in ("member","account","profile","settings")):return "account-center.html"
+            if "support" in n:return "support.html"
+            if any(x in n for x in ("analytics","insight","audience","achievement","growth","catalog","content","production")):return "creator-studio.html"
+            return "home.html"
+          for p in root.rglob("*.html"):
+            if p.name in keep or ".git" in p.parts: continue
+            t=target(p.name)
+            if not t: continue
+            rel=p.relative_to(root)
+            href=("../"*(len(rel.parts)-1))+t
+            p.write_text(f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0;url={href}"><script>location.replace({href!r})</script></head><body><p>Opening CrowRules Podcasting… <a href="{href}">Continue</a></p></body></html>''')
+          PY
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
       - name: Deploy
