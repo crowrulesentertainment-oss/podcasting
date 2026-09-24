@@ -129,11 +129,11 @@
       profile.classList.toggle("is-creator",!!creator);
       if(user){
         const label=(memberRecord?.display_name||memberRecord?.username||[memberRecord?.first_name,memberRecord?.last_name].filter(Boolean).join(" ")||user.user_metadata?.display_name||user.user_metadata?.full_name||user.email?.split("@")[0]||"Member").trim();
-        profile.innerHTML='<span class="cr-avatar" aria-hidden="true">'+escapeHtml(label.slice(0,1).toUpperCase())+'</span><span class="cr-account-label">'+escapeHtml(label)+'</span>';
+        profile.innerHTML='<span class="cr-avatar" aria-hidden="true">'+escapeHtml(label.slice(0,1).toUpperCase())+'</span><span class="cr-account-label">'+escapeHtml(label)+'</span><span class="cr-account-live" aria-hidden="true"><b>'+escapeHtml(crowpoints.toLocaleString())+' CP</b><i>'+escapeHtml(payoutState==="payouts_ready"?"Payouts Ready":payoutState==="action_required"?"Payout Action":"")+'</i></span>';
         profile.setAttribute("aria-label","Open account for "+label);
         profile.title=label+(membership?" · Member":"")+(premium?" · Premium":"")+(creator?" · Creator":"")+(crowpoints?" · "+crowpoints.toLocaleString()+" CrowPoints":"")+(payoutState==="payouts_ready"?" · Payouts Ready":"");
       }else{
-        profile.innerHTML='<span class="cr-avatar cr-avatar-guest" aria-hidden="true">CR</span><span class="cr-account-label">Sign In</span>';
+        profile.innerHTML='<span class="cr-avatar cr-avatar-guest" aria-hidden="true">CR</span><span class="cr-account-label">Sign In</span><span class="cr-account-live" aria-hidden="true"><b>0 CP</b></span>';
         profile.setAttribute("aria-label","Sign in to CrowRules Podcasting");
         profile.title="Sign in";
       }
