@@ -35,5 +35,6 @@
 <script src="js/domain-service-loader.js" defer></script>
 <script src="js/domain-service-loader.js" defer></script>
 <script src="js/domain-service-loader.js" defer></script>
+<script src="js/domain-service-loader.js" defer></script>
 <script src="js/global-navigation.js" defer></script>
 </head><body><main class="section wrap"><p><a href="home.html">← Home</a></p><h1>My Subscriptions</h1><p id="subscriptionState" class="cr-data-status">Checking account…</p><p>Manage podcasts and creator memberships you follow.</p><div class="grid"><a href="my-library.html">My Library</a><a href="my-podcasts.html">My Podcasts</a><a href="profile.html">Profile</a><a href="account-settings.html">Account Settings</a></div></main><script>(async()=>{const s=await window.CrowRulesData.ready;const el=document.getElementById("subscriptionState");if(!el)return;el.textContent=s.user?"ACCOUNT CONNECTED":"SIGN IN TO MANAGE SUBSCRIPTIONS";el.dataset.state=s.user?"ready":"guest";window.CrowRulesData.on(x=>{el.textContent=x.user?"ACCOUNT CONNECTED":"SIGN IN TO MANAGE SUBSCRIPTIONS"});})();</script></body></html>
