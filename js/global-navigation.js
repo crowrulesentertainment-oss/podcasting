@@ -25,8 +25,7 @@
     ["podcasting/membership.html","Membership",["podcasting/membership.html","podcasting/subscriptions.html"],"account"],
     ["podcasting/premium-library.html","Premium",["podcasting/premium-library.html","podcasting/premium.html"],"account"],
     ["podcasting/creator-monetization-hub.html","Monetization",["podcasting/creator-monetization-hub.html","podcasting/monetization.html"],"growth"],
-    ["podcasting/playback-security.html","Security",["podcasting/playback-security.html","podcasting/playback-devices.html"],"account"]
-  ];
+    ["podcasting/playback-security.html","Security",["podcasting/playback-security.html","podcasting/playback-devices.html"],"account"],
   const help=["podcasting/help-center.html","podcasting/help.html","podcasting/support.html"];
   const accountAliases=["podcasting/profile.html","podcasting/account.html","podcasting/account-center.html","podcasting/account-settings.html"];
 
