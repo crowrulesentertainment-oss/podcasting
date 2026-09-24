@@ -9,9 +9,9 @@
   if(window.__CROWRULES_GLOBAL_NAV_94__) return;
   window.__CROWRULES_GLOBAL_NAV_94__=true;
 
-  const VERSION="9.4";
-  const CHANNEL_NAME="crowrules-podcasting-global-nav-94";
-  const STORAGE_KEY="crowrules-podcasting-nav-94";
+  const VERSION="9.4.1";
+  const CHANNEL_NAME="crowrules-podcasting-global-nav-941";
+  const STORAGE_KEY="crowrules-podcasting-nav-941";
   const REFRESH_MS=120000;
   const PODCASTING_BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
   const NOTIFY_LIMIT=12;
