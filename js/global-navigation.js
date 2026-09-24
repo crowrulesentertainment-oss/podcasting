@@ -108,7 +108,7 @@
       profile.classList.toggle("is-premium",!!premium);
       profile.classList.toggle("is-creator",!!creator);
       if(user){
-        const label=(user.user_metadata?.display_name||user.user_metadata?.full_name||user.email?.split("@")[0]||"Member").trim();
+        const label=(memberRecord?.display_name||memberRecord?.username||[memberRecord?.first_name,memberRecord?.last_name].filter(Boolean).join(" ")||user.user_metadata?.display_name||user.user_metadata?.full_name||user.email?.split("@")[0]||"Member").trim();
         profile.innerHTML='<span class="cr-avatar" aria-hidden="true">'+escapeHtml(label.slice(0,1).toUpperCase())+'</span><span class="cr-account-label">'+escapeHtml(label)+'</span>';
         profile.setAttribute("aria-label","Open account for "+label);
         profile.title=label+(membership?" · Member":"")+(premium?" · Premium":"")+(creator?" · Creator":"");
@@ -198,7 +198,7 @@
     if(request!==identityRequest)return;
     user=auth.data?.user||null;
     if(!user){
-      membership=null;premium=false;creator=false;notifications=[];unreadCount=0;
+      memberRecord=null;memberId=null;membership=null;premium=false;creator=false;notifications=[];unreadCount=0;
       renderIdentity();renderNotificationCenter();return;
     }
     const member=await client.from("members").select("id").eq("user_id",user.id).maybeSingle();
@@ -234,6 +234,7 @@
         })
         .on("postgres_changes",{event:"*",schema:"public",table:"membership_subscriptions",filter:"user_id=eq."+id},()=>{loadIdentity();broadcast("identity-refresh")})
         .on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_entitlements",filter:"member_user_id=eq."+id},()=>{loadIdentity();broadcast("identity-refresh")})
+        .on("postgres_changes",{event:"*",schema:"public",table:"creators",filter:"member_id=eq."+memberId},()=>{loadIdentity();broadcast("identity-refresh")})
         .subscribe();
     }catch(_){}
   }
