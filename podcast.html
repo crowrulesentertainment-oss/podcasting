@@ -1,1 +1,56 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Podcast | CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><div id="app"></div><script src="js/config.js"></script><script src="js/app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05050b">
+<title>Podcast | CrowRules Podcasting</title>
+<meta name="description" content="Podcast details on CrowRules Podcasting.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/podcasting.css">
+<style>
+:root{--bg:#05050b;--panel:#0d0f1b;--line:rgba(255,255,255,.1);--text:#f7f8ff;--muted:#9da4bd;--cyan:#42e8ff;--purple:#9a6cff;--pink:#ff4fd8}
+body{margin:0;min-height:100vh;color:var(--text);font-family:Montserrat,Arial,sans-serif;background:radial-gradient(circle at 15% 10%,rgba(66,232,255,.1),transparent 28%),radial-gradient(circle at 85% 15%,rgba(154,108,255,.12),transparent 30%),linear-gradient(180deg,#03040a,#080a14 55%,#04050a)}
+a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 32px));margin:0 auto}.page{padding:110px 0 70px}.hero{display:grid;grid-template-columns:minmax(260px,380px) 1fr;gap:34px;align-items:center}.art{aspect-ratio:1;border-radius:24px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(135deg,#11162a,#24102f);box-shadow:0 30px 90px rgba(0,0,0,.4)}.art img{width:100%;height:100%;object-fit:cover;display:block}.fallback{height:100%;display:grid;place-items:center;font:800 48px Orbitron;color:var(--cyan);background:radial-gradient(circle at 30% 20%,rgba(66,232,255,.25),transparent 30%),radial-gradient(circle at 70% 80%,rgba(255,79,216,.2),transparent 30%)}.eyebrow{display:inline-block;padding:7px 11px;border:1px solid rgba(66,232,255,.25);border-radius:999px;color:var(--cyan);font-size:10px;font-weight:800;letter-spacing:.1em}.hero h1{font:800 clamp(34px,6vw,68px)/1.05 Orbitron;margin:16px 0}.hero h1 span{background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));-webkit-background-clip:text;color:transparent}.desc{color:var(--muted);font-size:15px;line-height:1.8;max-width:760px}.meta{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}.chip{padding:8px 11px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:999px;font-size:10px;color:#cbd0df}.actions{display:flex;gap:10px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.05);font-size:11px;font-weight:800}.btn.primary{border:0;color:#05050b;background:linear-gradient(135deg,var(--cyan),var(--purple))}.section{margin-top:34px;padding:24px;border:1px solid var(--line);border-radius:22px;background:rgba(13,15,27,.8)}.section h2{font:700 18px Orbitron;margin:0 0 16px}.episode{padding:17px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:18px;align-items:center}.episode:first-child{border-top:0}.episode h3{margin:0 0 6px;font-size:14px}.episode p{margin:0;color:var(--muted);font-size:11px;line-height:1.6}.empty{color:var(--muted);font-size:12px;padding:12px 0}.loading,.error{padding:100px 20px;text-align:center;color:var(--muted)}.error strong{display:block;color:#ffdce2;margin-bottom:8px}@media(max-width:760px){.hero{grid-template-columns:1fr}.page{padding-top:90px}.art{max-width:420px;margin:auto}}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">Loading podcast…</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/global-navigation.js"></script>
+<script>
+(()=>{"use strict";
+const cfg=window.CROWRULES_CONFIG||{};
+const db=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true}});
+const app=document.getElementById("app");
+const esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const params=new URLSearchParams(location.search);
+const formatDuration=s=>{s=Number(s||0);if(!s)return "—";const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return h?h+"h "+String(m).padStart(2,"0")+"m":m+"m "+String(sec).padStart(2,"0")+"s"};
+const formatDate=v=>v?new Date(v).toLocaleDateString([],{year:"numeric",month:"short",day:"numeric"}):"";
+function id(){return params.get("id")||params.get("podcast_id")||null}
+async function load(){
+ const pid=id();
+ if(!pid){renderError("Missing podcast ID","Open this page with ?id=<podcast-id>.");return}
+ const p=await db.from("podcasts").select("id,title,slug,category,description,artwork_url,trailer_url,website_url,rss_url,status,is_featured,is_live,listener_count,total_plays,created_at,creator_id").eq("id",pid).maybeSingle();
+ if(p.error) throw p.error;
+ if(!p.data){renderError("Podcast not found","The podcast may have been removed or the link is no longer valid.");return}
+ const [cr,ep]=await Promise.all([
+   db.from("creators").select("id,name,avatar_url,bio").eq("id",p.data.creator_id).maybeSingle(),
+   db.from("podcast_episodes").select("id,title,slug,description,episode_number,season_number,published_at,duration_seconds,thumbnail_url,status,play_count,access_level").eq("podcast_id",pid).eq("status","published").order("published_at",{ascending:false})
+ ]);
+ if(cr.error) console.warn(cr.error); if(ep.error) console.warn(ep.error);
+ render(p.data,cr.data,ep.data||[]);
+}
+function render(p,c,episodes){
+ const artwork=p.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="'+esc(p.title)+' artwork" onerror="this.remove();this.parentElement.innerHTML=\'<div class="fallback">CR</div>\'">':'<div class="fallback">CR</div>';
+ app.innerHTML='<main class="page"><div class="wrap"><section class="hero"><div class="art">'+artwork+'</div><div><span class="eyebrow">'+esc((p.category||"PODCAST").toUpperCase())+'</span><h1>'+esc(p.title||"Untitled Podcast")+'</h1><p class="desc">'+esc(p.description||"No description has been added yet.")+'</p><div class="meta"><span class="chip">'+esc(p.status||"published")+'</span>'+(p.is_live?'<span class="chip">LIVE</span>':"")+'<span class="chip">'+episodes.length+' episode'+(episodes.length===1?"":"s")+'</span></div><div class="actions">'+(p.website_url?'<a class="btn primary" href="'+esc(p.website_url)+'" target="_blank" rel="noopener">Podcast Website</a>':"")+'<a class="btn" href="podcasts.html">← Back to Podcasts</a></div></div></section><section class="section"><h2>Episodes</h2>'+ (episodes.length?episodes.map(e=>'<article class="episode"><div><h3>'+esc(e.title||"Untitled Episode")+'</h3><p>'+(e.season_number?'Season '+e.season_number+(e.episode_number?' · Episode '+e.episode_number:''):'Episode')+(e.published_at?' · '+esc(formatDate(e.published_at)):"")+' · '+esc(formatDuration(e.duration_seconds))+(e.access_level==="premium"?' · Premium':"")+'</p><p style="margin-top:6px">'+esc(e.description||"")+'</p></div><a class="btn" href="episode.html?id='+encodeURIComponent(e.id)+'">Open Episode</a></article>').join(""):'<div class="empty">No published episodes are available yet. Check back when the show releases its first episode.</div>')+'</section></div></main>';
+}
+function renderError(title,msg){app.innerHTML='<div class="error"><strong>'+esc(title)+'</strong>'+esc(msg)+'</div>'}
+load().catch(e=>{console.error("Podcast page error",e);renderError("Unable to load podcast",e?.message||"Please try again.");});
+})();
+</script>
+</body>
+</html>
