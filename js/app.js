@@ -69,7 +69,28 @@ async function loadAuth(){
  if(avatar)avatar.textContent=state.user?(state.user.user_metadata?.name||state.user.email||"CR").slice(0,2).toUpperCase():"CR";
 }
 
-function renderRails(){document.querySelectorAll("[data-show-rail]").forEach(el=>el.innerHTML=state.shows.slice(0,8).map(card).join(""));}
+async function renderRails(){
+ document.querySelectorAll("[data-show-rail]").forEach(el=>el.innerHTML=state.shows.slice(0,8).map(card).join(""));
+ const rail=document.querySelector('[data-show-rail="subscriptions"]');
+ if(rail&&state.supabase&&state.user){
+  const {data}=await state.supabase.from("podcast_subscriptions").select("podcast_id,status").eq("user_id",state.user.id).in("status",["active","trialing","past_due"]);
+  const ids=new Set((data||[]).map(x=>x.podcast_id));const mine=state.shows.filter(s=>ids.has(s.dbId));
+  rail.innerHTML=mine.length?mine.map(card).join(""):'<div class="panel empty"><h2>No active paid shows.</h2><p>Your free follows remain available in your Library.</p><a class="btn primary" href="discover.html">Discover shows</a></div>';
+ }else if(rail){rail.innerHTML='<div class="panel empty"><h2>Sign in to view subscriptions.</h2><a class="btn primary" href="account.html">Open account</a></div>'}
+}
+async function loadLibrary(){
+ const el=document.getElementById("libraryPage");if(!el)return;
+ if(!state.supabase||!state.user){el.innerHTML='<div class="panel empty"><h2>Your library starts with your account.</h2><p>Sign in to see saved episodes, followed shows and continue listening.</p><a class="btn primary" href="account.html">Sign in</a></div>';return}
+ const [saved,followed,progress]=await Promise.all([
+  state.supabase.from("podcast_saved_episodes").select("episode_id").eq("user_id",state.user.id),
+  state.supabase.from("podcast_follows").select("podcast_id").eq("user_id",state.user.id),
+  state.supabase.from("podcast_episode_progress").select("episode_id,position_seconds,duration_seconds,percent_complete,last_played_at").eq("user_id",state.user.id).order("last_played_at",{ascending:false}).limit(12)
+ ]);
+ const savedIds=new Set((saved.data||[]).map(x=>x.episode_id)),followIds=new Set((followed.data||[]).map(x=>x.podcast_id));
+ const savedEpisodes=state.episodes.filter(e=>savedIds.has(e.id)),followShows=state.shows.filter(s=>followIds.has(s.dbId)),continueRows=(progress.data||[]).map(p=>({...p,episode:state.episodes.find(e=>e.id===p.episode_id)})).filter(x=>x.episode);
+ const epCard=e=>'<article class="episode"><button class="play" data-episode-id="'+esc(e.id)+'">▶</button><div><h3>'+esc(e.title)+'</h3><p>'+esc(state.shows.find(s=>s.dbId===e.podcast_id)?.title||"Podcast")+'</p></div><button data-save>★ Saved</button></article>';
+ el.innerHTML='<section class="section"><div class="section-head"><div><p class="eyebrow">CONTINUE LISTENING</p><h2>Pick up where you left off.</h2></div></div><div class="episode-list">'+(continueRows.length?continueRows.map(x=>'<article class="episode"><button class="play" data-episode-id="'+esc(x.episode.id)+'">▶</button><div><h3>'+esc(x.episode.title)+'</h3><p>'+Math.round(Number(x.percent_complete||0))+'% complete</p></div></article>').join(""):'<div class="panel empty"><p>No listening history yet.</p></div>')+'</div></section><section class="section"><div class="section-head"><div><p class="eyebrow">FOLLOWING</p><h2>Your shows.</h2></div></div><div class="card-grid">'+(followShows.length?followShows.map(card).join(""):'<div class="panel empty"><p>You are not following any shows yet.</p></div>')+'</div></section><section class="section"><div class="section-head"><div><p class="eyebrow">SAVED</p><h2>Episodes for later.</h2></div></div><div class="episode-list">'+(savedEpisodes.length?savedEpisodes.map(epCard).join(""):'<div class="panel empty"><p>No saved episodes yet.</p></div>')+'</div></section>';
+}
 
 function discover(){
  const grid=document.getElementById("discoverGrid");if(!grid)return;
@@ -173,7 +194,7 @@ function creator(){
 function schedule(){const el=document.getElementById("schedule");if(!el)return;el.innerHTML=state.shows.slice(0,8).map((s,i)=>'<div class="slot"><time>'+["03:00 PM","05:30 PM","08:00 PM","09:30 PM","10:00 PM","11:30 PM","12:30 AM","01:30 AM"][i]+'</time><div><h3>'+esc(s.title)+'</h3><p>'+esc(s.host)+' • '+esc(s.tag)+'</p></div><a class="btn" href="podcast.html?show='+encodeURIComponent(s.slug||s.id)+'">Open</a></div>').join("")}
 
 async function boot(){
- nav();player();await loadData();await loadAuth();renderRails();discover();showPage();charts();chat();forms();actions();creators();creator();schedule();
+ nav();player();await loadData();await loadAuth();await renderRails();await loadLibrary();discover();showPage();charts();chat();forms();actions();creators();creator();schedule();
  if(state.supabase)state.supabase.auth.onAuthStateChange((_e,s)=>{state.user=s?.user||null;const a=document.getElementById("accountAvatar");if(a)a.textContent=state.user?(state.user.email||"CR").slice(0,2).toUpperCase():"CR"});
 }
 boot();
