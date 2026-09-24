@@ -23,7 +23,7 @@ async function init(){
  const pageSize=100;let offset=0,rows=[],newest=null,oldest=null;
  const filterStorageKey='crowrules.healthSummaryHistory.filters.'+u.id,filterVersion=3;
  const filterState=()=>({query:search.value.trim(),from:dateFrom.value,to:dateTo.value,confidence:confidence.value,anomaly:anomaly.value,review:reviewStatus.value,sort:sort.value});
- const applyState=s=>{search.value=s.query||'';dateFrom.value=s.from||'';dateTo.value=s.to||'';confidence.value=s.confidence||'';anomaly.value=s.anomaly||'';reviewStatus.value=s.review||'';sort.value=s.sort||'newest'};
+ const applyState=s=>{search.value=s.query||'';dateFrom.value=s.from||'';dateTo.value=s.to||'';confidence.value=s.confidence||'';anomaly.value=s.anomaly||'';reviewStatus.value=s.review||'';sort.value=['newest','oldest','score-high','score-low'].includes(s.sort)?s.sort:'newest'};
  const saved=()=>{try{const x=JSON.parse(localStorage.getItem(filterStorageKey)||'{}');if(x?.version===filterVersion)return x.state||{};if(x?.version===2&&x.state)return{...x.state,sort:x.state.sort||'newest'};return{}}catch{return{}}};
  const persist=s=>{try{localStorage.setItem(filterStorageKey,JSON.stringify({version:filterVersion,state:s}))}catch{}};
  const filterRows=()=>{const s=filterState(),q=s.query.toLowerCase(),from=s.from?new Date(s.from+'T00:00:00'):null,to=s.to?new Date(s.to+'T23:59:59.999'):null;return rows.filter(x=>{const d=new Date(x.period_end);return(!from||d>=from)&&(!to||d<=to)&&(!q||[x.summary,x.review_note,x.confidence_level,x.anomaly_state,x.review_status,(x.anomaly_reasons||[]).join(' ')].join(' ').toLowerCase().includes(q))&&(!s.confidence||x.confidence_level===s.confidence)&&(!s.anomaly||x.anomaly_state===s.anomaly)&&(!s.review||x.review_status===s.review)})};
