@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-// Global Header Navigation 9.4 — repo-wide canonical HTML sync
+// Global Header Navigation 9.4.1 — repo-wide canonical HTML sync
 const root=process.cwd();
 const skip=new Set(["node_modules",".git",".github"]);
 let changed=0,total=0;
@@ -50,4 +50,4 @@ for(const file of walk(root)){
   }
 }
 
-console.log("Global Navigation 9.4 sync: scanned " + total + " HTML pages; updated " + changed + ".");
+console.log("Global Navigation 9.4.1 sync: scanned " + total + " HTML pages; updated " + changed + ".");
