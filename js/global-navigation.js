@@ -1,4 +1,4 @@
-/* CrowRules Podcasting — Global Navigation 9.1 — GitHub Pages Canonical Navigation
+/* CrowRules Podcasting — Global Navigation 9.3 — GitHub Pages Canonical Navigation
    One shared navigation system.
    Live identity, membership/premium presence, notifications,
    creator state, cross-tab synchronization, and account command palette.
@@ -6,12 +6,12 @@
 */
 (function(){
   "use strict";
-  if(window.__CROWRULES_GLOBAL_NAV_92__) return;
-  window.__CROWRULES_GLOBAL_NAV_92__=true;
+  if(window.__CROWRULES_GLOBAL_NAV_93__) return;
+  window.__CROWRULES_GLOBAL_NAV_93__=true;
 
-  const VERSION="9.2";
-  const CHANNEL_NAME="crowrules-podcasting-global-nav-92";
-  const STORAGE_KEY="crowrules-podcasting-nav-92";
+  const VERSION="9.3";
+  const CHANNEL_NAME="crowrules-podcasting-global-nav-93";
+  const STORAGE_KEY="crowrules-podcasting-nav-93";
   const REFRESH_MS=15000;
   const PODCASTING_BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
   const NOTIFY_LIMIT=12;
@@ -36,8 +36,8 @@
   const href=target=>PODCASTING_BASE+String(target||"").replace(/^\/+/, "");
   const isCurrent=aliases=>aliases.includes(current);
 
-  let db=null,user=null,realtimeChannel=null,authSubscription=null,memberId=null,memberRecord=null;
-  let notifications=[],unreadCount=0,membership=null,premium=false,creator=false;
+  let db=null,user=null,realtimeChannel=null,authSubscription=null,memberId=null,memberRecord=null,accountState=null,accountUnsubscribe=null;
+  let notifications=[],unreadCount=0,membership=null,premium=false,creator=false,crowpoints=0,payoutState="not_connected";
   let openPanel=null,refreshTimer=null,pollTimer=null,identityRequest=0,dependencyPromise=null;
 
   function loadScriptOnce(src,key){
@@ -64,7 +64,7 @@
         if(!window.supabase?.createClient){
           await loadScriptOnce("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2","supabase");
         }
-        if(!window.CrowRulesMemberState && window.supabase?.createClient){
+        if(!window.CrowRulesAccount){try{await loadScriptOnce(href("js/account-command-center.js"),"account-command-center")}catch(_){} }\n        if(!window.CrowRulesAccountUI && window.CrowRulesAccount){try{await loadScriptOnce(href("js/account-command-center-ui.js"),"account-command-center-ui")}catch(_){} }\n        if(!window.CrowRulesMemberState && window.supabase?.createClient){
           try{await loadScriptOnce(href("js/member-state.js"),"member-state")}catch(_){}
         }
       }catch(_){}
@@ -93,7 +93,7 @@
   }
   function dispatch(type,detail={}){window.dispatchEvent(new CustomEvent("crowrules:global-nav",{detail:{type,...detail}}))}
   function broadcast(type,payload={}){
-    const message={source:"crowrules-global-nav-92",type,payload,at:new Date().toISOString()};
+    const message={source:"crowrules-global-nav-93",type,payload,at:new Date().toISOString()};
     try{
       if("BroadcastChannel"in window){
         if(!window.__crowRulesGlobalNavChannel)window.__crowRulesGlobalNavChannel=new BroadcastChannel(CHANNEL_NAME);
@@ -103,6 +103,23 @@
     try{localStorage.setItem(STORAGE_KEY,JSON.stringify(message));localStorage.removeItem(STORAGE_KEY)}catch(_){}
   }
 
+  function applyAccountState(s){
+    accountState=s||null;
+    if(!s)return;
+    if(s.user){
+      user=s.user;
+      memberRecord=s.profile||memberRecord;
+      membership=s.membership||null;
+      creator=!!s.creator;
+      crowpoints=Number(s.stats?.crowpoints||0);
+      payoutState=s.status?.stripe||"not_connected";
+      unreadCount=Number(s.notifications||0);
+      premium=payoutState==="payouts_ready" ? premium : premium;
+    }else{
+      user=null;memberRecord=null;membership=null;creator=false;crowpoints=0;unreadCount=0;payoutState="not_connected";
+    }
+    renderIdentity();
+  }
   function renderIdentity(){
     const profile=document.querySelector(".cr-global-identity");
     if(profile){
@@ -114,7 +131,7 @@
         const label=(memberRecord?.display_name||memberRecord?.username||[memberRecord?.first_name,memberRecord?.last_name].filter(Boolean).join(" ")||user.user_metadata?.display_name||user.user_metadata?.full_name||user.email?.split("@")[0]||"Member").trim();
         profile.innerHTML='<span class="cr-avatar" aria-hidden="true">'+escapeHtml(label.slice(0,1).toUpperCase())+'</span><span class="cr-account-label">'+escapeHtml(label)+'</span>';
         profile.setAttribute("aria-label","Open account for "+label);
-        profile.title=label+(membership?" · Member":"")+(premium?" · Premium":"")+(creator?" · Creator":"");
+        profile.title=label+(membership?" · Member":"")+(premium?" · Premium":"")+(creator?" · Creator":"")+(crowpoints?" · "+crowpoints.toLocaleString()+" CrowPoints":"")+(payoutState==="payouts_ready"?" · Payouts Ready":"");
       }else{
         profile.innerHTML='<span class="cr-avatar cr-avatar-guest" aria-hidden="true">CR</span><span class="cr-account-label">Sign In</span>';
         profile.setAttribute("aria-label","Sign in to CrowRules Podcasting");
@@ -123,12 +140,12 @@
     }
     const status=document.querySelector(".cr-presence-status");
     if(status){
-      status.textContent=user?(premium?"Premium":creator?"Creator":membership?"Member":"Signed in"):"Guest";
+      status.textContent=user?(creator?"Creator":membership?"Member":"Signed in"):"Guest";
       status.classList.toggle("active",!!user);
     }
     const badge=document.querySelector(".cr-notification-badge");
     if(badge){badge.textContent=unreadCount>99?"99+":String(unreadCount);badge.hidden=unreadCount<1}
-    dispatch("identity",{user,membership,premium,creator,unreadCount});
+    dispatch("identity",{user,membership,premium,creator,crowpoints,payoutState,unreadCount,accountState});
   }
 
   function notificationIcon(type){
@@ -370,6 +387,10 @@
     };
 
     renderIdentity();renderNotificationCenter();
+    if(window.CrowRulesAccount){
+      accountUnsubscribe=window.CrowRulesAccount.on(applyAccountState);
+      Promise.resolve(window.CrowRulesAccount.ready).then(s=>applyAccountState(s||window.CrowRulesAccount.getState())).catch(()=>{});
+    }
     setupAuthSync();
     loadIdentity().then(subscribeRealtime);
     clearInterval(pollTimer);
