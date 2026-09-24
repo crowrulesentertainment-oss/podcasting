@@ -121,9 +121,17 @@ async function playEpisode(e){
  const a=document.getElementById("crAudio");
  let ep=state.episodes.find(x=>x.id===e.id)||e;
  if(!ep.audio_url){toast("This episode does not have an audio file yet");return}
+ let source=ep.audio_url;
+ if(String(source).startsWith("storage://")){
+  if(!state.supabase||!state.user){toast("Sign in with an active subscription to play this episode");return}
+  const parts=source.slice(10).split("/"),bucket=parts.shift(),path=parts.join("/");
+  const {data:signed,error}=await state.supabase.storage.from(bucket).createSignedUrl(path,3600);
+  if(error||!signed?.signedUrl){toast("Premium access required");return}
+  source=signed.signedUrl;
+ }
  state.current=ep;document.getElementById("playerTitle").textContent=ep.title;document.getElementById("playerMeta").textContent="CrowRules Podcasting • Now playing";
  const art=state.shows.find(s=>s.dbId===ep.podcast_id)?.art; if(art)document.getElementById("playerArt").src=art;
- if(a.src!==ep.audio_url)a.src=ep.audio_url;
+ if(a.src!==source)a.src=source;
  a.currentTime=0;try{await a.play();state.playing=true;document.getElementById("player").classList.add("show");document.querySelector("[data-toggle]").textContent="Ⅱ";}catch{toast("Press play to start this transmission")}
  if(state.supabase&&state.user){state.supabase.from("podcast_listens").insert({user_id:state.user.id,episode_id:ep.id,seconds_listened:0,completed:false,session_key:crypto.randomUUID?.()||String(Date.now())}).then(()=>{});}
 }
