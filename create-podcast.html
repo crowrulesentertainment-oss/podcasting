@@ -1220,6 +1220,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
+<script src="js/platform-data.js"></script>
 <script src="js/member-state.js"></script>
 
 <script>
@@ -1528,7 +1529,7 @@
     const {
       data,
       error
-    } = await client.auth.getUser();
+    } = await window.CrowRulesData.getUser().then(user => ({data:{user}}));
 
     if (error) {
       throw error;
