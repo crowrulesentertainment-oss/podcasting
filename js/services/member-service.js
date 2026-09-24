@@ -15,5 +15,6 @@ async function markNotificationRead(id){const u=await member(),db=await api();co
 async function library(){return rpc("get_my_podcast_library")}
 async function following(){return rpc("get_my_podcast_following")}
 async function memberFollowing(ids=[]){const u=await member();if(!ids.length)return [];const db=await api(),r=await db.from("podcast_member_follows").select("followed_user_id").eq("follower_user_id",u.id).in("followed_user_id",ids);if(r.error)throw r.error;return r.data||[]}
-window.CrowRulesMember={version:"1.0",followPodcast,unfollowPodcast,saveEpisode,unsaveEpisode,favoriteEpisode,unfavoriteEpisode,followMember,unfollowMember,markNotificationRead,library,following,memberFollowing};
+const contract=fn=>async(...args)=>window.CrowRulesData.execute(()=>fn(...args));
+window.CrowRulesMember={version:"2.0",followPodcast:contract(followPodcast),unfollowPodcast:contract(unfollowPodcast),saveEpisode:contract(saveEpisode),unsaveEpisode:contract(unsaveEpisode),favoriteEpisode:contract(favoriteEpisode),unfavoriteEpisode:contract(unfavoriteEpisode),followMember:contract(followMember),unfollowMember:contract(unfollowMember),markNotificationRead:contract(markNotificationRead),library:contract(library),following:contract(following),memberFollowing:contract(memberFollowing)};
 })();
