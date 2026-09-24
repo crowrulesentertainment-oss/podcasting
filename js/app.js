@@ -59,11 +59,16 @@ async function loadAuth(){
  if(!state.supabase)return;
  const {data}=await state.supabase.auth.getUser();
  state.user=data?.user||null;
- await refreshPoints();
+ await refreshPoints();await refreshAlertBadge();
  const avatar=document.getElementById("accountAvatar");
  if(avatar)avatar.textContent=state.user?(state.user.user_metadata?.name||state.user.email||"CR").slice(0,2).toUpperCase():"CR";
 }
 
+async function refreshAlertBadge(){
+ if(!state.supabase||!state.user)return;
+ const {count}=await state.supabase.from("podcast_creator_notifications").select("id",{count:"exact",head:true}).eq("user_id",state.user.id).eq("is_read",false);
+ document.querySelectorAll("#alertCount").forEach(x=>x.textContent=count?String(count):"");
+}
 async function refreshPoints(){
  if(!state.supabase||!state.user)return;
  const {data}=await state.supabase.from("podcast_creator_stats").select("crowpoints").eq("user_id",state.user.id).maybeSingle();
@@ -388,6 +393,6 @@ function wireOperatingSystem(){
 
 async function boot(){
  nav();player();await loadData();await loadAuth();await renderRails();await loadLibrary();discover();showPage();charts();chat();forms();actions();creators();creator();schedule();wireOperatingSystem();
- if(state.supabase)state.supabase.auth.onAuthStateChange(async(_e,s)=>{state.user=s?.user||null;const a=document.getElementById("accountAvatar");if(a)a.textContent=state.user?(state.user.email||"CR").slice(0,2).toUpperCase():"CR";await renderRails();await loadLibrary();wireOperatingSystem()});
+ if(state.supabase)state.supabase.auth.onAuthStateChange(async(_e,s)=>{state.user=s?.user||null;const a=document.getElementById("accountAvatar");if(a)a.textContent=state.user?(state.user.email||"CR").slice(0,2).toUpperCase():"CR";await renderRails();await loadLibrary();await refreshAlertBadge();wireOperatingSystem()});
 }
 boot();
