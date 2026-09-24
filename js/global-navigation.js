@@ -7,7 +7,7 @@
 (function(){
   "use strict";
   if(window.__CROWRULES_GLOBAL_NAV_90__) return;
-  window.__CROWRULES_GLOBAL_NAV_86__=true;
+  window.__CROWRULES_GLOBAL_NAV_90__=true;
 
   const VERSION="9.0";
   const CHANNEL_NAME="crowrules-podcasting-global-nav-90";
@@ -302,7 +302,7 @@
     nav.forEach(x=>addLink(desktop,x[0],x[1],x[2],x[3]));addLink(desktop,"help-center.html","Help",help,"account");
     const actions=document.createElement("div");actions.className="cr-global-actions";
     const notify=document.createElement("button");notify.type="button";notify.className="cr-notification-trigger";notify.setAttribute("aria-label","Open notifications");notify.setAttribute("aria-expanded","false");notify.innerHTML='<span aria-hidden="true">◌</span><span class="cr-notification-badge" hidden>0</span>';actions.appendChild(notify);
-    const account=document.createElement("a");account.href=href("profile.html");account.className="cr-profile-link cr-global-identity";if(isCurrent(accountAliases))account.setAttribute("aria-current","page");actions.appendChild(account);
+    const account=document.createElement("a");account.href=href("profile.html");account.className="cr-profile-link cr-global-identity";if(isCurrent(accountAliases))account.setAttribute("aria-current","page");account.title="Open Profile";actions.appendChild(account);
     const menu=document.createElement("button");menu.className="cr-global-menu";menu.type="button";menu.setAttribute("aria-label","Open navigation");menu.setAttribute("aria-expanded","false");menu.setAttribute("aria-controls","cr-global-mobile-nav");menu.textContent="☰";
     const mobile=document.createElement("nav");mobile.className="cr-global-mobile";mobile.id="cr-global-mobile-nav";mobile.setAttribute("aria-label","Mobile primary");
     nav.forEach(x=>addLink(mobile,x[0],x[1],x[2],x[3]));addLink(mobile,"help-center.html","Help",help,"account");
