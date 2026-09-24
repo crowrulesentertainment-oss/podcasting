@@ -32,6 +32,11 @@ Deno.serve(async(req)=>{
     }
 
     const creatorId=metadata.creator_id||null;
+    const financeAlert=async(type:string,title:string,message:string,threshold:number|null=null,currency:string|null=null)=>{
+      if(!creatorId)return;
+      const {error}=await supabase.from("cr_podcast_finance_alerts").insert({creator_id:creatorId,alert_type:type,title,message,threshold_cents:threshold,currency});
+      if(error) console.error("finance alert:",error.message);
+    };
     // Record a transparent creator/platform split for completed checkout payments.
     if ((event.type==="checkout.session.completed" || event.type==="checkout.session.async_payment_succeeded") && creatorId && obj.id?.startsWith("cs_")) {
       const gross=Number(obj.amount_total||0);
@@ -44,6 +49,7 @@ Deno.serve(async(req)=>{
         currency:obj.currency||"usd", status:"paid", updated_at:new Date().toISOString()
       },{onConflict:"stripe_checkout_session_id"});
       if(splitError) throw splitError;
+      await financeAlert("milestone","Payment received","A podcast payment was successfully recorded in your creator finance ledger.",gross,obj.currency||"usd");
     }
     // Refunds and disputes reconcile against the original revenue split.
     if ((event.type==="charge.refunded" || event.type==="charge.dispute.created" || event.type==="charge.dispute.closed") && creatorId) {
@@ -58,6 +64,11 @@ Deno.serve(async(req)=>{
           refund_cents:refund, creator_net_cents:revisedNet, status, reconciled_at:new Date().toISOString(), updated_at:new Date().toISOString()
         }).eq("id",split.id);
         if(q.error)throw q.error;
+        await financeAlert(event.type==="charge.refunded"?"refund":"dispute",
+          event.type==="charge.refunded"?"Refund recorded":"Dispute activity recorded",
+          event.type==="charge.refunded"?"A Stripe refund was recorded against a creator transaction.":"A Stripe dispute event was recorded against a creator transaction.",
+          event.type==="charge.refunded"?refund:null,
+          obj.currency||null);
       }
     }
     const productId=metadata.product_id||null;
@@ -116,6 +127,9 @@ Deno.serve(async(req)=>{
           updated_at:new Date().toISOString()
         },{onConflict:"stripe_payout_id"});
         if(q.error)throw q.error;
+        await financeAlert("payout",status==="paid"?"Payout completed":"Payout status updated",
+          "Stripe reported a payout lifecycle event for your creator account.",
+          Number(payout.amount||0),payout.currency||"usd");
       }
     }
 
