@@ -1246,10 +1246,7 @@
     return;
   }
 
-  const client = window.supabase.createClient(
-    config.supabaseUrl,
-    config.supabaseAnonKey
-  );
+  const client = window.CrowRulesData.getClient()
 
   const state = {
     user: null,
