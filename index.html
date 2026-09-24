@@ -1,4 +1,55 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CrowRules Podcasting</title><link rel="stylesheet" href="css/app.css"><link rel="stylesheet" href="css/global-navigation.css">
-<script src="js/domain-service-loader.js" defer></script>
-<script src="js/global-navigation.js" defer></script>
-</head><body data-no-nav="true"><main><section class="hero shell"><div><span class="kicker">CROWRULES ENTERTAINMENT</span><h1>PODCASTING<br>STARTS HERE.</h1><p>A cinematic gateway into the CrowRules Podcasting universe.</p><div class="actions"><a class="btn primary" href="launch.html">Enter Launch Experience</a><a class="btn" href="home.html">Explore Platform</a></div></div><div class="orb"></div></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script><script>setTimeout(()=>location.href='launch.html',4200)</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#02030a">
+<meta name="description" content="CrowRules Podcasting — the next generation of podcast discovery.">
+<title>CrowRules Podcasting | The Intro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;min-height:100%;overflow:hidden;background:#02030a;color:#fff}
+body{font-family:Montserrat,Arial,sans-serif}.intro{min-height:100vh;position:relative;display:grid;place-items:center;isolation:isolate;background:radial-gradient(circle at 50% 45%,#10182d 0,#070a15 27%,#02030a 68%)}
+.stars,.stars:before,.stars:after{position:absolute;inset:0;content:"";background-image:radial-gradient(circle,#ffffff 0 1px,transparent 1.5px);background-size:97px 103px;opacity:.28;animation:drift 18s linear infinite}
+.stars:before{background-size:137px 149px;opacity:.18;transform:scale(1.3);animation-duration:30s}.stars:after{background-size:61px 73px;opacity:.12;transform:scale(1.7);animation-duration:42s}
+.grid{position:absolute;inset:48% -20% -35%;background-image:linear-gradient(#22e6ff12 1px,transparent 1px),linear-gradient(90deg,#22e6ff12 1px,transparent 1px);background-size:70px 70px;transform:perspective(500px) rotateX(63deg);transform-origin:top;animation:gridMove 7s linear infinite;mask-image:linear-gradient(to bottom,transparent,#000 25%,transparent)}
+.signal{position:absolute;width:min(72vw,760px);aspect-ratio:1;border-radius:50%;border:1px solid #22e6ff22;box-shadow:0 0 100px #22e6ff10,inset 0 0 80px #9b5cff0b;animation:pulse 4s ease-in-out infinite}
+.signal:before,.signal:after{content:"";position:absolute;inset:11%;border:1px solid #9b5cff25;border-radius:50%;animation:spin 18s linear infinite}.signal:after{inset:25%;border-color:#ff4fd822;animation-direction:reverse;animation-duration:12s}
+.core{position:absolute;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#22e6ff 17%,#9b5cff 43%,transparent 70%);filter:blur(.2px);box-shadow:0 0 45px #22e6ff55,0 0 110px #9b5cff35;animation:core 3s ease-in-out infinite}
+.content{position:relative;width:min(900px,calc(100% - 36px));text-align:center;z-index:3;animation:arrive 1.4s cubic-bezier(.2,.8,.2,1) both}
+.mark{width:64px;height:64px;margin:0 auto 28px;display:grid;place-items:center;border:1px solid #22e6ff66;border-radius:18px;background:#ffffff06;color:#22e6ff;font:900 18px Orbitron;box-shadow:0 0 35px #22e6ff18;animation:markIn 1s .2s both}
+.kicker{display:block;color:#22e6ff;font:800 10px Orbitron;letter-spacing:.42em;margin-left:.42em;animation:fade 1s .4s both}
+h1{font:900 clamp(40px,8vw,94px)/.9 Orbitron;letter-spacing:.01em;margin:20px 0 22px;background:linear-gradient(110deg,#fff 15%,#b9fbff 42%,#9b6cff 66%,#ff8ae9 88%,#fff);background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:titleIn 1.3s .55s both,shimmer 5s 2s linear infinite}
+.sub{max-width:650px;margin:auto;color:#b5bdd0;font-size:clamp(13px,2vw,17px);line-height:1.8;animation:fade 1s .9s both}
+.words{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:28px auto 0;animation:fade 1s 1.15s both}.words span{padding:9px 12px;border:1px solid #ffffff12;border-radius:999px;background:#ffffff05;color:#8e98b0;font-size:8px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.progress{width:min(420px,100%);height:2px;margin:42px auto 0;background:#ffffff12;overflow:hidden;animation:fade 1s 1.3s both}.progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,#22e6ff,#9b5cff,#ff4fd8);animation:load 4s linear forwards}
+.status{margin-top:13px;color:#66718a;font:700 8px Montserrat;letter-spacing:.18em;text-transform:uppercase;animation:fade 1s 1.45s both}
+@keyframes arrive{from{opacity:0;transform:translateY(25px) scale(.98)}to{opacity:1;transform:none}}@keyframes fade{from{opacity:0}to{opacity:1}}@keyframes titleIn{from{opacity:0;transform:scale(.94);filter:blur(10px)}to{opacity:1;transform:none;filter:none}}@keyframes shimmer{to{background-position:220% center}}@keyframes pulse{50%{transform:scale(1.06);opacity:.72}}@keyframes core{50%{transform:scale(1.18);box-shadow:0 0 70px #22e6ff66,0 0 140px #9b5cff45}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes drift{to{transform:translate3d(30px,20px,0)}}@keyframes gridMove{to{background-position:0 70px,0 0}}@keyframes markIn{from{opacity:0;transform:scale(.4) rotate(-25deg)}to{opacity:1;transform:none}}@keyframes load{to{width:100%}}
+@media(max-width:600px){.signal{width:110vw}.core{width:82px;height:82px}.words{gap:6px}.words span{padding:8px 9px}.content{width:calc(100% - 24px)}}
+</style>
+</head>
+<body>
+<main class="intro" aria-label="CrowRules Podcasting introduction">
+<div class="stars"></div><div class="grid"></div><div class="signal"></div><div class="core"></div>
+<section class="content">
+<div class="mark">CR</div>
+<span class="kicker">CROWRULES ENTERTAINMENT</span>
+<h1>PODCASTING<br>HAS A NEW SIGNAL.</h1>
+<p class="sub">Listen. Discover. Create. Follow the voices, shows and stories that will become the CrowRules Podcasting universe.</p>
+<div class="words"><span>Shows</span><span>Episodes</span><span>Hosts</span><span>Creators</span><span>Live Audio</span><span>One Universe</span></div>
+<div class="progress"><i></i></div>
+<div class="status" id="status">Connecting to the CrowRules universe · 0%</div>
+</section>
+</main>
+<script>
+(function(){
+const status=document.getElementById("status"),started=Date.now(),duration=4000;
+function tick(){const p=Math.min(100,Math.floor((Date.now()-started)/duration*100));status.textContent=p<100?"Connecting to the CrowRules universe · "+p+"%":"Signal established · entering launch experience";if(p<100)requestAnimationFrame(tick)}
+tick();
+setTimeout(()=>{window.location.replace("launch.html")},4300);
+})();
+</script>
+</body>
+</html>
