@@ -7,5 +7,5 @@ async function episodes(podcastId=null,limit=100){const u=await window.CrowRules
 async function getEpisode(id){const db=await api();return db.from("podcast_episodes").select("*").eq("id",id).maybeSingle()}
 async function savePodcast(id,patch){const u=await window.CrowRulesData.requireAuth(),db=await api();return db.from("podcasts").update(patch).eq("id",id).eq("creator_id",u.id)}
 async function saveEpisode(id,patch){const u=await window.CrowRulesData.requireAuth(),db=await api();return db.from("podcast_episodes").update(patch).eq("id",id).eq("created_by",u.id)}
-window.CrowRulesCreator={version:"1.1",creator,podcasts,episodes,getEpisode,savePodcast,saveEpisode,governance};
+window.CrowRulesCreator={version:"1.1",creator,podcasts,episodes,getEpisode,savePodcast,saveEpisode,governance,governanceRealtime};
 })();
