@@ -17,7 +17,7 @@ async function loadLibrary(){
  const favorites=rows.filter(x=>x.item_type==="favorite").map(x=>({...x,e:map.get(x.episode_id)})).filter(x=>x.e);
  const continueRows=progress.filter(x=>!x.completed&&Number(x.verified_seconds)>0).slice(0,12);
  const completed=progress.filter(x=>x.completed).slice(0,12);
- render("saved",saved); render("favorites",favorites); renderProgress("continue",continueRows); renderProgress("completed",completed);
+ render("saved",saved); render("favorites",favorites); renderProgress("continue",continueRows); renderProgress("completed",completed);\n const recent=progress.filter(x=>Number(x.verified_seconds)>0).sort((a,b)=>new Date(b.last_played_at||b.updated_at||0)-new Date(a.last_played_at||a.updated_at||0)).slice(0,12);\n const recentIds=[...new Set(recent.map(x=>x.episode_id))];\n let recentEpisodes=[]; if(recentIds.length){const rr=await sb.from("podcast_episodes").select("id,title,slug,podcast_id,thumbnail_url,duration_seconds").in("id",recentIds); recentEpisodes=rr.data||[];}\n const recentMap=new Map(recentEpisodes.map(x=>[x.id,x]));\n renderProgress("recently",recent.map(x=>({...x,e:recentMap.get(x.episode_id)})).filter(x=>x.e));
  document.getElementById("empty").hidden=!!(saved.length||favorites.length||continueRows.length||completed.length);
 }
 function card(x,kind){
