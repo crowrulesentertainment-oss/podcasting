@@ -25,7 +25,7 @@ function nav(){
 
 function player(){
  if(document.querySelector(".player"))return;
- document.body.insertAdjacentHTML("beforeend",'<div class="player" id="player"><img class="player-art" id="playerArt" src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=200&q=80" alt=""><div class="player-info"><b id="playerTitle">Nothing playing</b><span id="playerMeta">CrowRules Podcasting</span></div><div class="player-controls"><button data-prev aria-label="Previous">↶</button><button class="main" data-toggle aria-label="Play">▶</button><button data-next aria-label="Next">↷</button></div><div class="player-progress"><i id="playerProgress"></i></div><audio id="crAudio" preload="metadata"></audio></div>');
+ document.body.insertAdjacentHTML("beforeend",'<div class="player" id="player"><img class="player-art" id="playerArt" alt=""><div class="player-info"><b id="playerTitle">Nothing playing</b><span id="playerMeta">CrowRules Podcasting</span></div><div class="player-controls"><button data-prev aria-label="Previous">↶</button><button class="main" data-toggle aria-label="Play">▶</button><button data-next aria-label="Next">↷</button></div><div class="player-progress"><i id="playerProgress"></i></div><audio id="crAudio" preload="metadata"></audio></div>');
  const a=document.getElementById("crAudio");
  a.addEventListener("timeupdate",()=>{if(!a.duration)return;state.progress=(a.currentTime/a.duration)*100;document.getElementById("playerProgress").style.width=state.progress+"%";});
  a.addEventListener("loadedmetadata",()=>state.duration=a.duration);
@@ -57,10 +57,16 @@ async function loadAuth(){
  if(!state.supabase)return;
  const {data}=await state.supabase.auth.getUser();
  state.user=data?.user||null;
+ await refreshPoints();
  const avatar=document.getElementById("accountAvatar");
  if(avatar)avatar.textContent=state.user?(state.user.user_metadata?.name||state.user.email||"CR").slice(0,2).toUpperCase():"CR";
 }
 
+async function refreshPoints(){
+ if(!state.supabase||!state.user)return;
+ const {data}=await state.supabase.from("podcast_creator_stats").select("crowpoints").eq("user_id",state.user.id).maybeSingle();
+ if(data?.crowpoints!=null){state.points=Number(data.crowpoints);localStorage.setItem("cr_points",state.points);document.querySelectorAll(".points-pill b,#points").forEach(x=>x.textContent=state.points);}
+}
 async function renderRails(){
  document.querySelectorAll("[data-show-rail]").forEach(el=>el.innerHTML=state.shows.slice(0,8).map(card).join(""));
  const rail=document.querySelector('[data-show-rail="subscriptions"]');
