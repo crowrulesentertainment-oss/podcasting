@@ -2,171 +2,92 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Create Episode — CrowRules Podcasting</title>
+<title>Episode Studio — CrowRules Podcasting</title>
 <link rel="stylesheet" href="css/podcasting.css">
-<script src="js/config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/podcasting.js" defer></script><script src="js/player.js" defer></script><script src="js/app.js" defer></script>
+<script src="js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/podcasting.js" defer></script><script src="js/player.js" defer></script><script src="js/app.js" defer></script>
 <style>
-.builder{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.75fr);gap:22px;align-items:start}.stack{display:grid;gap:18px}.field{display:grid;gap:7px}.field label{display:block;font-weight:700;letter-spacing:.01em}.field small{display:block;opacity:.58;line-height:1.5}.drop{border:1px dashed #ffffff22;border-radius:18px;padding:24px;background:linear-gradient(145deg,#10101d,#08080e);cursor:pointer;transition:.2s}.drop:hover,.drop.drag{border-color:#a56cff;background:#121222;transform:translateY(-1px)}.drop input{display:none}.file{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px;border:1px solid #ffffff12;border-radius:12px;margin-top:10px;background:#ffffff05}.meter{height:7px;border-radius:99px;background:#ffffff0d;overflow:hidden;margin-top:12px}.meter i{display:block;width:0;height:100%;background:linear-gradient(90deg,#54d8ff,#a56cff);transition:width .2s}.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:18px}.step{padding:11px 8px;border-radius:12px;background:#ffffff06;text-align:center;font-size:12px;color:#ffffff80}.step.active{background:#ffffff12;color:#fff}.preview{position:sticky;top:88px}.preview .notice{margin-top:18px}.art{aspect-ratio:1;border-radius:18px;background:#0d0d17;display:grid;place-items:center;overflow:hidden;border:1px solid #ffffff0d}.art img{width:100%;height:100%;object-fit:cover}.audio-preview{width:100%;margin-top:12px}.notice.error{border-color:#ff547020;color:#ff9daa}.success{color:#7fffd4}.review-summary{display:grid;gap:8px;margin-top:12px}.review-row{display:flex;justify-content:space-between;gap:15px;padding:9px 0;border-bottom:1px solid #ffffff0a}.review-row:last-child{border-bottom:0}@media(max-width:850px){.builder{grid-template-columns:1fr}.preview{position:static}.steps{grid-template-columns:repeat(2,1fr)}} 
+.studio{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,.7fr);gap:22px}.stack{display:grid;gap:18px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:7px}.field label{font-weight:700}.field small{opacity:.6;line-height:1.5}.drop{border:1px dashed #ffffff25;border-radius:18px;padding:24px;background:linear-gradient(145deg,#10101d,#08080e);cursor:pointer;transition:.2s}.drop:hover,.drop.drag{border-color:#a56cff;background:#121222}.drop input{display:none}.file{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #ffffff12;border-radius:12px;background:#ffffff05;margin-top:9px}.meter{height:7px;background:#ffffff0c;border-radius:99px;overflow:hidden;margin-top:10px}.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#54d8ff,#a56cff)}.cover{aspect-ratio:1;border-radius:20px;overflow:hidden;border:1px solid #ffffff12;background:#0b0b14;display:grid;place-items:center}.cover img{width:100%;height:100%;object-fit:cover}.side{position:sticky;top:88px}.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.stat{padding:12px;border-radius:13px;background:#ffffff06}.stat b{display:block;font-size:18px}.chapters{display:grid;gap:8px}.chapter{display:grid;grid-template-columns:120px 1fr auto;gap:8px}.notice.error{border-color:#ff547020;color:#ff9daa}.notice.success{border-color:#7fffd420;color:#7fffd4}@media(max-width:900px){.studio{grid-template-columns:1fr}.side{position:static}}@media(max-width:650px){.grid2,.chapter{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div data-nav></div>
 <main class="wrap hero">
-<div class="eyebrow">CREATOR STUDIO · EPISODE BUILDER</div>
-<h1>Create an <span class="gradient">episode.</span></h1>
-<p class="muted">Build the episode, upload the audio, preview it, then send it into the CrowRules publishing pipeline.</p>
-<div class="steps"><div class="step active">1 · Details</div><div class="step">2 · Upload</div><div class="step">3 · Review</div><div class="step">4 · Publish</div></div>
-<div class="builder" style="margin-top:18px">
-<section class="card">
-<form id="form" class="stack">
-<div class="field"><label for="podcast_id">Podcast</label><select id="podcast_id" required><option value="">Loading your podcasts…</option></select></div>
-<div class="field"><label for="title">Episode title</label><input id="title" required maxlength="180" placeholder="Enter an episode title"></div>
-<div class="field"><label for="slug">Slug</label><input id="slug" required maxlength="180" placeholder="episode-slug"></div>
-<div class="field"><label for="description">Description</label><textarea id="description" rows="5" placeholder="Tell listeners what this episode is about."></textarea></div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-<div class="field"><label for="episode_number">Episode number</label><input id="episode_number" type="number" min="1"></div>
-<div class="field"><label for="season_number">Season number</label><input id="season_number" type="number" min="1" value="1"></div>
+<div class="eyebrow">CREATOR STUDIO · EPISODE WORKSPACE 6.0</div>
+<h1>Build the <span class="gradient">episode.</span></h1>
+<p class="lead">Create, design, preview and save a complete episode draft — including custom artwork, audio, metadata, chapters and publishing settings.</p>
+<div id="auth" class="notice">Connecting to your CrowRules account…</div>
+<div class="studio" id="workspace" hidden>
+<section class="stack">
+<form id="studio" class="stack">
+<div class="card stack">
+<div class="field"><label for="podcast">Podcast</label><select id="podcast" required><option value="">Loading podcasts…</option></select><small id="podcastHint">Your active creator podcasts will appear here.</small></div>
+<div class="grid2"><div class="field"><label for="title">Episode title</label><input id="title" maxlength="180" required placeholder="Enter an episode title"></div><div class="field"><label for="slug">Slug</label><input id="slug" maxlength="180" required placeholder="episode-slug"></div></div>
+<div class="grid2"><div class="field"><label for="season">Season</label><input id="season" type="number" min="1" value="1"></div><div class="field"><label for="number">Episode</label><input id="number" type="number" min="1"></div></div>
 </div>
-<div class="field"><label for="show_notes">Show notes</label><textarea id="show_notes" rows="5" placeholder="Links, credits, resources and notes for listeners."></textarea></div>
-<div class="field"><label for="transcript">Transcript</label><textarea id="transcript" rows="7" placeholder="Optional episode transcript."></textarea></div>
-<div class="field"><label>Episode cover / artwork</label>
-<label class="drop" id="artDrop"><input id="artwork" type="file" accept="image/png,image/jpeg,image/webp,image/avif"><strong id="artDropTitle">Drop episode artwork here</strong><div class="muted">Optional · PNG, JPG, WebP or AVIF · recommended 3000 × 3000</div></label>
-<div id="artFileInfo"></div>
-<div class="field" style="margin-top:10px"><label for="artwork_url">Or use an artwork URL</label><input id="artwork_url" type="url" placeholder="https://…"></div>
+<div class="card stack">
+<div class="field"><label for="description">Description</label><textarea id="description" rows="5" placeholder="What is this episode about?"></textarea></div>
+<div class="field"><label for="notes">Show notes</label><textarea id="notes" rows="6" placeholder="Links, credits, resources and listener notes…"></textarea></div>
+<div class="field"><label for="transcript">Transcript</label><textarea id="transcript" rows="8" placeholder="Paste an optional transcript here…"></textarea></div>
 </div>
-<div class="field"><label for="is_explicit">Content rating</label><select id="is_explicit"><option value="false">Clean / not explicit</option><option value="true">Explicit</option></select></div>
-<div class="field"><label for="access_level">Access level</label><select id="access_level"><option value="free">Free</option><option value="premium">Premium members</option></select></div>
-<div class="field"><label for="publish_mode">Publishing</label><select id="publish_mode"><option value="draft">Save as draft</option><option value="review">Send to review</option><option value="publish">Publish immediately</option><option value="schedule">Schedule publication</option></select></div>
-<div id="scheduleFields" class="field" hidden><label for="scheduled_at">Publish date & time</label><input id="scheduled_at" type="datetime-local"></div>
-<div class="field"><label for="monetization_enabled">Monetization</label><select id="monetization_enabled"><option value="false">No episode monetization</option><option value="true">Enable monetization</option></select><small>Uses an existing CrowRules podcast monetization product when available.</small></div>
-<div class="field"><label for="tags">Tags</label><input id="tags" placeholder="mystery, storytelling, tacoma"><small>Separate tags with commas.</small></div>
-<div class="field"><label>Chapters</label><div id="chapters"></div><button type="button" class="btn" id="addChapter">+ Add chapter</button></div>
-<div class="field"><label>Transcript upload</label><label class="drop" id="transcriptDrop"><input id="transcriptFile" type="file" accept=".txt,.vtt,.srt,text/plain,text/vtt"><strong id="transcriptTitle">Drop transcript here</strong><div class="muted">Optional · TXT, VTT or SRT · contents are stored with the episode</div></label></div>
-<div class="field"><label>Audio file</label>
-<label class="drop" id="drop"><input id="audio" type="file" accept="audio/*,.mp3,.m4a,.wav,.aac,.ogg,.flac" required><strong id="dropTitle">Drop your audio here</strong><div class="muted">or click to browse · MP3, M4A, WAV, AAC, OGG, FLAC</div></label>
-<div id="fileInfo"></div><audio id="audioPreview" class="audio-preview" controls hidden></audio>
-<div class="meter"><i id="uploadBar"></i></div><div id="uploadStatus" class="muted" style="margin-top:7px">No file selected.</div></div>
-<div id="review" class="notice" style="display:none"><strong>Review & Publish</strong><div id="reviewText" class="review-summary"></div><button type="button" class="btn primary" id="confirmPublish" style="margin-top:12px">Confirm & Create Episode</button></div>
-<div style="display:flex;gap:10px;flex-wrap:wrap"><button id="submit" class="btn primary">Review Episode</button><button id="saveDraft" type="button" class="btn">Save Draft</button><a class="btn" href="creator-dashboard.html">Cancel</a></div>
+<div class="card stack">
+<div class="field"><label>Episode artwork</label>
+<label class="drop" id="artDrop"><input id="artwork" type="file" accept="image/png,image/jpeg,image/webp,image/avif"><strong id="artTitle">Drop an episode image here</strong><div class="muted">PNG, JPG, WebP or AVIF · up to 15 MB · square artwork recommended</div></label>
+<div id="artInfo"></div></div>
+<div class="field"><label for="artworkUrl">Artwork URL <span class="muted">(optional)</span></label><input id="artworkUrl" type="url" placeholder="https://…"><small>Upload an image above or provide an existing public image URL.</small></div>
+</div>
+<div class="card stack">
+<div class="field"><label>Audio</label><label class="drop" id="audioDrop"><input id="audio" type="file" accept="audio/*,.mp3,.m4a,.wav,.aac,.ogg,.flac" required><strong id="audioTitle">Drop episode audio here</strong><div class="muted">MP3, M4A, WAV, AAC, OGG or FLAC · up to 500 MB</div></label><div id="audioInfo"></div><audio id="audioPreview" controls hidden style="width:100%;margin-top:10px"></audio><div class="meter"><i id="bar"></i></div><div id="upload" class="muted" style="margin-top:7px">No audio selected.</div></div>
+</div>
+<div class="card stack">
+<div class="grid2"><div class="field"><label for="access">Access</label><select id="access"><option value="free">Free</option><option value="members">Members</option><option value="premium">Premium</option></select></div><div class="field"><label for="explicit">Content</label><select id="explicit"><option value="false">Clean</option><option value="true">Explicit</option></select></div></div>
+<div class="grid2"><div class="field"><label for="publishAt">Publish date</label><input id="publishAt" type="datetime-local"></div><div class="field"><label for="status">Save as</label><select id="status"><option value="draft">Draft</option><option value="review">Ready for review</option><option value="published">Publish now</option><option value="scheduled">Scheduled</option></select></div></div>
+</div>
+<div class="card stack"><div class="field"><label>Chapters</label><div id="chapters" class="chapters"></div><button type="button" class="btn" id="addChapter">+ Add chapter</button></div></div>
+<div class="actions"><button class="btn primary" id="save" type="submit">Save episode</button><button class="btn" id="preview" type="button">Preview audio</button><a class="btn" href="creator-dashboard.html">Cancel</a></div>
 </form>
-<div id="status" class="notice" style="margin-top:15px">Ready.</div>
 </section>
-<aside class="card preview">
-<div class="eyebrow">LIVE PREVIEW</div>
-<div class="art" id="art"><span class="muted">Podcast artwork</span></div>
-<h2 id="previewTitle" style="margin-bottom:6px">Your episode title</h2>
-<p id="previewShow" class="muted">Select a podcast</p>
-<p id="previewDescription" class="muted">Your episode description will appear here.</p>
-<div class="notice"><strong>Upload architecture</strong><p class="muted">Audio uses resumable Supabase Storage upload so larger files can survive interrupted transfers. The episode remains a draft until you publish it.</p></div>
+<aside class="side card stack">
+<div class="eyebrow">EPISODE PREVIEW</div><div class="cover" id="cover"><span class="muted">Episode artwork</span></div>
+<h2 id="pTitle">Your episode title</h2><div id="pShow" class="muted">Select a podcast</div><p id="pDesc" class="muted">Your episode description will appear here.</p>
+<audio id="sideAudio" controls hidden style="width:100%"></audio>
+<div class="statgrid"><div class="stat"><span class="muted">Season</span><b id="pSeason">1</b></div><div class="stat"><span class="muted">Episode</span><b id="pNumber">—</b></div></div>
+<div id="statusMsg" class="notice">Ready.</div>
 </aside>
 </div>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js"></script>
 <script>
-(function(){
-"use strict";
-const $=id=>document.getElementById(id);
-let sb,user,podcasts=[],uploading=false,artworkFile=null,transcriptFile=null;
-let chapters=[];
-let pendingAction=null;
-const MAX_ART=15*1024*1024;
-const MAX=500*1024*1024;
+(()=>{"use strict";
+const $=id=>document.getElementById(id);let sb,user,creator,podcasts=[],artFile=null,chapters=[];
+const MAX_AUDIO=500*1024*1024,MAX_ART=15*1024*1024;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-function slugify(v){return String(v||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,180)}
-async function waitForSupabase(timeout=15000){const t=Date.now();while(!window.CROW_SUPABASE){if(!window.supabase){await new Promise((resolve,reject)=>{const existing=document.querySelector('script[data-crow-supabase]');if(existing){existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',reject,{once:true});return}const s=document.createElement('script');s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";s.dataset.crowSupabase="1";s.onload=resolve;s.onerror=()=>reject(new Error("Supabase client failed to load."));document.head.appendChild(s)})}if(window.CROW_APP?.init){try{await window.CROW_APP.init()}catch(e){console.warn("CrowRules init:",e)}}if(!window.CROW_SUPABASE&&window.supabase&&window.CROW_CONFIG?.supabaseUrl&&window.CROW_CONFIG?.supabaseKey){window.CROW_SUPABASE=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}})}if(window.CROW_SUPABASE)break;if(Date.now()-t>timeout)throw new Error("Supabase is still connecting. Please refresh.");await new Promise(r=>setTimeout(r,150))}return window.CROW_SUPABASE}
-function msg(v,cls=""){ $("status").textContent=v;$("status").className="notice "+cls }
-function setFile(f){
- if(!f)return;
- if(f.size>MAX){msg("This audio file exceeds the 500 MB configured upload limit.","error");$("submit").disabled=true;return}
- $("submit").disabled=false;$("dropTitle").textContent=f.name;
- $("fileInfo").innerHTML='<div class="file"><span>'+esc(f.name)+'</span><span class="muted">'+(f.size/1048576).toFixed(1)+' MB</span></div>';
- $("uploadStatus").textContent="Ready to upload.";
- $("audioPreview").src=URL.createObjectURL(f);$("audioPreview").hidden=false;
-}
-$("title").addEventListener("input",()=>{if(!$("slug").dataset.edited)$("slug").value=slugify($("title").value);$("previewTitle").textContent=$("title").value||"Your episode title"});
-$("slug").addEventListener("input",()=>{$("slug").dataset.edited="1"});
-$("description").addEventListener("input",()=>{$("previewDescription").textContent=$("description").value||"Your episode description will appear here."});
-$("publish_mode").addEventListener("change",()=>{$("scheduleFields").hidden=$("publish_mode").value!=="schedule";$("confirmPublish").textContent=$("publish_mode").value==="draft"?"Confirm & Save Draft":"Confirm & Create Episode"});
-function renderChapters(){ $("chapters").innerHTML=chapters.map((x,i)=>'<div class="file" style="margin-bottom:8px"><input data-ch="'+i+'" type="number" min="0" value="'+x.start_seconds+'" placeholder="Seconds" style="max-width:110px"><input data-cht="'+i+'" value="'+esc(x.title)+'" placeholder="Chapter title"><button type="button" class="btn" data-del="'+i+'">Remove</button></div>').join("");document.querySelectorAll("[data-ch]").forEach(el=>el.oninput=()=>chapters[+el.dataset.ch].start_seconds=Number(el.value)||0);document.querySelectorAll("[data-cht]").forEach(el=>el.oninput=()=>chapters[+el.dataset.cht].title=el.value);document.querySelectorAll("[data-del]").forEach(el=>el.onclick=()=>{chapters.splice(+el.dataset.del,1);renderChapters()})}
+const slugify=s=>String(s||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,180);
+function status(t,kind=""){ $("statusMsg").textContent=t;$("statusMsg").className="notice "+kind }
+async function waitForSupabase(timeout=15000){const start=Date.now();while(!window.CROW_SUPABASE){if(window.supabase&&window.CROW_CONFIG?.supabaseUrl&&!window.CROW_SUPABASE)window.CROW_SUPABASE=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});if(window.CROW_SUPABASE)break;if(Date.now()-start>timeout)throw new Error("Supabase is still connecting. Refresh and try again.");await new Promise(r=>setTimeout(r,150))}return window.CROW_SUPABASE}
+function preview(){const p=podcasts.find(x=>x.id===$("podcast").value);$("pShow").textContent=p?.title||"Select a podcast";$("pTitle").textContent=$("title").value||"Your episode title";$("pDesc").textContent=$("description").value||"Your episode description will appear here."; $("pSeason").textContent=$("season").value||"1";$("pNumber").textContent=$("number").value||"—"}
+function setArtwork(f){if(!f)return;if(f.size>MAX_ART)return status("Artwork exceeds the 15 MB limit.","error");if(!/^image\/(png|jpeg|webp|avif)$/i.test(f.type))return status("Use PNG, JPG, WebP or AVIF artwork.","error");artFile=f;$("artTitle").textContent=f.name;$("artInfo").innerHTML='<div class="file"><span>'+esc(f.name)+'</span><span class="muted">'+(f.size/1048576).toFixed(1)+" MB</span></div>";$("cover").innerHTML='<img src="'+URL.createObjectURL(f)+'" alt="Episode artwork">';}
+function setAudio(f){if(!f)return;if(f.size>MAX_AUDIO)return status("Audio exceeds the 500 MB limit.","error");$("audioTitle").textContent=f.name;$("audioInfo").innerHTML='<div class="file"><span>'+esc(f.name)+'</span><span class="muted">'+(f.size/1048576).toFixed(1)+" MB</span></div>";$("upload").textContent="Ready to upload.";const u=URL.createObjectURL(f);$("audioPreview").src=u;$("audioPreview").hidden=false;$("sideAudio").src=u;$("sideAudio").hidden=false}
+function wireDrop(box,input,fn){$(box).addEventListener("dragover",e=>{e.preventDefault();$(box).classList.add("drag")});$(box).addEventListener("dragleave",()=>$(box).classList.remove("drag"));$(box).addEventListener("drop",e=>{e.preventDefault();$(box).classList.remove("drag");const f=e.dataTransfer.files?.[0];if(f){const dt=new DataTransfer();dt.items.add(f);$(input).files=dt.files;fn(f)}})}
+function renderChapters(){$("chapters").innerHTML=chapters.map((c,i)=>'<div class="chapter"><input type="number" min="0" value="'+(c.start_seconds||0)+'" data-time="'+i+'"><input value="'+esc(c.title)+'" placeholder="Chapter title" data-name="'+i+'"><button type="button" class="btn" data-remove="'+i+'">Remove</button></div>').join("");document.querySelectorAll("[data-time]").forEach(x=>x.oninput=()=>chapters[+x.dataset.time].start_seconds=Number(x.value)||0);document.querySelectorAll("[data-name]").forEach(x=>x.oninput=()=>chapters[+x.dataset.name].title=x.value);document.querySelectorAll("[data-remove]").forEach(x=>x.onclick=()=>{chapters.splice(+x.dataset.remove,1);renderChapters()})}
+async function load(){try{sb=await waitForSupabase();const s=(await sb.auth.getSession()).data?.session;user=s?.user||window.__CROW_USER;if(!user){$("auth").textContent="Sign in to use Episode Studio.";$("auth").className="notice error";return}
+const m=await sb.from("members").select("id").eq("user_id",user.id).maybeSingle();if(m.error)throw m.error;if(!m.data)throw new Error("Your CrowRules member account was not found.");
+const c=await sb.from("creators").select("id,name").eq("member_id",m.data.id).eq("is_active",true).maybeSingle();if(c.error)throw c.error;if(!c.data)throw new Error("No active creator profile is linked to this account.");creator=c.data;
+const r=await sb.from("podcasts").select("id,title,artwork_url").eq("creator_id",creator.id).order("created_at",{ascending:false});if(r.error)throw r.error;podcasts=r.data||[];if(!podcasts.length)throw new Error("No podcasts are linked to your creator profile.");
+$("podcast").innerHTML='<option value="">Choose a podcast…</option>'+podcasts.map(p=>'<option value="'+p.id+'">'+esc(p.title)+'</option>').join("");
+const wanted=new URLSearchParams(location.search).get("podcast");if(wanted&&podcasts.some(p=>p.id===wanted))$("podcast").value=wanted;$("podcast").dispatchEvent(new Event("change"));$("workspace").hidden=false;$("auth").textContent="Creator workspace ready.";status("Ready to build your episode.","success");preview();
+}catch(e){console.error(e);$("auth").textContent=e?.message||"Unable to load Episode Studio.";$("auth").className="notice error"}}
+$("title").oninput=()=>{if(!$("slug").dataset.edited)$("slug").value=slugify($("title").value);preview()};$("slug").oninput=()=>$("slug").dataset.edited="1";["description","season","number"].forEach(id=>$(id).addEventListener("input",preview));
+$("podcast").onchange=()=>{const p=podcasts.find(x=>x.id===$("podcast").value);if(p?.artwork_url&&!artFile&&!$("artworkUrl").value){$("cover").innerHTML='<img src="'+esc(p.artwork_url)+'" alt="Podcast artwork">'}preview()};
+$("artwork").onchange=e=>setArtwork(e.target.files[0]);$("audio").onchange=e=>setAudio(e.target.files[0]);wireDrop("artDrop","artwork",setArtwork);wireDrop("audioDrop","audio",setAudio);
+$("artworkUrl").oninput=()=>{const u=$("artworkUrl").value.trim();if(u&&!artFile)$("cover").innerHTML='<img src="'+esc(u)+'" alt="Episode artwork">'};
 $("addChapter").onclick=()=>{chapters.push({start_seconds:0,title:""});renderChapters()};
-$("transcriptFile").addEventListener("change",e=>{transcriptFile=e.target.files[0];if(transcriptFile)$("transcriptTitle").textContent=transcriptFile.name});
-$("podcast_id").addEventListener("change",()=>{const p=podcasts.find(x=>x.id===$("podcast_id").value);$("previewShow").textContent=p?.title||"Select a podcast";$("art").innerHTML=p?.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="">':'<span class="muted">Podcast artwork</span>'});
-$("audio").addEventListener("change",e=>setFile(e.target.files[0]));
-function setArtwork(f){
- if(!f)return;
- if(f.size>MAX_ART){msg("Artwork exceeds the 15 MB upload limit.","error");$("submit").disabled=true;return}
- if(!/^image\/(png|jpeg|webp|avif)$/i.test(f.type)){msg("Please choose PNG, JPG, WebP or AVIF artwork.","error");$("submit").disabled=true;return}
- artworkFile=f;$("submit").disabled=false;$("artDropTitle").textContent=f.name;
- $("artFileInfo").innerHTML='<div class="file"><span>'+esc(f.name)+'</span><span class="muted">'+(f.size/1048576).toFixed(1)+' MB</span></div>';
- $("art").innerHTML='<img src="'+URL.createObjectURL(f)+'" alt="Episode artwork preview">';
-}
-$("artwork").addEventListener("change",e=>setArtwork(e.target.files[0]));
-$("artwork_url").addEventListener("input",()=>{if($("artwork_url").value.trim()&&!artworkFile)$("art").innerHTML='<img src="'+esc($("artwork_url").value.trim())+'" alt="Episode artwork preview">';});
-$("artDrop").addEventListener("dragover",e=>{e.preventDefault();$("artDrop").classList.add("drag")});
-$("artDrop").addEventListener("dragleave",()=>$("artDrop").classList.remove("drag"));
-$("artDrop").addEventListener("drop",e=>{e.preventDefault();$("artDrop").classList.remove("drag");const f=e.dataTransfer.files?.[0];if(f){const dt=new DataTransfer();dt.items.add(f);$("artwork").files=dt.files;setArtwork(f)}});
-$("drop").addEventListener("dragover",e=>{e.preventDefault();$("drop").classList.add("drag")});
-$("drop").addEventListener("dragleave",()=>$("drop").classList.remove("drag"));
-$("drop").addEventListener("drop",e=>{e.preventDefault();$("drop").classList.remove("drag");const f=e.dataTransfer.files?.[0];if(f){const dt=new DataTransfer();dt.items.add(f);$("audio").files=dt.files;setFile(f)}});
-
-function reviewData(){const p=podcasts.find(x=>x.id===$("podcast_id").value);const mode=$("publish_mode").value;const label={draft:"Draft",review:"Review",publish:"Publish now",schedule:"Scheduled"}[mode]||"Draft";return {p,mode,label,title:$("title").value.trim()||"Untitled episode",audio:$("audio").files[0],access:$("access_level").value,explicit:$("is_explicit").value==="true",monetized:$("monetization_enabled").value==="true",scheduled:$("scheduled_at").value?new Date($("scheduled_at").value):null}}
-function showReview(){const d=reviewData();if(!d.p)return msg("Select a podcast first.","error");if(!d.title||!d.audio)return msg("Add an episode title and audio file before continuing.","error");$("reviewText").innerHTML='<div class="review-row"><span>Podcast</span><strong>'+esc(d.p.title)+'</strong></div><div class="review-row"><span>Episode</span><strong>'+esc(d.title)+'</strong></div><div class="review-row"><span>Release</span><strong>'+esc(d.label)+'</strong></div><div class="review-row"><span>Access</span><strong>'+esc(d.access==="premium"?"Premium":"Free")+'</strong></div><div class="review-row"><span>Content</span><strong>'+esc(d.explicit?"Explicit":"Clean")+'</strong></div><div class="review-row"><span>Monetization</span><strong>'+esc(d.monetized?"Enabled":"Off")+'</strong></div>'+(d.scheduled?'<div class="review-row"><span>Scheduled</span><strong>'+esc(d.scheduled.toLocaleString())+'</strong></div>':"");$("review").style.display="block";$("review").scrollIntoView({behavior:"smooth",block:"center"});pendingAction=d.mode;$("submit").disabled=true}
-$("confirmPublish").onclick=()=>{pendingAction=$("publish_mode").value;$("review").dataset.confirmed="1";$("form").requestSubmit()};
-$("saveDraft").onclick=()=>{$("publish_mode").value="draft";showReview()};
-async function load(){
- try{
-  sb=await waitForSupabase();const session=(await sb.auth.getSession()).data?.session;user=session?.user||window.__CROW_USER;
-  if(!user){msg("Sign in to create an episode.","error");$("submit").disabled=true;return}
-  const mr=await sb.from("members").select("id").eq("user_id",user.id).maybeSingle();if(mr.error)throw mr.error;if(!mr.data)throw new Error("Your CrowRules member account was not found.");
-  const cr=await sb.from("creators").select("id").eq("member_id",mr.data.id).eq("is_active",true).maybeSingle();if(cr.error)throw cr.error;if(!cr.data)throw new Error("No active creator profile is linked to this account.");
-  const r=await sb.from("podcasts").select("id,title,artwork_url").eq("creator_id",cr.data.id).order("created_at",{ascending:false});if(r.error)throw r.error;
-  podcasts=r.data||[];
-  if(!podcasts.length){$("podcast_id").innerHTML='<option value="">No podcasts found</option>';throw new Error("No podcasts are linked to your creator profile.");}
-  $("podcast_id").innerHTML='<option value="">Choose a podcast…</option>'+podcasts.map(p=>'<option value="'+p.id+'">'+esc(p.title)+'</option>').join("");
-  const wanted=new URLSearchParams(location.search).get("podcast");if(wanted&&podcasts.some(p=>p.id===wanted))$("podcast_id").value=wanted;
-  $("podcast_id").dispatchEvent(new Event("change"));if(!podcasts.length)throw new Error("Create a podcast before creating an episode.");
-  msg("Ready to create your episode.");
- }catch(e){console.error("Create Episode:",e);msg("Unable to load Creator Studio: "+(e?.message||"Unknown error"),"error");$("submit").disabled=true}
-}
-$("form").addEventListener("submit",async e=>{
- e.preventDefault();if(uploading)return;if($("review").dataset.confirmed!=="1"){showReview();return}$("review").dataset.confirmed="";const f=$("audio").files[0];if(!f)return msg("Choose an audio file first.","error");if(f.size>MAX)return msg("Audio file exceeds 500 MB.","error");
- uploading=true;$("submit").disabled=true;
- try{
-  msg("Creating episode draft…");
-  let transcriptText=$("transcript").value.trim()||null;if(transcriptFile)transcriptText=await transcriptFile.text();
-  const mode=$("publish_mode").value;const scheduled=$("scheduled_at").value?new Date($("scheduled_at").value).toISOString():null;
-  if(mode==="schedule"&&!scheduled)throw new Error("Choose a publication date and time.");
-  if(mode==="schedule"&&new Date(scheduled)<=new Date())throw new Error("Scheduled publication must be in the future.");
-  let monetizationProductId=null;if($("monetization_enabled").value==="true"){const mp=await sb.from("cr_podcast_monetization_products").select("id").eq("podcast_id",$("podcast_id").value).eq("active",true).limit(1).maybeSingle();if(mp.error)throw mp.error;if(!mp.data)throw new Error("No active monetization product exists for this podcast yet.");monetizationProductId=mp.data.id;}
-  const finalStatus=mode==="publish"?"published":mode==="schedule"?"scheduled":mode==="review"?"review":"draft";
-  const r=await sb.from("podcast_episodes").insert({podcast_id:$("podcast_id").value,title:$("title").value.trim(),slug:$("slug").value||slugify($("title").value),description:$("description").value.trim(),show_notes:$("show_notes").value.trim()||null,transcript:transcriptText,episode_number:Number($("episode_number").value)||null,season_number:Number($("season_number").value)||1,is_explicit:$("is_explicit").value==="true",access_level:$("access_level").value,monetization_enabled:$("monetization_enabled").value==="true",monetization_product_id:monetizationProductId,scheduled_at:scheduled,tags:$("tags").value.split(",").map(x=>x.trim()).filter(Boolean).slice(0,30),chapters:chapters.filter(x=>x.title.trim()).map(x=>({start_seconds:Number(x.start_seconds)||0,title:x.title.trim()})),status:finalStatus,published_at:mode==="publish"?new Date().toISOString():null}).select().single();
-  if(r.error)throw r.error;const ep=r.data;
-  await sb.from("podcast_episode_pipeline_events").insert({episode_id:ep.id,podcast_id:ep.podcast_id,actor_id:user.id,event_type:"created",from_status:null,to_status:"draft",message:"Episode draft created."});
-  const session=(await sb.auth.getSession()).data?.session;if(!session)throw new Error("Session expired. Sign in again.");
-  const safe=f.name.replace(/[^A-Za-z0-9._-]/g,"_");const path=user.id+"/"+ep.id+"/"+Date.now()+"-"+safe;
-  let artworkUrl=$("artwork_url").value.trim()||null;
-  if(artworkFile){
-    const artSession=(await sb.auth.getSession()).data?.session;if(!artSession)throw new Error("Session expired before artwork upload.");
-    const artSafe=artworkFile.name.replace(/[^A-Za-z0-9._-]/g,"_");const artPath=user.id+"/"+ep.id+"/artwork-"+Date.now()+"-"+artSafe;
-    msg("Uploading episode artwork…");
-    const artUpload=await new Promise((resolve,reject)=>{
-      const u=new tus.Upload(artworkFile,{endpoint:CROW_CONFIG.supabaseUrl+"/storage/v1/upload/resumable",retryDelays:[0,1000,3000,5000],headers:{authorization:"Bearer "+artSession.access_token,"x-upsert":"false"},metadata:{bucketName:"podcast-avatars",objectName:artPath,contentType:artworkFile.type,cacheControl:"3600"},onError:reject,onProgress:(bytes,total)=>{const pct=Math.round(bytes/total*100);$("uploadStatus").textContent="Artwork "+pct+"%";},onSuccess:()=>resolve(true)});u.start();
-    }); 
-    if(artUpload)artworkUrl=sb.storage.from("podcast-avatars").getPublicUrl(artPath).data.publicUrl;
-  }
-  if(artworkUrl){const au=await sb.from("podcast_episodes").update({thumbnail_url:artworkUrl}).eq("id",ep.id);if(au.error)throw au.error;}
-  msg("Uploading audio…");$("uploadStatus").textContent="Uploading 0%";
-  await new Promise((resolve,reject)=>{const up=new tus.Upload(f,{endpoint:CROW_CONFIG.supabaseUrl+"/storage/v1/upload/resumable",retryDelays:[0,1000,3000,5000,10000],headers:{authorization:"Bearer "+session.access_token,"x-upsert":"false"},metadata:{bucketName:"podcast-audio",objectName:path,contentType:f.type||"audio/mpeg",cacheControl:"3600"},onError:reject,onProgress:(bytes,total)=>{const pct=Math.round(bytes/total*100);$("uploadBar").style.width=pct+"%";$("uploadStatus").textContent="Uploading "+pct+"%";msg("Uploading audio "+pct+"%…")},onSuccess:async()=>{
-   const url=sb.storage.from("podcast-audio").getPublicUrl(path).data.publicUrl;
-   const u=await sb.from("podcast_episodes").update({audio_url:url}).eq("id",ep.id);if(u.error)throw u.error;
-   const ur=await sb.from("podcast_episode_uploads").insert({episode_id:ep.id,uploaded_by:user.id,storage_bucket:"podcast-audio",storage_path:path,original_filename:f.name,mime_type:f.type||"audio/mpeg",file_size_bytes:f.size,status:"ready"});if(ur.error)console.warn("Upload metadata:",ur.error);
-   await sb.from("podcast_episode_pipeline_events").insert({episode_id:ep.id,podcast_id:ep.podcast_id,actor_id:user.id,event_type:"upload_completed",from_status:"draft",to_status:"draft",message:"Audio upload completed."});
-   $("uploadBar").style.width="100%";$("uploadStatus").textContent="Upload complete.";msg(finalStatus==="published"?"Episode published and audio uploaded.":finalStatus==="scheduled"?"Episode scheduled and audio uploaded.":finalStatus==="review"?"Episode sent to review with audio uploaded.":"Episode created and audio uploaded. Saved as draft.","success");$("submit").disabled=false;uploading=false;
-   setTimeout(()=>location.href="episode.html?id="+encodeURIComponent(ep.id),900);
- }});
-  up.start();
- }catch(err){console.error("Episode upload:",err);msg("Upload failed: "+(err?.message||"Unknown error"),"error");$("submit").disabled=false;uploading=false}
-});
+$("preview").onclick=()=>{const f=$("audio").files[0];if(!f)return status("Choose an audio file first.","error");window.CROW_PLAYER?.play(URL.createObjectURL(f),$("title").value||"Episode preview",$("pShow").textContent||"Unsaved preview","")};
+$("studio").onsubmit=async e=>{e.preventDefault();if(!user)return;const audio=$("audio").files[0];if(!audio)return status("Choose an audio file first.","error");if(audio.size>MAX_AUDIO)return status("Audio exceeds the 500 MB limit.","error");if(!$("podcast").value)return status("Choose a podcast.","error");
+$("save").disabled=true;status("Creating episode draft…");try{const id=crypto.randomUUID(),ext=(audio.name.split(".").pop()||"mp3").toLowerCase(),audioPath=user.id+"/"+id+"."+ext;const au=await sb.storage.from("cr-podcast-media").upload(audioPath,audio,{upsert:false,contentType:audio.type||"audio/mpeg"});if(au.error)throw au.error;
+let artworkUrl=$("artworkUrl").value.trim()||null;if(artFile){status("Uploading episode artwork…");const aext=(artFile.name.split(".").pop()||"jpg").toLowerCase(),artPath=user.id+"/"+id+"/artwork."+aext;const ar=await sb.storage.from("cr-podcast-artwork").upload(artPath,artFile,{upsert:false,contentType:artFile.type||"image/jpeg"});if(ar.error)throw ar.error;artworkUrl=sb.storage.from("cr-podcast-artwork").getPublicUrl(artPath).data.publicUrl}
+const mode=$("status").value,published=mode==="published";const payload={id,podcast_id:$("podcast").value,title:$("title").value.trim(),slug:$("slug").value.trim(),description:$("description").value.trim()||null,show_notes:$("notes").value.trim()||null,transcript:$("transcript").value.trim()||null,season_number:Number($("season").value)||1,episode_number:Number($("number").value)||null,duration_seconds:null,audio_url:sb.storage.from("cr-podcast-media").getPublicUrl(audioPath).data.publicUrl,status:mode,is_explicit:$("explicit").value==="true",access_level:$("access").value,published_at:published?new Date().toISOString():null,thumbnail_url:artworkUrl,scheduled_at:$("publishAt").value?new Date($("publishAt").value).toISOString():null,chapters:chapters.filter(c=>c.title.trim()).map(c=>({start_seconds:Number(c.start_seconds)||0,title:c.title.trim()}))};
+const ins=await sb.from("podcast_episodes").insert(payload).select("id").single();if(ins.error)throw ins.error;await sb.functions.invoke(CROW_CONFIG.pipelineFunction,{body:{action:"log",episode_id:id,event_type:"created",to_status:mode,message:"Episode created in Episode Studio."}});await sb.functions.invoke(CROW_CONFIG.pipelineFunction,{body:{action:"log",episode_id:id,event_type:"upload_completed",to_status:mode,message:"Audio and artwork uploaded.",metadata:{audio_filename:audio.name,audio_size_bytes:audio.size,artwork_uploaded:!!artFile}}});status("Episode saved successfully.","success");setTimeout(()=>location.href="episode.html?id="+encodeURIComponent(id),700)}catch(err){console.error(err);status("Save failed: "+(err?.message||"Unknown error"),"error");$("save").disabled=false}};
 load();
 })();
 </script>
