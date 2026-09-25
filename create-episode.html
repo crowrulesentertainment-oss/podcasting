@@ -19,7 +19,7 @@
 <div class="builder" style="margin-top:18px">
 <section class="card">
 <form id="form" class="stack">
-<div class="field"><label for="podcast_id">Podcast</label><select id="podcast_id" required></select></div>
+<div class="field"><label for="podcast_id">Podcast</label><select id="podcast_id" required><option value="">Loading your podcasts…</option></select></div>
 <div class="field"><label for="title">Episode title</label><input id="title" required maxlength="180" placeholder="Enter an episode title"></div>
 <div class="field"><label for="slug">Slug</label><input id="slug" required maxlength="180" placeholder="episode-slug"></div>
 <div class="field"><label for="description">Description</label><textarea id="description" rows="5" placeholder="Tell listeners what this episode is about."></textarea></div>
@@ -66,7 +66,9 @@
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
-let sb,user,podcasts=[],uploading=false,artworkFile=null,transcriptFile=null;\nlet chapters=[];\nlet pendingAction=null;\nconst MAX_ART=15*1024*1024;
+let sb,user,podcasts=[],uploading=false,artworkFile=null,transcriptFile=null;
+let chapters=[];
+let pendingAction=null;\nconst MAX_ART=15*1024*1024;
 const MAX=500*1024*1024;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function slugify(v){return String(v||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,180)}
@@ -113,7 +115,9 @@ function reviewData(){const p=podcasts.find(x=>x.id===$("podcast_id").value);con
   const mr=await sb.from("members").select("id").eq("user_id",user.id).maybeSingle();if(mr.error)throw mr.error;if(!mr.data)throw new Error("Your CrowRules member account was not found.");
   const cr=await sb.from("creators").select("id").eq("member_id",mr.data.id).eq("is_active",true).maybeSingle();if(cr.error)throw cr.error;if(!cr.data)throw new Error("No active creator profile is linked to this account.");
   const r=await sb.from("podcasts").select("id,title,artwork_url").eq("creator_id",cr.data.id).order("created_at",{ascending:false});if(r.error)throw r.error;
-  podcasts=r.data||[];$("podcast_id").innerHTML=podcasts.map(p=>'<option value="'+p.id+'">'+esc(p.title)+'</option>').join("");
+  podcasts=r.data||[];
+  if(!podcasts.length){$("podcast_id").innerHTML='<option value="">No podcasts found</option>';throw new Error("No podcasts are linked to your creator profile.");}
+  $("podcast_id").innerHTML='<option value="">Choose a podcast…</option>'+podcasts.map(p=>'<option value="'+p.id+'">'+esc(p.title)+'</option>').join("");
   const wanted=new URLSearchParams(location.search).get("podcast");if(wanted&&podcasts.some(p=>p.id===wanted))$("podcast_id").value=wanted;
   $("podcast_id").dispatchEvent(new Event("change"));if(!podcasts.length)throw new Error("Create a podcast before creating an episode.");
   msg("Ready to create your episode.");
