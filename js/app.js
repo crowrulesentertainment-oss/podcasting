@@ -15,31 +15,31 @@
     if(toggle&&links){toggle.addEventListener("click",()=>{const open=links.classList.toggle("open");toggle.setAttribute("aria-expanded",String(open));toggle.textContent=open?"✕":"☰"});links.addEventListener("click",e=>{if(e.target.closest(".nav-dropdown a")){closeMenus();links.classList.remove("open");toggle.setAttribute("aria-expanded","false");toggle.textContent="☰"}})}
   }
 
+  const withTimeout=async(promise,ms)=>{let timer;try{return await Promise.race([promise,new Promise((_,reject)=>timer=setTimeout(()=>reject(new Error("Supabase authentication timed out.")),ms))])}finally{clearTimeout(timer)}};
   const connectSupabase=async()=>{
     if(!window.supabase)throw new Error("Supabase client library is unavailable.");
     const c=window.CROW_CONFIG||{};
     if(!c.supabaseUrl||!c.supabaseKey)throw new Error("CrowRules Supabase configuration is missing.");
-    if(!window.CROW_SUPABASE){
-      window.CROW_SUPABASE=window.supabase.createClient(c.supabaseUrl,c.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-    }
-    const {data,error}=await window.CROW_SUPABASE.auth.getUser();
-    if(error && error.name!=="AuthSessionMissingError")console.warn("CrowRules Auth:",error.message);
-    window.__CROW_USER=data?.user||null;
-    const n=document.getElementById("navUser");
-    if(n)n.textContent=window.__CROW_USER?(window.__CROW_USER.user_metadata?.full_name||window.__CROW_USER.email||"Member"):"Guest";
-    window.dispatchEvent(new CustomEvent("crow:ready",{detail:{user:window.__CROW_USER,supabase:window.CROW_SUPABASE}}));
-    return window.CROW_SUPABASE;
+    if(!window.CROW_SUPABASE)window.CROW_SUPABASE=window.supabase.createClient(c.supabaseUrl,c.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
+    const sb=window.CROW_SUPABASE;
+    let session=null;
+    try{const r=await withTimeout(sb.auth.getSession(),8000);session=r.data?.session||null}catch(e){console.warn("CrowRules getSession:",e.message)}
+    window.__CROW_USER=session?.user||null;
+    const n=document.getElementById("navUser");if(n)n.textContent=window.__CROW_USER?(window.__CROW_USER.user_metadata?.full_name||window.__CROW_USER.email||"Member"):"Guest";
+    window.__CROW_AUTH_READY=true;
+    window.dispatchEvent(new CustomEvent("crow:ready",{detail:{user:window.__CROW_USER,supabase:sb}}));
+    return sb;
   };
 
   const start=async()=>{
     try{
       await connectSupabase();
-      if(window.CROW_APP?.init)await CROW_APP.init();
+      if(window.CROW_APP?.init){try{await withTimeout(CROW_APP.init(),5000)}catch(e){console.warn("CrowRules app init:",e.message)}}
       await setupActivityBadge();
+      setTimeout(()=>window.dispatchEvent(new CustomEvent("crow:ready",{detail:{user:window.__CROW_USER,supabase:window.CROW_SUPABASE}})),0);
     }catch(error){
       console.error("CrowRules Supabase connection failed:",error);
-      const n=document.getElementById("navUser");
-      if(n)n.textContent="Connection issue";
+      const n=document.getElementById("navUser");if(n)n.textContent="Connection issue";
       document.dispatchEvent(new CustomEvent("crow:auth-error",{detail:{message:error.message||"Supabase connection failed."}}));
     }
   };
@@ -47,23 +47,12 @@
   const setupActivityBadge=async()=>{
     const sb=window.CROW_SUPABASE,user=window.__CROW_USER,badge=document.getElementById("navAlertBadge");
     if(!sb||!user||!badge)return;
-    const refresh=async()=>{
-      const r=await sb.from("cr_creator_alerts").select("id",{count:"exact",head:true}).eq("creator_id",user.id).is("read_at",null).is("muted_at",null);
-      if(r.error){console.warn("Creator alerts:",r.error.message);return}
-      const n=Number(r.count||0);badge.textContent=n>99?"99+":String(n);badge.hidden=n<1;
-    };
+    const refresh=async()=>{const r=await sb.from("cr_creator_alerts").select("id",{count:"exact",head:true}).eq("creator_id",user.id).is("read_at",null).is("muted_at",null);if(r.error){console.warn("Creator alerts:",r.error.message);return}const n=Number(r.count||0);badge.textContent=n>99?"99+":String(n);badge.hidden=n<1};
     await refresh();
     if(window.__CROW_ACTIVITY_CHANNEL)sb.removeChannel(window.__CROW_ACTIVITY_CHANNEL);
     window.__CROW_ACTIVITY_CHANNEL=sb.channel("creator-activity-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"cr_creator_alerts",filter:"creator_id=eq."+user.id},()=>refresh()).subscribe();
     document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
   };
 
-  if(window.supabase){start()}
-  else{
-    const s=document.createElement("script");
-    s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-    s.onload=start;
-    s.onerror=()=>document.dispatchEvent(new CustomEvent("crow:auth-error",{detail:{message:"Supabase client failed to load."}}));
-    document.head.appendChild(s);
-  }
+  if(window.supabase)start();else{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";s.onload=start;s.onerror=()=>document.dispatchEvent(new CustomEvent("crow:auth-error",{detail:{message:"Supabase client failed to load."}}));document.head.appendChild(s)}
 })();
