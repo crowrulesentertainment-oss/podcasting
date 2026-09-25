@@ -1,278 +1,36 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#05050b">
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050b">
 <title>Podcast — CrowRules Podcasting</title>
-<link rel="stylesheet" href="css/podcasting.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
-<script src="js/podcasting.js" defer></script>
-<script src="js/player.js" defer></script>
-<script src="js/app.js" defer></script>
+<link rel="stylesheet" href="css/podcasting.css"><script src="js/config.js"></script><script src="js/app.js" defer></script>
 <style>
-.show-page{padding:44px 0 90px}
-.show-hero{display:grid;grid-template-columns:minmax(220px,360px) 1fr;gap:38px;align-items:end;padding:34px;border:1px solid rgba(255,255,255,.08);border-radius:28px;background:linear-gradient(135deg,rgba(20,20,35,.96),rgba(5,5,11,.98));box-shadow:0 30px 90px rgba(0,0,0,.35)}
-.show-art{width:100%;aspect-ratio:1;border-radius:22px;object-fit:cover;background:#10101a;box-shadow:0 20px 50px rgba(0,0,0,.45)}
-.show-copy{min-width:0}
-.show-title{font-size:clamp(2.6rem,6vw,5.5rem);line-height:.95;margin:.15em 0 .25em;letter-spacing:-.045em}
-.show-description{max-width:820px;font-size:1.08rem;line-height:1.75;color:rgba(255,255,255,.72)}
-.show-meta{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);font-size:.78rem;color:rgba(255,255,255,.72)}
-.show-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
-.btn.is-active{border-color:rgba(130,100,255,.8);background:rgba(130,100,255,.16)}
-.section-heading{display:flex;justify-content:space-between;gap:20px;align-items:end;margin:54px 0 20px}
-.section-heading h2{margin:0;font-size:2rem}
-.episode-card{display:grid;grid-template-columns:180px 1fr;gap:22px;padding:18px;border-radius:22px}
-.episode-art{width:180px;aspect-ratio:1;border-radius:16px;object-fit:cover;background:#10101a}
-.episode-card h3{font-size:1.45rem;margin:.25rem 0 .45rem}
-.episode-desc{color:rgba(255,255,255,.66);line-height:1.6}
-.episode-meta{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}
-.empty-state{text-align:center;padding:60px 20px}
-.loading-state{min-height:360px;display:grid;place-items:center;color:rgba(255,255,255,.6)}
-@media(max-width:800px){
- .show-hero{grid-template-columns:1fr;padding:22px}
- .show-art{max-width:300px;margin:auto}
- .episode-card{grid-template-columns:1fr}
- .episode-art{width:100%;max-width:220px}
-}
-</style>
-</head>
-<body>
-<div data-nav></div>
-
-<main class="wrap show-page">
-  <div id="loading" class="loading-state">Loading podcast…</div>
-
-  <section id="show" hidden></section>
-
-  <section id="episodeSection" hidden>
-    <div class="section-heading">
-      <div>
-        <div class="eyebrow">THE SHOW</div>
-        <h2>Latest Episodes</h2>
-      </div>
-      <span id="episodeCount" class="pill"></span>
-    </div>
-    <div id="episodes" class="grid"></div>
-  </section>
+.show-page{padding:44px 0 90px}.show-hero{display:grid;grid-template-columns:320px 1fr;gap:38px;align-items:center;padding:34px;border:1px solid rgba(255,255,255,.08);border-radius:28px;background:linear-gradient(135deg,rgba(20,20,35,.96),rgba(5,5,11,.98))}.show-art{width:100%;aspect-ratio:1;border-radius:22px;object-fit:cover;background:#10101a}.show-title{font-size:clamp(2.6rem,6vw,5.5rem);line-height:.95;margin:.15em 0}.show-description,.episode-desc{color:rgba(255,255,255,.68);line-height:1.7}.show-meta,.show-actions,.episode-meta{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0}.pill{padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.07);font-size:.78rem;color:rgba(255,255,255,.72)}.episode-section{margin-top:54px}.episode-card{display:grid;grid-template-columns:180px 1fr;gap:22px;padding:18px;margin-bottom:18px;border-radius:22px}.episode-art{width:180px;aspect-ratio:1;border-radius:16px;object-fit:cover}.loading-state,.empty-state{text-align:center;padding:80px 20px}.section-heading{margin-bottom:20px}.section-heading h2{font-size:2rem}@media(max-width:800px){.show-hero{grid-template-columns:1fr;padding:22px}.show-art{max-width:300px;margin:auto}.episode-card{grid-template-columns:1fr}.episode-art{width:100%;max-width:220px}}
+</style></head>
+<body><div data-nav></div><main class="wrap show-page">
+<div id="loading" class="loading-state">Loading podcast…</div><section id="show" hidden></section><section id="episodeSection" class="episode-section" hidden><div class="section-heading"><div class="eyebrow">THE SHOW</div><h2>Latest Episodes</h2><span id="episodeCount" class="pill"></span></div><div id="episodes"></div></section>
 </main>
-
 <script>
-(() => {
-  "use strict";
-
-  const params = new URLSearchParams(location.search);
-  const podcastId = params.get("id");
-  const loading = document.getElementById("loading");
-  const show = document.getElementById("show");
-  const episodeSection = document.getElementById("episodeSection");
-  const episodesEl = document.getElementById("episodes");
-  const episodeCount = document.getElementById("episodeCount");
-
-  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[c]));
-
-  const formatDate = value => {
-    if (!value) return "";
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return "";
-    return new Intl.DateTimeFormat(undefined,{year:"numeric",month:"short",day:"numeric"}).format(d);
-  };
-
-  const formatDuration = seconds => {
-    const n = Number(seconds || 0);
-    if (!n) return "";
-    const h = Math.floor(n / 3600);
-    const m = Math.floor((n % 3600) / 60);
-    return h ? h + " hr " + String(m).padStart(2,"0") + " min" : m + " min";
-  };
-
-  const waitForSupabase = async () => {
-    for(let i=0;i<60;i++){
-      if(window.CROW_SUPABASE) return window.CROW_SUPABASE;
-      if(window.supabase && window.CROW_CONFIG?.supabaseUrl && window.CROW_CONFIG?.supabaseKey){
-        window.CROW_SUPABASE = window.supabase.createClient(
-          window.CROW_CONFIG.supabaseUrl,
-          window.CROW_CONFIG.supabaseKey,
-          {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
-        );
-        return window.CROW_SUPABASE;
-      }
-      await new Promise(r=>setTimeout(r,100));
-    }
-    throw new Error("Supabase client did not initialize.");
-  };
-
-  const renderNotFound = message => {
-    loading.hidden = true;
-    show.hidden = false;
-    show.innerHTML = '<div class="notice empty-state"><div class="eyebrow">PODCAST</div><h2>Podcast not found</h2><p>'+esc(message || "This podcast is unavailable.")+'</p><a class="btn primary" href="podcasts.html">Browse Podcasts</a></div>';
-  };
-
-  async function load() {
-    if(!podcastId){
-      renderNotFound("No podcast was specified.");
-      return;
-    }
-
-    try {
-      const sb = await waitForSupabase();
-
-      const {data: podcast, error: podcastError} = await sb
-        .from("podcasts")
-        .select("id,creator_id,title,slug,category,subcategory,description,artwork_url,trailer_url,website_url,rss_url,status,is_featured,is_live,listener_count,total_plays,author_name,language,explicit_content")
-        .eq("id", podcastId)
-        .eq("status", "published")
-        .maybeSingle();
-
-      if(podcastError) throw podcastError;
-      if(!podcast){
-        renderNotFound();
-        return;
-      }
-
-      document.title = podcast.title + " — CrowRules Podcasting";
-      const rss = podcast.rss_url || (
-        window.CROW_CONFIG?.supabaseUrl +
-        "/functions/v1/podcast-rss?slug=" +
-        encodeURIComponent(podcast.slug || "")
-      );
-
-      show.innerHTML = `
-        <div class="show-hero">
-          <img class="show-art" src="${esc(podcast.artwork_url || "assets/podcast-placeholder.svg")}" alt="${esc(podcast.title)} artwork" onerror="this.style.display='none'">
-          <div class="show-copy">
-            <div class="eyebrow">${esc(podcast.category || "PODCAST")}</div>
-            <h1 class="show-title">${esc(podcast.title)}</h1>
-            <div class="show-meta">
-              ${podcast.author_name ? '<span class="pill">By '+esc(podcast.author_name)+'</span>' : ''}
-              ${podcast.language ? '<span class="pill">'+esc(podcast.language.toUpperCase())+'</span>' : ''}
-              ${podcast.explicit_content ? '<span class="pill">Explicit</span>' : ''}
-              ${podcast.is_live ? '<span class="pill">● Live</span>' : ''}
-              ${Number(podcast.listener_count||0) ? '<span class="pill">'+Number(podcast.listener_count).toLocaleString()+' listeners</span>' : ''}
-            </div>
-            <p class="show-description">${esc(podcast.description || "A CrowRules Podcasting original.")}</p>
-            <div class="show-actions">
-              <button id="follow" class="btn primary">Follow Show</button>
-              ${rss ? '<a class="btn" href="'+esc(rss)+'" target="_blank" rel="noopener">RSS Feed</a>' : ''}
-              ${podcast.website_url ? '<a class="btn" href="'+esc(podcast.website_url)+'" target="_blank" rel="noopener">Website</a>' : ''}
-              ${podcast.trailer_url ? '<a class="btn" href="'+esc(podcast.trailer_url)+'" target="_blank" rel="noopener">Trailer</a>' : ''}
-              <a class="btn" href="discover.html">Explore More</a>
-            </div>
-          </div>
-        </div>`;
-
-      loading.hidden = true;
-      show.hidden = false;
-
-      const [{data:eps,error:epsError},{data:sessionData}] = await Promise.all([
-        sb.from("podcast_episodes")
-          .select("id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,show_notes,status,play_count,is_explicit,access_level")
-          .eq("podcast_id", podcast.id)
-          .eq("status", "published")
-          .order("published_at",{ascending:false})
-          .limit(100),
-        sb.auth.getSession()
-      ]);
-
-      if(epsError) throw epsError;
-
-      const user = sessionData?.session?.user || null;
-      const followButton = document.getElementById("follow");
-
-      if(user){
-        const {data:followRow} = await sb.from("podcast_follows")
-          .select("id")
-          .eq("user_id",user.id)
-          .eq("podcast_id",podcast.id)
-          .maybeSingle();
-
-        if(followRow){
-          followButton.textContent = "Following ✓";
-          followButton.classList.add("is-active");
-        }
-      }
-
-      followButton.addEventListener("click", async () => {
-        const {data:auth} = await sb.auth.getSession();
-        const currentUser = auth?.session?.user;
-        if(!currentUser){
-          location.href = "account.html?returnTo="+encodeURIComponent(location.href);
-          return;
-        }
-
-        followButton.disabled = true;
-        const {data:existing} = await sb.from("podcast_follows")
-          .select("id")
-          .eq("user_id",currentUser.id)
-          .eq("podcast_id",podcast.id)
-          .maybeSingle();
-
-        if(existing){
-          const result = await sb.from("podcast_follows").delete().eq("id",existing.id);
-          if(result.error) alert(result.error.message);
-          else {
-            followButton.textContent = "Follow Show";
-            followButton.classList.remove("is-active");
-          }
-        }else{
-          const result = await sb.from("podcast_follows").insert({user_id:currentUser.id,podcast_id:podcast.id});
-          if(result.error) alert(result.error.message);
-          else {
-            followButton.textContent = "Following ✓";
-            followButton.classList.add("is-active");
-          }
-        }
-        followButton.disabled = false;
-      });
-
-      episodeCount.textContent = (eps || []).length + ((eps || []).length === 1 ? " episode" : " episodes");
-      episodeSection.hidden = false;
-
-      if(!eps?.length){
-        episodesEl.innerHTML = '<div class="notice empty-state"><div class="eyebrow">COMING SOON</div><h3>No published episodes yet.</h3><p>New episodes will appear here when they are released.</p></div>';
-        return;
-      }
-
-      episodesEl.innerHTML = eps.map(ep => {
-        const artwork = ep.thumbnail_url || podcast.artwork_url || "assets/podcast-placeholder.svg";
-        const season = ep.season_number ? "S"+ep.season_number+" " : "";
-        const number = ep.episode_number ? "E"+ep.episode_number : "Episode";
-        const duration = formatDuration(ep.duration_seconds);
-        return `
-          <article class="card episode-card">
-            <img class="episode-art" src="${esc(artwork)}" alt="${esc(ep.title)} artwork" loading="lazy" onerror="this.style.display='none'">
-            <div>
-              <div class="eyebrow">${esc(season+number)}</div>
-              <h3>${esc(ep.title)}</h3>
-              <div class="episode-meta">
-                ${ep.published_at ? '<span class="pill">'+esc(formatDate(ep.published_at))+'</span>' : ''}
-                ${duration ? '<span class="pill">'+esc(duration)+'</span>' : ''}
-                ${Number(ep.play_count||0) ? '<span class="pill">'+Number(ep.play_count).toLocaleString()+' plays</span>' : ''}
-                ${ep.is_explicit ? '<span class="pill">Explicit</span>' : ''}
-                ${ep.access_level && ep.access_level !== "public" ? '<span class="pill">'+esc(ep.access_level)+'</span>' : ''}
-              </div>
-              <p class="episode-desc">${esc((ep.description || ep.show_notes || "Listen to the latest episode of "+podcast.title+".").slice(0,320))}</p>
-              <div class="show-actions">
-                <a class="btn primary" href="episode.html?id=${encodeURIComponent(ep.id)}">Listen Now</a>
-                ${ep.video_url ? '<a class="btn" href="'+esc(ep.video_url)+'" target="_blank" rel="noopener">Watch</a>' : ''}
-              </div>
-            </div>
-          </article>`;
-      }).join("");
-    } catch(error) {
-      console.error(error);
-      loading.hidden = true;
-      show.hidden = false;
-      show.innerHTML = '<div class="notice empty-state"><div class="eyebrow">CONNECTION ISSUE</div><h2>Podcast could not load</h2><p>'+esc(error?.message || "Please try again.")+'</p><button class="btn primary" onclick="location.reload()">Retry</button></div>';
-    }
-  }
-
-  load();
+(()=>{"use strict";
+const cfg=window.CROW_CONFIG||{},id=new URLSearchParams(location.search).get("id");
+const loading=document.getElementById("loading"),show=document.getElementById("show"),section=document.getElementById("episodeSection"),episodes=document.getElementById("episodes"),count=document.getElementById("episodeCount");
+const esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const timeout=(p,ms=8000)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(Error("Supabase request timed out.")),ms))]);
+async function rest(table,params){const u=cfg.supabaseUrl+"/rest/v1/"+table+"?"+new URLSearchParams(params);const r=await timeout(fetch(u,{headers:{apikey:cfg.supabaseKey,Authorization:"Bearer "+cfg.supabaseKey,Accept:"application/json"},cache:"no-store"}));if(!r.ok)throw Error("Supabase returned HTTP "+r.status);return r.json()}
+function fail(e){loading.hidden=true;show.hidden=false;show.innerHTML='<div class="card empty-state"><div class="eyebrow">CONNECTION ISSUE</div><h2>Podcast could not load</h2><p>'+esc(e?.message||"Please try again.")+'</p><a class="btn primary" href="podcasts.html">Back to Podcasts</a><button class="btn" onclick="location.reload()">Retry</button></div>'}
+async function load(){
+ if(!id){fail(Error("No podcast was specified."));return}
+ try{
+  const rows=await rest("podcasts",{select:"id,title,slug,category,description,artwork_url,author_name,language,explicit_content,is_live,listener_count,status",id:"eq."+id,status:"eq.published"});
+  const p=rows[0];if(!p){fail(Error("This podcast is unavailable."));return}
+  document.title=p.title+" — CrowRules Podcasting";
+  show.innerHTML='<div class="show-hero"><img class="show-art" src="'+esc(p.artwork_url||"assets/podcast-placeholder.svg")+'" alt="'+esc(p.title)+' artwork"><div><div class="eyebrow">'+esc(p.category||"PODCAST")+'</div><h1 class="show-title">'+esc(p.title)+'</h1><div class="show-meta">'+(p.author_name?'<span class="pill">By '+esc(p.author_name)+'</span>':"")+(p.language?'<span class="pill">'+esc(p.language.toUpperCase())+'</span>':"")+(p.is_live?'<span class="pill">● Live</span>':"")+'</div><p class="show-description">'+esc(p.description||"A CrowRules Podcasting show.")+'</p><div class="show-actions"><a class="btn" href="podcasts.html">All Podcasts</a><a class="btn" href="discover.html">Explore</a></div></div></div>';
+  loading.hidden=true;show.hidden=false;
+  let eps=[];try{eps=await rest("podcast_episodes",{select:"id,title,description,episode_number,season_number,published_at,duration_seconds,thumbnail_url,play_count,status",podcast_id:"eq."+p.id,status:"eq.published",order:"published_at.desc"});}catch(e){console.warn(e)}
+  section.hidden=false;count.textContent=eps.length+" "+(eps.length===1?"episode":"episodes");
+  if(!eps.length){episodes.innerHTML='<div class="card empty-state"><div class="eyebrow">COMING SOON</div><h3>No published episodes yet.</h3></div>';return}
+  episodes.innerHTML=eps.map(e=>'<article class="card episode-card"><img class="episode-art" src="'+esc(e.thumbnail_url||p.artwork_url||"assets/podcast-placeholder.svg")+'" alt="'+esc(e.title)+' artwork"><div><div class="eyebrow">'+esc(e.episode_number?"EPISODE "+e.episode_number:"EPISODE")+'</div><h3>'+esc(e.title)+'</h3><div class="episode-meta">'+(e.published_at?'<span class="pill">'+new Date(e.published_at).toLocaleDateString()+'</span>':"")+(e.duration_seconds?'<span class="pill">'+Math.round(Number(e.duration_seconds)/60)+" min</span>":"")+'</div><p class="episode-desc">'+esc(e.description||"Listen to this episode of "+p.title+".")+'</p><a class="btn primary" href="episode.html?id='+encodeURIComponent(e.id)+'">Listen Now</a></div></article>').join("")
+ }catch(e){fail(e)}
+}
+load();
 })();
-</script>
-</body>
-</html>
+</script></body></html>
