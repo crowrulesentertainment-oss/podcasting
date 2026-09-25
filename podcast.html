@@ -17,6 +17,30 @@ const esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 const timeout=(p,ms=8000)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(Error("Supabase request timed out.")),ms))]);
 async function rest(table,params){const u=cfg.supabaseUrl+"/rest/v1/"+table+"?"+new URLSearchParams(params);const r=await timeout(fetch(u,{headers:{apikey:cfg.supabaseKey,Authorization:"Bearer "+cfg.supabaseKey,Accept:"application/json"},cache:"no-store"}));if(!r.ok)throw Error("Supabase returned HTTP "+r.status);return r.json()}
 function fail(e){loading.hidden=true;show.hidden=false;
+  const followBtn=document.getElementById("followBtn"),followerCount=document.getElementById("followerCount"),shareBtn=document.getElementById("shareBtn");
+  async function followState(){
+    const follows=await rest("podcast_follows",{select:"user_id",podcast_id:"eq."+p.id});
+    followerCount.textContent=Number(follows.length||0).toLocaleString();
+    let sb=window.CROW_SUPABASE;if(!sb&&window.supabase&&cfg.supabaseUrl&&cfg.supabaseKey)sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    if(sb){const {data:{user}}=await sb.auth.getUser();if(user){const mine=follows.some(x=>x.user_id===user.id);followBtn.dataset.following=mine?"1":"0";followBtn.innerHTML=(mine?"Following":"Follow")+" <span id=\"followerCount\">"+Number(follows.length||0).toLocaleString()+"</span>";}}
+  }
+  followState().catch(e=>console.warn("Follow state:",e));
+  followBtn.addEventListener("click",async()=>{
+    let sb=window.CROW_SUPABASE;if(!sb&&window.supabase&&cfg.supabaseUrl&&cfg.supabaseKey)sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    if(!sb){alert("Supabase is unavailable.");return}
+    const {data:{user}}=await sb.auth.getUser();if(!user){location.href="account.html?returnTo="+encodeURIComponent(location.href);return}
+    followBtn.disabled=true;
+    try{
+      const following=followBtn.dataset.following==="1";
+      if(following){const {error}=await sb.from("podcast_follows").delete().eq("podcast_id",p.id).eq("user_id",user.id);if(error)throw error;followBtn.dataset.following="0";followBtn.firstChild.textContent="Follow ";}
+      else{const {error}=await sb.from("podcast_follows").insert({podcast_id:p.id,user_id:user.id});if(error&&error.code!=="23505")throw error;followBtn.dataset.following="1";followBtn.firstChild.textContent="Following ";}
+      const follows=await rest("podcast_follows",{select:"user_id",podcast_id:"eq."+p.id});document.getElementById("followerCount").textContent=Number(follows.length||0).toLocaleString();
+    }catch(e){alert(e.message||"Unable to update follow.");}finally{followBtn.disabled=false}
+  });
+  shareBtn.addEventListener("click",async()=>{
+    const data={title:p.title,text:"Listen to "+p.title+" on CrowRules Podcasting",url:location.href};
+    try{if(navigator.share)await navigator.share(data);else{await navigator.clipboard.writeText(location.href);shareBtn.textContent="Link Copied";setTimeout(()=>shareBtn.textContent="Share",1800)}}catch(e){}
+  });
   const subscribeBtn=document.getElementById("subscribeBtn");
   if(subscribeBtn)subscribeBtn.addEventListener("click",async()=>{subscribeBtn.disabled=true;subscribeBtn.textContent="Connecting to Stripe…";try{let sb=window.CROW_SUPABASE;if(!sb&&window.supabase&&cfg.supabaseUrl&&cfg.supabaseKey)sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});if(!sb)throw Error("Supabase is unavailable.");const {data:{session}}=await sb.auth.getSession();if(!session){location.href="account.html?returnTo="+encodeURIComponent(location.href);return}const products=await rest("cr_podcast_monetization_products",{select:"id,amount_cents,interval",podcast_id:"eq."+p.id,product_type:"eq.membership",active:"eq.true"});const product=products[0];if(!product)throw Error("This podcast does not have an active Stripe subscription yet.");const result=await sb.functions.invoke("create-podcast-checkout",{body:{product_id:product.id,origin:cfg.siteUrl,success_url:cfg.siteUrl+"podcast.html?id="+encodeURIComponent(p.id)+"&checkout=success",cancel_url:cfg.siteUrl+"podcast.html?id="+encodeURIComponent(p.id)+"&checkout=canceled"}});if(result.error)throw result.error;if(result.data?.url){location.href=result.data.url;return}throw Error(result.data?.error||"Stripe Checkout did not return a URL.");}catch(e){alert(e.message||"Unable to start subscription.");subscribeBtn.disabled=false;subscribeBtn.textContent="Subscribe — $9.99/mo";}});show.innerHTML='<div class="card empty-state"><div class="eyebrow">CONNECTION ISSUE</div><h2>Podcast could not load</h2><p>'+esc(e?.message||"Please try again.")+'</p><a class="btn primary" href="podcasts.html">Back to Podcasts</a><button class="btn" onclick="location.reload()">Retry</button></div>'}
 async function load(){
@@ -25,7 +49,7 @@ async function load(){
   const rows=await rest("podcasts",{select:"id,title,slug,category,description,artwork_url,author_name,language,explicit_content,is_live,listener_count,status",id:"eq."+id,status:"eq.published"});
   const p=rows[0];if(!p){fail(Error("This podcast is unavailable."));return}
   document.title=p.title+" — CrowRules Podcasting";
-  show.innerHTML='<div class="show-hero"><img class="show-art" src="'+esc(p.artwork_url||"assets/podcast-placeholder.svg")+'" alt="'+esc(p.title)+' artwork"><div><div class="eyebrow">'+esc(p.category||"PODCAST")+'</div><h1 class="show-title">'+esc(p.title)+'</h1><div class="show-meta">'+(p.author_name?'<span class="pill">By '+esc(p.author_name)+'</span>':"")+(p.language?'<span class="pill">'+esc(p.language.toUpperCase())+'</span>':"")+(p.is_live?'<span class="pill">● Live</span>':"")+'</div><p class="show-description">'+esc(p.description||"A CrowRules Podcasting show.")+'</p><div class="show-actions"><button id="subscribeBtn" class="btn primary" type="button">Subscribe — $9.99/mo</button><a class="btn" href="podcasts.html">All Podcasts</a><a class="btn" href="discover.html">Explore</a></div></div></div>';
+  show.innerHTML='<div class="show-hero"><img class="show-art" src="'+esc(p.artwork_url||"assets/podcast-placeholder.svg")+'" alt="'+esc(p.title)+' artwork"><div><div class="eyebrow">'+esc(p.category||"PODCAST")+'</div><h1 class="show-title">'+esc(p.title)+'</h1><div class="show-meta">'+(p.author_name?'<span class="pill">By '+esc(p.author_name)+'</span>':"")+(p.language?'<span class="pill">'+esc(p.language.toUpperCase())+'</span>':"")+(p.is_live?'<span class="pill">● Live</span>':"")+'</div><p class="show-description">'+esc(p.description||"A CrowRules Podcasting show.")+'</p><div class="show-actions"><button id="subscribeBtn" class="btn primary" type="button">Subscribe — $9.99/mo</button><button id="followBtn" class="btn" type="button">Follow <span id="followerCount">0</span></button><button id="shareBtn" class="btn" type="button">Share</button><a class="btn" href="podcasts.html">All Podcasts</a><a class="btn" href="discover.html">Explore</a></div></div></div>';
   loading.hidden=true;show.hidden=false;
   let eps=[];try{eps=await rest("podcast_episodes",{select:"id,title,description,episode_number,season_number,published_at,duration_seconds,thumbnail_url,play_count,status",podcast_id:"eq."+p.id,status:"eq.published",order:"published_at.desc"});}catch(e){console.warn(e)}
   section.hidden=false;count.textContent=eps.length+" "+(eps.length===1?"episode":"episodes");
