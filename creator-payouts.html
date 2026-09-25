@@ -1,1 +1,90 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Creator Monetization — CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><script src="js/config.js"></script><script src="js/podcasting.js" defer></script><script src="js/player.js" defer></script><script src="js/app.js" defer></script></head><body><div data-nav></div><main class="wrap hero"><div class="eyebrow">CREATOR MONETIZATION</div><h1>Get paid for your <span class="gradient">audio.</span></h1><div id="status" class="notice">Loading Stripe Connect status…</div><div class="card" style="margin-top:18px"><h3>Payout account</h3><div id="details"></div><button id="start" class="btn primary" style="margin-top:15px">Connect Stripe</button></div></main><script>addEventListener("crow:ready",async()=>{if(!__CROW_USER){status.textContent="Sign in first.";start.onclick=()=>location.href="account.html";return}const r=await CROW_SUPABASE.from("cr_podcast_stripe_accounts").select("*").eq("user_id",__CROW_USER.id).maybeSingle();if(r.data){details.innerHTML='<p>Status: <strong>'+r.data.onboarding_status+'</strong></p><p>Charges enabled: '+r.data.charges_enabled+'</p><p>Payouts enabled: '+r.data.payouts_enabled+'</p>';status.textContent=r.data.payouts_enabled?"Payouts are enabled.":"Stripe onboarding needs attention.";start.textContent=r.data.payouts_enabled?"Refresh Stripe status":"Continue Stripe onboarding"}else{details.innerHTML="<p>No Stripe Connect account is linked yet.</p>";status.textContent="Connect Stripe to begin creator payouts."}start.onclick=async()=>{start.disabled=true;const r=await CROW_SUPABASE.functions.invoke(CROW_CONFIG.connectFunction,{body:{return_url:location.href,refresh_url:location.href}});start.disabled=false;if(r.error){alert(r.error.message);return}if(r.data?.onboarding_url)location.href=r.data.onboarding_url;else alert(r.data?.error||"Stripe did not return an onboarding link.")}});</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Creator Monetization — CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="js/config.js"></script><script src="js/podcasting.js" defer></script><script src="js/player.js" defer></script><script src="js/app.js" defer></script>
+<style>
+.state{padding:18px;border:1px solid #ffffff12;border-radius:16px;background:#0b0b14;margin-top:16px}
+.ok{color:#7fffd4}.warn{color:#ffd27d}.bad{color:#ff8b9e}.muted{opacity:.72}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:15px}.kv .card{margin:0}
+</style>
+</head>
+<body>
+<div data-nav></div>
+<main class="wrap hero">
+<div class="eyebrow">CREATOR MONETIZATION</div>
+<h1>Get paid for your <span class="gradient">audio.</span></h1>
+<div id="status" class="notice">Connecting to your creator account…</div>
+<div id="details" class="state"><div class="muted">Checking Stripe Connect status…</div></div>
+<div class="actions" style="margin-top:16px">
+<button id="start" class="btn primary" disabled>Checking Stripe…</button>
+<a class="btn" href="creator-dashboard.html">Creator Dashboard</a>
+</div>
+</main>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+let loaded=false;
+async function waitForSupabase(timeout=15000){
+ const t=Date.now();
+ while(!window.CROW_SUPABASE){
+  if(window.CROW_APP?.init){try{await window.CROW_APP.init()}catch(e){}}
+  if(window.CROW_SUPABASE)break;
+  if(Date.now()-t>timeout)throw new Error("Supabase is still connecting. Please refresh.");
+  await new Promise(r=>setTimeout(r,150));
+ }
+ return window.CROW_SUPABASE;
+}
+function show(text,cls=""){ $("status").textContent=text; $("status").className="notice "+cls; }
+function render(a){
+ const ready=!!(a.charges_enabled&&a.payouts_enabled);
+ const action=(a.onboarding_status||"").toLowerCase();
+ const due=Array.isArray(a.requirements_currently_due)?a.requirements_currently_due:[];
+ $("details").innerHTML='<div class="kv">'+
+ '<div class="card"><strong>Connect status</strong><p class="'+(ready?"ok":"warn")+'">'+(ready?"Payouts ready":(a.onboarding_status||"Action required"))+'</p></div>'+
+ '<div class="card"><strong>Charges</strong><p>'+(a.charges_enabled?"Enabled":"Not enabled")+'</p></div>'+
+ '<div class="card"><strong>Payouts</strong><p>'+(a.payouts_enabled?"Enabled":"Not enabled")+'</p></div>'+
+ '<div class="card"><strong>Details submitted</strong><p>'+(a.details_submitted?"Yes":"No")+'</p></div>'+
+ '<div class="card"><strong>Account</strong><p>'+String(a.stripe_account_id||"Not connected").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))+'</p></div>'+
+ '</div>'+
+ (due.length?'<div class="state"><strong>Stripe requirements currently due</strong><ul>'+due.map(x=>"<li>"+String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))+"</li>").join("")+'</ul></div>':"");
+ $("start").disabled=false;
+ $("start").textContent=ready?"Refresh Stripe status":(action==="action_required"?"Continue Stripe setup":"Connect Stripe");
+ show(ready?"Stripe Connect is ready to receive creator payouts.":"Stripe Connect setup needs attention.",ready?"ok":"warn");
+}
+async function load(){
+ if(loaded)return; loaded=true;
+ try{
+  const sb=await waitForSupabase();
+  const session=(await sb.auth.getSession()).data?.session;
+  const user=session?.user||window.__CROW_USER;
+  if(!user){show("Sign in to manage creator payouts.","warn");$("start").disabled=false;$("start").textContent="Sign in";$("start").onclick=()=>location.href="account.html";return;}
+  show("Checking your creator account…");
+  const r=await sb.functions.invoke(CROW_CONFIG.connectFunction,{body:{action:"status",return_url:location.href,refresh_url:location.href}});
+  if(r.error)throw r.error;
+  const d=r.data||{};
+  if(d.error)throw new Error(d.error);
+  render(d);
+  $("start").onclick=async()=>{
+   $("start").disabled=true;$("start").textContent="Opening Stripe…";
+   const x=await sb.functions.invoke(CROW_CONFIG.connectFunction,{body:{action:"onboard",return_url:location.href,refresh_url:location.href}});
+   if(x.error){show(x.error.message,"bad");$("start").disabled=false;return;}
+   if(x.data?.onboarding_url){location.href=x.data.onboarding_url;return;}
+   show(x.data?.error||"Stripe did not return an onboarding link.","bad");$("start").disabled=false;
+  };
+ }catch(e){
+  console.error("CrowRules creator payouts:",e);
+  show("Unable to load Stripe Connect status: "+(e?.message||"Unknown error"),"bad");
+  $("details").innerHTML='<p class="bad">The dashboard could not retrieve your current Connect account state.</p><p class="muted">Refresh the page and try again.</p>';
+  $("start").disabled=false;$("start").textContent="Retry";
+  $("start").onclick=()=>{loaded=false;load()};
+ }
+}
+if(window.CROW_SUPABASE)load(); else addEventListener("crow:ready",load,{once:true});
+setTimeout(()=>{if(!loaded)load()},1800);
+})();
+</script>
+</body></html>
