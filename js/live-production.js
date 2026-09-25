@@ -1,0 +1,12 @@
+const video=document.querySelector("#programVideo");let stream=null,scene="main",guests=0,live=false;
+const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
+async function camera(){try{stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});video.srcObject=stream;set("cameraState","ON");}catch(e){set("cameraState","DENIED");set("bridgeStatus","Camera permission was not granted.")}}
+async function mic(){try{const s=await navigator.mediaDevices.getUserMedia({video:false,audio:true});if(stream){s.getAudioTracks().forEach(t=>stream.addTrack(t))}else{stream=s}video.srcObject=stream;set("micState","ON")}catch(e){set("micState","DENIED");set("bridgeStatus","Microphone permission was not granted.")}}
+function stop(){stream?.getTracks().forEach(t=>t.stop());stream=null;video.srcObject=null;set("cameraState","OFF");set("micState","OFF")}
+function setScene(v){scene=v;set("sceneStatus","Scene: "+v.toUpperCase());document.querySelectorAll("[data-scene]").forEach(b=>b.classList.toggle("primary",b.dataset.scene===v))}
+function overlay(v){const p=document.querySelector("#overlayPreview");const text={ "lower-third":"CROWRULES PODCASTING • LIVE","countdown":"STARTING SOON","crowrules":"CROWRULES • ONE UNIVERSE","clear":""}[v]??"";p.textContent=text||"Overlay cleared"}
+document.querySelector("#startCamera")?.addEventListener("click",camera);document.querySelector("#startMic")?.addEventListener("click",mic);document.querySelector("#endLive")?.addEventListener("click",()=>{live=false;set("broadcastState","OFFLINE");set("bridgeStatus","Production stopped. Replay conversion can be connected to the 5.0 lifecycle engine.");stop()});
+document.querySelector("#goLive")?.addEventListener("click",()=>{live=true;set("broadcastState","READY / BRIDGE");set("bridgeStatus","Production session is live-ready. Connect the server-side broadcast bridge to publish an actual stream to CrowRules TV.");});
+document.querySelectorAll("[data-scene]").forEach(b=>b.addEventListener("click",()=>setScene(b.dataset.scene)));document.querySelectorAll("[data-overlay]").forEach(b=>b.addEventListener("click",()=>overlay(b.dataset.overlay)));
+document.querySelector("#addGuest")?.addEventListener("click",()=>{guests++;set("guestState",guests)});document.querySelector("#removeGuest")?.addEventListener("click",()=>{guests=Math.max(0,guests-1);set("guestState",guests)});
+window.addEventListener("beforeunload",stop);
