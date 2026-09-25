@@ -26,7 +26,7 @@
 .about-list{display:grid;gap:14px}.about-item{display:flex;gap:11px;color:#9ba5b9;font-size:11px;line-height:1.5}.about-item b{color:#eef2ff;font-weight:700}.about-item a{color:var(--cyan);overflow-wrap:anywhere}
 .profile-tabs{display:flex;gap:5px;border-bottom:1px solid #ffffff0d;margin:-4px 0 18px;overflow:auto}.profile-tabs button{background:none;border:0;color:#818ba0;padding:12px 13px;font:700 9px Montserrat;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;white-space:nowrap}.profile-tabs button.active{color:#fff;border-bottom:2px solid var(--cyan)}
 .feed{display:grid;gap:14px}.feed-item{padding:18px;border:1px solid #ffffff0d;border-radius:16px;background:#080b13}.feed-top{display:flex;gap:10px;align-items:center}.feed-avatar{width:38px;height:38px;border-radius:50%;overflow:hidden;background:#151b2d;display:grid;place-items:center;font:800 10px Orbitron}.feed-avatar img{width:100%;height:100%;object-fit:cover}.feed-item h3{font-size:13px;margin:12px 0 6px}.feed-item p{font-size:12px;color:#a0a9bb;line-height:1.65;margin:0;white-space:pre-wrap}.feed-time{font-size:9px;color:#68738a}.feed-source{font-size:8px;color:#657086;text-transform:uppercase;letter-spacing:.1em;margin-top:10px}
-.post-card{padding:18px;border:1px solid #ffffff0d;border-radius:16px;background:#080b13}.post-card .post-meta{font-size:9px;color:#6f7a90}.post-card h3{margin:8px 0;font-size:14px}.post-card p{font-size:12px;line-height:1.65;color:#aeb7c9;white-space:pre-wrap}.post-actions{display:flex;gap:14px;font-size:9px;color:#738097;margin-top:12px}
+.composer{padding:20px;border:1px solid #ffffff10;border-radius:18px;background:linear-gradient(145deg,#0b1020,#080b13);margin-bottom:16px}.composer h3{margin:0 0 6px;font-size:15px}.composer p{margin:0 0 14px;color:#7f8ba1;font-size:10px}.composer-grid{display:grid;gap:10px}.composer input,.composer textarea{width:100%;box-sizing:border-box;background:#060912;border:1px solid #ffffff14;border-radius:11px;color:#fff;padding:12px;font:inherit}.composer textarea{min-height:105px;resize:vertical}.composer-footer{display:flex;justify-content:space-between;gap:10px;align-items:center}.char-count{font-size:9px;color:#69758b}.comment-thread{margin-top:14px;padding-top:14px;border-top:1px solid #ffffff0b}.comment{padding:11px 0}.comment.reply{margin-left:34px;padding-left:13px;border-left:1px solid #ffffff10}.comment-top{display:flex;gap:8px;align-items:center}.comment-avatar{width:28px;height:28px;border-radius:50%;overflow:hidden;background:#151b2d;display:grid;place-items:center;font:700 8px Orbitron;flex:none}.comment-avatar img{width:100%;height:100%;object-fit:cover}.comment-author{font-size:10px}.comment-time{font-size:8px;color:#667188}.comment-body{font-size:11px;line-height:1.55;color:#aab3c5;margin:6px 0 0 36px;white-space:pre-wrap}.comment-actions{display:flex;gap:10px;margin:7px 0 0 36px}.comment-actions button{border:0;background:none;color:#718099;font:700 8px Montserrat;text-transform:uppercase;letter-spacing:.08em;padding:0;cursor:pointer}.reply-box{margin:8px 0 0 36px;display:none;gap:7px}.reply-box.open{display:flex}.reply-box input{flex:1;background:#060912;border:1px solid #ffffff12;border-radius:9px;color:#fff;padding:9px;font:inherit}.post-card{padding:18px;border:1px solid #ffffff0d;border-radius:16px;background:#080b13}.post-card .post-meta{font-size:9px;color:#6f7a90}.post-card h3{margin:8px 0;font-size:14px}.post-card p{font-size:12px;line-height:1.65;color:#aeb7c9;white-space:pre-wrap}.post-actions{display:flex;gap:14px;font-size:9px;color:#738097;margin-top:12px}
 .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.mini-stat{padding:14px;border:1px solid #ffffff0d;border-radius:14px;background:#080b13}.mini-stat strong{display:block;font:800 17px Orbitron}.mini-stat span{display:block;margin-top:5px;color:#77839a;font-size:8px;text-transform:uppercase;letter-spacing:.1em}
 .empty-profile{padding:30px;border:1px dashed #ffffff14;border-radius:16px;color:#788298;text-align:center;font-size:11px;line-height:1.7}.notice{padding:14px;border-radius:12px;background:#ffffff06;border:1px solid #ffffff0c;color:#8e99ad;font-size:11px;line-height:1.6}
 .edit-grid{display:grid;gap:13px}.edit-grid label{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#8d97aa}.edit-grid input,.edit-grid textarea{width:100%;box-sizing:border-box;margin-top:7px;background:#070a12;border:1px solid #ffffff16;border-radius:10px;color:#fff;padding:11px;font:inherit}.edit-grid textarea{min-height:90px;resize:vertical}.edit-checks{display:grid;grid-template-columns:1fr 1fr;gap:10px}.check{padding:12px;border:1px solid #ffffff10;border-radius:12px;background:#080b13;font-size:10px;color:#9aa5b8}.check input{margin-right:7px}
@@ -208,62 +208,63 @@ async function loadActivity(){
 async function loadPosts(){
  if(profileData.network_public===false){$("postsTab").innerHTML='<div class="empty-profile">Posts are private.</div>';return}
  try{
-  const r=await CROW_SUPABASE.from("community_posts").select("id,title,body,post_type,status,visibility,is_pinned,like_count,comment_count,view_count,published_at,created_at").eq("author_id",profileData.user_id).eq("status","published").eq("visibility","public").order("published_at",{ascending:false}).limit(12);
+  const r=await CROW_SUPABASE.from("community_posts").select("id,title,body,post_type,status,visibility,is_pinned,is_locked,like_count,comment_count,view_count,published_at,created_at").eq("author_id",profileData.user_id).eq("status","published").eq("visibility","public").order("published_at",{ascending:false}).limit(20);
   if(r.error)throw r.error;
   const rows=r.data||[];
-  $("postsTab").innerHTML=rows.map(p=>'<article class="post-card"><div class="post-meta">'+esc(p.post_type||"Post")+' · '+esc(safeTime(p.published_at||p.created_at))+(p.is_pinned?" · Pinned":"")+'</div>'+(p.title?'<h3>'+esc(p.title)+"</h3>":"")+'<p>'+esc(p.body)+'</p><div class="post-actions"><span>♥ '+fmt(p.like_count)+"</span><span>💬 "+fmt(p.comment_count)+"</span><span>◉ "+fmt(p.view_count)+"</span></div></article>").join("")||'<div class="empty-profile">No public community posts yet.</div>';
- }catch(e){$("postsTab").innerHTML='<div class="empty-profile">Community posts are not available yet.</div>'}
+  let comments=[];
+  if(rows.length){
+   const cr=await CROW_SUPABASE.from("community_comments").select("id,post_id,author_id,parent_comment_id,body,status,like_count,created_at").in("post_id",rows.map(x=>x.id)).eq("status","published").order("created_at",{ascending:true});
+   if(!cr.error)comments=cr.data||[]; else console.warn("comments unavailable",cr.error);
+  }
+  const authors=[...new Set(comments.map(x=>x.author_id))];
+  let profiles=[];
+  if(authors.length){
+   const pr=await CROW_SUPABASE.from("podcast_member_profiles").select("user_id,display_name,username,avatar_url").in("user_id",authors);
+   if(!pr.error)profiles=pr.data||[];
+  }
+  const pmap=Object.fromEntries(profiles.map(x=>[x.user_id,x]));
+  const commentHtml=(postId)=>{
+   const list=comments.filter(x=>x.post_id===postId);
+   if(!list.length)return'<div class="notice" style="margin-top:12px">No replies yet. Start the conversation.</div>';
+   const roots=list.filter(x=>!x.parent_comment_id);
+   const children=list.filter(x=>x.parent_comment_id);
+   const renderComment=x=>{
+    const a=pmap[x.author_id]||{};const nm=a.display_name||a.username||"CrowRules Member";
+    return '<div class="comment '+(x.parent_comment_id?'reply':'')+'" data-comment="'+esc(x.id)+'"><div class="comment-top"><div class="comment-avatar">'+(a.avatar_url?imageMarkup(a.avatar_url,nm):esc(initials(nm)))+'</div><div><strong class="comment-author">'+esc(nm)+'</strong><div class="comment-time">'+esc(safeTime(x.created_at))+'</div></div></div><div class="comment-body">'+esc(x.body)+'</div><div class="comment-actions"><button data-reply="'+esc(x.id)+'">Reply</button><span>'+fmt(x.like_count)+' likes</span></div><div class="reply-box" id="reply-'+esc(x.id)+'"><input maxlength="1000" placeholder="Write a reply…"><button class="btn" data-submit-reply="'+esc(x.id)+'">Reply</button></div></div>';
+   };
+   return '<div class="comment-thread">'+roots.map(renderComment).join('')+children.map(renderComment).join('')+'</div>';
+  };
+  const postHtml=rows.map(p=>'<article class="post-card" data-post="'+esc(p.id)+'"><div class="post-meta">'+esc(p.post_type||"Post")+' · '+esc(safeTime(p.published_at||p.created_at))+(p.is_pinned?" · Pinned":"")+'</div>'+(p.title?'<h3>'+esc(p.title)+'</h3>':"")+'<p>'+esc(p.body)+'</p><div class="post-actions"><span>♥ '+fmt(p.like_count)+'</span><span>💬 '+fmt(p.comment_count)+'</span><span>◉ '+fmt(p.view_count)+'</span></div>'+commentHtml(p.id)+'</article>').join('');
+  const composer=self?'<form id="postComposer" class="composer"><h3>Share with the CrowRules community</h3><p>Post an idea, update, question, recommendation or conversation starter.</p><div class="composer-grid"><input id="postTitle" maxlength="160" placeholder="Title (optional)"><textarea id="postBody" maxlength="5000" required placeholder="What do you want to share?"></textarea><div class="composer-footer"><span id="postCount" class="char-count">0 / 5000</span><button class="btn primary" type="submit">Publish Post</button></div></div></form>':'';
+  $("postsTab").innerHTML=composer+(postHtml||'<div class="empty-profile">No public posts yet. Be the first to start the conversation.</div>');
+  wirePostComposer();
+  wireReplies();
+ }catch(e){console.error("posts unavailable",e);$("postsTab").innerHTML='<div class="empty-profile">Community posts are not available right now.</div>'}
 }
-
-async function wireSocial(){
- const btn=$("followBtn");
- if(self||!btn)return;
- const user=getUser();
- if(!user){btn.textContent="Sign in to follow";btn.onclick=()=>location.href="account.html";$("messageBtn").onclick=()=>location.href="account.html";return}
- if(profileData.followers_public===false){btn.disabled=true;btn.textContent="Follow";$("messageBtn").disabled=true;return}
- try{
-  const r=await CROW_SUPABASE.from("podcast_member_follows").select("id").eq("follower_user_id",user.id).eq("followed_user_id",profileData.user_id).maybeSingle();
-  if(!r.error&&r.data)btn.textContent="Following";
- }catch(e){}
- btn.onclick=async()=>{
-  btn.disabled=true;
+function wirePostComposer(){
+ const form=$("postComposer");if(!form)return;
+ const body=$("postBody");const count=$("postCount");body.oninput=()=>count.textContent=body.value.length+" / 5000";
+ form.onsubmit=async e=>{
+  e.preventDefault();const btn=form.querySelector("button[type=submit]");const bodyVal=body.value.trim();if(!bodyVal)return;
+  btn.disabled=true;btn.textContent="Publishing…";
   try{
-   if(btn.textContent==="Following"){
-    const r=await CROW_SUPABASE.from("podcast_member_follows").delete().eq("follower_user_id",user.id).eq("followed_user_id",profileData.user_id);
-    if(r.error)throw r.error;btn.textContent="Follow";
-   }else{
-    const r=await CROW_SUPABASE.from("podcast_member_follows").insert({follower_user_id:user.id,followed_user_id:profileData.user_id});
-    if(r.error)throw r.error;btn.textContent="Following";
-   }
-   await loadStats();
-  }catch(e){console.error(e);alert("We couldn't update the follow right now.")}finally{btn.disabled=false}
+   const user=getUser();if(!user)throw new Error("Sign in to publish a post.");
+   const r=await CROW_SUPABASE.from("community_posts").insert({community_id:"975f140a-30b9-4dc8-9105-ac7fcd69663c",author_id:user.id,title:$("postTitle").value.trim()||null,body:bodyVal,post_type:"post",status:"published",visibility:"public",published_at:new Date().toISOString()}).select("id").single();
+   if(r.error)throw r.error;
+   await loadPosts();$("postsTab").scrollIntoView({behavior:"smooth",block:"start"});
+  }catch(err){alert("We couldn't publish your post. "+(err?.message||"Please try again."))}finally{btn.disabled=false;btn.textContent="Publish Post"}
  };
- $("messageBtn").onclick=()=>alert("Member messaging is coming next.");
 }
-
-async function editProfile(){
- const p=profileData;
- $("profileTab").classList.remove("hidden");$("activityTab").classList.add("hidden");$("postsTab").classList.add("hidden");
- $("profileTab").innerHTML='<form id="editForm" class="edit-grid"><label>Display name<input id="edName" maxlength="100" value="'+esc(p.display_name||"")+'"></label><label>Username<input id="edUser" maxlength="50" value="'+esc(p.username||"")+'"></label><label>Tagline<input id="edTag" maxlength="160" value="'+esc(p.tagline||"")+'"></label><label>Bio<textarea id="edBio" maxlength="2000">'+esc(p.bio||"")+'</textarea></label><label>Location<input id="edLoc" maxlength="120" value="'+esc(p.location||"")+'"></label><label>Website URL<input id="edWeb" maxlength="500" value="'+esc(p.website_url||"")+'"></label><label>Avatar URL<input id="edAvatar" maxlength="1000" value="'+esc(p.avatar_url||"")+'"></label><label>Cover URL<input id="edCover" maxlength="1000" value="'+esc(p.cover_url||"")+'"></label><label>Interests<input id="edInt" maxlength="500" value="'+esc(p.interests||"")+'"></label><label>Favorite music<input id="edMusic" maxlength="500" value="'+esc(p.favorite_music||"")+'"></label><label>Favorite movies<input id="edMovies" maxlength="500" value="'+esc(p.favorite_movies||"")+'"></label><label>Favorite games<input id="edGames" maxlength="500" value="'+esc(p.favorite_games||"")+'"></label><label>Current mood<input id="edMood" maxlength="160" value="'+esc(p.mood||"")+'"></label><label>Featured achievement<input id="edAchievement" maxlength="500" value="'+esc(p.featured_achievement||"")+'"></label><div class="edit-checks"><label class="check"><input type="checkbox" id="edPublic" '+(p.is_public!==false?"checked":"")+'> Public profile</label><label class="check"><input type="checkbox" id="edActivity" '+(p.activity_public!==false?"checked":"")+'> Public activity</label><label class="check"><input type="checkbox" id="edNetwork" '+(p.network_public!==false?"checked":"")+'> Public posts</label><label class="check"><input type="checkbox" id="edFollowers" '+(p.followers_public!==false?"checked":"")+'> Allow follow</label></div><div class="actions"><button class="btn primary" type="submit">Save profile</button><button type="button" class="btn" id="cancelEdit">Cancel</button></div><div id="editState" class="notice hidden"></div></form>';
- $("editForm").onsubmit=async e=>{
-  e.preventDefault();const state=$("editState");state.classList.remove("hidden");state.textContent="Saving…";
-  const patch={display_name:$("edName").value.trim()||null,username:$("edUser").value.trim()||null,tagline:$("edTag").value.trim()||null,bio:$("edBio").value.trim()||null,location:$("edLoc").value.trim()||null,website_url:$("edWeb").value.trim()||null,avatar_url:$("edAvatar").value.trim()||null,cover_url:$("edCover").value.trim()||null,interests:$("edInt").value.trim()||null,favorite_music:$("edMusic").value.trim()||null,favorite_movies:$("edMovies").value.trim()||null,favorite_games:$("edGames").value.trim()||null,mood:$("edMood").value.trim()||null,featured_achievement:$("edAchievement").value.trim()||null,is_public:$("edPublic").checked,activity_public:$("edActivity").checked,network_public:$("edNetwork").checked,followers_public:$("edFollowers").checked,updated_at:new Date().toISOString()};
+function wireReplies(){
+ document.querySelectorAll("[data-reply]").forEach(btn=>btn.onclick=()=>{const box=$("reply-"+btn.dataset.reply);if(box)box.classList.toggle("open")});
+ document.querySelectorAll("[data-submit-reply]").forEach(btn=>btn.onclick=async()=>{
+  const box=$("reply-"+btn.dataset.submitReply);const input=box?.querySelector("input");const body=input?.value.trim();if(!body)return;
+  btn.disabled=true;btn.textContent="…";
   try{
-   const r=await CROW_SUPABASE.from("podcast_member_profiles").upsert({...patch,user_id:profileData.user_id},{onConflict:"user_id"});
-   if(r.error)throw r.error;profileData={...profileData,...patch};state.textContent="Profile saved.";setTimeout(renderProfile,450);
-  }catch(err){console.error(err);state.textContent=err?.message||"Unable to save profile."}
- };
- $("cancelEdit").onclick=renderProfile;
-}
-
-document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{
- document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));b.classList.add("active");
- $("activityTab").classList.toggle("hidden",b.dataset.tab!=="activity");$("postsTab").classList.toggle("hidden",b.dataset.tab!=="posts");$("profileTab").classList.toggle("hidden",b.dataset.tab!=="profileTab");
-}));
-if(window.CROW_SUPABASE?.auth){CROW_SUPABASE.auth.onAuthStateChange((_event,session)=>{sessionUser=session?.user||null;if(!profileData&&!target)loadProfile()})}
-addEventListener("crow:ready",loadProfile,{once:true});
-setTimeout(()=>{if(!$("profile")&&!profileData)loadProfile()},1800);
-})();
-</script>
-</body>
-</html>
+   const user=getUser();if(!user)throw new Error("Sign in to reply.");
+   const post=btn.closest("[data-post]");const r=await CROW_SUPABASE.from("community_comments").insert({post_id:post.dataset.post,author_id:user.id,parent_comment_id:btn.dataset.submitReply,body,status:"published"}).select("id").single();
+   if(r.error)throw r.error;
+   await loadPosts();
+  }catch(err){alert("We couldn't post your reply. "+(err?.message||"Please try again."))}finally{btn.disabled=false;btn.textContent="Reply"}
+ });
+}>
