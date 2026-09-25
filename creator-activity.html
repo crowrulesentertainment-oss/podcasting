@@ -119,6 +119,8 @@ function fmtTime(v){return new Date(v).toLocaleString([], {month:"short",day:"nu
 function iconType(t){return labels[t]||"Activity";}
 async function mute(id){const r=await CROW_SUPABASE.from("cr_creator_alerts").update({muted_at:new Date().toISOString()}).eq("id",id).eq("creator_id",__CROW_USER.id);if(r.error)alert(r.error.message);else await load();}
 async function unmute(id){const r=await CROW_SUPABASE.from("cr_creator_alerts").update({muted_at:null,muted_until:null}).eq("id",id).eq("creator_id",__CROW_USER.id);if(r.error)alert(r.error.message);else await load();}
+async function mute(id){const r=await CROW_SUPABASE.from("cr_creator_alerts").update({muted_at:new Date().toISOString()}).eq("id",id).eq("creator_id",__CROW_USER.id);if(r.error)alert(r.error.message);else await load();}
+async function unmute(id){const r=await CROW_SUPABASE.from("cr_creator_alerts").update({muted_at:null,muted_until:null}).eq("id",id).eq("creator_id",__CROW_USER.id);if(r.error)alert(r.error.message);else await load();}
 function filtered(){return activeFilter==="all"?events:events.filter(x=>x.alert_type===activeFilter);}
 function render(){
   const list=filtered();
@@ -141,7 +143,7 @@ function render(){
       '<div class="event-meta"><span class="event-time">'+esc(fmtTime(x.created_at))+'</span></div>'+
       '<div class="event-actions">'+
       (link?'<a class="small-btn" href="'+link+'">Open Workspace</a>':'')+
-      (!x.read_at?'<button class="small-btn" onclick="markRead(\''+esc(x.id)+'\')">Mark Read</button>':'<button class="small-btn" onclick="markUnread(\''+esc(x.id)+'\')">Mark Unread</button>')+
+      (!x.read_at?'<button class="small-btn" onclick="markRead(\''+esc(x.id)+'\')">Mark Read</button>':'<button class="small-btn" onclick="markUnread(\''+esc(x.id)+'\')">Mark Unread</button>')+(x.muted_at?'<button class="small-btn" onclick="unmute(\''+esc(x.id)+'\')">Unmute</button>':'<button class="small-btn" onclick="mute(\''+esc(x.id)+'\')">Mute</button>')+
       '</div></article>';
   }).join("");
 }
