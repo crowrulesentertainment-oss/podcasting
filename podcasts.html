@@ -39,12 +39,37 @@
 (()=>{"use strict";
 const search=document.getElementById("search"),filters=document.getElementById("filters"),grid=document.getElementById("grid"),loading=document.getElementById("loading"),empty=document.getElementById("empty"),status=document.getElementById("status");
 let all=[],category="All";
+const cfg=window.CROW_CONFIG||{};
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const client=async()=>{for(let i=0;i<60;i++){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;if(window.supabase&&window.CROW_CONFIG?.supabaseUrl&&window.CROW_CONFIG?.supabaseKey){window.CROW_SUPABASE=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});return window.CROW_SUPABASE}await new Promise(r=>setTimeout(r,100))}throw Error("Supabase client did not initialize.")};
+const timeout=(p,ms=10000)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(Error("Supabase request timed out.")),ms))]);
+async function loadRows(){
+  const select="id,title,slug,category,subcategory,description,artwork_url,author_name,listener_count,is_live,status,created_at";
+  const query=new URLSearchParams({select,status:"eq.published",order:"created_at.desc"});
+  const url=cfg.supabaseUrl+"/rest/v1/podcasts?"+query.toString();
+  const headers={"apikey":cfg.supabaseKey,"Authorization":"Bearer "+cfg.supabaseKey,"Accept":"application/json"};
+  const rest=await timeout(fetch(url,{headers,cache:"no-store"}));
+  if(!rest.ok){const body=await rest.text().catch(()=>""),err=Error("Supabase returned HTTP "+rest.status+(body?" — "+body.slice(0,180):""));err.status=rest.status;throw err}
+  return rest.json();
+}
 function buildFilters(){const cats=["All",...new Set(all.map(x=>x.category).filter(Boolean))];filters.innerHTML=cats.map(c=>'<button class="filter '+(c===category?"active":"")+'" data-category="'+esc(c)+'">'+esc(c)+'</button>').join("");filters.querySelectorAll(".filter").forEach(b=>b.onclick=()=>{category=b.dataset.category;buildFilters();render()})}
-function render(){const q=search.value.trim().toLowerCase();const rows=all.filter(p=>{const hay=[p.title,p.author_name,p.category,p.subcategory,p.description].join(" ").toLowerCase();return(category==="All"||p.category===category)&&(!q||hay.includes(q))});grid.innerHTML=rows.map(p=>'<article class="card podcast-card"><a href="podcast.html?id='+encodeURIComponent(p.id)+'"><img class="art" src="'+esc(p.artwork_url||"assets/podcast-placeholder.svg")+'" alt="'+esc(p.title)+' artwork" loading="lazy" onerror="this.src='assets/podcast-placeholder.svg'"></a><div class="card-body"><div class="eyebrow">'+esc(p.category||"PODCAST")+'</div><h2>'+esc(p.title)+'</h2><p>'+esc(p.description||"A CrowRules Podcasting show.")+'</p><div class="meta">'+(p.author_name?'<span class="pill">'+esc(p.author_name)+'</span>':"")+(Number(p.listener_count||0)?'<span class="pill">'+Number(p.listener_count).toLocaleString()+' listeners</span>':"")+(p.is_live?'<span class="pill">● Live</span>':"")+'</div><div class="card-actions"><a class="btn primary" href="podcast.html?id='+encodeURIComponent(p.id)+'">View Show</a></div></div></article>').join("");grid.hidden=!rows.length;empty.hidden=!!rows.length;empty.innerHTML='<div class="eyebrow">NO MATCHES</div><h2>No podcasts found</h2><p>Try another search or category.</p>';status.textContent=rows.length+" published "+(rows.length===1?"podcast":"podcasts")}
-async function load(){try{const sb=await client();const r=await sb.from("podcasts").select("id,title,slug,category,subcategory,description,artwork_url,author_name,listener_count,is_live,status,created_at").eq("status","published").order("created_at",{ascending:false});if(r.error)throw r.error;all=r.data||[];loading.hidden=true;buildFilters();render()}catch(e){loading.textContent="Podcasts could not load.";status.textContent=e.message||"";empty.hidden=false;empty.innerHTML='<div class="eyebrow">CONNECTION ISSUE</div><h2>Unable to load podcasts</h2><p>'+esc(e.message||"Please try again.")+'</p><button class="btn primary" onclick="location.reload()">Retry</button>'}}
-search.addEventListener("input",render);load();
+function render(){const q=search.value.trim().toLowerCase();const rows=all.filter(p=>{const hay=[p.title,p.author_name,p.category,p.subcategory,p.description].join(" ").toLowerCase();return(category==="All"||p.category===category)&&(!q||hay.includes(q))});grid.innerHTML=rows.map(p=>'<article class="card podcast-card"><a href="podcast.html?id='+encodeURIComponent(p.id)+'"><img class="art" src="'+esc(p.artwork_url||"assets/podcast-placeholder.svg")+'" alt="'+esc(p.title)+' artwork" loading="lazy" onerror="this.src='assets/podcast-placeholder.svg'"></a><div class="card-body"><div class="eyebrow">'+esc(p.category||"PODCAST")+'</div><h2>'+esc(p.title)+'</h2><p>'+esc(p.description||"A CrowRules Podcasting show.")+'</p><div class="meta">'+(p.author_name?'<span class="pill">'+esc(p.author_name)+'</span>':"")+(Number(p.listener_count||0)?'<span class="pill">'+Number(p.listener_count).toLocaleString()+" listeners</span>":"")+(p.is_live?'<span class="pill">● Live</span>':"")+'</div><div class="card-actions"><a class="btn primary" href="podcast.html?id='+encodeURIComponent(p.id)+'">View Show</a></div></div></article>').join("");grid.hidden=!rows.length;empty.hidden=!!rows.length;empty.innerHTML='<div class="eyebrow">NO MATCHES</div><h2>No podcasts found</h2><p>Try another search or category.</p>';status.textContent=rows.length+" published "+(rows.length===1?"podcast":"podcasts")}
+async function load(){
+ try{
+   if(!cfg.supabaseUrl||!cfg.supabaseKey)throw Error("Supabase configuration is missing.");
+   all=await loadRows();
+   loading.hidden=true;
+   buildFilters();
+   render();
+ }catch(e){
+   loading.hidden=true;
+   empty.hidden=false;
+   empty.innerHTML='<div class="eyebrow">CONNECTION ISSUE</div><h2>Unable to load podcasts</h2><p>'+esc(e.message||"Please try again.")+'</p><button class="btn primary" id="retry">Retry</button>';
+   status.textContent="";
+   document.getElementById("retry").onclick=()=>{loading.hidden=false;loading.textContent="Retrying Supabase connection…";empty.hidden=true;load()};
+ }
+}
+search.addEventListener("input",render);
+load();
 })();
 </script>
 </body>
