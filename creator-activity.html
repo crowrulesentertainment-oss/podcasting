@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05050b">
+<title>Creator Activity Center — CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="js/config.js"></script>
+<script src="js/podcasting.js" defer></script>
+<script src="js/player.js" defer></script>
+<script src="js/app.js" defer></script>
+<style>
+.activity-hero{padding-bottom:20px}
+.activity-status{display:flex;align-items:center;gap:9px;color:#9fa9be;font-size:11px}
+.live-dot{width:9px;height:9px;border-radius:50%;background:#55e7ff;box-shadow:0 0 16px #55e7ff}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:18px 0}
+.filter{background:#080b14;border:1px solid #ffffff18;color:#cbd3e5;border-radius:999px;padding:10px 13px;font-size:9px;text-transform:uppercase;letter-spacing:.08em;cursor:pointer}
+.filter.active{border-color:#55e7ff66;color:#fff;background:#55e7ff10}
+.timeline{display:grid;gap:12px}
+.event{position:relative;padding:18px 18px 18px 52px;border:1px solid #ffffff12;border-radius:16px;background:linear-gradient(145deg,#0e1220e8,#080a12e8)}
+.event.unread{border-color:#55e7ff44;box-shadow:0 0 0 1px #55e7ff10}
+.event-dot{position:absolute;left:20px;top:21px;width:14px;height:14px;border-radius:50%;background:#55e7ff;box-shadow:0 0 14px #55e7ff66}
+.event.attention .event-dot{background:#ffb45c;box-shadow:0 0 14px #ffb45c66}
+.event.positive .event-dot{background:#65e6ad;box-shadow:0 0 14px #65e6ad66}
+.event-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.event-title{font:700 13px Orbitron,sans-serif}
+.event-detail{color:#aeb7ca;font-size:12px;line-height:1.7;margin:7px 0}
+.event-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.event-time{color:#707b91;font-size:9px;text-transform:uppercase;letter-spacing:.08em}
+.unread-pill{color:#55e7ff;border:1px solid #55e7ff33}
+.kind-pill{color:#cbd3e5;border:1px solid #ffffff16}
+.event-actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+.small-btn{border:1px solid #ffffff16;background:#0b1320;color:#dce4f5;border-radius:999px;padding:7px 10px;font-size:9px;text-decoration:none;text-transform:uppercase;letter-spacing:.08em;cursor:pointer}
+.empty{padding:30px;text-align:center;color:#8993a8;border:1px dashed #ffffff18;border-radius:16px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.kpi .stat{margin-top:8px}
+@media(max-width:760px){.kpis{grid-template-columns:1fr}.event-head{display:block}}
+</style>
+</head>
+<body>
+<div data-nav></div>
+<main class="wrap hero activity-hero">
+  <div class="eyebrow">CROWRULES PODCASTING 3.5</div>
+  <h1>Your creator <span class="gradient">command center.</span></h1>
+  <p class="lead">One operational timeline for publishing, uploads, revenue, audience milestones, goals, and Stripe Connect status. New creator alerts arrive live while this page is open.</p>
+  <div id="auth" class="notice">Checking account…</div>
+
+  <div id="app" style="display:none">
+    <div class="actions">
+      <a class="btn" href="creator-dashboard.html">Creator Studio</a>
+      <a class="btn" href="creator-intelligence.html">Intelligence</a>
+      <a class="btn" href="creator-goals.html">Goals</a>
+      <button class="btn primary" id="markAll">Mark All Read</button>
+    </div>
+
+    <section class="section">
+      <div class="kpis">
+        <div class="card kpi"><span class="eyebrow">Unread</span><div class="stat" id="unread">0</div><p>Creator notifications waiting for review.</p></div>
+        <div class="card kpi"><span class="eyebrow">Today</span><div class="stat" id="today">0</div><p>Operational events generated today.</p></div>
+        <div class="card kpi"><span class="eyebrow">Connection</span><div class="activity-status"><span class="live-dot" id="liveDot"></span><strong id="liveText">Live</strong></div><p>Realtime creator alert channel.</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="card">
+        <div class="event-head">
+          <div><h2>Creator Activity</h2><p>Filter the operational stream without leaving Podcasting.</p></div>
+          <div class="activity-status"><span class="pill" id="lastRefresh">Refreshing…</span></div>
+        </div>
+        <div class="toolbar" id="filters">
+          <button class="filter active" data-filter="all">All</button>
+          <button class="filter" data-filter="upload_completed">Uploads</button>
+          <button class="filter" data-filter="episode_published">Published</button>
+          <button class="filter" data-filter="episode_scheduled">Scheduled</button>
+          <button class="filter" data-filter="revenue_received">Revenue</button>
+          <button class="filter" data-filter="follower_milestone">Followers</button>
+          <button class="filter" data-filter="listening_milestone">Listening</button>
+          <button class="filter" data-filter="goal_milestone">Goals</button>
+          <button class="filter" data-filter="publishing_issue">Issues</button>
+          <button class="filter" data-filter="stripe_status">Stripe</button>
+        </div>
+        <div id="timeline" class="timeline"><div class="empty">Loading creator activity…</div></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let events=[],activeFilter="all",channel=null;
+
+const labels={
+  upload_completed:"Upload",
+  episode_published:"Published",
+  episode_scheduled:"Scheduled",
+  revenue_received:"Revenue",
+  follower_milestone:"Followers",
+  listening_milestone:"Listening",
+  goal_milestone:"Goal",
+  publishing_issue:"Issue",
+  stripe_status:"Stripe"
+};
+const links={
+  upload_completed:"creator-dashboard.html",
+  episode_published:"publishing-pipeline.html",
+  episode_scheduled:"release-calendar.html",
+  revenue_received:"creator-payouts.html",
+  follower_milestone:"creator-intelligence.html",
+  listening_milestone:"creator-intelligence.html",
+  goal_milestone:"creator-goals.html",
+  publishing_issue:"publishing-pipeline.html",
+  stripe_status:"creator-payouts.html"
+};
+
+function fmtTime(v){return new Date(v).toLocaleString([], {month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"});}
+function iconType(t){return labels[t]||"Activity";}
+function filtered(){return activeFilter==="all"?events:events.filter(x=>x.alert_type===activeFilter);}
+function render(){
+  const list=filtered();
+  unread.textContent=events.filter(x=>!x.read_at).length;
+  const now=new Date(), start=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  today.textContent=events.filter(x=>new Date(x.created_at).getTime()>=start).length;
+  lastRefresh.textContent="Updated "+new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
+  if(!list.length){timeline.innerHTML='<div class="empty">No activity matches this filter yet.</div>';return}
+  timeline.innerHTML=list.map(x=>{
+    const unreadClass=x.read_at?"":"unread";
+    const detail=x.detail||"Creator activity recorded.";
+    const link=links[x.alert_type];
+    return '<article class="event '+esc(x.severity||"info")+' '+unreadClass+'">'+
+      '<span class="event-dot"></span>'+
+      '<div class="event-head"><div class="event-title">'+esc(x.title)+'</div><div class="event-meta">'+
+      '<span class="pill kind-pill">'+esc(iconType(x.alert_type))+'</span>'+
+      (!x.read_at?'<span class="pill unread-pill">Unread</span>':'')+
+      '</div></div>'+
+      '<div class="event-detail">'+esc(detail)+'</div>'+
+      '<div class="event-meta"><span class="event-time">'+esc(fmtTime(x.created_at))+'</span></div>'+
+      '<div class="event-actions">'+
+      (link?'<a class="small-btn" href="'+link+'">Open Workspace</a>':'')+
+      (!x.read_at?'<button class="small-btn" onclick="markRead(\''+esc(x.id)+'\')">Mark Read</button>':'<button class="small-btn" onclick="markUnread(\''+esc(x.id)+'\')">Mark Unread</button>')+
+      '</div></article>';
+  }).join("");
+}
+async function load(){
+  if(!window.__CROW_USER){auth.textContent="Sign in to use the Creator Activity Center.";return}
+  app.style.display="block";
+  auth.textContent="Signed in as "+(__CROW_USER.email||"Creator");
+  const r=await CROW_SUPABASE.from("cr_creator_alerts").select("*").eq("creator_id",__CROW_USER.id).order("created_at",{ascending:false}).limit(100);
+  if(r.error){timeline.innerHTML='<div class="empty">'+esc(r.error.message)+'</div>';return}
+  events=r.data||[];
+  render();
+}
+async function markRead(id){
+  const r=await CROW_SUPABASE.from("cr_creator_alerts").update({read_at:new Date().toISOString()}).eq("id",id).eq("creator_id",__CROW_USER.id);
+  if(r.error)alert(r.error.message);else await load();
+}
+async function markUnread(id){
+  const r=await CROW_SUPABASE.from("cr_creator_alerts").update({read_at:null}).eq("id",id).eq("creator_id",__CROW_USER.id);
+  if(r.error)alert(r.error.message);else await load();
+}
+markAll.onclick=async()=>{
+  const r=await CROW_SUPABASE.from("cr_creator_alerts").update({read_at:new Date().toISOString()}).eq("creator_id",__CROW_USER.id).is("read_at",null);
+  if(r.error)alert(r.error.message);else await load();
+};
+document.querySelectorAll(".filter").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");activeFilter=b.dataset.filter;render();
+}));
+addEventListener("crow:ready",async()=>{
+  await load();
+  if(!window.CROW_SUPABASE||!window.__CROW_USER)return;
+  if(channel)CROW_SUPABASE.removeChannel(channel);
+  channel=CROW_SUPABASE.channel("creator-activity-center-"+__CROW_USER.id)
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"cr_creator_alerts",filter:"creator_id=eq."+__CROW_USER.id},payload=>{
+      if(payload.new){events=[payload.new,...events.filter(x=>x.id!==payload.new.id)].slice(0,100);render();}
+    })
+    .on("postgres_changes",{event:"UPDATE",schema:"public",table:"cr_creator_alerts",filter:"creator_id=eq."+__CROW_USER.id},payload=>{
+      if(payload.new){events=events.map(x=>x.id===payload.new.id?payload.new:x);render();}
+    })
+    .subscribe(status=>{
+      const live=status==="SUBSCRIBED";
+      liveText.textContent=live?"Live":"Reconnecting…";
+      liveDot.style.opacity=live?"1":".35";
+    });
+});
+</script>
+</body>
+</html>
