@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05050b">
+<title>Member Profile — CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="js/config.js"></script>
+<script src="js/podcasting.js" defer></script>
+<script src="js/player.js" defer></script>
+<script src="js/app.js" defer></script>
+<style>
+.profile-wrap{padding:34px 0 120px}.profile-shell{max-width:1040px;margin:auto}
+.profile-cover{height:290px;border-radius:26px 26px 0 0;border:1px solid #ffffff12;overflow:hidden;position:relative;background:radial-gradient(circle at 25% 20%,#55e7ff55,#a66cff35 42%,#090b14 76%)}
+.profile-cover img{width:100%;height:100%;object-fit:cover}.cover-shade{position:absolute;inset:0;background:linear-gradient(180deg,#05050b00 25%,#05050bdd 100%)}
+.profile-main{background:#090c15;border:1px solid #ffffff12;border-top:0;border-radius:0 0 26px 26px;padding:0 30px 28px}
+.profile-head{display:grid;grid-template-columns:150px 1fr auto;gap:22px;align-items:end;margin-top:-72px;position:relative}.avatar{width:150px;height:150px;border-radius:50%;border:5px solid #090c15;background:radial-gradient(circle at 30% 25%,#55e7ff,#54308a 55%,#080a12);overflow:hidden;display:grid;place-items:center;box-shadow:0 15px 45px #0009}.avatar img{width:100%;height:100%;object-fit:cover}.avatar span{font:800 38px Orbitron;color:#fff}.profile-name h1{font-size:34px;margin:0 0 6px}.username{color:#7f8ba3;font-size:12px}.tagline{color:#aeb8cb;font-size:13px;margin-top:8px}.profile-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.profile-stats{display:flex;gap:0;margin:28px 0 0;border-top:1px solid #ffffff0d;border-bottom:1px solid #ffffff0d}.profile-stat{padding:17px 25px 17px 0;margin-right:25px}.profile-stat strong{display:block;font:800 20px Orbitron}.profile-stat span{font-size:9px;color:#7f899d;text-transform:uppercase;letter-spacing:.12em}.profile-layout{display:grid;grid-template-columns:330px 1fr;gap:18px;margin-top:18px}.profile-card{background:#0b0e18;border:1px solid #ffffff10;border-radius:20px;padding:22px}.profile-card h2{font-size:17px;margin:0 0 16px}.about-list{display:grid;gap:13px}.about-item{display:flex;gap:11px;color:#9ba5b9;font-size:11px;line-height:1.5}.about-item b{color:#eef2ff;font-weight:700}.badge{display:inline-flex;padding:6px 9px;border-radius:999px;background:#55e7ff10;border:1px solid #55e7ff22;color:#72eaff;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}.profile-tabs{display:flex;gap:5px;border-bottom:1px solid #ffffff0d;margin-bottom:18px}.profile-tabs button{background:none;border:0;color:#818ba0;padding:12px 13px;font:700 9px Montserrat;text-transform:uppercase;letter-spacing:.1em;cursor:pointer}.profile-tabs button.active{color:#fff;border-bottom:2px solid #55e7ff}.feed{display:grid;gap:14px}.feed-item{padding:18px;border:1px solid #ffffff0d;border-radius:16px;background:#080b13}.feed-top{display:flex;gap:10px;align-items:center}.feed-avatar{width:36px;height:36px;border-radius:50%;overflow:hidden;background:#151b2d;display:grid;place-items:center;font:800 10px Orbitron}.feed-avatar img{width:100%;height:100%;object-fit:cover}.feed-item h3{font-size:13px;margin:12px 0 6px}.feed-item p{font-size:12px;color:#a0a9bb;line-height:1.65;margin:0}.feed-time{font-size:9px;color:#68738a}.empty-profile{padding:30px;border:1px dashed #ffffff14;border-radius:16px;color:#788298;text-align:center;font-size:11px;line-height:1.7}.edit-grid{display:grid;gap:13px}.edit-grid label{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#8d97aa}.edit-grid input,.edit-grid textarea{width:100%;margin-top:7px;background:#070a12;border:1px solid #ffffff16;border-radius:10px;color:#fff;padding:11px;font:inherit}.edit-grid textarea{min-height:90px}.hidden{display:none!important}
+@media(max-width:800px){.profile-cover{height:220px}.profile-main{padding:0 18px 24px}.profile-head{grid-template-columns:105px 1fr;margin-top:-52px;align-items:end}.avatar{width:105px;height:105px}.avatar span{font-size:27px}.profile-name h1{font-size:25px}.profile-actions{grid-column:1/-1;justify-content:flex-start}.profile-stats{overflow:auto}.profile-stat{min-width:105px}.profile-layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div data-nav></div>
+<main class="wrap profile-wrap"><div class="profile-shell">
+<div id="loading" class="notice">Loading member profile…</div>
+<div id="profile" class="hidden">
+<section class="profile-cover"><img id="coverImg" class="hidden" alt=""><div class="cover-shade"></div></section>
+<section class="profile-main">
+<div class="profile-head">
+<div id="avatar" class="avatar"></div>
+<div class="profile-name"><div id="badge"></div><h1 id="name">Member</h1><div id="username" class="username"></div><div id="tagline" class="tagline"></div></div>
+<div id="actions" class="profile-actions"></div>
+</div>
+<div class="profile-stats">
+<div class="profile-stat"><strong id="followers">0</strong><span>Followers</span></div>
+<div class="profile-stat"><strong id="following">0</strong><span>Following</span></div>
+<div class="profile-stat"><strong id="podcasts">0</strong><span>Podcasts</span></div>
+<div class="profile-stat"><strong id="episodes">0</strong><span>Episodes</span></div>
+</div>
+</section>
+<div class="profile-layout">
+<aside>
+<section class="profile-card"><h2>About</h2><div id="about" class="about-list"></div></section>
+<section class="profile-card" style="margin-top:18px"><h2>Member since</h2><div id="since" class="notice"></div></section>
+</aside>
+<section class="profile-card">
+<div class="profile-tabs"><button class="active" data-tab="activity">Activity</button><button data-tab="aboutTab">Profile</button></div>
+<div id="activityTab" class="feed"></div>
+<div id="aboutTab" class="hidden"></div>
+</section>
+</div>
+</div>
+</div></main>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const fmt=n=>Number(n||0).toLocaleString();
+const qs=new URLSearchParams(location.search);
+const target=qs.get("user")||qs.get("id")||"";
+let profileData=null, self=false;
+function initials(name){return String(name||"M").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"M"}
+function img(url,alt){return url?'<img src="'+esc(url)+'" alt="'+esc(alt)+'">':""}
+function date(v){try{return new Date(v).toLocaleDateString(undefined,{month:"long",year:"numeric"})}catch{return""}}
+async function load(){
+ try{
+  if(!window.CROW_SUPABASE) throw new Error("Account service unavailable.");
+  const user=window.__CROW_USER||null;
+  let q;
+  if(target) q=CROW_SUPABASE.from("podcast_member_profiles").select("*").eq("user_id",target).eq("is_public",true).maybeSingle();
+  else if(user) q=CROW_SUPABASE.from("podcast_member_profiles").select("*").eq("user_id",user.id).maybeSingle();
+  else {showLogin();return}
+  let {data,error}=await q;
+  if(error) throw error;
+  if(!data && user && (!target||target===user.id)){
+   const m=await CROW_SUPABASE.from("members").select("user_id,display_name,username,first_name,last_name,bio,avatar_url,created_at").eq("user_id",user.id).maybeSingle();
+   if(m.data){data={user_id:user.id,display_name:m.data.display_name||[m.data.first_name,m.data.last_name].filter(Boolean).join(" ")||"CrowRules Member",username:m.data.username,bio:m.data.bio,avatar_url:m.data.avatar_url,created_at:m.data.created_at,is_public:true,activity_public:true,network_public:true,followers_public:true,following_public:true};}
+  }
+  if(!data){$("loading").textContent="This member profile is unavailable or private.";return}
+  profileData=data;self=!!user&&user.id===data.user_id; render();
+ }catch(e){console.error(e);$("loading").textContent="Unable to load this member profile right now."}
+}
+function render(){
+ const p=profileData;
+ $("loading").classList.add("hidden");$("profile").classList.remove("hidden");
+ const name=p.display_name||p.username||"CrowRules Member";
+ $("name").textContent=name;
+ $("username").textContent=p.username?"@"+p.username:"";
+ $("tagline").textContent=p.tagline||p.bio||"Part of the CrowRules universe.";
+ $("badge").innerHTML=p.badge?'<span class="badge">'+esc(p.badge)+'</span>':"";
+ $("avatar").innerHTML=img(p.avatar_url,name)||"<span>"+esc(initials(name))+"</span>";
+ if(p.cover_url){$("coverImg").src=p.cover_url;$("coverImg").alt=name+" cover";$("coverImg").classList.remove("hidden")}
+ $("actions").innerHTML=self?'<button class="btn primary" id="editBtn">Edit profile</button><a class="btn" href="account.html">Account</a>':'<button class="btn primary" id="followBtn">Follow</button><button class="btn" id="messageBtn">Message</button>';
+ $("about").innerHTML=[
+  p.location?'<div class="about-item">📍 <span><b>Lives in</b><br>'+esc(p.location)+'</span></div>':"",
+  p.website_url?'<div class="about-item">🔗 <span><b>Website</b><br><a href="'+esc(p.website_url)+'" target="_blank" rel="noopener">'+esc(p.website_url)+'</a></span></div>':"",
+  p.interests?'<div class="about-item">✨ <span><b>Interests</b><br>'+esc(p.interests)+'</span></div>':"",
+  p.favorite_music?'<div class="about-item">🎵 <span><b>Music</b><br>'+esc(p.favorite_music)+'</span></div>':"",
+  p.favorite_movies?'<div class="about-item">🎬 <span><b>Movies</b><br>'+esc(p.favorite_movies)+'</span></div>':"",
+  p.favorite_games?'<div class="about-item">🎮 <span><b>Games</b><br>'+esc(p.favorite_games)+'</span></div>':""
+ ].join("")||'<div class="empty-profile">This member has not added profile details yet.</div>';
+ $("since").textContent=date(p.created_at)||"Member";
+ $("aboutTab").innerHTML='<div class="about-list">'+($("about").innerHTML||"")+'</div>';
+ loadStats();
+ loadActivity();
+ if(self) $("editBtn").onclick=editProfile;
+ else wireSocial();
+}
+async function loadStats(){
+ try{
+  const s=await CROW_SUPABASE.from("podcast_member_profile_stats").select("published_podcasts,published_episodes,total_plays,member_followers,member_following").eq("user_id",profileData.user_id).maybeSingle();
+  const x=s.data||{};$("followers").textContent=fmt(x.member_followers);$("following").textContent=fmt(x.member_following);$("podcasts").textContent=fmt(x.published_podcasts);$("episodes").textContent=fmt(x.published_episodes);
+ }catch(e){}
+}
+async function loadActivity(){
+ if(profileData.activity_public===false){$("activityTab").innerHTML='<div class="empty-profile">Activity is private.</div>';return}
+ try{
+  const r=await CROW_SUPABASE.from("cr_platform_recent_activity").select("id,event_type,message,metadata,created_at,division_key").eq("user_id",profileData.user_id).order("created_at",{ascending:false}).limit(12);
+  const rows=r.data||[];
+  $("activityTab").innerHTML=rows.map(a=>'<article class="feed-item"><div class="feed-top"><div class="feed-avatar">'+(profileData.avatar_url?img(profileData.avatar_url,""):esc(initials(profileData.display_name)))+'</div><div><strong>'+esc(profileData.display_name||"Member")+'</strong><div class="feed-time">'+esc(a.event_type||"Activity")+' · '+esc(new Date(a.created_at).toLocaleString())+'</div></div></div><p style="margin-top:12px">'+esc(a.message||"Activity in CrowRules.")+'</p></article>').join("")||'<div class="empty-profile">No public activity yet. This is where the member’s CrowRules activity will appear.</div>';
+ }catch(e){$("activityTab").innerHTML='<div class="empty-profile">No public activity is available yet.</div>'}
+}
+async function wireSocial(){
+ const btn=$("followBtn");if(!btn)return;
+ if(window.__CROW_USER?.id){
+  const existing=await CROW_SUPABASE.from("podcast_member_follows").select("id").eq("follower_user_id",window.__CROW_USER.id).eq("followed_user_id",profileData.user_id).maybeSingle();
+  if(existing.data)btn.textContent="Following";
+  btn.onclick=async()=>{if(btn.textContent==="Following"){await CROW_SUPABASE.from("podcast_member_follows").delete().eq("follower_user_id",window.__CROW_USER.id).eq("followed_user_id",profileData.user_id);btn.textContent="Follow"}else{const r=await CROW_SUPABASE.from("podcast_member_follows").insert({follower_user_id:window.__CROW_USER.id,followed_user_id:profileData.user_id});if(!r.error)btn.textContent="Following"}loadStats()};
+ }else btn.onclick=()=>location.href="account.html";
+ $("messageBtn").onclick=()=>alert("Member messaging is coming next.");
+}
+function showLogin(){$("loading").innerHTML='Sign in to view your member profile. <a class="btn primary" style="margin-left:10px" href="account.html">Sign in</a>'}
+async function editProfile(){
+ const p=profileData;
+ $("aboutTab").classList.remove("hidden");$("activityTab").classList.add("hidden");
+ $("aboutTab").innerHTML='<form id="editForm" class="edit-grid"><label>Display name<input id="edName" value="'+esc(p.display_name||"")+'"></label><label>Username<input id="edUser" value="'+esc(p.username||"")+'"></label><label>Tagline<input id="edTag" value="'+esc(p.tagline||"")+'"></label><label>Bio<textarea id="edBio">'+esc(p.bio||"")+'</textarea></label><label>Location<input id="edLoc" value="'+esc(p.location||"")+'"></label><label>Avatar URL<input id="edAvatar" value="'+esc(p.avatar_url||"")+'</label><label>Cover URL<input id="edCover" value="'+esc(p.cover_url||"")+'"></label><label>Interests<input id="edInt" value="'+esc(p.interests||"")+'"></label><div class="actions"><button class="btn primary">Save profile</button><button type="button" class="btn" id="cancelEdit">Cancel</button></div><div id="editState" class="notice"></div></form>';
+ $("editForm").onsubmit=async e=>{e.preventDefault();const patch={display_name:edName.value.trim(),username:edUser.value.trim()||null,tagline:edTag.value.trim()||null,bio:edBio.value.trim()||null,location:edLoc.value.trim()||null,avatar_url:edAvatar.value.trim()||null,cover_url:edCover.value.trim()||null,interests:edInt.value.trim()||null,updated_at:new Date().toISOString()};const r=await CROW_SUPABASE.from("podcast_member_profiles").upsert({...patch,user_id:profileData.user_id},{onConflict:"user_id"});editState.textContent=r.error?r.error.message:"Profile saved.";if(!r.error){profileData={...profileData,...patch};render()}};$("cancelEdit").onclick=render;
+}
+document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("activityTab").classList.toggle("hidden",b.dataset.tab!=="activity");$("aboutTab").classList.toggle("hidden",b.dataset.tab!=="aboutTab")}));
+addEventListener("crow:ready",load);
+})();
+</script>
+</body>
+</html>
