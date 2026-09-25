@@ -1,1 +1,160 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Episode — CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><script src="js/config.js"></script><script src="js/podcasting.js" defer></script><script src="js/player.js" defer></script><script src="js/app.js" defer></script></head><body><div data-nav></div><main id="episode" class="wrap hero"></main><section class="wrap section"><div class="card"><audio id="audio" controls style="width:100%"></audio><div class="progress" style="margin-top:12px"><i id="bar" style="width:0%"></i></div></div></section><script>const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));addEventListener("crow:ready",async()=>{const id=new URLSearchParams(location.search).get("id"),r=await CROW_APP.query("podcast_episodes","*,podcasts(title,slug,status)",{eq:{id}}),e=r.data?.[0];if(!e||e.podcasts?.status==="draft"){episode.innerHTML='<div class="notice">Episode not found.</div>';return}const feed=CROW_CONFIG.supabaseUrl+"/functions/v1/"+CROW_CONFIG.downloadFunction+"?episode_id="+encodeURIComponent(e.id)+(sessionStorage.crowDownloadSession?"&session="+encodeURIComponent(sessionStorage.crowDownloadSession):"");episode.innerHTML='<div class="eyebrow">'+esc(e.podcasts?.title||"PODCAST")+'</div><h1>'+esc(e.title)+'</h1><p class="lead">'+esc(e.description||"")+'</p><div class="actions"><button class="btn primary" id="playBtn">Play in universal player</button><a class="btn" href="'+feed+'" download>Download episode</a><a class="btn" href="podcast.html?id='+encodeURIComponent(e.podcast_id)+'">View podcast</a></div>';document.getElementById("playBtn").onclick=()=>window.CROW_PLAYER.play(e.audio_url||"",e.title,e.podcasts?.title||"CrowRules",e.id);audio.src=e.audio_url||"";const pr=__CROW_USER?await CROW_SUPABASE.from("podcast_episode_progress").select("*").eq("user_id",__CROW_USER.id).eq("episode_id",id).maybeSingle():{data:null};if(pr.data?.position_seconds)audio.currentTime=pr.data.position_seconds;audio.addEventListener("timeupdate",()=>{bar.style.width=(audio.duration?(audio.currentTime/audio.duration*100):0)+"%";if(__CROW_USER)CROW_APP.saveProgress(id,audio.currentTime,audio.duration)});audio.addEventListener("ended",()=>CROW_APP.recordListen(id,audio.duration,true))});</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05050b">
+<title>Episode — CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/podcasting.js" defer></script>
+<script src="js/player.js" defer></script>
+<script src="js/app.js" defer></script>
+<style>
+.episode-page{padding:44px 0 100px}
+.episode-hero{display:grid;grid-template-columns:minmax(220px,360px) 1fr;gap:38px;align-items:end;padding:34px;border:1px solid rgba(255,255,255,.08);border-radius:28px;background:linear-gradient(135deg,rgba(20,20,35,.96),rgba(5,5,11,.98));box-shadow:0 30px 90px rgba(0,0,0,.35)}
+.episode-art{width:100%;aspect-ratio:1;border-radius:22px;object-fit:cover;background:#10101a}
+.episode-title{font-size:clamp(2.5rem,6vw,5.4rem);line-height:.95;letter-spacing:-.045em;margin:.15em 0 .3em}
+.episode-description{max-width:820px;color:rgba(255,255,255,.72);font-size:1.08rem;line-height:1.75}
+.meta-row,.action-row{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}
+.pill{display:inline-flex;align-items:center;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);font-size:.78rem;color:rgba(255,255,255,.72)}
+.player-card{margin-top:28px;padding:24px;border-radius:24px}
+.player-card audio{width:100%}
+.player-progress{height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:14px}
+.player-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c5cff,#19d9ff)}
+.player-status{margin-top:12px;color:rgba(255,255,255,.55);font-size:.85rem}
+.insight-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px}
+.insight{padding:18px;border-radius:18px}
+.insight strong{display:block;font-size:1.5rem;margin-top:5px}
+.content-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:34px}
+.content-card{padding:26px;border-radius:22px}
+.content-card h2{margin-top:0}
+.content-body{white-space:pre-wrap;color:rgba(255,255,255,.7);line-height:1.75}
+.loading{min-height:420px;display:grid;place-items:center;color:rgba(255,255,255,.55)}
+.empty{text-align:center;padding:60px 20px}
+@media(max-width:850px){.episode-hero{grid-template-columns:1fr;padding:22px}.episode-art{max-width:300px;margin:auto}.insight-grid{grid-template-columns:repeat(2,1fr)}.content-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div data-nav></div>
+
+<main class="wrap episode-page">
+  <div id="loading" class="loading">Loading episode…</div>
+  <section id="episode" hidden></section>
+  <section id="analytics" hidden></section>
+  <section id="content" class="content-grid" hidden></section>
+</main>
+
+<script>
+(() => {
+  "use strict";
+  const id = new URLSearchParams(location.search).get("id");
+  const loading=document.getElementById("loading");
+  const episodeEl=document.getElementById("episode");
+  const analyticsEl=document.getElementById("analytics");
+  const contentEl=document.getElementById("content");
+  let sb, episode, localAudio, lastProgressWrite=0, listenRecorded=false;
+
+  const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const fmtDate=v=>v?new Intl.DateTimeFormat(undefined,{year:"numeric",month:"short",day:"numeric"}).format(new Date(v)):"";
+  const fmtTime=s=>{s=Math.max(0,Math.floor(Number(s)||0));const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),x=s%60;return h?(h+":"+String(m).padStart(2,"0")+":"+String(x).padStart(2,"0")):(m+":"+String(x).padStart(2,"0"))};
+  const fmtDuration=s=>{s=Number(s||0);if(!s)return "";const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return h?h+" hr "+String(m).padStart(2,"0")+" min":m+" min"};
+
+  async function getClient(){
+    for(let i=0;i<60;i++){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
+      if(window.supabase&&window.CROW_CONFIG?.supabaseUrl&&window.CROW_CONFIG?.supabaseKey){
+        window.CROW_SUPABASE=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+        return window.CROW_SUPABASE;
+      }
+      await new Promise(r=>setTimeout(r,100));
+    }
+    throw Error("Supabase client did not initialize.");
+  }
+
+  function notFound(message){
+    loading.hidden=true;episodeEl.hidden=false;
+    episodeEl.innerHTML='<div class="notice empty"><div class="eyebrow">EPISODE</div><h2>Episode not found</h2><p>'+esc(message||"This episode is unavailable.")+'</p><a class="btn primary" href="podcasts.html">Browse Podcasts</a></div>';
+  }
+
+  async function loadPersonalStats(user){
+    if(!user){analyticsEl.hidden=false;analyticsEl.innerHTML='<div class="notice"><strong>Sign in to track your listening.</strong> Your progress, listening history, and CrowPoints will sync to your CrowRules account.</div>';return}
+    const [progress,listens,points]=await Promise.all([
+      sb.from("podcast_episode_progress").select("position_seconds,duration_seconds,percent_complete,completed,last_played_at").eq("user_id",user.id).eq("episode_id",episode.id).maybeSingle(),
+      sb.from("podcast_listens").select("seconds_listened,completed,created_at").eq("user_id",user.id).eq("episode_id",episode.id).order("created_at",{ascending:false}).limit(50),
+      sb.from("crowrules_crowpoints_ledger").select("points").eq("user_id",user.id)
+    ]);
+    const p=progress.data||{};
+    const rows=listens.data||[];
+    const totalSeconds=rows.reduce((n,r)=>n+Number(r.seconds_listened||0),0);
+    const totalPoints=(points.data||[]).reduce((n,r)=>n+Number(r.points||0),0);
+    analyticsEl.hidden=false;
+    analyticsEl.innerHTML='<div class="eyebrow">YOUR LISTENING</div><div class="insight-grid">'+
+      '<div class="card insight"><span>Progress</span><strong>'+Math.round(Number(p.percent_complete||0))+'%</strong><small>'+fmtTime(p.position_seconds||0)+' listened</small></div>'+
+      '<div class="card insight"><span>Listening time</span><strong>'+fmtDuration(totalSeconds)+'</strong><small>'+rows.length+' listening sessions</small></div>'+
+      '<div class="card insight"><span>Completed</span><strong>'+((p.completed||rows.some(r=>r.completed))?"Yes":"Not yet")+'</strong><small>Episode completion</small></div>'+
+      '<div class="card insight"><span>CrowPoints</span><strong>'+totalPoints.toLocaleString()+'</strong><small>Lifetime balance</small></div>'+
+      '</div>';
+    if(p.position_seconds&&localAudio&&Number.isFinite(p.position_seconds)&&p.position_seconds<localAudio.duration) localAudio.currentTime=Number(p.position_seconds);
+  }
+
+  async function save(){
+    const user=window.__CROW_USER;if(!user||!localAudio||!localAudio.duration)return;
+    const now=Date.now();if(now-lastProgressWrite<10000&&localAudio.currentTime<localAudio.duration*.95)return;
+    lastProgressWrite=now;
+    await CROW_APP.saveProgress(episode.id,localAudio.currentTime,localAudio.duration);
+  }
+
+  async function record(){
+    if(listenRecorded||!localAudio||!localAudio.duration)return;
+    const user=window.__CROW_USER;if(!user)return;
+    listenRecorded=true;
+    await CROW_APP.recordListen(episode.id,localAudio.currentTime||localAudio.duration,true);
+    loadPersonalStats(user);
+  }
+
+  async function load(){
+    if(!id){notFound("No episode was specified.");return}
+    try{
+      sb=await getClient();
+      const {data:e,error}=await sb.from("podcast_episodes").select("id,podcast_id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,transcript,show_notes,status,play_count,is_explicit,access_level,podcasts(id,title,slug,artwork_url,author_name,status)").eq("id",id).eq("status","published").maybeSingle();
+      if(error)throw error;if(!e||!e.podcasts||e.podcasts.status!=="published"){notFound();return}
+      episode=e;document.title=e.title+" — "+e.podcasts.title+" — CrowRules Podcasting";
+      const art=e.thumbnail_url||e.podcasts.artwork_url||"assets/podcast-placeholder.svg";
+      episodeEl.hidden=false;
+      episodeEl.innerHTML='<div class="episode-hero"><img class="episode-art" src="'+esc(art)+'" alt="'+esc(e.title)+' artwork" onerror="this.style.display=\'none\'"><div><div class="eyebrow">'+esc(e.podcasts.title)+'</div><h1 class="episode-title">'+esc(e.title)+'</h1><div class="meta-row">'+
+        (e.season_number?'<span class="pill">Season '+e.season_number+'</span>':'')+
+        (e.episode_number?'<span class="pill">Episode '+e.episode_number+'</span>':'')+
+        (e.published_at?'<span class="pill">'+esc(fmtDate(e.published_at))+'</span>':'')+
+        (e.duration_seconds?'<span class="pill">'+esc(fmtDuration(e.duration_seconds))+'</span>':'')+
+        (e.play_count?'<span class="pill">'+Number(e.play_count).toLocaleString()+' plays</span>':'')+
+        (e.is_explicit?'<span class="pill">Explicit</span>':'')+
+        (e.access_level&&e.access_level!=="public"?'<span class="pill">'+esc(e.access_level)+'</span>':'')+
+        '</div><p class="episode-description">'+esc(e.description||"Listen to "+e.title+".")+'</p><div class="action-row">'+
+        '<button class="btn primary" id="universalPlay">Play in Universal Player</button>'+
+        '<a class="btn" href="podcast.html?id='+encodeURIComponent(e.podcast_id)+'">View Podcast</a>'+
+        (e.video_url?'<a class="btn" href="'+esc(e.video_url)+'" target="_blank" rel="noopener">Watch</a>':'')+
+        '<a class="btn" href="podcasts.html">Explore Podcasts</a></div></div></div>'+
+        '<div class="card player-card"><audio id="audio" controls preload="metadata" src="'+esc(e.audio_url||"")+'"></audio><div class="player-progress"><i id="bar"></i></div><div id="playerStatus" class="player-status">Ready to listen</div></div>';
+      localAudio=document.getElementById("audio");
+      const bar=document.getElementById("bar"), status=document.getElementById("playerStatus");
+      document.getElementById("universalPlay").onclick=()=>window.CROW_PLAYER?.play(e.audio_url||"",e.title,e.podcasts.title,e.id);
+      localAudio.addEventListener("loadedmetadata",()=>{status.textContent=fmtDuration(localAudio.duration)+" episode";loadPersonalStats(window.__CROW_USER)});
+      localAudio.addEventListener("play",()=>{status.textContent="Listening • progress sync enabled";});
+      localAudio.addEventListener("pause",()=>{status.textContent="Paused • progress saved";save()});
+      localAudio.addEventListener("timeupdate",()=>{bar.style.width=(localAudio.duration?localAudio.currentTime/localAudio.duration*100:0)+"%";save()});
+      localAudio.addEventListener("ended",record);
+      localAudio.addEventListener("error",()=>{status.textContent="Audio could not be loaded.";});
+      contentEl.hidden=false;
+      contentEl.innerHTML=
+        '<article class="card content-card"><div class="eyebrow">SHOW NOTES</div><h2>Episode Notes</h2><div class="content-body">'+esc(e.show_notes||"No show notes have been published for this episode.")+'</div></article>'+
+        '<article class="card content-card"><div class="eyebrow">TRANSCRIPT</div><h2>Transcript</h2><div class="content-body">'+esc(e.transcript||"No transcript has been published for this episode.")+'</div></article>';
+      loadPersonalStats(window.__CROW_USER);
+      loading.hidden=true;
+    }catch(err){console.error(err);loading.hidden=true;episodeEl.hidden=false;episodeEl.innerHTML='<div class="notice empty"><div class="eyebrow">CONNECTION ISSUE</div><h2>Episode could not load</h2><p>'+esc(err?.message||"Please try again.")+'</p><button class="btn primary" onclick="location.reload()">Retry</button></div>'}
+  }
+  load();
+})();
+</script>
+</body>
+</html>
