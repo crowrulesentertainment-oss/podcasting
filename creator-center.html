@@ -21,7 +21,54 @@
 <h2>Your Podcasts</h2><div id="podcasts" class="podcasts"></div>
 </section></main>
 <script>
+(function(){
+"use strict";
 const accountEl=document.getElementById('account');
+const dashboardEl=document.getElementById('dashboard');
+const podcastsEl=document.getElementById('podcasts');
+const refreshBtn=document.getElementById('refresh');
+
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(data){
+ if(!data.length){podcastsEl.innerHTML='<div class="card empty"><h3>No podcasts found</h3><p>Create your first CrowRules podcast and it will appear here automatically.</p><a class="btn primary" href="create-podcast.html">Create Podcast</a></div>';return;}
+ podcastsEl.innerHTML=data.map(p=>'<article class="card pod-card"><div class="pod-art">'+(p.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="'+esc(p.title)+' artwork" loading="lazy">':'<div class="empty">No artwork</div>')+'</div><div class="pod-body"><span class="status">'+esc(p.status||'draft')+'</span><h3>'+esc(p.title)+'</h3><p>'+esc(p.description||'No description yet.')+'</p><div class="actions"><a class="btn" href="podcast.html?id='+encodeURIComponent(p.id)+'">Open Podcast</a><a class="btn" href="episode-studio.html?podcast='+encodeURIComponent(p.id)+'">Create Episode</a></div></div></article>').join('');
+}
+function showError(e){
+ accountEl.className='notice error';
+ accountEl.textContent='Supabase error: '+(e?.message||e);
+ dashboardEl.hidden=false;
+ podcastsEl.innerHTML='<div class="card empty"><h3>Could not load podcasts</h3><p>'+esc(e?.message||e)+'</p><button class="btn primary" id="retry">Try Again</button></div>';
+ document.getElementById('retry')?.addEventListener('click',loadPodcasts);
+}
+function getClient(){
+ if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
+ const c=window.CROW_CONFIG||{};
+ if(!window.supabase||!c.supabaseUrl||!c.supabaseKey)throw new Error('Supabase configuration is unavailable.');
+ return window.supabase.createClient(c.supabaseUrl,c.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+}
+async function loadPodcasts(){
+ accountEl.className='notice loading';
+ accountEl.textContent='Connecting to Supabase…';
+ dashboardEl.hidden=false;
+ podcastsEl.innerHTML='<div class="notice loading">Loading podcasts from Supabase…</div>';
+ try{
+   const sb=getClient();
+   window.CROW_SUPABASE=sb;
+   const result=await Promise.race([
+     sb.from('podcasts').select('id,title,slug,status,artwork_url,description,created_at,creator_id').eq('status','published').order('created_at',{ascending:false}),
+     new Promise((_,reject)=>setTimeout(()=>reject(new Error('Supabase request timed out after 10 seconds.')),10000))
+   ]);
+   if(result.error)throw result.error;
+   const rows=result.data||[];
+   accountEl.className='notice';
+   accountEl.textContent='Supabase connected • '+rows.length+' published podcast'+(rows.length===1?'':'s');
+   render(rows);
+   dashboardEl.hidden=false;
+ }catch(e){showError(e)}
+}
+refreshBtn.addEventListener('click',loadPodcasts);
+loadPodcasts();
+})();document.getElementById('account');
 const dashboardEl=document.getElementById('dashboard');
 const podcastsEl=document.getElementById('podcasts');
 const refreshBtn=document.getElementById('refresh');
@@ -87,4 +134,4 @@ async function init(){
 }
 refreshBtn.addEventListener('click',()=>loadPodcasts().catch(showError));
 init();
-</script></script></body></html>
+</script></body></html>
