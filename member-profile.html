@@ -315,13 +315,13 @@ function wireProfileActions(){
   const user=getUser(); if(!user){alert("Sign in to follow members.");return;}
   follow.disabled=true; follow.textContent="Following…";
   try{
-   const existing=await CROW_SUPABASE.from("podcast_member_follows").select("id").eq("follower_id",user.id).eq("following_id",profileData.user_id).maybeSingle();
+   const existing=await CROW_SUPABASE.from("podcast_member_follows").select("id").eq("follower_user_id",user.id).eq("followed_user_id",profileData.user_id).maybeSingle();
    if(existing.error)throw existing.error;
    if(existing.data){
     const d=await CROW_SUPABASE.from("podcast_member_follows").delete().eq("id",existing.data.id); if(d.error)throw d.error;
     follow.textContent="Follow";
    }else{
-    const ins=await CROW_SUPABASE.from("podcast_member_follows").insert({follower_id:user.id,following_id:profileData.user_id}); if(ins.error)throw ins.error;
+    const ins=await CROW_SUPABASE.from("podcast_member_follows").insert({follower_user_id:user.id,followed_user_id:profileData.user_id}); if(ins.error)throw ins.error;
     follow.textContent="Following";
    }
    await loadStats();
