@@ -8,6 +8,7 @@
 <title>Member Profile — CrowRules Podcasting</title>
 <link rel="stylesheet" href="css/podcasting.css">
 <script src="js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/podcasting.js" defer></script>
 <script src="js/player.js" defer></script>
 <script src="js/app.js" defer></script>
@@ -99,6 +100,17 @@ function getUser(){return window.__CROW_USER||sessionUser||null}
 async function waitForSupabase(timeout=12000){
  const start=Date.now();
  while(!window.CROW_SUPABASE){
+  if(!window.supabase && !window.__CROW_SUPABASE_LOADER){
+   window.__CROW_SUPABASE_LOADER=new Promise((resolve,reject)=>{
+    const s=document.createElement("script");
+    s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+    s.onload=resolve;s.onerror=reject;document.head.appendChild(s);
+   });
+  }
+  if(window.supabase && window.CROW_CONFIG && !window.CROW_SUPABASE){
+   window.CROW_SUPABASE=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
+  }
+  if(window.CROW_SUPABASE)break;
   if(window.CROW_APP?.init){try{await window.CROW_APP.init()}catch(e){}}
   if(window.CROW_SUPABASE)break;
   if(Date.now()-start>timeout)throw new Error("Supabase is still connecting. Please wait a moment and refresh.");
