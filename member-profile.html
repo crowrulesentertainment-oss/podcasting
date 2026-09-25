@@ -156,7 +156,7 @@ async function loadProfile(){
   if(row.is_public===false && (!user||user.id!==row.user_id)){showError("This member profile is private.");return}
   profileData=row;self=!!user&&user.id===row.user_id;
   renderProfile();
-  await Promise.all([loadStats(),loadActivity(),loadPosts(),wireSocial()]);
+  await Promise.all([loadStats(),loadActivity(),loadPosts()]);
   }catch(e){
   console.error("CrowRules member profile:",e);
   const message=e?.message||"Unknown profile error.";
