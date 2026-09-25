@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05050b">
+<title>Adaptive Recommendations — CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="js/config.js"></script><script src="js/podcasting.js" defer></script><script src="js/player.js" defer></script><script src="js/app.js" defer></script>
+<style>
+.rec-grid{display:grid;gap:14px}.rec{border:1px solid #ffffff12;background:linear-gradient(145deg,#0b0f19,#070910);border-radius:18px;padding:20px}.rec-head{display:flex;justify-content:space-between;gap:15px;align-items:start}.rec h3{margin:0 0 8px;font-size:15px}.rec p{color:#98a1b7;font-size:11px;line-height:1.7}.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.chip{font-size:9px;padding:5px 8px;border:1px solid #ffffff12;border-radius:999px;color:#aeb8ca}.supported{border-color:#55e7ff44;color:#55e7ff}.caution{border-color:#ff4fd844;color:#ff91e7}.exploratory{border-color:#ffffff18}.evidence{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:15px}.evidence div{padding:10px;border-radius:10px;background:#ffffff05;border:1px solid #ffffff0b}.evidence b{display:block;font:700 15px Orbitron}.evidence span{display:block;color:#7f8aa0;font-size:8px;text-transform:uppercase;margin-top:4px}.note{margin-top:14px;padding:11px;border-radius:10px;background:#55e7ff08;border:1px solid #55e7ff18;color:#aeb8ca;font-size:10px;line-height:1.6}.empty{padding:32px;text-align:center;border:1px dashed #ffffff18;border-radius:16px;color:#8792a8;font-size:11px}@media(max-width:760px){.evidence{grid-template-columns:1fr 1fr}.rec-head{display:block}}
+</style>
+</head>
+<body><div data-nav></div>
+<main class="wrap hero">
+<div class="eyebrow">CROWRULES PODCASTING 4.1</div>
+<h1>Adaptive <span class="gradient">Recommendations.</span></h1>
+<p class="lead">Recommendations now use accumulated creator outcome signals to adjust context and priority without treating correlation as causation.</p>
+<div id="auth" class="notice">Checking account…</div>
+<div id="app" style="display:none">
+<div class="actions"><a class="btn" href="creator-intelligence.html">Creator Intelligence</a><a class="btn" href="creator-learning.html">Learning Signals</a><a class="btn" href="creator-actions.html">Action Center</a><button class="btn primary" id="refresh">Refresh</button></div>
+<section class="section"><div class="card"><h2>How adaptation works</h2><p>Repeated outcome observations can modestly raise or lower recommendation priority. Emerging evidence stays neutral. Insufficient evidence remains exploratory. Every signal is explicitly observational.</p></div></section>
+<section class="section"><div id="list" class="rec-grid"><div class="empty">Loading…</div></div></section>
+</div></main>
+<script>
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const num=v=>Number(v||0);
+function contextClass(v){return v==='evidence_supported'?'supported':v==='caution'?'caution':'exploratory'}
+function render(rows){
+ if(!rows.length){$('list').innerHTML='<div class="empty">No adaptive recommendations yet. Complete creator actions and allow outcome measurements to accumulate.</div>';return}
+ $('list').innerHTML=rows.map(r=>{
+  const e=r.adaptive_evidence||{},c=contextClass(r.priority_context),o=e.observed_effect||{};
+  return '<article class="rec"><div class="rec-head"><div><h3>'+esc(r.title||r.action_type||r.metric||'Recommendation')+'</h3><p>'+esc(r.reason||'Observed creator learning signal.')+'</p></div><span class="chip '+c+'">'+esc(String(r.priority_context||'exploratory').replace(/_/g,' '))+'</span></div><div class="chips"><span class="chip">Priority '+(num(r.priority_adjustment)>0?'+':'')+num(r.priority_adjustment)+'</span><span class="chip">Confidence '+esc(e.confidence||r.evidence_strength||'insufficient')+'</span><span class="chip">Observational</span></div><div class="evidence"><div><b>'+num(e.sample_size)+'</b><span>Sample size</span></div><div><b>'+((num(e.positive_rate)*100).toFixed(1))+'%</b><span>Positive rate</span></div><div><b>'+num(o.listening_seconds).toFixed(1)+'</b><span>Listening Δ</span></div><div><b>'+num(o.followers_gained).toFixed(1)+'</b><span>Follower Δ</span></div></div><div class="note">'+esc(e.evidence_note||r.evidence_note||'Observed association only; outcome data does not establish causation.')+'</div></article>'
+ }).join('')
+}
+async function load(){
+ if(!window.__CROW_USER){$('auth').textContent='Sign in to view adaptive recommendations.';return}
+ $('app').style.display='block';$('auth').textContent='Signed in as '+(__CROW_USER.email||'Creator');
+ const r=await CROW_SUPABASE.from('podcast_creator_learning_profiles').select('recommendations,updated_at,recommendation_version').eq('user_id',__CROW_USER.id).maybeSingle();
+ if(r.error){$('list').innerHTML='<div class="empty">'+esc(r.error.message)+'</div>';return}
+ render(Array.isArray(r.data?.recommendations)?r.data.recommendations:[])
+}
+$('refresh').onclick=load;addEventListener('crow:ready',load);
+</script>
+</body></html>
