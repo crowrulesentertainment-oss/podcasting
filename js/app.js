@@ -19,7 +19,7 @@ const addPoints=n=>{state.points+=n;localStorage.setItem("cr_points",state.point
 
 function nav(){
  const el=document.querySelector("[data-nav]"); if(!el)return;
- el.innerHTML='<header class="nav"><a class="wordmark" href="home.html">CROWRULES<span>/ PODCASTING</span></a><nav><a href="home.html">Home</a><a href="discover.html">Discover</a><a href="charts.html">Charts</a><a href="live.html">Live</a><a href="schedule.html">Schedule</a><a href="library.html">Library</a><a href="studio.html">Studio</a></nav><div class="nav-actions"><a href="evidence-alerts.html" class="points-pill" aria-label="Evidence alerts">◌ <b id="alertCount"></b></a><a href="crowpoints.html" class="points-pill" aria-label="CrowPoints">◉ <b>'+state.points+'</b></a><a href="account.html" class="avatar" id="accountAvatar">CR</a></div></header><div class="network-bar"><a href="search.html">⌕ Search</a><a href="creators.html">Creators</a><a href="subscriptions.html">Subscriptions</a><a href="distribution.html">RSS</a><a href="identity.html">Identity</a><a href="validator.html">Validate</a><a href="submission.html">Submit</a><a href="creator-dashboard.html">Creator OS</a><a href="analytics.html">Analytics</a><a href="growth.html">Growth</a><a href="briefing.html">Briefing</a><a href="weekly.html">Weekly</a><a href="action-center.html">Actions</a><a href="experiments.html">Experiments</a><a href="monitor.html">Monitor</a><a href="report.html">Evidence Reports</a><a href="impact-map.html">Impact Map</a><a href="lineage.html">Lineage</a><a href="lineage-explorer.html">Explorer</a><a href="evidence-workspace.html">Evidence Graph</a><a href="evidence-adjudication.html">Adjudication</a><a href="adjudication-rules.html">Rules</a><a href="adjudication-history.html">History</a><a href="evidence-synthesis.html">Synthesis</a><a href="evidence-synthesis-history.html">Synthesis History</a><a href="evidence-matrix.html">Evidence Matrix</a><a href="evidence-trend.html">Trend Visualization</a><a href="evidence-change.html">Change Detection</a><a href="evidence-alerts.html">Evidence Alerts</a><a href="evidence-health.html">Health Dashboard</a><a href="evidence-health-transitions.html">Health Transitions</a><a href="evidence-health-summary.html">Health Summary</a><a href="evidence-health-summary-comparison.html">Summary Compare</a><a href="evidence-health-summary-history.html">Summary History</a><a href="experiment-intelligence.html">Intelligence</a><a href="learning.html">Learning</a><a href="experiment-planner.html">Planner</a><a href="strategy-memory.html">Strategy Memory</a><a href="strategy-profile.html">Strategy Profile</a><a href="live-command.html">Live OS</a><a href="live-replays.html">Replays</a><a href="subscribers.html">Subscribers</a><a href="earnings.html">Earnings</a><a href="payouts.html">Payouts</a><a href="help.html">Help</a></div>';
+ el.innerHTML='<header class="nav"><a class="wordmark" href="home.html">CROWRULES<span>/ PODCASTING</span></a><nav><a href="home.html">Home</a><a href="discover.html">Discover</a><a href="charts.html">Charts</a><a href="live.html">Live</a><a href="schedule.html">Schedule</a><a href="library.html">Library</a><a href="studio.html">Studio</a></nav><div class="nav-actions"><a href="evidence-alerts.html" class="points-pill" aria-label="Evidence alerts">◌ <b id="alertCount"></b></a><a href="notifications.html" class="points-pill" aria-label="Notifications">🔔 <b id="notificationCount"></b></a><a href="crowpoints.html" class="points-pill" aria-label="CrowPoints">◉ <b>'+state.points+'</b></a><a href="account.html" class="avatar" id="accountAvatar">CR</a></div></header><div class="network-bar"><a href="search.html">⌕ Search</a><a href="creators.html">Creators</a><a href="subscriptions.html">Subscriptions</a><a href="distribution.html">RSS</a><a href="identity.html">Identity</a><a href="validator.html">Validate</a><a href="submission.html">Submit</a><a href="creator-dashboard.html">Creator OS</a><a href="analytics.html">Analytics</a><a href="growth.html">Growth</a><a href="briefing.html">Briefing</a><a href="weekly.html">Weekly</a><a href="action-center.html">Actions</a><a href="experiments.html">Experiments</a><a href="monitor.html">Monitor</a><a href="report.html">Evidence Reports</a><a href="impact-map.html">Impact Map</a><a href="lineage.html">Lineage</a><a href="lineage-explorer.html">Explorer</a><a href="evidence-workspace.html">Evidence Graph</a><a href="evidence-adjudication.html">Adjudication</a><a href="adjudication-rules.html">Rules</a><a href="adjudication-history.html">History</a><a href="evidence-synthesis.html">Synthesis</a><a href="evidence-synthesis-history.html">Synthesis History</a><a href="evidence-matrix.html">Evidence Matrix</a><a href="evidence-trend.html">Trend Visualization</a><a href="evidence-change.html">Change Detection</a><a href="evidence-alerts.html">Evidence Alerts</a><a href="evidence-health.html">Health Dashboard</a><a href="evidence-health-transitions.html">Health Transitions</a><a href="evidence-health-summary.html">Health Summary</a><a href="evidence-health-summary-comparison.html">Summary Compare</a><a href="evidence-health-summary-history.html">Summary History</a><a href="experiment-intelligence.html">Intelligence</a><a href="learning.html">Learning</a><a href="experiment-planner.html">Planner</a><a href="strategy-memory.html">Strategy Memory</a><a href="strategy-profile.html">Strategy Profile</a><a href="live-command.html">Live OS</a><a href="live-replays.html">Replays</a><a href="subscribers.html">Subscribers</a><a href="earnings.html">Earnings</a><a href="payouts.html">Payouts</a><a href="help.html">Help</a></div>';
  window.addEventListener("scroll",()=>document.querySelector(".nav")?.classList.toggle("scrolled",scrollY>12),{passive:true});
 }
 
@@ -59,7 +59,7 @@ async function loadAuth(){
  if(!state.supabase)return;
  const {data}=await state.supabase.auth.getUser();
  state.user=data?.user||null;
- await refreshPoints();await refreshAlertBadge();
+ await refreshPoints();await refreshAlertBadge();await refreshNotificationBadge();await watchNotifications();
  const avatar=document.getElementById("accountAvatar");
  if(avatar)avatar.textContent=state.user?(state.user.user_metadata?.name||state.user.email||"CR").slice(0,2).toUpperCase():"CR";
 }
@@ -68,6 +68,18 @@ async function refreshAlertBadge(){
  if(!state.supabase||!state.user)return;
  const {count}=await state.supabase.from("podcast_evidence_change_alerts").select("id",{count:"exact",head:true}).eq("user_id",state.user.id).is("read_at",null);
  document.querySelectorAll("#alertCount").forEach(x=>x.textContent=count?String(count):"");
+}
+async function refreshNotificationBadge(){
+ if(!state.supabase||!state.user)return;
+ const {count}=await state.supabase.from("podcast_live_notifications").select("id",{count:"exact",head:true}).eq("user_id",state.user.id).eq("is_read",false);
+ document.querySelectorAll("#notificationCount").forEach(x=>x.textContent=count?String(count):"");
+}
+async function watchNotifications(){
+ if(!state.supabase||!state.user)return;
+ if(state.notificationChannel)await state.supabase.removeChannel(state.notificationChannel);
+ state.notificationChannel=state.supabase.channel("podcast-notifications-badge-"+state.user.id)
+ .on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_notifications",filter:"user_id=eq."+state.user.id},()=>refreshNotificationBadge())
+ .subscribe();
 }
 async function refreshPoints(){
  if(!state.supabase||!state.user)return;
@@ -393,6 +405,6 @@ function wireOperatingSystem(){
 
 async function boot(){
  nav();player();await loadData();await loadAuth();await renderRails();await loadLibrary();discover();showPage();charts();chat();forms();actions();creators();creator();schedule();wireOperatingSystem();
- if(state.supabase)state.supabase.auth.onAuthStateChange(async(_e,s)=>{state.user=s?.user||null;const a=document.getElementById("accountAvatar");if(a)a.textContent=state.user?(state.user.email||"CR").slice(0,2).toUpperCase():"CR";await renderRails();await loadLibrary();await refreshAlertBadge();wireOperatingSystem()});
+ if(state.supabase)state.supabase.auth.onAuthStateChange(async(_e,s)=>{state.user=s?.user||null;const a=document.getElementById("accountAvatar");if(a)a.textContent=state.user?(state.user.email||"CR").slice(0,2).toUpperCase():"CR";await renderRails();await loadLibrary();await refreshAlertBadge();await refreshNotificationBadge();await watchNotifications();wireOperatingSystem()});
 }
 boot();
