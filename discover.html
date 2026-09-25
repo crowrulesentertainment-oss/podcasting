@@ -1,1 +1,252 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Discover — CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><script src="js/config.js"></script><script src="js/podcasting.js" defer></script><script src="js/player.js" defer></script><script src="js/app.js" defer></script></head><body><div data-nav></div><main class="wrap hero"><div class="eyebrow">DISCOVER</div><h1>Find your <span class="gradient">next listen.</span></h1><p class="lead">Search the live CrowRules catalog, browse categories and see current Top 10 podcasts.</p><div class="searchbar"><input id="q" placeholder="Search podcasts, categories or creators"><button class="btn primary" onclick="load()">Search</button></div><div id="cats" class="actions"></div></main><section class="wrap section"><h2>Top 10</h2><div id="top10" class="grid"></div><h2 style="margin-top:50px">New Releases</h2><div id="newReleases" class="grid"></div></section><script>async function load(){const term=(document.getElementById("q").value||"").trim();let query=CROW_SUPABASE.from("podcasts").select("*").eq("status","published").order("created_at",{ascending:false}).limit(30);if(term)query=query.or("title.ilike.%"+term+"%,description.ilike.%"+term+"%,category.ilike.%"+term+"%,author_name.ilike.%"+term+"%");const r=await query;document.getElementById("newReleases").innerHTML=(r.data||[]).map(card).join("")||'<div class="notice">No podcasts found.</div>}function card(p){return '<a class="card" style="text-decoration:none" href="podcast.html?id='+p.id+'"><div class="cover">'+(p.artwork_url?'<img src="'+p.artwork_url+'">':p.title)+'</div><span class="pill">'+(p.category||"Podcast")+'</span><h3>'+p.title+'</h3><p>'+(p.description||"")+'</p></a>'}addEventListener("crow:ready",async()=>{const c=await CROW_APP.query("podcast_categories","*",{order:"sort_order",limit:30});document.getElementById("cats").innerHTML=(c.data||[]).map(x=>'<button class="btn" onclick="document.getElementById(\'q\').value=\''+x.name.replace(/'/g,"\\'")+'\';load()">'+x.name+"</button>").join("");const t=await CROW_APP.query("podcast_top10_podcasts_current","*",{order:"rank",limit:10});document.getElementById("top10").innerHTML=(t.data||[]).map(x=>'<a class="card" style="text-decoration:none" href="podcast.html?id='+x.podcast_id+'"><span class="eyebrow">#'+x.rank+'</span><h3>'+x.title+'</h3><p>'+((x.plays||0).toLocaleString())+' plays · '+((x.followers||0).toLocaleString())+' followers</p></a>').join("")||'<div class="notice">Rankings are being prepared.</div>';load()});</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Discover — CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="js/config.js"></script>
+<script src="js/podcasting.js" defer></script>
+<script src="js/player.js" defer></script>
+<script src="js/app.js" defer></script>
+<style>
+:root{--discover-glow:#a56cff}
+.discover-hero{padding-bottom:26px}
+.discover-hero .lead{max-width:760px}
+.searchbar{max-width:900px;display:grid;grid-template-columns:1fr auto;gap:10px;margin:24px 0 18px}
+.searchbar input{min-width:0}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:18px}
+.section-head h2{margin:0}
+.section-head p{margin:4px 0 0}
+.section-kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.55}
+.discover-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.discover-grid.episodes{grid-template-columns:repeat(5,minmax(0,1fr))}
+.podcast-card,.episode-card,.host-card{display:block;text-decoration:none;color:inherit}
+.rank-card{position:relative;overflow:hidden}
+.rank{font-size:12px;font-weight:800;letter-spacing:.12em;opacity:.55}
+.cover{aspect-ratio:1;border-radius:16px;overflow:hidden;background:linear-gradient(145deg,#171526,#08080e);display:grid;place-items:center;margin-bottom:13px}
+.cover img{width:100%;height:100%;object-fit:cover}
+.episode-art{aspect-ratio:16/9}
+.host-avatar{width:78px;height:78px;border-radius:50%;overflow:hidden;background:linear-gradient(145deg,#171526,#08080e);display:grid;place-items:center;margin-bottom:13px;border:1px solid #ffffff14}
+.host-avatar img{width:100%;height:100%;object-fit:cover}
+.meta-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.stat{font-size:12px;opacity:.62}
+.trend{border-color:#a56cff30;background:linear-gradient(145deg,#151122,#0b0b12)}
+.trend .rank{color:#c6a5ff;opacity:1}
+.category-row{display:flex;gap:8px;overflow:auto;padding-bottom:4px;scrollbar-width:thin}
+.category-row .btn{white-space:nowrap}
+.feature-band{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin-bottom:22px}
+.feature-card{min-height:220px;display:flex;flex-direction:column;justify-content:end;overflow:hidden;position:relative;background:radial-gradient(circle at 75% 20%,#34205d,#0a0a11 62%);border:1px solid #ffffff10}
+.feature-card:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 20%,#07070d 100%);pointer-events:none}
+.feature-card>*{position:relative;z-index:1}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff5b72;box-shadow:0 0 12px #ff5b72;margin-right:6px}
+.empty{grid-column:1/-1}
+@media(max-width:1050px){.discover-grid,.discover-grid.episodes{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){.searchbar,.feature-band{grid-template-columns:1fr}.discover-grid,.discover-grid.episodes{grid-template-columns:repeat(2,minmax(0,1fr))}.section-head{display:block}}
+@media(max-width:460px){.discover-grid,.discover-grid.episodes{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div data-nav></div>
+
+<main class="wrap hero discover-hero">
+<div class="eyebrow">CROWRULES DISCOVER</div>
+<h1>Find your <span class="gradient">next listen.</span></h1>
+<p class="lead">Explore the CrowRules podcast universe — the shows people are listening to, the episodes gaining momentum, the hosts behind them, and the newest releases.</p>
+
+<div class="searchbar">
+<input id="q" type="search" placeholder="Search podcasts, episodes, categories or hosts" autocomplete="off">
+<button class="btn primary" id="searchBtn">Search</button>
+</div>
+<div id="cats" class="category-row"></div>
+</main>
+
+<section class="wrap section">
+<div class="feature-band">
+<a id="featuredPodcast" class="card feature-card" href="podcasts.html">
+<div class="eyebrow">FEATURED PODCAST</div>
+<h2 id="featuredTitle">Loading the catalog…</h2>
+<p id="featuredMeta" class="muted">Connecting to CrowRules.</p>
+</a>
+<div class="card">
+<div class="section-kicker">DISCOVERY SIGNALS</div>
+<h3 style="margin-top:8px">What's happening now</h3>
+<p class="muted">Rankings use the live CrowRules catalog and available listening, play, follower and freshness signals.</p>
+<div class="meta-row"><span class="pill">Top 10</span><span class="pill">Trending</span><span class="pill">Newest</span></div>
+</div>
+</div>
+</section>
+
+<section class="wrap section">
+<div class="section-head"><div><div class="section-kicker">MOST LISTENED</div><h2>Top 10 Podcasts</h2><p class="muted">Shows currently leading the CrowRules catalog.</p></div></div>
+<div id="topPodcasts" class="discover-grid"></div>
+</section>
+
+<section class="wrap section">
+<div class="section-head"><div><div class="section-kicker">EPISODE CHART</div><h2>Top 10 Episodes</h2><p class="muted">Episodes with the strongest play activity.</p></div></div>
+<div id="topEpisodes" class="discover-grid episodes"></div>
+</section>
+
+<section class="wrap section">
+<div class="section-head"><div><div class="section-kicker">CREATOR SPOTLIGHT</div><h2>Top 10 Hosts</h2><p class="muted">Hosts and creators with the largest podcast audience signals.</p></div></div>
+<div id="topHosts" class="discover-grid"></div>
+</section>
+
+<section class="wrap section">
+<div class="section-head"><div><div class="section-kicker">MOMENTUM</div><h2>Trending Now</h2><p class="muted">Fresh episodes combined with recent play activity.</p></div></div>
+<div id="trending" class="discover-grid episodes"></div>
+</section>
+
+<section class="wrap section">
+<div class="section-head"><div><div class="section-kicker">JUST ARRIVED</div><h2>Newest</h2><p class="muted">The latest podcasts and episodes entering CrowRules.</p></div></div>
+<div id="newest" class="discover-grid episodes"></div>
+</section>
+
+<section class="wrap section">
+<div class="card">
+<div class="eyebrow">SEARCH RESULTS</div>
+<h2 id="resultsTitle">Explore the catalog</h2>
+<div id="results" class="discover-grid" style="margin-top:18px"></div>
+</div>
+</section>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+let podcasts=[],episodes=[],creators=[];
+
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=n=>Number(n||0).toLocaleString();
+const img=(url,cls="")=>url?'<img class="'+cls+'" src="'+esc(url)+'" alt="" loading="lazy">':'<span class="muted">CROW</span>';
+const podcastUrl=id=>"podcast.html?id="+encodeURIComponent(id);
+const episodeUrl=id=>"episode.html?id="+encodeURIComponent(id);
+
+function podcastCard(p,rank,trend=false){
+ return '<a class="card podcast-card '+(trend?"trend ":"")+'rank-card" href="'+podcastUrl(p.id)+'">'+
+ '<div class="cover">'+img(p.artwork_url)+'</div>'+
+ '<div class="rank">#'+rank+'</div><span class="pill">'+esc(p.category||"Podcast")+'</span>'+
+ '<h3>'+esc(p.title)+'</h3><p class="muted">'+esc(p.author_name||"CrowRules Creator")+'</p>'+
+ '<div class="meta-row"><span class="stat">'+fmt(p.total_plays||p.plays)+' plays</span><span class="stat">·</span><span class="stat">'+fmt(p.followers)+' followers</span></div></a>';
+}
+
+function episodeCard(e,rank,trend=false){
+ return '<a class="card episode-card '+(trend?"trend ":"")+'" href="'+episodeUrl(e.id)+'">'+
+ '<div class="cover episode-art">'+img(e.thumbnail_url||e.podcast_artwork)+'</div>'+
+ '<div class="rank">'+(rank?"#"+rank+" · ":"")+(trend?'<span class="live-dot"></span>Trending':"Episode")+'</div>'+
+ '<h3>'+esc(e.title)+'</h3><p class="muted">'+esc(e.podcast_title||"CrowRules Podcast")+'</p>'+
+ '<div class="meta-row"><span class="stat">'+fmt(e.play_count)+' plays</span>'+(e.published_at?'<span class="stat">· '+new Date(e.published_at).toLocaleDateString()+'</span>':"")+'</div></a>';
+}
+
+function hostCard(h,rank){
+ return '<a class="card host-card" href="'+(h.profile_url?esc(h.profile_url):"creator-dashboard.html")+'">'+
+ '<div class="host-avatar">'+img(h.avatar_url)+'</div><div class="rank">#'+rank+'</div>'+
+ '<h3>'+esc(h.name||"CrowRules Host")+'</h3><p class="muted">'+esc(h.discipline||"Creator")+'</p>'+
+ '<div class="meta-row"><span class="stat">'+fmt(h.plays)+' plays</span><span class="stat">·</span><span class="stat">'+fmt(h.podcast_count)+' podcast'+(Number(h.podcast_count)===1?"":"s")+'</span></div></a>';
+}
+
+function render(id,html,empty){
+ $(id).innerHTML=html||'<div class="notice empty">'+empty+'</div>';
+}
+
+async function queryAll(){
+ const p=await CROW_SUPABASE.from("podcasts").select("id,title,slug,category,description,artwork_url,status,is_featured,is_live,total_plays,listener_count,created_at,updated_at,author_name,creator_id,category_id").eq("status","published").order("created_at",{ascending:false}).limit(100);
+ if(p.error)throw p.error;
+ podcasts=p.data||[];
+
+ const e=await CROW_SUPABASE.from("podcast_episodes").select("id,podcast_id,title,description,published_at,created_at,updated_at,thumbnail_url,play_count,status,duration_seconds").eq("status","published").order("published_at",{ascending:false}).limit(100);
+ if(e.error)throw e.error;
+ episodes=e.data||[];
+
+ const ids=[...new Set(podcasts.map(x=>x.creator_id).filter(Boolean))];
+ if(ids.length){
+   const c=await CROW_SUPABASE.from("creators").select("id,name,discipline,avatar_url,profile_url,is_active").in("id",ids).eq("is_active",true);
+   if(!c.error)creators=c.data||[];
+ }
+ const pmap=Object.fromEntries(podcasts.map(p=>[p.id,p]));
+ episodes=episodes.map(e=>({...e,podcast_title:pmap[e.podcast_id]?.title||"CrowRules Podcast",podcast_artwork:pmap[e.podcast_id]?.artwork_url||null}));
+}
+
+function topPodcasts(){
+ return [...podcasts].sort((a,b)=>
+   Number(b.total_plays||0)-Number(a.total_plays||0) ||
+   Number(b.listener_count||0)-Number(a.listener_count||0) ||
+   new Date(b.created_at)-new Date(a.created_at)
+ ).slice(0,10);
+}
+
+function topEpisodes(){
+ return [...episodes].sort((a,b)=>Number(b.play_count||0)-Number(a.play_count||0)||new Date(b.published_at||b.created_at)-new Date(a.published_at||a.created_at)).slice(0,10);
+}
+
+function topHosts(){
+ const map={};
+ podcasts.forEach(p=>{
+   const c=creators.find(x=>x.id===p.creator_id);
+   const key=c?.id||p.creator_id||p.author_name||p.id;
+   if(!map[key])map[key]={id:c?.id,name:c?.name||p.author_name||"CrowRules Host",discipline:c?.discipline||"Creator",avatar_url:c?.avatar_url,profile_url:c?.profile_url,plays:0,podcast_count:0};
+   map[key].podcast_count++;
+   map[key].plays+=Number(p.total_plays||0);
+ });
+ return Object.values(map).sort((a,b)=>b.plays-a.plays||b.podcast_count-a.podcast_count).slice(0,10);
+}
+
+function trendingEpisodes(){
+ const now=Date.now();
+ return [...episodes].map(e=>{
+   const age=Math.max(1,(now-new Date(e.published_at||e.created_at).getTime())/86400000);
+   const freshness=Math.max(0,30-age);
+   const score=Number(e.play_count||0)*2+freshness*4;
+   return {...e,_trend:score};
+ }).sort((a,b)=>b._trend-a._trend).slice(0,10);
+}
+
+function newest(){
+ return [...episodes].sort((a,b)=>new Date(b.published_at||b.created_at)-new Date(a.published_at||a.created_at)).slice(0,10);
+}
+
+function renderHome(){
+ const tp=topPodcasts(),te=topEpisodes(),th=topHosts(),tr=trendingEpisodes(),nw=newest();
+ render("topPodcasts",tp.map((p,i)=>podcastCard(p,i+1)).join(""),"No published podcasts yet.");
+ render("topEpisodes",te.map((e,i)=>episodeCard(e,i+1)).join(""),"No published episodes yet.");
+ render("topHosts",th.map((h,i)=>hostCard(h,i+1)).join(""),"No host data available yet.");
+ render("trending",tr.map(e=>episodeCard(e,null,true)).join(""),"Trending data will appear as episodes gain listening activity.");
+ render("newest",nw.map(e=>episodeCard(e)).join(""),"No new episodes yet.");
+ const featured=tp[0]||podcasts.find(p=>p.is_featured)||podcasts[0];
+ if(featured){
+   $("featuredPodcast").href=podcastUrl(featured.id);
+   $("featuredTitle").textContent=featured.title;
+   $("featuredMeta").textContent=(featured.category||"Podcast")+" · "+fmt(featured.total_plays)+" plays · "+(featured.is_live?"Live now":"Available to listen");
+ }
+}
+
+async function search(){
+ const term=$("q").value.trim().toLowerCase();
+ if(!term){$("resultsTitle").textContent="Explore the catalog";$("results").innerHTML="";return}
+ const p=podcasts.filter(x=>[x.title,x.description,x.category,x.author_name].some(v=>String(v||"").toLowerCase().includes(term)));
+ const e=episodes.filter(x=>[x.title,x.description,x.podcast_title].some(v=>String(v||"").toLowerCase().includes(term)));
+ $("resultsTitle").textContent='Results for "'+$("q").value.trim()+'"';
+ render("results",p.map((x,i)=>podcastCard(x,i+1)).join("")+e.map((x)=>episodeCard(x)).join(""),"No matching podcasts or episodes.");
+ $("results").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+async function init(){
+ try{
+   await queryAll();
+   renderHome();
+   const cats=await CROW_SUPABASE.from("podcast_categories").select("id,name,sort_order").order("sort_order",{ascending:true}).limit(30);
+   $("cats").innerHTML=(cats.data||[]).map(x=>'<button class="btn" data-cat="'+esc(x.name)+'">'+esc(x.name)+'</button>').join("");
+   document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{$("q").value=b.dataset.cat;search()});
+ }catch(e){
+   console.error("Discover:",e);
+   ["topPodcasts","topEpisodes","topHosts","trending","newest"].forEach(id=>render(id,"","Unable to load discovery data right now."));
+ }
+}
+$("searchBtn").onclick=search;
+$("q").addEventListener("keydown",e=>{if(e.key==="Enter")search()});
+addEventListener("crow:ready",init,{once:true});
+if(window.CROW_SUPABASE)init();
+})();
+</script>
+</body>
+</html>
