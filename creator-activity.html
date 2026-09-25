@@ -78,7 +78,7 @@
           <button class="filter" data-filter="listening_milestone">Listening</button>
           <button class="filter" data-filter="goal_milestone">Goals</button>
           <button class="filter" data-filter="publishing_issue">Issues</button>
-          <button class="filter" data-filter="stripe_status">Stripe</button>
+          <button class="filter" data-filter="stripe_status">Stripe</button><button class="filter" data-filter="digest_summary">Summaries</button>
         </div>
         <div id="timeline" class="timeline"><div class="empty">Loading creator activity…</div></div>
       </div>
@@ -99,7 +99,8 @@ const labels={
   listening_milestone:"Listening",
   goal_milestone:"Goal",
   publishing_issue:"Issue",
-  stripe_status:"Stripe"
+  stripe_status:"Stripe",
+  digest_summary:"Summary"
 };
 const links={
   upload_completed:"creator-dashboard.html",
@@ -110,11 +111,14 @@ const links={
   listening_milestone:"creator-intelligence.html",
   goal_milestone:"creator-goals.html",
   publishing_issue:"publishing-pipeline.html",
-  stripe_status:"creator-payouts.html"
+  stripe_status:"creator-payouts.html",
+  digest_summary:"creator-automation.html"
 };
 
 function fmtTime(v){return new Date(v).toLocaleString([], {month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"});}
 function iconType(t){return labels[t]||"Activity";}
+async function mute(id){const r=await CROW_SUPABASE.from("cr_creator_alerts").update({muted_at:new Date().toISOString()}).eq("id",id).eq("creator_id",__CROW_USER.id);if(r.error)alert(r.error.message);else await load();}
+async function unmute(id){const r=await CROW_SUPABASE.from("cr_creator_alerts").update({muted_at:null,muted_until:null}).eq("id",id).eq("creator_id",__CROW_USER.id);if(r.error)alert(r.error.message);else await load();}
 function filtered(){return activeFilter==="all"?events:events.filter(x=>x.alert_type===activeFilter);}
 function render(){
   const list=filtered();
