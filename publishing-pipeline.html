@@ -10,8 +10,7 @@
 <script src="js/player.js" defer></script>
 <script src="js/app.js" defer></script>
 <style>
-.pipeline{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin:28px 0}.stage{padding:14px 8px;text-align:center;border:1px solid var(--line);border-radius:14px;background:#080b14;color:#8f99ae;font-size:9px;text-transform:uppercase;letter-spacing:.08em}.stage.active{color:#fff;border-color:#55e7ff77;background:#55e7ff10;box-shadow:0 0 28px #55e7ff12}.stage.done{color:#55e7ff}
-.check{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:14px 0;border-bottom:1px solid #ffffff0b}.check:last-child{border-bottom:0}.check-icon{font-size:18px}.ok{color:#55e7ff}.bad{color:#ff7aa8}.muted{color:var(--muted)}.preview{display:grid;grid-template-columns:220px 1fr;gap:22px}.cover.large{margin:0}.preview h2{margin-top:0}.preview-meta{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.preview-body{color:#c8d0df;line-height:1.8;font-size:13px;white-space:pre-wrap}.timeline{display:grid;gap:10px}.event{display:grid;grid-template-columns:12px 1fr auto;gap:12px;align-items:start;padding:15px;border-bottom:1px solid #ffffff0d}.dot{width:10px;height:10px;border-radius:50%;background:var(--cyan);margin-top:5px}.event small{color:var(--muted)}.event p{margin:6px 0;color:#aeb7ca;font-size:12px;line-height:1.5}.schedule-box{display:grid;grid-template-columns:1fr 180px auto;gap:12px;align-items:end}.schedule-box label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#aab2c5}.schedule-box input,.schedule-box select{width:100%;margin-top:7px;background:#070a12;border:1px solid #ffffff16;border-radius:10px;color:#fff;padding:13px;font:inherit}.error{color:#ff9ab8}.success{color:#55e7ff}.toast{position:fixed;right:22px;bottom:92px;z-index:200;max-width:420px;padding:15px 18px;border-radius:14px;background:#0b1020;border:1px solid #55e7ff44;box-shadow:0 20px 60px #0009;display:none}.toast.show{display:block}@media(max-width:850px){.pipeline{grid-template-columns:repeat(2,1fr)}.preview{grid-template-columns:1fr}.schedule-box{grid-template-columns:1fr}.cover.large{max-width:260px}.hero{padding-top:50px}}
+.pipeline{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin:28px 0}.stage{padding:14px 8px;text-align:center;border:1px solid var(--line);border-radius:14px;background:#080b14;color:#8f99ae;font-size:9px;text-transform:uppercase;letter-spacing:.08em}.stage.active{color:#fff;border-color:#55e7ff77;background:#55e7ff10;box-shadow:0 0 28px #55e7ff12}.stage.done{color:#55e7ff}.check{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:14px 0;border-bottom:1px solid #ffffff0b}.check:last-child{border-bottom:0}.check-icon{font-size:18px}.ok{color:#55e7ff}.bad{color:#ff7aa8}.muted{color:var(--muted)}.preview{display:grid;grid-template-columns:220px 1fr;gap:22px}.cover.large{margin:0}.preview h2{margin-top:0}.preview-meta{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.preview-body{color:#c8d0df;line-height:1.8;font-size:13px;white-space:pre-wrap}.timeline{display:grid;gap:10px}.event{display:grid;grid-template-columns:12px 1fr auto;gap:12px;align-items:start;padding:15px;border-bottom:1px solid #ffffff0d}.dot{width:10px;height:10px;border-radius:50%;background:var(--cyan);margin-top:5px}.event small{color:var(--muted)}.event p{margin:6px 0;color:#aeb7ca;font-size:12px;line-height:1.5}.schedule-box{display:grid;grid-template-columns:1fr 180px auto;gap:12px;align-items:end}.schedule-box label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#aab2c5}.schedule-box input,.schedule-box select{width:100%;margin-top:7px;background:#070a12;border:1px solid #ffffff16;border-radius:10px;color:#fff;padding:13px;font:inherit}.error{color:#ff9ab8}.success{color:#55e7ff}.toast{position:fixed;right:22px;bottom:92px;z-index:200;max-width:420px;padding:15px 18px;border-radius:14px;background:#0b1020;border:1px solid #55e7ff44;box-shadow:0 20px 60px #0009;display:none}.toast.show{display:block}@media(max-width:850px){.pipeline{grid-template-columns:repeat(2,1fr)}.preview{grid-template-columns:1fr}.schedule-box{grid-template-columns:1fr}.cover.large{max-width:260px}.hero{padding-top:50px}}
 </style>
 </head>
 <body>
@@ -20,170 +19,29 @@
   <div class="eyebrow">CROWRULES PODCASTING 5.0</div>
   <h1>Publishing <span class="gradient">Pipeline.</span></h1>
   <p class="lead">Move an episode from draft through checks, review, scheduling and publication — with one production record shared across Creator Studio, Activity, Audience, Analytics and Revenue.</p>
-  <div id="auth" class="notice">Checking account…</div>
-
+  <div id="auth" class="notice">Connecting to CrowRules account…</div>
   <div id="app" style="display:none">
-    <div class="actions">
-      <a class="btn" href="creator-center.html">← Command Center</a>
-      <a class="btn" href="episode-studio.html">Episode Studio</a>
-      <a class="btn" href="release-calendar.html">Release Calendar</a>
-      <button class="btn primary" id="refresh">Refresh Pipeline</button>
-    </div>
-
-    <section class="section">
-      <div class="card">
-        <h2>Episode Publishing Control</h2>
-        <div class="form">
-          <label>Episode
-            <select id="episode"></select>
-          </label>
-        </div>
-        <div id="center"></div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="grid two">
-        <div class="card">
-          <h2>Pre-Publish Checks</h2>
-          <div id="readiness">Loading…</div>
-          <div class="actions">
-            <button class="btn" id="review">Send to Review</button>
-            <button class="btn primary" id="publish">Publish Now</button>
-          </div>
-        </div>
-        <div class="card">
-          <h2>Schedule Release</h2>
-          <p>Choose the creator's local time zone. The database stores the release moment as a UTC timestamp while retaining the selected time zone for the publishing record.</p>
-          <div class="schedule-box">
-            <label>Publish at<input id="scheduledAt" type="datetime-local"></label>
-            <label>Time zone<select id="timezone"><option>America/Los_Angeles</option><option>America/Denver</option><option>America/Chicago</option><option>America/New_York</option><option>UTC</option></select></label>
-            <button class="btn primary" id="schedule">Schedule</button>
-          </div>
-          <div id="scheduleStatus" class="notice" style="margin-top:14px">No schedule selected.</div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="card">
-        <h2>Final Preview</h2>
-        <div id="preview">Select an episode.</div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="grid two">
-        <div class="card">
-          <h2>Publishing History</h2>
-          <div id="history" class="timeline">Select an episode.</div>
-        </div>
-        <div class="card">
-          <h2>Creator Activity</h2>
-          <div id="activity" class="timeline">Select an episode.</div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="card">
-        <h2>Pipeline Connections</h2>
-        <div class="grid">
-          <div><strong>Episode Studio</strong><p>Creates the episode draft and attaches the audio asset.</p></div>
-          <div><strong>Release Calendar</strong><p>Scheduled releases are stored in <code>podcast_schedule</code>.</p></div>
-          <div><strong>Audience</strong><p>Published episodes create in-app notifications for followers and active subscribers.</p></div>
-        </div>
-      </div>
-    </section>
+    <div class="actions"><a class="btn" href="creator-center.html">← Command Center</a><a class="btn" href="episode-studio.html">Episode Studio</a><a class="btn" href="release-calendar.html">Release Calendar</a><button class="btn primary" id="refresh">Refresh Pipeline</button></div>
+    <section class="section"><div class="card"><h2>Episode Publishing Control</h2><div class="form"><label>Episode<select id="episode"></select></label></div><div id="center"></div></div></section>
+    <section class="section"><div class="grid two"><div class="card"><h2>Pre-Publish Checks</h2><div id="readiness">Loading…</div><div class="actions"><button class="btn" id="review">Send to Review</button><button class="btn primary" id="publish">Publish Now</button></div></div><div class="card"><h2>Schedule Release</h2><p>Choose the creator's local time zone. The database stores the release moment as a UTC timestamp while retaining the selected time zone for the publishing record.</p><div class="schedule-box"><label>Publish at<input id="scheduledAt" type="datetime-local"></label><label>Time zone<select id="timezone"><option>America/Los_Angeles</option><option>America/Denver</option><option>America/Chicago</option><option>America/New_York</option><option>UTC</option></select></label><button class="btn primary" id="schedule">Schedule</button></div><div id="scheduleStatus" class="notice" style="margin-top:14px">No schedule selected.</div></div></div></section>
+    <section class="section"><div class="card"><h2>Final Preview</h2><div id="preview">Select an episode.</div></div></section>
+    <section class="section"><div class="grid two"><div class="card"><h2>Publishing History</h2><div id="history" class="timeline">Select an episode.</div></div><div class="card"><h2>Creator Activity</h2><div id="activity" class="timeline">Select an episode.</div></div></div></section>
   </div>
-</main>
-<div id="toast" class="toast"></div>
-
+</main><div id="toast" class="toast"></div>
 <script>
-const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const stages=["Draft","Checks","Review","Ready","Scheduled","Published","Audience"];
-let episodes=[], podcasts=[];
-
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+let episodes=[],podcasts=[],initialized=false;
 function toast(msg,ok=true){const el=document.getElementById("toast");el.innerHTML='<strong class="'+(ok?"success":"error")+'">'+(ok?"✓ ":"⚠ ")+esc(msg)+'</strong>';el.classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>el.classList.remove("show"),4200)}
 function current(){return episodes.find(x=>x.id===episode.value)}
-function indexFor(ep){
-  if(ep.status==="published") return 5;
-  if(ep.status==="scheduled") return 4;
-  if(ep.status==="review") return 2;
-  return 0;
-}
-function setStage(ep,ready){
-  const idx=ready?Math.max(indexFor(ep),3):indexFor(ep);
-  center.innerHTML='<div class="pipeline">'+stages.map((s,i)=>'<div class="stage '+(i<idx?'done ':'')+(i===idx?'active':'')+'">'+s+'</div>').join("")+'</div>'+
-  '<div class="notice"><strong>'+esc(ep.title)+'</strong> · <span class="pill">'+esc(ep.status)+'</span> · '+esc(ep.podcast_title)+(ep.published_at?' · Published '+new Date(ep.published_at).toLocaleString():"")+'</div>';
-}
-function renderChecks(result){
-  const map=[
-    ["Title",result.issues.includes("Missing title")?"Missing":"Ready"],
-    ["Description",result.issues.includes("Missing description")?"Missing":"Ready"],
-    ["Slug",result.issues.includes("Invalid slug")?"Invalid":"Ready"],
-    ["Podcast",result.issues.includes("Missing podcast")?"Missing":"Ready"],
-    ["Artwork",result.issues.includes("Missing artwork")?"Missing":"Ready"],
-    ["Audio",result.issues.includes("Missing audio")?"Missing":"Ready"],
-    ["Explicit-content status",result.issues.includes("Explicit-content status is missing")?"Missing":"Ready"],
-    ["Membership / access",result.issues.includes("Invalid membership/access setting")?"Invalid":"Ready"]
-  ];
-  readiness.innerHTML=map.map(([name,state])=>'<div class="check"><span class="check-icon '+(state==="Ready"?"ok":"bad")+'">'+(state==="Ready"?"✓":"!")+'</span><strong>'+name+'</strong><span class="'+(state==="Ready"?"ok":"bad")+'">'+state+'</span></div>').join("")+
-  (result.ready?'<div class="notice success" style="margin-top:14px"><strong>Episode is ready to publish.</strong> All required pre-publish checks passed.</div>':'<div class="notice error" style="margin-top:14px"><strong>Publishing is blocked.</strong><br>'+result.issues.map(esc).join("<br>")+'</div>');
-}
-async function pipeline(action,extra={}){
-  const ep=current(); if(!ep)return null;
-  const r=await CROW_SUPABASE.functions.invoke(CROW_CONFIG.pipelineFunction,{body:{action,episode_id:ep.id,...extra}});
-  if(r.error) throw new Error(r.error.message||"Pipeline request failed");
-  if(r.data?.error) throw new Error(r.data.error+(r.data.issues?.length?" — "+r.data.issues.join(", "):""));
-  return r.data;
-}
-async function loadChecks(ep){
-  try{const r=await pipeline("check");renderChecks(r);setStage(ep,r.ready);return r}catch(e){readiness.innerHTML='<div class="notice error">'+esc(e.message)+'</div>';return {ready:false,issues:[e.message]}}
-}
-async function loadHistory(ep){
-  const r=await CROW_SUPABASE.from("podcast_episode_pipeline_events").select("id,event_type,from_status,to_status,message,metadata,created_at").eq("episode_id",ep.id).order("created_at",{ascending:false}).limit(50);
-  const rows=r.data||[];
-  const html=rows.map(v=>'<div class="event"><i class="dot"></i><div><strong>'+esc(String(v.event_type).replaceAll("_"," "))+'</strong><p>'+esc(v.message||"")+'</p><small>'+new Date(v.created_at).toLocaleString()+(v.from_status?" · "+esc(v.from_status)+" → "+esc(v.to_status||""):"")+'</small></div></div>').join("");
-  history.innerHTML=html||'<div class="notice">No pipeline events recorded yet.</div>';
-  activity.innerHTML=html||'<div class="notice">No creator activity recorded yet.</div>';
-}
-function renderPreview(ep){
-  const artwork=ep.artwork_url||ep.thumbnail_url;
-  preview.innerHTML='<div class="preview"><div><div class="cover large">'+(artwork?'<img src="'+esc(artwork)+'" alt="">':'<div>CR<br><small>NO ARTWORK</small></div>')+'</div></div><div><h2>'+esc(ep.title)+'</h2><div class="preview-meta"><span class="pill">'+esc(ep.podcast_title)+'</span><span class="pill">Access: '+esc(ep.access_level)+'</span><span class="pill">'+(ep.is_explicit?"Explicit":"Not Explicit")+'</span>'+(ep.episode_number?'<span class="pill">Episode '+esc(ep.episode_number)+'</span>':"")+'</div><p class="preview-body">'+esc(ep.description||"No description yet.")+'</p>'+(ep.audio_url?'<audio controls style="width:100%;margin:12px 0" src="'+esc(ep.audio_url)+'"></audio>':"")+'<h3>Show Notes</h3><div class="preview-body">'+esc(ep.show_notes||"No show notes yet.")+'</div><h3>Transcript</h3><div class="preview-body">'+esc(ep.transcript||"No transcript yet.")+'</div><div class="actions"><a class="btn" href="episode-studio.html?episode='+encodeURIComponent(ep.id)+'">Edit Episode</a></div></div></div>';
-}
-async function render(){
-  const ep=current(); if(!ep)return;
-  renderPreview(ep);
-  const r=await loadChecks(ep);
-  if(ep.status==="scheduled") scheduleStatus.innerHTML='<strong>Scheduled.</strong> This episode is in the release queue.';
-  else scheduleStatus.textContent="No schedule selected.";
-  await loadHistory(ep);
-}
-async function load(){
-  const p=await CROW_SUPABASE.from("podcasts").select("id,title,slug,status,artwork_url,creator_id").eq("creator_id",__CROW_USER.id).order("created_at",{ascending:false});
-  podcasts=p.data||[];
-  const ids=podcasts.map(x=>x.id);
-  if(!ids.length){episode.innerHTML="";center.innerHTML='<div class="notice">Create a podcast first.</div>';return}
-  const e=await CROW_SUPABASE.from("podcast_episodes").select("id,podcast_id,title,slug,description,show_notes,transcript,status,published_at,audio_url,thumbnail_url,episode_number,is_explicit,access_level,duration_seconds,created_at").in("podcast_id",ids).order("created_at",{ascending:false});
-  episodes=(e.data||[]).map(x=>{const p=podcasts.find(y=>y.id===x.podcast_id);return {...x,podcast_title:p?.title||"Unknown podcast",podcast_slug:p?.slug||"",podcast_status:p?.status,artwork_url:p?.artwork_url||x.thumbnail_url}});
-  episode.innerHTML=episodes.map(x=>'<option value="'+x.id+'">'+esc(x.podcast_title+' · '+(x.episode_number?("EP "+x.episode_number+" · "):"")+x.title)+'</option>').join("");
-  const q=new URLSearchParams(location.search).get("episode"); if(q&&episodes.some(x=>x.id===q))episode.value=q;
-  await render();
-}
-document.addEventListener("crow:ready",async()=>{
-  if(!window.__CROW_USER){auth.textContent="Sign in to open the publishing pipeline.";return}
-  app.style.display="block";auth.textContent="Signed in as "+(__CROW_USER.email||"Creator");
-  try{await load()}catch(e){auth.innerHTML='<span class="error">'+esc(e.message)+'</span>'}
-  episode.addEventListener("change",render);
-  refresh.addEventListener("click",()=>load().catch(e=>toast(e.message,false)));
-  review.addEventListener("click",async()=>{try{await pipeline("review");toast("Episode moved into review.");await load()}catch(e){toast(e.message,false)}});
-  publish.addEventListener("click",async()=>{if(!confirm("Publish this episode now?"))return;try{const r=await pipeline("publish");toast("Episode published. "+(r.notified||0)+" audience notification(s) created.");await load()}catch(e){toast(e.message,false)}});
-  schedule.addEventListener("click",async()=>{
-    if(!scheduledAt.value){toast("Choose a publish date and time.",false);return}
-    try{const r=await pipeline("schedule",{scheduled_at:new Date(scheduledAt.value).toISOString(),timezone:timezone.value});scheduleStatus.innerHTML='<strong>Scheduled.</strong> '+new Date(r.scheduled_at).toLocaleString();toast("Episode scheduled.");await load()}catch(e){toast(e.message,false)}
-  });
-});
-</script>
-</body>
-</html>
+function indexFor(ep){if(ep.status==="published")return 5;if(ep.status==="scheduled")return 4;if(ep.status==="review")return 2;return 0}
+function setStage(ep,ready){const idx=ready?Math.max(indexFor(ep),3):indexFor(ep);center.innerHTML='<div class="pipeline">'+["Draft","Checks","Review","Ready","Scheduled","Published","Audience"].map((s,i)=>'<div class="stage '+(i<idx?"done ":"")+(i===idx?"active":"")+'">'+s+'</div>').join("")+'</div><div class="notice"><strong>'+esc(ep.title)+'</strong> · <span class="pill">'+esc(ep.status)+'</span> · '+esc(ep.podcast_title)+(ep.published_at?' · Published '+new Date(ep.published_at).toLocaleString():"")+'</div>'}
+function renderChecks(result){const map=[["Title","Missing title"],["Description","Missing description"],["Slug","Invalid slug"],["Podcast","Missing podcast"],["Artwork","Missing artwork"],["Audio","Missing audio"],["Explicit-content status","Explicit-content status is missing"],["Membership / access","Invalid membership/access setting"]];readiness.innerHTML=map.map(([name,bad])=>{const state=result.issues.includes(bad)?"Missing":"Ready";return '<div class="check"><span class="check-icon '+(state==="Ready"?"ok":"bad")+'">'+(state==="Ready"?"✓":"!")+'</span><strong>'+name+'</strong><span class="'+(state==="Ready"?"ok":"bad")+'">'+state+'</span></div>'}).join("")+(result.ready?'<div class="notice success" style="margin-top:14px"><strong>Episode is ready to publish.</strong> All required pre-publish checks passed.</div>':'<div class="notice error" style="margin-top:14px"><strong>Publishing is blocked.</strong><br>'+result.issues.map(esc).join("<br>")+'</div>')}
+async function pipeline(action,extra={}){const ep=current();if(!ep)throw new Error("Select an episode first.");if(!window.CROW_SUPABASE)throw new Error("CrowRules Supabase is not connected.");const r=await CROW_SUPABASE.functions.invoke(CROW_CONFIG.pipelineFunction,{body:{action,episode_id:ep.id,...extra}});if(r.error)throw new Error(r.error.message||"Pipeline request failed");if(r.data?.error)throw new Error(r.data.error+(r.data.issues?.length?" — "+r.data.issues.join(", "):""));return r.data}
+async function loadChecks(ep){try{const r=await pipeline("check");renderChecks(r);setStage(ep,r.ready);return r}catch(e){readiness.innerHTML='<div class="notice error">'+esc(e.message)+'</div>';return{ready:false,issues:[e.message]}}}
+async function loadHistory(ep){const r=await CROW_SUPABASE.from("podcast_episode_pipeline_events").select("id,event_type,from_status,to_status,message,metadata,created_at").eq("episode_id",ep.id).order("created_at",{ascending:false}).limit(50);if(r.error)throw r.error;const rows=r.data||[];const html=rows.map(v=>'<div class="event"><i class="dot"></i><div><strong>'+esc(String(v.event_type).replaceAll("_"," "))+'</strong><p>'+esc(v.message||"")+'</p><small>'+new Date(v.created_at).toLocaleString()+(v.from_status?" · "+esc(v.from_status)+" → "+esc(v.to_status||""):"")+'</small></div></div>').join("");history.innerHTML=html||'<div class="notice">No pipeline events recorded yet.</div>';activity.innerHTML=html||'<div class="notice">No creator activity recorded yet.</div>'}
+function renderPreview(ep){const artwork=ep.artwork_url||ep.thumbnail_url;preview.innerHTML='<div class="preview"><div><div class="cover large">'+(artwork?'<img src="'+esc(artwork)+'" alt="">':'<div>CR<br><small>NO ARTWORK</small></div>')+'</div></div><div><h2>'+esc(ep.title)+'</h2><div class="preview-meta"><span class="pill">'+esc(ep.podcast_title)+'</span><span class="pill">Access: '+esc(ep.access_level)+'</span><span class="pill">'+(ep.is_explicit?"Explicit":"Not Explicit")+'</span></div><p class="preview-body">'+esc(ep.description||"No description yet.")+'</p>'+(ep.audio_url?'<audio controls style="width:100%;margin:12px 0" src="'+esc(ep.audio_url)+'"></audio>':"")+'<h3>Show Notes</h3><div class="preview-body">'+esc(ep.show_notes||"No show notes yet.")+'</div><h3>Transcript</h3><div class="preview-body">'+esc(ep.transcript||"No transcript yet.")+'</div><div class="actions"><a class="btn" href="episode-studio.html?episode='+encodeURIComponent(ep.id)+'">Edit Episode</a></div></div></div>'}
+async function render(){const ep=current();if(!ep)return;renderPreview(ep);const r=await loadChecks(ep);scheduleStatus.textContent=ep.status==="scheduled"?"Episode is in the release queue.":"No schedule selected.";await loadHistory(ep)}
+async function load(){if(!window.__CROW_USER)throw new Error("You are not signed in to CrowRules.");const p=await CROW_SUPABASE.from("podcasts").select("id,title,slug,status,artwork_url,creator_id").eq("creator_id",__CROW_USER.id).order("created_at",{ascending:false});if(p.error)throw p.error;podcasts=p.data||[];const ids=podcasts.map(x=>x.id);if(!ids.length){episode.innerHTML="";center.innerHTML='<div class="notice">No podcasts found for this account. Create a podcast first.</div>';app.style.display="block";return}const e=await CROW_SUPABASE.from("podcast_episodes").select("id,podcast_id,title,slug,description,show_notes,transcript,status,published_at,audio_url,thumbnail_url,episode_number,is_explicit,access_level,duration_seconds,created_at").in("podcast_id",ids).order("created_at",{ascending:false});if(e.error)throw e.error;episodes=(e.data||[]).map(x=>{const p=podcasts.find(y=>y.id===x.podcast_id);return{...x,podcast_title:p?.title||"Unknown podcast",podcast_slug:p?.slug||"",podcast_status:p?.status,artwork_url:p?.artwork_url||x.thumbnail_url}});episode.innerHTML=episodes.map(x=>'<option value="'+x.id+'">'+esc(x.podcast_title+' · '+(x.episode_number?("EP "+x.episode_number+" · "):"")+x.title)+'</option>').join("");const q=new URLSearchParams(location.search).get("episode");if(q&&episodes.some(x=>x.id===q))episode.value=q;if(!episodes.length){center.innerHTML='<div class="notice">No episodes found. Create an episode in Episode Studio first.</div>';app.style.display="block";return}await render()}
+async function initPipeline(){if(initialized)return;initialized=true;auth.textContent="Connecting to CrowRules account…";if(!window.__CROW_AUTH_READY){setTimeout(()=>{if(!initialized)return;},10000);return}if(!window.__CROW_USER){auth.textContent="You are not signed in. Open Account → Sign In first.";return}auth.textContent="Signed in as "+(__CROW_USER.email||"Creator");app.style.display="block";try{await load()}catch(e){auth.innerHTML='<span class="error">'+esc(e.message)+'</span>';console.error("Publishing Pipeline:",e)}episode.addEventListener("change",render);refresh.addEventListener("click",()=>load().catch(e=>toast(e.message,false)));review.addEventListener("click",async()=>{try{await pipeline("review");toast("Episode moved into review.");await load()}catch(e){toast(e.message,false)}});publish.addEventListener("click",async()=>{if(!confirm("Publish this episode now?"))return;try{const r=await pipeline("publish");toast("Episode published. "+(r.notified||0)+" audience notification(s) created.");await load()}catch(e){toast(e.message,false)}});schedule.addEventListener("click",async()=>{if(!scheduledAt.value){toast("Choose a publish date and time.",false);return}try{const r=await pipeline("schedule",{scheduled_at:new Date(scheduledAt.value).toISOString(),timezone:timezone.value});scheduleStatus.innerHTML='<strong>Scheduled.</strong> '+new Date(r.scheduled_at).toLocaleString();toast("Episode scheduled.");await load()}catch(e){toast(e.message,false)}})}
+window.addEventListener("crow:ready",initPipeline);document.addEventListener("crow:ready",initPipeline);window.addEventListener("crow:auth-error",e=>{auth.innerHTML='<span class="error">'+esc(e.detail?.message||"Supabase connection failed.")+'</span>';});document.addEventListener("DOMContentLoaded",()=>{if(window.__CROW_AUTH_READY)initPipeline();else setTimeout(()=>{if(window.__CROW_AUTH_READY)initPipeline();else if(!initialized){auth.innerHTML='<span class="error">CrowRules account connection did not initialize. Please refresh the page.</span>'}},10000)});
+</script></body></html>
