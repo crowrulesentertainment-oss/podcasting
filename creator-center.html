@@ -9,59 +9,52 @@
 </style></head>
 <body><div data-nav></div>
 <main class="wrap hero">
-<div class="eyebrow">CROWRULES PODCASTING 3.6</div>
+<div class="eyebrow">CROWRULES PODCASTING 5.0</div>
 <h1>Creator <span class="gradient">Command Center.</span></h1>
 <p class="lead">One starting point for the entire creator operation. See what needs attention, what is happening now, and jump directly into the next task.</p>
-<div id="auth" class="notice">Checking account…</div>
+<div id="auth" class="notice">Connecting to your CrowRules account…</div>
 <div id="center" style="display:none">
-<div class="actions">
-<a class="btn primary" href="create-podcast.html">＋ Create Podcast</a><a class="btn" href="create-episode.html">＋ Create Episode</a><a class="btn" href="creator-activity.html">Activity</a><a class="btn" href="creator-intelligence.html">Intelligence</a><a class="btn" href="creator-goals.html">Goals</a>
-</div>
-<section class="section"><div class="center-grid">
-<div class="card next"><div class="eyebrow">NEXT ACTION</div><h2 id="nextTitle">Loading…</h2><p id="nextDetail">Finding the most useful next step from your live creator data.</p><a id="nextLink" class="btn primary" href="creator-dashboard.html">Open</a></div>
-<div class="card"><div class="eyebrow">ACCOUNT</div><h3 id="accountName">Creator</h3><p id="accountEmail"></p><div id="connectStatus" class="status info">Checking Stripe Connect…</div></div>
-</div></section>
-<section class="section"><div class="grid">
-<div class="card"><span class="eyebrow">UNREAD</span><div class="stat" id="unread">0</div><p>Activity alerts</p><a class="btn" href="creator-activity.html">Review</a></div>
-<div class="card"><span class="eyebrow">PUBLISHING</span><div class="stat" id="drafts">0</div><p>Episodes needing action</p><a class="btn" href="publishing-pipeline.html">Pipeline</a></div>
-<div class="card"><span class="eyebrow">SCHEDULED</span><div class="stat" id="scheduled">0</div><p>Upcoming releases</p><a class="btn" href="release-calendar.html">Calendar</a></div>
-<div class="card"><span class="eyebrow">REVENUE</span><div class="stat" id="revenue">$0</div><p>Creator-attributed net</p><a class="btn" href="creator-payouts.html">Payouts</a></div>
-</div></section>
-<section class="section"><div class="center-grid">
-<div class="card"><h2>Needs Attention</h2><div id="attention" class="list"></div></div>
-<div class="card"><h2>Upcoming</h2><div id="upcoming" class="list"></div></div>
-</div></section>
+<div class="actions"><a class="btn primary" href="create-podcast.html">＋ Create Podcast</a><a class="btn" href="create-episode.html">＋ Create Episode</a><a class="btn" href="creator-activity.html">Activity</a><a class="btn" href="creator-intelligence.html">Intelligence</a><a class="btn" href="creator-goals.html">Goals</a></div>
+<section class="section"><div class="center-grid"><div class="card next"><div class="eyebrow">NEXT ACTION</div><h2 id="nextTitle">Loading…</h2><p id="nextDetail">Finding the most useful next step from your live creator data.</p><a id="nextLink" class="btn primary" href="creator-dashboard.html">Open</a></div><div class="card"><div class="eyebrow">ACCOUNT</div><h3 id="accountName">Creator</h3><p id="accountEmail"></p><div id="connectStatus" class="status info">Checking Stripe Connect…</div></div></div></section>
+<section class="section"><div class="grid"><div class="card"><span class="eyebrow">UNREAD</span><div class="stat" id="unread">0</div><p>Activity alerts</p><a class="btn" href="creator-activity.html">Review</a></div><div class="card"><span class="eyebrow">PUBLISHING</span><div class="stat" id="drafts">0</div><p>Episodes needing action</p><a class="btn" href="publishing-pipeline.html">Pipeline</a></div><div class="card"><span class="eyebrow">SCHEDULED</span><div class="stat" id="scheduled">0</div><p>Upcoming releases</p><a class="btn" href="release-calendar.html">Calendar</a></div><div class="card"><span class="eyebrow">REVENUE</span><div class="stat" id="revenue">$0</div><p>Creator-attributed net</p><a class="btn" href="creator-payouts.html">Payouts</a></div></div></section>
+<section class="section"><div class="center-grid"><div class="card"><h2>Needs Attention</h2><div id="attention" class="list"></div></div><div class="card"><h2>Upcoming</h2><div id="upcoming" class="list"></div></div></div></section>
 <section class="section"><div class="card"><h2>Recent Activity</h2><div id="recent" class="list"></div><a class="btn" href="creator-activity.html">Open Full Activity Center</a></div></section>
 </div></main>
 <script>
-const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":">",'"':"&quot;"}[c]));
-const e=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-function item(title,detail,cls="info"){return '<div class="row"><div><strong>'+e(title)+'</strong><br><span>'+e(detail)+'</span></div><span class="status '+cls+'">'+cls+'</span></div>'}
-addEventListener("crow:ready",async()=>{
- if(!__CROW_USER){auth.textContent="Sign in to open the Creator Command Center.";return}
- center.style.display="block";accountName.textContent=__CROW_USER.user_metadata?.display_name||"Creator";accountEmail.textContent=__CROW_USER.email||"";
- const uid=__CROW_USER.id;
- const [alerts,shows,eps,rev,connect]=await Promise.all([
-  CROW_SUPABASE.from("cr_creator_alerts").select("*").eq("creator_id",uid).order("created_at",{ascending:false}).limit(12),
-  CROW_SUPABASE.from("podcasts").select("id,title").eq("creator_id",uid),
-  CROW_SUPABASE.from("podcast_episodes").select("id,title,status,episode_number,published_at,podcast_id").in("podcast_id",(await CROW_SUPABASE.from("podcasts").select("id").eq("creator_id",uid)).data?.map(x=>x.id)||[]).order("created_at",{ascending:false}).limit(100),
-  CROW_SUPABASE.from("cr_creator_revenue_transactions").select("creator_amount").eq("creator_id",uid).eq("status","paid"),
-  CROW_SUPABASE.from("cr_podcast_stripe_accounts").select("onboarding_status,charges_enabled,payouts_enabled,details_submitted,requirements_currently_due,disabled_reason").eq("creator_id",uid).limit(1)
- ]);
- const al=alerts.data||[], sh=shows.data||[], er=eps.data||[], rr=rev.data||[];
- const unreadN=al.filter(x=>!x.read_at).length;unread.textContent=unreadN;
- const actionable=er.filter(x=>x.status!=="published");drafts.textContent=actionable.length;scheduled.textContent=er.filter(x=>x.status==="scheduled").length;
- const net=rr.reduce((n,x)=>n+Number(x.creator_amount||0),0);revenue.textContent="$"+(net/100).toFixed(2);
- const cs=connect.data?.[0];
- if(cs){const due=Array.isArray(cs.requirements_currently_due)?cs.requirements_currently_due.length:0;const ready=!!cs.charges_enabled&&!!cs.payouts_enabled;connectStatus.textContent=ready?"Stripe Connect Ready":(cs.disabled_reason||due?"Stripe Connect Needs Attention":"Stripe Connect Setup");connectStatus.className="status "+(ready?"positive":(cs.disabled_reason||due?"attention":"info"))}
- else {connectStatus.textContent="Stripe Connect Not Started";connectStatus.className="status attention"}
- const issue=al.find(x=>x.severity==="attention"&&!x.read_at)||al.find(x=>x.severity==="attention");
- if(issue){nextTitle.textContent=issue.title;nextDetail.textContent=issue.detail||"Review this creator alert.";nextLink.href="creator-activity.html"}
- else if(actionable.length){const x=actionable[0];nextTitle.textContent="Finish "+(x.title||"episode");nextDetail.textContent="This episode is not published yet. Continue through the publishing pipeline.";nextLink.href="publishing-pipeline.html?episode="+x.id}
- else if(!sh.length){nextTitle.textContent="Create your first podcast";nextDetail.textContent="Start your CrowRules creator catalog.";nextLink.href="create-podcast.html"}
- else {nextTitle.textContent="Keep building your catalog";nextDetail.textContent="Your creator workspace is clear. Explore Intelligence, Goals, or create the next episode.";nextLink.href="create-episode.html"}
- const att=al.filter(x=>x.severity==="attention").slice(0,5);attention.innerHTML=att.length?att.map(x=>item(x.title,x.detail||"Review in Activity Center","attention")).join(""):'<div class="notice">Nothing needs attention right now.</div>';
- const up=er.filter(x=>x.status==="scheduled").slice(0,5);upcoming.innerHTML=up.length?up.map(x=>item(x.title,x.published_at?new Date(x.published_at).toLocaleString():"Scheduled","info")).join(""):'<div class="notice">No scheduled episodes.</div>';
- recent.innerHTML=al.slice(0,8).map(x=>item(x.title,x.detail||new Date(x.created_at).toLocaleString(),x.severity||"info")).join("")||'<div class="notice">No creator activity yet.</div>';
-});
+const esc=s=>String(s??"").replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function item(title,detail,cls="info"){return '<div class="row"><div><strong>'+esc(title)+'</strong><br><span>'+esc(detail)+'</span></div><span class="status '+esc(cls)+'">'+esc(cls)+'</span></div>'}
+let booted=false;
+async function bootCreatorCenter(){
+ if(booted)return; booted=true;
+ const authEl=document.getElementById("auth");
+ try{
+  let tries=0;
+  while(!window.__CROW_AUTH_READY && tries++<80) await new Promise(r=>setTimeout(r,100));
+  const user=window.__CROW_USER, sb=window.CROW_SUPABASE;
+  if(!sb){authEl.innerHTML='<span class="error">CrowRules Supabase connection was not initialized.</span>';return}
+  if(!user){authEl.innerHTML='<span class="error">You are not signed in.</span><br><a class="btn" href="account.html">Open Account</a>';return}
+  authEl.innerHTML='<span class="success">Connected to your CrowRules account.</span>';document.getElementById("center").style.display="block";
+  accountName.textContent=user.user_metadata?.display_name||user.user_metadata?.full_name||"Creator";accountEmail.textContent=user.email||"";
+  const uid=user.id;
+  const showsR=await sb.from("podcasts").select("id,title").eq("creator_id",uid);if(showsR.error)throw showsR.error;
+  const shows=showsR.data||[], ids=shows.map(x=>x.id);
+  const [alerts,eps,rev,connect]=await Promise.all([
+   sb.from("cr_creator_alerts").select("*").eq("creator_id",uid).order("created_at",{ascending:false}).limit(12),
+   ids.length?sb.from("podcast_episodes").select("id,title,status,episode_number,published_at,podcast_id").in("podcast_id",ids).order("created_at",{ascending:false}).limit(100):Promise.resolve({data:[],error:null}),
+   sb.from("cr_creator_revenue_transactions").select("creator_amount").eq("creator_id",uid).eq("status","paid"),
+   sb.from("cr_podcast_stripe_accounts").select("onboarding_status,charges_enabled,payouts_enabled,details_submitted,requirements_currently_due,disabled_reason").eq("creator_id",uid).limit(1)
+  ]);
+  const errors=[alerts,eps,rev,connect].filter(x=>x.error);if(errors.length)throw errors[0].error;
+  const al=alerts.data||[],er=eps.data||[],rr=rev.data||[];
+  unread.textContent=al.filter(x=>!x.read_at).length;const actionable=er.filter(x=>x.status!=="published");drafts.textContent=actionable.length;scheduled.textContent=er.filter(x=>x.status==="scheduled").length;
+  revenue.textContent="$"+(rr.reduce((n,x)=>n+Number(x.creator_amount||0),0)/100).toFixed(2);
+  const cs=connect.data?.[0];if(cs){const due=Array.isArray(cs.requirements_currently_due)?cs.requirements_currently_due.length:0,ready=!!cs.charges_enabled&&!!cs.payouts_enabled;connectStatus.textContent=ready?"Stripe Connect Ready":(cs.disabled_reason||due?"Stripe Connect Needs Attention":"Stripe Connect Setup");connectStatus.className="status "+(ready?"positive":(cs.disabled_reason||due?"attention":"info"))}else{connectStatus.textContent="Stripe Connect Not Started";connectStatus.className="status attention"}
+  const issue=al.find(x=>x.severity==="attention"&&!x.read_at)||al.find(x=>x.severity==="attention");if(issue){nextTitle.textContent=issue.title;nextDetail.textContent=issue.detail||"Review this creator alert.";nextLink.href="creator-activity.html"}else if(actionable.length){const x=actionable[0];nextTitle.textContent="Finish "+(x.title||"episode");nextDetail.textContent="This episode is not published yet. Continue through the publishing pipeline.";nextLink.href="publishing-pipeline.html?episode="+x.id}else if(!shows.length){nextTitle.textContent="Create your first podcast";nextDetail.textContent="Start your CrowRules creator catalog.";nextLink.href="create-podcast.html"}else{nextTitle.textContent="Keep building your catalog";nextDetail.textContent="Your creator workspace is clear. Explore Intelligence, Goals, or create the next episode.";nextLink.href="create-episode.html"}
+  const att=al.filter(x=>x.severity==="attention").slice(0,5);attention.innerHTML=att.length?att.map(x=>item(x.title,x.detail||"Review in Activity Center","attention")).join(""):"<div class=\"notice\">Nothing needs attention right now.</div>";
+  const up=er.filter(x=>x.status==="scheduled").slice(0,5);upcoming.innerHTML=up.length?up.map(x=>item(x.title,x.published_at?new Date(x.published_at).toLocaleString():"Scheduled","info")).join(""):"<div class=\"notice\">No scheduled episodes.</div>";
+  recent.innerHTML=al.slice(0,8).map(x=>item(x.title,x.detail||new Date(x.created_at).toLocaleString(),x.severity||"info")).join("")||"<div class=\"notice\">No creator activity yet.</div>";
+ }catch(err){console.error(err);authEl.innerHTML='<span class="error">Creator data could not be loaded: '+esc(err.message||err)+'</span>'}
+}
+window.addEventListener("crow:ready",bootCreatorCenter);document.addEventListener("crow:ready",bootCreatorCenter);window.addEventListener("crow:auth-error",e=>{if(!booted)document.getElementById("auth").innerHTML='<span class="error">'+esc(e.detail?.message||"Supabase connection failed.")+'</span>'});
+if(window.__CROW_AUTH_READY)bootCreatorCenter();else setTimeout(()=>{if(window.__CROW_AUTH_READY)bootCreatorCenter()},250);
 </script></body></html>
