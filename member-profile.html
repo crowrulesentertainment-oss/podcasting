@@ -121,19 +121,19 @@ async function loadProfile(){
   const user=await resolveSession();
   let row=null;
   if(target){
-   const r=await sb.from("podcast_member_profiles").select("*").eq("user_id",target).maybeSingle();
+   const r=await CROW_SUPABASE.from("podcast_member_profiles").select("*").eq("user_id",target).maybeSingle();
    if(r.error)throw r.error;
    row=r.data;
    if(!row){
-    const m=await sb.from("members").select("user_id,display_name,username,first_name,last_name,bio,avatar_url,created_at").eq("user_id",target).maybeSingle();
+    const m=await CROW_SUPABASE.from("members").select("user_id,display_name,username,first_name,last_name,bio,avatar_url,created_at").eq("user_id",target).maybeSingle();
     if(!m.error&&m.data&&user&&user.id===target)row={user_id:target,display_name:m.data.display_name||[m.data.first_name,m.data.last_name].filter(Boolean).join(" ")||"CrowRules Member",username:m.data.username,bio:m.data.bio,avatar_url:m.data.avatar_url,created_at:m.data.created_at,is_public:true,activity_public:true,network_public:true,followers_public:true,following_public:true};
    }
   }else if(user){
-   const r=await sb.from("podcast_member_profiles").select("*").eq("user_id",user.id).maybeSingle();
+   const r=await CROW_SUPABASE.from("podcast_member_profiles").select("*").eq("user_id",user.id).maybeSingle();
    if(r.error)throw r.error;
    row=r.data;
    if(!row){
-    const m=await sb.from("members").select("user_id,display_name,username,first_name,last_name,bio,avatar_url,created_at").eq("user_id",user.id).maybeSingle();
+    const m=await CROW_SUPABASE.from("members").select("user_id,display_name,username,first_name,last_name,bio,avatar_url,created_at").eq("user_id",user.id).maybeSingle();
     if(!m.error&&m.data)row={user_id:user.id,display_name:m.data.display_name||[m.data.first_name,m.data.last_name].filter(Boolean).join(" ")||"CrowRules Member",username:m.data.username,bio:m.data.bio,avatar_url:m.data.avatar_url,created_at:m.data.created_at,is_public:true,activity_public:true,network_public:true,followers_public:true,following_public:true};
    }
   }else{
@@ -187,7 +187,7 @@ function profileDetailsHtml(p){
 
 async function loadStats(){
  try{
-  const r=await sb.from("podcast_member_profile_stats").select("published_podcasts,published_episodes,total_plays,member_followers,member_following,episode_comments,episode_reactions,profile_views,listening_seconds,crowpoints").eq("user_id",profileData.user_id).maybeSingle();
+  const r=await CROW_SUPABASE.from("podcast_member_profile_stats").select("published_podcasts,published_episodes,total_plays,member_followers,member_following,episode_comments,episode_reactions,profile_views,listening_seconds,crowpoints").eq("user_id",profileData.user_id).maybeSingle();
   if(r.error)throw r.error;
   statsData=r.data||{};
   $("followers").textContent=fmt(statsData.member_followers);$("following").textContent=fmt(statsData.member_following);$("podcasts").textContent=fmt(statsData.published_podcasts);$("episodes").textContent=fmt(statsData.published_episodes);$("plays").textContent=fmt(statsData.total_plays);$("points").textContent=fmt(statsData.crowpoints);
@@ -198,7 +198,7 @@ async function loadStats(){
 async function loadActivity(){
  if(profileData.activity_public===false){$("activityTab").innerHTML='<div class="empty-profile">Activity is private.</div>';return}
  try{
-  const r=await sb.from("cr_platform_recent_activity").select("id,event_type,message,metadata,created_at,division_key,entity_type,entity_id").eq("user_id",profileData.user_id).order("created_at",{ascending:false}).limit(15);
+  const r=await CROW_SUPABASE.from("cr_platform_recent_activity").select("id,event_type,message,metadata,created_at,division_key,entity_type,entity_id").eq("user_id",profileData.user_id).order("created_at",{ascending:false}).limit(15);
   if(r.error)throw r.error;
   const rows=r.data||[];
   $("activityTab").innerHTML=rows.map(a=>'<article class="feed-item"><div class="feed-top"><div class="feed-avatar">'+(profileData.avatar_url?imageMarkup(profileData.avatar_url,""):esc(initials(profileData.display_name)))+'</div><div><strong>'+esc(profileData.display_name||"Member")+'</strong><div class="feed-time">'+esc(a.event_type||"Activity")+(a.created_at?" · "+esc(safeTime(a.created_at)):"")+'</div></div></div><p style="margin-top:12px">'+esc(a.message||"Activity in CrowRules.")+'</p><div class="feed-source">'+esc(a.division_key||"CrowRules")+(a.entity_type?" · "+esc(a.entity_type):"")+'</div></article>').join("")||'<div class="empty-profile">No public activity yet. New CrowRules activity will appear here.</div>';
@@ -208,7 +208,7 @@ async function loadActivity(){
 async function loadPosts(){
  if(profileData.network_public===false){$("postsTab").innerHTML='<div class="empty-profile">Posts are private.</div>';return}
  try{
-  const r=await sb.from("community_posts").select("id,title,body,post_type,status,visibility,is_pinned,like_count,comment_count,view_count,published_at,created_at").eq("author_id",profileData.user_id).eq("status","published").eq("visibility","public").order("published_at",{ascending:false}).limit(12);
+  const r=await CROW_SUPABASE.from("community_posts").select("id,title,body,post_type,status,visibility,is_pinned,like_count,comment_count,view_count,published_at,created_at").eq("author_id",profileData.user_id).eq("status","published").eq("visibility","public").order("published_at",{ascending:false}).limit(12);
   if(r.error)throw r.error;
   const rows=r.data||[];
   $("postsTab").innerHTML=rows.map(p=>'<article class="post-card"><div class="post-meta">'+esc(p.post_type||"Post")+' · '+esc(safeTime(p.published_at||p.created_at))+(p.is_pinned?" · Pinned":"")+'</div>'+(p.title?'<h3>'+esc(p.title)+"</h3>":"")+'<p>'+esc(p.body)+'</p><div class="post-actions"><span>♥ '+fmt(p.like_count)+"</span><span>💬 "+fmt(p.comment_count)+"</span><span>◉ "+fmt(p.view_count)+"</span></div></article>").join("")||'<div class="empty-profile">No public community posts yet.</div>';
@@ -222,17 +222,17 @@ async function wireSocial(){
  if(!user){btn.textContent="Sign in to follow";btn.onclick=()=>location.href="account.html";$("messageBtn").onclick=()=>location.href="account.html";return}
  if(profileData.followers_public===false){btn.disabled=true;btn.textContent="Follow";$("messageBtn").disabled=true;return}
  try{
-  const r=await sb.from("podcast_member_follows").select("id").eq("follower_user_id",user.id).eq("followed_user_id",profileData.user_id).maybeSingle();
+  const r=await CROW_SUPABASE.from("podcast_member_follows").select("id").eq("follower_user_id",user.id).eq("followed_user_id",profileData.user_id).maybeSingle();
   if(!r.error&&r.data)btn.textContent="Following";
  }catch(e){}
  btn.onclick=async()=>{
   btn.disabled=true;
   try{
    if(btn.textContent==="Following"){
-    const r=await sb.from("podcast_member_follows").delete().eq("follower_user_id",user.id).eq("followed_user_id",profileData.user_id);
+    const r=await CROW_SUPABASE.from("podcast_member_follows").delete().eq("follower_user_id",user.id).eq("followed_user_id",profileData.user_id);
     if(r.error)throw r.error;btn.textContent="Follow";
    }else{
-    const r=await sb.from("podcast_member_follows").insert({follower_user_id:user.id,followed_user_id:profileData.user_id});
+    const r=await CROW_SUPABASE.from("podcast_member_follows").insert({follower_user_id:user.id,followed_user_id:profileData.user_id});
     if(r.error)throw r.error;btn.textContent="Following";
    }
    await loadStats();
@@ -249,7 +249,7 @@ async function editProfile(){
   e.preventDefault();const state=$("editState");state.classList.remove("hidden");state.textContent="Saving…";
   const patch={display_name:$("edName").value.trim()||null,username:$("edUser").value.trim()||null,tagline:$("edTag").value.trim()||null,bio:$("edBio").value.trim()||null,location:$("edLoc").value.trim()||null,website_url:$("edWeb").value.trim()||null,avatar_url:$("edAvatar").value.trim()||null,cover_url:$("edCover").value.trim()||null,interests:$("edInt").value.trim()||null,favorite_music:$("edMusic").value.trim()||null,favorite_movies:$("edMovies").value.trim()||null,favorite_games:$("edGames").value.trim()||null,mood:$("edMood").value.trim()||null,featured_achievement:$("edAchievement").value.trim()||null,is_public:$("edPublic").checked,activity_public:$("edActivity").checked,network_public:$("edNetwork").checked,followers_public:$("edFollowers").checked,updated_at:new Date().toISOString()};
   try{
-   const r=await sb.from("podcast_member_profiles").upsert({...patch,user_id:profileData.user_id},{onConflict:"user_id"});
+   const r=await CROW_SUPABASE.from("podcast_member_profiles").upsert({...patch,user_id:profileData.user_id},{onConflict:"user_id"});
    if(r.error)throw r.error;profileData={...profileData,...patch};state.textContent="Profile saved.";setTimeout(renderProfile,450);
   }catch(err){console.error(err);state.textContent=err?.message||"Unable to save profile."}
  };
