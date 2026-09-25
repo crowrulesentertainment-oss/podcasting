@@ -16,11 +16,11 @@
 <main class="wrap hero">
 <div class="eyebrow">CROWRULES PODCASTING 4.1</div>
 <h1>Adaptive <span class="gradient">Recommendations.</span></h1>
-<p class="lead">Recommendations combine outcome evidence with your own feedback. Creator preference can change presentation order, while measured outcomes remain a separate evidence track.</p>
+<p class="lead">Recommendations combine outcome evidence with your own feedback. Creator preference can influence presentation order, while measured outcomes remain a separate evidence track. Long-term preference memory is stored independently and never changes evidence confidence.</p>
 <div id="auth" class="notice">Checking account…</div>
 <div id="app" style="display:none">
 <div class="actions"><a class="btn" href="creator-intelligence.html">Creator Intelligence</a><a class="btn" href="creator-learning.html">Learning Signals</a><a class="btn" href="creator-actions.html">Action Center</a><button class="btn primary" id="refresh">Refresh</button></div>
-<section class="section"><div class="card"><h2>How adaptation works</h2><p>Outcome evidence can change evidence context and priority. Your feedback can change presentation order only. Useful and Not useful express preference; Already doing this identifies an existing behavior; Dismiss removes a recommendation from your active view. None of these responses increases or decreases outcome sample size or evidence confidence.</p></div></section>
+<section class="section"><div class="card"><h2>Your Recommendation Memory</h2><p id="memory">Loading long-term creator preferences…</p></div></section><section class="section"><div class="card"><h2>How adaptation works</h2><p>Outcome evidence can change evidence context and priority. Your feedback can change presentation order only. Useful and Not useful express preference; Already doing this identifies an existing behavior; Dismiss removes a recommendation from your active view. None of these responses increases or decreases outcome sample size or evidence confidence.</p></div></section>
 <section class="section"><div id="list" class="rec-grid"><div class="empty">Loading…</div></div></section>
 </div></main>
 <script>
@@ -54,6 +54,9 @@ async function load(){
  ]);
  if(profile.error){$('list').innerHTML='<div class="empty">'+esc(profile.error.message)+'</div>';return}
  if(feedbackRows.error){$('list').innerHTML='<div class="empty">'+esc(feedbackRows.error.message)+'</div>';return}
+ const memory=profile.data?.patterns?.recommendation_memory;
+ const memoryItems=Array.isArray(memory?.items)?memory.items:[];
+ $('memory').textContent=memoryItems.length?memoryItems.map(m=>String(m.key)+': '+String(m.preference).replace(/_/g,' ')+' ('+m.feedback_count+' responses)').join(' • '):'No long-term recommendation preferences have been established yet. Feedback will build this memory over time.';
  const feedback=feedbackRows.data||[],counts={};
  for(const f of feedback){const k=String(f.recommendation_key||'');const x=counts[k]||(counts[k]={useful:0,not_useful:0,already_doing_this:0,dismiss:0});if(Object.prototype.hasOwnProperty.call(x,f.action))x[f.action]++}
  const rows=(Array.isArray(profile.data?.recommendations)?profile.data.recommendations:[]).map(r=>{const k=String(r.key||r.action_type||r.metric||r.title||'general'),x=counts[k]||{useful:0,not_useful:0,already_doing_this:0,dismiss:0},score=(x.useful*2)-(x.not_useful*2);return {...r,client_preference_score:score,client_feedback:{...x,total:x.useful+x.not_useful+x.already_doing_this+x.dismiss},client_feedback_context:x.useful>x.not_useful?'preferred':x.not_useful>x.useful?'deprioritized':x.already_doing_this?'already_doing':'no_feedback'} }).filter(r=>!((counts[String(r.key||r.action_type||r.metric||r.title||'general')]||{}).dismiss>0));
