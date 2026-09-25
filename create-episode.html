@@ -29,6 +29,11 @@
 </div>
 <div class="field"><label for="show_notes">Show notes</label><textarea id="show_notes" rows="5" placeholder="Links, credits, resources and notes for listeners."></textarea></div>
 <div class="field"><label for="transcript">Transcript</label><textarea id="transcript" rows="7" placeholder="Optional episode transcript."></textarea></div>
+<div class="field"><label>Episode cover / artwork</label>
+<label class="drop" id="artDrop"><input id="artwork" type="file" accept="image/png,image/jpeg,image/webp,image/avif"><strong id="artDropTitle">Drop episode artwork here</strong><div class="muted">Optional · PNG, JPG, WebP or AVIF · recommended 3000 × 3000</div></label>
+<div id="artFileInfo"></div>
+<div class="field" style="margin-top:10px"><label for="artwork_url">Or use an artwork URL</label><input id="artwork_url" type="url" placeholder="https://…"></div>
+</div>
 <div class="field"><label>Audio file</label>
 <label class="drop" id="drop"><input id="audio" type="file" accept="audio/*,.mp3,.m4a,.wav,.aac,.ogg,.flac" required><strong id="dropTitle">Drop your audio here</strong><div class="muted">or click to browse · MP3, M4A, WAV, AAC, OGG, FLAC</div></label>
 <div id="fileInfo"></div><audio id="audioPreview" class="audio-preview" controls hidden></audio>
@@ -52,7 +57,7 @@
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
-let sb,user,podcasts=[],uploading=false;
+let sb,user,podcasts=[],uploading=false,artworkFile=null;\nconst MAX_ART=15*1024*1024;
 const MAX=500*1024*1024;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function slugify(v){return String(v||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,180)}
@@ -71,6 +76,19 @@ $("slug").addEventListener("input",()=>{$("slug").dataset.edited="1"});
 $("description").addEventListener("input",()=>{$("previewDescription").textContent=$("description").value||"Your episode description will appear here."});
 $("podcast_id").addEventListener("change",()=>{const p=podcasts.find(x=>x.id===$("podcast_id").value);$("previewShow").textContent=p?.title||"Select a podcast";$("art").innerHTML=p?.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="">':'<span class="muted">Podcast artwork</span>'});
 $("audio").addEventListener("change",e=>setFile(e.target.files[0]));
+function setArtwork(f){
+ if(!f)return;
+ if(f.size>MAX_ART){msg("Artwork exceeds the 15 MB upload limit.","error");$("submit").disabled=true;return}
+ if(!/^image\\/(png|jpeg|webp|avif)$/i.test(f.type)){msg("Please choose PNG, JPG, WebP or AVIF artwork.","error");$("submit").disabled=true;return}
+ artworkFile=f;$("submit").disabled=false;$("artDropTitle").textContent=f.name;
+ $("artFileInfo").innerHTML='<div class="file"><span>'+esc(f.name)+'</span><span class="muted">'+(f.size/1048576).toFixed(1)+' MB</span></div>';
+ $("art").innerHTML='<img src="'+URL.createObjectURL(f)+'" alt="Episode artwork preview">';
+}
+$("artwork").addEventListener("change",e=>setArtwork(e.target.files[0]));
+$("artwork_url").addEventListener("input",()=>{if($("artwork_url").value.trim()&&!artworkFile)$("art").innerHTML='<img src="'+esc($("artwork_url").value.trim())+'" alt="Episode artwork preview">';});
+$("artDrop").addEventListener("dragover",e=>{e.preventDefault();$("artDrop").classList.add("drag")});
+$("artDrop").addEventListener("dragleave",()=>$("artDrop").classList.remove("drag"));
+$("artDrop").addEventListener("drop",e=>{e.preventDefault();$("artDrop").classList.remove("drag");const f=e.dataTransfer.files?.[0];if(f){const dt=new DataTransfer();dt.items.add(f);$("artwork").files=dt.files;setArtwork(f)}});
 $("drop").addEventListener("dragover",e=>{e.preventDefault();$("drop").classList.add("drag")});
 $("drop").addEventListener("dragleave",()=>$("drop").classList.remove("drag"));
 $("drop").addEventListener("drop",e=>{e.preventDefault();$("drop").classList.remove("drag");const f=e.dataTransfer.files?.[0];if(f){const dt=new DataTransfer();dt.items.add(f);$("audio").files=dt.files;setFile(f)}});
@@ -98,6 +116,17 @@ $("form").addEventListener("submit",async e=>{
   await sb.from("podcast_episode_pipeline_events").insert({episode_id:ep.id,podcast_id:ep.podcast_id,actor_id:user.id,event_type:"created",from_status:null,to_status:"draft",message:"Episode draft created."});
   const session=(await sb.auth.getSession()).data?.session;if(!session)throw new Error("Session expired. Sign in again.");
   const safe=f.name.replace(/[^A-Za-z0-9._-]/g,"_");const path=user.id+"/"+ep.id+"/"+Date.now()+"-"+safe;
+  let artworkUrl=$("artwork_url").value.trim()||null;
+  if(artworkFile){
+    const artSession=(await sb.auth.getSession()).data?.session;if(!artSession)throw new Error("Session expired before artwork upload.");
+    const artSafe=artworkFile.name.replace(/[^A-Za-z0-9._-]/g,"_");const artPath=user.id+"/"+ep.id+"/artwork-"+Date.now()+"-"+artSafe;
+    msg("Uploading episode artwork…");
+    const artUpload=await new Promise((resolve,reject)=>{
+      const u=new tus.Upload(artworkFile,{endpoint:CROW_CONFIG.supabaseUrl+"/storage/v1/upload/resumable",retryDelays:[0,1000,3000,5000],headers:{authorization:"Bearer "+artSession.access_token,"x-upsert":"false"},metadata:{bucketName:"podcast-avatars",objectName:artPath,contentType:artworkFile.type,cacheControl:"3600"},onError:reject,onProgress:(bytes,total)=>{const pct=Math.round(bytes/total*100);$("uploadStatus").textContent="Artwork "+pct+"%";},onSuccess:()=>resolve(true)});u.start();
+    }); 
+    if(artUpload)artworkUrl=sb.storage.from("podcast-avatars").getPublicUrl(artPath).data.publicUrl;
+  }
+  if(artworkUrl){const au=await sb.from("podcast_episodes").update({thumbnail_url:artworkUrl}).eq("id",ep.id);if(au.error)throw au.error;}
   msg("Uploading audio…");$("uploadStatus").textContent="Uploading 0%";
   const up=new tus.Upload(f,{endpoint:CROW_CONFIG.supabaseUrl+"/storage/v1/upload/resumable",retryDelays:[0,1000,3000,5000,10000],headers:{authorization:"Bearer "+session.access_token,"x-upsert":"false"},metadata:{bucketName:"podcast-audio",objectName:path,contentType:f.type||"audio/mpeg",cacheControl:"3600"},onError:err=>{throw err},onProgress:(bytes,total)=>{const pct=Math.round(bytes/total*100);$("uploadBar").style.width=pct+"%";$("uploadStatus").textContent="Uploading "+pct+"%";msg("Uploading audio "+pct+"%…")},onSuccess:async()=>{
    const url=sb.storage.from("podcast-audio").getPublicUrl(path).data.publicUrl;
