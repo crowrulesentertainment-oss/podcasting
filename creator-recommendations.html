@@ -31,7 +31,7 @@ let allRecommendationRows=[];
 const historyFilter={recommendation:'all',event:'all',dimension:'all',window:'all'};
 function populateHistoryRecommendations(rows){const s=$('historyRec');if(!s)return;const current=s.value||'all';s.innerHTML='<option value="all">All recommendations</option>'+rows.map(r=>String(r.key||r.action_type||r.metric||r.title||'general')).filter((v,i,a)=>a.indexOf(v)===i).sort().map(k=>'<option value="'+esc(k)+'">'+esc(k.replace(/_/g,' '))+'</option>').join('');s.value=[...s.options].some(o=>o.value===current)?current:'all'}
 function historyMatches(t){const h=t.server_history;if(!h)return false;if(historyFilter.recommendation!=='all'&&String(t.recommendation_key)!==historyFilter.recommendation)return false;if(historyFilter.event!=='all'&&h.event_type!==historyFilter.event)return false;if(historyFilter.dimension!=='all'&&!(Array.isArray(h.change_dimensions)&&h.change_dimensions.includes(historyFilter.dimension)))return false;if(historyFilter.window!=='all'){const days=Number(historyFilter.window),ts=new Date(h.recorded_at||t.recorded_at||0).getTime();if(!ts||Date.now()-ts>days*86400000)return false}return true}
-function applyHistoryFilters(rows){const filtered=rows.map(r=>({...r,timeline:(r.timeline||[]).filter(historyMatches)})).filter(r=>historyFilter.recommendation==='all'||String(r.key||r.action_type||r.metric||r.title||'general')===historyFilter.recommendation);$('historyCount').textContent=filtered.reduce((n,r)=>n+(r.timeline||[]).length,0)+' history events shown';return filtered}
+function applyHistoryFilters(rows){const active=historyFilter.recommendation!=='all'||historyFilter.event!=='all'||historyFilter.dimension!=='all'||historyFilter.window!=='all';const filtered=rows.map(r=>({...r,timeline:active?(r.timeline||[]).filter(historyMatches):(r.timeline||[])})).filter(r=>!active||historyFilter.recommendation==='all'||String(r.key||r.action_type||r.metric||r.title||'general')===historyFilter.recommendation);$('historyCount').textContent=filtered.reduce((n,r)=>n+(r.timeline||[]).length,0)+' history events shown';return filtered}
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const num=v=>Number(v||0);
 function contextClass(v){return v==='evidence_supported'?'supported':v==='caution'?'caution':'exploratory'}
@@ -46,7 +46,7 @@ async function feedback(r,action){
 }
 function render(rows){
  allRecommendationRows=rows;populateHistoryRecommendations(rows);const visible=applyHistoryFilters(rows);
- if(!visible.length||!visible.some(r=>(r.timeline||[]).length)){$('list').innerHTML='<div class="empty">No adaptive recommendations yet. Complete creator actions and allow outcome measurements to accumulate.</div>';return}
+ if(!visible.length||((historyFilter.recommendation!=='all'||historyFilter.event!=='all'||historyFilter.dimension!=='all'||historyFilter.window!=='all')&&!visible.some(r=>(r.timeline||[]).length))){$('list').innerHTML='<div class="empty">No adaptive recommendations yet. Complete creator actions and allow outcome measurements to accumulate.</div>';return}
  $('list').innerHTML=visible.map(r=>{
   const e=r.adaptive_evidence||{},p=r.evidence_provenance||{},c=contextClass(r.priority_context),o=e.observed_effect||{},x=r.explanation||{},s=r.evidence_summary||{};
   const k=String(r.key||r.action_type||r.metric||r.title||'general');
