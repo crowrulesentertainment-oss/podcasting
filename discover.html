@@ -150,23 +150,26 @@ function render(id,html,empty){
 }
 
 async function queryAll(){
- const p=await CROW_SUPABASE.from("podcasts").select("id,title,slug,category,description,artwork_url,status,is_featured,is_live,total_plays,listener_count,created_at,updated_at,author_name,creator_id,category_id").eq("status","published").order("created_at",{ascending:false}).limit(100);
- if(p.error)throw p.error;
+ if(!window.CROW_SUPABASE)throw new Error("CrowRules Supabase client is not ready.");
+ const sb=window.CROW_SUPABASE;
+ const p=await sb.from("podcasts").select("id,title,slug,category,description,artwork_url,status,is_featured,is_live,total_plays,listener_count,created_at,updated_at,author_name,creator_id,category_id").eq("status","published").order("created_at",{ascending:false}).limit(100);
+ if(p.error)throw new Error("Podcasts: "+p.error.message);
  podcasts=p.data||[];
 
- const e=await CROW_SUPABASE.from("podcast_episodes").select("id,podcast_id,title,description,published_at,created_at,updated_at,thumbnail_url,play_count,status,duration_seconds").eq("status","published").order("published_at",{ascending:false}).limit(100);
- if(e.error)throw e.error;
+ const e=await sb.from("podcast_episodes").select("id,podcast_id,title,description,published_at,created_at,updated_at,thumbnail_url,play_count,status,duration_seconds").eq("status","published").order("published_at",{ascending:false}).limit(100);
+ if(e.error)throw new Error("Episodes: "+e.error.message);
  episodes=e.data||[];
 
  const ids=[...new Set(podcasts.map(x=>x.creator_id).filter(Boolean))];
+ creators=[];
  if(ids.length){
-   const c=await CROW_SUPABASE.from("creators").select("id,name,discipline,avatar_url,profile_url,is_active").in("id",ids).eq("is_active",true);
-   if(!c.error)creators=c.data||[];
+   const c=await sb.from("creators").select("id,name,discipline,avatar_url,profile_url,is_active").in("id",ids).eq("is_active",true);
+   if(c.error)console.warn("Discover creators:",c.error.message);
+   else creators=c.data||[];
  }
  const pmap=Object.fromEntries(podcasts.map(p=>[p.id,p]));
  episodes=episodes.map(e=>({...e,podcast_title:pmap[e.podcast_id]?.title||"CrowRules Podcast",podcast_artwork:pmap[e.podcast_id]?.artwork_url||null}));
 }
-
 function topPodcasts(){
  return [...podcasts].sort((a,b)=>
    Number(b.total_plays||0)-Number(a.total_plays||0) ||
@@ -234,18 +237,32 @@ async function init(){
  try{
    await queryAll();
    renderHome();
-   const cats=await CROW_SUPABASE.from("podcast_categories").select("id,name,sort_order").order("sort_order",{ascending:true}).limit(30);
+   const cats=await CROW_SUPABASE.from("podcast_categories").select("id,name,sort_order").eq("is_active",true).order("sort_order",{ascending:true}).limit(30);
+   if(cats.error)console.warn("Discover categories:",cats.error.message);
    $("cats").innerHTML=(cats.data||[]).map(x=>'<button class="btn" data-cat="'+esc(x.name)+'">'+esc(x.name)+'</button>').join("");
    document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{$("q").value=b.dataset.cat;search()});
  }catch(e){
    console.error("Discover:",e);
-   ["topPodcasts","topEpisodes","topHosts","trending","newest"].forEach(id=>render(id,"","Unable to load discovery data right now."));
+   $("featuredTitle").textContent="Discovery is connecting…";
+   $("featuredMeta").textContent=e?.message||"Unable to connect to the catalog.";
+   ["topPodcasts","topEpisodes","topHosts","trending","newest"].forEach(id=>render(id,"","Unable to load this section yet."));
  }
+}
+async function boot(){
+ const started=Date.now();
+ while(!window.CROW_SUPABASE){
+   if(Date.now()-started>15000){
+     init();
+     return;
+   }
+   await new Promise(r=>setTimeout(r,100));
+ }
+ await init();
 }
 $("searchBtn").onclick=search;
 $("q").addEventListener("keydown",e=>{if(e.key==="Enter")search()});
-addEventListener("crow:ready",init,{once:true});
-if(window.CROW_SUPABASE)init();
+addEventListener("crow:ready",boot,{once:true});
+boot();
 })();
 </script>
 </body>
