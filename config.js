@@ -1,1 +1,0 @@
-window.CROWRULES_CONFIG={SUPABASE_URL:"https://cevylpnoexugwgygvtgu.supabase.co",SUPABASE_ANON_KEY:"sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-",STRIPE_PUBLISHABLE_KEY:""};
