@@ -21,46 +21,70 @@
 <h2>Your Podcasts</h2><div id="podcasts" class="podcasts"></div>
 </section></main>
 <script>
-const SUPABASE_URL=window.CROW_CONFIG?.supabaseUrl||'https://cevylpnoexugwgygvtgu.supabase.co';
-const SUPABASE_KEY=window.CROW_CONFIG?.supabaseKey;
-let sb;
 const accountEl=document.getElementById('account');
 const dashboardEl=document.getElementById('dashboard');
 const podcastsEl=document.getElementById('podcasts');
+const refreshBtn=document.getElementById('refresh');
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function showError(e){accountEl.className='notice error';accountEl.textContent='Supabase error: '+(e?.message||e);}
+function showError(e){
+ accountEl.className='notice error';
+ accountEl.textContent='Supabase error: '+(e?.message||e);
+ dashboardEl.hidden=false;
+}
 function render(data){
  if(!data?.length){podcastsEl.innerHTML='<div class="card empty"><h3>No podcasts found</h3><p>Create your first CrowRules podcast and it will appear here automatically.</p><a class="btn primary" href="create-podcast.html">Create Podcast</a></div>';return;}
  podcastsEl.innerHTML=data.map(p=>'<article class="card pod-card"><div class="pod-art">'+(p.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="'+esc(p.title)+' artwork" loading="lazy">':'<div class="empty">No artwork</div>')+'</div><div class="pod-body"><span class="status">'+esc(p.status||'draft')+'</span><h3>'+esc(p.title)+'</h3><p>'+esc(p.description||'No description yet.')+'</p><div class="actions"><a class="btn" href="podcast.html?id='+encodeURIComponent(p.id)+'">Open Podcast</a><a class="btn" href="episode-studio.html?podcast='+encodeURIComponent(p.id)+'">Create Episode</a></div></div></article>').join('');
 }
+function timeout(p,ms=10000){
+ return Promise.race([p,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Supabase request timed out.')),ms))]);
+}
 async function loadPodcasts(){
  podcastsEl.innerHTML='<div class="notice loading">Loading podcasts from Supabase…</div>';
- // Published podcasts are intentionally public in the database, so this query works
- // even if the browser session has not finished restoring yet.
- const pub=await sb.from('podcasts').select('id,title,slug,status,artwork_url,description,created_at,creator_id').eq('status','published').order('created_at',{ascending:false});
- if(pub.error) throw pub.error;
+ const sb=window.CROW_SUPABASE||window.supabase?.createClient?.(window.CROW_CONFIG?.supabaseUrl,window.CROW_CONFIG?.supabaseKey);
+ if(!sb)throw new Error('Supabase client is not available yet.');
+ window.CROW_SUPABASE=sb;
+
+ const pub=await timeout(sb.from('podcasts')
+   .select('id,title,slug,status,artwork_url,description,created_at,creator_id')
+   .eq('status','published')
+   .order('created_at',{ascending:false}));
+ if(pub.error)throw pub.error;
  let rows=pub.data||[];
- const {data:{session}}=await sb.auth.getSession();
+
+ let session=null;
+ try{session=(await timeout(sb.auth.getSession(),8000)).data?.session||null}catch(e){console.warn('Session restore:',e.message)}
+
  if(session?.user){
-   const own=await sb.from('podcasts').select('id,title,slug,status,artwork_url,description,created_at,creator_id').eq('creator_id',session.user.id).order('created_at',{ascending:false});
-   if(own.error) throw own.error;
-   const map=new Map(rows.map(p=>[p.id,p]));
-   (own.data||[]).forEach(p=>map.set(p.id,p));
-   rows=Array.from(map.values()).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
-   accountEl.className='notice';accountEl.textContent='Signed in as '+(session.user.email||'CrowRules Member');
+   const own=await timeout(sb.from('podcasts')
+     .select('id,title,slug,status,artwork_url,description,created_at,creator_id')
+     .eq('creator_id',session.user.id)
+     .order('created_at',{ascending:false}));
+   if(own.error){
+     console.warn('Owned podcast query:',own.error.message);
+   }else{
+     const map=new Map(rows.map(p=>[p.id,p]));
+     (own.data||[]).forEach(p=>map.set(p.id,p));
+     rows=Array.from(map.values()).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+   }
+   accountEl.className='notice';
+   accountEl.textContent='Signed in as '+(session.user.email||'CrowRules Member');
  }else{
-   accountEl.className='notice';accountEl.textContent='Supabase connected • showing published podcasts';
+   accountEl.className='notice';
+   accountEl.textContent='Supabase connected • showing published podcasts';
  }
  dashboardEl.hidden=false;
  render(rows);
 }
 async function init(){
  try{
-  if(!SUPABASE_KEY) throw new Error('Supabase publishable key is missing from js/config.js.');
-  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-  await loadPodcasts();
- }catch(e){showError(e);dashboardEl.hidden=false;}
+   if(window.CROW_SUPABASE){
+     await loadPodcasts();
+     return;
+   }
+   window.addEventListener('crow:ready',()=>loadPodcasts().catch(showError),{once:true});
+   setTimeout(()=>{if(!window.CROW_SUPABASE)loadPodcasts().catch(showError)},5000);
+ }catch(e){showError(e)}
 }
-document.getElementById('refresh').addEventListener('click',()=>loadPodcasts().catch(showError));
+refreshBtn.addEventListener('click',()=>loadPodcasts().catch(showError));
 init();
-</script></body></html>
+</script></script></body></html>
