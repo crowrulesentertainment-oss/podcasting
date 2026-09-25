@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Creator Intelligence 3.3 — CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css"><script src="js/config.js"></script><script src="js/podcasting.js" defer></script><script src="js/player.js" defer></script><script src="js/app.js" defer></script>
+<style>
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric{font:800 28px Orbitron}.change{font-size:12px;color:#9ba6bd}.positive{color:#72f0b0}.negative{color:#ff8d9a}
+.intel-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:16px}.trend{height:230px;display:flex;align-items:end;gap:3px;padding:15px 0;border-bottom:1px solid #ffffff12}.trend i{flex:1;min-width:2px;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#55e7ff,#a66cff);height:var(--h)}.labels{display:flex;justify-content:space-between;color:#98a1b7;font-size:10px;margin-top:8px}
+.insight{padding:14px;border:1px solid #ffffff10;border-radius:12px;margin:10px 0;background:#ffffff05}.rank{font:800 14px Orbitron;color:#9aa6bd}.bar{height:7px;background:#ffffff12;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#55e7ff,#b66cff)}
+@media(max-width:850px){.kpis{grid-template-columns:repeat(2,1fr)}.intel-grid{grid-template-columns:1fr}}@media(max-width:520px){.kpis{grid-template-columns:1fr}}
+</style></head>
+<body><div data-nav></div><main class="wrap hero">
+<div class="eyebrow">CROWRULES CREATOR INTELLIGENCE 3.3</div><h1>Your podcast <span class="gradient">growth engine.</span></h1>
+<p class="lead">One unified view of audience growth, retention, episode performance, downloads and automated creator revenue.</p>
+<div id="auth" class="notice">Checking account…</div>
+<div id="app" style="display:none">
+<div class="actions"><a class="btn" href="creator-dashboard.html">← Creator Studio</a><a class="btn" href="analytics.html">Deep Analytics</a><select id="range" class="btn"><option value="30">Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last 12 months</option></select></div>
+<section class="section"><div class="kpis" id="kpis"></div></section>
+<section class="section"><div class="intel-grid"><div class="card"><h2>Listener growth</h2><p class="mini">Daily recorded listens across your creator catalog.</p><div id="trend" class="trend"></div><div id="labels" class="labels"></div></div><div class="card"><h2>New vs returning</h2><div id="audience"></div><hr><h3>Follow conversion</h3><div id="conversion"></div><p class="mini">Conversion = new identified listeners who followed during the period ÷ new identified listeners.</p></div></div></section>
+<section class="section"><div class="intel-grid"><div class="card"><h2>Top-performing episodes</h2><div id="episodes">Loading…</div></div><div class="card"><h2>Growth opportunities</h2><p class="mini">Descriptive signals generated from your actual catalog data.</p><div id="opportunities">Loading…</div></div></div></section>
+<section class="section"><div class="card"><h2>Episode growth over time</h2><div id="episodeGrowth"></div><p class="mini">Published episodes and recorded listening activity are shown for the selected period.</p></div></section>
+<section class="section"><div class="intel-grid"><div class="card"><h2>Cohort retention</h2><div id="cohort">Loading…</div></div><div class="card"><h2>Revenue intelligence</h2><div id="revenue">Loading…</div></div></div></section>
+</div></main>
+<script>
+let data=null;
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pct=n=>Number(n||0).toFixed(1)+"%";
+const money=c=>"$"+(Number(c||0)/100).toFixed(2);
+function change(v){if(v===null||v===undefined)return "No prior-period baseline";const n=Number(v);return '<span class="'+(n>=0?"positive":"negative")+'">'+(n>=0?"+":"")+n.toFixed(1)+"%</span> vs prior period"}
+function render(){
+ const k=data.kpis||{};
+ kpis.innerHTML=[
+  ["Listeners",Number(k.unique_listeners||0).toLocaleString(),change(k.prior_unique_change_pct)],
+  ["New listeners",Number(k.new_listeners||0).toLocaleString(),"Identified first-time listeners"],
+  ["Returning",Number(k.returning_listeners||0).toLocaleString(),"Identified returning listeners"],
+  ["Follow conversion",pct(k.follow_conversion_rate),"New-listener conversion"],
+  ["Completion",pct(k.completion_rate),"Recorded sessions completed"],
+  ["Downloads",Number(k.downloads||0).toLocaleString(),"Episode downloads"],
+  ["Revenue / listener",money(k.revenue_per_listener_cents),"Creator-attributed net"],
+  ["Net revenue",money(k.revenue_cents),"Automated Stripe ledger"]
+ ].map(x=>'<div class="card"><div class="metric">'+x[1]+'</div><p>'+x[0]+'</p><div class="change">'+x[2]+'</div></div>').join("");
+ const days=data.daily||[], vals=days.map(x=>Number(x.listens||0)), mx=Math.max(1,...vals);
+ trend.innerHTML=vals.map(v=>'<i style="--h:'+Math.max(2,Math.round(v/mx*100))+'%" title="'+v+' listens"></i>').join("");
+ labels.innerHTML=days.length?'<span>'+new Date(days[0].day+"T00:00:00").toLocaleDateString([], {month:"short",day:"numeric"})+'</span><span>'+new Date(days[Math.floor(days.length/2)].day+"T00:00:00").toLocaleDateString([], {month:"short",day:"numeric"})+'</span><span>'+new Date(days[days.length-1].day+"T00:00:00").toLocaleDateString([], {month:"short",day:"numeric"})+'</span>':"";
+ audience.innerHTML='<div class="insight"><strong>'+Number(k.new_listeners||0).toLocaleString()+'</strong> new identified listeners</div><div class="insight"><strong>'+Number(k.returning_listeners||0).toLocaleString()+'</strong> returning identified listeners</div><div class="insight"><strong>'+Number(k.listens||0).toLocaleString()+'</strong> total recorded listens</div>';
+ conversion.innerHTML='<div class="metric">'+pct(k.follow_conversion_rate)+'</div>';
+ const eps=data.episodes||[];
+ episodes.innerHTML=eps.slice(0,10).map((e,i)=>'<div class="insight"><div class="rank">#'+(i+1)+'</div><strong>'+esc(e.title)+'</strong><p class="mini">'+esc(e.podcast_title)+' · '+Number(e.listens||0).toLocaleString()+' listens · '+Number(e.unique_listeners||0).toLocaleString()+' listeners · '+Number(e.downloads||0).toLocaleString()+' downloads · '+money(e.revenue_cents)+' revenue</p><div class="bar"><i style="width:'+Math.min(100,Math.max(3,Number(e.listens||0)/Math.max(1,Number(eps[0]?.listens||1))*100))+'%"></i></div></div>').join("")||'<div class="notice">No episode activity yet.</div>';
+ const ops=data.opportunities||[];
+ opportunities.innerHTML=ops.map(o=>'<div class="insight"><strong>'+esc(o.title)+'</strong><p>'+esc(o.detail)+'</p></div>').join("")||'<div class="notice">No rule-based opportunity signals yet. More listening data will make this section more informative.</div>';
+ const published=eps.filter(e=>e.published_at).length;
+ episodeGrowth.innerHTML='<div class="kpis"><div class="card"><div class="metric">'+published+'</div><p>Episodes with published dates in performance set</p></div><div class="card"><div class="metric">'+Number(k.listens||0).toLocaleString()+'</div><p>Recorded listens</p></div><div class="card"><div class="metric">'+Number(k.completed||0).toLocaleString()+'</div><p>Completed listens</p></div><div class="card"><div class="metric">'+Number(k.downloads||0).toLocaleString()+'</div><p>Downloads</p></div></div>';
+ const co=data.cohort||[];
+ cohort.innerHTML=co.length?'<div class="table-wrap"><table><thead><tr><th>Cohort</th><th>Listeners</th><th>Day 1</th><th>Day 7</th><th>Day 30</th></tr></thead><tbody>'+co.slice(-12).map(c=>'<tr><td>'+esc(c.cohort_date)+'</td><td>'+c.cohort_size+'</td><td>'+pct(c.cohort_size?c.day_1/c.cohort_size*100:0)+'</td><td>'+pct(c.cohort_size?c.day_7/c.cohort_size*100:0)+'</td><td>'+pct(c.cohort_size?c.day_30/c.cohort_size*100:0)+'</td></tr>').join("")+'</tbody></table></div>':'<div class="notice">Cohort retention appears after identified listening data accumulates.</div>';
+ revenue.innerHTML='<div class="metric">'+money(k.revenue_cents)+'</div><p>Creator-attributed net revenue</p><p>'+money(k.revenue_per_listener_cents)+' net revenue per identified listener.</p><p>Prior-period revenue change: '+change(k.prior_revenue_change_pct)+'</p><p class="mini">Episode revenue is available in the performance table when Stripe checkout metadata includes an episode.</p>';
+}
+async function load(){
+ if(!__CROW_USER){auth.textContent="Sign in to open Creator Intelligence.";return}
+ app.style.display="block";auth.textContent="Signed in as "+(__CROW_USER.email||"Creator");
+ const r=await CROW_SUPABASE.rpc("cr_podcast_growth_intelligence",{p_creator_id:__CROW_USER.id,p_days:Number(range.value)});
+ if(r.error){auth.textContent="Unable to load Creator Intelligence: "+r.error.message;return}
+ data=r.data||{};render();
+}
+range.onchange=load;addEventListener("crow:ready",load);
+</script></body></html>
