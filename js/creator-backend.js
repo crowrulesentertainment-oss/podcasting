@@ -31,3 +31,15 @@ export async function saveGuest(projectId,guest){
  const {supabase,user}=await creatorBackend(); if(!supabase||!user)throw new Error("Sign in required");
  const {data,error}=await supabase.from("cr_creator_guests_61").insert({...guest,project_id:projectId,owner_id:user.id}).select().single();if(error)throw error;return data;
 }
+
+export async function requestEpisodePublish(episodeId,destinations=["crowrules","rss"]){
+ const s=await getSupabase(); if(!s)throw new Error("Supabase unavailable");
+ const {data:{session}}=await s.auth.getSession(); if(!session)throw new Error("Sign in required");
+ const {data,error}=await s.functions.invoke("podcast-publish-request",{body:{episode_id:episodeId,destinations}});
+ if(error)throw error; if(data?.error)throw new Error(data.error); return data;
+}
+export async function listPublishJobs(projectId){
+ const s=await getSupabase(); if(!s)return [];
+ const {data,error}=await s.from("cr_creator_publish_jobs_63").select("*,cr_creator_publish_destinations_63(*)").eq("project_id",projectId).order("created_at",{ascending:false});
+ if(error)throw error; return data||[];
+}
