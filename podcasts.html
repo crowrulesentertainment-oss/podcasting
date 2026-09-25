@@ -1,1 +1,51 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Podcasts — CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><script src="js/config.js"></script><script src="js/podcasting.js" defer></script><script src="js/app.js" defer></script></head><body><div data-nav></div><main class="wrap hero"><div class="eyebrow">PODCASTS</div><h1>The <span class="gradient">shows.</span></h1><p class="lead">Podcast profiles, categories and creator-led audio.</p><div class="actions"><a class="btn primary" href="discover.html">Browse shows</a><a class="btn" href="create-podcast.html">Start a show</a></div></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05050b">
+<title>Podcasts — CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/podcasting.js" defer></script>
+<script src="js/player.js" defer></script>
+<script src="js/app.js" defer></script>
+<style>
+.page{padding:42px 0 90px}.hero{padding:30px 0 38px}.hero h1{font-size:clamp(3rem,7vw,6rem);line-height:.92;letter-spacing:-.05em;margin:.1em 0}.lead{max-width:720px;color:rgba(255,255,255,.65);font-size:1.1rem;line-height:1.7}.toolbar{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}.search{flex:1;min-width:240px;padding:14px 16px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:inherit}.filters{display:flex;gap:8px;flex-wrap:wrap}.filter{padding:9px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);color:inherit;cursor:pointer}.filter.active{background:rgba(124,92,255,.2);border-color:rgba(124,92,255,.65)}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}.podcast-card{overflow:hidden;border-radius:22px}.art{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:#10101a}.card-body{padding:18px}.card-body h2{font-size:1.25rem;margin:.15em 0 .45em}.card-body p{color:rgba(255,255,255,.6);line-height:1.55;min-height:3.1em}.meta{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}.pill{padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.06);font-size:.72rem;color:rgba(255,255,255,.65)}.card-actions{display:flex;gap:8px;margin-top:14px}.empty,.loading{text-align:center;padding:70px 20px}.status{color:rgba(255,255,255,.5);font-size:.85rem;margin-top:12px}@media(max-width:1000px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:700px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:480px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div data-nav></div>
+<main class="wrap page">
+<section class="hero">
+<div class="eyebrow">CROWRULES PODCASTING</div>
+<h1>Discover <span class="gradient">shows.</span></h1>
+<p class="lead">Explore published podcasts across the CrowRules universe. Follow a show and keep your listening journey connected to your CrowRules account.</p>
+<div class="toolbar">
+<input id="search" class="search" type="search" placeholder="Search podcasts, creators, categories…" autocomplete="off">
+<a class="btn primary" href="create-podcast.html">Create a Podcast</a>
+</div>
+<div id="filters" class="filters"></div>
+</section>
+<section>
+<div id="loading" class="loading">Loading podcasts from Supabase…</div>
+<div id="grid" class="grid" hidden></div>
+<div id="empty" class="empty" hidden></div>
+<div id="status" class="status"></div>
+</section>
+</main>
+<script>
+(()=>{"use strict";
+const search=document.getElementById("search"),filters=document.getElementById("filters"),grid=document.getElementById("grid"),loading=document.getElementById("loading"),empty=document.getElementById("empty"),status=document.getElementById("status");
+let all=[],category="All";
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const client=async()=>{for(let i=0;i<60;i++){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;if(window.supabase&&window.CROW_CONFIG?.supabaseUrl&&window.CROW_CONFIG?.supabaseKey){window.CROW_SUPABASE=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});return window.CROW_SUPABASE}await new Promise(r=>setTimeout(r,100))}throw Error("Supabase client did not initialize.")};
+function buildFilters(){const cats=["All",...new Set(all.map(x=>x.category).filter(Boolean))];filters.innerHTML=cats.map(c=>'<button class="filter '+(c===category?"active":"")+'" data-category="'+esc(c)+'">'+esc(c)+'</button>').join("");filters.querySelectorAll(".filter").forEach(b=>b.onclick=()=>{category=b.dataset.category;buildFilters();render()})}
+function render(){const q=search.value.trim().toLowerCase();const rows=all.filter(p=>{const hay=[p.title,p.author_name,p.category,p.subcategory,p.description].join(" ").toLowerCase();return(category==="All"||p.category===category)&&(!q||hay.includes(q))});grid.innerHTML=rows.map(p=>'<article class="card podcast-card"><a href="podcast.html?id='+encodeURIComponent(p.id)+'"><img class="art" src="'+esc(p.artwork_url||"assets/podcast-placeholder.svg")+'" alt="'+esc(p.title)+' artwork" loading="lazy" onerror="this.src='assets/podcast-placeholder.svg'"></a><div class="card-body"><div class="eyebrow">'+esc(p.category||"PODCAST")+'</div><h2>'+esc(p.title)+'</h2><p>'+esc(p.description||"A CrowRules Podcasting show.")+'</p><div class="meta">'+(p.author_name?'<span class="pill">'+esc(p.author_name)+'</span>':"")+(Number(p.listener_count||0)?'<span class="pill">'+Number(p.listener_count).toLocaleString()+' listeners</span>':"")+(p.is_live?'<span class="pill">● Live</span>':"")+'</div><div class="card-actions"><a class="btn primary" href="podcast.html?id='+encodeURIComponent(p.id)+'">View Show</a></div></div></article>').join("");grid.hidden=!rows.length;empty.hidden=!!rows.length;empty.innerHTML='<div class="eyebrow">NO MATCHES</div><h2>No podcasts found</h2><p>Try another search or category.</p>';status.textContent=rows.length+" published "+(rows.length===1?"podcast":"podcasts")}
+async function load(){try{const sb=await client();const r=await sb.from("podcasts").select("id,title,slug,category,subcategory,description,artwork_url,author_name,listener_count,is_live,status,created_at").eq("status","published").order("created_at",{ascending:false});if(r.error)throw r.error;all=r.data||[];loading.hidden=true;buildFilters();render()}catch(e){loading.textContent="Podcasts could not load.";status.textContent=e.message||"";empty.hidden=false;empty.innerHTML='<div class="eyebrow">CONNECTION ISSUE</div><h2>Unable to load podcasts</h2><p>'+esc(e.message||"Please try again.")+'</p><button class="btn primary" onclick="location.reload()">Retry</button>'}}
+search.addEventListener("input",render);load();
+})();
+</script>
+</body>
+</html>
