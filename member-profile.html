@@ -97,7 +97,7 @@ function linkMarkup(url){if(!url)return"";let href=String(url).trim();if(!/^http
 function showError(message){$("loading").classList.add("hidden");$("error").textContent=message;$("error").classList.remove("hidden")}
 function getUser(){return window.__CROW_USER||sessionUser||null}
 
-async function waitForSupabase(timeout=12000){
+async async function waitForSupabase(timeout=12000){
  const start=Date.now();
  while(!window.CROW_SUPABASE){
   if(!window.supabase && !window.__CROW_SUPABASE_LOADER){
