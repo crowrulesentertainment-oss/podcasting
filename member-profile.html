@@ -307,4 +307,32 @@ function wireReplies(){
    await loadPosts();
   }catch(err){alert("We couldn't post your reply. "+(err?.message||"Please try again."))}finally{btn.disabled=false;btn.textContent="Reply"}
  });
-}>
+}
+}
+function wireTabs(){
+ document.querySelectorAll("[data-tab]").forEach(btn=>btn.onclick=()=>{
+  document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));
+  btn.classList.add("active");
+  ["activity","posts","profileTab"].forEach(id=>{const el=$(id+"Tab");if(el)el.classList.toggle("hidden",id!==btn.dataset.tab);});
+ });
+}
+function editProfile(){
+ const p=profileData,tab=$("profileTab");if(!tab)return;
+ tab.classList.remove("hidden");
+ document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x.dataset.tab==="profileTab"));
+ tab.innerHTML='<div class="edit-grid"><h2>Edit Profile</h2><label>Display name<input id="editDisplayName" maxlength="120" value="'+esc(p.display_name||"")+'"></label><label>Tagline<input id="editTagline" maxlength="180" value="'+esc(p.tagline||"")+'"></label><label>Bio<textarea id="editBio" maxlength="2000">'+esc(p.bio||"")+'</textarea></label><label>Location<input id="editLocation" maxlength="120" value="'+esc(p.location||"")+'"></label><label>Website<input id="editWebsite" maxlength="300" value="'+esc(p.website_url||"")+'"></label><button class="btn primary" id="saveProfileBtn">Save Profile</button></div>'+profileMediaEditorHtml(p);
+ wireMediaEditor();
+ $("saveProfileBtn").onclick=async()=>{
+  const user=getUser();if(!user)return;
+  const btn=$("saveProfileBtn");btn.disabled=true;btn.textContent="Saving…";
+  try{
+   const patch={display_name:$("editDisplayName").value.trim()||null,tagline:$("editTagline").value.trim()||null,bio:$("editBio").value.trim()||null,location:$("editLocation").value.trim()||null,website_url:$("editWebsite").value.trim()||null,updated_at:new Date().toISOString()};
+   const r=await CROW_SUPABASE.from("podcast_member_profiles").update(patch).eq("user_id",user.id);
+   if(r.error)throw r.error;
+   profileData={...profileData,...patch};renderProfile();wireTabs();alert("Profile updated.");
+  }catch(e){alert("Profile update failed. "+(e?.message||"Please try again."))}
+  finally{btn.disabled=false;btn.textContent="Save Profile"}
+ };
+}
+wireTabs();
+loadProfile();
