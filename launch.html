@@ -88,9 +88,12 @@ async function initInterest(){
   visitorId=getVisitorId();
   const {data,error}=await interestClient.rpc("register_podcast_launch_interest",{p_visitor_id:visitorId});
   if(error)throw error;
-  interestCount.textContent=Number(data||0).toLocaleString();
-  setInterestButtons(true);
-  interestSub.innerHTML='<span class="signal"><i></i><i></i><i></i></span> LIVE • YOU\'RE TRACKED AS INTERESTED';
+  const state=await interestClient.rpc("podcast_launch_interest_state",{p_visitor_id:visitorId});
+  if(state.error)throw state.error;
+  const current=state.data||{};
+  interestCount.textContent=Number(current.count||data||0).toLocaleString();
+  setInterestButtons(current.interested===true);
+  interestSub.innerHTML='<span class="signal"><i></i><i></i><i></i></span> LIVE • '+(current.interested===true?"YOU\'RE TRACKED AS INTERESTED":"YOU\'RE NOT TRACKED AS INTERESTED");
   interestYes.addEventListener("click",()=>setInterest(true));
   interestNo.addEventListener("click",()=>setInterest(false));
   interestChannel=interestClient.channel("podcast-launch-interest-live").on("postgres_changes",{event:"*",schema:"public",table:"podcast_launch_interest"},()=>refreshInterest()).subscribe();
