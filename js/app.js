@@ -397,6 +397,19 @@ async function loadAdminPage(){
  el.innerHTML='<a class="panel" href="admin-shows.html"><p class="eyebrow">PUBLISHING</p><h2>Shows & episodes</h2><p>'+(p.count||0)+' shows • '+(e.count||0)+' episodes</p></a><a class="panel" href="admin-chat.html"><p class="eyebrow">MODERATION</p><h2>Chat</h2><p>'+(c.count||0)+' visible messages</p></a><a class="panel" href="subscribers.html"><p class="eyebrow">MEMBERS</p><h2>Subscribers</h2><p>Review creator subscriber relationships.</p></a><a class="panel" href="earnings.html"><p class="eyebrow">MONETIZATION</p><h2>Earnings</h2><p>Verified Stripe revenue ledger.</p></a>';
 }
 
+async function networkPersonalization(){
+ if(!state.supabase)return;
+ const root=document.querySelector("[data-personalization]"); if(!root||!state.user)return;
+ try{
+  const h=await state.supabase.from("cr_listener_history_652").select("episode_id,podcast_id,seconds,completed,last_played_at").eq("user_id",state.user.id).order("last_played_at",{ascending:false}).limit(12);
+  const followed=await state.supabase.from("cr_podcast_follows_65").select("podcast_id").eq("follower_id",state.user.id);
+  const sub=await state.supabase.from("cr_podcast_subscriptions_65").select("podcast_id").eq("subscriber_id",state.user.id);
+  const excluded=[...new Set([...(h.data||[]).map(x=>x.podcast_id),...(followed.data||[]).map(x=>x.podcast_id),...(sub.data||[]).map(x=>x.podcast_id)])];
+  const rec=await state.supabase.from("cr_podcast_network_stats_65").select("*").order("is_original",{ascending:false}).order("plays",{ascending:false}).limit(20);
+  const cards=(rec.data||[]).filter(p=>!excluded.includes(p.id)).slice(0,6).map(p=>"<a class=\"panel\" href=\"podcast.html?slug="+encodeURIComponent(p.slug)+"\"><p class=\"eyebrow\">"+(p.is_original?"CROWRULES ORIGINAL":"RECOMMENDED")+"</p><h3>"+esc(p.title)+"</h3><p>"+esc(p.description||"")+"</p></a>").join("");
+  root.innerHTML=cards||"<div class=\"panel empty\">Keep listening and your personalized recommendations will appear here.</div>";
+ }catch(e){root.innerHTML="<div class=\"panel empty\">Personalization is temporarily unavailable.</div>";console.warn(e)}
+}
 function wireOperatingSystem(){
  wireProgress();
  document.querySelectorAll("[data-subscribe-product]").forEach(b=>b.onclick=()=>subscribeToProduct(b.dataset.subscribeProduct));
@@ -406,7 +419,7 @@ function wireOperatingSystem(){
 }
 
 async function boot(){
- nav();player();await loadData();await loadAuth();await renderRails();await loadLibrary();discover();showPage();charts();chat();forms();actions();creators();creator();schedule();wireOperatingSystem();
- if(state.supabase)state.supabase.auth.onAuthStateChange(async(_e,s)=>{state.user=s?.user||null;const a=document.getElementById("accountAvatar");if(a)a.textContent=state.user?(state.user.email||"CR").slice(0,2).toUpperCase():"CR";await renderRails();await loadLibrary();await refreshAlertBadge();await refreshNotificationBadge();await watchNotifications();wireOperatingSystem()});
+ nav();player();await loadData();await loadAuth();await renderRails();await loadLibrary();discover();showPage();charts();chat();forms();actions();creators();creator();schedule();wireOperatingSystem();await networkPersonalization();
+ if(state.supabase)state.supabase.auth.onAuthStateChange(async(_e,s)=>{state.user=s?.user||null;const a=document.getElementById("accountAvatar");if(a)a.textContent=state.user?(state.user.email||"CR").slice(0,2).toUpperCase():"CR";await renderRails();await loadLibrary();await refreshAlertBadge();await refreshNotificationBadge();await watchNotifications();wireOperatingSystem();networkPersonalization()});
 }
 boot();
