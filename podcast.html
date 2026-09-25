@@ -17,14 +17,19 @@ const esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 const timeout=(p,ms=8000)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(Error("Supabase request timed out.")),ms))]);
 async function rest(table,params){const u=cfg.supabaseUrl+"/rest/v1/"+table+"?"+new URLSearchParams(params);const r=await timeout(fetch(u,{headers:{apikey:cfg.supabaseKey,Authorization:"Bearer "+cfg.supabaseKey,Accept:"application/json"},cache:"no-store"}));if(!r.ok)throw Error("Supabase returned HTTP "+r.status);return r.json()}
 function fail(e){loading.hidden=true;show.hidden=false;
-  const followBtn=document.getElementById("followBtn"),followerCount=document.getElementById("followerCount"),shareBtn=document.getElementById("shareBtn");
+  const followBtn=document.getElementById("followBtn"),followerCount=document.getElementById("followerCount"),subscriberCount=document.getElementById("subscriberCount"),shareBtn=document.getElementById("shareBtn");
   async function followState(){
     const follows=await rest("podcast_follows",{select:"user_id",podcast_id:"eq."+p.id});
     followerCount.textContent=Number(follows.length||0).toLocaleString();
     let sb=window.CROW_SUPABASE;if(!sb&&window.supabase&&cfg.supabaseUrl&&cfg.supabaseKey)sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
     if(sb){const {data:{user}}=await sb.auth.getUser();if(user){const mine=follows.some(x=>x.user_id===user.id);followBtn.dataset.following=mine?"1":"0";followBtn.innerHTML=(mine?"Following":"Follow")+" <span id=\"followerCount\">"+Number(follows.length||0).toLocaleString()+"</span>";}}
   }
+  async function subscriberState(){
+    const subs=await rest("podcast_subscriptions",{select:"user_id",podcast_id:"eq."+p.id+",status=in.(active,trialing)"});
+    subscriberCount.textContent=Number(subs.length||0).toLocaleString();
+  }
   followState().catch(e=>console.warn("Follow state:",e));
+  subscriberState().catch(e=>console.warn("Subscriber count:",e));
   followBtn.addEventListener("click",async()=>{
     let sb=window.CROW_SUPABASE;if(!sb&&window.supabase&&cfg.supabaseUrl&&cfg.supabaseKey)sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
     if(!sb){alert("Supabase is unavailable.");return}
@@ -49,7 +54,7 @@ async function load(){
   const rows=await rest("podcasts",{select:"id,title,slug,category,description,artwork_url,author_name,language,explicit_content,is_live,listener_count,status",id:"eq."+id,status:"eq.published"});
   const p=rows[0];if(!p){fail(Error("This podcast is unavailable."));return}
   document.title=p.title+" — CrowRules Podcasting";
-  show.innerHTML='<div class="show-hero"><img class="show-art" src="'+esc(p.artwork_url||"assets/podcast-placeholder.svg")+'" alt="'+esc(p.title)+' artwork"><div><div class="eyebrow">'+esc(p.category||"PODCAST")+'</div><h1 class="show-title">'+esc(p.title)+'</h1><div class="show-meta">'+(p.author_name?'<span class="pill">By '+esc(p.author_name)+'</span>':"")+(p.language?'<span class="pill">'+esc(p.language.toUpperCase())+'</span>':"")+(p.is_live?'<span class="pill">● Live</span>':"")+'</div><p class="show-description">'+esc(p.description||"A CrowRules Podcasting show.")+'</p><div class="show-actions"><button id="subscribeBtn" class="btn primary" type="button">Subscribe — $9.99/mo</button><button id="followBtn" class="btn" type="button">Follow <span id="followerCount">0</span></button><button id="shareBtn" class="btn" type="button">Share</button><a class="btn" href="podcasts.html">All Podcasts</a><a class="btn" href="discover.html">Explore</a></div></div></div>';
+  show.innerHTML='<div class="show-hero"><img class="show-art" src="'+esc(p.artwork_url||"assets/podcast-placeholder.svg")+'" alt="'+esc(p.title)+' artwork"><div><div class="eyebrow">'+esc(p.category||"PODCAST")+'</div><h1 class="show-title">'+esc(p.title)+'</h1><div class="show-meta">'+(p.author_name?'<span class="pill">By '+esc(p.author_name)+'</span>':"")+(p.language?'<span class="pill">'+esc(p.language.toUpperCase())+'</span>':"")+(p.is_live?'<span class="pill">● Live</span>':"")+'</div><p class="show-description">'+esc(p.description||"A CrowRules Podcasting show.")+'</p><div class="show-actions"><button id="subscribeBtn" class="btn primary" type="button">Subscribe — $9.99/mo</button><button id="followBtn" class="btn" type="button">Follow <span id="followerCount">0</span></button><span class="stat-pill">Subscribers <strong id="subscriberCount">0</strong></span><button id="shareBtn" class="btn" type="button">Share</button><a class="btn" href="podcasts.html">All Podcasts</a><a class="btn" href="discover.html">Explore</a></div></div></div>';
   loading.hidden=true;show.hidden=false;
   let eps=[];try{eps=await rest("podcast_episodes",{select:"id,title,description,episode_number,season_number,published_at,duration_seconds,thumbnail_url,play_count,status",podcast_id:"eq."+p.id,status:"eq.published",order:"published_at.desc"});}catch(e){console.warn(e)}
   section.hidden=false;count.textContent=eps.length+" "+(eps.length===1?"episode":"episodes");
