@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#03040a">
+<title>Creator Payouts | CrowRules Podcasting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#03040a;--panel:#0a0d17;--panel2:#0e1322;--line:#222a3d;--text:#f5f7ff;--muted:#9da7bd;--cyan:#55e7ff;--purple:#a66cff;--green:#65f5ad;--amber:#ffd166;--red:#ff6b8a}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:Montserrat,Arial,sans-serif}body{min-height:100vh;background:radial-gradient(circle at 80% 0,#17102d 0,transparent 35%),radial-gradient(circle at 10% 20%,#09202b 0,transparent 30%),var(--bg)}
+a{color:inherit}.site-nav{position:sticky;top:0;z-index:50;background:#03040ae8;border-bottom:1px solid #1d2536;backdrop-filter:blur(18px)}.wrap{width:min(1180px,92vw);margin:auto}.nav-inner{min-height:68px;display:flex;align-items:center;gap:22px}.brand{font-family:Orbitron,sans-serif;font-weight:800;letter-spacing:.08em;text-decoration:none;white-space:nowrap}.brand b{color:var(--cyan)}.nav-links{display:flex;gap:5px;align-items:center;flex:1}.nav-menu{position:relative}.nav-menu-btn{background:none;border:0;color:#dce2f2;padding:11px 10px;font:600 12px Montserrat;cursor:pointer}.nav-dropdown{display:none;position:absolute;top:100%;left:0;min-width:210px;padding:8px;background:#090d17f5;border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 60px #0009}.nav-menu.open .nav-dropdown{display:grid}.nav-dropdown a{padding:10px 12px;border-radius:8px;text-decoration:none;font-size:12px}.nav-dropdown a:hover{background:#151b2b}.nav-user{font-size:11px;color:var(--muted);white-space:nowrap}.nav-toggle{display:none}
+main{padding:56px 0 90px}.hero{padding:42px 0 28px;max-width:900px}.eyebrow{font:700 11px Orbitron;letter-spacing:.28em;text-transform:uppercase;color:var(--cyan)}h1{font:800 clamp(34px,6vw,70px) Orbitron;margin:15px 0 18px;line-height:1.02}h1 span{color:var(--cyan)}.hero p{font-size:16px;line-height:1.8;color:var(--muted);max-width:780px}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:22px}.card{background:linear-gradient(145deg,#0d1220,#070a12);border:1px solid var(--line);border-radius:20px;padding:25px;box-shadow:0 25px 80px #0004}.card h2{font:700 18px Orbitron;margin:0 0 10px}.card p{color:var(--muted);line-height:1.7;font-size:13px}.status{display:flex;align-items:center;gap:14px;padding:18px;border:1px solid var(--line);background:#060913;border-radius:14px;margin:20px 0}.dot{width:12px;height:12px;border-radius:50%;background:var(--amber);box-shadow:0 0 18px #ffd16688}.dot.ready{background:var(--green);box-shadow:0 0 18px #65f5ad88}.dot.bad{background:var(--red);box-shadow:0 0 18px #ff6b8a88}.status strong{display:block;font-size:15px}.status small{display:block;color:var(--muted);margin-top:4px}.steps{display:grid;gap:12px;margin-top:18px}.step{display:flex;gap:14px;align-items:flex-start}.num{width:28px;height:28px;display:grid;place-items:center;border:1px solid #33405b;border-radius:50%;font:700 11px Orbitron;color:var(--cyan);flex:none}.step b{font-size:13px}.step p{margin:4px 0 0;font-size:12px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.btn{border:1px solid #3a4764;background:#101629;color:#fff;border-radius:999px;padding:13px 18px;font:700 11px Montserrat;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}.btn.primary{border-color:#55e7ff88;background:linear-gradient(100deg,#0b2630,#1b1234);box-shadow:0 0 35px #55e7ff0d}.btn:hover{transform:translateY(-1px);border-color:var(--cyan)}.btn:disabled{opacity:.5;cursor:wait;transform:none}.notice{display:none;margin-top:16px;padding:13px 15px;border-radius:12px;font-size:12px;line-height:1.6}.notice.show{display:block}.notice.error{background:#2a1018;border:1px solid #743347;color:#ffb4c5}.notice.info{background:#0b1e27;border:1px solid #244e5b;color:#b8f4ff}.notice.ok{background:#0a241a;border:1px solid #235c42;color:#b8ffd8}.metric{display:flex;justify-content:space-between;gap:20px;padding:13px 0;border-bottom:1px solid #1b2232;font-size:12px}.metric:last-child{border-bottom:0}.metric span{color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:#cdd5ea;font-size:11px;word-break:break-all}
+@media(max-width:850px){.grid{grid-template-columns:1fr}.nav-links{display:none}.nav-links.open{display:block;position:absolute;left:4vw;right:4vw;top:68px;background:#070a12;border:1px solid var(--line);border-radius:14px;padding:10px}.nav-menu{display:block}.nav-dropdown{position:static;display:none!important;border:0;box-shadow:none;background:transparent}.nav-menu.open .nav-dropdown{display:grid!important}.nav-toggle{display:block;margin-left:auto;background:none;border:0;color:#fff;font-size:22px}.nav-user{display:none}.brand{font-size:13px}}
+</style>
+<script src="js/config.js"></script>
+</head>
+<body>
+<div data-nav></div>
+<main>
+<div class="wrap">
+<section class="hero">
+<div class="eyebrow">Creator Monetization</div>
+<h1>Connect <span>Stripe</span>.</h1>
+<p>Set up the payout account that receives revenue from CrowRules podcast subscriptions. For <strong>Bonded in Mystery</strong>, this connection must be complete before the $9.99/month membership checkout can activate.</p>
+</section>
+<div class="grid">
+<section class="card">
+<h2>Stripe payout connection</h2>
+<div class="status" id="statusBox"><i class="dot" id="statusDot"></i><div><strong id="statusLabel">Checking connection…</strong><small id="statusDetail">Loading your creator payout status.</small></div></div>
+<div class="actions">
+<button class="btn primary" id="connectBtn">Connect Stripe</button>
+<button class="btn" id="refreshBtn">Refresh Status</button>
+</div>
+<div class="notice" id="notice"></div>
+<div class="steps">
+<div class="step"><span class="num">1</span><div><b>Connect your Stripe account</b><p>Stripe opens its secure hosted onboarding flow.</p></div></div>
+<div class="step"><span class="num">2</span><div><b>Complete identity and payout details</b><p>Stripe determines which information is required for your account.</p></div></div>
+<div class="step"><span class="num">3</span><div><b>Enable payments and payouts</b><p>CrowRules checks the live Stripe account status.</p></div></div>
+<div class="step"><span class="num">4</span><div><b>Activate podcast subscriptions</b><p>Once payouts are enabled, Bonded in Mystery can route subscription revenue to the connected creator account.</p></div></div>
+</div>
+</section>
+<aside class="card">
+<h2>Bonded in Mystery</h2>
+<p>Subscription configuration currently connected to this creator.</p>
+<div class="metric"><span>Membership</span><strong>$9.99 / month</strong></div>
+<div class="metric"><span>Product</span><code>ad1346ce-c3e4-4b23-b72b-8184f5049f70</code></div>
+<div class="metric"><span>Price</span><code>price_1UJ4RqAJsZjQLrFQUHLQxi0I</code></div>
+<div class="metric"><span>Destination</span><strong id="destination">Waiting for Stripe</strong></div>
+<div class="metric"><span>Checkout</span><strong id="checkoutState">Blocked until payouts are ready</strong></div>
+</aside>
+</div>
+</div>
+</main>
+<script>
+(()=>{"use strict";
+const cfg=window.CROW_CONFIG||{};
+let sb=null;
+const $=id=>document.getElementById(id);
+function note(message,type="info"){const n=$("notice");n.textContent=message;n.className="notice show "+type}
+function setStatus(data){
+  const label=data?.label||"Connection unavailable",detail=data?.detail||"Unable to determine your Stripe status.";
+  $("statusLabel").textContent=label;$("statusDetail").textContent=detail;
+  const dot=$("statusDot");dot.className="dot "+(data?.payouts_enabled?"ready":data?.state==="action_required"?"bad":"");
+  $("destination").textContent=data?.stripe_account_id||"Not connected";
+  $("checkoutState").textContent=data?.payouts_enabled?"Ready for subscription checkout":"Blocked until payouts are ready";
+  $("connectBtn").textContent=data?.payouts_enabled?"Manage Stripe Connection":(data?.state==="not_connected"?"Connect Stripe":"Continue Stripe Setup");
+}
+async function session(){if(!sb)throw new Error("Supabase is not ready.");const r=await sb.auth.getSession();return r.data?.session||null}
+async function status(){
+  try{
+    const s=await session();if(!s){setStatus({label:"Sign in required",detail:"Sign in to your CrowRules account before connecting Stripe.",state:"action_required"});$("connectBtn").disabled=true;return}
+    $("connectBtn").disabled=false;
+    const r=await sb.functions.invoke("creator-connect-status",{body:{}});
+    if(r.error){let msg=r.error.message;try{const j=await r.error.context?.clone().json();msg=j?.error||msg}catch{}throw new Error(msg)}
+    setStatus(r.data);if(r.data?.payouts_enabled)note("Stripe is connected and ready. Bonded in Mystery subscription checkout can now use this payout account.","ok");else note(r.data?.detail||"Stripe onboarding is not complete.","info");
+  }catch(e){setStatus({label:"Status check failed",detail:e.message,state:"action_required"});note(e.message,"error")}
+}
+async function connect(){
+  try{
+    $("connectBtn").disabled=true;note("Opening Stripe's secure onboarding flow…","info");
+    const s=await session();if(!s)throw new Error("Please sign in to CrowRules first.");
+    const r=await sb.functions.invoke(cfg.connectFunction||"creator-connect-onboarding",{body:{}});
+    if(r.error){let msg=r.error.message;try{const j=await r.error.context?.clone().json();msg=j?.error||msg}catch{}throw new Error(msg)}
+    if(!r.data?.onboarding_url)throw new Error("Stripe did not return an onboarding URL.");
+    location.href=r.data.onboarding_url;
+  }catch(e){note(e.message,"error");$("connectBtn").disabled=false}
+}
+async function init(){
+  if(!window.supabase){const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";s.onload=init;s.onerror=()=>note("Supabase client failed to load.","error");document.head.appendChild(s);return}
+  if(!sb)sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
+  $("connectBtn").addEventListener("click",connect);$("refreshBtn").addEventListener("click",status);
+  sb.auth.onAuthStateChange(()=>status());await status();
+  if(new URLSearchParams(location.search).get("stripe_return")==="1"){note("Welcome back. Rechecking your Stripe account status…","info");setTimeout(status,900)}
+}
+init();
+})();
+</script>
+</body>
+</html>
