@@ -7,14 +7,63 @@
 <div class="nav-menu"><button class="nav-menu-btn" type="button" aria-expanded="false">Intelligence <span>⌄</span></button><div class="nav-dropdown"><a href="creator-intelligence.html">Creator Intelligence</a><a href="creator-recommendations.html">Adaptive Recommendations</a><a href="creator-analytics.html">Creator Analytics</a><a href="analytics.html">Platform Analytics</a></div></div>\
 <div class="nav-menu"><button class="nav-menu-btn" type="button" aria-expanded="false">Publishing <span>⌄</span></button><div class="nav-dropdown"><a href="publishing-pipeline.html">Pipeline</a><a href="release-calendar.html">Calendar</a><a href="distribution.html">Distribution</a></div></div>\
 <div class="nav-menu"><button class="nav-menu-btn" type="button" aria-expanded="false">Account <span>⌄</span></button><div class="nav-dropdown"><a href="membership.html">Membership</a><a href="account.html">Account</a></div></div>\
-</nav><span class="nav-user" id="navUser">Guest</span></div></header>';
+</nav><span class="nav-user" id="navUser">Connecting…</span></div></header>';
     const toggle=document.getElementById("navToggle"),links=document.getElementById("navLinks");
     const closeMenus=()=>document.querySelectorAll(".nav-menu.open").forEach(m=>{m.classList.remove("open");m.querySelector(".nav-menu-btn")?.setAttribute("aria-expanded","false")});
     document.querySelectorAll(".nav-menu-btn").forEach(btn=>btn.addEventListener("click",e=>{e.stopPropagation();const menu=btn.parentElement,open=menu.classList.toggle("open");btn.setAttribute("aria-expanded",String(open));document.querySelectorAll(".nav-menu.open").forEach(m=>{if(m!==menu){m.classList.remove("open");m.querySelector(".nav-menu-btn")?.setAttribute("aria-expanded","false")}})}));
     document.addEventListener("click",e=>{if(!e.target.closest(".nav-menu"))closeMenus()});
     if(toggle&&links){toggle.addEventListener("click",()=>{const open=links.classList.toggle("open");toggle.setAttribute("aria-expanded",String(open));toggle.textContent=open?"✕":"☰"});links.addEventListener("click",e=>{if(e.target.closest(".nav-dropdown a")){closeMenus();links.classList.remove("open");toggle.setAttribute("aria-expanded","false");toggle.textContent="☰"}})}
   }
-  const start=()=>{if(!window.CROW_APP)return;CROW_APP.init().then(()=>setupActivityBadge())};
-  const setupActivityBadge=async()=>{const sb=window.CROW_SUPABASE,user=window.__CROW_USER,badge=document.getElementById("navAlertBadge");if(!sb||!user||!badge)return;const refresh=async()=>{const r=await sb.from("cr_creator_alerts").select("id",{count:"exact",head:true}).eq("creator_id",user.id).is("read_at",null).is("muted_at",null);const n=Number(r.count||0);badge.textContent=n>99?"99+":String(n);badge.hidden=n<1};await refresh();if(window.__CROW_ACTIVITY_CHANNEL)sb.removeChannel(window.__CROW_ACTIVITY_CHANNEL);window.__CROW_ACTIVITY_CHANNEL=sb.channel("creator-activity-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"cr_creator_alerts",filter:"creator_id=eq."+user.id},()=>refresh()).subscribe();document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()})};
-  if(window.supabase){start()}else{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";s.onload=start;s.onerror=()=>document.dispatchEvent(new CustomEvent("crow:auth-error",{detail:{message:"Supabase client failed to load."}}));document.head.appendChild(s)}
+
+  const connectSupabase=async()=>{
+    if(!window.supabase)throw new Error("Supabase client library is unavailable.");
+    const c=window.CROW_CONFIG||{};
+    if(!c.supabaseUrl||!c.supabaseKey)throw new Error("CrowRules Supabase configuration is missing.");
+    if(!window.CROW_SUPABASE){
+      window.CROW_SUPABASE=window.supabase.createClient(c.supabaseUrl,c.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    }
+    const {data,error}=await window.CROW_SUPABASE.auth.getUser();
+    if(error && error.name!=="AuthSessionMissingError")console.warn("CrowRules Auth:",error.message);
+    window.__CROW_USER=data?.user||null;
+    const n=document.getElementById("navUser");
+    if(n)n.textContent=window.__CROW_USER?(window.__CROW_USER.user_metadata?.full_name||window.__CROW_USER.email||"Member"):"Guest";
+    window.dispatchEvent(new CustomEvent("crow:ready",{detail:{user:window.__CROW_USER,supabase:window.CROW_SUPABASE}}));
+    return window.CROW_SUPABASE;
+  };
+
+  const start=async()=>{
+    try{
+      await connectSupabase();
+      if(window.CROW_APP?.init)await CROW_APP.init();
+      await setupActivityBadge();
+    }catch(error){
+      console.error("CrowRules Supabase connection failed:",error);
+      const n=document.getElementById("navUser");
+      if(n)n.textContent="Connection issue";
+      document.dispatchEvent(new CustomEvent("crow:auth-error",{detail:{message:error.message||"Supabase connection failed."}}));
+    }
+  };
+
+  const setupActivityBadge=async()=>{
+    const sb=window.CROW_SUPABASE,user=window.__CROW_USER,badge=document.getElementById("navAlertBadge");
+    if(!sb||!user||!badge)return;
+    const refresh=async()=>{
+      const r=await sb.from("cr_creator_alerts").select("id",{count:"exact",head:true}).eq("creator_id",user.id).is("read_at",null).is("muted_at",null);
+      if(r.error){console.warn("Creator alerts:",r.error.message);return}
+      const n=Number(r.count||0);badge.textContent=n>99?"99+":String(n);badge.hidden=n<1;
+    };
+    await refresh();
+    if(window.__CROW_ACTIVITY_CHANNEL)sb.removeChannel(window.__CROW_ACTIVITY_CHANNEL);
+    window.__CROW_ACTIVITY_CHANNEL=sb.channel("creator-activity-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"cr_creator_alerts",filter:"creator_id=eq."+user.id},()=>refresh()).subscribe();
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
+  };
+
+  if(window.supabase){start()}
+  else{
+    const s=document.createElement("script");
+    s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+    s.onload=start;
+    s.onerror=()=>document.dispatchEvent(new CustomEvent("crow:auth-error",{detail:{message:"Supabase client failed to load."}}));
+    document.head.appendChild(s);
+  }
 })();
