@@ -34,10 +34,19 @@
 <div id="artFileInfo"></div>
 <div class="field" style="margin-top:10px"><label for="artwork_url">Or use an artwork URL</label><input id="artwork_url" type="url" placeholder="https://…"></div>
 </div>
+<div class="field"><label for="is_explicit">Content rating</label><select id="is_explicit"><option value="false">Clean / not explicit</option><option value="true">Explicit</option></select></div>
+<div class="field"><label for="access_level">Access level</label><select id="access_level"><option value="free">Free</option><option value="premium">Premium members</option></select></div>
+<div class="field"><label for="publish_mode">Publishing</label><select id="publish_mode"><option value="draft">Save as draft</option><option value="review">Send to review</option><option value="publish">Publish immediately</option><option value="schedule">Schedule publication</option></select></div>
+<div id="scheduleFields" class="field" hidden><label for="scheduled_at">Publish date & time</label><input id="scheduled_at" type="datetime-local"></div>
+<div class="field"><label for="monetization_enabled">Monetization</label><select id="monetization_enabled"><option value="false">No episode monetization</option><option value="true">Enable monetization</option></select><small>Uses an existing CrowRules podcast monetization product when available.</small></div>
+<div class="field"><label for="tags">Tags</label><input id="tags" placeholder="mystery, storytelling, tacoma"><small>Separate tags with commas.</small></div>
+<div class="field"><label>Chapters</label><div id="chapters"></div><button type="button" class="btn" id="addChapter">+ Add chapter</button></div>
+<div class="field"><label>Transcript upload</label><label class="drop" id="transcriptDrop"><input id="transcriptFile" type="file" accept=".txt,.vtt,.srt,text/plain,text/vtt"><strong id="transcriptTitle">Drop transcript here</strong><div class="muted">Optional · TXT, VTT or SRT · contents are stored with the episode</div></label></div>
 <div class="field"><label>Audio file</label>
 <label class="drop" id="drop"><input id="audio" type="file" accept="audio/*,.mp3,.m4a,.wav,.aac,.ogg,.flac" required><strong id="dropTitle">Drop your audio here</strong><div class="muted">or click to browse · MP3, M4A, WAV, AAC, OGG, FLAC</div></label>
 <div id="fileInfo"></div><audio id="audioPreview" class="audio-preview" controls hidden></audio>
 <div class="meter"><i id="uploadBar"></i></div><div id="uploadStatus" class="muted" style="margin-top:7px">No file selected.</div></div>
+<div id="review" class="notice" style="display:none"><strong>Review & Publish</strong><div id="reviewText" class="muted" style="margin-top:8px"></div><button type="button" class="btn primary" id="confirmPublish" style="margin-top:12px">Confirm & Publish</button></div>
 <div style="display:flex;gap:10px;flex-wrap:wrap"><button id="submit" class="btn primary">Create Episode & Upload Audio</button><a class="btn" href="creator-dashboard.html">Cancel</a></div>
 </form>
 <div id="status" class="notice" style="margin-top:15px">Ready.</div>
@@ -57,7 +66,7 @@
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
-let sb,user,podcasts=[],uploading=false,artworkFile=null;\nconst MAX_ART=15*1024*1024;
+let sb,user,podcasts=[],uploading=false,artworkFile=null,transcriptFile=null;\nlet chapters=[];\nconst MAX_ART=15*1024*1024;
 const MAX=500*1024*1024;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function slugify(v){return String(v||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,180)}
@@ -74,6 +83,10 @@ function setFile(f){
 $("title").addEventListener("input",()=>{if(!$("slug").dataset.edited)$("slug").value=slugify($("title").value);$("previewTitle").textContent=$("title").value||"Your episode title"});
 $("slug").addEventListener("input",()=>{$("slug").dataset.edited="1"});
 $("description").addEventListener("input",()=>{$("previewDescription").textContent=$("description").value||"Your episode description will appear here."});
+$("publish_mode").addEventListener("change",()=>{$("scheduleFields").hidden=$("publish_mode").value!=="schedule"});
+function renderChapters(){ $("chapters").innerHTML=chapters.map((x,i)=>'<div class="file" style="margin-bottom:8px"><input data-ch="'+i+'" type="number" min="0" value="'+x.start_seconds+'" placeholder="Seconds" style="max-width:110px"><input data-cht="'+i+'" value="'+esc(x.title)+'" placeholder="Chapter title"><button type="button" class="btn" data-del="'+i+'">Remove</button></div>').join("");document.querySelectorAll("[data-ch]").forEach(el=>el.oninput=()=>chapters[+el.dataset.ch].start_seconds=Number(el.value)||0);document.querySelectorAll("[data-cht]").forEach(el=>el.oninput=()=>chapters[+el.dataset.cht].title=el.value);document.querySelectorAll("[data-del]").forEach(el=>el.onclick=()=>{chapters.splice(+el.dataset.del,1);renderChapters()})}
+$("addChapter").onclick=()=>{chapters.push({start_seconds:0,title:""});renderChapters()};
+$("transcriptFile").addEventListener("change",e=>{transcriptFile=e.target.files[0];if(transcriptFile)$("transcriptTitle").textContent=transcriptFile.name});
 $("podcast_id").addEventListener("change",()=>{const p=podcasts.find(x=>x.id===$("podcast_id").value);$("previewShow").textContent=p?.title||"Select a podcast";$("art").innerHTML=p?.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="">':'<span class="muted">Podcast artwork</span>'});
 $("audio").addEventListener("change",e=>setFile(e.target.files[0]));
 function setArtwork(f){
@@ -111,7 +124,13 @@ $("form").addEventListener("submit",async e=>{
  uploading=true;$("submit").disabled=true;
  try{
   msg("Creating episode draft…");
-  const r=await sb.from("podcast_episodes").insert({podcast_id:$("podcast_id").value,title:$("title").value.trim(),slug:$("slug").value||slugify($("title").value),description:$("description").value.trim(),show_notes:$("show_notes").value.trim()||null,transcript:$("transcript").value.trim()||null,episode_number:Number($("episode_number").value)||null,season_number:Number($("season_number").value)||1,status:"draft"}).select().single();
+  let transcriptText=$("transcript").value.trim()||null;if(transcriptFile)transcriptText=await transcriptFile.text();
+  const mode=$("publish_mode").value;const scheduled=$("scheduled_at").value?new Date($("scheduled_at").value).toISOString():null;
+  if(mode==="schedule"&&!scheduled)throw new Error("Choose a publication date and time.");
+  if(mode==="schedule"&&new Date(scheduled)<=new Date())throw new Error("Scheduled publication must be in the future.");
+  if($("monetization_enabled").value==="true"){const mp=await sb.from("cr_podcast_monetization_products").select("id").eq("podcast_id",$("podcast_id").value).eq("active",true).limit(1).maybeSingle();if(mp.error)throw mp.error;if(!mp.data)throw new Error("No active monetization product exists for this podcast yet.");}
+  const finalStatus=mode==="publish"?"published":mode==="schedule"?"scheduled":mode==="review"?"review":"draft";
+  const r=await sb.from("podcast_episodes").insert({podcast_id:$("podcast_id").value,title:$("title").value.trim(),slug:$("slug").value||slugify($("title").value),description:$("description").value.trim(),show_notes:$("show_notes").value.trim()||null,transcript:transcriptText,episode_number:Number($("episode_number").value)||null,season_number:Number($("season_number").value)||1,is_explicit:$("is_explicit").value==="true",access_level:$("access_level").value,monetization_enabled:$("monetization_enabled").value==="true",scheduled_at:scheduled,tags:$("tags").value.split(",").map(x=>x.trim()).filter(Boolean).slice(0,30),chapters:chapters.filter(x=>x.title.trim()).map(x=>({start_seconds:Number(x.start_seconds)||0,title:x.title.trim()})),status:finalStatus,published_at:mode==="publish"?new Date().toISOString():null}).select().single();
   if(r.error)throw r.error;const ep=r.data;
   await sb.from("podcast_episode_pipeline_events").insert({episode_id:ep.id,podcast_id:ep.podcast_id,actor_id:user.id,event_type:"created",from_status:null,to_status:"draft",message:"Episode draft created."});
   const session=(await sb.auth.getSession()).data?.session;if(!session)throw new Error("Session expired. Sign in again.");
@@ -133,7 +152,7 @@ $("form").addEventListener("submit",async e=>{
    const u=await sb.from("podcast_episodes").update({audio_url:url}).eq("id",ep.id);if(u.error)throw u.error;
    const ur=await sb.from("podcast_episode_uploads").insert({episode_id:ep.id,uploaded_by:user.id,storage_bucket:"podcast-audio",storage_path:path,original_filename:f.name,mime_type:f.type||"audio/mpeg",file_size_bytes:f.size,status:"ready"});if(ur.error)console.warn("Upload metadata:",ur.error);
    await sb.from("podcast_episode_pipeline_events").insert({episode_id:ep.id,podcast_id:ep.podcast_id,actor_id:user.id,event_type:"upload_completed",from_status:"draft",to_status:"draft",message:"Audio upload completed."});
-   $("uploadBar").style.width="100%";$("uploadStatus").textContent="Upload complete.";msg("Episode created and audio uploaded. Saved as draft.","success");$("submit").disabled=false;uploading=false;
+   $("uploadBar").style.width="100%";$("uploadStatus").textContent="Upload complete.";msg(finalStatus==="published"?"Episode published and audio uploaded.":finalStatus==="scheduled"?"Episode scheduled and audio uploaded.":finalStatus==="review"?"Episode sent to review with audio uploaded.":"Episode created and audio uploaded. Saved as draft.","success");$("submit").disabled=false;uploading=false;
    setTimeout(()=>location.href="episode.html?id="+encodeURIComponent(ep.id),900);
  }});
   up.start();
