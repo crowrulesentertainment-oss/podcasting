@@ -16,5 +16,5 @@
   }
   const start=()=>{if(!window.CROW_APP)return;CROW_APP.init().then(()=>setupActivityBadge())};
   const setupActivityBadge=async()=>{const sb=window.CROW_SUPABASE,user=window.__CROW_USER,badge=document.getElementById("navAlertBadge");if(!sb||!user||!badge)return;const refresh=async()=>{const r=await sb.from("cr_creator_alerts").select("id",{count:"exact",head:true}).eq("creator_id",user.id).is("read_at",null).is("muted_at",null);const n=Number(r.count||0);badge.textContent=n>99?"99+":String(n);badge.hidden=n<1};await refresh();if(window.__CROW_ACTIVITY_CHANNEL)sb.removeChannel(window.__CROW_ACTIVITY_CHANNEL);window.__CROW_ACTIVITY_CHANNEL=sb.channel("creator-activity-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"cr_creator_alerts",filter:"creator_id=eq."+user.id},()=>refresh()).subscribe();document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()})};
-  const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";s.onload=start;document.head.appendChild(s);
+  if(window.supabase){start()}else{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";s.onload=start;s.onerror=()=>document.dispatchEvent(new CustomEvent("crow:auth-error",{detail:{message:"Supabase client failed to load."}}));document.head.appendChild(s)}
 })();
