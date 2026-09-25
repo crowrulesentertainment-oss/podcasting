@@ -120,10 +120,15 @@ async function waitForSupabase(timeout=12000){
 }
 async function resolveSession(){
  const sb=await waitForSupabase();
- if(sb?.auth){
-  const r=await sb.auth.getUser();
-  if(!r.error&&r.data?.user)sessionUser=r.data.user;
- }
+ if(window.__CROW_USER){sessionUser=window.__CROW_USER;return sessionUser}
+ if(!sb?.auth)return null;
+ try{
+  const r=await Promise.race([
+   sb.auth.getSession(),
+   new Promise((_,reject)=>setTimeout(()=>reject(new Error("Authentication lookup timed out.")),8000))
+  ]);
+  if(!r.error&&r.data?.session?.user)sessionUser=r.data.session.user;
+ }catch(e){console.warn("CrowRules session lookup:",e)}
  return getUser();
 }
 
@@ -356,4 +361,5 @@ function editProfile(){
  };
 }
 wireTabs();
-loadProfile();
+window.addEventListener("error",e=>console.error("Member profile script error:",e.error||e.message));
+loadProfile().catch(e=>showError("Unable to load this member profile right now. "+(e?.message||"Please refresh and try again.")));
