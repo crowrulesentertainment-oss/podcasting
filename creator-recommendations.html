@@ -8,6 +8,8 @@
 <script src="js/config.js"></script><script src="js/podcasting.js" defer></script><script src="js/player.js" defer></script><script src="js/app.js" defer></script>
 <style>
 .rec-grid{display:grid;gap:14px}.rec{border:1px solid #ffffff12;background:linear-gradient(145deg,#0b0f19,#070910);border-radius:18px;padding:20px}.rec-head{display:flex;justify-content:space-between;gap:15px;align-items:start}.rec h3{margin:0 0 8px;font-size:15px}.rec p{color:#98a1b7;font-size:11px;line-height:1.7}.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.chip{font-size:9px;padding:5px 8px;border:1px solid #ffffff12;border-radius:999px;color:#aeb8ca}.supported{border-color:#55e7ff44;color:#55e7ff}.caution{border-color:#ff4fd844;color:#ff91e7}.exploratory{border-color:#ffffff18}.evidence{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:15px}.evidence div{padding:10px;border-radius:10px;background:#ffffff05;border:1px solid #ffffff0b}.evidence b{display:block;font:700 15px Orbitron}.evidence span{display:block;color:#7f8aa0;font-size:8px;text-transform:uppercase;margin-top:4px}.note{margin-top:14px;padding:11px;border-radius:10px;background:#55e7ff08;border:1px solid #55e7ff18;color:#aeb8ca;font-size:10px;line-height:1.6}.empty{padding:32px;text-align:center;border:1px dashed #ffffff18;border-radius:16px;color:#8792a8;font-size:11px}@media(max-width:760px){.evidence{grid-template-columns:1fr 1fr}.rec-head{display:block}}
+
+.feedback{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:15px}.feedback .btn{font-size:9px;padding:8px 10px}.feedback .btn:disabled{opacity:.45;cursor:default}.feedback-status{font-size:9px;color:#55e7ff}
 </style>
 </head>
 <body><div data-nav></div>
@@ -26,11 +28,21 @@ const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const num=v=>Number(v||0);
 function contextClass(v){return v==='evidence_supported'?'supported':v==='caution'?'caution':'exploratory'}
+async function feedback(r,action){
+ if(!window.__CROW_USER)return;
+ const recKey=String(r.key||r.action_type||r.metric||r.title||'general');
+ const payload={user_id:window.__CROW_USER.id,recommendation_key:recKey,podcast_id:r.podcast_id||null,action,recommendation:r};
+ const q=await CROW_SUPABASE.from('podcast_creator_recommendation_feedback').insert(payload);
+ if(q.error){alert(q.error.message);return}
+ document.querySelectorAll('[data-feedback="'+CSS.escape(recKey)+'"]').forEach(b=>b.disabled=true);
+ const box=document.querySelector('[data-feedback-status="'+CSS.escape(recKey)+'"]');if(box)box.textContent='Feedback recorded: '+action.replace(/_/g,' ');
+}
 function render(rows){
  if(!rows.length){$('list').innerHTML='<div class="empty">No adaptive recommendations yet. Complete creator actions and allow outcome measurements to accumulate.</div>';return}
  $('list').innerHTML=rows.map(r=>{
   const e=r.adaptive_evidence||{},c=contextClass(r.priority_context),o=e.observed_effect||{};
-  return '<article class="rec"><div class="rec-head"><div><h3>'+esc(r.title||r.action_type||r.metric||'Recommendation')+'</h3><p>'+esc(r.reason||'Observed creator learning signal.')+'</p></div><span class="chip '+c+'">'+esc(String(r.priority_context||'exploratory').replace(/_/g,' '))+'</span></div><div class="chips"><span class="chip">Priority '+(num(r.priority_adjustment)>0?'+':'')+num(r.priority_adjustment)+'</span><span class="chip">Confidence '+esc(e.confidence||r.evidence_strength||'insufficient')+'</span><span class="chip">Observational</span></div><div class="evidence"><div><b>'+num(e.sample_size)+'</b><span>Sample size</span></div><div><b>'+((num(e.positive_rate)*100).toFixed(1))+'%</b><span>Positive rate</span></div><div><b>'+num(o.listening_seconds).toFixed(1)+'</b><span>Listening Δ</span></div><div><b>'+num(o.followers_gained).toFixed(1)+'</b><span>Follower Δ</span></div></div><div class="note">'+esc(e.evidence_note||r.evidence_note||'Observed association only; outcome data does not establish causation.')+'</div></article>'
+  const k=String(r.key||r.action_type||r.metric||r.title||'general');
+  return '<article class="rec"><div class="rec-head"><div><h3>'+esc(r.title||r.action_type||r.metric||'Recommendation')+'</h3><p>'+esc(r.reason||'Observed creator learning signal.')+'</p></div><span class="chip '+c+'">'+esc(String(r.priority_context||'exploratory').replace(/_/g,' '))+'</span></div><div class="chips"><span class="chip">Priority '+(num(r.priority_adjustment)>0?'+':'')+num(r.priority_adjustment)+'</span><span class="chip">Confidence '+esc(e.confidence||r.evidence_strength||'insufficient')+'</span><span class="chip">Observational</span></div><div class="evidence"><div><b>'+num(e.sample_size)+'</b><span>Sample size</span></div><div><b>'+((num(e.positive_rate)*100).toFixed(1))+'%</b><span>Positive rate</span></div><div><b>'+num(o.listening_seconds).toFixed(1)+'</b><span>Listening Δ</span></div><div><b>'+num(o.followers_gained).toFixed(1)+'</b><span>Follower Δ</span></div></div><div class="note">'+esc(e.evidence_note||r.evidence_note||'Observed association only; outcome data does not establish causation.')+'</div><div class="feedback"><button class="btn" data-feedback="'+esc(k)+'" onclick="feedback('+JSON.stringify(r).replace(/"/g,'&quot;')+',\'useful\')">Useful</button><button class="btn" data-feedback="'+esc(k)+'" onclick="feedback('+JSON.stringify(r).replace(/"/g,'&quot;')+',\'not_useful\')">Not useful</button><button class="btn" data-feedback="'+esc(k)+'" onclick="feedback('+JSON.stringify(r).replace(/"/g,'&quot;')+',\'already_doing_this\')">Already doing this</button><button class="btn" data-feedback="'+esc(k)+'" onclick="feedback('+JSON.stringify(r).replace(/"/g,'&quot;')+',\'dismiss\')">Dismiss</button><span class="feedback-status" data-feedback-status="'+esc(k)+'"></span></div></article>'
  }).join('')
 }
 async function load(){
