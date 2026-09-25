@@ -97,7 +97,7 @@ function linkMarkup(url){if(!url)return"";let href=String(url).trim();if(!/^http
 function showError(message){$("loading").classList.add("hidden");$("error").textContent=message;$("error").classList.remove("hidden")}
 function getUser(){return window.__CROW_USER||sessionUser||null}
 
-async async function waitForSupabase(timeout=12000){
+async function waitForSupabase(timeout=12000){
  const start=Date.now();
  while(!window.CROW_SUPABASE){
   if(!window.supabase && !window.__CROW_SUPABASE_LOADER){
@@ -175,7 +175,7 @@ function renderProfile(){
  $("actions").innerHTML=self?'<button class="btn primary" id="editBtn">Edit profile</button><a class="btn" href="account.html">Account</a>':'<button class="btn primary" id="followBtn">Follow</button><button class="btn" id="messageBtn">Message</button>';
  $("about").innerHTML=aboutHtml(p);
  $("since").textContent=safeDate(p.created_at,true)||"CrowRules member";
- $("profileTab").innerHTML=profileDetailsHtml(p)+(self?profileMediaEditorHtml(p):""); if(self) wireMediaEditor();
+ $("profileTab").innerHTML=profileDetailsHtml(p)+(self?profileMediaEditorHtml(p):""); if(self) wireMediaEditor(); wireProfileActions();
  $("snapshot").innerHTML='<div class="mini-stat"><strong id="snapMinutes">0</strong><span>Listening min</span></div><div class="mini-stat"><strong id="snapComments">0</strong><span>Comments</span></div><div class="mini-stat"><strong id="snapReactions">0</strong><span>Reactions</span></div><div class="mini-stat"><strong id="snapViews">0</strong><span>Profile views</span></div>';
  if(self)$("editBtn").onclick=editProfile;
 }
@@ -308,6 +308,27 @@ function wireReplies(){
   }catch(err){alert("We couldn't post your reply. "+(err?.message||"Please try again."))}finally{btn.disabled=false;btn.textContent="Reply"}
  });
 }
+}
+function wireProfileActions(){
+ const follow=$("followBtn"),message=$("messageBtn");
+ if(follow) follow.onclick=async()=>{
+  const user=getUser(); if(!user){alert("Sign in to follow members.");return;}
+  follow.disabled=true; follow.textContent="Following…";
+  try{
+   const existing=await CROW_SUPABASE.from("podcast_member_follows").select("id").eq("follower_id",user.id).eq("following_id",profileData.user_id).maybeSingle();
+   if(existing.error)throw existing.error;
+   if(existing.data){
+    const d=await CROW_SUPABASE.from("podcast_member_follows").delete().eq("id",existing.data.id); if(d.error)throw d.error;
+    follow.textContent="Follow";
+   }else{
+    const ins=await CROW_SUPABASE.from("podcast_member_follows").insert({follower_id:user.id,following_id:profileData.user_id}); if(ins.error)throw ins.error;
+    follow.textContent="Following";
+   }
+   await loadStats();
+  }catch(e){alert("Follow update failed. "+(e?.message||"Please try again."));follow.textContent="Follow"}
+  finally{follow.disabled=false}
+ };
+ if(message) message.onclick=()=>{location.href="account.html?message="+encodeURIComponent(profileData.user_id)};
 }
 function wireTabs(){
  document.querySelectorAll("[data-tab]").forEach(btn=>btn.onclick=()=>{
