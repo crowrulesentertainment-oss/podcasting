@@ -313,7 +313,6 @@ function wireReplies(){
   }catch(err){alert("We couldn't post your reply. "+(err?.message||"Please try again."))}finally{btn.disabled=false;btn.textContent="Reply"}
  });
 }
-}
 function wireProfileActions(){
  const follow=$("followBtn"),message=$("messageBtn");
  if(follow) follow.onclick=async()=>{
