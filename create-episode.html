@@ -95,7 +95,7 @@ $("audio").addEventListener("change",e=>setFile(e.target.files[0]));
 function setArtwork(f){
  if(!f)return;
  if(f.size>MAX_ART){msg("Artwork exceeds the 15 MB upload limit.","error");$("submit").disabled=true;return}
- if(!/^image\\/(png|jpeg|webp|avif)$/i.test(f.type)){msg("Please choose PNG, JPG, WebP or AVIF artwork.","error");$("submit").disabled=true;return}
+ if(!/^image\/(png|jpeg|webp|avif)$/i.test(f.type)){msg("Please choose PNG, JPG, WebP or AVIF artwork.","error");$("submit").disabled=true;return}
  artworkFile=f;$("submit").disabled=false;$("artDropTitle").textContent=f.name;
  $("artFileInfo").innerHTML='<div class="file"><span>'+esc(f.name)+'</span><span class="muted">'+(f.size/1048576).toFixed(1)+' MB</span></div>';
  $("art").innerHTML='<img src="'+URL.createObjectURL(f)+'" alt="Episode artwork preview">';
