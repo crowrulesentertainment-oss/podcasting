@@ -1,0 +1,1 @@
+window.CROW_CONFIG={supabaseUrl:"https://cevylpnoexugwgygvtgu.supabase.co",supabaseKey:"YOUR_SUPABASE_PUBLISHABLE_KEY",stripeCheckoutFunction:"create-checkout",siteUrl:"https://crowrulesentertainment-oss.github.io/podcasting/"};
