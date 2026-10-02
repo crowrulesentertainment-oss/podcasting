@@ -19,22 +19,35 @@
 (async function(){
 const $=id=>document.getElementById(id), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const initials=n=>String(n||"Member").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
-let sb,rows=[];
+let sb,rows=[],loading=false,reloadTimer=null;
 async function load(){
+ if(loading)return;
+ loading=true;
  try{
-  const m=await sb.from("podcasting_member_directory").select("id,user_id,first_name,last_name,display_name,username,bio,avatar_url,membership_type,points,watch_minutes,created_at,last_active_at").order("created_at",{ascending:false});
-  if(m.error)throw m.error;
-  const c=await sb.from("podcasting_creator_directory").select("id,member_id,is_active").eq("is_active",true);
-  if(c.error)throw c.error;
-  const p=await sb.from("podcasting_podcast_directory").select("id,creator_id").order("created_at",{ascending:false});
-  if(p.error)throw p.error;
-  const creatorIds=new Set((c.data||[]).map(x=>x.id));
+  $("status").textContent="Refreshing listener directory…";$("status").style.display="block";
+  const [m,c,p]=await Promise.all([
+   sb.from("podcasting_member_directory").select("id,user_id,first_name,last_name,display_name,username,bio,avatar_url,membership_type,points,watch_minutes,created_at,last_active_at").order("created_at",{ascending:false}),
+   sb.from("podcasting_creator_directory").select("id,member_id,is_active").eq("is_active",true),
+   sb.from("podcasting_podcast_directory").select("id,creator_id").order("created_at",{ascending:false})
+  ]);
+  if(m.error)throw new Error("Members: "+m.error.message);
+  if(c.error)throw new Error("Creators: "+c.error.message);
+  if(p.error)throw new Error("Podcasts: "+p.error.message);
+  const creatorToMember=new Map((c.data||[]).filter(x=>x.is_active).map(x=>[x.id,x.member_id]));
   const podcastCountByMember=new Map();
-  (p.data||[]).filter(x=>creatorIds.has(x.creator_id)).forEach(x=>{const memberId=(c.data||[]).find(z=>z.id===x.creator_id)?.member_id;if(memberId)podcastCountByMember.set(memberId,(podcastCountByMember.get(memberId)||0)+1);});
+  for(const podcast of (p.data||[])){
+   const memberId=creatorToMember.get(podcast.creator_id);
+   if(memberId)podcastCountByMember.set(memberId,(podcastCountByMember.get(memberId)||0)+1);
+  }
   rows=(m.data||[]).filter(x=>Number(podcastCountByMember.get(x.id)||0)===0);
+  $("status").style.display="none";
   render();
- }catch(e){$("status").textContent="Could not load listeners: "+(e.message||"Unknown Supabase error.");}
+ }catch(e){
+  $("status").textContent="Could not load listeners: "+(e.message||"Unknown Supabase error.");
+  $("status").style.display="block";
+ }finally{loading=false;}
 }
+function scheduleLoad(){clearTimeout(reloadTimer);reloadTimer=setTimeout(load,350);}
 function render(){
  const q=$("search").value.trim().toLowerCase();
  const filtered=rows.filter(x=>[x.display_name,x.username,x.first_name,x.last_name,x.bio,x.membership_type].join(" ").toLowerCase().includes(q));
@@ -49,9 +62,14 @@ async function init(){
  window._crListenerWait=Date.now()+12000;
  while(!window.CROW_SUPABASE){if(window.CROW_APP?.init){try{await window.CROW_APP.init()}catch(e){}}if(Date.now()>window._crListenerWait)throw Error("Supabase client could not initialize.");await new Promise(r=>setTimeout(r,100));}
  sb=window.CROW_SUPABASE;await load();
- const ch=sb.channel("podcasting-member-listeners").on("postgres_changes",{event:"*",schema:"public",table:"members"},load).on("postgres_changes",{event:"*",schema:"public",table:"creators"},load).on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},load);
- ch.subscribe();
+ const ch=sb.channel("podcasting-member-listeners-live")
+  .on("postgres_changes",{event:"*",schema:"public",table:"members"},scheduleLoad)
+  .on("postgres_changes",{event:"*",schema:"public",table:"creators"},scheduleLoad)
+  .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},scheduleLoad);
+ ch.subscribe((state)=>{if(state==="CHANNEL_ERROR"||state==="TIMED_OUT")scheduleLoad();});
+ window.addEventListener("online",scheduleLoad);
+ setInterval(scheduleLoad,30000);
 }
-$("search").addEventListener("input",render);init().catch(e=>{$("status").textContent="Supabase connection failed: "+e.message});
+$("search").addEventListener("input",render);init().catch(e=>{$("status").textContent="Supabase connection failed: "+e.message;$("status").style.display="block";});
 })();
 </script></body></html>
