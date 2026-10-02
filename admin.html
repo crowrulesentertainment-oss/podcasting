@@ -1,3 +1,99 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Podcasting Admin — CrowRules</title><link rel="stylesheet" href="css/podcasting.css"><script src="js/config.js"></script><script src="js/podcasting.js" defer></script><script src="js/player.js" defer></script><script src="js/app.js" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Podcasting Admin — CrowRules Live Command Center</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="js/config.js"></script>
+<script src="js/podcasting.js" defer></script>
+<script src="js/player.js" defer></script>
+<script src="js/app.js" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script>
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
-</head><body><div data-nav></div><main class="wrap hero"><div class="eyebrow">ADMIN COMMAND CENTER</div><h1>Podcasting <span class="gradient">control.</span></h1><div id="status" class="notice">Administrator authorization required.</div><div id="metrics" class="grid" style="margin-top:18px"></div></main><script>addEventListener("crow:ready",async()=>{if(!__CROW_USER){status.textContent="Sign in with an administrator account.";return}const r=await CROW_SUPABASE.functions.invoke(CROW_CONFIG.adminFunction,{body:{action:"tables"}});if(r.error){status.textContent=r.error.message;return}if(!r.data?.ok){status.textContent=r.data?.error||"Administrator authorization required.";return}status.textContent="Authenticated administrator. Metrics come from the protected Admin API.";const names=["members","podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","membership_plans"];metrics.innerHTML=names.map(n=>'<div class="card"><div class="stat">'+(r.data.counts?.[n]??"—")+'</div><p>'+n.replaceAll("_"," ")+'</p></div>').join("")});</script></body></html>
+<style>
+:root{--live:#35f2a1;--panel:rgba(12,16,28,.86);--line:rgba(255,255,255,.10)}
+.admin-live{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:16px 0 22px}.live-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:7px 12px;background:var(--panel);font-size:.82rem}.live-dot{width:8px;height:8px;border-radius:50%;background:#777;box-shadow:0 0 0 transparent}.live-pill.connected .live-dot{background:var(--live);box-shadow:0 0 12px var(--live)}.live-pill.error .live-dot{background:#ff5268}.live-time{opacity:.72}.admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:14px}.admin-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;backdrop-filter:blur(12px);transition:.2s}.admin-card.flash{box-shadow:0 0 0 2px var(--live),0 0 28px rgba(53,242,161,.2)}.admin-card .stat{font-size:2rem;font-weight:800;line-height:1.05}.admin-card p{margin:7px 0 0;opacity:.68;text-transform:capitalize}.admin-card small{display:block;margin-top:9px;opacity:.5}.live-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,.8fr);gap:16px;margin-top:18px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}.panel h2{margin:0 0 12px;font-size:1.05rem}.event-feed{display:grid;gap:9px;max-height:360px;overflow:auto}.event{display:grid;grid-template-columns:76px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025)}.event-type{font-size:.7rem;font-weight:800;letter-spacing:.08em}.event-main{min-width:0}.event-main strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.event-main span{font-size:.76rem;opacity:.58}.event-time{font-size:.7rem;opacity:.5}.empty{opacity:.55;padding:18px 4px}.admin-actions{display:flex;gap:8px;flex-wrap:wrap}.admin-actions button{border:1px solid var(--line);background:rgba(255,255,255,.06);color:inherit;border-radius:10px;padding:9px 12px;cursor:pointer}.admin-actions button:hover{background:rgba(255,255,255,.11)}
+@media(max-width:760px){.live-layout{grid-template-columns:1fr}.event{grid-template-columns:64px 1fr}.event-time{display:none}}
+</style>
+</head>
+<body>
+<div data-nav></div>
+<main class="wrap hero">
+  <div class="eyebrow">ADMIN COMMAND CENTER · LIVE</div>
+  <h1>Podcasting <span class="gradient">control.</span></h1>
+  <div id="status" class="notice">Connecting to CrowRules…</div>
+  <div class="admin-live">
+    <div id="realtimePill" class="live-pill"><span class="live-dot"></span><span id="realtimeText">REALTIME CONNECTING</span></div>
+    <div class="live-pill"><span>Last sync</span><span id="lastSync" class="live-time">—</span></div>
+    <div class="admin-actions"><button id="refreshBtn" type="button">↻ Refresh</button><button id="clearEventsBtn" type="button">Clear activity</button></div>
+  </div>
+  <section id="metrics" class="admin-grid" aria-live="polite"></section>
+  <div class="live-layout">
+    <section class="panel"><h2>Live database activity</h2><div id="eventFeed" class="event-feed"><div class="empty">Waiting for live database changes…</div></div></section>
+    <aside class="panel"><h2>Realtime monitor</h2><div id="monitor" class="empty">Initializing subscriptions…</div></aside>
+  </div>
+</main>
+<script>
+(() => {
+  const TABLES=["members","podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","membership_plans"];
+  const state={counts:{},events:[],channel:null,authorized:false};
+  const $=id=>document.getElementById(id);
+  const esc=v=>String(v??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]));
+  const stamp=()=>new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit",second:"2-digit"});
+  const touch=()=>{$("lastSync").textContent=stamp()};
+  const setLive=(ok,text)=>{const p=$("realtimePill");p.classList.toggle("connected",!!ok);p.classList.toggle("error",text?.includes("ERROR"));$("realtimeText").textContent=text||"REALTIME"};
+  const renderMetrics=()=>{$("metrics").innerHTML=TABLES.map(n=>`<article id="metric-${n}" class="admin-card"><div class="stat">${esc(state.counts[n]??"—")}</div><p>${esc(n.replaceAll("_"," "))}</p><small>LIVE COUNT</small></article>`).join("")};
+  const addEvent=(table,event,row)=>{
+    const item={table,event,row,time:new Date()};state.events.unshift(item);state.events=state.events.slice(0,40);
+    $("eventFeed").innerHTML=state.events.map(x=>`<div class="event"><div class="event-type">${esc(x.event)}</div><div class="event-main"><strong>${esc(x.table)}</strong><span>${esc(x.row?.id||x.row?.title||x.row?.name||x.row?.email||"Database row changed")}</span></div><div class="event-time">${x.time.toLocaleTimeString([], {hour:"numeric",minute:"2-digit",second:"2-digit"})}</div></div>`).join("");
+    const card=$("metric-"+table);if(card){card.classList.remove("flash");void card.offsetWidth;card.classList.add("flash");setTimeout(()=>card.classList.remove("flash"),900)}
+  };
+  const renderMonitor=(lines=[])=>{$("monitor").innerHTML=lines.length?lines.map(x=>`<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07)"><strong>${esc(x.table)}</strong><br><span style="opacity:.6;font-size:.78rem">${esc(x.status)}</span></div>`).join(""):"No subscriptions yet."};
+  async function loadCounts(){
+    if(!window.CROW_SUPABASE||!state.authorized)return;
+    try{
+      const r=await CROW_SUPABASE.functions.invoke(CROW_CONFIG.adminFunction,{body:{action:"tables"}});
+      if(r.error)throw r.error;
+      if(!r.data?.ok)throw new Error(r.data?.error||"Administrator authorization required.");
+      state.counts=r.data.counts||{};renderMetrics();touch();$("status").textContent="Authenticated administrator. Live database monitoring is active.";
+    }catch(e){console.warn("Admin metrics:",e);$("status").textContent=e.message||"Admin API error."}
+  }
+  async function startRealtime(){
+    const sb=window.CROW_SUPABASE;if(!sb||!state.authorized)return;
+    if(state.channel)try{await sb.removeChannel(state.channel)}catch(_){ }
+    const monitor=[];
+    let channel=sb.channel("podcasting-admin-live-"+Date.now());
+    TABLES.forEach(table=>{
+      channel=channel.on("postgres_changes",{event:"*",schema:"public",table},payload=>{
+        addEvent(table,payload.eventType||"CHANGE",payload.new||payload.old||{});touch();
+        // The protected Admin API remains the source of truth for counts.
+        loadCounts();
+      });
+      monitor.push({table,status:"waiting for database changes"});
+    });
+    state.channel=channel;
+    const result=await channel.subscribe(status=>{
+      if(status==="SUBSCRIBED"){setLive(true,"REALTIME CONNECTED");renderMonitor(monitor.map(x=>({...x,status:"subscribed · INSERT / UPDATE / DELETE"})))}
+      else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){setLive(false,"REALTIME ERROR");renderMonitor(monitor.map(x=>({...x,status:"subscription unavailable — protected API polling remains active"})))}
+      else renderMonitor(monitor.map(x=>({...x,status:String(status).toLowerCase()})));
+    });
+    return result;
+  }
+  async function boot(){
+    if(!window.__CROW_USER){$("status").textContent="Sign in with an administrator account.";setLive(false,"SIGN IN REQUIRED");return}
+    if(!window.CROW_SUPABASE){$("status").textContent="Supabase connection unavailable.";setLive(false,"SUPABASE ERROR");return}
+    state.authorized=true;await loadCounts();await startRealtime();
+    // Safety-net refresh: realtime handles changes instantly; this catches missed events/reconnect gaps.
+    setInterval(()=>{if(!document.hidden)loadCounts()},30000);
+  }
+  $("refreshBtn").addEventListener("click",()=>loadCounts());
+  $("clearEventsBtn").addEventListener("click",()=>{state.events=[];$("eventFeed").innerHTML='<div class="empty">Activity cleared. Waiting for the next live change…</div>'});
+  addEventListener("crow:ready",boot,{once:true});
+  setTimeout(()=>{if(window.__CROW_AUTH_READY&&!state.authorized)boot()},2500);
+  addEventListener("beforeunload",()=>{if(state.channel&&window.CROW_SUPABASE)window.CROW_SUPABASE.removeChannel(state.channel)});
+})();
+</script>
+</body>
+</html>
