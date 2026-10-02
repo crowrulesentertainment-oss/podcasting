@@ -15,15 +15,20 @@
     if(toggle&&links){toggle.addEventListener("click",()=>{const open=links.classList.toggle("open");toggle.setAttribute("aria-expanded",String(open));toggle.textContent=open?"✕":"☰"});links.addEventListener("click",e=>{if(e.target.closest(".nav-dropdown a")){closeMenus();links.classList.remove("open");toggle.setAttribute("aria-expanded","false");toggle.textContent="☰"}})}
   }
 
+  const ensureClient=()=>{
+    if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
+    const cfg=window.CROW_CONFIG||{};
+    if(!window.supabase?.createClient)throw new Error("Supabase client library is unavailable.");
+    if(!cfg.supabaseUrl||!cfg.supabaseKey)throw new Error("CrowRules Supabase configuration is missing.");
+    window.CROW_SUPABASE=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
+    return window.CROW_SUPABASE;
+  };
+
   const withTimeout=async(promise,ms)=>{let timer;try{return await Promise.race([promise,new Promise((_,reject)=>timer=setTimeout(()=>reject(new Error("Supabase authentication timed out.")),ms))])}finally{clearTimeout(timer)}};
   const connectSupabase=async()=>{
-    if(!window.supabase)throw new Error("Supabase client library is unavailable.");
-    const c=window.CROW_CONFIG||{};
-    if(!c.supabaseUrl||!c.supabaseKey)throw new Error("CrowRules Supabase configuration is missing.");
-    if(!window.CROW_SUPABASE)window.CROW_SUPABASE=window.supabase.createClient(c.supabaseUrl,c.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
-    const sb=window.CROW_SUPABASE;
+    const sb=ensureClient();
     let session=null;
-    try{const r=await withTimeout(sb.auth.getSession(),8000);session=r.data?.session||null}catch(e){console.warn("CrowRules getSession:",e.message)}
+    try{const r=await withTimeout(sb.auth.getSession(),6000);session=r.data?.session||null}catch(e){console.warn("CrowRules getSession:",e.message)}
     window.__CROW_USER=session?.user||null;
     const n=document.getElementById("navUser");if(n)n.textContent=window.__CROW_USER?(window.__CROW_USER.user_metadata?.full_name||window.__CROW_USER.email||"Member"):"Guest";
     window.__CROW_AUTH_READY=true;
@@ -57,5 +62,12 @@ const setupActivityBadge=async()=>{
     document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
   };
 
-  if(window.supabase)start();else{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";s.onload=start;s.onerror=()=>document.dispatchEvent(new CustomEvent("crow:auth-error",{detail:{message:"Supabase client failed to load."}}));document.head.appendChild(s)}
+  const bootstrap=()=>{
+    try{ensureClient();start()}catch(e){
+      const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";s.onload=start;s.onerror=()=>document.dispatchEvent(new CustomEvent("crow:auth-error",{detail:{message:"Supabase client failed to load."}}));document.head.appendChild(s);
+    }
+  };
+  if(window.supabase)bootstrap();else{
+    const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";s.onload=bootstrap;s.onerror=()=>document.dispatchEvent(new CustomEvent("crow:auth-error",{detail:{message:"Supabase client failed to load."}}));document.head.appendChild(s)
+  }
 })();
