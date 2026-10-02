@@ -22,11 +22,11 @@ const initials=n=>String(n||"Member").trim().split(/\s+/).slice(0,2).map(x=>x[0]
 let sb,rows=[];
 async function load(){
  try{
-  const m=await sb.from("members").select("id,user_id,first_name,last_name,display_name,username,bio,avatar_url,membership_type,status,points,watch_minutes,created_at,last_active_at").order("created_at",{ascending:false});
+  const m=await sb.from("podcasting_member_directory").select("id,user_id,first_name,last_name,display_name,username,bio,avatar_url,membership_type,status,points,watch_minutes,created_at,last_active_at").order("created_at",{ascending:false});
   if(m.error)throw m.error;
-  const c=await sb.from("creators").select("id,member_id,is_active").eq("is_active",true);
+  const c=await sb.from("podcasting_creator_directory").select("id,member_id,is_active").eq("is_active",true);
   if(c.error)throw c.error;
-  const p=await sb.from("podcasts").select("id,creator_id").order("created_at",{ascending:false});
+  const p=await sb.from("podcasting_podcast_directory").select("id,creator_id").order("created_at",{ascending:false});
   if(p.error)throw p.error;
   const creatorIds=new Set((c.data||[]).map(x=>x.id));
   const membersWithPodcast=new Set((p.data||[]).filter(x=>creatorIds.has(x.creator_id)).map(x=>(c.data||[]).find(z=>z.id===x.creator_id)?.member_id).filter(Boolean));
