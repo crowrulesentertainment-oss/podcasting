@@ -18,7 +18,7 @@ body{min-height:100vh}.creator-main{max-width:1180px;margin:auto;padding:44px 18
 <div data-nav></div>
 <main class="creator-main">
 <section class="hero-row">
-<div><div class="eyebrow">CROWRULES CREATOR STUDIO 4.2</div><h1>Your audio <span class="gradient">command center.</span></h1><p class="muted">One creator workspace connected directly to your CrowRules Supabase data.</p></div>
+<div><div class="eyebrow">CROWRULES CREATOR STUDIO 4.3</div><h1>Your audio <span class="gradient">command center.</span></h1><p class="muted">One creator workspace connected directly to your CrowRules Supabase data.</p></div>
 <div class="actions"><a class="btn primary" href="create-podcast.html">＋ Podcast</a><a class="btn" href="create-episode.html">＋ Episode</a></div>
 </section>
 <div id="auth" class="notice loading">Connecting to Supabase…</div>
@@ -47,16 +47,24 @@ let sb=null,user=null,creator=null,podcasts=[],episodes=[],channel=null,reconnec
 function timeout(p,ms,msg){let t;return Promise.race([p,new Promise((_,r)=>t=setTimeout(()=>r(new Error(msg)),ms))]).finally(()=>clearTimeout(t))}
 function setConnection(ok,title,detail){$("connectionState").innerHTML='<span class="status-dot '+(ok?"live":"bad")+'"></span>'+esc(title);$("connectionDetail").textContent=detail}
 async function connect(){
+ setConnection(false,"CONNECTING TO SUPABASE","Loading your CrowRules account session…");
  if(!window.CROW_CONFIG?.supabaseUrl||!window.CROW_CONFIG?.supabaseKey)throw Error("CrowRules Supabase configuration is missing.");
  if(!window.supabase?.createClient)throw Error("Supabase client library did not load.");
  sb=window.CROW_SUPABASE||window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
  window.CROW_SUPABASE=sb;
- let session=(await timeout(sb.auth.getSession(),8000,"Supabase session check timed out.")).data?.session;
- if(!session)session=(await timeout(sb.auth.refreshSession(),8000,"Supabase session refresh timed out.")).data?.session;
- if(!session?.user)throw Error("Please sign in to your CrowRules account.");
- const verified=await timeout(sb.auth.getUser(),8000,"Supabase account verification timed out.");
+ setConnection(false,"CHECKING ACCOUNT","Reading your existing CrowRules session…");
+ const result=await timeout(sb.auth.getSession(),6000,"Supabase session check timed out. Please reload and sign in again.");
+ if(result.error)throw result.error;
+ let session=result.data?.session;
+ if(!session?.user){
+   setConnection(false,"SIGN IN REQUIRED","No active CrowRules session was found.");
+   throw Error("Please sign in to your CrowRules account.");
+ }
+ setConnection(false,"VERIFYING ACCOUNT","Confirming your CrowRules membership…");
+ const verified=await timeout(sb.auth.getUser(),6000,"Supabase account verification timed out.");
  if(verified.error)throw verified.error;
  user=verified.data.user;window.__CROW_USER=user;window.__CROW_AUTH_READY=true;
+ setConnection(false,"LOADING CREATOR PROFILE","Finding your Creator Studio profile…");
  return sb;
 }
 async function getCreator(){
