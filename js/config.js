@@ -23,7 +23,7 @@ window.CROW_BOOTSTRAP=window.CROW_BOOTSTRAP||function(){
  if(window.__CROW_BOOTSTRAP_PROMISE)return window.__CROW_BOOTSTRAP_PROMISE;
  window.__CROW_BOOTSTRAP_PROMISE=(async()=>{
    try{
-     if(!window.supabase?.createClient)await loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2");
+     if(!window.supabase?.createClient){try{await loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2")}catch(primary){await loadScript("https://unpkg.com/@supabase/supabase-js@2")}}
      if(!window.CROW_SUPABASE){
        window.CROW_SUPABASE=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey,{
          auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}
