@@ -143,7 +143,7 @@ async function loadProfile(){
    const r=await CROW_SUPABASE.from("podcast_member_profiles").select("*").eq("user_id",target).maybeSingle();
    if(r.error)throw r.error;
    row=r.data;
-   if(!row)row=await ensureOwnProfile(CROW_SUPABASE,user);
+   if(!row && user && user.id===target)row=await ensureOwnProfile(CROW_SUPABASE,user);
    if(!row){
     const m=await CROW_SUPABASE.from("members").select("user_id,display_name,username,first_name,last_name,bio,avatar_url,created_at").eq("user_id",target).maybeSingle();
     if(!m.error&&m.data&&user&&user.id===target)row={user_id:target,display_name:m.data.display_name||[m.data.first_name,m.data.last_name].filter(Boolean).join(" ")||"CrowRules Member",username:m.data.username,bio:m.data.bio,avatar_url:m.data.avatar_url,created_at:m.data.created_at,is_public:true,activity_public:true,network_public:true,followers_public:true,following_public:true};
@@ -461,8 +461,17 @@ function editProfile(){
 }
 wireTabs();
 window.addEventListener("error",e=>console.error("Member profile script error:",e.error||e.message));
-setTimeout(()=>loadProfile().catch(e=>showError("Unable to load this member profile right now. "+(e?.message||"Please refresh and try again."))),0);
-setTimeout(()=>{if($("profile").classList.contains("hidden")&&$("error").classList.contains("hidden"))showError("The profile request is taking longer than expected. Please refresh and try again.")},12000);
+async function bootMemberProfile(){
+ try{
+  const p=loadProfile();
+  await Promise.race([p,new Promise((_,reject)=>setTimeout(()=>reject(new Error("Profile loading timed out after 12 seconds.")),12000))]);
+ }catch(e){
+  console.error("Member profile boot:",e);
+  if($("profile").classList.contains("hidden"))showError("Unable to load this member profile right now. "+(e?.message||"Please refresh and try again."));
+ }
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bootMemberProfile,{once:true});else bootMemberProfile();
+
 
 })();
 </script>
