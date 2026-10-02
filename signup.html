@@ -61,7 +61,8 @@
 (()=>{"use strict";
 const c=window.CROW_CONFIG||{},msg=document.getElementById("message"),form=document.getElementById("signupForm"),submit=document.getElementById("submit"),resend=document.getElementById("resend");
 let sb=null;
-function setMsg(t,ok=false){msg.textContent=t;msg.style.borderColor=ok?"#55e7ff44":"#ffffff0c"}\nfunction explain(err){const m=err?.message||String(err||"Unknown error");return m.includes("redirect")?m+" Check that https://crowrulesentertainment-oss.github.io/podcasting/verify.html is allowed in Supabase Authentication → URL Configuration.":m}
+function setMsg(t,ok=false){msg.textContent=t;msg.style.borderColor=ok?"#55e7ff44":"#ffffff0c"}
+function explain(err){const m=err?.message||String(err||"Unknown error");return m.includes("redirect")?m+" Check that https://crowrulesentertainment-oss.github.io/podcasting/verify.html is allowed in Supabase Authentication → URL Configuration.":m}
 async function resendVerification(){
  if(!sb){setMsg("Account system unavailable.");return}
  const email=document.getElementById("email").value.trim();
