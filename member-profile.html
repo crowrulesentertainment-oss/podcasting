@@ -604,12 +604,14 @@ function empty(el,msg){if(el)el.innerHTML='<div class="hub-empty">'+esc2(msg)+'<
 async function loadHub(){
  if(!targetId2){empty(h("hubSocial"),"This profile has no universal user ID.");empty(h("hubAchievements"),"No achievement data available.");return}
  const db=await db2().catch(()=>null);if(!db)return;
- const [m,b,watch,listens,activity]=await Promise.all([
+ const [m,b,watch,listens,activity,follows,podcasts]=await Promise.all([
   db.from("members").select("website_url,social_links,points,watch_minutes,last_active_at").eq("user_id",targetId2).maybeSingle(),
   db.from("crowspace_user_badges").select("badge_id,created_at").eq("user_id",targetId2).order("created_at",{ascending:false}).limit(12),
   db.from("watch_history").select("id,content_title,watched_at,watch_seconds").eq("user_id",targetId2).order("watched_at",{ascending:false}).limit(8),
   db.from("podcast_listening_history").select("id,podcast_title,listened_at,listen_seconds").eq("user_id",targetId2).order("listened_at",{ascending:false}).limit(8),
-  db.from("cr_platform_recent_activity").select("*").eq("user_id",targetId2).order("created_at",{ascending:false}).limit(12)
+  db.from("cr_platform_recent_activity").select("*").eq("user_id",targetId2).order("created_at",{ascending:false}).limit(12),
+  db.from("podcast_member_follows").select("id",{count:"exact",head:true}).eq("following_id",targetId2),
+  db.from("podcasts").select("id,title,artwork_url,slug,status,total_plays,created_at,creator_id").eq("status","published").order("created_at",{ascending:false}).limit(6)
  ]);
  const member=m.data||{};let links=member.social_links||{};if(typeof links==="string")try{links=JSON.parse(links)}catch{links={}};
  const linkRows=[];if(member.website_url)linkRows.push(["Website",member.website_url]);Object.entries(links).forEach(([k,v])=>{if(v)linkRows.push([k,v])});
@@ -622,10 +624,17 @@ async function loadHub(){
  const history=[...(watch.data||[]).map(x=>({title:x.content_title||"Podcast",time:x.watched_at,seconds:x.watch_seconds,kind:"Watched"})),...(listens.data||[]).map(x=>({title:x.podcast_title||"Podcast",time:x.listened_at,seconds:x.listen_seconds,kind:"Listened"}))].sort((a,b)=>new Date(b.time||0)-new Date(a.time||0)).slice(0,8);
  h("hubListening").innerHTML=history.length?history.map(x=>'<div class="hub-item"><div class="hub-icon">🎧</div><div><strong>'+esc2(x.title)+'</strong><small>'+esc2(x.kind)+(x.time?" · "+new Date(x.time).toLocaleString():"")+'</small></div><div class="hub-value">'+Math.round(Number(x.seconds||0)/60)+'m</div></div>').join(""):"<div class="hub-empty">No listening activity is available yet.</div>";
  const pts=Number(member.points||0),mins=Number(member.watch_minutes||0);h("hubPoints").innerHTML='<div class="hub-list"><div class="hub-item"><div class="hub-icon">✦</div><div><strong>'+pts.toLocaleString()+' CrowPoints</strong><small>Universal points balance</small></div></div><div class="hub-item"><div class="hub-icon">⏱</div><div><strong>'+mins.toLocaleString()+' minutes</strong><small>Tracked engagement</small></div></div></div><div class="progress-track"><div class="progress-bar" style="width:'+Math.min(100,pts/10)+'%"></div></div>';
+
+ const favBox=h("hubListening");
+ if((podcasts.data||[]).length){ const fav=document.createElement("div"); fav.className="hub-item"; fav.style.marginTop="9px"; fav.innerHTML='<div class="hub-icon">★</div><div><strong>Published Podcast Library</strong><small>'+Number(podcasts.data.length).toLocaleString()+' public shows discovered</small></div><div class="hub-value">'+Number(podcasts.data.length)+'</div>'; favBox.appendChild(fav); }
+ const followerCount=Number(follows.count||0); const stat=document.createElement("div"); stat.className="hub-item"; stat.innerHTML='<div class="hub-icon">♟</div><div><strong>Podcast Network</strong><small>Followers of this member</small></div><div class="hub-value">'+followerCount.toLocaleString()+'</div>'; h("hubPoints").prepend(stat);
  const events=(activity.data||[]).map(x=>({kind:x.activity_type||x.event_type||"Activity",text:x.description||x.title||x.action||"Member activity",time:x.created_at}));
  h("hubTimeline").innerHTML=events.length?events.map(x=>'<div class="timeline-item"><span class="timeline-dot"></span><div class="timeline-kind">'+esc2(x.kind)+'</div><div class="timeline-text">'+esc2(x.text)+'</div><div class="timeline-time">'+esc2(x.time?new Date(x.time).toLocaleString():"")+'</div></div>').join(""):"<div class="hub-empty">No recent platform activity is available.</div>";
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(loadHub,700),{once:true});else setTimeout(loadHub,700);
+window.addEventListener("crow:auth-ready",()=>setTimeout(loadHub,250));
+window.addEventListener("crow:supabase-connected",()=>setTimeout(loadHub,250));
+
 })();
 </script>
 </body>
