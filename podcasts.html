@@ -54,9 +54,17 @@ const waitForClient=async()=>{
 async function loadRows(){
  const sb=await waitForClient();
  const {data,error}=await sb.from("podcasting_podcast_directory")
-   .select("id,title,slug,category,description,artwork_url,author_name,listener_count,is_live,status,created_at,updated_at")
+   .select("id,title,slug,category,description,artwork_url,creator_id,listener_count,is_live,status,created_at,updated_at")
    .eq("status","published")
    .order("created_at",{ascending:false});
+ if(error)throw error;
+ const rows=data||[];
+ if(!rows.length)return rows;
+ const creatorIds=[...new Set(rows.map(r=>r.creator_id).filter(Boolean))];
+ const {data:creators, error:creatorError}=await sb.from("podcasting_creator_directory").select("id,name").in("id",creatorIds);
+ if(creatorError)throw creatorError;
+ const names=new Map((creators||[]).map(c=>[c.id,c.name]));
+ return rows.map(r=>({...r,author_name:names.get(r.creator_id)||""}));
  if(error)throw error;
  return data||[];
 }
