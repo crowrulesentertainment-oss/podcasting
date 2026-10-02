@@ -68,6 +68,7 @@
 const c=window.CROW_CONFIG||{},msg=document.getElementById("message"),form=document.getElementById("signupForm"),submit=document.getElementById("submit");
 let sb=null;
 const SOCIAL_RETURN_KEY="crowrules_podcasting_signup";
+const CREATOR_DASHBOARD=new URL("creator-dashboard.html",window.location.href).href;
 function saveDraft(){
   const get=id=>document.getElementById(id)?.value||"";
   sessionStorage.setItem(SOCIAL_RETURN_KEY,JSON.stringify({
@@ -85,11 +86,12 @@ function restoreDraft(){
 async function socialLogin(provider){
   if(!sb)return setMsg("Account system unavailable.");
   saveDraft();
+  sessionStorage.setItem("crowrules_social_creator_login","1");
   const {error}=await sb.auth.signInWithOAuth({
     provider,
-    options:{redirectTo:window.location.href}
+    options:{redirectTo:CREATOR_DASHBOARD}
   });
-  if(error)setMsg(explain(error));
+  if(error){sessionStorage.removeItem("crowrules_social_creator_login");setMsg(explain(error));}
 }
 async function completeSocialSignup(user){
   const raw=sessionStorage.getItem(SOCIAL_RETURN_KEY);
@@ -151,12 +153,13 @@ restoreDraft();
   const {data}=await sb.auth.getUser();
   if(data.user && sessionStorage.getItem(SOCIAL_RETURN_KEY)){
     try{
-      setMsg("Finishing your social account and saving your podcast…");
+      setMsg("Finishing your social account…");
       await completeSocialSignup(data.user);
-      setMsg("Podcast submission saved to Supabase. Opening Creator Studio…",true);
+      setMsg("Account connected. Opening Creator Studio…",true);
+      sessionStorage.removeItem("crowrules_social_creator_login");
       document.getElementById("signupCard").style.display="none";
       document.getElementById("success").style.display="block";
-      setTimeout(()=>{window.location.href="creator-dashboard.html"},500);
+      setTimeout(()=>{window.location.href=CREATOR_DASHBOARD},300);
     }catch(err){setMsg(explain(err))}
   }
 })();
