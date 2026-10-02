@@ -1,6 +1,6 @@
 (()=>{
 "use strict";
-const VERSION="8.0";
+const VERSION="9.0";
 const BASE="https://crowrulesentertainment-oss.github.io/podcasting";
 const NAV_HTML=`<header class="site-nav" id="crSiteNav"><div class="wrap nav-inner">
 <a class="brand" href="${BASE}/home.html" aria-label="CrowRules Podcasting home">CROW<b>RULES</b> PODCASTING</a>
@@ -35,6 +35,38 @@ function bindNav(){const toggle=document.getElementById("navToggle"),links=docum
 function openSearch(){let m=document.getElementById("crSearchModal");if(!m){m=document.createElement("div");m.id="crSearchModal";m.className="cr-search-modal";m.innerHTML='<div class="cr-search-box"><input id="crSearchInput" autocomplete="off" placeholder="Search podcasts, episodes, creators…"><div class="cr-search-hint">Press Enter to open Search or Escape to close</div><div class="cr-search-results"><a href="'+BASE+'/discover.html">Discover podcasts</a><a href="'+BASE+'/episodes.html">Browse episodes</a><a href="'+BASE+'/members-podcaster.html">Find podcasters</a></div></div>';document.body.appendChild(m);m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("open")});m.querySelector("input").addEventListener("keydown",e=>{if(e.key==="Escape")m.classList.remove("open");if(e.key==="Enter"){const q=e.target.value.trim();location.href=`${BASE}/search.html${q?`?q=${encodeURIComponent(q)}`:""}`}})}m.classList.add("open");setTimeout(()=>m.querySelector("input")?.focus(),20)}
 function toast(message,type="info"){let t=document.getElementById("crToast");if(!t){t=document.createElement("div");t.id="crToast";t.className="cr-toast";document.body.appendChild(t)}t.textContent=message;t.className=`cr-toast show ${type}`;clearTimeout(window.__crToastTimer);window.__crToastTimer=setTimeout(()=>t.classList.remove("show"),4200)}
 function client(){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;const c=window.CROW_CONFIG||{};if(!window.supabase?.createClient)throw Error("Supabase client library is unavailable.");if(!c.supabaseUrl||!c.supabaseKey)throw Error("CrowRules Supabase configuration is missing.");return window.CROW_SUPABASE=window.supabase.createClient(c.supabaseUrl,c.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}})}
+window.CROW_DATA=window.CROW_DATA||{
+  async ready(ms=15000){
+    if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
+    if(window.CROW_APP_READY)try{await Promise.race([window.CROW_APP_READY,new Promise((_,rej)=>setTimeout(()=>rej(Error("Supabase initialization timed out.")),ms))]);}catch(_){}
+    const started=Date.now();
+    while(!window.CROW_SUPABASE&&Date.now()-started<ms)await new Promise(r=>setTimeout(r,100));
+    if(!window.CROW_SUPABASE)throw Error("Supabase client could not initialize.");
+    return window.CROW_SUPABASE;
+  },
+  async publishedPodcasts(){
+    const sb=await this.ready();
+    const r=await sb.from("podcasting_podcast_directory").select("*").eq("status","published").order("created_at",{ascending:false});
+    if(r.error)throw r.error;
+    return r.data||[];
+  },
+  async members(){
+    const sb=await this.ready();
+    const r=await sb.from("podcasting_member_directory").select("*").order("created_at",{ascending:false});
+    if(r.error)throw r.error;
+    return r.data||[];
+  },
+  async podcasters(){
+    const sb=await this.ready();
+    const [m,c,p]=await Promise.all([
+      sb.from("podcasting_member_directory").select("*").order("created_at",{ascending:false}),
+      sb.from("podcasting_creator_directory").select("*").eq("is_active",true),
+      sb.from("podcasting_podcast_directory").select("*").eq("status","published").order("created_at",{ascending:false})
+    ]);
+    if(m.error)throw m.error;if(c.error)throw c.error;if(p.error)throw p.error;
+    return {members:m.data||[],creators:c.data||[],podcasts:p.data||[]};
+  }
+};
 function timeout(p,ms,msg){let t;return Promise.race([p,new Promise((_,r)=>t=setTimeout(()=>r(Error(msg)),ms))]).finally(()=>clearTimeout(t))}
 function setUser(user){window.__CROW_USER=user||null;window.__CROW_AUTH_READY=true;const name=user?.user_metadata?.full_name||user?.user_metadata?.name||user?.email||"Member";const n=document.getElementById("navUser"),si=document.getElementById("crSignIn"),so=document.getElementById("crSignOut");if(n)n.textContent=user?name:"Guest";if(si)si.hidden=!!user;if(so)so.hidden=!user;window.dispatchEvent(new CustomEvent("crow:auth-changed",{detail:{user,supabase:window.CROW_SUPABASE}}));window.dispatchEvent(new CustomEvent("crow:ready",{detail:{user,supabase:window.CROW_SUPABASE}}))}
 async function auth(sb){try{const r=await timeout(sb.auth.getSession(),7000,"Supabase authentication timed out.");setUser(r.data?.session?.user||null)}catch(e){console.warn(e);setUser(null)}if(!window.__CROW_AUTH_SUB){const {data}=sb.auth.onAuthStateChange((event,session)=>{setUser(session?.user||null);if(event==="SIGNED_OUT"){window.__CROW_PRESENCE_CHANNEL&&sb.removeChannel(window.__CROW_PRESENCE_CHANNEL);window.__CROW_PRESENCE_CHANNEL=null}});window.__CROW_AUTH_SUB=data?.subscription}}
