@@ -36,7 +36,9 @@
 .hub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px}.hub-card{background:var(--panel2);border:1px solid #ffffff10;border-radius:20px;padding:20px}.hub-card h2{font-size:16px;margin:0 0 5px}.hub-sub{font-size:9px;color:#68748a;margin-bottom:14px}.hub-list{display:grid;gap:9px}.hub-item{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid #ffffff0b;border-radius:12px;background:#080b13}.hub-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#55e7ff0b;border:1px solid #55e7ff18;font-size:14px}.hub-item strong{font-size:10px}.hub-item small{display:block;color:#707c93;font-size:8px;margin-top:3px}.hub-value{margin-left:auto;font:800 12px Orbitron}.achievement{padding:12px;border:1px solid #ffffff0b;border-radius:12px;background:linear-gradient(135deg,#ffffff05,#9b6cff08)}.achievement b{font-size:10px}.achievement p{font-size:9px;color:#7f8ba1;line-height:1.5;margin:4px 0 0}.achievement-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.timeline{display:grid;gap:0}.timeline-item{position:relative;padding:0 0 15px 24px;border-left:1px solid #ffffff12}.timeline-item:last-child{border-left-color:transparent}.timeline-dot{position:absolute;left:-5px;top:2px;width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px #55e7ff55}.timeline-kind{font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--cyan)}.timeline-text{font-size:10px;color:#a5afc1;line-height:1.5;margin-top:3px}.timeline-time{font-size:8px;color:#626e84;margin-top:4px}.social-links{display:flex;gap:8px;flex-wrap:wrap}.social-link{padding:9px 11px;border:1px solid #ffffff10;border-radius:10px;background:#ffffff05;color:#dce5f7;text-decoration:none;font-size:9px}.social-link:hover{border-color:#55e7ff44;color:#8fefff}.progress-track{height:7px;border-radius:99px;background:#ffffff09;overflow:hidden;margin-top:9px}.progress-bar{height:100%;background:linear-gradient(90deg,#55e7ff,#9b6cff);width:0}.hub-empty{padding:14px;border:1px dashed #ffffff12;border-radius:12px;color:#707c93;font-size:9px;line-height:1.6}@media(max-width:760px){.hub-grid{grid-template-columns:1fr}.achievement-row{grid-template-columns:1fr}}</style>
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script>
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
-</head>
+<style>
+.hub-interactive{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.hubx{background:var(--panel2);border:1px solid #ffffff10;border-radius:20px;padding:20px}.hubx.full{grid-column:1/-1}.hubx h2{font-size:16px;margin:0 0 6px}.hubx small{color:#68748a}.hubx-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.hubx button{border:1px solid #ffffff12;background:#ffffff06;color:#dce5f7;border-radius:9px;padding:9px 11px;font:700 8px Montserrat;text-transform:uppercase;cursor:pointer}.hubx input{width:100%;box-sizing:border-box;background:#060912;border:1px solid #ffffff14;border-radius:9px;color:#fff;padding:10px}.hubx-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hubx-list{display:grid;gap:8px;margin-top:12px}.hubx-row{padding:10px;border:1px solid #ffffff0b;border-radius:11px;background:#080b13;font-size:10px}.hubx-row strong{font-size:11px}.hubx-row span{float:right;font-family:Orbitron}.hubx-filter{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.hubx-filter button.active{color:#72eaff;border-color:#55e7ff55}@media(max-width:760px){.hub-interactive{grid-template-columns:1fr}.hubx.full{grid-column:auto}.hubx-grid{grid-template-columns:1fr}}
+</style></head>
 <body>
 <div data-nav></div>
 <main class="wrap profile-wrap"><div class="profile-shell">
@@ -114,7 +116,13 @@
 <section class="hub-card"><h2>CrowPoints Activity</h2><div class="hub-sub">Universal participation snapshot</div><div id="hubPoints"></div></section>
 <section class="hub-card" style="grid-column:1/-1"><h2>Live Activity Timeline</h2><div class="hub-sub">Recent member activity across the Podcasting experience</div><div id="hubTimeline" class="timeline"></div></section>
 </section>
-</main>
+<section class="hub-interactive" id="hubInteractive">
+<section class="hubx"><h2>Interactive Social Links</h2><small>Manage your public social identity</small><div id="hubLinks" class="hubx-list"></div><div id="hubLinkEditor" hidden><div class="hubx-grid"><input id="hl1" placeholder="Platform"><input id="hu1" placeholder="https://..."><input id="hl2" placeholder="Platform"><input id="hu2" placeholder="https://..."><input id="hl3" placeholder="Platform"><input id="hu3" placeholder="https://..."></div><div class="hubx-actions"><button id="saveHubLinks" type="button">Save</button><button id="cancelHubLinks" type="button">Cancel</button></div></div><div class="hubx-actions"><button id="editHubLinks" type="button">Edit Links</button></div></section>
+<section class="hubx"><h2>Achievement Levels</h2><small>Progress based on CrowPoints</small><div id="hubLevels" class="hubx-list"></div></section>
+<section class="hubx full"><h2>Favorite Podcasts</h2><small>Shows saved to this profile</small><div id="hubFavs" class="hubx-list"></div></section>
+<section class="hubx full"><h2>Activity Explorer</h2><small>Filter recent activity</small><div id="hubFilters" class="hubx-filter"><button class="active" data-f="all" type="button">All</button><button data-f="listening" type="button">Listening</button><button data-f="platform" type="button">Platform</button></div><div id="hubEvents" class="hubx-list"></div></section>
+<section class="hubx full"><h2>CrowPoints History</h2><small>Points earned and spent</small><div id="hubPointsHistory" class="hubx-list"></div></section>
+</section></main>
 <script>
 (function(){
 "use strict";
@@ -637,5 +645,55 @@ window.addEventListener("crow:supabase-connected",()=>setTimeout(loadHub,250));
 
 })();
 </script>
-</body>
+<script>
+(async function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const params=new URLSearchParams(location.search);
+const uid=(params.get("user")||params.get("id")||"").trim();
+if(!uid)return;
+let db;
+try{db=window.CROW_SUPABASE||await window.CROW_SUPABASE_READY}catch(e){return}
+if(!db)return;
+const user=(await db.auth.getUser().catch(()=>({data:{user:null}}))).data.user;
+const self=!!user&&user.id===uid;
+const esc=s=>String(s??"").replace(/[&<>"]/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]});
+const results=await Promise.all([
+db.from("podcast_member_profiles").select("website_url,social_links").eq("user_id",uid).maybeSingle(),
+db.from("crowpoints_ledger").select("points,reason,source,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(25),
+db.from("podcast_member_favorites").select("podcast_id").eq("user_id",uid).limit(12),
+db.from("podcasts").select("id,title,status").eq("status","published").order("created_at",{ascending:false}).limit(50),
+db.from("watch_history").select("content_title,watched_at").eq("user_id",uid).order("watched_at",{ascending:false}).limit(10),
+db.from("podcast_listening_history").select("podcast_title,listened_at").eq("user_id",uid).order("listened_at",{ascending:false}).limit(10),
+db.from("cr_platform_recent_activity").select("event_type,message,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(15)
+]);
+const profile=results[0].data||{};
+let links=profile.social_links||{};
+if(typeof links==="string"){try{links=JSON.parse(links)}catch(e){links={}}}
+const rows=Object.entries(links).filter(x=>x[0]&&x[1]);
+$("hubLinks").innerHTML=rows.length?rows.map(x=>"<div class='hubx-row'><strong>"+esc(x[0])+"</strong><br><small>"+esc(x[1])+"</small></div>").join(""):"<div class='hubx-row'>No public links yet.</div>";
+for(let i=1;i<=3;i++){const x=rows[i-1]||["",""];$("hl"+i).value=x[0];$("hu"+i).value=x[1]}
+$("editHubLinks").style.display=self?"inline-block":"none";
+$("editHubLinks").onclick=()=>{$("hubLinkEditor").hidden=false};
+$("cancelHubLinks").onclick=()=>{$("hubLinkEditor").hidden=true};
+$("saveHubLinks").onclick=async()=>{
+const next={};for(let i=1;i<=3;i++){const k=$("hl"+i).value.trim(),v=$("hu"+i).value.trim();if(k&&v)next[k]=v}
+const r=await db.from("podcast_member_profiles").update({social_links:next}).eq("user_id",uid);
+if(!r.error){links=next;$("hubLinks").innerHTML=Object.entries(links).map(x=>"<div class='hubx-row'><strong>"+esc(x[0])+"</strong><br><small>"+esc(x[1])+"</small></div>").join("")||"<div class='hubx-row'>No public links yet.</div>";$("hubLinkEditor").hidden=true}
+};
+const member=(await db.from("members").select("points").eq("user_id",uid).maybeSingle()).data||{};
+const points=Number(member.points||0);
+const levels=[["Explorer",0],["Listener",250],["Regular",1000],["Insider",2500],["All-Star",5000]];
+let current=0;levels.forEach((x,i)=>{if(points>=x[1])current=i});
+$("hubLevels").innerHTML=levels.map((x,i)=>"<div class='hubx-row'><strong>"+x[0]+"</strong><span>"+(i<=current?"✓":"LOCKED")+"</span><br><small>"+x[1].toLocaleString()+" CrowPoints required</small></div>").join("");
+const favIds=new Set((results[2].data||[]).map(x=>x.podcast_id));
+const favShows=(results[3].data||[]).filter(x=>favIds.has(x.id));
+$("hubFavs").innerHTML=favShows.map(x=>"<div class='hubx-row'><strong>"+esc(x.title)+"</strong><span>★</span></div>").join("")||"<div class='hubx-row'>No favorite podcasts yet.</div>";
+$("hubPointsHistory").innerHTML=(results[1].data||[]).map(x=>"<div class='hubx-row'><strong>"+(Number(x.points)>=0?"+":"")+Number(x.points).toLocaleString()+" pts</strong><br><small>"+esc(x.reason)+" · "+esc(x.source||"CrowRules")+" · "+new Date(x.created_at).toLocaleString()+"</small></div>").join("")||"<div class='hubx-row'>No points history recorded.</div>";
+let events=[...(results[4].data||[]).map(x=>({f:"listening",k:"WATCHED",m:x.content_title,t:x.watched_at})),...(results[5].data||[]).map(x=>({f:"listening",k:"LISTENED",m:x.podcast_title,t:x.listened_at})),...(results[6].data||[]).map(x=>({f:"platform",k:x.event_type,m:x.message,t:x.created_at}))].sort((a,b)=>new Date(b.t)-new Date(a.t));
+function render(){const f=$("hubFilters").querySelector(".active").dataset.f;const list=events.filter(x=>f==="all"||x.f===f).slice(0,20);$("hubEvents").innerHTML=list.map(x=>"<div class='hubx-row'><strong>"+esc(x.k)+"</strong><br><small>"+esc(x.m||"Activity")+" · "+new Date(x.t).toLocaleString()+"</small></div>").join("")||"<div class='hubx-row'>No activity for this filter.</div>"}
+$("hubFilters").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{$("hubFilters").querySelectorAll("button").forEach(x=>x.classList.remove("active"));b.classList.add("active");render()}));
+render();
+})();
+</script></body>
 </html>
