@@ -1,426 +1,233 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Creator Studio — CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script><script src="js/podcasting.js" defer></script><script src="js/player.js" defer></script><script src="js/app.js" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script>
-<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
-<style>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Creator Studio — CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script><style>
 #liveBar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0 18px}.live-sync{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid #ffffff18;border-radius:999px;background:#ffffff06;font-size:.78rem}.live-sync .dot{width:8px;height:8px;border-radius:50%;background:#777}.live-sync.connected .dot{background:#35f2a1;box-shadow:0 0 11px #35f2a1;animation:crpulse 1.3s infinite}.live-sync.error .dot{background:#ff5268}.live-toast{position:fixed;right:16px;bottom:16px;z-index:9999;width:min(380px,calc(100vw - 32px));display:grid;gap:8px}.live-toast-card{padding:12px 14px;border:1px solid #ffffff18;border-left:3px solid #35f2a1;border-radius:13px;background:#101625f5;box-shadow:0 15px 45px #0008;animation:crin .25s ease}.live-toast-card b{display:block}.live-toast-card small{opacity:.65}.live-refresh{animation:crflash .65s ease}.activity-shell{margin-top:22px}.activity-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.activity-feed{display:grid;gap:8px;margin-top:14px;max-height:360px;overflow:auto}.activity-item{display:grid;grid-template-columns:10px 1fr auto;gap:10px;align-items:start;padding:12px 13px;border:1px solid #ffffff10;border-radius:12px;background:#ffffff04}.activity-item .dot{width:8px;height:8px;border-radius:50%;background:#35f2a1;margin-top:6px;box-shadow:0 0 10px #35f2a155}.activity-item b{display:block}.activity-item small{opacity:.55}.activity-empty{padding:20px;text-align:center;opacity:.55;border:1px dashed #ffffff12;border-radius:12px}@keyframes crpulse{50%{opacity:.45;transform:scale(.8)}}@keyframes crin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@keyframes crflash{50%{box-shadow:0 0 0 2px #35f2a1,0 0 25px #35f2a133}}
+
+.connection-card{margin:14px 0;padding:14px;border:1px solid #ffffff12;border-radius:14px;background:#ffffff05}.connection-card strong{display:block;margin-bottom:5px}.connection-ok{border-color:#35f2a133}.connection-error{border-color:#ff526855}.muted{opacity:.65}
 </style></head><body><div data-nav></div><main class="wrap hero"><div class="eyebrow">CROWRULES CREATOR STUDIO 3.1</div><h1>Your audio <span class="gradient">command center.</span></h1><div id="auth" class="notice">Checking account…</div><div id="liveBar"><div class="live-sync">Events <span id="liveEventCount">0</span></div><div class="live-sync">Reconnects <span id="liveReconnectCount">0</span></div><div id="liveStatus" class="live-sync"><span class="dot"></span><span id="liveStatusText">LIVE SYNC CONNECTING</span></div><div class="live-sync">Last update <span id="liveUpdated">—</span></div><div class="live-sync">Watching <span id="liveWatchCount">0</span> shows</div><div class="live-sync">Health <span id="liveHealth">WAITING</span></div><div class="live-sync">Last event <span id="liveAge">—</span></div></div><div id="dashboard" style="display:none"><div class="actions"><a class="btn primary" href="create-podcast.html">＋ Podcast</a><a class="btn" href="create-episode.html">＋ Episode</a><a class="btn" href="publishing-pipeline.html">Publishing Pipeline</a><a class="btn" href="creator-intelligence.html">Intelligence</a><a class="btn" href="analytics.html">Analytics</a><a class="btn" href="release-calendar.html">Release Calendar</a><a class="btn" href="distribution.html">Distribution</a><a class="btn" href="creator-profile.html">Creator Profile</a><a class="btn" href="creator-payouts.html">Payouts</a></div><div class="grid"><div class="card"><div class="stat" id="shows">0</div><p>Podcasts</p></div><div class="card"><div class="stat" id="eps">0</div><p>Episodes</p></div><div class="card"><div class="stat" id="followers">0</div><p>Followers</p></div><div class="card"><div class="stat" id="plays">0</div><p>Total plays</p></div></div><section class="section"><h2>Publishing Pipeline</h2><div id="pipelineSummary" class="grid"></div></section><section class="section activity-shell"><div class="card"><div class="activity-head"><div><div class="eyebrow">LIVE OPERATIONS</div><h2 style="margin:.2em 0">Production activity</h2></div><button class="btn" id="clearLiveActivity">Clear</button></div><div id="liveActivity" class="activity-feed"><div class="activity-empty">Waiting for live production events…</div></div></div></section><section class="section"><h2>Podcast management</h2><div id="podcastList" class="grid"></div></section><section class="section"><h2>Publishing queue</h2><div id="queue" class="grid two"></div></section><section class="section"><h2>Audience & automated revenue</h2><div class="grid two"><div class="card"><h3>Listening activity</h3><div id="analytics">Loading analytics…</div></div><div class="card"><h3>Revenue</h3><div id="revenue">Loading revenue…</div><a class="btn" href="creator-payouts.html">Manage payouts</a></div></div></section></div></main><div id="liveToast" class="live-toast" aria-live="polite"></div><script>
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let creatorProfile=null, dashboardLoading=false;
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+let sb=null,user=null,creatorProfile=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set();
+let loading=false,realtimeChannel=null,reconnectTimer=null,reconnects=0,eventCount=0,lastEventAt=0;
+const REALTIME_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","cr_creator_revenue_transactions"];
 
-let supabaseConnectionPromise=null;
-function setAccountStatus(message,error=false){
-  const el=$("auth");
-  if(el){el.textContent=message;el.classList.toggle("error",!!error)}
+function status(text,error=false){
+  const el=$("auth"); if(el){el.textContent=text;el.classList.toggle("error",error)}
 }
-function withTimeout(promise,ms,message){
+function liveStatus(ok,text){
+  const el=$("liveStatus"), label=$("liveStatusText");
+  if(el){el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok)}
+  if(label)label.textContent=text;
+}
+function timeout(promise,ms,message){
   let timer;
-  return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(message)),ms)})]).finally(()=>clearTimeout(timer));
-}
-async function connectCreatorSupabase(){
-  if(supabaseConnectionPromise)return supabaseConnectionPromise;
-  supabaseConnectionPromise=(async()=>{
-    setAccountStatus("Connecting to CrowRules account…");
-    const started=Date.now();
-    while(!window.CROW_CONFIG?.supabaseUrl||!window.CROW_CONFIG?.supabaseKey){
-      if(Date.now()-started>10000)throw new Error("CrowRules Supabase configuration did not load.");
-      await new Promise(r=>setTimeout(r,100));
-    }
-    if(!window.CROW_SUPABASE){
-      if(!window.supabase?.createClient)throw new Error("Supabase client library did not load.");
-      window.CROW_SUPABASE=window.supabase.createClient(
-        window.CROW_CONFIG.supabaseUrl,
-        window.CROW_CONFIG.supabaseKey,
-        {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}
-      );
-    }
-    const sb=window.CROW_SUPABASE;
-    const sessionResult=await withTimeout(sb.auth.getSession(),8000,"Supabase session check timed out.");
-    let session=sessionResult.data?.session||null;
-    if(!session){
-      const refresh=await withTimeout(sb.auth.refreshSession(),8000,"Supabase session refresh timed out.");
-      session=refresh.data?.session||null;
-    }
-    if(!session?.user){
-      window.__CROW_USER=null;
-      setAccountStatus("Sign in to open Creator Studio.");
-      return {sb,user:null};
-    }
-    const userResult=await withTimeout(sb.auth.getUser(),8000,"Supabase account verification timed out.");
-    if(userResult.error)throw userResult.error;
-    const user=userResult.data?.user||session.user;
-    window.__CROW_USER=user;
-    window.__CROW_AUTH_READY=true;
-    sb.auth.onAuthStateChange((event,nextSession)=>{
-      window.__CROW_USER=nextSession?.user||null;
-      if(event==="SIGNED_OUT")setAccountStatus("Sign in to open Creator Studio.");
-    });
-    return {sb,user};
-  })();
-  try{return await supabaseConnectionPromise}
-  catch(e){supabaseConnectionPromise=null;throw e}
-}
-async function waitForSupabase(timeout=20000){
-  const result=await withTimeout(connectCreatorSupabase(),timeout,"Supabase is still connecting. Please refresh and try again.");
-  if(!result.user)throw new Error("AUTH_REQUIRED");
-  return result.sb;
+  return Promise.race([promise,new Promise((_,rej)=>timer=setTimeout(()=>rej(new Error(message)),ms))]).finally(()=>clearTimeout(timer));
 }
 
-async function pipelineAction(action,id){
-  if(action==="publish"&&!confirm("Publish this episode now?")) return;
-  const r=await CROW_SUPABASE.functions.invoke(CROW_CONFIG.pipelineFunction,{body:{action,episode_id:id}});
-  if(r.error) alert(r.error.message);
-  else if(r.data?.error) alert(r.data.error);
-  else location.reload();
+async function connectSupabase(){
+  if(sb)return sb;
+  status("Connecting to CrowRules Supabase…");
+  const started=Date.now();
+  while(!window.CROW_CONFIG?.supabaseUrl||!window.CROW_CONFIG?.supabaseKey){
+    if(Date.now()-started>10000)throw new Error("CrowRules Supabase configuration did not load.");
+    await wait(100);
+  }
+  if(!window.supabase?.createClient)throw new Error("Supabase client library did not load.");
+  sb=window.CROW_SUPABASE||window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey,{
+    auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}
+  });
+  window.CROW_SUPABASE=sb;
+  const sessionResult=await timeout(sb.auth.getSession(),8000,"Supabase session check timed out.");
+  let session=sessionResult.data?.session||null;
+  if(!session){
+    const refreshed=await timeout(sb.auth.refreshSession(),8000,"Supabase session refresh timed out.");
+    session=refreshed.data?.session||null;
+  }
+  if(!session?.user){
+    user=null;window.__CROW_USER=null;
+    status("Sign in to open Creator Studio.");
+    liveStatus(false,"AUTHENTICATION REQUIRED");
+    return null;
+  }
+  const verified=await timeout(sb.auth.getUser(),8000,"Supabase account verification timed out.");
+  if(verified.error)throw verified.error;
+  user=verified.data?.user||session.user;
+  if(!user?.id)throw new Error("Supabase returned no authenticated user.");
+  window.__CROW_USER=user;window.__CROW_AUTH_READY=true;
+  sb.auth.onAuthStateChange((event,next)=>{
+    user=next?.user||null;window.__CROW_USER=user;
+    if(event==="SIGNED_OUT"){user=null;stopRealtime();status("Sign in to open Creator Studio.");liveStatus(false,"AUTHENTICATION REQUIRED");$("dashboard").style.display="none";}
+  });
+  status("Connected · verifying creator account…");
+  return sb;
 }
-async function schedule(id){
-  const value=prompt("Enter future publish time in ISO format, for example 2027-01-01T12:00:00-08:00");
-  if(!value) return;
-  const dt=new Date(value);
-  if(Number.isNaN(dt.getTime())) return alert("Invalid date/time.");
-  const r=await CROW_SUPABASE.functions.invoke(CROW_CONFIG.scheduleFunction,{body:{action:"schedule",episode_id:id,starts_at:dt.toISOString()}});
-  if(r.error) alert(r.error.message);
-  else if(r.data?.error) alert(r.data.error);
-  else location.reload();
+
+async function getCreator(){
+  status("Preparing your Podcasting creator account…");
+  const boot=await timeout(sb.rpc("ensure_podcasting_creator"),12000,"Creator profile setup timed out. Please refresh and try again.");
+  if(boot.error)throw boot.error;
+  if(!boot.data)throw new Error("Podcasting creator profile could not be created.");
+  const cr=await timeout(sb.from("creators").select("id,name,creator_code,is_active,member_id").eq("id",boot.data).eq("is_active",true).maybeSingle(),8000,"Creator profile lookup timed out.");
+  if(cr.error)throw cr.error;
+  if(!cr.data)throw new Error("Your Podcasting creator profile could not be loaded.");
+  creatorProfile=cr.data;
+  status("Signed in as "+(user.email||creatorProfile.name||"Creator"));
+  $("dashboard").style.display="block";
 }
-window.pipelineAction=pipelineAction;
-window.schedule=schedule;
 
 async function loadDashboard(){
-  if(dashboardLoading)return;
-  dashboardLoading=true;
+  if(loading)return;
+  loading=true;
   try{
-    const sb=await waitForSupabase();
-    const user=window.__CROW_USER;
-    if(!user){
-      $("auth").textContent="Sign in to open Creator Studio.";
-      return;
-    }
+    sb=await connectSupabase();
+    if(!sb||!user)return;
+    await getCreator();
 
-    $("auth").textContent="Checking creator account…";
-
-    // Verify the account with Supabase Auth before touching creator-owned data.
-    const {data:verified,error:verifyError}=await withTimeout(sb.auth.getUser(),8000,"Supabase account verification timed out.");
-    if(verifyError) throw verifyError;
-    if(!verified?.user?.id) throw new Error("AUTH_REQUIRED");
-    window.__CROW_USER=verified.user;
-    const user=verified.user;
-
-    // Universal account -> member -> creator profile. podcasts.creator_id stores creators.id, not auth.users.id.
-    $("auth").textContent="Preparing your Podcasting creator account…";
-    const bootstrap=await withTimeout(sb.rpc("ensure_podcasting_creator"),12000,"Creator profile setup timed out. Please refresh and try again.");
-    if(bootstrap.error) throw bootstrap.error;
-    const creatorId=bootstrap.data;
-    if(!creatorId) throw new Error("Podcasting creator profile could not be created.");
-
-    const cr=await sb.from("creators")
-      .select("id,name,creator_code,is_active,member_id")
-      .eq("id",creatorId)
-      .eq("is_active",true)
-      .maybeSingle();
-    if(cr.error) throw cr.error;
-    if(!cr.data) throw new Error("Your Podcasting creator profile could not be loaded.");
-
-    creatorProfile=cr.data;
-    $("auth").textContent="Signed in as "+(user.email||creatorProfile.name||"Creator");
-    $("dashboard").style.display="block";
-
-    const p=await sb.from("podcasts")
-      .select("id,title,status,category,artwork_url,total_plays,listener_count,slug,description")
-      .eq("creator_id",creatorProfile.id)
-      .order("created_at",{ascending:false});
-    if(p.error) throw p.error;
-
+    const p=await timeout(sb.from("podcasts").select("id,title,status,category,artwork_url,total_plays,listener_count,slug,description,created_at,updated_at").eq("creator_id",creatorProfile.id).order("created_at",{ascending:false}),10000,"Podcast list timed out.");
+    if(p.error)throw p.error;
     const podcasts=p.data||[];
-    creatorPodcastIds=new Set(podcasts.map(v=>v.id));
-    const watch=document.getElementById("liveWatchCount"); if(watch) watch.textContent=String(creatorPodcastIds.size);
-    $("shows").textContent=podcasts.length;
+    creatorPodcastIds=new Set(podcasts.map(x=>x.id));
+    $("shows").textContent=String(podcasts.length);
+    $("liveWatchCount").textContent=String(podcasts.length);
 
-    let totalE=0,totalPlays=0,totalFollowers=0,phtml="",qhtml="";
-    const counts={draft:0,review:0,scheduled:0,published:0,ready:0};
-
-    for(const x of podcasts){
-      totalPlays+=Number(x.total_plays||0);
-      totalFollowers+=Number(x.listener_count||0);
-
-      const e=await sb.from("podcast_episodes")
-        .select("id,title,status,episode_number,published_at,play_count,duration_seconds,audio_url")
-        .eq("podcast_id",x.id)
-        .order("episode_number",{ascending:false});
-      if(e.error) throw e.error;
-
-      const rows=e.data||[];
-      totalE+=rows.length;
-      rows.forEach(v=>{counts[v.status]=(counts[v.status]||0)+1});
-
-      phtml+='<article class="card">'+
-        (x.artwork_url?'<div class="cover"><img src="'+esc(x.artwork_url)+'" alt=""></div>':'')+
-        '<span class="pill">'+esc(x.status)+'</span><h3>'+esc(x.title)+'</h3>'+
-        '<p>'+esc(x.category||"Podcast")+' · '+Number(x.total_plays||0)+' plays · '+Number(x.listener_count||0)+' listeners</p>'+
-        '<div class="actions"><a class="btn primary" href="edit-podcast.html?id='+x.id+'">Manage show</a><a class="btn" href="podcast.html?id='+x.id+'">Preview</a><a class="btn" href="create-episode.html?podcast='+x.id+'">New episode</a></div>'+
-        '<div>'+rows.map(v=>
-          '<div style="padding:13px 0;border-top:1px solid #ffffff10"><strong>EP '+esc(v.episode_number||"")+' · '+esc(v.title)+'</strong>'+
-          '<p>'+esc(v.status)+(v.published_at?" · "+new Date(v.published_at).toLocaleString():"")+' · '+Number(v.play_count||0)+' plays</p>'+
-          '<div class="actions">'+
-          (v.status==="published"?'<button class="btn" onclick="pipelineAction(\'unpublish\',\''+v.id+'\')">Unpublish</button>':'<button class="btn" onclick="pipelineAction(\'publish\',\''+v.id+'\')">Publish now</button>')+
-          '<button class="btn" onclick="schedule(\''+v.id+'\')">Schedule</button>'+
-          '<a class="btn" href="publishing-pipeline.html?episode='+v.id+'">Pipeline</a><a class="btn" href="episode.html?id='+v.id+'">Listen</a></div></div>'
-        ).join("")+'</div></article>';
-
-      rows.filter(v=>v.status!=="published").forEach(v=>{
-        qhtml+='<article class="card"><span class="pill">'+esc(v.status)+'</span><h3>'+esc(v.title)+'</h3><p>'+esc(x.title)+'</p>'+
-          '<button class="btn primary" onclick="pipelineAction(\'publish\',\''+v.id+'\')">Publish</button>'+
-          '<a class="btn" href="publishing-pipeline.html?episode='+v.id+'">View pipeline</a></article>';
-      });
+    const ids=podcasts.map(x=>x.id);
+    let episodes=[];
+    if(ids.length){
+      const e=await timeout(sb.from("podcast_episodes").select("id,podcast_id,title,status,episode_number,published_at,play_count,duration_seconds,audio_url,scheduled_at,created_at,updated_at").in("podcast_id",ids).order("episode_number",{ascending:false}),10000,"Episode list timed out.");
+      if(e.error)throw e.error;
+      episodes=e.data||[];
     }
+    creatorEpisodeIds=new Set(episodes.map(x=>x.id));
+    $("eps").textContent=String(episodes.length);
 
-    $("eps").textContent=totalE;
-    $("followers").textContent=totalFollowers;
-    $("plays").textContent=totalPlays;
-    $("pipelineSummary").innerHTML=Object.entries(counts).map(([k,v])=>'<div class="card"><div class="stat">'+v+'</div><p>'+k+'</p></div>').join("");
+    let follows=0,subscriptions=0;
+    if(ids.length){
+      const f=await timeout(sb.from("podcast_follows").select("id,podcast_id").in("podcast_id",ids),8000,"Follower data timed out.");
+      if(!f.error)follows=(f.data||[]).length;
+      const sub=await timeout(sb.from("podcast_subscriptions").select("id,podcast_id,status").in("podcast_id",ids).in("status",["trialing","active","past_due","paused"]),8000,"Subscription data timed out.");
+      if(!sub.error)subscriptions=(sub.data||[]).length;
+    }
+    $("followers").textContent=String(follows);
+    const plays=podcasts.reduce((n,x)=>n+Number(x.total_plays||0),0);
+    $("plays").textContent=String(plays);
+
+    const pipeline={draft:0,review:0,scheduled:0,published:0,ready:0};
+    episodes.forEach(x=>{const k=String(x.status||"draft").toLowerCase();pipeline[k]=(pipeline[k]||0)+1});
+    $("pipelineSummary").innerHTML=Object.entries(pipeline).map(([k,v])=>'<div class="card"><div class="stat">'+v+'</div><p>'+esc(k)+'</p></div>').join("");
+
+    let phtml="",qhtml="";
+    podcasts.forEach(x=>{
+      const rows=episodes.filter(e=>e.podcast_id===x.id);
+      phtml+='<article class="card">'+(x.artwork_url?'<div class="cover"><img src="'+esc(x.artwork_url)+'" alt=""></div>':'')+
+      '<span class="pill">'+esc(x.status||"draft")+'</span><h3>'+esc(x.title||"Untitled podcast")+'</h3><p>'+esc(x.category||"Podcast")+' · '+Number(x.total_plays||0)+' plays</p>'+
+      '<div class="actions"><a class="btn primary" href="edit-podcast.html?id='+encodeURIComponent(x.id)+'">Manage show</a><a class="btn" href="podcast.html?id='+encodeURIComponent(x.id)+'">Preview</a><a class="btn" href="create-episode.html?podcast='+encodeURIComponent(x.id)+'">New episode</a></div>'+
+      '<div>'+rows.map(v=>'<div style="padding:13px 0;border-top:1px solid #ffffff10"><strong>EP '+esc(v.episode_number??"")+' · '+esc(v.title||"Untitled episode")+'</strong><p>'+esc(v.status||"draft")+(v.published_at?" · "+new Date(v.published_at).toLocaleString():"")+' · '+Number(v.play_count||0)+' plays</p><div class="actions">'+
+      (String(v.status).toLowerCase()==="published"?'<button class="btn" onclick="pipelineAction(\'unpublish\',\''+v.id+'\')">Unpublish</button>':'<button class="btn" onclick="pipelineAction(\'publish\',\''+v.id+'\')">Publish now</button>')+
+      '<button class="btn" onclick="scheduleEpisode(\''+v.id+'\')">Schedule</button><a class="btn" href="publishing-pipeline.html?episode='+encodeURIComponent(v.id)+'">Pipeline</a><a class="btn" href="episode.html?id='+encodeURIComponent(v.id)+'">Listen</a></div></div>').join("")+'</div></article>';
+      rows.filter(v=>String(v.status).toLowerCase()!=="published").forEach(v=>{
+        qhtml+='<article class="card"><span class="pill">'+esc(v.status||"draft")+'</span><h3>'+esc(v.title||"Untitled episode")+'</h3><p>'+esc(x.title)+'</p><button class="btn primary" onclick="pipelineAction(\'publish\',\''+v.id+'\')">Publish</button> <a class="btn" href="publishing-pipeline.html?episode='+encodeURIComponent(v.id)+'">View pipeline</a></article>';
+      });
+    });
     $("podcastList").innerHTML=phtml||'<div class="notice">Create your first podcast.</div>';
     $("queue").innerHTML=qhtml||'<div class="notice">No unpublished episodes in your queue.</div>';
 
-    const ids=[];
-    for(const x of podcasts){
-      const z=await sb.from("podcast_episodes").select("id").eq("podcast_id",x.id);
-      if(z.error) throw z.error;
-      ids.push(...(z.data||[]).map(v=>v.id));
-      creatorEpisodeIds=new Set(ids);
-    }
+    if(creatorEpisodeIds.size){
+      const l=await timeout(sb.from("podcast_listens").select("id,seconds_listened,completed,episode_id").in("episode_id",[...creatorEpisodeIds]).eq("user_id",user.id),8000,"Listening data timed out.");
+      if(!l.error){
+        const rows=l.data||[],seconds=rows.reduce((n,x)=>n+Number(x.seconds_listened||0),0);
+        $("analytics").innerHTML='<p><strong>'+rows.length+'</strong> of your listening sessions</p><p><strong>'+Math.round(seconds/360)/10+' hours</strong> listened</p><p><strong>'+rows.filter(x=>x.completed).length+'</strong> completed listens</p>';
+      }else $("analytics").innerHTML='<p class="muted">Listening analytics are currently unavailable.</p>';
+    }else $("analytics").innerHTML="<p>No episodes yet.</p>";
 
-    await startCreatorRealtime();
+    const rev=await timeout(sb.from("cr_creator_revenue_transactions").select("gross_amount,platform_fee,creator_amount,stripe_fee,status,transaction_type,episode_id,episode_title").eq("user_id",user.id),8000,"Revenue data timed out.");
+    if(!rev.error){
+      const rows=rev.data||[],gross=rows.reduce((n,x)=>n+Number(x.gross_amount||0),0),net=rows.reduce((n,x)=>n+Number(x.creator_amount||0),0);
+      $("revenue").innerHTML='<p><strong>$'+(gross/100).toFixed(2)+'</strong> gross</p><p><strong>$'+(net/100).toFixed(2)+'</strong> creator-attributed</p><p><strong>'+rows.length+'</strong> transactions</p>';
+    }else $("revenue").innerHTML='<p class="muted">Revenue data is currently unavailable.</p>';
 
-    if(ids.length){
-      const l=await sb.from("podcast_listens").select("seconds_listened,completed").in("episode_id",ids);
-      if(l.error) throw l.error;
-      const listens=l.data||[];
-      const seconds=listens.reduce((n,v)=>n+Number(v.seconds_listened||0),0);
-      $("analytics").innerHTML='<p><strong>'+listens.length+'</strong> listening sessions</p><p><strong>'+Math.round(seconds/3600*10)/10+' hours</strong> listened</p><p><strong>'+listens.filter(v=>v.completed).length+'</strong> completed listens</p>';
-    }else $("analytics").innerHTML='<p>No listening activity yet.</p>';
-
-    const m=await sb.from("cr_creator_revenue_transactions")
-      .select("gross_amount,platform_fee,creator_amount,stripe_fee,status,transaction_type,episode_id,episode_title")
-      .eq("user_id",user.id);
-    if(m.error) throw m.error;
-    const ms=m.data||[];
-    const net=ms.reduce((n,v)=>n+Number(v.creator_amount||0),0);
-    const gross=ms.reduce((n,v)=>n+Number(v.gross_amount||0),0);
-    const episodeRows=ms.filter(v=>v.episode_id);
-    const episodeNet=episodeRows.reduce((n,v)=>n+Number(v.creator_amount||0),0);
-    $("revenue").innerHTML='<p><strong>
-    console.error("CrowRules Creator Dashboard:",e);
-    $("auth").textContent="Creator Studio could not load: "+(e?.message||"Unknown error");
-    $("auth").classList.add("error");
-  } finally { dashboardLoading=false; }
-}
-
-
-// Creator Studio live synchronization.
-let liveChannel=null,liveRefreshTimer=null,liveLastEventAt=0,liveHealthTimer=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set(),liveEventCache=new Map(),liveReconnects=0,liveEventCount=0;
-const LIVE_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","cr_creator_revenue_transactions"];
-const liveLabel=t=>({podcasts:"Podcast",podcast_episodes:"Episode",podcast_follows:"Follower",podcast_listens:"Listening activity",podcast_subscriptions:"Subscription",cr_creator_revenue_transactions:"Revenue"}[t]||t);
-function updateLiveHealth(){const age=document.getElementById("liveAge"),health=document.getElementById("liveHealth");if(!age||!health)return;if(!liveLastEventAt){age.textContent="—";health.textContent=liveChannel?"CONNECTED":"WAITING";return}const sec=Math.max(0,Math.floor((Date.now()-liveLastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";health.textContent=sec<30?"LIVE":sec<120?"QUIET":"STALE"}
-function setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
-function addLiveActivity(table,event,row){
- const feed=document.getElementById("liveActivity");if(!feed)return;
- const empty=feed.querySelector(".activity-empty");if(empty)empty.remove();
- const item=document.createElement("div");item.className="activity-item";
- const title=row?.title||row?.name||row?.slug||"Podcasting record";
- const detail=table==="podcast_episodes"&&row?.status?"Status: "+row.status:table==="podcast_listens"?"New listening activity":table==="podcast_follows"?"New follower":table==="podcast_subscriptions"?"Subscription activity":table==="cr_creator_revenue_transactions"?"Revenue event":"Creator account data";
- item.innerHTML='<span class="dot"></span><div><b>'+esc(event+' · '+liveLabel(table))+'</b><small>'+esc(title)+' · '+esc(detail)+'</small></div><small>'+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+'</small>';
- feed.prepend(item);while(feed.children.length>40)feed.lastElementChild.remove();
-}
-function showLiveToast(table,event,row){const box=document.createElement("div");box.className="live-toast-card";const title=row?.title||row?.name||row?.slug||"Your Podcasting data changed";box.innerHTML="<b>● "+esc(event)+" · "+esc(liveLabel(table))+"</b><small>"+esc(title)+" · "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+"</small>";document.getElementById("liveToast")?.prepend(box);setTimeout(()=>box.remove(),5000)}
-function flashDashboard(){["shows","eps","followers","plays","pipelineSummary","podcastList","queue","analytics","revenue"].forEach(id=>document.getElementById(id)?.classList.add("live-refresh"));setTimeout(()=>document.querySelectorAll(".live-refresh").forEach(x=>x.classList.remove("live-refresh")),700)}
-function refreshCreatorLive(table,event,row){
- const eventKey=[table,event,row?.id||"",row?.updated_at||row?.created_at||row?.occurred_at||""].join("|");
- const now=Date.now();
- for(const [k,t] of liveEventCache)if(now-t>30000)liveEventCache.delete(k);
- if(liveEventCache.has(eventKey))return;
- liveEventCache.set(eventKey,now);
- addLiveActivity(table,event,row);showLiveToast(table,event,row);liveEventCount++;const ec=document.getElementById("liveEventCount");if(ec)ec.textContent=String(liveEventCount);flashDashboard();liveLastEventAt=Date.now();document.getElementById("liveUpdated").textContent=new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"});updateLiveHealth();if(liveRefreshTimer)clearTimeout(liveRefreshTimer);liveRefreshTimer=setTimeout(()=>loadDashboard(),750)}
-document.getElementById("clearLiveActivity")?.addEventListener("click",()=>{const f=document.getElementById("liveActivity");if(f)f.innerHTML='<div class="activity-empty">Waiting for live production events…</div>'});
-async function startCreatorRealtime(){if(!window.CROW_SUPABASE||!creatorProfile?.id)return;if(liveChannel)return;let ch=window.CROW_SUPABASE.channel("creator-studio-live-"+creatorProfile.id);
-LIVE_TABLES.forEach(table=>{
- const cfg={event:"*",schema:"public",table};
- if(table==="podcasts") cfg.filter="creator_id=eq."+creatorProfile.id;
- ch=ch.on("postgres_changes",cfg,payload=>{
-   const row=payload.new||payload.old||{};
-   if(table==="podcasts" && row.creator_id!==creatorProfile.id) return;
-   if(table==="cr_creator_revenue_transactions" && row.creator_id!==creatorProfile.id) return;
-   if((table==="podcast_follows" || table==="podcast_subscriptions") && !creatorPodcastIds.has(row.podcast_id)) return;
-   if(table==="podcast_listens" && !creatorEpisodeIds.has(row.episode_id)) return;
-   refreshCreatorLive(table,payload.eventType||"CHANGE",row);
- });
-});
-liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){liveReconnects++;const rc=document.getElementById("liveReconnectCount");if(rc)rc.textContent=String(liveReconnects);setLiveStatus(false,"LIVE SYNC RECONNECTING");if(liveChannel){window.CROW_SUPABASE.removeChannel(liveChannel).catch(()=>{});liveChannel=null}setTimeout(()=>startCreatorRealtime(),Math.min(30000,1000*Math.pow(2,Math.min(liveReconnects-1,5))));}else if(s==="CHANNEL_ERROR")setLiveStatus(false,"LIVE SYNC ERROR")})}
-if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);
-connectCreatorSupabase().then(({user})=>{
-  if(user)loadDashboard();
-}).catch(e=>{
-  console.error("Creator Studio connection:",e);
-  setAccountStatus(e.message==="AUTH_REQUIRED"?"Sign in to open Creator Studio.":"Creator Studio connection failed: "+e.message,true);
-});
-
-})();
-</script></body></html>+(net/100).toFixed(2)+'</strong> automated creator-attributed net revenue</p><p>
-    console.error("CrowRules Creator Dashboard:",e);
-    $("auth").textContent="Creator Studio could not load: "+(e?.message||"Unknown error");
-    $("auth").classList.add("error");
-  }
-}
-
-
-// Creator Studio live synchronization.
-let liveChannel=null,liveRefreshTimer=null,liveLastEventAt=0,liveHealthTimer=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set(),liveEventCache=new Map(),liveReconnects=0,liveEventCount=0;
-const LIVE_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","cr_creator_revenue_transactions"];
-const liveLabel=t=>({podcasts:"Podcast",podcast_episodes:"Episode",podcast_follows:"Follower",podcast_listens:"Listening activity",podcast_subscriptions:"Subscription",cr_creator_revenue_transactions:"Revenue"}[t]||t);
-function updateLiveHealth(){const age=document.getElementById("liveAge"),health=document.getElementById("liveHealth");if(!age||!health)return;if(!liveLastEventAt){age.textContent="—";health.textContent=liveChannel?"CONNECTED":"WAITING";return}const sec=Math.max(0,Math.floor((Date.now()-liveLastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";health.textContent=sec<30?"LIVE":sec<120?"QUIET":"STALE"}
-function setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
-function addLiveActivity(table,event,row){
- const feed=document.getElementById("liveActivity");if(!feed)return;
- const empty=feed.querySelector(".activity-empty");if(empty)empty.remove();
- const item=document.createElement("div");item.className="activity-item";
- const title=row?.title||row?.name||row?.slug||"Podcasting record";
- const detail=table==="podcast_episodes"&&row?.status?"Status: "+row.status:table==="podcast_listens"?"New listening activity":table==="podcast_follows"?"New follower":table==="podcast_subscriptions"?"Subscription activity":table==="cr_creator_revenue_transactions"?"Revenue event":"Creator account data";
- item.innerHTML='<span class="dot"></span><div><b>'+esc(event+' · '+liveLabel(table))+'</b><small>'+esc(title)+' · '+esc(detail)+'</small></div><small>'+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+'</small>';
- feed.prepend(item);while(feed.children.length>40)feed.lastElementChild.remove();
-}
-function showLiveToast(table,event,row){const box=document.createElement("div");box.className="live-toast-card";const title=row?.title||row?.name||row?.slug||"Your Podcasting data changed";box.innerHTML="<b>● "+esc(event)+" · "+esc(liveLabel(table))+"</b><small>"+esc(title)+" · "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+"</small>";document.getElementById("liveToast")?.prepend(box);setTimeout(()=>box.remove(),5000)}
-function flashDashboard(){["shows","eps","followers","plays","pipelineSummary","podcastList","queue","analytics","revenue"].forEach(id=>document.getElementById(id)?.classList.add("live-refresh"));setTimeout(()=>document.querySelectorAll(".live-refresh").forEach(x=>x.classList.remove("live-refresh")),700)}
-function refreshCreatorLive(table,event,row){
- const eventKey=[table,event,row?.id||"",row?.updated_at||row?.created_at||row?.occurred_at||""].join("|");
- const now=Date.now();
- for(const [k,t] of liveEventCache)if(now-t>30000)liveEventCache.delete(k);
- if(liveEventCache.has(eventKey))return;
- liveEventCache.set(eventKey,now);
- addLiveActivity(table,event,row);showLiveToast(table,event,row);liveEventCount++;const ec=document.getElementById("liveEventCount");if(ec)ec.textContent=String(liveEventCount);flashDashboard();liveLastEventAt=Date.now();document.getElementById("liveUpdated").textContent=new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"});updateLiveHealth();if(liveRefreshTimer)clearTimeout(liveRefreshTimer);liveRefreshTimer=setTimeout(()=>loadDashboard(),750)}
-document.getElementById("clearLiveActivity")?.addEventListener("click",()=>{const f=document.getElementById("liveActivity");if(f)f.innerHTML='<div class="activity-empty">Waiting for live production events…</div>'});
-async function startCreatorRealtime(){if(!window.CROW_SUPABASE||!creatorProfile?.id)return;if(liveChannel)return;let ch=window.CROW_SUPABASE.channel("creator-studio-live-"+creatorProfile.id);
-LIVE_TABLES.forEach(table=>{
- const cfg={event:"*",schema:"public",table};
- if(table==="podcasts") cfg.filter="creator_id=eq."+creatorProfile.id;
- ch=ch.on("postgres_changes",cfg,payload=>{
-   const row=payload.new||payload.old||{};
-   if(table==="podcasts" && row.creator_id!==creatorProfile.id) return;
-   if(table==="cr_creator_revenue_transactions" && row.creator_id!==creatorProfile.id) return;
-   if((table==="podcast_follows" || table==="podcast_subscriptions") && !creatorPodcastIds.has(row.podcast_id)) return;
-   if(table==="podcast_listens" && !creatorEpisodeIds.has(row.episode_id)) return;
-   refreshCreatorLive(table,payload.eventType||"CHANGE",row);
- });
-});
-liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){liveReconnects++;const rc=document.getElementById("liveReconnectCount");if(rc)rc.textContent=String(liveReconnects);setLiveStatus(false,"LIVE SYNC RECONNECTING");if(liveChannel){window.CROW_SUPABASE.removeChannel(liveChannel).catch(()=>{});liveChannel=null}setTimeout(()=>startCreatorRealtime(),Math.min(30000,1000*Math.pow(2,Math.min(liveReconnects-1,5))));}else if(s==="CHANNEL_ERROR")setLiveStatus(false,"LIVE SYNC ERROR")})}
-if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);
-connectCreatorSupabase().then(({user})=>{if(user)loadDashboard()}).catch(e=>{console.error("Creator Studio connection:",e);setAccountStatus(e.message==="AUTH_REQUIRED"?"Sign in to open Creator Studio.":"Creator Studio connection failed: "+e.message,true)});
-})();
-</script></body></html>+(gross/100).toFixed(2)+' gross across '+ms.length+' ledger events</p><p>
-    console.error("CrowRules Creator Dashboard:",e);
-    $("auth").textContent="Creator Studio could not load: "+(e?.message||"Unknown error");
-    $("auth").classList.add("error");
-  }
-}
-
-
-// Creator Studio live synchronization.
-let liveChannel=null,liveRefreshTimer=null,liveLastEventAt=0,liveHealthTimer=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set(),liveEventCache=new Map(),liveReconnects=0,liveEventCount=0;
-const LIVE_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","cr_creator_revenue_transactions"];
-const liveLabel=t=>({podcasts:"Podcast",podcast_episodes:"Episode",podcast_follows:"Follower",podcast_listens:"Listening activity",podcast_subscriptions:"Subscription",cr_creator_revenue_transactions:"Revenue"}[t]||t);
-function updateLiveHealth(){const age=document.getElementById("liveAge"),health=document.getElementById("liveHealth");if(!age||!health)return;if(!liveLastEventAt){age.textContent="—";health.textContent=liveChannel?"CONNECTED":"WAITING";return}const sec=Math.max(0,Math.floor((Date.now()-liveLastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";health.textContent=sec<30?"LIVE":sec<120?"QUIET":"STALE"}
-function setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
-function addLiveActivity(table,event,row){
- const feed=document.getElementById("liveActivity");if(!feed)return;
- const empty=feed.querySelector(".activity-empty");if(empty)empty.remove();
- const item=document.createElement("div");item.className="activity-item";
- const title=row?.title||row?.name||row?.slug||"Podcasting record";
- const detail=table==="podcast_episodes"&&row?.status?"Status: "+row.status:table==="podcast_listens"?"New listening activity":table==="podcast_follows"?"New follower":table==="podcast_subscriptions"?"Subscription activity":table==="cr_creator_revenue_transactions"?"Revenue event":"Creator account data";
- item.innerHTML='<span class="dot"></span><div><b>'+esc(event+' · '+liveLabel(table))+'</b><small>'+esc(title)+' · '+esc(detail)+'</small></div><small>'+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+'</small>';
- feed.prepend(item);while(feed.children.length>40)feed.lastElementChild.remove();
-}
-function showLiveToast(table,event,row){const box=document.createElement("div");box.className="live-toast-card";const title=row?.title||row?.name||row?.slug||"Your Podcasting data changed";box.innerHTML="<b>● "+esc(event)+" · "+esc(liveLabel(table))+"</b><small>"+esc(title)+" · "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+"</small>";document.getElementById("liveToast")?.prepend(box);setTimeout(()=>box.remove(),5000)}
-function flashDashboard(){["shows","eps","followers","plays","pipelineSummary","podcastList","queue","analytics","revenue"].forEach(id=>document.getElementById(id)?.classList.add("live-refresh"));setTimeout(()=>document.querySelectorAll(".live-refresh").forEach(x=>x.classList.remove("live-refresh")),700)}
-function refreshCreatorLive(table,event,row){
- const eventKey=[table,event,row?.id||"",row?.updated_at||row?.created_at||row?.occurred_at||""].join("|");
- const now=Date.now();
- for(const [k,t] of liveEventCache)if(now-t>30000)liveEventCache.delete(k);
- if(liveEventCache.has(eventKey))return;
- liveEventCache.set(eventKey,now);
- addLiveActivity(table,event,row);showLiveToast(table,event,row);liveEventCount++;const ec=document.getElementById("liveEventCount");if(ec)ec.textContent=String(liveEventCount);flashDashboard();liveLastEventAt=Date.now();document.getElementById("liveUpdated").textContent=new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"});updateLiveHealth();if(liveRefreshTimer)clearTimeout(liveRefreshTimer);liveRefreshTimer=setTimeout(()=>loadDashboard(),750)}
-document.getElementById("clearLiveActivity")?.addEventListener("click",()=>{const f=document.getElementById("liveActivity");if(f)f.innerHTML='<div class="activity-empty">Waiting for live production events…</div>'});
-async function startCreatorRealtime(){if(!window.CROW_SUPABASE||!creatorProfile?.id)return;if(liveChannel)return;let ch=window.CROW_SUPABASE.channel("creator-studio-live-"+creatorProfile.id);
-LIVE_TABLES.forEach(table=>{
- const cfg={event:"*",schema:"public",table};
- if(table==="podcasts") cfg.filter="creator_id=eq."+creatorProfile.id;
- ch=ch.on("postgres_changes",cfg,payload=>{
-   const row=payload.new||payload.old||{};
-   if(table==="podcasts" && row.creator_id!==creatorProfile.id) return;
-   if(table==="cr_creator_revenue_transactions" && row.creator_id!==creatorProfile.id) return;
-   if((table==="podcast_follows" || table==="podcast_subscriptions") && !creatorPodcastIds.has(row.podcast_id)) return;
-   if(table==="podcast_listens" && !creatorEpisodeIds.has(row.episode_id)) return;
-   refreshCreatorLive(table,payload.eventType||"CHANGE",row);
- });
-});
-liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){liveReconnects++;const rc=document.getElementById("liveReconnectCount");if(rc)rc.textContent=String(liveReconnects);setLiveStatus(false,"LIVE SYNC RECONNECTING");if(liveChannel){window.CROW_SUPABASE.removeChannel(liveChannel).catch(()=>{});liveChannel=null}setTimeout(()=>startCreatorRealtime(),Math.min(30000,1000*Math.pow(2,Math.min(liveReconnects-1,5))));}else if(s==="CHANNEL_ERROR")setLiveStatus(false,"LIVE SYNC ERROR")})}
-if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);
-connectCreatorSupabase().then(({user})=>{
-  if(user)loadDashboard();
-}).catch(e=>{
-  console.error("Creator Studio connection:",e);
-  setAccountStatus(e.message==="AUTH_REQUIRED"?"Sign in to open Creator Studio.":"Creator Studio connection failed: "+e.message,true);
-});
-})();
-</script></body></html>+(episodeNet/100).toFixed(2)+' attributed to episodes · '+episodeRows.length+' episode-attributed events</p>';
+    await startRealtime();
   }catch(e){
-    console.error("CrowRules Creator Dashboard:",e);
-    $("auth").textContent="Creator Studio could not load: "+(e?.message||"Unknown error");
-    $("auth").classList.add("error");
-  }
+    console.error("CrowRules Creator Studio:",e);
+    if(e?.message==="AUTH_REQUIRED"){status("Sign in to open Creator Studio.",true);return}
+    status("Creator Studio could not load: "+(e?.message||"Unknown error"),true);
+  }finally{loading=false}
 }
 
-
-// Creator Studio live synchronization.
-let liveChannel=null,liveRefreshTimer=null,liveLastEventAt=0,liveHealthTimer=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set(),liveEventCache=new Map(),liveReconnects=0,liveEventCount=0;
-const LIVE_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","cr_creator_revenue_transactions"];
-const liveLabel=t=>({podcasts:"Podcast",podcast_episodes:"Episode",podcast_follows:"Follower",podcast_listens:"Listening activity",podcast_subscriptions:"Subscription",cr_creator_revenue_transactions:"Revenue"}[t]||t);
-function updateLiveHealth(){const age=document.getElementById("liveAge"),health=document.getElementById("liveHealth");if(!age||!health)return;if(!liveLastEventAt){age.textContent="—";health.textContent=liveChannel?"CONNECTED":"WAITING";return}const sec=Math.max(0,Math.floor((Date.now()-liveLastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";health.textContent=sec<30?"LIVE":sec<120?"QUIET":"STALE"}
-function setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
-function addLiveActivity(table,event,row){
- const feed=document.getElementById("liveActivity");if(!feed)return;
- const empty=feed.querySelector(".activity-empty");if(empty)empty.remove();
- const item=document.createElement("div");item.className="activity-item";
- const title=row?.title||row?.name||row?.slug||"Podcasting record";
- const detail=table==="podcast_episodes"&&row?.status?"Status: "+row.status:table==="podcast_listens"?"New listening activity":table==="podcast_follows"?"New follower":table==="podcast_subscriptions"?"Subscription activity":table==="cr_creator_revenue_transactions"?"Revenue event":"Creator account data";
- item.innerHTML='<span class="dot"></span><div><b>'+esc(event+' · '+liveLabel(table))+'</b><small>'+esc(title)+' · '+esc(detail)+'</small></div><small>'+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+'</small>';
- feed.prepend(item);while(feed.children.length>40)feed.lastElementChild.remove();
+async function pipelineAction(action,id){
+  if(action==="publish"&&!confirm("Publish this episode now?"))return;
+  if(!sb)return;
+  const fn=window.CROW_CONFIG?.pipelineFunction;
+  if(!fn)return alert("Podcast pipeline function is not configured.");
+  try{
+    const r=await timeout(sb.functions.invoke(fn,{body:{action,episode_id:id}}),15000,"Publishing request timed out.");
+    if(r.error)throw r.error;
+    if(r.data?.error)throw new Error(r.data.error);
+    await loadDashboard();
+  }catch(e){alert(e.message||"Publishing failed.")}
 }
-function showLiveToast(table,event,row){const box=document.createElement("div");box.className="live-toast-card";const title=row?.title||row?.name||row?.slug||"Your Podcasting data changed";box.innerHTML="<b>● "+esc(event)+" · "+esc(liveLabel(table))+"</b><small>"+esc(title)+" · "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+"</small>";document.getElementById("liveToast")?.prepend(box);setTimeout(()=>box.remove(),5000)}
-function flashDashboard(){["shows","eps","followers","plays","pipelineSummary","podcastList","queue","analytics","revenue"].forEach(id=>document.getElementById(id)?.classList.add("live-refresh"));setTimeout(()=>document.querySelectorAll(".live-refresh").forEach(x=>x.classList.remove("live-refresh")),700)}
-function refreshCreatorLive(table,event,row){
- const eventKey=[table,event,row?.id||"",row?.updated_at||row?.created_at||row?.occurred_at||""].join("|");
- const now=Date.now();
- for(const [k,t] of liveEventCache)if(now-t>30000)liveEventCache.delete(k);
- if(liveEventCache.has(eventKey))return;
- liveEventCache.set(eventKey,now);
- addLiveActivity(table,event,row);showLiveToast(table,event,row);liveEventCount++;const ec=document.getElementById("liveEventCount");if(ec)ec.textContent=String(liveEventCount);flashDashboard();liveLastEventAt=Date.now();document.getElementById("liveUpdated").textContent=new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"});updateLiveHealth();if(liveRefreshTimer)clearTimeout(liveRefreshTimer);liveRefreshTimer=setTimeout(()=>loadDashboard(),750)}
-document.getElementById("clearLiveActivity")?.addEventListener("click",()=>{const f=document.getElementById("liveActivity");if(f)f.innerHTML='<div class="activity-empty">Waiting for live production events…</div>'});
-async function startCreatorRealtime(){if(!window.CROW_SUPABASE||!creatorProfile?.id)return;if(liveChannel)return;let ch=window.CROW_SUPABASE.channel("creator-studio-live-"+creatorProfile.id);
-LIVE_TABLES.forEach(table=>{
- const cfg={event:"*",schema:"public",table};
- if(table==="podcasts") cfg.filter="creator_id=eq."+creatorProfile.id;
- ch=ch.on("postgres_changes",cfg,payload=>{
-   const row=payload.new||payload.old||{};
-   if(table==="podcasts" && row.creator_id!==creatorProfile.id) return;
-   if(table==="cr_creator_revenue_transactions" && row.creator_id!==creatorProfile.id) return;
-   if((table==="podcast_follows" || table==="podcast_subscriptions") && !creatorPodcastIds.has(row.podcast_id)) return;
-   if(table==="podcast_listens" && !creatorEpisodeIds.has(row.episode_id)) return;
-   refreshCreatorLive(table,payload.eventType||"CHANGE",row);
- });
-});
-liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){liveReconnects++;const rc=document.getElementById("liveReconnectCount");if(rc)rc.textContent=String(liveReconnects);setLiveStatus(false,"LIVE SYNC RECONNECTING");if(liveChannel){window.CROW_SUPABASE.removeChannel(liveChannel).catch(()=>{});liveChannel=null}setTimeout(()=>startCreatorRealtime(),Math.min(30000,1000*Math.pow(2,Math.min(liveReconnects-1,5))));}else if(s==="CHANNEL_ERROR")setLiveStatus(false,"LIVE SYNC ERROR")})}
-if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);
-if(window.CROW_SUPABASE) loadDashboard();
-else addEventListener("crow:ready",loadDashboard,{once:true});
-setTimeout(()=>{if(!$("dashboard")?.style.display||$("dashboard").style.display==="none") loadDashboard()},1800);
+async function scheduleEpisode(id){
+  const value=prompt("Enter future publish time in ISO format, for example 2027-01-01T12:00:00-08:00");
+  if(!value)return;
+  const dt=new Date(value);if(Number.isNaN(dt.getTime()))return alert("Invalid date/time.");
+  try{
+    const fn=window.CROW_CONFIG?.scheduleFunction;if(!fn)throw new Error("Podcast schedule function is not configured.");
+    const r=await timeout(sb.functions.invoke(fn,{body:{action:"schedule",episode_id:id,starts_at:dt.toISOString()}}),15000,"Scheduling request timed out.");
+    if(r.error)throw r.error;if(r.data?.error)throw new Error(r.data.error);
+    await loadDashboard();
+  }catch(e){alert(e.message||"Scheduling failed.")}
+}
+window.pipelineAction=pipelineAction;window.scheduleEpisode=scheduleEpisode;
+
+function addLive(table,event,row){
+  eventCount++;lastEventAt=Date.now();
+  $("liveEventCount").textContent=String(eventCount);$("liveUpdated").textContent=new Date().toLocaleTimeString();
+  $("liveHealth").textContent="LIVE";$("liveAge").textContent="0s";
+  const feed=$("liveActivity");if(!feed)return;
+  feed.querySelector(".activity-empty")?.remove();
+  const item=document.createElement("div");item.className="activity-item";
+  const name=row?.title||row?.name||row?.podcast_title||"Creator data";
+  item.innerHTML='<span class="dot"></span><div><b>'+esc(event)+' · '+esc(table.replace("podcast_","").replaceAll("_"," "))+'</b><small>'+esc(name)+'</small></div><small>'+esc(new Date().toLocaleTimeString())+'</small>';
+  feed.prepend(item);while(feed.children.length>40)feed.lastElementChild.remove();
+}
+function stopRealtime(){if(realtimeChannel){sb?.removeChannel(realtimeChannel).catch(()=>{});realtimeChannel=null}if(reconnectTimer){clearTimeout(reconnectTimer);reconnectTimer=null}}
+function scheduleReconnect(){if(reconnectTimer||!user)return;reconnects++;$("liveReconnectCount").textContent=String(reconnects);const delay=Math.min(30000,1000*Math.pow(2,Math.min(reconnects-1,5)));reconnectTimer=setTimeout(()=>{reconnectTimer=null;startRealtime()},delay)}
+async function startRealtime(){
+  if(!sb||!creatorProfile?.id||realtimeChannel)return;
+  liveStatus(false,"LIVE SYNC CONNECTING");
+  let ch=sb.channel("creator-studio-"+creatorProfile.id);
+  REALTIME_TABLES.forEach(table=>{
+    const cfg={event:"*",schema:"public",table};
+    if(table==="podcasts")cfg.filter="creator_id=eq."+creatorProfile.id;
+    ch=ch.on("postgres_changes",cfg,p=>{
+      const row=p.new||p.old||{};
+      if(table==="podcasts"&&row.creator_id!==creatorProfile.id)return;
+      if(table==="podcast_episodes"&&!creatorEpisodeIds.has(row.podcast_id)&&!creatorEpisodeIds.has(row.id)&&!creatorPodcastIds.has(row.podcast_id))return;
+      if((table==="podcast_follows"||table==="podcast_subscriptions")&&!creatorPodcastIds.has(row.podcast_id))return;
+      if(table==="podcast_listens"&&!creatorEpisodeIds.has(row.episode_id))return;
+      if(table==="cr_creator_revenue_transactions"&&row.user_id!==user.id)return;
+      addLive(table,p.eventType||"CHANGE",row);
+      clearTimeout(window.__creatorLiveRefresh);window.__creatorLiveRefresh=setTimeout(()=>loadDashboard(),900);
+    });
+  });
+  realtimeChannel=ch;
+  const timer=setTimeout(()=>{if(realtimeChannel===ch)liveStatus(false,"LIVE SYNC TIMEOUT · RETRYING")},10000);
+  await ch.subscribe((state,error)=>{
+    clearTimeout(timer);
+    if(state==="SUBSCRIBED"){reconnects=0;$("liveReconnectCount").textContent="0";liveStatus(true,"LIVE SYNC CONNECTED")}
+    else if(state==="CHANNEL_ERROR"||state==="TIMED_OUT"||state==="CLOSED"){
+      liveStatus(false,"LIVE SYNC RECONNECTING");
+      if(realtimeChannel===ch){realtimeChannel=null;sb.removeChannel(ch).catch(()=>{})}
+      scheduleReconnect();
+    }
+    if(error)console.warn("Creator Studio Realtime:",error);
+  });
+}
+$("clearLiveActivity")?.addEventListener("click",()=>{$("liveActivity").innerHTML='<div class="activity-empty">Waiting for live production events…</div>'});
+setInterval(()=>{const age=$("liveAge");if(!age)return;if(!lastEventAt){age.textContent="—";return}const sec=Math.max(0,Math.floor((Date.now()-lastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";if(sec>120)$("liveHealth").textContent="STALE"},1000);
+
+(async function boot(){
+  try{await loadDashboard()}catch(e){console.error(e);status("Creator Studio connection failed: "+e.message,true)}
+})();
 })();
 </script></body></html>
