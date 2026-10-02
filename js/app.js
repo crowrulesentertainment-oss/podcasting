@@ -1,234 +1,46 @@
 (()=>{
-  "use strict";
+"use strict";
+const VERSION="8.0";
+const BASE="https://crowrulesentertainment-oss.github.io/podcasting";
+const NAV_HTML=`<header class="site-nav" id="crSiteNav"><div class="wrap nav-inner">
+<a class="brand" href="${BASE}/home.html" aria-label="CrowRules Podcasting home">CROW<b>RULES</b> PODCASTING</a>
+<button class="nav-toggle" id="navToggle" aria-label="Open navigation" aria-expanded="false">☰</button>
+<nav class="nav-links" id="navLinks" aria-label="Podcasting navigation">
+<a href="${BASE}/home.html">Home</a>
+<div class="nav-menu"><button class="nav-menu-btn" type="button" aria-expanded="false">Explore <span>⌄</span></button><div class="nav-dropdown">
+<a href="${BASE}/discover.html">Discover</a><a href="${BASE}/podcasts.html">All Podcasts</a><a href="${BASE}/episodes.html">Episodes</a><a href="${BASE}/search.html">Search</a><a href="${BASE}/library.html">Library</a><a href="${BASE}/members-podcaster.html">Podcasters</a><a href="${BASE}/member-listener.html">Listeners</a>
+</div></div>
+<div class="nav-menu"><button class="nav-menu-btn" type="button" aria-expanded="false">Creator <span>⌄</span></button><div class="nav-dropdown">
+<a href="${BASE}/creator-center.html">Command Center</a><a href="${BASE}/creator-dashboard.html">Creator Studio</a><a href="${BASE}/create-podcast.html">Create Podcast</a><a href="${BASE}/create-episode.html">Create Episode</a><a href="${BASE}/creator-actions.html">Actions</a><a href="${BASE}/creator-outcomes.html">Outcomes</a><a href="${BASE}/creator-learning.html">Learning</a><a href="${BASE}/creator-goals.html">Goals</a><a href="${BASE}/creator-automation.html">Automation</a><a href="${BASE}/creator-activity.html">Activity <span id="navAlertBadge" class="nav-badge" hidden>0</span></a><a href="${BASE}/creator-analytics.html">Analytics</a><a href="${BASE}/creator-audience.html">Audience</a><a href="${BASE}/creator-monetization.html">Monetization</a><a href="${BASE}/creator-payouts.html">Payouts</a><a href="${BASE}/creator-settings.html">Settings</a>
+</div></div>
+<div class="nav-menu"><button class="nav-menu-btn" type="button" aria-expanded="false">Intelligence <span>⌄</span></button><div class="nav-dropdown">
+<a href="${BASE}/creator-intelligence.html">Creator Intelligence</a><a href="${BASE}/creator-recommendations.html">Adaptive Recommendations</a><a href="${BASE}/creator-analytics.html">Creator Analytics</a><a href="${BASE}/analytics.html">Platform Analytics</a>
+</div></div>
+<div class="nav-menu"><button class="nav-menu-btn" type="button" aria-expanded="false">Publishing <span>⌄</span></button><div class="nav-dropdown">
+<a href="${BASE}/publishing-pipeline.html">Pipeline</a><a href="${BASE}/release-calendar.html">Calendar</a><a href="${BASE}/distribution.html">Distribution</a>
+</div></div>
+<div class="nav-menu"><button class="nav-menu-btn" type="button" aria-expanded="false">Account <span>⌄</span></button><div class="nav-dropdown">
+<a href="${BASE}/member-profile.html">My Profile</a><a href="${BASE}/membership.html">Membership</a><a href="${BASE}/notifications.html">Notifications</a><a href="${BASE}/account.html">Account</a><button type="button" id="crSignIn" class="nav-account-action">Sign in</button><button type="button" id="crSignOut" class="nav-account-action" hidden>Sign out</button>
+</div></div></nav>
+<button id="crGlobalSearch" class="nav-search" type="button" aria-label="Search Podcasting">⌕ <span>Search</span><kbd>Ctrl K</kbd></button>
+<span class="nav-user" id="navUser" aria-live="polite">Connecting…</span>
+</div></header>`;
 
-  const VERSION="7.0";
-  const BASE="https://crowrulesentertainment-oss.github.io/podcasting";
-
-  const NAV_HTML=`<header class="site-nav"><div class="wrap nav-inner">
-    <a class="brand" href="${BASE}/home.html">CROW<b>RULES</b> PODCASTING</a>
-    <button class="nav-toggle" id="navToggle" aria-label="Open navigation" aria-expanded="false">☰</button>
-    <nav class="nav-links" id="navLinks" aria-label="Podcasting navigation">
-      <a href="${BASE}/home.html">Home</a>
-      <div class="nav-menu"><button class="nav-menu-btn" type="button" aria-expanded="false">Explore <span>⌄</span></button><div class="nav-dropdown">
-        <a href="${BASE}/discover.html">Discover</a><a href="${BASE}/podcasts.html">All Podcasts</a><a href="${BASE}/episodes.html">Episodes</a><a href="${BASE}/search.html">Search</a><a href="${BASE}/library.html">Library</a><a href="${BASE}/members-podcaster.html">Podcasters</a><a href="${BASE}/member-listener.html">Listeners</a>
-      </div></div>
-      <div class="nav-menu"><button class="nav-menu-btn" type="button" aria-expanded="false">Creator <span>⌄</span></button><div class="nav-dropdown">
-        <a href="${BASE}/creator-center.html">Command Center</a><a href="${BASE}/creator-dashboard.html">Creator Studio</a><a href="${BASE}/create-podcast.html">Create Podcast</a><a href="${BASE}/create-episode.html">Create Episode</a><a href="${BASE}/creator-actions.html">Actions</a><a href="${BASE}/creator-outcomes.html">Outcomes</a><a href="${BASE}/creator-learning.html">Learning</a><a href="${BASE}/creator-goals.html">Goals</a><a href="${BASE}/creator-automation.html">Automation</a><a href="${BASE}/creator-activity.html">Activity <span id="navAlertBadge" class="nav-badge" hidden>0</span></a><a href="${BASE}/creator-analytics.html">Analytics</a><a href="${BASE}/creator-audience.html">Audience</a><a href="${BASE}/creator-monetization.html">Monetization</a><a href="${BASE}/payouts.html">Payouts</a><a href="${BASE}/creator-settings.html">Settings</a>
-      </div></div>
-      <div class="nav-menu"><button class="nav-menu-btn" type="button" aria-expanded="false">Intelligence <span>⌄</span></button><div class="nav-dropdown">
-        <a href="${BASE}/creator-intelligence.html">Creator Intelligence</a><a href="${BASE}/creator-recommendations.html">Adaptive Recommendations</a><a href="${BASE}/creator-analytics.html">Creator Analytics</a><a href="${BASE}/analytics.html">Platform Analytics</a>
-      </div></div>
-      <div class="nav-menu"><button class="nav-menu-btn" type="button" aria-expanded="false">Publishing <span>⌄</span></button><div class="nav-dropdown">
-        <a href="${BASE}/publishing-pipeline.html">Pipeline</a><a href="${BASE}/release-calendar.html">Calendar</a><a href="${BASE}/distribution.html">Distribution</a>
-      </div></div>
-      <div class="nav-menu"><button class="nav-menu-btn" type="button" aria-expanded="false">Account <span>⌄</span></button><div class="nav-dropdown">
-        <a href="${BASE}/member-profile.html">My Profile</a><a href="${BASE}/membership.html">Membership</a><a href="${BASE}/notifications.html">Notifications</a><a href="${BASE}/account.html">Account</a>
-      </div></div>
-    </nav>
-    <span class="nav-user" id="navUser">Connecting…</span>
-  </div></header>`;
-
-  const ensureStyles=()=>{
-    if(document.querySelector('link[data-crowrules-podcasting-css]'))return;
-    const existing=[...document.querySelectorAll('link[rel="stylesheet"]')].some(l=>/podcasting\.css(?:\?|$)/.test(l.href||""));
-    if(existing)return;
-    const link=document.createElement("link");
-    link.rel="stylesheet";
-    link.href=`${BASE}/css/podcasting.css`;
-    link.dataset.crowrulesPodcastingCss="1";
-    document.head.appendChild(link);
-  };
-
-  const ensureNav=()=>{
-    if(!document.body)return;
-    ensureStyles();
-    let nav=document.querySelector("[data-nav]");
-    if(!nav){
-      nav=document.createElement("div");
-      nav.setAttribute("data-nav","");
-      document.body.insertBefore(nav,document.body.firstChild);
-    }
-    nav.innerHTML=NAV_HTML;
-
-    const toggle=document.getElementById("navToggle");
-    const links=document.getElementById("navLinks");
-    const closeMenus=()=>document.querySelectorAll(".nav-menu.open").forEach(menu=>{
-      menu.classList.remove("open");
-      menu.querySelector(".nav-menu-btn")?.setAttribute("aria-expanded","false");
-    });
-
-    document.querySelectorAll(".nav-menu-btn").forEach(btn=>btn.addEventListener("click",event=>{
-      event.stopPropagation();
-      const menu=btn.parentElement;
-      const open=menu.classList.toggle("open");
-      btn.setAttribute("aria-expanded",String(open));
-      document.querySelectorAll(".nav-menu.open").forEach(other=>{
-        if(other!==menu){
-          other.classList.remove("open");
-          other.querySelector(".nav-menu-btn")?.setAttribute("aria-expanded","false");
-        }
-      });
-    }));
-
-    document.addEventListener("click",event=>{
-      if(!event.target.closest(".nav-menu"))closeMenus();
-    },{passive:true});
-
-    toggle?.addEventListener("click",()=>{
-      const open=links?.classList.toggle("open")||false;
-      toggle.setAttribute("aria-expanded",String(open));
-      toggle.textContent=open?"✕":"☰";
-    });
-  };
-
-  const ensureClient=()=>{
-    if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
-    const cfg=window.CROW_CONFIG||{};
-    if(!window.supabase?.createClient)throw new Error("Supabase client library is unavailable.");
-    if(!cfg.supabaseUrl||!cfg.supabaseKey)throw new Error("CrowRules Supabase configuration is missing.");
-    window.CROW_SUPABASE=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{
-      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}
-    });
-    return window.CROW_SUPABASE;
-  };
-
-  const withTimeout=async(promise,ms,message)=>{
-    let timer;
-    try{
-      return await Promise.race([promise,new Promise((_,reject)=>timer=setTimeout(()=>reject(new Error(message||"Supabase request timed out.")),ms))]);
-    }finally{clearTimeout(timer)}
-  };
-
-  const setUser=user=>{
-    window.__CROW_USER=user||null;
-    window.__CROW_AUTH_READY=true;
-    const n=document.getElementById("navUser");
-    if(n)n.textContent=user?(user.user_metadata?.full_name||user.user_metadata?.name||user.email||"Member"):"Guest";
-    window.dispatchEvent(new CustomEvent("crow:auth-changed",{detail:{user:window.__CROW_USER,supabase:window.CROW_SUPABASE}}));
-    window.dispatchEvent(new CustomEvent("crow:ready",{detail:{user:window.__CROW_USER,supabase:window.CROW_SUPABASE}}));
-  };
-
-  const connect=async()=>{
-    const sb=ensureClient();
-    try{
-      const r=await withTimeout(sb.auth.getSession(),7000,"Supabase authentication timed out.");
-      setUser(r.data?.session?.user||null);
-    }catch(error){
-      console.warn("CrowRules getSession:",error?.message||error);
-      setUser(null);
-    }
-    return sb;
-  };
-
-  const authListener=sb=>{
-    if(window.__CROW_AUTH_SUB)return;
-    const {data}=sb.auth.onAuthStateChange((event,session)=>{
-      setUser(session?.user||null);
-      if(event==="SIGNED_OUT"){
-        try{
-          if(window.__CROW_PRESENCE_CHANNEL)sb.removeChannel(window.__CROW_PRESENCE_CHANNEL);
-          if(window.__CROW_ACTIVITY_CHANNEL)sb.removeChannel(window.__CROW_ACTIVITY_CHANNEL);
-        }catch(_){ }
-        window.__CROW_PRESENCE_CHANNEL=null;
-        window.__CROW_ACTIVITY_CHANNEL=null;
-      }
-    });
-    window.__CROW_AUTH_SUB=data?.subscription||null;
-  };
-
-  const presence=async()=>{
-    const sb=window.CROW_SUPABASE;
-    if(!sb||window.__CROW_PRESENCE_CHANNEL)return;
-    const key=window.__CROW_USER?.id||(`guest-${crypto.randomUUID?.()||Date.now()}`);
-    const channel=sb.channel("podcasting-online",{config:{presence:{key}}});
-    window.__CROW_PRESENCE_CHANNEL=channel;
-    let heartbeat=null;
-    const track=async()=>{
-      try{
-        if(document.hidden)return;
-        await channel.track({
-          user_id:window.__CROW_USER?.id||null,
-          display_name:window.__CROW_USER?.user_metadata?.full_name||window.__CROW_USER?.email||"Guest",
-          page:document.title||"Podcasting",
-          last_seen_at:new Date().toISOString()
-        });
-      }catch(error){console.warn("CrowRules presence:",error?.message||error)}
-    };
-    channel.subscribe(async status=>{
-      if(status==="SUBSCRIBED"){
-        await track();
-        if(!heartbeat)heartbeat=setInterval(track,30000);
-      }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(status)){
-        clearInterval(heartbeat);heartbeat=null;
-      }
-    });
-    document.addEventListener("visibilitychange",()=>{if(!document.hidden)track()});
-    window.addEventListener("beforeunload",()=>{
-      clearInterval(heartbeat);
-      try{channel.untrack()}catch(_){ }
-    },{once:true});
-  };
-
-  const activity=async()=>{
-    const sb=window.CROW_SUPABASE;
-    const user=window.__CROW_USER;
-    const badge=document.getElementById("navAlertBadge");
-    if(!sb||!user||!badge)return;
-
-    const refresh=async()=>{
-      try{
-        const r=await sb.from("cr_creator_alerts").select("id",{count:"exact",head:true}).eq("creator_id",user.id).is("read_at",null).is("muted_at",null);
-        if(r.error)return;
-        const n=Number(r.count||0);
-        badge.textContent=n>99?"99+":String(n);
-        badge.hidden=n<1;
-      }catch(error){console.warn("CrowRules activity:",error?.message||error)}
-    };
-
-    await refresh();
-    window.__CROW_ACTIVITY_CHANNEL=sb.channel(`creator-activity-${user.id}`)
-      .on("postgres_changes",{event:"*",schema:"public",table:"cr_creator_alerts",filter:`creator_id=eq.${user.id}`},refresh)
-      .subscribe();
-    document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
-  };
-
-  const bootstrap=async()=>{
-    ensureNav();
-    const sb=await connect();
-    authListener(sb);
-    await presence();
-    await activity();
-    window.__CROW_APP_VERSION=VERSION;
-    return sb;
-  };
-
-  const start=async()=>{
-    try{
-      ensureNav();
-      if(!window.supabase?.createClient){
-        await new Promise((resolve,reject)=>{
-          const existing=document.querySelector('script[data-crowrules-supabase]');
-          if(existing){existing.addEventListener("load",resolve,{once:true});existing.addEventListener("error",()=>reject(new Error("Supabase client failed to load.")),{once:true});return;}
-          const script=document.createElement("script");
-          script.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-          script.dataset.crowrulesSupabase="1";
-          script.onload=resolve;
-          script.onerror=()=>reject(new Error("Supabase client failed to load."));
-          document.head.appendChild(script);
-        });
-      }
-      return await bootstrap();
-    }catch(error){
-      console.error("CrowRules Podcasting bootstrap failed:",error);
-      window.__CROW_APP_ERROR=error;
-      setUser(null);
-      return null;
-    }
-  };
-
-  window.CROW_SUPABASE_READY=start();
-  window.CROW_APP_READY=window.CROW_SUPABASE_READY;
-
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ensureNav,{once:true});
-  else ensureNav();
+function css(){if(document.getElementById("cr-shell-css"))return;const s=document.createElement("style");s.id="cr-shell-css";s.textContent=`
+.nav-search{border:1px solid #ffffff16;background:#ffffff08;color:#cbd3e5;border-radius:9px;padding:7px 9px;font:600 9px Montserrat;cursor:pointer;white-space:nowrap}.nav-search kbd{font:600 8px Montserrat;color:#78849b;margin-left:5px}.nav-account-action{width:100%;margin-top:4px;border:1px solid #ffffff10;background:#ffffff06;color:#dbe5f7;border-radius:8px;padding:10px;text-align:left;font:600 10px Montserrat;cursor:pointer}.nav-account-action:hover{background:#55e7ff0d;color:#fff}.cr-loading{position:fixed;inset:0;z-index:9999;background:#05050bf5;display:grid;place-items:center;transition:opacity .3s}.cr-loading.done{opacity:0;pointer-events:none}.cr-loading-box{text-align:center;color:#9eabc2;font:600 10px Montserrat;letter-spacing:.16em;text-transform:uppercase}.cr-loading-dot{width:34px;height:34px;margin:0 auto 14px;border:2px solid #ffffff12;border-top-color:#55e7ff;border-right-color:#a66cff;border-radius:50%;animation:crspin .8s linear infinite}@keyframes crspin{to{transform:rotate(360deg)}}.cr-toast{position:fixed;right:18px;bottom:24px;z-index:10000;max-width:min(420px,calc(100vw - 36px));padding:12px 15px;border:1px solid #55e7ff33;border-radius:12px;background:#090d17f5;color:#eaf3ff;box-shadow:0 18px 50px #0009;font:600 11px Montserrat;transform:translateY(20px);opacity:0;transition:.25s}.cr-toast.show{transform:none;opacity:1}.cr-toast.error{border-color:#ff4f8b55}.cr-search-modal{position:fixed;inset:0;z-index:10001;background:#03040acc;backdrop-filter:blur(14px);display:none;place-items:start center;padding:12vh 18px}.cr-search-modal.open{display:grid}.cr-search-box{width:min(680px,100%);background:#0a0e18;border:1px solid #ffffff18;border-radius:20px;padding:18px;box-shadow:0 30px 100px #000b}.cr-search-box input{width:100%;background:#050811;border:1px solid #55e7ff33;color:#fff;border-radius:12px;padding:16px;font:600 15px Montserrat;outline:none}.cr-search-hint{color:#748198;font-size:9px;margin:10px 3px 0}.cr-search-results{display:grid;gap:6px;margin-top:12px}.cr-search-results a{padding:11px 12px;border-radius:9px;color:#dce5f4;text-decoration:none;font-size:11px}.cr-search-results a:hover{background:#55e7ff0b}.cr-offline{display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:10001;background:#21121a;border:1px solid #ff4f8b55;color:#ffd8e5;padding:8px 12px;border-radius:999px;font-size:9px;font-weight:800;text-transform:uppercase}.cr-offline.show{display:block}@media(max-width:850px){.nav-search{display:none}.nav-user{display:none}}
+`;document.head.appendChild(s)}
+function ensureStyles(){if(![...document.querySelectorAll('link[rel="stylesheet"]')].some(l=>/podcasting\.css(?:\?|$)/.test(l.href||""))){const l=document.createElement("link");l.rel="stylesheet";l.href=`${BASE}/css/podcasting.css?v=8`;document.head.appendChild(l)}}
+function ensureChrome(){css();ensureStyles();if(!document.body)return;let host=document.querySelector("[data-nav]");if(!host){host=document.createElement("div");host.dataset.nav="";document.body.prepend(host)}host.innerHTML=NAV_HTML;let loading=document.getElementById("crLoading");if(!loading){loading=document.createElement("div");loading.id="crLoading";loading.className="cr-loading";loading.innerHTML='<div class="cr-loading-box"><div class="cr-loading-dot"></div>Connecting to CrowRules…</div>';document.body.appendChild(loading)}if(!document.getElementById("crOffline")){const o=document.createElement("div");o.id="crOffline";o.className="cr-offline";o.textContent="Offline — changes will resume when connection returns";document.body.appendChild(o)}bindNav();}
+function bindNav(){const toggle=document.getElementById("navToggle"),links=document.getElementById("navLinks");const close=()=>document.querySelectorAll(".nav-menu.open").forEach(m=>{m.classList.remove("open");m.querySelector("button")?.setAttribute("aria-expanded","false")});document.querySelectorAll(".nav-menu-btn").forEach(btn=>btn.onclick=e=>{e.stopPropagation();const m=btn.parentElement,open=!m.classList.contains("open");close();m.classList.toggle("open",open);btn.setAttribute("aria-expanded",String(open))});document.addEventListener("click",e=>{if(!e.target.closest(".nav-menu"))close()},{passive:true});toggle?.addEventListener("click",()=>{const open=links.classList.toggle("open");toggle.setAttribute("aria-expanded",String(open));toggle.textContent=open?"✕":"☰"});document.getElementById("crGlobalSearch")?.addEventListener("click",openSearch);document.getElementById("crSignIn")?.addEventListener("click",()=>location.href=`${BASE}/account.html?auth=signin`);document.getElementById("crSignOut")?.addEventListener("click",async()=>{try{await window.CROW_SUPABASE?.auth.signOut()}finally{location.href=`${BASE}/home.html`}})}
+function openSearch(){let m=document.getElementById("crSearchModal");if(!m){m=document.createElement("div");m.id="crSearchModal";m.className="cr-search-modal";m.innerHTML='<div class="cr-search-box"><input id="crSearchInput" autocomplete="off" placeholder="Search podcasts, episodes, creators…"><div class="cr-search-hint">Press Enter to open Search or Escape to close</div><div class="cr-search-results"><a href="'+BASE+'/discover.html">Discover podcasts</a><a href="'+BASE+'/episodes.html">Browse episodes</a><a href="'+BASE+'/members-podcaster.html">Find podcasters</a></div></div>';document.body.appendChild(m);m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("open")});m.querySelector("input").addEventListener("keydown",e=>{if(e.key==="Escape")m.classList.remove("open");if(e.key==="Enter"){const q=e.target.value.trim();location.href=`${BASE}/search.html${q?`?q=${encodeURIComponent(q)}`:""}`}})}m.classList.add("open");setTimeout(()=>m.querySelector("input")?.focus(),20)}
+function toast(message,type="info"){let t=document.getElementById("crToast");if(!t){t=document.createElement("div");t.id="crToast";t.className="cr-toast";document.body.appendChild(t)}t.textContent=message;t.className=`cr-toast show ${type}`;clearTimeout(window.__crToastTimer);window.__crToastTimer=setTimeout(()=>t.classList.remove("show"),4200)}
+function client(){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;const c=window.CROW_CONFIG||{};if(!window.supabase?.createClient)throw Error("Supabase client library is unavailable.");if(!c.supabaseUrl||!c.supabaseKey)throw Error("CrowRules Supabase configuration is missing.");return window.CROW_SUPABASE=window.supabase.createClient(c.supabaseUrl,c.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}})}
+function timeout(p,ms,msg){let t;return Promise.race([p,new Promise((_,r)=>t=setTimeout(()=>r(Error(msg)),ms))]).finally(()=>clearTimeout(t))}
+function setUser(user){window.__CROW_USER=user||null;window.__CROW_AUTH_READY=true;const name=user?.user_metadata?.full_name||user?.user_metadata?.name||user?.email||"Member";const n=document.getElementById("navUser"),si=document.getElementById("crSignIn"),so=document.getElementById("crSignOut");if(n)n.textContent=user?name:"Guest";if(si)si.hidden=!!user;if(so)so.hidden=!user;window.dispatchEvent(new CustomEvent("crow:auth-changed",{detail:{user,supabase:window.CROW_SUPABASE}}));window.dispatchEvent(new CustomEvent("crow:ready",{detail:{user,supabase:window.CROW_SUPABASE}}))}
+async function auth(sb){try{const r=await timeout(sb.auth.getSession(),7000,"Supabase authentication timed out.");setUser(r.data?.session?.user||null)}catch(e){console.warn(e);setUser(null)}if(!window.__CROW_AUTH_SUB){const {data}=sb.auth.onAuthStateChange((event,session)=>{setUser(session?.user||null);if(event==="SIGNED_OUT"){window.__CROW_PRESENCE_CHANNEL&&sb.removeChannel(window.__CROW_PRESENCE_CHANNEL);window.__CROW_PRESENCE_CHANNEL=null}});window.__CROW_AUTH_SUB=data?.subscription}}
+async function presence(sb){if(!sb||window.__CROW_PRESENCE_CHANNEL)return;const key=window.__CROW_USER?.id||`guest-${Date.now()}-${Math.random().toString(36).slice(2)}`,ch=sb.channel("podcasting-online",{config:{presence:{key}}});window.__CROW_PRESENCE_CHANNEL=ch;const track=()=>document.hidden?null:ch.track({user_id:window.__CROW_USER?.id||null,display_name:window.__CROW_USER?.user_metadata?.full_name||window.__CROW_USER?.email||"Guest",page:document.title,last_seen_at:new Date().toISOString()}).catch(()=>{});ch.subscribe(s=>{if(s==="SUBSCRIBED")track()});setInterval(track,30000)}
+async function alerts(sb){const user=window.__CROW_USER,b=document.getElementById("navAlertBadge");if(!sb||!user||!b)return;const refresh=async()=>{try{const r=await sb.from("cr_creator_alerts").select("id",{count:"exact",head:true}).eq("creator_id",user.id).is("read_at",null).is("muted_at",null);if(!r.error){const n=Number(r.count||0);b.textContent=n>99?"99+":n;b.hidden=n<1}}catch(e){}};await refresh();window.__CROW_ACTIVITY_CHANNEL=sb.channel(`creator-activity-${user.id}`).on("postgres_changes",{event:"*",schema:"public",table:"cr_creator_alerts",filter:`creator_id=eq.${user.id}`},refresh).subscribe()}
+async function start(){ensureChrome();try{if(!window.supabase?.createClient)await new Promise((resolve,reject)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";s.onload=resolve;s.onerror=()=>reject(Error("Supabase client failed to load"));document.head.appendChild(s)});const sb=client();await auth(sb);await presence(sb);await alerts(sb);window.__CROW_APP_VERSION=VERSION;return sb}catch(e){console.error("CrowRules shell:",e);window.__CROW_APP_ERROR=e;setUser(null);toast(e.message||"Connection unavailable","error");return null}finally{document.getElementById("crLoading")?.classList.add("done")}}
+window.CROW_TOAST=toast;window.CROW_OPEN_SEARCH=openSearch;window.CROW_SUPABASE_READY=start();window.CROW_APP_READY=window.CROW_SUPABASE_READY;
+window.addEventListener("online",()=>document.getElementById("crOffline")?.classList.remove("show"));window.addEventListener("offline",()=>document.getElementById("crOffline")?.classList.add("show"));window.addEventListener("error",e=>{if(e.error)console.error(e.error)});window.addEventListener("unhandledrejection",e=>{console.error(e.reason);if(window.CROW_TOAST)window.CROW_TOAST("A page action encountered an error. Please try again.","error")});document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();openSearch()}if(e.key==="Escape")document.querySelector(".cr-search-modal.open")?.classList.remove("open")});if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ensureChrome,{once:true});else ensureChrome();
 })();
