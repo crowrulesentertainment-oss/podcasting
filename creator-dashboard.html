@@ -164,15 +164,15 @@ async function loadDashboard(){
 
 // Creator Studio live synchronization.
 let liveChannel=null,liveRefreshTimer=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set();
-const LIVE_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions"];
-const liveLabel=t=>({podcasts:"Podcast",podcast_episodes:"Episode",podcast_follows:"Follower",podcast_listens:"Listening activity",podcast_subscriptions:"Subscription"}[t]||t);
+const LIVE_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","cr_creator_revenue_transactions"];
+const liveLabel=t=>({podcasts:"Podcast",podcast_episodes:"Episode",podcast_follows:"Follower",podcast_listens:"Listening activity",podcast_subscriptions:"Subscription",cr_creator_revenue_transactions:"Revenue"}[t]||t);
 function setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
 function addLiveActivity(table,event,row){
  const feed=document.getElementById("liveActivity");if(!feed)return;
  const empty=feed.querySelector(".activity-empty");if(empty)empty.remove();
  const item=document.createElement("div");item.className="activity-item";
  const title=row?.title||row?.name||row?.slug||"Podcasting record";
- const detail=table==="podcast_episodes"&&row?.status?"Status: "+row.status:table==="podcast_listens"?"New listening activity":table==="podcast_follows"?"New follower":table==="podcast_subscriptions"?"Subscription activity":"Creator account data";
+ const detail=table==="podcast_episodes"&&row?.status?"Status: "+row.status:table==="podcast_listens"?"New listening activity":table==="podcast_follows"?"New follower":table==="podcast_subscriptions"?"Subscription activity":table==="cr_creator_revenue_transactions"?"Revenue event":"Creator account data";
  item.innerHTML='<span class="dot"></span><div><b>'+esc(event+' · '+liveLabel(table))+'</b><small>'+esc(title)+' · '+esc(detail)+'</small></div><small>'+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+'</small>';
  feed.prepend(item);while(feed.children.length>40)feed.lastElementChild.remove();
 }
@@ -187,6 +187,7 @@ LIVE_TABLES.forEach(table=>{
  ch=ch.on("postgres_changes",cfg,payload=>{
    const row=payload.new||payload.old||{};
    if(table==="podcasts" && row.creator_id!==creatorProfile.id) return;
+   if(table==="cr_creator_revenue_transactions" && row.creator_id!==creatorProfile.id) return;
    if((table==="podcast_follows" || table==="podcast_subscriptions") && !creatorPodcastIds.has(row.podcast_id)) return;
    if(table==="podcast_listens" && !creatorEpisodeIds.has(row.episode_id)) return;
    refreshCreatorLive(table,payload.eventType||"CHANGE",row);
