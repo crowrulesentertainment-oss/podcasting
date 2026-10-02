@@ -28,7 +28,7 @@
 .tabs{display:flex;gap:3px;overflow:auto;border-bottom:1px solid #ffffff0d;margin:-3px 0 16px}.tabs button{border:0;background:none;color:#7c879b;padding:11px 12px;font:700 8px Montserrat;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;cursor:pointer}.tabs button.active{color:#fff;border-bottom:2px solid var(--cyan)}
 .list{display:grid;gap:10px}.item{padding:13px;border:1px solid #ffffff0d;border-radius:13px;background:#080b13}.item strong{font-size:10px;color:#eaf1ff}.item p{margin:5px 0 0;color:#9ca6b8;font-size:10px;line-height:1.55;white-space:pre-wrap}.item small{display:block;margin-top:6px;color:#657188;font-size:8px}.empty{padding:20px;border:1px dashed #ffffff12;border-radius:13px;color:#6f7b91;text-align:center;font-size:10px;line-height:1.6}
 .podcast-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pod{display:flex;gap:10px;align-items:center;padding:11px;border:1px solid #ffffff0d;border-radius:13px;background:#080b13}.art{width:52px;height:52px;border-radius:10px;overflow:hidden;flex:none;background:linear-gradient(135deg,#55e7ff22,#9b6cff22);display:grid;place-items:center;font:800 10px Orbitron}.art img{width:100%;height:100%;object-fit:cover}.pod b{font-size:10px}.pod small{display:block;color:#68748a;font-size:8px;margin-top:4px}
-.editor{display:grid;gap:12px}.editor label{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:#8994a8}.editor input,.editor textarea{width:100%;box-sizing:border-box;margin-top:6px;background:#060912;border:1px solid #ffffff15;border-radius:10px;color:#fff;padding:11px;font:500 10px Montserrat;outline:none}.editor textarea{min-height:100px;resize:vertical}.editor input:focus,.editor textarea:focus{border-color:#55e7ff55;box-shadow:0 0 0 3px #55e7ff0b}.editor-actions{display:flex;gap:8px;flex-wrap:wrap}
+.editor{display:grid;gap:12px}.editor label{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:#8994a8}.editor input,.editor textarea{width:100%;box-sizing:border-box;margin-top:6px;background:#060912;border:1px solid #ffffff15;border-radius:10px;color:#fff;padding:11px;font:500 10px Montserrat;outline:none}.editor textarea{min-height:100px;resize:vertical}.editor input:focus,.editor textarea:focus{border-color:#55e7ff55;box-shadow:0 0 0 3px #55e7ff0b}.editor-actions{display:flex;gap:8px;flex-wrap:wrap}.media-editor{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:4px}.media-box{border:1px solid #ffffff0d;border-radius:14px;background:#080b13;padding:13px}.media-box h3{font-size:10px;margin:0 0 9px}.media-preview{height:105px;border-radius:10px;overflow:hidden;background:#060912;border:1px dashed #ffffff15;display:grid;place-items:center;color:#68748a;font:700 8px Montserrat;text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px}.media-preview img{width:100%;height:100%;object-fit:cover}.media-box input[type=file]{width:100%;font-size:8px;color:#8792a6}.media-help{color:#66738a;font-size:8px;line-height:1.5;margin-top:7px}.upload-status{padding:10px;border-radius:10px;background:#55e7ff08;border:1px solid #55e7ff20;color:#9fefff;font-size:9px;line-height:1.5}.upload-status.error{background:#ff65730c;border-color:#ff657333;color:#ffb4bc}@media(max-width:650px){.media-editor{grid-template-columns:1fr}}
 .status-line{display:flex;align-items:center;gap:7px;color:#748096;font-size:8px;text-transform:uppercase;letter-spacing:.1em}.dot{width:7px;height:7px;border-radius:50%;background:#35e2a0;box-shadow:0 0 10px #35e2a0}
 @media(max-width:900px){.head{grid-template-columns:110px minmax(0,1fr)}.avatar{width:110px;height:110px}.actions{grid-column:1/-1;justify-content:flex-start}.stats{grid-template-columns:repeat(3,1fr)}.layout{grid-template-columns:1fr}}
 @media(max-width:560px){.profile-wrap{padding:22px 12px 80px}.cover{height:210px}.main{padding:0 16px 22px}.head{grid-template-columns:88px minmax(0,1fr);gap:12px;margin-top:-45px}.avatar{width:88px;height:88px}.avatar span{font-size:24px}.stats{grid-template-columns:repeat(2,1fr)}.podcast-grid{grid-template-columns:1fr}.cover-label{left:13px;bottom:13px}}
@@ -235,6 +235,45 @@ function renderPodcasts(){
 function renderActivity(){
  $("tab-activity").innerHTML=activity.length?'<div class="list">'+activity.map(renderActivityItem).join("")+"</div>":'<div class="empty">No public activity has been recorded yet.</div>';
 }
+function setupMediaPreview(inputId,previewId){
+ const input=$(inputId),preview=$(previewId);if(!input||!preview)return;
+ input.onchange=function(){const file=input.files&&input.files[0];if(!file)return;
+  if(!/^image\/(jpeg|png|webp|gif)$/i.test(file.type)||file.size>5*1024*1024){input.value="";preview.textContent="Invalid image — max 5 MB";return}
+  const url=URL.createObjectURL(file);preview.innerHTML="<img src=\""+esc(url)+"\" alt=\"\">";
+ };
+}
+async function uploadMedia(file,kind){
+ if(!file)return null;
+ if(!/^image\/(jpeg|png|webp|gif)$/i.test(file.type))throw new Error(kind+" must be a JPG, PNG, WebP, or GIF image.");
+ if(file.size>5*1024*1024)throw new Error(kind+" must be 5 MB or smaller.");
+ const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+ const path=currentUser.id+"/"+kind+"-"+Date.now()+"."+ext;
+ const r=await db.storage.from("podcast-avatars").upload(path,file,{upsert:true,contentType:file.type,cacheControl:"3600"});
+ if(r.error)throw r.error;
+ const url=db.storage.from("podcast-avatars").getPublicUrl(path).data?.publicUrl;
+ if(!url)throw new Error("Supabase did not return a public media URL.");
+ return url;
+}
+async function updateMediaUrls(urls){
+ if(!currentUser||!Object.keys(urls).length)return;
+ const patch={updated_at:new Date().toISOString()};
+ if(urls.avatar_url)patch.avatar_url=urls.avatar_url;
+ if(urls.cover_url)patch.cover_url=urls.cover_url;
+ let r=await db.from("podcast_member_profiles").update(patch).eq("user_id",currentUser.id);
+ if(r.error)r=await db.from("podcast_member_profiles").upsert(Object.assign({user_id:currentUser.id},patch),{onConflict:"user_id"});
+ if(r.error)throw r.error;
+}
+async function uploadSelectedMedia(){
+ const avatarFile=$("avatarFile")?.files?.[0],bannerFile=$("bannerFile")?.files?.[0];
+ if(!avatarFile&&!bannerFile)return {};
+ const status=$("uploadStatus");show("uploadStatus");status.className="upload-status";status.textContent="Uploading profile media…";
+ const urls={};
+ try{
+  if(avatarFile)urls.avatar_url=await uploadMedia(avatarFile,"avatar");
+  if(bannerFile)urls.cover_url=await uploadMedia(bannerFile,"banner");
+  await updateMediaUrls(urls);status.textContent="✓ Profile media uploaded and saved.";return urls;
+ }catch(e){status.className="upload-status error";status.textContent="Upload failed: "+(e.message||"Unknown storage error.");throw e}
+}
 function renderEdit(){
  if(!own){hide("editTabButton");return}
  show("editTabButton");
@@ -245,8 +284,16 @@ function renderEdit(){
   '<label>Bio<textarea id="editBio" maxlength="2000">'+esc(profile?.bio||"")+"</textarea></label>"+
   '<label>Location<input id="editLocation" maxlength="120" value="'+esc(profile?.location||"")+'"></label>'+
   '<label>Website<input id="editWebsite" maxlength="300" value="'+esc(profile?.website_url||"")+'"></label>'+
+  '<div class="media-editor">'+
+  '<div class="media-box"><h3>Avatar</h3><div class="media-preview" id="avatarPreview">Current avatar / initials</div><input id="avatarFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif"><div class="media-help">JPG, PNG, WebP or GIF · maximum 5 MB.</div></div>'+
+  '<div class="media-box"><h3>Banner</h3><div class="media-preview" id="bannerPreview">Current banner / profile background</div><input id="bannerFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif"><div class="media-help">JPG, PNG, WebP or GIF · maximum 5 MB. Wide images work best.</div></div>'+
+  '</div><div id="uploadStatus" class="upload-status hidden"></div>'+
   '<div class="editor-actions"><button class="btn primary" id="saveProfile" type="button">Save Profile</button><button class="btn" id="refreshProfile" type="button">Refresh</button></div>'+
   '<div id="saveStatus" class="notice hidden" style="padding:12px"></div></div>';
+ setupMediaPreview("avatarFile","avatarPreview");
+ setupMediaPreview("bannerFile","bannerPreview");
+ if(profile?.avatar_url) $("avatarPreview").innerHTML="<img src=\""+esc(profile.avatar_url)+"\" alt=\"\">";
+ if(profile?.banner_url) $("bannerPreview").innerHTML="<img src=\""+esc(profile.banner_url)+"\" alt=\"\">";
  $("saveProfile").onclick=saveProfile;
  $("refreshProfile").onclick=()=>load(true);
 }
@@ -261,6 +308,7 @@ async function saveProfile(){
    p_location:$("editLocation").value.trim()||null,
    p_website_url:$("editWebsite").value.trim()||null
   };
+  const mediaUrls=await uploadSelectedMedia();
   let r=await db.rpc("save_my_podcast_profile",payload);
   if(r.error){
    const patch={display_name:payload.p_display_name,tagline:payload.p_tagline,bio:payload.p_bio,location:payload.p_location,website_url:payload.p_website_url,updated_at:new Date().toISOString()};
