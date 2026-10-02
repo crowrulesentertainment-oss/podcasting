@@ -12,6 +12,8 @@ window.CROW_CONFIG=Object.assign({
  downloadFunction:"podcast-download"
 },window.CROW_CONFIG||{});
 window.CROW_CONFIG_READY=true;
+window.CROW_SUPABASE_READY=window.CROW_BOOTSTRAP;
+window.CROW_SUPABASE_PROMISE=window.CROW_BOOTSTRAP;
 function loadScript(src){
  return new Promise((resolve,reject)=>{
    if([...document.scripts].some(s=>s.src===src||s.src.startsWith(src+"?"))){resolve();return}
@@ -41,6 +43,6 @@ window.CROW_BOOTSTRAP=window.CROW_BOOTSTRAP||(()=>{
 })();
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{
  const hasApp=[...document.scripts].some(s=>/\/js\/app\.js(?:\?|$)/.test(s.src));
- if(!hasApp)loadScript(window.CROW_CONFIG.siteUrl+"js/app.js?v=10").catch(console.error);
+ if(!hasApp)loadScript(window.CROW_CONFIG.siteUrl+"js/app.js?v=11").catch(console.error);
 },{once:true});
 })();
