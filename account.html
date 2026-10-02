@@ -196,7 +196,65 @@
     return null;
   }
 
+  function safeUsername(user){
+    const base=String(user.user_metadata?.username||user.email?.split("@")[0]||"member")
+      .toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,24) || "member";
+    return base + "_" + user.id.replace(/-/g,"").slice(0,8);
+  }
+
+  async function ensureUniversalMembership(sb,user){
+    const metadata=user.user_metadata||{};
+    const username=safeUsername(user);
+    const displayName=first(metadata.full_name,metadata.name,metadata.display_name,user.email?.split("@")[0],"CrowRules Member");
+    const names=String(displayName).trim().split(/\s+/);
+    const firstName=first(metadata.first_name,names[0],"Member");
+    const lastName=first(metadata.last_name,names.slice(1).join(" "));
+    const avatar=first(metadata.avatar_url,metadata.picture,null);
+
+    const membership={
+      id:user.id,
+      user_id:user.id,
+      first_name:firstName,
+      last_name:lastName,
+      username,
+      email:user.email||null,
+      membership_type:"Free",
+      role:"Member",
+      status:"Active",
+      points:0,
+      watch_minutes:0,
+      display_name:displayName,
+      avatar_url:avatar||null,
+      social_links:{}
+    };
+
+    const memberResult=await sb.from("members").upsert(membership,{onConflict:"user_id",ignoreDuplicates:true}).select("*").maybeSingle();
+    if(memberResult.error && memberResult.error.code!=="23505") console.warn("members provisioning:",memberResult.error);
+
+    const profile={
+      id:user.id,
+      user_id:user.id,
+      first_name:firstName,
+      last_name:lastName,
+      username,
+      email:user.email||null,
+      membership_type:"Free",
+      role:"Member",
+      status:"Active",
+      points:0,
+      watch_minutes:0,
+      display_name:displayName,
+      avatar_url:avatar||null
+    };
+
+    const profileResult=await sb.from("membership_profiles").upsert(profile,{onConflict:"id",ignoreDuplicates:true}).select("*").maybeSingle();
+    if(profileResult.error && profileResult.error.code!=="23505") console.warn("membership_profiles provisioning:",profileResult.error);
+
+    return {username,displayName};
+  }
+
   async function loadAccount(sb,user) {
+    await ensureUniversalMembership(sb,user);
     const [membership,members,creator] = await Promise.all([
       loadRows(sb,"membership_profiles",user.id),
       loadRows(sb,"members",user.id),
@@ -307,8 +365,23 @@
         options:{data:{app:"podcasting"}}
       });
       if(error)throw error;
-      if(data?.session){location.href="home.html"}
-      else setNotice("Account created. If email confirmation is enabled, confirm your email and then return to this page.","success");
+      if(data?.user){
+        try{
+          if(data.session){
+            await ensureUniversalMembership(window.CROW_SUPABASE,data.user);
+            location.href="home.html";
+          }else{
+            setNotice("Account created. Confirm your email if required. Your Universal CrowRules membership will be provisioned automatically when you first sign in.","success");
+          }
+        }catch(provisionError){
+          console.error("Universal membership provisioning:",provisionError);
+          if(data.session){
+            setNotice("Your account was created, but membership provisioning needs another attempt. Refresh this page.","error");
+          }else{
+            setNotice("Account created. Confirm your email, then sign in to finish setting up your Universal CrowRules membership.","success");
+          }
+        }
+      }
     }catch(error){setNotice(error.message||"Unable to create the account.","error")}
     finally{setBusy(button,false)}
   });
