@@ -150,7 +150,7 @@ async function loadDashboard(){
 
     const m=await sb.from("cr_creator_revenue_transactions")
       .select("gross_amount,platform_fee,creator_amount,stripe_fee,status,transaction_type,episode_id,episode_title")
-      .eq("creator_id",creatorProfile.id);
+      .eq("user_id",user.id);
     if(m.error) throw m.error;
     const ms=m.data||[];
     const net=ms.reduce((n,v)=>n+Number(v.creator_amount||0),0);
@@ -169,7 +169,8 @@ async function loadDashboard(){
 let liveChannel=null,liveRefreshTimer=null,liveLastEventAt=0,liveHealthTimer=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set(),liveEventCache=new Map(),liveReconnects=0,liveEventCount=0;
 const LIVE_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","cr_creator_revenue_transactions"];
 const liveLabel=t=>({podcasts:"Podcast",podcast_episodes:"Episode",podcast_follows:"Follower",podcast_listens:"Listening activity",podcast_subscriptions:"Subscription",cr_creator_revenue_transactions:"Revenue"}[t]||t);
-function updateLiveHealth(){const age=document.getElementById("liveAge"),health=document.getElementById("liveHealth");if(!age||!health)return;if(!liveLastEventAt){age.textContent="—";health.textContent=liveChannel?"CONNECTED":"WAITING";return}const sec=Math.max(0,Math.floor((Date.now()-liveLastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";health.textContent=sec<30?"LIVE":sec<120?"QUIET":"STALE"}\nfunction setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
+function updateLiveHealth(){const age=document.getElementById("liveAge"),health=document.getElementById("liveHealth");if(!age||!health)return;if(!liveLastEventAt){age.textContent="—";health.textContent=liveChannel?"CONNECTED":"WAITING";return}const sec=Math.max(0,Math.floor((Date.now()-liveLastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";health.textContent=sec<30?"LIVE":sec<120?"QUIET":"STALE"}
+function setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
 function addLiveActivity(table,event,row){
  const feed=document.getElementById("liveActivity");if(!feed)return;
  const empty=feed.querySelector(".activity-empty");if(empty)empty.remove();
@@ -203,7 +204,8 @@ LIVE_TABLES.forEach(table=>{
  });
 });
 liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){liveReconnects++;const rc=document.getElementById("liveReconnectCount");if(rc)rc.textContent=String(liveReconnects);setLiveStatus(false,"LIVE SYNC RECONNECTING");if(liveChannel){window.CROW_SUPABASE.removeChannel(liveChannel).catch(()=>{});liveChannel=null}setTimeout(()=>startCreatorRealtime(),Math.min(30000,1000*Math.pow(2,Math.min(liveReconnects-1,5))));}else if(s==="CHANNEL_ERROR")setLiveStatus(false,"LIVE SYNC ERROR")})}
-if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);\nif(window.CROW_SUPABASE) loadDashboard();
+if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);
+if(window.CROW_SUPABASE) loadDashboard();
 else addEventListener("crow:ready",loadDashboard,{once:true});
 setTimeout(()=>{if(!$("dashboard")?.style.display||$("dashboard").style.display==="none") loadDashboard()},1800);
 })();
@@ -219,7 +221,8 @@ setTimeout(()=>{if(!$("dashboard")?.style.display||$("dashboard").style.display=
 let liveChannel=null,liveRefreshTimer=null,liveLastEventAt=0,liveHealthTimer=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set(),liveEventCache=new Map(),liveReconnects=0,liveEventCount=0;
 const LIVE_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","cr_creator_revenue_transactions"];
 const liveLabel=t=>({podcasts:"Podcast",podcast_episodes:"Episode",podcast_follows:"Follower",podcast_listens:"Listening activity",podcast_subscriptions:"Subscription",cr_creator_revenue_transactions:"Revenue"}[t]||t);
-function updateLiveHealth(){const age=document.getElementById("liveAge"),health=document.getElementById("liveHealth");if(!age||!health)return;if(!liveLastEventAt){age.textContent="—";health.textContent=liveChannel?"CONNECTED":"WAITING";return}const sec=Math.max(0,Math.floor((Date.now()-liveLastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";health.textContent=sec<30?"LIVE":sec<120?"QUIET":"STALE"}\nfunction setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
+function updateLiveHealth(){const age=document.getElementById("liveAge"),health=document.getElementById("liveHealth");if(!age||!health)return;if(!liveLastEventAt){age.textContent="—";health.textContent=liveChannel?"CONNECTED":"WAITING";return}const sec=Math.max(0,Math.floor((Date.now()-liveLastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";health.textContent=sec<30?"LIVE":sec<120?"QUIET":"STALE"}
+function setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
 function addLiveActivity(table,event,row){
  const feed=document.getElementById("liveActivity");if(!feed)return;
  const empty=feed.querySelector(".activity-empty");if(empty)empty.remove();
@@ -253,7 +256,8 @@ LIVE_TABLES.forEach(table=>{
  });
 });
 liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){liveReconnects++;const rc=document.getElementById("liveReconnectCount");if(rc)rc.textContent=String(liveReconnects);setLiveStatus(false,"LIVE SYNC RECONNECTING");if(liveChannel){window.CROW_SUPABASE.removeChannel(liveChannel).catch(()=>{});liveChannel=null}setTimeout(()=>startCreatorRealtime(),Math.min(30000,1000*Math.pow(2,Math.min(liveReconnects-1,5))));}else if(s==="CHANNEL_ERROR")setLiveStatus(false,"LIVE SYNC ERROR")})}
-if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);\nif(window.CROW_SUPABASE) loadDashboard();
+if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);
+if(window.CROW_SUPABASE) loadDashboard();
 else addEventListener("crow:ready",loadDashboard,{once:true});
 setTimeout(()=>{if(!$("dashboard")?.style.display||$("dashboard").style.display==="none") loadDashboard()},1800);
 })();
@@ -269,7 +273,8 @@ setTimeout(()=>{if(!$("dashboard")?.style.display||$("dashboard").style.display=
 let liveChannel=null,liveRefreshTimer=null,liveLastEventAt=0,liveHealthTimer=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set(),liveEventCache=new Map(),liveReconnects=0,liveEventCount=0;
 const LIVE_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","cr_creator_revenue_transactions"];
 const liveLabel=t=>({podcasts:"Podcast",podcast_episodes:"Episode",podcast_follows:"Follower",podcast_listens:"Listening activity",podcast_subscriptions:"Subscription",cr_creator_revenue_transactions:"Revenue"}[t]||t);
-function updateLiveHealth(){const age=document.getElementById("liveAge"),health=document.getElementById("liveHealth");if(!age||!health)return;if(!liveLastEventAt){age.textContent="—";health.textContent=liveChannel?"CONNECTED":"WAITING";return}const sec=Math.max(0,Math.floor((Date.now()-liveLastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";health.textContent=sec<30?"LIVE":sec<120?"QUIET":"STALE"}\nfunction setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
+function updateLiveHealth(){const age=document.getElementById("liveAge"),health=document.getElementById("liveHealth");if(!age||!health)return;if(!liveLastEventAt){age.textContent="—";health.textContent=liveChannel?"CONNECTED":"WAITING";return}const sec=Math.max(0,Math.floor((Date.now()-liveLastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";health.textContent=sec<30?"LIVE":sec<120?"QUIET":"STALE"}
+function setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
 function addLiveActivity(table,event,row){
  const feed=document.getElementById("liveActivity");if(!feed)return;
  const empty=feed.querySelector(".activity-empty");if(empty)empty.remove();
@@ -303,7 +308,8 @@ LIVE_TABLES.forEach(table=>{
  });
 });
 liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){liveReconnects++;const rc=document.getElementById("liveReconnectCount");if(rc)rc.textContent=String(liveReconnects);setLiveStatus(false,"LIVE SYNC RECONNECTING");if(liveChannel){window.CROW_SUPABASE.removeChannel(liveChannel).catch(()=>{});liveChannel=null}setTimeout(()=>startCreatorRealtime(),Math.min(30000,1000*Math.pow(2,Math.min(liveReconnects-1,5))));}else if(s==="CHANNEL_ERROR")setLiveStatus(false,"LIVE SYNC ERROR")})}
-if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);\nif(window.CROW_SUPABASE) loadDashboard();
+if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);
+if(window.CROW_SUPABASE) loadDashboard();
 else addEventListener("crow:ready",loadDashboard,{once:true});
 setTimeout(()=>{if(!$("dashboard")?.style.display||$("dashboard").style.display==="none") loadDashboard()},1800);
 })();
@@ -320,7 +326,8 @@ setTimeout(()=>{if(!$("dashboard")?.style.display||$("dashboard").style.display=
 let liveChannel=null,liveRefreshTimer=null,liveLastEventAt=0,liveHealthTimer=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set(),liveEventCache=new Map(),liveReconnects=0,liveEventCount=0;
 const LIVE_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","cr_creator_revenue_transactions"];
 const liveLabel=t=>({podcasts:"Podcast",podcast_episodes:"Episode",podcast_follows:"Follower",podcast_listens:"Listening activity",podcast_subscriptions:"Subscription",cr_creator_revenue_transactions:"Revenue"}[t]||t);
-function updateLiveHealth(){const age=document.getElementById("liveAge"),health=document.getElementById("liveHealth");if(!age||!health)return;if(!liveLastEventAt){age.textContent="—";health.textContent=liveChannel?"CONNECTED":"WAITING";return}const sec=Math.max(0,Math.floor((Date.now()-liveLastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";health.textContent=sec<30?"LIVE":sec<120?"QUIET":"STALE"}\nfunction setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
+function updateLiveHealth(){const age=document.getElementById("liveAge"),health=document.getElementById("liveHealth");if(!age||!health)return;if(!liveLastEventAt){age.textContent="—";health.textContent=liveChannel?"CONNECTED":"WAITING";return}const sec=Math.max(0,Math.floor((Date.now()-liveLastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";health.textContent=sec<30?"LIVE":sec<120?"QUIET":"STALE"}
+function setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
 function addLiveActivity(table,event,row){
  const feed=document.getElementById("liveActivity");if(!feed)return;
  const empty=feed.querySelector(".activity-empty");if(empty)empty.remove();
@@ -354,7 +361,8 @@ LIVE_TABLES.forEach(table=>{
  });
 });
 liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){liveReconnects++;const rc=document.getElementById("liveReconnectCount");if(rc)rc.textContent=String(liveReconnects);setLiveStatus(false,"LIVE SYNC RECONNECTING");if(liveChannel){window.CROW_SUPABASE.removeChannel(liveChannel).catch(()=>{});liveChannel=null}setTimeout(()=>startCreatorRealtime(),Math.min(30000,1000*Math.pow(2,Math.min(liveReconnects-1,5))));}else if(s==="CHANNEL_ERROR")setLiveStatus(false,"LIVE SYNC ERROR")})}
-if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);\nif(window.CROW_SUPABASE) loadDashboard();
+if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);
+if(window.CROW_SUPABASE) loadDashboard();
 else addEventListener("crow:ready",loadDashboard,{once:true});
 setTimeout(()=>{if(!$("dashboard")?.style.display||$("dashboard").style.display==="none") loadDashboard()},1800);
 })();
