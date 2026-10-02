@@ -80,7 +80,15 @@ form.addEventListener("submit",async e=>{
    if(user && currentEmail!==email.toLowerCase()){await sb.auth.signOut();user=null;}
    if(!user){const r=await sb.auth.signUp({email,password,options:{emailRedirectTo:new URL("verify.html",window.location.href).href,data:{app:"podcasting",account_type:"creator",full_name:name,creator_type:"podcasting",podcasting_creator:true,podcast_name:podcast,podcast_category:category,podcast_format:format,podcast_status:status,podcast_sports_focus:sports,podcast_description:description,podcast_help_needed:help}}});if(r.error)throw r.error;user=r.data.user;}
    if(!user)throw new Error("Account creation did not return a user. Please try again.");
-   setMsg("Creator registration saved. Opening Creator Studio…",true);document.getElementById("signupCard").style.display="none";document.getElementById("success").style.display="block";document.getElementById("successText").textContent="Your creator registration is saved. Opening Creator Studio now.";setTimeout(()=>{window.location.href="creator-dashboard.html"},500);
+   const sessionCheck=await sb.auth.getSession();
+   if(sessionCheck.data.session?.user?.id){
+     const rpc=await sb.rpc("register_my_podcast",{
+       p_name:name,p_email:email,p_full_name:name,p_podcast_name:podcast,p_category:category,
+       p_format:format,p_production_status:status,p_sports_focus:sports,p_description:description,p_help_needed:help
+     });
+     if(rpc.error)throw rpc.error;
+   }
+   setMsg("Creator registration saved to CrowRules Podcasting. Opening Creator Studio…",true);document.getElementById("signupCard").style.display="none";document.getElementById("success").style.display="block";document.getElementById("successText").textContent="Your creator registration is saved. Opening Creator Studio now.";setTimeout(()=>{window.location.href="creator-dashboard.html"},500);
  }catch(err){setMsg(explain(err));submit.disabled=false;submit.textContent="Create Creator Account"}
 });
 init();
