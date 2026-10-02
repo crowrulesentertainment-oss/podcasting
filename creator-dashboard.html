@@ -363,9 +363,12 @@ LIVE_TABLES.forEach(table=>{
 });
 liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){liveReconnects++;const rc=document.getElementById("liveReconnectCount");if(rc)rc.textContent=String(liveReconnects);setLiveStatus(false,"LIVE SYNC RECONNECTING");if(liveChannel){window.CROW_SUPABASE.removeChannel(liveChannel).catch(()=>{});liveChannel=null}setTimeout(()=>startCreatorRealtime(),Math.min(30000,1000*Math.pow(2,Math.min(liveReconnects-1,5))));}else if(s==="CHANNEL_ERROR")setLiveStatus(false,"LIVE SYNC ERROR")})}
 if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);
-if(window.CROW_SUPABASE) loadDashboard();
-else addEventListener("crow:ready",loadDashboard,{once:true});
-setTimeout(()=>{if(!$("dashboard")?.style.display||$("dashboard").style.display==="none") loadDashboard()},1800);
+connectCreatorSupabase().then(({user})=>{
+  if(user)loadDashboard();
+}).catch(e=>{
+  console.error("Creator Studio connection:",e);
+  setAccountStatus(e.message==="AUTH_REQUIRED"?"Sign in to open Creator Studio.":"Creator Studio connection failed: "+e.message,true);
+});
 })();
 </script></body></html>+(episodeNet/100).toFixed(2)+' attributed to episodes · '+episodeRows.length+' episode-attributed events</p>';
   }catch(e){
