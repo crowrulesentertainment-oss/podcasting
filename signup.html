@@ -61,14 +61,14 @@
 (()=>{"use strict";
 const c=window.CROW_CONFIG||{},msg=document.getElementById("message"),form=document.getElementById("signupForm"),submit=document.getElementById("submit"),resend=document.getElementById("resend");
 let sb=null;
-function setMsg(t,ok=false){msg.textContent=t;msg.style.borderColor=ok?"#55e7ff44":"#ffffff0c"}
+function setMsg(t,ok=false){msg.textContent=t;msg.style.borderColor=ok?"#55e7ff44":"#ffffff0c"}\nfunction explain(err){const m=err?.message||String(err||"Unknown error");return m.includes("redirect")?m+" Check that https://crowrulesentertainment-oss.github.io/podcasting/verify.html is allowed in Supabase Authentication → URL Configuration.":m}
 async function resendVerification(){
  if(!sb){setMsg("Account system unavailable.");return}
  const email=document.getElementById("email").value.trim();
  if(!email){setMsg("Enter your email address first, then request a new verification email.");document.getElementById("email").focus();return}
  resend.disabled=true;resend.textContent="Sending…";
- try{const r=await sb.auth.resend({type:"signup",email,options:{emailRedirectTo:new URL("verify.html",window.location.href).href}});if(r.error)throw r.error;setMsg("A new verification email has been requested. Check your inbox and spam/junk folder.",true)}
- catch(err){setMsg(err.message||"Unable to resend the verification email. Please wait a moment and try again.")}
+ try{const r=await sb.auth.resend({type:"signup",email,options:{emailRedirectTo:(c.siteUrl?c.siteUrl+"verify.html":new URL("verify.html",window.location.href).href)}});if(r.error)throw r.error;setMsg("A new verification email has been requested. Check your inbox and spam/junk folder.",true)}
+ catch(err){setMsg(explain(err))}
  finally{resend.disabled=false;resend.textContent="Resend Verification Email"}
 }
 resend.addEventListener("click",resendVerification);
@@ -88,7 +88,7 @@ form.addEventListener("submit",async e=>{
    if(!user){const r=await sb.auth.signUp({email,password,options:{emailRedirectTo:new URL("verify.html",window.location.href).href,data:{app:"podcasting",account_type:"creator",full_name:name,creator_type:"podcasting",podcasting_creator:true,podcast_name:podcast,podcast_category:category,podcast_format:format,podcast_status:status,podcast_sports_focus:sports,podcast_description:description,podcast_help_needed:help}}});if(r.error)throw r.error;user=r.data.user;}
    if(!user)throw new Error("Account created, but email confirmation is required before the creator profile can be completed.");
    setMsg("Creator registration saved. Check your email for the CrowRules verification link.",true);document.getElementById("signupCard").style.display="none";document.getElementById("success").style.display="block";document.getElementById("successText").textContent="Your creator registration is saved. Supabase Auth has sent a verification email. Verify your email before continuing to Creator Studio.";
- }catch(err){setMsg(err.message||"Unable to create the account. Please try again.");submit.disabled=false;submit.textContent="Create Creator Account"}
+ }catch(err){setMsg(explain(err));submit.disabled=false;submit.textContent="Create Creator Account"}
 });
 init();
 })();
