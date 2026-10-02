@@ -317,6 +317,7 @@ function wireReplies(){
   }catch(err){alert("We couldn't post your reply. "+(err?.message||"Please try again."))}finally{btn.disabled=false;btn.textContent="Reply"}
  });
 }
+function podcastCard(p){const art=p.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="">':'<div class="podcastArt">🎙️</div>';const title=esc(p.title||"Untitled Podcast");const href="podcast.html?id="+encodeURIComponent(p.id);return '<article class="podcastCard">'+art+'<div class="podcastInfo"><h3>'+title+'</h3><p>'+esc(p.category||"Podcast")+(p.show_format?" · "+esc(p.show_format):"")+'</p><a class="btn" href="'+href+'">Open Podcast</a></div></article>'}
 async function loadPodcasts(){
  try{
   const creator=await CROW_SUPABASE.from("creators").select("id,name,role,discipline,is_active,profile_url").eq("member_id",profileData.user_id).eq("is_active",true).maybeSingle();
