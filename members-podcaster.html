@@ -32,11 +32,11 @@ async function init(){
 }
 async function load(){
  try{
-  const m=await sb.from("members").select("id,user_id,first_name,last_name,display_name,username,bio,avatar_url,membership_type,status,points,created_at").order("created_at",{ascending:false});
+  const m=await sb.from("podcasting_member_directory").select("id,user_id,first_name,last_name,display_name,username,bio,avatar_url,membership_type,status,points,created_at").order("created_at",{ascending:false});
   if(m.error)throw m.error;
-  const c=await sb.from("creators").select("id,member_id,name,slug,role,discipline,bio,avatar_url,is_active").eq("is_active",true);
+  const c=await sb.from("podcasting_creator_directory").select("id,member_id,name,slug,role,discipline,bio,avatar_url,is_active").eq("is_active",true);
   if(c.error)throw c.error;
-  const p=await sb.from("podcasts").select("id,creator_id,title,slug,category,description,artwork_url,status,is_live,listener_count,total_plays").order("created_at",{ascending:false});
+  const p=await sb.from("podcasting_podcast_directory").select("id,creator_id,title,slug,category,description,artwork_url,status,is_live,listener_count,total_plays").order("created_at",{ascending:false});
   if(p.error)throw p.error;
   const creators=c.data||[], podcasts=p.data||[];
   rows=(m.data||[]).map(member=>{
