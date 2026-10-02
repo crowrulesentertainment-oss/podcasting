@@ -43,7 +43,13 @@
 <div class="field full"><label for="help">What would help you get ready?</label><textarea id="help" maxlength="1000" placeholder="Artwork, recording, editing, publishing, promotion, branding, equipment, etc."></textarea></div>
 <div class="field full"><label class="check"><input id="agree" type="checkbox" required><span>I want to create a CrowRules Universal account and register my interest in becoming a CrowRules Podcasting creator. I understand this registration does not guarantee publication, distribution, monetization, or acceptance of a show.</span></label></div>
 </div>
-<div class="actions"><button id="submit" class="btn primary" type="submit">Create Creator Account</button></div>
+<div class="actions"><button id="submit" class="btn primary" type="submit">Create Creator Account</button></div><div style="margin:18px 0 4px;text-align:center;color:#707b91;font-size:10px;letter-spacing:.12em">OR CONTINUE WITH</div>
+<div class="actions" style="margin-top:10px">
+<button type="button" class="btn" id="googleBtn">Google</button>
+<button type="button" class="btn" id="discordBtn">Discord</button>
+<button type="button" class="btn" id="twitchBtn">Twitch</button>
+</div>
+<div class="hint" style="text-align:center;margin-top:8px">Social sign-in creates or signs into your Universal CrowRules account.</div>
 <div id="message" class="status" role="status">Your information will be saved to your CrowRules account so you can continue preparing your show later.</div>
 </form>
 </section>
@@ -61,6 +67,51 @@
 (()=>{"use strict";
 const c=window.CROW_CONFIG||{},msg=document.getElementById("message"),form=document.getElementById("signupForm"),submit=document.getElementById("submit");
 let sb=null;
+const SOCIAL_RETURN_KEY="crowrules_podcasting_signup";
+function saveDraft(){
+  const get=id=>document.getElementById(id)?.value||"";
+  sessionStorage.setItem(SOCIAL_RETURN_KEY,JSON.stringify({
+    name:get("name"),email:get("email"),podcast:get("podcast"),category:get("category"),format:get("format"),
+    status:get("status"),sports:get("sports"),description:get("description"),help:get("help")
+  }));
+}
+function restoreDraft(){
+  try{
+    const d=JSON.parse(sessionStorage.getItem(SOCIAL_RETURN_KEY)||"null"); if(!d)return;
+    const map={name:"name",email:"email",podcast:"podcast",category:"category",format:"format",status:"status",sports:"sports",description:"description",help:"help"};
+    Object.entries(map).forEach(([k,id])=>{if(d[k]!==undefined)document.getElementById(id).value=d[k]});
+  }catch(_){}
+}
+async function socialLogin(provider){
+  if(!sb)return setMsg("Account system unavailable.");
+  saveDraft();
+  const {error}=await sb.auth.signInWithOAuth({
+    provider,
+    options:{redirectTo:window.location.href}
+  });
+  if(error)setMsg(explain(error));
+}
+async function completeSocialSignup(user){
+  const raw=sessionStorage.getItem(SOCIAL_RETURN_KEY);
+  if(!raw)return;
+  const d=JSON.parse(raw);
+  if(!d.podcast)return;
+  await sb.auth.updateUser({data:{
+    app:"podcasting",account_type:"creator",full_name:d.name||user.user_metadata?.full_name||user.user_metadata?.name||"",
+    creator_type:"podcasting",podcasting_creator:true,podcast_name:d.podcast,podcast_category:d.category,
+    podcast_format:d.format,podcast_status:d.status,podcast_sports_focus:d.sports,
+    podcast_description:d.description,podcast_help_needed:d.help
+  }});
+  const rpc=await sb.rpc("register_my_podcast",{
+    p_name:d.name||user.user_metadata?.full_name||user.user_metadata?.name||"",
+    p_email:user.email||d.email||"",
+    p_full_name:d.name||user.user_metadata?.full_name||user.user_metadata?.name||"",
+    p_podcast_name:d.podcast,p_category:d.category,p_format:d.format,p_production_status:d.status,
+    p_sports_focus:d.sports,p_description:d.description,p_help_needed:d.help
+  });
+  if(rpc.error)throw rpc.error;
+  sessionStorage.removeItem(SOCIAL_RETURN_KEY);
+}
 function setMsg(t,ok=false){msg.textContent=t;msg.style.borderColor=ok?"#55e7ff44":"#ffffff0c"}
 function explain(err){const m=err?.message||String(err||"Unknown error");return m.includes("redirect")?m+" Check that https://crowrulesentertainment-oss.github.io/podcasting/verify.html is allowed in Supabase Authentication → URL Configuration.":m}
 async function init(){
@@ -91,7 +142,24 @@ form.addEventListener("submit",async e=>{
    setMsg("Creator registration saved to CrowRules Podcasting. Opening Creator Studio…",true);document.getElementById("signupCard").style.display="none";document.getElementById("success").style.display="block";document.getElementById("successText").textContent="Your creator registration is saved. Opening Creator Studio now.";setTimeout(()=>{window.location.href="creator-dashboard.html"},500);
  }catch(err){setMsg(explain(err));submit.disabled=false;submit.textContent="Create Creator Account"}
 });
-init();
+document.getElementById("googleBtn").addEventListener("click",()=>socialLogin("google"));
+document.getElementById("discordBtn").addEventListener("click",()=>socialLogin("discord"));
+document.getElementById("twitchBtn").addEventListener("click",()=>socialLogin("twitch"));
+restoreDraft();
+(async()=>{
+  await init();
+  const {data}=await sb.auth.getUser();
+  if(data.user && sessionStorage.getItem(SOCIAL_RETURN_KEY)){
+    try{
+      setMsg("Finishing your social account and saving your podcast…");
+      await completeSocialSignup(data.user);
+      setMsg("Podcast submission saved to Supabase. Opening Creator Studio…",true);
+      document.getElementById("signupCard").style.display="none";
+      document.getElementById("success").style.display="block";
+      setTimeout(()=>{window.location.href="creator-dashboard.html"},500);
+    }catch(err){setMsg(explain(err))}
+  }
+})();
 })();
 </script>
 </body>
