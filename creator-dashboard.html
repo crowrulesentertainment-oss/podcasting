@@ -163,7 +163,7 @@ async function loadDashboard(){
 
 
 // Creator Studio live synchronization.
-let liveChannel=null,liveRefreshTimer=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set();
+let liveChannel=null,liveRefreshTimer=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set(),liveEventCache=new Map(),liveReconnects=0;
 const LIVE_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","cr_creator_revenue_transactions"];
 const liveLabel=t=>({podcasts:"Podcast",podcast_episodes:"Episode",podcast_follows:"Follower",podcast_listens:"Listening activity",podcast_subscriptions:"Subscription",cr_creator_revenue_transactions:"Revenue"}[t]||t);
 function setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
@@ -178,7 +178,13 @@ function addLiveActivity(table,event,row){
 }
 function showLiveToast(table,event,row){const box=document.createElement("div");box.className="live-toast-card";const title=row?.title||row?.name||row?.slug||"Your Podcasting data changed";box.innerHTML="<b>● "+esc(event)+" · "+esc(liveLabel(table))+"</b><small>"+esc(title)+" · "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+"</small>";document.getElementById("liveToast")?.prepend(box);setTimeout(()=>box.remove(),5000)}
 function flashDashboard(){["shows","eps","followers","plays","pipelineSummary","podcastList","queue","analytics","revenue"].forEach(id=>document.getElementById(id)?.classList.add("live-refresh"));setTimeout(()=>document.querySelectorAll(".live-refresh").forEach(x=>x.classList.remove("live-refresh")),700)}
-function refreshCreatorLive(table,event,row){addLiveActivity(table,event,row);showLiveToast(table,event,row);flashDashboard();document.getElementById("liveUpdated").textContent=new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"});if(liveRefreshTimer)clearTimeout(liveRefreshTimer);liveRefreshTimer=setTimeout(()=>loadDashboard(),750)}
+function refreshCreatorLive(table,event,row){
+ const eventKey=[table,event,row?.id||"",row?.updated_at||row?.created_at||row?.occurred_at||""].join("|");
+ const now=Date.now();
+ for(const [k,t] of liveEventCache)if(now-t>30000)liveEventCache.delete(k);
+ if(liveEventCache.has(eventKey))return;
+ liveEventCache.set(eventKey,now);
+ addLiveActivity(table,event,row);showLiveToast(table,event,row);flashDashboard();document.getElementById("liveUpdated").textContent=new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"});if(liveRefreshTimer)clearTimeout(liveRefreshTimer);liveRefreshTimer=setTimeout(()=>loadDashboard(),750)}
 document.getElementById("clearLiveActivity")?.addEventListener("click",()=>{const f=document.getElementById("liveActivity");if(f)f.innerHTML='<div class="activity-empty">Waiting for live production events…</div>'});
 async function startCreatorRealtime(){if(!window.CROW_SUPABASE||!creatorProfile?.id)return;if(liveChannel)try{await window.CROW_SUPABASE.removeChannel(liveChannel)}catch(_){}let ch=window.CROW_SUPABASE.channel("creator-studio-live-"+creatorProfile.id);
 LIVE_TABLES.forEach(table=>{
@@ -193,7 +199,7 @@ LIVE_TABLES.forEach(table=>{
    refreshCreatorLive(table,payload.eventType||"CHANGE",row);
  });
 });
-liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED")setLiveStatus(true,"LIVE SYNC CONNECTED");else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")setLiveStatus(false,"LIVE SYNC ERROR");else if(s==="CLOSED")setLiveStatus(false,"LIVE SYNC RECONNECTING")})}
+liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"){liveReconnects++;setLiveStatus(false,"LIVE SYNC RECONNECTING");}else if(s==="CLOSED")setLiveStatus(false,"LIVE SYNC RECONNECTING")})}
 \nif(window.CROW_SUPABASE) loadDashboard();
 else addEventListener("crow:ready",loadDashboard,{once:true});
 setTimeout(()=>{if(!$("dashboard")?.style.display||$("dashboard").style.display==="none") loadDashboard()},1800);
