@@ -17,14 +17,16 @@
 </main>
 <script>
 (async function(){
-const $=id=>document.getElementById(id), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $=id=>document.getElementById(id), esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const initials=n=>String(n||"Member").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
 let sb,rows=[],loading=false,reloadTimer=null;
+
 async function load(){
  if(loading)return;
  loading=true;
  try{
-  $("status").textContent="Refreshing listener directory…";$("status").style.display="block";
+  $("status").textContent="Refreshing listener directory…";
+  $("status").style.display="block";
   const [m,c,p]=await Promise.all([
    sb.from("podcasting_member_directory").select("id,user_id,first_name,last_name,display_name,username,bio,avatar_url,membership_type,points,watch_minutes,created_at,last_active_at").order("created_at",{ascending:false}),
    sb.from("podcasting_creator_directory").select("id,member_id,is_active").eq("is_active",true),
@@ -33,43 +35,64 @@ async function load(){
   if(m.error)throw new Error("Members: "+m.error.message);
   if(c.error)throw new Error("Creators: "+c.error.message);
   if(p.error)throw new Error("Podcasts: "+p.error.message);
-  const creatorToMember=new Map((c.data||[]).filter(x=>x.is_active).map(x=>[x.id,x.member_id]));
+
+  const creatorToMember=new Map((c.data||[]).map(x=>[x.id,x.member_id]));
   const podcastCountByMember=new Map();
   for(const podcast of (p.data||[])){
    const memberId=creatorToMember.get(podcast.creator_id);
    if(memberId)podcastCountByMember.set(memberId,(podcastCountByMember.get(memberId)||0)+1);
   }
+
   rows=(m.data||[]).filter(x=>Number(podcastCountByMember.get(x.id)||0)===0);
-  $("status").style.display="none";
   render();
  }catch(e){
   $("status").textContent="Could not load listeners: "+(e.message||"Unknown Supabase error.");
   $("status").style.display="block";
  }finally{loading=false;}
 }
-function scheduleLoad(){clearTimeout(reloadTimer);reloadTimer=setTimeout(load,350);}
+
+function scheduleLoad(){
+ clearTimeout(reloadTimer);
+ reloadTimer=setTimeout(load,350);
+}
+
 function render(){
  const q=$("search").value.trim().toLowerCase();
  const filtered=rows.filter(x=>[x.display_name,x.username,x.first_name,x.last_name,x.bio,x.membership_type].join(" ").toLowerCase().includes(q));
- $("status").style.display=filtered.length?"none":"block";$("count").textContent=filtered.length+" listener"+(filtered.length===1?"":"s");
+ $("count").textContent=filtered.length+" listener"+(filtered.length===1?"":"s");
+ if(!filtered.length){
+  $("status").textContent=q?"No listeners match your search.":"No listeners are currently listed.";
+  $("status").style.display="block";
+ }else $("status").style.display="none";
+
  $("grid").innerHTML=filtered.map(x=>{
   const name=x.display_name||[x.first_name,x.last_name].filter(Boolean).join(" ")||x.username||"CrowRules Listener";
   const active=x.last_active_at?new Date(x.last_active_at).toLocaleDateString():"—";
   return '<article class="member-card"><div class="top"><div class="avatar">'+(x.avatar_url?'<img src="'+esc(x.avatar_url)+'" alt="">':esc(initials(name)))+'</div><div><div class="name">'+esc(name)+'</div><div class="username">'+(x.username?"@"+esc(x.username):"CrowRules Member")+'</div><span class="badge">Listener · 0 Podcasts</span></div></div><div class="bio">'+esc(x.bio||"CrowRules member and podcast listener.")+'</div><div class="meta"><div class="stat"><strong>'+Number(x.points||0).toLocaleString()+'</strong><small>CrowPoints</small></div><div class="stat"><strong>'+Number(x.watch_minutes||0).toLocaleString()+'</strong><small>Listening minutes</small></div><div class="stat"><strong>'+esc(x.membership_type||"Member")+'</strong><small>Membership</small></div><div class="stat"><strong>'+esc(active)+'</strong><small>Last active</small></div></div><div class="actions"><a class="btn primary" href="member-profile.html?user='+encodeURIComponent(x.user_id)+'">Member profile</a><a class="btn" href="podcasts.html">Browse podcasts</a><a class="btn" href="create-podcast.html">Create a podcast</a></div></article>';
  }).join("");
 }
+
 async function init(){
  window._crListenerWait=Date.now()+12000;
- while(!window.CROW_SUPABASE){if(window.CROW_APP?.init){try{await window.CROW_APP.init()}catch(e){}}if(Date.now()>window._crListenerWait)throw Error("Supabase client could not initialize.");await new Promise(r=>setTimeout(r,100));}
- sb=window.CROW_SUPABASE;await load();
+ while(!window.CROW_SUPABASE){
+  if(window.CROW_APP?.init){try{await window.CROW_APP.init()}catch(e){}}
+  if(Date.now()>window._crListenerWait)throw Error("Supabase client could not initialize.");
+  await new Promise(r=>setTimeout(r,100));
+ }
+ sb=window.CROW_SUPABASE;
+ await load();
  const ch=sb.channel("podcasting-member-listeners-live")
   .on("postgres_changes",{event:"*",schema:"public",table:"members"},scheduleLoad)
   .on("postgres_changes",{event:"*",schema:"public",table:"creators"},scheduleLoad)
   .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},scheduleLoad);
- ch.subscribe((state)=>{if(state==="CHANNEL_ERROR"||state==="TIMED_OUT")scheduleLoad();});
+ ch.subscribe(state=>{
+  if(state==="CHANNEL_ERROR"||state==="TIMED_OUT")scheduleLoad();
+ });
  window.addEventListener("online",scheduleLoad);
  setInterval(scheduleLoad,30000);
 }
-$("search").addEventListener("input",render);init().catch(e=>{$("status").textContent="Supabase connection failed: "+e.message;$("status").style.display="block";});
+
+$("search").addEventListener("input",render);
+init().catch(e=>{$("status").textContent="Supabase connection failed: "+e.message;$("status").style.display="block";});
 })();
 </script></body></html>
