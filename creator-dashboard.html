@@ -134,9 +134,9 @@ async function loadDashboard(){
       creatorEpisodeIds=new Set(ids);
     }
 
-    if(ids.length){
-      startCreatorRealtime();
+    startCreatorRealtime();
 
+    if(ids.length){
       const l=await sb.from("podcast_listens").select("seconds_listened,completed").in("episode_id",ids);
       if(l.error) throw l.error;
       const listens=l.data||[];
@@ -178,7 +178,7 @@ function addLiveActivity(table,event,row){
 }
 function showLiveToast(table,event,row){const box=document.createElement("div");box.className="live-toast-card";const title=row?.title||row?.name||row?.slug||"Your Podcasting data changed";box.innerHTML="<b>● "+esc(event)+" · "+esc(liveLabel(table))+"</b><small>"+esc(title)+" · "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+"</small>";document.getElementById("liveToast")?.prepend(box);setTimeout(()=>box.remove(),5000)}
 function flashDashboard(){["shows","eps","followers","plays","pipelineSummary","podcastList","queue","analytics","revenue"].forEach(id=>document.getElementById(id)?.classList.add("live-refresh"));setTimeout(()=>document.querySelectorAll(".live-refresh").forEach(x=>x.classList.remove("live-refresh")),700)}
-function refreshCreatorLive(table,event,row){addLiveActivity(table,event,row);showLiveToast(table,event,row);flashDashboard();document.getElementById("liveUpdated").textContent=new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"});if(liveRefreshTimer)clearTimeout(liveRefreshTimer);liveRefreshTimer=setTimeout(()=>loadDashboard(),250)}
+function refreshCreatorLive(table,event,row){addLiveActivity(table,event,row);showLiveToast(table,event,row);flashDashboard();document.getElementById("liveUpdated").textContent=new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"});if(liveRefreshTimer)clearTimeout(liveRefreshTimer);liveRefreshTimer=setTimeout(()=>loadDashboard(),750)}
 document.getElementById("clearLiveActivity")?.addEventListener("click",()=>{const f=document.getElementById("liveActivity");if(f)f.innerHTML='<div class="activity-empty">Waiting for live production events…</div>'});
 async function startCreatorRealtime(){if(!window.CROW_SUPABASE||!creatorProfile?.id)return;if(liveChannel)try{await window.CROW_SUPABASE.removeChannel(liveChannel)}catch(_){}let ch=window.CROW_SUPABASE.channel("creator-studio-live-"+creatorProfile.id);
 LIVE_TABLES.forEach(table=>{
