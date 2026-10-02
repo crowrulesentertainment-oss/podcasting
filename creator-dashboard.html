@@ -7,7 +7,7 @@
 "use strict";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let creatorProfile=null;
+let creatorProfile=null, dashboardLoading=false;
 
 async function waitForSupabase(timeout=15000){
   const started=Date.now();
@@ -41,6 +41,8 @@ window.pipelineAction=pipelineAction;
 window.schedule=schedule;
 
 async function loadDashboard(){
+  if(dashboardLoading)return;
+  dashboardLoading=true;
   try{
     const sb=await waitForSupabase();
     const authUser=await sb.auth.getUser();
@@ -155,7 +157,157 @@ async function loadDashboard(){
     const gross=ms.reduce((n,v)=>n+Number(v.gross_amount||0),0);
     const episodeRows=ms.filter(v=>v.episode_id);
     const episodeNet=episodeRows.reduce((n,v)=>n+Number(v.creator_amount||0),0);
-    $("revenue").innerHTML='<p><strong>$'+(net/100).toFixed(2)+'</strong> automated creator-attributed net revenue</p><p>$'+(gross/100).toFixed(2)+' gross across '+ms.length+' ledger events</p><p>$'+(episodeNet/100).toFixed(2)+' attributed to episodes · '+episodeRows.length+' episode-attributed events</p>';
+    $("revenue").innerHTML='<p><strong>
+    console.error("CrowRules Creator Dashboard:",e);
+    $("auth").textContent="Creator Studio could not load: "+(e?.message||"Unknown error");
+    $("auth").classList.add("error");
+  } finally { dashboardLoading=false; }
+}
+
+
+// Creator Studio live synchronization.
+let liveChannel=null,liveRefreshTimer=null,liveLastEventAt=0,liveHealthTimer=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set(),liveEventCache=new Map(),liveReconnects=0,liveEventCount=0;
+const LIVE_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","cr_creator_revenue_transactions"];
+const liveLabel=t=>({podcasts:"Podcast",podcast_episodes:"Episode",podcast_follows:"Follower",podcast_listens:"Listening activity",podcast_subscriptions:"Subscription",cr_creator_revenue_transactions:"Revenue"}[t]||t);
+function updateLiveHealth(){const age=document.getElementById("liveAge"),health=document.getElementById("liveHealth");if(!age||!health)return;if(!liveLastEventAt){age.textContent="—";health.textContent=liveChannel?"CONNECTED":"WAITING";return}const sec=Math.max(0,Math.floor((Date.now()-liveLastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";health.textContent=sec<30?"LIVE":sec<120?"QUIET":"STALE"}\nfunction setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
+function addLiveActivity(table,event,row){
+ const feed=document.getElementById("liveActivity");if(!feed)return;
+ const empty=feed.querySelector(".activity-empty");if(empty)empty.remove();
+ const item=document.createElement("div");item.className="activity-item";
+ const title=row?.title||row?.name||row?.slug||"Podcasting record";
+ const detail=table==="podcast_episodes"&&row?.status?"Status: "+row.status:table==="podcast_listens"?"New listening activity":table==="podcast_follows"?"New follower":table==="podcast_subscriptions"?"Subscription activity":table==="cr_creator_revenue_transactions"?"Revenue event":"Creator account data";
+ item.innerHTML='<span class="dot"></span><div><b>'+esc(event+' · '+liveLabel(table))+'</b><small>'+esc(title)+' · '+esc(detail)+'</small></div><small>'+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+'</small>';
+ feed.prepend(item);while(feed.children.length>40)feed.lastElementChild.remove();
+}
+function showLiveToast(table,event,row){const box=document.createElement("div");box.className="live-toast-card";const title=row?.title||row?.name||row?.slug||"Your Podcasting data changed";box.innerHTML="<b>● "+esc(event)+" · "+esc(liveLabel(table))+"</b><small>"+esc(title)+" · "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+"</small>";document.getElementById("liveToast")?.prepend(box);setTimeout(()=>box.remove(),5000)}
+function flashDashboard(){["shows","eps","followers","plays","pipelineSummary","podcastList","queue","analytics","revenue"].forEach(id=>document.getElementById(id)?.classList.add("live-refresh"));setTimeout(()=>document.querySelectorAll(".live-refresh").forEach(x=>x.classList.remove("live-refresh")),700)}
+function refreshCreatorLive(table,event,row){
+ const eventKey=[table,event,row?.id||"",row?.updated_at||row?.created_at||row?.occurred_at||""].join("|");
+ const now=Date.now();
+ for(const [k,t] of liveEventCache)if(now-t>30000)liveEventCache.delete(k);
+ if(liveEventCache.has(eventKey))return;
+ liveEventCache.set(eventKey,now);
+ addLiveActivity(table,event,row);showLiveToast(table,event,row);liveEventCount++;const ec=document.getElementById("liveEventCount");if(ec)ec.textContent=String(liveEventCount);flashDashboard();liveLastEventAt=Date.now();document.getElementById("liveUpdated").textContent=new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"});updateLiveHealth();if(liveRefreshTimer)clearTimeout(liveRefreshTimer);liveRefreshTimer=setTimeout(()=>loadDashboard(),750)}
+document.getElementById("clearLiveActivity")?.addEventListener("click",()=>{const f=document.getElementById("liveActivity");if(f)f.innerHTML='<div class="activity-empty">Waiting for live production events…</div>'});
+async function startCreatorRealtime(){if(!window.CROW_SUPABASE||!creatorProfile?.id)return;if(liveChannel)return;let ch=window.CROW_SUPABASE.channel("creator-studio-live-"+creatorProfile.id);
+LIVE_TABLES.forEach(table=>{
+ const cfg={event:"*",schema:"public",table};
+ if(table==="podcasts") cfg.filter="creator_id=eq."+creatorProfile.id;
+ ch=ch.on("postgres_changes",cfg,payload=>{
+   const row=payload.new||payload.old||{};
+   if(table==="podcasts" && row.creator_id!==creatorProfile.id) return;
+   if(table==="cr_creator_revenue_transactions" && row.creator_id!==creatorProfile.id) return;
+   if((table==="podcast_follows" || table==="podcast_subscriptions") && !creatorPodcastIds.has(row.podcast_id)) return;
+   if(table==="podcast_listens" && !creatorEpisodeIds.has(row.episode_id)) return;
+   refreshCreatorLive(table,payload.eventType||"CHANGE",row);
+ });
+});
+liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){liveReconnects++;const rc=document.getElementById("liveReconnectCount");if(rc)rc.textContent=String(liveReconnects);setLiveStatus(false,"LIVE SYNC RECONNECTING");if(liveChannel){window.CROW_SUPABASE.removeChannel(liveChannel).catch(()=>{});liveChannel=null}setTimeout(()=>startCreatorRealtime(),Math.min(30000,1000*Math.pow(2,Math.min(liveReconnects-1,5))));}else if(s==="CHANNEL_ERROR")setLiveStatus(false,"LIVE SYNC ERROR")})}
+if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);\nif(window.CROW_SUPABASE) loadDashboard();
+else addEventListener("crow:ready",loadDashboard,{once:true});
+setTimeout(()=>{if(!$("dashboard")?.style.display||$("dashboard").style.display==="none") loadDashboard()},1800);
+})();
+</script></body></html>+(net/100).toFixed(2)+'</strong> automated creator-attributed net revenue</p><p>
+    console.error("CrowRules Creator Dashboard:",e);
+    $("auth").textContent="Creator Studio could not load: "+(e?.message||"Unknown error");
+    $("auth").classList.add("error");
+  }
+}
+
+
+// Creator Studio live synchronization.
+let liveChannel=null,liveRefreshTimer=null,liveLastEventAt=0,liveHealthTimer=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set(),liveEventCache=new Map(),liveReconnects=0,liveEventCount=0;
+const LIVE_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","cr_creator_revenue_transactions"];
+const liveLabel=t=>({podcasts:"Podcast",podcast_episodes:"Episode",podcast_follows:"Follower",podcast_listens:"Listening activity",podcast_subscriptions:"Subscription",cr_creator_revenue_transactions:"Revenue"}[t]||t);
+function updateLiveHealth(){const age=document.getElementById("liveAge"),health=document.getElementById("liveHealth");if(!age||!health)return;if(!liveLastEventAt){age.textContent="—";health.textContent=liveChannel?"CONNECTED":"WAITING";return}const sec=Math.max(0,Math.floor((Date.now()-liveLastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";health.textContent=sec<30?"LIVE":sec<120?"QUIET":"STALE"}\nfunction setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
+function addLiveActivity(table,event,row){
+ const feed=document.getElementById("liveActivity");if(!feed)return;
+ const empty=feed.querySelector(".activity-empty");if(empty)empty.remove();
+ const item=document.createElement("div");item.className="activity-item";
+ const title=row?.title||row?.name||row?.slug||"Podcasting record";
+ const detail=table==="podcast_episodes"&&row?.status?"Status: "+row.status:table==="podcast_listens"?"New listening activity":table==="podcast_follows"?"New follower":table==="podcast_subscriptions"?"Subscription activity":table==="cr_creator_revenue_transactions"?"Revenue event":"Creator account data";
+ item.innerHTML='<span class="dot"></span><div><b>'+esc(event+' · '+liveLabel(table))+'</b><small>'+esc(title)+' · '+esc(detail)+'</small></div><small>'+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+'</small>';
+ feed.prepend(item);while(feed.children.length>40)feed.lastElementChild.remove();
+}
+function showLiveToast(table,event,row){const box=document.createElement("div");box.className="live-toast-card";const title=row?.title||row?.name||row?.slug||"Your Podcasting data changed";box.innerHTML="<b>● "+esc(event)+" · "+esc(liveLabel(table))+"</b><small>"+esc(title)+" · "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+"</small>";document.getElementById("liveToast")?.prepend(box);setTimeout(()=>box.remove(),5000)}
+function flashDashboard(){["shows","eps","followers","plays","pipelineSummary","podcastList","queue","analytics","revenue"].forEach(id=>document.getElementById(id)?.classList.add("live-refresh"));setTimeout(()=>document.querySelectorAll(".live-refresh").forEach(x=>x.classList.remove("live-refresh")),700)}
+function refreshCreatorLive(table,event,row){
+ const eventKey=[table,event,row?.id||"",row?.updated_at||row?.created_at||row?.occurred_at||""].join("|");
+ const now=Date.now();
+ for(const [k,t] of liveEventCache)if(now-t>30000)liveEventCache.delete(k);
+ if(liveEventCache.has(eventKey))return;
+ liveEventCache.set(eventKey,now);
+ addLiveActivity(table,event,row);showLiveToast(table,event,row);liveEventCount++;const ec=document.getElementById("liveEventCount");if(ec)ec.textContent=String(liveEventCount);flashDashboard();liveLastEventAt=Date.now();document.getElementById("liveUpdated").textContent=new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"});updateLiveHealth();if(liveRefreshTimer)clearTimeout(liveRefreshTimer);liveRefreshTimer=setTimeout(()=>loadDashboard(),750)}
+document.getElementById("clearLiveActivity")?.addEventListener("click",()=>{const f=document.getElementById("liveActivity");if(f)f.innerHTML='<div class="activity-empty">Waiting for live production events…</div>'});
+async function startCreatorRealtime(){if(!window.CROW_SUPABASE||!creatorProfile?.id)return;if(liveChannel)return;let ch=window.CROW_SUPABASE.channel("creator-studio-live-"+creatorProfile.id);
+LIVE_TABLES.forEach(table=>{
+ const cfg={event:"*",schema:"public",table};
+ if(table==="podcasts") cfg.filter="creator_id=eq."+creatorProfile.id;
+ ch=ch.on("postgres_changes",cfg,payload=>{
+   const row=payload.new||payload.old||{};
+   if(table==="podcasts" && row.creator_id!==creatorProfile.id) return;
+   if(table==="cr_creator_revenue_transactions" && row.creator_id!==creatorProfile.id) return;
+   if((table==="podcast_follows" || table==="podcast_subscriptions") && !creatorPodcastIds.has(row.podcast_id)) return;
+   if(table==="podcast_listens" && !creatorEpisodeIds.has(row.episode_id)) return;
+   refreshCreatorLive(table,payload.eventType||"CHANGE",row);
+ });
+});
+liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){liveReconnects++;const rc=document.getElementById("liveReconnectCount");if(rc)rc.textContent=String(liveReconnects);setLiveStatus(false,"LIVE SYNC RECONNECTING");if(liveChannel){window.CROW_SUPABASE.removeChannel(liveChannel).catch(()=>{});liveChannel=null}setTimeout(()=>startCreatorRealtime(),Math.min(30000,1000*Math.pow(2,Math.min(liveReconnects-1,5))));}else if(s==="CHANNEL_ERROR")setLiveStatus(false,"LIVE SYNC ERROR")})}
+if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);\nif(window.CROW_SUPABASE) loadDashboard();
+else addEventListener("crow:ready",loadDashboard,{once:true});
+setTimeout(()=>{if(!$("dashboard")?.style.display||$("dashboard").style.display==="none") loadDashboard()},1800);
+})();
+</script></body></html>+(gross/100).toFixed(2)+' gross across '+ms.length+' ledger events</p><p>
+    console.error("CrowRules Creator Dashboard:",e);
+    $("auth").textContent="Creator Studio could not load: "+(e?.message||"Unknown error");
+    $("auth").classList.add("error");
+  }
+}
+
+
+// Creator Studio live synchronization.
+let liveChannel=null,liveRefreshTimer=null,liveLastEventAt=0,liveHealthTimer=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set(),liveEventCache=new Map(),liveReconnects=0,liveEventCount=0;
+const LIVE_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions","cr_creator_revenue_transactions"];
+const liveLabel=t=>({podcasts:"Podcast",podcast_episodes:"Episode",podcast_follows:"Follower",podcast_listens:"Listening activity",podcast_subscriptions:"Subscription",cr_creator_revenue_transactions:"Revenue"}[t]||t);
+function updateLiveHealth(){const age=document.getElementById("liveAge"),health=document.getElementById("liveHealth");if(!age||!health)return;if(!liveLastEventAt){age.textContent="—";health.textContent=liveChannel?"CONNECTED":"WAITING";return}const sec=Math.max(0,Math.floor((Date.now()-liveLastEventAt)/1000));age.textContent=sec<60?sec+"s ago":Math.floor(sec/60)+"m ago";health.textContent=sec<30?"LIVE":sec<120?"QUIET":"STALE"}\nfunction setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
+function addLiveActivity(table,event,row){
+ const feed=document.getElementById("liveActivity");if(!feed)return;
+ const empty=feed.querySelector(".activity-empty");if(empty)empty.remove();
+ const item=document.createElement("div");item.className="activity-item";
+ const title=row?.title||row?.name||row?.slug||"Podcasting record";
+ const detail=table==="podcast_episodes"&&row?.status?"Status: "+row.status:table==="podcast_listens"?"New listening activity":table==="podcast_follows"?"New follower":table==="podcast_subscriptions"?"Subscription activity":table==="cr_creator_revenue_transactions"?"Revenue event":"Creator account data";
+ item.innerHTML='<span class="dot"></span><div><b>'+esc(event+' · '+liveLabel(table))+'</b><small>'+esc(title)+' · '+esc(detail)+'</small></div><small>'+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+'</small>';
+ feed.prepend(item);while(feed.children.length>40)feed.lastElementChild.remove();
+}
+function showLiveToast(table,event,row){const box=document.createElement("div");box.className="live-toast-card";const title=row?.title||row?.name||row?.slug||"Your Podcasting data changed";box.innerHTML="<b>● "+esc(event)+" · "+esc(liveLabel(table))+"</b><small>"+esc(title)+" · "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"})+"</small>";document.getElementById("liveToast")?.prepend(box);setTimeout(()=>box.remove(),5000)}
+function flashDashboard(){["shows","eps","followers","plays","pipelineSummary","podcastList","queue","analytics","revenue"].forEach(id=>document.getElementById(id)?.classList.add("live-refresh"));setTimeout(()=>document.querySelectorAll(".live-refresh").forEach(x=>x.classList.remove("live-refresh")),700)}
+function refreshCreatorLive(table,event,row){
+ const eventKey=[table,event,row?.id||"",row?.updated_at||row?.created_at||row?.occurred_at||""].join("|");
+ const now=Date.now();
+ for(const [k,t] of liveEventCache)if(now-t>30000)liveEventCache.delete(k);
+ if(liveEventCache.has(eventKey))return;
+ liveEventCache.set(eventKey,now);
+ addLiveActivity(table,event,row);showLiveToast(table,event,row);liveEventCount++;const ec=document.getElementById("liveEventCount");if(ec)ec.textContent=String(liveEventCount);flashDashboard();liveLastEventAt=Date.now();document.getElementById("liveUpdated").textContent=new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"});updateLiveHealth();if(liveRefreshTimer)clearTimeout(liveRefreshTimer);liveRefreshTimer=setTimeout(()=>loadDashboard(),750)}
+document.getElementById("clearLiveActivity")?.addEventListener("click",()=>{const f=document.getElementById("liveActivity");if(f)f.innerHTML='<div class="activity-empty">Waiting for live production events…</div>'});
+async function startCreatorRealtime(){if(!window.CROW_SUPABASE||!creatorProfile?.id)return;if(liveChannel)return;let ch=window.CROW_SUPABASE.channel("creator-studio-live-"+creatorProfile.id);
+LIVE_TABLES.forEach(table=>{
+ const cfg={event:"*",schema:"public",table};
+ if(table==="podcasts") cfg.filter="creator_id=eq."+creatorProfile.id;
+ ch=ch.on("postgres_changes",cfg,payload=>{
+   const row=payload.new||payload.old||{};
+   if(table==="podcasts" && row.creator_id!==creatorProfile.id) return;
+   if(table==="cr_creator_revenue_transactions" && row.creator_id!==creatorProfile.id) return;
+   if((table==="podcast_follows" || table==="podcast_subscriptions") && !creatorPodcastIds.has(row.podcast_id)) return;
+   if(table==="podcast_listens" && !creatorEpisodeIds.has(row.episode_id)) return;
+   refreshCreatorLive(table,payload.eventType||"CHANGE",row);
+ });
+});
+liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){liveReconnects++;const rc=document.getElementById("liveReconnectCount");if(rc)rc.textContent=String(liveReconnects);setLiveStatus(false,"LIVE SYNC RECONNECTING");if(liveChannel){window.CROW_SUPABASE.removeChannel(liveChannel).catch(()=>{});liveChannel=null}setTimeout(()=>startCreatorRealtime(),Math.min(30000,1000*Math.pow(2,Math.min(liveReconnects-1,5))));}else if(s==="CHANNEL_ERROR")setLiveStatus(false,"LIVE SYNC ERROR")})}
+if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);\nif(window.CROW_SUPABASE) loadDashboard();
+else addEventListener("crow:ready",loadDashboard,{once:true});
+setTimeout(()=>{if(!$("dashboard")?.style.display||$("dashboard").style.display==="none") loadDashboard()},1800);
+})();
+</script></body></html>+(episodeNet/100).toFixed(2)+' attributed to episodes · '+episodeRows.length+' episode-attributed events</p>';
   }catch(e){
     console.error("CrowRules Creator Dashboard:",e);
     $("auth").textContent="Creator Studio could not load: "+(e?.message||"Unknown error");
