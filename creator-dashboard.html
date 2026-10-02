@@ -43,7 +43,9 @@ window.schedule=schedule;
 async function loadDashboard(){
   try{
     const sb=await waitForSupabase();
-    const user=window.__CROW_USER || (await sb.auth.getUser()).data?.user;
+    const authUser=await sb.auth.getUser();
+    const user=window.__CROW_USER || authUser.data?.user;
+    if(authUser.error && !user) throw authUser.error;
     if(!user){
       $("auth").textContent="Sign in to open Creator Studio.";
       return;
@@ -53,7 +55,7 @@ async function loadDashboard(){
 
     // Universal account -> member -> creator profile. podcasts.creator_id stores creators.id, not auth.users.id.
     $("auth").textContent="Preparing your Podcasting creator account…";
-    const bootstrap=await sb.rpc("ensure_podcasting_creator");
+    const bootstrap=await Promise.race([sb.rpc("ensure_podcasting_creator"),new Promise((_,rej)=>setTimeout(()=>rej(new Error("Creator profile setup timed out. Please refresh and try again.")),12000))]);
     if(bootstrap.error) throw bootstrap.error;
     const creatorId=bootstrap.data;
     if(!creatorId) throw new Error("Podcasting creator profile could not be created.");
@@ -134,7 +136,7 @@ async function loadDashboard(){
       creatorEpisodeIds=new Set(ids);
     }
 
-    startCreatorRealtime();
+    await startCreatorRealtime();
 
     if(ids.length){
       const l=await sb.from("podcast_listens").select("seconds_listened,completed").in("episode_id",ids);
@@ -199,8 +201,8 @@ LIVE_TABLES.forEach(table=>{
    refreshCreatorLive(table,payload.eventType||"CHANGE",row);
  });
 });
-liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"){liveReconnects++;const rc=document.getElementById("liveReconnectCount");if(rc)rc.textContent=String(liveReconnects);setLiveStatus(false,"LIVE SYNC RECONNECTING");}else if(s==="CLOSED")setLiveStatus(false,"LIVE SYNC RECONNECTING")})}
-\nif(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);\nif(window.CROW_SUPABASE) loadDashboard();
+liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){liveReconnects++;const rc=document.getElementById("liveReconnectCount");if(rc)rc.textContent=String(liveReconnects);setLiveStatus(false,"LIVE SYNC RECONNECTING");if(liveChannel){window.CROW_SUPABASE.removeChannel(liveChannel).catch(()=>{});liveChannel=null}setTimeout(()=>startCreatorRealtime(),Math.min(30000,1000*Math.pow(2,Math.min(liveReconnects-1,5))));}else if(s==="CHANNEL_ERROR")setLiveStatus(false,"LIVE SYNC ERROR")})}
+if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);\nif(window.CROW_SUPABASE) loadDashboard();
 else addEventListener("crow:ready",loadDashboard,{once:true});
 setTimeout(()=>{if(!$("dashboard")?.style.display||$("dashboard").style.display==="none") loadDashboard()},1800);
 })();
