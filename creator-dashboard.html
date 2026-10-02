@@ -50,34 +50,19 @@ async function loadDashboard(){
     $("auth").textContent="Checking creator account…";
 
     // Universal account -> member -> creator profile. podcasts.creator_id stores creators.id, not auth.users.id.
-    let mr=await sb.from("members").select("id").eq("user_id",user.id).maybeSingle();
-    if(mr.error) throw mr.error;
+    $("auth").textContent="Preparing your Podcasting creator account…";
+    const bootstrap=await sb.rpc("ensure_podcasting_creator");
+    if(bootstrap.error) throw bootstrap.error;
+    const creatorId=bootstrap.data;
+    if(!creatorId) throw new Error("Podcasting creator profile could not be created.");
 
-    // Social sign-in can create the Auth account before a Podcasting creator profile exists.
-    // Bootstrap the Universal CrowRules member + Podcasting creator profile automatically.
-    if(!mr.data){
-      $("auth").textContent="Preparing your Podcasting creator account…";
-      const bootstrap=await sb.rpc("ensure_podcasting_creator");
-      if(bootstrap.error) throw bootstrap.error;
-      mr=await sb.from("members").select("id").eq("user_id",user.id).maybeSingle();
-      if(mr.error) throw mr.error;
-    }
-
-    if(!mr.data) throw new Error("Your CrowRules member account could not be created.");
-
-    let cr=await sb.from("creators").select("id,name,creator_code,is_active").eq("member_id",mr.data.id).eq("is_active",true).maybeSingle();
+    const cr=await sb.from("creators")
+      .select("id,name,creator_code,is_active,member_id")
+      .eq("id",creatorId)
+      .eq("is_active",true)
+      .maybeSingle();
     if(cr.error) throw cr.error;
-
-    // Existing Universal members may predate Podcasting. Create the Podcasting creator profile on demand.
-    if(!cr.data){
-      $("auth").textContent="Creating your Podcasting creator profile…";
-      const bootstrap=await sb.rpc("ensure_podcasting_creator");
-      if(bootstrap.error) throw bootstrap.error;
-      cr=await sb.from("creators").select("id,name,creator_code,is_active").eq("member_id",mr.data.id).eq("is_active",true).maybeSingle();
-      if(cr.error) throw cr.error;
-    }
-
-    if(!cr.data) throw new Error("Your Podcasting creator profile could not be created.");
+    if(!cr.data) throw new Error("Your Podcasting creator profile could not be loaded.");
 
     creatorProfile=cr.data;
     $("auth").textContent="Signed in as "+(user.email||creatorProfile.name||"Creator");
