@@ -12,13 +12,14 @@ const seen=new Set(),unique=people.filter(p=>{const k=p.user_id||p.__presence_ke
   // state is scoped to a channel/topic, so creating a second channel here
   // can split the online population or replace the site's existing tracker.
   let c=window.__CROW_PRESENCE_CHANNEL||null;
+  if(!c){await new Promise(r=>setTimeout(r,500));c=window.__CROW_PRESENCE_CHANNEL||null}
   if(c){
     S.presence=c;
     c.on('presence',{event:'sync'},online).on('presence',{event:'join'},online).on('presence',{event:'leave'},online);
     online();
     return;
   }
-  c=sb.channel('podcasting-online',{config:{presence:{key:window.__CROW_USER?.id||crypto.randomUUID()}}});
+  c=sb.channel('podcasting-online',{config:{presence:{key:window.__CROW_USER?.id||crypto.randomUUID()}}});window.__CROW_PRESENCE_CHANNEL=c;
   c.on('presence',{event:'sync'},online).on('presence',{event:'join'},online).on('presence',{event:'leave'},online);
   S.presence=c;
   await c.subscribe(async state=>{
