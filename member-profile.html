@@ -37,7 +37,16 @@
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script>
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
 <style>
-.hub-interactive{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.hubx{background:var(--panel2);border:1px solid #ffffff10;border-radius:20px;padding:20px}.hubx.full{grid-column:1/-1}.hubx h2{font-size:16px;margin:0 0 6px}.hubx small{color:#68748a}.hubx-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.hubx button{border:1px solid #ffffff12;background:#ffffff06;color:#dce5f7;border-radius:9px;padding:9px 11px;font:700 8px Montserrat;text-transform:uppercase;cursor:pointer}.hubx input{width:100%;box-sizing:border-box;background:#060912;border:1px solid #ffffff14;border-radius:9px;color:#fff;padding:10px}.hubx-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hubx-list{display:grid;gap:8px;margin-top:12px}.hubx-row{padding:10px;border:1px solid #ffffff0b;border-radius:11px;background:#080b13;font-size:10px}.hubx-row strong{font-size:11px}.hubx-row span{float:right;font-family:Orbitron}.hubx-filter{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.hubx-filter button.active{color:#72eaff;border-color:#55e7ff55}@media(max-width:760px){.hub-interactive{grid-template-columns:1fr}.hubx.full{grid-column:auto}.hubx-grid{grid-template-columns:1fr}}
+.hub-interactive{width:100%;box-sizing:border-box;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:20px;margin:28px 0 10px}
+.hubx{min-width:0;box-sizing:border-box;background:linear-gradient(145deg,#0d1220,#090d17);border:1px solid #ffffff10;border-radius:20px;padding:22px;box-shadow:0 12px 35px #00000022}
+.hubx:nth-child(1),.hubx:nth-child(2){grid-column:span 6}.hubx:nth-child(3),.hubx:nth-child(4),.hubx:nth-child(5){grid-column:1/-1}
+.hubx h2{font-size:15px;line-height:1.3;margin:0 0 5px;color:#eef5ff}.hubx>small{display:block;font-size:9px;line-height:1.5;color:#68748a}
+.hubx-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}.hubx button{border:1px solid #ffffff14;background:#ffffff06;color:#dce5f7;border-radius:10px;padding:9px 12px;font:700 8px Montserrat;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;transition:.2s}.hubx button:hover{border-color:#55e7ff55;color:#72eaff}
+.hubx input{min-width:0;width:100%;box-sizing:border-box;background:#060912;border:1px solid #ffffff14;border-radius:10px;color:#fff;padding:11px 12px;font:500 10px Montserrat;outline:none}.hubx input:focus{border-color:#55e7ff55;box-shadow:0 0 0 3px #55e7ff0b}
+.hubx-grid{display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:12px}.hubx-list{display:grid;gap:8px;margin-top:14px;max-height:360px;overflow:auto;padding-right:3px}.hubx-row{min-width:0;box-sizing:border-box;padding:12px 13px;border:1px solid #ffffff0b;border-radius:12px;background:#080b13;font-size:10px;line-height:1.5;overflow-wrap:anywhere}.hubx-row strong{font-size:10px;color:#e6eefc}.hubx-row span{float:right;margin-left:10px;font:800 10px Orbitron}.hubx-filter{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}.hubx-filter button.active{color:#72eaff;border-color:#55e7ff55;background:#55e7ff09}
+#hubFavs{grid-template-columns:repeat(3,minmax(0,1fr));max-height:none}.hubx-row small{font-size:8px}
+@media(max-width:900px){.hubx:nth-child(1),.hubx:nth-child(2){grid-column:1/-1}#hubFavs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.hub-interactive{grid-template-columns:1fr;gap:14px;margin-top:20px}.hubx,.hubx:nth-child(1),.hubx:nth-child(2),.hubx:nth-child(3),.hubx:nth-child(4),.hubx:nth-child(5){grid-column:1/-1;padding:17px;border-radius:16px}.hubx-grid{grid-template-columns:1fr}.hubx-actions button{flex:1}.hubx-list{max-height:300px}#hubFavs{grid-template-columns:1fr}}
 </style></head>
 <body>
 <div data-nav></div>
@@ -109,14 +118,7 @@
   <button class="ic-btn" id="icShare" type="button">Copy Profile Link</button>
   <button class="ic-btn" id="icRefresh" type="button">Refresh Profile</button>
  </div>
-</section><section class="hub-grid" id="memberHub">
-<section class="hub-card"><h2>Social Links</h2><div class="hub-sub">Connected public destinations</div><div id="hubSocial" class="social-links"></div></section>
-<section class="hub-card"><h2>Badges & Achievements</h2><div class="hub-sub">Recognition earned across CrowRules</div><div id="hubAchievements" class="achievement-row"></div></section>
-<section class="hub-card"><h2>Listening Activity</h2><div class="hub-sub">Recent podcast engagement for this member</div><div id="hubListening" class="hub-list"></div></section>
-<section class="hub-card"><h2>CrowPoints Activity</h2><div class="hub-sub">Universal participation snapshot</div><div id="hubPoints"></div></section>
-<section class="hub-card" style="grid-column:1/-1"><h2>Live Activity Timeline</h2><div class="hub-sub">Recent member activity across the Podcasting experience</div><div id="hubTimeline" class="timeline"></div></section>
-</section>
-<section class="hub-interactive" id="hubInteractive">
+</section><section class="hub-interactive" id="hubInteractive">
 <section class="hubx"><h2>Interactive Social Links</h2><small>Manage your public social identity</small><div id="hubLinks" class="hubx-list"></div><div id="hubLinkEditor" hidden><div class="hubx-grid"><input id="hl1" placeholder="Platform"><input id="hu1" placeholder="https://..."><input id="hl2" placeholder="Platform"><input id="hu2" placeholder="https://..."><input id="hl3" placeholder="Platform"><input id="hu3" placeholder="https://..."></div><div class="hubx-actions"><button id="saveHubLinks" type="button">Save</button><button id="cancelHubLinks" type="button">Cancel</button></div></div><div class="hubx-actions"><button id="editHubLinks" type="button">Edit Links</button></div></section>
 <section class="hubx"><h2>Achievement Levels</h2><small>Progress based on CrowPoints</small><div id="hubLevels" class="hubx-list"></div></section>
 <section class="hubx full"><h2>Favorite Podcasts</h2><small>Shows saved to this profile</small><div id="hubFavs" class="hubx-list"></div></section>
