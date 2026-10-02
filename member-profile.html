@@ -463,18 +463,16 @@ function editProfile(){
     website_url:$("editWebsite").value.trim()||null,
     updated_at:new Date().toISOString()
    };
-   const payload={user_id:user.id,...patch};
-   let r=await sb.from("podcast_member_profiles").upsert(payload,{onConflict:"user_id"}).select("*").single();
-   if(r.error){
-    const boot=await sb.rpc("ensure_podcasting_creator");
-    if(boot.error)console.warn("Profile bootstrap during save:",boot.error);
-    r=await sb.from("podcast_member_profiles").upsert(payload,{onConflict:"user_id"}).select("*").single();
-   }
+   let r=await sb.rpc("save_my_podcast_profile",{
+    p_display_name:patch.display_name,
+    p_tagline:patch.tagline,
+    p_bio:patch.bio,
+    p_location:patch.location,
+    p_website_url:patch.website_url
+   });
    if(r.error)throw r.error;
-   const verify=await sb.from("podcast_member_profiles").select("*").eq("user_id",user.id).single();
-   if(verify.error)throw verify.error;
-   if(!verify.data)throw new Error("Supabase did not return the saved profile.");
-   profileData=verify.data;
+   if(!r.data)throw new Error("Supabase did not return the saved profile.");
+   profileData=r.data;
    self=true;
    renderProfile();
    wireTabs();
