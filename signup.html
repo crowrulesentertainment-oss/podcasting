@@ -43,7 +43,7 @@
 <div class="field full"><label for="help">What would help you get ready?</label><textarea id="help" maxlength="1000" placeholder="Artwork, recording, editing, publishing, promotion, branding, equipment, etc."></textarea></div>
 <div class="field full"><label class="check"><input id="agree" type="checkbox" required><span>I want to create a CrowRules Universal account and register my interest in becoming a CrowRules Podcasting creator. I understand this registration does not guarantee publication, distribution, monetization, or acceptance of a show.</span></label></div>
 </div>
-<div class="actions"><button id="submit" class="btn primary" type="submit">Create Creator Account</button><button id="resend" class="btn" type="button">Resend Verification Email</button></div>
+<div class="actions"><button id="submit" class="btn primary" type="submit">Create Creator Account</button></div>
 <div id="message" class="status" role="status">Your information will be saved to your CrowRules account so you can continue preparing your show later.</div>
 </form>
 </section>
@@ -51,28 +51,18 @@
 <section id="success" class="card success">
 <div class="eyebrow">Registration complete</div>
 <h2>You're ready for the next chapter.</h2>
-<p id="successText">Your creator registration will be saved to your CrowRules account after email verification.</p>
+<p id="successText">Your creator registration is ready. Continue directly to Creator Studio to manage your podcast.</p>
 <div class="steps"><div class="step"><b>01 · ACCOUNT</b><span>Your Universal CrowRules account is connected.</span></div><div class="step"><b>02 · PREPARE</b><span>Keep developing your show, artwork and episodes.</span></div><div class="step"><b>03 · LAUNCH</b><span>Get ready for CrowRules Podcasting on January 1, 2027.</span></div></div>
-<div class="actions" style="justify-content:center"><button class="btn" onclick="location.href='verify.html'">Verify Email / Continue</button></div>
+<div class="actions" style="justify-content:center"><button class="btn primary" onclick="location.href='creator-dashboard.html'">Open Creator Studio</button></div>
 </section>
 <footer class="footer">CrowRules Podcasting · One company. One universe.</footer>
 </main>
 <script>
 (()=>{"use strict";
-const c=window.CROW_CONFIG||{},msg=document.getElementById("message"),form=document.getElementById("signupForm"),submit=document.getElementById("submit"),resend=document.getElementById("resend");
+const c=window.CROW_CONFIG||{},msg=document.getElementById("message"),form=document.getElementById("signupForm"),submit=document.getElementById("submit");
 let sb=null;
 function setMsg(t,ok=false){msg.textContent=t;msg.style.borderColor=ok?"#55e7ff44":"#ffffff0c"}
 function explain(err){const m=err?.message||String(err||"Unknown error");return m.includes("redirect")?m+" Check that https://crowrulesentertainment-oss.github.io/podcasting/verify.html is allowed in Supabase Authentication → URL Configuration.":m}
-async function resendVerification(){
- if(!sb){setMsg("Account system unavailable.");return}
- const email=document.getElementById("email").value.trim();
- if(!email){setMsg("Enter your email address first, then request a new verification email.");document.getElementById("email").focus();return}
- resend.disabled=true;resend.textContent="Sending…";
- try{const r=await sb.auth.resend({type:"signup",email,options:{emailRedirectTo:(c.siteUrl?c.siteUrl+"verify.html":new URL("verify.html",window.location.href).href)}});if(r.error)throw r.error;setMsg("A new verification email has been requested. Check your inbox and spam/junk folder.",true)}
- catch(err){setMsg(explain(err))}
- finally{resend.disabled=false;resend.textContent="Resend Verification Email"}
-}
-resend.addEventListener("click",resendVerification);
 async function init(){
  if(!window.supabase||!c.supabaseUrl||!c.supabaseKey){setMsg("The CrowRules account system is temporarily unavailable. Please try again later.");return}
  sb=window.supabase.createClient(c.supabaseUrl,c.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"implicit"}});
@@ -89,8 +79,8 @@ form.addEventListener("submit",async e=>{
    const currentEmail=(user?.email||"").toLowerCase();
    if(user && currentEmail!==email.toLowerCase()){await sb.auth.signOut();user=null;}
    if(!user){const r=await sb.auth.signUp({email,password,options:{emailRedirectTo:new URL("verify.html",window.location.href).href,data:{app:"podcasting",account_type:"creator",full_name:name,creator_type:"podcasting",podcasting_creator:true,podcast_name:podcast,podcast_category:category,podcast_format:format,podcast_status:status,podcast_sports_focus:sports,podcast_description:description,podcast_help_needed:help}}});if(r.error)throw r.error;user=r.data.user;}
-   if(!user)throw new Error("Account created, but email confirmation is required before the creator profile can be completed.");
-   setMsg("Creator registration saved. Check your email for the CrowRules verification link.",true);document.getElementById("signupCard").style.display="none";document.getElementById("success").style.display="block";document.getElementById("successText").textContent="Your creator registration is saved. Supabase Auth has sent a verification email. Verify your email before continuing to Creator Studio.";
+   if(!user)throw new Error("Account creation did not return a user. Please try again.");
+   setMsg("Creator registration saved. Opening Creator Studio…",true);document.getElementById("signupCard").style.display="none";document.getElementById("success").style.display="block";document.getElementById("successText").textContent="Your creator registration is saved. Opening Creator Studio now.";setTimeout(()=>{window.location.href="creator-dashboard.html"},500);
  }catch(err){setMsg(explain(err));submit.disabled=false;submit.textContent="Create Creator Account"}
 });
 init();
