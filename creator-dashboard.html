@@ -186,7 +186,7 @@ function refreshCreatorLive(table,event,row){
  liveEventCache.set(eventKey,now);
  addLiveActivity(table,event,row);showLiveToast(table,event,row);liveEventCount++;const ec=document.getElementById("liveEventCount");if(ec)ec.textContent=String(liveEventCount);flashDashboard();document.getElementById("liveUpdated").textContent=new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"});if(liveRefreshTimer)clearTimeout(liveRefreshTimer);liveRefreshTimer=setTimeout(()=>loadDashboard(),750)}
 document.getElementById("clearLiveActivity")?.addEventListener("click",()=>{const f=document.getElementById("liveActivity");if(f)f.innerHTML='<div class="activity-empty">Waiting for live production events…</div>'});
-async function startCreatorRealtime(){if(!window.CROW_SUPABASE||!creatorProfile?.id)return;if(liveChannel)try{await window.CROW_SUPABASE.removeChannel(liveChannel)}catch(_){}let ch=window.CROW_SUPABASE.channel("creator-studio-live-"+creatorProfile.id);
+async function startCreatorRealtime(){if(!window.CROW_SUPABASE||!creatorProfile?.id)return;if(liveChannel)return;let ch=window.CROW_SUPABASE.channel("creator-studio-live-"+creatorProfile.id);
 LIVE_TABLES.forEach(table=>{
  const cfg={event:"*",schema:"public",table};
  if(table==="podcasts") cfg.filter="creator_id=eq."+creatorProfile.id;
