@@ -101,20 +101,21 @@ function linkMarkup(url){if(!url)return"";let href=String(url).trim();if(!/^http
 function showError(message){$("loading").classList.add("hidden");$("error").textContent=message;$("error").classList.remove("hidden")}
 function getUser(){return window.__CROW_USER||sessionUser||null}
 
-async function waitForSupabase(timeout=12000){
+async function waitForSupabase(timeout=8000){
  const start=Date.now();
  while(!window.CROW_SUPABASE){
-  if(window.supabase && window.CROW_CONFIG && !window.CROW_SUPABASE){
+  if(window.supabase && window.CROW_CONFIG?.supabaseUrl && window.CROW_CONFIG?.supabaseKey){
    window.CROW_SUPABASE=window.supabase.createClient(
     window.CROW_CONFIG.supabaseUrl,
     window.CROW_CONFIG.supabaseKey,
     {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}
    );
+   break;
   }
-  if(window.CROW_SUPABASE)break;
   if(Date.now()-start>timeout)throw new Error("Supabase client could not initialize.");
-  await new Promise(r=>setTimeout(r,100));
+  await new Promise(r=>setTimeout(r,50));
  }
+ if(!window.CROW_SUPABASE)throw new Error("Supabase client could not initialize.");
  return window.CROW_SUPABASE;
 }
 async function resolveSession(){
@@ -123,10 +124,10 @@ async function resolveSession(){
  if(!sb?.auth)return null;
  try{
   const r=await Promise.race([
-   sb.auth.getSession(),
-   new Promise((_,reject)=>setTimeout(()=>reject(new Error("Authentication lookup timed out.")),8000))
+   sb.auth.getUser(),
+   new Promise((_,reject)=>setTimeout(()=>reject(new Error("Authentication lookup timed out.")),5000))
   ]);
-  if(!r.error&&r.data?.session?.user)sessionUser=r.data.session.user;
+  if(!r.error&&r.data?.user)sessionUser=r.data.user;
  }catch(e){console.warn("CrowRules session lookup:",e)}
  return getUser();
 }
@@ -389,4 +390,4 @@ function editProfile(){
 }
 wireTabs();
 window.addEventListener("error",e=>console.error("Member profile script error:",e.error||e.message));
-loadProfile().catch(e=>showError("Unable to load this member profile right now. "+(e?.message||"Please refresh and try again.")));
+setTimeout(()=>loadProfile().catch(e=>showError("Unable to load this member profile right now. "+(e?.message||"Please refresh and try again."))),0);
