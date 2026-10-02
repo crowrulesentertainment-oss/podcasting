@@ -43,7 +43,7 @@
 <div class="field full"><label for="help">What would help you get ready?</label><textarea id="help" maxlength="1000" placeholder="Artwork, recording, editing, publishing, promotion, branding, equipment, etc."></textarea></div>
 <div class="field full"><label class="check"><input id="agree" type="checkbox" required><span>I want to create a CrowRules Universal account and register my interest in becoming a CrowRules Podcasting creator. I understand this registration does not guarantee publication, distribution, monetization, or acceptance of a show.</span></label></div>
 </div>
-<div class="actions"><button id="submit" class="btn primary" type="submit">Create Creator Account</button></div>
+<div class="actions"><button id="submit" class="btn primary" type="submit">Create Creator Account</button><button id="resend" class="btn" type="button">Resend Verification Email</button></div>
 <div id="message" class="status" role="status">Your information will be saved to your CrowRules account so you can continue preparing your show later.</div>
 </form>
 </section>
@@ -59,9 +59,19 @@
 </main>
 <script>
 (()=>{"use strict";
-const c=window.CROW_CONFIG||{},msg=document.getElementById("message"),form=document.getElementById("signupForm"),submit=document.getElementById("submit");
+const c=window.CROW_CONFIG||{},msg=document.getElementById("message"),form=document.getElementById("signupForm"),submit=document.getElementById("submit"),resend=document.getElementById("resend");
 let sb=null;
 function setMsg(t,ok=false){msg.textContent=t;msg.style.borderColor=ok?"#55e7ff44":"#ffffff0c"}
+async function resendVerification(){
+ if(!sb){setMsg("Account system unavailable.");return}
+ const email=document.getElementById("email").value.trim();
+ if(!email){setMsg("Enter your email address first, then request a new verification email.");document.getElementById("email").focus();return}
+ resend.disabled=true;resend.textContent="Sending…";
+ try{const r=await sb.auth.resend({type:"signup",email,options:{emailRedirectTo:new URL("verify.html",window.location.href).href}});if(r.error)throw r.error;setMsg("A new verification email has been requested. Check your inbox and spam/junk folder.",true)}
+ catch(err){setMsg(err.message||"Unable to resend the verification email. Please wait a moment and try again.")}
+ finally{resend.disabled=false;resend.textContent="Resend Verification Email"}
+}
+resend.addEventListener("click",resendVerification);
 async function init(){
  if(!window.supabase||!c.supabaseUrl||!c.supabaseKey){setMsg("The CrowRules account system is temporarily unavailable. Please try again later.");return}
  sb=window.supabase.createClient(c.supabaseUrl,c.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
