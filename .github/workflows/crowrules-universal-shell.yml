@@ -10,25 +10,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Inject Universal CrowRules Shell
+      - name: Normalize Podcasting HTML shell
         shell: python
         run: |
           from pathlib import Path
           import re
-          SCRIPT='https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1'
-          tag=f'<script src="{SCRIPT}" defer></script>'
+
+          CONFIG='js/config.js?v=11'
+          APP='js/app.js?v=11'
           changed=[]
-          for p in Path('.').rglob('*.html'):
-              if '.git' in p.parts: continue
+
+          for p in Path('.').glob('*.html'):
+              if p.name == 'launch.html':
+                  continue
               s=p.read_text(encoding='utf-8')
-              if SCRIPT in s: continue
+              original=s
+
+              # Remove duplicate/old local shell references while preserving page-specific scripts.
+              s=re.sub(r'<script[^>]+src=["'][^"']*/?js/config\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*', '', s, flags=re.I)
+              s=re.sub(r'<script[^>]+src=["'][^"']*/?js/app\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*', '', s, flags=re.I)
+
+              tags=f'<script src="{CONFIG}" defer></script><script src="{APP}" defer></script>'
               if re.search(r'</head>',s,re.I):
-                  s=re.sub(r'</head>',tag+'</head>',s,count=1,flags=re.I)
+                  s=re.sub(r'</head>',tags+'</head>',s,count=1,flags=re.I)
+
+              if s!=original:
                   p.write_text(s,encoding='utf-8')
                   changed.append(str(p))
-          print('Injected:',len(changed))
+
+          print('Normalized:',len(changed))
           for x in changed: print(x)
-      - name: Commit shell updates
+
+      - name: Commit normalized shell
         run: |
           git config user.name "CrowRules Universal Shell"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -37,5 +50,5 @@ jobs:
             echo "No HTML changes needed."
             exit 0
           fi
-          git commit -m "V1 standardize Universal CrowRules Shell across all HTML pages"
+          git commit -m "V11 normalize Universal Podcasting shell across pages"
           git push
