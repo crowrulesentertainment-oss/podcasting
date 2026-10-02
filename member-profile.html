@@ -7,11 +7,8 @@
 <meta name="description" content="Universal CrowRules member profile.">
 <title>Member Profile — CrowRules Podcasting</title>
 <link rel="stylesheet" href="css/podcasting.css">
-<script src="js/config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/podcasting.js" defer></script>
-<script src="js/player.js" defer></script>
-<script src="js/app.js" defer></script>
+<script src="js/config.js?v=12.0"></script>
+<script src="js/app.js?v=12.0" defer></script>
 <style>
 :root{--cyan:#55e7ff;--purple:#9b6cff;--panel:#090d17;--panel2:#0d1220;--muted:#8c97ab}
 .profile-wrap{padding:28px 0 110px}.profile-shell{max-width:1120px;margin:auto}
@@ -33,7 +30,8 @@
 .media-editor{display:grid;grid-template-columns:1fr 1fr;gap:12px}.media-box{border:1px solid #ffffff10;border-radius:15px;background:#080b13;padding:13px}.media-preview{height:105px;border-radius:11px;overflow:hidden;background:radial-gradient(circle at 30% 20%,#55e7ff30,#151022 55%,#060811);display:grid;place-items:center;margin-bottom:10px;color:#65728a;font-size:9px;text-align:center}.media-preview.banner{height:90px}.media-preview img{width:100%;height:100%;object-fit:cover}.media-box input[type=file]{width:100%;font-size:9px;color:#8b96aa}.media-help{font-size:8px;color:#68748a;line-height:1.5;margin-top:7px}.edit-grid{display:grid;gap:13px}.edit-grid label{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#8d97aa}.edit-grid input,.edit-grid textarea{width:100%;box-sizing:border-box;margin-top:7px;background:#070a12;border:1px solid #ffffff16;border-radius:10px;color:#fff;padding:11px;font:inherit}.edit-grid textarea{min-height:90px;resize:vertical}.edit-checks{display:grid;grid-template-columns:1fr 1fr;gap:10px}.check{padding:12px;border:1px solid #ffffff10;border-radius:12px;background:#080b13;font-size:10px;color:#9aa5b8}.check input{margin-right:7px}
 .hidden{display:none!important}.loading-screen{padding:55px;text-align:center}.error-box{border:1px solid #ff657533;background:#ff65730c;color:#ffb4bc}.skeleton{height:12px;border-radius:8px;background:#ffffff08;margin:10px 0}
 @media(max-width:800px){.media-editor{grid-template-columns:1fr}.profile-cover{height:230px}.profile-main{padding:0 18px 24px}.profile-head{grid-template-columns:108px minmax(0,1fr);gap:14px;margin-top:-54px}.avatar{width:108px;height:108px}.avatar span{font-size:27px}.profile-name h1{font-size:25px}.profile-actions{grid-column:1/-1;justify-content:flex-start}.profile-layout{grid-template-columns:1fr}.profile-stat{min-width:95px}.edit-checks{grid-template-columns:1fr}.cover-meta{left:16px;bottom:14px}}
-</style>
+
+.crowspace-integration{margin:22px 0 0;padding:24px;border:1px solid #ffffff12;border-radius:22px;background:linear-gradient(145deg,#090d18,#0a0b14 55%,#100b20);position:relative;overflow:hidden}.crowspace-integration:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 10%,#9b6cff18,transparent 35%),radial-gradient(circle at 10% 90%,#55e7ff12,transparent 32%);pointer-events:none}.cs-head,.cs-row,.cs-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;position:relative}.cs-eyebrow{font-size:8px;letter-spacing:.16em;color:#6f7c94}.cs-title{font:800 19px Orbitron;margin:5px 0}.cs-live{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#78f1b8}.cs-live i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#35f2a1;box-shadow:0 0 10px #35f2a1;margin-right:6px}.cs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px;position:relative}.cs-stat{padding:13px;border:1px solid #ffffff0d;border-radius:14px;background:#ffffff05}.cs-stat b{display:block;font:800 18px Orbitron}.cs-stat span{display:block;margin-top:5px;color:#758197;font-size:8px;text-transform:uppercase;letter-spacing:.1em}.cs-body{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;position:relative}.cs-panel{padding:15px;border:1px solid #ffffff0c;border-radius:15px;background:#050811aa}.cs-panel h3{font-size:11px;margin:0 0 10px}.cs-post{padding:10px 0;border-top:1px solid #ffffff0a}.cs-post:first-child{border-top:0;padding-top:0}.cs-post b{font-size:11px}.cs-post p{font-size:10px;line-height:1.5;color:#9da7ba;margin:5px 0 0;white-space:pre-wrap}.cs-post small{display:block;color:#657188;font-size:8px;margin-top:5px}.cs-actions{margin-top:15px}.cs-btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:#eef4ff;border:1px solid #ffffff16;border-radius:10px;padding:9px 12px;background:#ffffff08;font-size:9px;text-transform:uppercase;letter-spacing:.08em}.cs-btn.primary{border-color:#55e7ff44;background:#55e7ff0b;color:#8fefff}.cs-note{color:#707c93;font-size:9px;line-height:1.5}.cs-error{color:#ffadb7;font-size:10px}.cs-skeleton{height:11px;background:#ffffff08;border-radius:8px;margin:8px 0}.cs-connection{font-size:8px;color:#77839a}@media(max-width:760px){.cs-grid{grid-template-columns:repeat(2,1fr)}.cs-body{grid-template-columns:1fr}}</style>
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script>
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
 </head>
@@ -82,7 +80,17 @@
 <div id="profileTab" class="hidden"></div>
 </section>
 </div>
-</div></div></main>
+</div></div>
+<section id="crowspaceIntegration" class="crowspace-integration">
+ <div class="cs-head"><div><div class="cs-eyebrow">UNIVERSAL PROFILE BRIDGE</div><div class="cs-title">CrowSpace <span class="gradient">Identity</span></div><div class="cs-note">Your Podcasting member profile now connects directly to the CrowSpace social profile.</div></div><div class="cs-live"><i></i><span id="csLive">CONNECTING</span></div></div>
+ <div id="csLoading" class="cs-note" style="margin-top:16px">Synchronizing CrowSpace profile…</div>
+ <div id="csContent" class="hidden">
+  <div class="cs-row" style="margin-top:16px"><div><b id="csName">CrowSpace Member</b><div id="csUsername" class="cs-connection"></div></div><div id="csBio" class="cs-note"></div></div>
+  <div class="cs-grid"><div class="cs-stat"><b id="csFollowers">0</b><span>Followers</span></div><div class="cs-stat"><b id="csFollowing">0</b><span>Following</span></div><div class="cs-stat"><b id="csPosts">0</b><span>Posts</span></div><div class="cs-stat"><b id="csCaws">0</b><span>Caws</span></div></div>
+  <div class="cs-body"><div class="cs-panel"><h3>RECENT CROWSPACE ACTIVITY</h3><div id="csRecent"></div></div><div class="cs-panel"><h3>PROFILE CONNECTION</h3><div id="csConnection" class="cs-note">Checking connection…</div><div class="cs-actions"><a id="csOpen" class="cs-btn primary" target="_blank" rel="noopener">Open CrowSpace Profile</a><a id="csHome" class="cs-btn" target="_blank" rel="noopener">CrowSpace</a></div></div></div>
+ </div>
+ <div id="csError" class="cs-error hidden" style="margin-top:14px"></div>
+</section></main>
 <script>
 (function(){
 "use strict";
@@ -500,5 +508,43 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 
 })();
 </script>
-</body>
+
+<script>
+(()=>{
+"use strict";
+const $=id=>document.getElementById(id), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const targetId=(()=>{const q=new URLSearchParams(location.search);return (q.get("user")||q.get("id")||"").trim()})();
+let csChannel=null;
+function hide(id){$(id)?.classList.add("hidden")} function show(id){$(id)?.classList.remove("hidden")}
+async function sbReady(){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;if(window.CROW_SUPABASE_READY&&typeof window.CROW_SUPABASE_READY.then==="function"){try{return await window.CROW_SUPABASE_READY}catch(e){}}if(window.CROW_BOOTSTRAP&&typeof window.CROW_BOOTSTRAP==="function")return await window.CROW_BOOTSTRAP();throw new Error("CrowRules Supabase is unavailable.")}
+async function safe(q){try{const r=await q;return r.error?{data:[],error:r.error}:r}catch(e){return{data:[],error:e}}}
+async function loadCrowSpace(){
+ if(!targetId){hide("crowspaceIntegration");return}
+ try{
+  const db=await sbReady();
+  const p=await safe(db.from("crowspace_profiles").select("user_id,username,display_name,avatar_url,bio,banner_url,created_at").eq("user_id",targetId).maybeSingle());
+  if(p.error||!p.data){$("csLoading").textContent="No CrowSpace profile is linked to this member yet.";$("csLive").textContent="NOT LINKED";return}
+  const uid=p.data.user_id;
+  const [fo,fi,po,ca]=await Promise.all([
+   safe(db.from("crowspace_follows").select("follower_id",{count:"exact",head:true}).eq("followed_user_id",uid)),
+   safe(db.from("crowspace_follows").select("follower_id",{count:"exact",head:true}).eq("follower_id",uid)),
+   safe(db.from("crowspace_posts").select("id,title,body,created_at,like_count,comment_count").eq("user_id",uid).order("created_at",{ascending:false}).limit(8)),
+   safe(db.from("crowspace_caws").select("id,body,content,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(8))
+  ]);
+  $("csName").textContent=p.data.display_name||p.data.username||"CrowSpace Member";$("csUsername").textContent=p.data.username?"@"+p.data.username:"";$("csBio").textContent=p.data.bio||"Connected CrowSpace identity";
+  $("csFollowers").textContent=Number(fo.count||0).toLocaleString();$("csFollowing").textContent=Number(fi.count||0).toLocaleString();
+  const posts=po.data||[],caws=ca.data||[];$("csPosts").textContent=posts.length.toLocaleString();$("csCaws").textContent=caws.length.toLocaleString();
+  const items=[...posts.map(x=>({kind:"POST",title:x.title||"CrowSpace Post",body:x.body,time:x.created_at,likes:x.like_count,comments:x.comment_count})),...caws.map(x=>({kind:"CAW",title:"Community Caw",body:x.body||x.content,time:x.created_at}))].sort((a,b)=>new Date(b.time||0)-new Date(a.time||0)).slice(0,5);
+  $("csRecent").innerHTML=items.length?items.map(x=>'<div class="cs-post"><b>'+esc(x.title||x.kind)+'</b><p>'+esc(String(x.body||"").slice(0,260))+'</p><small>'+esc(x.kind)+(x.time?" · "+new Date(x.time).toLocaleString():"")+(x.likes!=null?" · ♥ "+Number(x.likes||0).toLocaleString():"")+(x.comments!=null?" · 💬 "+Number(x.comments||0).toLocaleString():"")+'</small></div>').join(""): '<div class="cs-note">No public CrowSpace posts or caws yet.</div>';
+  const href="https://crowrulesentertainment-oss.github.io/crowspace/profile.html?user="+encodeURIComponent(uid);$("csOpen").href=href;$("csHome").href="https://crowrulesentertainment-oss.github.io/crowspace/";
+  $("csConnection").textContent="CrowSpace profile linked by the same Universal CrowRules user ID. Changes made in CrowSpace can appear here automatically.";
+  hide("csLoading");show("csContent");$("csLive").textContent="LIVE LINKED";
+  startRealtime(db,uid);
+ }catch(e){console.error("CrowSpace bridge:",e);hide("csLoading");$("csError").textContent="CrowSpace integration is temporarily unavailable. "+(e.message||"");show("csError");$("csLive").textContent="RETRY AVAILABLE")}
+}
+function startRealtime(db,uid){if(csChannel)try{db.removeChannel(csChannel)}catch(_){}csChannel=db.channel("member-profile-crowspace-"+uid).on("postgres_changes",{event:"*",schema:"public",table:"crowspace_profiles",filter:"user_id=eq."+uid},()=>loadCrowSpace()).on("postgres_changes",{event:"*",schema:"public",table:"crowspace_posts",filter:"user_id=eq."+uid},()=>loadCrowSpace()).on("postgres_changes",{event:"*",schema:"public",table:"crowspace_caws",filter:"user_id=eq."+uid},()=>loadCrowSpace()).on("postgres_changes",{event:"*",schema:"public",table:"crowspace_follows",filter:"followed_user_id=eq."+uid},()=>loadCrowSpace()).subscribe(state=>{if(state==="SUBSCRIBED")$("csLive").textContent="LIVE SYNC"})}
+window.addEventListener("beforeunload",()=>{if(csChannel&&window.CROW_SUPABASE)window.CROW_SUPABASE.removeChannel(csChannel)});
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadCrowSpace,{once:true});else loadCrowSpace();
+})();
+</script></body>
 </html>
