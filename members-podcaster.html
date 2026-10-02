@@ -32,7 +32,7 @@ async function init(){
 }
 async function load(){
  try{
-  const m=await sb.from("podcasting_member_directory").select("id,user_id,first_name,last_name,display_name,username,bio,avatar_url,membership_type,status,points,created_at").order("created_at",{ascending:false});
+  const m=await sb.from("podcasting_member_directory").select("id,user_id,first_name,last_name,display_name,username,bio,avatar_url,membership_type,points,created_at").order("created_at",{ascending:false});
   if(m.error)throw m.error;
   const c=await sb.from("podcasting_creator_directory").select("id,member_id,name,slug,role,discipline,bio,avatar_url,is_active").eq("is_active",true);
   if(c.error)throw c.error;
