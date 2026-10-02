@@ -77,7 +77,7 @@ async function init(){
  if(!window.supabase||!c.supabaseUrl||!c.supabaseKey){setMsg("The CrowRules account system is temporarily unavailable. Please try again later.");return}
  sb=window.supabase.createClient(c.supabaseUrl,c.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"implicit"}});
  const {data}=await sb.auth.getUser();
- if(data.user){document.getElementById("email").value=data.user.email||"";document.getElementById("email").readOnly=true;document.getElementById("name").value=data.user.user_metadata?.full_name||"";setMsg("You are already signed in. Complete your Podcasting creator profile below.");}
+ if(data.user){document.getElementById("email").value=data.user.email||"";document.getElementById("name").value=data.user.user_metadata?.full_name||"";document.getElementById("email").dataset.currentEmail=data.user.email||"";setMsg("You are currently signed in as "+(data.user.email||"")+" . You can change the email below; if you use a different email, we will sign out this session and create the new account.");}
 }
 form.addEventListener("submit",async e=>{
  e.preventDefault();if(!sb){setMsg("Account system unavailable.");return}
@@ -86,6 +86,8 @@ form.addEventListener("submit",async e=>{
  const podcast=document.getElementById("podcast").value.trim(),category=document.getElementById("category").value,format=document.getElementById("format").value,status=document.getElementById("status").value,sports=document.getElementById("sports").value.trim(),description=document.getElementById("description").value.trim(),help=document.getElementById("help").value.trim();
  try{
    let user=(await sb.auth.getUser()).data.user;
+   const currentEmail=(user?.email||"").toLowerCase();
+   if(user && currentEmail!==email.toLowerCase()){await sb.auth.signOut();user=null;}
    if(!user){const r=await sb.auth.signUp({email,password,options:{emailRedirectTo:new URL("verify.html",window.location.href).href,data:{app:"podcasting",account_type:"creator",full_name:name,creator_type:"podcasting",podcasting_creator:true,podcast_name:podcast,podcast_category:category,podcast_format:format,podcast_status:status,podcast_sports_focus:sports,podcast_description:description,podcast_help_needed:help}}});if(r.error)throw r.error;user=r.data.user;}
    if(!user)throw new Error("Account created, but email confirmation is required before the creator profile can be completed.");
    setMsg("Creator registration saved. Check your email for the CrowRules verification link.",true);document.getElementById("signupCard").style.display="none";document.getElementById("success").style.display="block";document.getElementById("successText").textContent="Your creator registration is saved. Supabase Auth has sent a verification email. Verify your email before continuing to Creator Studio.";
