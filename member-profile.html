@@ -8,7 +8,7 @@
 <title>Member Profile — CrowRules Podcasting</title>
 <link rel="stylesheet" href="css/podcasting.css">
 <script src="js/config.js?v=13.0"></script>
-<script src="js/app.js?v=13.0" defer></script>
+
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script>
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script>
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
@@ -33,9 +33,11 @@
 @media(max-width:900px){.head{grid-template-columns:110px minmax(0,1fr)}.avatar{width:110px;height:110px}.actions{grid-column:1/-1;justify-content:flex-start}.stats{grid-template-columns:repeat(3,1fr)}.layout{grid-template-columns:1fr}}
 @media(max-width:560px){.profile-wrap{padding:22px 12px 80px}.cover{height:210px}.main{padding:0 16px 22px}.head{grid-template-columns:88px minmax(0,1fr);gap:12px;margin-top:-45px}.avatar{width:88px;height:88px}.avatar span{font-size:24px}.stats{grid-template-columns:repeat(2,1fr)}.podcast-grid{grid-template-columns:1fr}.cover-label{left:13px;bottom:13px}}
 </style>
+/* Navigation + loading hardening */
+.globalnav .navlink.active{color:var(--cyan)!important;border-bottom-color:var(--cyan)!important}
+@media(max-width:760px){.globalnav{display:none}.navright{display:none}.mobileNav{display:inline-flex!important}}
 </head>
 <body data-page="member-profile">
-<div data-nav></div>
 <header class="global">
 <a class="brand brandMark" href="https://crowrulesentertainment-oss.github.io/crowspace/home.html">CROW<span>SPACE</span></a><div class="navDivider"></div>
 <nav class="globalnav"><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/home.html">HOME</a><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/discover.html">DISCOVER</a><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/caws.html">CAWS</a><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/events.html">EVENTS</a><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/messages.html">MESSAGES</a><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/notifications.html">NOTIFICATIONS</a></nav>
@@ -109,7 +111,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const initials=s=>String(s||"Member").trim().split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"CR";
 const params=new URLSearchParams(location.search);
-let targetId=(params.get("user")||params.get("id")||"").trim();
+let targetId=(params.get("user")||params.get("id")||params.get("user_id")||"").trim();
 let db=null, currentUser=null, profile=null, crowspaceProfile=null, creator=null, podcasts=[], activity=[], own=false;
 let channel=null, refreshTimer=null, loading=false;
 
@@ -354,6 +356,7 @@ async function load(force){
   const auth=await db.auth.getUser();
   currentUser=auth.data?.user||null;
   if(!targetId)targetId=currentUser?.id||"";
+  if(!targetId){throw new Error("No member ID was supplied. Sign in or open this profile with ?user=<member-id>.");}
   if(!targetId)throw new Error("No member was specified. Open a profile with ?user=<member-id>.");
   own=!!currentUser&&currentUser.id===targetId;
   profile=await loadProfileRow(targetId);
@@ -411,6 +414,7 @@ wireTabs();
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>load(false),{once:true});else load(false);
 window.addEventListener("crow:ready",()=>load(true));
 window.addEventListener("crow:supabase-connected",()=>load(true));
+window.addEventListener("crowspace-auth-ready",()=>load(true));
 })();
 </script>
 </body>
