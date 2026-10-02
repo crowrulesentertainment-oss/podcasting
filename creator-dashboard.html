@@ -9,19 +9,62 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let creatorProfile=null, dashboardLoading=false;
 
-async function waitForSupabase(timeout=15000){
-  const started=Date.now();
-  while(!window.CROW_SUPABASE){
-    if(window.supabase && window.CROW_CONFIG?.supabaseUrl && window.CROW_CONFIG?.supabaseKey){
-      try{window.CROW_SUPABASE=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}})}catch(e){console.warn("Creator Studio Supabase client:",e)}
+let supabaseConnectionPromise=null;
+function setAccountStatus(message,error=false){
+  const el=$("auth");
+  if(el){el.textContent=message;el.classList.toggle("error",!!error)}
+}
+function withTimeout(promise,ms,message){
+  let timer;
+  return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(message)),ms)})]).finally(()=>clearTimeout(timer));
+}
+async function connectCreatorSupabase(){
+  if(supabaseConnectionPromise)return supabaseConnectionPromise;
+  supabaseConnectionPromise=(async()=>{
+    setAccountStatus("Connecting to CrowRules account…");
+    const started=Date.now();
+    while(!window.CROW_CONFIG?.supabaseUrl||!window.CROW_CONFIG?.supabaseKey){
+      if(Date.now()-started>10000)throw new Error("CrowRules Supabase configuration did not load.");
+      await new Promise(r=>setTimeout(r,100));
     }
-    if(window.CROW_SUPABASE) break;
-    if(window.CROW_APP?.init){try{await window.CROW_APP.init()}catch(e){console.warn("Creator Studio app init:",e.message)}}
-    if(window.CROW_SUPABASE) break;
-    if(Date.now()-started>timeout) throw new Error("Supabase is still connecting. Please refresh and try again.");
-    await new Promise(r=>setTimeout(r,150));
-  }
-  return window.CROW_SUPABASE;
+    if(!window.CROW_SUPABASE){
+      if(!window.supabase?.createClient)throw new Error("Supabase client library did not load.");
+      window.CROW_SUPABASE=window.supabase.createClient(
+        window.CROW_CONFIG.supabaseUrl,
+        window.CROW_CONFIG.supabaseKey,
+        {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}
+      );
+    }
+    const sb=window.CROW_SUPABASE;
+    const sessionResult=await withTimeout(sb.auth.getSession(),8000,"Supabase session check timed out.");
+    let session=sessionResult.data?.session||null;
+    if(!session){
+      const refresh=await withTimeout(sb.auth.refreshSession(),8000,"Supabase session refresh timed out.");
+      session=refresh.data?.session||null;
+    }
+    if(!session?.user){
+      window.__CROW_USER=null;
+      setAccountStatus("Sign in to open Creator Studio.");
+      return {sb,user:null};
+    }
+    const userResult=await withTimeout(sb.auth.getUser(),8000,"Supabase account verification timed out.");
+    if(userResult.error)throw userResult.error;
+    const user=userResult.data?.user||session.user;
+    window.__CROW_USER=user;
+    window.__CROW_AUTH_READY=true;
+    sb.auth.onAuthStateChange((event,nextSession)=>{
+      window.__CROW_USER=nextSession?.user||null;
+      if(event==="SIGNED_OUT")setAccountStatus("Sign in to open Creator Studio.");
+    });
+    return {sb,user};
+  })();
+  try{return await supabaseConnectionPromise}
+  catch(e){supabaseConnectionPromise=null;throw e}
+}
+async function waitForSupabase(timeout=20000){
+  const result=await withTimeout(connectCreatorSupabase(),timeout,"Supabase is still connecting. Please refresh and try again.");
+  if(!result.user)throw new Error("AUTH_REQUIRED");
+  return result.sb;
 }
 
 async function pipelineAction(action,id){
@@ -49,9 +92,7 @@ async function loadDashboard(){
   dashboardLoading=true;
   try{
     const sb=await waitForSupabase();
-    const authUser=await sb.auth.getUser();
-    const user=window.__CROW_USER || authUser.data?.user;
-    if(authUser.error && !user) throw authUser.error;
+    const user=window.__CROW_USER;
     if(!user){
       $("auth").textContent="Sign in to open Creator Studio.";
       return;
@@ -209,9 +250,13 @@ LIVE_TABLES.forEach(table=>{
 });
 liveChannel=ch;await ch.subscribe(s=>{if(s==="SUBSCRIBED"){setLiveStatus(true,liveReconnects?("LIVE SYNC RECONNECTED · "+liveReconnects+" reconnect"+(liveReconnects===1?"":"s")):"LIVE SYNC CONNECTED");}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){liveReconnects++;const rc=document.getElementById("liveReconnectCount");if(rc)rc.textContent=String(liveReconnects);setLiveStatus(false,"LIVE SYNC RECONNECTING");if(liveChannel){window.CROW_SUPABASE.removeChannel(liveChannel).catch(()=>{});liveChannel=null}setTimeout(()=>startCreatorRealtime(),Math.min(30000,1000*Math.pow(2,Math.min(liveReconnects-1,5))));}else if(s==="CHANNEL_ERROR")setLiveStatus(false,"LIVE SYNC ERROR")})}
 if(!liveHealthTimer)liveHealthTimer=setInterval(updateLiveHealth,1000);
-if(window.CROW_SUPABASE) loadDashboard();
-else addEventListener("crow:ready",loadDashboard,{once:true});
-setTimeout(()=>{if(!$("dashboard")?.style.display||$("dashboard").style.display==="none") loadDashboard()},1800);
+connectCreatorSupabase().then(({user})=>{
+  if(user)loadDashboard();
+}).catch(e=>{
+  console.error("Creator Studio connection:",e);
+  setAccountStatus(e.message==="AUTH_REQUIRED"?"Sign in to open Creator Studio.":"Creator Studio connection failed: "+e.message,true);
+});
+
 })();
 </script></body></html>+(net/100).toFixed(2)+'</strong> automated creator-attributed net revenue</p><p>
     console.error("CrowRules Creator Dashboard:",e);
