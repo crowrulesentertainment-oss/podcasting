@@ -1,6 +1,6 @@
 (()=>{
 "use strict";
-const VERSION="9.0";
+const VERSION="10.0";
 const BASE="https://crowrulesentertainment-oss.github.io/podcasting";
 const NAV_HTML=`<header class="site-nav" id="crSiteNav"><div class="wrap nav-inner">
 <a class="brand" href="${BASE}/home.html" aria-label="CrowRules Podcasting home">CROW<b>RULES</b> PODCASTING</a>
@@ -78,7 +78,7 @@ if(!creatorId)return;
 const refresh=async()=>{try{const r=await sb.from("cr_creator_alerts").select("id",{count:"exact",head:true}).eq("creator_id",creatorId).is("read_at",null).is("muted_at",null);if(!r.error){const n=Number(r.count||0);b.textContent=n>99?"99+":n;b.hidden=n<1}}catch(e){console.warn("Creator alerts:",e)}};
 await refresh();
 window.__CROW_ACTIVITY_CHANNEL=sb.channel(`creator-activity-${creatorId}`).on("postgres_changes",{event:"*",schema:"public",table:"cr_creator_alerts",filter:`creator_id=eq.${creatorId}`},refresh).subscribe()}
-async function start(){ensureChrome();try{if(!window.supabase?.createClient)await new Promise((resolve,reject)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";s.onload=resolve;s.onerror=()=>reject(Error("Supabase client failed to load"));document.head.appendChild(s)});const sb=client();await auth(sb);await presence(sb);await alerts(sb);window.__CROW_APP_VERSION=VERSION;return sb}catch(e){console.error("CrowRules shell:",e);window.__CROW_APP_ERROR=e;setUser(null);toast(e.message||"Connection unavailable","error");return null}finally{document.getElementById("crLoading")?.classList.add("done")}}
+async function start(){ensureChrome();try{const sb=window.CROW_BOOTSTRAP?await window.CROW_BOOTSTRAP():client();if(!sb)throw Error("Supabase client is unavailable.");window.CROW_SUPABASE=sb;await auth(sb);await presence(sb);await alerts(sb);window.__CROW_APP_VERSION=VERSION;window.CROW_SUPABASE_CONNECTION="connected";window.dispatchEvent(new CustomEvent("crow:ready",{detail:{user:window.__CROW_USER||null,supabase:sb}}));return sb}catch(e){console.error("CrowRules shell:",e);window.__CROW_APP_ERROR=e;window.CROW_SUPABASE_CONNECTION="error";setUser(null);toast(e.message||"Connection unavailable","error");return null}finally{document.getElementById("crLoading")?.classList.add("done")}}
 window.CROW_TOAST=toast;window.CROW_OPEN_SEARCH=openSearch;window.CROW_SUPABASE_READY=start();window.CROW_APP_READY=window.CROW_SUPABASE_READY;
 window.addEventListener("online",()=>document.getElementById("crOffline")?.classList.remove("show"));window.addEventListener("offline",()=>document.getElementById("crOffline")?.classList.add("show"));window.addEventListener("error",e=>{if(e.error)console.error(e.error)});window.addEventListener("unhandledrejection",e=>{console.error(e.reason);if(window.CROW_TOAST)window.CROW_TOAST("A page action encountered an error. Please try again.","error")});document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();openSearch()}if(e.key==="Escape")document.querySelector(".cr-search-modal.open")?.classList.remove("open")});if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ensureChrome,{once:true});else ensureChrome();
 })();
