@@ -180,7 +180,7 @@ function renderProfile(){
  $("avatar").innerHTML=imageMarkup(p.avatar_url,name)||"<span>"+esc(initials(name))+"</span>";
  if(p.cover_url){$("coverImg").src=p.cover_url;$("coverImg").alt=name+" cover";$("coverImg").classList.remove("hidden")}
  $("visibilityPill").textContent=p.is_public===false?"Private profile":"Public profile";
- $("actions").innerHTML=self?'<button class="btn primary" id="editBtn">Edit profile</button><a class="btn" href="creator-dashboard.html">Creator Studio</a><a class="btn" href="account.html">Account</a>':'<button class="btn primary" id="followBtn">Follow</button><button class="btn" id="shareBtn">Share</button><button class="btn" id="messageBtn">Message</button>';
+ $("actions").innerHTML=self?'<button class="btn primary" id="editBtn">Edit profile</button><a class="btn" href="creator-dashboard.html">Creator Studio</a><a class="btn" href="account.html">Account</a>':'<button class="btn primary" id="followBtn" type="button" aria-pressed="false">Follow</button><button class="btn" id="shareBtn">Share</button><button class="btn" id="messageBtn">Message</button>';
  $("about").innerHTML=aboutHtml(p);
  $("since").textContent=safeDate(p.created_at,true)||"CrowRules member";
  $("profileTab").innerHTML=profileDetailsHtml(p)+(self?profileMediaEditorHtml(p):""); if(self) wireMediaEditor(); wireProfileActions();
@@ -381,10 +381,19 @@ async function loadPodcasts(){
 }
 async function refreshFollowState(){
  if(self||!getUser()||!profileData)return;
+ const b=$("followBtn"); if(!b)return;
  try{
   const r=await CROW_SUPABASE.from("podcast_member_follows").select("id").eq("follower_user_id",getUser().id).eq("followed_user_id",profileData.user_id).maybeSingle();
-  if(!r.error){followed=!!r.data;const b=$("followBtn");if(b)b.textContent=followed?"Following":"Follow"}
- }catch(e){console.warn("follow state unavailable",e)}
+  if(r.error)throw r.error;
+  followed=!!r.data;
+  b.textContent=followed?"Following":"Follow";
+  b.setAttribute("aria-pressed",followed?"true":"false");
+  b.title=followed?"Unfollow this member":"Follow this member";
+ }catch(e){
+  console.warn("follow state unavailable",e);
+  b.textContent="Follow";
+  b.setAttribute("aria-pressed","false");
+ }
 }
 function shareProfile(){
  const url=location.href;
@@ -395,21 +404,32 @@ function shareProfile(){
 function wireProfileActions(){
  const follow=$("followBtn"),message=$("messageBtn");
  if(follow){refreshFollowState(); follow.onclick=async()=>{
-  const user=getUser(); if(!user){alert("Sign in to follow members.");return;}
-  follow.disabled=true; follow.textContent="Following…";
+  const user=getUser();
+  if(!user){location.href="account.html?next="+encodeURIComponent(location.href);return}
+  if(user.id===profileData.user_id)return;
+  follow.disabled=true;
+  const wasFollowing=followed;
+  follow.textContent=wasFollowing?"Unfollowing…":"Following…";
   try{
-   const existing=await CROW_SUPABASE.from("podcast_member_follows").select("id").eq("follower_user_id",user.id).eq("followed_user_id",profileData.user_id).maybeSingle();
-   if(existing.error)throw existing.error;
-   if(existing.data){
-    const d=await CROW_SUPABASE.from("podcast_member_follows").delete().eq("id",existing.data.id); if(d.error)throw d.error;
-    followed=false;follow.textContent="Follow";
+   if(wasFollowing){
+    const d=await CROW_SUPABASE.from("podcast_member_follows").delete().eq("follower_user_id",user.id).eq("followed_user_id",profileData.user_id);
+    if(d.error)throw d.error;
+    followed=false;
    }else{
-    const ins=await CROW_SUPABASE.from("podcast_member_follows").insert({follower_user_id:user.id,followed_user_id:profileData.user_id}); if(ins.error)throw ins.error;
-    followed=true;follow.textContent="Following";
+    const ins=await CROW_SUPABASE.from("podcast_member_follows").insert({follower_user_id:user.id,followed_user_id:profileData.user_id});
+    if(ins.error)throw ins.error;
+    followed=true;
    }
+   follow.textContent=followed?"Following":"Follow";
+   follow.setAttribute("aria-pressed",followed?"true":"false");
+   follow.title=followed?"Unfollow this member":"Follow this member";
    await loadStats();
-  }catch(e){alert("Follow update failed. "+(e?.message||"Please try again."));follow.textContent="Follow"}
-  finally{follow.disabled=false}
+  }catch(e){
+   console.error("Follow update failed:",e);
+   follow.textContent=wasFollowing?"Following":"Follow";
+   follow.setAttribute("aria-pressed",wasFollowing?"true":"false");
+   alert("Could not update the follow right now. "+(e?.message||"Please try again."));
+  }finally{follow.disabled=false}
  };}
  const share=$("shareBtn"); if(share)share.onclick=shareProfile;
  if(message) message.onclick=()=>{location.href="account.html?message="+encodeURIComponent(profileData.user_id)};
