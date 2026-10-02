@@ -100,9 +100,16 @@ async function loadDashboard(){
 
     $("auth").textContent="Checking creator account…";
 
+    // Verify the account with Supabase Auth before touching creator-owned data.
+    const {data:verified,error:verifyError}=await withTimeout(sb.auth.getUser(),8000,"Supabase account verification timed out.");
+    if(verifyError) throw verifyError;
+    if(!verified?.user?.id) throw new Error("AUTH_REQUIRED");
+    window.__CROW_USER=verified.user;
+    const user=verified.user;
+
     // Universal account -> member -> creator profile. podcasts.creator_id stores creators.id, not auth.users.id.
     $("auth").textContent="Preparing your Podcasting creator account…";
-    const bootstrap=await Promise.race([sb.rpc("ensure_podcasting_creator"),new Promise((_,rej)=>setTimeout(()=>rej(new Error("Creator profile setup timed out. Please refresh and try again.")),12000))]);
+    const bootstrap=await withTimeout(sb.rpc("ensure_podcasting_creator"),12000,"Creator profile setup timed out. Please refresh and try again.");
     if(bootstrap.error) throw bootstrap.error;
     const creatorId=bootstrap.data;
     if(!creatorId) throw new Error("Podcasting creator profile could not be created.");
