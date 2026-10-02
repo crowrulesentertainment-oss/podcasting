@@ -11,6 +11,7 @@
 <script src="js/podcasting.js" defer></script>
 <script src="js/player.js" defer></script>
 <script src="js/app.js" defer></script>
+<script src="js/creator-realtime.js" defer></script>
 <style>
 .episode-page{padding:44px 0 100px}
 .episode-hero{display:grid;grid-template-columns:minmax(220px,360px) 1fr;gap:38px;align-items:end;padding:34px;border:1px solid rgba(255,255,255,.08);border-radius:28px;background:linear-gradient(135deg,rgba(20,20,35,.96),rgba(5,5,11,.98));box-shadow:0 30px 90px rgba(0,0,0,.35)}
@@ -32,6 +33,8 @@
 .content-card h2{margin-top:0}
 .content-body{white-space:pre-wrap;color:rgba(255,255,255,.7);line-height:1.75}
 .loading{min-height:420px;display:grid;place-items:center;color:rgba(255,255,255,.55)}
+.live-sync{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;padding:11px 14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.035);font-size:.78rem;color:rgba(255,255,255,.65)}
+.live-sync.connected{border-color:rgba(85,231,255,.35);color:#8beeff}.live-sync.error{border-color:rgba(255,84,112,.35)}.live-sync.connecting{border-color:rgba(155,92,255,.35)}.live-dot{width:7px;height:7px;border-radius:50%;display:inline-block;background:#777;margin-right:7px}.connected .live-dot{background:#55e7ff;box-shadow:0 0 12px #55e7ff}.live-toast{position:fixed;right:20px;bottom:24px;z-index:500;padding:14px 18px;border-radius:12px;background:#0b1020;border:1px solid rgba(85,231,255,.35);box-shadow:0 15px 50px rgba(0,0,0,.5);display:none}.live-toast.show{display:block}.live-flash{animation:episodeLiveFlash .8s ease}@keyframes episodeLiveFlash{50%{filter:brightness(1.15);box-shadow:0 0 45px rgba(85,231,255,.16)}}
 .empty{text-align:center;padding:60px 20px}
 @media(max-width:850px){.episode-hero{grid-template-columns:1fr;padding:22px}.episode-art{max-width:300px;margin:auto}.insight-grid{grid-template-columns:repeat(2,1fr)}.content-grid{grid-template-columns:1fr}}
 </style>
@@ -42,7 +45,9 @@
 <div data-nav></div>
 
 <main class="wrap episode-page">
+  <div data-creator-realtime class="live-sync"><span><span class="live-dot"></span><span data-realtime-label>LIVE SYNC CONNECTING…</span></span><span id="liveUpdate">Waiting for live updates</span></div>
   <div id="loading" class="loading">Loading episode…</div>
+  <div data-realtime-toast class="live-toast"></div>
   <section id="episode" hidden></section>
   <section id="analytics" hidden></section>
   <section id="content" class="content-grid" hidden></section>
@@ -155,7 +160,33 @@
       loading.hidden=true;
     }catch(err){console.error(err);loading.hidden=true;episodeEl.hidden=false;episodeEl.innerHTML='<div class="notice empty"><div class="eyebrow">CONNECTION ISSUE</div><h2>Episode could not load</h2><p>'+esc(err?.message||"Please try again.")+'</p><button class="btn primary" onclick="location.reload()">Retry</button></div>'}
   }
-  load();
+  let realtimeStarted=false;
+  function startEpisodeRealtime(){
+    if(realtimeStarted||!window.CROW_CREATOR_REALTIME||!sb||!episode)return;
+    realtimeStarted=true;
+    window.CROW_CREATOR_REALTIME.bindUI({selector:"[data-creator-realtime]"});
+    const liveUpdate=document.getElementById("liveUpdate");
+    const flash=()=>{episodeEl.classList.add("live-flash");setTimeout(()=>episodeEl.classList.remove("live-flash"),800)};
+    window.CROW_CREATOR_REALTIME.on("podcast_episodes",payload=>{
+      const changed=payload.new?.id||payload.old?.id;
+      if(changed!==episode.id)return;
+      if(payload.eventType==="UPDATE"){
+        liveUpdate.textContent="Updated "+new Date().toLocaleTimeString();
+        flash();
+        window.CROW_CREATOR_REALTIME.toast("Episode updated live.");
+        load();
+      }else if(payload.eventType==="DELETE"){
+        liveUpdate.textContent="Removed "+new Date().toLocaleTimeString();
+        notFound("This episode is no longer available.");
+      }
+    });
+    window.CROW_CREATOR_REALTIME.start({
+      channelName:"episode-live-"+episode.id,
+      tables:["podcast_episodes"],
+      filters:{podcast_episodes:"id=eq."+episode.id}
+    });
+  }
+  load().then(()=>startEpisodeRealtime());
 })();
 </script>
 </body>
