@@ -359,6 +359,13 @@
       window.__CROW_USER=data?.session?.user||null;
       window.__CROW_AUTH_READY=true;
       boot({supabase:window.CROW_SUPABASE,user:window.__CROW_USER});
+      // When another protected page sent the user here with ?next=, an
+      // existing valid session should return there immediately instead of
+      // making the already-signed-in user press Sign In again.
+      if(window.__CROW_USER && nextUrl){
+        setStatus("Signed in · returning to the requested page…");
+        setTimeout(()=>afterAuth(),150);
+      }
     }catch(error){
       console.error("Account Supabase initialization:",error);
       setStatus("Supabase connection unavailable.");
