@@ -76,7 +76,6 @@ body{min-height:100vh}.creator-main{max-width:1280px;margin:auto;padding:42px 18
 "use strict";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const timeout=(p,ms,msg)=>{let t;return Promise.race([p,new Promise((_,r)=>t=setTimeout(()=>r(new Error(msg)),ms))]).finally(()=>clearTimeout(t));};
 let sb=null,user=null,creator=null,podcasts=[],episodes=[],channel=null,refreshTimer=null;
 
@@ -165,8 +164,23 @@ function startRealtime(){
   if(!sb||!creator)return;
   if(channel)try{sb.removeChannel(channel)}catch(_){}
   channel=sb.channel("creator-dashboard-"+creator.id);
-  ["podcasts","podcast_episodes","podcast_follows","podcast_listens","cr_creator_revenue_transactions"].forEach(table=>channel.on("postgres_changes",{event:"*",schema:"public",table},p=>{const n=p.new||p.old||{};if(table==="podcasts"&&n.creator_id!==creator.id)return;if(table==="cr_creator_revenue_transactions"&&n.user_id!==user.id&&n.creator_id!==creator.id)return;clearTimeout(refreshTimer);$("liveState").textContent="Realtime update received";refreshTimer=setTimeout(()=>refresh().catch(console.warn),500)}));
-  channel.subscribe(state=>{$("liveState").textContent=state==="SUBSCRIBED"?"Realtime connected":"Realtime "+String(state).toLowerCase()});
+  ["podcasts","podcast_episodes","podcast_follows","podcast_listens","cr_creator_revenue_transactions"].forEach(table=>channel.on("postgres_changes",{event:"*",schema:"public",table},p=>{
+    const n=p.new||p.old||{};
+    if(table==="podcasts"&&n.creator_id!==creator.id)return;
+    if(table==="podcast_episodes"&&!podcasts.some(x=>x.id===n.podcast_id))return;
+    if(table==="podcast_follows"&&!podcasts.some(x=>x.id===n.podcast_id))return;
+    if(table==="podcast_listens"&&!episodes.some(x=>x.id===n.episode_id))return;
+    if(table==="cr_creator_revenue_transactions"&&n.user_id!==user.id&&n.creator_id!==creator.id)return;
+    clearTimeout(refreshTimer);
+    $("liveState").textContent="Realtime update received";
+    refreshTimer=setTimeout(()=>refresh().catch(e=>{console.warn("Realtime refresh:",e);$("liveState").textContent="Realtime connected — refresh retry needed"}),700);
+  }));
+  channel.subscribe(state=>{
+    if(state==="SUBSCRIBED")$("liveState").textContent="Realtime connected";
+    else if(state==="CHANNEL_ERROR")$("liveState").textContent="Realtime channel error — data remains available";
+    else if(state==="TIMED_OUT")$("liveState").textContent="Realtime timed out — retrying";
+    else $("liveState").textContent="Realtime "+String(state).toLowerCase();
+  });
 }
 async function boot(){
   try{await connect();creator=await getCreator();$("auth").className="notice ok";$("auth").textContent="Signed in · "+(user.email||"CrowRules member")+" · Creator profile active";$("dashboard").hidden=false;await refresh();startRealtime();}
