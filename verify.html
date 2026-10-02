@@ -8,9 +8,13 @@
 (()=>{"use strict";const c=window.CROW_CONFIG||{},title=document.getElementById("title"),msg=document.getElementById("message"),status=document.getElementById("status"),btn=document.getElementById("continue");
 async function run(){if(!window.supabase||!c.supabaseUrl||!c.supabaseKey){status.textContent="ACCOUNT SYSTEM UNAVAILABLE";msg.textContent="Please try the verification link again later.";return}
 const sb=window.supabase.createClient(c.supabaseUrl,c.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"implicit"}});
-try{const {data,error}=await sb.auth.getSession();if(error)throw error;
-if(data.session){title.textContent="EMAIL VERIFIED";msg.textContent="Your CrowRules Universal account is verified. You are ready to continue preparing your Podcasting creator profile.";status.textContent="VERIFICATION COMPLETE";btn.textContent="Continue to Creator Studio";btn.href="create-podcast.html";return}
-status.textContent="CHECK YOUR EMAIL";msg.textContent="If you just registered, open the confirmation link from Supabase Auth in your email. Then return here.";btn.textContent="Back to Signup";btn.href="signup.html";
+async function finish(){const {data,error}=await sb.auth.getSession();if(error)throw error;if(data.session){title.textContent="EMAIL VERIFIED";msg.textContent="Your CrowRules Universal account is verified. Your Podcasting creator onboarding is ready.";status.textContent="VERIFICATION COMPLETE";btn.textContent="Continue to Creator Studio";btn.href="create-podcast.html";return true}return false}
+try{
+const hash=new URLSearchParams(location.hash.replace(/^#/,""));
+const access_token=hash.get("access_token"),refresh_token=hash.get("refresh_token");
+if(access_token&&refresh_token){const r=await sb.auth.setSession({access_token,refresh_token});if(r.error)throw r.error;history.replaceState({},document.title,location.pathname+location.search)}
+if(await finish())return;
+status.textContent="CHECK YOUR EMAIL";msg.textContent="Open the newest CrowRules confirmation email and click the verification link. If this page was opened directly, return to Signup and request a new verification email.";btn.textContent="Back to Signup";btn.href="signup.html";
 }catch(e){console.error(e);status.textContent="VERIFICATION COULD NOT BE COMPLETED";msg.textContent=e.message||"Please request a new confirmation email and try again."}}
 run()})();
 </script></body></html>
