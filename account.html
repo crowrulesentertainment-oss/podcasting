@@ -17,10 +17,10 @@
 if(__CROW_USER){state.innerHTML="Signed in as <strong>"+(__CROW_USER.email||"Member")+"</strong><div class='actions'><button class='btn' onclick='CROW_APP.signOut()'>Sign out</button></div>";return}
 state.textContent="Sign in or create your Universal CrowRules account.";
 login.onsubmit=async e=>{e.preventDefault();const r=await CROW_SUPABASE.auth.signInWithPassword({email:email.value,password:password.value});state.textContent=r.error?r.error.message:"Signed in.";if(!r.error)location.reload()};
-signup.onsubmit=async e=>{e.preventDefault();const r=await CROW_SUPABASE.auth.signUp({email:se.value,password:sp.value});state.textContent=r.error?r.error.message:"Account created. Check your email if confirmation is enabled."};
+signup.onsubmit=async e=>{e.preventDefault();const r=await CROW_SUPABASE.auth.signUp({email:se.value,password:sp.value,options:{data:{app:"podcasting",account_type:"creator"}}});if(r.error){state.textContent=r.error.message;return}if(r.data?.session){state.textContent="Account created. Opening CrowRules Podcasting…";location.href="home.html";}else{state.innerHTML="Account created. If email confirmation is enabled, finish that step and then return here to enter the site.<div class="actions"><a class="btn primary" href="home.html">Enter Podcasting</a></div>";}};
 document.querySelectorAll("[data-social]").forEach(btn=>btn.addEventListener("click",async()=>{
  const provider=btn.dataset.social; btn.disabled=true; state.textContent="Connecting to "+provider.charAt(0).toUpperCase()+provider.slice(1)+"…";
- const {error}=await CROW_SUPABASE.auth.signInWithOAuth({provider,options:{redirectTo:new URL("account.html",location.href).href}});
- if(error){state.textContent=error.message;btn.disabled=false}
+ const {error}=await CROW_SUPABASE.auth.signInWithOAuth({provider,options:{redirectTo:new URL("account.html?oauth=1",location.href).href}});
+ if(error){state.textContent=error.message;btn.disabled=false}});
 }));
 });</script></body></html>
