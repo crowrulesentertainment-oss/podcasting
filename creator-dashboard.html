@@ -63,7 +63,7 @@ async function getCreator(){
  if(r.error)throw r.error;
  const id=r.data?.creator_id||r.data?.id||r.data;
  if(!id)throw Error("No creator profile was returned for this account.");
- const q=await timeout(sb.from("creators").select("id,name,display_name,bio,avatar_url,active,member_id").eq("id",id).maybeSingle(),8000,"Creator profile lookup timed out.");
+ const q=await timeout(sb.from("creators").select("*").eq("id",id).maybeSingle(),8000,"Creator profile lookup timed out.");
  if(q.error)throw q.error;
  if(!q.data)throw Error("Creator profile could not be found.");
  creator=q.data;return creator;
