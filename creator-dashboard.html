@@ -146,7 +146,7 @@ async function loadDashboard(){
 
     const m=await sb.from("cr_creator_revenue_transactions")
       .select("gross_amount,platform_fee,creator_amount,stripe_fee,status,transaction_type,episode_id,episode_title")
-      .eq("creator_id",user.id);
+      .eq("creator_id",creatorProfile.id);
     if(m.error) throw m.error;
     const ms=m.data||[];
     const net=ms.reduce((n,v)=>n+Number(v.creator_amount||0),0);
