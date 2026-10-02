@@ -157,6 +157,8 @@
 (() => {
   const $ = id => document.getElementById(id);
   let initialized = false;
+  const nextUrl = (() => { try { const raw = new URLSearchParams(location.search).get("next"); if (!raw) return ""; const u = new URL(raw, location.href); return u.origin === location.origin ? u.href : ""; } catch (_) { return ""; } })();
+  const afterAuth = () => { if (nextUrl) location.href = nextUrl; else location.href = "home.html"; };
 
   const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const first = (...values) => values.find(v => v !== null && v !== undefined && String(v).trim() !== "") ?? "";
@@ -373,7 +375,7 @@
     try{
       const {data,error}=await window.CROW_SUPABASE.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
       if(error)throw error;
-      if(data?.session){location.href="home.html"}else{setNotice("Sign-in completed. Finish any required verification, then return to Podcasting.","success")}
+      if(data?.session){afterAuth()}else{setNotice("Sign-in completed. Finish any required verification, then return to Podcasting.","success")}
     }catch(error){setNotice(error.message||"Unable to sign in.","error")}
     finally{setBusy(button,false)}
   });
@@ -392,7 +394,7 @@
         try{
           if(data.session){
             await ensureUniversalMembership(window.CROW_SUPABASE,data.user);
-            location.href="home.html";
+            afterAuth();
           }else{
             setNotice("Account created. Confirm your email if required. Your Universal CrowRules membership will be provisioned automatically when you first sign in.","success");
           }
@@ -414,8 +416,8 @@
       const provider=button.dataset.social;
       setBusy(button,true,"Connecting…");setNotice("");
       try{
-        const redirectTo=new URL("account.html",window.location.href).href;
-        const {error}=await window.CROW_SUPABASE.auth.signInWithOAuth({provider,options:{redirectTo}});
+        const redirectTo=new URL("account.html",window.location.href); if(nextUrl) redirectTo.searchParams.set("next",nextUrl);
+        const {error}=await window.CROW_SUPABASE.auth.signInWithOAuth({provider,options:{redirectTo:redirectTo.href}});
         if(error)throw error;
       }catch(error){setNotice(error.message||("Unable to connect with "+provider+". Verify that the provider is enabled in Supabase."),"error");setBusy(button,false)}
     });
