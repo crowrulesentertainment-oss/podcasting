@@ -87,7 +87,7 @@
           <div class="actions">
             <a class="btn primary" href="member-profile.html">My Profile</a>
             <a class="btn" href="membership.html">Membership</a>
-            <a id="creatorButton" class="btn hidden" href="creator-dashboard.html">Creator Studio</a>
+            <a id="creatorButton" class="btn" href="creator-dashboard.html">Creator Studio</a>
           </div>
         </article>
 
@@ -225,7 +225,6 @@
       watch_minutes:0,
       display_name:displayName,
       avatar_url:avatar||null,
-      social_links:{}
     };
 
     const memberResult=await sb.from("members").upsert(membership,{onConflict:"user_id",ignoreDuplicates:true}).select("*").maybeSingle();
@@ -242,7 +241,7 @@
       role:"Member",
       status:"Active",
       points:0,
-      watch_minutes:0,
+      watch_hours:0,
       display_name:displayName,
       avatar_url:avatar||null
     };
@@ -298,7 +297,7 @@
     $("podcastAccess").innerHTML=creator
       ? '<div class="notice success">Creator profile detected. Creator tools are available from your account.</div>'
       : '<div class="notice">No podcast creator profile is linked yet. You can still use Podcasting as a listener and create a creator profile from Creator Studio.</div>';
-    $("creatorButton").classList.toggle("hidden",!creator);
+    $("creatorButton").classList.remove("hidden");
 
     try{
       const r=await sb.auth.getUserIdentities();
@@ -334,14 +333,38 @@
   }
 
   async function waitForAuth() {
-    if(window.__CROW_AUTH_READY && window.CROW_SUPABASE){
-      const {data}=await window.CROW_SUPABASE.auth.getSession();
-      return boot({supabase:window.CROW_SUPABASE,user:data?.session?.user||window.__CROW_USER||null});
+    // Account must be able to initialize Supabase itself; do not depend on app.js
+    // winning a script/event race on GitHub Pages.
+    const start=Date.now();
+    while(!window.supabase && Date.now()-start<10000){
+      await new Promise(r=>setTimeout(r,100));
     }
-    window.addEventListener("crow:ready",e=>boot(e.detail||{}),{once:true});
-    setTimeout(()=>{
-      if(!initialized && window.CROW_SUPABASE)boot({supabase:window.CROW_SUPABASE,user:window.__CROW_USER||null});
-    },9000);
+    if(!window.supabase){
+      setStatus("Supabase client unavailable.");
+      setNotice("The Supabase client library could not be loaded. Check your connection and refresh.","error");
+      return;
+    }
+    try{
+      const c=window.CROW_CONFIG||{};
+      if(!c.supabaseUrl||!c.supabaseKey) throw new Error("CrowRules Supabase configuration is missing.");
+      if(!window.CROW_SUPABASE){
+        window.CROW_SUPABASE=window.supabase.createClient(c.supabaseUrl,c.supabaseKey,{
+          auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}
+        });
+      }
+      const {data,error}=await window.CROW_SUPABASE.auth.getSession();
+      if(error) throw error;
+      window.__CROW_USER=data?.session?.user||null;
+      window.__CROW_AUTH_READY=true;
+      boot({supabase:window.CROW_SUPABASE,user:window.__CROW_USER});
+    }catch(error){
+      console.error("Account Supabase initialization:",error);
+      setStatus("Supabase connection unavailable.");
+      setNotice(error.message||"The account service could not connect. Refresh the page and try again.","error");
+    }
+    window.addEventListener("crow:ready",e=>{
+      if(!initialized && e.detail?.supabase) boot(e.detail);
+    });
   }
 
   $("login").addEventListener("submit",async e=>{
