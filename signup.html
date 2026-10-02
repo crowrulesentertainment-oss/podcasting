@@ -74,7 +74,7 @@ form.addEventListener("submit",async e=>{
  const podcast=document.getElementById("podcast").value.trim(),category=document.getElementById("category").value,format=document.getElementById("format").value,status=document.getElementById("status").value,sports=document.getElementById("sports").value.trim(),description=document.getElementById("description").value.trim(),help=document.getElementById("help").value.trim();
  try{
    let user=(await sb.auth.getUser()).data.user;
-   if(!user){const r=await sb.auth.signUp({email,password,options:{data:{full_name:name,creator_type:"podcasting",podcasting_creator:true,podcast_name:podcast,podcast_category:category,podcast_format:format,podcast_status:status,podcast_description:description}}});if(r.error)throw r.error;user=r.data.user;}
+   if(!user){const r=await sb.auth.signUp({email,password,options:{emailRedirectTo:new URL("verify.html",window.location.href).href,data:{full_name:name,creator_type:"podcasting",podcasting_creator:true,podcast_name:podcast,podcast_category:category,podcast_format:format,podcast_status:status,podcast_description:description}}});if(r.error)throw r.error;user=r.data.user;}
    if(!user)throw new Error("Account created, but email confirmation is required before the creator profile can be completed.");
    const metadata={...(user.user_metadata||{}),full_name:name,creator_type:"podcasting",podcasting_creator:true,podcast_name:podcast,podcast_category:category,podcast_format:format,podcast_status:status,podcast_sports_focus:sports,podcast_description:description,podcast_help_needed:help};
    const up=await sb.auth.updateUser({data:metadata});if(up.error)throw up.error;
