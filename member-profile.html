@@ -71,8 +71,8 @@
 </aside>
 <section class="profile-card">
 <div class="profile-tabs">
-<button class="active" data-tab="activity">Activity</button>
-<button data-tab="posts">Posts</button>
+<button class="active" data-tab="activityTab">Activity</button>
+<button data-tab="postsTab">Posts</button>
 <button data-tab="podcastsTab">Podcasts</button>
 <button data-tab="profileTab">Profile</button>
 </div>
@@ -366,7 +366,7 @@ function wireTabs(){
  document.querySelectorAll("[data-tab]").forEach(btn=>btn.onclick=()=>{
   document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));
   btn.classList.add("active");
-  ["activity","posts","podcastsTab","profileTab"].forEach(id=>{const el=$(id+"Tab");if(el)el.classList.toggle("hidden",id!==btn.dataset.tab);});
+  ["activityTab","postsTab","podcastsTab","profileTab"].forEach(id=>{const el=$(id);if(el)el.classList.toggle("hidden",id!==btn.dataset.tab);});
  });
 }
 function editProfile(){
