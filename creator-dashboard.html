@@ -68,7 +68,7 @@ async function loadDashboard(){
 
     creatorProfile=cr.data;
     $("auth").textContent="Signed in as "+(user.email||creatorProfile.name||"Creator");
-    $("dashboard").style.display="block";\n    startCreatorRealtime();
+    $("dashboard").style.display="block";
 
     const p=await sb.from("podcasts")
       .select("id,title,status,category,artwork_url,total_plays,listener_count,slug,description")
@@ -131,9 +131,12 @@ async function loadDashboard(){
       const z=await sb.from("podcast_episodes").select("id").eq("podcast_id",x.id);
       if(z.error) throw z.error;
       ids.push(...(z.data||[]).map(v=>v.id));
+      creatorEpisodeIds=new Set(ids);
     }
 
     if(ids.length){
+      startCreatorRealtime();
+
       const l=await sb.from("podcast_listens").select("seconds_listened,completed").in("episode_id",ids);
       if(l.error) throw l.error;
       const listens=l.data||[];
@@ -160,7 +163,7 @@ async function loadDashboard(){
 
 
 // Creator Studio live synchronization.
-let liveChannel=null,liveRefreshTimer=null,creatorPodcastIds=new Set();
+let liveChannel=null,liveRefreshTimer=null,creatorPodcastIds=new Set(),creatorEpisodeIds=new Set();
 const LIVE_TABLES=["podcasts","podcast_episodes","podcast_follows","podcast_listens","podcast_subscriptions"];
 const liveLabel=t=>({podcasts:"Podcast",podcast_episodes:"Episode",podcast_follows:"Follower",podcast_listens:"Listening activity",podcast_subscriptions:"Subscription"}[t]||t);
 function setLiveStatus(ok,text){const el=document.getElementById("liveStatus");if(!el)return;el.classList.toggle("connected",!!ok);el.classList.toggle("error",!ok);document.getElementById("liveStatusText").textContent=text}
@@ -183,7 +186,9 @@ LIVE_TABLES.forEach(table=>{
  if(table==="podcasts") cfg.filter="creator_id=eq."+creatorProfile.id;
  ch=ch.on("postgres_changes",cfg,payload=>{
    const row=payload.new||payload.old||{};
-   if(table!=="podcasts" && row.podcast_id && !creatorPodcastIds.has(row.podcast_id)) return;
+   if(table==="podcasts" && row.creator_id!==creatorProfile.id) return;
+   if((table==="podcast_follows" || table==="podcast_subscriptions") && !creatorPodcastIds.has(row.podcast_id)) return;
+   if(table==="podcast_listens" && !creatorEpisodeIds.has(row.episode_id)) return;
    refreshCreatorLive(table,payload.eventType||"CHANGE",row);
  });
 });
