@@ -35,6 +35,7 @@
     try{
       await connectSupabase();
       if(window.CROW_APP?.init){try{await withTimeout(CROW_APP.init(),5000)}catch(e){console.warn("CrowRules app init:",e.message)}}
+      await setupPresence();
       await setupActivityBadge();
       setTimeout(()=>window.dispatchEvent(new CustomEvent("crow:ready",{detail:{user:window.__CROW_USER,supabase:window.CROW_SUPABASE}})),0);
     }catch(error){
@@ -44,7 +45,9 @@
     }
   };
 
-  const setupActivityBadge=async()=>{
+  const setupPresence=async()=>{const sb=window.CROW_SUPABASE;if(!sb)return;if(window.__CROW_PRESENCE_CHANNEL)try{await sb.removeChannel(window.__CROW_PRESENCE_CHANNEL)}catch(_){}const key=window.__CROW_USER?.id||crypto.randomUUID();const ch=sb.channel("podcasting-online",{config:{presence:{key}}});window.__CROW_PRESENCE_CHANNEL=ch;const track=async()=>{try{await ch.track({user_id:window.__CROW_USER?.id||null,display_name:window.__CROW_USER?.user_metadata?.full_name||"Guest",page:document.title||"Podcasting",online_at:new Date().toISOString()})}catch(e){console.warn("CrowRules presence:",e.message)}};ch.subscribe(async status=>{if(status==="SUBSCRIBED")await track()});document.addEventListener("visibilitychange",()=>{if(!document.hidden)track()});window.addEventListener("beforeunload",()=>{try{ch.untrack()}catch(_){}},{once:true})};
+
+const setupActivityBadge=async()=>{
     const sb=window.CROW_SUPABASE,user=window.__CROW_USER,badge=document.getElementById("navAlertBadge");
     if(!sb||!user||!badge)return;
     const refresh=async()=>{const r=await sb.from("cr_creator_alerts").select("id",{count:"exact",head:true}).eq("creator_id",user.id).is("read_at",null).is("muted_at",null);if(r.error){console.warn("Creator alerts:",r.error.message);return}const n=Number(r.count||0);badge.textContent=n>99?"99+":String(n);badge.hidden=n<1};
