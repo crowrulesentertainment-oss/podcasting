@@ -320,17 +320,64 @@ function wireReplies(){
 function podcastCard(p){const art=p.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="">':'<div class="podcastArt">🎙️</div>';const title=esc(p.title||"Untitled Podcast");const href="podcast.html?id="+encodeURIComponent(p.id);return '<article class="podcastCard">'+art+'<div class="podcastInfo"><h3>'+title+'</h3><p>'+esc(p.category||"Podcast")+(p.show_format?" · "+esc(p.show_format):"")+'</p><a class="btn" href="'+href+'">Open Podcast</a></div></article>'}
 async function loadPodcasts(){
  try{
-  const creator=await CROW_SUPABASE.from("creators").select("id,name,role,discipline,is_active,profile_url").eq("member_id",profileData.user_id).eq("is_active",true).maybeSingle();
-  if(creator.error)throw creator.error;
-  if(!creator.data){$("podcastsTab").innerHTML='<div class="empty-profile">'+(self?'You do not have a creator profile yet. Open Creator Studio to set one up.':'No creator profile has been linked to this member yet.')+'</div>';return}
-  const r=await CROW_SUPABASE.from("podcasts").select("id,title,slug,description,artwork_url,category,status,is_live,total_plays,listener_count,show_format,production_status,created_at").eq("creator_id",creator.data.id).order("created_at",{ascending:false}).limit(24);
+  // If this is the signed-in member, bootstrap the Podcasting creator record
+  // before deciding that no creator profile exists. This supports Universal
+  // members and social-login users who have not created a podcast yet.
+  if(self){
+   try{
+    const boot=await CROW_SUPABASE.rpc("ensure_podcasting_creator");
+    if(boot.error)console.warn("Podcast creator bootstrap:",boot.error);
+   }catch(e){console.warn("Podcast creator bootstrap:",e)}
+  }
+
+  const creators=await CROW_SUPABASE.from("creators")
+   .select("id,name,role,discipline,is_active,profile_url")
+   .eq("member_id",profileData.user_id)
+   .eq("discipline","podcasting")
+   .eq("is_active",true)
+   .order("created_at",{ascending:false});
+
+  if(creators.error)throw creators.error;
+  const creatorRows=creators.data||[];
+
+  if(!creatorRows.length){
+   $("podcastsTab").innerHTML='<div class="empty-profile">'+(self
+    ? 'Your Podcasting creator profile is being initialized. <a href="creator-dashboard.html" style="color:#55e7ff">Open Creator Studio</a> to finish setup.'
+    : 'No creator profile has been linked to this member yet.')+'</div>';
+   return;
+  }
+
+  const creatorIds=creatorRows.map(c=>c.id);
+  const r=await CROW_SUPABASE.from("podcasts")
+   .select("id,title,slug,description,artwork_url,category,status,is_live,total_plays,listener_count,show_format,production_status,created_at,creator_id")
+   .in("creator_id",creatorIds)
+   .order("created_at",{ascending:false})
+   .limit(50);
+
   if(r.error)throw r.error;
   const rows=r.data||[];
-  $("podcastsTab").innerHTML=rows.length?'<div class="feed">'+rows.map(p=>{
-   const href=p.slug?'podcast.html?slug='+encodeURIComponent(p.slug):'podcast.html?id='+encodeURIComponent(p.id);
-   return '<article class="post-card"><div style="display:flex;gap:14px;align-items:flex-start"><div style="width:86px;height:86px;border-radius:14px;overflow:hidden;background:#11172a;flex:none">'+(p.artwork_url?imageMarkup(p.artwork_url,p.title):'<span style="display:grid;place-items:center;height:100%;font:800 16px Orbitron;color:#55e7ff">'+esc(initials(p.title))+'</span>')+'</div><div style="min-width:0;flex:1"><div class="post-meta">'+esc(p.category||"Podcast")+' · '+esc(p.status||"draft")+(p.is_live?' · LIVE':"")+'</div><h3>'+esc(p.title||"Untitled Podcast")+'</h3><p>'+esc(p.description||"No podcast description yet.")+'</p><div class="post-actions"><span>▶ '+fmt(p.total_plays)+'</span><span>● '+fmt(p.listener_count)+' listeners</span><span>'+esc(p.show_format||"Podcast")+'</span><a class="btn" style="margin-left:auto;padding:7px 10px" href="'+esc(href)+'">Open</a></div></div></div></article>';
-  }).join('')+'</div>':'<div class="empty-profile">'+(self?'No podcasts yet. Open Creator Studio to create your first podcast.':'No public podcasts yet.')+'</div>';
- }catch(e){console.warn("podcasts unavailable",e);$("podcastsTab").innerHTML='<div class="empty-profile">Podcast showcase is not available right now.</div>'}
+
+  $("podcastsTab").innerHTML=rows.length
+   ? '<div class="feed">'+rows.map(p=>{
+      const href=p.slug
+       ? 'podcast.html?slug='+encodeURIComponent(p.slug)
+       : 'podcast.html?id='+encodeURIComponent(p.id);
+      return '<article class="post-card"><div style="display:flex;gap:14px;align-items:flex-start"><div style="width:86px;height:86px;border-radius:14px;overflow:hidden;background:#11172a;flex:none">'+
+       (p.artwork_url
+        ? imageMarkup(p.artwork_url,p.title)
+        : '<span style="display:grid;place-items:center;height:100%;font:800 16px Orbitron;color:#55e7ff">'+esc(initials(p.title))+'</span>')+
+       '</div><div style="min-width:0;flex:1"><div class="post-meta">'+esc(p.category||"Podcast")+' · '+esc(p.status||"draft")+(p.is_live?' · LIVE':"")+
+       '</div><h3>'+esc(p.title||"Untitled Podcast")+'</h3><p>'+esc(p.description||"No podcast description yet.")+
+       '</p><div class="post-actions"><span>▶ '+fmt(p.total_plays)+'</span><span>● '+fmt(p.listener_count)+' listeners</span><span>'+esc(p.show_format||"Podcast")+
+       '</span><a class="btn" style="margin-left:auto;padding:7px 10px" href="'+esc(href)+'">Open</a></div></div></div></article>';
+     }).join('')+'</div>'
+   : '<div class="empty-profile">'+(self
+      ? 'No podcasts yet. <a href="creator-dashboard.html" style="color:#55e7ff">Open Creator Studio</a> to create your first podcast.'
+      : 'No public podcasts yet.')+'</div>';
+ }catch(e){
+  console.warn("podcasts unavailable",e);
+  $("podcastsTab").innerHTML='<div class="empty-profile">Podcast showcase is not available right now.</div>';
+ } 
 }
 async function refreshFollowState(){
  if(self||!getUser()||!profileData)return;
