@@ -73,10 +73,12 @@
 <div class="profile-tabs">
 <button class="active" data-tab="activity">Activity</button>
 <button data-tab="posts">Posts</button>
+<button data-tab="podcastsTab">Podcasts</button>
 <button data-tab="profileTab">Profile</button>
 </div>
 <div id="activityTab" class="feed"></div>
 <div id="postsTab" class="feed hidden"></div>
+<div id="podcastsTab" class="feed hidden"></div>
 <div id="profileTab" class="hidden"></div>
 </section>
 </div>
@@ -89,7 +91,7 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const fmt=n=>Number(n||0).toLocaleString();
 const qs=new URLSearchParams(location.search);
 const target=(qs.get("user")||qs.get("id")||"").trim();
-let profileData=null, statsData={}, self=false, sessionUser=null;
+let profileData=null, statsData={}, self=false, sessionUser=null, followed=false;
 
 function initials(name){return String(name||"Member").trim().split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"M"}
 function safeDate(v,full=false){if(!v)return"";const d=new Date(v);if(Number.isNaN(d.getTime()))return"";return d.toLocaleDateString(undefined,full?{month:"long",day:"numeric",year:"numeric"}:{month:"long",year:"numeric"})}
@@ -174,10 +176,11 @@ function renderProfile(){
  $("avatar").innerHTML=imageMarkup(p.avatar_url,name)||"<span>"+esc(initials(name))+"</span>";
  if(p.cover_url){$("coverImg").src=p.cover_url;$("coverImg").alt=name+" cover";$("coverImg").classList.remove("hidden")}
  $("visibilityPill").textContent=p.is_public===false?"Private profile":"Public profile";
- $("actions").innerHTML=self?'<button class="btn primary" id="editBtn">Edit profile</button><a class="btn" href="account.html">Account</a>':'<button class="btn primary" id="followBtn">Follow</button><button class="btn" id="messageBtn">Message</button>';
+ $("actions").innerHTML=self?'<button class="btn primary" id="editBtn">Edit profile</button><a class="btn" href="creator-dashboard.html">Creator Studio</a><a class="btn" href="account.html">Account</a>':'<button class="btn primary" id="followBtn">Follow</button><button class="btn" id="shareBtn">Share</button><button class="btn" id="messageBtn">Message</button>';
  $("about").innerHTML=aboutHtml(p);
  $("since").textContent=safeDate(p.created_at,true)||"CrowRules member";
  $("profileTab").innerHTML=profileDetailsHtml(p)+(self?profileMediaEditorHtml(p):""); if(self) wireMediaEditor(); wireProfileActions();
+ loadPodcasts();
  $("snapshot").innerHTML='<div class="mini-stat"><strong id="snapMinutes">0</strong><span>Listening min</span></div><div class="mini-stat"><strong id="snapComments">0</strong><span>Comments</span></div><div class="mini-stat"><strong id="snapReactions">0</strong><span>Reactions</span></div><div class="mini-stat"><strong id="snapViews">0</strong><span>Profile views</span></div>';
  if(self)$("editBtn").onclick=editProfile;
 }
@@ -310,9 +313,36 @@ function wireReplies(){
   }catch(err){alert("We couldn't post your reply. "+(err?.message||"Please try again."))}finally{btn.disabled=false;btn.textContent="Reply"}
  });
 }
+async function loadPodcasts(){
+ try{
+  const creator=await CROW_SUPABASE.from("creators").select("id,name,role,discipline,is_active,profile_url").eq("member_id",profileData.user_id).eq("is_active",true).maybeSingle();
+  if(creator.error)throw creator.error;
+  if(!creator.data){$("podcastsTab").innerHTML='<div class="empty-profile">'+(self?'You do not have a creator profile yet. Open Creator Studio to set one up.':'No creator profile has been linked to this member yet.')+'</div>';return}
+  const r=await CROW_SUPABASE.from("podcasts").select("id,title,slug,description,artwork_url,category,status,is_live,total_plays,listener_count,show_format,production_status,created_at").eq("creator_id",creator.data.id).order("created_at",{ascending:false}).limit(24);
+  if(r.error)throw r.error;
+  const rows=r.data||[];
+  $("podcastsTab").innerHTML=rows.length?'<div class="feed">'+rows.map(p=>{
+   const href=p.slug?'podcast.html?slug='+encodeURIComponent(p.slug):'podcast.html?id='+encodeURIComponent(p.id);
+   return '<article class="post-card"><div style="display:flex;gap:14px;align-items:flex-start"><div style="width:86px;height:86px;border-radius:14px;overflow:hidden;background:#11172a;flex:none">'+(p.artwork_url?imageMarkup(p.artwork_url,p.title):'<span style="display:grid;place-items:center;height:100%;font:800 16px Orbitron;color:#55e7ff">'+esc(initials(p.title))+'</span>')+'</div><div style="min-width:0;flex:1"><div class="post-meta">'+esc(p.category||"Podcast")+' · '+esc(p.status||"draft")+(p.is_live?' · LIVE':"")+'</div><h3>'+esc(p.title||"Untitled Podcast")+'</h3><p>'+esc(p.description||"No podcast description yet.")+'</p><div class="post-actions"><span>▶ '+fmt(p.total_plays)+'</span><span>● '+fmt(p.listener_count)+' listeners</span><span>'+esc(p.show_format||"Podcast")+'</span><a class="btn" style="margin-left:auto;padding:7px 10px" href="'+esc(href)+'">Open</a></div></div></div></article>';
+  }).join('')+'</div>':'<div class="empty-profile">'+(self?'No podcasts yet. Open Creator Studio to create your first podcast.':'No public podcasts yet.')+'</div>';
+ }catch(e){console.warn("podcasts unavailable",e);$("podcastsTab").innerHTML='<div class="empty-profile">Podcast showcase is not available right now.</div>'}
+}
+async function refreshFollowState(){
+ if(self||!getUser()||!profileData)return;
+ try{
+  const r=await CROW_SUPABASE.from("podcast_member_follows").select("id").eq("follower_user_id",getUser().id).eq("followed_user_id",profileData.user_id).maybeSingle();
+  if(!r.error){followed=!!r.data;const b=$("followBtn");if(b)b.textContent=followed?"Following":"Follow"}
+ }catch(e){console.warn("follow state unavailable",e)}
+}
+function shareProfile(){
+ const url=location.href;
+ if(navigator.share){navigator.share({title:(profileData.display_name||"CrowRules Member")+" — CrowRules Podcasting",url}).catch(()=>{})}
+ else if(navigator.clipboard){navigator.clipboard.writeText(url).then(()=>alert("Profile link copied.")).catch(()=>alert(url))}
+ else alert(url);
+}
 function wireProfileActions(){
  const follow=$("followBtn"),message=$("messageBtn");
- if(follow) follow.onclick=async()=>{
+ if(follow){refreshFollowState(); follow.onclick=async()=>{
   const user=getUser(); if(!user){alert("Sign in to follow members.");return;}
   follow.disabled=true; follow.textContent="Following…";
   try{
@@ -320,22 +350,23 @@ function wireProfileActions(){
    if(existing.error)throw existing.error;
    if(existing.data){
     const d=await CROW_SUPABASE.from("podcast_member_follows").delete().eq("id",existing.data.id); if(d.error)throw d.error;
-    follow.textContent="Follow";
+    followed=false;follow.textContent="Follow";
    }else{
     const ins=await CROW_SUPABASE.from("podcast_member_follows").insert({follower_user_id:user.id,followed_user_id:profileData.user_id}); if(ins.error)throw ins.error;
-    follow.textContent="Following";
+    followed=true;follow.textContent="Following";
    }
    await loadStats();
   }catch(e){alert("Follow update failed. "+(e?.message||"Please try again."));follow.textContent="Follow"}
   finally{follow.disabled=false}
- };
+ };}
+ const share=$("shareBtn"); if(share)share.onclick=shareProfile;
  if(message) message.onclick=()=>{location.href="account.html?message="+encodeURIComponent(profileData.user_id)};
 }
 function wireTabs(){
  document.querySelectorAll("[data-tab]").forEach(btn=>btn.onclick=()=>{
   document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));
   btn.classList.add("active");
-  ["activity","posts","profileTab"].forEach(id=>{const el=$(id+"Tab");if(el)el.classList.toggle("hidden",id!==btn.dataset.tab);});
+  ["activity","posts","podcastsTab","profileTab"].forEach(id=>{const el=$(id+"Tab");if(el)el.classList.toggle("hidden",id!==btn.dataset.tab);});
  });
 }
 function editProfile(){
