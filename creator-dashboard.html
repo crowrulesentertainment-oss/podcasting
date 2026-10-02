@@ -84,9 +84,28 @@ async function loadDashboard(){
     if(!sb||!user)return;
     await getCreator();
 
-    const p=await timeout(sb.from("podcasts").select("id,title,status,category,artwork_url,total_plays,listener_count,slug,description,created_at,updated_at").eq("creator_id",creatorProfile.id).order("created_at",{ascending:false}),10000,"Podcast list timed out.");
-    if(p.error)throw p.error;
-    const podcasts=p.data||[];
+    // Load the creator's podcasts in small, index-friendly requests. This avoids a large ordered query
+    // hanging behind RLS/policy evaluation when the creator has many rows.
+    async function loadCreatorPodcasts(){
+      const rows=[];
+      const pageSize=50;
+      for(let from=0;from<500;from+=pageSize){
+        const p=await timeout(
+          sb.from("podcasts")
+            .select("id,title,status,category,artwork_url,total_plays,listener_count,slug,description,created_at,updated_at")
+            .eq("creator_id",creatorProfile.id)
+            .range(from,from+pageSize-1),
+          8000,
+          "Podcast list timed out."
+        );
+        if(p.error)throw p.error;
+        const batch=p.data||[];
+        rows.push(...batch);
+        if(batch.length<pageSize)break;
+      }
+      return rows;
+    }
+    const podcasts=await loadCreatorPodcasts();
     creatorPodcastIds=new Set(podcasts.map(x=>x.id));
     $("shows").textContent=String(podcasts.length);
     $("liveWatchCount").textContent=String(podcasts.length);
