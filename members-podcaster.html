@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Podcasters — CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/podcasting.js" defer></script><script src="js/app.js" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script>
+<style>
+:root{--cyan:#55e7ff;--purple:#9b6cff}.members-page{max-width:1180px;margin:auto;padding:42px 18px 110px}.hero-box{padding:30px;border:1px solid #ffffff12;border-radius:24px;background:radial-gradient(circle at 15% 10%,#55e7ff16,transparent 35%),radial-gradient(circle at 85% 10%,#9b6cff16,transparent 35%),#090d17}.eyebrow{font:800 9px Montserrat;text-transform:uppercase;letter-spacing:.16em;color:var(--cyan)}h1{font:800 clamp(30px,5vw,52px) Orbitron;margin:10px 0}.hero-box p{color:#9ba6ba;max-width:700px;line-height:1.7}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.toolbar input,.toolbar select{background:#080b13;border:1px solid #ffffff15;color:#fff;border-radius:12px;padding:12px 14px}.toolbar input{flex:1;min-width:220px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:15px}.member-card{border:1px solid #ffffff10;border-radius:20px;padding:18px;background:#090d17;transition:.2s}.member-card:hover{transform:translateY(-2px);border-color:#55e7ff40}.top{display:flex;gap:13px;align-items:center}.avatar{width:58px;height:58px;border-radius:50%;overflow:hidden;background:radial-gradient(circle,#55e7ff,#27223e);display:grid;place-items:center;font:800 17px Orbitron;flex:none}.avatar img{width:100%;height:100%;object-fit:cover}.name{font-weight:800}.username{font-size:10px;color:#718099;margin-top:4px}.badge{display:inline-block;margin-top:8px;padding:5px 8px;border-radius:999px;background:#55e7ff10;border:1px solid #55e7ff25;color:#72eaff;font-size:8px;text-transform:uppercase}.bio{font-size:11px;line-height:1.6;color:#9aa5b8;margin:15px 0}.show{padding:11px;border:1px solid #ffffff0d;border-radius:12px;background:#070a11;margin-top:9px}.show strong{font-size:12px}.show small{display:block;color:#69758a;margin-top:4px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.btn{display:inline-block;padding:9px 11px;border:1px solid #ffffff14;border-radius:10px;color:#dce4f4;text-decoration:none;font-size:9px;text-transform:uppercase;letter-spacing:.08em}.btn.primary{border-color:#55e7ff40;background:#55e7ff12;color:#72eaff}.notice{text-align:center;padding:28px;border:1px dashed #ffffff15;border-radius:16px;color:#7f8ba0}.count{color:#7f8ba0;font-size:10px;margin-bottom:14px}@media(max-width:600px){.members-page{padding-top:22px}}
+</style>
+</head><body><div data-nav></div><main class="members-page">
+<section class="hero-box"><div class="eyebrow">CROWRULES PODCASTING</div><h1>Podcasters</h1><p>Discover the CrowRules members who have connected their account to a podcast. One account. One universe.</p></section>
+<div class="toolbar"><input id="search" placeholder="Search podcasters or podcasts…"><select id="category"><option value="">All categories</option></select></div>
+<div id="status" class="notice">Loading podcasters from Supabase…</div><div id="count" class="count"></div><section id="grid" class="grid"></section>
+</main>
+<script>
+(async function(){
+const $=id=>document.getElementById(id), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const initials=n=>String(n||"Member").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
+let sb,rows=[];
+async function init(){
+ while(!window.CROW_SUPABASE){if(window.CROW_APP?.init){try{await window.CROW_APP.init()}catch(e){}} if(Date.now()>window._crPodWait) throw Error("Supabase client could not initialize."); await new Promise(r=>setTimeout(r,100));}
+ sb=window.CROW_SUPABASE;
+ await load();
+ const ch=sb.channel("podcasting-members-podcasters").on("postgres_changes",{event:"*",schema:"public",table:"members"},load).on("postgres_changes",{event:"*",schema:"public",table:"creators"},load).on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},load);
+ ch.subscribe();
+}
+async function load(){
+ try{
+  const m=await sb.from("members").select("id,user_id,first_name,last_name,display_name,username,bio,avatar_url,membership_type,status,points,created_at").order("created_at",{ascending:false});
+  if(m.error)throw m.error;
+  const c=await sb.from("creators").select("id,member_id,name,slug,role,discipline,bio,avatar_url,is_active").eq("is_active",true);
+  if(c.error)throw c.error;
+  const p=await sb.from("podcasts").select("id,creator_id,title,slug,category,description,artwork_url,status,is_live,listener_count,total_plays").order("created_at",{ascending:false});
+  if(p.error)throw p.error;
+  const creators=c.data||[], podcasts=p.data||[];
+  rows=(m.data||[]).map(member=>{
+    const creator=creators.find(x=>x.member_id===member.id);
+    if(!creator)return null;
+    const shows=podcasts.filter(x=>x.creator_id===creator.id);
+    if(!shows.length)return null;
+    return {member,creator,shows};
+  }).filter(Boolean);
+  const cats=[...new Set(rows.flatMap(x=>x.shows.map(s=>s.category).filter(Boolean)))].sort();
+  $("category").innerHTML='<option value="">All categories</option>'+cats.map(x=>'<option>'+esc(x)+'</option>').join("");
+  render();
+ }catch(e){$("status").textContent="Could not load podcasters: "+(e.message||"Unknown Supabase error.");}
+}
+function render(){
+ const q=$("search").value.trim().toLowerCase(),cat=$("category").value;
+ const filtered=rows.filter(x=>{
+  const hay=[x.member.display_name,x.member.username,x.member.first_name,x.member.last_name,x.creator.name,x.creator.discipline,...x.shows.map(s=>s.title+" "+(s.category||""))].join(" ").toLowerCase();
+  return (!q||hay.includes(q))&&(!cat||x.shows.some(s=>s.category===cat));
+ });
+ $("status").style.display=filtered.length?"none":"block"; $("count").textContent=filtered.length+" podcaster"+(filtered.length===1?"":"s");
+ $("grid").innerHTML=filtered.map(x=>{
+  const name=x.member.display_name||x.creator.name||[x.member.first_name,x.member.last_name].filter(Boolean).join(" ")||"CrowRules Podcaster";
+  const avatar=x.member.avatar_url||x.creator.avatar_url;
+  return '<article class="member-card"><div class="top"><div class="avatar">'+(avatar?'<img src="'+esc(avatar)+'" alt="">':esc(initials(name)))+'</div><div><div class="name">'+esc(name)+'</div><div class="username">'+(x.member.username?"@"+esc(x.member.username):esc(x.creator.role||"Podcaster"))+'</div><span class="badge">Podcaster</span></div></div><div class="bio">'+esc(x.member.bio||x.creator.bio||"CrowRules Podcasting creator.")+'</div>'+x.shows.map(s=>'<div class="show"><strong>'+esc(s.title)+'</strong><small>'+esc(s.category||"Podcast")+' · '+Number(s.listener_count||0).toLocaleString()+' listeners · '+Number(s.total_plays||0).toLocaleString()+' plays'+(s.is_live?" · LIVE":"")+'</small><div class="actions"><a class="btn primary" href="podcast.html?id='+encodeURIComponent(s.id)+'">View podcast</a></div></div>').join("")+'<div class="actions"><a class="btn" href="member-profile.html?user='+encodeURIComponent(x.member.user_id)+'">Member profile</a></div></article>';
+ }).join("");
+}
+$("search").addEventListener("input",render);$("category").addEventListener("change",render);
+window._crPodWait=Date.now()+12000;init();
+})();
+</script></body></html>
