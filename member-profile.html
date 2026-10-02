@@ -34,8 +34,13 @@
 @media(max-width:560px){.profile-wrap{padding:22px 12px 80px}.cover{height:210px}.main{padding:0 16px 22px}.head{grid-template-columns:88px minmax(0,1fr);gap:12px;margin-top:-45px}.avatar{width:88px;height:88px}.avatar span{font-size:24px}.stats{grid-template-columns:repeat(2,1fr)}.podcast-grid{grid-template-columns:1fr}.cover-label{left:13px;bottom:13px}}
 </style>
 </head>
-<body>
-<div data-nav></div>
+<body data-page="member-profile">
+<header class="global">
+<a class="brand brandMark" href="https://crowrulesentertainment-oss.github.io/crowspace/home.html">CROW<span>SPACE</span></a><div class="navDivider"></div>
+<nav class="globalnav"><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/home.html">HOME</a><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/discover.html">DISCOVER</a><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/caws.html">CAWS</a><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/events.html">EVENTS</a><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/messages.html">MESSAGES</a><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/notifications.html">NOTIFICATIONS</a></nav>
+<div class="navright"><span class="statusdot"></span><span id="authState">GUEST</span><a class="iconbtn" href="https://crowrulesentertainment-oss.github.io/crowspace/profile.html">PROFILE</a><a class="join" href="https://crowrulesentertainment-oss.github.io/crowspace/signup.html">JOIN</a></div>
+<button class="iconbtn mobileNav" id="mobileToggle" type="button">MENU</button></header>
+<div id="mobileMenu" style="display:none"><div class="mobileMenuInner"><nav style="display:grid;gap:4px"><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/home.html">HOME</a><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/discover.html">DISCOVER</a><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/caws.html">CAWS</a><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/events.html">EVENTS</a><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/messages.html">MESSAGES</a><a class="navlink" href="https://crowrulesentertainment-oss.github.io/crowspace/notifications.html">NOTIFICATIONS</a><a class="navlink active" href="https://crowrulesentertainment-oss.github.io/crowspace/profile.html">PROFILE</a></nav><div class="mobileAccount"><a class="iconbtn" href="https://crowrulesentertainment-oss.github.io/crowspace/login.html">SIGN IN</a><a class="join" href="https://crowrulesentertainment-oss.github.io/crowspace/signup.html">JOIN CROWSPACE</a></div></div></div>
 <main class="profile-wrap">
 <div id="loading" class="loading">Loading member profile…</div>
 <div id="error" class="notice error hidden"></div>
@@ -80,12 +85,12 @@
 <div class="tabs" id="tabs">
 <button class="active" data-tab="overview">Overview</button>
 <button data-tab="podcasts">Podcasts</button>
-<button data-tab="activity">Activity</button>
+<button data-tab="activity">Activity</button><button data-tab="crowspace">CrowSpace</button>
 <button data-tab="edit" id="editTabButton" class="hidden">Edit Profile</button>
 </div>
 <div id="tab-overview"></div>
 <div id="tab-podcasts" class="hidden"></div>
-<div id="tab-activity" class="hidden"></div>
+<div id="tab-activity" class="hidden"></div><div id="tab-crowspace" class="hidden"></div>
 <div id="tab-edit" class="hidden"></div>
 </div>
 </section>
@@ -93,6 +98,8 @@
 </section>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowspace/crowspace-auth.js"></script>
 <script>
 (function(){
 "use strict";
@@ -101,7 +108,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 const initials=s=>String(s||"Member").trim().split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"CR";
 const params=new URLSearchParams(location.search);
 let targetId=(params.get("user")||params.get("id")||"").trim();
-let db=null, currentUser=null, profile=null, creator=null, podcasts=[], activity=[], own=false;
+let db=null, currentUser=null, profile=null, crowspaceProfile=null, creator=null, podcasts=[], activity=[], own=false;
 let channel=null, refreshTimer=null, loading=false;
 
 function hide(id){$(id)?.classList.add("hidden")}
@@ -114,9 +121,11 @@ function safeUrl(v){
  try{const u=new URL(/^https?:\/\//i.test(s)?s:"https://"+s);if(!["http:","https:"].includes(u.protocol))return "";return u.href}catch{return ""}
 }
 async function getDb(){
+ if(window.CrowSpaceAuth&&window.CrowSpaceAuth.ready){
+  await window.CrowSpaceAuth.ready;
+  if(window.CrowSpaceAuth.client)return window.CrowSpaceAuth.client;
+ }
  if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
- if(typeof window.CROW_BOOTSTRAP==="function")return await window.CROW_BOOTSTRAP();
- if(window.CROW_SUPABASE_READY&&typeof window.CROW_SUPABASE_READY.then==="function")return await window.CROW_SUPABASE_READY;
  throw new Error("CrowRules Supabase is unavailable.");
 }
 async function q(table,select,configure){
@@ -232,6 +241,11 @@ function renderPodcasts(){
   }).join("")+"</div>"
   :'<div class="empty">This member does not have any published podcasts yet.</div>';
 }
+function renderCrowSpace(posts,caws){
+ const postHtml=posts.length?posts.map(x=>'<article class="item"><strong>'+esc(x.title||"CrowSpace Post")+'</strong><p>'+esc(x.body||"")+'</p><small>'+esc(formatDateTime(x.created_at))+' · ♥ '+Number(x.like_count||0)+' · 💬 '+Number(x.comment_count||0)+'</small></article>').join(""):"<div class="empty">No public CrowSpace posts.</div>";
+ const cawHtml=caws.length?caws.map(x=>'<article class="pod"><div class="art">CAW</div><div><b>'+esc(x.title||"Untitled Caw")+'</b><small>'+Number(x.views||0).toLocaleString()+' views · '+esc(formatDateTime(x.created_at))+'</small></div></article>').join(""):"<div class="empty">No public CrowSpace Caws.</div>";
+ $("tab-crowspace").innerHTML='<div class="eyebrow">CROWRULES // CROWSPACE</div><h2 style="margin:7px 0 8px">Community presence</h2><p style="color:#919caf;font-size:11px;line-height:1.7">This unified member profile connects Podcasting activity with the member’s CrowSpace presence.</p><h3 style="font-size:11px;margin:16px 0 10px">Posts</h3><div class="list">'+postHtml+'</div><h3 style="font-size:11px;margin:18px 0 10px">Caws</h3><div class="podcast-grid">'+cawHtml+'</div>';
+}
 function renderActivity(){
  $("tab-activity").innerHTML=activity.length?'<div class="list">'+activity.map(renderActivityItem).join("")+"</div>":'<div class="empty">No public activity has been recorded yet.</div>';
 }
@@ -324,7 +338,7 @@ async function saveProfile(){
 function wireTabs(){
  $("tabs").querySelectorAll("button").forEach(btn=>btn.addEventListener("click",()=>{
   $("tabs").querySelectorAll("button").forEach(x=>x.classList.remove("active"));btn.classList.add("active");
-  ["overview","podcasts","activity","edit"].forEach(tab=>document.getElementById("tab-"+tab)?.classList.toggle("hidden",tab!==btn.dataset.tab));
+  ["overview","podcasts","activity","crowspace","edit"].forEach(tab=>document.getElementById("tab-"+tab)?.classList.toggle("hidden",tab!==btn.dataset.tab));
  }));
 }
 async function load(force){
@@ -338,24 +352,30 @@ async function load(force){
   if(!targetId)throw new Error("No member was specified. Open a profile with ?user=<member-id>.");
   own=!!currentUser&&currentUser.id===targetId;
   profile=await loadProfileRow(targetId);
+  const crow=await one("crowspace_profiles","*",q=>q.eq("user_id",targetId));
+  crowspaceProfile=crow.data||null;
+  if(crowspaceProfile){profile=Object.assign({},profile||{},crowspaceProfile,{user_id:targetId,display_name:crowspaceProfile.display_name||profile?.display_name||"",username:crowspaceProfile.username||profile?.username||"",bio:crowspaceProfile.bio||profile?.bio||"",avatar_url:crowspaceProfile.avatar_url||profile?.avatar_url||"",banner_url:crowspaceProfile.banner_url||profile?.banner_url||""});}
   if(!profile){
    profile={user_id:targetId,display_name:"CrowRules Member",username:"",bio:"",tagline:"",membership_type:"Member",points:0,watch_minutes:0};
   }
-  const [creatorR,podcastR,watchR,listenR,activityR]=await Promise.all([
+  const [creatorR,podcastR,watchR,listenR,activityR,crowPostsR,crowCawsR]=await Promise.all([
    one("podcasting_creator_directory","*",q=>q.eq("member_id",targetId).eq("is_active",true)),
    q("podcasting_podcast_directory","*",q=>q.eq("status","published")),
    q("watch_history","*",q=>q.eq("user_id",targetId).order("watched_at",{ascending:false}).limit(10)),
    q("podcast_listening_history","*",q=>q.eq("user_id",targetId).order("listened_at",{ascending:false}).limit(10)),
-   q("cr_platform_recent_activity","*",q=>q.eq("user_id",targetId).order("created_at",{ascending:false}).limit(15))
+   q("cr_platform_recent_activity","*",q=>q.eq("user_id",targetId).order("created_at",{ascending:false}).limit(15)),
+   q("crowspace_posts","id,title,body,created_at,like_count,comment_count",q=>q.eq("user_id",targetId).order("created_at",{ascending:false}).limit(12)),
+   q("crowspace_caws","id,title,caption,thumbnail_url,video_url,views,created_at",q=>q.eq("user_id",targetId).order("created_at",{ascending:false}).limit(12))
   ]);
   creator=creatorR.data;
   podcasts=(podcastR.data||[]).filter(x=>creator&&x.creator_id===creator.id);
+  const crowPosts=crowPostsR.data||[], crowCaws=crowCawsR.data||[];
   activity=[
    ...(activityR.data||[]).map(x=>Object.assign({kind:x.event_type||"Platform"},x)),
    ...(watchR.data||[]).map(x=>({kind:"Watched",title:x.content_title||x.title,created_at:x.watched_at})),
    ...(listenR.data||[]).map(x=>({kind:"Listened",title:x.podcast_title||x.title,created_at:x.listened_at}))
   ].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0)).slice(0,25);
-  renderHeader();renderAbout();renderStats();renderOverview();renderPodcasts();renderActivity();renderEdit();
+  renderHeader();renderAbout();renderStats();renderOverview();renderPodcasts();renderActivity();renderCrowSpace(crowPosts,crowCaws);renderEdit();
   hide("loading");hide("error");show("profile");
   setText("connection","LIVE · Supabase connected");
   subscribeRealtime();
@@ -381,6 +401,7 @@ function subscribeRealtime(){
 }
 window.addEventListener("beforeunload",()=>{if(channel&&db)try{db.removeChannel(channel)}catch(_){}});
 window.addEventListener("online",()=>load(true));
+const mobileToggle=document.getElementById("mobileToggle"),mobileMenu=document.getElementById("mobileMenu");if(mobileToggle&&mobileMenu)mobileToggle.onclick=()=>mobileMenu.style.display=mobileMenu.style.display==="none"?"block":"none";
 wireTabs();
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>load(false),{once:true});else load(false);
 window.addEventListener("crow:ready",()=>load(true));
