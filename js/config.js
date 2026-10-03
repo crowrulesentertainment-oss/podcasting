@@ -9,6 +9,8 @@ window.CROW_CONFIG=Object.assign({
  connectFunction:"creator-connect-onboarding",
  scheduleFunction:"podcast-schedule",
  pipelineFunction:"podcast-pipeline",
+ memberPaymentFunction:"member-payment-checkout",
+ platformFeePercent:20,
  downloadFunction:"podcast-download"
 },window.CROW_CONFIG||{});
 window.CROW_CONFIG_READY=true;
