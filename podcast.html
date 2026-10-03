@@ -5,7 +5,7 @@
 <meta name="theme-color" content="#05050b">
 <title>Podcast — CrowRules Podcasting</title>
 <link rel="stylesheet" href="css/podcasting.css">
-<script src="js/config.js?v=12.0" defer></script><script src="js/app.js?v=12.0" defer></script>
+<script src="js/config.js?v=13.0"></script><script src="js/app.js?v=13.0" defer></script>
 <style>
 :root{--cyan:#00dcff;--purple:#8b5cf6;--bg:#05050b;--panel:#0d0d17;--muted:rgba(255,255,255,.62)}
 body{background:radial-gradient(circle at 20% 0%,rgba(0,220,255,.08),transparent 30%),radial-gradient(circle at 90% 10%,rgba(139,92,246,.1),transparent 32%),var(--bg)}
@@ -54,7 +54,18 @@ const cfg=window.CROW_CONFIG||{},pid=new URLSearchParams(location.search).get("i
 const $=s=>document.querySelector(s),esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let sb=null,user=null,podcast=null,podcastId=null,episodes=[],rooms=[],room=null,chat=null,presence=null,editing=null,progress={},creatorMemberId=null,realtime=[],reconnectTimer=null,connectionState="connecting";
 const timeout=(p,ms=10000)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(Error("Supabase request timed out.")),ms))]);
-async function client(){if(sb)return sb;if(window.CROW_BOOTSTRAP)try{sb=await window.CROW_BOOTSTRAP()}catch{}if(!sb&&window.CROW_SUPABASE)sb=window.CROW_SUPABASE;else if(!sb&&window.supabase)sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});return sb}
+async function client(){
+ if(sb)return sb;
+ try{
+  if(window.CROW_BOOTSTRAP)sb=await timeout(window.CROW_BOOTSTRAP(),10000);
+ }catch(e){console.warn("Shared Supabase bootstrap failed:",e?.message||e)}
+ if(!sb&&window.CROW_SUPABASE)sb=window.CROW_SUPABASE;
+ if(!sb&&window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey){
+  try{sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}})}catch(e){console.warn("Direct Supabase client failed:",e?.message||e)}
+ }
+ if(!sb)throw Error("Supabase client could not be initialized. Check js/config.js and the Supabase library.");
+ return sb
+}
 function setConnectionState(s){connectionState=s;const el=$("#connectionStatus");if(el){el.textContent=s==="connected"?"● LIVE SYNC":s==="reconnecting"?"↻ RECONNECTING":"○ OFFLINE";el.className="chip "+(s==="connected"?"live":"")}}
 function scheduleReconnect(){clearTimeout(reconnectTimer);reconnectTimer=setTimeout(()=>setupRealtime(),2500)}
 async function setupRealtime(){const c=await client();if(!c||!podcastId)return;setConnectionState("reconnecting");realtime.forEach(x=>{try{x.unsubscribe()}catch{}});realtime=[];const base="podcast-page-"+podcastId;
