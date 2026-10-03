@@ -59,7 +59,7 @@ $('diagnose').onclick=diagnose;
 $('connect').onclick=onboard;
 $('continueSetup').onclick=onboard;
 $('request').onclick=requestPayout;
-$('wizardRefresh').onclick=load;
+$('wizardRefresh').onclick=async()=>{if(busy)return;busy=true;$('wizardRefresh').disabled=true;setStatus('Checking Stripe status now…');try{const d=await invoke('status');render(d);wizardRender(d);setStatus('Stripe status refreshed. Check the updated Stripe status above.',(d.payouts_enabled||d.stripe_account?.recipient_transfer_status==='active'||d.recipient_transfer_status==='active')?'ok':'warn')}catch(e){console.error(e);setStatus('Check Again failed: '+(e?.message||'Unable to refresh Stripe status.'),'bad')}finally{$('wizardRefresh').disabled=false;busy=false}};
 document.querySelectorAll('#connect,#continueSetup,#wizardAction,#wizardRefresh,#request,#diagnose,#refresh').forEach(b=>b.addEventListener('click',e=>{if(b.disabled)return; b.classList.add('stripe-button-busy'); setTimeout(()=>b.classList.remove('stripe-button-busy'),1200)},{passive:true}));
 window.addEventListener("crow:supabase-error",e=>{if(!busy)setStatus("Supabase connection failed: "+(e.detail?.error?.message||"Unable to connect"),"bad")});
 window.addEventListener("unhandledrejection",e=>{const m=e?.reason?.message||String(e?.reason||"Unexpected page error");console.error("Creator payout unhandled rejection:",e.reason);if(!busy)setStatus("Connection error: "+m,"bad")});
