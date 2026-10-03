@@ -514,4 +514,41 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 </script>
 
 
+<section class="panel" id="refundConsole" style="margin-top:15px">
+ <div class="exec-head"><div><h2 style="margin:0">Stripe Refund & Reconciliation</h2><div class="muted">Admin-only destination-charge refunds. Stripe reverses the creator transfer proportionally and refunds the application fee proportionally.</div></div><span id="refundHealth" class="pill">READY</span></div>
+ <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(180px,.45fr) minmax(0,.7fr);gap:9px;margin-top:12px">
+  <input id="refundPi" class="v4-input" placeholder="PaymentIntent ID (pi_…)" autocomplete="off">
+  <input id="refundAmount" class="v4-input" type="number" min="1" step="1" placeholder="Amount cents (blank = full)">
+  <select id="refundReason" class="v4-select"><option value="">No reason</option><option value="requested_by_customer">Requested by customer</option><option value="duplicate">Duplicate</option><option value="fraudulent">Fraudulent</option></select>
+ </div>
+ <div class="v4-actions" style="margin-top:10px"><button id="refundRun" class="v4-action danger">Issue Refund + Reverse Transfer</button><button id="refundClear" class="v4-action">Clear</button></div>
+ <div id="refundResult" class="v4-note" style="margin-top:10px">No refund operation run in this session.</div>
+ <div class="v4-note" style="margin-top:8px">Refunds are processed server-side with <code>reverse_transfer=true</code> and <code>refund_application_fee=true</code>. The webhook remains the reconciliation source of truth and records the Stripe refund and transfer-reversal IDs.</div>
+</section>
+<script>
+(()=>{"use strict";
+ const $=id=>document.getElementById(id),esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":">","\"":"&quot;"}[c]||c));
+ const set=(t,bad=false)=>{$("refundResult").textContent=t;$("refundHealth").textContent=bad?"ERROR":"READY";};
+ $("refundClear").onclick=()=>{$("refundPi").value="";$("refundAmount").value="";$("refundReason").value="";set("No refund operation run in this session.");};
+ $("refundRun").onclick=async()=>{
+  const pi=$("refundPi").value.trim(), raw=$("refundAmount").value.trim(), reason=$("refundReason").value;
+  if(!/^pi_[A-Za-z0-9]+$/.test(pi)){set("Enter a valid Stripe PaymentIntent ID.",true);return;}
+  const amount=raw?Number(raw):null;
+  if(amount!==null&&(!Number.isSafeInteger(amount)||amount<=0)){set("Refund amount must be a positive whole number of cents.",true);return;}
+  const sb=window.CROW_SUPABASE,api=window.CROW_CONFIG?.adminFunction;
+  if(!sb||!api){set("CrowRules Supabase is not ready. Refresh and try again.",true);return;}
+  if(!confirm("Issue this Stripe refund and reverse the creator transfer proportionally?"))return;
+  const btn=$("refundRun");btn.disabled=true;set("Processing refund through Stripe…");
+  try{
+   const r=await sb.functions.invoke(api,{body:{action:"stripe_refund",payment_intent_id:pi,amount_cents:amount,reason:reason||null}});
+   if(r.error)throw Error(r.error.message||"Refund service error.");
+   if(!r.data?.ok)throw Error(r.data?.error||"Refund rejected.");
+   const d=r.data;
+   set("Refund "+d.refund_id+" created: "+Number(d.amount_cents||0)+"¢ refunded; "+Number(d.creator_reversal_cents||0)+"¢ creator transfer reversed; "+Number(d.application_fee_refunded_cents||0)+"¢ application fee refunded. Status: "+(d.refund_status||"pending")+".");
+  }catch(e){set(e.message||"Refund failed.",true);}
+  finally{btn.disabled=false;}
+ };
+})();
+</script>
+
 </body></html>
