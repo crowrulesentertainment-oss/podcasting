@@ -78,7 +78,7 @@ async function invoke(action,extra={}){const s=await sb();const fn=window.CROW_C
 if(r.error)throw Error(r.error.message||"Creator finance service error.");
 if(r.data?.error)throw Error(r.data.error);
 return r.data}
-async function load(){if(busy)return;busy=true;$('refresh').disabled=true;try{const s=await sb();const session=await currentSession(s);const user=session?.user;if(!user){setStatus('Sign in to manage creator payouts.','warn');$('details').innerHTML='<p class="warn">You need a CrowRules account before you can connect Stripe.</p>';return}setStatus('Loading your creator earnings and Stripe status…');const d=await invoke('status');render(d);wizardRender(d)}catch(e){console.error(e);setStatus('Creator payout center error: '+(e.message||'Unknown error'),'bad');$('details').innerHTML='<p class="bad">'+esc(e.message||'Please refresh and try again.')+'</p>'}finally{$('refresh').disabled=false;busy=false}}
+async function load(){if(busy)return;busy=true;$('refresh').disabled=true;try{const s=await sb();const session=await currentSession(s);const user=session?.user;if(!user){setStatus('Sign in to manage creator payouts.','warn');$('details').innerHTML='<p class="warn">You need a CrowRules account before you can connect Stripe.</p>';return}setStatus('Loading your creator earnings and Stripe status…');const d=await invoke('status');render(d);wizardRender(d);startReadinessMonitor(d)}catch(e){console.error(e);setStatus('Creator payout center error: '+(e.message||'Unknown error'),'bad');$('details').innerHTML='<p class="bad">'+esc(e.message||'Please refresh and try again.')+'</p>'}finally{$('refresh').disabled=false;busy=false}}
 async function onboard(){try{$('connect').disabled=true;setStatus('Checking your Stripe onboarding status…');const current=await invoke('status');const due=current.requirements_currently_due||[];const transferReady=!!(current.payouts_enabled||current.stripe_account?.recipient_transfer_status==='active'||current.recipient_transfer_status==='active');const processing=!transferReady&&current.stripe_account_id&&!due.length&&['pending','submitted'].includes(String(current.onboarding_status||'').toLowerCase());render(current);wizardRender(current);
 if(transferReady){sessionStorage.removeItem('crowrules_stripe_onboarding_returned');setStatus('Stripe Connect is ready. No onboarding is needed.','ok');return}
 if(processing){setStatus('Stripe has received your onboarding information and is still processing the connected account. Use Check Again to refresh status; CrowRules will not reopen onboarding while Stripe is processing.','warn');return}
@@ -104,9 +104,37 @@ $('diagnose').onclick=diagnose;
 $('connect').onclick=onboard;
 $('continueSetup').onclick=onboard;
 $('request').onclick=requestPayout;
-$('wizardRefresh').onclick=async()=>{if(busy)return;busy=true;$('wizardRefresh').disabled=true;setStatus('Checking Stripe status now…');try{const s=await sb();const session=(await s.auth.getSession()).data?.session;if(!session)throw Error('Your CrowRules login session was not found. Sign in again, then click Check Again.');const d=await invoke('status');render(d);wizardRender(d);setStatus('Stripe status refreshed successfully.',(d.payouts_enabled||d.stripe_account?.recipient_transfer_status==='active'||d.recipient_transfer_status==='active')?'ok':'warn')}catch(e){console.error('Check Again:',e);setStatus('Check Again failed: '+(e?.message||'Unable to refresh Stripe status.'),'bad');$('wizardSummary').textContent='Stripe status check failed. See the red message above and try again.'}finally{$('wizardRefresh').disabled=false;busy=false}};
+$('wizardRefresh').onclick=async()=>{if(busy)return;busy=true;$('wizardRefresh').disabled=true;setStatus('Checking Stripe status now…');try{const s=await sb();const session=(await s.auth.getSession()).data?.session;if(!session)throw Error('Your CrowRules login session was not found. Sign in again, then click Check Again.');const d=await invoke('status');render(d);wizardRender(d);startReadinessMonitor(d);setStatus('Stripe status refreshed successfully.',(d.payouts_enabled||d.stripe_account?.recipient_transfer_status==='active'||d.recipient_transfer_status==='active')?'ok':'warn')}catch(e){console.error('Check Again:',e);setStatus('Check Again failed: '+(e?.message||'Unable to refresh Stripe status.'),'bad');$('wizardSummary').textContent='Stripe status check failed. See the red message above and try again.'}finally{$('wizardRefresh').disabled=false;busy=false}};
 document.querySelectorAll('#connect,#continueSetup,#wizardAction,#wizardRefresh,#request,#diagnose,#refresh').forEach(b=>b.addEventListener('click',e=>{if(b.disabled)return; b.classList.add('stripe-button-busy'); setTimeout(()=>b.classList.remove('stripe-button-busy'),1200)},{passive:true}));
 window.addEventListener("crow:supabase-error",e=>{if(!busy)setStatus("Supabase connection failed: "+(e.detail?.error?.message||"Unable to connect"),"bad")});
+let readinessTimer=null,readinessBusy=false;
+function stopReadinessMonitor(){if(readinessTimer){clearInterval(readinessTimer);readinessTimer=null}}
+async function readinessCheck(silent=false){
+  if(readinessBusy||document.hidden)return;
+  readinessBusy=true;
+  try{
+    const d=await invoke('status');
+    const wasReady=!!(last&&(last.payouts_enabled||last.stripe_account?.recipient_transfer_status==='active'||last.recipient_transfer_status==='active'||last.stripe_account?.payouts_status==='active'));
+    const ready=!!(d.payouts_enabled||d.stripe_account?.recipient_transfer_status==='active'||d.recipient_transfer_status==='active'||d.stripe_account?.payouts_status==='active');
+    render(d);wizardRender(d);
+    if(ready){
+      stopReadinessMonitor();
+      setStatus('Stripe Connect is now READY. Transfers and payouts are active. Your creator account can receive earnings.','ok');
+      if(!wasReady) $('wizardSummary').textContent='Stripe activated payout readiness automatically. No onboarding restart was required.';
+    }else if(!silent){
+      setStatus((d.requirements_currently_due||[]).length?'Action required: Stripe has additional verification requirements.':'Stripe is still processing your onboarding. CrowRules will keep monitoring automatically.','warn');
+    }
+  }catch(e){if(!silent)console.warn('Stripe readiness check:',e)}
+  finally{readinessBusy=false}
+}
+function startReadinessMonitor(d){
+  stopReadinessMonitor();
+  const req=d.requirements_currently_due||[];
+  const ready=!!(d.payouts_enabled||d.stripe_account?.recipient_transfer_status==='active'||d.recipient_transfer_status==='active'||d.stripe_account?.payouts_status==='active');
+  if(!d.stripe_account_id||ready||req.length)return;
+  readinessTimer=setInterval(()=>readinessCheck(true),30000);
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&last){const req=last.requirements_currently_due||[];const ready=!!(last.payouts_enabled||last.stripe_account?.recipient_transfer_status==='active'||last.recipient_transfer_status==='active'||last.stripe_account?.payouts_status==='active');if(last.stripe_account_id&&!ready&&!req.length)readinessCheck(true)}});
 window.addEventListener("unhandledrejection",e=>{const m=e?.reason?.message||String(e?.reason||"Unexpected page error");console.error("Creator payout unhandled rejection:",e.reason);if(!busy)setStatus("Connection error: "+m,"bad")});
 window.addEventListener("error",e=>{if(e?.error)console.error("Creator payout page error:",e.error)});
 async function start(){if(busy||window.__CREATOR_PAYOUTS_STARTED)return;window.__CREATOR_PAYOUTS_STARTED=true;stage('Connecting to CrowRules Supabase…');try{const s=await sb();stage('Checking your CrowRules login session…');const session=await currentSession(s);if(!session)throw Error('Your CrowRules login session was not found. Sign in to your CrowRules account, then return to Creator Payout Center.');stage('Loading your CrowRules creator account…');await load();const p=new URLSearchParams(location.search);if(p.get('stripe_return')==='1'){sessionStorage.setItem('crowrules_stripe_onboarding_returned','1');history.replaceState({},'',location.pathname);setStatus('Stripe onboarding returned successfully. Check Again to refresh the account status.','warn');}else if(p.get('stripe_refresh')==='1'){history.replaceState({},'',location.pathname);if(last&&!last.payouts_enabled)await onboard()}}catch(e){console.error(e);setStatus('Connection error: '+(e?.message||'Unable to connect to CrowRules'),'bad');$('details').innerHTML='<p class="bad">'+esc(e?.message||'Unable to connect. Please refresh and try again.')+'</p>'}}
