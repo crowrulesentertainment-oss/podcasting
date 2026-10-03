@@ -1,5 +1,35 @@
 # Stripe Integration TODO
 
+## Current Stripe Platform Status
+
+**New live CrowRules Podcasting platform account verified:** `acct_1UMQltAEVUNQd17S`.
+
+The Stripe connection now exposes both the old test account and the new live account. The new account is **not yet production-ready**: Stripe currently reports `details_submitted=false`, `charges_enabled=false`, `payouts_enabled=false`, and required platform business/representative information is still due.
+
+The old account `acct_1UJ6opAcvLNLtuQD` remains untouched.
+
+### What has been completed
+
+- New live Stripe account is visible to the Stripe integration.
+- CrowRules marketplace architecture is confirmed as Connect Marketplace.
+- Destination charges remain the intended payment flow.
+- CrowRules platform fee remains 20%; creator proceeds remain 80%.
+- Marketplace connected accounts use recipient/transfer capability checks.
+- Embedded Connect onboarding/components remain the intended creator experience.
+- Existing Checkout Studio/embedded Checkout work remains configured.
+- Existing creator mappings in Supabase were **not deleted or overwritten**.
+
+### Required before production
+
+1. Complete the new Stripe platform account's required business and representative information in Stripe Dashboard.
+2. Accept/configure the Connect platform liability settings required for marketplace operation.
+3. Create/obtain the new account's restricted API key and store it as the Supabase Edge Function `STRIPE_SECRET_KEY` secret. Never commit it to GitHub or browser code.
+4. Obtain the new account's publishable key and replace the old test publishable key in `js/config.js` when moving the browser integration to the new live account.
+5. Configure the new platform's webhook endpoint and signing secret for the existing reconciliation flow.
+6. Re-onboard existing creators under the new Connect platform. Do not reuse or delete old connected-account records until migration is verified.
+7. Verify recipient `stripe_balance.stripe_transfers.status` before every creator transfer.
+8. Run end-to-end live-mode verification with a controlled transaction before opening production payments.
+
 ## Values to Replace
 
 There are currently **no Checkout Studio placeholder values** in the repository Checkout integration.
@@ -9,15 +39,7 @@ The active membership flow retrieves its real recurring Stripe Price IDs from Su
 **Files containing placeholders:**
 - None.
 
-## Configured Parameters
-
-These Checkout Session parameters are configured in the existing integration.
-
-**Files containing these parameters:**
-- [supabase/functions/create-checkout/index.ts](supabase/functions/create-checkout/index.ts)
-- Supabase Edge Function `membership-checkout`
-- [js/podcasting.js](js/podcasting.js)
-- [membership.html](membership.html)
+## Configured Checkout Parameters
 
 | Parameter | Value |
 |-----------|-------|
@@ -38,75 +60,65 @@ The `create-checkout` server function uses Stripe SDK `18.5.0`, so the Checkout 
 
 The unused `customer` parameter was removed from `create-checkout` because it was not part of the configured Checkout Studio fields.
 
-## Setup and Next Steps
-
-1. Keep `STRIPE_SECRET_KEY` in Supabase Edge Function secrets only. Never put the secret key in browser code or GitHub.
-2. Keep the Stripe publishable key in [js/config.js](js/config.js) only if it is intended for the currently connected/test Stripe account.
-3. Ensure every active paid membership plan has a real recurring Stripe Price ID in `membership_plans.stripe_price_id`.
-4. Test the active embedded membership Checkout flow in Stripe test mode before going live.
-5. Verify the Checkout Session returns `client_secret` and that the embedded form mounts into `#checkout-form`.
-6. Keep subscription fulfillment webhook-driven; do not treat browser confirmation as the source of truth.
-7. Automatic Stripe Tax is intentionally disabled because Checkout Studio configured `automatic_tax.enabled=false`. Enable and configure Stripe Tax separately when the CrowRules tax requirements are ready.
-8. If the new CrowRules Stripe Connect platform account is being adopted, update the Supabase `STRIPE_SECRET_KEY` to the new platform account's test key before testing payments against that account.
-9. Re-onboard connected creators under the new Connect platform account before production payouts are enabled.
-
 ## Project Structure
 
-- [membership.html](membership.html) — loads Stripe.js from the required Dahlia build and provides `#checkout-form`.
-- [js/podcasting.js](js/podcasting.js) — resolves the selected membership plan, invokes `membership-checkout`, initializes `initCheckoutFormSdk`, mounts the expanded form, and wires confirmation.
-- [js/config.js](js/config.js) — browser-safe CrowRules configuration including the publishable Stripe key.
-- [supabase/functions/create-checkout/index.ts](supabase/functions/create-checkout/index.ts) — existing server-side Checkout Session implementation; updated surgically to match the configured fields.
+- `membership.html` — loads Stripe.js and provides `#checkout-form`.
+- `js/podcasting.js` — invokes membership Checkout and mounts the embedded form.
+- `js/config.js` — browser-safe CrowRules configuration and current publishable test key.
+- `supabase/functions/create-checkout/index.ts` — server-side Checkout Session implementation.
 - Supabase Edge Function `membership-checkout` — active recurring membership Checkout implementation.
+- Supabase Edge Function `creator-connect-onboarding` — creator Connect onboarding/readiness flow.
+- Supabase Edge Function `member-payment-checkout-v2` — creator-payment destination-charge flow with the 20% platform fee.
 
-## How It Works
+## Important Credential Boundary
 
-1. A signed-in member chooses a paid membership plan.
-2. The browser resolves the selected plan to its `plan_key`.
-3. The browser invokes the authenticated `membership-checkout` Edge Function.
-4. The server retrieves the active recurring Stripe Price ID.
-5. The server creates a subscription-mode Checkout Session using the configured Checkout parameters.
-6. The server returns JSON containing `client_secret`.
-7. Stripe.js initializes the Checkout Form with the configured appearance.
-8. The expanded form mounts into `#checkout-form`.
-9. The Checkout SDK confirmation action completes the payment.
-10. Subscription fulfillment remains webhook-driven.
+The new Stripe account is live, but its secret and publishable keys are not exposed through the Stripe connector. They must be created/retrieved in Stripe Dashboard and placed in their intended locations:
+
+- `STRIPE_SECRET_KEY` → Supabase Edge Function secret only.
+- Publishable key → `js/config.js` only.
+- `STRIPE_WEBHOOK_SECRET` → Supabase Edge Function secret only.
+
+Do **not** paste secret keys into chat or commit them to GitHub.
+
+## Existing Creator Records
+
+The current Supabase creator mappings remain intact:
+
+- `acct_1UJTFpPNTMuZr8sz` — Jonathan Riehle II — pending
+- `acct_1UMIwuATixwmfaLu` — Jason Riehle — pending
+
+These accounts were created under the previous platform context. They should be re-onboarded under `acct_1UMQltAEVUNQd17S` after the new platform is fully configured.
+
+## Production Flow
+
+1. Customer chooses a membership/payment.
+2. CrowRules server creates the Checkout Session on the new platform account.
+3. Customer completes embedded Checkout.
+4. Stripe records the payment/subscription.
+5. Webhooks reconcile payment state.
+6. For creator marketplace payments, CrowRules retains the configured 20% application/platform fee.
+7. The connected creator receives the remaining 80% through the destination-charge/Connect flow.
+8. Refund/reversal handling reconciles the application fee and creator transfer.
 
 ## Testing
 
-Use Stripe test mode and Stripe's documented test payment methods.
+Before production, verify:
 
-Verify:
-
-- Checkout Session mode is `subscription`.
-- `ui_mode` is `form` for the active membership flow.
-- `billing_address_collection` is `auto`.
-- `phone_number_collection.enabled` is `false`.
-- `payment_method_collection` is `always`.
-- `automatic_tax.enabled` is `false`.
-- `submit_type` is `auto`.
-- `integration_identifier` is `custom_embedded_web_0001`.
-- The response contains `client_secret`.
-- Stripe.js loads from https://js.stripe.com/dahlia/stripe.js.
-- The Checkout Form mounts successfully.
-- The confirm action completes successfully.
-- Subscription webhook processing records the resulting subscription.
-- Existing subscription upgrade behavior remains intact.
-
-## Remaining Production Work
-
-The Checkout form integration itself is configured. Before production:
-
-1. Connect the correct new Stripe platform account.
-2. Replace/update the Supabase Stripe secret with the new account's key.
-3. Verify the new Connect platform configuration.
-4. Re-onboard creators under the new Connect platform.
-5. Configure Stripe Tax when tax calculation is ready.
-6. Test payment, refund, Connect transfer, and webhook reconciliation flows end-to-end.
-7. Only then switch production credentials and live mode.
+- New platform account is fully enabled.
+- Checkout Session creation succeeds using the new platform credentials.
+- `client_secret` is returned.
+- Embedded Checkout mounts and confirms successfully.
+- Creator onboarding completes.
+- Recipient transfer capability reports `active`.
+- A controlled creator payment produces the expected 20%/80% split.
+- Webhooks reconcile payment, refund, and transfer records.
+- No old-platform credentials are being used by active production functions.
 
 ## Resources
 
 - https://support.stripe.com
-- https://docs.stripe.com/mcp
-- https://docs.stripe.com/api/checkout/sessions/create
-- https://docs.stripe.com/payments/checkout/quickstarts
+- https://docs.stripe.com/connect
+- https://docs.stripe.com/api/v2/core/accounts
+- https://docs.stripe.com/connect/marketplace
+- https://docs.stripe.com/connect/embedded-onboarding
+- https://docs.stripe.com/connect/supported-embedded-components/notification-banner
