@@ -261,6 +261,14 @@
       loadRows(sb,"members",user.id),
       loadRows(sb,"creator_profiles",user.id)
     ]);
+    let ownedPodcastCount=0;
+    try{
+      const cr=await sb.from("creators").select("id").eq("member_id",user.id);
+      const ids=(cr.data||[]).map(x=>x.id);
+      if(ids.length){const pr=await sb.from("podcasts").select("id",{count:"exact",head:true}).in("creator_id",ids);ownedPodcastCount=pr.count||0;}
+      else {const pr=await sb.from("podcasts").select("id",{count:"exact",head:true}).eq("creator_id",user.id);ownedPodcastCount=pr.count||0;}
+    }catch(_){ownedPodcastCount=0;}
+    const isPodcastCreator=ownedPodcastCount>0;
     const merged={...(members||{}),...(membership||{})};
     const metadata=user.user_metadata||{};
     const name=first(metadata.full_name,metadata.name,metadata.display_name,merged.display_name,merged.full_name,merged.name,user.email,"Member");
@@ -296,9 +304,11 @@
       ["Created",created?new Date(created).toLocaleString():"—"]
     ].map(([a,b])=>'<div class="row"><span>'+esc(a)+'</span><strong>'+esc(b)+'</strong></div>').join("");
 
-    $("podcastAccess").innerHTML=creator
-      ? '<div class="notice success">Creator profile detected. Creator tools are available from your account.</div>'
-      : '<div class="notice">No podcast creator profile is linked yet. You can still use Podcasting as a listener and create a creator profile from Creator Studio.</div>';
+    $("podcastAccess").innerHTML=isPodcastCreator
+      ? '<div class="notice success">Creator access active. Your account owns a podcast and Creator Studio is available.</div>'
+      : '<div class="notice">LISTENER ACCOUNT · You do not own a podcast yet. Your CrowRules account remains listener-only until you create your first podcast.</div>';
+    $("creatorButton").textContent=isPodcastCreator?"Creator Studio":"Create Your First Podcast";
+    $("creatorButton").href=isPodcastCreator?"creator-dashboard.html":"create-podcast.html";
     $("creatorButton").classList.remove("hidden");
 
     try{
