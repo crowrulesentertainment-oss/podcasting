@@ -156,12 +156,8 @@ async function connect(){
 async function getCreator(){
  var r=await wait(sb.rpc("get_my_podcast_creator_id"),10000,"Creator lookup timed out.");
  var id=r.data;
- if(r.error||!id){
-   r=await wait(sb.rpc("ensure_podcasting_creator"),15000,"Creator profile setup timed out.");
-   if(r.error)throw r.error;
-   id=r.data&&((typeof r.data==="object"?(r.data.creator_id||r.data.id):r.data));
- }
- if(!id)throw new Error("No creator profile is linked to this CrowRules account.");
+ if(r.error)throw r.error;
+ if(!id)throw new Error("Listener account · Create your first podcast to become a creator.");
  var q=await wait(sb.from("creators").select("id,creator_code,name,display_name,slug,role,discipline,bio,initials,profile_url,avatar_url,is_active").eq("id",id).maybeSingle(),10000,"Creator profile lookup timed out.");
  if(q.error)throw q.error;
  if(!q.data)throw new Error("Creator profile could not be found.");
