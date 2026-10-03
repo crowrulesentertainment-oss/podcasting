@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Creator Payouts — CrowRules Podcasting</title>
-<meta name="description" content="CrowRules Podcasting creator earnings, Stripe Connect status, payout history and onboarding.">
+<meta name="description" content="CrowRules Podcasting creator earnings, individual Stripe Connect onboarding, payout status and payout history.">
 <link rel="stylesheet" href="css/podcasting.css">
 <script src="js/config.js"></script>
 <script src="js/podcasting.js" defer></script>
@@ -14,8 +14,7 @@
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
 <style>
 :root{--line:#ffffff12;--panel:#090b15;--muted:#8f99ad;--cyan:#55e7ff;--green:#72f0bf;--amber:#ffd27d;--red:#ff8b9e}
-.payouts-shell{max-width:1180px;margin:auto}.state,.panel{padding:20px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#0b0d18,#070912);margin-top:16px;box-shadow:0 18px 60px #0003}
-.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}.kpi{padding:20px;border:1px solid var(--line);border-radius:16px;background:#0b0d16}.kpi small{display:block;color:var(--muted);font-size:9px;letter-spacing:.16em;text-transform:uppercase}.kpi strong{display:block;margin-top:8px;font-size:28px;font-family:Orbitron,Montserrat,sans-serif}.ok{color:var(--green)}.warn{color:var(--amber)}.bad{color:var(--red)}.muted{color:var(--muted)}.creator-line{display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap}.creator-line h2{margin:0;font-size:20px}.badge{display:inline-flex;padding:7px 10px;border:1px solid #55e7ff35;border-radius:999px;color:#c9f8ff;font-size:9px;letter-spacing:.12em;text-transform:uppercase}.actions{display:flex;gap:10px;flex-wrap:wrap}.requirements{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:14px}.req{padding:13px;border:1px solid #ffd27d24;border-radius:12px;background:#151109;color:#d8d0bf;font-size:11px}.table-wrap{overflow:auto}.payout-table{width:100%;border-collapse:collapse;min-width:700px}.payout-table th,.payout-table td{text-align:left;padding:13px;border-bottom:1px solid var(--line);font-size:11px}.payout-table th{color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.12em}.status-pill{display:inline-flex;padding:5px 8px;border-radius:999px;background:#ffffff0b;border:1px solid #ffffff14;font-size:9px;text-transform:uppercase;letter-spacing:.08em}.empty{padding:30px;text-align:center;color:var(--muted)}.error-box{white-space:pre-wrap;word-break:break-word}.hidden{display:none}@media(max-width:800px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.kpis{grid-template-columns:1fr}.kpi strong{font-size:24px}}
+.payouts-shell{max-width:1180px;margin:auto}.state,.panel{padding:20px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#0b0d18,#070912);margin-top:16px;box-shadow:0 18px 60px #0003}.intro{border-color:#55e7ff28;background:linear-gradient(145deg,#0b1220,#080a14)}.intro strong{color:#eafcff}.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}.kpi{padding:20px;border:1px solid var(--line);border-radius:16px;background:#0b0d16}.kpi small{display:block;color:var(--muted);font-size:9px;letter-spacing:.16em;text-transform:uppercase}.kpi strong{display:block;margin-top:8px;font-size:28px;font-family:Orbitron,Montserrat,sans-serif}.ok{color:var(--green)}.warn{color:var(--amber)}.bad{color:var(--red)}.muted{color:var(--muted)}.creator-line{display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap}.creator-line h2{margin:0;font-size:20px}.badge{display:inline-flex;padding:7px 10px;border:1px solid #55e7ff35;border-radius:999px;color:#c9f8ff;font-size:9px;letter-spacing:.12em;text-transform:uppercase}.actions{display:flex;gap:10px;flex-wrap:wrap}.requirements{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:14px}.req{padding:13px;border:1px solid #ffd27d24;border-radius:12px;background:#151109;color:#d8d0bf;font-size:11px}.table-wrap{overflow:auto}.payout-table{width:100%;border-collapse:collapse;min-width:700px}.payout-table th,.payout-table td{text-align:left;padding:13px;border-bottom:1px solid var(--line);font-size:11px}.payout-table th{color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.12em}.status-pill{display:inline-flex;padding:5px 8px;border-radius:999px;background:#ffffff0b;border:1px solid #ffffff14;font-size:9px;text-transform:uppercase;letter-spacing:.08em}.empty{padding:30px;text-align:center;color:var(--muted)}.error-box{white-space:pre-wrap;word-break:break-word}.hidden{display:none}.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}.step{padding:14px;border:1px solid var(--line);border-radius:12px;background:#ffffff04}.step b{display:block;margin-bottom:5px}.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.card{padding:14px;border:1px solid var(--line);border-radius:12px;background:#ffffff03}.card strong{font-size:10px;text-transform:uppercase;letter-spacing:.1em}.card p{margin:7px 0 0}.notice.ok{border-color:#72f0bf33}.notice.warn{border-color:#ffd27d33}.notice.bad{border-color:#ff8b9e33}@media(max-width:800px){.kpis,.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.kpis,.steps{grid-template-columns:1fr}.kpi strong{font-size:24px}}
 </style>
 </head>
 <body>
@@ -24,6 +23,16 @@
 <div class="eyebrow">CREATOR FINANCE CENTER</div>
 <h1>Your <span class="gradient">Payouts.</span></h1>
 <div id="status" class="notice">Connecting to your creator account…</div>
+
+<section class="panel intro">
+<strong>Every podcaster gets their own Stripe Connect payout account.</strong>
+<p class="muted">When you choose <b>Connect Stripe</b>, CrowRules securely creates or resumes the Stripe account tied to <em>your</em> CrowRules podcast creator profile. Stripe collects the identity and banking information required for payouts; CrowRules does not ask you to enter that sensitive information into this page.</p>
+<div class="steps">
+<div class="step"><b>1. Connect</b><span class="muted">Start secure Stripe onboarding from your creator account.</span></div>
+<div class="step"><b>2. Complete</b><span class="muted">Finish Stripe's identity, business and payout requirements.</span></div>
+<div class="step"><b>3. Get paid</b><span class="muted">Once Stripe enables payouts, eligible CrowRules earnings can be routed to your connected account.</span></div>
+</div>
+</section>
 
 <section id="accountPanel" class="panel hidden">
 <div class="creator-line">
@@ -38,10 +47,10 @@
 </div>
 </section>
 
-<section id="details" class="state"><div class="muted">Checking Stripe Connect and payout records…</div></section>
+<section id="details" class="state"><div class="muted">Checking your individual Stripe Connect account and payout records…</div></section>
 <section id="requirementsPanel" class="panel hidden"><h3>Action required</h3><p class="muted">Stripe may require additional information before payouts can be enabled.</p><div id="requirements" class="requirements"></div></section>
 <section class="panel"><div class="creator-line"><h2>Payout history</h2><span id="historyNote" class="muted"></span></div><div id="history" class="table-wrap" style="margin-top:12px"></div></section>
-<section class="panel"><h3>How creator payouts work</h3><p class="muted">CrowRules tracks creator payout records separately from Stripe Connect. Stripe handles the connected payout account; CrowRules displays the creator-side payout ledger returned by the secure finance service.</p><p class="muted">During testing, payout records may be empty until the monetization and payout pipeline generates an eligible transaction.</p></section>
+<section class="panel"><h3>How creator payouts work</h3><p class="muted">Your Stripe Connect account belongs to your individual CrowRules podcast creator profile. CrowRules can display your creator-side payout ledger, while Stripe handles onboarding, identity verification, bank-account details and connected-account payouts.</p><p class="muted">During testing, payout records may be empty until the monetization and payout pipeline generates an eligible transaction.</p></section>
 <div class="actions" style="margin-top:18px"><a class="btn" href="creator-dashboard.html">Creator Dashboard</a><a class="btn" href="member-profile.html">My Profile</a><a class="btn" href="home.html">Podcasting Home</a></div>
 </main>
 
@@ -89,13 +98,12 @@ function render(data){
  '<div class="card"><strong>Details submitted</strong><p>'+esc(data.details_submitted?"Yes":"No")+'</p></div>'+
  '<div class="card"><strong>Stripe account</strong><p>'+esc(data.stripe_account_id||"Not connected")+'</p></div>'+
  '<div class="card"><strong>Last synced</strong><p>'+date(data.updated_at)+'</p></div>'+
- '</div>'+
- (data.disabled_reason?'<div class="state"><strong class="bad">Stripe disabled reason</strong><p>'+esc(data.disabled_reason)+'</p></div>':"");
+ '</div>'+(data.disabled_reason?'<div class="state"><strong class="bad">Stripe disabled reason</strong><p>'+esc(data.disabled_reason)+'</p></div>':"");
  const req=[...(data.requirements_currently_due||[])];
  $("requirementsPanel").classList.toggle("hidden",!req.length);
  $("requirements").innerHTML=req.map(x=>'<div class="req">'+esc(x)+'</div>').join("");
  renderHistory(data.payouts||[]);
- setStatus(ready?"Stripe Connect is ready for creator payouts.":"Your creator payout setup needs attention.",ready?"ok":"warn");
+ setStatus(ready?"Stripe Connect is ready for creator payouts.":"Your individual Stripe payout setup needs attention.",ready?"ok":"warn");
 }
 async function load(){
  if(loading)return; loading=true;
@@ -105,20 +113,19 @@ async function load(){
   const {data:userData,error:userError}=await sb.auth.getUser();
   if(userError)throw userError;
   const user=userData?.user||null;
-  if(!user){setStatus("Sign in to manage creator payouts.","warn");$("details").innerHTML='<p class="warn">You need a CrowRules account before you can connect Stripe.</p>'; $("connect").textContent="Sign in";$("connect").onclick=()=>location.href="account.html";return;}
-  setStatus("Loading your creator finance center…");
+  if(!user){setStatus("Sign in to manage creator payouts.","warn");$("details").innerHTML='<p class="warn">You need a CrowRules account before you can connect Stripe.</p>';$("connect").textContent="Sign in";$("connect").onclick=()=>location.href="account.html";return;}
+  setStatus("Loading your individual creator payout account…");
   const fn=CROW_CONFIG?.connectFunction||"creator-connect-onboarding";
   const r=await sb.functions.invoke(fn,{body:{action:"status"}});
-  if(r.error){
-   const e=r.error; throw new Error([e.message,e.context?.hint,e.context?.details].filter(Boolean).join(" — ")||"Creator finance service returned an error.");
-  }
+  if(r.error){const e=r.error;throw new Error([e.message,e.context?.hint,e.context?.details].filter(Boolean).join(" — ")||"Creator finance service returned an error.");}
   if(r.data?.error)throw new Error(r.data.error);
   render(r.data||{});
   $("connect").onclick=async()=>{
    $("connect").disabled=true;setStatus("Opening secure Stripe onboarding…");
-   const x=await sb.functions.invoke(fn,{body:{action:"onboard",return_url:location.href,refresh_url:location.href}});
-   if(x.error){setStatus(x.error.message||"Unable to open Stripe.","bad");$("connect").disabled=false;return}
-   if(x.data?.onboarding_url){location.href=x.data.onboarding_url;return}
+   const returnUrl=new URL(location.href);returnUrl.searchParams.delete("stripe_return");
+   const x=await sb.functions.invoke(fn,{body:{action:"onboard",return_url:returnUrl.toString(),refresh_url:returnUrl.toString()}});
+   if(x.error){setStatus(x.error.message||"Unable to open Stripe.","bad");$("connect").disabled=false;return;}
+   if(x.data?.onboarding_url){location.href=x.data.onboarding_url;return;}
    setStatus(x.data?.error||"Stripe did not return an onboarding link.","bad");$("connect").disabled=false;
   };
  }catch(e){
@@ -129,7 +136,7 @@ async function load(){
  }finally{$("refresh").disabled=false;loading=false}
 }
 $("refresh").addEventListener("click",load);
-if(window.CROW_SUPABASE)load(); else addEventListener("crow:ready",load,{once:true});
+if(window.CROW_SUPABASE)load();else addEventListener("crow:ready",load,{once:true});
 setTimeout(()=>{if(!loading&&!document.querySelector("#accountPanel:not(.hidden)"))load()},1800);
 })();
 </script>
