@@ -419,4 +419,41 @@ q("v12Reload").onclick=load;q("v12Approve").onclick=()=>bulk("published");q("v12
 load();
 })();
 </script>
+
+<style id="crow-admin-v13-style">
+#adminV13{margin-top:15px}.v13-top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.v13-live{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid #35f2a155;border-radius:999px;font-size:.62rem}.v13-dot{width:7px;height:7px;border-radius:50%;background:var(--live);box-shadow:0 0 12px var(--live)}.v13-feed{display:grid;gap:7px;max-height:300px;overflow:auto}.v13-item{padding:9px;border:1px solid #ffffff0d;border-radius:9px;background:#ffffff03}.v13-item b{font-size:.7rem}.v13-item small{display:block;opacity:.55;margin-top:3px}.v13-alert{border-left:3px solid var(--warn)}.v13-error{border-left-color:var(--bad)}.v13-controls{display:flex;gap:7px;flex-wrap:wrap}.v13-pill{font-size:.62rem;padding:5px 8px;border-radius:999px;border:1px solid var(--line)}
+</style>
+<section id="adminV13" class="panel">
+ <div class="v13-top">
+  <div><div class="eyebrow">ADMIN V13 · AUTOMATED OPERATIONS</div><h2 style="margin:3px 0">Realtime Operations Control Room</h2><div class="muted">Automated publishing · realtime events · live moderation and health activity</div></div>
+  <div class="v13-controls"><span class="v13-live"><i class="v13-dot"></i><span id="v13Conn">REALTIME CONNECTING</span></span><button id="v13Refresh" class="btn">↻ Refresh</button></div>
+ </div>
+ <div class="v12-grid" id="v13Stats" style="margin-top:12px"></div>
+ <div class="v12-grid" style="margin-top:12px">
+  <div class="card"><b>Automation</b><div class="muted" id="v13Auto">Checking scheduler…</div></div>
+  <div class="card"><b>Live Activity</b><div class="muted">Database changes appear below as they happen.</div></div>
+  <div class="card"><b>Scheduled Publishing</b><div class="muted">Episodes reaching their scheduled time are automatically published every minute.</div></div>
+  <div class="card"><b>Control</b><div class="v13-controls" style="margin-top:8px"><button class="btn" id="v13PublishNow">Publish Selected V12 Episode</button></div></div>
+ </div>
+ <div class="v12-grid" style="margin-top:12px">
+  <div class="card"><h3 style="margin-top:0">Realtime Operations Feed</h3><div id="v13Feed" class="v13-feed"><div class="muted">Waiting for live events…</div></div></div>
+  <div class="card"><h3 style="margin-top:0">Recent Audit Activity</h3><div id="v13Audit" class="v13-feed"><div class="muted">Loading…</div></div></div>
+ </div>
+</section>
+<script>
+(()=>{"use strict";
+const q=id=>document.getElementById(id), esc=x=>String(x??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])), feed=[];
+function invoke(body){return window.CROW_SUPABASE.functions.invoke(window.CROW_CONFIG.adminFunction,{body});}
+function add(type,title,detail){feed.unshift({type,title,detail,time:new Date()});feed.splice(30);q("v13Feed").innerHTML=feed.map(x=>'<div class="v13-item '+(x.type==="ERROR"?"v13-error":"v13-alert")+'"><b>'+esc(x.title)+'</b><small>'+esc(x.detail||"")+" · "+esc(x.time.toLocaleTimeString())+'</small></div>').join("")}
+function render(d){const es=d.episodes||[],ps=d.podcasts||[],a=d.audit||[],now=Date.now(),scheduled=es.filter(e=>String(e.status).toLowerCase()==="scheduled").length,published=es.filter(e=>String(e.status).toLowerCase()==="published").length,due=es.filter(e=>String(e.status).toLowerCase()==="scheduled"&&e.scheduled_at&&new Date(e.scheduled_at).getTime()<=now).length;
+q("v13Stats").innerHTML=[["Published Episodes",published],["Scheduled",scheduled],["Due Now",due],["Live Podcasts",ps.filter(p=>p.is_live).length]].map(x=>'<div class="v12-stat"><b>'+x[1]+'</b><span>'+esc(x[0])+'</span></div>').join("");
+q("v13Auto").innerHTML='<span class="v13-pill v12-good">ACTIVE</span> · Database scheduler runs every minute.';
+q("v13Audit").innerHTML=a.length?a.map(x=>'<div class="v13-item"><b>'+esc(x.summary||x.action)+'</b><small>'+esc(x.created_at||"")+'</small></div>').join(""):'<div class="muted">No recent audit events.</div>';
+}
+async function snap(){try{const r=await invoke({action:"v13_realtime_snapshot"});if(r.error||!r.data?.ok)throw(r.error||Error(r.data?.error||"Snapshot failed"));render(r.data);q("v13Conn").textContent="REALTIME · ONLINE"}catch(e){q("v13Conn").textContent="SNAPSHOT ERROR";add("ERROR","Operations snapshot failed",e.message)}}
+function subscribe(){try{const c=window.CROW_SUPABASE.channel("crowrules-admin-v13-operations").on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},p=>{add("EVENT","Episode "+String(p.eventType).toUpperCase(),p.new?.title||p.old?.title||p.new?.id||p.old?.id);snap()}).on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},p=>{add("EVENT","Podcast "+String(p.eventType).toUpperCase(),p.new?.title||p.old?.title||p.new?.id||p.old?.id);snap()}).on("postgres_changes",{event:"*",schema:"public",table:"admin_audit_log"},p=>{add("EVENT","Admin audit event",p.new?.summary||p.new?.action||"Updated");snap()}).subscribe(s=>{if(s==="SUBSCRIBED")q("v13Conn").textContent="REALTIME · ONLINE";else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")q("v13Conn").textContent="REALTIME · RECONNECTING"});window.__v13Channel=c}catch{}}
+q("v13Refresh").onclick=snap;q("v13PublishNow").onclick=async()=>{const id=window.__v10SelectedEpisodeId;if(!id){alert("Select an episode in Creator Workspace V10 first.");return}const r=await invoke({action:"v13_publish_now",episode_id:id});if(r.error||!r.data?.ok){alert(r.error?.message||r.data?.error||"Publish failed");return}add("EVENT","Published now",r.data.row?.title||id);snap()};
+snap();subscribe();window.addEventListener("beforeunload",()=>{try{window.CROW_SUPABASE.removeChannel(window.__v13Channel)}catch{}});
+})();
+</script>
 </body></html>
