@@ -31,7 +31,7 @@ These parameters were configured in the existing Checkout Session creation call.
 | allow_promotion_codes | false |
 | payment_method_collection | always |
 | submit_type | auto |
-| integration_identifier | hosted_web_0001 |
+| integration_identifier | hosted_web_0002 |
 | origin_context | web |
 | success_url | https://example.com/success?session_id={CHECKOUT_SESSION_ID} — placeholder; replace before production |
 | cancel_url | https://example.com/cancel — placeholder; replace before production |
@@ -42,7 +42,7 @@ The repository uses Stripe SDK `18.5.0`, so the configured hosted Checkout value
 
 Only the parameters inside the existing `stripe.checkout.sessions.create(...)` call were changed. Surrounding authentication, customer lookup, response handling, and other code were left untouched.
 
-The previously configured embedded Checkout parameters were replaced in this existing call with the requested Hosted Stripe Checkout parameters. The separate active membership flow was not refactored because this task applies the surgical Scenario A change to the existing repository Checkout Session call.
+The separate active membership flow and creator-payment destination-charge flow were not refactored because this task applies the surgical Scenario A change to the existing repository Checkout Session call.
 
 ## Setup and Next Steps
 
@@ -63,12 +63,10 @@ The existing server-side `STRIPE_SECRET_KEY` naming remains unchanged. The repos
 
 ## Project Structure
 
-No new files, routes, middleware, or infrastructure were added.
+No new files, routes, middleware, or infrastructure were added by this task.
 
 The changed Checkout implementation is:
 - [supabase/functions/create-checkout/index.ts](supabase/functions/create-checkout/index.ts)
-
-The existing broader CrowRules Stripe architecture remains in place, including the active membership Checkout flow, Connect onboarding, creator payments, and webhook/reconciliation functions.
 
 ## How the Integration Works
 
@@ -76,7 +74,7 @@ The existing broader CrowRules Stripe architecture remains in place, including t
 2. The existing server authentication validates the Supabase user.
 3. The existing Stripe client creates a subscription Checkout Session.
 4. Stripe-hosted Checkout uses the configured Hosted Checkout parameters.
-5. The customer is sent to the configured `success_url` or `cancel_url`.
+5. The customer is intended to return to the configured `success_url` or `cancel_url`.
 6. Subscription fulfillment remains webhook-driven.
 
 ## Testing
@@ -92,10 +90,10 @@ Verify:
 - `allow_promotion_codes` is `false`.
 - `payment_method_collection` is `always`.
 - `submit_type` is `auto`.
-- `integration_identifier` is `hosted_web_0001`.
+- `integration_identifier` is `hosted_web_0002`.
 - `origin_context` is `web`.
 - `line_items[].price` resolves to a real Stripe Price ID.
-- Hosted Checkout redirects correctly.
+- Hosted Checkout redirects correctly after the endpoint's response flow is exercised.
 - Successful subscriptions are reconciled by webhook processing.
 
 Use Stripe's official test-mode payment methods rather than real card details.
