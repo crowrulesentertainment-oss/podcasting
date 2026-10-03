@@ -4,6 +4,101 @@
 </style></head><body><div data-nav></div><main class="wrap hero"><div class="eyebrow">ADMIN COMMAND CENTER · LIVE OPERATIONS</div><h1>Podcasting <span class="gradient">control.</span></h1><div id="status" class="notice">Connecting to CrowRules…</div><div class="admin-live"><div id="rt" class="pill"><span class="dot"></span><span id="rtText">REALTIME CONNECTING</span></div><div class="pill">Last sync <span id="sync" class="muted">—</span></div><div class="pill">Reconnects <span id="reconnects" class="muted">0</span></div><div class="actions"><button id="refresh" class="btn">↻ Refresh</button><button id="sound" class="btn">🔔 Sound ON</button><button id="clear" class="btn">Clear activity</button></div></div><section id="metrics" class="grid"></section><section class="panel executive"><div class="exec-head"><div><h2 style="margin:0">Executive Overview</h2><div class="muted">Live platform pulse · updates automatically</div></div><span id="velocity" class="pill">0 events/min</span></div><div id="execGrid" class="exec-grid"></div></section><section class="panel analytics"><div class="exec-head"><div><h2 style="margin:0">Activity Analytics</h2><div class="muted">Observed realtime activity for this admin session</div></div><div class="actions"><button id="analyticsHour" class="btn">Last Hour</button><button id="analyticsDay" class="btn">Last 24 Hours</button><button id="analyticsAll" class="btn active">Session</button></div></div><div id="analyticsGrid" class="analytics-grid"></div><div class="analytics-bars"><div class="bar-title"><span>Activity by stream</span><span id="analyticsTotal" class="muted">0 events</span></div><div id="analyticsBars"></div></div></section><section class="panel listener"><div class="exec-head"><div><h2 style="margin:0">Live Audience Dashboard</h2><div class="muted">Realtime audience intelligence from observed podcast listening activity</div></div><span id="listenerStatus" class="pill">WAITING FOR LISTENS</span></div><div id="audienceKpis" class="audience-kpis"></div><div class="audience-layout"><div><div class="audience-section-title">Top Podcasts</div><div id="listenerGrid" class="listener-grid"></div></div><div><div class="audience-section-title">Recent Listener Activity</div><div id="recentListeners" class="recent-listeners"><div class="stream-empty">Waiting for listening activity…</div></div></div></div></section><section class="panel command-panel"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h2 style="margin:0">Live Command Center</h2><div class="muted">Instant operational streams across the Podcasting platform</div></div><span id="centerClock" class="pill">LIVE</span></div><div id="streamGrid" class="stream-grid"></div></section><div class="layout"><section class="panel"><h2>Live Operations Feed</h2><div class="actions" style="margin-bottom:8px"><button id="pauseFeed" class="btn">⏸ Pause feed</button><button id="newest" class="btn">↟ Newest</button></div><div id="filters" class="filters"></div><div id="feed" class="feed"><div class="muted">Waiting for live activity…</div></div></section><aside class="panel"><h2>Platform Monitor</h2><div class="health"><span id="presenceHealth" class="pill"><span class="dot"></span>PRESENCE</span><span id="dbHealth" class="pill"><span class="dot"></span>DATABASE</span></div><div class="online"><div><b id="onlineCount">0</b><span class="muted">CURRENTLY ONLINE</span></div><div><b id="session">0</b><span class="muted">SESSION EVENTS</span></div><div><b id="tables">0</b><span class="muted">ACTIVE TABLES</span></div></div><div id="onlineUsers" style="display:grid;gap:7px;margin:10px 0 14px"><div class="muted">Waiting for online presence…</div></div><div id="monitor"></div></aside></div><style id="crow-admin-v3-style">
 .admin-v3{margin-top:15px}.admin-v3-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px}.admin-v3-card{padding:14px;border:1px solid var(--line);border-radius:13px;background:#ffffff04}.admin-v3-card b{display:block;font-size:1.35rem}.admin-v3-card span{font-size:.68rem;opacity:.6}.admin-v3-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.admin-v3-btn{border:1px solid var(--line);background:var(--panel);color:inherit;border-radius:10px;padding:8px 11px;cursor:pointer}.admin-v3-btn:hover{background:#ffffff12}.admin-v3-good{color:var(--live)}.admin-v3-warn{color:var(--warn)}.admin-v3-bad{color:var(--bad)}.admin-v3-log{margin-top:12px;max-height:180px;overflow:auto;display:grid;gap:6px}.admin-v3-log div{font-size:.7rem;padding:7px 9px;border:1px solid #ffffff0b;border-radius:8px;background:#ffffff03}.admin-v3-code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.64rem;word-break:break-word;opacity:.7}@media(max-width:980px){.admin-v3-grid{grid-template-columns:repeat(2,minmax(150px,1fr))}}@media(max-width:600px){.admin-v3-grid{grid-template-columns:1fr}}
 </style>
+<style id="crow-admin-v4-style">
+#adminV4{margin-top:15px}.v4-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:14px}.v4-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.v4-input,.v4-select{background:#070b14;color:inherit;border:1px solid var(--line);border-radius:9px;padding:9px 10px;min-width:0}.v4-table{width:100%;border-collapse:collapse}.v4-table th,.v4-table td{padding:9px;border-bottom:1px solid #ffffff0d;text-align:left;font-size:.72rem;vertical-align:middle}.v4-table th{font-size:.64rem;opacity:.55;text-transform:uppercase;letter-spacing:.08em}.v4-table-wrap{overflow:auto}.v4-actions{display:flex;gap:5px;flex-wrap:wrap}.v4-action{border:1px solid var(--line);background:#ffffff06;color:inherit;border-radius:8px;padding:6px 8px;cursor:pointer;font-size:.66rem}.v4-action:hover{background:#ffffff12}.v4-action.danger{border-color:#ff526855}.v4-status{display:inline-flex;padding:4px 7px;border-radius:999px;border:1px solid var(--line);font-size:.61rem}.v4-live{color:var(--live);border-color:#35f2a144}.v4-modal{position:fixed;inset:0;z-index:10020;background:#02030bcc;backdrop-filter:blur(12px);display:none;place-items:center;padding:18px}.v4-modal.open{display:grid}.v4-modal-box{width:min(760px,100%);max-height:85vh;overflow:auto;background:#0a0e18;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 30px 100px #000b}.v4-kv{display:grid;grid-template-columns:150px 1fr;gap:7px;padding:7px 0;border-bottom:1px solid #ffffff0b;font-size:.72rem}.v4-kv b{opacity:.55}.v4-audit{max-height:390px;overflow:auto;display:grid;gap:7px}.v4-audit-item{padding:9px;border:1px solid #ffffff0d;border-radius:9px;background:#ffffff03}.v4-audit-item b{display:block;font-size:.72rem}.v4-audit-item small{opacity:.5}.v4-note{font-size:.67rem;opacity:.55;line-height:1.5}@media(max-width:900px){.v4-grid{grid-template-columns:1fr}.v4-kv{grid-template-columns:110px 1fr}}
+</style>
+<section id="adminV4" class="panel">
+ <div class="exec-head"><div><h2 style="margin:0">Admin V4 · Control Room</h2><div class="muted">Real-time publishing, episode controls, member management and audit activity</div></div><span id="v4Health" class="pill">READY</span></div>
+ <div class="v4-toolbar">
+  <input id="v4Search" class="v4-input" placeholder="Search podcasts, episodes or members…" style="flex:1">
+  <select id="v4Type" class="v4-select"><option value="podcasts">Podcasts</option><option value="episodes">Episodes</option><option value="members">Members</option></select>
+  <button id="v4Reload" class="btn">↻ Load</button><button id="v4AuditRefresh" class="btn">Audit</button>
+ </div>
+ <div class="v4-grid">
+  <div>
+   <div id="v4Results" class="v4-table-wrap"><div class="muted">Load a control list.</div></div>
+   <div class="v4-note" style="margin-top:10px">Control actions are sent through the CrowRules admin API. If an action is rejected, the page will leave the record unchanged and show the server response.</div>
+  </div>
+  <aside>
+   <h3 style="margin-top:0">Admin Activity / Audit Log</h3>
+   <div id="v4Audit" class="v4-audit"><div class="muted">No actions recorded in this session.</div></div>
+  </aside>
+ </div>
+</section>
+<div id="v4Modal" class="v4-modal"><div class="v4-modal-box"><div class="exec-head"><h2 id="v4ModalTitle" style="margin:0">Details</h2><button id="v4ModalClose" class="btn">Close</button></div><div id="v4ModalBody" style="margin-top:12px"></div></div></div>
+<script id="crow-admin-v4">
+(()=>{"use strict";
+const V4={rows:[],type:"podcasts",audit:[]};
+const $=id=>document.getElementById(id);
+const esc=x=>String(x??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+const toast=(m,t="info")=>window.CROW_TOAST?window.CROW_TOAST(m,t):alert(m);
+function audit(action,target,result){V4.audit.unshift({at:new Date().toISOString(),action,target,result});V4.audit=V4.audit.slice(0,100);renderAudit()}
+function renderAudit(){$("v4Audit").innerHTML=V4.audit.length?V4.audit.map(x=>'<div class="v4-audit-item"><b>'+esc(x.action)+' · '+esc(x.target)+'</b><small>'+new Date(x.at).toLocaleString()+' · '+esc(x.result)+'</small></div>').join(""):'<div class="muted">No actions recorded in this session.</div>'}
+function value(row,...keys){for(const k of keys)if(row?.[k]!==undefined&&row?.[k]!==null)return row[k];return ""}
+function statusOf(row){return String(value(row,"status","state","visibility")||"unknown")}
+function render(){
+ const q=$("v4Search").value.trim().toLowerCase();
+ const rows=V4.rows.filter(r=>!q||JSON.stringify(r).toLowerCase().includes(q));
+ if(V4.type==="members"){
+  $("v4Results").innerHTML='<table class="v4-table"><thead><tr><th>Member</th><th>Email</th><th>Status</th><th>Controls</th></tr></thead><tbody>'+rows.map(r=>'<tr><td><b>'+esc(value(r,"display_name","full_name","name","email","id"))+'</b></td><td>'+esc(value(r,"email"))+'</td><td><span class="v4-status">'+esc(statusOf(r))+'</span></td><td><div class="v4-actions"><button class="v4-action" data-detail="'+esc(r.id)+'">Details</button><button class="v4-action" data-member="'+esc(r.id)+'" data-enabled="false">Disable</button><button class="v4-action" data-member="'+esc(r.id)+'" data-enabled="true">Enable</button></div></td></tr>').join("")+'</tbody></table>';
+ }else{
+  const episode=V4.type==="episodes";
+  $("v4Results").innerHTML='<table class="v4-table"><thead><tr><th>'+ (episode?"Episode":"Podcast")+'</th><th>Status</th><th>Updated</th><th>Controls</th></tr></thead><tbody>'+rows.map(r=>'<tr><td><b>'+esc(value(r,"title","name","episode_title","podcast_title","id"))+'</b><div class="muted">'+esc(value(r,"podcast_name","podcast_title","slug"))+'</div></td><td><span class="v4-status '+(statusOf(r).toLowerCase()==="published"?"v4-live":"")+'">'+esc(statusOf(r))+'</span></td><td>'+esc(value(r,"updated_at","published_at","created_at"))+'</td><td><div class="v4-actions"><button class="v4-action" data-detail="'+esc(r.id)+'">Details</button><button class="v4-action" data-publish="'+esc(r.id)+'" data-kind="'+(episode?"episode":"podcast")+'">Publish</button><button class="v4-action danger" data-unpublish="'+esc(r.id)+'" data-kind="'+(episode?"episode":"podcast")+'">Unpublish</button></div></td></tr>').join("")+'</tbody></table>';
+ }
+}
+async function load(){
+ const sb=window.CROW_SUPABASE;if(!sb){toast("Supabase is not ready.","error");return}
+ $("v4Health").textContent="LOADING";
+ try{
+  let table=V4.type==="podcasts"?"podcasting_podcast_directory":V4.type==="episodes"?"podcast_episodes":"podcasting_member_directory";
+  let select="*"; let q=sb.from(table).select(select).limit(250);
+  if(V4.type==="podcasts")q=q.order("created_at",{ascending:false});
+  else q=q.order("created_at",{ascending:false});
+  const r=await q;if(r.error)throw r.error;V4.rows=r.data||[];render();$("v4Health").textContent=V4.rows.length+" RECORDS";audit("LIST LOAD",V4.type,"Loaded "+V4.rows.length+" records");
+ }catch(e){$("v4Health").textContent="LOAD ERROR";$("v4Results").innerHTML='<div class="muted">Could not load '+esc(V4.type)+': '+esc(e.message||e)+'</div>';audit("LIST LOAD",V4.type,"Failed: "+(e.message||e));}
+}
+async function adminAction(action,id,kind,extra={}){
+ const sb=window.CROW_SUPABASE;if(!sb){toast("Supabase is not ready.","error");return}
+ const target=kind+" "+id;
+ if(!confirm((action==="publish"?"Publish ":"Unpublish ")+target+"?"))return;
+ try{
+  const r=await sb.functions.invoke((window.CROW_CONFIG||{}).adminFunction,{body:{action:"control",operation:action,resource:kind,id,...extra}});
+  if(r.error)throw r.error;
+  if(!r.data?.ok)throw Error(r.data?.error||"Administrator action was rejected.");
+  audit(action.toUpperCase(),target,"Completed");
+  toast(target+" updated.","info");await load();window.__CROW_ADMIN_V3?.refreshDiag?.();
+ }catch(e){audit(action.toUpperCase(),target,"Rejected: "+(e.message||e));toast("Action failed: "+(e.message||e),"error")}
+}
+async function memberAction(id,enabled){
+ const sb=window.CROW_SUPABASE;if(!sb){toast("Supabase is not ready.","error");return}
+ if(!confirm((enabled?"Enable":"Disable")+" member "+id+"?"))return;
+ try{
+  const r=await sb.functions.invoke((window.CROW_CONFIG||{}).adminFunction,{body:{action:"control",operation:enabled?"enable_member":"disable_member",resource:"member",id}});
+  if(r.error)throw r.error;if(!r.data?.ok)throw Error(r.data?.error||"Member action was rejected.");
+  audit((enabled?"ENABLE":"DISABLE")+" MEMBER",id,"Completed");toast("Member updated.");await load();
+ }catch(e){audit((enabled?"ENABLE":"DISABLE")+" MEMBER",id,"Rejected: "+(e.message||e));toast("Action failed: "+(e.message||e),"error")}
+}
+function detail(id){
+ const row=V4.rows.find(r=>String(r.id)===String(id));if(!row)return;
+ $("v4ModalTitle").textContent=value(row,"title","name","display_name","email")||"Record details";
+ $("v4ModalBody").innerHTML=Object.entries(row).map(([k,v])=>'<div class="v4-kv"><b>'+esc(k)+'</b><span>'+esc(typeof v==="object"?JSON.stringify(v):v)+'</span></div>').join("");
+ $("v4Modal").classList.add("open");audit("VIEW DETAILS",id,"Opened "+V4.type+" record")
+}
+document.addEventListener("click",e=>{
+ const b=e.target.closest("[data-publish],[data-unpublish],[data-member],[data-detail]");if(!b)return;
+ if(b.dataset.publish)adminAction("publish",b.dataset.publish,b.dataset.kind);
+ else if(b.dataset.unpublish)adminAction("unpublish",b.dataset.unpublish,b.dataset.kind);
+ else if(b.dataset.member)memberAction(b.dataset.member,b.dataset.enabled==="true");
+ else if(b.dataset.detail)detail(b.dataset.detail);
+});
+$("v4Type").onchange=()=>{V4.type=$("v4Type").value;load()};
+$("v4Reload").onclick=load;$("v4Search").oninput=render;$("v4AuditRefresh").onclick=()=>{renderAudit();toast("Audit log refreshed.")};
+$("v4ModalClose").onclick=()=>$("v4Modal").classList.remove("open");$("v4Modal").onclick=e=>{if(e.target===$("v4Modal"))$("v4Modal").classList.remove("open")};
+window.__CROW_ADMIN_V4={load,render,audit};
+addEventListener("crow:ready",()=>setTimeout(load,700));
+setTimeout(()=>{if(window.CROW_SUPABASE)load()},1800);
+})();
+</script>
 <section class="panel admin-v3">
   <div class="exec-head">
     <div><h2 style="margin:0">Operations Diagnostics</h2><div class="muted">Admin v3 · connection, event flow and table health</div></div>
