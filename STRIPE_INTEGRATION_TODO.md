@@ -31,7 +31,7 @@ These parameters were configured in the existing Checkout Session creation call.
 | allow_promotion_codes | false |
 | payment_method_collection | always |
 | submit_type | auto |
-| integration_identifier | hosted_web_0003 |
+| integration_identifier | hosted_web_0004 |
 | origin_context | web |
 | success_url | https://example.com/success?session_id={CHECKOUT_SESSION_ID} — placeholder; replace before production |
 | cancel_url | https://example.com/cancel — placeholder; replace before production |
@@ -90,7 +90,7 @@ Verify:
 - `allow_promotion_codes` is `false`.
 - `payment_method_collection` is `always`.
 - `submit_type` is `auto`.
-- `integration_identifier` is `hosted_web_0003`.
+- `integration_identifier` is `hosted_web_0004`.
 - `origin_context` is `web`.
 - `line_items[].price` resolves to a real Stripe Price ID.
 - Hosted Checkout redirects correctly after the endpoint's response flow is exercised.
