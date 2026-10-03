@@ -195,8 +195,12 @@ $("form").onsubmit=async e=>{
     }
 
     status.textContent="Creating your private draft…";
+    const creatorResult=await sb.rpc("ensure_podcasting_creator");
+    if(creatorResult.error) throw creatorResult.error;
+    const creatorId=creatorResult.data&&((typeof creatorResult.data==="object")?(creatorResult.data.creator_id||creatorResult.data.id):creatorResult.data);
+    if(!creatorId) throw new Error("Could not create or link your creator profile.");
     const data={
-      creator_id:userId,title:title.value.trim(),slug:slug.value,category:category.value,
+      creator_id:creatorId,title:title.value.trim(),slug:slug.value,category:category.value,
       description:description.value.trim()||null,artwork_url:artworkUrl,trailer_url:trailerUrl,
       website_url:$("website_url").value.trim()||null,subcategory:$("subcategory").value.trim()||null,
       language:$("language").value,copyright:$("copyright").value.trim()||null,
