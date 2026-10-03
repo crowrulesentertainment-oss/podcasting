@@ -2,7 +2,7 @@
 window.CROW_CONFIG=Object.assign({
  supabaseUrl:"https://cevylpnoexugwgygvtgu.supabase.co",
  supabaseKey:"sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-",
- stripePublishableKey:"pk_test_...",
+ stripePublishableKey:"pk_test_51UMQokAG9CdSsRKukhmXnYfvGPRWCLx4fYWfAlRiaCWCV5yhU9WL3Dz6pUAPgGnIfCRX2zG3EzeZknF8R2L2kuEs00IN6lsuYG",
  siteUrl:"https://crowrulesentertainment-oss.github.io/podcasting/",
  membershipCheckoutFunction:"membership-checkout",
  adminFunction:"crowrules-admin-api",
