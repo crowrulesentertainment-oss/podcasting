@@ -25,7 +25,22 @@
   </aside>
  </div>
 </section>
-<div id="v4Modal" class="v4-modal"><div class="v4-modal-box"><div class="exec-head"><h2 id="v4ModalTitle" style="margin:0">Details</h2><button id="v4ModalClose" class="btn">Close</button></div><div id="v4ModalBody" style="margin-top:12px"></div></div></div>
+<section id="adminV5" class="panel" style="margin-top:15px">
+<div class="exec-head"><div><h2 style="margin:0">Admin V5 · Bulk Operations</h2><div class="muted">Multi-select publishing controls and persistent admin activity</div></div><span id="v5Status" class="pill">READY</span></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><input id="v5Search" placeholder="Filter current list…" style="flex:1;min-width:200px;padding:9px;border:1px solid var(--line);border-radius:9px;background:#070b14;color:inherit"><button id="v5SelectAll" class="btn">Select All</button><button id="v5Clear" class="btn">Clear</button><button id="v5Publish" class="btn">Publish Selected</button><button id="v5Unpublish" class="btn">Unpublish Selected</button></div>
+<div id="v5List" style="display:grid;gap:7px;max-height:420px;overflow:auto"><div class="muted">Loading current records…</div></div>
+</section>
+<script>
+(()=>{const V={selected:new Set()};const $=id=>document.getElementById(id);const esc=x=>String(x??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const src=()=>window.__CROW_ADMIN_V4;const rows=()=>src()?.rows||[];const label=r=>r?.title||r?.name||r?.episode_title||r?.podcast_title||r?.email||r?.slug||r?.id||"Record";
+function render(){const q=$("v5Search").value.trim().toLowerCase();const a=rows().filter(r=>!q||JSON.stringify(r).toLowerCase().includes(q));$("v5List").innerHTML=a.length?a.map(r=>{const id=String(r.id);return '<div style="display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:9px;border:1px solid #ffffff0d;border-radius:10px"><input type="checkbox" data-v5="'+esc(id)+'" '+(V.selected.has(id)?"checked":"")+'><div><b>'+esc(label(r))+'</b><div class="muted">'+esc(r.status||r.state||r.visibility||"unknown")+'</div></div><button class="btn" data-v5-detail="'+esc(id)+'">Details</button></div>'}).join(""):'<div class="muted">No matching records.</div>'}
+async function act(op){const ids=[...V.selected];if(!ids.length){alert("Select at least one record.");return}if(!confirm(op+" "+ids.length+" selected record(s)?"))return;const sb=window.CROW_SUPABASE,api=(window.CROW_CONFIG||{}).adminFunction;if(!sb||!api)return;let ok=0;$("v5Status").textContent="PROCESSING";for(const id of ids){try{const kind=src()?.type==="episodes"?"episode":src()?.type==="members"?"member":"podcast";const r=await sb.functions.invoke(api,{body:{action:"control",operation:op,resource:kind,id}});if(r.error||!r.data?.ok)throw Error(r.error?.message||r.data?.error||"Rejected");ok++}catch(e){console.warn("Admin V5 action",e)}}V.selected.clear();$("v5Status").textContent=ok+" / "+ids.length+" COMPLETE";await src()?.load?.();render()}
+$("v5Search").oninput=render;$("v5SelectAll").onclick=()=>{rows().forEach(r=>V.selected.add(String(r.id)));render()};$("v5Clear").onclick=()=>{V.selected.clear();render()};$("v5Publish").onclick=()=>act("publish");$("v5Unpublish").onclick=()=>act("unpublish");
+document.addEventListener("change",e=>{if(!e.target.dataset.v5)return;e.target.checked?V.selected.add(e.target.dataset.v5):V.selected.delete(e.target.dataset.v5)});
+document.addEventListener("click",e=>{const id=e.target.closest("[data-v5-detail]")?.dataset.v5Detail;if(id){const b=document.querySelector("[data-detail='"+CSS.escape(id)+"']");b?.click()}});
+addEventListener("crow:ready",()=>setTimeout(render,1500));setTimeout(render,3000);setInterval(()=>{if(!document.hidden)render()},5000);
+})();
+</script><div id="v4Modal" class="v4-modal"><div class="v4-modal-box"><div class="exec-head"><h2 id="v4ModalTitle" style="margin:0">Details</h2><button id="v4ModalClose" class="btn">Close</button></div><div id="v4ModalBody" style="margin-top:12px"></div></div></div>
 <script id="crow-admin-v4">
 (()=>{"use strict";
 const V4={rows:[],type:"podcasts",audit:[]};
