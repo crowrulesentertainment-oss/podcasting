@@ -2,26 +2,26 @@
 
 ## Values to Replace
 
-The following value is still a placeholder and must be updated before using the embedded Checkout form.
+There are currently **no Checkout Studio placeholder values** in the repository Checkout integration.
+
+The active membership flow retrieves its real recurring Stripe Price IDs from Supabase at runtime. The repository `create-checkout` function also receives a real Stripe Price ID from its authenticated caller.
 
 **Files containing placeholders:**
-- [js/config.js](js/config.js)
-
-| Field | Current Value | What to Set |
-|-------|--------------|-------------|
-| stripePublishableKey | pk_test_... | Your Stripe publishable key for the new CrowRules Stripe platform account. Keep the secret key server-side only. |
-
-The Checkout Session's mode and line_items[0].price are not placeholders: this existing membership flow uses recurring subscriptions and retrieves the active Stripe Price ID from membership_plans at runtime.
+- None.
 
 ## Configured Parameters
 
+These Checkout Session parameters are configured in the existing integration.
+
 **Files containing these parameters:**
-- Supabase Edge Function membership-checkout
+- [supabase/functions/create-checkout/index.ts](supabase/functions/create-checkout/index.ts)
+- Supabase Edge Function `membership-checkout`
 - [js/podcasting.js](js/podcasting.js)
+- [membership.html](membership.html)
 
 | Parameter | Value |
 |-----------|-------|
-| ui_mode | form |
+| ui_mode | custom for `stripe@18.5.0` in `create-checkout`; form for the active membership Checkout flow |
 | mode | subscription |
 | billing_address_collection | auto |
 | phone_number_collection.enabled | false |
@@ -29,60 +29,80 @@ The Checkout Session's mode and line_items[0].price are not placeholders: this e
 | payment_method_collection | always |
 | submit_type | auto |
 | integration_identifier | custom_embedded_web_0001 |
+| line_items | Real Stripe Price ID supplied at runtime |
 | Stripe API version | 2026-03-25.dahlia; custom_checkout_payment_form_preview=v1 |
 | Stripe.js build | https://js.stripe.com/dahlia/stripe.js |
 | Checkout Form layout | expanded |
 
-SDK note: the browser integration uses the Dahlia Stripe.js build and form Checkout UI. The server currently uses Stripe's HTTP API directly, so no server SDK package version determines ui_mode.
+The `create-checkout` server function uses Stripe SDK `18.5.0`, so the Checkout SDK version rule requires `ui_mode: "custom"`. The active membership flow uses the embedded `form` mode and already loads the required Dahlia Stripe.js build.
+
+The unused `customer` parameter was removed from `create-checkout` because it was not part of the configured Checkout Studio fields.
 
 ## Setup and Next Steps
 
-1. Replace stripePublishableKey in [js/config.js](js/config.js) with the publishable key for the new CrowRules Stripe platform account.
-2. Keep STRIPE_SECRET_KEY configured as a Supabase Edge Function secret. Never put the secret key in browser code or GitHub.
-3. Ensure each active paid membership plan has a real recurring Stripe Price ID in membership_plans.stripe_price_id.
-4. The updated membership-checkout Edge Function is already deployed and requires an authenticated Supabase user.
-5. Test the embedded Checkout form in Stripe test mode before switching to live mode.
-6. Verify subscription lifecycle fulfillment continues to be handled by the signed Stripe webhook flow rather than browser-only success state.
-7. Automatic Stripe Tax is intentionally disabled because Checkout Studio configured automatic_tax.enabled=false. Configure Stripe Tax separately before enabling tax calculation.
-8. Do not place Stripe secret keys in js/config.js or any other browser-accessible file.
+1. Keep `STRIPE_SECRET_KEY` in Supabase Edge Function secrets only. Never put the secret key in browser code or GitHub.
+2. Keep the Stripe publishable key in [js/config.js](js/config.js) only if it is intended for the currently connected/test Stripe account.
+3. Ensure every active paid membership plan has a real recurring Stripe Price ID in `membership_plans.stripe_price_id`.
+4. Test the active embedded membership Checkout flow in Stripe test mode before going live.
+5. Verify the Checkout Session returns `client_secret` and that the embedded form mounts into `#checkout-form`.
+6. Keep subscription fulfillment webhook-driven; do not treat browser confirmation as the source of truth.
+7. Automatic Stripe Tax is intentionally disabled because Checkout Studio configured `automatic_tax.enabled=false`. Enable and configure Stripe Tax separately when the CrowRules tax requirements are ready.
+8. If the new CrowRules Stripe Connect platform account is being adopted, update the Supabase `STRIPE_SECRET_KEY` to the new platform account's test key before testing payments against that account.
+9. Re-onboard connected creators under the new Connect platform account before production payouts are enabled.
 
 ## Project Structure
 
-- [membership.html](membership.html) — loads Stripe.js from the required Dahlia build and provides #checkout-form.
-- [js/podcasting.js](js/podcasting.js) — resolves the selected membership plan, calls membership-checkout, initializes initCheckoutFormSdk, mounts the expanded form, and wires confirmation.
-- [js/config.js](js/config.js) — browser-safe Stripe publishable-key configuration.
-- Supabase membership-checkout — authenticates the member, resolves the active recurring Price ID, creates the Checkout Session, and returns client_secret.
+- [membership.html](membership.html) — loads Stripe.js from the required Dahlia build and provides `#checkout-form`.
+- [js/podcasting.js](js/podcasting.js) — resolves the selected membership plan, invokes `membership-checkout`, initializes `initCheckoutFormSdk`, mounts the expanded form, and wires confirmation.
+- [js/config.js](js/config.js) — browser-safe CrowRules configuration including the publishable Stripe key.
+- [supabase/functions/create-checkout/index.ts](supabase/functions/create-checkout/index.ts) — existing server-side Checkout Session implementation; updated surgically to match the configured fields.
+- Supabase Edge Function `membership-checkout` — active recurring membership Checkout implementation.
 
 ## How It Works
 
 1. A signed-in member chooses a paid membership plan.
-2. The browser resolves the selected plan to its plan_key.
-3. The browser invokes the authenticated Supabase membership-checkout function.
-4. The server retrieves the active recurring Stripe Price ID and creates a Checkout Session in subscription mode.
-5. The server returns JSON containing client_secret.
-6. Stripe.js initializes the Checkout Form using the configured appearance.
-7. The expanded form mounts into #checkout-form.
-8. The Checkout SDK confirmation action completes the payment.
-9. Subscription fulfillment remains webhook-driven.
+2. The browser resolves the selected plan to its `plan_key`.
+3. The browser invokes the authenticated `membership-checkout` Edge Function.
+4. The server retrieves the active recurring Stripe Price ID.
+5. The server creates a subscription-mode Checkout Session using the configured Checkout parameters.
+6. The server returns JSON containing `client_secret`.
+7. Stripe.js initializes the Checkout Form with the configured appearance.
+8. The expanded form mounts into `#checkout-form`.
+9. The Checkout SDK confirmation action completes the payment.
+10. Subscription fulfillment remains webhook-driven.
 
 ## Testing
 
-Use Stripe test mode and documented Stripe test payment methods. Verify:
+Use Stripe test mode and Stripe's documented test payment methods.
 
-- Checkout Session mode is subscription.
-- ui_mode is form.
-- billing_address_collection is auto.
-- phone_number_collection.enabled is false.
-- payment_method_collection is always.
-- automatic_tax.enabled is false.
-- submit_type is auto.
-- integration_identifier is custom_embedded_web_0001.
-- The response contains client_secret.
+Verify:
+
+- Checkout Session mode is `subscription`.
+- `ui_mode` is `form` for the active membership flow.
+- `billing_address_collection` is `auto`.
+- `phone_number_collection.enabled` is `false`.
+- `payment_method_collection` is `always`.
+- `automatic_tax.enabled` is `false`.
+- `submit_type` is `auto`.
+- `integration_identifier` is `custom_embedded_web_0001`.
+- The response contains `client_secret`.
 - Stripe.js loads from https://js.stripe.com/dahlia/stripe.js.
-- The Checkout Form mounts successfully and the confirm action completes.
-- Existing subscriptions still use the upgrade path correctly.
+- The Checkout Form mounts successfully.
+- The confirm action completes successfully.
+- Subscription webhook processing records the resulting subscription.
+- Existing subscription upgrade behavior remains intact.
 
-Stripe's Checkout Sessions API requires Checkout mode to match the product type; recurring Prices use subscription mode.
+## Remaining Production Work
+
+The Checkout form integration itself is configured. Before production:
+
+1. Connect the correct new Stripe platform account.
+2. Replace/update the Supabase Stripe secret with the new account's key.
+3. Verify the new Connect platform configuration.
+4. Re-onboard creators under the new Connect platform.
+5. Configure Stripe Tax when tax calculation is ready.
+6. Test payment, refund, Connect transfer, and webhook reconciliation flows end-to-end.
+7. Only then switch production credentials and live mode.
 
 ## Resources
 
