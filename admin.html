@@ -344,4 +344,79 @@ const observer=new MutationObserver(()=>{const main=document.querySelector("#v10
 observer.observe(document.body,{subtree:true,childList:true});
 window.__v11Refresh=()=>{if(window.__v10CurrentCreator)v11Audience(window.__v10CurrentCreator.id)};
 })();
-</script></body></html>
+</script>
+<style id="crow-admin-v12-style">
+#adminV12{margin-top:15px}.v12-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.v12-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.v12-tab{border:1px solid var(--line);background:#ffffff05;color:inherit;border-radius:999px;padding:7px 11px;cursor:pointer}.v12-tab.active{background:#35f2a11f;border-color:#35f2a166}
+.v12-pane{display:none}.v12-pane.active{display:block}.v12-grid{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:10px}.v12-stat{padding:13px;border:1px solid var(--line);border-radius:13px;background:#ffffff04}.v12-stat b{display:block;font-size:1.55rem}.v12-stat span{font-size:.67rem;opacity:.58}
+.v12-table{width:100%;border-collapse:collapse}.v12-table th,.v12-table td{padding:9px;border-bottom:1px solid #ffffff0c;text-align:left;font-size:.7rem;vertical-align:middle}.v12-table th{font-size:.6rem;opacity:.55;text-transform:uppercase}
+.v12-wrap{overflow:auto}.v12-badge{display:inline-flex;padding:4px 7px;border:1px solid var(--line);border-radius:999px;font-size:.59rem}.v12-good{color:var(--live);border-color:#35f2a144}.v12-warn{color:var(--warn);border-color:#ffd16644}.v12-bad{color:var(--bad);border-color:#ff526844}
+.v12-calendar{display:grid;grid-template-columns:repeat(7,minmax(105px,1fr));gap:7px;margin-top:12px}.v12-day{min-height:110px;border:1px solid var(--line);border-radius:10px;padding:8px;background:#ffffff03}.v12-day b{font-size:.68rem}.v12-event{display:block;margin-top:6px;padding:6px;border-radius:7px;background:#ffffff07;font-size:.61rem}.v12-event.scheduled{border-left:2px solid var(--warn)}.v12-event.published{border-left:2px solid var(--live)}
+.v12-log{display:grid;gap:7px;max-height:430px;overflow:auto}.v12-log-item{padding:9px;border:1px solid #ffffff0d;border-radius:9px;background:#ffffff03}.v12-log-item b{display:block;font-size:.7rem}.v12-log-item small{opacity:.5}
+.v12-health{display:grid;gap:7px}.v12-health-item{padding:10px;border:1px solid #ffffff0d;border-radius:10px}.v12-health-item b{display:block;font-size:.7rem}.v12-health-item span{font-size:.65rem;opacity:.6}
+@media(max-width:900px){.v12-grid{grid-template-columns:repeat(2,minmax(140px,1fr))}.v12-calendar{grid-template-columns:repeat(2,minmax(120px,1fr))}}@media(max-width:600px){.v12-grid{grid-template-columns:1fr}.v12-calendar{grid-template-columns:1fr}}
+</style>
+<section id="adminV12" class="panel">
+ <div class="v12-head">
+  <div><div class="eyebrow">ADMIN V12 · CREATOR OPERATIONS</div><h2 style="margin:3px 0">Creator Operations Center</h2><div class="muted">Moderation · scheduling · bulk operations · health checks · audit trail</div></div>
+  <div class="actions"><button id="v12Reload" class="btn">↻ Scan Operations</button><span id="v12Status" class="pill">READY</span></div>
+ </div>
+ <div class="v12-tabs">
+  <button class="v12-tab active" data-v12-tab="overview">Overview</button><button class="v12-tab" data-v12-tab="moderation">Moderation Queue</button><button class="v12-tab" data-v12-tab="calendar">Publishing Calendar</button><button class="v12-tab" data-v12-tab="bulk">Bulk Episodes</button><button class="v12-tab" data-v12-tab="health">Podcast Health</button><button class="v12-tab" data-v12-tab="audit">Admin Audit</button>
+ </div>
+ <div id="v12-overview" class="v12-pane active">
+  <div id="v12Stats" class="v12-grid"></div>
+  <div class="v12-grid" style="margin-top:12px"><div class="card"><b>Operations</b><div class="muted">Use the tabs above to review creator content, schedules and system health.</div></div><div class="card"><b>Media checks</b><div class="muted">Server-side URL checks flag media endpoints that return an error or cannot be reached.</div></div><div class="card"><b>Audit</b><div class="muted">Administrative mutations are recorded in the protected audit log.</div></div><div class="card"><b>Realtime-ready</b><div class="muted">The center can be refreshed on demand without disturbing the existing V10/V11 workspace.</div></div></div>
+ </div>
+ <div id="v12-moderation" class="v12-pane">
+  <div class="actions" style="margin:10px 0"><button class="btn" id="v12Approve">Approve → Published</button><button class="btn" id="v12Review">Send to Review</button><button class="btn" id="v12Archive">Archive Selected</button></div>
+  <div class="v12-wrap"><table class="v12-table"><thead><tr><th></th><th>Episode</th><th>Podcast</th><th>Status</th><th>Scheduled</th><th>Media</th></tr></thead><tbody id="v12ModerationRows"></tbody></table></div>
+ </div>
+ <div id="v12-calendar" class="v12-pane">
+  <div class="muted">Scheduled episodes are grouped into their publishing week. Past-due schedules are highlighted in Podcast Health.</div>
+  <div id="v12Calendar" class="v12-calendar"></div>
+ </div>
+ <div id="v12-bulk" class="v12-pane">
+  <div class="actions" style="margin:10px 0"><button class="btn" id="v12BulkReview">Move → Review</button><button class="btn" id="v12BulkPublish">Publish</button><button class="btn" id="v12BulkDraft">Draft</button><button class="btn" id="v12BulkArchive">Archive</button></div>
+  <div class="v12-wrap"><table class="v12-table"><thead><tr><th></th><th>Episode</th><th>Podcast</th><th>Status</th><th>Episode #</th><th>Updated</th></tr></thead><tbody id="v12BulkRows"></tbody></table></div>
+ </div>
+ <div id="v12-health" class="v12-pane"><div id="v12HealthList" class="v12-health"></div></div>
+ <div id="v12-audit" class="v12-pane"><div id="v12AuditList" class="v12-log"></div></div>
+</section>
+<script>
+(()=>{"use strict";
+const q=id=>document.getElementById(id), esc=x=>String(x??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let V12={data:null,selected:new Set()};
+function invoke(body){return window.CROW_SUPABASE.functions.invoke(window.CROW_CONFIG.adminFunction,{body});}
+function statusBadge(s){const x=String(s||"draft").toLowerCase();return '<span class="v12-badge '+(x==="published"?"v12-good":x==="review"?"v12-warn":x==="scheduled"?"v12-warn":"")+'">'+esc(x)+'</span>'}
+function selectedIds(){return [...V12.selected]}
+function renderStats(){const d=V12.data||{},c=d.counts||{};q("v12Stats").innerHTML=[["Review",c.review||0],["Draft",c.draft||0],["Scheduled",c.scheduled||0],["Health flags",c.health||0]].map(x=>'<div class="v12-stat"><b>'+esc(x[1])+'</b><span>'+esc(x[0])+'</span></div>').join("")}
+function renderModeration(){
+ const rows=(V12.data?.moderation||[]); q("v12ModerationRows").innerHTML=rows.length?rows.map(e=>'<tr><td><input type="checkbox" data-v12-select="'+esc(e.id)+'"></td><td><b>'+esc(e.title)+'</b><div class="muted">'+esc(e.slug||"")+'</div></td><td>'+esc(e.podcast_title)+'</td><td>'+statusBadge(e.status)+'</td><td>'+esc(e.scheduled_at||"—")+'</td><td>'+((e.audio_url||e.video_url)?'<span class="v12-badge v12-good">MEDIA</span>':'<span class="v12-badge v12-bad">MISSING</span>')+'</td></tr>').join(""):'<tr><td colspan="6" class="muted">No moderation items.</td></tr>';
+}
+function renderBulk(){
+ const all=[...(V12.data?.moderation||[]),...(V12.data?.scheduled||[])]; const seen=new Set(),rows=all.filter(e=>!seen.has(e.id)&&(seen.add(e.id),true));
+ q("v12BulkRows").innerHTML=rows.length?rows.map(e=>'<tr><td><input type="checkbox" data-v12-select="'+esc(e.id)+'" '+(V12.selected.has(e.id)?"checked":"")+'></td><td>'+esc(e.title)+'</td><td>'+esc(e.podcast_title)+'</td><td>'+statusBadge(e.status)+'</td><td>'+esc(e.episode_number??"—")+'</td><td>'+esc(e.updated_at||"—")+'</td></tr>').join(""):'<tr><td colspan="6" class="muted">No episodes in the operations queue.</td></tr>';
+}
+function renderCalendar(){
+ const es=V12.data?.scheduled||[]; if(!es.length){q("v12Calendar").innerHTML='<div class="muted">No scheduled episodes.</div>';return}
+ const dates=es.map(e=>new Date(e.scheduled_at||e.created_at)).filter(d=>!isNaN(d)); const min=dates.length?new Date(Math.min(...dates.map(d=>d.getTime()))):new Date();
+ const start=new Date(min); start.setDate(start.getDate()-((start.getDay()+6)%7)); start.setHours(0,0,0,0);
+ let html=""; for(let i=0;i<28;i++){const d=new Date(start);d.setDate(start.getDate()+i);const day=es.filter(e=>{const x=new Date(e.scheduled_at||e.created_at);return x.toDateString()===d.toDateString()});html+='<div class="v12-day"><b>'+d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})+'</b>'+day.map(e=>'<span class="v12-event scheduled"><b>'+esc(e.title)+'</b><br>'+esc(e.podcast_title)+'<br>'+esc(new Date(e.scheduled_at||e.created_at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}))+'</span>').join("")+'</div>'}
+ q("v12Calendar").innerHTML=html;
+}
+function renderHealth(){
+ const h=V12.data?.health||[]; q("v12HealthList").innerHTML=h.length?h.map(x=>'<div class="v12-health-item"><b><span class="v12-badge '+(x.severity==="error"?"v12-bad":"v12-warn")+'">'+esc(x.severity)+'</span> '+esc(x.title)+'</b><span>'+esc(x.detail)+(x.status?' · HTTP '+esc(x.status):'')+'</span></div>').join(""):'<div class="card"><b>HEALTHY</b><div class="muted">No current podcast or episode health flags were detected.</div></div>';
+}
+function renderAudit(){
+ const a=V12.data?.audit||[]; q("v12AuditList").innerHTML=a.length?a.map(x=>'<div class="v12-log-item"><b>'+esc(x.summary||x.action)+'</b><small>'+esc(x.created_at||"")+" · "+esc(x.actor_user_id||"admin")+'</small></div>').join(""):'<div class="muted">No audit activity recorded yet.</div>';
+}
+async function load(){q("v12Status").textContent="SCANNING…";try{const r=await invoke({action:"creator_operations_v12"});if(r.error||!r.data?.ok)throw(r.error||Error(r.data?.error||"Operations scan failed"));V12.data=r.data;renderStats();renderModeration();renderBulk();renderCalendar();renderHealth();renderAudit();q("v12Status").textContent="LIVE · "+new Date().toLocaleTimeString()}catch(e){q("v12Status").textContent="ERROR";q("v12HealthList").innerHTML='<div class="v12-health-item"><b>Operations scan failed</b><span>'+esc(e.message)+'</span></div>'}}
+async function bulk(status){const ids=selectedIds();if(!ids.length){alert("Select at least one episode.");return}q("v12Status").textContent="UPDATING…";try{const r=await invoke({action:"bulk_episode_v12",episode_ids:ids,status});if(r.error||!r.data?.ok)throw(r.error||Error(r.data?.error||"Bulk update failed"));V12.selected.clear();await load()}catch(e){alert(e.message)}}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-v12-tab]");if(t){document.querySelectorAll(".v12-tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".v12-pane").forEach(x=>x.classList.remove("active"));t.classList.add("active");q("v12-"+t.dataset.v12Tab).classList.add("active")}});
+document.addEventListener("change",e=>{const t=e.target.closest("[data-v12-select]");if(t){if(t.checked)V12.selected.add(t.dataset.v12Select);else V12.selected.delete(t.dataset.v12Select)}});
+q("v12Reload").onclick=load;q("v12Approve").onclick=()=>bulk("published");q("v12Review").onclick=()=>bulk("review");q("v12Archive").onclick=()=>bulk("archived");q("v12BulkReview").onclick=()=>bulk("review");q("v12BulkPublish").onclick=()=>bulk("published");q("v12BulkDraft").onclick=()=>bulk("draft");q("v12BulkArchive").onclick=()=>bulk("archived");
+load();
+})();
+</script>
+</body></html>
