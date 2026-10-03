@@ -469,93 +469,87 @@ snap();subscribe();window.addEventListener("beforeunload",()=>{try{window.CROW_S
 <script>(()=>{const $=id=>document.getElementById(id),esc=x=>String(x??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));let cid=null,timer,ch=null,data=null;const api=b=>window.CROW_SUPABASE.functions.invoke(window.CROW_CONFIG.adminFunction,{body:b});const call=async(op,extra={})=>{const r=await api({action:"v18_creator_command",creator_id:cid,op,...extra});if(r.error||!r.data?.ok)throw(r.error||Error(r.data?.error||"Command failed"));return r.data};const msg=x=>{$("v18Log").textContent=new Date().toLocaleTimeString()+" · "+x};async function load(){if(!cid)return;try{const r=await api({action:"v17_creator_liveops",creator_id:cid});if(r.error||!r.data?.ok)throw(r.error||Error(r.data?.error||"LiveOps failed"));data=r.data;const m=data.metrics||{};$("v18Creator").textContent=(data.creator.display_name||data.creator.name||"Creator")+" · "+(data.member?.email||data.member?.username||"");$("v18Grid").innerHTML=[["Podcasts",m.podcasts],["Episodes",m.episodes],["Published",m.published],["Scheduled",m.scheduled],["Due Now",m.due_now],["Followers",m.followers],["Plays",m.plays]].map(x=>'<div class="v18-k"><b>'+x[1]+'</b><span>'+x[0]+'</span></div>').join("");$("v18Episodes").innerHTML=(data.episodes||[]).slice(0,60).map(x=>'<div class="v18-row"><div><b>'+esc(x.title)+'</b><br><span class="muted">Episode '+esc(x.episode_number)+' · '+esc(x.status)+'</span></div><div class="v18-actions">'+(x.status!=="published"?'<button class="btn" data-v18-pub="'+esc(x.id)+'">Publish</button>':"")+'<button class="btn" data-v18-edit="'+esc(x.id)+'">Edit</button><button class="btn" data-v18-sched="'+esc(x.id)+'">Schedule</button>'+(x.status==="scheduled"?'<span class="v18-warn">'+esc(new Date(x.scheduled_at).toLocaleString())+'</span>':"")+'</div></div>').join("")||"No episodes.";$("v18Podcasts").innerHTML=(data.podcasts||[]).map(x=>'<div class="v18-row"><div><b>'+esc(x.title)+'</b><br><span class="muted">Status: '+esc(x.status)+'</span></div><div class="v18-actions"><select class="v18-select" data-v18-status="'+esc(x.id)+'"><option value="draft">draft</option><option value="published">published</option><option value="scheduled">scheduled</option><option value="archived">archived</option></select><button class="btn" data-v18-health="'+esc(x.id)+'">Health Check</button></div></div>').join("");document.querySelectorAll("[data-v18-status]").forEach(s=>{const p=data.podcasts.find(x=>x.id===s.dataset.v18Status);if(p)s.value=p.status});$("v18Health").innerHTML=(data.health||[]).map(x=>'<div class="v18-row '+(x.severity==="critical"?"v18-bad":"v18-warn")+'"><span><b>'+esc(x.title||"Health issue")+'</b><br>'+esc(x.detail)+'</span></div>').join("")||'<div class="v18-good">✓ No detected creator health issues</div>';$("v18Alerts").innerHTML=(data.alerts||[]).filter(x=>x.status!=="resolved").map(x=>'<div class="v18-row"><span><b>'+esc(x.title)+'</b><br>'+esc(x.detail||"")+' · '+esc(x.status)+'</span><div class="v18-actions"><button class="btn" data-v18-ack="'+esc(x.id)+'">Ack</button><button class="btn" data-v18-res="'+esc(x.id)+'">Resolve</button></div></div>').join("")||'<div class="v18-good">No active creator alerts.</div>';$("v18Ownership").innerHTML='<div class="muted">Current creator: '+esc(data.creator.display_name||data.creator.name)+'</div><div class="v18-actions" style="margin-top:10px"><select id="v18ToCreator" class="v18-select"><option value="">Select target creator</option></select></div>'+(data.ownership_history||[]).slice(0,15).map(x=>'<div class="v18-row"><span>Podcast ownership change</span><span>'+esc(x.changed_at)+'</span></div>').join("");const list=data.ownership_history||[];msg("LiveOps loaded · "+m.podcasts+" podcasts · "+m.episodes+" episodes")}catch(e){msg("ERROR · "+e.message)}}async function cmd(fn,success){try{await fn();msg(success);await load()}catch(e){msg("ERROR · "+e.message)}}document.addEventListener("click",ev=>{const b=ev.target.closest("[data-v18-pub],[data-v18-edit],[data-v18-health],[data-v18-ack],[data-v18-res]");if(!b)return;if(b.dataset.v18Pub)cmd(()=>call("publish_episode",{episode_id:b.dataset.v18Pub}),"Episode published");else if(b.dataset.v18Sched){const when=prompt("Schedule for (ISO or local datetime)",new Date(Date.now()+3600000).toISOString().slice(0,16));if(when)cmd(()=>call("schedule_episode",{episode_id:b.dataset.v18Sched,scheduled_at:new Date(when).toISOString()}),"Episode scheduled");}else if(b.dataset.v18Health)cmd(()=>call("health_check",{podcast_id:b.dataset.v18Health}),"Health check completed");else if(b.dataset.v18Ack)cmd(()=>call("ack_alert",{alert_id:b.dataset.v18Ack}),"Alert acknowledged");else if(b.dataset.v18Res)cmd(()=>call("resolve_alert",{alert_id:b.dataset.v18Res}),"Alert resolved");else if(b.dataset.v18Edit){const ep=data.episodes.find(x=>x.id===b.dataset.v18Edit);const title=prompt("Episode title",ep?.title||"");if(title!==null)cmd(()=>call("edit_episode",{episode_id:ep.id,data:{title}}),"Episode updated")}});document.addEventListener("change",ev=>{const s=ev.target.closest("[data-v18-status]");if(s)cmd(()=>call("set_podcast_status",{podcast_id:s.dataset.v18Status,status:s.value}),"Podcast status updated");const t=ev.target.closest("#v18ToCreator");if(t&&t.value){const p=(data.podcasts||[])[0];const id=prompt("Podcast ID to reassign",p?.id||"");if(id)cmd(()=>call("reassign_creator",{podcast_id:id,to_creator_id:t.value}),"Podcast reassigned")}});window.v18CreatorCommandControl=async id=>{cid=id;$("v18").style.display="block";await load();if(ch)window.CROW_SUPABASE.removeChannel(ch);ch=window.CROW_SUPABASE.channel("creator-command-"+id).on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},load).on("postgres_changes",{event:"*",schema:"public",table:"podcasts",filter:"creator_id=eq."+id},load).on("postgres_changes",{event:"*",schema:"public",table:"admin_alerts_v15"},load).subscribe(s=>msg("Realtime: "+s));clearInterval(timer);timer=setInterval(load,60000)};$("v18Close").onclick=()=>{$("v18").style.display="none";if(ch)window.CROW_SUPABASE.removeChannel(ch);clearInterval(timer)};$("v18Refresh").onclick=load})();</script>
 <script>(()=>{function hook(){const b=document.getElementById("v17Launch");if(!b||document.getElementById("v18Launch"))return;const x=document.createElement("button");x.id="v18Launch";x.className="btn";x.textContent="⚡ Command & Control";x.onclick=()=>window.v18CreatorCommandControl(window.__v10CurrentCreator?.id);b.parentNode.appendChild(x)}new MutationObserver(hook).observe(document.body,{childList:true,subtree:true});hook()})();</script>
 
-<!-- CROWRULES V19 · REALTIME STABILITY / REBUILD LAYER -->
-<style id="crow-realtime-v19-style">
-#crow-realtime-v19{position:fixed;right:16px;bottom:16px;z-index:10050;display:flex;align-items:center;gap:8px;padding:8px 11px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(7,10,18,.92);backdrop-filter:blur(12px);box-shadow:0 12px 40px #0008;font-size:.68rem}
-#crow-realtime-v19 .v19-dot{width:8px;height:8px;border-radius:50%;background:#777;box-shadow:none}
-#crow-realtime-v19.live .v19-dot{background:#35f2a1;box-shadow:0 0 12px #35f2a1;animation:crow-v19-pulse 1.4s infinite}
-#crow-realtime-v19.retry .v19-dot{background:#ffd166;animation:crow-v19-pulse 1s infinite}
-#crow-realtime-v19.offline .v19-dot{background:#ff5268}
-#crow-realtime-v19 small{opacity:.58}
-@keyframes crow-v19-pulse{50%{opacity:.35;transform:scale(.8)}}
-@media(max-width:600px){#crow-realtime-v19{right:8px;bottom:8px;font-size:.6rem}}
+<!-- CROWRULES V20 · SINGLE-FLIGHT REALTIME RECONNECT ENGINE -->
+<style id="crow-realtime-v20-style">
+#crow-realtime-v19{transition:opacity .2s ease}
+#crow-realtime-v19.live{opacity:1}
+#crow-realtime-v19.retry{opacity:.92}
+#crow-realtime-v19.offline{opacity:.8}
 </style>
-<div id="crow-realtime-v19" aria-live="polite"><span class="v19-dot"></span><b id="crow-v19-text">REALTIME STARTING</b><small id="crow-v19-meta">0 reconnects</small></div>
 <script>
 (()=>{"use strict";
+const start=Date.now();
 const boot=()=>{
-  const sb=window.CROW_SUPABASE;
-  const cfg=window.CROW_CONFIG||{};
-  const ui=document.getElementById("crow-realtime-v19");
-  const tx=document.getElementById("crow-v19-text");
-  const meta=document.getElementById("crow-v19-meta");
-  if(!sb||!ui){setTimeout(boot,500);return}
-  let channel=null, reconnects=0, retryMs=1000, stopped=false, heartbeat=null, lastEvent=0;
-  const tables=["podcasts","podcast_episodes","members","creators","podcast_follows","podcast_listens","podcast_subscriptions","admin_alerts_v15","admin_ops_events_v16","podcast_automation_runs_v14"];
-  const set=(state,label)=>{
-    ui.className=state;
-    tx.textContent=label;
-    meta.textContent=reconnects+" reconnects"+(lastEvent?" · "+Math.max(0,Math.round((Date.now()-lastEvent)/1000))+"s since event":"");
-  };
-  const notify=(payload)=>{
-    lastEvent=Date.now();
-    meta.textContent=reconnects+" reconnects · LIVE";
-    window.dispatchEvent(new CustomEvent("crowrules:realtime",{detail:payload}));
-    try{window.dispatchEvent(new CustomEvent("crowrules:realtime:"+payload.table,{detail:payload}))}catch(_){}
-  };
-  const remove=async()=>{if(channel){try{await sb.removeChannel(channel)}catch(_){}channel=null}};
-  const connect=async()=>{
-    if(stopped)return;
-    await remove();
-    set("retry","REALTIME CONNECTING");
-    channel=sb.channel("crowrules-admin-v19-"+Date.now());
-    tables.forEach(table=>{
-      channel=channel.on("postgres_changes",{event:"*",schema:"public",table},payload=>notify(payload));
-    });
-    channel.subscribe(status=>{
-      if(status==="SUBSCRIBED"){
-        retryMs=1000;
-        set("live","REALTIME LIVE");
-        window.dispatchEvent(new CustomEvent("crowrules:realtime-status",{detail:{status:"SUBSCRIBED",reconnects}}));
-      }else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){
-        reconnects++;
-        set("retry","REALTIME RECONNECTING");
-        window.dispatchEvent(new CustomEvent("crowrules:realtime-status",{detail:{status,reconnects}}));
-        const wait=retryMs; retryMs=Math.min(30000,retryMs*2);
-        setTimeout(()=>{if(!stopped)connect()},wait);
-      }
-    });
-  };
-  const refreshSession=async()=>{
-    try{
-      if(sb.auth?.getSession){
-        const r=await sb.auth.getSession();
-        if(r?.error) throw r.error;
-      }
-    }catch(_){}
-  };
-  document.addEventListener("visibilitychange",()=>{
-    if(document.visibilityState==="visible"){
-      refreshSession();
-      connect();
-    }
-  });
-  window.addEventListener("online",connect);
-  window.addEventListener("offline",()=>set("offline","NETWORK OFFLINE"));
-  heartbeat=setInterval(()=>{
-    if(stopped)return;
-    meta.textContent=reconnects+" reconnects"+(lastEvent?" · "+Math.max(0,Math.round((Date.now()-lastEvent)/1000))+"s since event":"");
-    if(document.visibilityState==="visible" && (!channel || !["SUBSCRIBED","SUBSCRIBING"].includes(channel.state))) connect();
-  },15000);
-  window.CrowRulesRealtime={
-    reconnect:connect,
-    stop:async()=>{stopped=true;clearInterval(heartbeat);await remove()},
-    status:()=>({reconnects,lastEvent,channelState:channel?.state||"NONE"})
-  };
-  connect();
+ const sb=window.CROW_SUPABASE,ui=document.getElementById("crow-realtime-v19");
+ const tx=document.getElementById("crow-v19-text"),meta=document.getElementById("crow-v19-meta");
+ if(!sb||!ui){if(Date.now()-start<30000)setTimeout(boot,500);return}
+ let channel=null,connecting=false,stopped=false,reconnects=0,lastEvent=0,attempt=0,timer=null,watchdog=null;
+ const tables=["podcasts","podcast_episodes","members","creators","podcast_follows","podcast_listens","podcast_subscriptions","admin_alerts_v15","admin_ops_events_v16","podcast_automation_runs_v14"];
+ const state=(cls,label)=>{ui.className=cls;tx.textContent=label;meta.textContent=reconnects+" reconnects"+(lastEvent?" · "+Math.max(0,Math.round((Date.now()-lastEvent)/1000))+"s since event":"")};
+ const fire=(name,detail)=>window.dispatchEvent(new CustomEvent(name,{detail}));
+ const clearRetry=()=>{if(timer){clearTimeout(timer);timer=null}};
+ const remove=async()=>{const old=channel;channel=null;if(old){try{await sb.removeChannel(old)}catch(_){}}};
+ const schedule=()=>{
+   if(stopped||connecting||timer)return;
+   attempt++;
+   const delay=Math.min(30000,Math.max(1000,Math.round(1000*Math.pow(2,Math.min(attempt-1,5)))+Math.floor(Math.random()*700)));
+   state("retry","REALTIME RETRYING");
+   timer=setTimeout(()=>{timer=null;connect("retry")},delay);
+ };
+ const connect=async(reason)=>{
+   if(stopped||connecting||!navigator.onLine)return;
+   if(channel&&["SUBSCRIBED","SUBSCRIBING"].includes(channel.state))return;
+   connecting=true;clearRetry();state("retry","REALTIME CONNECTING");
+   await remove();
+   const name="crowrules-admin-v20";
+   const ch=sb.channel(name,{config:{broadcast:{ack:false},presence:{key:"admin"}}});
+   channel=ch;
+   tables.forEach(table=>ch.on("postgres_changes",{event:"*",schema:"public",table},payload=>{
+     lastEvent=Date.now();
+     meta.textContent=reconnects+" reconnects · LIVE";
+     fire("crowrules:realtime",{...payload,source:"v20"});
+     fire("crowrules:realtime:"+payload.table,payload);
+   }));
+   let settled=false;
+   ch.subscribe(status=>{
+     if(status==="SUBSCRIBED"){
+       settled=true;connecting=false;attempt=0;
+       state("live","REALTIME LIVE");
+       fire("crowrules:realtime-status",{status,reconnects,reason:"subscribed"});
+     }else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){
+       if(settled)reconnects++;
+       connecting=false;
+       fire("crowrules:realtime-status",{status,reconnects,reason});
+       if(channel===ch)channel=null;
+       try{sb.removeChannel(ch)}catch(_){}
+       schedule();
+     }
+   });
+   setTimeout(()=>{
+     if(channel===ch&&ch.state==="SUBSCRIBING"){
+       connecting=false;reconnects++;fire("crowrules:realtime-status",{status:"TIMEOUT",reconnects,reason});
+       try{sb.removeChannel(ch)}catch(_){}
+       if(channel===ch)channel=null;
+       schedule();
+     }
+   },12000);
+ };
+ const ensure=()=>{if(stopped||!navigator.onLine)return;if(!channel||!["SUBSCRIBED","SUBSCRIBING"].includes(channel.state)){if(!connecting)connect("watchdog")}};
+ window.addEventListener("online",()=>{attempt=0;clearRetry();connect("online")});
+ window.addEventListener("offline",()=>{clearRetry();state("offline","NETWORK OFFLINE")});
+ document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){attempt=0;ensure()}});
+ window.addEventListener("beforeunload",()=>{stopped=true;clearRetry();if(watchdog)clearInterval(watchdog);if(channel)try{sb.removeChannel(channel)}catch(_){}});
+ watchdog=setInterval(ensure,10000);
+ window.CrowRulesRealtime={
+   reconnect:()=>{attempt=0;clearRetry();return connect("manual")},
+   stop:async()=>{stopped=true;clearRetry();if(watchdog)clearInterval(watchdog);await remove()},
+   status:()=>({reconnects,lastEvent,channelState:channel?.state||"NONE",connecting,attempt})
+ };
+ connect("initial");
 };
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
 </script>
+
 
 </body></html>
