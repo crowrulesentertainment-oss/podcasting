@@ -19,7 +19,7 @@ function ensureShell(){
     document.body.prepend(host);
   }
   if(!document.querySelector('script[data-site-repair="v1"]')){
-    const s=document.createElement("script");s.dataset.siteRepair="v1";s.src=BASE+"js/site-repair-v1.js?v=20261004-1";s.defer=true;
+    const s=document.createElement("script");s.dataset.siteRepair="v1";s.src=BASE+"js/site-repair-v1.js?v=20261004-2";s.defer=true;document.head.appendChild(s);
   }
 }
 function boot(){
