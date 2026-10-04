@@ -7,6 +7,13 @@ function installHalloweenTheme(){
   try{
     document.documentElement.dataset.crowSeason="halloween";
     document.body?.classList.add("cr-halloween-theme");
+    if(!document.querySelector('link[data-crow-halloween-v2]')){
+      const v2=document.createElement("link");
+      v2.rel="stylesheet";
+      v2.href=BASE+"css/halloween-cinematic-v2.css?v=20261004-02";
+      v2.dataset.crowHalloweenV2="true";
+      document.head.appendChild(v2);
+    }
     if(!document.querySelector('link[data-crow-halloween]')){
       const link=document.createElement("link");
       link.rel="stylesheet";
