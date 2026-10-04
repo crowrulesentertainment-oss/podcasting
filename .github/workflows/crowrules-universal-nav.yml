@@ -1,4 +1,4 @@
-# V7 sitewide navigation workflow run — 2026-10-04
+# V7 sitewide navigation workflow run — 2026-10-04 (repair pass 2)
 name: CrowRules Podcasting — Universal Site Repair
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
           for p in Path('.').rglob('*.html'):
               if '.git' in p.parts: continue
               s=p.read_text(encoding='utf-8'); original=s
-              s=re.sub(r'<script[^>]+src=["\'][^"\']*(?:podcasting-nav-v2|crowrules-podcasting-nav)[^"\']*["\'][^>]*>\s*</script>','',s,flags=re.I)
+              s=re.sub(r'<link[^>]+href=["\'][^"\']*css/podcasting\\.css[^"\']*["\'][^>]*>','',s,flags=re.I)\n              s=re.sub(r'<script[^>]+src=["\'][^"\']*(?:podcasting-nav-v2|crowrules-podcasting-nav)[^"\']*["\'][^>]*>\s*</script>','',s,flags=re.I)
               s=re.sub(r'<script[^>]+src=["\'][^"\']*(?:js/config\.js|js/app\.js|js/podcasting-nav-v7\.js|js/site-repair-v1\.js)[^"\']*["\'][^>]*>\s*</script>','',s,flags=re.I)
               s=re.sub(r'<div\b[^>]*data-nav[^>]*>\s*</div>','',s,flags=re.I)
               s=re.sub(r'<script[^>]+src=["\']https://crowrulesentertainment-oss\.github\.io/crowrulesentertainment/js/crowrules-universal-member\.js[^"\']*["\'][^>]*>\s*</script>','',s,flags=re.I)
