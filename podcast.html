@@ -404,11 +404,9 @@ async function load(){
    // Auth, progress, counts, chat, realtime and Stripe recovery run after the
    // podcast becomes visible so an optional Supabase service can never freeze
    // the entire page.
-   const core=await withTimeout(Promise.all([
-     fetchPodcastData(pid),
-     (async()=>{const p=await fetchPodcastData(pid);return fetchEpisodeData(p.id)})()
-   ]),15000,"Podcast content");
-   podcast=core[0];podcastId=podcast.id;episodes=core[1]||[];
+   podcast=await withTimeout(fetchPodcastData(pid),9000,"Podcast content");
+   podcastId=podcast.id;
+   episodes=await withTimeout(fetchEpisodeData(podcastId),9000,"Episode content");
    document.title=podcast.title+" — CrowRules Podcasting";
  }catch(e){
    if(String(e?.message||"").startsWith("PODCAST_CONNECTION_SLOW:")){
