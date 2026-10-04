@@ -122,15 +122,38 @@ async function bindHero(){const c=await client();const followerCount=await timeo
   reset();
  }
 };
+async function verifySubscriptionReturn(sessionId,box){
+  if(!user||!podcastId)return false;
+  const c=await client();
+  for(let attempt=0;attempt<6;attempt++){
+    try{
+      const q=await c.from("podcast_subscriptions")
+        .select("id,status,stripe_subscription_id,current_period_start,current_period_end,cancel_at_period_end,updated_at")
+        .eq("user_id",user.id).eq("podcast_id",podcastId)
+        .in("status",["active","trialing","past_due","paused"])
+        .order("updated_at",{ascending:false}).limit(1).maybeSingle();
+      if(!q.error&&q.data&&["active","trialing"].includes(q.data.status)){
+        box.innerHTML='<div class="eyebrow">SUBSCRIPTION ACTIVE</div><b style="color:#7df7c7">✓ Your subscription is active</b><div class="subtle" style="margin-top:6px">Your CrowRules Podcasting subscription is now connected to your account.</div><a class="btn primary" style="margin-top:10px" href="subscriptions.html?podcast_id='+encodeURIComponent(podcastId)+'">Open My Subscriptions</a>';
+        return true;
+      }
+    }catch(e){console.warn("Subscription verification:",e?.message||e)}
+    if(attempt<5)await new Promise(r=>setTimeout(r,2500));
+  }
+  box.innerHTML='<div class="eyebrow">SUBSCRIPTION PROCESSING</div><b style="color:#ffd166">✓ Stripe checkout completed</b><div class="subtle" style="margin-top:6px">Your payment was completed, but Stripe is still syncing your subscription into CrowRules. This usually takes a few moments.</div><a class="btn" style="margin-top:10px" href="subscriptions.html?podcast_id='+encodeURIComponent(podcastId)+'">Check My Subscriptions</a>';
+  return false;
+}
 function showCheckoutReturn(){
- const q=new URLSearchParams(location.search),state=q.get("checkout");
+ const q=new URLSearchParams(location.search),state=q.get("checkout"),sessionId=q.get("session_id");
  if(!state)return;
- const box=$("#subscriptionReadiness");
+ const box=$(\"#subscriptionReadiness\");
  if(!box)return;
  box.classList.remove("hidden");
- if(state==="success")box.innerHTML='<div class="eyebrow">SUBSCRIPTION</div><b style="color:#7df7c7">✓ Checkout completed</b><div class="subtle" style="margin-top:6px">Stripe is confirming your subscription. Your subscriber status will update automatically.</div><a class="btn" style="margin-top:10px" href="subscriptions.html?podcast_id='+encodeURIComponent(podcastId)+'">Open My Subscriptions</a>';
- if(state==="cancelled")box.innerHTML='<div class="eyebrow">SUBSCRIPTION</div><b>Checkout cancelled</b><div class="subtle" style="margin-top:6px">No subscription was created. You can subscribe whenever you are ready.</div>';
- if(history.replaceState){q.delete("checkout");q.delete("session_id");const u=location.pathname+(q.toString()?"?"+q.toString():"")+location.hash;history.replaceState({},"",u)}
+ if(state==="success"){
+   box.innerHTML='<div class="eyebrow">SUBSCRIPTION</div><b style="color:#7df7c7">✓ Stripe checkout completed</b><div class="subtle" style="margin-top:6px">Verifying your subscription with CrowRules…</div>';
+   verifySubscriptionReturn(sessionId,box).catch(e=>{console.warn(e);box.innerHTML='<div class="eyebrow">SUBSCRIPTION</div><b>Checkout completed</b><div class="subtle" style="margin-top:6px">Your subscription is still being synchronized. Open My Subscriptions to check its status.</div><a class="btn" style="margin-top:10px" href="subscriptions.html?podcast_id='+encodeURIComponent(podcastId)+'">Open My Subscriptions</a>'});
+ }
+ if(state==="cancelled"||state==="canceled")box.innerHTML='<div class="eyebrow">SUBSCRIPTION</div><b>Checkout cancelled</b><div class="subtle" style="margin-top:6px">No subscription was created. You can subscribe whenever you are ready.</div>';
+ if(history.replaceState){q.delete("checkout");q.delete("session_id");const u=location.pathname+(q.toString()?"?"+q.toString():"")+location.hash;history.replaceState({},\"\",u)}
 }
 function renderFeatured(){const e=episodes[0];$("#featuredSection").innerHTML='<div class="section-head"><div><div class="eyebrow">NOW PLAYING</div><h2>Featured Episode</h2><div class="subtle">The latest published episode from '+esc(podcast.title)+'</div></div></div>'+(e?'<div class="featured"><div class="card"><img src="'+esc(e.thumbnail_url||podcast.artwork_url||"assets/podcast-placeholder.svg")+'" style="width:100%;border-radius:16px;aspect-ratio:16/9;object-fit:cover"><div class="eyebrow" style="margin-top:15px">EPISODE '+esc(e.episode_number||"")+'</div><h2>'+esc(e.title)+'</h2><p class="desc">'+esc(e.description||"")+'</p><div class="player">'+(e.audio_url?'<audio controls preload="metadata" src="'+esc(e.audio_url)+'"></audio>':'<div class="subtle">Audio player will appear when the episode audio is published.</div>')+'</div></div><div class="card"><div class="eyebrow">SHOW NOTES</div><h3>About this episode</h3><p class="desc">'+esc(e.description||"No additional notes yet.")+'</p><div class="chips"><span class="chip">'+(e.duration_seconds?Math.round(e.duration_seconds/60)+" min":"Podcast")+'</span><span class="chip">'+Number(e.play_count||0).toLocaleString()+' plays</span></div><a class="btn primary" href="episode.html?id='+encodeURIComponent(e.id)+'">Open Episode</a></div></div>':'<div class="card">No published episodes yet.</div>')}
 function renderContinue(){const list=episodes.filter(e=>progress[e.id]&&!progress[e.id].completed).slice(0,6);const sec=$("#continueSection");if(!user||!list.length){sec.classList.add("hidden");return}sec.classList.remove("hidden");sec.innerHTML='<div class="section-head"><div><div class="eyebrow">YOUR LIBRARY</div><h2>Continue Listening</h2></div></div><div class="episode-grid">'+list.map(e=>'<article class="card episode"><img src="'+esc(e.thumbnail_url||podcast.artwork_url||"assets/podcast-placeholder.svg")+'"><h3>'+esc(e.title)+'</h3><div class="progress"><i style="width:'+Math.min(100,Number(progress[e.id].percent_complete||0))+'%"></i></div><p>'+Math.round(Number(progress[e.id].percent_complete||0))+'% complete</p><a class="btn" href="episode.html?id='+encodeURIComponent(e.id)+'">Continue</a></article>').join("")+'</div>'}
