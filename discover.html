@@ -21,6 +21,31 @@
 .discovery-controls{margin-top:12px;border:1px solid #29292c;border-radius:5px;background:#0b0b0c;padding:14px}.control-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.control-head strong{display:block;font:900 13px Orbitron;margin-top:5px}.control-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.control-grid label{display:grid;gap:6px}.control-grid label span{font-size:7px;color:#77777d;font-weight:900;letter-spacing:.13em;text-transform:uppercase}.control-grid select{height:38px;background:#111113;color:#ddd;border:1px solid #303034;border-radius:4px;padding:0 9px;font:800 8px Montserrat;text-transform:uppercase;outline:0}.control-grid select:focus{border-color:#777}.active-filters{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}.filter-chip{border:1px solid #4a3030;background:#171112;color:#ff8a8a;border-radius:3px;padding:5px 7px;font:800 7px Montserrat;text-transform:uppercase}.filter-chip button{border:0;background:none;color:inherit;margin-left:4px;cursor:pointer}@media(max-width:650px){.control-grid{grid-template-columns:1fr}}@media(max-width:900px){.hero-grid{grid-template-columns:1fr}.hero-side{min-height:250px}.dashboard{grid-template-columns:repeat(2,1fr)}.feature{grid-template-columns:1fr}}
 @media(max-width:650px){.hero{padding-top:30px}.hero-main{min-height:420px;padding:27px}.search-shell{grid-template-columns:1fr}.section-head{display:block}.section-actions{margin-top:10px}.rail>*{flex-basis:195px}.rail.episode-rail>*{flex-basis:235px}.feature-card{min-height:250px}}
 @media(max-width:430px){.dashboard{grid-template-columns:1fr}.hero h1{font-size:49px}}
+
+/* DISCOVER V7 — HOST & SHOW INTELLIGENCE */
+.host-intel{margin-top:48px;border:1px solid #2d2d31;border-radius:6px;background:#0b0b0c;overflow:hidden}
+.host-intel-grid{display:grid;grid-template-columns:1.1fr .9fr;min-height:330px}
+.host-spotlight{padding:30px;position:relative;overflow:hidden;background:linear-gradient(135deg,#171112,#0b0b0c)}
+.host-spotlight:after{content:"";position:absolute;width:420px;height:420px;right:-170px;top:-170px;background:radial-gradient(circle,#f3292933,transparent 68%);pointer-events:none}
+.host-spotlight>*{position:relative;z-index:1}
+.host-kicker{font-size:8px;color:#ff6b6b;font-weight:900;letter-spacing:.18em;text-transform:uppercase}
+.host-identity{display:flex;gap:18px;align-items:center;margin-top:22px}
+.host-avatar{width:94px;height:94px;border-radius:50%;object-fit:cover;border:1px solid #4a3030;background:#1b1b1d}
+.host-name{font:900 clamp(26px,4vw,44px) Orbitron;line-height:1;margin:0}
+.host-role{color:#999;font-size:10px;margin-top:7px}
+.host-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px}
+.host-badge{border:1px solid #493030;background:#171112;color:#ff9696;border-radius:3px;padding:5px 7px;font:900 7px Montserrat;letter-spacing:.08em;text-transform:uppercase}
+.host-headline{color:#aaa;line-height:1.7;font-size:11px;max-width:720px;margin:18px 0 0}
+.host-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:19px}
+.host-intel-side{padding:22px;background:#101011;border-left:1px solid #2d2d31}
+.host-stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:#2d2d31;border:1px solid #2d2d31;margin-top:15px}
+.host-stat{padding:16px;background:#111113}.host-stat span{display:block;color:#777;font-size:7px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}.host-stat strong{display:block;font:900 22px Orbitron;margin-top:6px}
+.host-show-list{display:grid;gap:7px;margin-top:15px}.host-show{display:grid;grid-template-columns:45px 1fr auto;gap:10px;align-items:center;padding:8px;border:1px solid #29292c;background:#111113;border-radius:4px;color:#fff;text-decoration:none}.host-show img{width:45px;height:45px;object-fit:cover;border-radius:3px;background:#1b1b1d}.host-show strong{font-size:10px}.host-show small{display:block;color:#777;font-size:8px;margin-top:3px}.host-show .arrow{color:#777;font-size:13px}
+.host-intel-rails{padding:0 22px 22px;background:#0b0b0c}.host-intel-rails .section-head{margin-top:0;padding-top:18px}
+.intel-rail{display:flex;gap:9px;overflow:auto;padding-bottom:10px}.intel-rail>*{flex:0 0 245px}
+.v7-episode{border:1px solid #29292c;background:#111113;border-radius:4px;overflow:hidden;color:#fff;text-decoration:none}.v7-episode:hover{border-color:#555;transform:translateY(-2px)}.v7-episode img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#1b1b1d}.v7-episode-body{padding:11px}.v7-episode-title{font-size:11px;font-weight:900;line-height:1.4}.v7-episode-meta{font-size:8px;color:#777;margin-top:6px}.v7-release{color:#aaa;font-size:7px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-top:7px}
+@media(max-width:850px){.host-intel-grid{grid-template-columns:1fr}.host-intel-side{border-left:0;border-top:1px solid #2d2d31}.host-identity{align-items:flex-start}}
+@media(max-width:520px){.host-identity{display:block}.host-avatar{margin-bottom:14px}.host-stat-grid{grid-template-columns:1fr 1fr}.intel-rail>*{flex-basis:220px}}
 </style></head><body><div data-nav></div><main class="wrap discover">
 <section class="hero"><div class="hero-grid">
 <div class="hero-main"><div class="eyebrow"><span class="live-badge"><span class="dot"></span> CROWRULES PODCASTING · DISCOVER</span></div><h1>Find what you’ll <span class="gradient">listen to next.</span></h1><p class="lead">A redesigned discovery front door for CrowRules — built around shows, episodes, creators, your listening history and fresh programming.</p>
@@ -53,6 +78,36 @@
 <section id="categorySection" class="section"><div class="section-head"><div><div class="eyebrow">BROWSE THE NETWORK</div><h2 id="categoryTitle">More to Explore</h2><p>Jump into another side of CrowRules Podcasting.</p></div></div><div id="categoryRail" class="rail"></div></section>
 <section class="section"><div class="section-head"><div><div class="eyebrow">CREATOR SPOTLIGHT</div><h2>Top Hosts</h2><p>Creators generating strong audience signals.</p></div></div><div id="topHosts" class="rail creator-rail"></div></section>
 <section class="section"><div class="section-head"><div><div class="eyebrow">JUST ARRIVED</div><h2>Newest Episodes</h2><p>The latest published releases.</p></div></div><div id="newest" class="rail episode-rail"></div></section>
+
+<section id="hostIntelSection" class="host-intel section">
+  <div class="host-intel-grid">
+    <div class="host-spotlight">
+      <div class="host-kicker">V7 · HOST SPOTLIGHT</div>
+      <div class="host-identity">
+        <img id="spotlightAvatar" class="host-avatar" alt="" loading="lazy">
+        <div><h2 id="spotlightName" class="host-name">Building Host Spotlight…</h2><div id="spotlightRole" class="host-role">Creator intelligence</div><div id="spotlightBadges" class="host-badges"></div></div>
+      </div>
+      <p id="spotlightHeadline" class="host-headline">Discover the people behind the shows.</p>
+      <div class="host-actions">
+        <a id="spotlightProfile" class="btn primary" href="creator-profile.html">Open Host Profile</a>
+        <button id="spotlightFollow" class="btn" type="button">Follow Host</button>
+        <button id="spotlightLike" class="btn" type="button">More Like This Host</button>
+      </div>
+    </div>
+    <aside class="host-intel-side">
+      <div class="eyebrow">CREATOR INTELLIGENCE</div>
+      <h3 id="spotlightSummary" class="side-title">Audience signals</h3>
+      <div id="spotlightStats" class="host-stat-grid"></div>
+      <div id="spotlightShows" class="host-show-list"></div>
+    </aside>
+  </div>
+  <div class="host-intel-rails">
+    <div class="section-head"><div><div class="eyebrow">THE HOST'S CATALOG</div><h3 style="font:900 18px Orbitron;margin:5px 0">Latest Episodes</h3><p>Fresh releases from this host's shows.</p></div></div>
+    <div id="spotlightLatest" class="intel-rail"></div>
+    <div class="section-head"><div><div class="eyebrow">AUDIENCE FAVORITES</div><h3 style="font:900 18px Orbitron;margin:5px 0">Popular Episodes</h3><p>The strongest episode activity across the host's catalog.</p></div></div>
+    <div id="spotlightPopular" class="intel-rail"></div>
+  </div>
+</section>
 <section class="section results-panel"><div class="section-head"><div><div class="eyebrow">CATALOG SEARCH</div><h2 id="resultsTitle">Explore the catalog</h2><p id="resultsMeta">Search across published podcasts and episodes.</p></div></div><div class="result-tabs"><button class="result-tab active" data-result-tab="all">All</button><button class="result-tab" data-result-tab="podcasts">Podcasts</button><button class="result-tab" data-result-tab="episodes">Episodes</button></div><div id="results" class="grid"></div></section></main>
 <div id="toast" class="toast" role="status" aria-live="polite"></div><div id="whyModal" class="modal" hidden><div class="modal-backdrop" data-close-modal></div><div class="modal-card"><button class="modal-close" data-close-modal>×</button><div class="eyebrow">RECOMMENDATION TRANSPARENCY</div><h2>Why am I seeing this?</h2><p id="whyText"></p><div id="whySignals" class="signal-list"></div></div></div><script>
 (()=>{"use strict";
@@ -158,6 +213,7 @@ function renderPersonal(){
 function renderAll(){
  renderPersonal();
  renderActiveFilters();
+ renderHostSpotlight();
  const tp=topPodcasts().filter(p=>!hiddenShows.has(p.id)),te=topEpisodes(),tr=trending(),nw=newest(),hs=hosts();
  render("topPodcasts",tp.map((p,i)=>cardPodcast(p,i+1,feedbackReason(p))).join(""),"No published podcasts yet.");
  render("topEpisodes",te.map((e,i)=>cardEpisode(e,i+1)).join(""),"No published episodes yet.");
@@ -195,6 +251,64 @@ function searchRows(){const q=query.toLowerCase();if(!q)return{p:[],e:[]};return
 function renderResults(){let {p,e}=searchRows();p=discoveryFiltered(p,"podcasts");e=discoveryFiltered(e,"episodes");if(contentFilter==="podcasts")e=[];if(contentFilter==="episodes")p=[];$("resultsTitle").textContent=query?'Results for "'+query+'"':"Explore the catalog";$("resultsMeta").textContent=query?(p.length+e.length)+" matches found":"Search across published podcasts and episodes.";let h="";if(resultTab!=="episodes")h+=p.map((x,i)=>cardPodcast(x,i+1)).join("");if(resultTab!=="podcasts")h+=e.map(x=>cardEpisode(x)).join("");render("results",h,query?"No matching published podcasts or episodes.":"Start typing to search the catalog.");document.querySelectorAll("[data-result-tab]").forEach(b=>b.classList.toggle("active",b.dataset.resultTab===resultTab))}
 function suggestions(){const q=$("search").value.trim().toLowerCase();if(!q){$("suggestions").classList.remove("open");return}const rows=[...podcasts.map(p=>({type:"Podcast",title:p.title,sub:p.author_name||p.category||"Podcast",url:podcastUrl(p.id),art:p.artwork_url})),...episodes.map(e=>({type:"Episode",title:e.title,sub:e.podcast_title,url:episodeUrl(e.id),art:e.thumbnail_url||e.podcast_artwork}))].filter(x=>(x.title||"").toLowerCase().includes(q)).slice(0,8);$("suggestions").innerHTML=rows.map(x=>'<div class="suggestion" data-url="'+esc(x.url)+'">'+(x.art?'<img class="suggestion-art" src="'+esc(x.art)+'" alt="">':'<div class="suggestion-art"></div>')+'<div><strong>'+esc(x.title)+'</strong><small>'+esc(x.type)+" · "+esc(x.sub||"")+"</small></div></div>").join("");$("suggestions").classList.toggle("open",!!rows.length);document.querySelectorAll(".suggestion").forEach(x=>x.onclick=()=>location.href=x.dataset.url)}
 function search(){query=$("search").value.trim();$("suggestions").classList.remove("open");renderResults();$("results").scrollIntoView({behavior:"smooth",block:"start"})}
+
+/* DISCOVER V7 INTELLIGENCE */
+let spotlightHost=null, spotlightHostShows=[];
+function v7HostProfileUrl(h){const id=h?.id||h?.creator_id||"";if(h?.profile_url&&/^https?:\\/\\//i.test(h.profile_url))return h.profile_url;if(id&&!String(id).startsWith("author:"))return "creator-profile.html?id="+encodeURIComponent(id);return "creator-profile.html"}
+function v7HostShows(h){const id=h?.id||h?.creator_id||"";return podcasts.filter(p=>p.creator_id===id || (String(id).startsWith("author:")&&("author:"+String(p.author_name||""))===String(id)))}
+function v7HostEpisodes(h){const ids=new Set(v7HostShows(h).map(p=>p.id));return episodes.filter(e=>ids.has(e.podcast_id)||ids.has(e.show_id))}
+function v7BadgeList(h,shows,eps){
+ const out=[];if(shows.length>=5)out.push("Network Builder");else if(shows.length>=2)out.push("Multi-Show Host");
+ if(Number(h.plays||0)>=1000)out.push("Audience Leader");
+ if(eps.length>=10)out.push("Prolific Creator");
+ if(eps.some(e=>daysAgo(e.published_at||e.created_at)<=7))out.push("New Release");
+ if(!out.length)out.push("CrowRules Creator");return out.slice(0,4);
+}
+function v7EpisodeCard(e){
+ const art=e.thumbnail_url||e.podcast_artwork||e.artwork_url||"";
+ const release=e.published_at||e.created_at;
+ return '<a class="v7-episode" href="'+esc(episodeUrl(e.id))+'">'+(art?'<img src="'+esc(art)+'" alt="" loading="lazy">':'<div style="aspect-ratio:16/9;background:#1b1b1d"></div>')+'<div class="v7-episode-body"><div class="v7-episode-title">'+esc(e.title||"Untitled Episode")+'</div><div class="v7-episode-meta">'+fmt(e.play_count||0)+' plays</div><div class="v7-release">'+(daysAgo(release)<=7?"NEW RELEASE":daysAgo(release)<=30?"RECENT RELEASE":fmt(daysAgo(release))+" DAYS AGO")+'</div></div></a>';
+}
+function renderHostSpotlight(){
+ const hs=hosts();spotlightHost=hs[0]||null;
+ const section=$("hostIntelSection");if(!section)return;
+ if(!spotlightHost){section.hidden=true;return} section.hidden=false;
+ spotlightHostShows=v7HostShows(spotlightHost);
+ const eps=v7HostEpisodes(spotlightHost);
+ const name=spotlightHost.display_name||spotlightHost.name||"CrowRules Host";
+ $("spotlightName").textContent=name;$("spotlightRole").textContent=spotlightHost.discipline||spotlightHost.role||"Podcast Creator";
+ $("spotlightAvatar").src=spotlightHost.avatar_url||"";$("spotlightAvatar").style.display=spotlightHost.avatar_url?"block":"none";
+ $("spotlightProfile").href=v7HostProfileUrl(spotlightHost);
+ $("spotlightHeadline").textContent=spotlightHost.headline||("Explore "+name+"'s shows, latest episodes and audience favorites across CrowRules Podcasting.");
+ const badges=v7BadgeList(spotlightHost,spotlightHostShows,eps);$("spotlightBadges").innerHTML=badges.map(x=>'<span class="host-badge">'+esc(x)+'</span>').join("");
+ const plays=spotlightHostShows.reduce((n,p)=>n+Number(p.total_plays||0),0);
+ $("spotlightStats").innerHTML=[["Shows",spotlightHostShows.length],["Episodes",eps.length],["Plays",fmt(Math.max(Number(spotlightHost.plays||0),plays))],["Latest",eps.length?fmt(Math.max(0,daysAgo(eps.slice().sort((a,b)=>new Date(b.published_at||b.created_at)-new Date(a.published_at||a.created_at))[0].published_at||eps[0].created_at)))+"d":"—"]].map(x=>'<div class="host-stat"><span>'+esc(x[0])+'</span><strong>'+esc(String(x[1]))+'</strong></div>').join("");
+ $("spotlightShows").innerHTML=spotlightHostShows.slice().sort((a,b)=>Number(b.total_plays||0)-Number(a.total_plays||0)).slice(0,4).map(p=>'<a class="host-show" href="'+esc(podcastUrl(p.id))+'">'+(p.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="" loading="lazy">':'<div></div>')+'<div><strong>'+esc(p.title||"Untitled Show")+'</strong><small>'+fmt(p.total_plays||0)+' plays · '+(p.category||"Podcast")+'</small></div><span class="arrow">→</span></a>').join("")||'<div class="reason">No published shows are attached to this host yet.</div>';
+ const latest=eps.slice().sort((a,b)=>new Date(b.published_at||b.created_at)-new Date(a.published_at||a.created_at)).slice(0,8);
+ const popular=eps.slice().sort((a,b)=>Number(b.play_count||0)-Number(a.play_count||0)).slice(0,8);
+ $("spotlightLatest").innerHTML=latest.map(v7EpisodeCard).join("")||empty("No published episodes yet.");
+ $("spotlightPopular").innerHTML=popular.map(v7EpisodeCard).join("")||empty("No episode activity yet.");
+ $("spotlightFollow").textContent=spotlightHostShows.length&&spotlightHostShows.every(p=>following.has(p.id))?"Following Host":"Follow Host";
+}
+async function v7FollowHost(){
+ if(!personalReady){toast("Sign in to follow this host.");return}
+ if(!spotlightHostShows.length){toast("This host has no followable shows yet.");return}
+ const uid=window.__CROW_USER.id, all=spotlightHostShows.every(p=>following.has(p.id));
+ for(const p of spotlightHostShows){
+   if(all)await sb.from("podcast_follows").delete().eq("user_id",uid).eq("podcast_id",p.id);
+   else if(!following.has(p.id))await sb.from("podcast_follows").insert({user_id:uid,podcast_id:p.id});
+   if(all)following.delete(p.id);else following.add(p.id);
+ }
+ $("spotlightFollow").textContent=all?"Follow Host":"Following Host";renderAll();renderHostSpotlight();toast(all?"Host unfollowed.":"All available shows from this host are now followed.");
+}
+async function v7LikeHost(){
+ if(!personalReady){toast("Sign in to personalize Discover.");return}
+ const uid=window.__CROW_USER.id;
+ for(const p of spotlightHostShows.slice(0,5)){try{await sb.from("podcast_creator_recommendation_feedback").insert({user_id:uid,recommendation_key:"discover-v7-host:"+p.id,podcast_id:p.id,action:"more_like_this",recommendation:{title:p.title,creator_id:p.creator_id,source:"discover-v7-host"}})}catch(e){console.warn(e)}boostShows.add(p.id)}
+ toast("Discover will lean toward this host.");
+ renderAll();renderHostSpotlight();
+}
+
 let bootPromise=null;
 async function boot(){if(bootPromise)return bootPromise;bootPromise=(async()=>{try{$("signalSync").textContent="Connecting…";if(window.CROW_BOOTSTRAP)await window.CROW_BOOTSTRAP();else if(window.CROW_SUPABASE_READY)await window.CROW_SUPABASE_READY;sb=window.CROW_SUPABASE;if(!sb)throw Error("CrowRules Supabase client is not ready.");$("signalSync").textContent="Connected";await loadCatalog();await loadPersonal();chips();renderAll();renderResults();startRealtime()}catch(err){console.error("Discover:",err);$("signalSync").textContent="Connection issue";["topPodcasts","topEpisodes","trending","topHosts","newest","categoryRail","results"].forEach(id=>render(id,"",id==="results"?"Catalog search is unavailable right now.":"This section could not load."));$("featuredTitle").textContent="Discovery is connecting…";$("featuredMeta").textContent=err.message||"Please retry the page."}finally{bootPromise=null}})();return bootPromise}
 function startRealtime(){if(!sb||realtimeChannel)return;try{realtimeChannel=sb.channel("discover-v6-live").on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},refreshLive).on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},refreshLive).subscribe(status=>{const el=$("signalSync");if(status==="SUBSCRIBED")el.textContent="Live sync";else if(status==="TIMED_OUT"||status==="CHANNEL_ERROR"){el.textContent="Live sync retrying…";setTimeout(()=>{if(realtimeChannel){try{sb.removeChannel(realtimeChannel)}catch{}realtimeChannel=null}startRealtime()},1500)}else if(status==="CLOSED")el.textContent="Connected · realtime offline"}})}catch(e){console.warn(e);$("signalSync").textContent="Connected · realtime offline"}}
@@ -202,6 +316,7 @@ let refreshTimer;async function refreshLive(){clearTimeout(refreshTimer);refresh
 $("search").addEventListener("input",()=>{suggestions();query=$("search").value.trim();renderResults()});$("search").addEventListener("keydown",e=>{if(e.key==="Enter")search();if(e.key==="Escape")$("suggestions").classList.remove("open")});$("searchBtn").onclick=search;
 document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))$("suggestions").classList.remove("open");const a=e.target.closest("[data-feedback]");if(a){e.preventDefault();e.stopPropagation();const id=a.dataset.podcastId,k=a.dataset.feedback;if(k==="why"){const p=podcasts.find(x=>x.id===id),af=affinity();$("whyText").textContent=p?"CrowRules is recommending "+p.title+" using your follows, listening history, completion behavior, creator/category affinity, freshness and audience activity.":"This recommendation uses current CrowRules catalog signals.";$("whySignals").innerHTML=[["Category",p?.category&&af.cats.has(p.category)?"Matches your listening":"Fresh exploration"],["Creator",p?.creator_id&&af.creats.has(p.creator_id)?"Matches a creator you listen to":"New creator"],["Freshness",p&&daysAgo(p.created_at)<14?"Recently added":"Established catalog signal"],["Your feedback",feedback.get(id)?.action||"None yet"]].map(x=>'<div class="signal-row"><span>'+esc(x[0])+'</span><strong>'+esc(x[1])+'</strong></div>').join("");$("whyModal").hidden=false;return}if(k==="follow"){toggleFollow(id);return}recordFeedback(id,k==="more"?"more_like_this":k);return}const close=e.target.closest("[data-close-modal]");if(close)$("whyModal").hidden=true;const b=e.target.closest("[data-resume]");if(b){e.preventDefault();e.stopPropagation();location.href=episodeUrl(b.dataset.resume)}});
 document.querySelectorAll("[data-result-tab]").forEach(b=>b.onclick=()=>{resultTab=b.dataset.resultTab;renderResults()});
+$("spotlightFollow").onclick=v7FollowHost;$("spotlightLike").onclick=v7LikeHost;
 $("contentFilter").onchange=e=>{contentFilter=e.target.value;renderAll();renderResults()};
 $("sortFilter").onchange=e=>{sortFilter=e.target.value;renderAll();renderResults()};
 $("freshFilter").onchange=e=>{freshFilter=e.target.value;renderAll();renderResults()};
@@ -211,4 +326,4 @@ window.addEventListener("keydown",e=>{if(e.key==="Escape")$("whyModal").hidden=t
 })();
 </script>
 </body>
-</html></body></html>
+</html>
