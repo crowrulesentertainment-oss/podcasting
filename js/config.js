@@ -28,7 +28,7 @@ window.CROW_CONFIG.supabaseKey=String(window.CROW_CONFIG.supabaseKey).trim();
 window.SUPABASE_URL=window.CROW_CONFIG.supabaseUrl;
 window.SUPABASE_ANON_KEY=window.CROW_CONFIG.supabaseKey;
 window.CROW_SUPABASE_KEY=window.CROW_CONFIG.supabaseKey;
-window.CROW_CONFIG_READY=Boolean(window.CROW_CONFIG.supabaseUrl&&window.CROW_CONFIG.supabaseKey);
+window.CROW_CONFIG_READY=Boolean(window.CROW_CONFIG.supabaseUrl&&window.CROW_CONFIG.supabaseKey);\nwindow.CROW_CREATE_CLIENT=window.CROW_CREATE_CLIENT||function(url,key,options){if(window.supabase?.createClient)return window.supabase.createClient(url||window.CROW_CONFIG.supabaseUrl,key||window.CROW_CONFIG.supabaseKey,options||{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});throw new Error("Supabase client library is not loaded.");};\nwindow.createClient=window.createClient||window.CROW_CREATE_CLIENT;
 function loadScript(src){return new Promise((resolve,reject)=>{if([...document.scripts].some(s=>s.src===src||s.src.startsWith(src+"?"))){resolve();return}const s=document.createElement("script");s.src=src;s.async=false;s.onload=resolve;s.onerror=()=>reject(Error("Failed to load "+src));document.head.appendChild(s);});}
 window.CROW_BOOTSTRAP=window.CROW_BOOTSTRAP||function(){
  if(window.CROW_SUPABASE)return Promise.resolve(window.CROW_SUPABASE);
