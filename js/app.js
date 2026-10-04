@@ -1,9 +1,34 @@
 (()=>{"use strict";
 const page=(location.pathname.split("/").pop()||"index.html").toLowerCase();
-if(page==="index.html"||page==="launch.html")return;
-
 const BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
-const VERSION="20261004-27";
+const VERSION="20261004-28";
+
+function installHalloweenTheme(){
+  try{
+    document.documentElement.dataset.crowSeason="halloween";
+    document.body?.classList.add("cr-halloween-theme");
+    if(!document.querySelector('link[data-crow-halloween]')){
+      const link=document.createElement("link");
+      link.rel="stylesheet";
+      link.href=BASE+"css/halloween-cinematic-v1.css?v=20261004-01";
+      link.dataset.crowHalloween="true";
+      document.head.appendChild(link);
+    }
+    if(document.body&&!document.querySelector(".cr-halloween-bats")){
+      const bats=document.createElement("div");
+      bats.className="cr-halloween-bats";
+      bats.setAttribute("aria-hidden","true");
+      document.body.appendChild(bats);
+    }
+  }catch(e){console.warn("CrowRules Halloween theme:",e)}
+}
+if(document.readyState==="loading"){
+  document.addEventListener("DOMContentLoaded",installHalloweenTheme,{once:true});
+}else{
+  installHalloweenTheme();
+}
+
+if(page==="index.html"||page==="launch.html")return;
 
 function syncBootstrap(){
   try{
@@ -18,12 +43,7 @@ function syncBootstrap(){
   const cfg=window.CROW_CONFIG||{};
   if(!window.CROW_SUPABASE&&window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey){
     window.CROW_SUPABASE=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{
-      auth:{
-        persistSession:true,
-        autoRefreshToken:true,
-        detectSessionInUrl:true,
-        flowType:"pkce"
-      }
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}
     });
   }
   if(window.CROW_SUPABASE){
@@ -38,10 +58,7 @@ function syncBootstrap(){
       sb.auth.onAuthStateChange((event,session)=>{
         window.__CROW_USER=session?.user||null;
         window.__CROW_AUTH_READY=true;
-        try{
-          const token=session?.access_token||null;
-          if(sb.realtime?.setAuth)sb.realtime.setAuth(token||undefined);
-        }catch(_){}
+        try{const token=session?.access_token||null;if(sb.realtime?.setAuth)sb.realtime.setAuth(token||undefined)}catch(_){}
         window.dispatchEvent(new CustomEvent("crow:auth",{detail:{event,session,user:window.__CROW_USER,supabase:sb}}));
         window.dispatchEvent(new CustomEvent("crow:ready",{detail:{supabase:sb,user:window.__CROW_USER,session}}));
       });
