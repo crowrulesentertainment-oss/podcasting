@@ -89,7 +89,7 @@ async function load(){
  }
  if(!rows||!rows.length)throw new Error("Podcast not found. The show may not be published yet.");
  var p=rows[0];loadingText.textContent="Loading published episodes…";
- var eps=await rest("podcast_episodes?select=id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,play_count,status,access_level&podcast_id=eq."+encodeURIComponent(p.id)+"&status=eq.published&order=published_at.desc");
+ var eps=await rest("podcast_episodes?select=*&podcast_id=eq."+encodeURIComponent(p.id)+"&status=eq.published&order=published_at.desc");
  dbStatus.textContent="Connected";dbStatus.className="ok";
  render(p,eps||[]);show();
  // Auth is strictly optional and starts only after rendering.
