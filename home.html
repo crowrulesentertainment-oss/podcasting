@@ -30,33 +30,6 @@ main{width:min(1480px,calc(100% - 32px));margin:auto;padding-top:96px}.hero{disp
 <script src="js/app.js?v=20261004-10" defer></script>
 <script src="js/site-repair-v1.js?v=20261004-10" defer></script>
 
-<header class="cr-nav">
-<a class="cr-brand" href="home.html"><b>CROWRULES</b><span>PODCASTING</span></a>
-<nav class="cr-links" aria-label="Podcasting navigation">
-<a class="active" href="home.html"><i>⌂</i><span>HOME</span></a><a href="discover.html"><i>◈</i><span>DISCOVER</span></a><a href="podcasts.html"><i>◉</i><span>PODCASTS</span></a><a href="episodes.html"><i>▶</i><span>EPISODES</span></a><a href="library.html"><i>▣</i><span>LIBRARY</span></a><a href="search.html"><i>⌕</i><span>SEARCH</span></a><a href="creator-dashboard.html"><i>✦</i><span>STUDIO</span></a><a href="notifications.html"><i>◌</i><span>NOTIFY</span></a>
-</nav><div class="cr-tools"><button id="globalSearch" title="Search">⌕</button><a href="account.html" title="Account">◎</a></div>
-<script>
-(()=>{const nav=document.querySelector(".cr-links");if(!nav||nav.dataset.v12)return;nav.dataset.v12="1";
-nav.innerHTML=`
-<a class="nav-single active" href="home.html"><i>⌂</i><span>HOME</span></a>
-<div class="nav-group"><button class="nav-trigger" type="button"><i>◈</i><span class="label">DISCOVER</span><span class="chevron">⌄</span></button><div class="nav-menu">
-<div class="menu-label">DISCOVER</div><a href="discover.html"><b>◈</b>DISCOVER HOME</a><a href="search.html"><b>⌕</b>GLOBAL SEARCH</a><a href="podcasts.html"><b>◉</b>ALL PODCASTS</a><a href="episodes.html"><b>▶</b>ALL EPISODES</a>
-</div></div>
-<div class="nav-group"><button class="nav-trigger" type="button"><i>▣</i><span class="label">LIBRARY</span><span class="chevron">⌄</span></button><div class="nav-menu">
-<div class="menu-label">YOUR LISTENING</div><a href="library.html"><b>▣</b>MY LIBRARY</a><a href="library.html#continue"><b>▶</b>CONTINUE LISTENING</a><a href="notifications.html"><b>◌</b>NOTIFICATIONS</a>
-</div></div>
-<div class="nav-group"><button class="nav-trigger" type="button"><i>✦</i><span class="label">CREATORS</span><span class="chevron">⌄</span></button><div class="nav-menu">
-<div class="menu-label">CREATE & MANAGE</div><a href="create-podcast.html"><b>＋</b>CREATE PODCAST</a><a href="creator-dashboard.html"><b>✦</b>CREATOR STUDIO</a><a href="creator-profile.html"><b>♙</b>CREATOR PROFILE</a>
-</div></div>
-<div class="nav-group"><button class="nav-trigger" type="button"><i>◎</i><span class="label">ACCOUNT</span><span class="chevron">⌄</span></button><div class="nav-menu">
-<div class="menu-label">CROWRULES ACCOUNT</div><a href="account.html"><b>◎</b>ACCOUNT</a><a href="account.html#membership"><b>★</b>MEMBERSHIP</a><a href="account.html#settings"><b>⚙</b>SETTINGS</a>
-</div></div>`;
-const groups=[...nav.querySelectorAll(".nav-group")];const close=()=>groups.forEach(g=>g.classList.remove("open"));
-groups.forEach(g=>{const b=g.querySelector(".nav-trigger");b.addEventListener("click",e=>{e.stopPropagation();const open=g.classList.contains("open");close();if(!open)g.classList.add("open")});g.querySelector(".nav-menu").addEventListener("click",e=>e.stopPropagation())});
-document.addEventListener("click",close);document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
-})();
-</script>
-</header>
 <main>
 <section class="hero"><div class="hero-main"><div class="eyebrow">CROWRULES PODCASTING / YOUR HOME</div><h1>Find your next <span class="gradient">signal.</span></h1><p>Discover podcasts, follow creators, pick up where you left off, and stay connected to the growing CrowRules audio universe.</p><div class="actions"><a class="btn primary" href="podcasts.html">EXPLORE PODCASTS</a><a class="btn" href="episodes.html">BROWSE EPISODES</a><a class="btn" id="accountAction" href="account.html">SIGN IN</a></div></div>
 <aside class="hero-side"><div><div class="signal"><i class="dot"></i><span id="connectionLabel">CONNECTING TO SUPABASE</span></div><div class="hero-stat" id="podcastCount">—</div><div class="hero-stat-label">Published podcasts</div></div><div><div class="hero-stat" id="episodeCount">—</div><div class="hero-stat-label">Published episodes</div></div><div class="login-note" id="memberNote">Sign in to unlock personalized listening, follow your favorite shows, and continue where you stopped.</div></aside></section>
