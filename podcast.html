@@ -29,6 +29,8 @@
 @media(max-width:1050px){.hero{grid-template-columns:320px 1fr}.hero-meta{grid-template-columns:repeat(2,1fr)}.episode-grid,.ranking-grid{grid-template-columns:repeat(2,1fr)}.trend-grid{grid-template-columns:1fr 1fr}.share-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:780px){.wrap{width:min(100% - 20px,700px)}.hero{grid-template-columns:1fr;padding:20px}.hero-art{max-width:330px}.hero-copy{text-align:left}.hero-meta{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:repeat(2,1fr)}.feature,.universe-grid{grid-template-columns:1fr}.episode-grid,.ranking-grid,.trend-grid{grid-template-columns:1fr}.toolbar{grid-template-columns:1fr 1fr}.toolbar .input{grid-column:1/-1}.share-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:480px){.page{padding-top:12px}.hero{min-height:auto}.title{font-size:clamp(2.15rem,12vw,3.5rem)}.stats{gap:7px}.stat{padding:15px}.stat b{font-size:1.35rem}.feature{padding:12px}.toolbar{grid-template-columns:1fr}.toolbar .input{grid-column:auto}.actions .btn{flex:1}.share-grid{grid-template-columns:1fr 1fr}}
+
+.mini-player{position:fixed;left:16px;right:16px;bottom:16px;z-index:50;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 14px;border:1px solid #25e7ff3d;border-radius:16px;background:linear-gradient(120deg,#07121bf5,#100a18f5);backdrop-filter:blur(18px);box-shadow:0 20px 70px #000b}.mini-player.hidden{display:none}.mini-art{width:48px;height:48px;border-radius:10px;object-fit:cover;border:1px solid #ffffff20}.mini-info{min-width:0}.mini-kicker{font:800 .52rem Orbitron;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase}.mini-title{font-weight:900;font-size:.74rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}.mini-sub{font-size:.59rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}.mini-controls{display:flex;align-items:center;gap:7px}.mini-btn{width:38px;height:38px;border-radius:10px;border:1px solid #ffffff18;background:#ffffff08;color:#fff;cursor:pointer;font-weight:900}.mini-btn:hover{border-color:#25e7ff66}.mini-progress{position:absolute;left:0;right:0;bottom:0;height:3px;background:#ffffff0b;border-radius:0 0 16px 16px;overflow:hidden}.mini-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple))}.player-time{font:700 .56rem Montserrat;color:var(--muted);min-width:70px;text-align:right}@media(max-width:650px){.mini-player{left:8px;right:8px;bottom:8px;grid-template-columns:auto minmax(0,1fr);gap:10px}.mini-controls{grid-column:1/-1}.player-time{margin-left:auto}.mini-btn{width:42px;height:38px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -101,6 +103,12 @@
  </section>
 </section>
 </main>
+<div id="miniPlayer" class="mini-player hidden" aria-label="CrowRules audio player">
+ <img id="miniArt" class="mini-art" src="assets/podcast-placeholder.svg" alt="">
+ <div class="mini-info"><div class="mini-kicker">NOW TRANSMITTING</div><div id="miniTitle" class="mini-title">No episode selected</div><div id="miniSub" class="mini-sub">CrowRules Podcasting</div></div>
+ <div class="mini-controls"><button id="miniPrev" class="mini-btn" type="button" aria-label="Previous episode">↶</button><button id="miniPlay" class="mini-btn" type="button" aria-label="Play">▶</button><button id="miniNext" class="mini-btn" type="button" aria-label="Next episode">↷</button><span id="playerTime" class="player-time">0:00 / 0:00</span><button id="miniClose" class="mini-btn" type="button" aria-label="Close player">×</button></div>
+ <div class="mini-progress"><i id="miniProgress"></i></div>
+</div>
 
 <script>
 (function(){
@@ -109,6 +117,20 @@ var cfg=window.CROW_CONFIG||{}, loading=document.getElementById("loading"),app=d
 var hero=document.getElementById("hero"),statsEl=document.getElementById("stats"),episodesEl=document.getElementById("episodes"),featuredEl=document.getElementById("featuredSection"),trendEl=document.getElementById("trendGrid"),rankingEl=document.getElementById("rankingGrid");
 var searchEl=document.getElementById("episodeSearch"),filterEl=document.getElementById("episodeFilter"),sortEl=document.getElementById("episodeSort"),resultEl=document.getElementById("resultCount");
 var currentPodcast=null,allEpisodes=[],allRankings={podcasts:{},episodes:{},hosts:{}},activePeriod="today",authClient=null,subscriptionProduct=null,followBtn=null,followCount=null,sharePanel=null;
+var mini={el:document.getElementById("miniPlayer"),audio:null,index:-1,episode:null};
+var storageKey=function(id){return "crowrules_podcast_progress_"+String(id)};
+function fmtTime(sec){sec=Math.max(0,Math.floor(Number(sec)||0));var m=Math.floor(sec/60),s=String(sec%60).padStart(2,"0");return m+":"+s}
+function saveProgress(){if(!mini.episode||!mini.audio)return;try{localStorage.setItem(storageKey(mini.episode.id),JSON.stringify({position:mini.audio.currentTime||0,updated_at:Date.now()}))}catch(e){}}
+function restoreProgress(e){try{var x=JSON.parse(localStorage.getItem(storageKey(e.id))||"null");return x&&Number(x.position)>3?Number(x.position):0}catch(err){return 0}}
+function setupMiniPlayer(){
+ document.getElementById("miniPlay").onclick=function(){if(!mini.audio)return;mini.audio.paused?mini.audio.play().catch(function(){}):mini.audio.pause()};
+ document.getElementById("miniPrev").onclick=function(){if(mini.index>0)playEpisode(mini.index-1,true)};
+ document.getElementById("miniNext").onclick=function(){if(mini.index<allEpisodes.length-1)playEpisode(mini.index+1,true)};
+ document.getElementById("miniClose").onclick=function(){if(mini.audio){mini.audio.pause();mini.audio.removeAttribute("src");mini.audio.load()}mini.el.classList.add("hidden");mini.audio=null;mini.episode=null};
+}
+function syncMini(){if(!mini.audio)return;document.getElementById("miniPlay").textContent=mini.audio.paused?"▶":"Ⅱ";document.getElementById("playerTime").textContent=fmtTime(mini.audio.currentTime)+" / "+fmtTime(mini.audio.duration);document.getElementById("miniProgress").style.width=(mini.audio.duration?Math.min(100,(mini.audio.currentTime/mini.audio.duration)*100):0)+"%";saveProgress()}
+function playEpisode(index,autoplay){var e=allEpisodes[index];if(!e||!e.audio_url)return;mini.index=index;mini.episode=e;if(mini.audio){mini.audio.pause();mini.audio.removeAttribute("src");mini.audio.load()}mini.audio=new Audio();mini.audio.preload="metadata";mini.audio.src=e.audio_url;document.getElementById("miniArt").src=e.thumbnail_url||currentPodcast.artwork_url||"assets/podcast-placeholder.svg";document.getElementById("miniTitle").textContent=e.title||"Untitled Episode";document.getElementById("miniSub").textContent=(currentPodcast.title||"CrowRules Podcast")+" · Episode "+(e.episode_number||"—");mini.el.classList.remove("hidden");mini.audio.addEventListener("loadedmetadata",function(){var p=restoreProgress(e);if(p&&p<mini.audio.duration)mini.audio.currentTime=p;if(autoplay)mini.audio.play().catch(function(){})});mini.audio.addEventListener("timeupdate",syncMini);mini.audio.addEventListener("play",syncMini);mini.audio.addEventListener("pause",syncMini);mini.audio.addEventListener("ended",function(){saveProgress();if(mini.index<allEpisodes.length-1)playEpisode(mini.index+1,true);else syncMini()});}
+
 var esc=function(v){return String(v==null?"":v).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
 var attr=function(v){return esc(v).replace(/'/g,"&#39;")};
 var rest=function(path,attempt){attempt=attempt||0;var url=String(cfg.supabaseUrl||"").replace(/\/$/,"")+"/rest/v1/"+path;return fetch(url,{headers:{apikey:cfg.supabaseKey||"",Authorization:"Bearer "+(cfg.supabaseKey||""),Accept:"application/json"},cache:"no-store"}).then(function(r){return r.text().then(function(t){var d=null;try{d=t?JSON.parse(t):null}catch(e){}if(!r.ok){if((r.status===503||r.status===520)&&attempt<2)return new Promise(function(x){setTimeout(x,(attempt+1)*700)}).then(function(){return rest(path,attempt+1)});throw new Error("HTTP "+r.status+(d&&d.message?": "+d.message:""))}return d})})};
@@ -133,7 +155,7 @@ function renderFeatured(){
  var e=allEpisodes[0];if(!e){featuredEl.innerHTML="";return}
  var p=currentPodcast,src=e.thumbnail_url||p.artwork_url;var s=durationSeconds(e),pct=s?Math.min(100,Math.round((Number(e.progress_seconds||0)/s)*100)):0;
  featuredEl.innerHTML="<div class='section-head'><div><div class='eyebrow'>LATEST TRANSMISSION</div><h2 class='section-title'>Featured Episode</h2></div></div><article class='card feature'><img class='feature-art' src='"+img(src)+"' alt='"+attr(e.title||"Episode artwork")+"' onerror='this.onerror=null;this.src="assets/podcast-placeholder.svg"'><div><div class='episode-meta'>EPISODE "+esc(e.episode_number||"")+" · "+date(e.published_at||e.created_at)+"</div><h3>"+esc(e.title||"Untitled Episode")+"</h3><p class='feature-copy'>"+esc(e.description||"Listen to the latest transmission from this podcast.")+"</p><div class='feature-tags'>"+(durationLabel(e)?"<span class='feature-tag'>"+durationLabel(e)+"</span>":"")+"<span class='feature-tag'>Published</span><span class='feature-tag'>CrowRules Audio</span></div><div class='actions'><button class='btn primary' id='featuredPlay' type='button'>▶ Play Latest</button><a class='btn' href='#episodes'>View Catalog</a></div><div class='progress'><i style='width:"+pct+"%'></i></div><audio id='featuredAudio' class='audio' controls preload='metadata' src='"+attr(e.audio_url||"")+"'></audio></div></article>";
- var b=document.getElementById("featuredPlay"),a=document.getElementById("featuredAudio");if(!e.audio_url){b.disabled=true;b.textContent="Audio unavailable"}else b.onclick=function(){a.play().catch(function(){})};
+ var b=document.getElementById("featuredPlay"),a=document.getElementById("featuredAudio");if(!e.audio_url){b.disabled=true;b.textContent="Audio unavailable"}else b.onclick=function(){playEpisode(0,true)};
 }
 function renderEpisodes(){
  var q=(searchEl.value||"").trim().toLowerCase(),f=filterEl.value,s=sortEl.value;
@@ -141,7 +163,8 @@ function renderEpisodes(){
  list.sort(function(a,b){if(s==="title")return String(a.title||"").localeCompare(String(b.title||""));var ad=new Date(a.published_at||a.created_at||0).getTime(),bd=new Date(b.published_at||b.created_at||0).getTime();return s==="oldest"?ad-bd:bd-ad});
  resultEl.textContent=list.length+" of "+allEpisodes.length+" episodes";
  if(!list.length){episodesEl.innerHTML="<div class='card empty'><strong>No episodes match this search.</strong><p class='muted'>Try another title, filter or sort order.</p><button class='btn' id='clearEpisodeSearch'>Clear Search</button></div>";var c=document.getElementById("clearEpisodeSearch");if(c)c.onclick=function(){searchEl.value="";filterEl.value="all";renderEpisodes()};return}
- episodesEl.innerHTML=list.map(function(e){var d=durationLabel(e);return "<article class='card episode'><div class='episode-art-wrap'><img src='"+img(e.thumbnail_url||currentPodcast.artwork_url)+"' alt='"+attr(e.title||"Episode artwork")+"' loading='lazy' onerror='this.onerror=null;this.src="assets/podcast-placeholder.svg"'><span class='episode-badge'>EP "+esc(e.episode_number||"—")+"</span></div><div class='episode-body'><div class='episode-meta'>"+date(e.published_at||e.created_at)+(d?" · "+esc(d):"")+"</div><h3>"+esc(e.title||"Untitled Episode")+"</h3><p>"+esc(e.description||"No episode description available.")+"</p>"+(e.audio_url?"<audio class='audio' controls preload='none' src='"+attr(e.audio_url)+"'></audio>":"<span class='muted' style='font-size:.62rem'>Audio not currently available.</span>")+"</div></article>"}).join("");
+ episodesEl.innerHTML=list.map(function(e){var d=durationLabel(e),idx=allEpisodes.indexOf(e);return "<article class='card episode'><div class='episode-art-wrap'><img src='"+img(e.thumbnail_url||currentPodcast.artwork_url)+"' alt='"+attr(e.title||"Episode artwork")+"' loading='lazy' onerror='this.onerror=null;this.src="assets/podcast-placeholder.svg"'><span class='episode-badge'>EP "+esc(e.episode_number||"—")+"</span></div><div class='episode-body'><div class='episode-meta'>"+date(e.published_at||e.created_at)+(d?" · "+esc(d):"")+"</div><h3>"+esc(e.title||"Untitled Episode")+"</h3><p>"+esc(e.description||"No episode description available.")+"</p>"+(e.audio_url?"<button class='btn primary episode-play' data-index='"+idx+"' type='button'>▶ Play in Universe Player</button>":"<span class='muted' style='font-size:.62rem'>Audio not currently available.</span>")+"</div></article>"}).join("");
+ episodesEl.querySelectorAll(".episode-play").forEach(function(b){b.onclick=function(){playEpisode(Number(b.dataset.index),true)}});
 }
 function periodItems(kind){return allRankings[kind]&&allRankings[kind][activePeriod]||[]}
 function renderRankings(){
@@ -215,6 +238,7 @@ async function load(){
 searchEl.oninput=renderEpisodes;filterEl.onchange=renderEpisodes;sortEl.onchange=renderEpisodes;
 document.querySelectorAll(".rank-tab").forEach(function(b){b.onclick=function(){document.querySelectorAll(".rank-tab").forEach(function(x){x.classList.remove("active")});b.classList.add("active");activePeriod=b.dataset.period;renderRankings()}});
 document.getElementById("retry").onclick=function(){location.reload()};
+setupMiniPlayer();
 load().catch(fail);
 window.addEventListener("crow:ready",function(){if(app.classList.contains("hidden"))load().catch(fail)});
 window.addEventListener("online",function(){if(app.classList.contains("hidden"))load().catch(fail)});
