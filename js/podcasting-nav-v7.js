@@ -10,9 +10,9 @@ const ADMIN=[["⚙","Admin Center","admin.html"],["✓","Moderation","admin.html
 const INTEL=[["✦","Creator Intelligence","creator-intelligence.html"],["✧","Recommendations","creator-recommendations.html"],["◈","Creator Analytics","creator-analytics.html"],["⌁","Platform Analytics","analytics.html"]];
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const page=()=>location.pathname.split("/").pop()||"index.html";
-function sb(){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;if(!window.supabase?.createClient||!KEY)return null;try{return window.CROW_SUPABASE=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}})}catch(_){return null}}
+async function sb(){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;if(typeof window.CROW_BOOTSTRAP==="function"){try{return await window.CROW_BOOTSTRAP()}catch(_){return null}}if(!window.supabase?.createClient||!KEY)return null;try{return window.CROW_SUPABASE=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}})}catch(_){return null}}
 async function ctx(){
- const client=sb();if(!client?.auth?.getSession)return{role:"listener",user:null,memberId:null,creatorId:null,client};
+ const client=await sb();if(!client?.auth?.getSession)return{role:"listener",user:null,memberId:null,creatorId:null,client};
  try{
   const {data}=await client.auth.getSession(),user=data?.session?.user||null;if(!user)return{role:"listener",user:null,memberId:null,creatorId:null,client};
   let memberId=null,memberRole="",creatorId=null,hasCreator=false;
@@ -48,7 +48,7 @@ async function counts(x){
  if(x.role==="admin"||x.role==="admin_creator"){b.admin[1]=await q("podcast_member_reports",z=>z.not("status","in","(resolved,closed)"));b.admin[2]=await q("cr_creator_publish_jobs_63",z=>z.in("status",["queued","requested","validating","publishing","failed"]));b.admin[3]=await q("cr_platform_health_checks",z=>z.neq("status","ok"))}
  return b
 }
-function stop(){if(window.__CROW_NAV_V7_CHANNEL&&sb()?.removeChannel)try{sb().removeChannel(window.__CROW_NAV_V7_CHANNEL)}catch(_){}if(window.__CROW_NAV_V7_TIMER)clearInterval(window.__CROW_NAV_V7_TIMER)}
+function stop(){if(window.__CROW_NAV_V7_CHANNEL&&window.CROW_SUPABASE?.removeChannel)try{sb().removeChannel(window.__CROW_NAV_V7_CHANNEL)}catch(_){}if(window.__CROW_NAV_V7_TIMER)clearInterval(window.__CROW_NAV_V7_TIMER)}
 async function boot(){
  const host=document.querySelector("[data-nav]");if(!host)return;
  const x=await ctx();render(x,{});render(x,await counts(x));stop();
