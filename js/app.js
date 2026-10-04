@@ -3,7 +3,7 @@ const page=(location.pathname.split("/").pop()||"index.html").toLowerCase();
 if(page==="index.html"||page==="launch.html")return;
 
 const BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
-const VERSION="20261004-26";
+const VERSION="20261004-27";
 
 function syncBootstrap(){
   try{
@@ -47,7 +47,17 @@ function syncBootstrap(){
       });
     }
     window.CROW_SUPABASE_ERROR=null;
+    window.CROW_SUPABASE_CONNECTION="connected";
     window.dispatchEvent(new CustomEvent("crow:connection",{detail:{ok:true,label:"SUPABASE ONLINE"}}));
+    Promise.race([sb.auth.getSession(),new Promise((_,rej)=>setTimeout(()=>rej(new Error("Supabase health check timed out.")),8000))]).then(r=>{
+      if(r?.error)throw r.error;
+      window.CROW_SUPABASE_CONNECTION="connected";
+      window.dispatchEvent(new CustomEvent("crow:connection",{detail:{ok:true,label:"SUPABASE ONLINE"}}));
+    }).catch(e=>{
+      window.CROW_SUPABASE_CONNECTION="degraded";
+      window.CROW_SUPABASE_ERROR=e;
+      window.dispatchEvent(new CustomEvent("crow:connection",{detail:{ok:false,label:"SUPABASE DEGRADED",error:e.message||String(e)}}));
+    });
   }else{
     const e=new Error("CrowRules Supabase client could not initialize.");
     window.CROW_SUPABASE_ERROR=e;
