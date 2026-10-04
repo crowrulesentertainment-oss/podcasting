@@ -6,7 +6,7 @@
    Health -> cr_platform_health_checks
 */
 (()=>{"use strict";
-const VERSION="6.0.3";
+const VERSION="6.0.5";
 const CONFIG=window.CROW_CONFIG||{};
 const SUPABASE_URL=CONFIG.supabaseUrl||"https://cevylpnoexugwgygvtgu.supabase.co";
 const SUPABASE_KEY=CONFIG.supabaseKey||window.CROW_SUPABASE_KEY||window.SUPABASE_ANON_KEY;
@@ -119,16 +119,26 @@ function group(title,items){
 
 function roleItems(ctx,cap){
  const out=[];
- if(ctx.role==="admin"||ctx.role==="admin_creator")out.push(["Administration",adminBase.map(x=>[x,x[1]==="Moderation"?cap.moderation:x[1]==="Publishing"?cap.publishing:x[1]==="Health"?cap.health:0,x[1].toLowerCase()])]);
+ if(ctx.role==="admin"||ctx.role==="admin_creator"){
+  const a=[
+   [adminBase[0],0,"admin-center"],
+   [adminBase[1],cap.moderation,"moderation"],
+   [adminBase[2],cap.publishing,"publishing"],
+   [adminBase[3],cap.health,"health"],
+   [adminBase[4],0,"analytics"]
+  ];
+  out.push(["Administration",a]);
+ }
  if(ctx.role==="creator"||ctx.role==="admin_creator"){
-  const a=[];
-  if(cap.shows)a.push([creatorBase[0],0,"shows"]);
-  if(cap.episodes)a.push([creatorBase[1],0,"episodes"]);
-  a.push([creatorBase[2],0,"create"],[creatorBase[3],0,"studio"],[creatorBase[4],0,"analytics"]);
-  if(cap.monetization)a.push([creatorBase[5],0,"earnings"]);
+  const a=[
+   [creatorBase[0],0,"shows"],
+   [creatorBase[1],0,"create"],
+   [creatorBase[2],0,"studio"],
+   [creatorBase[3],0,"analytics"]
+  ];
   out.push(["Creator Workspace",a]);
  }
- if(ctx.role==="listener")out.push(["Your Listening",listener.map(x=>[x,0,"listener"])]); 
+ if(ctx.role==="listener")out.push(["Your Listening",listener.map(x=>[x,0,"listener"])]);
  return out;
 }
 function labelFor(ctx){
@@ -223,7 +233,7 @@ async function boot(){
 }
 
 const css=document.createElement("style");
-css.textContent='.crpv6-shell{position:sticky;top:0;z-index:10000;font-family:Montserrat,system-ui,sans-serif}.crpv6-bar{min-height:64px;padding:9px max(18px,calc((100vw - 1400px)/2));display:flex;align-items:center;gap:24px;background:rgba(5,7,14,.94);border-bottom:1px solid #ffffff14;backdrop-filter:blur(20px);box-shadow:0 8px 35px #0006}.crpv6-brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;white-space:nowrap;font:800 .72rem Orbitron,Montserrat}.crpv6-brand b{color:#55e7ff}.crpv6-mark{display:grid;place-items:center;width:36px;height:36px;border:1px solid #55e7ff55;border-radius:10px;background:linear-gradient(145deg,#55e7ff16,#a66cff16);color:#55e7ff;font-size:.65rem}.crpv6-desktop{display:flex;align-items:center;gap:6px;margin-left:auto}.crpv6-toplink,.crpv6-command{color:#c7cedd;text-decoration:none;border:1px solid transparent;background:transparent;padding:10px 11px;border-radius:10px;font:700 .67rem Montserrat;cursor:pointer}.crpv6-toplink:hover,.crpv6-command:hover{color:#fff;background:#ffffff08}.crpv6-command{border-color:#ffffff16}.crpv6-command i{font-style:normal;color:#55e7ff;margin-left:4px}.crpv6-dropdown{position:relative}.crpv6-menu{position:absolute;right:0;top:calc(100% + 10px);width:270px;max-height:min(78vh,650px);overflow:auto;padding:10px;background:rgba(8,11,20,.98);border:1px solid #ffffff18;border-radius:16px;box-shadow:0 25px 70px #000b;display:none}.crpv6-menu.open{display:block}.crpv6-group{padding:5px}.crpv6-group-title{padding:7px 9px;color:#55e7ff;font:800 .55rem Orbitron;letter-spacing:.15em;text-transform:uppercase}.crpv6-link{display:flex;align-items:center;gap:9px;padding:9px;border-radius:9px;color:#aeb7ca;text-decoration:none;font-size:.68rem}.crpv6-link:hover,.crpv6-link.active{color:#fff;background:#ffffff09}.crpv6-link.active{box-shadow:inset 2px 0 #55e7ff}.crpv6-icon{width:18px;text-align:center;color:#55e7ff}.crpv6-badge{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:auto;padding:0 5px;border-radius:999px;color:#fff;font:800 .5rem Montserrat}.crpv6-moderation{background:#ff4f8b}.crpv6-publishing{background:#ff9f43}.crpv6-health{background:#a66cff}.crpv6-divider{height:1px;background:#ffffff10;margin:6px 5px}.crpv6-auth{display:flex;align-items:center;gap:5px;margin-top:6px;padding:7px 5px;border-top:1px solid #ffffff0d}.crpv6-user{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#7f8ba1;font:600 .55rem Montserrat}.crpv6-auth-btn{border:1px solid #ffffff12;background:#ffffff06;color:#cbd4e5;border-radius:7px;padding:6px 8px;font:700 .52rem Montserrat;cursor:pointer}.crpv6-auth-btn:hover{background:#55e7ff0d;color:#fff}.crpv6-live-dot{display:inline-block;width:7px;height:7px;margin-left:5px;border-radius:50%;background:#55e7ff;box-shadow:0 0 12px #55e7ff}.crpv6-mobile-toggle,.crpv6-mobile{display:none}@media(max-width:760px){.crpv6-desktop{display:none}.crpv6-bar{padding:8px 12px}.crpv6-brand{margin-right:auto}.crpv6-mobile-toggle{display:block;border:1px solid #ffffff18;background:#ffffff08;color:#fff;border-radius:10px;padding:9px 12px;cursor:pointer}.crpv6-mobile{display:none;padding:10px 12px 15px;background:rgba(8,11,20,.99);border-bottom:1px solid #ffffff14}.crpv6-mobile.open{display:block}.crpv6-mobile .crpv6-group{border-top:1px solid #ffffff08}.crpv6-mobile-title{padding:8px 9px;color:#8f9bb0;font:700 .55rem Orbitron;letter-spacing:.13em}.crpv6-mobile .crpv6-link{padding:11px 10px}}@media(prefers-reduced-motion:reduce){.crpv6-menu,.crpv6-mobile{transition:none}}';
+css.textContent='.crpv6-shell{position:sticky;top:0;z-index:10000;font-family:Montserrat,system-ui,sans-serif}.crpv6-bar{min-height:64px;padding:9px max(18px,calc((100vw - 1400px)/2));display:flex;align-items:center;gap:24px;background:rgba(5,7,14,.94);border-bottom:1px solid #ffffff14;backdrop-filter:blur(20px);box-shadow:0 8px 35px #0006}.crpv6-brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;white-space:nowrap;font:800 .72rem Orbitron,Montserrat}.crpv6-brand b{color:#55e7ff}.crpv6-mark{display:grid;place-items:center;width:36px;height:36px;border:1px solid #55e7ff55;border-radius:10px;background:linear-gradient(145deg,#55e7ff16,#a66cff16);color:#55e7ff;font-size:.65rem}.crpv6-desktop{display:flex;align-items:center;gap:6px;margin-left:auto;min-width:0}.crpv6-dropdown{position:relative;flex-shrink:0}.crpv6-toplink,.crpv6-command{color:#c7cedd;text-decoration:none;border:1px solid transparent;background:transparent;padding:10px 11px;border-radius:10px;font:700 .67rem Montserrat;cursor:pointer}.crpv6-toplink:hover,.crpv6-command:hover{color:#fff;background:#ffffff08}.crpv6-command{border-color:#ffffff16}.crpv6-command i{font-style:normal;color:#55e7ff;margin-left:4px}.crpv6-menu{position:absolute;right:0;top:calc(100% + 10px);width:270px;max-height:min(78vh,650px);overflow:auto;padding:10px;background:rgba(8,11,20,.98);border:1px solid #ffffff18;border-radius:16px;box-shadow:0 25px 70px #000b;display:none}.crpv6-menu.open{display:block}.crpv6-group{padding:5px}.crpv6-group-title{padding:7px 9px;color:#55e7ff;font:800 .55rem Orbitron;letter-spacing:.15em;text-transform:uppercase}.crpv6-link{display:flex;align-items:center;gap:9px;padding:9px;border-radius:9px;color:#aeb7ca;text-decoration:none;font-size:.68rem}.crpv6-link:hover,.crpv6-link.active{color:#fff;background:#ffffff09}.crpv6-link.active{box-shadow:inset 2px 0 #55e7ff}.crpv6-icon{width:18px;text-align:center;color:#55e7ff}.crpv6-badge{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:auto;padding:0 5px;border-radius:999px;color:#fff;font:800 .5rem Montserrat}.crpv6-moderation{background:#ff4f8b}.crpv6-publishing{background:#ff9f43}.crpv6-health{background:#a66cff}.crpv6-divider{height:1px;background:#ffffff10;margin:6px 5px}.crpv6-auth{display:flex;align-items:center;gap:5px;margin-top:6px;padding:7px 5px;border-top:1px solid #ffffff0d}.crpv6-user{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#7f8ba1;font:600 .55rem Montserrat}.crpv6-auth-btn{border:1px solid #ffffff12;background:#ffffff06;color:#cbd4e5;border-radius:7px;padding:6px 8px;font:700 .52rem Montserrat;cursor:pointer}.crpv6-auth-btn:hover{background:#55e7ff0d;color:#fff}.crpv6-live-dot{display:inline-block;width:7px;height:7px;margin-left:5px;border-radius:50%;background:#55e7ff;box-shadow:0 0 12px #55e7ff}.crpv6-mobile-toggle,.crpv6-mobile{display:none}@media(max-width:760px){.crpv6-desktop{display:none}.crpv6-bar{padding:8px 12px}.crpv6-brand{margin-right:auto}.crpv6-mobile-toggle{display:block;border:1px solid #ffffff18;background:#ffffff08;color:#fff;border-radius:10px;padding:9px 12px;cursor:pointer}.crpv6-mobile{display:none;padding:10px 12px 15px;background:rgba(8,11,20,.99);border-bottom:1px solid #ffffff14}.crpv6-mobile.open{display:block}.crpv6-mobile .crpv6-group{border-top:1px solid #ffffff08}.crpv6-mobile-title{padding:8px 9px;color:#8f9bb0;font:700 .55rem Orbitron;letter-spacing:.13em}.crpv6-mobile .crpv6-link{padding:11px 10px}}@media(prefers-reduced-motion:reduce){.crpv6-menu,.crpv6-mobile{transition:none}}';
 document.head.appendChild(css);
 
 window.addEventListener("crow:auth-changed",boot);
