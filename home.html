@@ -26,9 +26,11 @@ main{width:min(1480px,calc(100% - 32px));margin:auto;padding-top:96px}.hero{disp
 <link rel="stylesheet" href="css/navigation-v12.css?v=20261004-12">
 <link rel="stylesheet" href="css/podcasting-v10.css?v=20261004-10">
 <link rel="stylesheet" href="css/halloween-cinematic-v1.css?v=20261004-01"><link rel="stylesheet" href="css/halloween-cinematic-v2.css?v=20261004-02">
+<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-13"><link rel="stylesheet" href="css/halloween-cinematic-v2.css?v=20261004-02">
 </head>
 <body class="cr-halloween-theme">
 <script src="js/app.js?v=20261004-27"></script>
+<script src="js/sitewide-v13.js?v=20261004-13"></script>
 <script src="js/site-repair-v1.js?v=20261004-10" defer></script>
 
 <main>
@@ -124,4 +126,5 @@ window.addEventListener("crow:connection",e=>{if(e.detail?.ok){set("sbStatus","O
 boot().catch(e=>{console.error("CrowRules home:",e);set("connectionLabel","CONNECTION ERROR",false);set("sbStatus","ERROR",false);set("catalogStatus","OFFLINE",false);set("rtStatus","ERROR",false);toast(e.message||"Supabase connection failed.")});
 })();
 </script>
+<script src="js/podcasting-v14.js?v=20261004-14"></script>
 </body></html>
