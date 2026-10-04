@@ -40,15 +40,7 @@
 <div class="universe-bg" aria-hidden="true"></div>
 <div data-nav></div>
 <main class="wrap page">
-<section id="loading" class="card loading">
- <div class="eyebrow">CROW UNIVERSE / AUDIO SECTOR</div>
- <h1 style="font:900 clamp(2rem,5vw,4rem) Orbitron;margin:12px 0">Entering the Podcast Universe…</h1>
- <p id="loadingText" class="muted">Connecting to the CrowRules Podcasting data layer.</p>
- <div class="spinner" aria-hidden="true"></div>
- <div id="diagnostic" class="diagnostic hidden"></div>
-</section>
-
-<section id="app" class="hidden">
+<section id="app">
  <div class="breadcrumbs"><a href="podcasts.html">Podcasting</a><span>›</span><span id="crumbTitle">Podcast</span><span class="signal"><i class="dot"></i>NETWORK ONLINE</span></div>
 
  <section id="hero" class="card hero"></section>
@@ -121,7 +113,7 @@
 <script>
 (function(){
 "use strict";
-var cfg=window.CROW_CONFIG||{}, loading=document.getElementById("loading"),app=document.getElementById("app"),loadingText=document.getElementById("loadingText"),diagnostic=document.getElementById("diagnostic");
+var cfg=window.CROW_CONFIG||{},app=document.getElementById("app");
 var hero=document.getElementById("hero"),statsEl=document.getElementById("stats"),episodesEl=document.getElementById("episodes"),featuredEl=document.getElementById("featuredSection"),trendEl=document.getElementById("trendGrid"),rankingEl=document.getElementById("rankingGrid");
 var searchEl=document.getElementById("episodeSearch"),filterEl=document.getElementById("episodeFilter"),sortEl=document.getElementById("episodeSort"),resultEl=document.getElementById("resultCount");
 var currentPodcast=null,allEpisodes=[],allRankings={podcasts:{},episodes:{},hosts:{}},activePeriod="today",authClient=null,subscriptionProduct=null,followBtn=null,followCount=null,sharePanel=null;
@@ -163,7 +155,7 @@ var esc=function(v){return String(v==null?"":v).replace(/[&<>"]/g,function(c){re
 var attr=function(v){return esc(v).replace(/'/g,"&#39;")};
 var rest=function(path,attempt){attempt=attempt||0;var url=String(cfg.supabaseUrl||"").replace(/\/$/,"")+"/rest/v1/"+path;return fetch(url,{headers:{apikey:cfg.supabaseKey||"",Authorization:"Bearer "+(cfg.supabaseKey||""),Accept:"application/json"},cache:"no-store"}).then(function(r){return r.text().then(function(t){var d=null;try{d=t?JSON.parse(t):null}catch(e){}if(!r.ok){if((r.status===503||r.status===520)&&attempt<2)return new Promise(function(x){setTimeout(x,(attempt+1)*700)}).then(function(){return rest(path,attempt+1)});throw new Error("HTTP "+r.status+(d&&d.message?": "+d.message:""))}return d})})};
 function fail(e){loadingText.textContent="The podcast could not enter the universe.";diagnostic.classList.remove("hidden");diagnostic.innerHTML="<strong>Diagnostic</strong><br><code>"+esc(e&&e.message||e)+"</code><br><br><span class='muted'>The page uses an isolated critical loader so optional authentication, Stripe and sitewide features cannot prevent the show from rendering.</span>"}
-function show(){loading.classList.add("hidden");app.classList.remove("hidden")}
+function show(){app.classList.remove("hidden")}
 function num(v){return Number(v||0).toLocaleString()}
 function img(url){return attr(url||"assets/podcast-placeholder.svg")}
 function date(v){if(!v)return "";var d=new Date(v);return isNaN(d)?String(v):d.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"})}
@@ -251,8 +243,7 @@ async function load(){
  if(!result.data)throw new Error("Podcast not found. The show may not be published yet.");
  currentPodcast=result.data;
  try{var products=await sb.from("cr_podcast_monetization_products").select("id,podcast_id,name,amount_cents,interval,active,product_type").eq("podcast_id",currentPodcast.id).eq("product_type","membership").eq("active",true).limit(1);subscriptionProduct=products.data&&products.data[0]||null}catch(e){subscriptionProduct=null}
- loadingText.textContent="Loading the published episode catalog…";
- var ep=await sb.from("podcast_episodes").select("*").eq("podcast_id",currentPodcast.id).eq("status","published").order("published_at",{ascending:false});
+  var ep=await sb.from("podcast_episodes").select("*").eq("podcast_id",currentPodcast.id).eq("status","published").order("published_at",{ascending:false});
  if(ep.error)throw new Error(ep.error.message||"Unable to load published episodes.");
  allEpisodes=ep.data||[];
  var sr=await sb.from("podcast_public_stats").select("episode_count,follower_count,listen_count,seconds_listened,completed_listens").eq("podcast_id",currentPodcast.id).limit(1);
@@ -270,7 +261,7 @@ setupMiniPlayer();
 load().catch(fail);
 window.addEventListener("crow:ready",function(){if(app.classList.contains("hidden"))load().catch(fail)});
 window.addEventListener("online",function(){if(app.classList.contains("hidden"))load().catch(fail)});
-setTimeout(function(){if(!app.classList.contains("hidden"))return;diagnostic.classList.remove("hidden");diagnostic.innerHTML="<strong>Loader watchdog:</strong> The data request is taking longer than expected. You can reload the universe.";},12000);
+
 })();
 </script>
 </body>
