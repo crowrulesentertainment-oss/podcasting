@@ -2,7 +2,7 @@
 if(window.__CROW_LISTENER_INTELLIGENCE_V131__)return;
 window.__CROW_LISTENER_INTELLIGENCE_V131__=true;
 const RETRACK=15000;
-let lastKey="",timer=0;
+let lastKey="",timer=0;\nconst CONTENT_EVENT="crow:listener-intelligence";
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function activeAudio(){return [...document.querySelectorAll("audio")].find(a=>!a.paused&&!a.ended&&a.currentTime>0)||null}
 function meta(a){
@@ -19,7 +19,7 @@ async function track(){
   const a=activeAudio(),m=meta(a),mode=a?"listener":"browser";
   const key=[mode,m.podcast_id||"",m.episode_id||"",m.content_title||"",location.pathname].join("|");
   if(key===lastKey)return;
-  lastKey=key;
+  lastKey=key;\n  window.CROW_LISTENER_STATE={active:!!a,mode,podcast_id:m.podcast_id,episode_id:m.episode_id,content_title:mode==="listener"?m.content_title:null};\n  window.dispatchEvent(new CustomEvent(CONTENT_EVENT,{detail:window.CROW_LISTENER_STATE}));
   try{await ch.track({user_id:u.id,online_at:new Date().toISOString(),page:location.pathname.split("/").pop()||"home.html",mode,podcast_id:m.podcast_id,episode_id:m.episode_id,content_title:mode==="listener"?m.content_title:null,title:document.title})}catch(e){}
 }
 function bind(){
