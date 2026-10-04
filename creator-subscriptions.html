@@ -1,15 +1,1575 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Creator Subscription Manager — CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><script src="js/config.js"></script><script src="js/app.js" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script><style>
-.wrapx{max-width:1200px;margin:auto}.bar{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}.plan{position:relative;overflow:hidden}.plan:before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#55e7ff,#a78bfa,#ff6bd6)}.price{font-size:34px;font-weight:800}.price small{font-size:12px;color:#9da7bb}.pills{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.pill{border:1px solid #ffffff18;border-radius:999px;padding:5px 9px;font-size:11px;color:#aeb9cd}.actions{display:flex;gap:8px;flex-wrap:wrap}.modal{display:none;position:fixed;inset:0;background:#02040bd9;backdrop-filter:blur(10px);z-index:50;align-items:center;justify-content:center;padding:18px}.modal.open{display:flex}.modal .card{width:min(680px,100%);max-height:90vh;overflow:auto}.form{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:flex;flex-direction:column;gap:6px}.full{grid-column:1/-1}.field label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#aeb9cd}.field input,.field textarea,.field select{box-sizing:border-box;width:100%;background:#070b15;border:1px solid #ffffff18;border-radius:12px;color:#fff;padding:12px}.field textarea{min-height:100px}.muted{color:#93a0b7}.empty{text-align:center;padding:48px}.error{border-color:#ff547055!important;color:#ffb2bf}.ok{border-color:#51f2a355!important}@media(max-width:650px){.form{grid-template-columns:1fr}.full{grid-column:auto}}
-</style><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
-</head><body><div data-nav></div><main class="wrap hero wrapx"><div class="eyebrow">CREATOR MONETIZATION</div><h1>Subscription <span class="gradient">Manager.</span></h1><p class="lead">Create one or more subscription plans and set the price your listeners pay. CrowRules manages the Stripe Products and Prices behind each plan.</p><div id="status" class="notice">Loading…</div><div class="bar"><button id="create" class="btn primary">＋ Create Plan</button><a class="btn" href="creator-payouts.html">Stripe Payouts</a><button id="refresh" class="btn">Refresh</button></div><section class="section"><div style="display:flex;justify-content:space-between;gap:10px;align-items:end;flex-wrap:wrap"><div><div class="eyebrow">YOUR SUBSCRIPTIONS</div><h2>Plans</h2></div><span id="count" class="muted"></span></div><div id="plans" class="plans"><div class="notice">Loading plans…</div></div></section></main>
-<div id="modal" class="modal"><div class="card"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><div><div class="eyebrow" id="mode">NEW PLAN</div><h2 id="title">Create Subscription Plan</h2></div><button class="btn" id="close">Close</button></div><form id="form"><input id="id" type="hidden"><div class="form"><div class="field full"><label>Plan name</label><input id="name" maxlength="120" required placeholder="Premium Supporter"></div><div class="field full"><label>Description</label><textarea id="desc" maxlength="2000" placeholder="Exclusive episodes and creator benefits."></textarea></div><div class="field"><label>Price (USD)</label><input id="amount" type="number" min=".50" max="999999.99" step=".01" required placeholder="4.99"></div><div class="field"><label>Billing</label><select id="interval"><option value="month">Monthly</option><option value="year">Yearly</option></select></div><div class="field"><label>Billing interval count</label><select id="intervalCount"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="6">6</option><option value="12">12</option></select></div><div class="field"><label>Free trial days</label><input id="trial" type="number" min="0" max="365" value="0"></div><div class="field full"><label>Podcast</label><select id="podcast"><option value="">All creator podcasts</option></select><span class="muted">Choose a specific show or make the plan available across your creator profile.</span></div></div><div class="notice" style="margin-top:16px">Changing the price creates a new Stripe Price. Existing subscribers remain on their original price.</div><div class="bar" style="justify-content:flex-end"><button type="button" id="cancel" class="btn">Cancel</button><button class="btn primary" id="save">Create Plan</button></div></form></div></div>
-<script>
-(()=>{"use strict";const $=x=>document.getElementById(x),S={plans:[],pods:[],creator:null,edit:null};const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));const money=c=>"$"+(Number(c||0)/100).toFixed(2);function client(){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;const c=window.CROW_CONFIG||{};if(!window.supabase)throw Error("Supabase client unavailable.");return window.CROW_SUPABASE=window.supabase.createClient(c.supabaseUrl,c.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})}function msg(t,cls=""){$("status").className="notice "+cls;$("status").textContent=t}async function call(action,x={}){const r=await client().functions.invoke(window.CROW_CONFIG?.subscriptionManagerFunction||"creator-subscription-manager",{body:{action,...x}});if(r.error)throw Error(r.error.message||"Subscription service failed");if(r.data?.error)throw Error(r.data.error);return r.data}
-function render(){const p=S.plans;$("count").textContent=p.length+" plan"+(p.length===1?"":"s");if(!p.length){$("plans").innerHTML='<div class="card empty"><h3>No plans yet</h3><p class="muted">Create your first creator subscription.</p></div>';return}$("plans").innerHTML=p.map(x=>{const pod=S.pods.find(y=>y.id===x.podcast_id);const cadence=Number(x.interval_count||1)===1?x.interval:(x.interval_count+" "+x.interval+"s");return '<article class="card plan"><div class="eyebrow">'+(x.active?"ACTIVE":"INACTIVE")+'</div><h3>'+esc(x.name)+'</h3><div class="price">'+money(x.amount_cents)+' <small>/ '+esc(cadence)+'</small></div><p class="muted">'+esc(x.description||"Creator subscription")+'</p><div class="pills"><span class="pill">'+esc(pod?.title||"All shows")+'</span><span class="pill">'+(x.trial_period_days?x.trial_period_days+"-day trial":"No trial")+'</span></div><div class="actions">'+(x.active?'<button class="btn" data-edit="'+x.id+'">Edit</button><button class="btn" data-off="'+x.id+'">Deactivate</button>':'<span class="pill">Inactive</span>')+'</div></article>'}).join("");document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>open(S.plans.find(x=>x.id===b.dataset.edit)));document.querySelectorAll("[data-off]").forEach(b=>b.onclick=()=>off(b.dataset.off))}
-function fill(){ $("podcast").innerHTML='<option value="">All creator podcasts</option>'+S.pods.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.title)+'</option>').join("")}
-function open(p=null){S.edit=p||null;$("id").value=p?.id||"";$("name").value=p?.name||"";$("desc").value=p?.description||"";$("amount").value=p?(Number(p.amount_cents||0)/100).toFixed(2):"";$("interval").value=p?.interval||"month";$("intervalCount").value=String(p?.interval_count||1);$("trial").value=String(p?.trial_period_days||0);$("podcast").value=p?.podcast_id||"";$("mode").textContent=p?"EDIT PLAN":"NEW PLAN";$("title").textContent=p?"Edit Subscription Plan":"Create Subscription Plan";$("save").textContent=p?"Save Changes":"Create Plan";$("modal").classList.add("open")}
-function close(){$("modal").classList.remove("open");S.edit=null}
-async function load(){try{msg("Checking creator account…");const d=await call("list");S.creator=d.creator;S.pods=d.podcasts||[];S.plans=d.plans||[];fill();render();if(S.creator?.stripe_ready){msg("Stripe is connected. You can create and manage your plans.","ok");$("create").disabled=false}else{msg("Connect and finish Stripe onboarding before creating paid subscription plans.");$("create").disabled=true}}catch(e){msg(e.message||"Could not load subscription manager.","error");$("create").disabled=true;$("plans").innerHTML='<div class="card empty"><h3>Unable to load plans</h3><p class="muted">'+esc(e.message||e)+'</p></div>'}}
-async function off(id){const p=S.plans.find(x=>x.id===id);if(!p||!confirm("Deactivate “"+p.name+"”? Existing subscribers are not canceled."))return;try{await call("deactivate",{id});await load()}catch(e){msg(e.message||"Could not deactivate plan.","error")}}
-$("create").onclick=()=>open();$("refresh").onclick=load;$("close").onclick=close;$("cancel").onclick=close;$("form").onsubmit=async e=>{e.preventDefault();const x={name:$("name").value.trim(),description:$("desc").value.trim(),amount_cents:Math.round(Number($("amount").value)*100),interval:$("interval").value,interval_count:Number($("intervalCount").value),trial_period_days:Number($("trial").value||0),podcast_id:$("podcast").value||null};$("save").disabled=true;try{if(S.edit)await call("update",{id:S.edit.id,...x});else await call("create",x);close();await load();msg("Subscription plan saved.","ok")}catch(e){msg(e.message||"Could not save plan.","error")}finally{$("save").disabled=false}};function init(){if(window.CROW_SUPABASE)load();else{window.addEventListener("crow:ready",load,{once:true});setTimeout(()=>{if(!window.CROW_SUPABASE)load()},3000)}}init()})();
-</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<meta name="theme-color" content="#05050b">
+
+<meta
+  name="description"
+  content="Manage your CrowRules Podcasting creator subscriptions."
+>
+
+<title>Creator Subscriptions | CrowRules Podcasting</title>
+
+<link rel="stylesheet" href="css/podcasting.css?v=20261004-01">
+
+<style>
+:root{
+  --bg:#05050b;
+  --panel:rgba(13,15,28,.88);
+  --panel2:rgba(20,22,40,.92);
+  --line:rgba(255,255,255,.10);
+  --text:#f5f7ff;
+  --muted:#9da4bd;
+  --cyan:#00eaff;
+  --purple:#9b5cff;
+  --pink:#ff3cac;
+  --green:#48f5a7;
+  --danger:#ff5577;
+  --shadow:0 25px 80px rgba(0,0,0,.45);
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  color:var(--text);
+  background:
+    radial-gradient(
+      circle at 10% 0%,
+      rgba(0,234,255,.11),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(155,92,255,.13),
+      transparent 32%
+    ),
+    var(--bg);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+button{
+  font:inherit;
+}
+
+a{
+  color:inherit;
+  text-decoration:none;
+}
+
+.page{
+  width:min(1240px,calc(100% - 32px));
+  margin:auto;
+  padding:42px 0 90px;
+}
+
+.hero{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:30px;
+  margin-bottom:30px;
+}
+
+.hero-copy{
+  max-width:760px;
+}
+
+.eyebrow{
+  color:var(--cyan);
+  font-size:.75rem;
+  font-weight:800;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+
+h1{
+  margin:0;
+  font-size:clamp(2.2rem,5vw,4.4rem);
+  line-height:.98;
+  letter-spacing:-.045em;
+}
+
+.hero p{
+  margin:18px 0 0;
+  color:var(--muted);
+  font-size:1.05rem;
+  line-height:1.7;
+}
+
+.account{
+  min-width:230px;
+  padding:18px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+}
+
+.account-label{
+  color:var(--muted);
+  font-size:.72rem;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+}
+
+.account-email{
+  margin-top:7px;
+  font-weight:700;
+  word-break:break-word;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.card{
+  border:1px solid var(--line);
+  background:linear-gradient(
+    145deg,
+    rgba(255,255,255,.055),
+    rgba(255,255,255,.018)
+  );
+  border-radius:22px;
+  padding:24px;
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(16px);
+}
+
+.card h2{
+  margin:0;
+  font-size:1.15rem;
+}
+
+.card p{
+  color:var(--muted);
+  line-height:1.6;
+}
+
+.stat{
+  font-size:2rem;
+  font-weight:900;
+  margin-top:12px;
+}
+
+.stat-label{
+  color:var(--muted);
+  font-size:.82rem;
+}
+
+.section{
+  margin-top:30px;
+}
+
+.section-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  margin-bottom:15px;
+}
+
+.section-header h2{
+  margin:0;
+  font-size:1.45rem;
+}
+
+.status{
+  padding:7px 11px;
+  border-radius:999px;
+  font-size:.72rem;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  background:rgba(72,245,167,.1);
+  color:var(--green);
+  border:1px solid rgba(72,245,167,.2);
+}
+
+.status.canceling{
+  color:#ffd166;
+  background:rgba(255,209,102,.08);
+  border-color:rgba(255,209,102,.2);
+}
+
+.status.canceled{
+  color:var(--danger);
+  background:rgba(255,85,119,.08);
+  border-color:rgba(255,85,119,.2);
+}
+
+.subscription{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  padding:20px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:rgba(255,255,255,.025);
+  margin-bottom:12px;
+}
+
+.avatar{
+  width:58px;
+  height:58px;
+  border-radius:50%;
+  object-fit:cover;
+  background:
+    linear-gradient(
+      135deg,
+      var(--cyan),
+      var(--purple)
+    );
+  flex:0 0 auto;
+}
+
+.subscription-main{
+  flex:1;
+  min-width:0;
+}
+
+.subscription-name{
+  font-size:1.08rem;
+  font-weight:800;
+}
+
+.subscription-meta{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:.86rem;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  border-radius:11px;
+  padding:10px 14px;
+  cursor:pointer;
+  font-weight:800;
+  transition:.2s ease;
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+  border-color:rgba(255,255,255,.25);
+}
+
+.btn.primary{
+  border-color:rgba(0,234,255,.4);
+  background:linear-gradient(
+    135deg,
+    rgba(0,234,255,.16),
+    rgba(155,92,255,.16)
+  );
+}
+
+.btn.danger{
+  color:#ff8ba4;
+}
+
+.btn:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+  transform:none;
+}
+
+.empty{
+  padding:42px 20px;
+  text-align:center;
+  color:var(--muted);
+  border:1px dashed var(--line);
+  border-radius:18px;
+}
+
+.loading{
+  padding:30px;
+  text-align:center;
+  color:var(--muted);
+}
+
+.error{
+  display:none;
+  margin-bottom:20px;
+  padding:15px 18px;
+  border-radius:14px;
+  color:#ff9db2;
+  background:rgba(255,85,119,.08);
+  border:1px solid rgba(255,85,119,.2);
+}
+
+.plans{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.plan{
+  position:relative;
+}
+
+.plan-price{
+  margin:15px 0;
+  font-size:2rem;
+  font-weight:900;
+}
+
+.plan-price span{
+  font-size:.8rem;
+  font-weight:600;
+  color:var(--muted);
+}
+
+.plan ul{
+  margin:18px 0;
+  padding-left:20px;
+  color:var(--muted);
+  line-height:1.9;
+}
+
+.creator{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:16px;
+}
+
+.creator img{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.creator-name{
+  font-weight:800;
+}
+
+.creator-subscribers{
+  color:var(--muted);
+  font-size:.8rem;
+}
+
+.toast{
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  z-index:100;
+  max-width:360px;
+  padding:14px 18px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#101323;
+  box-shadow:var(--shadow);
+  display:none;
+}
+
+@media(max-width:900px){
+  .grid,
+  .plans{
+    grid-template-columns:1fr;
+  }
+
+  .hero{
+    align-items:stretch;
+    flex-direction:column;
+  }
+}
+
+@media(max-width:650px){
+  .page{
+    width:min(100% - 20px,1240px);
+    padding-top:25px;
+  }
+
+  .subscription{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .subscription .actions{
+    width:100%;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<main class="page">
+
+  <section class="hero">
+
+    <div class="hero-copy">
+
+      <div class="eyebrow">
+        CrowRules Podcasting
+      </div>
+
+      <h1>
+        Creator<br>
+        Subscriptions
+      </h1>
+
+      <p>
+        Support the creators you love, manage your subscriptions,
+        discover new shows, and stay connected to the CrowRules
+        Podcasting universe.
+      </p>
+
+    </div>
+
+    <aside class="account">
+
+      <div class="account-label">
+        CrowRules Account
+      </div>
+
+      <div
+        id="accountEmail"
+        class="account-email"
+      >
+        Checking account…
+      </div>
+
+    </aside>
+
+  </section>
+
+
+  <div
+    id="errorBox"
+    class="error"
+  ></div>
+
+
+  <section class="grid">
+
+    <article class="card">
+
+      <div class="stat-label">
+        Active Subscriptions
+      </div>
+
+      <div
+        id="activeCount"
+        class="stat"
+      >
+        —
+      </div>
+
+    </article>
+
+
+    <article class="card">
+
+      <div class="stat-label">
+        Creators Supported
+      </div>
+
+      <div
+        id="creatorCount"
+        class="stat"
+      >
+        —
+      </div>
+
+    </article>
+
+
+    <article class="card">
+
+      <div class="stat-label">
+        Monthly Support
+      </div>
+
+      <div
+        id="monthlyTotal"
+        class="stat"
+      >
+        $0.00
+      </div>
+
+    </article>
+
+  </section>
+
+
+  <section class="section">
+
+    <div class="section-header">
+
+      <h2>
+        Your Subscriptions
+      </h2>
+
+    </div>
+
+    <div id="subscriptions">
+
+      <div class="loading">
+        Loading your subscriptions…
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <section class="section">
+
+    <div class="section-header">
+
+      <h2>
+        Discover Creators
+      </h2>
+
+    </div>
+
+    <div
+      id="plans"
+      class="plans"
+    >
+
+      <div class="loading">
+        Loading creator plans…
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<div
+  id="toast"
+  class="toast"
+></div>
+
+
+<script type="module">
+
+import {
+  createClient
+} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+
+/* ============================================================
+   CROW CONFIG
+   ============================================================ */
+
+const CONFIG = window.CROW_CONFIG || {
+
+  supabaseUrl:
+    "https://cevylpnoexugwgygvtgu.supabase.co",
+
+  supabaseKey:
+    window.CROW_SUPABASE_KEY || ""
+
+};
+
+
+if (!CONFIG.supabaseKey) {
+
+  showError(
+    "Supabase is not configured on this page. " +
+    "Add CROW_CONFIG.supabaseKey before using subscriptions."
+  );
+
+}
+
+
+const supabase = createClient(
+  CONFIG.supabaseUrl,
+  CONFIG.supabaseKey
+);
+
+
+/* ============================================================
+   DOM
+   ============================================================ */
+
+const accountEmail =
+  document.getElementById("accountEmail");
+
+const subscriptionsEl =
+  document.getElementById("subscriptions");
+
+const plansEl =
+  document.getElementById("plans");
+
+const activeCount =
+  document.getElementById("activeCount");
+
+const creatorCount =
+  document.getElementById("creatorCount");
+
+const monthlyTotal =
+  document.getElementById("monthlyTotal");
+
+
+let currentUser = null;
+let currentSubscriptions = [];
+
+
+/* ============================================================
+   START
+   ============================================================ */
+
+init();
+
+
+async function init(){
+
+  try {
+
+    const {
+      data,
+      error
+    } = await supabase.auth.getUser();
+
+    if(error){
+      throw error;
+    }
+
+    currentUser = data.user;
+
+    if(!currentUser){
+
+      accountEmail.textContent =
+        "Sign in required";
+
+      renderSignedOut();
+
+      return;
+    }
+
+    accountEmail.textContent =
+      currentUser.email || "CrowRules Member";
+
+    await Promise.all([
+      loadSubscriptions(),
+      loadPlans()
+    ]);
+
+  } catch(error){
+
+    console.error(
+      "Creator subscriptions initialization error:",
+      error
+    );
+
+    showError(
+      error.message ||
+      "Unable to connect to Creator Subscriptions."
+    );
+
+  }
+
+}
+
+
+/* ============================================================
+   SUBSCRIPTIONS
+   ============================================================ */
+
+async function loadSubscriptions(){
+
+  subscriptionsEl.innerHTML =
+    `<div class="loading">
+      Loading subscriptions…
+    </div>`;
+
+  const {
+    data,
+    error
+  } = await supabase
+    .from("creator_subscriptions")
+    .select(`
+      *,
+      plan:creator_subscription_plans(
+        id,
+        creator_id,
+        creator_name,
+        creator_avatar_url,
+        name,
+        description,
+        monthly_price_cents,
+        currency,
+        benefits,
+        subscriber_count
+      )
+    `)
+    .eq("subscriber_id", currentUser.id)
+    .order("created_at", {
+      ascending:false
+    });
+
+  if(error){
+    throw error;
+  }
+
+  currentSubscriptions =
+    data || [];
+
+  updateStats();
+
+  renderSubscriptions();
+
+}
+
+
+/* ============================================================
+   CREATOR PLANS
+   ============================================================ */
+
+async function loadPlans(){
+
+  plansEl.innerHTML =
+    `<div class="loading">
+      Loading creator plans…
+    </div>`;
+
+  const {
+    data,
+    error
+  } = await supabase
+    .from("creator_subscription_plans")
+    .select(`
+      id,
+      creator_id,
+      creator_name,
+      creator_avatar_url,
+      name,
+      description,
+      monthly_price_cents,
+      currency,
+      benefits,
+      subscriber_count
+    `)
+    .eq("active", true)
+    .order("subscriber_count", {
+      ascending:false
+    });
+
+  if(error){
+    throw error;
+  }
+
+  renderPlans(data || []);
+
+}
+
+
+/* ============================================================
+   STATS
+   ============================================================ */
+
+function updateStats(){
+
+  const active =
+    currentSubscriptions.filter(
+      sub =>
+        [
+          "trialing",
+          "active",
+          "past_due",
+          "paused"
+        ].includes(sub.status)
+    );
+
+  activeCount.textContent =
+    active.length;
+
+  creatorCount.textContent =
+    new Set(
+      active.map(
+        sub => sub.creator_id
+      )
+    ).size;
+
+  const total =
+    active.reduce(
+      (sum, sub) =>
+        sum +
+        (
+          sub.billing_interval === "year"
+            ? sub.price_cents / 12
+            : sub.price_cents
+        ),
+      0
+    );
+
+  monthlyTotal.textContent =
+    formatMoney(
+      total,
+      "usd"
+    );
+
+}
+
+
+/* ============================================================
+   SUBSCRIPTION UI
+   ============================================================ */
+
+function renderSubscriptions(){
+
+  if(!currentSubscriptions.length){
+
+    subscriptionsEl.innerHTML =
+      `<div class="empty">
+        <strong>You aren't subscribed to any creators yet.</strong>
+        <p>
+          Explore the creator plans below and support
+          the voices building CrowRules Podcasting.
+        </p>
+      </div>`;
+
+    return;
+  }
+
+
+  subscriptionsEl.innerHTML =
+    currentSubscriptions
+      .map(renderSubscription)
+      .join("");
+
+}
+
+
+function renderSubscription(sub){
+
+  const plan =
+    sub.plan || {};
+
+  const canceling =
+    sub.cancel_at_period_end === true;
+
+  const statusClass =
+    canceling
+      ? "canceling"
+      : sub.status === "canceled"
+        ? "canceled"
+        : "";
+
+  const statusText =
+    canceling
+      ? "Canceling"
+      : capitalize(sub.status);
+
+
+  return `
+    <article class="subscription">
+
+      <img
+        class="avatar"
+        src="${escapeAttr(
+          plan.creator_avatar_url ||
+          ""
+        )}"
+        alt=""
+        onerror="this.style.visibility='hidden'"
+      >
+
+      <div class="subscription-main">
+
+        <div class="subscription-name">
+          ${escapeHtml(
+            plan.creator_name ||
+            "CrowRules Creator"
+          )}
+        </div>
+
+        <div class="subscription-meta">
+
+          ${escapeHtml(
+            plan.name ||
+            "Creator Supporter"
+          )}
+
+          ·
+
+          ${formatMoney(
+            sub.price_cents,
+            sub.currency
+          )}/${sub.billing_interval === "year"
+            ? "year"
+            : "month"}
+
+        </div>
+
+      </div>
+
+      <span class="status ${statusClass}">
+        ${escapeHtml(statusText)}
+      </span>
+
+      <div class="actions">
+
+        ${
+          canceling
+          ?
+          `<button
+            class="btn primary"
+            onclick="reactivateSubscription('${sub.id}')"
+          >
+            Keep Subscription
+          </button>`
+          :
+          sub.status !== "canceled"
+          ?
+          `<button
+            class="btn danger"
+            onclick="cancelSubscription('${sub.id}')"
+          >
+            Cancel
+          </button>`
+          :
+          ""
+        }
+
+      </div>
+
+    </article>
+  `;
+
+}
+
+
+/* ============================================================
+   PLAN UI
+   ============================================================ */
+
+function renderPlans(plans){
+
+  if(!plans.length){
+
+    plansEl.innerHTML =
+      `<div class="empty">
+        No creator subscription plans are available yet.
+      </div>`;
+
+    return;
+  }
+
+
+  const subscribedCreatorIds =
+    new Set(
+      currentSubscriptions
+        .filter(
+          sub =>
+            [
+              "trialing",
+              "active",
+              "past_due",
+              "paused"
+            ].includes(sub.status)
+        )
+        .map(
+          sub => sub.creator_id
+        )
+    );
+
+
+  plansEl.innerHTML =
+    plans.map(plan => {
+
+      const subscribed =
+        subscribedCreatorIds.has(
+          plan.creator_id
+        );
+
+      const benefits =
+        Array.isArray(plan.benefits)
+          ? plan.benefits
+          : [];
+
+
+      return `
+        <article class="card plan">
+
+          <div class="creator">
+
+            <img
+              src="${escapeAttr(
+                plan.creator_avatar_url || ""
+              )}"
+              alt=""
+              onerror="this.style.visibility='hidden'"
+            >
+
+            <div>
+
+              <div class="creator-name">
+                ${escapeHtml(
+                  plan.creator_name
+                )}
+              </div>
+
+              <div class="creator-subscribers">
+                ${Number(
+                  plan.subscriber_count || 0
+                ).toLocaleString()}
+                subscriber${
+                  Number(plan.subscriber_count || 0) === 1
+                    ? ""
+                    : "s"
+                }
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <h2>
+            ${escapeHtml(
+              plan.name
+            )}
+          </h2>
+
+
+          <p>
+            ${escapeHtml(
+              plan.description ||
+              "Support this creator on CrowRules Podcasting."
+            )}
+          </p>
+
+
+          <div class="plan-price">
+
+            ${formatMoney(
+              plan.monthly_price_cents,
+              plan.currency
+            )}
+
+            <span>
+              / month
+            </span>
+
+          </div>
+
+
+          ${
+            benefits.length
+              ?
+              `<ul>
+                ${benefits
+                  .slice(0,8)
+                  .map(
+                    benefit =>
+                      `<li>
+                        ${escapeHtml(String(benefit))}
+                      </li>`
+                  )
+                  .join("")}
+              </ul>`
+              :
+              ""
+          }
+
+
+          ${
+            subscribed
+              ?
+              `<button
+                class="btn"
+                disabled
+              >
+                Already Subscribed
+              </button>`
+              :
+              `<button
+                class="btn primary"
+                onclick="subscribeToCreator('${plan.id}')"
+              >
+                Support Creator
+              </button>`
+          }
+
+        </article>
+      `;
+
+    }).join("");
+
+}
+
+
+/* ============================================================
+   SUBSCRIBE
+   ============================================================ */
+
+window.subscribeToCreator =
+async function(planId){
+
+  if(!currentUser){
+
+    showToast(
+      "Please sign in first."
+    );
+
+    return;
+  }
+
+
+  const plan =
+    await getPlan(planId);
+
+  if(!plan){
+
+    showToast(
+      "Creator plan could not be found."
+    );
+
+    return;
+  }
+
+
+  if(plan.creator_id === currentUser.id){
+
+    showToast(
+      "You cannot subscribe to yourself."
+    );
+
+    return;
+  }
+
+
+  try {
+
+    const {
+      data,
+      error
+    } = await supabase
+      .from("creator_subscriptions")
+      .insert({
+
+        subscriber_id:
+          currentUser.id,
+
+        creator_id:
+          plan.creator_id,
+
+        plan_id:
+          plan.id,
+
+        status:
+          "active",
+
+        billing_interval:
+          "month",
+
+        price_cents:
+          plan.monthly_price_cents,
+
+        currency:
+          plan.currency || "usd",
+
+        current_period_start:
+          new Date().toISOString(),
+
+        current_period_end:
+          addOneMonth().toISOString()
+
+      })
+      .select()
+      .single();
+
+
+    if(error){
+
+      if(
+        error.code === "23505"
+      ){
+
+        showToast(
+          "You are already subscribed to this creator."
+        );
+
+        return;
+      }
+
+      throw error;
+    }
+
+
+    await supabase
+      .from("creator_subscription_events")
+      .insert({
+
+        subscription_id:
+          data.id,
+
+        subscriber_id:
+          currentUser.id,
+
+        creator_id:
+          plan.creator_id,
+
+        event_type:
+          "created",
+
+        metadata:{
+          source:
+            "creator-subscriptions"
+        }
+
+      });
+
+
+    showToast(
+      "Creator subscription activated."
+    );
+
+    await Promise.all([
+      loadSubscriptions(),
+      loadPlans()
+    ]);
+
+  } catch(error){
+
+    console.error(error);
+
+    showError(
+      error.message ||
+      "Unable to create subscription."
+    );
+
+  }
+
+};
+
+
+/* ============================================================
+   CANCEL
+   ============================================================ */
+
+window.cancelSubscription =
+async function(subscriptionId){
+
+  if(
+    !confirm(
+      "Cancel this creator subscription at the end of the current billing period?"
+    )
+  ){
+    return;
+  }
+
+
+  try {
+
+    const {
+      error
+    } = await supabase.rpc(
+      "cancel_creator_subscription",
+      {
+        p_subscription_id:
+          subscriptionId
+      }
+    );
+
+
+    if(error){
+      throw error;
+    }
+
+
+    showToast(
+      "Subscription scheduled for cancellation."
+    );
+
+    await loadSubscriptions();
+
+  } catch(error){
+
+    console.error(error);
+
+    showError(
+      error.message ||
+      "Unable to cancel subscription."
+    );
+
+  }
+
+};
+
+
+/* ============================================================
+   REACTIVATE
+   ============================================================ */
+
+window.reactivateSubscription =
+async function(subscriptionId){
+
+  try {
+
+    const {
+      error
+    } = await supabase.rpc(
+      "reactivate_creator_subscription",
+      {
+        p_subscription_id:
+          subscriptionId
+      }
+    );
+
+
+    if(error){
+      throw error;
+    }
+
+
+    showToast(
+      "Creator subscription reactivated."
+    );
+
+    await loadSubscriptions();
+
+  } catch(error){
+
+    console.error(error);
+
+    showError(
+      error.message ||
+      "Unable to reactivate subscription."
+    );
+
+  }
+
+};
+
+
+/* ============================================================
+   PLAN LOOKUP
+   ============================================================ */
+
+async function getPlan(planId){
+
+  const {
+    data,
+    error
+  } = await supabase
+    .from("creator_subscription_plans")
+    .select("*")
+    .eq("id", planId)
+    .eq("active", true)
+    .maybeSingle();
+
+  if(error){
+    throw error;
+  }
+
+  return data;
+
+}
+
+
+/* ============================================================
+   SIGNED OUT
+   ============================================================ */
+
+function renderSignedOut(){
+
+  subscriptionsEl.innerHTML =
+    `<div class="empty">
+
+      <strong>
+        Sign in to manage creator subscriptions.
+      </strong>
+
+      <p>
+        Your CrowRules account is required to subscribe
+        to and manage creators.
+      </p>
+
+      <button
+        class="btn primary"
+        onclick="location.href='login.html'"
+      >
+        Sign In
+      </button>
+
+    </div>`;
+
+  plansEl.innerHTML =
+    `<div class="empty">
+      Sign in to view and subscribe to creator plans.
+    </div>`;
+
+}
+
+
+/* ============================================================
+   AUTH STATE
+   ============================================================ */
+
+supabase.auth.onAuthStateChange(
+  async (_event, session) => {
+
+    currentUser =
+      session?.user || null;
+
+    if(currentUser){
+
+      accountEmail.textContent =
+        currentUser.email ||
+        "CrowRules Member";
+
+      await loadSubscriptions();
+      await loadPlans();
+
+    } else {
+
+      accountEmail.textContent =
+        "Sign in required";
+
+      renderSignedOut();
+
+    }
+
+  }
+);
+
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+
+function formatMoney(
+  cents,
+  currency = "usd"
+){
+
+  return new Intl.NumberFormat(
+    "en-US",
+    {
+      style:"currency",
+      currency:String(currency).toUpperCase()
+    }
+  ).format(
+    Number(cents || 0) / 100
+  );
+
+}
+
+
+function addOneMonth(){
+
+  const date =
+    new Date();
+
+  date.setMonth(
+    date.getMonth() + 1
+  );
+
+  return date;
+
+}
+
+
+function capitalize(value){
+
+  if(!value){
+    return "";
+  }
+
+  return String(value)
+    .charAt(0)
+    .toUpperCase()
+    +
+    String(value)
+      .slice(1)
+      .replaceAll("_"," ");
+
+}
+
+
+function escapeHtml(value){
+
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+function escapeAttr(value){
+
+  return escapeHtml(value);
+
+}
+
+
+function showError(message){
+
+  const box =
+    document.getElementById(
+      "errorBox"
+    );
+
+  box.textContent =
+    message;
+
+  box.style.display =
+    "block";
+
+}
+
+
+function showToast(message){
+
+  const toast =
+    document.getElementById(
+      "toast"
+    );
+
+  toast.textContent =
+    message;
+
+  toast.style.display =
+    "block";
+
+  clearTimeout(
+    window.__crowToastTimer
+  );
+
+  window.__crowToastTimer =
+    setTimeout(
+      () => {
+        toast.style.display =
+          "none";
+      },
+      4000
+    );
+
+}
+
+</script>
+
+</body>
+</html>
