@@ -6,7 +6,7 @@
    Health -> cr_platform_health_checks
 */
 (()=>{"use strict";
-const VERSION="6.0.3";
+const VERSION="6.0.4";
 const CONFIG=window.CROW_CONFIG||{};
 const SUPABASE_URL=CONFIG.supabaseUrl||"https://cevylpnoexugwgygvtgu.supabase.co";
 const SUPABASE_KEY=CONFIG.supabaseKey||window.CROW_SUPABASE_KEY||window.SUPABASE_ANON_KEY;
@@ -16,7 +16,7 @@ const here=()=>location.pathname.split("/").pop()||"index.html";
 
 const common=[["⌂","Home","home.html"],["◉","Podcasts","podcasts.html"],["✦","Discover","discover.html"],["▣","Episodes","episodes.html"],["⌕","Search","search.html"]];
 const listener=[["♡","Following","library.html#following"],["★","Favorites","library.html#favorites"],["◷","Listening History","library.html#history"]];
-const creatorBase=[["▦","My Shows","podcasts.html"],["＋","Episodes","create-episode.html"],["✚","Create","create-podcast.html"],["⌘","Studio","creator-dashboard.html"],["◈","Analytics","analytics.html"],["$","Earnings","creator-payouts.html"]];
+const creatorBase=[["▦","My Shows","podcasts.html"],["✚","Create","create-podcast.html"],["⌘","Studio","creator-dashboard.html"],["◈","Analytics","analytics.html"]];
 const adminBase=[["⚙","Admin Center","admin.html"],["✓","Moderation","admin.html?view=moderation"],["⇧","Publishing","publishing-pipeline.html"],["♥","Health","admin.html?view=health"],["◈","Analytics","admin.html?view=analytics"]];
 
 const ADMIN_TABLES=["podcast_member_reports","cr_creator_publish_jobs_63","cr_platform_health_checks"];
