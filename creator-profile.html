@@ -1,42 +1,295 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#05050b"><title>Creator Profile — CrowRules Podcasting</title>
-<link rel="stylesheet" href="css/podcasting.css?v=20261003-41">
-<script src="js/config.js?v=20261003-41"></script><script src="js/podcasting.js?v=20261003-41" defer></script><script src="js/player.js?v=20261003-41" defer></script><script src="js/app.js?v=20261003-41" defer></script>
-<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05040a">
+<meta name="description" content="Creator profile — CrowRules Podcasting">
+<title>Creator Profile — CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css?v=20261003-42">
+<script src="js/config.js?v=20261003-42"></script>
+<script src="js/podcasting.js?v=20261003-42" defer></script>
+<script src="js/player.js?v=20261003-42" defer></script>
+<script src="js/app.js?v=20261003-42" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
 <style>
-:root{--bg:#070708;--panel:#101011;--panel2:#171719;--ink:#f5f5f5;--muted:#9b9b9f;--line:#29292d;--accent:#ff2b2b;--accent2:#ff6262}
-*{box-sizing:border-box}html{background:var(--bg)}body{margin:0;overflow-x:hidden;background:linear-gradient(180deg,#050506 0,#0a0a0b 42%,#070708 100%);color:var(--ink)}
-.creator-page{padding:38px 0 110px;max-width:1180px}.eyebrow{font-size:9px;font-weight:900;letter-spacing:.22em;color:#8f8f94;text-transform:uppercase}
-.profile-hero{position:relative;display:grid;grid-template-columns:310px 1fr;gap:0;min-height:430px;margin-top:14px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d0d0f;box-shadow:0 28px 80px #0008}
-.profile-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0 26%,#000 62%),linear-gradient(180deg,transparent,#0008);pointer-events:none}
-.profile-hero>div{position:relative;z-index:1}.avatar{width:100%;height:100%;min-height:430px;border-radius:0;object-fit:cover;background:#19191b;border:0;filter:saturate(.75)}
-.profile-hero>div:nth-child(2){align-self:end;padding:42px}.profile-hero h1{font:900 clamp(38px,6vw,78px) Orbitron;line-height:.95;margin:8px 0 16px;letter-spacing:-.04em}.gradient{color:#fff;background:none}
-.headline{color:#ddd;font-size:17px;line-height:1.5;max-width:720px}.bio{color:#a7a7ab;line-height:1.75;max-width:720px;margin-top:10px}.chips,.actions{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0}.chip{padding:7px 10px;border:1px solid #303034;border-radius:4px;color:#c2c2c6;background:#151517;font-size:8px;font-weight:900;text-transform:uppercase}
-.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid #38383d;border-radius:4px;padding:10px 15px;color:#fff;text-decoration:none;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.primary:hover{background:#e82020}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:1px;background:var(--line);border:1px solid var(--line);border-radius:5px;overflow:hidden}.stat{padding:22px;background:#101011}.stat-label{font-size:8px;color:#77777d;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.stat-value{font:900 24px Orbitron;margin-top:7px;color:#f2f2f2}
-.section{margin-top:55px}.section h2{font:900 27px Orbitron;margin:7px 0;letter-spacing:-.02em}.sub{color:#77777d;font-size:11px;line-height:1.6}.rail{display:flex;gap:12px;overflow-x:auto;padding:8px 1px 18px;scrollbar-width:thin}
-.show-card{flex:0 0 245px;border:1px solid var(--line);border-radius:5px;overflow:hidden;background:#101011;color:inherit;text-decoration:none;transition:.18s transform,.18s border-color,.18s background}.show-card:hover{transform:translateY(-4px);border-color:#55555b;background:#151517}.art{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#19191b;filter:saturate(.8)}.body{padding:15px}.title{font-size:14px;font-weight:900;line-height:1.35;margin-bottom:7px}.meta{color:#77777d;font-size:9px}
-.empty{padding:45px 20px;border:1px dashed #303034;border-radius:5px;text-align:center;color:#77777d;min-width:280px}.notice{padding:14px;border:1px solid var(--line);border-radius:5px;color:#aaa;background:#101011}
-.editor{display:none}.editor.open{display:block}.public{display:none}.public.open{display:block}.form{display:grid;gap:14px}.form label{display:grid;gap:7px;color:#85858a;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.form input,.form textarea{width:100%;border:1px solid #303034;border-radius:4px;background:#0b0b0c;color:#fff;padding:12px;font:600 13px Montserrat}.form textarea{min-height:120px;resize:vertical}
-@media(max-width:760px){.creator-page{padding-top:22px}.profile-hero{grid-template-columns:1fr;min-height:0}.profile-hero:before{background:linear-gradient(180deg,transparent 25%,#000)}.avatar{height:330px;min-height:330px}.profile-hero>div:nth-child(2){align-self:end;padding:28px 22px}.profile-hero h1{font-size:43px}.stats{grid-template-columns:repeat(2,1fr)}.section{margin-top:38px}}
-@media(max-width:430px){.stats{grid-template-columns:1fr}.avatar{height:270px;min-height:270px}}
-</style></head>
-<body><div data-nav></div><script src="js/creator-nav.js"></script>
-<main class="wrap creator-page">
-<section id="publicView" class="public"><div class="eyebrow">CROWRULES CREATOR NETWORK</div>
-<div class="profile-hero" style="margin-top:12px"><div id="publicAvatar"></div><div><div class="eyebrow" id="publicRole">CREATOR</div><h1 id="publicName">Loading…</h1><div id="publicHeadline" class="headline"></div><div id="publicBio" class="bio"></div><div id="publicChips" class="chips"></div><div id="publicActions" class="actions"></div></div></div>
-<div id="publicStats" class="stats"></div><section class="section"><div class="eyebrow">SHOWS</div><h2>Podcasts by this creator</h2><p class="sub">Explore published shows from this CrowRules host.</p><div id="publicShows" class="rail"></div></section><div id="publicStatus" class="notice" style="margin-top:20px">Loading creator profile…</div></section>
-<section id="editorView" class="editor"><div class="eyebrow">CREATOR STUDIO · PROFILE</div><h1>Your creator <span class="gradient">identity.</span></h1><section class="card" style="padding:25px;margin-top:18px"><form id="form" class="form">
-<label>Display name<input id="display_name" required></label><label>Username<input id="username"></label><label>Headline<input id="headline"></label><label>Bio<textarea id="bio"></textarea></label><label>Avatar URL<input id="avatar_url" type="url" placeholder="https://…"></label><label>Portfolio URL<input id="portfolio_url" type="url" placeholder="https://…"></label><label>Location<input id="location"></label><label>Availability<input id="availability" placeholder="Available for podcast production, guests, collaborations…"></label><label><input id="discoverable" type="checkbox"> Make my creator profile discoverable</label><button id="save" class="btn primary">Save Creator Profile</button></form><div id="status" class="notice" style="margin-top:15px">Loading profile…</div></section></section>
+:root{
+ --cp-bg:#04030a;--cp-panel:rgba(12,11,22,.78);--cp-panel2:rgba(18,16,31,.9);
+ --cp-text:#f7f5ff;--cp-muted:#9b96aa;--cp-dim:#6d687c;--cp-line:rgba(255,255,255,.09);
+ --cp-cyan:#35e7ff;--cp-purple:#9b5cff;--cp-pink:#ff4fd8;--cp-red:#ff304f;
+ --cp-shadow:0 30px 90px rgba(0,0,0,.5)
+}
+*{box-sizing:border-box}
+html{background:var(--cp-bg);scroll-behavior:smooth}
+body{margin:0;color:var(--cp-text);background:
+ radial-gradient(circle at 15% 5%,rgba(53,231,255,.08),transparent 28rem),
+ radial-gradient(circle at 85% 18%,rgba(155,92,255,.12),transparent 34rem),
+ linear-gradient(180deg,#030309 0,#080610 42%,#04030a 100%);font-family:Montserrat,system-ui,sans-serif;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.22;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.014) 1px,transparent 1px);background-size:70px 70px;mask-image:linear-gradient(to bottom,#000,transparent 80%)}
+.cp-shell{max-width:1240px;margin:auto;padding:30px 24px 130px}
+.cp-crumb{display:flex;align-items:center;gap:10px;color:var(--cp-dim);font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;margin:12px 0 18px}
+.cp-crumb a{color:#bdb7ca;text-decoration:none}.cp-crumb a:hover{color:var(--cp-cyan)}
+.cp-hero{position:relative;min-height:590px;border:1px solid var(--cp-line);border-radius:26px;overflow:hidden;background:#080711;box-shadow:var(--cp-shadow);isolation:isolate}
+.cp-hero-bg{position:absolute;inset:0;background:radial-gradient(circle at 70% 45%,rgba(155,92,255,.3),transparent 28%),radial-gradient(circle at 30% 55%,rgba(53,231,255,.2),transparent 25%),linear-gradient(110deg,#05040b,#100a1b 55%,#05040b);transform:scale(1.05)}
+.cp-hero-bg:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(3,3,9,.98) 0%,rgba(3,3,9,.82) 42%,rgba(3,3,9,.22) 100%),linear-gradient(0deg,rgba(3,3,9,.92),transparent 48%,rgba(3,3,9,.25))}
+.cp-orbit{position:absolute;width:520px;height:520px;border:1px solid rgba(53,231,255,.16);border-radius:50%;right:-80px;top:-120px;box-shadow:0 0 80px rgba(53,231,255,.08);animation:float 12s ease-in-out infinite}
+.cp-orbit:before,.cp-orbit:after{content:"";position:absolute;border:1px solid rgba(155,92,255,.15);border-radius:50%;inset:60px;transform:rotate(35deg) scaleX(.45)}
+.cp-orbit:after{inset:110px;transform:rotate(-55deg) scaleX(.4)}
+@keyframes float{50%{transform:translateY(18px) rotate(4deg)}}
+.cp-hero-content{position:relative;z-index:2;display:grid;grid-template-columns:220px minmax(0,1fr);gap:38px;align-items:end;min-height:590px;padding:48px}
+.cp-avatar-wrap{align-self:center;position:relative}
+.cp-avatar{width:220px;height:220px;display:block;object-fit:cover;border-radius:28px;border:1px solid rgba(255,255,255,.16);background:linear-gradient(135deg,#111022,#21113a);box-shadow:0 0 0 8px rgba(255,255,255,.025),0 25px 80px rgba(0,0,0,.55)}
+.cp-avatar-fallback{display:grid;place-items:center;width:220px;height:220px;border-radius:28px;background:linear-gradient(135deg,#071a20,#21123c);font:900 70px Orbitron;color:#fff;text-shadow:0 0 35px var(--cp-cyan)}
+.cp-live-dot{position:absolute;left:18px;bottom:18px;padding:7px 10px;border-radius:999px;background:rgba(4,3,10,.82);border:1px solid rgba(53,231,255,.35);font-size:8px;font-weight:900;letter-spacing:.14em;color:var(--cp-cyan);backdrop-filter:blur(10px)}
+.cp-kicker{font-size:10px;font-weight:900;letter-spacing:.22em;color:var(--cp-cyan);text-transform:uppercase}
+.cp-title{font:900 clamp(42px,7vw,88px)/.9 Orbitron,sans-serif;letter-spacing:-.055em;margin:10px 0 17px;max-width:850px;text-shadow:0 0 35px rgba(155,92,255,.18)}
+.cp-title .accent{background:linear-gradient(90deg,var(--cp-cyan),#fff 45%,var(--cp-pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+.cp-headline{font-size:18px;line-height:1.55;color:#ded9e9;max-width:760px}
+.cp-bio{font-size:13px;line-height:1.8;color:#a9a3b5;max-width:760px;margin-top:10px}
+.cp-chips{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}
+.cp-chip{border:1px solid var(--cp-line);background:rgba(255,255,255,.035);padding:8px 11px;border-radius:999px;color:#c9c3d4;font-size:8px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.cp-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.cp-btn{appearance:none;border:1px solid rgba(255,255,255,.13);border-radius:10px;padding:12px 17px;background:rgba(255,255,255,.04);color:#fff;text-decoration:none;font:900 9px Montserrat;letter-spacing:.13em;text-transform:uppercase;cursor:pointer;transition:.2s transform,.2s border-color,.2s background}
+.cp-btn:hover{transform:translateY(-2px);border-color:rgba(53,231,255,.5);background:rgba(53,231,255,.08)}
+.cp-btn.primary{border-color:transparent;background:linear-gradient(100deg,#11bcd5,#8350ee);box-shadow:0 12px 35px rgba(53,231,255,.14)}
+.cp-btn.following{background:rgba(53,231,255,.12);border-color:rgba(53,231,255,.45);color:var(--cp-cyan)}
+.cp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--cp-line);border:1px solid var(--cp-line);border-top:0;overflow:hidden;border-radius:0 0 18px 18px}
+.cp-stat{background:rgba(10,9,17,.92);padding:22px 20px}.cp-stat-label{color:var(--cp-dim);font-size:8px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.cp-stat-value{font:900 25px Orbitron;margin-top:8px}.cp-stat-note{color:#777183;font-size:9px;margin-top:4px}
+.cp-section{margin-top:70px}.cp-section-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:18px}.cp-eyebrow{font-size:9px;color:var(--cp-cyan);font-weight:900;letter-spacing:.22em;text-transform:uppercase}.cp-section h2{font:900 clamp(25px,4vw,38px) Orbitron;margin:7px 0;letter-spacing:-.04em}.cp-section-sub{margin:0;color:var(--cp-muted);font-size:11px;line-height:1.6}
+.cp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.cp-card{display:block;color:inherit;text-decoration:none;border:1px solid var(--cp-line);border-radius:17px;overflow:hidden;background:linear-gradient(145deg,rgba(18,16,30,.86),rgba(7,6,13,.95));box-shadow:0 16px 50px rgba(0,0,0,.22);transition:.25s transform,.25s border-color,.25s box-shadow}
+.cp-card:hover{transform:translateY(-6px);border-color:rgba(155,92,255,.45);box-shadow:0 24px 70px rgba(0,0,0,.42)}
+.cp-art{position:relative;aspect-ratio:1.5/1;overflow:hidden;background:linear-gradient(135deg,#0c1820,#1d1230)}
+.cp-art img{width:100%;height:100%;display:block;object-fit:cover;transition:.4s transform;filter:saturate(.9)}
+.cp-card:hover .cp-art img{transform:scale(1.04)}
+.cp-art:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 48%,rgba(4,3,10,.72))}
+.cp-play{position:absolute;z-index:2;left:16px;bottom:14px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:rgba(4,3,10,.78);border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(8px)}
+.cp-card-body{padding:17px}.cp-card-title{font-size:15px;font-weight:900;line-height:1.35}.cp-card-meta{margin-top:8px;color:var(--cp-dim);font-size:9px;line-height:1.6}
+.cp-feature{display:grid;grid-template-columns:1.05fr 1fr;min-height:320px;border:1px solid var(--cp-line);border-radius:20px;overflow:hidden;background:var(--cp-panel);box-shadow:var(--cp-shadow)}
+.cp-feature-art{min-height:320px;background:linear-gradient(135deg,#0c1720,#201032);position:relative}.cp-feature-art img{width:100%;height:100%;object-fit:cover;display:block}.cp-feature-copy{padding:36px;display:flex;flex-direction:column;justify-content:center}.cp-feature-copy h3{font:900 30px/1.08 Orbitron;margin:9px 0 13px}.cp-feature-copy p{color:#aaa4b6;font-size:12px;line-height:1.75}.cp-feature-meta{color:var(--cp-cyan);font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.cp-empty{padding:52px 22px;text-align:center;border:1px dashed rgba(255,255,255,.12);border-radius:17px;background:rgba(255,255,255,.02);color:var(--cp-muted)}
+.cp-empty strong{display:block;color:#eee;margin-bottom:8px}.cp-empty span{font-size:11px}
+.cp-notice{margin-top:18px;padding:13px 15px;border:1px solid var(--cp-line);border-radius:10px;background:rgba(255,255,255,.025);color:var(--cp-muted);font-size:10px}
+.cp-loading{min-height:560px;display:grid;place-items:center;border:1px solid var(--cp-line);border-radius:26px;background:var(--cp-panel)}
+.cp-loader{width:46px;height:46px;border:2px solid rgba(255,255,255,.1);border-top-color:var(--cp-cyan);border-right-color:var(--cp-purple);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.cp-editor{display:none}.cp-editor.open{display:block}.cp-public{display:none}.cp-public.open{display:block}
+.cp-form-card{max-width:900px;border:1px solid var(--cp-line);border-radius:20px;background:var(--cp-panel);padding:30px;box-shadow:var(--cp-shadow)}
+.cp-form{display:grid;grid-template-columns:1fr 1fr;gap:16px}.cp-form label{display:grid;gap:7px;color:#8f899d;font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.cp-form label.full{grid-column:1/-1}
+.cp-form input,.cp-form textarea{width:100%;border:1px solid var(--cp-line);border-radius:9px;background:rgba(0,0,0,.28);color:#fff;padding:12px 13px;outline:none;font:600 12px Montserrat}.cp-form input:focus,.cp-form textarea:focus{border-color:rgba(53,231,255,.55);box-shadow:0 0 0 3px rgba(53,231,255,.07)}.cp-form textarea{min-height:130px;resize:vertical}
+.cp-check{display:flex!important;grid-template-columns:auto 1fr;align-items:center;gap:9px!important}.cp-check input{width:auto}
+.cp-error{border-color:rgba(255,48,79,.35);color:#ff9cac}
+@media(max-width:900px){.cp-hero-content{grid-template-columns:150px 1fr;padding:30px;gap:25px}.cp-avatar,.cp-avatar-fallback{width:150px;height:150px}.cp-stats{grid-template-columns:repeat(2,1fr)}.cp-grid{grid-template-columns:repeat(2,1fr)}.cp-feature{grid-template-columns:1fr}.cp-feature-art{min-height:240px}}
+@media(max-width:650px){.cp-shell{padding:20px 14px 100px}.cp-hero{border-radius:18px}.cp-hero-content{grid-template-columns:1fr;align-items:end;min-height:620px;padding:22px}.cp-avatar-wrap{align-self:end}.cp-avatar,.cp-avatar-fallback{width:120px;height:120px;border-radius:20px}.cp-title{font-size:46px}.cp-headline{font-size:15px}.cp-stats{grid-template-columns:1fr 1fr}.cp-grid{grid-template-columns:1fr}.cp-section{margin-top:48px}.cp-section-head{display:block}.cp-form{grid-template-columns:1fr}.cp-form label.full{grid-column:auto}.cp-form-card{padding:20px}.cp-feature-copy{padding:25px}}
+</style>
+</head>
+<body>
+<div data-nav></div>
+<script src="js/creator-nav.js"></script>
+
+<main class="cp-shell">
+<div class="cp-crumb"><a href="index.html">Podcasting</a><span>›</span><span>Creator Profile</span></div>
+
+<section id="publicView" class="cp-public">
+  <div id="loading" class="cp-loading"><div><div class="cp-loader"></div></div></div>
+  <div id="profileContent" hidden>
+    <article class="cp-hero">
+      <div class="cp-hero-bg"></div><div class="cp-orbit"></div>
+      <div class="cp-hero-content">
+        <div class="cp-avatar-wrap" id="avatarMount"></div>
+        <div>
+          <div class="cp-kicker" id="role">CROWRULES CREATOR</div>
+          <h1 class="cp-title" id="name">Creator</h1>
+          <div class="cp-headline" id="headline"></div>
+          <div class="cp-bio" id="bio"></div>
+          <div class="cp-chips" id="chips"></div>
+          <div class="cp-actions" id="actions"></div>
+        </div>
+      </div>
+      <div class="cp-stats" id="stats"></div>
+    </article>
+
+    <section class="cp-section" id="featuredSection" hidden>
+      <div class="cp-section-head"><div><div class="cp-eyebrow">SIGNATURE LISTEN</div><h2>Featured episode</h2><p class="cp-section-sub">A standout listen from this creator.</p></div></div>
+      <div id="featured"></div>
+    </section>
+
+    <section class="cp-section">
+      <div class="cp-section-head"><div><div class="cp-eyebrow">THE CREATOR'S UNIVERSE</div><h2>Shows</h2><p class="cp-section-sub">Explore podcasts published by this creator.</p></div></div>
+      <div id="shows" class="cp-grid"></div>
+    </section>
+
+    <section class="cp-section" id="episodesSection" hidden>
+      <div class="cp-section-head"><div><div class="cp-eyebrow">LATEST TRANSMISSIONS</div><h2>Latest episodes</h2><p class="cp-section-sub">Fresh audio from the creator's podcast universe.</p></div></div>
+      <div id="episodes" class="cp-grid"></div>
+    </section>
+
+    <div id="status" class="cp-notice">Public creator profile</div>
+  </div>
+</section>
+
+<section id="editorView" class="cp-editor">
+  <div class="cp-kicker">CREATOR STUDIO · IDENTITY</div>
+  <h1 class="cp-title">Build your <span class="accent">creator presence.</span></h1>
+  <p class="cp-section-sub" style="max-width:720px">Your CrowRules Podcasting profile is your home base for shows, episodes, collaborations and discovery.</p>
+  <section class="cp-form-card" style="margin-top:24px">
+    <form id="form" class="cp-form">
+      <label>Display name<input id="display_name" required autocomplete="name"></label>
+      <label>Username<input id="username" autocomplete="username" placeholder="yourcreatorname"></label>
+      <label class="full">Headline<input id="headline" placeholder="Host, producer, storyteller…"></label>
+      <label class="full">Bio<textarea id="bioInput" placeholder="Tell listeners who you are and what you create."></textarea></label>
+      <label>Avatar URL<input id="avatar_url" type="url" placeholder="https://…"></label>
+      <label>Portfolio URL<input id="portfolio_url" type="url" placeholder="https://…"></label>
+      <label>Location<input id="location" placeholder="Tacoma, WA"></label>
+      <label>Availability<input id="availability" placeholder="Guests, collaborations, production…"></label>
+      <label class="full">Skills / interests<input id="skills" placeholder="Podcasting, sports, storytelling, interviews"></label>
+      <label class="cp-check full"><input id="discoverable" type="checkbox"> Make my creator profile publicly discoverable</label>
+      <div class="full"><button id="save" class="cp-btn primary" type="submit">Save Creator Profile</button></div>
+    </form>
+    <div id="editorStatus" class="cp-notice">Loading creator studio…</div>
+  </section>
+</section>
 </main>
+
 <script>
-(()=>{"use strict";const $=id=>document.getElementById(id),esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",""":"&quot;","'":"&#39;"}[c])),fmt=n=>Number(n||0).toLocaleString(),profileId=new URLSearchParams(location.search).get("id"),sb=()=>window.CROW_SUPABASE;
-function cover(u){return u?'<img class="art" src="'+esc(u)+'" alt="" loading="lazy">':'<div class="art"></div>'}
-async function publicProfile(){try{const s=sb();if(!s)throw Error("CrowRules Supabase client is not ready.");let p=(await s.from("creator_profiles").select("*").eq("id",profileId).maybeSingle()).data;if(!p)p=(await s.from("creators").select("*").eq("id",profileId).maybeSingle()).data;if(!p)throw Error("Creator profile not found.");if(p.is_discoverable===false)throw Error("This creator profile is not publicly available.");const shows=(await s.from("podcasts").select("*").eq("creator_id",p.creator_id||p.id).eq("status","published")).data||[];const name=p.display_name||p.name||"CrowRules Creator";$("publicView").classList.add("open");$("publicName").textContent=name;$("publicRole").textContent=p.role||p.discipline||"PODCAST CREATOR";$("publicHeadline").textContent=p.headline||"Creator on CrowRules Podcasting";$("publicBio").textContent=p.bio||"This creator has not added a public bio yet.";$("publicAvatar").innerHTML=p.avatar_url?'<img class="avatar" src="'+esc(p.avatar_url)+'" alt="'+esc(name)+'">':'<div class="avatar"></div>';const tags=[...(p.skills||[]),...(p.interests||[])].filter(Boolean).slice(0,10);$("publicChips").innerHTML=tags.map(x=>'<span class="chip">'+esc(x)+'</span>').join("");$("publicActions").innerHTML=(p.portfolio_url?'<a class="btn primary" target="_blank" rel="noopener" href="'+esc(p.portfolio_url)+'">Portfolio ↗</a>':"")+(p.username?'<span class="chip">@'+esc(p.username)+'</span>':"")+(p.location?'<span class="chip">'+esc(p.location)+'</span>':"");const plays=shows.reduce((n,x)=>n+Number(x.total_plays||0),0),listeners=shows.reduce((n,x)=>n+Number(x.listener_count||0),0);$("publicStats").innerHTML='<div class="stat"><div class="stat-label">Shows</div><div class="stat-value">'+fmt(shows.length)+'</div></div><div class="stat"><div class="stat-label">Total Plays</div><div class="stat-value">'+fmt(plays)+'</div></div><div class="stat"><div class="stat-label">Listeners</div><div class="stat-value">'+fmt(listeners)+'</div></div><div class="stat"><div class="stat-label">Availability</div><div class="stat-value" style="font-size:12px">'+esc(p.availability||"—")+'</div></div>';$("publicShows").innerHTML=shows.length?shows.map(x=>'<a class="show-card" href="podcast.html?id='+encodeURIComponent(x.id)+'">'+cover(x.artwork_url)+'<div class="body"><div class="title">'+esc(x.title||"Untitled Podcast")+'</div><div class="meta">'+esc(x.category||"Podcast")+' · '+fmt(x.total_plays)+' plays · '+fmt(x.listener_count)+' listeners</div></div></a>').join(""):'<div class="empty">No published podcasts are connected to this creator yet.</div>';$("publicStatus").textContent="Public creator profile";}catch(e){$("publicView").classList.add("open");$("publicName").textContent="Creator unavailable";$("publicStatus").textContent=e.message||"Could not load creator profile.";$("publicShows").innerHTML='<div class="empty">This creator profile could not be found or is not publicly available.</div>'}}
-async function editor(){ $("editorView").classList.add("open");const status=$("status"),form=$("form"),save=$("save");if(!window.__CROW_USER){status.textContent="Sign in first.";return}const s=sb(),r=await s.from("creator_profiles").select("*").eq("user_id",window.__CROW_USER.id).maybeSingle();if(r.error){status.textContent=r.error.message;return}const p=r.data||null;if(p){["display_name","username","headline","bio","avatar_url","portfolio_url","location","availability"].forEach(k=>$(k).value=p[k]||"");$("discoverable").checked=!!p.is_discoverable;status.textContent="Profile loaded."}else{$("display_name").value=window.__CROW_USER.user_metadata?.full_name||window.__CROW_USER.email?.split("@")[0]||"Creator";status.textContent="Create your public creator profile."}form.onsubmit=async e=>{e.preventDefault();save.disabled=true;const data={user_id:window.__CROW_USER.id,display_name:$("display_name").value.trim(),username:$("username").value.trim()||null,headline:$("headline").value.trim()||null,bio:$("bio").value.trim()||null,avatar_url:$("avatar_url").value.trim()||null,portfolio_url:$("portfolio_url").value.trim()||null,location:$("location").value.trim()||null,availability:$("availability").value.trim()||null,is_discoverable:$("discoverable").checked};const q=p?await s.from("creator_profiles").update(data).eq("user_id",window.__CROW_USER.id):await s.from("creator_profiles").insert(data);save.disabled=false;status.textContent=q.error?q.error.message:"Creator profile saved.";};}
-addEventListener("crow:ready",()=>profileId?publicProfile():editor(),{once:true});
+(()=>{"use strict";
+const $=id=>document.getElementById(id);
+const params=new URLSearchParams(location.search);
+const profileId=params.get("id")||params.get("creator_id");
+const usernameParam=params.get("username");
+
+function esc(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
+function fmt(value){return Number(value||0).toLocaleString();}
+function dateText(value){if(!value)return "";const d=new Date(value);return Number.isNaN(d.getTime())?"":d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});}
+function initials(name){return String(name||"CR").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"CR";}
+function supabase(){return window.CROW_SUPABASE;}
+async function client(){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;if(window.CROW_BOOTSTRAP)return window.CROW_BOOTSTRAP();if(window.CROW_SUPABASE_READY)return window.CROW_SUPABASE_READY;throw Error("CrowRules connection is not available.");}
+
+function imageMarkup(url,name,hero=false){
+  if(url)return '<img class="'+(hero?"cp-avatar":"")+'" src="'+esc(url)+'" alt="'+esc(name||"Creator")+'" loading="eager" onerror="this.replaceWith(Object.assign(document.createElement("div"),{className:"'+(hero?"cp-avatar-fallback":"cp-art")+'",textContent:"'+esc(initials(name))+'"}))">';
+  return hero?'<div class="cp-avatar-fallback">'+esc(initials(name))+'</div>':'<div class="cp-art"></div>';
+}
+function empty(title,text){return '<div class="cp-empty"><strong>'+esc(title)+'</strong><span>'+esc(text)+'</span></div>';}
+
+async function loadCreator(s){
+  let q=null;
+  if(profileId) q=await s.from("creator_profiles").select("*").eq("id",profileId).maybeSingle();
+  else if(usernameParam) q=await s.from("creator_profiles").select("*").eq("username",usernameParam).maybeSingle();
+  if(q?.error) throw q.error;
+  let p=q?.data||null;
+  if(!p && profileId){const fallback=await s.from("creators").select("*").eq("id",profileId).maybeSingle();if(fallback.error)throw fallback.error;p=fallback.data;}
+  if(!p)throw Error("Creator profile not found.");
+  if(p.is_discoverable===false || p.discoverable===false)throw Error("This creator profile is not publicly available.");
+  return p;
+}
+
+async function getShows(s,p){
+  const creatorKey=p.creator_id||p.id;
+  let q=await s.from("podcasts").select("*").eq("creator_id",creatorKey);
+  if(q.error) return [];
+  return (q.data||[]).filter(x=>String(x.status||"published").toLowerCase()==="published");
+}
+async function getEpisodes(s,showIds){
+  if(!showIds.length)return [];
+  const candidates=["episodes","podcast_episodes"];
+  for(const table of candidates){
+    const q=await s.from(table).select("*").in("podcast_id",showIds).order("published_at",{ascending:false}).limit(12);
+    if(!q.error && Array.isArray(q.data))return q.data;
+  }
+  return [];
+}
+function showCard(x){
+  const id=x.id;
+  const art=x.artwork_url||x.cover_url||x.image_url||x.thumbnail_url;
+  const title=x.title||x.name||"Untitled Podcast";
+  const meta=[x.category,x.total_plays!=null?fmt(x.total_plays)+" plays":null,x.listener_count!=null?fmt(x.listener_count)+" listeners":null].filter(Boolean).join(" · ");
+  return '<a class="cp-card" href="podcast.html?id='+encodeURIComponent(id)+'"><div class="cp-art">'+(art?'<img src="'+esc(art)+'" alt="" loading="lazy">':"")+'<div class="cp-play">▶</div></div><div class="cp-card-body"><div class="cp-card-title">'+esc(title)+'</div><div class="cp-card-meta">'+esc(meta||"CrowRules Podcasting")+'</div></div></a>';
+}
+function episodeCard(x){
+  const id=x.id;
+  const art=x.artwork_url||x.cover_url||x.image_url||x.thumbnail_url;
+  const title=x.title||x.name||"Untitled Episode";
+  const meta=[dateText(x.published_at||x.release_date),x.duration||null,x.plays!=null?fmt(x.plays)+" plays":null].filter(Boolean).join(" · ");
+  return '<a class="cp-card" href="episode.html?id='+encodeURIComponent(id)+'"><div class="cp-art">'+(art?'<img src="'+esc(art)+'" alt="" loading="lazy">':"")+'<div class="cp-play">▶</div></div><div class="cp-card-body"><div class="cp-card-title">'+esc(title)+'</div><div class="cp-card-meta">'+esc(meta||"Episode")+'</div></div></a>';
+}
+
+async function renderPublic(){
+  const loading=$("loading"),content=$("profileContent"),status=$("status");
+  try{
+    const s=await client(),p=await loadCreator(s),shows=await getShows(s,p),episodes=await getEpisodes(s,shows.map(x=>x.id));
+    const name=p.display_name||p.name||"CrowRules Creator";
+    $("name").innerHTML=esc(name).replace(/\s+/g," ").replace(/^(.*?)(\s+)([^\s]+)$/,(m,a,sp,b)=>esc(a)+"<span class=\"accent\">"+esc(b)+"</span>");
+    $("role").textContent=p.role||p.discipline||"PODCAST CREATOR";
+    $("headline").textContent=p.headline||"Creator on CrowRules Podcasting";
+    $("bio").textContent=p.bio||"Creating stories, conversations and audio for the CrowRules universe.";
+    $("avatarMount").innerHTML=imageMarkup(p.avatar_url,name,true)+'<div class="cp-live-dot">● CREATOR</div>';
+    const tags=[...(Array.isArray(p.skills)?p.skills:String(p.skills||"").split(",")),...(Array.isArray(p.interests)?p.interests:String(p.interests||"").split(","))].map(x=>String(x).trim()).filter(Boolean).slice(0,10);
+    $("chips").innerHTML=tags.map(x=>'<span class="cp-chip">'+esc(x)+'</span>').join("")+(p.location?'<span class="cp-chip">⌖ '+esc(p.location)+'</span>':"");
+    $("actions").innerHTML='<button id="followBtn" class="cp-btn primary" type="button">＋ Follow Creator</button>'+(p.portfolio_url?'<a class="cp-btn" href="'+esc(p.portfolio_url)+'" target="_blank" rel="noopener">Portfolio ↗</a>':"")+(p.username?'<span class="cp-chip">@'+esc(p.username)+'</span>':"");
+    const plays=shows.reduce((n,x)=>n+Number(x.total_plays||x.play_count||0),0);
+    const listeners=shows.reduce((n,x)=>n+Number(x.listener_count||x.subscriber_count||0),0);
+    $("stats").innerHTML='<div class="cp-stat"><div class="cp-stat-label">Shows</div><div class="cp-stat-value">'+fmt(shows.length)+'</div><div class="cp-stat-note">Published podcasts</div></div><div class="cp-stat"><div class="cp-stat-label">Episodes</div><div class="cp-stat-value">'+fmt(episodes.length)+'</div><div class="cp-stat-note">Latest indexed episodes</div></div><div class="cp-stat"><div class="cp-stat-label">Plays</div><div class="cp-stat-value">'+fmt(plays)+'</div><div class="cp-stat-note">Across connected shows</div></div><div class="cp-stat"><div class="cp-stat-label">Listeners</div><div class="cp-stat-value">'+fmt(listeners)+'</div><div class="cp-stat-note">Audience signals</div></div>';
+    $("shows").innerHTML=shows.length?shows.map(showCard).join(""):empty("No published shows yet","This creator has not connected a published podcast.");
+    if(episodes.length){
+      $("episodesSection").hidden=false;$("episodes").innerHTML=episodes.slice(0,6).map(episodeCard).join("");
+      const f=episodes[0],art=f.artwork_url||f.cover_url||f.image_url||f.thumbnail_url;
+      $("featuredSection").hidden=false;
+      $("featured").innerHTML='<article class="cp-feature"><div class="cp-feature-art">'+(art?'<img src="'+esc(art)+'" alt="" loading="lazy">':"")+'</div><div class="cp-feature-copy"><div class="cp-feature-meta">Featured transmission · '+esc(dateText(f.published_at||f.release_date))+'</div><h3>'+esc(f.title||f.name||"Latest episode")+'</h3><p>'+esc(f.description||"Listen to the latest release from this creator.")+'</p><div><a class="cp-btn primary" href="episode.html?id='+encodeURIComponent(f.id)+'">Listen now ▶</a></div></div></article>';
+    }
+    status.textContent="Public creator profile · "+(p.availability||"Open to listeners and collaborators");
+    content.hidden=false;loading.remove();
+    const follow=$("followBtn");
+    if(follow)follow.addEventListener("click",async()=>{follow.disabled=true;try{const user=(await s.auth.getUser()).data?.user;if(!user){location.href="account.html?return="+encodeURIComponent(location.href);return}const key=p.id;const table="creator_follows";const existing=await s.from(table).select("id").eq("creator_id",key).eq("user_id",user.id).maybeSingle();if(existing.error)throw existing.error;if(existing.data){const del=await s.from(table).delete().eq("id",existing.data.id);if(del.error)throw del.error;follow.textContent="＋ Follow Creator";follow.classList.remove("following")}else{const ins=await s.from(table).insert({creator_id:key,user_id:user.id});if(ins.error)throw ins.error;follow.textContent="✓ Following";follow.classList.add("following")}}catch(e){follow.textContent="Sign in to follow";setTimeout(()=>follow.textContent="＋ Follow Creator",2200)}finally{follow.disabled=false}});
+  }catch(e){
+    loading.innerHTML='<div class="cp-empty cp-error"><strong>Creator profile unavailable</strong><span>'+esc(e.message||"Unable to load this creator right now.")+'</span><div style="margin-top:16px"><a class="cp-btn" href="discover.html">Back to Discover</a></div></div>';
+  }
+}
+
+async function editor(){
+  $("editorView").classList.add("open");
+  const status=$("editorStatus"),form=$("form"),save=$("save");
+  try{
+    const s=await client(),user=(await s.auth.getUser()).data?.user;
+    if(!user){status.textContent="Sign in to create or edit your creator profile.";return;}
+    let q=await s.from("creator_profiles").select("*").eq("user_id",user.id).maybeSingle();
+    if(q.error)throw q.error;
+    const p=q.data;
+    if(p){
+      $("display_name").value=p.display_name||p.name||"";
+      $("username").value=p.username||"";
+      $("headline").value=p.headline||"";
+      $("bioInput").value=p.bio||"";
+      $("avatar_url").value=p.avatar_url||"";
+      $("portfolio_url").value=p.portfolio_url||"";
+      $("location").value=p.location||"";
+      $("availability").value=p.availability||"";
+      $("skills").value=Array.isArray(p.skills)?p.skills.join(", "):(p.skills||"");
+      $("discoverable").checked=p.is_discoverable!==false;
+      status.textContent="Profile loaded. Make your next chapter visible.";
+    }else{
+      $("display_name").value=user.user_metadata?.full_name||user.email?.split("@")[0]||"Creator";
+      $("discoverable").checked=true;
+      status.textContent="Create your cinematic creator identity.";
+    }
+    form.onsubmit=async e=>{
+      e.preventDefault();save.disabled=true;save.textContent="Saving…";
+      const data={user_id:user.id,display_name:$("display_name").value.trim(),username:$("username").value.trim()||null,headline:$("headline").value.trim()||null,bio:$("bioInput").value.trim()||null,avatar_url:$("avatar_url").value.trim()||null,portfolio_url:$("portfolio_url").value.trim()||null,location:$("location").value.trim()||null,availability:$("availability").value.trim()||null,skills:$("skills").value.split(",").map(x=>x.trim()).filter(Boolean),is_discoverable:$("discoverable").checked};
+      const result=p?await s.from("creator_profiles").update(data).eq("user_id",user.id):await s.from("creator_profiles").insert(data);
+      save.disabled=false;save.textContent="Save Creator Profile";
+      status.textContent=result.error?result.error.message:"✓ Creator profile saved.";
+    };
+  }catch(e){status.textContent=e.message||"Creator studio could not load.";status.classList.add("cp-error");}
+}
+
+async function boot(){
+  if(profileId||usernameParam){$("publicView").classList.add("open");await renderPublic();}
+  else await editor();
+}
+if(window.CROW_SUPABASE_READY)window.CROW_SUPABASE_READY.then(boot).catch(()=>boot());
+else window.addEventListener("crow:supabase-connected",boot,{once:true});
+setTimeout(()=>{if(!$("profileContent").hidden===false){}},12000);
 })();
-</script></body></html>
+</script>
+</body>
+</html>
