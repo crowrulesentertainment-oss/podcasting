@@ -28,18 +28,18 @@ jobs:
               original=s
 
               # Remove direct legacy navigation loaders. V7 is now the single owner.
-              s=re.sub(r'<script[^>]+src=["'][^"']*(?:podcasting-nav-v2|crowrules-podcasting-nav)[^"']*["'][^>]*>\s*</script>\s*','',s,flags=re.I)
+              s=re.sub(r"""<script[^>]+src=["'][^"']*(?:podcasting-nav-v2|crowrules-podcasting-nav)[^"']*["'][^>]*>\s*</script>\s*""",'',s,flags=re.I)
 
               # Remove duplicate generated nav hosts, then create exactly one.
-              s=re.sub(r'<div\b[^>]*data-nav[^>]*>\s*</div>\s*','',s,flags=re.I)
+              s=re.sub(r"""<div\b[^>]*data-nav[^>]*>\s*</div>\s*""",'',s,flags=re.I)
               body=re.search(r'<body\b[^>]*>',s,flags=re.I)
               if body:
                   s=s[:body.end()]+'\n<div data-nav data-nav-owner="crowrules-podcasting-nav-v7"></div>'+s[body.end():]
 
               # Normalize shared stylesheet/config/app references.
-              s=re.sub(r'<link[^>]+href=["'][^"']*css/podcasting\.css(?:\?[^"']*)?["'][^>]*>\s*','',s,flags=re.I)
-              s=re.sub(r'<script[^>]+src=["'][^"']*js/config\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*','',s,flags=re.I)
-              s=re.sub(r'<script[^>]+src=["'][^"']*js/app\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*','',s,flags=re.I)
+              s=re.sub(r"""<link[^>]+href=["'][^"']*css/podcasting\.css(?:\?[^"']*)?["'][^>]*>\s*</link>\s*""",'',s,flags=re.I)
+              s=re.sub(r"""<script[^>]+src=["'][^"']*js/config\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*""",'',s,flags=re.I)
+              s=re.sub(r"""<script[^>]+src=["'][^"']*js/app\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*""",'',s,flags=re.I)
 
               if re.search(r'</head>',s,re.I):
                   tags=f'<link rel="stylesheet" href="{CSS}"><script src="{CONFIG}" defer></script><script src="{APP}" defer></script>'
