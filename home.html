@@ -53,16 +53,33 @@ const set=(id,t,ok)=>{const e=document.getElementById(id);if(e){e.textContent=t;
 const toast=t=>{const e=document.getElementById("toast");e.textContent=t;e.classList.remove("hidden");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.add("hidden"),3500)};
 const art=(u,k)=>u?'<img src="'+attr(u)+'" alt="" loading="lazy">':'<div class="card-art">'+(k==="creator"?"♙":"◉")+"</div>";
 let sb,user,rt,timer;
+let bootPromise=null, authBound=false;
 async function boot(){
-  if(window.CROW_SUPABASE_READY) await window.CROW_SUPABASE_READY;
-  else if(window.CROW_BOOTSTRAP) await window.CROW_BOOTSTRAP();
-  sb=window.CROW_SUPABASE;
-  if(!sb)throw Error("CrowRules Supabase client did not initialize.");
-  const session=await sb.auth.getSession();
-  user=session.data?.session?.user||null;
-  await refreshAll();
-  bindRealtime();
-  sb.auth.onAuthStateChange(()=>setTimeout(async()=>{const r=await sb.auth.getSession();user=r.data?.session?.user||null;await refreshAll()},150));
+  if(bootPromise)return bootPromise;
+  bootPromise=(async()=>{
+    if(window.CROW_SUPABASE_READY) await window.CROW_SUPABASE_READY;
+    else if(window.CROW_BOOTSTRAP) await window.CROW_BOOTSTRAP();
+    sb=window.CROW_SUPABASE;
+    if(!sb)throw Error("CrowRules Supabase client did not initialize.");
+    const session=await Promise.race([sb.auth.getSession(),new Promise((_,rej)=>setTimeout(()=>rej(Error("Supabase authentication check timed out.")),8000))]);
+    if(session.error)throw session.error;
+    user=session.data?.session?.user||null;
+    set("sbStatus","ONLINE",true);
+    set("authStatus",user?"SIGNED IN":"GUEST",true);
+    await refreshAll();
+    bindRealtime();
+    if(!authBound){
+      authBound=true;
+      sb.auth.onAuthStateChange((event,s)=>{
+        user=s?.user||null;
+        set("authStatus",user?"SIGNED IN":"GUEST",true);
+        clearTimeout(window.__CROW_HOME_AUTH_TIMER);
+        window.__CROW_HOME_AUTH_TIMER=setTimeout(()=>refreshAll().catch(e=>console.warn("Home auth refresh:",e)),200);
+      });
+    }
+    return sb;
+  })();
+  try{return await bootPromise}catch(e){bootPromise=null;throw e}
 }
 async function refreshAll(){
   await loadSessionUI();
@@ -93,7 +110,7 @@ async function continueListening(){const r=await sb.from("podcast_episode_progre
 function bindRealtime(){if(rt)try{sb.removeChannel(rt)}catch(_){}rt=sb.channel("crowrules-podcasting-home-v1232").on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},queueRefresh).on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},queueRefresh).on("postgres_changes",{event:"*",schema:"public",table:"creators"},queueRefresh).subscribe(status=>set("rtStatus",status==="SUBSCRIBED"?"LIVE":status==="CHANNEL_ERROR"?"ERROR":"CONNECTING",status==="SUBSCRIBED"))}
 function queueRefresh(){clearTimeout(timer);timer=setTimeout(()=>loadCatalog().catch(e=>console.warn("Home catalog refresh:",e)),450)}
 window.addEventListener("crow:connection",e=>set("connectionLabel",e.detail?.label||"SUPABASE ONLINE",!!e.detail?.ok));
-window.addEventListener("crow:auth",()=>setTimeout(()=>{sb=window.CROW_SUPABASE;boot().catch(e=>console.warn(e))},100));
+window.addEventListener("crow:connection",e=>{if(e.detail?.ok){set("sbStatus","ONLINE",true)}else{set("sbStatus","ERROR",false)}});
 boot().catch(e=>{console.error("CrowRules home:",e);set("connectionLabel","CONNECTION ERROR",false);set("sbStatus","ERROR",false);set("catalogStatus","OFFLINE",false);set("rtStatus","ERROR",false);toast(e.message||"Supabase connection failed.")});
 })();
 </script></script>
