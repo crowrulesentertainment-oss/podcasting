@@ -39,7 +39,7 @@ const cfg=window.CROW_CONFIG||{};
 const $=(s,r=document)=>r.querySelector(s);
 const esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const withTimeout=(promise,ms=10000)=>Promise.race([promise,new Promise((_,rej)=>setTimeout(()=>rej(new Error("Supabase request timed out.")),ms))]);
+const withTimeout=(promise,ms=10000,label="Supabase request")=>Promise.race([promise,new Promise((_,rej)=>setTimeout(()=>rej(new Error(label+" timed out.")),ms))]);
 let sb=null,user=null,podcast=null,podcastId=null,episodes=[],progress={},rooms=[],room=null,chatChannel=null,realtimeChannel=null,authSub=null;
 
 async function client(){
@@ -56,7 +56,14 @@ async function client(){
 }
 async function currentUser(){
  const c=await client();
- try{const r=await withTimeout(c.auth.getUser(),8000);return r.data?.user||null}catch{return null}
+ try{
+   const s=await withTimeout(c.auth.getSession(),5000);
+   if(s.data?.session?.user)return s.data.session.user;
+ }catch(e){console.warn("Session lookup:",e?.message||e)}
+ try{
+   const r=await withTimeout(c.auth.getUser(),5000);
+   return r.data?.user||null
+ }catch(e){console.warn("User lookup:",e?.message||e);return null}
 }
 function showFatal(message){
  const l=$("#loading");l.classList.remove("hidden");l.innerHTML='<div class="eyebrow">PODCAST SYSTEM</div><h2>Podcast could not load</h2><p class="subtle">'+esc(message)+'</p><div class="actions" style="justify-content:center"><button class="btn primary" id="retry">Retry</button><a class="btn" href="podcasts.html">All Podcasts</a></div>';$("#retry").onclick=()=>location.reload()
@@ -250,7 +257,9 @@ async function load(){
  let q=c.from("podcasts").select("id,title,slug,category,description,artwork_url,author_name,language,explicit_content,is_live,listener_count,status,creator_id").eq("status","published");q=uuid?q.eq("id",pid):q.eq("slug",pid);
  const pr=await withTimeout(q.maybeSingle(),10000);if(pr.error)throw new Error("Podcast lookup failed: "+pr.error.message);if(!pr.data)throw new Error("This podcast is unavailable.");podcast=pr.data;podcastId=podcast.id;document.title=podcast.title+" — CrowRules Podcasting";
  const er=await withTimeout(c.from("podcast_episodes").select("id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,play_count,status,access_level").eq("podcast_id",podcastId).eq("status","published").order("published_at",{ascending:false}),10000);if(er.error)throw new Error("Episode lookup failed: "+er.error.message);episodes=er.data||[];
- user=await currentUser();renderHero();await loadProgress();renderFeatured();renderContinue();renderEpisodes();await refreshCounts();await refreshSubscription();await loadChat();setupRealtime();await handleCheckoutReturn();await resumePending();
+ user=await currentUser();renderHero();await loadProgress();renderFeatured();renderContinue();renderEpisodes();
+await Promise.allSettled([refreshCounts(),refreshSubscription(),loadChat()]);
+setupRealtime();await handleCheckoutReturn();await resumePending();
  if(authSub)authSub.unsubscribe();authSub=c.auth.onAuthStateChange(async(_event,session)=>{user=session?.user||null;await loadProgress();renderContinue();await refreshSubscription();await refreshCounts()}).data?.subscription||null
  $("#loading").classList.add("hidden");$("#app").classList.remove("hidden")
 }
