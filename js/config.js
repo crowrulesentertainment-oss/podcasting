@@ -9,6 +9,7 @@ window.CROW_CONFIG=Object.assign({
  rssFunction:"podcast-rss-feed-64",
  edgeHealthFunction:"crowrules-edge-health",
  connectFunction:"creator-connect-onboarding",
+ podcastCheckoutFunction:"podcast-subscription-checkout",
  scheduleFunction:"podcast-schedule",
  pipelineFunction:"podcast-pipeline",
  memberPaymentFunction:"member-payment-checkout-v2",
