@@ -61,7 +61,7 @@
 <div class="card"><div class="stat" id="premiumConversion">0%</div><div class="stat-label">Premium catalog conversion</div></div>
 </div>
 <div class="grid two" style="margin-top:14px">
-<div class="card"><h3>Revenue by subscription plan</h3><div id="planRevenue">Loading…</div></div>
+<div class="card"><h3>Revenue by subscription plan</h3><div id="planRevenue">Loading…</div></div><div class="card"><h3>Revenue trend</h3><div id="revenueChart" style="height:180px;display:flex;align-items:end;gap:8px;padding-top:18px"></div>
 <div class="card"><h3>Subscriber growth</h3><div id="growthBars">Loading…</div></div>
 <div class="card"><h3>Analytics range</h3><select id="analyticsRangeSelect" class="input" style="width:100%;min-width:0"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last 12 months</option><option value="all">All time</option></select></div>
 <div class="card"><h3>Subscriber cohorts</h3><div id="cohortTable">Loading…</div></div>
@@ -179,6 +179,45 @@ function renderV3(days){
  }).join(""):'<div class="empty">No Premium plans.</div>';
  const pub=state.episodes.filter(e=>e.status==="published").length,prem=state.episodes.filter(e=>e.access_level==="premium").length,listeners=activeSubscriptions().length,plays=state.episodes.reduce((n,e)=>n+Number(e.play_count||0),0),max=Math.max(1,pub,prem,listeners,plays);
  const steps=[["Published episodes",pub],["Premium episodes",prem],["Active listeners",listeners],["Episode plays",plays]];
+ const months=[];
+ for(let i=5;i>=0;i--){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);const n=new Date(d);n.setMonth(n.getMonth()+1);const rev=state.earnings.filter(x=>{const t=new Date(x.occurred_at||0);return t>=d&&t<n}).reduce((a,x)=>a+Number(x.net_amount_cents||0),0);months.push({label:d.toLocaleDateString(undefined,{month:"short"}),value:rev/100})}
+ const maxRev=Math.max(1,...months.map(x=>x.value));
+ $("revenueChart").innerHTML=months.map(x=>'<div style="flex:1;text-align:center"><div title="'<div style="margin:10px 0"><div class="kpi-row"><span>'+x[0]+'</span><b>'+x[1].toLocaleString()+'</b></div><div style="height:9px;background:#ffffff0a;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+Math.min(100,x[1]/max*100)+'%;background:linear-gradient(90deg,#c86cff,#62a8ff);border-radius:99px"></div></div></div>').join("")+'<p class="substat">Catalog funnel; listener and play counts are not user-to-episode conversion events.</p>';
+}
+function renderRevenue(){
+ const rows=state.earnings.slice(0,100);$("revenueCount").textContent=rows.length+" transaction"+(rows.length===1?"":"s");
+ $("revenueRows").innerHTML=rows.length?rows.map(r=>'<tr><td>'+esc(new Date(r.occurred_at).toLocaleDateString())+'</td><td>'+esc(podcastTitle(r.podcast_id))+'</td><td>'+esc(r.description||r.source_type||"Subscription")+'</td><td>'+esc(r.status||"—")+'</td><td class="money">'+money(r.net_amount_cents)+'</td></tr>').join(""):'<tr><td colspan="5"><div class="empty">No subscription revenue has been recorded yet.</div></td></tr>';
+}
+async function saveEpisode(id,patch){
+ $("saveState").textContent="Saving…";
+ const r=await state.sb.from("podcast_episodes").update(patch).eq("id",id).select("id,access_level,monetization_product_id,monetization_enabled").single();
+ if(r.error)throw r.error;const i=state.episodes.findIndex(e=>e.id===id);if(i>=0)state.episodes[i]=Object.assign(state.episodes[i],r.data);render();$("saveState").textContent="Saved "+new Date().toLocaleTimeString();
+}
+async function toggleAccess(id,access){
+ const e=state.episodes.find(x=>x.id===id);if(!e)return;
+ try{
+  if(access==="premium"){
+   const plan=state.plans.find(p=>p.podcast_id===e.podcast_id&&p.active&&p.grants_premium_access!==false);
+   if(!plan){status("No active Premium subscription plan exists for this podcast. Create one first.","error");return}
+   await saveEpisode(id,{access_level:"premium",monetization_enabled:true,monetization_product_id:plan.id});
+  }else await saveEpisode(id,{access_level:"free",monetization_enabled:false,monetization_product_id:null});
+  status("Episode access updated.","ok");
+ }catch(err){$("saveState").textContent="Save failed";status("Could not update episode: "+(err.message||err),"error")}
+}
+async function changePlan(id,planId){
+ const e=state.episodes.find(x=>x.id===id);if(!e||e.access_level!=="premium")return;
+ if(!planId){status("Choose a Premium subscription plan.","error");renderEpisodes();return}
+ const plan=state.plans.find(p=>p.id===planId&&p.podcast_id===e.podcast_id&&p.active&&p.grants_premium_access!==false);
+ if(!plan){status("That plan is not valid for this podcast.","error");renderEpisodes();return}
+ try{await saveEpisode(id,{access_level:"premium",monetization_enabled:true,monetization_product_id:plan.id});status("Premium plan association updated.","ok")}catch(err){$("saveState").textContent="Save failed";status("Could not change the Premium plan: "+(err.message||err),"error")}
+}
+$("analyticsRangeSelect").onchange=()=>renderV3($("analyticsRangeSelect").value);$("search").oninput=renderEpisodes;$("podcastFilter").onchange=renderEpisodes;$("accessFilter").onchange=renderEpisodes;
+async function boot(){try{state.sb=await client();await load()}catch(e){console.error(e);$("dashboard").hidden=true;status(e.message||"Unable to load Creator Monetization.","error")}}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(boot,300),{once:true});else setTimeout(boot,300);
+})();
+</script>
+</body>
+</html>+x.value.toFixed(2)+'" style="height:'+Math.max(4,x.value/maxRev*130)+'px;background:linear-gradient(180deg,#c86cff,#62a8ff);border-radius:7px 7px 2px 2px"></div><div class="substat" style="margin-top:5px">'+x.label+'</div></div>').join("");
  $("conversionFunnel").innerHTML=steps.map(x=>'<div style="margin:10px 0"><div class="kpi-row"><span>'+x[0]+'</span><b>'+x[1].toLocaleString()+'</b></div><div style="height:9px;background:#ffffff0a;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+Math.min(100,x[1]/max*100)+'%;background:linear-gradient(90deg,#c86cff,#62a8ff);border-radius:99px"></div></div></div>').join("")+'<p class="substat">Catalog funnel; listener and play counts are not user-to-episode conversion events.</p>';
 }
 function renderRevenue(){
