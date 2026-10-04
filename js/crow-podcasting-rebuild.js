@@ -116,12 +116,16 @@ function startPresence(){
       .on("presence",{event:"leave"},()=>syncPresence(channel))
       .subscribe(async(status,err)=>{
         if(status==="SUBSCRIBED"){
-          await channel.track({user_id:u.id,online_at:new Date().toISOString(),page:page()});
+          await channel.track({user_id:u.id,online_at:new Date().toISOString(),page:page(),mode:(document.querySelector("audio")?"listener":"browser"),title:document.title});
           syncPresence(channel);
         }else if(err){console.warn("Podcasting presence:",err)}
       });
     window.CROW_PRESENCE_CHANNEL=channel;
   }catch(e){console.warn("Podcasting presence:",e)}
+}
+function updatePresenceMeta(){
+  const ch=window.CROW_PRESENCE_CHANNEL,u=window.__CROW_USER;if(!ch||!u)return;
+  try{ch.track({user_id:u.id,online_at:new Date().toISOString(),page:page(),mode:(document.querySelector("audio")?"listener":"browser"),title:document.title})}catch(e){}
 }
 function setPresence(count,members){
   const n=Math.max(0,Number(count)||0);window.CROW_PRESENCE_COUNT=n;
