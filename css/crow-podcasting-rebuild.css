@@ -8,3 +8,21 @@
 button,.btn{font-family:Montserrat,sans-serif}
 @media(max-width:1050px){.cr-nav{gap:10px;padding:0 12px}.cr-brand{min-width:118px}.cr-links a span{display:none}.cr-links a{width:38px;padding:0}.cr-links a i{font-size:13px}}
 @media(max-width:650px){.cr-nav{height:58px}.cr-brand{min-width:96px}.cr-brand b{font-size:10px}.cr-brand span{font-size:6px}.cr-tools a{display:none}.cr-tools button{font-size:17px}.cr-mobile-nav{position:fixed;display:grid;grid-template-columns:repeat(5,1fr);left:8px;right:8px;bottom:8px;z-index:9999;padding:5px;border:1px solid #65f2ff20;border-radius:15px;background:#050910F2;backdrop-filter:blur(18px)}.cr-mobile-nav a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;color:#8794a8;text-decoration:none;font-size:8px}.cr-mobile-nav i{font-style:normal;font-size:15px;color:#b8c5d6}.cr-main,main:not(.scene){width:calc(100% - 18px);padding-top:78px!important;padding-bottom:85px!important}.cr-connection{bottom:82px;right:12px}.cr-search-overlay{padding-top:7vh}}
+
+/* V12.3.2 CYBERSPACE CINEMATIC BACKGROUND */
+.cr-cyber-background{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:#02040a}
+.cr-cyber-background canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.72}
+.cr-cyber-grid{position:absolute;inset:-45% -15%;opacity:.34;background-image:linear-gradient(rgba(101,242,255,.075) 1px,transparent 1px),linear-gradient(90deg,rgba(167,120,255,.065) 1px,transparent 1px);background-size:58px 58px;transform:perspective(650px) rotateX(63deg) translateY(7%);transform-origin:center bottom;animation:crCyberGrid 22s linear infinite;mask-image:linear-gradient(to bottom,transparent 0%,#000 38%,#000 100%)}
+.cr-cyber-scanlines{position:absolute;inset:0;opacity:.09;background:repeating-linear-gradient(180deg,transparent 0,transparent 3px,rgba(101,242,255,.12) 4px,transparent 5px);background-size:100% 9px;animation:crCyberScan 12s linear infinite}
+.cr-cyber-vignette{position:absolute;inset:-5%;background:radial-gradient(circle at 50% 35%,transparent 15%,rgba(2,4,10,.08) 48%,rgba(0,0,0,.78) 100%)}
+.cr-cyber-glow{position:absolute;border-radius:50%;filter:blur(70px);mix-blend-mode:screen;opacity:.18;animation:crCyberFloat 16s ease-in-out infinite}
+.cr-cyber-glow-a{width:42vw;height:42vw;left:-12vw;top:8vh;background:rgba(101,242,255,.28)}
+.cr-cyber-glow-b{width:36vw;height:36vw;right:-10vw;top:2vh;background:rgba(167,120,255,.28);animation-delay:-5s}
+.cr-cyber-glow-c{width:30vw;height:30vw;left:38vw;bottom:-18vw;background:rgba(255,79,216,.18);animation-delay:-10s}
+body.cr-app{background:transparent!important}
+.cr-main,.cr-nav,.cr-connection,.cr-search-overlay{isolation:isolate}
+@keyframes crCyberGrid{from{transform:perspective(650px) rotateX(63deg) translateY(7%) translateY(0)}to{transform:perspective(650px) rotateX(63deg) translateY(7%) translateY(58px)}}
+@keyframes crCyberScan{from{transform:translateY(-9px)}to{transform:translateY(9px)}}
+@keyframes crCyberFloat{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(3vw,2vh,0) scale(1.08)}}
+@media(prefers-reduced-motion:reduce){.cr-cyber-grid,.cr-cyber-scanlines,.cr-cyber-glow{animation:none}.cr-cyber-background canvas{display:none}}
+@media(max-width:650px){.cr-cyber-grid{background-size:42px 42px;opacity:.25}.cr-cyber-glow{filter:blur(48px);opacity:.14}}
