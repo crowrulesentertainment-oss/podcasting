@@ -119,6 +119,24 @@
 
 <section class="section"><div class="grid two"><div><h2>Listening Activity</h2><div id="analytics" class="card">Loading…</div></div><div><h2>Revenue</h2><div id="revenue" class="card">Loading…</div></div></div></section>
 
+<section class="section v13-intelligence">
+<div class="kpi"><div><div class="eyebrow">PODCASTING V13</div><h2>Intelligence + Monetization Control Center</h2><p class="muted">Supabase intelligence · Stripe health · Realtime creator operations</p></div><span id="v13Health" class="pill">INTELLIGENCE STARTING…</span></div>
+<div class="grid" style="margin-top:12px">
+<div class="card"><div class="eyebrow">FOLLOWERS</div><div class="stat" id="v13Followers">0</div><span class="muted">Live audience signal</span></div>
+<div class="card"><div class="eyebrow">SUBSCRIBERS</div><div class="stat" id="v13Subscribers">0</div><span class="muted">Paid subscription signal</span></div>
+<div class="card"><div class="eyebrow">REVENUE</div><div class="stat" id="v13Revenue">$0.00</div><span class="muted">Creator earnings</span></div>
+<div class="card"><div class="eyebrow">PAYOUTS</div><div class="stat" id="v13Payouts">$0.00</div><span class="muted">Recorded payouts</span></div>
+</div>
+<div class="grid two" style="margin-top:14px">
+<div class="card"><h3>Stripe Account Health</h3><div id="v13Stripe" class="health"></div><p id="v13StripeDetail" class="muted">Checking creator payment readiness…</p><a class="btn primary" href="creator-payouts.html">Open Payout Center</a></div>
+<div class="card"><h3>Monetization Recommendations</h3><div id="v13Recommendations" class="list"><div class="empty">Analyzing your creator operation…</div></div></div>
+</div>
+<div class="grid two" style="margin-top:14px">
+<div class="card"><h3>Audience Growth</h3><div id="v13Growth" class="list"></div></div>
+<div class="card"><h3>Realtime Creator Alerts</h3><div id="v13Alerts" class="list"><div class="empty">Listening for live creator events…</div></div></div>
+</div>
+</section>
+
 <section class="section"><h2>Creator Tools</h2><div class="actions">
 <a class="btn" href="publishing-pipeline.html">Pipeline</a><a class="btn" href="episode-studio.html">Episode Studio</a><a class="btn" href="creator-intelligence.html">Intelligence</a><a class="btn" href="analytics.html">Analytics</a><a class="btn" href="release-calendar.html">Calendar</a><a class="btn" href="distribution.html">Distribution</a><a class="btn" href="creator-profile.html">Profile</a><a class="btn" href="creator-payouts.html">Payouts</a><a class="btn primary" href="creator-monetization.html">Episode Monetization</a><a class="btn primary" href="creator-plans.html">Subscription Plans</a><a class="btn primary" href="creator-monetization-center.html">Monetization Center</a>
 </div></section>
@@ -290,5 +308,49 @@ function init(){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
 </script>
-</body>
+<script>
+(function(){
+"use strict";
+function v13Esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(x){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[x]})}
+function v13Money(n){return "$"+(Number(n||0)/100).toFixed(2)}
+async function v13Start(){
+ const sb=window.CROW_SUPABASE,user=window.__CROW_USER;if(!sb||!user)return;
+ try{
+  const mem=await sb.from("members").select("id").eq("user_id",user.id).maybeSingle();
+  if(mem.error)throw mem.error;
+  let creatorId=null;
+  if(mem.data){const cr=await sb.from("creators").select("id").eq("member_id",mem.data.id).maybeSingle();if(!cr.error)creatorId=cr.data?.id||null}
+  if(!creatorId){document.getElementById("v13Health").textContent="CREATOR PROFILE REQUIRED";return}
+  const [pods,stripe,earn,payouts,alerts]=await Promise.all([
+   sb.from("podcasts").select("id,title,total_plays,listener_count").eq("creator_id",creatorId),
+   sb.from("cr_podcast_stripe_accounts").select("onboarding_status,charges_enabled,payouts_enabled,details_submitted,requirements_due,requirements_currently_due,disabled_reason,updated_at").eq("creator_id",creatorId).maybeSingle(),
+   sb.from("creator_earnings").select("creator_amount,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(500),
+   sb.from("creator_payouts").select("amount,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(200),
+   sb.from("creator_realtime_alerts").select("id,title,message,severity,is_read,created_at,action_url").eq("user_id",user.id).order("created_at",{ascending:false}).limit(8)
+  ]);
+  const p=pods.data||[],ids=p.map(x=>x.id);
+  let followers=0,subs=0;
+  if(ids.length){const q=await sb.from("podcast_follows").select("id",{count:"exact",head:true}).in("podcast_id",ids);followers=Number(q.count||0)}
+  if(ids.length){const q=await sb.from("cr_podcast_subscriptions_65").select("id",{count:"exact",head:true}).in("podcast_id",ids);subs=Number(q.count||0)}
+  const revenue=(earn.data||[]).filter(x=>x.status!=="void").reduce((n,x)=>n+Number(x.creator_amount||0),0);
+  const paid=(payouts.data||[]).filter(x=>["paid","succeeded","complete"].includes(String(x.status||"").toLowerCase())).reduce((n,x)=>n+Number(x.amount||0),0);
+  document.getElementById("v13Followers").textContent=followers.toLocaleString();
+  document.getElementById("v13Subscribers").textContent=subs.toLocaleString();
+  document.getElementById("v13Revenue").textContent=v13Money(revenue);
+  document.getElementById("v13Payouts").textContent=v13Money(paid);
+  const s=stripe.data;const ready=!!(s?.charges_enabled&&s?.payouts_enabled);
+  document.getElementById("v13Stripe").innerHTML='<span>CHARGES · '+(s?.charges_enabled?"READY":"ACTION NEEDED")+'</span><span>PAYOUTS · '+(s?.payouts_enabled?"READY":"ACTION NEEDED")+'</span><span>DETAILS · '+(s?.details_submitted?"SUBMITTED":"ACTION NEEDED")+'</span>';
+  document.getElementById("v13StripeDetail").textContent=s?(ready?"Stripe is ready for creator monetization and payouts.":((s.requirements_currently_due||s.requirements_due||[]).length+" requirement(s) need attention.")):"No creator Stripe connection found.";
+  const rec=[];if(!ready)rec.push(["HIGH","Finish Stripe onboarding","creator-payouts.html"]);if(!p.length)rec.push(["HIGH","Create your first podcast","create-podcast.html"]);if(!subs)rec.push(["MEDIUM","Launch a paid subscription plan","creator-plans.html"]);if(!followers)rec.push(["MEDIUM","Start audience growth","creator-profile.html"]);if(p.reduce((n,x)=>n+Number(x.total_plays||0),0)>0&&followers<10)rec.push(["MEDIUM","Convert listeners into followers","creator-profile.html"]);
+  document.getElementById("v13Recommendations").innerHTML=rec.length?rec.map(x=>'<div class="row"><div class="row-main"><b>'+v13Esc(x[1])+'</b><small>'+x[0]+' priority</small></div><a class="btn" href="'+x[2]+'">Open</a></div>').join(""):'<div class="empty">Your operation is in good shape. Keep publishing and growing.</div>';
+  const plays=p.reduce((n,x)=>n+Number(x.total_plays||0),0);document.getElementById("v13Growth").innerHTML='<div class="row"><div class="row-main"><b>'+plays.toLocaleString()+'</b><small>Total plays</small></div><span class="pill">'+p.length+' shows</span></div><div class="row"><div class="row-main"><b>'+followers.toLocaleString()+'</b><small>Podcast followers</small></div><span class="pill">'+(followers?Math.round(followers/Math.max(plays,1)*10000)/100+"%":"—")+' conversion</span></div>';
+  document.getElementById("v13Alerts").innerHTML=(alerts.data||[]).length?(alerts.data||[]).map(a=>'<div class="row"><div class="row-main"><b>'+v13Esc(a.title)+'</b><small>'+v13Esc(a.message)+'</small></div><span class="pill">'+v13Esc(a.severity)+'</span></div>').join(""):'<div class="empty">No creator alerts right now.</div>';
+  document.getElementById("v13Health").textContent=ready?"INTELLIGENCE ONLINE":"ACTION REQUIRED";
+  const ch=sb.channel("creator-v13-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"creator_realtime_alerts",filter:"user_id=eq."+user.id},()=>v13Start()).on("postgres_changes",{event:"*",schema:"public",table:"podcast_follows"},()=>v13Start()).on("postgres_changes",{event:"*",schema:"public",table:"creator_earnings",filter:"user_id=eq."+user.id},()=>v13Start()).on("postgres_changes",{event:"*",schema:"public",table:"creator_payouts",filter:"user_id=eq."+user.id},()=>v13Start()).subscribe();
+  window.CROW_V13_CHANNEL=ch;
+ }catch(e){console.warn("Creator V13:",e);document.getElementById("v13Health").textContent="INTELLIGENCE DEGRADED"}
+}
+window.addEventListener("crow:ready",v13Start,{once:true});window.addEventListener("crow:auth",v13Start,{once:true});setTimeout(v13Start,1800);
+})();
+</script></body>
 </html>
