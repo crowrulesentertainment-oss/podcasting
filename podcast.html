@@ -78,15 +78,17 @@ let sb=null,user=null,podcast=null,podcastId=null,episodes=[],progress={},rooms=
 
 async function client(){
  if(sb)return sb;
- if(window.CROW_SUPABASE){sb=window.CROW_SUPABASE;return sb}
- if(typeof window.CROW_BOOTSTRAP==="function"){
-   try{sb=await withTimeout(window.CROW_BOOTSTRAP(),12000);if(sb)return sb}catch(e){console.warn("CrowRules bootstrap:",e?.message||e)}
- }
+ // podcast.html already loads supabase-js before this page script. Create the
+ // client synchronously from the known public configuration instead of waiting
+ // on the sitewide bootstrap promise. A slow secondary script must never block
+ // the core podcast request.
  if(window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey){
    sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
-   window.CROW_SUPABASE=sb;return sb
+   window.CROW_SUPABASE=sb;
+   return sb;
  }
- throw new Error("Supabase client could not be initialized.");
+ if(window.CROW_SUPABASE){sb=window.CROW_SUPABASE;return sb}
+ throw new Error("Supabase client could not be initialized. The Supabase JavaScript library did not load.");
 }
 async function currentUser(){
  const c=await client();
@@ -377,14 +379,24 @@ async function setupRealtime(){
 async function fetchPodcastData(pid){
  const c=await client();
  const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(pid);
- let q=c.from("podcasts").select("id,title,slug,category,description,artwork_url,author_name,language,explicit_content,is_live,listener_count,status,creator_id").eq("status","published");
- q=uuid?q.eq("id",pid):q.eq("slug",pid);
+ const columns="id,title,slug,category,description,artwork_url,author_name,language,explicit_content,is_live,listener_count,status,creator_id";
  try{
-   const pr=await runSupabaseQuery(()=>q.maybeSingle(),6500,"Podcast data request",2);
-   if(!pr.data)throw new Error("This podcast is unavailable.");
-   return pr.data;
+   // The directory is the same public source used by podcasts.html and is
+   // already confirmed reachable. Prefer it for public show discovery.
+   let q=c.from("podcasting_podcast_directory").select(columns).eq("status","published");
+   q=uuid?q.eq("id",pid):q.eq("slug",pid);
+   let pr=await runSupabaseQuery(()=>q.maybeSingle(),6500,"Podcast directory request",2);
+   if(pr.data)return pr.data;
+   // Compatibility fallback for older podcast rows.
+   q=c.from("podcasts").select(columns).eq("status","published");
+   q=uuid?q.eq("id",pid):q.eq("slug",pid);
+   pr=await runSupabaseQuery(()=>q.maybeSingle(),6500,"Podcast data request",2);
+   if(pr.data)return pr.data;
+   throw new Error("Podcast not found. The show may not be published yet.");
  }catch(e){
-   throw new Error("PODCAST_CONNECTION_SLOW:"+String(e?.message||e));
+   const msg=String(e?.message||e);
+   if(/not found|unavailable|published yet/i.test(msg))throw e;
+   throw new Error("PODCAST_CONNECTION_SLOW:"+msg);
  }
 }
 async function fetchEpisodeData(pid){
