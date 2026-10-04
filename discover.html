@@ -1,625 +1,359 @@
-<!doctype html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#080808"><meta name="description" content="CrowRules Podcasting discovery — shows, episodes, creators and personalized listening.">
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050505">
+<meta name="description" content="CrowRules Podcasting Discover — personalized shows, episodes, creators and intelligent recommendations.">
 <title>Discover — CrowRules Podcasting</title>
-<link rel="stylesheet" href="css/podcasting.css?v=20261003-48">
-<script src="js/config.js?v=20261003-45"></script><script src="js/podcasting.js?v=20261003-45" defer></script><script src="js/player.js?v=20261003-45" defer></script><script src="js/app.js?v=20261003-45" defer></script>
-<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
+<link rel="stylesheet" href="css/podcasting.css?v=20261003-49">
+<script src="js/config.js?v=20261003-46"></script>
+<script src="js/podcasting.js?v=20261003-46" defer></script>
+<script src="js/player.js?v=20261003-46" defer></script>
+<script src="js/app.js?v=20261003-46" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
 <style>
-:root{--red:#f32929;--red2:#ff5b5b;--bg:#070707;--panel:#101011;--panel2:#161618;--text:#f7f7f7;--muted:#96969b;--line:#29292c}
-*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text)}body{overflow-x:hidden;font-family:Montserrat,Arial,sans-serif}
-.wrap{max-width:1240px}.discover{padding-bottom:120px}
-.hero{padding:48px 0 26px}.hero-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:16px;align-items:stretch}.hero-main{min-height:390px;padding:42px;border:1px solid var(--line);border-radius:7px;background:linear-gradient(145deg,#171719,#0c0c0d 65%,#0a0a0a);display:flex;flex-direction:column;justify-content:end;position:relative;overflow:hidden}.hero-main:after{content:"";position:absolute;width:430px;height:430px;right:-150px;top:-160px;background:radial-gradient(circle,#f3292933,transparent 67%);pointer-events:none}.hero-main>*{position:relative;z-index:1}.eyebrow{font-size:9px;font-weight:900;letter-spacing:.22em;color:#89898f;text-transform:uppercase}.live-badge{color:#ff6b6b}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 12px #f32929;margin-right:6px}.hero h1{font:900 clamp(46px,7vw,88px) Orbitron;line-height:.9;letter-spacing:-.065em;margin:13px 0 16px;max-width:900px}.gradient{color:#fff;background:none}.lead{max-width:720px;color:#b2b2b7;font-size:15px;line-height:1.7;margin:0}
-.search-wrap{position:relative;margin-top:22px}.search-shell{display:grid;grid-template-columns:1fr auto;gap:8px}.search-shell input{height:54px;border:1px solid #36363a;border-radius:5px;background:#09090a;color:#fff;padding:0 16px;font:600 13px Montserrat;outline:0}.search-shell input:focus{border-color:#777;box-shadow:0 0 0 2px #ffffff0a}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid #39393d;border-radius:4px;padding:11px 15px;color:#fff;text-decoration:none;font:900 9px Montserrat;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}.btn.primary{background:var(--red);border-color:var(--red)}.btn.primary:hover{background:#d91f1f}
-.hero-side{border:1px solid var(--line);border-radius:7px;background:#101011;padding:25px;display:flex;flex-direction:column}.side-title{font:900 20px Orbitron;margin:8px 0 18px}.signal-list{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:auto}.signal-row{display:flex;justify-content:space-between;gap:12px;padding:14px;background:#111113}.signal-row span{font-size:8px;color:#77777d;text-transform:uppercase;letter-spacing:.13em}.signal-row strong{font-size:10px;text-align:right}
-.chips{display:flex;gap:7px;overflow:auto;padding:13px 0 3px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}.chip,.view-btn,.result-tab{white-space:nowrap;border:1px solid #303034;background:#111113;color:#aaa;border-radius:4px;padding:8px 11px;font:800 8px Montserrat;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}.chip.active,.view-btn.active,.result-tab.active{color:#fff;background:var(--red);border-color:var(--red)}
-.dashboard{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:16px 0 32px}.metric{padding:19px;background:#101011}.metric-label{color:#77777d;font-size:8px;font-weight:900;letter-spacing:.15em;text-transform:uppercase}.metric-value{font:900 24px Orbitron;margin-top:7px}.metric-note{font-size:9px;color:#77777d;margin-top:4px}
-.section{margin-top:48px}.section-head{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:15px}.section-head h2{font:900 23px Orbitron;margin:5px 0}.section-head p{margin:0;color:#77777d;font-size:10px;line-height:1.6}.section-actions{display:flex;gap:6px}.rail{display:flex;gap:10px;overflow-x:auto;padding:3px 1px 14px;scroll-snap-type:x proximity;scrollbar-width:thin}.rail>*{flex:0 0 225px;scroll-snap-align:start}.rail.episode-rail>*{flex-basis:265px}.rail.creator-rail>*{flex-basis:235px}
-.card{border:1px solid var(--line);background:#101011;border-radius:5px;box-shadow:0 15px 40px #0006;overflow:hidden}.show-card,.episode-card,.creator-card{display:block;color:inherit;text-decoration:none;transition:.18s transform,.18s border-color,.18s background}.show-card:hover,.episode-card:hover,.creator-card:hover{transform:translateY(-4px);border-color:#505055;background:#151517}.art{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:#1a1a1c;filter:saturate(.8)}.episode-art{aspect-ratio:16/9}.body{padding:13px}.rank{font-size:7px;color:#77777d;font-weight:900;letter-spacing:.14em;text-transform:uppercase}.title{font-size:13px;line-height:1.35;margin:7px 0}.sub{font-size:9px;color:#85858a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}.pill{font-size:7px;color:#aaa;border:1px solid #303034;border-radius:3px;padding:5px 6px;text-transform:uppercase}.pill.cyan{color:#ccc;border-color:#444}.pill.gold{color:#ddd;border-color:#444}.pill.live{color:#ff6868;border-color:#713333}.creator-card{padding:17px}.avatar{width:68px;height:68px;border-radius:50%;object-fit:cover;background:#1b1b1d;border:1px solid #38383c;margin-bottom:11px}.creator-name{font-size:13px;font-weight:900}.creator-stats{font-size:9px;color:#77777d;margin-top:7px}
-.feature{display:grid;grid-template-columns:1.55fr .75fr;gap:10px}.feature-card{min-height:285px;padding:29px;display:flex;flex-direction:column;justify-content:end;position:relative;overflow:hidden;border:1px solid var(--line);border-radius:6px;text-decoration:none;color:#fff;background:linear-gradient(135deg,#19191b,#0c0c0d)}.feature-card:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 20%,#080808);pointer-events:none}.feature-card>*{position:relative;z-index:1}.feature-card h2{font:900 clamp(26px,4vw,50px) Orbitron;margin:8px 0;max-width:700px}.feature-card p{max-width:650px;color:#aaa;line-height:1.65}.signal{padding:25px;min-height:285px}.signal h3{font:900 17px Orbitron;margin:8px 0}.personal{border-color:#333338;background:#101011;padding:21px;border-radius:6px}.mix-card{background:linear-gradient(145deg,#171112,#101011);border-color:#3b2424}.progress{height:3px;background:#252527;border-radius:99px;overflow:hidden;margin-top:10px}.progress span{display:block;height:100%;background:var(--red);border-radius:99px}.resume-time{display:flex;justify-content:space-between;color:#66666c;font-size:8px;margin-top:5px}.action-row{display:flex;gap:5px;margin-top:9px}.mini-btn{border:1px solid #303034;background:#141416;color:#aaa;border-radius:4px;padding:7px 8px;font:800 7px Montserrat;cursor:pointer}.reason{font-size:8px;color:#77777d;line-height:1.5;margin-top:7px}
-.results-panel{padding:21px;border-radius:6px;border:1px solid var(--line);background:#0d0d0e}.result-tabs{display:flex;gap:6px;margin:13px 0}.empty{width:100%;text-align:center;padding:45px 20px;border:1px dashed #303034;border-radius:5px;color:#77777d}.empty strong{display:block;color:#ddd;font:900 13px Orbitron;margin-bottom:6px}.toast{position:fixed;right:20px;bottom:95px;z-index:300;padding:11px 14px;border-radius:5px;background:#171719;border:1px solid #4a4a4f;color:#fff;font-size:10px;box-shadow:0 20px 50px #0008;display:none}.toast.show{display:block}.modal{position:fixed;inset:0;z-index:500;display:grid;place-items:center}.modal[hidden]{display:none}.modal-backdrop{position:absolute;inset:0;background:#000d;backdrop-filter:blur(7px)}.modal-card{position:relative;width:min(620px,calc(100% - 30px));max-height:80vh;overflow:auto;padding:27px;border:1px solid #3a3a3e;border-radius:6px;background:#0d0d0f;box-shadow:0 35px 100px #000}.modal-card h2{font:900 25px Orbitron;margin:8px 0 10px}.modal-card p{color:#aaa;line-height:1.7;font-size:11px}.modal-close{position:absolute;right:14px;top:9px;border:0;background:none;color:#aaa;font-size:26px;cursor:pointer}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
-.discovery-controls{margin-top:12px;border:1px solid #29292c;border-radius:5px;background:#0b0b0c;padding:14px}.control-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.control-head strong{display:block;font:900 13px Orbitron;margin-top:5px}.control-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.control-grid label{display:grid;gap:6px}.control-grid label span{font-size:7px;color:#77777d;font-weight:900;letter-spacing:.13em;text-transform:uppercase}.control-grid select{height:38px;background:#111113;color:#ddd;border:1px solid #303034;border-radius:4px;padding:0 9px;font:800 8px Montserrat;text-transform:uppercase;outline:0}.control-grid select:focus{border-color:#777}.active-filters{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}.filter-chip{border:1px solid #4a3030;background:#171112;color:#ff8a8a;border-radius:3px;padding:5px 7px;font:800 7px Montserrat;text-transform:uppercase}.filter-chip button{border:0;background:none;color:inherit;margin-left:4px;cursor:pointer}@media(max-width:650px){.control-grid{grid-template-columns:1fr}}@media(max-width:900px){.hero-grid{grid-template-columns:1fr}.hero-side{min-height:250px}.dashboard{grid-template-columns:repeat(2,1fr)}.feature{grid-template-columns:1fr}}
-@media(max-width:650px){.hero{padding-top:30px}.hero-main{min-height:420px;padding:27px}.search-shell{grid-template-columns:1fr}.section-head{display:block}.section-actions{margin-top:10px}.rail>*{flex-basis:195px}.rail.episode-rail>*{flex-basis:235px}.feature-card{min-height:250px}}
-@media(max-width:430px){.dashboard{grid-template-columns:1fr}.hero h1{font-size:49px}}
-
-/* DISCOVER V7 — HOST & SHOW INTELLIGENCE */
-.host-intel{margin-top:48px;border:1px solid #2d2d31;border-radius:6px;background:#0b0b0c;overflow:hidden}
-.host-intel-grid{display:grid;grid-template-columns:1.1fr .9fr;min-height:330px}
-.host-spotlight{padding:30px;position:relative;overflow:hidden;background:linear-gradient(135deg,#171112,#0b0b0c)}
-.host-spotlight:after{content:"";position:absolute;width:420px;height:420px;right:-170px;top:-170px;background:radial-gradient(circle,#f3292933,transparent 68%);pointer-events:none}
-.host-spotlight>*{position:relative;z-index:1}
-.host-kicker{font-size:8px;color:#ff6b6b;font-weight:900;letter-spacing:.18em;text-transform:uppercase}
-.host-identity{display:flex;gap:18px;align-items:center;margin-top:22px}
-.host-avatar{width:94px;height:94px;border-radius:50%;object-fit:cover;border:1px solid #4a3030;background:#1b1b1d}
-.host-name{font:900 clamp(26px,4vw,44px) Orbitron;line-height:1;margin:0}
-.host-role{color:#999;font-size:10px;margin-top:7px}
-.host-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px}
-.host-badge{border:1px solid #493030;background:#171112;color:#ff9696;border-radius:3px;padding:5px 7px;font:900 7px Montserrat;letter-spacing:.08em;text-transform:uppercase}
-.host-headline{color:#aaa;line-height:1.7;font-size:11px;max-width:720px;margin:18px 0 0}
-.host-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:19px}
-.host-intel-side{padding:22px;background:#101011;border-left:1px solid #2d2d31}
-.host-stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:#2d2d31;border:1px solid #2d2d31;margin-top:15px}
-.host-stat{padding:16px;background:#111113}.host-stat span{display:block;color:#777;font-size:7px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}.host-stat strong{display:block;font:900 22px Orbitron;margin-top:6px}
-.host-show-list{display:grid;gap:7px;margin-top:15px}.host-show{display:grid;grid-template-columns:45px 1fr auto;gap:10px;align-items:center;padding:8px;border:1px solid #29292c;background:#111113;border-radius:4px;color:#fff;text-decoration:none}.host-show img{width:45px;height:45px;object-fit:cover;border-radius:3px;background:#1b1b1d}.host-show strong{font-size:10px}.host-show small{display:block;color:#777;font-size:8px;margin-top:3px}.host-show .arrow{color:#777;font-size:13px}
-.host-intel-rails{padding:0 22px 22px;background:#0b0b0c}.host-intel-rails .section-head{margin-top:0;padding-top:18px}
-.intel-rail{display:flex;gap:9px;overflow:auto;padding-bottom:10px}.intel-rail>*{flex:0 0 245px}
-.v7-episode{border:1px solid #29292c;background:#111113;border-radius:4px;overflow:hidden;color:#fff;text-decoration:none}.v7-episode:hover{border-color:#555;transform:translateY(-2px)}.v7-episode img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#1b1b1d}.v7-episode-body{padding:11px}.v7-episode-title{font-size:11px;font-weight:900;line-height:1.4}.v7-episode-meta{font-size:8px;color:#777;margin-top:6px}.v7-release{color:#aaa;font-size:7px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-top:7px}
-@media(max-width:850px){.host-intel-grid{grid-template-columns:1fr}.host-intel-side{border-left:0;border-top:1px solid #2d2d31}.host-identity{align-items:flex-start}}
-@media(max-width:520px){.host-identity{display:block}.host-avatar{margin-bottom:14px}.host-stat-grid{grid-template-columns:1fr 1fr}.intel-rail>*{flex-basis:220px}}
-
-/* DISCOVER V8 — RESILIENT DISCOVERY CONTROL */
-.v8-control{margin:18px 0 0;padding:12px 14px;border:1px solid #29292c;background:#0d0d0e;border-radius:5px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-.v8-health{display:flex;gap:7px;align-items:center;color:#888;font:800 8px Montserrat;letter-spacing:.1em;text-transform:uppercase}
-.v8-dot{width:7px;height:7px;border-radius:50%;background:#555;box-shadow:0 0 0 3px #5552}
-.v8-dot.live{background:#52d273;box-shadow:0 0 0 3px #52d27322}.v8-dot.warn{background:#f5a623;box-shadow:0 0 0 3px #f5a62322}.v8-dot.bad{background:#f32929;box-shadow:0 0 0 3px #f3292922}
-.v8-actions{display:flex;gap:6px}.v8-actions button{border:1px solid #333;background:#151517;color:#eee;border-radius:3px;padding:7px 10px;font:800 8px Montserrat;cursor:pointer}.v8-actions button:hover{border-color:#777}
-.host-intel{margin-top:48px}
-
-.toolkit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
-.toolkit-card{border:1px solid #29292c;background:#0d0d0e;border-radius:5px;padding:17px}
-.toolkit-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
-.tool-btn{border:1px solid #303034;background:#141416;color:#ddd;border-radius:4px;padding:9px 11px;font:800 8px Montserrat;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
-.tool-btn:hover{border-color:#777;background:#19191b}.primary-tool{border-color:#6b2d2d;color:#ff9a9a}
-.save-search-row{margin-top:12px}.saved-searches{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.saved-search{display:flex;align-items:center;gap:4px;border:1px solid #303034;background:#111113;border-radius:4px;overflow:hidden}
-.saved-search button{border:0;background:none;color:#ccc;padding:7px 8px;font:800 8px Montserrat;cursor:pointer}.saved-search .delete-save{color:#777;border-left:1px solid #29292c}
-.shortcut-list{display:grid;gap:7px;margin-top:18px}.shortcut-list div{display:flex;align-items:center;gap:12px;padding:9px;border:1px solid #29292c;background:#111113}
-.shortcut-list span{font-size:10px;color:#aaa}.shortcut-list kbd{min-width:28px;text-align:center;padding:6px;border:1px solid #45454a;border-radius:3px;background:#18181a;color:#fff;font:900 10px Orbitron}
-body.discover-focus .hero-side,body.discover-focus .host-intel,body.discover-focus #dailyMixSection,body.discover-focus #topHostsSection,body.discover-focus #categorySection,body.discover-focus #newestSection{display:none!important}
-body.discover-focus .discover{max-width:1080px}
-@media(max-width:700px){.toolkit-grid{grid-template-columns:1fr}}
-
-</style></head><body><div data-nav></div><main class="wrap discover">
-<section class="hero"><div class="hero-grid">
-<div class="hero-main"><div class="eyebrow"><span class="live-badge"><span class="dot"></span> CROWRULES PODCASTING · DISCOVER</span></div><h1>Find what you’ll <span class="gradient">listen to next.</span></h1><p class="lead">A redesigned discovery front door for CrowRules — built around shows, episodes, creators, your listening history and fresh programming.</p>
-<div class="search-wrap"><label class="sr-only" for="search">Search podcasts and episodes</label><div class="search-shell"><input id="search" type="search" placeholder="Search shows, episodes, categories or hosts…" autocomplete="off"><button id="searchBtn" class="btn primary">Search</button></div><div id="suggestions" class="suggestions"></div></div><div id="chips" class="chips"></div>
-<div class="discovery-controls" id="discoveryControls">
-  <div class="control-head"><div><div class="eyebrow">DISCOVERY COMMAND CENTER</div><strong>Shape your feed.</strong></div><button id="resetDiscovery" class="mini-btn" type="button">Reset</button></div>
-  <div class="control-grid">
-    <label><span>Content</span><select id="contentFilter"><option value="all">All content</option><option value="podcasts">Podcasts</option><option value="episodes">Episodes</option></select></label>
-    <label><span>Sort</span><select id="sortFilter"><option value="smart">Smart match</option><option value="popular">Most popular</option><option value="newest">Newest</option></select></label>
-    <label><span>Freshness</span><select id="freshFilter"><option value="all">Any time</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option></select></label>
-  </div>
-  <div id="activeFilters" class="active-filters"></div>
+:root{--r:#f32929;--r2:#ff6868;--bg:#070707;--p:#101011;--p2:#151517;--p3:#0b0b0c;--t:#f5f5f7;--m:#85858c;--l:#29292d;--ok:#55d98a;--warn:#f4b64a}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 75% 0,#260b0b22,transparent 34%),var(--bg);color:var(--t);font-family:Montserrat,Arial,sans-serif}button,input,select{font:inherit}.wrap{max-width:1280px;margin:auto;padding:0 18px}.discover{padding-bottom:120px}
+.hero{padding:42px 0 18px}.hero-grid{display:grid;grid-template-columns:minmax(0,1.5fr) 360px;gap:12px}.hero-main,.panel{border:1px solid var(--l);background:linear-gradient(145deg,#171719,#0b0b0c);border-radius:7px}.hero-main{min-height:450px;padding:40px;display:flex;flex-direction:column;justify-content:end;position:relative;overflow:hidden}.hero-main:before{content:"";position:absolute;width:520px;height:520px;right:-180px;top:-220px;background:radial-gradient(circle,#f3292930,transparent 68%)}.hero-main>*{position:relative}.eyebrow{font-size:8px;font-weight:900;letter-spacing:.2em;color:#77777e;text-transform:uppercase}.live{color:#ff7070}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--r);box-shadow:0 0 14px #f32929;margin-right:6px}.hero h1{font:900 clamp(45px,7vw,84px)/.91 Orbitron;margin:13px 0 18px;letter-spacing:-.06em;max-width:900px}.hero h1 span{color:#fff}.lead{max-width:760px;color:#aaaab0;font-size:14px;line-height:1.75;margin:0}.search{margin-top:22px;position:relative}.search-row{display:grid;grid-template-columns:1fr auto;gap:7px}.search input{width:100%;height:55px;border:1px solid #3b3b40;border-radius:5px;background:#080809;color:#fff;padding:0 15px;outline:0;font-size:12px}.search input:focus{border-color:#777}.btn,.chip,.select,.tool{border:1px solid #37373b;background:#151517;color:#ddd;border-radius:4px;cursor:pointer}.btn{padding:11px 15px;font-size:8px;font-weight:900;letter-spacing:.09em;text-transform:uppercase}.btn.primary{background:var(--r);border-color:var(--r);color:#fff}.btn:hover,.chip:hover,.tool:hover{border-color:#777}.suggestions{position:absolute;left:0;right:80px;top:62px;z-index:40;border:1px solid #36363b;background:#0c0c0e;border-radius:5px;box-shadow:0 25px 70px #000b;display:none;overflow:hidden}.suggestions.open{display:block}.suggestion{display:block;padding:11px 13px;color:#ddd;text-decoration:none;border-bottom:1px solid #202024;font-size:10px}.suggestion:hover{background:#18181a}.hero-side{padding:23px}.side-title{font:900 20px Orbitron;margin:8px 0 10px}.side-copy{font-size:10px;color:#85858c;line-height:1.7}.health{display:flex;align-items:center;gap:7px;margin:17px 0 10px;color:#888;font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.1em}.health i{width:7px;height:7px;border-radius:50%;background:#555}.health.ok i{background:var(--ok);box-shadow:0 0 10px #55d98a}.health.warn i{background:var(--warn)}.health.bad i{background:var(--r)}.signal{display:grid;gap:1px;background:var(--l);border:1px solid var(--l)}.signal div{background:#111113;padding:12px;display:flex;justify-content:space-between;gap:10px}.signal span{font-size:7px;color:#777;text-transform:uppercase;letter-spacing:.13em}.signal strong{font-size:9px;text-align:right}
+.command{margin:10px 0 25px;padding:13px;border:1px solid var(--l);background:#0d0d0e;border-radius:5px}.command-top{display:flex;justify-content:space-between;gap:10px;align-items:center}.command-title{font:900 13px Orbitron}.filters{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:7px;margin-top:12px}.filters label{display:grid;gap:5px}.filters label span{font-size:7px;color:#777;text-transform:uppercase;font-weight:900;letter-spacing:.13em}.filters select{height:38px;border:1px solid #303034;background:#111113;color:#ddd;border-radius:4px;padding:0 8px;outline:0;font-size:8px;font-weight:800;text-transform:uppercase}.filter-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}.fchip{border:1px solid #4a3030;background:#171112;color:#ff9494;border-radius:3px;padding:5px 7px;font-size:7px;font-weight:900;text-transform:uppercase}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--l);border:1px solid var(--l);margin-bottom:34px}.metric{padding:16px;background:#101011}.metric b{display:block;font:900 23px Orbitron}.metric span{display:block;margin-top:5px;color:#777;font-size:7px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
+.section{margin-top:42px}.head{display:flex;align-items:end;justify-content:space-between;gap:15px;margin-bottom:14px}.head h2{font:900 22px Orbitron;margin:5px 0}.head p{margin:0;color:#777;font-size:9px;line-height:1.6}.head-actions{display:flex;gap:5px;flex-wrap:wrap}.rail{display:flex;gap:10px;overflow-x:auto;padding:2px 1px 13px;scrollbar-width:thin}.rail>*{flex:0 0 230px}.episode-rail>*{flex-basis:270px}.creator-rail>*{flex-basis:245px}.card{border:1px solid var(--l);background:#101011;border-radius:5px;overflow:hidden}.show,.episode,.creator{display:block;color:inherit;text-decoration:none;transition:.18s}.show:hover,.episode:hover,.creator:hover{transform:translateY(-3px);border-color:#555;background:#151517}.art{width:100%;aspect-ratio:1;display:block;object-fit:cover;background:#1a1a1c}.episode .art{aspect-ratio:16/9}.body{padding:12px}.rank{font-size:7px;color:#777;text-transform:uppercase;font-weight:900;letter-spacing:.13em}.title{font-size:12px;font-weight:900;line-height:1.4;margin:6px 0}.sub{font-size:9px;color:#85858b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.pill{font-size:7px;color:#aaa;border:1px solid #303034;border-radius:3px;padding:4px 6px;text-transform:uppercase}.pill.red{color:#ff8585;border-color:#633333}.pill.ok{color:#8fe4ad;border-color:#31523c}.creator{padding:17px}.avatar{width:68px;height:68px;border-radius:50%;object-fit:cover;background:#1b1b1d;border:1px solid #38383d}.creator-name{font-size:13px;font-weight:900;margin-top:10px}.creator-role{font-size:8px;color:#777;margin-top:4px}.creator-stats{font-size:8px;color:#777;margin-top:8px}
+.personal{border:1px solid #3a2929;background:linear-gradient(145deg,#171112,#0e0e0f);padding:20px;border-radius:6px}.personal-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:10px}.personal h2{font:900 22px Orbitron;margin:5px 0 8px}.personal p{color:#999;font-size:10px;line-height:1.7;margin:0}.profile-box{border:1px solid #302a2a;background:#111113;padding:16px}.profile-box b{font:900 18px Orbitron}.profile-lines{display:grid;gap:6px;margin-top:12px}.profile-lines div{display:flex;justify-content:space-between;font-size:8px;color:#777}.profile-lines strong{color:#ddd}
+.feature{display:grid;grid-template-columns:1.45fr .55fr;gap:10px}.feature-main{min-height:285px;padding:30px;display:flex;flex-direction:column;justify-content:end;position:relative;overflow:hidden;background:linear-gradient(145deg,#1a1112,#0b0b0c);border:1px solid var(--l);border-radius:6px}.feature-main:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,#070707);pointer-events:none}.feature-main>*{position:relative;z-index:1}.feature-main h2{font:900 clamp(28px,4vw,50px) Orbitron;margin:8px 0;max-width:760px}.feature-main p{max-width:680px;color:#aaa;font-size:10px;line-height:1.7}.feature-side{padding:24px;border:1px solid var(--l);border-radius:6px;background:#101011}.feature-side strong{font:900 17px Orbitron}.feature-side ul{padding:0;margin:16px 0 0;list-style:none;display:grid;gap:8px}.feature-side li{border-left:2px solid #633333;padding:8px 10px;background:#141416;color:#aaa;font-size:9px}
+.toolkit{display:grid;grid-template-columns:1fr 1fr;gap:10px}.toolbox{padding:17px;border:1px solid var(--l);background:#0d0d0e;border-radius:5px}.toolbox h3{font:900 14px Orbitron;margin:4px 0}.toolbox p{font-size:9px;color:#777;line-height:1.6}.tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}.tool{padding:8px 10px;font-size:7px;font-weight:900;text-transform:uppercase;letter-spacing:.06em}.tool.primary{border-color:#693434;color:#ff9898}.saved{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.saved button{border:1px solid #303034;background:#111113;color:#ccc;border-radius:4px;padding:7px 8px;font-size:8px;cursor:pointer}.saved .x{color:#777;border-left:1px solid #29292c}.recent{display:flex;gap:9px;overflow:auto}.recent a{flex:0 0 190px}
+.results{padding:20px;border:1px solid var(--l);border-radius:6px;background:#0d0d0e}.tabs{display:flex;gap:5px;margin:12px 0}.tab{border:1px solid #303034;background:#111113;color:#aaa;border-radius:4px;padding:8px 10px;font-size:7px;font-weight:900;text-transform:uppercase;cursor:pointer}.tab.active{background:var(--r);border-color:var(--r);color:#fff}.result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.empty{padding:42px 18px;text-align:center;border:1px dashed #303034;color:#777;font-size:9px}.empty b{display:block;color:#ddd;font:900 13px Orbitron;margin-bottom:6px}.modal{position:fixed;inset:0;z-index:5000;background:#000d;backdrop-filter:blur(8px);display:none;place-items:center;padding:20px}.modal.open{display:grid}.modal-card{width:min(650px,100%);max-height:82vh;overflow:auto;padding:25px;border:1px solid #3b3b40;border-radius:7px;background:#0d0d0f;box-shadow:0 35px 100px #000}.modal-card h2{font:900 23px Orbitron;margin:5px 0 10px}.modal-card p{color:#aaa;font-size:10px;line-height:1.7}.modal-close{float:right;border:0;background:none;color:#aaa;font-size:25px;cursor:pointer}.shortcut{display:grid;gap:6px;margin-top:15px}.shortcut div{display:flex;justify-content:space-between;padding:9px;border:1px solid #29292c;background:#111113;font-size:9px;color:#aaa}.shortcut kbd{border:1px solid #45454a;border-radius:3px;padding:4px 7px;color:#fff;font:900 9px Orbitron}
+.toast{position:fixed;right:18px;bottom:85px;z-index:6000;padding:11px 14px;border:1px solid #4a4a4f;background:#171719;color:#fff;border-radius:5px;font-size:9px;box-shadow:0 20px 60px #000;display:none}.toast.show{display:block}
+body.focus .hero-side,body.focus .command,body.focus #toolkit,body.focus #recentSection,body.focus #hostSection,body.focus #categorySection,body.focus #freshSection,body.focus #trendingSection,body.focus #featureSection{display:none!important}body.focus .hero{padding-top:30px}
+@media(max-width:950px){.hero-grid,.personal-grid,.feature{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}.result-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.hero-main{padding:27px;min-height:420px}.search-row{grid-template-columns:1fr}.suggestions{right:0}.filters{grid-template-columns:1fr 1fr}.toolkit{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.result-grid{grid-template-columns:repeat(2,1fr)}.head{display:block}.head-actions{margin-top:9px}}@media(max-width:430px){.filters,.metrics,.result-grid{grid-template-columns:1fr}.hero h1{font-size:49px}.rail>*{flex-basis:195px}.episode-rail>*{flex-basis:230px}}
+</style>
+</head>
+<body>
+<div data-nav></div>
+<main class="wrap discover">
+<section class="hero">
+<div class="hero-grid">
+<div class="hero-main">
+<div class="eyebrow"><span class="live"><span class="dot"></span>CROWRULES PODCASTING · DISCOVER ENGINE</span></div>
+<h1>Find your next <span>listen.</span></h1>
+<p class="lead">A rebuilt discovery system for shows, episodes and creators — combining your listening behavior with freshness, momentum, follows, saves and your personal CrowRules profile.</p>
+<div class="search">
+<div class="search-row"><input id="search" type="search" placeholder="Search shows, episodes, creators or categories…" autocomplete="off" aria-label="Search Discover"><button class="btn primary" id="searchBtn">Search</button></div>
+<div id="suggestions" class="suggestions"></div>
 </div>
-<aside class="hero-side"><div class="eyebrow">DISCOVERY ENGINE</div><div class="side-title">Your listening universe.</div><p class="sub" style="white-space:normal;line-height:1.8">CrowRules blends follows, saves, completion, listening history, creator affinity, category affinity, freshness and audience momentum.</p><div class="signal-list"><div class="signal-row"><span>Shows</span><strong id="signalShows">—</strong></div><div class="signal-row"><span>Episodes</span><strong id="signalEpisodes">—</strong></div><div class="signal-row"><span>Affinity</span><strong id="signalAffinity">—</strong></div><div class="signal-row"><span>Sync</span><strong id="signalSync">Connecting</strong></div></div></aside>
+</div>
+<aside class="hero-side">
+<div class="eyebrow">ENGINE STATUS</div><div class="side-title">Your listening universe.</div>
+<div class="side-copy">Discover stays useful when you're signed in or browsing as a guest. Personal recommendations are generated only for your authenticated account.</div>
+<div id="health" class="health"><i></i><span id="healthText">Connecting</span></div>
+<div class="signal"><div><span>Shows</span><strong id="showCount">—</strong></div><div><span>Episodes</span><strong id="episodeCount">—</strong></div><div><span>Profile</span><strong id="profileState">Guest</strong></div><div><span>Engine</span><strong id="engineState">Client + server</strong></div></div>
+</aside>
+</div>
+</section>
+
+<section class="command">
+<div class="command-top"><div><div class="eyebrow">DISCOVERY COMMAND CENTER</div><div class="command-title">Tune the signal.</div></div><button class="btn" id="resetFilters">Reset</button></div>
+<div class="filters">
+<label><span>Content</span><select id="contentFilter"><option value="all">All content</option><option value="shows">Shows</option><option value="episodes">Episodes</option></select></label>
+<label><span>Sort</span><select id="sortFilter"><option value="smart">Smart match</option><option value="popular">Popular</option><option value="newest">Newest</option></select></label>
+<label><span>Freshness</span><select id="freshFilter"><option value="all">Any time</option><option value="7">7 days</option><option value="30">30 days</option><option value="90">90 days</option></select></label>
+<label><span>Category</span><select id="categoryFilter"><option value="">All categories</option></select></label>
+</div>
+<div id="filterChips" class="filter-chips"></div>
+</section>
+
+<section id="metrics" class="metrics" hidden>
+<div class="metric"><b id="mListen">0</b><span>Minutes tracked</span></div>
+<div class="metric"><b id="mFollow">0</b><span>Shows followed</span></div>
+<div class="metric"><b id="mSave">0</b><span>Episodes saved</span></div>
+<div class="metric"><b id="mComplete">0</b><span>Completed</span></div>
+<div class="metric"><b id="mCreators">0</b><span>Creators explored</span></div>
+</section>
+
+<section id="personal" class="section" hidden>
+<div class="personal"><div class="personal-grid">
+<div><div class="eyebrow">PERSONALIZED FOR YOU</div><h2 id="personalTitle">Your Discover profile is learning.</h2><p id="personalCopy">Your recent listening, follows and saves help shape the next recommendations.</p><div class="tools"><button class="tool primary" id="refreshAI">Refresh recommendations</button><button class="tool" id="focusMode" aria-pressed="false">Focus Mode</button></div></div>
+<div class="profile-box"><div class="eyebrow">PROFILE SIGNAL</div><b id="profileLabel">Building</b><div class="profile-lines"><div><span>Top category</span><strong id="topCategory">—</strong></div><div><span>Top creator</span><strong id="topCreator">—</strong></div><div><span>Release rhythm</span><strong id="releaseRhythm">—</strong></div></div></div>
+</div></div>
+</section>
+
+<section id="recommendedSection" class="section" hidden><div class="head"><div><div class="eyebrow">SERVER-GENERATED</div><h2>Recommended for you</h2><p>Personalized by the CrowRules Discover Intelligence Engine.</p></div><div class="head-actions"><button class="btn" id="whyAI">How it works</button></div></div><div id="recommended" class="rail"></div></section>
+
+<section id="continueSection" class="section" hidden><div class="head"><div><div class="eyebrow">PICK UP WHERE YOU LEFT OFF</div><h2>Continue listening</h2><p>Your in-progress episodes.</p></div></div><div id="continueRail" class="rail episode-rail"></div></section>
+
+<section id="featureSection" class="section">
+<div class="feature"><div class="feature-main"><div class="eyebrow">CROWRULES SPOTLIGHT</div><h2 id="featureTitle">Discover something new.</h2><p id="featureCopy">Fresh programming, creator voices and new stories are always entering the CrowRules universe.</p><div class="tools"><button class="tool primary" id="featureOpen">Explore</button><button class="tool" id="surprise">Surprise me</button></div></div>
+<div class="feature-side"><div class="eyebrow">DISCOVERY SIGNALS</div><strong>What shapes the feed</strong><ul><li>Listening time + completion</li><li>Follows + saved episodes</li><li>Category + creator affinity</li><li>Freshness + audience momentum</li></ul></div></div>
+</section>
+
+<section id="trendingSection" class="section"><div class="head"><div><div class="eyebrow">AUDIENCE MOMENTUM</div><h2>Trending now</h2><p>Popular programming with current audience activity.</p></div></div><div id="trending" class="rail"></div></section>
+
+<section id="hostSection" class="section"><div class="head"><div><div class="eyebrow">CREATOR INTELLIGENCE</div><h2>Creators to know</h2><p>Follow a creator to unlock more of their shows.</p></div></div><div id="hosts" class="rail creator-rail"></div></section>
+
+<section id="categorySection" class="section"><div class="head"><div><div class="eyebrow">EXPLORE BY SIGNAL</div><h2>Browse categories</h2><p>Jump directly into a topic.</p></div></div><div id="categories" class="rail"></div></section>
+
+<section id="freshSection" class="section"><div class="head"><div><div class="eyebrow">JUST ARRIVED</div><h2>Fresh episodes</h2><p>Recently published episodes from active shows.</p></div></div><div id="fresh" class="rail episode-rail"></div></section>
+
+<section id="toolkit" class="section"><div class="head"><div><div class="eyebrow">DISCOVER TOOLS</div><h2>Discovery toolkit</h2><p>Save, share, reset and control how Discover behaves.</p></div></div>
+<div class="toolkit">
+<div class="toolbox"><div class="eyebrow">SEARCH MEMORY</div><h3>Saved searches</h3><p>Keep a search ready for the next time you return.</p><div class="tools"><button class="tool primary" id="saveSearch">Save current search</button><button class="tool" id="share">Share Discover</button></div><div id="saved" class="saved"></div></div>
+<div class="toolbox"><div class="eyebrow">CONTROL ROOM</div><h3>Shortcuts + reset</h3><p>Fast navigation for desktop listeners.</p><div class="tools"><button class="tool" id="shortcuts">Keyboard shortcuts</button><button class="tool" id="clearMemory">Clear local memory</button><button class="tool" id="resetAll">Reset Discover</button></div><div id="toolStatus" class="sub" style="white-space:normal;margin-top:10px">Ready.</div></div>
 </div></section>
-<section id="personalDashboard" class="dashboard" hidden><div class="metric"><div class="metric-label">Listening</div><div id="metricMinutes" class="metric-value">0</div><div class="metric-note">minutes tracked</div></div><div class="metric"><div class="metric-label">Following</div><div id="metricFollowing" class="metric-value">0</div><div class="metric-note">shows followed</div></div><div class="metric"><div class="metric-label">Saved</div><div id="metricSaved" class="metric-value">0</div><div class="metric-note">episodes saved</div></div><div class="metric"><div class="metric-label">Catalog</div><div id="metricCatalog" class="metric-value">0</div><div class="metric-note">published shows</div></div></section>
-<section class="feature"><a id="featured" class="feature-card" href="podcasts.html"><div class="eyebrow">FEATURED NOW</div><h2 id="featuredTitle">Building your discovery mix…</h2><p id="featuredMeta">Connecting to CrowRules Podcasting.</p><span class="btn primary" style="width:max-content">Explore Show</span></a><div class="card signal"><div class="eyebrow">DISCOVERY SIGNALS</div><h3 id="signalHeadline">Learning your taste</h3><p class="sub" style="white-space:normal;line-height:1.7">Your recommendations change as your listening changes.</p><div class="signal-list"><div class="signal-row"><span>Catalog</span><strong id="signalShows2">—</strong></div><div class="signal-row"><span>Episodes</span><strong id="signalEpisodes2">—</strong></div><div class="signal-row"><span>Profile</span><strong>Adaptive</strong></div><div class="signal-row"><span>Mode</span><strong>Live</strong></div></div></div></section>
 
-<section id="ultimateToolkit" class="section personal" aria-labelledby="toolkitTitle">
-  <div class="section-head">
-    <div>
-      <div class="eyebrow">DISCOVERY TOOLKIT · ULTIMATE</div>
-      <h2 id="toolkitTitle">Take control of Discover.</h2>
-      <p>Fast actions, saved searches, hidden shows and smart discovery controls — all stored locally unless a signed-in feature explicitly syncs to CrowRules.</p>
-    </div>
-    <div class="section-actions">
-      <button id="surpriseMe" class="btn primary" type="button">Surprise Me</button>
-      <button id="focusMode" class="mini-btn" type="button" aria-pressed="false">Focus Mode</button>
-    </div>
-  </div>
-  <div class="toolkit-grid">
-    <div class="toolkit-card">
-      <div class="eyebrow">QUICK ACTIONS</div>
-      <div class="toolkit-actions">
-        <button class="tool-btn" id="shareDiscover" type="button">Share Discover</button>
-        <button class="tool-btn" id="shortcutHelp" type="button">Keyboard Shortcuts</button>
-        <button class="tool-btn" id="clearHidden" type="button">Clear Hidden</button>
-        <button class="tool-btn" id="resetAllDiscovery" type="button">Reset Everything</button>
-      </div>
-      <div id="toolkitStatus" class="reason" aria-live="polite">Smart discovery is ready.</div>
-    </div>
-    <div class="toolkit-card">
-      <div class="eyebrow">SAVED SEARCHES</div>
-      <div class="save-search-row">
-        <button id="saveSearch" class="tool-btn primary-tool" type="button">Save Current Search</button>
-      </div>
-      <div id="savedSearches" class="saved-searches"></div>
-    </div>
-  </div>
-</section>
+<section id="recentSection" class="section" hidden><div class="head"><div><div class="eyebrow">LOCAL MEMORY</div><h2>Recently discovered</h2><p>Items you opened from this browser.</p></div><button class="btn" id="clearRecent">Clear</button></div><div id="recent" class="recent"></div></section>
 
-<section id="recentDiscoveriesSection" class="section personal" hidden aria-labelledby="recentDiscoveriesTitle">
-  <div class="section-head">
-    <div>
-      <div class="eyebrow">LOCAL MEMORY</div>
-      <h2 id="recentDiscoveriesTitle">Recently Discovered</h2>
-      <p>Your last few discovery choices on this browser.</p>
-    </div>
-    <div class="section-actions"><button id="clearRecent" class="mini-btn" type="button">Clear</button></div>
-  </div>
-  <div id="recentDiscoveries" class="rail"></div>
-</section>
+<section id="searchSection" class="section" hidden><div class="results"><div class="head"><div><div class="eyebrow">SEARCH RESULTS</div><h2>Discover results</h2><p id="resultSummary"></p></div></div><div class="tabs"><button class="tab active" data-tab="all">All</button><button class="tab" data-tab="shows">Shows</button><button class="tab" data-tab="episodes">Episodes</button><button class="tab" data-tab="creators">Creators</button></div><div id="results" class="result-grid"></div></div></section>
+</main>
 
-<div id="shortcutModal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="shortcutModalTitle">
-  <div class="modal-backdrop" data-close-shortcuts></div>
-  <div class="modal-card">
-    <button class="modal-close" type="button" data-close-shortcuts aria-label="Close keyboard shortcuts">×</button>
-    <div class="eyebrow">DISCOVER CONTROL</div>
-    <h2 id="shortcutModalTitle">Keyboard shortcuts</h2>
-    <div class="shortcut-list">
-      <div><kbd>/</kbd><span>Focus search</span></div>
-      <div><kbd>S</kbd><span>Surprise Me</span></div>
-      <div><kbd>R</kbd><span>Refresh catalog</span></div>
-      <div><kbd>F</kbd><span>Toggle Focus Mode</span></div>
-      <div><kbd>?</kbd><span>Open this panel</span></div>
-      <div><kbd>Esc</kbd><span>Close panels / suggestions</span></div>
-    </div>
-  </div>
-</div>
+<div id="whyModal" class="modal" aria-hidden="true"><div class="modal-card"><button class="modal-close" data-close>×</button><div class="eyebrow">DISCOVER INTELLIGENCE</div><h2>How recommendations work</h2><p>When you're signed in, CrowRules combines your own listening signals with follows, saved episodes, completion, creator/category affinity, freshness and audience momentum. Recommendations are stored in your own protected Supabase rows and are never shared with other members.</p><div id="whySignals" class="shortcut"></div></div></div>
+<div id="shortcutModal" class="modal" aria-hidden="true"><div class="modal-card"><button class="modal-close" data-close-shortcuts>×</button><div class="eyebrow">DESKTOP CONTROL</div><h2>Keyboard shortcuts</h2><div class="shortcut"><div><span>Focus search</span><kbd>/</kbd></div><div><span>Surprise me</span><kbd>S</kbd></div><div><span>Refresh</span><kbd>R</kbd></div><div><span>Focus Mode</span><kbd>F</kbd></div><div><span>Close dialogs</span><kbd>Esc</kbd></div></div></div></div>
+<div id="toast" class="toast" role="status"></div>
 
-<section id="dailyMixSection" class="section personal mix-card" hidden><div class="section-head"><div><div class="eyebrow">BUILT FOR TODAY</div><h2>Your Daily Mix</h2><p id="dailyMixNote">A balanced queue of familiar favorites and new discoveries.</p></div></div><div id="dailyMixRail" class="rail episode-rail"></div></section>
-<section id="continueSection" class="section personal" hidden><div class="section-head"><div><div class="eyebrow">KEEP GOING</div><h2>Continue Listening</h2><p>Resume unfinished episodes with your saved position.</p></div></div><div id="continueRail" class="rail episode-rail"></div></section>
-<section id="followSection" class="section personal" hidden><div class="section-head"><div><div class="eyebrow">YOUR FOLLOWING</div><h2>New Episodes From Your Favorites</h2><p>The newest releases from shows you chose to follow.</p></div></div><div id="followRail" class="rail episode-rail"></div></section>
-<section id="becauseFollowSection" class="section" hidden><div class="section-head"><div><div class="eyebrow">FOLLOW SIGNAL</div><h2>Because You Follow…</h2><p>Shows related to podcasts already in your network.</p></div></div><div id="becauseFollowRail" class="rail"></div></section>
-<section id="finishedSection" class="section" hidden><div class="section-head"><div><div class="eyebrow">YOU FINISHED</div><h2>Because You Finished…</h2><p>New paths inspired by shows you completed.</p></div></div><div id="finishedRail" class="rail episode-rail"></div></section>
-<section id="creatorSection" class="section" hidden><div class="section-head"><div><div class="eyebrow">CREATOR NETWORK</div><h2>More From This Creator</h2><p>Additional shows from creators already connected to your listening.</p></div></div><div id="creatorRail" class="rail"></div></section>
-<section id="similarSection" class="section" hidden><div class="section-head"><div><div class="eyebrow">DISCOVERY MATCH</div><h2>Similar Shows</h2><p>Related shows matched to your followed and listened-to catalog.</p></div></section>
-<div id="similarRail" class="rail"></div></section>
-<section id="savedSection" class="section personal" hidden><div class="section-head"><div><div class="eyebrow">YOUR LIBRARY</div><h2>Saved Episodes</h2><p>Episodes you marked for later.</p></div></div><div id="savedRail" class="rail episode-rail"></div></section>
-<section class="section"><div class="section-head"><div><div class="eyebrow">CHARTS</div><h2>Top 10 Podcasts</h2><p>What the CrowRules audience is listening to.</p></div><div class="section-actions"><button class="view-btn active" data-period="all">All Time</button><button class="view-btn" data-period="new">Fresh</button></div></div><div id="topPodcasts" class="rail"></div></section>
-<section class="section"><div class="section-head"><div><div class="eyebrow">EPISODE CHART</div><h2>Top 10 Episodes</h2><p>Strongest available episode activity.</p></div></div><div id="topEpisodes" class="rail episode-rail"></div></section>
-<section class="section"><div class="section-head"><div><div class="eyebrow">MOMENTUM</div><h2>Trending Now</h2><p>Fresh episodes gaining attention.</p></div></div><div id="trending" class="rail episode-rail"></div></section>
-<section id="categorySection" class="section"><div class="section-head"><div><div class="eyebrow">BROWSE THE NETWORK</div><h2 id="categoryTitle">More to Explore</h2><p>Jump into another side of CrowRules Podcasting.</p></div></div><div id="categoryRail" class="rail"></div></section>
-<section class="section"><div class="section-head"><div><div class="eyebrow">CREATOR SPOTLIGHT</div><h2>Top Hosts</h2><p>Creators generating strong audience signals.</p></div></div><div id="topHosts" class="rail creator-rail"></div></section>
-<section class="section"><div class="section-head"><div><div class="eyebrow">JUST ARRIVED</div><h2>Newest Episodes</h2><p>The latest published releases.</p></div></div><div id="newest" class="rail episode-rail"></div></section>
-
-<div class="v8-control" id="discoverHealth" role="status" aria-live="polite"><div class="v8-health"><span id="healthDot" class="v8-dot"></span><span id="healthText">Discovery engine initializing</span><span id="healthUpdated"></span></div><div class="v8-actions"><button id="refreshDiscover" type="button">Refresh catalog</button></div></div><section id="hostIntelSection" class="host-intel section">
-  <div class="host-intel-grid">
-    <div class="host-spotlight">
-      <div class="host-kicker">V7 · HOST SPOTLIGHT</div>
-      <div class="host-identity">
-        <img id="spotlightAvatar" class="host-avatar" alt="" loading="lazy">
-        <div><h2 id="spotlightName" class="host-name">Building Host Spotlight…</h2><div id="spotlightRole" class="host-role">Creator intelligence</div><div id="spotlightBadges" class="host-badges"></div></div>
-      </div>
-      <p id="spotlightHeadline" class="host-headline">Discover the people behind the shows.</p>
-      <div class="host-actions">
-        <a id="spotlightProfile" class="btn primary" href="creator-profile.html">Open Host Profile</a>
-        <button id="spotlightFollow" class="btn" type="button">Follow Host</button>
-        <button id="spotlightLike" class="btn" type="button">More Like This Host</button>
-      </div>
-    </div>
-    <aside class="host-intel-side">
-      <div class="eyebrow">CREATOR INTELLIGENCE</div>
-      <h3 id="spotlightSummary" class="side-title">Audience signals</h3>
-      <div id="spotlightStats" class="host-stat-grid"></div>
-      <div id="spotlightShows" class="host-show-list"></div>
-    </aside>
-  </div>
-  <div class="host-intel-rails">
-    <div class="section-head"><div><div class="eyebrow">THE HOST'S CATALOG</div><h3 style="font:900 18px Orbitron;margin:5px 0">Latest Episodes</h3><p>Fresh releases from this host's shows.</p></div></div>
-    <div id="spotlightLatest" class="intel-rail"></div>
-    <div class="section-head"><div><div class="eyebrow">AUDIENCE FAVORITES</div><h3 style="font:900 18px Orbitron;margin:5px 0">Popular Episodes</h3><p>The strongest episode activity across the host's catalog.</p></div></div>
-    <div id="spotlightPopular" class="intel-rail"></div>
-  </div>
-</section>
-<section class="section results-panel"><div class="section-head"><div><div class="eyebrow">CATALOG SEARCH</div><h2 id="resultsTitle">Explore the catalog</h2><p id="resultsMeta">Search across published podcasts and episodes.</p></div></div><div class="result-tabs"><button class="result-tab active" data-result-tab="all">All</button><button class="result-tab" data-result-tab="podcasts">Podcasts</button><button class="result-tab" data-result-tab="episodes">Episodes</button></div><div id="results" class="grid"></div></section></main>
-<div id="toast" class="toast" role="status" aria-live="polite"></div><div id="whyModal" class="modal" hidden><div class="modal-backdrop" data-close-modal></div><div class="modal-card"><button class="modal-close" data-close-modal>×</button><div class="eyebrow">RECOMMENDATION TRANSPARENCY</div><h2>Why am I seeing this?</h2><p id="whyText"></p><div id="whySignals" class="signal-list"></div></div></div><script>
+<script>
 (()=>{"use strict";
-const $=id=>document.getElementById(id), esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),fmt=n=>Number(n||0).toLocaleString(),daysAgo=v=>v?Math.max(0,(Date.now()-new Date(v))/86400000):9999;
-const fmtDate=v=>v?new Intl.DateTimeFormat(undefined,{month:"short",day:"numeric",year:"numeric"}).format(new Date(v)):"";
-const fmtTime=s=>{s=Math.max(0,Math.floor(Number(s)||0));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?h+":"+String(m).padStart(2,"0")+":"+String(x).padStart(2,"0"):m+":"+String(x).padStart(2,"0")};
-let sb,podcasts=[],episodes=[],creators=[],categories=[],following=new Set(),saved=new Set(),history=new Map(),feedback=new Map(),hiddenShows=new Set(),boostShows=new Set(),query="",resultTab="all",activeCategory="",period="all",realtimeChannel=null,personalReady=false,realtimeRetryTimer=null,realtimeStarting=false,lastCatalogSync=0;
+const BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const placeholder="assets/podcast-placeholder.svg";
+let sb=null,user=null,podcasts=[],episodes=[],creators=[],categories=[],following=new Set(),saved=new Set(),progress=[],signals=null,recs=[],query="",tab="all",activeCategory="",content="all",sort="smart",fresh="all",realtime=null,retry=null;
+const LS={saved:"cr_discover_saved_v2",recent:"cr_discover_recent_v2",focus:"cr_discover_focus_v2"};
 
-function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),2500)}
-function empty(m){return '<div class="empty"><strong>'+esc(m)+'</strong><span>New CrowRules programming will appear here automatically.</span></div>'}
-function cover(url,cls="art"){return url?'<img class="'+cls+'" src="'+esc(url)+'" alt="" loading="lazy">':'<div class="'+cls+'" aria-hidden="true"></div>'}
-function podcastUrl(id){return "podcast.html?id="+encodeURIComponent(id)}
-function episodeUrl(id){return "episode.html?id="+encodeURIComponent(id)}
-function podcastOf(e){return podcasts.find(p=>p.id===e.podcast_id)}
-function creatorOf(p){return creators.find(c=>c.id===p?.creator_id)}
-function cardPodcast(p,rank,reason=""){const followed=following.has(p.id);return '<div class="card show-card" data-podcast-card="'+esc(p.id)+'">'+cover(p.artwork_url)+'<div class="body"><div class="rank">'+(rank?"#"+rank+" · ":"")+esc(p.category||"Podcast")+'</div><a class="title" style="display:block;color:inherit;text-decoration:none" href="'+podcastUrl(p.id)+'">'+esc(p.title||"Untitled Podcast")+'</a><div class="sub">'+esc(p.author_name||"CrowRules Creator")+'</div><div class="meta"><span class="pill">'+fmt(p.total_plays)+' plays</span><span class="pill">'+fmt(p.listener_count)+' listeners</span>'+(p.is_live?'<span class="pill live">● Live</span>':"")+'</div>'+(reason?'<div class="reason">'+esc(reason)+'</div>':"")+'<div class="action-row"><button class="mini-btn" type="button" data-feedback="follow" data-podcast-id="'+esc(p.id)+'">'+(followed?"Following":"Follow")+'</button><button class="mini-btn" type="button" data-feedback="more" data-podcast-id="'+esc(p.id)+'">More like this</button><button class="mini-btn" type="button" data-feedback="not_interested" data-podcast-id="'+esc(p.id)+'">Not interested</button><button class="mini-btn" type="button" data-feedback="why" data-podcast-id="'+esc(p.id)+'">Why?</button></div></div></div>'}
-function progress(e){const h=history.get(e.id)||{},pos=Number(h.position_seconds||0),dur=Number(e.duration_seconds||h.duration_seconds||0),pct=dur?Math.min(100,pos/dur*100):0;return '<div class="progress"><span style="width:'+pct+'%"></span></div><div class="resume-time"><span>'+fmtTime(pos)+'</span><span>'+fmtTime(dur)+'</span></div>'}
-function cardEpisode(e,rank,mode="normal",reason=""){const h=history.get(e.id),label=rank?"#"+rank:(mode==="trend"?"TRENDING":mode==="resume"?"CONTINUE":mode==="mix"?"DAILY MIX":"EPISODE");return '<a class="card episode-card" href="'+episodeUrl(e.id)+'">'+cover(e.thumbnail_url||e.podcast_artwork,"art episode-art")+'<div class="body"><div class="rank">'+esc(label)+'</div><div class="title">'+esc(e.title||"Untitled Episode")+'</div><div class="sub">'+esc(e.podcast_title||podcastOf(e)?.title||"CrowRules Podcast")+'</div><div class="meta"><span class="pill">'+fmt(e.play_count)+' plays</span>'+(e.published_at?'<span class="pill">'+esc(fmtDate(e.published_at))+"</span>":"")+(mode==="resume"?'<span class="pill cyan">Resume</span>':"")+(saved.has(e.id)?'<span class="pill cyan">Saved</span>':"")+'</div>'+((mode==="resume"||h)&&Number(h?.position_seconds||0)>0?progress(e):"")+(reason?'<div class="reason">'+esc(reason)+'</div>':"")+(mode==="resume"?'<div class="action-row"><button class="mini-btn" type="button" data-resume="'+esc(e.id)+'">Resume</button></div>':"")+'</div></a>'}
-function creatorProfileUrl(c){const id=c?.id||c?.creator_id||c?.member_id||"";if(c?.profile_url && /^https?:\\/\\//i.test(c.profile_url))return c.profile_url;if(id && !String(id).startsWith("author:"))return "creator-profile.html?id="+encodeURIComponent(id);if(c?.slug)return "creator-profile.html?slug="+encodeURIComponent(c.slug);return "creator-profile.html"}function cardCreator(c,rank){const name=c.display_name||c.name||"CrowRules Host";const profile=creatorProfileUrl(c);return '<a class="card creator-card" href="'+esc(profile)+'" data-host-profile="'+esc(profile)+'" aria-label="Open '+esc(name)+' host profile">'+(c.avatar_url?'<img class="avatar" src="'+esc(c.avatar_url)+'" alt="" loading="lazy">':'<div class="avatar"></div>')+'<div class="rank">#'+rank+' HOST</div><div class="creator-name">'+esc(name)+'</div><div class="sub">'+esc(c.discipline||c.role||"Podcast Creator")+'</div><div class="creator-stats">'+fmt(c.plays)+' plays · '+fmt(c.podcast_count)+' podcast'+(Number(c.podcast_count)===1?"":"s")+'</div><div class="reason">Open host profile →</div></a>'}
-function render(id,html,msg){$(id).innerHTML=html||empty(msg)}
-async function tryRows(table,select,filterFn){try{let q=sb.from(table).select(select);if(filterFn)q=filterFn(q);const r=await q;return r.error?[]:(r.data||[])}catch{return[]}}
-async function loadCatalog(){
- const [ps,es,cs,ks]=await Promise.all([
-  tryRows("podcasts","*"),
-  tryRows("podcast_episodes","*"),
-  tryRows("creators","*"),
-  tryRows("podcast_categories","*")
- ]);
- podcasts=ps.filter(p=>String(p.status||"").toLowerCase()==="published");
- episodes=es.filter(e=>String(e.status||"").toLowerCase()==="published").map(e=>{const p=ps.find(x=>x.id===e.podcast_id);return {...e,podcast_title:p?.title||"",podcast_artwork:p?.artwork_url||"",category:p?.category||""}});
- creators=cs.filter(c=>c.is_active!==false);
- categories=ks.filter(c=>c.is_active!==false);
- if(!categories.length){categories=[...new Set(podcasts.map(p=>p.category).filter(Boolean))].map(name=>({name}))}
-}
-async function syncUserSignals(){
- if(!personalReady||!sb||!window.__CROW_USER?.id)return null;
- try{
-  const r=await sb.rpc("podcast_discover_refresh_user_signals",{p_user_id:window.__CROW_USER.id});
-  if(r.error)throw r.error;
-  const signal=await sb.from("podcast_discover_user_signals").select("total_listen_seconds,completed_episode_count,followed_show_count,saved_episode_count,unique_show_count,unique_creator_count,top_categories,top_creators,top_shows,preferred_duration_min,preferred_duration_max,preferred_release_days,last_active_at,updated_at").eq("user_id",window.__CROW_USER.id).maybeSingle();
-  if(signal.error)throw signal.error;
-  window.__CROW_DISCOVER_SIGNALS=signal.data||null;
-  return signal.data||null;
- }catch(e){console.warn("Discover signal sync:",e);return null}
-}
-async function loadPersonal(){
- following.clear();saved.clear();history.clear();personalReady=!!window.__CROW_USER;
- if(!personalReady){$("personalDashboard").hidden=true;return}
- const uid=window.__CROW_USER.id;
- const [f1,f2,s1,p1,fb]=await Promise.all([
-  tryRows("podcast_follows","podcast_id",q=>q.eq("user_id",uid)),
-  tryRows("podcast_member_favorites","podcast_id",q=>q.eq("user_id",uid)),
-  tryRows("podcast_saved_episodes","episode_id",q=>q.eq("user_id",uid)),
-  tryRows("cr_podcast_playback_progress","episode_id,position_seconds,duration_seconds,progress_percent,last_played_at,completed",q=>q.eq("user_id",uid)),
-  tryRows("podcast_creator_recommendation_feedback","podcast_id,action,recommendation,created_at",q=>q.eq("user_id",uid))
- ]);
- [...f1,...f2].forEach(x=>x.podcast_id&&following.add(x.podcast_id));
- s1.forEach(x=>x.episode_id&&saved.add(x.episode_id));
- p1.forEach(x=>x.episode_id&&history.set(x.episode_id,x));fb.forEach(x=>{if(x.podcast_id){feedback.set(x.podcast_id,x);if(x.action==="hide"||x.action==="not_interested")hiddenShows.add(x.podcast_id);if(x.action==="more_like_this")boostShows.add(x.podcast_id)}});
- if(!s1.length){try{const local=JSON.parse(localStorage.getItem("crow_saved_episodes")||"[]");local.forEach(id=>saved.add(id))}catch{}}
- await syncUserSignals();
- $("personalDashboard").hidden=false;
- $("metricFollowing").textContent=fmt(following.size);
- $("metricSaved").textContent=fmt(saved.size);
- $("metricMinutes").textContent=fmt(Math.round([...history.values()].reduce((n,h)=>n+Number(h.position_seconds||0),0)/60));
-}
-function chips(){
- const names=[...new Set(categories.map(c=>c.name).filter(Boolean))].slice(0,18);
- $("chips").innerHTML=names.map(n=>'<button class="chip '+(activeCategory===n?"active":"")+'" data-category="'+esc(n)+'">'+esc(n)+'</button>').join("");
- document.querySelectorAll("[data-category]").forEach(b=>b.onclick=()=>{activeCategory=b.dataset.category||"";savePreferences();track("category_select",{category:activeCategory});document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x.dataset.category===activeCategory));renderAll();window.scrollTo({top:0,behavior:"smooth"})});
-}
-function completedEpisodes(){return episodes.filter(e=>{const h=history.get(e.id);return h?.completed===true||(Number(h?.progress_percent||h?.percent_complete||0)>=.98)||(Number(h?.position_seconds||0)>0&&Number(e.duration_seconds||h?.duration_seconds||0)>0&&Number(h.position_seconds)>=Number(e.duration_seconds||h.duration_seconds)-10)})}
-function continueEpisodes(){return [...history.entries()].map(([id,h])=>{const e=episodes.find(x=>x.id===id);return e?{...e,_last:h.last_played_at||"",_pos:Number(h.position_seconds||0)}:null}).filter(Boolean).filter(e=>!e.duration_seconds||e._pos<Number(e.duration_seconds)-10).sort((a,b)=>new Date(b._last)-new Date(a._last)).slice(0,10)}
-function followedEpisodes(){return episodes.filter(e=>following.has(e.podcast_id)).sort((a,b)=>new Date(b.published_at||b.created_at)-new Date(a.published_at||a.created_at)).slice(0,12)}
-function savedEpisodes(){return episodes.filter(e=>saved.has(e.id)).sort((a,b)=>new Date(b.published_at||b.created_at)-new Date(a.published_at||a.created_at)).slice(0,12)}
-function topPodcasts(){let rows=podcasts.filter(p=>!activeCategory||p.category===activeCategory);return [...rows].sort((a,b)=>period==="new"?new Date(b.created_at)-new Date(a.created_at):Number(b.total_plays||0)-Number(a.total_plays||0)).slice(0,10)}
-function topEpisodes(){return episodes.filter(e=>!activeCategory||e.category===activeCategory).sort((a,b)=>Number(b.play_count||0)-Number(a.play_count||0)).slice(0,10)}
-function trending(){return episodes.filter(e=>!activeCategory||e.category===activeCategory).map(e=>({...e,_score:Number(e.play_count||0)/(1+daysAgo(e.published_at||e.created_at))})).sort((a,b)=>b._score-a._score).slice(0,10)}
-function newest(){return episodes.filter(e=>!activeCategory||e.category===activeCategory).sort((a,b)=>new Date(b.published_at||b.created_at)-new Date(a.published_at||a.created_at)).slice(0,10)}
-function hosts(){const map={};podcasts.forEach(p=>{const c=creatorOf(p),key=p.creator_id||"author:"+p.author_name;if(!map[key])map[key]={id:c?.id||key,name:c?.display_name||c?.name||p.author_name||"CrowRules Host",discipline:c?.discipline||"Podcast Creator",avatar_url:c?.avatar_url,profile_url:c?.profile_url,plays:0,podcast_count:0};map[key].plays+=Number(p.total_plays||0);map[key].podcast_count++});return Object.values(map).sort((a,b)=>b.plays-a.plays).slice(0,10)}
-function affinity(){
- const cats=new Map(),creats=new Map(),shows=new Map();
- [...history.entries()].forEach(([id,h])=>{const e=episodes.find(x=>x.id===id),p=podcastOf(e);if(!p)return;const w=Number(h.completed?3:1)+Math.min(2,Number(h.progress_percent||h.percent_complete||0));if(p.category)cats.set(p.category,(cats.get(p.category)||0)+w);if(p.creator_id)creats.set(p.creator_id,(creats.get(p.creator_id)||0)+w);shows.set(p.id,(shows.get(p.id)||0)+w)});
- following.forEach(id=>{const p=podcasts.find(x=>x.id===id);if(p?.category)cats.set(p.category,(cats.get(p.category)||0)+4);if(p?.creator_id)creats.set(p.creator_id,(creats.get(p.creator_id)||0)+4)});
- return {cats,creats,shows};
-}
-function becauseFollow(){if(!following.size)return[];const f=[...following].map(id=>podcasts.find(p=>p.id===id)).filter(Boolean);const cat=new Map(),creat=new Map();f.forEach(p=>{if(p.category)cat.set(p.category,(cat.get(p.category)||0)+1);if(p.creator_id)creat.set(p.creator_id,(creat.get(p.creator_id)||0)+1)});return podcasts.filter(p=>!following.has(p.id)).map(p=>{let s=(cat.get(p.category)||0)*35+(creat.get(p.creator_id)||0)*45+Math.log10(1+Number(p.total_plays||0))*8-(daysAgo(p.created_at)*.12);return {...p,_score:s}}).sort((a,b)=>b._score-a._score).slice(0,10)}
-function becauseFinished(){const done=completedEpisodes(),cats=new Map();done.forEach(e=>{const p=podcastOf(e);if(p?.category)cats.set(p.category,(cats.get(p.category)||0)+1)});return episodes.filter(e=>!history.has(e.id)).map(e=>{const p=podcastOf(e),s=(cats.get(p?.category)||0)*30+Number(e.play_count||0)/15-(daysAgo(e.published_at||e.created_at)*.15);return {...e,_score:s}}).sort((a,b)=>b._score-a._score).slice(0,10)}
-function moreFromCreator(){const {creats}=affinity();const ids=[...creats.entries()].sort((a,b)=>b[1]-a[1]).map(x=>x[0]);if(!ids.length)return[];return podcasts.filter(p=>ids.includes(p.creator_id)&&!historyShows().has(p.id)).sort((a,b)=>{const ca=creats.get(a.creator_id)||0,cb=creats.get(b.creator_id)||0;return cb-ca}).slice(0,10)}
-function historyShows(){return new Set([...history.keys()].map(id=>episodes.find(e=>e.id===id)?.podcast_id).filter(Boolean))}
-function similarShows(){const base=[...following].map(id=>podcasts.find(p=>p.id===id)).filter(Boolean);const listened=[...historyShows()].map(id=>podcasts.find(p=>p.id===id)).filter(Boolean);const seeds=[...base,...listened];if(!seeds.length)return[];const cats=new Map(),creats=new Map();seeds.forEach(p=>{if(p.category)cats.set(p.category,(cats.get(p.category)||0)+1);if(p.creator_id)creats.set(p.creator_id,(creats.get(p.creator_id)||0)+1)});return podcasts.filter(p=>!following.has(p.id)&&!historyShows().has(p.id)).map(p=>({...p,_score:(cats.get(p.category)||0)*45+(creats.get(p.creator_id)||0)*60+Math.log10(1+Number(p.total_plays||0))*6-(daysAgo(p.created_at)*.1)})).sort((a,b)=>b._score-a._score).slice(0,10)}
-function becauseListened(){const {cats,creats}=affinity();return episodes.filter(e=>!history.has(e.id)).map(e=>{const p=podcastOf(e);let s=(cats.get(p?.category)||0)*22+(creats.get(p?.creator_id)||0)*28+Number(e.play_count||0)/12-(daysAgo(e.published_at||e.created_at)*.12);return {...e,_score:s}}).sort((a,b)=>b._score-a._score).slice(0,10)}
-function dailyMix(){const cont=continueEpisodes(),fav=followedEpisodes(),fresh=newest(),rec=becauseListened();const out=[],seen=new Set();const add=(arr,reason)=>{for(const e of arr){if(out.length>=12||seen.has(e.id))continue;seen.add(e.id);out.push({...e,_reason:reason})}};add(cont,"Pick up where you left off.");add(fav,"A new episode from a show you follow.");add(rec,"Matched to your listening taste.");add(fresh,"A fresh CrowRules discovery.");return out}
-function categoryRail(){return categories.map(c=>{const ps=podcasts.filter(p=>p.category===c.name);return {...c,count:ps.length,plays:ps.reduce((n,p)=>n+Number(p.total_plays||0),0)}}).filter(c=>c.count).sort((a,b)=>b.plays-a.plays).slice(0,12).map((c,i)=>'<a class="card show-card" href="#" data-category-jump="'+esc(c.name)+'">'+cover(c.image_url||podcasts.find(p=>p.category===c.name)?.artwork_url)+'<div class="body"><div class="rank">#'+(i+1)+' CATEGORY</div><div class="title">'+esc(c.name)+'</div><div class="sub">'+fmt(c.count)+' show'+(c.count===1?"":"s")+' · '+fmt(c.plays)+' plays</div></div></a>').join("")}
-function feedbackReason(p){const f=feedback.get(p.id),a=affinity(),r=[];if(f?.action==="more_like_this")r.push("You asked CrowRules for more like this.");if(following.has(p.id))r.push("You follow this show.");if(a.cats.has(p.category))r.push("You listen to "+p.category+".");if(p.creator_id&&a.creats.has(p.creator_id))r.push("You have listened to this creator.");return r.length?r.slice(0,2).join(" "):"Fresh catalog discovery with popularity and freshness signals."}
-async function recordFeedback(id,action){if(!personalReady){toast("Sign in to personalize Discover.");return}const uid=window.__CROW_USER.id,p=podcasts.find(x=>x.id===id);if(!p)return;try{const {error}=await sb.from("podcast_creator_recommendation_feedback").insert({user_id:uid,recommendation_key:"discover-v5:"+id,podcast_id:id,action,recommendation:{title:p.title,category:p.category,creator_id:p.creator_id,source:"discover-v5"}});if(error)throw error;feedback.set(id,{podcast_id:id,action});if(action==="hide"||action==="not_interested")hiddenShows.add(id);if(action==="more_like_this")boostShows.add(id);toast(action==="not_interested"?"We'll show you less like this.":action==="hide"?"Show hidden from recommendations.":"Your recommendations are learning from that.");renderAll()}catch(e){console.error(e);toast("Could not save recommendation feedback.")}}
-async function toggleFollow(id){if(!personalReady){toast("Sign in to follow shows.");return}const uid=window.__CROW_USER.id;if(following.has(id)){const r=await sb.from("podcast_follows").delete().eq("user_id",uid).eq("podcast_id",id);if(r.error){toast("Could not update follow.");return}following.delete(id);toast("Show unfollowed.")}else{const r=await sb.from("podcast_follows").insert({user_id:uid,podcast_id:id});if(r.error){toast("Could not follow this show.");return}following.add(id);toast("Show followed.")}renderAll()}
-function renderPersonal(){
- const cont=continueEpisodes(),fav=followedEpisodes(),sav=savedEpisodes(),bf=becauseFollow(),fin=becauseFinished(),mc=moreFromCreator(),sim=similarShows(),mix=dailyMix();
- const sections=[["continueSection",cont],["followSection",fav],["savedSection",sav],["becauseFollowSection",bf],["finishedSection",fin],["creatorSection",mc],["similarSection",sim],["dailyMixSection",mix]];
- sections.forEach(([id,rows])=>$(id).hidden=!personalReady||!rows.length);
- render("continueRail",cont.map(e=>cardEpisode(e,null,"resume")).join(""),"Nothing to resume.");
- render("followRail",fav.map(e=>cardEpisode(e)).join(""),"No followed shows yet.");
- render("savedRail",sav.map(e=>cardEpisode(e)).join(""),"No saved episodes yet.");
- render("becauseFollowRail",bf.map(p=>cardPodcast(p,null,"Related to shows you follow.")).join(""),"Follow more shows to unlock this rail.");
- render("finishedRail",fin.map(e=>cardEpisode(e,null,"normal","Inspired by something you finished.")).join(""),"Finish an episode to unlock this rail.");
- render("creatorRail",mc.map(p=>cardPodcast(p,null,"More from a creator you already listen to.")).join(""),"Keep listening to discover more from your favorite creators.");
- render("similarRail",sim.map(p=>cardPodcast(p,null,"Similar to your followed and listened-to shows.")).join(""),"Follow or listen to a show to build Similar Shows.");
- render("dailyMixRail",mix.map(e=>cardEpisode(e,null,"mix",e._reason)).join(""),"Your Daily Mix will appear as your listening profile develops.");
- $("dailyMixNote").textContent=mix.length?(mix.length+" picks · "+Math.min(3,cont.length)+" resume/favorite signals blended with fresh discovery."):"Listen or follow a few shows and your Daily Mix will start adapting.";
- $("metricCatalog").textContent=fmt(podcasts.length);
- const a=affinity();const strongest=[...a.cats.entries()].sort((x,y)=>y[1]-x[1])[0]?.[0];$("signalAffinity").textContent=strongest||"Learning";
- $("signalHeadline").textContent=strongest?"Leaning into "+strongest:"Learning your taste";
-}
-function renderAll(){
- renderPersonal();
- renderActiveFilters();
- try{renderHostSpotlight()}catch(e){console.error("Discover V7 Host Spotlight:",e)}
- const tp=topPodcasts().filter(p=>!hiddenShows.has(p.id)),te=topEpisodes(),tr=trending(),nw=newest(),hs=hosts();
- render("topPodcasts",tp.map((p,i)=>cardPodcast(p,i+1,feedbackReason(p))).join(""),"No published podcasts yet.");
- render("topEpisodes",te.map((e,i)=>cardEpisode(e,i+1)).join(""),"No published episodes yet.");
- render("trending",tr.map(e=>cardEpisode(e,null,"trend")).join(""),"Trending will appear as activity grows.");
- render("topHosts",hs.map((h,i)=>cardCreator(h,i+1)).join(""),"No creator data is available yet.");
- render("newest",nw.map(e=>cardEpisode(e)).join(""),"No published episodes yet.");
- $("categoryRail").innerHTML=categoryRail()||empty("No categories yet.");
- $("categoryTitle").textContent=activeCategory?activeCategory+" Picks":"More to Explore";
- document.querySelectorAll("[data-category-jump]").forEach(x=>x.onclick=e=>{e.preventDefault();activeCategory=x.dataset.categoryJump;chips();savePreferences();track("category_select",{category:activeCategory});renderAll();window.scrollTo({top:0,behavior:"smooth"})});
- const featured=podcasts.find(p=>p.is_featured)||becauseFollow()[0]||tp[0]||podcasts[0];if(featured){$("featured").href=podcastUrl(featured.id);$("featuredTitle").textContent=featured.title||"CrowRules Podcast";$("featuredMeta").textContent=(featured.category||"Podcast")+" · "+fmt(featured.total_plays)+" plays · "+(featured.is_live?"Live now":"Available to listen")}
- $("signalShows").textContent=fmt(podcasts.length);$("signalEpisodes").textContent=fmt(episodes.length);$("metricCatalog").textContent=fmt(podcasts.length);
-}
-let contentFilter="all",sortFilter="smart",freshFilter="all";
-function discoveryFiltered(rows,type){
- const now=Date.now(), days=Number(freshFilter)||0;
- return rows.filter(x=>{
-   if(days && daysAgo(x.published_at||x.created_at)>days)return false;
-   if(hiddenShows.has(x.podcast_id||x.id))return false;
-   return true;
- }).map(x=>{
-   const p=type==="episodes"?podcastOf(x):x;
-   const catBoost=p?.category&&affinity().cats.has(p.category)?24:0;
-   const creatorBoost=p?.creator_id&&affinity().creats.has(p.creator_id)?32:0;
-   const feedbackBoost=boostShows.has(p?.id||x.podcast_id)?40:0;
-   const freshness=Math.max(0,90-daysAgo(x.published_at||x.created_at));
-   const popularity=Math.log10(1+Number(x.total_plays||x.play_count||0))*12;
-   return {...x,_score:catBoost+creatorBoost+feedbackBoost+freshness*.25+popularity};
- }).sort((a,b)=>{
-   if(sortFilter==="newest")return new Date(b.published_at||b.created_at||0)-new Date(a.published_at||a.created_at||0);
-   if(sortFilter==="popular")return Number(b.total_plays||b.play_count||0)-Number(a.total_plays||a.play_count||0);
-   return Number(b._score||0)-Number(a._score||0);
- });
-}
-function renderActiveFilters(){
-  const el=$("activeFilters"); if(!el)return;
-  const chips=[];
-  if(contentFilter!=="all")chips.push(["Content",contentFilter,"content"]);
-  if(sortFilter!=="smart")chips.push(["Sort",sortFilter,"sort"]);
-  if(freshFilter!=="all")chips.push(["Fresh",freshFilter+" days","fresh"]);
-  el.innerHTML=chips.length?chips.map(x=>'<span class="filter-chip">'+esc(x[0])+': '+esc(x[1])+' <button type="button" data-clear-filter="'+x[2]+'" aria-label="Remove '+esc(x[0])+' filter">×</button></span>').join(""):'<span class="reason">Smart defaults active · recommendations remain personalized.</span>';
-  el.querySelectorAll("[data-clear-filter]").forEach(b=>b.onclick=()=>{const k=b.dataset.clearFilter;if(k==="content"){contentFilter="all";$("contentFilter").value="all"}if(k==="sort"){sortFilter="smart";$("sortFilter").value="smart"}if(k==="fresh"){freshFilter="all";$("freshFilter").value="all"}renderAll();renderResults();renderActiveFilters()});
-}
-function searchRows(){const q=query.toLowerCase();if(!q)return{p:[],e:[]};return{p:podcasts.filter(x=>[x.title,x.description,x.category,x.author_name,x.subcategory,x.sports_focus].some(v=>String(v||"").toLowerCase().includes(q))),e:episodes.filter(x=>[x.title,x.description,x.podcast_title,x.category].some(v=>String(v||"").toLowerCase().includes(q)))}}
-function renderResults(){let {p,e}=searchRows();p=discoveryFiltered(p,"podcasts");e=discoveryFiltered(e,"episodes");if(contentFilter==="podcasts")e=[];if(contentFilter==="episodes")p=[];$("resultsTitle").textContent=query?'Results for "'+query+'"':"Explore the catalog";$("resultsMeta").textContent=query?(p.length+e.length)+" matches found":"Search across published podcasts and episodes.";let h="";if(resultTab!=="episodes")h+=p.map((x,i)=>cardPodcast(x,i+1)).join("");if(resultTab!=="podcasts")h+=e.map(x=>cardEpisode(x)).join("");render("results",h,query?"No matching published podcasts or episodes.":"Start typing to search the catalog.");document.querySelectorAll("[data-result-tab]").forEach(b=>b.classList.toggle("active",b.dataset.resultTab===resultTab))}
-function suggestions(){const q=$("search").value.trim().toLowerCase();if(!q){$("suggestions").classList.remove("open");return}const rows=[...podcasts.map(p=>({type:"Podcast",title:p.title,sub:p.author_name||p.category||"Podcast",url:podcastUrl(p.id),art:p.artwork_url})),...episodes.map(e=>({type:"Episode",title:e.title,sub:e.podcast_title,url:episodeUrl(e.id),art:e.thumbnail_url||e.podcast_artwork}))].filter(x=>(x.title||"").toLowerCase().includes(q)).slice(0,8);$("suggestions").innerHTML=rows.map(x=>'<div class="suggestion" data-url="'+esc(x.url)+'">'+(x.art?'<img class="suggestion-art" src="'+esc(x.art)+'" alt="">':'<div class="suggestion-art"></div>')+'<div><strong>'+esc(x.title)+'</strong><small>'+esc(x.type)+" · "+esc(x.sub||"")+"</small></div></div>").join("");$("suggestions").classList.toggle("open",!!rows.length);document.querySelectorAll(".suggestion").forEach(x=>x.onclick=()=>location.href=x.dataset.url)}
-function search(){query=$("search").value.trim();$("suggestions").classList.remove("open");renderResults();track("search",{query});$("results").scrollIntoView({behavior:"smooth",block:"start"})}
+function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(window.__dt);window.__dt=setTimeout(()=>t.classList.remove("show"),3600)}
+function img(src){return esc(src||placeholder)}
+function days(v){if(!v)return 9999;return Math.max(0,(Date.now()-new Date(v).getTime())/86400000)}
+function fmt(n){return new Intl.NumberFormat().format(Math.max(0,Number(n)||0))}
+function urlShow(id){return "podcast.html?id="+encodeURIComponent(id)}
+function urlEpisode(id){return "episode.html?id="+encodeURIComponent(id)}
+function setHealth(type,text){$("health").className="health "+type;$("healthText").textContent=text}
+function jget(k,d){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}catch{return d}}
+function jset(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+function creatorName(id){const c=creators.find(x=>x.id===id);return c?.display_name||c?.name||"CrowRules Creator"}
+function podcastBy(id){return podcasts.find(p=>p.id===id)}
+function episodeBy(id){return episodes.find(e=>e.id===id)}
 
-/* DISCOVER V7 INTELLIGENCE */
-let spotlightHost=null, spotlightHostShows=[];
-function v7HostProfileUrl(h){const id=h?.id||h?.creator_id||"";if(h?.profile_url&&/^https?:\\/\\//i.test(h.profile_url))return h.profile_url;if(id&&!String(id).startsWith("author:"))return "creator-profile.html?id="+encodeURIComponent(id);return "creator-profile.html"}
-function v7HostShows(h){const id=String(h?.id||h?.creator_id||"");return podcasts.filter(p=>String(p.creator_id||"")===id || (id.startsWith("author:")&&("author:"+String(p.author_name||"").trim())===id))}
-function v7HostEpisodes(h){const ids=new Set(v7HostShows(h).map(p=>String(p.id)));return episodes.filter(e=>ids.has(String(e.podcast_id||""))||ids.has(String(e.show_id||"")))}
-function v7SafeDays(v){if(!v)return 9999;const n=Number(daysAgo(v));return Number.isFinite(n)?Math.max(0,n):9999}
-function v7BadgeList(h,shows,eps){
- const out=[];if(shows.length>=5)out.push("Network Builder");else if(shows.length>=2)out.push("Multi-Show Host");
- if(Number(h.plays||0)>=1000)out.push("Audience Leader");
- if(eps.length>=10)out.push("Prolific Creator");
- if(eps.some(e=>v7SafeDays(e.published_at||e.created_at)<=7))out.push("New Release");
- if(!out.length)out.push("CrowRules Creator");return out.slice(0,4);
+function showCard(p,rank="DISCOVER"){
+ const followed=following.has(p.id);
+ return '<a class="card show" href="'+urlShow(p.id)+'" data-open="'+esc(p.id)+'"><img class="art" src="'+img(p.artwork_url)+'" alt="" loading="lazy" onerror="this.onerror=null;this.src=\''+placeholder+'\'"><div class="body"><div class="rank">'+esc(rank)+'</div><div class="title">'+esc(p.title||"Untitled Podcast")+'</div><div class="sub">'+esc(creatorName(p.creator_id))+'</div><div class="meta"><span class="pill">'+esc(p.category||"Podcast")+'</span><span class="pill">'+(followed?"FOLLOWING":"SHOW")+'</span></div></div></a>'
 }
-function v7EpisodeCard(e){
- const art=e.thumbnail_url||e.podcast_artwork||e.artwork_url||"";
- const release=e.published_at||e.created_at;
- return '<a class="v7-episode" href="'+esc(episodeUrl(e.id))+'">'+(art?'<img src="'+esc(art)+'" alt="" loading="lazy">':'<div style="aspect-ratio:16/9;background:#1b1b1d"></div>')+'<div class="v7-episode-body"><div class="v7-episode-title">'+esc(e.title||"Untitled Episode")+'</div><div class="v7-episode-meta">'+fmt(e.play_count||0)+' plays</div><div class="v7-release">'+(v7SafeDays(release)<=7?"NEW RELEASE":v7SafeDays(release)<=30?"RECENT RELEASE":fmt(v7SafeDays(release))+" DAYS AGO")+'</div></div></a>';
+function episodeCard(e,rank="EPISODE"){
+ const pct=progress.find(x=>x.episode_id===e.id)?.progress_percent||progress.find(x=>x.episode_id===e.id)?.percent_complete||0;
+ return '<a class="card episode" href="'+urlEpisode(e.id)+'" data-open="'+esc(e.id)+'"><img class="art" src="'+img(e.thumbnail_url||e.podcast_artwork)+'" alt="" loading="lazy" onerror="this.onerror=null;this.src=\''+placeholder+'\'"><div class="body"><div class="rank">'+esc(rank)+'</div><div class="title">'+esc(e.title||"Untitled Episode")+'</div><div class="sub">'+esc(e.podcast_title||podcastBy(e.podcast_id)?.title||"CrowRules Podcasting")+'</div><div class="meta"><span class="pill">'+(pct>0&&pct<95?Math.round(pct)+"% IN PROGRESS":"EPISODE")+'</span><span class="pill">'+(e.duration_seconds?Math.round(e.duration_seconds/60)+" MIN":"NEW")+'</span></div></div></a>'
 }
-function renderHostSpotlight(){
- const hs=hosts();spotlightHost=hs[0]||null;
- const section=$("hostIntelSection");if(!section)return;
- if(!spotlightHost){section.hidden=true;return} section.hidden=false;
- spotlightHostShows=v7HostShows(spotlightHost);
- const eps=v7HostEpisodes(spotlightHost);
- const name=spotlightHost.display_name||spotlightHost.name||"CrowRules Host";
- $("spotlightName").textContent=name;$("spotlightRole").textContent=spotlightHost.discipline||spotlightHost.role||"Podcast Creator";
- $("spotlightAvatar").src=spotlightHost.avatar_url||"about:blank";$("spotlightAvatar").style.display=spotlightHost.avatar_url?"block":"none";
- $("spotlightProfile").href=v7HostProfileUrl(spotlightHost);
- $("spotlightHeadline").textContent=spotlightHost.headline||("Explore "+name+"'s shows, latest episodes and audience favorites across CrowRules Podcasting.");
- const badges=v7BadgeList(spotlightHost,spotlightHostShows,eps);$("spotlightBadges").innerHTML=badges.map(x=>'<span class="host-badge">'+esc(x)+'</span>').join("");
- const plays=spotlightHostShows.reduce((n,p)=>n+Number(p.total_plays||0),0);
- $("spotlightStats").innerHTML=[["Shows",spotlightHostShows.length],["Episodes",eps.length],["Plays",fmt(Math.max(Number(spotlightHost.plays||0),plays))],["Latest",eps.length?fmt(v7SafeDays(eps.slice().sort((a,b)=>new Date(b.published_at||b.created_at)-new Date(a.published_at||a.created_at))[0].published_at||eps[0].created_at))+"d":"—"]].map(x=>'<div class="host-stat"><span>'+esc(x[0])+'</span><strong>'+esc(String(x[1]))+'</strong></div>').join("");
- $("spotlightShows").innerHTML=spotlightHostShows.slice().sort((a,b)=>Number(b.total_plays||0)-Number(a.total_plays||0)).slice(0,4).map(p=>'<a class="host-show" href="'+esc(podcastUrl(p.id))+'">'+(p.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="" loading="lazy">':'<div></div>')+'<div><strong>'+esc(p.title||"Untitled Show")+'</strong><small>'+fmt(p.total_plays||0)+' plays · '+(p.category||"Podcast")+'</small></div><span class="arrow">→</span></a>').join("")||'<div class="reason">No published shows are attached to this host yet.</div>';
- const latest=eps.slice().sort((a,b)=>new Date(b.published_at||b.created_at)-new Date(a.published_at||a.created_at)).slice(0,8);
- const popular=eps.slice().sort((a,b)=>Number(b.play_count||0)-Number(a.play_count||0)).slice(0,8);
- $("spotlightLatest").innerHTML=latest.map(v7EpisodeCard).join("")||empty("No published episodes yet.");
- $("spotlightPopular").innerHTML=popular.map(v7EpisodeCard).join("")||empty("No episode activity yet.");
- $("spotlightFollow").textContent=spotlightHostShows.length&&spotlightHostShows.every(p=>following.has(p.id))?"Following Host":"Follow Host";
+function creatorCard(c){
+ const count=podcasts.filter(p=>p.creator_id===c.id).length;
+ return '<a class="card creator" href="'+esc(c.profile_url||("members-podcaster.html?creator="+encodeURIComponent(c.id)))+'"><img class="avatar" src="'+img(c.avatar_url||"assets/avatar-placeholder.svg")+'" alt="" loading="lazy" onerror="this.onerror=null;this.src=\''+placeholder+'\'"><div class="creator-name">'+esc(c.display_name||c.name||"Creator")+'</div><div class="creator-role">'+esc(c.role||c.discipline||"Podcaster")+'</div><div class="creator-stats">'+fmt(count)+" published "+(count===1?"show":"shows")+"</div></a>"
 }
-async function v7FollowHost(){
- if(!personalReady){toast("Sign in to follow this host.");return}
- if(!spotlightHostShows.length){toast("This host has no followable shows yet.");return}
- const uid=window.__CROW_USER.id, all=spotlightHostShows.every(p=>following.has(p.id));
- for(const p of spotlightHostShows){
-   let result;
-   if(all)result=await sb.from("podcast_follows").delete().eq("user_id",uid).eq("podcast_id",p.id);
-   else if(!following.has(p.id))result=await sb.from("podcast_follows").insert({user_id:uid,podcast_id:p.id});
-   if(result?.error){toast("Could not update host follows.");return}
-   if(all)following.delete(p.id);else following.add(p.id);
- }
- $("spotlightFollow").textContent=all?"Follow Host":"Following Host";renderAll();renderHostSpotlight();toast(all?"Host unfollowed.":"All available shows from this host are now followed.");
+function renderRail(id,html,empty="Nothing here yet."){$(id).innerHTML=html||'<div class="empty"><b>Nothing here yet</b>'+esc(empty)+'</div>'}
+function topByPopularity(arr,n=8){return [...arr].sort((a,b)=>(Number(b.listener_count||b.play_count||b.total_plays||0)-Number(a.listener_count||a.play_count||a.total_plays||0))).slice(0,n)}
+function smartScore(p){
+ let s=0;
+ if(following.has(p.id))s-=80;
+ const sig=signals||{};
+ const cats=Array.isArray(sig.top_categories)?sig.top_categories:[];
+ const creatorsTop=Array.isArray(sig.top_creators)?sig.top_creators:[];
+ if(cats.some(x=>String(x.name||x.category||"").toLowerCase()===String(p.category||"").toLowerCase()))s+=38;
+ if(creatorsTop.some(x=>String(x.id||x.creator_id)===String(p.creator_id)))s+=45;
+ s+=Math.min(25,Math.log10(1+Number(p.listener_count||0))*16);
+ s+=days(p.created_at)<7?18:days(p.created_at)<30?10:days(p.created_at)<90?4:0;
+ if(p.is_featured)s+=10;
+ return s
 }
-async function v7LikeHost(){
- if(!personalReady){toast("Sign in to personalize Discover.");return}
- const uid=window.__CROW_USER.id;
- for(const p of spotlightHostShows.slice(0,5)){try{await sb.from("podcast_creator_recommendation_feedback").insert({user_id:uid,recommendation_key:"discover-v7-host:"+p.id,podcast_id:p.id,action:"more_like_this",recommendation:{title:p.title,creator_id:p.creator_id,source:"discover-v7-host"}})}catch(e){console.warn(e)}boostShows.add(p.id)}
- toast("Discover will lean toward this host.");
- renderAll();renderHostSpotlight();
+function applyShows(arr=podcasts){
+ let out=arr.filter(p=>!activeCategory||String(p.category||"").toLowerCase()===activeCategory.toLowerCase());
+ if(fresh!=="all")out=out.filter(p=>days(p.created_at)<=Number(fresh));
+ if(sort==="newest")out.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+ else if(sort==="popular")out=topByPopularity(out,out.length);
+ else out.sort((a,b)=>smartScore(b)-smartScore(a));
+ return out
+}
+function applyEpisodes(arr=episodes){
+ let out=arr.filter(e=>{const p=podcastBy(e.podcast_id);return !activeCategory||String(p?.category||"").toLowerCase()===activeCategory.toLowerCase()});
+ if(fresh!=="all")out=out.filter(e=>days(e.published_at||e.created_at)<=Number(fresh));
+ if(sort==="newest")out.sort((a,b)=>new Date(b.published_at||b.created_at||0)-new Date(a.published_at||a.created_at||0));
+ else out.sort((a,b)=>Number(b.play_count||0)-Number(a.play_count||0));
+ return out
 }
 
-let bootPromise=null;
-async function waitForSupabaseClient(timeoutMs=15000){
- const started=Date.now();
- const pause=ms=>new Promise(r=>setTimeout(r,ms));
- while(Date.now()-started<timeoutMs){
+function render(){
+ const shows=applyShows(), eps=applyEpisodes();
+ $("showCount").textContent=fmt(podcasts.length);$("episodeCount").textContent=fmt(episodes.length);
+ renderRail("trending",topByPopularity(podcasts,10).map((p,i)=>showCard(p,"TRENDING #"+(i+1))).join(""),"Publish more shows to build audience momentum.");
+ renderRail("fresh",eps.slice().sort((a,b)=>new Date(b.published_at||b.created_at||0)-new Date(a.published_at||a.created_at||0)).slice(0,10).map(e=>episodeCard(e,"JUST ARRIVED")).join(""),"New episodes will appear here as the catalog grows.");
+ renderRail("hosts",creators.filter(c=>c.is_active!==false).slice(0,10).map(creatorCard).join(""),"Creators will appear as the network grows.");
+ const cats=[...new Set(podcasts.map(p=>p.category).filter(Boolean))].sort();
+ renderRail("categories",cats.map(c=>'<button class="card tool" style="min-width:180px;padding:22px;text-align:left" data-category="'+esc(c)+'"><div class="eyebrow">CATEGORY</div><div style="font:900 15px Orbitron;margin-top:7px">'+esc(c)+'</div><div class="sub" style="margin-top:6px">'+fmt(podcasts.filter(p=>p.category===c).length)+' shows</div></button>').join(""),"Categories appear when shows are published.");
+ $("categories").querySelectorAll("[data-category]").forEach(b=>b.onclick=()=>{activeCategory=b.dataset.category;$("categoryFilter").value=activeCategory;savePrefs();render();});
+ renderRecommended();renderContinue();renderFeature();renderFilters();renderMetrics();
+ if(query)renderResults();else $("searchSection").hidden=true;
+}
+function renderRecommended(){
+ if(!user||!recs.length){$("recommendedSection").hidden=true;return}
+ const cards=recs.map((r,i)=>r.episode_id?episodeCard(episodeBy(r.episode_id),r.reason||"RECOMMENDED"):showCard(podcastBy(r.podcast_id),r.reason||"RECOMMENDED")).filter(Boolean).join("");
+ $("recommendedSection").hidden=!cards;renderRail("recommended",cards,"Your recommendation profile is ready.");
+}
+function renderContinue(){
+ const inprog=progress.filter(x=>Number(x.progress_percent||x.percent_complete||0)>1&&Number(x.progress_percent||x.percent_complete||0)<95).sort((a,b)=>new Date(b.last_played_at||b.updated_at||0)-new Date(a.last_played_at||a.updated_at||0)).map(x=>episodeBy(x.episode_id)).filter(Boolean).slice(0,10);
+ $("continueSection").hidden=!inprog.length;renderRail("continueRail",inprog.map(e=>episodeCard(e,"CONTINUE")).join(""));
+}
+function renderFeature(){
+ const p=applyShows()[0]||podcasts[0];
+ if(p){$("featureTitle").textContent=p.title||"Discover something new";$("featureCopy").textContent=(p.description||"Explore a CrowRules podcast and see where it takes you.").slice(0,240);$("featureOpen").onclick=()=>location.href=urlShow(p.id)}
+ else {$("featureTitle").textContent="The CrowRules catalog is just getting started."; $("featureCopy").textContent="Published shows and episodes will become the foundation of Discover as the network grows."; $("featureOpen").onclick=()=>location.href="create-podcast.html"}
+}
+function renderFilters(){
+ const cats=[...new Set(podcasts.map(p=>p.category).filter(Boolean))].sort(),sel=$("categoryFilter"),old=sel.value;
+ sel.innerHTML='<option value="">All categories</option>'+cats.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join("");sel.value=cats.includes(old)?old:"";
+ $("contentFilter").value=content;$("sortFilter").value=sort;$("freshFilter").value=fresh;
+ const chips=[];if(content!=="all")chips.push(content);if(sort!=="smart")chips.push(sort);if(fresh!=="all")chips.push(fresh+" days");if(activeCategory)chips.push(activeCategory);
+ $("filterChips").innerHTML=chips.map(x=>'<span class="fchip">'+esc(x)+'</span>').join("");
+}
+function renderMetrics(){
+ if(!user||!signals){$("metrics").hidden=true;return}
+ $("metrics").hidden=false;$("mListen").textContent=fmt(Math.round(Number(signals.total_listen_seconds||0)/60));$("mFollow").textContent=fmt(signals.followed_show_count);$("mSave").textContent=fmt(signals.saved_episode_count);$("mComplete").textContent=fmt(signals.completed_episode_count);$("mCreators").textContent=fmt(signals.unique_creator_count);
+ const cats=signals.top_categories||[],cr=signals.top_creators||[];
+ $("topCategory").textContent=cats[0]?.name||cats[0]?.category||"Building";
+ $("topCreator").textContent=cr[0]?.name||cr[0]?.display_name||creatorName(cr[0]?.id||cr[0]?.creator_id)||"Building";
+ $("releaseRhythm").textContent=(signals.preferred_release_days||[]).slice(0,3).join(", ")||"Learning";
+ $("profileLabel").textContent=signals.total_listen_seconds?"Active listener":"Building";
+ $("personalTitle").textContent=signals.total_listen_seconds?"Your feed is learning your taste.":"Your Discover profile is starting now.";
+ $("personalCopy").textContent=signals.total_listen_seconds?"Recommendations will adapt as you listen, follow, save and complete episodes.":"Follow a show or listen to an episode to give Discover its first signal.";
+ $("personal").hidden=false;
+}
+
+async function waitClient(ms=15000){
+ if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
+ const start=Date.now();
+ while(Date.now()-start<ms){
   if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
-  try{
-   if(typeof window.CROW_BOOTSTRAP==="function")return await Promise.race([
-    window.CROW_BOOTSTRAP(),
-    new Promise((_,reject)=>setTimeout(()=>reject(Error("Supabase bootstrap timed out.")),Math.min(8000,timeoutMs)))
-   ]);
-  }catch(e){console.warn("Discover Supabase bootstrap:",e)}
-  try{
-   if(window.CROW_SUPABASE_READY)await Promise.race([
-    window.CROW_SUPABASE_READY,
-    new Promise((_,reject)=>setTimeout(()=>reject(Error("Supabase ready promise timed out.")),4000))
-   ]);
-  }catch(e){console.warn("Discover Supabase ready:",e)}
-  if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
-  await pause(150);
+  if(typeof window.CROW_BOOTSTRAP==="function"){try{const x=await Promise.race([window.CROW_BOOTSTRAP(),new Promise((_,r)=>setTimeout(()=>r(Error("bootstrap timeout")),5000))]);if(x)return x}catch(e){}}
+  await new Promise(r=>setTimeout(r,150));
  }
  throw Error("Supabase client could not initialize.");
 }
-async function syncDiscoverAuth(client){
- try{
-  const result=await Promise.race([
-   client.auth.getSession(),
-   new Promise((_,reject)=>setTimeout(()=>reject(Error("Authentication check timed out.")),7000))
-  ]);
-  const user=result?.data?.session?.user||null;
-  if(user)window.__CROW_USER=user;
-  window.__CROW_AUTH_READY=true;
-  window.dispatchEvent(new CustomEvent("crow:discover-auth",{detail:{user,supabase:client}}));
-  return user;
- }catch(e){console.warn("Discover auth sync:",e);return window.__CROW_USER||null}
+async function auth(){
+ try{const r=await Promise.race([sb.auth.getSession(),new Promise((_,r)=>setTimeout(()=>r(Error("auth timeout")),7000))]);user=r.data?.session?.user||null;window.__CROW_USER=user;window.__CROW_AUTH_READY=true}catch(e){user=null;window.__CROW_AUTH_READY=true}
+ $("profileState").textContent=user?"Signed in":"Guest";
 }
-async function verifyDiscoverConnection(client){
- const result=await Promise.race([
-  client.from("podcasts").select("id",{head:true,count:"exact"}),
-  new Promise((_,reject)=>setTimeout(()=>reject(Error("Catalog health check timed out.")),8000))
+async function loadCatalog(){
+ const [p,e,c]=await Promise.all([
+  sb.from("podcasts").select("*").eq("status","published").order("created_at",{ascending:false}),
+  sb.from("podcast_episodes").select("*").eq("status","published").order("published_at",{ascending:false}),
+  sb.from("creators").select("*").eq("is_active",true).order("sort_order",{ascending:true})
  ]);
- if(result.error)throw result.error;
- return Number(result.count||0);
+ if(p.error)throw p.error;if(e.error)throw e.error;if(c.error)throw c.error;
+ podcasts=p.data||[];episodes= e.data||[];creators=c.data||[];
 }
-async function boot(){
- if(bootPromise)return bootPromise;
- bootPromise=(async()=>{
-  try{
-   setHealth("warn","Connecting to CrowRules…");$("signalSync").textContent="Connecting…";
-   sb=await waitForSupabaseClient();
-   if(!sb)throw Error("CrowRules Supabase client is not ready.");
-   await syncDiscoverAuth(sb);
-   if(window.__CROW_AUTH_READY===false)throw Error("Supabase authentication did not become ready.");
-   const catalogCount=await verifyDiscoverConnection(sb);
-   $("signalSync").textContent="Connected";
-   await loadCatalog();await loadPersonal();chips();renderAll();renderResults();
-   lastCatalogSync=Date.now();setHealth("live",catalogCount?"Catalog connected":"Connected · catalog is empty");startRealtime();
-  }catch(err){
-   console.error("Discover boot:",err);setHealth("bad","Connection issue · catalog unavailable");$("signalSync").textContent="Connection issue";
-   ["topPodcasts","topEpisodes","trending","topHosts","newest","categoryRail","results"].forEach(id=>render(id,"",id==="results"?"Catalog search is unavailable right now.":"This section could not load."));
-   $("featuredTitle").textContent="Discovery is temporarily unavailable";$("featuredMeta").textContent=err.message||"Please refresh and try again.";
-  }finally{bootPromise=null}
- })();return bootPromise;
+async function loadPersonal(){
+ if(!user)return;
+ const uid=user.id;
+ const [f,s,pr,sg]=await Promise.all([
+  sb.from("podcast_follows").select("podcast_id").eq("user_id",uid),
+  sb.from("podcast_saved_episodes").select("episode_id").eq("user_id",uid),
+  sb.from("cr_podcast_playback_progress").select("*").eq("user_id",uid).order("last_played_at",{ascending:false}).limit(100),
+  sb.from("podcast_discover_user_signals").select("*").eq("user_id",uid).maybeSingle()
+ ]);
+ if(f.error)throw f.error;if(s.error)throw s.error;if(pr.error)throw pr.error;
+ following=new Set((f.data||[]).map(x=>x.podcast_id));saved=new Set((s.data||[]).map(x=>x.episode_id));progress=pr.data||[];signals=sg.data||null;
+ try{await sb.rpc("podcast_discover_refresh_user_signals",{p_user_id:uid})}catch(e){console.warn("signal refresh",e)}
+ const sr=await sb.from("podcast_discover_user_signals").select("*").eq("user_id",uid).maybeSingle();if(!sr.error)signals=sr.data||signals;
+ await refreshRecommendations();
 }
-async function stopRealtime(){
- if(realtimeRetryTimer){clearTimeout(realtimeRetryTimer);realtimeRetryTimer=null}
- if(realtimeChannel&&sb){const ch=realtimeChannel;realtimeChannel=null;try{await sb.removeChannel(ch)}catch(e){console.warn("Realtime cleanup:",e)}}
+async function refreshRecommendations(){
+ if(!user)return;
+ $("engineState").textContent="Refreshing…";
+ try{
+  const r=await sb.rpc("podcast_discover_generate_recommendations",{p_user_id:user.id,p_limit:30});if(r.error)throw r.error;
+  const q=await sb.from("podcast_discover_recommendations").select("*").eq("user_id",user.id).order("rank",{ascending:true}).limit(30);if(q.error)throw q.error;
+  recs=q.data||[];$("engineState").textContent="Server intelligence";$("recommendedSection").hidden=!recs.length;
+ }catch(e){console.warn("recommendation engine",e);recs=[];$("engineState").textContent="Client fallback"}
+}
+async function savePrefs(){
+ if(!user)return;
+ try{await sb.from("podcast_discover_preferences").upsert({user_id:user.id,content_filter:content,sort_filter:sort,fresh_days:fresh==="all"?0:Number(fresh),active_category:activeCategory||null,focus_mode:document.body.classList.contains("focus"),updated_at:new Date().toISOString()},{onConflict:"user_id"})}catch(e){console.warn("prefs",e)}
+}
+async function track(type,extra={}){
+ if(!user)return;
+ try{await sb.from("podcast_discover_events").insert({user_id:user.id,event_type:type,podcast_id:extra.podcast_id||null,episode_id:extra.episode_id||null,creator_id:extra.creator_id||null,query:extra.query||null,category:extra.category||null,metadata:extra.metadata||{}})}catch(e){}
+}
+function renderSaved(){
+ const el=$("saved"),rows=jget(LS.saved,[]);
+ el.innerHTML=rows.length?rows.slice(0,8).map((x,i)=>'<span class="saved"><button data-load="'+i+'">'+esc(x.label||x.query)+'</button><button class="x" data-del="'+i+'">×</button></span>').join(""):'<span class="sub">No saved searches.</span>';
+ el.querySelectorAll("[data-load]").forEach(b=>b.onclick=()=>{const x=rows[+b.dataset.load];$("search").value=x.query;query=x.query;renderResults()});
+ el.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{rows.splice(+b.dataset.del,1);jset(LS.saved,rows);renderSaved()});
+}
+function renderRecent(){
+ const rows=jget(LS.recent,[]),sec=$("recentSection");sec.hidden=!rows.length;
+ $("recent").innerHTML=rows.map(x=>'<a class="card show" href="'+esc(x.url)+'"><img class="art" src="'+img(x.art)+'" alt=""><div class="body"><div class="rank">RECENT</div><div class="title">'+esc(x.title)+'</div><div class="sub">'+esc(x.sub||"CrowRules Podcasting")+'</div></div></a>').join("");
+}
+function remember(a){
+ if(!a?.href)return;const rows=jget(LS.recent,[]).filter(x=>x.url!==a.href);const title=a.querySelector(".title,.creator-name")?.textContent||a.textContent.trim();const im=a.querySelector("img")?.src||"";rows.unshift({url:a.href,title,sub:"CrowRules Podcasting",art:im,at:Date.now()});jset(LS.recent,rows.slice(0,8));renderRecent()
+}
+function search(){
+ query=$("search").value.trim();renderResults();track("search",{query});
+ if(query)location.hash="results";
+}
+function renderResults(){
+ const sec=$("searchSection");if(!query){sec.hidden=true;return}sec.hidden=false;
+ const q=query.toLowerCase(),sm=podcasts.filter(p=>(p.title+" "+(p.description||"")+" "+(p.category||"")+" "+creatorName(p.creator_id)).toLowerCase().includes(q)),se=episodes.filter(e=>(e.title+" "+(e.description||"")+" "+(e.podcast_title||podcastBy(e.podcast_id)?.title||"")).toLowerCase().includes(q)),sc=creators.filter(c=>(c.name+" "+(c.display_name||"")+" "+(c.role||"")+" "+(c.discipline||"")).toLowerCase().includes(q));
+ let html="";if(tab==="all"||tab==="shows")html+=sm.map(p=>showCard(p,"SHOW MATCH")).join("");if(tab==="all"||tab==="episodes")html+=se.map(e=>episodeCard(e,"EPISODE MATCH")).join("");if(tab==="all"||tab==="creators")html+=sc.map(creatorCard).join("");
+ $("resultSummary").textContent=fmt(sm.length)+" shows · "+fmt(se.length)+" episodes · "+fmt(sc.length)+" creators";$("results").innerHTML=html||'<div class="empty" style="grid-column:1/-1"><b>No matches found</b>Try a different title, category, episode or creator.</div>';
+}
+function surprise(){
+ const pool=[];applyShows().filter(p=>!following.has(p.id)).forEach(p=>pool.push({url:urlShow(p.id),title:p.title,art:p.artwork_url}));applyEpisodes().forEach(e=>pool.push({url:urlEpisode(e.id),title:e.title,art:e.thumbnail_url||e.podcast_artwork}));
+ if(!pool.length){toast("There is nothing to surprise you with yet.");return}const x=pool[Math.floor(Math.random()*pool.length)];remember({href:x.url,querySelector:()=>null,textContent:x.title});toast("Surprise pick: "+x.title);location.href=x.url;track("surprise",{metadata:{title:x.title}})
+}
+async function saveSearch(){
+ const q=$("search").value.trim();if(!q){toast("Search for something first.");$("search").focus();return}
+ const rows=jget(LS.saved,[]).filter(x=>x.query!==q);rows.unshift({query:q,label:q,at:Date.now()});jset(LS.saved,rows.slice(0,8));renderSaved();
+ if(user)try{await sb.from("podcast_discover_saved_searches").upsert({user_id:user.id,query:q,label:q,category:activeCategory||null,content_filter:content},{onConflict:"user_id,query"});await track("save_search",{query:q})}catch(e){}
+ toast("Search saved.");
+}
+function share(){
+ const u=new URL(location.href);query?u.searchParams.set("q",query):u.searchParams.delete("q");activeCategory?u.searchParams.set("category",activeCategory):u.searchParams.delete("category");
+ if(navigator.share)navigator.share({title:"CrowRules Podcasting — Discover",url:u.href}).catch(()=>navigator.clipboard?.writeText(u.href).then(()=>toast("Discover link copied.")));
+ else navigator.clipboard?.writeText(u.href).then(()=>toast("Discover link copied."));
+ track("share",{query,category:activeCategory})
+}
+function focus(){
+ document.body.classList.toggle("focus");const on=document.body.classList.contains("focus");$("focusMode").textContent=on?"Exit Focus Mode":"Focus Mode";$("focusMode").setAttribute("aria-pressed",String(on));try{localStorage.setItem(LS.focus,on?"1":"0")}catch{}savePrefs();track(on?"focus_on":"focus_off")
 }
 function startRealtime(){
- if(!sb||realtimeChannel||realtimeStarting)return;
- realtimeStarting=true;setHealth("warn","Connecting live sync…");
- try{
-  const ch=sb.channel("discover-v8-live");
-  ch.on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},refreshLive)
-    .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},refreshLive)
-    .subscribe((status,err)=>{
-      realtimeStarting=false;
-      if(status==="SUBSCRIBED"){realtimeChannel=ch;setHealth("live","Live sync");return}
-      if(status==="TIMED_OUT"||status==="CHANNEL_ERROR"){
-       console.warn("Discover realtime:",status,err);
-       setHealth("warn","Live sync retrying…");
-       if(realtimeChannel===ch)realtimeChannel=null;
-       try{sb.removeChannel(ch)}catch{}
-       if(realtimeRetryTimer)clearTimeout(realtimeRetryTimer);
-       realtimeRetryTimer=setTimeout(()=>{realtimeRetryTimer=null;startRealtime()},2500);
-      }else if(status==="CLOSED"){if(realtimeChannel===ch)realtimeChannel=null;setHealth("warn","Realtime offline · catalog still works")}
-    });
- }catch(e){realtimeStarting=false;console.warn("Discover realtime setup:",e);setHealth("warn","Realtime unavailable · catalog still works")}
+ if(!user||realtime)return;
+ const ch=sb.channel("discover-intelligence-live").on("postgres_changes",{event:"*",schema:"public",table:"podcast_discover_recommendations",filter:"user_id=eq."+user.id},async()=>{const q=await sb.from("podcast_discover_recommendations").select("*").eq("user_id",user.id).order("rank").limit(30);if(!q.error){recs=q.data||[];renderRecommended()}})
+ .on("postgres_changes",{event:"*",schema:"public",table:"podcast_discover_user_signals",filter:"user_id=eq."+user.id},async()=>{const q=await sb.from("podcast_discover_user_signals").select("*").eq("user_id",user.id).maybeSingle();if(!q.error){signals=q.data;renderMetrics()}})
+ .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},()=>{clearTimeout(window.__catRefresh);window.__catRefresh=setTimeout(async()=>{try{await loadCatalog();render()}catch(e){}},800)})
+ .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},()=>{clearTimeout(window.__epRefresh);window.__epRefresh=setTimeout(async()=>{try{await loadCatalog();render()}catch(e){}},800)})
+ .subscribe(status=>{if(status==="SUBSCRIBED"){realtime=ch;setHealth("ok","Live sync")}else if(status==="TIMED_OUT"||status==="CHANNEL_ERROR"){setHealth("warn","Live sync retrying");try{sb.removeChannel(ch)}catch{}realtime=null;clearTimeout(retry);retry=setTimeout(startRealtime,3000)}else if(status==="CLOSED"){realtime=null;setHealth("warn","Live sync offline")}})
 }
-let refreshTimer;async function refreshLive(){clearTimeout(refreshTimer);refreshTimer=setTimeout(async()=>{try{await loadCatalog();renderAll();if(query)renderResults();lastCatalogSync=Date.now();setHealth(realtimeChannel?"live":"warn",realtimeChannel?"Live sync":"Catalog refreshed")}catch(e){console.warn("Live refresh:",e);setHealth("warn","Catalog refresh failed · using cached results")}},900)}
-$("search").addEventListener("input",()=>{suggestions();query=$("search").value.trim();renderResults()});$("search").addEventListener("keydown",e=>{if(e.key==="Enter")search();if(e.key==="Escape")$("suggestions").classList.remove("open")});$("searchBtn").onclick=search;
-document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))$("suggestions").classList.remove("open");const a=e.target.closest("[data-feedback]");if(a){e.preventDefault();e.stopPropagation();const id=a.dataset.podcastId,k=a.dataset.feedback;if(k==="why"){const p=podcasts.find(x=>x.id===id),af=affinity();$("whyText").textContent=p?"CrowRules is recommending "+p.title+" using your follows, listening history, completion behavior, creator/category affinity, freshness and audience activity.":"This recommendation uses current CrowRules catalog signals.";$("whySignals").innerHTML=[["Category",p?.category&&af.cats.has(p.category)?"Matches your listening":"Fresh exploration"],["Creator",p?.creator_id&&af.creats.has(p.creator_id)?"Matches a creator you listen to":"New creator"],["Freshness",p&&daysAgo(p.created_at)<14?"Recently added":"Established catalog signal"],["Your feedback",feedback.get(id)?.action||"None yet"]].map(x=>'<div class="signal-row"><span>'+esc(x[0])+'</span><strong>'+esc(x[1])+'</strong></div>').join("");$("whyModal").hidden=false;return}if(k==="follow"){toggleFollow(id);return}recordFeedback(id,k==="more"?"more_like_this":k);return}const close=e.target.closest("[data-close-modal]");if(close)$("whyModal").hidden=true;const b=e.target.closest("[data-resume]");if(b){e.preventDefault();e.stopPropagation();location.href=episodeUrl(b.dataset.resume)}});
-document.querySelectorAll("[data-result-tab]").forEach(b=>b.onclick=()=>{resultTab=b.dataset.resultTab;renderResults()});
-$("spotlightFollow").onclick=()=>v7FollowHost();$("spotlightLike").onclick=()=>v7LikeHost();
-$("refreshDiscover").onclick=async()=>{setHealth("warn","Refreshing catalog…");await stopRealtime();await boot();};
-$("contentFilter").onchange=e=>{contentFilter=e.target.value;renderAll();renderResults();savePreferences();track("filter_change",{metadata:{content_filter:contentFilter}})};
-$("sortFilter").onchange=e=>{sortFilter=e.target.value;renderAll();renderResults();savePreferences();track("filter_change",{metadata:{sort_filter:sortFilter}})};
-$("freshFilter").onchange=e=>{freshFilter=e.target.value;renderAll();renderResults();savePreferences();track("filter_change",{metadata:{fresh_days:freshFilter}})};
-$("resetDiscovery").onclick=()=>{contentFilter="all";sortFilter="smart";freshFilter="all";$("contentFilter").value="all";$("sortFilter").value="smart";$("freshFilter").value="all";renderAll();renderResults()};
-document.querySelectorAll("[data-period]").forEach(b=>b.onclick=()=>{period=b.dataset.period;document.querySelectorAll("[data-period]").forEach(x=>x.classList.toggle("active",x.dataset.period===period));renderAll()});
-window.addEventListener("keydown",e=>{if(e.key==="Escape")$("whyModal").hidden=true});window.addEventListener("online",()=>boot());window.addEventListener("crow:ready",()=>boot(),{once:true});boot();
+async function boot(){
+ try{
+  setHealth("warn","Connecting");sb=await waitClient();await auth();await loadCatalog();await loadPersonal();
+  render();renderSaved();renderRecent();setHealth("ok",user?"Personalized + live":"Catalog connected");
+  startRealtime();
+ }catch(e){console.error("Discover boot",e);setHealth("bad","Connection issue");$("featureTitle").textContent="Discover is temporarily unavailable";$("featureCopy").textContent=e.message||"Refresh the page to reconnect.";renderRail("trending","", "Catalog could not be loaded.");renderRail("fresh","", "Catalog could not be loaded.")}
+}
 
-/* DISCOVER ULTIMATE ADD-ONS — V9 */
-(function(){
-  const LS_SAVED="cr_discover_saved_searches_v1";
-  const LS_RECENT="cr_discover_recent_v1";
-  const LS_FOCUS="cr_discover_focus_v1";
-  function jget(k,f){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(f))}catch{return f}}
-  function jset(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){console.warn("Discover local storage:",e)}}
-  function setToolkitStatus(msg){const el=document.getElementById("toolkitStatus");if(el)el.textContent=msg}
-  async function track(event_type, extra={}){if(!personalReady||!sb||!window.__CROW_USER?.id)return;try{await sb.from("podcast_discover_events").insert({user_id:window.__CROW_USER.id,event_type,podcast_id:extra.podcast_id||null,episode_id:extra.episode_id||null,creator_id:extra.creator_id||null,query:extra.query||null,category:extra.category||null,metadata:extra.metadata||{}})}catch(e){console.warn("Discover analytics:",e)}}
-  async function syncDiscoverState(){if(!personalReady||!sb||!window.__CROW_USER?.id)return;const uid=window.__CROW_USER.id;try{const [pref,savedRows]=await Promise.all([sb.from("podcast_discover_preferences").select("*").eq("user_id",uid).maybeSingle(),sb.from("podcast_discover_saved_searches").select("id,query,label,category,content_filter,created_at,updated_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(20)]);if(pref.data){const p=pref.data;contentFilter=p.content_filter||"all";sortFilter=p.sort_filter||"smart";freshFilter=p.fresh_days?"all":p.fresh_days===0?"all":String(p.fresh_days);activeCategory=p.active_category||"";$("contentFilter").value=contentFilter;$("sortFilter").value=sortFilter;$("freshFilter").value=freshFilter}if(!savedRows.error&&savedRows.data?.length){jset(LS_SAVED,savedRows.data.map(x=>({id:x.id,query:x.query,label:x.label,category:x.category,at:new Date(x.created_at).getTime()})));renderSavedSearches()}}catch(e){console.warn("Discover state sync:",e)}}
-  let prefTimer;async function savePreferences(){if(!personalReady||!sb||!window.__CROW_USER?.id)return;clearTimeout(prefTimer);prefTimer=setTimeout(async()=>{try{await sb.from("podcast_discover_preferences").upsert({user_id:window.__CROW_USER.id,content_filter:contentFilter,sort_filter:sortFilter,fresh_days:freshFilter==="all"?0:Number(freshFilter)||0,focus_mode:document.body.classList.contains("discover-focus"),active_category:activeCategory||null,updated_at:new Date().toISOString()},{onConflict:"user_id"})}catch(e){console.warn("Discover preferences:",e)}},250)}
-  function renderSavedSearches(){
-    const el=document.getElementById("savedSearches"); if(!el)return;
-    const rows=jget(LS_SAVED,[]);
-    if(!rows.length){el.innerHTML='<span class="reason">No saved searches yet.</span>';return}
-    el.innerHTML=rows.slice(0,8).map((x,i)=>'<span class="saved-search"><button type="button" data-load-save="'+i+'">'+esc(x.label||x.query||"Saved search")+'</button><button class="delete-save" type="button" data-delete-save="'+i+'" aria-label="Delete saved search">×</button></span>').join("");
-    el.querySelectorAll("[data-load-save]").forEach(b=>b.onclick=()=>{const x=rows[Number(b.dataset.loadSave)];if(!x)return;document.getElementById("search").value=x.query||"";query=x.query||"";renderResults();document.getElementById("results").scrollIntoView({behavior:"smooth",block:"start"});setToolkitStatus("Loaded saved search: "+(x.label||x.query))});
-    el.querySelectorAll("[data-delete-save]").forEach(b=>b.onclick=async()=>{const x=rows[Number(b.dataset.deleteSave)];if(x?.id&&personalReady&&sb&&window.__CROW_USER?.id){try{await sb.from("podcast_discover_saved_searches").delete().eq("id",x.id).eq("user_id",window.__CROW_USER.id);await track("remove_search",{query:x.query})}catch(e){console.warn("Delete saved search sync:",e)}}rows.splice(Number(b.dataset.deleteSave),1);jset(LS_SAVED,rows);renderSavedSearches();setToolkitStatus("Saved search removed.")});
-  }
-  function renderRecent(){
-    const section=document.getElementById("recentDiscoveriesSection"),el=document.getElementById("recentDiscoveries");if(!section||!el)return;
-    const rows=jget(LS_RECENT,[]);section.hidden=!rows.length;
-    el.innerHTML=rows.slice(0,8).map(x=>'<a class="card show-card" href="'+esc(x.url)+'"><img class="art" src="'+esc(x.art||"assets/podcast-placeholder.svg")+'" alt="" loading="lazy" onerror="this.onerror=null;this.src=\'assets/podcast-placeholder.svg\'"><div class="body"><div class="rank">RECENT</div><div class="title">'+esc(x.title||"Discovery")+'</div><div class="sub">'+esc(x.sub||"CrowRules Podcasting")+'</div></div></a>').join("");
-  }
-  function rememberDiscovery(url,title,sub,art){
-    if(!url)return;
-    const rows=jget(LS_RECENT,[]).filter(x=>x.url!==url);
-    rows.unshift({url,title,sub,art,at:Date.now()});jset(LS_RECENT,rows.slice(0,8));renderRecent();
-  }
-  function surprise(){
-    const pool=[];
-    podcasts.filter(p=>!hiddenShows.has(p.id)).forEach(p=>pool.push({url:podcastUrl(p.id),title:p.title,sub:p.category||"Podcast",art:p.artwork_url,type:"show"}));
-    episodes.forEach(e=>pool.push({url:episodeUrl(e.id),title:e.title,sub:e.podcast_title||"Episode",art:e.thumbnail_url||e.podcast_artwork,type:"episode"}));
-    if(!pool.length){setToolkitStatus("There is nothing to surprise you with yet.");return}
-    const pick=pool[Math.floor(Math.random()*pool.length)];
-    rememberDiscovery(pick.url,pick.title,pick.sub,pick.art);
-    setToolkitStatus("Surprise pick: "+pick.title);
-    location.href=pick.url;
-  }
-  async function saveSearch(){
-    const q=(document.getElementById("search")?.value||"").trim();
-    if(!q){setToolkitStatus("Enter a search first, then save it.");document.getElementById("search")?.focus();return}
-    const rows=jget(LS_SAVED,[]).filter(x=>x.query!==q);
-    if(personalReady&&sb&&window.__CROW_USER?.id){try{const r=await sb.from("podcast_discover_saved_searches").insert({user_id:window.__CROW_USER.id,query:q,label:q,category:activeCategory||null,content_filter:contentFilter});if(r.error)throw r.error;await sb.from("podcast_discover_events").insert({user_id:window.__CROW_USER.id,event_type:"save_search",query:q,category:activeCategory||null,metadata:{source:"discover-v9"}})}catch(e){console.warn("Saved search sync:",e)}}rows.unshift({query:q,label:q,category:activeCategory||"",at:Date.now()});jset(LS_SAVED,rows.slice(0,8));renderSavedSearches();setToolkitStatus("Saved search: "+q);
-  }
-  function shareDiscover(){
-    const u=new URL(location.href);
-    const q=(document.getElementById("search")?.value||"").trim();
-    if(q)u.searchParams.set("q",q);else u.searchParams.delete("q");
-    if(activeCategory)u.searchParams.set("category",activeCategory);else u.searchParams.delete("category");
-    const share=()=>{try{navigator.clipboard.writeText(u.href);setToolkitStatus("Discover link copied to your clipboard.")}catch{setToolkitStatus(u.href)}};
-    if(navigator.share){navigator.share({title:"CrowRules Podcasting — Discover",url:u.href}).then(()=>setToolkitStatus("Discover link shared.")).catch(()=>share())}else share();
-  }
-  function toggleFocus(){
-    document.body.classList.toggle("discover-focus");
-    const on=document.body.classList.contains("discover-focus");
-    try{localStorage.setItem(LS_FOCUS,on?"1":"0")}catch{}
-    const b=document.getElementById("focusMode");if(b){b.textContent=on?"Exit Focus Mode":"Focus Mode";b.setAttribute("aria-pressed",String(on))}
-    setToolkitStatus(on?"Focus Mode enabled.":"Focus Mode disabled.");savePreferences();track(on?"focus_on":"focus_off");
-  }
-  function resetEverything(){
-    try{localStorage.removeItem(LS_SAVED);localStorage.removeItem(LS_RECENT);localStorage.removeItem(LS_FOCUS)}catch{}
-    hiddenShows.clear();boostShows.clear();feedback.clear();renderSavedSearches();renderRecent();renderAll();renderResults();
-    document.getElementById("search").value="";query="";document.body.classList.remove("discover-focus");
-    setToolkitStatus("Discovery memory and local preferences were reset.");
-  }
-  document.getElementById("surpriseMe")?.addEventListener("click",surprise);
-  document.getElementById("saveSearch")?.addEventListener("click",saveSearch);
-  document.getElementById("shareDiscover")?.addEventListener("click",()=>{shareDiscover();track("share",{query:(document.getElementById("search")?.value||"").trim(),category:activeCategory||null})});
-  document.getElementById("focusMode")?.addEventListener("click",toggleFocus);
-  document.getElementById("resetAllDiscovery")?.addEventListener("click",resetEverything);
-  document.getElementById("clearHidden")?.addEventListener("click",()=>{hiddenShows.clear();renderAll();renderResults();setToolkitStatus("Hidden shows restored.")});
-  document.getElementById("clearRecent")?.addEventListener("click",()=>{try{localStorage.removeItem(LS_RECENT)}catch{}renderRecent();setToolkitStatus("Recently Discovered cleared.")});
-  document.getElementById("shortcutHelp")?.addEventListener("click",()=>document.getElementById("shortcutModal").hidden=false);
-  document.querySelectorAll("[data-close-shortcuts]").forEach(x=>x.addEventListener("click",()=>document.getElementById("shortcutModal").hidden=true));
-  document.addEventListener("click",e=>{
-    const a=e.target.closest('a[href^="podcast"],a[href$=".html"]');if(!a||!a.href)return;
-    const title=a.querySelector(".title,.v7-episode-title,.creator-name")?.textContent||a.textContent.trim();
-    const img=a.querySelector("img");rememberDiscovery(a.href,title,"CrowRules Podcasting",img?.src||"");
-  });
-  window.addEventListener("keydown",e=>{
-    if(e.ctrlKey||e.metaKey||e.altKey)return;
-    const tag=(e.target?.tagName||"").toLowerCase();
-    if(tag==="input"||tag==="textarea"||tag==="select"||e.target?.isContentEditable)return;
-    if(e.key==="/"){e.preventDefault();document.getElementById("search")?.focus()}
-    if(e.key.toLowerCase()==="s"){e.preventDefault();surprise()}
-    if(e.key.toLowerCase()==="r"){e.preventDefault();document.getElementById("refreshDiscover")?.click()}
-    if(e.key.toLowerCase()==="f"){e.preventDefault();toggleFocus()}
-    if(e.key==="?"){e.preventDefault();document.getElementById("shortcutModal").hidden=false}
-    if(e.key==="Escape"){document.getElementById("shortcutModal").hidden=true}
-  });
-  try{
-    if(new URLSearchParams(location.search).get("q")){const q=new URLSearchParams(location.search).get("q");document.getElementById("search").value=q;query=q}
-    const cat=new URLSearchParams(location.search).get("category");if(cat){activeCategory=cat}
-    if(localStorage.getItem(LS_FOCUS)==="1"){document.body.classList.add("discover-focus");const b=document.getElementById("focusMode");if(b){b.textContent="Exit Focus Mode";b.setAttribute("aria-pressed","true")}}
-  }catch{}
-  renderSavedSearches();renderRecent();
-})();
-
+$("searchBtn").onclick=search;$("search").addEventListener("input",()=>{query=$("search").value.trim();renderResults()});$("search").addEventListener("keydown",e=>{if(e.key==="Enter")search();if(e.key==="Escape")$("suggestions").classList.remove("open")});
+$("contentFilter").onchange=e=>{content=e.target.value;render();savePrefs();track("filter_change",{metadata:{content}})};
+$("sortFilter").onchange=e=>{sort=e.target.value;render();savePrefs();track("filter_change",{metadata:{sort}})};
+$("freshFilter").onchange=e=>{fresh=e.target.value;render();savePrefs();track("filter_change",{metadata:{fresh}})};
+$("categoryFilter").onchange=e=>{activeCategory=e.target.value;render();savePrefs();track("category_select",{category:activeCategory})};
+$("resetFilters").onclick=()=>{content="all";sort="smart";fresh="all";activeCategory="";render();savePrefs()};
+$("refreshAI").onclick=async()=>{if(!user){toast("Sign in to build personal recommendations.");return}await refreshRecommendations();render();toast("Recommendations refreshed.")};
+$("whyAI").onclick=()=>{$("whyModal").classList.add("open");$("whyModal").setAttribute("aria-hidden","false")};
+$("surprise").onclick=surprise;$("saveSearch").onclick=saveSearch;$("share").onclick=share;$("focusMode").onclick=focus;
+$("shortcuts").onclick=()=>{$("shortcutModal").classList.add("open");$("shortcutModal").setAttribute("aria-hidden","false")};
+$("clearMemory").onclick=()=>{localStorage.removeItem(LS.saved);localStorage.removeItem(LS.recent);renderSaved();renderRecent();toast("Local Discover memory cleared.")};
+$("resetAll").onclick=()=>{content="all";sort="smart";fresh="all";activeCategory="";query="";$("search").value="";document.body.classList.remove("focus");localStorage.removeItem(LS.focus);render();renderSaved();renderRecent();toast("Discover reset.")};
+$("clearRecent").onclick=()=>{localStorage.removeItem(LS.recent);renderRecent()};
+document.querySelectorAll("[data-close],[data-close-shortcuts]").forEach(b=>b.onclick=()=>{b.closest(".modal").classList.remove("open")});
+document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));renderResults()});
+document.addEventListener("click",e=>{const a=e.target.closest("a[data-open]");if(a)remember(a);if(!e.target.closest(".search"))$("suggestions").classList.remove("open")});
+window.addEventListener("keydown",e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;const tag=(e.target?.tagName||"").toLowerCase();if(["input","textarea","select"].includes(tag))return;if(e.key==="/"){e.preventDefault();$("search").focus()}else if(e.key.toLowerCase()==="s"){e.preventDefault();surprise()}else if(e.key.toLowerCase()==="f"){e.preventDefault();focus()}else if(e.key.toLowerCase()==="r"){e.preventDefault();location.reload()}else if(e.key==="?"){$("shortcutModal").classList.add("open")}else if(e.key==="Escape")document.querySelectorAll(".modal.open").forEach(m=>m.classList.remove("open"))});
+try{const u=new URL(location.href);const q=u.searchParams.get("q");const c=u.searchParams.get("category");if(q){query=q;$("search").value=q}if(c)activeCategory=c;if(localStorage.getItem(LS.focus)==="1")focus()}catch{}
+boot();
 })();
 </script>
 </body>
