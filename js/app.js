@@ -1,8 +1,1 @@
-(()=>{
-'use strict';
-const p=(location.pathname.split('/').pop()||'index.html').toLowerCase();
-if(p==='index.html'||p==='launch.html')return;
-const SRC='https://crowrulesentertainment-oss.github.io/podcasting/js/podcasting-v11.js?v=20261004-11';
-function load(){if(document.querySelector('script[data-crow-v11-core]'))return;const s=document.createElement('script');s.src=SRC;s.defer=true;s.dataset.crowV11Core='true';document.head.appendChild(s)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
-})();
+(()=>{\n'use strict';const p=(location.pathname.split('/').pop()||'index.html').toLowerCase();if(p==='index.html'||p==='launch.html')return;const SRC='https://crowrulesentertainment-oss.github.io/podcasting/js/podcasting-v12.js?v=20261004-12';function load(){if(document.querySelector('script[data-crow-v12-core]'))return;const s=document.createElement('script');s.src=SRC;s.defer=true;s.dataset.crowV12Core='true';document.head.appendChild(s)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();})();\n
