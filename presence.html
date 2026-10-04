@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Who's Here — CrowRules Podcasting</title>
+<meta name="description" content="See CrowRules Podcasting members who are online right now.">
+<script src="js/app.js?v=20261004-19" defer data-crow-rebuild="true"></script>
+</head>
+<body>
+<main class="cr-presence-page">
+  <section class="cr-presence-hero">
+    <div>
+      <div class="cr-presence-kicker">CROWRULES PODCASTING / REALTIME PRESENCE</div>
+      <h1 class="cr-presence-title">WHO'S HERE</h1>
+      <p class="cr-presence-copy">This is the live network view. Only authenticated members connected to the private CrowRules Podcasting Presence channel appear here. Recent sign-ins are not counted as online.</p>
+    </div>
+    <div class="cr-presence-count"><span id="presenceCount">0</span><small>MEMBERS ONLINE NOW</small></div>
+  </section>
+  <section id="presenceGrid" class="cr-presence-grid" aria-live="polite">
+    <div class="cr-presence-empty">CONNECTING TO LIVE PRESENCE…</div>
+  </section>
+</main>
+<script>
+(function(){
+  function render(detail){
+    const members=detail?.members||window.CROW_ONLINE_MEMBERS||[];
+    const count=Number(detail?.count||members.length||0);
+    const c=document.getElementById("presenceCount"),g=document.getElementById("presenceGrid");
+    if(c)c.textContent=String(count);
+    if(!g)return;
+    if(!members.length){g.innerHTML='<div class="cr-presence-empty">NO MEMBERS ARE ONLINE RIGHT NOW.</div>';return;}
+    g.innerHTML=members.map(m=>{
+      const name=m.display_name||m.username||"CrowRules Member";
+      const role=m.role||"Member";
+      const avatar=m.avatar_url?'<img class="cr-presence-avatar" src="'+String(m.avatar_url).replace(/"/g,"&quot;")+'" alt="">':'<div class="cr-presence-avatar"></div>';
+      return '<article class="cr-presence-card">'+avatar+'<span class="cr-presence-dot" aria-label="Online"></span><div><b>'+String(name).replace(/[&<>]/g,"")+'</b><span>'+String(role).replace(/[&<>]/g,"")+' · ONLINE NOW</span></div></article>';
+    }).join("");
+  }
+  window.addEventListener("crow:presence",e=>render(e.detail));
+  window.addEventListener("crow:auth",()=>setTimeout(()=>render({count:window.CROW_PRESENCE_COUNT,members:window.CROW_ONLINE_MEMBERS}),500));
+  setTimeout(()=>render({count:window.CROW_PRESENCE_COUNT,members:window.CROW_ONLINE_MEMBERS}),2500);
+})();
+</script>
+</body>
+</html>
