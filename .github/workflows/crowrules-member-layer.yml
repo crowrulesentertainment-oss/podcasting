@@ -5,25 +5,34 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: crowrules-universal-member-layer
+  cancel-in-progress: false
 jobs:
   member-layer:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Inject member layer
+      - name: Normalize Universal Member Layer
+        shell: python
         run: |
-          python3 - <<'PY'
           from pathlib import Path
-          script='<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script>'
+          import re
+          script='<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=2" defer></script>'
+          changed=0
           for p in Path('.').rglob('*.html'):
               if '.git' in p.parts: continue
               s=p.read_text(encoding='utf-8')
-              if 'crowrules-universal-member.js?v=1' not in s and '</head>' in s:
-                  p.write_text(s.replace('</head>', script+'\n</head>', 1), encoding='utf-8')
-          PY
+              s2=re.sub(r'<script[^>]+src=["\']https://crowrulesentertainment-oss\.github\.io/crowrulesentertainment/js/crowrules-universal-member\.js[^"\']*["\'][^>]*>\s*</script>','',s,flags=re.I)
+              if '</head>' in s2:
+                  s2=s2.replace('</head>',script+'\n</head>',1)
+              if s2!=s:
+                  p.write_text(s2,encoding='utf-8');changed+=1
+          print("Normalized member layer on",changed,"pages")
       - name: Commit changes
         run: |
-          git config user.name "CrowRules Bot"
+          git config user.name "CrowRules Universal Member Layer"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .
-          git diff --cached --quiet || (git commit -m "V1 inject Universal Member Layer across HTML pages" && git push)
+          git add -- '*.html'
+          git diff --cached --quiet || (git commit -m "Normalize CrowRules universal member layer" && git push)
