@@ -2,11 +2,11 @@
    Shared identity UI: profile, membership, CrowPoints, notifications, messages, activity.
    Requires Supabase JS v2 and the shared session key used by CrowRules Universal Shell.
 */
-(()=>{const S=(window.CROW_CONFIG?.supabaseUrl)||'https://cevylpnoexugwgygvtgu.supabase.co',K='crowrules-universal-session-v1',KEY=window.CROW_CONFIG?.supabaseKey||window.CROW_SUPABASE_KEY||window.SUPABASE_ANON_KEY;
+(()=>{const S=(window.CROW_CONFIG?.supabaseUrl)||'https://cevylpnoexugwgygvtgu.supabase.co',KEY=window.CROW_CONFIG?.supabaseKey||window.CROW_SUPABASE_KEY||window.SUPABASE_ANON_KEY;
 if(!KEY)return;
 const load=()=>window.supabase?Promise.resolve():new Promise(r=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=r;document.head.appendChild(s)});
 window.CrowRulesMember=window.CrowRulesMember||{};
-window.CrowRulesMember.ready=(async()=>{let db=window.CROW_SUPABASE;if(!db&&window.CROW_BOOTSTRAP)try{db=await window.CROW_BOOTSTRAP()}catch(e){console.warn('CrowRules Member bootstrap:',e?.message||e)}if(!db){await load();if(window.supabase?.createClient&&KEY)db=window.supabase.createClient(S,KEY,{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true,flowType:'pkce',storageKey:K,storage:window.localStorage}})}if(!db)throw new Error('Supabase client unavailable.');
+window.CrowRulesMember.ready=(async()=>{let db=window.CROW_SUPABASE;if(!db&&window.CROW_BOOTSTRAP)try{db=await window.CROW_BOOTSTRAP()}catch(e){console.warn('CrowRules Member bootstrap:',e?.message||e)}if(!db){await load();if(window.supabase?.createClient&&KEY)db=window.supabase.createClient(S,KEY,{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true,flowType:'pkce'}})}if(!db)throw new Error('Supabase client unavailable.');
 window.CrowRulesMember.client=db;let session=(await db.auth.getSession()).data.session;
 const render=async()=>{const host=document.querySelector('[data-crowrules-member]')||document.body;let box=document.getElementById('crowrules-member-panel');if(!box){box=document.createElement('div');box.id='crowrules-member-panel';box.setAttribute('aria-live','polite');host.prepend(box)}
 if(!session){box.innerHTML='<div class="cr-member-guest"><span>One Account. One Universe.</span><a href="/crowspace/login.html">Log In</a><a href="/crowspace/signup.html">Create Account</a></div>';return}
