@@ -6,7 +6,7 @@ window.CROW_CONFIG=Object.assign({
  siteUrl:"https://crowrulesentertainment-oss.github.io/podcasting/",
  membershipCheckoutFunction:"membership-checkout",
  adminFunction:"crowrules-admin-api",
- rssFunction:"podcast-rss",
+ rssFunction:"podcast-rss-feed-64",
  connectFunction:"creator-connect-onboarding",
  scheduleFunction:"podcast-schedule",
  pipelineFunction:"podcast-pipeline",
