@@ -31,7 +31,7 @@ async function bootClients(){
       window.__CROW_USER=s?.user||null;window.__CROW_AUTH_READY=true;
       window.dispatchEvent(new CustomEvent("crow:auth",{detail:{event,session:s,user:window.__CROW_USER,supabase:window.CROW_SUPABASE}}));
       window.dispatchEvent(new CustomEvent("crow:ready",{detail:{supabase:window.CROW_SUPABASE,user:window.__CROW_USER,session:s}}));
-      setTimeout(()=>context(),0);
+      setTimeout(()=>{context();startPresence()},0);
     });
     window.dispatchEvent(new CustomEvent("crow:ready",{detail:{supabase:window.CROW_SUPABASE,user,session:sessionResult.data?.session||null}}));
     window.dispatchEvent(new CustomEvent("crow:connection",{detail:{ok:true,label:"SUPABASE ONLINE"}}));
@@ -96,32 +96,51 @@ async function context(){
 function realtime(){
   const sb=window.CROW_SUPABASE;if(!sb)return;
   try{
-    const channel=sb.channel("crowrules-podcasting-nav-v122")
+    const data=sb.channel("crowrules-podcasting-nav-v122")
       .on("postgres_changes",{event:"*",schema:"public",table:"podcast_notifications"},()=>context())
       .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episode_progress"},()=>context())
       .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},()=>document.querySelector('[data-badge="activity"]')?.classList.add("pulse"))
+      .subscribe();
+    window.CROW_NAV_REALTIME=data;
+    startPresence();
+  }catch(e){console.warn("Podcasting navigation realtime:",e)}
+}
+function startPresence(){
+  const sb=window.CROW_SUPABASE,u=window.__CROW_USER;if(!sb)return;
+  if(window.CROW_PRESENCE_CHANNEL){try{sb.removeChannel(window.CROW_PRESENCE_CHANNEL)}catch(_){}window.CROW_PRESENCE_CHANNEL=null}
+  if(!u){setPresence(0);return}
+  try{
+    const channel=sb.channel("crowrules-podcasting-presence",{config:{private:true,presence:{key:u.id}}})
       .on("presence",{event:"sync"},()=>syncPresence(channel))
       .on("presence",{event:"join"},()=>syncPresence(channel))
       .on("presence",{event:"leave"},()=>syncPresence(channel))
       .subscribe(async(status,err)=>{
         if(status==="SUBSCRIBED"){
-          const u=window.__CROW_USER;if(!u){setPresence(0);return;}
           await channel.track({user_id:u.id,online_at:new Date().toISOString(),page:page()});
           syncPresence(channel);
         }else if(err){console.warn("Podcasting presence:",err)}
       });
-    window.CROW_NAV_REALTIME=channel;
     window.CROW_PRESENCE_CHANNEL=channel;
-  }catch(e){console.warn("Podcasting navigation realtime:",e)}
+  }catch(e){console.warn("Podcasting presence:",e)}
 }
-function setPresence(count){
+function setPresence(count,members){
   const n=Math.max(0,Number(count)||0);window.CROW_PRESENCE_COUNT=n;
+  if(members)window.CROW_ONLINE_MEMBERS=members;
   document.querySelectorAll('[data-badge="activity"]').forEach(e=>{e.textContent=String(n);e.classList.toggle("has-value",true);e.classList.toggle("presence-live",n>0)});
   const nav=document.getElementById("crRebuildNav");if(nav){nav.dataset.onlineMembers=String(n);nav.title=n===1?"1 member online":n+" members online";}
-  window.dispatchEvent(new CustomEvent("crow:presence",{detail:{count:n}}));
+  window.dispatchEvent(new CustomEvent("crow:presence",{detail:{count:n,members:window.CROW_ONLINE_MEMBERS||[]}}));
 }
-function syncPresence(channel){
-  try{const state=channel.presenceState()||{};setPresence(Object.keys(state).length)}catch(e){console.warn("Presence sync:",e)}
+async function syncPresence(channel){
+  try{
+    const state=channel.presenceState()||{},ids=Object.keys(state);
+    const metas=ids.map(id=>state[id]?.[0]||{}).map((m,i)=>({user_id:m.user_id||ids[i],online_at:m.online_at||null,page:m.page||""}));
+    if(!ids.length){setPresence(0,[]);return}
+    const sb=window.CROW_SUPABASE;
+    const q=await sb.from("members").select("user_id,display_name,username,avatar_url,role").in("user_id",ids);
+    const byId=new Map((q.data||[]).map(x=>[x.user_id,x]));
+    const members=metas.map(m=>({...m,...(byId.get(m.user_id)||{})}));
+    setPresence(ids.length,members);
+  }catch(e){console.warn("Presence sync:",e)}
 }
 function searchOverlay(){
   if(document.getElementById("crRebuildSearch"))return;
