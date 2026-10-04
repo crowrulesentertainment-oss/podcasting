@@ -21,6 +21,7 @@ const adminBase=[["⚙","Admin Center","admin.html"],["✓","Moderation","admin.
 
 const ADMIN_TABLES=["podcast_member_reports","cr_creator_publish_jobs_63","cr_platform_health_checks"];
 const ROLE_TABLE="members";
+const CREATOR_LINK_TABLE="creators";
 const CREATOR_TABLES=["cr_creator_alerts","podcasts","podcast_episodes","cr_creator_revenue_transactions"];
 
 function getClient(){
@@ -142,7 +143,7 @@ async function render(ctx){
  const ri=roleItems(ctx,cap);
  const explore=common.slice(3).map(x=>[x,0,"explore"]);
  const account=[["◎","Library","library.html"],["♙","Profile","member-profile.html"],["⚙","Account","account.html"],["◆","Membership","membership.html"]].map(x=>[x,0,"account"]);
- const activity=role==="creator"&&cap.creatorActivity?'<span class="crpv6-live-dot" title="Live creator activity"></span>':"";
+ const activity=(role==="creator"||role==="admin_creator")&&cap.creatorActivity?'<span class="crpv6-live-dot" title="Live creator activity"></span>':"";
 
  host.innerHTML='<div class="crpv6-shell"><div class="crpv6-bar"><a class="crpv6-brand" href="home.html"><span class="crpv6-mark">CR</span><span>CROWRULES <b>PODCASTING</b></span></a><nav class="crpv6-desktop" aria-label="CrowRules Podcasting navigation"><a class="crpv6-toplink" href="home.html">Home</a><a class="crpv6-toplink" href="podcasts.html">Podcasts</a><a class="crpv6-toplink" href="discover.html">Discover</a><div class="crpv6-dropdown"><button class="crpv6-command" type="button" aria-expanded="false"><span>☰</span>'+label+activity+' <i>⌄</i></button><div class="crpv6-menu" role="menu">'+group("Explore",explore)+ri+'<div class="crpv6-divider"></div>'+group("Account",account)+'</div></div></nav><button class="crpv6-mobile-toggle" type="button" aria-expanded="false" aria-label="Open Podcasting command center">☰</button></div><div class="crpv6-mobile"><div class="crpv6-mobile-title">CROWRULES PODCASTING · '+label+"</div>"+group("Explore",common.map(x=>[x,0,"explore"]))+ri+group("Account",account)+"</div></div>";
 
@@ -169,7 +170,7 @@ function stopRealtime(){
 async function startRealtime(ctx){
  stopRealtime();
  if(!ctx.client)return;
- const tables=ctx.role==="admin"||ctx.role==="admin_creator"?[...ADMIN_TABLES,ROLE_TABLE]:ctx.role==="creator"||ctx.role==="admin_creator"?[...CREATOR_TABLES,ROLE_TABLE]:[ROLE_TABLE];
+ const tables=ctx.role==="admin_creator"?[...ADMIN_TABLES,...CREATOR_TABLES,ROLE_TABLE,CREATOR_LINK_TABLE]:ctx.role==="admin"?[...ADMIN_TABLES,ROLE_TABLE]:ctx.role==="creator"?[...CREATOR_TABLES,ROLE_TABLE,CREATOR_LINK_TABLE]:[ROLE_TABLE];
  if(!tables.length)return;
 
  let timer=null,running=false;
@@ -186,10 +187,11 @@ async function startRealtime(ctx){
   },180);
  };
 
- const ch=ctx.client.channel("crowrules-podcasting-nav-v5-"+Date.now());
+ const ch=ctx.client.channel("crowrules-podcasting-nav-v6-"+Date.now());
  tables.forEach(table=>{
    const cfg={event:"*",schema:"public",table};
    if(table===ROLE_TABLE&&ctx.user?.id)cfg.filter=`user_id=eq.${ctx.user.id}`;
+   if(table===CREATOR_LINK_TABLE&&ctx.memberId)cfg.filter=`member_id=eq.${ctx.memberId}`;
    ch.on("postgres_changes",cfg,refresh);
  });
  ch.subscribe(status=>{
