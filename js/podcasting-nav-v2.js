@@ -41,30 +41,24 @@ async function getContext(){
   const {data}=await client.auth.getSession();
   const user=data?.session?.user||null;
   if(!user)return {role:"listener",user:null,client};
-  let creator=false,creatorId=null;
+  let creator=false,creatorId=null,memberId=null,memberRole=null;
   try{
-   const q=await client.from("creators").select("id").eq("user_id",user.id).limit(1);
-   if(!q.error&&q.data?.length){creator=true;creatorId=q.data[0].id}
-  }catch(_){}
-  if(!creator){
-   try{
-    const q=await client.from("creators").select("id").eq("id",user.id).limit(1);
+   const r=await client.from("members").select("id,role").eq("user_id",user.id).maybeSingle();
+   if(!r.error&&r.data){
+    memberId=r.data.id;
+    memberRole=r.data.role||null;
+    const q=await client.from("creators").select("id").eq("member_id",memberId).limit(1);
     if(!q.error&&q.data?.length){creator=true;creatorId=q.data[0].id}
-   }catch(_){}
-  }
-  let memberRole=null;
-  try{
-   const r=await client.from("members").select("role").eq("user_id",user.id).maybeSingle();
-   if(!r.error)memberRole=r.data?.role||null;
+   }
   }catch(_){}
   const roleName=String(memberRole||"").trim().toLowerCase();
   const admin=["admin","administrator","superadmin"].includes(roleName);
   const creatorRole=["creator","podcaster","host","producer"].includes(roleName);
   const hasCreatorAccess=creator||creatorRole;
-  if(admin&&hasCreatorAccess)return {role:"admin_creator",user,client,creatorId,memberRole};
-  if(admin)return {role:"admin",user,client,creatorId,memberRole};
-  if(hasCreatorAccess)return {role:"creator",user,client,creatorId,memberRole};
-  return {role:"listener",user,client,creatorId,memberRole};
+  if(admin&&hasCreatorAccess)return {role:"admin_creator",user,client,creatorId,memberId,memberRole};
+  if(admin)return {role:"admin",user,client,creatorId,memberId,memberRole};
+  if(hasCreatorAccess)return {role:"creator",user,client,creatorId,memberId,memberRole};
+  return {role:"listener",user,client,creatorId,memberId,memberRole};
  }catch(_){return {role:"listener",user:null,client}}
 }
 
