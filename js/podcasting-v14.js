@@ -38,7 +38,7 @@ async function followControls(podcastId,mount){
  s.onclick=async()=>{const r=subscribed?await window.CROW_INTELLIGENCE.unsubscribePodcast(podcastId):await window.CROW_INTELLIGENCE.subscribePodcast(podcastId);if(!r.error){subscribed=!subscribed;paint();toast(subscribed?"Podcast subscribed":"Podcast unsubscribed")}else toast(r.error)}
 }
 async function notificationBadge(){
- const n=qs("#cr13Notify");if(!n)return;const u=user();if(!u)return;const sb=window.CROW_SUPABASE;try{const r=await sb.from("podcast_notifications").select("id",{count:"exact",head:true}).eq("user_id",u.id).eq("read",false);const count=r.count||0;let b=n.querySelector(".crv14-badge");if(count&&!b){b=document.createElement("span");b.className="crv14-badge";n.appendChild(b)}if(b)b.textContent=count>99?"99+":count}catch(_){}}
+ const n=qs("#cr13Notify");if(!n)return;const u=user();if(!u)return;const sb=window.CROW_SUPABASE;try{const r=await sb.from("podcast_notifications").select("id",{count:"exact",head:true}).eq("user_id",u.id).eq("is_read",false);const count=r.count||0;let b=n.querySelector(".crv14-badge");if(count&&!b){b=document.createElement("span");b.className="crv14-badge";n.appendChild(b)}if(b)b.textContent=count>99?"99+":count}catch(_){}}
 async function home(){
  await renderContinue("#continueList",8);
  qsa(".play").forEach(b=>{if(b.dataset.v14Bound)return;b.dataset.v14Bound="1";b.addEventListener("click",async()=>{const id=b.dataset.episodeId||b.closest("[data-episode-id]")?.dataset.episodeId;if(id)play(await episode(id))})});
