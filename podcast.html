@@ -304,24 +304,34 @@ async function probeAuth(){
  return r.data?.user?"Authenticated user verified.":"Auth service reachable; no signed-in session.";
 }
 async function probeEdge(){
- const c=await client(),fn=cfg.edgeHealthFunction||"crowrules-edge-health";
+ const fn=cfg.edgeHealthFunction||"crowrules-edge-health",key=cfg.supabaseKey;
  if(!fn)throw new Error("Edge health function name is missing.");
+ if(!key)throw new Error("Supabase publishable key is missing.");
+ const base=(cfg.supabaseUrl||"").replace(/\\/$/,""),url=base+"/functions/v1/"+encodeURIComponent(fn);
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),7000);
  try{
    const started=performance.now();
-   const r=await withTimeout(c.functions.invoke(fn,{method:"GET",headers:{Accept:"application/json"}}),6000,"Edge Functions health check");
+   const r=await fetch(url,{method:"GET",headers:{
+     "apikey":key,
+     "Authorization":"Bearer "+key,
+     "Accept":"application/json"
+   },signal:controller.signal,cache:"no-store"});
    const elapsed=Math.round(performance.now()-started);
-   if(!r.error&&r.data?.ok===true)return fn+" healthy in "+elapsed+" ms.";
-   const e=r.error||new Error("Health endpoint returned an unexpected response.");
-   const status=e?.context?.status;
-   if(status===401||status===403)return "Gateway reachable; health endpoint authorization returned HTTP "+status+".";
-   if(status===404)throw new Error(fn+" was not found (HTTP 404).");
-   if(status>=500)throw new Error(fn+" returned HTTP "+status+".");
-   throw new Error(String(e?.message||"Edge Functions health check failed."));
+   const body=await r.text().catch(()=> "");
+   let data=null;try{data=body?JSON.parse(body):null}catch{}
+   const code=r.headers.get("sb-error-code")||"";
+   if(r.ok&&data?.ok===true)return fn+" healthy in "+elapsed+" ms.";
+   if(r.status===404)throw new Error(fn+" was not found (HTTP 404)"+(code?" ["+code+"]":"")+".");
+   if(r.status===503)throw new Error(fn+" failed to start (HTTP 503)"+(code?" ["+code+"]":"")+".");
+   if(r.status>=500)throw new Error(fn+" returned HTTP "+r.status+(code?" ["+code+"]":"")+".");
+   if(r.status===401||r.status===403)return "Gateway reachable; health endpoint returned HTTP "+r.status+".";
+   throw new Error(fn+" returned HTTP "+r.status+(body?" — "+body.slice(0,180):"."));
  }catch(e){
    const msg=String(e?.message||e);
-   if(/Failed to send a request|Failed to fetch|NetworkError|Load failed/i.test(msg))throw new Error("Edge Function gateway could not be reached.");
+   if(e?.name==="AbortError")throw new Error("Edge Function gateway timed out after 7 seconds.");
+   if(/Failed to fetch|NetworkError|Load failed|Failed to send a request/i.test(msg))throw new Error("Edge Function gateway could not be reached. Check browser network/CORS or Supabase gateway routing.");
    throw e;
- }
+ }finally{clearTimeout(timer);}
 }
 async function probeRealtime(){
  const c=await client();
