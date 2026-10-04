@@ -54,6 +54,21 @@
 .v8-dot.live{background:#52d273;box-shadow:0 0 0 3px #52d27322}.v8-dot.warn{background:#f5a623;box-shadow:0 0 0 3px #f5a62322}.v8-dot.bad{background:#f32929;box-shadow:0 0 0 3px #f3292922}
 .v8-actions{display:flex;gap:6px}.v8-actions button{border:1px solid #333;background:#151517;color:#eee;border-radius:3px;padding:7px 10px;font:800 8px Montserrat;cursor:pointer}.v8-actions button:hover{border-color:#777}
 .host-intel{margin-top:48px}
+
+.toolkit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.toolkit-card{border:1px solid #29292c;background:#0d0d0e;border-radius:5px;padding:17px}
+.toolkit-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tool-btn{border:1px solid #303034;background:#141416;color:#ddd;border-radius:4px;padding:9px 11px;font:800 8px Montserrat;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+.tool-btn:hover{border-color:#777;background:#19191b}.primary-tool{border-color:#6b2d2d;color:#ff9a9a}
+.save-search-row{margin-top:12px}.saved-searches{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.saved-search{display:flex;align-items:center;gap:4px;border:1px solid #303034;background:#111113;border-radius:4px;overflow:hidden}
+.saved-search button{border:0;background:none;color:#ccc;padding:7px 8px;font:800 8px Montserrat;cursor:pointer}.saved-search .delete-save{color:#777;border-left:1px solid #29292c}
+.shortcut-list{display:grid;gap:7px;margin-top:18px}.shortcut-list div{display:flex;align-items:center;gap:12px;padding:9px;border:1px solid #29292c;background:#111113}
+.shortcut-list span{font-size:10px;color:#aaa}.shortcut-list kbd{min-width:28px;text-align:center;padding:6px;border:1px solid #45454a;border-radius:3px;background:#18181a;color:#fff;font:900 10px Orbitron}
+body.discover-focus .hero-side,body.discover-focus .host-intel,body.discover-focus #dailyMixSection,body.discover-focus #topHostsSection,body.discover-focus #categorySection,body.discover-focus #newestSection{display:none!important}
+body.discover-focus .discover{max-width:1080px}
+@media(max-width:700px){.toolkit-grid{grid-template-columns:1fr}}
+
 </style></head><body><div data-nav></div><main class="wrap discover">
 <section class="hero"><div class="hero-grid">
 <div class="hero-main"><div class="eyebrow"><span class="live-badge"><span class="dot"></span> CROWRULES PODCASTING · DISCOVER</span></div><h1>Find what you’ll <span class="gradient">listen to next.</span></h1><p class="lead">A redesigned discovery front door for CrowRules — built around shows, episodes, creators, your listening history and fresh programming.</p>
@@ -71,6 +86,69 @@
 </div></section>
 <section id="personalDashboard" class="dashboard" hidden><div class="metric"><div class="metric-label">Listening</div><div id="metricMinutes" class="metric-value">0</div><div class="metric-note">minutes tracked</div></div><div class="metric"><div class="metric-label">Following</div><div id="metricFollowing" class="metric-value">0</div><div class="metric-note">shows followed</div></div><div class="metric"><div class="metric-label">Saved</div><div id="metricSaved" class="metric-value">0</div><div class="metric-note">episodes saved</div></div><div class="metric"><div class="metric-label">Catalog</div><div id="metricCatalog" class="metric-value">0</div><div class="metric-note">published shows</div></div></section>
 <section class="feature"><a id="featured" class="feature-card" href="podcasts.html"><div class="eyebrow">FEATURED NOW</div><h2 id="featuredTitle">Building your discovery mix…</h2><p id="featuredMeta">Connecting to CrowRules Podcasting.</p><span class="btn primary" style="width:max-content">Explore Show</span></a><div class="card signal"><div class="eyebrow">DISCOVERY SIGNALS</div><h3 id="signalHeadline">Learning your taste</h3><p class="sub" style="white-space:normal;line-height:1.7">Your recommendations change as your listening changes.</p><div class="signal-list"><div class="signal-row"><span>Catalog</span><strong id="signalShows2">—</strong></div><div class="signal-row"><span>Episodes</span><strong id="signalEpisodes2">—</strong></div><div class="signal-row"><span>Profile</span><strong>Adaptive</strong></div><div class="signal-row"><span>Mode</span><strong>Live</strong></div></div></div></section>
+
+<section id="ultimateToolkit" class="section personal" aria-labelledby="toolkitTitle">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">DISCOVERY TOOLKIT · ULTIMATE</div>
+      <h2 id="toolkitTitle">Take control of Discover.</h2>
+      <p>Fast actions, saved searches, hidden shows and smart discovery controls — all stored locally unless a signed-in feature explicitly syncs to CrowRules.</p>
+    </div>
+    <div class="section-actions">
+      <button id="surpriseMe" class="btn primary" type="button">Surprise Me</button>
+      <button id="focusMode" class="mini-btn" type="button" aria-pressed="false">Focus Mode</button>
+    </div>
+  </div>
+  <div class="toolkit-grid">
+    <div class="toolkit-card">
+      <div class="eyebrow">QUICK ACTIONS</div>
+      <div class="toolkit-actions">
+        <button class="tool-btn" id="shareDiscover" type="button">Share Discover</button>
+        <button class="tool-btn" id="shortcutHelp" type="button">Keyboard Shortcuts</button>
+        <button class="tool-btn" id="clearHidden" type="button">Clear Hidden</button>
+        <button class="tool-btn" id="resetAllDiscovery" type="button">Reset Everything</button>
+      </div>
+      <div id="toolkitStatus" class="reason" aria-live="polite">Smart discovery is ready.</div>
+    </div>
+    <div class="toolkit-card">
+      <div class="eyebrow">SAVED SEARCHES</div>
+      <div class="save-search-row">
+        <button id="saveSearch" class="tool-btn primary-tool" type="button">Save Current Search</button>
+      </div>
+      <div id="savedSearches" class="saved-searches"></div>
+    </div>
+  </div>
+</section>
+
+<section id="recentDiscoveriesSection" class="section personal" hidden aria-labelledby="recentDiscoveriesTitle">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">LOCAL MEMORY</div>
+      <h2 id="recentDiscoveriesTitle">Recently Discovered</h2>
+      <p>Your last few discovery choices on this browser.</p>
+    </div>
+    <div class="section-actions"><button id="clearRecent" class="mini-btn" type="button">Clear</button></div>
+  </div>
+  <div id="recentDiscoveries" class="rail"></div>
+</section>
+
+<div id="shortcutModal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="shortcutModalTitle">
+  <div class="modal-backdrop" data-close-shortcuts></div>
+  <div class="modal-card">
+    <button class="modal-close" type="button" data-close-shortcuts aria-label="Close keyboard shortcuts">×</button>
+    <div class="eyebrow">DISCOVER CONTROL</div>
+    <h2 id="shortcutModalTitle">Keyboard shortcuts</h2>
+    <div class="shortcut-list">
+      <div><kbd>/</kbd><span>Focus search</span></div>
+      <div><kbd>S</kbd><span>Surprise Me</span></div>
+      <div><kbd>R</kbd><span>Refresh catalog</span></div>
+      <div><kbd>F</kbd><span>Toggle Focus Mode</span></div>
+      <div><kbd>?</kbd><span>Open this panel</span></div>
+      <div><kbd>Esc</kbd><span>Close panels / suggestions</span></div>
+    </div>
+  </div>
+</div>
+
 <section id="dailyMixSection" class="section personal mix-card" hidden><div class="section-head"><div><div class="eyebrow">BUILT FOR TODAY</div><h2>Your Daily Mix</h2><p id="dailyMixNote">A balanced queue of familiar favorites and new discoveries.</p></div></div><div id="dailyMixRail" class="rail episode-rail"></div></section>
 <section id="continueSection" class="section personal" hidden><div class="section-head"><div><div class="eyebrow">KEEP GOING</div><h2>Continue Listening</h2><p>Resume unfinished episodes with your saved position.</p></div></div><div id="continueRail" class="rail episode-rail"></div></section>
 <section id="followSection" class="section personal" hidden><div class="section-head"><div><div class="eyebrow">YOUR FOLLOWING</div><h2>New Episodes From Your Favorites</h2><p>The newest releases from shows you chose to follow.</p></div></div><div id="followRail" class="rail episode-rail"></div></section>
@@ -200,7 +278,7 @@ function dailyMix(){const cont=continueEpisodes(),fav=followedEpisodes(),fresh=n
 function categoryRail(){return categories.map(c=>{const ps=podcasts.filter(p=>p.category===c.name);return {...c,count:ps.length,plays:ps.reduce((n,p)=>n+Number(p.total_plays||0),0)}}).filter(c=>c.count).sort((a,b)=>b.plays-a.plays).slice(0,12).map((c,i)=>'<a class="card show-card" href="#" data-category-jump="'+esc(c.name)+'">'+cover(c.image_url||podcasts.find(p=>p.category===c.name)?.artwork_url)+'<div class="body"><div class="rank">#'+(i+1)+' CATEGORY</div><div class="title">'+esc(c.name)+'</div><div class="sub">'+fmt(c.count)+' show'+(c.count===1?"":"s")+' · '+fmt(c.plays)+' plays</div></div></a>').join("")}
 function feedbackReason(p){const f=feedback.get(p.id),a=affinity(),r=[];if(f?.action==="more_like_this")r.push("You asked CrowRules for more like this.");if(following.has(p.id))r.push("You follow this show.");if(a.cats.has(p.category))r.push("You listen to "+p.category+".");if(p.creator_id&&a.creats.has(p.creator_id))r.push("You have listened to this creator.");return r.length?r.slice(0,2).join(" "):"Fresh catalog discovery with popularity and freshness signals."}
 async function recordFeedback(id,action){if(!personalReady){toast("Sign in to personalize Discover.");return}const uid=window.__CROW_USER.id,p=podcasts.find(x=>x.id===id);if(!p)return;try{const {error}=await sb.from("podcast_creator_recommendation_feedback").insert({user_id:uid,recommendation_key:"discover-v5:"+id,podcast_id:id,action,recommendation:{title:p.title,category:p.category,creator_id:p.creator_id,source:"discover-v5"}});if(error)throw error;feedback.set(id,{podcast_id:id,action});if(action==="hide"||action==="not_interested")hiddenShows.add(id);if(action==="more_like_this")boostShows.add(id);toast(action==="not_interested"?"We'll show you less like this.":action==="hide"?"Show hidden from recommendations.":"Your recommendations are learning from that.");renderAll()}catch(e){console.error(e);toast("Could not save recommendation feedback.")}}
-async async function toggleFollow(id){if(!personalReady){toast("Sign in to follow shows.");return}const uid=window.__CROW_USER.id;if(following.has(id)){const r=await sb.from("podcast_follows").delete().eq("user_id",uid).eq("podcast_id",id);if(r.error){toast("Could not update follow.");return}following.delete(id);toast("Show unfollowed.")}else{const r=await sb.from("podcast_follows").insert({user_id:uid,podcast_id:id});if(r.error){toast("Could not follow this show.");return}following.add(id);toast("Show followed.")}renderAll()}
+async function toggleFollow(id){if(!personalReady){toast("Sign in to follow shows.");return}const uid=window.__CROW_USER.id;if(following.has(id)){const r=await sb.from("podcast_follows").delete().eq("user_id",uid).eq("podcast_id",id);if(r.error){toast("Could not update follow.");return}following.delete(id);toast("Show unfollowed.")}else{const r=await sb.from("podcast_follows").insert({user_id:uid,podcast_id:id});if(r.error){toast("Could not follow this show.");return}following.add(id);toast("Show followed.")}renderAll()}
 function renderPersonal(){
  const cont=continueEpisodes(),fav=followedEpisodes(),sav=savedEpisodes(),bf=becauseFollow(),fin=becauseFinished(),mc=moreFromCreator(),sim=similarShows(),mix=dailyMix();
  const sections=[["continueSection",cont],["followSection",fav],["savedSection",sav],["becauseFollowSection",bf],["finishedSection",fin],["creatorSection",mc],["similarSection",sim],["dailyMixSection",mix]];
@@ -308,7 +386,7 @@ function renderHostSpotlight(){
  $("spotlightPopular").innerHTML=popular.map(v7EpisodeCard).join("")||empty("No episode activity yet.");
  $("spotlightFollow").textContent=spotlightHostShows.length&&spotlightHostShows.every(p=>following.has(p.id))?"Following Host":"Follow Host";
 }
-async async function v7FollowHost(){
+async function v7FollowHost(){
  if(!personalReady){toast("Sign in to follow this host.");return}
  if(!spotlightHostShows.length){toast("This host has no followable shows yet.");return}
  const uid=window.__CROW_USER.id, all=spotlightHostShows.every(p=>following.has(p.id));
@@ -321,7 +399,7 @@ async async function v7FollowHost(){
  }
  $("spotlightFollow").textContent=all?"Follow Host":"Following Host";renderAll();renderHostSpotlight();toast(all?"Host unfollowed.":"All available shows from this host are now followed.");
 }
-async async function v7LikeHost(){
+async function v7LikeHost(){
  if(!personalReady){toast("Sign in to personalize Discover.");return}
  const uid=window.__CROW_USER.id;
  for(const p of spotlightHostShows.slice(0,5)){try{await sb.from("podcast_creator_recommendation_feedback").insert({user_id:uid,recommendation_key:"discover-v7-host:"+p.id,podcast_id:p.id,action:"more_like_this",recommendation:{title:p.title,creator_id:p.creator_id,source:"discover-v7-host"}})}catch(e){console.warn(e)}boostShows.add(p.id)}
@@ -330,7 +408,7 @@ async async function v7LikeHost(){
 }
 
 let bootPromise=null;
-async async function boot(){
+async function boot(){
  if(bootPromise)return bootPromise;
  bootPromise=(async()=>{
   try{
@@ -383,6 +461,103 @@ $("freshFilter").onchange=e=>{freshFilter=e.target.value;renderAll();renderResul
 $("resetDiscovery").onclick=()=>{contentFilter="all";sortFilter="smart";freshFilter="all";$("contentFilter").value="all";$("sortFilter").value="smart";$("freshFilter").value="all";renderAll();renderResults()};
 document.querySelectorAll("[data-period]").forEach(b=>b.onclick=()=>{period=b.dataset.period;document.querySelectorAll("[data-period]").forEach(x=>x.classList.toggle("active",x.dataset.period===period));renderAll()});
 window.addEventListener("keydown",e=>{if(e.key==="Escape")$("whyModal").hidden=true});window.addEventListener("online",()=>boot());window.addEventListener("crow:ready",()=>boot(),{once:true});boot();
+
+/* DISCOVER ULTIMATE ADD-ONS — V9 */
+(function(){
+  const LS_SAVED="cr_discover_saved_searches_v1";
+  const LS_RECENT="cr_discover_recent_v1";
+  const LS_FOCUS="cr_discover_focus_v1";
+  function jget(k,f){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(f))}catch{return f}}
+  function jset(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){console.warn("Discover local storage:",e)}}
+  function setToolkitStatus(msg){const el=document.getElementById("toolkitStatus");if(el)el.textContent=msg}
+  function renderSavedSearches(){
+    const el=document.getElementById("savedSearches"); if(!el)return;
+    const rows=jget(LS_SAVED,[]);
+    if(!rows.length){el.innerHTML='<span class="reason">No saved searches yet.</span>';return}
+    el.innerHTML=rows.slice(0,8).map((x,i)=>'<span class="saved-search"><button type="button" data-load-save="'+i+'">'+esc(x.label||x.query||"Saved search")+'</button><button class="delete-save" type="button" data-delete-save="'+i+'" aria-label="Delete saved search">×</button></span>').join("");
+    el.querySelectorAll("[data-load-save]").forEach(b=>b.onclick=()=>{const x=rows[Number(b.dataset.loadSave)];if(!x)return;document.getElementById("search").value=x.query||"";query=x.query||"";renderResults();document.getElementById("results").scrollIntoView({behavior:"smooth",block:"start"});setToolkitStatus("Loaded saved search: "+(x.label||x.query))});
+    el.querySelectorAll("[data-delete-save]").forEach(b=>b.onclick=()=>{rows.splice(Number(b.dataset.deleteSave),1);jset(LS_SAVED,rows);renderSavedSearches();setToolkitStatus("Saved search removed.")});
+  }
+  function renderRecent(){
+    const section=document.getElementById("recentDiscoveriesSection"),el=document.getElementById("recentDiscoveries");if(!section||!el)return;
+    const rows=jget(LS_RECENT,[]);section.hidden=!rows.length;
+    el.innerHTML=rows.slice(0,8).map(x=>'<a class="card show-card" href="'+esc(x.url)+'"><img class="art" src="'+esc(x.art||"assets/podcast-placeholder.svg")+'" alt="" loading="lazy" onerror="this.onerror=null;this.src=\'assets/podcast-placeholder.svg\'"><div class="body"><div class="rank">RECENT</div><div class="title">'+esc(x.title||"Discovery")+'</div><div class="sub">'+esc(x.sub||"CrowRules Podcasting")+'</div></div></a>').join("");
+  }
+  function rememberDiscovery(url,title,sub,art){
+    if(!url)return;
+    const rows=jget(LS_RECENT,[]).filter(x=>x.url!==url);
+    rows.unshift({url,title,sub,art,at:Date.now()});jset(LS_RECENT,rows.slice(0,8));renderRecent();
+  }
+  function surprise(){
+    const pool=[];
+    podcasts.filter(p=>!hiddenShows.has(p.id)).forEach(p=>pool.push({url:podcastUrl(p.id),title:p.title,sub:p.category||"Podcast",art:p.artwork_url,type:"show"}));
+    episodes.forEach(e=>pool.push({url:episodeUrl(e.id),title:e.title,sub:e.podcast_title||"Episode",art:e.thumbnail_url||e.podcast_artwork,type:"episode"}));
+    if(!pool.length){setToolkitStatus("There is nothing to surprise you with yet.");return}
+    const pick=pool[Math.floor(Math.random()*pool.length)];
+    rememberDiscovery(pick.url,pick.title,pick.sub,pick.art);
+    setToolkitStatus("Surprise pick: "+pick.title);
+    location.href=pick.url;
+  }
+  function saveSearch(){
+    const q=(document.getElementById("search")?.value||"").trim();
+    if(!q){setToolkitStatus("Enter a search first, then save it.");document.getElementById("search")?.focus();return}
+    const rows=jget(LS_SAVED,[]).filter(x=>x.query!==q);
+    rows.unshift({query:q,label:q,at:Date.now()});jset(LS_SAVED,rows.slice(0,8));renderSavedSearches();setToolkitStatus("Saved search: "+q);
+  }
+  function shareDiscover(){
+    const u=new URL(location.href);
+    const q=(document.getElementById("search")?.value||"").trim();
+    if(q)u.searchParams.set("q",q);else u.searchParams.delete("q");
+    if(activeCategory)u.searchParams.set("category",activeCategory);else u.searchParams.delete("category");
+    const share=()=>{try{navigator.clipboard.writeText(u.href);setToolkitStatus("Discover link copied to your clipboard.")}catch{setToolkitStatus(u.href)}};
+    if(navigator.share){navigator.share({title:"CrowRules Podcasting — Discover",url:u.href}).then(()=>setToolkitStatus("Discover link shared.")).catch(()=>share())}else share();
+  }
+  function toggleFocus(){
+    document.body.classList.toggle("discover-focus");
+    const on=document.body.classList.contains("discover-focus");
+    try{localStorage.setItem(LS_FOCUS,on?"1":"0")}catch{}
+    const b=document.getElementById("focusMode");if(b){b.textContent=on?"Exit Focus Mode":"Focus Mode";b.setAttribute("aria-pressed",String(on))}
+    setToolkitStatus(on?"Focus Mode enabled.":"Focus Mode disabled.");
+  }
+  function resetEverything(){
+    try{localStorage.removeItem(LS_SAVED);localStorage.removeItem(LS_RECENT);localStorage.removeItem(LS_FOCUS)}catch{}
+    hiddenShows.clear();boostShows.clear();feedback.clear();renderSavedSearches();renderRecent();renderAll();renderResults();
+    document.getElementById("search").value="";query="";document.body.classList.remove("discover-focus");
+    setToolkitStatus("Discovery memory and local preferences were reset.");
+  }
+  document.getElementById("surpriseMe")?.addEventListener("click",surprise);
+  document.getElementById("saveSearch")?.addEventListener("click",saveSearch);
+  document.getElementById("shareDiscover")?.addEventListener("click",shareDiscover);
+  document.getElementById("focusMode")?.addEventListener("click",toggleFocus);
+  document.getElementById("resetAllDiscovery")?.addEventListener("click",resetEverything);
+  document.getElementById("clearHidden")?.addEventListener("click",()=>{hiddenShows.clear();renderAll();renderResults();setToolkitStatus("Hidden shows restored.")});
+  document.getElementById("clearRecent")?.addEventListener("click",()=>{try{localStorage.removeItem(LS_RECENT)}catch{}renderRecent();setToolkitStatus("Recently Discovered cleared.")});
+  document.getElementById("shortcutHelp")?.addEventListener("click",()=>document.getElementById("shortcutModal").hidden=false);
+  document.querySelectorAll("[data-close-shortcuts]").forEach(x=>x.addEventListener("click",()=>document.getElementById("shortcutModal").hidden=true));
+  document.addEventListener("click",e=>{
+    const a=e.target.closest('a[href^="podcast"],a[href$=".html"]');if(!a||!a.href)return;
+    const title=a.querySelector(".title,.v7-episode-title,.creator-name")?.textContent||a.textContent.trim();
+    const img=a.querySelector("img");rememberDiscovery(a.href,title,"CrowRules Podcasting",img?.src||"");
+  });
+  window.addEventListener("keydown",e=>{
+    if(e.ctrlKey||e.metaKey||e.altKey)return;
+    const tag=(e.target?.tagName||"").toLowerCase();
+    if(tag==="input"||tag==="textarea"||tag==="select"||e.target?.isContentEditable)return;
+    if(e.key==="/"){e.preventDefault();document.getElementById("search")?.focus()}
+    if(e.key.toLowerCase()==="s"){e.preventDefault();surprise()}
+    if(e.key.toLowerCase()==="r"){e.preventDefault();document.getElementById("refreshDiscover")?.click()}
+    if(e.key.toLowerCase()==="f"){e.preventDefault();toggleFocus()}
+    if(e.key==="?"){e.preventDefault();document.getElementById("shortcutModal").hidden=false}
+    if(e.key==="Escape"){document.getElementById("shortcutModal").hidden=true}
+  });
+  try{
+    if(new URLSearchParams(location.search).get("q")){const q=new URLSearchParams(location.search).get("q");document.getElementById("search").value=q;query=q}
+    const cat=new URLSearchParams(location.search).get("category");if(cat){activeCategory=cat}
+    if(localStorage.getItem(LS_FOCUS)==="1"){document.body.classList.add("discover-focus");const b=document.getElementById("focusMode");if(b){b.textContent="Exit Focus Mode";b.setAttribute("aria-pressed","true")}}
+  }catch{}
+  renderSavedSearches();renderRecent();
+})();
+
 })();
 </script>
 </body>
