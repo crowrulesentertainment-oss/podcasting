@@ -70,7 +70,7 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const money=c=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(c||0)/100);
 const state={sb:null,user:null,creatorId:null,podcasts:[],episodes:[],plans:[],subscriptions:[],earnings:[],revenue:[]};
 function status(t,kind=""){$("status").className="notice "+kind;$("status").textContent=t}
-function client(){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;throw Error("CrowRules Supabase client is still connecting. Refresh and try again.")}
+async function client(){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;const ready=window.CROW_SUPABASE_READY||window.CROW_SUPABASE_PROMISE;if(ready&&typeof ready.then==="function"){const sb=await Promise.race([ready,new Promise((_,rej)=>setTimeout(()=>rej(Error("Supabase initialization timed out.")),20000))]);if(sb)return sb}throw Error("CrowRules Supabase client is unavailable.")}
 async function creatorId(){const r=await state.sb.rpc("get_my_podcast_creator_id");if(r.error)throw r.error;if(!r.data)throw Error("No active creator profile is linked to this account.");return r.data}
 function planForEpisode(e){return state.plans.find(p=>p.id===e.monetization_product_id)||null}
 function podcastTitle(id){return state.podcasts.find(p=>p.id===id)?.title||"Podcast"}
@@ -79,7 +79,7 @@ function episodeRevenue(e){return state.revenue.filter(r=>r.episode_id===e.id).r
 function listenersForPlan(id){return activeSubscriptions().filter(s=>s.product_id===id).length}
 function formatCadence(p){if(!p)return"—";const n=Number(p.interval_count||1);return n===1?p.interval:n+" "+p.interval+"s"}
 async function load(){
- state.sb=client();const s=await state.sb.auth.getSession();state.user=s.data?.session?.user;if(!state.user)throw Error("Please sign in to your CrowRules account first.");
+ state.sb=await client();const s=await state.sb.auth.getSession();state.user=s.data?.session?.user;if(!state.user)throw Error("Please sign in to your CrowRules account first.");
  state.creatorId=await creatorId();
  const pod=await state.sb.from("podcasts").select("id,title,artwork_url").eq("creator_id",state.creatorId).order("created_at",{ascending:false});
  if(pod.error)throw pod.error;state.podcasts=pod.data||[];
