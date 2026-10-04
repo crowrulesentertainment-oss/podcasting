@@ -33,7 +33,8 @@
  </section>
  <section class="section">
   <div class="eyebrow">CROWRULES RANKINGS</div>
-  <h2>Top Rankings</h2>
+  <div class="ranking-controls"><h2 style="margin:0">Top Rankings</h2><div class="period-tabs" role="tablist" aria-label="Ranking period"><button class="period-tab active" data-period="today" type="button">Today</button><button class="period-tab" data-period="7_days" type="button">7 Days</button><button class="period-tab" data-period="30_days" type="button">30 Days</button><button class="period-tab" data-period="all_time" type="button">All Time</button></div></div>
+  <div id="trendGrid" class="trend-grid"></div>
   <div id="rankingGrid" class="ranking-grid"></div>
  </section>
  <section class="section">
@@ -60,7 +61,10 @@ var app=document.getElementById("app");
 var hero=document.getElementById("hero");
 var episodesEl=document.getElementById("episodes");
 var statsGrid=document.getElementById("statsGrid");
-var rankingGrid=document.getElementById("rankingGrid");\nvar trendGrid=document.getElementById("trendGrid");\nvar rankingTabs=[].slice.call(document.querySelectorAll(".period-tab"));\nvar activePeriod="today";
+var rankingGrid=document.getElementById("rankingGrid");
+var trendGrid=document.getElementById("trendGrid");
+var rankingTabs=[].slice.call(document.querySelectorAll(".period-tab"));
+var activePeriod="today";
 var dbStatus=document.getElementById("dbStatus");
 var authStatus=document.getElementById("authStatus");
 var followBtn=null;
@@ -135,9 +139,9 @@ async function load(){
  var stats=statsRows&&statsRows[0]||{episode_count:(eps||[]).length};
  loadingText.textContent="Building time-based podcast, episode and host rankings…";
  var rankResults=await Promise.all([
-   rest("podcast_rankings_live?select=*&order=ranking.asc&limit=5"),
-   rest("episode_rankings_live?select=*&order=ranking.asc&limit=5"),
-   rest("host_rankings_live?select=*&order=ranking.asc&limit=5")
+   rest("podcast_rankings_period_live?select=*&period_type=in.(today,7_days,30_days,all_time)&order=period_type.asc,ranking.asc&limit=100"),
+   rest("episode_rankings_period_live?select=*&period_type=in.(today,7_days,30_days,all_time)&order=period_type.asc,ranking.asc&limit=100"),
+   rest("host_rankings_period_live?select=*&period_type=in.(today,7_days,30_days,all_time)&order=period_type.asc,ranking.asc&limit=100")
  ]);
  var rankings={podcasts:{},episodes:{},hosts:{}};
  ["today","7_days","30_days","all_time"].forEach(function(period){rankings.podcasts[period]=[];rankings.episodes[period]=[];rankings.hosts[period]=[];});
@@ -208,7 +212,8 @@ async function startSubscription(){
    };s.onerror=function(){authStatus.textContent="Optional / unavailable"};document.head.appendChild(s);
  },0);
 }
-rankingTabs.forEach(function(tab){tab.onclick=function(){rankingTabs.forEach(function(t){t.classList.remove("active")});tab.classList.add("active");activePeriod=tab.getAttribute("data-period")||"today";if(window.__crowRankings)render(window.__crowPodcast,window.__crowEpisodes,window.__crowStats,window.__crowRankings);};});\ndocument.getElementById("retry").onclick=function(){location.reload()};
+rankingTabs.forEach(function(tab){tab.onclick=function(){rankingTabs.forEach(function(t){t.classList.remove("active")});tab.classList.add("active");activePeriod=tab.getAttribute("data-period")||"today";if(window.__crowRankings)render(window.__crowPodcast,window.__crowEpisodes,window.__crowStats,window.__crowRankings);};});
+document.getElementById("retry").onclick=function(){location.reload()};
 window.addEventListener("error",function(e){if(!app.classList.contains("hidden"))return;fail(e.error||e.message)});
 window.addEventListener("unhandledrejection",function(e){if(!app.classList.contains("hidden"))fail(e.reason)});
 load().catch(fail);
