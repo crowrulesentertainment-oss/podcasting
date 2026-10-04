@@ -1,53 +1,37 @@
-# V7 sitewide navigation workflow run — 2026-10-04 (repair pass 2)
-name: CrowRules Podcasting — Universal Site Repair
+name: CrowRules Podcasting — Universal Site Repair V8
+
 on:
   push:
     branches: [main]
   workflow_dispatch:
+
 permissions:
   contents: write
+
 concurrency:
-  group: crowrules-podcasting-site-repair
+  group: crowrules-podcasting-site-repair-v8
   cancel-in-progress: false
+
 jobs:
-  repair:
-    if: github.actor != 'github-actions[bot]'
+  rebuild:
+    if: ${{ github.actor != 'github-actions[bot]' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Normalize every Podcasting HTML page
-        shell: python
+        run: node .github/scripts/rebuild-podcasting-v8.mjs
+
+      - name: Commit V8 rebuild
         run: |
-          from pathlib import Path
-          import re
-          changed=[]
-          css='css/podcasting.css?v=20261004-3'
-          config='js/config.js?v=20261004-3'
-          app='js/app.js?v=20261004-3'
-          nav='js/podcasting-nav-v7.js?v=20261004-3'
-          repair='js/site-repair-v1.js?v=20261004-1'
-          member='https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=2'
-          for p in Path('.').rglob('*.html'):
-              if '.git' in p.parts: continue
-              s=p.read_text(encoding='utf-8'); original=s
-              s=re.sub(r'<link[^>]+href=["\'][^"\']*css/podcasting\\.css[^"\']*["\'][^>]*>','',s,flags=re.I)\n              s=re.sub(r'<script[^>]+src=["\'][^"\']*(?:podcasting-nav-v2|crowrules-podcasting-nav)[^"\']*["\'][^>]*>\s*</script>','',s,flags=re.I)
-              s=re.sub(r'<script[^>]+src=["\'][^"\']*(?:js/config\.js|js/app\.js|js/podcasting-nav-v7\.js|js/site-repair-v1\.js)[^"\']*["\'][^>]*>\s*</script>','',s,flags=re.I)
-              s=re.sub(r'<div\b[^>]*data-nav[^>]*>\s*</div>','',s,flags=re.I)
-              s=re.sub(r'<script[^>]+src=["\']https://crowrulesentertainment-oss\.github\.io/crowrulesentertainment/js/crowrules-universal-member\.js[^"\']*["\'][^>]*>\s*</script>','',s,flags=re.I)
-              body=re.search(r'<body\b[^>]*>',s,flags=re.I)
-              if body:
-                  s=s[:body.end()]+'\n<div data-nav data-nav-owner="crowrules-podcasting-nav-v7"></div>'+s[body.end():]
-              tags=f'<link rel="stylesheet" href="{css}"><script src="{config}" defer></script><script src="{app}" defer></script><script src="{nav}" defer data-podcasting-nav-v7></script><script src="{repair}" defer data-site-repair="v1"></script><script src="{member}" defer></script>'
-              s=re.sub(r'</head>',tags+'</head>',s,count=1,flags=re.I)
-              if s!=original:
-                  p.write_text(s,encoding='utf-8');changed.append(str(p))
-          print("Normalized",len(changed),"HTML pages")
-          print("\n".join(changed))
-      - name: Commit repairs
-        run: |
-          git config user.name "CrowRules Universal Repair"
+          git config user.name "CrowRules Podcasting V8"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- '*.html'
-          if git diff --cached --quiet; then echo "No HTML changes needed."; exit 0; fi
-          git commit -m "Repair and normalize all CrowRules Podcasting pages"
+          if git diff --cached --quiet; then
+            echo "No HTML changes needed."
+            exit 0
+          fi
+          git commit -m "chore: normalize Podcasting pages to V8 [podcasting-v8]"
           git push
