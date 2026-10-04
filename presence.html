@@ -18,9 +18,9 @@
       <h1 class="cr-presence-title">WHO'S HERE</h1>
       <p class="cr-presence-copy">This is the live network view. Only authenticated members connected to the private CrowRules Podcasting Presence channel appear here. Recent sign-ins are not counted as online.</p>
     </div>
-    <div class="cr-presence-count"><span id="presenceCount">0</span><small>MEMBERS ONLINE NOW</small><div class="cr-listener-count"><b id="listenerCount">0</b><small>LISTENING NOW</small></div></div>
+    <div class="cr-presence-count"><span id="presenceCount">0</span><small>MEMBERS ONLINE NOW</small></div>
   </section>
-  <section id="listenerNow" class="cr-presence-grid" aria-live="polite"><div class="cr-presence-empty">LISTENER INTELLIGENCE CONNECTING...</div></section><section id="presenceGrid" class="cr-presence-grid" aria-live="polite">
+  <section id="presenceGrid" class="cr-presence-grid" aria-live="polite">
     <div class="cr-presence-empty">CONNECTING TO LIVE PRESENCE…</div>
   </section>
 </main>
@@ -40,11 +40,9 @@
       return '<article class="cr-presence-card">'+avatar+'<span class="cr-presence-dot" aria-label="Online"></span><div><b>'+String(name).replace(/[&<>]/g,"")+'</b><span>'+String(role).replace(/[&<>]/g,"")+' · ONLINE NOW</span></div></article>';
     }).join("");
   }
-  function renderListeners(){const ch=window.CROW_PRESENCE_CHANNEL,box=document.getElementById("listenerNow"),countEl=document.getElementById("listenerCount");if(!ch||!box)return;const state=ch.presenceState()||{},rows=[];Object.keys(state).forEach(k=>(state[k]||[]).forEach(m=>{if(m.mode==="listener")rows.push(m)}));if(countEl)countEl.textContent=String(rows.length);if(!rows.length){box.innerHTML="<div class=\"cr-presence-empty\">NO ONE IS LISTENING RIGHT NOW.</div>";return;}const groups={};rows.forEach(m=>{const key=m.episode_id||m.podcast_id||m.content_title||"unknown";groups[key]=groups[key]||{title:m.content_title||"Podcast audio",count:0};groups[key].count++});box.innerHTML="<div class=\"cr-presence-empty\" style=\"grid-column:1/-1\"><b>LISTENING NOW</b><br>Live listener count is aggregate only. Individual listening activity is not displayed.</div>"+Object.values(groups).map(g=>"<article class=\"cr-presence-card\"><div class=\"cr-presence-avatar\">▶</div><div><b>"+String(g.title).replace(/[&<>]/g,"")+"</b><span>"+g.count+" "+(g.count===1?"listener":"listeners")+" · LIVE</span></div></article>").join("");}
-  window.addEventListener("crow:presence",e=>{render(e.detail);setTimeout(renderListeners,50)});
-  window.addEventListener("crow:auth",()=>setTimeout(()=>{render({count:window.CROW_PRESENCE_COUNT,members:window.CROW_ONLINE_MEMBERS});renderListeners()},500));
-  setInterval(renderListeners,3000);
-  setTimeout(()=>{render({count:window.CROW_PRESENCE_COUNT,members:window.CROW_ONLINE_MEMBERS});renderListeners()},2500);
+  window.addEventListener("crow:presence",e=>render(e.detail));
+  window.addEventListener("crow:auth",()=>setTimeout(()=>render({count:window.CROW_PRESENCE_COUNT,members:window.CROW_ONLINE_MEMBERS}),500));
+  setTimeout(()=>render({count:window.CROW_PRESENCE_COUNT,members:window.CROW_ONLINE_MEMBERS}),2500);
 })();
 </script>
 </body>
