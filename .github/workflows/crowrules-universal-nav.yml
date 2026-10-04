@@ -1,4 +1,4 @@
-name: CrowRules Podcasting — V7 Sitewide Navigation
+name: CrowRules Podcasting — V7 Sitewide Page Sync
 on:
   push:
     branches: [main]
@@ -10,15 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install V7 navigation on every HTML page
+      - name: Force-sync V7 navigation and V12.1 shell on every HTML page
         shell: python
         run: |
           from pathlib import Path
           import re
 
-          CSS='css/podcasting.css?v=20261004'
-          CONFIG='js/config.js?v=12'
-          APP='js/app.js?v=12'
+          CSS='css/podcasting.css?v=20261004-2'
+          CONFIG='js/config.js?v=12.1'
+          APP='js/app.js?v=12.1'
           changed=[]
 
           for p in Path('.').rglob('*.html'):
@@ -53,7 +53,7 @@ jobs:
           for p in changed:
               print(p)
 
-      - name: Commit sitewide navigation
+      - name: Commit sitewide page sync
         run: |
           git config user.name "CrowRules Universal Navigation"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -62,5 +62,5 @@ jobs:
             echo "No HTML changes needed."
             exit 0
           fi
-          git commit -m "Install CrowRules Podcasting V7 navigation on every page"
+          git commit -m "Force-sync CrowRules Podcasting V7 navigation and V12.1 shell on every page"
           git push
