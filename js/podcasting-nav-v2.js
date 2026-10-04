@@ -6,7 +6,7 @@
    Health -> cr_platform_health_checks
 */
 (()=>{"use strict";
-const VERSION="6.0.4";
+const VERSION="6.0.3";
 const CONFIG=window.CROW_CONFIG||{};
 const SUPABASE_URL=CONFIG.supabaseUrl||"https://cevylpnoexugwgygvtgu.supabase.co";
 const SUPABASE_KEY=CONFIG.supabaseKey||window.CROW_SUPABASE_KEY||window.SUPABASE_ANON_KEY;
