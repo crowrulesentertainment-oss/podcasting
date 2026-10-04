@@ -199,7 +199,7 @@ $("form").onsubmit=async e=>{
     }
     if(trFile){
       const ext=(trFile.name.split(".").pop()||"mp3").toLowerCase().replace(/[^a-z0-9]/g,"");
-      trailerUrl=await uploadFile(sb,"podcast-audio",base+"/trailer."+ext,trFile,"trailer");
+      trailerUrl=await uploadFile(sb,"podcast-audio",userId+"/"+draftId+"/trailer."+ext,trFile,"trailer");
     }
 
     status.textContent="Creating your private draft…";
