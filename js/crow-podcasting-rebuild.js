@@ -3,7 +3,7 @@ if(window.__CROW_PODCASTING_REBUILD_V1232__)return;
 window.__CROW_PODCASTING_REBUILD_V1232__=true;
 
 const BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
-const CDN="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+const CDNS=["https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2","https://unpkg.com/@supabase/supabase-js@2"];
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const page=()=>location.pathname.split("/").pop().toLowerCase()||"home.html";
 const load=(src,attrs={})=>new Promise((res,rej)=>{
@@ -21,7 +21,7 @@ const load=(src,attrs={})=>new Promise((res,rej)=>{
 });
 async function bootClients(){
   try{
-    if(!window.supabase?.createClient)await load(CDN);
+    if(!window.supabase?.createClient){let loaded=false;let last=null;for(const src of CDNS){try{await load(src);if(window.supabase?.createClient){loaded=true;break}}catch(e){last=e}}if(!loaded)throw last||new Error("Unable to load the Supabase client.");}
     if(!window.CROW_CONFIG_READY)await load(BASE+"js/config.js?v=20261004-24");
     const cfg=window.CROW_CONFIG||{};
     if(!cfg.supabaseUrl||!cfg.supabaseKey)throw new Error("CrowRules Supabase configuration is incomplete.");
@@ -31,9 +31,10 @@ async function bootClients(){
     window.CROW_DATA=window.CROW_DATA||{};
     window.CROW_DATA.ready=async(timeout=10000)=>Promise.race([window.CROW_SUPABASE_READY,new Promise((_,rej)=>setTimeout(()=>rej(new Error("Supabase initialization timeout.")),timeout))]);
     const auth=window.CROW_SUPABASE.auth;
-    const sessionResult=await auth.getSession();
+    let sessionResult={data:{session:null},error:null};
+    try{sessionResult=await Promise.race([auth.getSession(),new Promise((_,rej)=>setTimeout(()=>rej(new Error("Auth session request timed out.")),8000))])}catch(e){console.warn("CrowRules auth session:",e.message||e)}
     let user=sessionResult.data?.session?.user||null;
-    try{const fresh=await auth.getUser();user=fresh.data?.user||user}catch(_){}
+    try{const fresh=await Promise.race([auth.getUser(),new Promise((_,rej)=>setTimeout(()=>rej(new Error("Auth user request timed out.")),8000))]);user=fresh.data?.user||user}catch(e){if(user)console.warn("CrowRules auth user refresh:",e.message||e)}
     window.__CROW_USER=user;window.__CROW_AUTH_READY=true;
     auth.onAuthStateChange(async(event,s)=>{
       window.__CROW_USER=s?.user||null;window.__CROW_AUTH_READY=true;
