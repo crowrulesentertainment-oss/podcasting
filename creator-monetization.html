@@ -53,6 +53,26 @@
 </section>
 
 <section class="section">
+<div class="kpi-row"><div><div class="eyebrow">MONETIZATION INTELLIGENCE V2</div><h2>Revenue & subscriber intelligence</h2><p class="muted">Recurring revenue, plan performance, growth, churn and Premium catalog conversion.</p></div><span class="pill">Last 30 days</span></div>
+<div class="grid" style="margin-top:14px">
+<div class="card"><div class="stat money" id="mrr">$0.00</div><div class="stat-label">Estimated monthly recurring revenue</div></div>
+<div class="card"><div class="stat" id="newSubscribers">0</div><div class="stat-label">New subscribers · 30 days</div></div>
+<div class="card"><div class="stat" id="churnRate">0%</div><div class="stat-label">Cancellation rate · 30 days</div></div>
+<div class="card"><div class="stat" id="premiumConversion">0%</div><div class="stat-label">Premium catalog conversion</div></div>
+</div>
+<div class="grid two" style="margin-top:14px">
+<div class="card"><h3>Revenue by subscription plan</h3><div id="planRevenue">Loading…</div></div>
+<div class="card"><h3>Subscriber growth</h3><div id="growthBars">Loading…</div></div>
+</div>
+<div class="card" style="margin-top:14px"><h3>Churn & cancellation</h3><div id="churnDetail" class="muted">Loading…</div></div>
+</section>
+
+<section class="section">
+<div class="kpi-row"><div><h2>Premium performance</h2><p class="muted">Episode-level Premium reach, plan assignment, listeners and attributed revenue.</p></div><span class="substat">Live catalog view</span></div>
+<div class="table-wrap" style="margin-top:12px"><table class="table"><thead><tr><th>Episode</th><th>Plan</th><th>Listeners</th><th>Plays</th><th>Episode revenue</th><th>Premium signal</th></tr></thead><tbody id="premiumPerformanceRows"></tbody></table></div>
+</section>
+
+<section class="section">
 <div class="kpi-row"><div><h2>Episode controls</h2><p class="muted">Switch access instantly. Premium episodes require a subscription plan.</p></div><span id="saveState" class="substat">Ready</span></div>
 <div class="toolbar"><input id="search" class="input" type="search" placeholder="Search episodes…"><select id="podcastFilter" class="input"><option value="all">All podcasts</option></select><select id="accessFilter" class="input"><option value="all">All access</option><option value="premium">Premium</option><option value="free">Free</option><option value="members">Members</option></select></div>
 <div class="table-wrap" style="margin-top:14px"><table class="table"><thead><tr><th>Episode</th><th>Podcast</th><th>Access</th><th>Subscription plan</th><th>Premium listeners</th><th>Episode revenue</th><th>Action</th></tr></thead><tbody id="episodeRows"></tbody></table></div>
