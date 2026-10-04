@@ -1,6 +1,6 @@
 (()=>{
 "use strict";
-const VERSION="12.0";
+const VERSION="12.1";
 const BASE="https://crowrulesentertainment-oss.github.io/podcasting";
 function ensureStyles(){
  if(document.getElementById("cr-shell-css"))return;
