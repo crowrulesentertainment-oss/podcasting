@@ -21,7 +21,7 @@ async function bootClients(){
     if(!window.CROW_SUPABASE)window.CROW_SUPABASE=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{
       auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}
     });
-    window.CROW_SUPABASE_READY=Promise.resolve(window.CROW_SUPABASE);
+    window.CROW_SUPABASE_READY=Promise.resolve(window.CROW_SUPABASE);\n    window.CROW_BOOTSTRAP=bootClients;
     window.CROW_DATA=window.CROW_DATA||{};
     window.CROW_DATA.ready=async(timeout=10000)=>{
       const p=window.CROW_SUPABASE_READY;
@@ -44,7 +44,7 @@ async function bootClients(){
     return window.CROW_SUPABASE;
   }catch(e){
     window.CROW_SUPABASE_ERROR=e;
-    window.CROW_SUPABASE_READY=Promise.reject(e);
+    const failed=Promise.reject(e);failed.catch(()=>{});window.CROW_SUPABASE_READY=failed;\n    window.CROW_BOOTSTRAP=bootClients;
     window.CROW_DATA=window.CROW_DATA||{};
     window.CROW_DATA.ready=async()=>{throw e};
     window.dispatchEvent(new CustomEvent("crow:connection",{detail:{ok:false,label:"CONNECTION ERROR"}}));
