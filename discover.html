@@ -2,7 +2,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#080808"><meta name="description" content="CrowRules Podcasting discovery — shows, episodes, creators and personalized listening.">
 <title>Discover — CrowRules Podcasting</title>
-<link rel="stylesheet" href="css/podcasting.css?v=20261003-44">
+<link rel="stylesheet" href="css/podcasting.css?v=20261003-45">
 <script src="js/config.js?v=20261003-42"></script><script src="js/podcasting.js?v=20261003-42" defer></script><script src="js/player.js?v=20261003-42" defer></script><script src="js/app.js?v=20261003-42" defer></script>
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
 <style>
@@ -213,7 +213,7 @@ function renderPersonal(){
 function renderAll(){
  renderPersonal();
  renderActiveFilters();
- renderHostSpotlight();
+ try{renderHostSpotlight()}catch(e){console.error("Discover V7 Host Spotlight:",e)}
  const tp=topPodcasts().filter(p=>!hiddenShows.has(p.id)),te=topEpisodes(),tr=trending(),nw=newest(),hs=hosts();
  render("topPodcasts",tp.map((p,i)=>cardPodcast(p,i+1,feedbackReason(p))).join(""),"No published podcasts yet.");
  render("topEpisodes",te.map((e,i)=>cardEpisode(e,i+1)).join(""),"No published episodes yet.");
@@ -255,19 +255,20 @@ function search(){query=$("search").value.trim();$("suggestions").classList.remo
 /* DISCOVER V7 INTELLIGENCE */
 let spotlightHost=null, spotlightHostShows=[];
 function v7HostProfileUrl(h){const id=h?.id||h?.creator_id||"";if(h?.profile_url&&/^https?:\\/\\//i.test(h.profile_url))return h.profile_url;if(id&&!String(id).startsWith("author:"))return "creator-profile.html?id="+encodeURIComponent(id);return "creator-profile.html"}
-function v7HostShows(h){const id=h?.id||h?.creator_id||"";return podcasts.filter(p=>p.creator_id===id || (String(id).startsWith("author:")&&("author:"+String(p.author_name||""))===String(id)))}
-function v7HostEpisodes(h){const ids=new Set(v7HostShows(h).map(p=>p.id));return episodes.filter(e=>ids.has(e.podcast_id)||ids.has(e.show_id))}
+function v7HostShows(h){const id=String(h?.id||h?.creator_id||"");return podcasts.filter(p=>String(p.creator_id||"")===id || (id.startsWith("author:")&&("author:"+String(p.author_name||"").trim())===id))}
+function v7HostEpisodes(h){const ids=new Set(v7HostShows(h).map(p=>String(p.id)));return episodes.filter(e=>ids.has(String(e.podcast_id||""))||ids.has(String(e.show_id||"")))}
+function v7SafeDays(v){if(!v)return 9999;const n=Number(daysAgo(v));return Number.isFinite(n)?Math.max(0,n):9999}
 function v7BadgeList(h,shows,eps){
  const out=[];if(shows.length>=5)out.push("Network Builder");else if(shows.length>=2)out.push("Multi-Show Host");
  if(Number(h.plays||0)>=1000)out.push("Audience Leader");
  if(eps.length>=10)out.push("Prolific Creator");
- if(eps.some(e=>daysAgo(e.published_at||e.created_at)<=7))out.push("New Release");
+ if(eps.some(e=>v7SafeDays(e.published_at||e.created_at)<=7))out.push("New Release");
  if(!out.length)out.push("CrowRules Creator");return out.slice(0,4);
 }
 function v7EpisodeCard(e){
  const art=e.thumbnail_url||e.podcast_artwork||e.artwork_url||"";
  const release=e.published_at||e.created_at;
- return '<a class="v7-episode" href="'+esc(episodeUrl(e.id))+'">'+(art?'<img src="'+esc(art)+'" alt="" loading="lazy">':'<div style="aspect-ratio:16/9;background:#1b1b1d"></div>')+'<div class="v7-episode-body"><div class="v7-episode-title">'+esc(e.title||"Untitled Episode")+'</div><div class="v7-episode-meta">'+fmt(e.play_count||0)+' plays</div><div class="v7-release">'+(daysAgo(release)<=7?"NEW RELEASE":daysAgo(release)<=30?"RECENT RELEASE":fmt(daysAgo(release))+" DAYS AGO")+'</div></div></a>';
+ return '<a class="v7-episode" href="'+esc(episodeUrl(e.id))+'">'+(art?'<img src="'+esc(art)+'" alt="" loading="lazy">':'<div style="aspect-ratio:16/9;background:#1b1b1d"></div>')+'<div class="v7-episode-body"><div class="v7-episode-title">'+esc(e.title||"Untitled Episode")+'</div><div class="v7-episode-meta">'+fmt(e.play_count||0)+' plays</div><div class="v7-release">'+(v7SafeDays(release)<=7?"NEW RELEASE":v7SafeDays(release)<=30?"RECENT RELEASE":fmt(v7SafeDays(release))+" DAYS AGO")+'</div></div></a>';
 }
 function renderHostSpotlight(){
  const hs=hosts();spotlightHost=hs[0]||null;
@@ -277,12 +278,12 @@ function renderHostSpotlight(){
  const eps=v7HostEpisodes(spotlightHost);
  const name=spotlightHost.display_name||spotlightHost.name||"CrowRules Host";
  $("spotlightName").textContent=name;$("spotlightRole").textContent=spotlightHost.discipline||spotlightHost.role||"Podcast Creator";
- $("spotlightAvatar").src=spotlightHost.avatar_url||"";$("spotlightAvatar").style.display=spotlightHost.avatar_url?"block":"none";
+ $("spotlightAvatar").src=spotlightHost.avatar_url||"about:blank";$("spotlightAvatar").style.display=spotlightHost.avatar_url?"block":"none";
  $("spotlightProfile").href=v7HostProfileUrl(spotlightHost);
  $("spotlightHeadline").textContent=spotlightHost.headline||("Explore "+name+"'s shows, latest episodes and audience favorites across CrowRules Podcasting.");
  const badges=v7BadgeList(spotlightHost,spotlightHostShows,eps);$("spotlightBadges").innerHTML=badges.map(x=>'<span class="host-badge">'+esc(x)+'</span>').join("");
  const plays=spotlightHostShows.reduce((n,p)=>n+Number(p.total_plays||0),0);
- $("spotlightStats").innerHTML=[["Shows",spotlightHostShows.length],["Episodes",eps.length],["Plays",fmt(Math.max(Number(spotlightHost.plays||0),plays))],["Latest",eps.length?fmt(Math.max(0,daysAgo(eps.slice().sort((a,b)=>new Date(b.published_at||b.created_at)-new Date(a.published_at||a.created_at))[0].published_at||eps[0].created_at)))+"d":"—"]].map(x=>'<div class="host-stat"><span>'+esc(x[0])+'</span><strong>'+esc(String(x[1]))+'</strong></div>').join("");
+ $("spotlightStats").innerHTML=[["Shows",spotlightHostShows.length],["Episodes",eps.length],["Plays",fmt(Math.max(Number(spotlightHost.plays||0),plays))],["Latest",eps.length?fmt(v7SafeDays(eps.slice().sort((a,b)=>new Date(b.published_at||b.created_at)-new Date(a.published_at||a.created_at))[0].published_at||eps[0].created_at))+"d":"—"]].map(x=>'<div class="host-stat"><span>'+esc(x[0])+'</span><strong>'+esc(String(x[1]))+'</strong></div>').join("");
  $("spotlightShows").innerHTML=spotlightHostShows.slice().sort((a,b)=>Number(b.total_plays||0)-Number(a.total_plays||0)).slice(0,4).map(p=>'<a class="host-show" href="'+esc(podcastUrl(p.id))+'">'+(p.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="" loading="lazy">':'<div></div>')+'<div><strong>'+esc(p.title||"Untitled Show")+'</strong><small>'+fmt(p.total_plays||0)+' plays · '+(p.category||"Podcast")+'</small></div><span class="arrow">→</span></a>').join("")||'<div class="reason">No published shows are attached to this host yet.</div>';
  const latest=eps.slice().sort((a,b)=>new Date(b.published_at||b.created_at)-new Date(a.published_at||a.created_at)).slice(0,8);
  const popular=eps.slice().sort((a,b)=>Number(b.play_count||0)-Number(a.play_count||0)).slice(0,8);
@@ -295,8 +296,10 @@ async function v7FollowHost(){
  if(!spotlightHostShows.length){toast("This host has no followable shows yet.");return}
  const uid=window.__CROW_USER.id, all=spotlightHostShows.every(p=>following.has(p.id));
  for(const p of spotlightHostShows){
-   if(all)await sb.from("podcast_follows").delete().eq("user_id",uid).eq("podcast_id",p.id);
-   else if(!following.has(p.id))await sb.from("podcast_follows").insert({user_id:uid,podcast_id:p.id});
+   let result;
+   if(all)result=await sb.from("podcast_follows").delete().eq("user_id",uid).eq("podcast_id",p.id);
+   else if(!following.has(p.id))result=await sb.from("podcast_follows").insert({user_id:uid,podcast_id:p.id});
+   if(result?.error){toast("Could not update host follows.");return}
    if(all)following.delete(p.id);else following.add(p.id);
  }
  $("spotlightFollow").textContent=all?"Follow Host":"Following Host";renderAll();renderHostSpotlight();toast(all?"Host unfollowed.":"All available shows from this host are now followed.");
@@ -316,7 +319,7 @@ let refreshTimer;async function refreshLive(){clearTimeout(refreshTimer);refresh
 $("search").addEventListener("input",()=>{suggestions();query=$("search").value.trim();renderResults()});$("search").addEventListener("keydown",e=>{if(e.key==="Enter")search();if(e.key==="Escape")$("suggestions").classList.remove("open")});$("searchBtn").onclick=search;
 document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))$("suggestions").classList.remove("open");const a=e.target.closest("[data-feedback]");if(a){e.preventDefault();e.stopPropagation();const id=a.dataset.podcastId,k=a.dataset.feedback;if(k==="why"){const p=podcasts.find(x=>x.id===id),af=affinity();$("whyText").textContent=p?"CrowRules is recommending "+p.title+" using your follows, listening history, completion behavior, creator/category affinity, freshness and audience activity.":"This recommendation uses current CrowRules catalog signals.";$("whySignals").innerHTML=[["Category",p?.category&&af.cats.has(p.category)?"Matches your listening":"Fresh exploration"],["Creator",p?.creator_id&&af.creats.has(p.creator_id)?"Matches a creator you listen to":"New creator"],["Freshness",p&&daysAgo(p.created_at)<14?"Recently added":"Established catalog signal"],["Your feedback",feedback.get(id)?.action||"None yet"]].map(x=>'<div class="signal-row"><span>'+esc(x[0])+'</span><strong>'+esc(x[1])+'</strong></div>').join("");$("whyModal").hidden=false;return}if(k==="follow"){toggleFollow(id);return}recordFeedback(id,k==="more"?"more_like_this":k);return}const close=e.target.closest("[data-close-modal]");if(close)$("whyModal").hidden=true;const b=e.target.closest("[data-resume]");if(b){e.preventDefault();e.stopPropagation();location.href=episodeUrl(b.dataset.resume)}});
 document.querySelectorAll("[data-result-tab]").forEach(b=>b.onclick=()=>{resultTab=b.dataset.resultTab;renderResults()});
-$("spotlightFollow").onclick=v7FollowHost;$("spotlightLike").onclick=v7LikeHost;
+$("spotlightFollow").onclick=()=>v7FollowHost();$("spotlightLike").onclick=()=>v7LikeHost();
 $("contentFilter").onchange=e=>{contentFilter=e.target.value;renderAll();renderResults()};
 $("sortFilter").onchange=e=>{sortFilter=e.target.value;renderAll();renderResults()};
 $("freshFilter").onchange=e=>{freshFilter=e.target.value;renderAll();renderResults()};
