@@ -142,7 +142,9 @@ async function syncPresence(channel){
     const metas=ids.map(id=>state[id]?.[0]||{}).map((m,i)=>({user_id:m.user_id||ids[i],online_at:m.online_at||null,page:m.page||""}));
     if(!ids.length){setPresence(0,[]);return}
     const sb=window.CROW_SUPABASE;
+    setPresence(ids.length,metas);
     const q=await sb.from("members").select("user_id,display_name,username,avatar_url,role").in("user_id",ids);
+    if(q.error){console.warn("Presence member enrichment:",q.error.message);return}
     const byId=new Map((q.data||[]).map(x=>[x.user_id,x]));
     const members=metas.map(m=>({...m,...(byId.get(m.user_id)||{})}));
     setPresence(ids.length,members);
