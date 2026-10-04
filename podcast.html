@@ -138,7 +138,19 @@ async function startCheckout(){
  }
 }
 async function verifyReturn(sessionId){
- const box=$("#subscriptionStatusBox");if(!user||!podcastId)return;
+ const box=$("#subscriptionStatusBox");if(!user||!podcastId||!sessionId)return;
+ try{
+   const c=await client();
+   const r=await c.functions.invoke("create-podcast-checkout",{body:{action:"verify",session_id:sessionId,podcast_id:podcastId}});
+   let d=r.data||{};
+   if(r.error?.context){try{d=await r.error.context.clone().json()}catch{}}
+   if(!r.error&&d.verified&&d.active){
+     localStorage.removeItem("cr_pending_subscription:"+user.id+":"+podcastId);
+     await refreshSubscription();
+     if(box)box.innerHTML='<div class="eyebrow">SUBSCRIPTION VERIFIED</div><b class="ok">✓ Stripe subscription verified.</b><div class="subtle">Your payment was accepted and CrowRules has confirmed the subscription. The account record will stay synchronized by webhook.</div>';
+     cleanCheckoutUrl();return
+   }
+ }catch(e){console.warn("Checkout verification:",e?.message||e)}
  for(let i=0;i<8;i++){
    const s=await refreshSubscription();
    if(s&&["active","trialing"].includes(s.status)){
