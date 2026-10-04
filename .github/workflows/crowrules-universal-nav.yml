@@ -1,4 +1,4 @@
-name: CrowRules Podcasting — Universal Site Repair V8
+name: CrowRules Podcasting — Universal Site Rebuild V9
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: crowrules-podcasting-site-repair-v8
+  group: crowrules-podcasting-site-rebuild-v9
   cancel-in-progress: false
 
 jobs:
@@ -20,18 +20,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Normalize every Podcasting HTML page
+      - name: Normalize every non-launch Podcasting page
         run: node .github/scripts/rebuild-podcasting-v8.mjs
-
-      - name: Commit V8 rebuild
+      - name: Commit V9 rebuild
         run: |
-          git config user.name "CrowRules Podcasting V8"
+          git config user.name "CrowRules Podcasting V9"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- '*.html'
-          if git diff --cached --quiet; then
-            echo "No HTML changes needed."
-            exit 0
-          fi
-          git commit -m "chore: normalize Podcasting pages to V8 [podcasting-v8]"
+          if git diff --cached --quiet; then echo "No HTML changes needed."; exit 0; fi
+          git commit -m "chore: rebuild Podcasting pages to V9 [podcasting-v9]"
           git push
