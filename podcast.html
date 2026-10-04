@@ -100,7 +100,8 @@ function render(p,eps,stats,rankings){
  statsGrid.innerHTML="<div class='stat'><div class='stat-value'>"+Number(s.follower_count||0).toLocaleString()+"</div><div class='stat-label'>Followers</div></div><div class='stat'><div class='stat-value'>"+Number(s.episode_count||eps.length||0).toLocaleString()+"</div><div class='stat-label'>Episodes</div></div><div class='stat'><div class='stat-value'>"+Number(s.listen_count||0).toLocaleString()+"</div><div class='stat-label'>Listens</div></div><div class='stat'><div class='stat-value'>"+(Number(s.seconds_listened||0)/3600).toFixed(1)+"</div><div class='stat-label'>Hours Listened</div></div>";
  var r=rankings||{};
  function periodItems(type){return r[type]&&r[type][activePeriod]||[];}
- function movement(x){var m=String(x.movement||"").toLowerCase();var label=x.movement_label||"—";var g=x.growth_percent;var growth="";if(g!==null&&g!==undefined&&isFinite(Number(g))){var n=Number(g);growth="<div class='growth "+(n>0?"positive":n<0?"negative":"neutral")+"'>"+(n>0?"+":"")+n.toFixed(1)+"% growth</div>";}else if(x.previous_rank&&x.ranking){var delta=Number(x.previous_rank)-Number(x.ranking);if(delta){var pct=(Math.abs(delta)/Math.max(Number(x.previous_rank),1))*100;growth="<div class='growth "+(delta>0?"positive":"negative")+"'>"+(delta>0?"+":"-")+pct.toFixed(0)+"% rank momentum</div>";}}return "<div class='rank-movement "+(m==="up"?"up":m==="down"?"down":m==="new"?"new":"")+"'>"+esc(label)+"</div>"+growth;}
+ function pct(v,label){if(v===null||v===undefined||!isFinite(Number(v)))return "";var n=Number(v);return "<span class='growth "+(n>0?"positive":n<0?"negative":"neutral")+"'>"+(n>0?"+":"")+n.toFixed(1)+"% "+label+"</span>";}
+ function movement(x){var m=String(x.movement||"").toLowerCase();var label=x.movement_label||"—";var growth=pct(x.follower_growth_percent,"followers")+pct(x.listener_growth_percent,"listeners")+pct(x.listening_time_growth_percent,"listening time");if(!growth&&x.previous_rank&&x.ranking){var delta=Number(x.previous_rank)-Number(x.ranking);if(delta){var p=(Math.abs(delta)/Math.max(Number(x.previous_rank),1))*100;growth="<span class='growth "+(delta>0?"positive":"negative")+"'>"+(delta>0?"+":"-")+p.toFixed(0)+"% rank momentum</span>";}}return "<div class='rank-movement "+(m==="up"?"up":m==="down"?"down":m==="new"?"new":"")+"'>"+esc(label)+"</div><div style='display:flex;gap:8px;flex-wrap:wrap'>"+growth+"</div>";}
  function rankingList(title,items,nameField,metaField){
    var html="<div class='card ranking-card'><h3>"+title+"</h3>";
    if(!items||!items.length) html+="<div class='muted'>No ranking data for this period yet.</div>";
@@ -141,13 +142,23 @@ async function load(){
  var rankResults=await Promise.all([
    rest("podcast_rankings_period_live?select=*&period_type=in.(today,7_days,30_days,all_time)&order=period_type.asc,ranking.asc&limit=100"),
    rest("episode_rankings_period_live?select=*&period_type=in.(today,7_days,30_days,all_time)&order=period_type.asc,ranking.asc&limit=100"),
-   rest("host_rankings_period_live?select=*&period_type=in.(today,7_days,30_days,all_time)&order=period_type.asc,ranking.asc&limit=100")
+   rest("host_rankings_period_live?select=*&period_type=in.(today,7_days,30_days,all_time)&order=period_type.asc,ranking.asc&limit=100"),
+   rest("podcast_rankings_growth_live?select=*&period_type=in.(today,7_days,30_days,all_time)&limit=100"),
+   rest("episode_rankings_growth_live?select=*&period_type=in.(today,7_days,30_days,all_time)&limit=100"),
+   rest("host_rankings_growth_live?select=*&period_type=in.(today,7_days,30_days,all_time)&limit=100")
  ]);
  var rankings={podcasts:{},episodes:{},hosts:{}};
+ var growth={podcasts:{},episodes:{},hosts:{}};
  ["today","7_days","30_days","all_time"].forEach(function(period){rankings.podcasts[period]=[];rankings.episodes[period]=[];rankings.hosts[period]=[];});
  (rankResults[0]||[]).forEach(function(x){(rankings.podcasts[x.period_type]||(rankings.podcasts[x.period_type]=[])).push(x);});
  (rankResults[1]||[]).forEach(function(x){(rankings.episodes[x.period_type]||(rankings.episodes[x.period_type]=[])).push(x);});
  (rankResults[2]||[]).forEach(function(x){(rankings.hosts[x.period_type]||(rankings.hosts[x.period_type]=[])).push(x);});
+ (rankResults[3]||[]).forEach(function(x){growth.podcasts[x.period_type+"_"+x.podcast_id]=x;});
+ (rankResults[4]||[]).forEach(function(x){growth.episodes[x.period_type+"_"+x.episode_id]=x;});
+ (rankResults[5]||[]).forEach(function(x){growth.hosts[x.period_type+"_"+x.host_key]=x;});
+ Object.keys(rankings.podcasts).forEach(function(period){rankings.podcasts[period].forEach(function(x){var g=growth.podcasts[period+"_"+x.podcast_id];if(g)Object.assign(x,g);});});
+ Object.keys(rankings.episodes).forEach(function(period){rankings.episodes[period].forEach(function(x){var g=growth.episodes[period+"_"+x.episode_id];if(g)Object.assign(x,g);});});
+ Object.keys(rankings.hosts).forEach(function(period){rankings.hosts[period].forEach(function(x){var g=growth.hosts[period+"_"+x.host_key];if(g)Object.assign(x,g);});});
 
  dbStatus.textContent="Connected";dbStatus.className="ok";
  window.__crowPodcast=p;window.__crowEpisodes=eps||[];window.__crowStats=stats;window.__crowRankings=rankings;render(p,eps||[],stats,rankings);show();
