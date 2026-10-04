@@ -82,7 +82,7 @@ async function load(){
  loadingText.textContent="Connecting directly to the CrowRules Data API…";
  var uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(pid);
  var filter=uuid?"id=eq."+encodeURIComponent(pid):"slug=eq."+encodeURIComponent(pid);
- var cols="id,title,slug,category,description,artwork_url,author_name,language,explicit_content,is_live,listener_count,status,creator_id";
+ var cols="*";
  var rows=await rest("podcasting_podcast_directory?select="+encodeURIComponent(cols)+"&status=eq.published&"+filter+"&limit=1");
  if(!rows||!rows.length){
    rows=await rest("podcasts?select="+encodeURIComponent(cols)+"&status=eq.published&"+filter+"&limit=1");
