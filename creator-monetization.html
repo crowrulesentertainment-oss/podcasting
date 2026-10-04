@@ -109,6 +109,12 @@
 </section>
 
 <section class="section">
+<div class="kpi-row"><div><h2>Episode monetization controls</h2><p class="muted">Keep the existing Free/Premium workflow inside the V4 financial center. Premium episodes require an active membership plan.</p></div><span id="episodeCount" class="substat">0 episodes</span></div>
+<div class="toolbar" style="margin-top:12px"><input id="episodeSearch" class="input" type="search" placeholder="Search episodes…"><select id="episodeAccess" class="input"><option value="all">All access</option><option value="premium">Premium</option><option value="free">Free</option><option value="members">Members</option></select></div>
+<div class="table-wrap" style="margin-top:12px"><table class="table"><thead><tr><th>Episode</th><th>Podcast</th><th>Access</th><th>Plan</th><th>Plays</th><th>Action</th></tr></thead><tbody id="episodeRows"></tbody></table></div>
+</section>
+
+<section class="section">
 <div class="kpi-row"><div><h2>Revenue history</h2><p class="muted">Recorded creator earnings from subscription payments.</p></div><span id="revenueCount" class="substat">0 transactions</span></div>
 <div class="table-wrap" style="margin-top:12px"><table class="table"><thead><tr><th>Date</th><th>Podcast</th><th>Source</th><th>Status</th><th>Creator net</th></tr></thead><tbody id="revenueRows"></tbody></table></div>
 </section>
@@ -121,7 +127,7 @@ const $=id=>document.getElementById(id);
 const money=c=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(c||0)/100);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const activeStatuses=["active","trialing","past_due","paused"];
-const state={sb:null,user:null,creatorId:null,podcasts:[],plans:[],subs:[],earnings:[],revenue:[],model:null};
+const state={sb:null,user:null,creatorId:null,podcasts:[],plans:[],subs:[],earnings:[],revenue:[],episodes:[],model:null};
 function status(t,k=""){$("status").className="notice "+k;$("status").textContent=t}
 async function client(){
  if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
@@ -186,7 +192,7 @@ function render(){
  "<div class='kpi-row' style='padding:9px 0'><span>Weighted creator net / subscriber</span><b class='money'>"+money(m.arpu)+"</b></div>";
  const plans=state.plans.filter(p=>p.active&&p.grants_premium_access!==false);
  $("planMix").innerHTML=plans.length?plans.map(p=>{const n=m.planCounts[p.id]||0;const share=m.subs.length?n/m.subs.length*100:0;return "<div class='kpi-row' style='padding:9px 0;border-bottom:1px solid var(--line)'><span><b>"+esc(p.name)+"</b><br><span class='substat'>"+money(monthlyEquivalent(p.amount_cents,p.interval,p.interval_count))+" gross MRR / subscriber</span></span><span class='pill'>"+n+" · "+share.toFixed(1)+"%</span></div>"}).join(""):"<div class='empty'>No active subscription plans.</div>";
- renderForecast();renderMovement();renderRevenue();
+ renderForecast();renderMovement();renderEpisodes();renderRevenue();
 }
 function renderForecast(){
  const f=forecast(),max=Math.max(1,...f.months.map(x=>x.net));
@@ -194,6 +200,44 @@ function renderForecast(){
  $("forecast12Net").textContent=money(f.netTotal);$("forecast12Gross").textContent=money(f.grossTotal);$("forecastEndSubs").textContent=f.endSubs.toLocaleString();
  $("simulator").innerHTML=[10,50,100].map(add=>{const gross=add*(state.model.subs.length?state.model.grossMrr/state.model.subs.length:0),net=gross*.8,annual=net*12;return "<div class='sim'><h3>+"+add+" subscribers</h3><div class='kpi-row'><span>Gross MRR</span><b>"+money(gross)+"</b></div><div class='kpi-row' style='margin-top:8px'><span>Creator net / month</span><b class='success'>"+money(net)+"</b></div><div class='kpi-row' style='margin-top:8px'><span>Creator net / year</span><b>"+money(annual)+"</b></div></div>"}).join("");
 }
+function renderEpisodes(){
+ const term=($("episodeSearch")?.value||"").trim().toLowerCase(),access=$("episodeAccess")?.value||"all";
+ const rows=state.episodes.filter(e=>(access==="all"||e.access_level===access)&&(!term||String(e.title||"").toLowerCase().includes(term)));
+ $("episodeCount").textContent=state.episodes.length+" episode"+(state.episodes.length===1?"":"s");
+ $("episodeRows").innerHTML=rows.length?rows.map(e=>{
+   const plans=state.plans.filter(p=>p.podcast_id===e.podcast_id&&p.active&&p.grants_premium_access!==false);
+   const selected=state.plans.find(p=>p.id===e.monetization_product_id);
+   const planHtml=e.access_level==="premium"?
+     "<select class='plan-select' data-episode-plan='"+e.id+"'><option value=''>Choose plan…</option>"+plans.map(p=>"<option value='"+esc(p.id)+"' "+(selected?.id===p.id?"selected":"")+">"+esc(p.name)+" · "+money(p.amount_cents)+"</option>").join("")+"</select>":
+     "<span class='substat'>Not required</span>";
+   return "<tr><td><b>"+esc(e.title||"Untitled episode")+"</b><span class='episode-meta'>"+esc(e.status||"draft")+"</span></td><td>"+esc(podcastTitle(e.podcast_id))+"</td><td><span class='pill'>"+esc((e.access_level||"free").toUpperCase())+"</span></td><td>"+planHtml+"</td><td>"+Number(e.play_count||0).toLocaleString()+"</td><td><button class='btn "+(e.access_level==="premium"?"":"primary")+"' data-episode-toggle='"+e.id+"' data-next='"+(e.access_level==="premium"?"free":"premium")+"'>"+(e.access_level==="premium"?"Make Free":"Make Premium")+"</button></td></tr>";
+ }).join(""):"<tr><td colspan='6'><div class='empty'>No episodes match this view.</div></td></tr>";
+ document.querySelectorAll("[data-episode-toggle]").forEach(b=>b.onclick=()=>toggleEpisodeAccess(b.dataset.episodeToggle,b.dataset.next));
+ document.querySelectorAll("[data-episode-plan]").forEach(s=>s.onchange=()=>changeEpisodePlan(s.dataset.episodePlan,s.value));
+}
+async function updateEpisode(id,patch){
+ const r=await state.sb.from("podcast_episodes").update(patch).eq("id",id).select("id,access_level,monetization_product_id,monetization_enabled").single();
+ if(r.error)throw r.error;
+ const i=state.episodes.findIndex(e=>e.id===id);if(i>=0)state.episodes[i]=Object.assign(state.episodes[i],r.data);
+ render();status("Episode monetization updated.","ok");
+}
+async function toggleEpisodeAccess(id,next){
+ const e=state.episodes.find(x=>x.id===id);if(!e)return;
+ try{
+   if(next==="premium"){
+     const p=state.plans.find(x=>x.podcast_id===e.podcast_id&&x.active&&x.grants_premium_access!==false);
+     if(!p){status("Create an active Premium subscription plan for this podcast first.","error");return}
+     await updateEpisode(id,{access_level:"premium",monetization_enabled:true,monetization_product_id:p.id});
+   }else await updateEpisode(id,{access_level:"free",monetization_enabled:false,monetization_product_id:null});
+ }catch(err){status("Could not update episode: "+(err.message||err),"error")}
+}
+async function changeEpisodePlan(id,planId){
+ const e=state.episodes.find(x=>x.id===id);if(!e||!planId)return;
+ const p=state.plans.find(x=>x.id===planId&&x.podcast_id===e.podcast_id&&x.active&&x.grants_premium_access!==false);
+ if(!p){status("That Premium plan is not valid for this podcast.","error");return}
+ try{await updateEpisode(id,{access_level:"premium",monetization_enabled:true,monetization_product_id:p.id})}catch(err){status("Could not change the Premium plan: "+(err.message||err),"error")}
+}
+
 function renderMovement(){
  const m=state.model,total=m.subs.length;
  const plans=state.plans.filter(p=>p.active&&p.grants_premium_access!==false);
@@ -218,9 +262,11 @@ async function load(){
  ]);
  if(plans.error)throw plans.error;if(subs.error)throw subs.error;if(earn.error)throw earn.error;
  state.plans=plans.data||[];state.subs=subs.data||[];state.earnings=earn.data||[];state.revenue=rev.error?[]:(rev.data||[]);
+ const eps=await state.sb.from("podcast_episodes").select("id,podcast_id,title,status,access_level,monetization_product_id,monetization_enabled,play_count,created_at").in("podcast_id",ids).order("created_at",{ascending:false}).limit(1000);
+ if(eps.error)throw eps.error;state.episodes=eps.data||[];
  $("dashboard").hidden=false;render();status("Creator Financial Forecasting V4 synced with Supabase.","ok");
 }
-$("forecastMode").onchange=renderForecast;
+$("forecastMode").onchange=renderForecast;$("episodeSearch").oninput=renderEpisodes;$("episodeAccess").onchange=renderEpisodes;
 $("newAdj").oninput=()=>{$("newAdjLabel").textContent=$("newAdj").value+"%";renderForecast()};
 $("churnAdj").oninput=()=>{$("churnAdjLabel").textContent=$("churnAdj").value+"%";renderForecast()};
 async function boot(){try{await load()}catch(e){console.error(e);status(e.message||"Unable to load Creator Financial Forecasting.","error")}}
