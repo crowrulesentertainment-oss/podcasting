@@ -43,10 +43,10 @@ async function getContext(){
    const {data}=await client.auth.getSession(), user=data?.session?.user||null;
    if(!user)return {role:"listener",user:null};
    if(isAdmin(user))return {role:"admin",user,client};
-   let creator=false;
+   let creator=false, creatorId=null;
    try{
      const q=await client.from("creators").select("id").eq("user_id",user.id).limit(1);
-     creator=!q.error&&!!q.data?.length;
+     creator=!q.error&&!!q.data?.length; creatorId=q.data?.[0]?.id||null;
    }catch(_){}
    if(!creator){
      try{
@@ -56,7 +56,7 @@ async function getContext(){
    }
    const meta=user.app_metadata||{};
    if(["creator","podcaster"].includes(String(meta.role||"").toLowerCase())||meta.is_creator===true)creator=true;
-   return {role:creator?"creator":"listener",user,client,creatorId:null};
+   return {role:creator?"creator":"listener",user,client,creatorId};
  }catch(_){return {role:"listener",user:null,client}}
 }
 function link([icon,label,href]){
