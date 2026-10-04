@@ -38,8 +38,8 @@ jobs:
 
               # Normalize shared stylesheet/config/app references.
               s=re.sub(r'<link[^>]+href=["'][^"']*css/podcasting\.css(?:\?[^"']*)?["'][^>]*>\s*','',s,flags=re.I)
-              s=re.sub(r'<script[^>]+src=["'][^"']*(?:^|/)js/config\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*','',s,flags=re.I)
-              s=re.sub(r'<script[^>]+src=["'][^"']*(?:^|/)js/app\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*','',s,flags=re.I)
+              s=re.sub(r'<script[^>]+src=["'][^"']*js/config\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*','',s,flags=re.I)
+              s=re.sub(r'<script[^>]+src=["'][^"']*js/app\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*','',s,flags=re.I)
 
               if re.search(r'</head>',s,re.I):
                   tags=f'<link rel="stylesheet" href="{CSS}"><script src="{CONFIG}" defer></script><script src="{APP}" defer></script>'
