@@ -6,7 +6,7 @@
    Health -> cr_platform_health_checks
 */
 (()=>{"use strict";
-const VERSION="6.0.2";
+const VERSION="6.0.3";
 const CONFIG=window.CROW_CONFIG||{};
 const SUPABASE_URL=CONFIG.supabaseUrl||"https://cevylpnoexugwgygvtgu.supabase.co";
 const SUPABASE_KEY=CONFIG.supabaseKey||window.CROW_SUPABASE_KEY||window.SUPABASE_ANON_KEY;
@@ -190,6 +190,7 @@ async function startRealtime(ctx){
    try{
     const next=await getContext();
     const cap=await render(next);
+    if(next.role!==ctx.role||next.memberId!==ctx.memberId||next.creatorId!==ctx.creatorId){await startRealtime(next)}
     window.CrowRulesPodcastingNavV6={version:VERSION,refresh:boot,capabilities:cap,realtime:window.CROW_PODCASTING_NAV_REALTIME||"REFRESHED"};
    }finally{running=false}
   },180);
