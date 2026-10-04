@@ -63,8 +63,12 @@
 <div class="grid two" style="margin-top:14px">
 <div class="card"><h3>Revenue by subscription plan</h3><div id="planRevenue">Loading…</div></div>
 <div class="card"><h3>Subscriber growth</h3><div id="growthBars">Loading…</div></div>
+<div class="card"><h3>Analytics range</h3><select id="analyticsRangeSelect" class="input" style="width:100%;min-width:0"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last 12 months</option><option value="all">All time</option></select></div>
+<div class="card"><h3>Subscriber cohorts</h3><div id="cohortTable">Loading…</div></div>
 </div>
 <div class="card" style="margin-top:14px"><h3>Churn & cancellation</h3><div id="churnDetail" class="muted">Loading…</div></div>
+<div class="card" style="margin-top:14px"><h3>Per-plan churn</h3><div id="planChurn">Loading…</div></div>
+<div class="card" style="margin-top:14px"><h3>Episode conversion funnel</h3><div id="conversionFunnel">Loading…</div></div>
 </section>
 
 <section class="section">
@@ -127,7 +131,7 @@ function render(){
  $("economics").innerHTML='<div><b>'+money(gross)+'</b><span class="substat"> gross subscription revenue</span></div><div><b>'+money(fees)+'</b><span class="substat"> CrowRules platform share</span></div><div><b>'+money(net)+'</b><span class="substat success"> creator net · 80% model</span></div><div><b>'+active.length+'</b><span class="substat"> active/trialing listeners</span></div>';
  $("planCoverage").innerHTML=activePlans.length?activePlans.map(p=>{const count=state.episodes.filter(e=>e.monetization_product_id===p.id&&e.access_level==="premium").length;return '<div class="kpi-row"><span><b>'+esc(p.name)+'</b><br><span class="substat">'+money(p.amount_cents)+' / '+esc(formatCadence(p))+'</span></span><span class="pill">'+count+' episode'+(count===1?"":"s")+' · '+listenersForPlan(p.id)+' listener'+(listenersForPlan(p.id)===1?"":"s")+'</span></div>'}).join(""):'<div class="empty">Create an active subscription plan to enable Premium episodes.</div>';
  $("podcastFilter").innerHTML='<option value="all">All podcasts</option>'+state.podcasts.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.title)+'</option>').join("");
- renderEpisodes();renderRevenue();renderIntelligence();
+ renderEpisodes();renderRevenue();renderIntelligence();renderV3($("analyticsRangeSelect")?.value||"30");
 }
 function renderEpisodes(){
  const term=($("search").value||"").trim().toLowerCase(),pf=$("podcastFilter").value,af=$("accessFilter").value;
@@ -161,6 +165,22 @@ function renderPremiumPerformance(){
  const rows=state.episodes.filter(e=>e.access_level==="premium");
  $("premiumPerformanceRows").innerHTML=rows.length?rows.map(e=>{const p=planForEpisode(e),listeners=listenersForPlan(p?.id),rev=episodeRevenue(e),plays=Number(e.play_count||0),signal=listeners?(plays?(listeners/Math.max(1,plays)*100).toFixed(1)+"% listener/plays":"Subscribed audience"):"Needs subscribers";return '<tr><td><span class="episode-title">'+esc(e.title||"Untitled episode")+'</span><span class="episode-meta">'+esc(podcastTitle(e.podcast_id))+'</span></td><td>'+esc(p?.name||"No plan")+'</td><td>'+listeners+'</td><td>'+plays.toLocaleString()+'</td><td class="money">'+(rev?money(rev):"—")+'</td><td><span class="pill premium">'+esc(signal)+'</span></td></tr>'}).join(""):'<tr><td colspan="6"><div class="empty">No Premium episodes yet.</div></td></tr>';
 }
+function renderV3(days){
+ const start=days==="all"?new Date(0):new Date(Date.now()-Number(days)*86400000);
+ const subs=state.subscriptions.filter(s=>new Date(s.created_at||0)>=start);
+ const cohorts={};
+ subs.forEach(s=>{const d=new Date(s.created_at);const k=d.toLocaleDateString(undefined,{month:"short",year:"numeric"});cohorts[k]=(cohorts[k]||0)+1});
+ $("cohortTable").innerHTML=Object.keys(cohorts).length?Object.entries(cohorts).reverse().map(([k,v])=>'<div class="kpi-row" style="padding:8px 0;border-bottom:1px solid var(--line)"><span>'+esc(k)+'</span><b>'+v+' subscriber'+(v===1?"":"s")+'</b></div>').join(""):'<div class="empty">No cohorts in this range.</div>';
+ const plans=state.plans.filter(p=>p.active&&p.grants_premium_access!==false);
+ $("planChurn").innerHTML=plans.length?plans.map(p=>{
+  const all=state.subscriptions.filter(s=>s.product_id===p.id),newer=all.filter(s=>new Date(s.created_at||0)>=start).length,lost=all.filter(s=>s.canceled_at&&new Date(s.canceled_at)>=start).length;
+  const rate=lost/Math.max(1,newer+all.filter(s=>["active","trialing"].includes(String(s.status||"").toLowerCase())).length)*100;
+  return '<div class="kpi-row" style="padding:9px 0;border-bottom:1px solid var(--line)"><span><b>'+esc(p.name)+'</b><br><span class="substat">'+newer+' new · '+lost+' canceled</span></span><span class="pill">'+rate.toFixed(1)+'% churn</span></div>';
+ }).join(""):'<div class="empty">No Premium plans.</div>';
+ const pub=state.episodes.filter(e=>e.status==="published").length,prem=state.episodes.filter(e=>e.access_level==="premium").length,listeners=activeSubscriptions().length,plays=state.episodes.reduce((n,e)=>n+Number(e.play_count||0),0),max=Math.max(1,pub,prem,listeners,plays);
+ const steps=[["Published episodes",pub],["Premium episodes",prem],["Active listeners",listeners],["Episode plays",plays]];
+ $("conversionFunnel").innerHTML=steps.map(x=>'<div style="margin:10px 0"><div class="kpi-row"><span>'+x[0]+'</span><b>'+x[1].toLocaleString()+'</b></div><div style="height:9px;background:#ffffff0a;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+Math.min(100,x[1]/max*100)+'%;background:linear-gradient(90deg,#c86cff,#62a8ff);border-radius:99px"></div></div></div>').join("")+'<p class="substat">Catalog funnel; listener and play counts are not user-to-episode conversion events.</p>';
+}
 function renderRevenue(){
  const rows=state.earnings.slice(0,100);$("revenueCount").textContent=rows.length+" transaction"+(rows.length===1?"":"s");
  $("revenueRows").innerHTML=rows.length?rows.map(r=>'<tr><td>'+esc(new Date(r.occurred_at).toLocaleDateString())+'</td><td>'+esc(podcastTitle(r.podcast_id))+'</td><td>'+esc(r.description||r.source_type||"Subscription")+'</td><td>'+esc(r.status||"—")+'</td><td class="money">'+money(r.net_amount_cents)+'</td></tr>').join(""):'<tr><td colspan="5"><div class="empty">No subscription revenue has been recorded yet.</div></td></tr>';
@@ -188,7 +208,7 @@ async function changePlan(id,planId){
  if(!plan){status("That plan is not valid for this podcast.","error");renderEpisodes();return}
  try{await saveEpisode(id,{access_level:"premium",monetization_enabled:true,monetization_product_id:plan.id});status("Premium plan association updated.","ok")}catch(err){$("saveState").textContent="Save failed";status("Could not change the Premium plan: "+(err.message||err),"error")}
 }
-$("search").oninput=renderEpisodes;$("podcastFilter").onchange=renderEpisodes;$("accessFilter").onchange=renderEpisodes;
+$("analyticsRangeSelect").onchange=()=>renderV3($("analyticsRangeSelect").value);$("search").oninput=renderEpisodes;$("podcastFilter").onchange=renderEpisodes;$("accessFilter").onchange=renderEpisodes;
 async function boot(){try{state.sb=await client();await load()}catch(e){console.error(e);$("dashboard").hidden=true;status(e.message||"Unable to load Creator Monetization.","error")}}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(boot,300),{once:true});else setTimeout(boot,300);
 })();
