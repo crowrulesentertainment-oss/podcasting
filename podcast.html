@@ -51,7 +51,13 @@ var app=document.getElementById("app");
 var hero=document.getElementById("hero");
 var episodesEl=document.getElementById("episodes");
 var dbStatus=document.getElementById("dbStatus");
-var authStatus=document.getElementById("authStatus");\nvar followBtn=document.getElementById("followBtn");\nvar followCount=document.getElementById("followCount");\nvar subscribeBtn=document.getElementById("subscribeBtn");\nvar authClient=null;\nvar currentPodcast=null;\nvar subscriptionProduct=null;
+var authStatus=document.getElementById("authStatus");
+var followBtn=null;
+var followCount=null;
+var subscribeBtn=null;
+var authClient=null;
+var currentPodcast=null;
+var subscriptionProduct=null;
 var esc=function(v){return String(v==null?"":v).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
 var rest=function(path){
  var url=String(cfg.supabaseUrl||"").replace(/\/$/,"")+"/rest/v1/"+path;
@@ -91,17 +97,71 @@ async function load(){
    rows=await rest("podcasts?select="+encodeURIComponent(cols)+"&status=eq.published&"+filter+"&limit=1");
  }
  if(!rows||!rows.length)throw new Error("Podcast not found. The show may not be published yet.");
- var p=rows[0]; currentPodcast=p;\n try {\n   var products=await rest("cr_podcast_monetization_products?select=id,podcast_id,name,amount_cents,interval,active,product_type&podcast_id=eq."+encodeURIComponent(p.id)+"&product_type=eq.membership&active=eq.true&limit=1");\n   subscriptionProduct=products&&products[0]||null;\n } catch(_) { subscriptionProduct=null; }\n loadingText.textContent="Loading published episodes…";
+ var p=rows[0]; currentPodcast=p;
+ try {
+   var products=await rest("cr_podcast_monetization_products?select=id,podcast_id,name,amount_cents,interval,active,product_type&podcast_id=eq."+encodeURIComponent(p.id)+"&product_type=eq.membership&active=eq.true&limit=1");
+   subscriptionProduct=products&&products[0]||null;
+ } catch(_) { subscriptionProduct=null; }
+ loadingText.textContent="Loading published episodes…";
  var eps=await rest("podcast_episodes?select=*&podcast_id=eq."+encodeURIComponent(p.id)+"&status=eq.published&order=published_at.desc");
  dbStatus.textContent="Connected";dbStatus.className="ok";
- render(p,eps||[]);show();\n followBtn.onclick=function(){toggleFollow()};\n subscribeBtn.onclick=function(){startSubscription()};\n if(!subscriptionProduct){subscribeBtn.disabled=true;subscribeBtn.textContent="Subscribe unavailable";}\n updateFollowState();
- async function ensureAuth(){\n if(authClient)return authClient;\n if(!window.supabase||!window.supabase.createClient)return null;\n authClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});\n return authClient;\n}\nasync function getUser(){var sb=await ensureAuth();if(!sb)return null;var r=await sb.auth.getUser();return r.data&&r.data.user||null;}\nasync function updateFollowState(){\n try{\n   var sb=await ensureAuth(); if(!sb||!currentPodcast)return;\n   var user=await getUser();\n   var count=await sb.from("podcast_follows").select("id",{count:"exact",head:true}).eq("podcast_id",currentPodcast.id);\n   if(typeof count.count==="number")followCount.textContent=count.count.toLocaleString();\n   if(!user){followBtn.textContent="♡ Follow "+(followCount.textContent==="0"?"":followCount.textContent);return;}\n   var own=await sb.from("podcast_follows").select("id").eq("podcast_id",currentPodcast.id).eq("user_id",user.id).maybeSingle();\n   if(own.data){followBtn.classList.add("active");followBtn.innerHTML="♥ Following <span id=\"followCount\">"+followCount.textContent+"</span>";}\n   else{followBtn.classList.remove("active");followBtn.innerHTML="♡ Follow <span id=\"followCount\">"+followCount.textContent+"</span>";}\n }catch(e){console.warn("Follow state unavailable",e);}\n}\nasync function toggleFollow(){\n try{\n   var sb=await ensureAuth();if(!sb){alert("Sign-in is required to follow this podcast.");return;}\n   var user=await getUser();if(!user){location.href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/account.html?redirect="+encodeURIComponent(location.href);return;}\n   followBtn.disabled=true;\n   var own=await sb.from("podcast_follows").select("id").eq("podcast_id",currentPodcast.id).eq("user_id",user.id).maybeSingle();\n   if(own.data){var del=await sb.from("podcast_follows").delete().eq("id",own.data.id);if(del.error)throw del.error;}\n   else{var ins=await sb.from("podcast_follows").insert({podcast_id:currentPodcast.id,user_id:user.id});if(ins.error)throw ins.error;}\n   await updateFollowState();\n }catch(e){alert(e.message||"Unable to update your follow.");}finally{followBtn.disabled=false;}\n}\nasync function startSubscription(){\n try{\n   if(!subscriptionProduct)return;\n   var sb=await ensureAuth();if(!sb){alert("Sign-in is required to subscribe.");return;}\n   var user=await getUser();if(!user){location.href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/account.html?redirect="+encodeURIComponent(location.href);return;}\n   subscribeBtn.disabled=true;subscribeBtn.textContent="Opening checkout…";\n   var session=await sb.auth.getSession();var token=session.data&&session.data.session&&session.data.session.access_token;if(!token)throw new Error("Your session has expired. Please sign in again.");\n   var res=await fetch(String(cfg.supabaseUrl).replace(/\/$/,"")+"/functions/v1/"+encodeURIComponent(cfg.podcastCheckoutFunction||"create-podcast-checkout"),{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token,"apikey":cfg.supabaseKey},body:JSON.stringify({product_id:subscriptionProduct.id,podcast_id:currentPodcast.id,origin:location.origin+"/podcasting/"})});\n   var data=await res.json().catch(function(){return {}});if(!res.ok)throw new Error(data.error||"Unable to start subscription checkout.");\n   if(!data.url)throw new Error("Stripe did not return a checkout URL.");location.href=data.url;\n }catch(e){alert(e.message||"Unable to start subscription.");subscribeBtn.disabled=false;subscribeBtn.textContent="Subscribe";}\n}\n// Auth is strictly optional and starts only after rendering.
+ render(p,eps||[]);show();
+ followBtn=document.getElementById("followBtn");
+ followCount=document.getElementById("followCount");
+ subscribeBtn=document.getElementById("subscribeBtn");
+ followBtn.onclick=function(){toggleFollow()};
+ subscribeBtn.onclick=function(){startSubscription()};
+ if(!subscriptionProduct){subscribeBtn.disabled=true;subscribeBtn.textContent="Subscribe unavailable";}
+ updateFollowState();
+ async function ensureAuth(){
+ if(authClient)return authClient;
+ if(!window.supabase||!window.supabase.createClient)return null;
+ authClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
+ return authClient;
+}
+async function getUser(){var sb=await ensureAuth();if(!sb)return null;var r=await sb.auth.getUser();return r.data&&r.data.user||null;}
+async function updateFollowState(){
+ try{
+   var sb=await ensureAuth(); if(!sb||!currentPodcast)return;
+   var user=await getUser();
+   var count=await sb.from("podcast_follows").select("id",{count:"exact",head:true}).eq("podcast_id",currentPodcast.id);
+   if(typeof count.count==="number")followCount.textContent=count.count.toLocaleString();
+   if(!user){followBtn.textContent="♡ Follow "+(followCount.textContent==="0"?"":followCount.textContent);return;}
+   var own=await sb.from("podcast_follows").select("id").eq("podcast_id",currentPodcast.id).eq("user_id",user.id).maybeSingle();
+   if(own.data){followBtn.classList.add("active");followBtn.innerHTML="♥ Following <span id=\"followCount\">"+followCount.textContent+"</span>";}
+   else{followBtn.classList.remove("active");followBtn.innerHTML="♡ Follow <span id=\"followCount\">"+followCount.textContent+"</span>";}
+ }catch(e){console.warn("Follow state unavailable",e);}
+}
+async function toggleFollow(){
+ try{
+   var sb=await ensureAuth();if(!sb){alert("Sign-in is required to follow this podcast.");return;}
+   var user=await getUser();if(!user){location.href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/account.html?redirect="+encodeURIComponent(location.href);return;}
+   followBtn.disabled=true;
+   var own=await sb.from("podcast_follows").select("id").eq("podcast_id",currentPodcast.id).eq("user_id",user.id).maybeSingle();
+   if(own.data){var del=await sb.from("podcast_follows").delete().eq("id",own.data.id);if(del.error)throw del.error;}
+   else{var ins=await sb.from("podcast_follows").insert({podcast_id:currentPodcast.id,user_id:user.id});if(ins.error)throw ins.error;}
+   await updateFollowState();
+ }catch(e){alert(e.message||"Unable to update your follow.");}finally{followBtn.disabled=false;}
+}
+async function startSubscription(){
+ try{
+   if(!subscriptionProduct)return;
+   var sb=await ensureAuth();if(!sb){alert("Sign-in is required to subscribe.");return;}
+   var user=await getUser();if(!user){location.href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/account.html?redirect="+encodeURIComponent(location.href);return;}
+   subscribeBtn.disabled=true;subscribeBtn.textContent="Opening checkout…";
+   var session=await sb.auth.getSession();var token=session.data&&session.data.session&&session.data.session.access_token;if(!token)throw new Error("Your session has expired. Please sign in again.");
+   var res=await fetch(String(cfg.supabaseUrl).replace(/\/$/,"")+"/functions/v1/"+encodeURIComponent(cfg.podcastCheckoutFunction||"create-podcast-checkout"),{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token,"apikey":cfg.supabaseKey},body:JSON.stringify({product_id:subscriptionProduct.id,podcast_id:currentPodcast.id,origin:location.origin+"/podcasting/"})});
+   var data=await res.json().catch(function(){return {}});if(!res.ok)throw new Error(data.error||"Unable to start subscription checkout.");
+   if(!data.url)throw new Error("Stripe did not return a checkout URL.");location.href=data.url;
+ }catch(e){alert(e.message||"Unable to start subscription.");subscribeBtn.disabled=false;subscribeBtn.textContent="Subscribe";}
+}
+// Auth is strictly optional and starts only after rendering.
  setTimeout(function(){
    var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";s.onload=function(){
      try{
        if(window.supabase&&window.supabase.createClient){
-         var client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
-         client.auth.getSession().then(function(){authStatus.textContent="Available";authStatus.className="ok"}).catch(function(){authStatus.textContent="Optional / unavailable"});
+         authClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
+         authClient.auth.getSession().then(function(){authStatus.textContent="Available";authStatus.className="ok";updateFollowState()}).catch(function(){authStatus.textContent="Optional / unavailable"});
        }
      }catch(e){authStatus.textContent="Optional / unavailable"}
    };s.onerror=function(){authStatus.textContent="Optional / unavailable"};document.head.appendChild(s);
