@@ -1,0 +1,324 @@
+/* CrowRules Podcasting — Halloween Cinematic Theme V1
+   October 2026 seasonal visual layer.
+   Pure CSS: no images, no JS dependency, preserves existing Supabase/app behavior.
+*/
+:root{
+  --cr-halloween-orange:#ff6a00;
+  --cr-halloween-amber:#ff9d2e;
+  --cr-halloween-purple:#9d5cff;
+  --cr-halloween-violet:#5b2cff;
+  --cr-halloween-red:#ff3158;
+  --cr-halloween-ghost:#d9d5ff;
+  --cr-halloween-bg:#030207;
+  --cr-halloween-panel:#0a0710;
+  --cr-halloween-line:rgba(255,106,0,.18);
+  --cr-halloween-glow:rgba(255,106,0,.28);
+}
+
+html{background:var(--cr-halloween-bg)!important}
+body{
+  position:relative;
+  isolation:isolate;
+  overflow-x:hidden;
+  background:
+    radial-gradient(circle at 50% -12%,rgba(255,106,0,.10),transparent 28%),
+    radial-gradient(circle at 12% 18%,rgba(157,92,255,.11),transparent 30%),
+    radial-gradient(circle at 88% 32%,rgba(255,49,88,.055),transparent 28%),
+    linear-gradient(180deg,#030207 0%,#08040b 42%,#030207 100%)!important;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-3;
+  pointer-events:none;
+  opacity:.55;
+  background:
+    radial-gradient(ellipse at 50% 115%,rgba(255,106,0,.12),transparent 45%),
+    repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.012) 4px,transparent 5px);
+  animation:crHalloweenAtmosphere 14s ease-in-out infinite alternate;
+}
+body::after{
+  content:"";
+  position:fixed;
+  inset:-20%;
+  z-index:-2;
+  pointer-events:none;
+  opacity:.30;
+  background:
+    radial-gradient(ellipse at 18% 65%,rgba(157,92,255,.12),transparent 25%),
+    radial-gradient(ellipse at 82% 58%,rgba(255,106,0,.10),transparent 23%),
+    radial-gradient(ellipse at 50% 90%,rgba(255,255,255,.035),transparent 35%);
+  filter:blur(30px);
+  animation:crHalloweenFog 22s ease-in-out infinite alternate;
+}
+
+/* Atmospheric moon + drifting fog */
+main::before{
+  content:"";
+  position:fixed;
+  width:170px;
+  height:170px;
+  right:5vw;
+  top:105px;
+  border-radius:50%;
+  z-index:-1;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 35% 30%,rgba(255,255,255,.8),rgba(221,214,255,.36) 42%,rgba(157,92,255,.08) 68%,transparent 72%);
+  box-shadow:0 0 45px rgba(157,92,255,.18),0 0 110px rgba(157,92,255,.10);
+  opacity:.42;
+  animation:crHalloweenMoon 9s ease-in-out infinite;
+}
+main::after{
+  content:"";
+  position:fixed;
+  left:-10vw;
+  right:-10vw;
+  bottom:4vh;
+  height:120px;
+  z-index:-1;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(210,205,235,.055),rgba(255,255,255,.075),rgba(157,92,255,.04),transparent);
+  filter:blur(18px);
+  animation:crHalloweenMist 17s linear infinite;
+}
+
+/* Navigation */
+.cr-nav{
+  background:
+    linear-gradient(180deg,rgba(8,4,12,.97),rgba(4,3,8,.88))!important;
+  border-bottom:1px solid rgba(255,106,0,.22)!important;
+  box-shadow:0 12px 50px rgba(0,0,0,.75),0 0 30px rgba(255,106,0,.035)!important;
+}
+.cr-nav::before{
+  background:linear-gradient(90deg,transparent,rgba(255,106,0,.10),rgba(157,92,255,.08),transparent)!important;
+}
+.cr-nav::after{
+  background:linear-gradient(90deg,transparent,rgba(255,106,0,.85),rgba(157,92,255,.8),rgba(255,49,88,.45),transparent)!important;
+  animation:crHalloweenEdge 4s ease-in-out infinite;
+}
+.cr-brand span,
+.cr-links a.active i,
+.cr-nav .nav-menu a b,
+.cr-nav .nav-badge{color:var(--cr-halloween-orange)!important}
+.cr-brand::before{background:var(--cr-halloween-orange)!important;box-shadow:0 0 14px var(--cr-halloween-orange)!important}
+.cr-links a:hover,.cr-links a.active,.cr-tools a:hover,.cr-tools button:hover,
+.cr-nav .nav-trigger:hover,.cr-nav .nav-group.open .nav-trigger{
+  background:rgba(255,106,0,.055)!important;
+  border-color:rgba(255,106,0,.25)!important;
+}
+.cr-nav .nav-menu{
+  background:rgba(8,4,13,.97)!important;
+  border-color:rgba(255,106,0,.22)!important;
+  box-shadow:0 22px 65px rgba(0,0,0,.88),0 0 30px rgba(157,92,255,.08)!important;
+}
+.cr-nav .nav-menu a:hover{
+  background:rgba(255,106,0,.07)!important;
+}
+.cr-nav .nav-badge{
+  background:rgba(255,106,0,.08)!important;
+  border-color:rgba(255,106,0,.35)!important;
+}
+.cr-nav .nav-badge.presence-live{
+  color:#ffb76b!important;
+  border-color:rgba(255,106,0,.45)!important;
+  background:rgba(255,106,0,.08)!important;
+}
+
+/* Panels / cards */
+.hero-main,.hero-side,.section,.rail-card{
+  background:
+    linear-gradient(145deg,rgba(14,8,19,.96),rgba(6,4,10,.96))!important;
+  border-color:rgba(255,255,255,.085)!important;
+  box-shadow:0 22px 70px rgba(0,0,0,.62),inset 0 0 50px rgba(157,92,255,.018)!important;
+}
+.hero-main,.section,.rail-card,.hero-side,.card,.quick-pick,.episode-row{
+  position:relative;
+}
+.hero-main::before,.section::before,.rail-card::before,.hero-side::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  background:linear-gradient(115deg,rgba(255,106,0,.055),transparent 30%,transparent 68%,rgba(157,92,255,.045));
+  opacity:.8;
+}
+.eyebrow{color:var(--cr-halloween-orange)!important}
+.gradient{
+  background:linear-gradient(100deg,#fff 8%,#ff9d2e 38%,#ff6a00 58%,#9d5cff 86%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+}
+.dot{
+  background:var(--cr-halloween-orange)!important;
+  box-shadow:0 0 14px var(--cr-halloween-orange),0 0 30px rgba(255,106,0,.35)!important;
+  animation:crHalloweenPulse 1.7s ease-in-out infinite;
+}
+.btn.primary{
+  border-color:rgba(255,106,0,.42)!important;
+  background:rgba(255,106,0,.10)!important;
+  box-shadow:0 0 20px rgba(255,106,0,.055);
+}
+.btn:hover,.card:hover,.quick-pick:hover{
+  border-color:rgba(255,106,0,.42)!important;
+  box-shadow:0 8px 30px rgba(255,106,0,.06);
+}
+.pulse-cell,.signal-chip,.search-result{
+  border-color:rgba(255,255,255,.085)!important;
+  background:rgba(255,255,255,.018)!important;
+}
+.pulse-cell strong{color:#fff!important}
+.pulse-cell span,.hero-stat-label{color:#7d6e88!important}
+.signal-chip:hover,.search-result:hover{
+  border-color:rgba(255,106,0,.38)!important;
+  background:rgba(255,106,0,.055)!important;
+}
+.quick-pick small,.card-body small,.section-head a,.search-result small{color:#ff9d2e!important}
+.rail-list a:hover{border-color:rgba(255,106,0,.30)!important}
+.good{color:#ff9d2e!important}
+.bad{color:#ff6f87!important}
+.play{
+  border-color:rgba(255,106,0,.32)!important;
+  background:rgba(255,106,0,.075)!important;
+  color:#ffe7cf!important;
+}
+
+/* Cinematic scanlines + vignette */
+main{
+  position:relative;
+}
+main > *{
+  animation:crHalloweenEntry .65s ease both;
+}
+main::marker{display:none}
+body .search-overlay{
+  background:rgba(0,0,0,.82)!important;
+}
+.search-panel{
+  background:rgba(8,4,13,.97)!important;
+  border-color:rgba(255,106,0,.30)!important;
+  box-shadow:0 35px 110px rgba(0,0,0,.9),0 0 45px rgba(157,92,255,.08)!important;
+}
+.search-panel input{
+  border-color:rgba(255,106,0,.18)!important;
+  background:#020106!important;
+}
+.toast{
+  border-color:rgba(255,106,0,.32)!important;
+  background:rgba(13,6,8,.96)!important;
+  box-shadow:0 15px 55px rgba(0,0,0,.82),0 0 25px rgba(255,106,0,.07)!important;
+}
+
+/* Halloween micro-details */
+.hero-kicker::before{
+  content:"☾";
+  color:var(--cr-halloween-purple);
+  font-size:12px;
+  text-shadow:0 0 12px rgba(157,92,255,.7);
+}
+.hero-kicker > span:first-child{display:none}
+.hero h1{text-shadow:0 0 35px rgba(157,92,255,.055)}
+.section-head h2,.rail-card h3{
+  text-shadow:0 0 20px rgba(255,106,0,.035);
+}
+.card,.quick-pick,.episode-row{
+  overflow:hidden;
+}
+.card::after,.quick-pick::after{
+  content:"";
+  position:absolute;
+  left:-120%;
+  top:0;
+  width:70%;
+  height:100%;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,106,0,.06),transparent);
+  transform:skewX(-18deg);
+  animation:crHalloweenSweep 9s ease-in-out infinite;
+}
+.card:nth-child(2)::after{animation-delay:2.2s}
+.card:nth-child(3)::after{animation-delay:4.4s}
+.card:nth-child(4)::after{animation-delay:6.6s}
+
+/* Flying bats — subtle and CSS-only */
+body::selection{background:rgba(255,106,0,.35);color:#fff}
+@keyframes crHalloweenBat{
+  0%{transform:translate3d(-10vw,0,0) rotate(-3deg);opacity:0}
+  8%{opacity:.42}
+  45%{transform:translate3d(45vw,-22px,0) rotate(3deg)}
+  82%{opacity:.30}
+  100%{transform:translate3d(112vw,18px,0) rotate(-2deg);opacity:0}
+}
+.cr-halloween-bats{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.cr-halloween-bats::before,.cr-halloween-bats::after{
+  content:"🦇  🦇";
+  position:absolute;
+  left:-15vw;
+  top:22%;
+  white-space:nowrap;
+  font-size:22px;
+  letter-spacing:22px;
+  filter:grayscale(1) brightness(.35) drop-shadow(0 0 8px rgba(157,92,255,.18));
+  animation:crHalloweenBat 25s linear infinite;
+}
+.cr-halloween-bats::after{
+  top:37%;
+  font-size:15px;
+  animation-duration:31s;
+  animation-delay:-11s;
+  opacity:.25;
+}
+
+/* Add a seasonal class without requiring page markup. */
+body.cr-halloween-theme .cr-halloween-bats{display:block}
+
+@keyframes crHalloweenAtmosphere{
+  from{transform:translateY(0);opacity:.42}
+  to{transform:translateY(-12px);opacity:.62}
+}
+@keyframes crHalloweenFog{
+  from{transform:translate3d(-2%,0,0) scale(1)}
+  to{transform:translate3d(3%,-2%,0) scale(1.06)}
+}
+@keyframes crHalloweenMoon{
+  0%,100%{transform:translateY(0) scale(1);opacity:.36}
+  50%{transform:translateY(8px) scale(1.035);opacity:.48}
+}
+@keyframes crHalloweenMist{
+  from{transform:translateX(-8%)}
+  to{transform:translateX(8%)}
+}
+@keyframes crHalloweenEdge{
+  0%,100%{opacity:.55}
+  50%{opacity:1}
+}
+@keyframes crHalloweenPulse{
+  0%,100%{transform:scale(1);opacity:.85}
+  50%{transform:scale(1.22);opacity:1}
+}
+@keyframes crHalloweenEntry{
+  from{opacity:.72;transform:translateY(4px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes crHalloweenSweep{
+  0%,70%,100%{left:-120%}
+  82%{left:130%}
+}
+
+/* Respect accessibility settings. */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    scroll-behavior:auto!important;
+  }
+}
+@media(max-width:700px){
+  main::before{
+    width:105px;height:105px;right:4vw;top:82px;
+  }
+  .cr-halloween-bats::before{font-size:16px;letter-spacing:12px}
+  .cr-halloween-bats::after{font-size:11px}
+}
