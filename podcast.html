@@ -397,20 +397,67 @@ async function fetchEpisodeData(pid){
  }
 }
 async function load(){
- const pid=new URLSearchParams(location.search).get("id");if(!pid)throw new Error("No podcast was specified.");
+ const pid=new URLSearchParams(location.search).get("id");
+ if(!pid)throw new Error("No podcast was specified.");
  try{
-   podcast=await fetchPodcastData(pid);podcastId=podcast.id;document.title=podcast.title+" — CrowRules Podcasting";
-   episodes=await fetchEpisodeData(podcastId);
+   // Core content is the only thing allowed to hold the loading screen.
+   // Auth, progress, counts, chat, realtime and Stripe recovery run after the
+   // podcast becomes visible so an optional Supabase service can never freeze
+   // the entire page.
+   const core=await withTimeout(Promise.all([
+     fetchPodcastData(pid),
+     (async()=>{const p=await fetchPodcastData(pid);return fetchEpisodeData(p.id)})()
+   ]),15000,"Podcast content");
+   podcast=core[0];podcastId=podcast.id;episodes=core[1]||[];
+   document.title=podcast.title+" — CrowRules Podcasting";
  }catch(e){
-   if(String(e?.message||"").startsWith("PODCAST_CONNECTION_SLOW:")){showSlowConnection(String(e.message).slice(24));return}
+   if(String(e?.message||"").startsWith("PODCAST_CONNECTION_SLOW:")){
+     showSlowConnection(String(e.message).slice(24));return;
+   }
    throw e;
  }
- user=await currentUser();renderHero();await loadProgress();renderFeatured();renderContinue();renderEpisodes();
- await Promise.allSettled([refreshCounts(),refreshSubscription(),loadChat()]);
- setupRealtime().catch(e=>{console.warn("Realtime setup:",e?.message||e);setMonitor("realtime","degraded",monitorError(e))});runConnectionMonitor().catch(e=>console.warn("Connection monitor:",e?.message||e));await handleCheckoutReturn();await resumePending();
- const c=await client();if(authSub)authSub.unsubscribe();authSub=c.auth.onAuthStateChange(async(_event,session)=>{user=session?.user||null;await loadProgress();renderContinue();await refreshSubscription();await refreshCounts()}).data?.subscription||null
- $("#loading").classList.add("hidden");$("#app").classList.remove("hidden")
+
+ // Show the actual podcast immediately.
+ user=null;
+ renderHero();
+ renderFeatured();
+ renderContinue();
+ renderEpisodes();
+ $("#loading").classList.add("hidden");
+ $("#app").classList.remove("hidden");
+
+ // Everything below is deliberately non-blocking.
+ currentUser().then(async u=>{
+   user=u;
+   try{await loadProgress()}catch(e){console.warn("Background progress:",e?.message||e)}
+   renderHero();
+   renderContinue();
+   await Promise.allSettled([
+     refreshCounts(),
+     refreshSubscription(),
+     loadChat()
+   ]);
+   setupRealtime().catch(e=>{console.warn("Realtime setup:",e?.message||e);setMonitor("realtime","degraded",monitorError(e))});
+   handleCheckoutReturn().catch(e=>console.warn("Checkout return:",e?.message||e));
+   resumePending().catch(e=>console.warn("Pending subscription:",e?.message||e));
+   try{
+     const c=await client();
+     if(authSub)authSub.unsubscribe();
+     authSub=c.auth.onAuthStateChange(async(_event,session)=>{
+       user=session?.user||null;
+       loadProgress().catch(()=>{});
+       renderHero();
+       renderContinue();
+       refreshSubscription().catch(()=>{});
+       refreshCounts().catch(()=>{});
+     }).data?.subscription||null;
+   }catch(e){console.warn("Auth listener:",e?.message||e)}
+ }).catch(e=>console.warn("Background auth:",e?.message||e));
+
+ // Diagnostics are informational only and can never block rendering.
+ runConnectionMonitor().catch(e=>console.warn("Connection monitor:",e?.message||e));
 }
+
 document.addEventListener("click",e=>{if(e.target.id==="runMonitor")runConnectionMonitor();if(e.target.id==="toggleMonitor"){const b=$("#monitorBody"),x=e.target;b.classList.toggle("hidden");x.textContent=b.classList.contains("hidden")?"Show":"Hide"}});
 load().catch(e=>{console.error("Podcast page:",e);showFatal(e?.message||"Unknown error.")});
 })();
