@@ -1,66 +1,52 @@
-name: CrowRules Podcasting — V7 Sitewide Page Sync
+name: CrowRules Podcasting — Universal Site Repair
 on:
   push:
     branches: [main]
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: crowrules-podcasting-site-repair
+  cancel-in-progress: false
 jobs:
-  install:
+  repair:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Force-sync V7 navigation and V12.1 shell on every HTML page
+      - name: Normalize every Podcasting HTML page
         shell: python
         run: |
           from pathlib import Path
           import re
-
-          CSS='css/podcasting.css?v=20261004-2'
-          CONFIG='js/config.js?v=12.1'
-          APP='js/app.js?v=12.1'
           changed=[]
-
+          css='css/podcasting.css?v=20261004-3'
+          config='js/config.js?v=20261004-3'
+          app='js/app.js?v=20261004-3'
+          nav='js/podcasting-nav-v7.js?v=20261004-3'
+          repair='js/site-repair-v1.js?v=20261004-1'
+          member='https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=2'
           for p in Path('.').rglob('*.html'):
-              if '.git' in p.parts:
-                  continue
-              s=p.read_text(encoding='utf-8')
-              original=s
-
-              # Remove direct legacy navigation loaders. V7 is now the single owner.
-              s=re.sub(r"""<script[^>]+src=["'][^"']*(?:podcasting-nav-v2|crowrules-podcasting-nav)[^"']*["'][^>]*>\s*</script>\s*""",'',s,flags=re.I)
-
-              # Remove duplicate generated nav hosts, then create exactly one.
-              s=re.sub(r"""<div\b[^>]*data-nav[^>]*>\s*</div>\s*""",'',s,flags=re.I)
+              if '.git' in p.parts: continue
+              s=p.read_text(encoding='utf-8'); original=s
+              s=re.sub(r'<script[^>]+src=["\'][^"\']*(?:podcasting-nav-v2|crowrules-podcasting-nav)[^"\']*["\'][^>]*>\s*</script>','',s,flags=re.I)
+              s=re.sub(r'<script[^>]+src=["\'][^"\']*(?:js/config\.js|js/app\.js|js/podcasting-nav-v7\.js|js/site-repair-v1\.js)[^"\']*["\'][^>]*>\s*</script>','',s,flags=re.I)
+              s=re.sub(r'<div\b[^>]*data-nav[^>]*>\s*</div>','',s,flags=re.I)
+              s=re.sub(r'<script[^>]+src=["\']https://crowrulesentertainment-oss\.github\.io/crowrulesentertainment/js/crowrules-universal-member\.js[^"\']*["\'][^>]*>\s*</script>','',s,flags=re.I)
               body=re.search(r'<body\b[^>]*>',s,flags=re.I)
               if body:
                   s=s[:body.end()]+'\n<div data-nav data-nav-owner="crowrules-podcasting-nav-v7"></div>'+s[body.end():]
-
-              # Normalize shared stylesheet/config/app references.
-              s=re.sub(r"""<link[^>]+href=["'][^"']*css/podcasting\.css(?:\?[^"']*)?["'][^>]*>\s*""",'',s,flags=re.I)
-              s=re.sub(r"""<script[^>]+src=["'][^"']*js/config\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*""",'',s,flags=re.I)
-              s=re.sub(r"""<script[^>]+src=["'][^"']*js/app\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*""",'',s,flags=re.I)
-
-              if re.search(r'</head>',s,re.I):
-                  tags=f'<link rel="stylesheet" href="{CSS}"><script src="{CONFIG}" defer></script><script src="{APP}" defer></script>'
-                  s=re.sub(r'</head>',tags+'</head>',s,count=1,flags=re.I)
-
+              tags=f'<link rel="stylesheet" href="{css}"><script src="{config}" defer></script><script src="{app}" defer></script><script src="{nav}" defer data-podcasting-nav-v7></script><script src="{repair}" defer data-site-repair="v1"></script><script src="{member}" defer></script>'
+              s=re.sub(r'</head>',tags+'</head>',s,count=1,flags=re.I)
               if s!=original:
-                  p.write_text(s,encoding='utf-8')
-                  changed.append(str(p))
-
-          print(f'Normalized {len(changed)} HTML pages')
-          for p in changed:
-              print(p)
-
-      - name: Commit sitewide page sync
+                  p.write_text(s,encoding='utf-8');changed.append(str(p))
+          print("Normalized",len(changed),"HTML pages")
+          print("\n".join(changed))
+      - name: Commit repairs
         run: |
-          git config user.name "CrowRules Universal Navigation"
+          git config user.name "CrowRules Universal Repair"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- '*.html'
-          if git diff --cached --quiet; then
-            echo "No HTML changes needed."
-            exit 0
-          fi
-          git commit -m "Force-sync CrowRules Podcasting V7 navigation and V12.1 shell on every page"
+          if git diff --cached --quiet; then echo "No HTML changes needed."; exit 0; fi
+          git commit -m "Repair and normalize all CrowRules Podcasting pages"
           git push
