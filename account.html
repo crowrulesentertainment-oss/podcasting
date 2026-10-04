@@ -47,7 +47,7 @@
 .hidden{display:none!important}
 @media(max-width:820px){.account-grid,.auth-grid{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.social-grid{grid-template-columns:1fr}}
 @media(max-width:500px){.kpis{grid-template-columns:1fr}.profile-head{align-items:flex-start}.avatar{width:58px;height:58px}}
-</style>
+.subscription-center{margin-top:18px}.subscription-list{display:grid;gap:12px}.subscription-row{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:16px;border:1px solid #ffffff12;border-radius:14px;background:#ffffff05}.subscription-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.sub-status{font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 8px;border-radius:999px;background:#ffffff0b}.sub-status.active,.sub-status.trialing{color:#9ff5c9;border:1px solid #68f2b255}.sub-status.past_due{color:#ffd58a;border:1px solid #ffd58a55}.sub-status.canceled{color:#ff9ca8;border:1px solid #ff6b7a55}.sub-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}@media(max-width:700px){.subscription-row{grid-template-columns:1fr}.sub-actions{justify-content:flex-start}}</style>
 </head>
 <body>
 <div data-nav></div><script src="js/creator-nav.js"></script>
@@ -322,6 +322,38 @@
     }
   }
 
+  async function loadSubscriptionCenter(sb,user){
+    const target=$("subscriptionCenter"),actions=$("subscriptionActions");
+    if(!target||!user)return;
+    try{
+      const session=await sb.auth.getSession(),token=session.data?.session?.access_token;
+      if(!token)throw new Error("Your session has expired.");
+      const cfg=window.CROW_CONFIG||{};
+      const endpoint=String(cfg.supabaseUrl||"").replace(/\/$/,"")+"/functions/v1/"+encodeURIComponent(cfg.podcastSubscriptionCenterFunction||"podcast-subscription-center");
+      const r=await fetch(endpoint,{method:"POST",headers:{Authorization:"Bearer "+token,apikey:cfg.supabaseKey,"Content-Type":"application/json"},body:JSON.stringify({origin:cfg.siteUrl||location.origin+"/podcasting/"})});
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(d.error||d.message||"Unable to load subscriptions.");
+      const rows=d.subscriptions||[];
+      if(!rows.length){
+        target.innerHTML='<div class="notice">No podcast subscriptions yet. When you subscribe to a creator, your plans will appear here.</div>';
+        actions.innerHTML='<a class="btn primary" href="home.html">Discover Podcasts</a>';
+        return;
+      }
+      const fmtDate=v=>v?new Date(v).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):"—";
+      const fmtMoney=(c,cur)=>{try{return new Intl.NumberFormat("en-US",{style:"currency",currency:String(cur||"usd").toUpperCase()}).format(Number(c||0)/100)}catch(_){return "$"+(Number(c||0)/100).toFixed(2)}};
+      target.innerHTML='<div class="subscription-list">'+rows.map(s=>{
+        const status=String(s.status||"unknown"), cadence=s.current_period_end?"Renews "+fmtDate(s.current_period_end):"";
+        const cancel=s.cancel_at_period_end?'Cancellation scheduled':'Auto-renewing';
+        return '<div class="subscription-row"><div><strong>'+esc(s.podcast_id||"Podcast Subscription")+'</strong><div class="subscription-meta"><span class="sub-status '+esc(status)+'">'+esc(status.replaceAll("_"," "))+'</span><span class="sub-status">'+esc(fmtMoney(s.amount_cents,s.currency))+'</span><span class="sub-status">'+esc(cancel)+'</span></div><div class="muted" style="margin-top:8px;font-size:11px">'+esc(cadence)+'</div></div><div class="sub-actions">'+(d.portal_url?'<button class="btn primary" type="button" data-portal>Manage Subscription</button>':"")+'</div></div>';
+      }).join("")+'</div>';
+      if(d.portal_url)document.querySelectorAll("[data-portal]").forEach(b=>b.onclick=()=>location.href=d.portal_url);
+      actions.innerHTML='<a class="btn" href="home.html">Discover More Podcasts</a>';
+    }catch(e){
+      console.error("Subscription center:",e);
+      target.innerHTML='<div class="notice error">'+esc(e.message||"Subscription center unavailable. Please refresh and try again.")+'</div>';
+    }
+  }
+
   async function boot(detail) {
     if(initialized)return;
     initialized=true;
@@ -341,7 +373,7 @@
     setStatus("Signed in • Universal CrowRules Account",true);
     $("signedOut").classList.add("hidden");
     $("signedIn").classList.remove("hidden");
-    try{await loadAccount(sb,user)}catch(e){console.error(e);setNotice("Your account is signed in, but some profile details could not be loaded. You can still use Podcasting.","error")}
+    try{await loadAccount(sb,user);await loadSubscriptionCenter(sb,user)}catch(e){console.error(e);setNotice("Your account is signed in, but some profile details could not be loaded. You can still use Podcasting.","error")}
   }
 
   async function waitForAuth() {
