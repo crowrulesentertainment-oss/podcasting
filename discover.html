@@ -2,8 +2,8 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#080808"><meta name="description" content="CrowRules Podcasting discovery — shows, episodes, creators and personalized listening.">
 <title>Discover — CrowRules Podcasting</title>
-<link rel="stylesheet" href="css/podcasting.css?v=20261003-45">
-<script src="js/config.js?v=20261003-42"></script><script src="js/podcasting.js?v=20261003-42" defer></script><script src="js/player.js?v=20261003-42" defer></script><script src="js/app.js?v=20261003-42" defer></script>
+<link rel="stylesheet" href="css/podcasting.css?v=20261003-46">
+<script src="js/config.js?v=20261003-43"></script><script src="js/podcasting.js?v=20261003-43" defer></script><script src="js/player.js?v=20261003-43" defer></script><script src="js/app.js?v=20261003-43" defer></script>
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
 <style>
 :root{--red:#f32929;--red2:#ff5b5b;--bg:#070707;--panel:#101011;--panel2:#161618;--text:#f7f7f7;--muted:#96969b;--line:#29292c}
@@ -46,6 +46,14 @@
 .v7-episode{border:1px solid #29292c;background:#111113;border-radius:4px;overflow:hidden;color:#fff;text-decoration:none}.v7-episode:hover{border-color:#555;transform:translateY(-2px)}.v7-episode img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#1b1b1d}.v7-episode-body{padding:11px}.v7-episode-title{font-size:11px;font-weight:900;line-height:1.4}.v7-episode-meta{font-size:8px;color:#777;margin-top:6px}.v7-release{color:#aaa;font-size:7px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-top:7px}
 @media(max-width:850px){.host-intel-grid{grid-template-columns:1fr}.host-intel-side{border-left:0;border-top:1px solid #2d2d31}.host-identity{align-items:flex-start}}
 @media(max-width:520px){.host-identity{display:block}.host-avatar{margin-bottom:14px}.host-stat-grid{grid-template-columns:1fr 1fr}.intel-rail>*{flex-basis:220px}}
+
+/* DISCOVER V8 — RESILIENT DISCOVERY CONTROL */
+.v8-control{margin:18px 0 0;padding:12px 14px;border:1px solid #29292c;background:#0d0d0e;border-radius:5px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.v8-health{display:flex;gap:7px;align-items:center;color:#888;font:800 8px Montserrat;letter-spacing:.1em;text-transform:uppercase}
+.v8-dot{width:7px;height:7px;border-radius:50%;background:#555;box-shadow:0 0 0 3px #5552}
+.v8-dot.live{background:#52d273;box-shadow:0 0 0 3px #52d27322}.v8-dot.warn{background:#f5a623;box-shadow:0 0 0 3px #f5a62322}.v8-dot.bad{background:#f32929;box-shadow:0 0 0 3px #f3292922}
+.v8-actions{display:flex;gap:6px}.v8-actions button{border:1px solid #333;background:#151517;color:#eee;border-radius:3px;padding:7px 10px;font:800 8px Montserrat;cursor:pointer}.v8-actions button:hover{border-color:#777}
+.host-intel{margin-top:48px}
 </style></head><body><div data-nav></div><main class="wrap discover">
 <section class="hero"><div class="hero-grid">
 <div class="hero-main"><div class="eyebrow"><span class="live-badge"><span class="dot"></span> CROWRULES PODCASTING · DISCOVER</span></div><h1>Find what you’ll <span class="gradient">listen to next.</span></h1><p class="lead">A redesigned discovery front door for CrowRules — built around shows, episodes, creators, your listening history and fresh programming.</p>
@@ -79,7 +87,7 @@
 <section class="section"><div class="section-head"><div><div class="eyebrow">CREATOR SPOTLIGHT</div><h2>Top Hosts</h2><p>Creators generating strong audience signals.</p></div></div><div id="topHosts" class="rail creator-rail"></div></section>
 <section class="section"><div class="section-head"><div><div class="eyebrow">JUST ARRIVED</div><h2>Newest Episodes</h2><p>The latest published releases.</p></div></div><div id="newest" class="rail episode-rail"></div></section>
 
-<section id="hostIntelSection" class="host-intel section">
+<div class="v8-control" id="discoverHealth" role="status" aria-live="polite"><div class="v8-health"><span id="healthDot" class="v8-dot"></span><span id="healthText">Discovery engine initializing</span><span id="healthUpdated"></span></div><div class="v8-actions"><button id="refreshDiscover" type="button">Refresh catalog</button></div></div><section id="hostIntelSection" class="host-intel section">
   <div class="host-intel-grid">
     <div class="host-spotlight">
       <div class="host-kicker">V7 · HOST SPOTLIGHT</div>
@@ -114,7 +122,7 @@
 const $=id=>document.getElementById(id), esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),fmt=n=>Number(n||0).toLocaleString(),daysAgo=v=>v?Math.max(0,(Date.now()-new Date(v))/86400000):9999;
 const fmtDate=v=>v?new Intl.DateTimeFormat(undefined,{month:"short",day:"numeric",year:"numeric"}).format(new Date(v)):"";
 const fmtTime=s=>{s=Math.max(0,Math.floor(Number(s)||0));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?h+":"+String(m).padStart(2,"0")+":"+String(x).padStart(2,"0"):m+":"+String(x).padStart(2,"0")};
-let sb,podcasts=[],episodes=[],creators=[],categories=[],following=new Set(),saved=new Set(),history=new Map(),feedback=new Map(),hiddenShows=new Set(),boostShows=new Set(),query="",resultTab="all",activeCategory="",period="all",realtimeChannel=null,personalReady=false;
+let sb,podcasts=[],episodes=[],creators=[],categories=[],following=new Set(),saved=new Set(),history=new Map(),feedback=new Map(),hiddenShows=new Set(),boostShows=new Set(),query="",resultTab="all",activeCategory="",period="all",realtimeChannel=null,personalReady=false,realtimeRetryTimer=null,realtimeStarting=false,lastCatalogSync=0;
 
 function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),2500)}
 function empty(m){return '<div class="empty"><strong>'+esc(m)+'</strong><span>New CrowRules programming will appear here automatically.</span></div>'}
@@ -192,7 +200,7 @@ function dailyMix(){const cont=continueEpisodes(),fav=followedEpisodes(),fresh=n
 function categoryRail(){return categories.map(c=>{const ps=podcasts.filter(p=>p.category===c.name);return {...c,count:ps.length,plays:ps.reduce((n,p)=>n+Number(p.total_plays||0),0)}}).filter(c=>c.count).sort((a,b)=>b.plays-a.plays).slice(0,12).map((c,i)=>'<a class="card show-card" href="#" data-category-jump="'+esc(c.name)+'">'+cover(c.image_url||podcasts.find(p=>p.category===c.name)?.artwork_url)+'<div class="body"><div class="rank">#'+(i+1)+' CATEGORY</div><div class="title">'+esc(c.name)+'</div><div class="sub">'+fmt(c.count)+' show'+(c.count===1?"":"s")+' · '+fmt(c.plays)+' plays</div></div></a>').join("")}
 function feedbackReason(p){const f=feedback.get(p.id),a=affinity(),r=[];if(f?.action==="more_like_this")r.push("You asked CrowRules for more like this.");if(following.has(p.id))r.push("You follow this show.");if(a.cats.has(p.category))r.push("You listen to "+p.category+".");if(p.creator_id&&a.creats.has(p.creator_id))r.push("You have listened to this creator.");return r.length?r.slice(0,2).join(" "):"Fresh catalog discovery with popularity and freshness signals."}
 async function recordFeedback(id,action){if(!personalReady){toast("Sign in to personalize Discover.");return}const uid=window.__CROW_USER.id,p=podcasts.find(x=>x.id===id);if(!p)return;try{const {error}=await sb.from("podcast_creator_recommendation_feedback").insert({user_id:uid,recommendation_key:"discover-v5:"+id,podcast_id:id,action,recommendation:{title:p.title,category:p.category,creator_id:p.creator_id,source:"discover-v5"}});if(error)throw error;feedback.set(id,{podcast_id:id,action});if(action==="hide"||action==="not_interested")hiddenShows.add(id);if(action==="more_like_this")boostShows.add(id);toast(action==="not_interested"?"We'll show you less like this.":action==="hide"?"Show hidden from recommendations.":"Your recommendations are learning from that.");renderAll()}catch(e){console.error(e);toast("Could not save recommendation feedback.")}}
-async function toggleFollow(id){if(!personalReady){toast("Sign in to follow shows.");return}const uid=window.__CROW_USER.id;if(following.has(id)){const r=await sb.from("podcast_follows").delete().eq("user_id",uid).eq("podcast_id",id);if(r.error){toast("Could not update follow.");return}following.delete(id);toast("Show unfollowed.")}else{const r=await sb.from("podcast_follows").insert({user_id:uid,podcast_id:id});if(r.error){toast("Could not follow this show.");return}following.add(id);toast("Show followed.")}renderAll()}
+async async function toggleFollow(id){if(!personalReady){toast("Sign in to follow shows.");return}const uid=window.__CROW_USER.id;if(following.has(id)){const r=await sb.from("podcast_follows").delete().eq("user_id",uid).eq("podcast_id",id);if(r.error){toast("Could not update follow.");return}following.delete(id);toast("Show unfollowed.")}else{const r=await sb.from("podcast_follows").insert({user_id:uid,podcast_id:id});if(r.error){toast("Could not follow this show.");return}following.add(id);toast("Show followed.")}renderAll()}
 function renderPersonal(){
  const cont=continueEpisodes(),fav=followedEpisodes(),sav=savedEpisodes(),bf=becauseFollow(),fin=becauseFinished(),mc=moreFromCreator(),sim=similarShows(),mix=dailyMix();
  const sections=[["continueSection",cont],["followSection",fav],["savedSection",sav],["becauseFollowSection",bf],["finishedSection",fin],["creatorSection",mc],["similarSection",sim],["dailyMixSection",mix]];
@@ -228,15 +236,24 @@ function renderAll(){
 }
 let contentFilter="all",sortFilter="smart",freshFilter="all";
 function discoveryFiltered(rows,type){
-  const now=Date.now(), days=Number(freshFilter)||0;
-  return rows.filter(x=>{
-    if(days && daysAgo(x.published_at||x.created_at)>days)return false;
-    return true;
-  }).sort((a,b)=>{
-    if(sortFilter==="newest")return new Date(b.published_at||b.created_at||0)-new Date(a.published_at||a.created_at||0);
-    if(sortFilter==="popular")return Number(b.total_plays||b.play_count||0)-Number(a.total_plays||a.play_count||0);
-    return Number(b._score||0)-Number(a._score||0);
-  });
+ const now=Date.now(), days=Number(freshFilter)||0;
+ return rows.filter(x=>{
+   if(days && daysAgo(x.published_at||x.created_at)>days)return false;
+   if(hiddenShows.has(x.podcast_id||x.id))return false;
+   return true;
+ }).map(x=>{
+   const p=type==="episodes"?podcastOf(x):x;
+   const catBoost=p?.category&&affinity().cats.has(p.category)?24:0;
+   const creatorBoost=p?.creator_id&&affinity().creats.has(p.creator_id)?32:0;
+   const feedbackBoost=boostShows.has(p?.id||x.podcast_id)?40:0;
+   const freshness=Math.max(0,90-daysAgo(x.published_at||x.created_at));
+   const popularity=Math.log10(1+Number(x.total_plays||x.play_count||0))*12;
+   return {...x,_score:catBoost+creatorBoost+feedbackBoost+freshness*.25+popularity};
+ }).sort((a,b)=>{
+   if(sortFilter==="newest")return new Date(b.published_at||b.created_at||0)-new Date(a.published_at||a.created_at||0);
+   if(sortFilter==="popular")return Number(b.total_plays||b.play_count||0)-Number(a.total_plays||a.play_count||0);
+   return Number(b._score||0)-Number(a._score||0);
+ });
 }
 function renderActiveFilters(){
   const el=$("activeFilters"); if(!el)return;
@@ -291,7 +308,7 @@ function renderHostSpotlight(){
  $("spotlightPopular").innerHTML=popular.map(v7EpisodeCard).join("")||empty("No episode activity yet.");
  $("spotlightFollow").textContent=spotlightHostShows.length&&spotlightHostShows.every(p=>following.has(p.id))?"Following Host":"Follow Host";
 }
-async function v7FollowHost(){
+async async function v7FollowHost(){
  if(!personalReady){toast("Sign in to follow this host.");return}
  if(!spotlightHostShows.length){toast("This host has no followable shows yet.");return}
  const uid=window.__CROW_USER.id, all=spotlightHostShows.every(p=>following.has(p.id));
@@ -304,7 +321,7 @@ async function v7FollowHost(){
  }
  $("spotlightFollow").textContent=all?"Follow Host":"Following Host";renderAll();renderHostSpotlight();toast(all?"Host unfollowed.":"All available shows from this host are now followed.");
 }
-async function v7LikeHost(){
+async async function v7LikeHost(){
  if(!personalReady){toast("Sign in to personalize Discover.");return}
  const uid=window.__CROW_USER.id;
  for(const p of spotlightHostShows.slice(0,5)){try{await sb.from("podcast_creator_recommendation_feedback").insert({user_id:uid,recommendation_key:"discover-v7-host:"+p.id,podcast_id:p.id,action:"more_like_this",recommendation:{title:p.title,creator_id:p.creator_id,source:"discover-v7-host"}})}catch(e){console.warn(e)}boostShows.add(p.id)}
@@ -313,13 +330,53 @@ async function v7LikeHost(){
 }
 
 let bootPromise=null;
-async function boot(){if(bootPromise)return bootPromise;bootPromise=(async()=>{try{$("signalSync").textContent="Connecting…";if(window.CROW_BOOTSTRAP)await window.CROW_BOOTSTRAP();else if(window.CROW_SUPABASE_READY)await window.CROW_SUPABASE_READY;sb=window.CROW_SUPABASE;if(!sb)throw Error("CrowRules Supabase client is not ready.");$("signalSync").textContent="Connected";await loadCatalog();await loadPersonal();chips();renderAll();renderResults();startRealtime()}catch(err){console.error("Discover:",err);$("signalSync").textContent="Connection issue";["topPodcasts","topEpisodes","trending","topHosts","newest","categoryRail","results"].forEach(id=>render(id,"",id==="results"?"Catalog search is unavailable right now.":"This section could not load."));$("featuredTitle").textContent="Discovery is connecting…";$("featuredMeta").textContent=err.message||"Please retry the page."}finally{bootPromise=null}})();return bootPromise}
-function startRealtime(){if(!sb||realtimeChannel)return;try{realtimeChannel=sb.channel("discover-v6-live").on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},refreshLive).on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},refreshLive).subscribe(status=>{const el=$("signalSync");if(status==="SUBSCRIBED")el.textContent="Live sync";else if(status==="TIMED_OUT"||status==="CHANNEL_ERROR"){el.textContent="Live sync retrying…";setTimeout(()=>{if(realtimeChannel){try{sb.removeChannel(realtimeChannel)}catch{}realtimeChannel=null}startRealtime()},1500)}else if(status==="CLOSED")el.textContent="Connected · realtime offline"}})}catch(e){console.warn(e);$("signalSync").textContent="Connected · realtime offline"}}
-let refreshTimer;async function refreshLive(){clearTimeout(refreshTimer);refreshTimer=setTimeout(async()=>{try{await loadCatalog();renderAll();if(query)renderResults();$("signalSync").textContent="Live sync"}catch(e){console.warn(e)}},800)}
+async async function boot(){
+ if(bootPromise)return bootPromise;
+ bootPromise=(async()=>{
+  try{
+   setHealth("warn","Connecting to CrowRules…");$("signalSync").textContent="Connecting…";
+   if(window.CROW_BOOTSTRAP)await window.CROW_BOOTSTRAP();else if(window.CROW_SUPABASE_READY)await window.CROW_SUPABASE_READY;
+   sb=window.CROW_SUPABASE;if(!sb)throw Error("CrowRules Supabase client is not ready.");
+   $("signalSync").textContent="Connected";await loadCatalog();await loadPersonal();chips();renderAll();renderResults();
+   lastCatalogSync=Date.now();setHealth("live","Catalog connected");startRealtime();
+  }catch(err){
+   console.error("Discover boot:",err);setHealth("bad","Connection issue · catalog unavailable");$("signalSync").textContent="Connection issue";
+   ["topPodcasts","topEpisodes","trending","topHosts","newest","categoryRail","results"].forEach(id=>render(id,"",id==="results"?"Catalog search is unavailable right now.":"This section could not load."));
+   $("featuredTitle").textContent="Discovery is temporarily unavailable";$("featuredMeta").textContent=err.message||"Please refresh and try again.";
+  }finally{bootPromise=null}
+ })();return bootPromise;
+}
+async function stopRealtime(){
+ if(realtimeRetryTimer){clearTimeout(realtimeRetryTimer);realtimeRetryTimer=null}
+ if(realtimeChannel&&sb){const ch=realtimeChannel;realtimeChannel=null;try{await sb.removeChannel(ch)}catch(e){console.warn("Realtime cleanup:",e)}}
+}
+function startRealtime(){
+ if(!sb||realtimeChannel||realtimeStarting)return;
+ realtimeStarting=true;setHealth("warn","Connecting live sync…");
+ try{
+  const ch=sb.channel("discover-v8-live");
+  ch.on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},refreshLive)
+    .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},refreshLive)
+    .subscribe((status,err)=>{
+      realtimeStarting=false;
+      if(status==="SUBSCRIBED"){realtimeChannel=ch;setHealth("live","Live sync");return}
+      if(status==="TIMED_OUT"||status==="CHANNEL_ERROR"){
+       console.warn("Discover realtime:",status,err);
+       setHealth("warn","Live sync retrying…");
+       if(realtimeChannel===ch)realtimeChannel=null;
+       try{sb.removeChannel(ch)}catch{}
+       if(realtimeRetryTimer)clearTimeout(realtimeRetryTimer);
+       realtimeRetryTimer=setTimeout(()=>{realtimeRetryTimer=null;startRealtime()},2500);
+      }else if(status==="CLOSED"){if(realtimeChannel===ch)realtimeChannel=null;setHealth("warn","Realtime offline · catalog still works")}
+    });
+ }catch(e){realtimeStarting=false;console.warn("Discover realtime setup:",e);setHealth("warn","Realtime unavailable · catalog still works")}
+}
+let refreshTimer;async function refreshLive(){clearTimeout(refreshTimer);refreshTimer=setTimeout(async()=>{try{await loadCatalog();renderAll();if(query)renderResults();lastCatalogSync=Date.now();setHealth(realtimeChannel?"live":"warn",realtimeChannel?"Live sync":"Catalog refreshed")}catch(e){console.warn("Live refresh:",e);setHealth("warn","Catalog refresh failed · using cached results")}},900)}
 $("search").addEventListener("input",()=>{suggestions();query=$("search").value.trim();renderResults()});$("search").addEventListener("keydown",e=>{if(e.key==="Enter")search();if(e.key==="Escape")$("suggestions").classList.remove("open")});$("searchBtn").onclick=search;
 document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))$("suggestions").classList.remove("open");const a=e.target.closest("[data-feedback]");if(a){e.preventDefault();e.stopPropagation();const id=a.dataset.podcastId,k=a.dataset.feedback;if(k==="why"){const p=podcasts.find(x=>x.id===id),af=affinity();$("whyText").textContent=p?"CrowRules is recommending "+p.title+" using your follows, listening history, completion behavior, creator/category affinity, freshness and audience activity.":"This recommendation uses current CrowRules catalog signals.";$("whySignals").innerHTML=[["Category",p?.category&&af.cats.has(p.category)?"Matches your listening":"Fresh exploration"],["Creator",p?.creator_id&&af.creats.has(p.creator_id)?"Matches a creator you listen to":"New creator"],["Freshness",p&&daysAgo(p.created_at)<14?"Recently added":"Established catalog signal"],["Your feedback",feedback.get(id)?.action||"None yet"]].map(x=>'<div class="signal-row"><span>'+esc(x[0])+'</span><strong>'+esc(x[1])+'</strong></div>').join("");$("whyModal").hidden=false;return}if(k==="follow"){toggleFollow(id);return}recordFeedback(id,k==="more"?"more_like_this":k);return}const close=e.target.closest("[data-close-modal]");if(close)$("whyModal").hidden=true;const b=e.target.closest("[data-resume]");if(b){e.preventDefault();e.stopPropagation();location.href=episodeUrl(b.dataset.resume)}});
 document.querySelectorAll("[data-result-tab]").forEach(b=>b.onclick=()=>{resultTab=b.dataset.resultTab;renderResults()});
 $("spotlightFollow").onclick=()=>v7FollowHost();$("spotlightLike").onclick=()=>v7LikeHost();
+$("refreshDiscover").onclick=async()=>{setHealth("warn","Refreshing catalog…");await stopRealtime();await boot();};
 $("contentFilter").onchange=e=>{contentFilter=e.target.value;renderAll();renderResults()};
 $("sortFilter").onchange=e=>{sortFilter=e.target.value;renderAll();renderResults()};
 $("freshFilter").onchange=e=>{freshFilter=e.target.value;renderAll();renderResults()};
