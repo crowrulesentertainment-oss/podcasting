@@ -2,8 +2,8 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#080808"><meta name="description" content="CrowRules Podcasting discovery — shows, episodes, creators and personalized listening.">
 <title>Discover — CrowRules Podcasting</title>
-<link rel="stylesheet" href="css/podcasting.css?v=20261003-46">
-<script src="js/config.js?v=20261003-43"></script><script src="js/podcasting.js?v=20261003-43" defer></script><script src="js/player.js?v=20261003-43" defer></script><script src="js/app.js?v=20261003-43" defer></script>
+<link rel="stylesheet" href="css/podcasting.css?v=20261003-47">
+<script src="js/config.js?v=20261003-44"></script><script src="js/podcasting.js?v=20261003-44" defer></script><script src="js/player.js?v=20261003-44" defer></script><script src="js/app.js?v=20261003-44" defer></script>
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
 <style>
 :root{--red:#f32929;--red2:#ff5b5b;--bg:#070707;--panel:#101011;--panel2:#161618;--text:#f7f7f7;--muted:#96969b;--line:#29292c}
@@ -408,15 +408,61 @@ async function v7LikeHost(){
 }
 
 let bootPromise=null;
+async function waitForSupabaseClient(timeoutMs=15000){
+ const started=Date.now();
+ const pause=ms=>new Promise(r=>setTimeout(r,ms));
+ while(Date.now()-started<timeoutMs){
+  if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
+  try{
+   if(typeof window.CROW_BOOTSTRAP==="function")return await Promise.race([
+    window.CROW_BOOTSTRAP(),
+    new Promise((_,reject)=>setTimeout(()=>reject(Error("Supabase bootstrap timed out.")),Math.min(8000,timeoutMs)))
+   ]);
+  }catch(e){console.warn("Discover Supabase bootstrap:",e)}
+  try{
+   if(window.CROW_SUPABASE_READY)await Promise.race([
+    window.CROW_SUPABASE_READY,
+    new Promise((_,reject)=>setTimeout(()=>reject(Error("Supabase ready promise timed out.")),4000))
+   ]);
+  }catch(e){console.warn("Discover Supabase ready:",e)}
+  if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
+  await pause(150);
+ }
+ throw Error("Supabase client could not initialize.");
+}
+async function syncDiscoverAuth(client){
+ try{
+  const result=await Promise.race([
+   client.auth.getSession(),
+   new Promise((_,reject)=>setTimeout(()=>reject(Error("Authentication check timed out.")),7000))
+  ]);
+  const user=result?.data?.session?.user||null;
+  if(user)window.__CROW_USER=user;
+  window.__CROW_AUTH_READY=true;
+  window.dispatchEvent(new CustomEvent("crow:discover-auth",{detail:{user,supabase:client}}));
+  return user;
+ }catch(e){console.warn("Discover auth sync:",e);return window.__CROW_USER||null}
+}
+async function verifyDiscoverConnection(client){
+ const result=await Promise.race([
+  client.from("podcasts").select("id",{head:true,count:"exact"}),
+  new Promise((_,reject)=>setTimeout(()=>reject(Error("Catalog health check timed out.")),8000))
+ ]);
+ if(result.error)throw result.error;
+ return Number(result.count||0);
+}
 async function boot(){
  if(bootPromise)return bootPromise;
  bootPromise=(async()=>{
   try{
    setHealth("warn","Connecting to CrowRules…");$("signalSync").textContent="Connecting…";
-   if(window.CROW_BOOTSTRAP)await window.CROW_BOOTSTRAP();else if(window.CROW_SUPABASE_READY)await window.CROW_SUPABASE_READY;
-   sb=window.CROW_SUPABASE;if(!sb)throw Error("CrowRules Supabase client is not ready.");
-   $("signalSync").textContent="Connected";await loadCatalog();await loadPersonal();chips();renderAll();renderResults();
-   lastCatalogSync=Date.now();setHealth("live","Catalog connected");startRealtime();
+   sb=await waitForSupabaseClient();
+   if(!sb)throw Error("CrowRules Supabase client is not ready.");
+   await syncDiscoverAuth(sb);
+   const catalogCount=await verifyDiscoverConnection(sb);
+   $("signalSync").textContent="Connected";
+   await loadCatalog();await loadPersonal();chips();renderAll();renderResults();
+   lastCatalogSync=Date.now();setHealth("live",catalogCount?"Catalog connected":"Connected · catalog is empty");startRealtime();
   }catch(err){
    console.error("Discover boot:",err);setHealth("bad","Connection issue · catalog unavailable");$("signalSync").textContent="Connection issue";
    ["topPodcasts","topEpisodes","trending","topHosts","newest","categoryRail","results"].forEach(id=>render(id,"",id==="results"?"Catalog search is unavailable right now.":"This section could not load."));
