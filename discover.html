@@ -455,9 +455,9 @@ document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))$("su
 document.querySelectorAll("[data-result-tab]").forEach(b=>b.onclick=()=>{resultTab=b.dataset.resultTab;renderResults()});
 $("spotlightFollow").onclick=()=>v7FollowHost();$("spotlightLike").onclick=()=>v7LikeHost();
 $("refreshDiscover").onclick=async()=>{setHealth("warn","Refreshing catalog…");await stopRealtime();await boot();};
-$("contentFilter").onchange=e=>{contentFilter=e.target.value;renderAll();renderResults()};
-$("sortFilter").onchange=e=>{sortFilter=e.target.value;renderAll();renderResults()};
-$("freshFilter").onchange=e=>{freshFilter=e.target.value;renderAll();renderResults()};
+$("contentFilter").onchange=e=>{contentFilter=e.target.value;renderAll();renderResults();savePreferences();track("filter_change",{metadata:{content_filter:contentFilter}})};
+$("sortFilter").onchange=e=>{sortFilter=e.target.value;renderAll();renderResults();savePreferences();track("filter_change",{metadata:{sort_filter:sortFilter}})};
+$("freshFilter").onchange=e=>{freshFilter=e.target.value;renderAll();renderResults();savePreferences();track("filter_change",{metadata:{fresh_days:freshFilter}})};
 $("resetDiscovery").onclick=()=>{contentFilter="all";sortFilter="smart";freshFilter="all";$("contentFilter").value="all";$("sortFilter").value="smart";$("freshFilter").value="all";renderAll();renderResults()};
 document.querySelectorAll("[data-period]").forEach(b=>b.onclick=()=>{period=b.dataset.period;document.querySelectorAll("[data-period]").forEach(x=>x.classList.toggle("active",x.dataset.period===period));renderAll()});
 window.addEventListener("keydown",e=>{if(e.key==="Escape")$("whyModal").hidden=true});window.addEventListener("online",()=>boot());window.addEventListener("crow:ready",()=>boot(),{once:true});boot();
@@ -470,6 +470,9 @@ window.addEventListener("keydown",e=>{if(e.key==="Escape")$("whyModal").hidden=t
   function jget(k,f){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(f))}catch{return f}}
   function jset(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){console.warn("Discover local storage:",e)}}
   function setToolkitStatus(msg){const el=document.getElementById("toolkitStatus");if(el)el.textContent=msg}
+  async function track(event_type, extra={}){if(!personalReady||!sb||!window.__CROW_USER?.id)return;try{await sb.from("podcast_discover_events").insert({user_id:window.__CROW_USER.id,event_type,podcast_id:extra.podcast_id||null,episode_id:extra.episode_id||null,creator_id:extra.creator_id||null,query:extra.query||null,category:extra.category||null,metadata:extra.metadata||{}})}catch(e){console.warn("Discover analytics:",e)}}
+  async function syncDiscoverState(){if(!personalReady||!sb||!window.__CROW_USER?.id)return;const uid=window.__CROW_USER.id;try{const [pref,savedRows]=await Promise.all([sb.from("podcast_discover_preferences").select("*").eq("user_id",uid).maybeSingle(),sb.from("podcast_discover_saved_searches").select("id,query,label,category,content_filter,created_at,updated_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(20)]);if(pref.data){const p=pref.data;contentFilter=p.content_filter||"all";sortFilter=p.sort_filter||"smart";freshFilter=p.fresh_days?"all":p.fresh_days===0?"all":String(p.fresh_days);activeCategory=p.active_category||"";$("contentFilter").value=contentFilter;$("sortFilter").value=sortFilter;$("freshFilter").value=freshFilter}if(!savedRows.error&&savedRows.data?.length){jset(LS_SAVED,savedRows.data.map(x=>({id:x.id,query:x.query,label:x.label,category:x.category,at:new Date(x.created_at).getTime()})));renderSavedSearches()}}catch(e){console.warn("Discover state sync:",e)}}
+  let prefTimer;async function savePreferences(){if(!personalReady||!sb||!window.__CROW_USER?.id)return;clearTimeout(prefTimer);prefTimer=setTimeout(async()=>{try{await sb.from("podcast_discover_preferences").upsert({user_id:window.__CROW_USER.id,content_filter:contentFilter,sort_filter:sortFilter,fresh_days:freshFilter==="all"?0:Number(freshFilter)||0,focus_mode:document.body.classList.contains("discover-focus"),active_category:activeCategory||null,updated_at:new Date().toISOString()},{onConflict:"user_id"})}catch(e){console.warn("Discover preferences:",e)}},250)}
   function renderSavedSearches(){
     const el=document.getElementById("savedSearches"); if(!el)return;
     const rows=jget(LS_SAVED,[]);
@@ -498,11 +501,11 @@ window.addEventListener("keydown",e=>{if(e.key==="Escape")$("whyModal").hidden=t
     setToolkitStatus("Surprise pick: "+pick.title);
     location.href=pick.url;
   }
-  function saveSearch(){
+  async function saveSearch(){
     const q=(document.getElementById("search")?.value||"").trim();
     if(!q){setToolkitStatus("Enter a search first, then save it.");document.getElementById("search")?.focus();return}
     const rows=jget(LS_SAVED,[]).filter(x=>x.query!==q);
-    rows.unshift({query:q,label:q,at:Date.now()});jset(LS_SAVED,rows.slice(0,8));renderSavedSearches();setToolkitStatus("Saved search: "+q);
+    if(personalReady&&sb&&window.__CROW_USER?.id){try{const r=await sb.from("podcast_discover_saved_searches").insert({user_id:window.__CROW_USER.id,query:q,label:q,category:activeCategory||null,content_filter:contentFilter});if(r.error)throw r.error;await sb.from("podcast_discover_events").insert({user_id:window.__CROW_USER.id,event_type:"save_search",query:q,category:activeCategory||null,metadata:{source:"discover-v9"}})}catch(e){console.warn("Saved search sync:",e)}}rows.unshift({query:q,label:q,category:activeCategory||"",at:Date.now()});jset(LS_SAVED,rows.slice(0,8));renderSavedSearches();setToolkitStatus("Saved search: "+q);
   }
   function shareDiscover(){
     const u=new URL(location.href);
@@ -517,7 +520,7 @@ window.addEventListener("keydown",e=>{if(e.key==="Escape")$("whyModal").hidden=t
     const on=document.body.classList.contains("discover-focus");
     try{localStorage.setItem(LS_FOCUS,on?"1":"0")}catch{}
     const b=document.getElementById("focusMode");if(b){b.textContent=on?"Exit Focus Mode":"Focus Mode";b.setAttribute("aria-pressed",String(on))}
-    setToolkitStatus(on?"Focus Mode enabled.":"Focus Mode disabled.");
+    setToolkitStatus(on?"Focus Mode enabled.":"Focus Mode disabled.");savePreferences();track(on?"focus_on":"focus_off");
   }
   function resetEverything(){
     try{localStorage.removeItem(LS_SAVED);localStorage.removeItem(LS_RECENT);localStorage.removeItem(LS_FOCUS)}catch{}
@@ -527,7 +530,7 @@ window.addEventListener("keydown",e=>{if(e.key==="Escape")$("whyModal").hidden=t
   }
   document.getElementById("surpriseMe")?.addEventListener("click",surprise);
   document.getElementById("saveSearch")?.addEventListener("click",saveSearch);
-  document.getElementById("shareDiscover")?.addEventListener("click",shareDiscover);
+  document.getElementById("shareDiscover")?.addEventListener("click",()=>{shareDiscover();track("share",{query:(document.getElementById("search")?.value||"").trim(),category:activeCategory||null})});
   document.getElementById("focusMode")?.addEventListener("click",toggleFocus);
   document.getElementById("resetAllDiscovery")?.addEventListener("click",resetEverything);
   document.getElementById("clearHidden")?.addEventListener("click",()=>{hiddenShows.clear();renderAll();renderResults();setToolkitStatus("Hidden shows restored.")});
