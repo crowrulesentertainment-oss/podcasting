@@ -70,7 +70,17 @@ async function context(){
   const sb=window.CROW_SUPABASE;if(!sb)return;
   const user=window.__CROW_USER;
   const set=(id,v,show=true)=>{document.querySelectorAll('[data-badge="'+id+'"]').forEach(e=>{e.textContent=v||"";e.classList.toggle("has-value",show&&!!v)})};
-  set("activity",window.CROW_PRESENCE_COUNT?String(window.CROW_PRESENCE_COUNT):"0",true);
+  set("activity",function renderLiveCounts(){
+  const ch=window.CROW_PRESENCE_CHANNEL;if(!ch)return;
+  const state=ch.presenceState()||{}, rows=[];
+  Object.keys(state).forEach(k=>(state[k]||[]).forEach(m=>{if(m.mode==="listener")rows.push(m)}));
+  const counts={network:rows.length,podcast:{},episode:{}};
+  rows.forEach(m=>{if(m.podcast_id)counts.podcast[m.podcast_id]=(counts.podcast[m.podcast_id]||0)+1;if(m.episode_id)counts.episode[m.episode_id]=(counts.episode[m.episode_id]||0)+1});
+  window.CROW_LIVE_LISTENER_COUNTS=counts;
+  document.querySelectorAll("[data-live-listeners]").forEach(el=>{const type=el.dataset.liveType||"network",id=el.dataset.liveId;const n=type==="network"?counts.network:(counts[type]?.[id]||0);el.textContent=n+" "+(n===1?"Listening Now":"Listening Now")});
+  window.dispatchEvent(new CustomEvent("crow:live-listeners",{detail:counts}));
+}
+window.CROW_PRESENCE_COUNT?String(window.CROW_PRESENCE_COUNT):"0",true);
   set("account",user?"SIGNED IN":"SIGN IN",true);
   if(!user){set("library","");set("continue","");set("notifications","");set("creator","");return}
   try{
