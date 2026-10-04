@@ -151,7 +151,28 @@ function renderRankings(){
  rankingEl.innerHTML=list("Podcast Ranking",p,"podcast_title",function(x){return num(x.followers)+" followers · "+num(x.listens)+" listens"})+list("Episode Ranking",e,"episode_title",function(x){return esc(x.podcast_title||"Podcast")+" · "+num(x.play_count||x.listens)+" plays"})+list("Host Ranking",h,"host_name",function(x){return num(x.podcast_count)+" podcasts · "+num(x.followers)+" followers"});
 }
 function renderAbout(p){document.getElementById("aboutTitle").textContent=p.title||"Podcast";document.getElementById("aboutText").textContent=p.description||"A CrowRules Podcasting show.";document.getElementById("aboutChips").innerHTML="<span class='chip cyan'>"+esc(p.category||"Podcast")+"</span>"+(p.author_name?"<span class='chip'>"+esc(p.author_name)+"</span>":"")}
-async function ensureAuth(){if(authClient)return authClient;if(!window.supabase||!window.supabase.createClient)return null;authClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});return authClient}
+async function ensureAuth(){
+ if(authClient)return authClient;
+ const started=Date.now();
+ while(!window.CROW_SUPABASE && Date.now()-started<10000){
+   if(window.CROW_APP&&typeof window.CROW_APP.init==="function"){try{await window.CROW_APP.init()}catch(e){}}
+   await new Promise(r=>setTimeout(r,100));
+ }
+ if(window.CROW_SUPABASE){authClient=window.CROW_SUPABASE;return authClient}
+ if(window.supabase&&window.supabase.createClient&&cfg.supabaseUrl&&cfg.supabaseKey){
+   authClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
+   return authClient
+ }
+ return null
+}
+async function waitForSharedClient(){
+ const started=Date.now();
+ while(!window.CROW_SUPABASE && Date.now()-started<10000){
+   if(window.CROW_APP&&typeof window.CROW_APP.init==="function"){try{await window.CROW_APP.init()}catch(e){}}
+   await new Promise(r=>setTimeout(r,100));
+ }
+ return window.CROW_SUPABASE||null
+}
 async function user(){var s=await ensureAuth();if(!s)return null;var r=await s.auth.getUser();return r.data&&r.data.user||null}
 async function updateFollowState(){try{var s=await ensureAuth();if(!s)return;var u=await user(),c=await s.from("podcast_follows").select("id",{count:"exact",head:true}).eq("podcast_id",currentPodcast.id);if(typeof c.count==="number")followCount.textContent=num(c.count);if(!u)return;var own=await s.from("podcast_follows").select("id").eq("podcast_id",currentPodcast.id).eq("user_id",u.id).limit(1);if(own.data&&own.data.length){followBtn.classList.add("active");followBtn.innerHTML="♥ Following <span id='followCount'>"+followCount.textContent+"</span>";followCount=document.getElementById("followCount")}}catch(e){console.warn("Follow state unavailable",e)}}
 async function toggleFollow(){try{var s=await ensureAuth(),u=await user();if(!s||!u){location.href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/account.html?redirect="+encodeURIComponent(location.href);return}followBtn.disabled=true;var own=await s.from("podcast_follows").select("id").eq("podcast_id",currentPodcast.id).eq("user_id",u.id).limit(1);if(own.error)throw own.error;if(own.data&&own.data.length){var d=await s.from("podcast_follows").delete().eq("id",own.data[0].id);if(d.error)throw d.error}else{var i=await s.from("podcast_follows").insert({podcast_id:currentPodcast.id,user_id:u.id});if(i.error)throw i.error}await updateFollowState()}catch(e){alert(e.message||"Unable to update your follow.")}finally{followBtn.disabled=false}}
@@ -165,11 +186,27 @@ async function startSubscription(){if(!subscriptionProduct)return;try{var s=awai
 async function load(){
  var pid=new URLSearchParams(location.search).get("id");if(!pid)throw new Error("No podcast ID was supplied in the URL.");if(!cfg.supabaseUrl||!cfg.supabaseKey)throw new Error("CrowRules Supabase configuration is missing.");
  var uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(pid),filter=uuid?"id=eq."+encodeURIComponent(pid):"slug=eq."+encodeURIComponent(pid);
- var rows=await rest("podcasting_podcast_directory?select=*&status=eq.published&"+filter+"&limit=1");if(!rows||!rows.length)rows=await rest("podcasts?select=*&status=eq.published&"+filter+"&limit=1");if(!rows||!rows.length)throw new Error("Podcast not found. The show may not be published yet.");currentPodcast=rows[0];
- try{var products=await rest("cr_podcast_monetization_products?select=id,podcast_id,name,amount_cents,interval,active,product_type&podcast_id=eq."+encodeURIComponent(currentPodcast.id)+"&product_type=eq.membership&active=eq.true&limit=1");subscriptionProduct=products&&products[0]||null}catch(e){subscriptionProduct=null}
- loadingText.textContent="Loading the published episode catalog…";allEpisodes=await rest("podcast_episodes?select=*&podcast_id=eq."+encodeURIComponent(currentPodcast.id)+"&status=eq.published&order=published_at.desc").catch(function(){return[]});
- var sr=await rest("podcast_public_stats?select=episode_count,follower_count,listen_count,seconds_listened,completed_listens&podcast_id=eq."+encodeURIComponent(currentPodcast.id)+"&limit=1").catch(function(){return[]}),st=sr[0]||{episode_count:allEpisodes.length};
- var rr=await Promise.all(["podcast_rankings_period_live","episode_rankings_period_live","host_rankings_period_live"].map(function(t){return rest(t+"?select=*&period_type=in.(today,7_days,30_days,all_time)&order=period_type.asc,ranking.asc&limit=100").catch(function(){return[]})}));
+ var sb=await waitForSharedClient();
+ if(!sb)throw new Error("CrowRules Podcasting could not initialize its Supabase client.");
+ var q=sb.from("podcasting_podcast_directory").select("*").eq("status","published").limit(1);
+ q=uuid?q.eq("id",pid):q.eq("slug",pid);
+ var result=await q.maybeSingle();
+ if(result.error){
+   var fallback=sb.from("podcasts").select("*").eq("status","published").limit(1);
+   fallback=uuid?fallback.eq("id",pid):fallback.eq("slug",pid);
+   result=await fallback.maybeSingle();
+ }
+ if(result.error)throw new Error(result.error.message||"Unable to load podcast.");
+ if(!result.data)throw new Error("Podcast not found. The show may not be published yet.");
+ currentPodcast=result.data;
+ try{var products=await sb.from("cr_podcast_monetization_products").select("id,podcast_id,name,amount_cents,interval,active,product_type").eq("podcast_id",currentPodcast.id).eq("product_type","membership").eq("active",true).limit(1);subscriptionProduct=products.data&&products.data[0]||null}catch(e){subscriptionProduct=null}
+ loadingText.textContent="Loading the published episode catalog…";
+ var ep=await sb.from("podcast_episodes").select("*").eq("podcast_id",currentPodcast.id).eq("status","published").order("published_at",{ascending:false});
+ if(ep.error)throw new Error(ep.error.message||"Unable to load published episodes.");
+ allEpisodes=ep.data||[];
+ var sr=await sb.from("podcast_public_stats").select("episode_count,follower_count,listen_count,seconds_listened,completed_listens").eq("podcast_id",currentPodcast.id).limit(1);
+ var st=(sr.data&&sr.data[0])||{episode_count:allEpisodes.length};
+ var rr=await Promise.all(["podcast_rankings_period_live","episode_rankings_period_live","host_rankings_period_live"].map(function(t){return sb.from(t).select("*").in("period_type",["today","7_days","30_days","all_time"]).order("period_type",{ascending:true}).order("ranking",{ascending:true}).limit(100).then(function(x){return x.data||[]}).catch(function(){return[]})}));
  allRankings={podcasts:{},episodes:{},hosts:{}};["today","7_days","30_days","all_time"].forEach(function(x){allRankings.podcasts[x]=[];allRankings.episodes[x]=[];allRankings.hosts[x]=[]});rr[0].forEach(function(x){(allRankings.podcasts[x.period_type]||[]).push(x)});rr[1].forEach(function(x){(allRankings.episodes[x.period_type]||[]).push(x)});rr[2].forEach(function(x){(allRankings.hosts[x.period_type]||[]).push(x)});
  document.getElementById("dbStatus").textContent="Connected";document.getElementById("dbStatus").className="good";document.getElementById("catalogStatus").textContent=allEpisodes.length+" published";
  renderHero(currentPodcast,st);renderStats(st);renderFeatured();renderEpisodes();renderRankings();renderAbout(currentPodcast);show();
@@ -179,6 +216,8 @@ searchEl.oninput=renderEpisodes;filterEl.onchange=renderEpisodes;sortEl.onchange
 document.querySelectorAll(".rank-tab").forEach(function(b){b.onclick=function(){document.querySelectorAll(".rank-tab").forEach(function(x){x.classList.remove("active")});b.classList.add("active");activePeriod=b.dataset.period;renderRankings()}});
 document.getElementById("retry").onclick=function(){location.reload()};
 load().catch(fail);
+window.addEventListener("crow:ready",function(){if(app.classList.contains("hidden"))load().catch(fail)});
+window.addEventListener("online",function(){if(app.classList.contains("hidden"))load().catch(fail)});
 setTimeout(function(){if(!app.classList.contains("hidden"))return;diagnostic.classList.remove("hidden");diagnostic.innerHTML="<strong>Loader watchdog:</strong> The data request is taking longer than expected. You can reload the universe.";},12000);
 })();
 </script>
