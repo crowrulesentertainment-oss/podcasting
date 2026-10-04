@@ -122,7 +122,36 @@ let sb=null,user=null,podcasts=[],episodes=[],creators=[],categories=[],followin
 const LS={saved:"cr_discover_saved_v2",recent:"cr_discover_recent_v2",focus:"cr_discover_focus_v2"};
 
 function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(window.__dt);window.__dt=setTimeout(()=>t.classList.remove("show"),3600)}
-function img(src){return esc(src||placeholder)}
+function img(src){
+ const raw=String(src||"").trim();
+ if(!raw)return placeholder;
+ try{
+  const u=new URL(raw,location.href);
+  if(u.protocol==="http:"||u.protocol==="https:")return esc(u.href);
+ }catch{}
+ return placeholder;
+}
+function rankingImage(item,kind){
+ const candidates=kind==="episodes"
+  ? [item.thumbnail_url,item.artwork_url,item.podcast_artwork]
+  : kind==="creators"
+  ? [item.avatar_url,item.profile_image_url,item.image_url]
+  : [item.artwork_url,item.image_url,item.thumbnail_url];
+ for(const src of candidates){
+  const raw=String(src||"").trim();
+  if(raw) return raw;
+ }
+ return "";
+}
+function safeRankingImage(src){
+ const raw=String(src||"").trim();
+ if(!raw)return placeholder;
+ try{
+  const u=new URL(raw,location.href);
+  if(u.protocol==="http:"||u.protocol==="https:")return esc(u.href);
+ }catch{}
+ return placeholder;
+}
 function days(v){if(!v)return 9999;return Math.max(0,(Date.now()-new Date(v).getTime())/86400000)}
 function fmt(n){return new Intl.NumberFormat().format(Math.max(0,Number(n)||0))}
 function urlShow(id){return "podcast.html?id="+encodeURIComponent(id)}
@@ -178,21 +207,20 @@ function applyEpisodes(arr=episodes){
 }
 
 function rankingData(kind){
- const shows=[...podcasts],eps=[...episodes],crs=[...creators].filter(c=>c.is_active!==false);
- if(kind==="shows")return shows.sort((a,b)=>rankingShowScore(b)-rankingShowScore(a)).slice(0,20).map((p,i)=>({n:i+1,img:p.artwork_url,name:p.title||"Untitled Podcast",sub:creatorName(p.creator_id)+" · "+(p.category||"Podcast"),score:Math.round(rankingShowScore(p)),unit:"index",url:urlShow(p.id)}));
- if(kind==="episodes")return eps.sort((a,b)=>Number(b.play_count||0)-Number(a.play_count||0)).slice(0,20).map((e,i)=>({n:i+1,img:e.thumbnail_url||e.podcast_artwork,name:e.title||"Untitled Episode",sub:e.podcast_title||podcastBy(e.podcast_id)?.title||"CrowRules Podcasting",score:Number(e.play_count||0),unit:"plays",url:urlEpisode(e.id)}));
- if(kind==="creators")return crs.map(c=>({c,score:rankingCreatorScore(c)})).sort((a,b)=>b.score-a.score).slice(0,20).map((x,i)=>({n:i+1,img:x.c.avatar_url,name:x.c.display_name||x.c.name||"Creator",sub:(x.c.role||x.c.discipline||"Podcaster")+" · "+podcasts.filter(p=>p.creator_id===x.c.id).length+" shows",score:Math.round(x.score),unit:"index",url:"creator-profile.html?id="+encodeURIComponent(x.c.id)}));
+ if(kind==="shows")return shows.sort((a,b)=>rankingShowScore(b)-rankingShowScore(a)).slice(0,20).map((p,i)=>({n:i+1,img:rankingImage(p,"shows"),name:p.title||"Untitled Podcast",sub:creatorName(p.creator_id)+" · "+(p.category||"Podcast"),score:Math.round(rankingShowScore(p)),unit:"index",url:urlShow(p.id)}));
+ if(kind==="episodes")return episodes.slice().sort((a,b)=>Number(b.play_count||0)-Number(a.play_count||0)).slice(0,20).map((e,i)=>({n:i+1,img:rankingImage(e,"episodes"),name:e.title||"Untitled Episode",sub:(podcastBy(e.podcast_id)?.title||"CrowRules Podcast")+" · "+fmt(Number(e.play_count||0))+" plays",score:Number(e.play_count||0),unit:"plays",url:urlEpisode(e.id)}));
+ if(kind==="creators")return crs.map(c=>({c,score:rankingCreatorScore(c)})).sort((a,b)=>b.score-a.score).slice(0,20).map((x,i)=>({n:i+1,img:rankingImage(x.c,"creators"),name:x.c.display_name||x.c.name||"Creator",sub:(x.c.role||x.c.discipline||"Podcaster")+" · "+podcasts.filter(p=>p.creator_id===x.c.id).length+" shows",score:Math.round(x.score),unit:"index",url:"creator-profile.html?id="+encodeURIComponent(x.c.id)}));
  if(kind==="categories"){const map={};shows.forEach(p=>{const k=p.category||"Uncategorized";map[k]=(map[k]||0)+rankingShowScore(p)});return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,20).map((x,i)=>({n:i+1,img:"",name:x[0],sub:fmt(shows.filter(p=>(p.category||"Uncategorized")===x[0]).length)+" shows",score:Math.round(x[1]),unit:"index",category:x[0]}))}
- if(kind==="rising")return shows.filter(p=>days(p.created_at)<=90).sort((a,b)=>rankingRisingScore(b)-rankingRisingScore(a)).slice(0,20).map((p,i)=>({n:i+1,img:p.artwork_url,name:p.title||"Untitled Podcast",sub:"New + active · "+creatorName(p.creator_id),score:Math.round(rankingRisingScore(p)),unit:"momentum",url:urlShow(p.id)}));
- if(kind==="mostplayed")return eps.sort((a,b)=>Number(b.play_count||0)-Number(a.play_count||0)).slice(0,20).map((e,i)=>({n:i+1,img:e.thumbnail_url||e.podcast_artwork,name:e.title||"Untitled Episode",sub:e.podcast_title||podcastBy(e.podcast_id)?.title||"Episode",score:Number(e.play_count||0),unit:"plays",url:urlEpisode(e.id)}));
- if(kind==="newest")return eps.slice().sort((a,b)=>new Date(b.published_at||b.created_at||0)-new Date(a.published_at||a.created_at||0)).slice(0,20).map((e,i)=>({n:i+1,img:e.thumbnail_url||e.podcast_artwork,name:e.title||"Untitled Episode",sub:new Date(e.published_at||e.created_at).toLocaleDateString(),score:Math.max(0,Math.round(30-days(e.published_at||e.created_at))),unit:"freshness",url:urlEpisode(e.id)}));
- return shows.filter(p=>p.is_featured).sort((a,b)=>rankingShowScore(b)-rankingShowScore(a)).slice(0,20).map((p,i)=>({n:i+1,img:p.artwork_url,name:p.title||"Featured Podcast",sub:"CrowRules Featured · "+creatorName(p.creator_id),score:Math.round(rankingShowScore(p)),unit:"index",url:urlShow(p.id)}));
+ if(kind==="rising")return shows.filter(p=>days(p.created_at)<=90).sort((a,b)=>rankingRisingScore(b)-rankingRisingScore(a)).slice(0,20).map((p,i)=>({n:i+1,img:rankingImage(p,"shows"),name:p.title||"Untitled Podcast",sub:"New + active · "+creatorName(p.creator_id),score:Math.round(rankingRisingScore(p)),unit:"momentum",url:urlShow(p.id)}));
+ if(kind==="mostplayed")return shows.slice().sort((a,b)=>Number(b.total_plays||0)-Number(a.total_plays||0)).slice(0,20).map((p,i)=>({n:i+1,img:rankingImage(p,"shows"),name:p.title||"Untitled Podcast",sub:creatorName(p.creator_id)+" · "+fmt(Number(p.listener_count||0))+" listeners",score:Number(p.total_plays||0),unit:"plays",url:urlShow(p.id)}));
+ if(kind==="newest")return shows.slice().sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0)).slice(0,20).map((p,i)=>({n:i+1,img:rankingImage(p,"shows"),name:p.title||"Untitled Podcast",sub:"Published · "+creatorName(p.creator_id),score:Math.max(0,999-Math.round(days(p.created_at))),unit:"freshness",url:urlShow(p.id)}));
+ return shows.filter(p=>p.is_featured).sort((a,b)=>rankingShowScore(b)-rankingShowScore(a)).slice(0,20).map((p,i)=>({n:i+1,img:rankingImage(p,"shows"),name:p.title||"Featured Podcast",sub:"CrowRules Featured · "+creatorName(p.creator_id),score:Math.round(rankingShowScore(p)),unit:"index",url:urlShow(p.id)}));
 }
 function rankingShowScore(p){return Math.min(999,Math.log10(1+Number(p.listener_count||0))*45+Math.log10(1+Number(p.total_plays||0))*35+(p.is_featured?20:0)+(days(p.created_at)<7?18:days(p.created_at)<30?10:days(p.created_at)<90?4:0))}
 function rankingRisingScore(p){return rankingShowScore(p)+(90-Math.min(90,days(p.created_at)))*1.3}
 function rankingCreatorScore(c){const ps=podcasts.filter(p=>p.creator_id===c.id);return ps.reduce((n,p)=>n+rankingShowScore(p),0)+ps.length*8}
 let rankingKind="shows";
-function renderRankings(){const rows=rankingData(rankingKind);$("rankingList").innerHTML=rows.length?rows.map((r,i)=>'<a class="rankrow" href="'+esc(r.url||("#category="+encodeURIComponent(r.category||"")))+'"><div class="ranknum '+(i<3?"top":"")+'">#'+r.n+'</div><img class="rankthumb" src="'+img(r.img)+'" alt="" loading="lazy" onerror="this.onerror=null;this.src=\''+placeholder+'\'"><div><div class="rankname">'+esc(r.name)+'</div><div class="ranksub">'+esc(r.sub)+'</div></div><div class="rankscore"><b>'+fmt(r.score)+'</b><span>'+esc(r.unit)+'</span></div></a>').join(""):'<div class="empty" style="grid-column:1/-1"><b>No ranking data yet</b>Publish more content to activate this chart.</div>'}
+function renderRankings(){const rows=rankingData(rankingKind);$("rankingList").innerHTML=rows.length?rows.map((r,i)=>'<a class="rankrow" href="'+esc(r.url||("#category="+encodeURIComponent(r.category||"")))+'"><div class="ranknum '+(i<3?"top":"")+'">#'+r.n+'</div><img class="rankthumb" src="'+safeRankingImage(r.img)+'" alt="" loading="lazy" onerror="this.onerror=null;this.src=\''+placeholder+'\'"><div><div class="rankname">'+esc(r.name)+'</div><div class="ranksub">'+esc(r.sub)+'</div></div><div class="rankscore"><b>'+fmt(r.score)+'</b><span>'+esc(r.unit)+'</span></div></a>').join(""):'<div class="empty" style="grid-column:1/-1"><b>No ranking data yet</b>Publish more content to activate this chart.</div>'}
 function render(){
  const shows=applyShows(), eps=applyEpisodes();
  $("showCount").textContent=fmt(podcasts.length);$("episodeCount").textContent=fmt(episodes.length);
