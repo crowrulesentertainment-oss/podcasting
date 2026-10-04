@@ -198,6 +198,10 @@ async function startSubscription(productId){
  }catch(e){alert(e.message||"Unable to start subscription.")}
 }
 async function load(){
+ await new Promise(function(resolve){var done=false;function finish(){if(done)return;done=true;resolve()}if(window.CROW_CONFIG_READY)finish();else{window.addEventListener("crow:config-ready",finish,{once:true});setTimeout(finish,3000)}});
+ cfg=window.CROW_CONFIG||{};
+ if(!cfg.supabaseUrl&&window.SUPABASE_URL)cfg.supabaseUrl=window.SUPABASE_URL;
+ if(!cfg.supabaseKey&&window.SUPABASE_ANON_KEY)cfg.supabaseKey=window.SUPABASE_ANON_KEY;
  var pid=new URLSearchParams(location.search).get("id");if(!pid)throw new Error("No podcast ID was supplied in the URL.");if(!cfg.supabaseUrl||!cfg.supabaseKey)throw new Error("CrowRules Supabase configuration is missing.");
  var uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(pid),filter=uuid?"id=eq."+encodeURIComponent(pid):"slug=eq."+encodeURIComponent(pid);
  var rows=await rest("podcasts?select=*&status=eq.published&"+filter+"&limit=1");if(!rows||!rows.length)throw new Error("Podcast not found. The show may not be published yet.");currentPodcast=rows[0];
