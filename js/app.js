@@ -1,7 +1,7 @@
 (()=>{"use strict";
 const page=(location.pathname.split("/").pop()||"index.html").toLowerCase();
 const BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
-const VERSION="20261004-29";
+const VERSION="20261004-30";
 
 function installHalloweenTheme(){
   try{
@@ -34,114 +34,67 @@ function installHalloweenTheme(){
 function installHalloweenExperience(){
   if(document.querySelector("[data-crow-haunted-experience]"))return;
   const reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  const enteredKey="cr_halloween_entered";
-  const audioKey="cr_halloween_audio";
+  const enteredKey="cr_halloween_entered", audioKey="cr_halloween_audio";
   const gate=document.createElement("div");
-  gate.className="cr-haunted-gate";
-  gate.dataset.crowHauntedExperience="true";
-  gate.innerHTML='<div class="cr-haunted-gate-panel" role="dialog" aria-modal="true" aria-labelledby="crHauntedTitle"><div class="cr-haunted-gate-moon" aria-hidden="true"></div><div class="cr-haunted-gate-kicker">CROWRULES PODCASTING • HALLOWEEN 2026</div><h1 id="crHauntedTitle">ENTER IF YOU DARE</h1><p>The lights are low. The air is cold. The podcasts are waiting.</p><div class="cr-haunted-gate-actions"><button class="cr-haunted-enter" type="button">ENTER IF YOU DARE</button><button class="cr-haunted-silent" type="button">Continue silently</button></div><div class="cr-haunted-note">Spooky ambience is optional and starts only after you choose to enter.</div></div>';
-  const deco=[
-    ["cr-halloween-cemetery",true],
-    ["cr-halloween-pumpkins",true],
-    ["cr-halloween-ghosts",true],
-    ["cr-halloween-lightning",true],
-    ["cr-halloween-candle",true]
-  ];
-  deco.forEach(([cls])=>{const el=document.createElement("div");el.className=cls;el.setAttribute("aria-hidden","true");document.body.appendChild(el)});
+  gate.className="cr-haunted-gate"; gate.dataset.crowHauntedExperience="true";
+  gate.innerHTML='<div class="cr-haunted-gate-panel" role="dialog" aria-modal="true" aria-labelledby="crHauntedTitle"><div class="cr-haunted-gate-moon" aria-hidden="true"></div><div class="cr-haunted-gate-kicker">CROWRULES PODCASTING • HALLOWEEN 2026</div><h1 id="crHauntedTitle">ENTER IF YOU DARE</h1><p class="cr-haunted-stage-text">The lights are low. The air is cold. The podcasts are waiting.</p><div class="cr-haunted-gate-actions"><button class="cr-haunted-enter" type="button">ENTER IF YOU DARE</button><button class="cr-haunted-silent" type="button">Continue silently</button></div><div class="cr-haunted-note">Sound is optional. Enter to experience the haunted atmosphere.</div></div>';
+  ["cr-halloween-cemetery","cr-halloween-pumpkins","cr-halloween-ghosts","cr-halloween-lightning","cr-halloween-candle"].forEach(cls=>{const el=document.createElement("div");el.className=cls;el.setAttribute("aria-hidden","true");document.body.appendChild(el)});
   document.body.appendChild(gate);
+  const sound=document.createElement("button"); sound.type="button"; sound.className="cr-haunted-audio"; sound.setAttribute("aria-pressed","false"); sound.textContent="🔇 Sound: Off"; sound.title="Toggle spooky ambience"; document.body.appendChild(sound);
 
-  const sound=document.createElement("button");
-  sound.type="button";
-  sound.className="cr-haunted-audio";
-  sound.setAttribute("aria-pressed","false");
-  sound.setAttribute("aria-label","Enable spooky ambience");
-  sound.textContent="🔊 Sound: Off";
-  sound.title="Toggle spooky ambience";
-  document.body.appendChild(sound);
-
-  let audio=null;
-  let audioEnabled=false;
-  let lightningTimer=null;
+  let audio=null,audioEnabled=false,lightningTimer=null;
   const makeAudio=()=>{
-    if(audio)return audio;
-    const AC=window.AudioContext||window.webkitAudioContext;
-    if(!AC)return null;
-    const ctx=new AC();
-    const master=ctx.createGain();
-    master.gain.value=.035;
-    master.connect(ctx.destination);
-    const osc=ctx.createOscillator();
-    const lfo=ctx.createOscillator();
-    const lfoGain=ctx.createGain();
-    osc.type="sine"; osc.frequency.value=58;
-    lfo.type="sine"; lfo.frequency.value=.08; lfoGain.gain.value=10;
-    lfo.connect(lfoGain); lfoGain.connect(osc.frequency);
-    osc.connect(master); osc.start(); lfo.start();
-    audio={ctx,master,osc,lfo};
-    return audio;
+    if(audio)return audio; const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
+    const ctx=new AC(),master=ctx.createGain();master.gain.value=0;master.connect(ctx.destination);
+    const drone=ctx.createOscillator(),lfo=ctx.createOscillator(),lg=ctx.createGain();
+    drone.type="sine";drone.frequency.value=54;lfo.frequency.value=.07;lg.gain.value=9;lfo.connect(lg);lg.connect(drone.frequency);drone.connect(master);drone.start();lfo.start();
+    audio={ctx,master};return audio;
   };
-  const setSound=(on)=>{
-    const a=makeAudio();
-    if(!a){audioEnabled=false;sound.textContent="🔇 Sound unavailable";sound.disabled=true;return}
+  const tone=(freq,dur,gain=.018,type="sine")=>{
+    if(!audioEnabled||!audio)return; const ctx=audio.ctx,o=ctx.createOscillator(),g=ctx.createGain();
+    o.type=type;o.frequency.setValueAtTime(freq,ctx.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(45,freq*.55),ctx.currentTime+dur);
+    g.gain.setValueAtTime(.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(gain,ctx.currentTime+.025);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+dur);
+    o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+dur+.02);
+  };
+  const setSound=on=>{
+    const a=makeAudio(); if(!a){sound.textContent="🔇 Sound unavailable";sound.disabled=true;return}
     if(a.ctx.state==="suspended")a.ctx.resume().catch(()=>{});
-    audioEnabled=!!on;
-    a.master.gain.setTargetAtTime(audioEnabled?.035:0,a.ctx.currentTime,.25);
-    sound.setAttribute("aria-pressed",String(audioEnabled));
-    sound.setAttribute("aria-label",audioEnabled?"Disable spooky ambience":"Enable spooky ambience");
-    sound.textContent=audioEnabled?"🔊 Sound: On":"🔇 Sound: Off";
+    audioEnabled=!!on;a.master.gain.setTargetAtTime(audioEnabled?.028:0,a.ctx.currentTime,.4);
+    sound.setAttribute("aria-pressed",String(audioEnabled));sound.textContent=audioEnabled?"🔊 Sound: On":"🔇 Sound: Off";
     try{sessionStorage.setItem(audioKey,audioEnabled?"1":"0")}catch(_){}
   };
-  const hoverSound=()=>{
+  const startOpeningAudio=()=>{
     if(!audioEnabled||!audio)return;
-    const ctx=audio.ctx;
-    const o=ctx.createOscillator(),g=ctx.createGain();
-    o.type="triangle";o.frequency.setValueAtTime(180,ctx.currentTime);o.frequency.exponentialRampToValueAtTime(95,ctx.currentTime+.16);
-    g.gain.setValueAtTime(.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.018,ctx.currentTime+.02);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.18);
-    o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+.2);
+    tone(72,1.8,.025,"sine"); setTimeout(()=>tone(49,2.4,.012,"triangle"),500);
   };
+  const hoverSound=()=>tone(175,.16,.014,"triangle");
   const startLightning=()=>{
-    if(reduced)return;
-    const flash=document.querySelector(".cr-halloween-lightning");
-    if(!flash)return;
-    const schedule=()=>{
-      lightningTimer=setTimeout(()=>{
-        flash.classList.remove("flash");void flash.offsetWidth;flash.classList.add("flash");
-        schedule();
-      },12000+Math.random()*16000);
-    };
-    schedule();
+    if(reduced)return; const flash=document.querySelector(".cr-halloween-lightning");if(!flash)return;
+    const schedule=()=>{lightningTimer=setTimeout(()=>{flash.classList.remove("flash");void flash.offsetWidth;flash.classList.add("flash");schedule()},14000+Math.random()*18000)};schedule();
   };
   const enter=(silent)=>{
     try{sessionStorage.setItem(enteredKey,"1")}catch(_){}
-    gate.classList.add("is-hidden");
-    setTimeout(()=>gate.remove(),900);
-    sound.classList.add("is-visible");
-    if(!silent){setSound(true);try{sessionStorage.setItem(audioKey,"1")}catch(_){}}
-    startLightning();
-    document.querySelector(".cr-haunted-enter")?.blur();
+    document.documentElement.classList.remove("cr-haunted-lock");
+    gate.classList.add("is-hidden"); sound.classList.add("is-visible");
+    if(!silent){setSound(true);startOpeningAudio()} else setSound(false);
+    startLightning(); document.querySelector(".cr-haunted-enter")?.blur();
+    setTimeout(()=>gate.remove(),850);
   };
   gate.querySelector(".cr-haunted-enter").addEventListener("click",()=>enter(false));
   gate.querySelector(".cr-haunted-silent").addEventListener("click",()=>enter(true));
   sound.addEventListener("click",()=>setSound(!audioEnabled));
-  document.addEventListener("pointerover",e=>{
-    const target=e.target?.closest?.(".btn,.quick-pick,.card,.episode-row,.nav-trigger");
-    if(target)hoverSound();
-  },{passive:true});
-  try{
-    if(sessionStorage.getItem(enteredKey)==="1"){
-      gate.classList.add("is-hidden");
-      setTimeout(()=>gate.remove(),900);
-      sound.classList.add("is-visible");
-      if(sessionStorage.getItem(audioKey)==="1")setSound(true);
-      startLightning();
-    }else{
-      document.documentElement.classList.add("cr-haunted-lock");
-      gate.querySelector(".cr-haunted-enter").focus();
-      const unlock=()=>document.documentElement.classList.remove("cr-haunted-lock");
-      gate.querySelector(".cr-haunted-enter").addEventListener("click",unlock,{once:true});
-      gate.querySelector(".cr-haunted-silent").addEventListener("click",unlock,{once:true});
-    }
-  }catch(_){gate.querySelector(".cr-haunted-enter").focus()}
+  document.addEventListener("pointerover",e=>{if(e.target?.closest?.(".btn,.quick-pick,.card,.episode-row,.nav-trigger"))hoverSound()},{passive:true});
+
+  let already=false;try{already=sessionStorage.getItem(enteredKey)==="1"}catch(_){}
+  if(already){
+    document.documentElement.classList.remove("cr-haunted-lock");gate.classList.add("is-hidden");sound.classList.add("is-visible");
+    let wasOn=false;try{wasOn=sessionStorage.getItem(audioKey)==="1"}catch(_){}
+    if(wasOn)setSound(true); startLightning(); setTimeout(()=>gate.remove(),850);
+  }else{
+    document.documentElement.classList.add("cr-haunted-lock");
+    if(!reduced)setTimeout(()=>gate.classList.add("cr-haunted-awaken"),350);
+    gate.querySelector(".cr-haunted-enter").focus();
+  }
 }
 
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",installHalloweenTheme,{once:true});
