@@ -63,9 +63,31 @@ async function episodePage(){
 }
 async function creators(){
  const host=qs("main")||document.body;if(qs("#v14CreatorIntel"))return;const box=document.createElement("section");box.id="v14CreatorIntel";box.className="crv14-intel";box.innerHTML='<h3>CREATOR INTELLIGENCE</h3><p>Creator pages now share the same CrowRules player, account context and discovery runtime.</p><div class="crv14-actions"><a class="crv14-btn" href="creator-intelligence.html">OPEN CREATOR INTELLIGENCE</a><a class="crv14-btn" href="create-podcast.html">CREATE A PODCAST</a></div>';host.appendChild(box)}
+
+async function v15Discover(){
+ const sb=window.CROW_SUPABASE;if(!sb)return;
+ const u=user();const out={featured:[],newReleases:[],trending:[],recommendations:[]};
+ const base=sb.from("podcasts").select("id,title,slug,category,description,artwork_url,creator_id,listener_count,total_plays,is_featured").eq("status","published");
+ try{const r=await base.eq("is_featured",true).order("listener_count",{ascending:false}).limit(10);out.featured=r.data||[]}catch(_){}
+ try{const r=await sb.from("podcast_episodes").select("id,podcast_id,title,description,audio_url,thumbnail_url,duration_seconds,published_at,play_count,podcasts(id,title,artwork_url,category)").eq("status","published").order("published_at",{ascending:false}).limit(12);out.newReleases=r.data||[]}catch(_){}
+ try{const r=await sb.from("podcast_episodes").select("id,podcast_id,title,description,audio_url,thumbnail_url,duration_seconds,published_at,play_count,podcasts(id,title,artwork_url,category)").eq("status","published").order("play_count",{ascending:false}).limit(10);out.trending=r.data||[]}catch(_){}
+ if(u){try{const p=await sb.from("podcast_episode_progress").select("episode_id").eq("user_id",u.id).order("last_played_at",{ascending:false}).limit(8);const ids=[...new Set((p.data||[]).map(x=>x.episode_id).filter(Boolean))];if(ids.length){const r=await sb.from("podcast_episodes").select("id,podcast_id,title,description,audio_url,thumbnail_url,duration_seconds,published_at,play_count,podcasts(id,title,artwork_url,category)").in("id",ids).limit(8);out.recommendations=r.data||[]}}catch(_){}}
+ window.CROW_DISCOVERY=out;window.dispatchEvent(new CustomEvent("crow:discovery",{detail:out}));return out
+}
+function card(e,label){
+ const p=e.podcasts||e;const ep=!!e.audio_url;const href=ep?"episode.html?id="+encodeURIComponent(e.id):"podcast.html?id="+encodeURIComponent(e.id);
+ return '<article class="crv15-card"><a href="'+href+'"><div class="crv15-art">'+(p.artwork_url?'<img loading="lazy" src="'+esc(p.artwork_url)+'" alt="">':'🎙️')+'</div><div><span>'+esc(label)+'</span><h3>'+esc(e.title||p.title||"Untitled")+'</h3><p>'+esc(ep?(p.title||"Podcast"):(e.description||"").slice(0,110))+'</p></div></a>'+(ep&&e.audio_url?'<button class="crv15-play" data-v15-play="'+esc(e.id)+'">▶ PLAY</button>':"")+'</article>'
+}
+function section(id,title,items,label){
+ const el=qs(id);if(!el||!items?.length)return;if(qs(id+" .crv15-grid"))return;el.innerHTML='<div class="crv15-head"><h2>'+title+'</h2></div><div class="crv15-grid">'+items.map(x=>card(x,label)).join("")+'</div>';el.querySelectorAll("[data-v15-play]").forEach(b=>b.onclick=async ev=>{ev.preventDefault();const e=await episode(b.dataset.v15Play);if(e)window.CROW_PLAYER?.load({id:e.id,title:e.title,creator:e.podcasts?.title||"CrowRules",url:e.audio_url,position:0},true)})
+}
+async function renderV15(){
+ const d=await v15Discover();section("#v15Featured","FEATURED PODCASTS",d.featured,"FEATURED");section("#v15NewReleases","NEW RELEASES",d.newReleases,"NEW");section("#v15Trending","TRENDING NOW",d.trending,"TRENDING");section("#v15Recommendations","BECAUSE YOU LISTENED",d.recommendations,"FOR YOU")
+}
+
 async function boot(){style();await ready();notificationBadge();window.addEventListener("crow:intelligence-ready",()=>{notificationBadge()});window.addEventListener("crow:notifications-changed",notificationBadge);
  const p=(location.pathname.split("/").pop()||"home.html").toLowerCase();
- if(p==="home.html"||p==="" )await home();else if(p==="library.html")await library();else if(p==="podcast.html")await podcast();else if(p==="episode.html")await episodePage();else if(["creator-profile.html","creator-dashboard.html","creator-intelligence.html"].includes(p))await creators();
+ if(p==="home.html"||p==="" ){await home();await renderV15()}else if(p==="library.html")await library();else if(p==="discover.html")await renderV15();else if(p==="podcast.html")await podcast();else if(p==="episode.html")await episodePage();else if(["creator-profile.html","creator-dashboard.html","creator-intelligence.html"].includes(p))await creators();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
