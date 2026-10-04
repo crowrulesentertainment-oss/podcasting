@@ -48,9 +48,11 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;ba
 @keyframes creatorGrid{from{background-position:0 0;transform:perspective(700px) rotateX(62deg) translateY(18%)}to{background-position:0 64px;transform:perspective(700px) rotateX(62deg) translateY(18%) translateY(64px)}}@keyframes creatorAtmosphere{from{transform:scale(1);opacity:.8}to{transform:scale(1.04);opacity:1}}@keyframes creatorOrb{50%{transform:translate(5vw,3vh) scale(1.12)}}
 @media(prefers-reduced-motion:reduce){.creator-cyber-layer:before,.creator-cyber-layer:after,.creator-orb{animation:none}}
 </style><link rel="stylesheet" href="css/podcasting-v10.css?v=20261004-10">
+<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-13"><link rel="stylesheet" href="css/halloween-cinematic-v2.css?v=20261004-02">
 </head>
 <body>
 <script src="js/app.js?v=20261004-27"></script>
+<script src="js/sitewide-v13.js?v=20261004-13"></script>
 <script src="js/site-repair-v1.js?v=20261004-10" defer></script>
 
 <div class="creator-cyber-layer" aria-hidden="true"><div class="creator-orb"></div><div class="creator-orb b"></div></div>
@@ -225,5 +227,6 @@ await notices();s.channel("creator-v5-notifications:"+creator).on("postgres_chan
 }
 setTimeout(()=>start().catch(console.error),1200);
 })();
-</script></body>
+</script><script src="js/podcasting-v14.js?v=20261004-14"></script>
+</body>
 </html>
