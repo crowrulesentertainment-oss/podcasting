@@ -1,4 +1,4 @@
-name: CrowRules Podcasting — Sitewide Navigation & Supabase
+name: CrowRules Podcasting — V7 Sitewide Navigation
 on:
   push:
     branches: [main]
@@ -6,51 +6,61 @@ on:
 permissions:
   contents: write
 jobs:
-  inject:
+  install:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Upgrade every HTML page except launch.html
-        shell: bash
+      - name: Install V7 navigation on every HTML page
+        shell: python
         run: |
-          set -euo pipefail
-          BASE="https://crowrulesentertainment-oss.github.io/podcasting"
-          changed=0
+          from pathlib import Path
+          import re
 
-          while IFS= read -r -d '' f; do
-            rel="${f#./}"
-            name="$(basename "$f")"
-            [[ "$name" == "launch.html" ]] && continue
-            grep -qi '</head>' "$f" || continue
+          CSS='css/podcasting.css?v=20261004'
+          CONFIG='js/config.js?v=12'
+          APP='js/app.js?v=12'
+          changed=[]
 
-            if ! grep -Fq "$BASE/css/podcasting.css" "$f" && ! grep -Fq 'css/podcasting.css' "$f"; then
-              sed -i "s#</head>#<link rel=\"stylesheet\" href=\"$BASE/css/podcasting.css\">\\n</head>#I" "$f"
-              changed=1
-            fi
+          for p in Path('.').rglob('*.html'):
+              if '.git' in p.parts:
+                  continue
+              s=p.read_text(encoding='utf-8')
+              original=s
 
-            if ! grep -Fq "$BASE/js/config.js" "$f" && ! grep -Fq 'js/config.js' "$f"; then
-              sed -i "s#</head>#<script src=\"$BASE/js/config.js\" defer></script>\\n</head>#I" "$f"
-              changed=1
-            fi
+              # Remove direct legacy navigation loaders. V7 is now the single owner.
+              s=re.sub(r'<script[^>]+src=["'][^"']*(?:podcasting-nav-v2|crowrules-podcasting-nav)[^"']*["'][^>]*>\s*</script>\s*','',s,flags=re.I)
 
-            if ! grep -Fq "$BASE/js/app.js" "$f" && ! grep -Fq 'js/app.js' "$f"; then
-              sed -i "s#</head>#<script src=\"$BASE/js/app.js\" defer></script>\\n</head>#I" "$f"
-              changed=1
-            fi
+              # Remove duplicate generated nav hosts, then create exactly one.
+              s=re.sub(r'<div\b[^>]*data-nav[^>]*>\s*</div>\s*','',s,flags=re.I)
+              body=re.search(r'<body\b[^>]*>',s,flags=re.I)
+              if body:
+                  s=s[:body.end()]+'\n<div data-nav data-nav-owner="crowrules-podcasting-nav-v7"></div>'+s[body.end():]
 
-            if ! grep -Fq 'data-nav' "$f"; then
-              sed -i '0,/<body[^>]*>/s#\(<body[^>]*>\)#\1\n<div data-nav></div>#I' "$f"
-              changed=1
-            fi
-          done < <(find . -type f -name '*.html' -not -path './.git/*' -print0)
+              # Normalize shared stylesheet/config/app references.
+              s=re.sub(r'<link[^>]+href=["'][^"']*css/podcasting\.css(?:\?[^"']*)?["'][^>]*>\s*','',s,flags=re.I)
+              s=re.sub(r'<script[^>]+src=["'][^"']*(?:^|/)js/config\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*','',s,flags=re.I)
+              s=re.sub(r'<script[^>]+src=["'][^"']*(?:^|/)js/app\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*','',s,flags=re.I)
 
-          if [[ "$changed" -eq 1 ]]; then
-            git config user.name 'CrowRules Podcasting Automation'
-            git config user.email 'actions@github.com'
-            git add -A
-            git commit -m 'Apply unified Podcasting navigation and Supabase bootstrap'
-            git push
-          else
-            echo 'All applicable pages already use the unified shell.'
+              if re.search(r'</head>',s,re.I):
+                  tags=f'<link rel="stylesheet" href="{CSS}"><script src="{CONFIG}" defer></script><script src="{APP}" defer></script>'
+                  s=re.sub(r'</head>',tags+'</head>',s,count=1,flags=re.I)
+
+              if s!=original:
+                  p.write_text(s,encoding='utf-8')
+                  changed.append(str(p))
+
+          print(f'Normalized {len(changed)} HTML pages')
+          for p in changed:
+              print(p)
+
+      - name: Commit sitewide navigation
+        run: |
+          git config user.name "CrowRules Universal Navigation"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- '*.html'
+          if git diff --cached --quiet; then
+            echo "No HTML changes needed."
+            exit 0
           fi
+          git commit -m "Install CrowRules Podcasting V7 navigation on every page"
+          git push
