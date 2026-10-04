@@ -73,14 +73,18 @@ async function getSubscription(){
  if(r.error)throw r.error;return r.data||null
 }
 async function refreshSubscription(){
- const b=$("#subscribe");if(!b)return;
- if(!user){b.disabled=false;b.textContent="Subscribe";b.dataset.subscribed="0";setHeroState("none");return null}
+ const b=$("#subscribe");if(!b)return null;
+ if(!user){b.disabled=false;b.dataset.busy="0";b.textContent="Subscribe";b.dataset.subscribed="0";b.classList.remove("busy");setHeroState("none");return null}
  try{
    const s=await getSubscription();const active=!!s&&["active","trialing"].includes(s.status);
    setHeroState(s?.status||"none");b.dataset.subscribed=active?"1":"0";
    if(b.dataset.busy!=="1"){b.disabled=false;b.classList.remove("busy");b.textContent=active?"Subscribed ✓":"Subscribe"}
    return s
- }catch(e){console.warn("Subscription sync:",e?.message||e);return null}
+ }catch(e){
+   console.warn("Subscription sync:",e?.message||e);
+   if(b.dataset.busy!=="1"){b.disabled=false;b.classList.remove("busy");b.dataset.subscribed="0";b.textContent="Subscribe";setHeroState("none")}
+   return null
+ }
 }
 async function refreshCounts(){
  const c=await client();if(!podcastId)return;
@@ -172,10 +176,25 @@ async function handleCheckoutReturn(){
 async function resumePending(){
  if(!user||!podcastId)return;
  const key="cr_pending_subscription:"+user.id+":"+podcastId;let p=null;try{p=JSON.parse(localStorage.getItem(key)||"null")}catch{}
- if(!p||Date.now()-Number(p.started_at||0)>30*60*1000)return;
- const b=$("#subscribe");if(!b)return;b.dataset.busy="1";b.disabled=true;b.classList.add("busy");b.textContent="Processing…";setHeroState("processing");
- for(let i=0;i<30;i++){const s=await refreshSubscription();if(s&&["active","trialing"].includes(s.status)){localStorage.removeItem(key);return}await sleep(2000)}
- b.dataset.busy="0";b.disabled=false;b.classList.remove("busy");await refreshSubscription()
+ if(!p){return}
+ const age=Date.now()-Number(p.started_at||0);
+ if(!Number.isFinite(age)||age<0||age>30*60*1000){localStorage.removeItem(key);return}
+ const b=$("#subscribe"),box=$("#subscriptionStatusBox");if(!b)return;
+ const s0=await refreshSubscription();
+ if(s0&&["active","trialing"].includes(s0.status)){localStorage.removeItem(key);return}
+ b.dataset.busy="1";b.disabled=true;b.classList.add("busy");b.textContent="Processing…";setHeroState("processing");
+ for(let i=0;i<30;i++){
+   const s=await refreshSubscription();
+   if(s&&["active","trialing"].includes(s.status)){
+     localStorage.removeItem(key);
+     b.dataset.busy="0";b.disabled=false;b.classList.remove("busy");b.textContent="Subscribed ✓";
+     return
+   }
+   await sleep(2000)
+ }
+ localStorage.removeItem(key);
+ b.dataset.busy="0";b.disabled=false;b.classList.remove("busy");b.dataset.subscribed="0";b.textContent="Subscribe";setHeroState("none");
+ if(box){box.classList.remove("hidden");box.innerHTML='<div class="eyebrow">SUBSCRIPTION CHECK</div><b>We could not confirm an active subscription yet.</b><div class="subtle">If you completed Stripe Checkout, your subscription may still be syncing. Refresh this page or open My Subscriptions to check again.</div><a class="btn" style="margin-top:10px" href="subscriptions.html?podcast_id='+encodeURIComponent(podcastId)+'">My Subscriptions</a>'}
 }
 function renderHero(){
  const art=podcast.artwork_url||"assets/podcast-placeholder.svg";
@@ -231,7 +250,7 @@ async function load(){
  let q=c.from("podcasts").select("id,title,slug,category,description,artwork_url,author_name,language,explicit_content,is_live,listener_count,status,creator_id").eq("status","published");q=uuid?q.eq("id",pid):q.eq("slug",pid);
  const pr=await withTimeout(q.maybeSingle(),10000);if(pr.error)throw new Error("Podcast lookup failed: "+pr.error.message);if(!pr.data)throw new Error("This podcast is unavailable.");podcast=pr.data;podcastId=podcast.id;document.title=podcast.title+" — CrowRules Podcasting";
  const er=await withTimeout(c.from("podcast_episodes").select("id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,play_count,status,access_level").eq("podcast_id",podcastId).eq("status","published").order("published_at",{ascending:false}),10000);if(er.error)throw new Error("Episode lookup failed: "+er.error.message);episodes=er.data||[];
- user=await currentUser();renderHero();await loadProgress();renderFeatured();renderContinue();renderEpisodes();await refreshCounts();await refreshSubscription();await loadChat();setupRealtime();await handleCheckoutReturn();resumePending();
+ user=await currentUser();renderHero();await loadProgress();renderFeatured();renderContinue();renderEpisodes();await refreshCounts();await refreshSubscription();await loadChat();setupRealtime();await handleCheckoutReturn();await resumePending();
  if(authSub)authSub.unsubscribe();authSub=c.auth.onAuthStateChange(async(_event,session)=>{user=session?.user||null;await loadProgress();renderContinue();await refreshSubscription();await refreshCounts()}).data?.subscription||null
  $("#loading").classList.add("hidden");$("#app").classList.remove("hidden")
 }
