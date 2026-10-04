@@ -2,8 +2,8 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#080808"><meta name="description" content="CrowRules Podcasting discovery — shows, episodes, creators and personalized listening.">
 <title>Discover — CrowRules Podcasting</title>
-<link rel="stylesheet" href="css/podcasting.css?v=20261003-47">
-<script src="js/config.js?v=20261003-44"></script><script src="js/podcasting.js?v=20261003-44" defer></script><script src="js/player.js?v=20261003-44" defer></script><script src="js/app.js?v=20261003-44" defer></script>
+<link rel="stylesheet" href="css/podcasting.css?v=20261003-48">
+<script src="js/config.js?v=20261003-45"></script><script src="js/podcasting.js?v=20261003-45" defer></script><script src="js/player.js?v=20261003-45" defer></script><script src="js/app.js?v=20261003-45" defer></script>
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
 <style>
 :root{--red:#f32929;--red2:#ff5b5b;--bg:#070707;--panel:#101011;--panel2:#161618;--text:#f7f7f7;--muted:#96969b;--line:#29292c}
@@ -228,6 +228,17 @@ async function loadCatalog(){
  categories=ks.filter(c=>c.is_active!==false);
  if(!categories.length){categories=[...new Set(podcasts.map(p=>p.category).filter(Boolean))].map(name=>({name}))}
 }
+async function syncUserSignals(){
+ if(!personalReady||!sb||!window.__CROW_USER?.id)return null;
+ try{
+  const r=await sb.rpc("podcast_discover_refresh_user_signals",{p_user_id:window.__CROW_USER.id});
+  if(r.error)throw r.error;
+  const signal=await sb.from("podcast_discover_user_signals").select("total_listen_seconds,completed_episode_count,followed_show_count,saved_episode_count,unique_show_count,unique_creator_count,top_categories,top_creators,top_shows,preferred_duration_min,preferred_duration_max,preferred_release_days,last_active_at,updated_at").eq("user_id",window.__CROW_USER.id).maybeSingle();
+  if(signal.error)throw signal.error;
+  window.__CROW_DISCOVER_SIGNALS=signal.data||null;
+  return signal.data||null;
+ }catch(e){console.warn("Discover signal sync:",e);return null}
+}
 async function loadPersonal(){
  following.clear();saved.clear();history.clear();personalReady=!!window.__CROW_USER;
  if(!personalReady){$("personalDashboard").hidden=true;return}
@@ -243,6 +254,7 @@ async function loadPersonal(){
  s1.forEach(x=>x.episode_id&&saved.add(x.episode_id));
  p1.forEach(x=>x.episode_id&&history.set(x.episode_id,x));fb.forEach(x=>{if(x.podcast_id){feedback.set(x.podcast_id,x);if(x.action==="hide"||x.action==="not_interested")hiddenShows.add(x.podcast_id);if(x.action==="more_like_this")boostShows.add(x.podcast_id)}});
  if(!s1.length){try{const local=JSON.parse(localStorage.getItem("crow_saved_episodes")||"[]");local.forEach(id=>saved.add(id))}catch{}}
+ await syncUserSignals();
  $("personalDashboard").hidden=false;
  $("metricFollowing").textContent=fmt(following.size);
  $("metricSaved").textContent=fmt(saved.size);
@@ -459,6 +471,7 @@ async function boot(){
    sb=await waitForSupabaseClient();
    if(!sb)throw Error("CrowRules Supabase client is not ready.");
    await syncDiscoverAuth(sb);
+   if(window.__CROW_AUTH_READY===false)throw Error("Supabase authentication did not become ready.");
    const catalogCount=await verifyDiscoverConnection(sb);
    $("signalSync").textContent="Connected";
    await loadCatalog();await loadPersonal();chips();renderAll();renderResults();
