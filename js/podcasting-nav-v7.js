@@ -1,7 +1,27 @@
 /* CrowRules Podcasting Navigation V7 */
 (()=>{"use strict";
-const VERSION="7.0.0",BASE="https://crowrulesentertainment-oss.github.io/podcasting",C=window.CROW_CONFIG||{};
-const URL=C.supabaseUrl||"https://cevylpnoexugwgygvtgu.supabase.co",KEY=C.supabaseKey||window.CROW_SUPABASE_KEY||window.SUPABASE_ANON_KEY;
+const VERSION="7.1.0",BASE="https://crowrulesentertainment-oss.github.io/podcasting";
+const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co";
+const SUPABASE_KEY="sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
+const CONFIG_SRC=BASE+"/js/config.js?v=20261004-4";
+const APP_SRC=BASE+"/js/app.js?v=20261004-4";
+const C=(window.CROW_CONFIG&&typeof window.CROW_CONFIG==="object")?window.CROW_CONFIG:{};
+const URL=C.supabaseUrl||SUPABASE_URL,KEY=C.supabaseKey||SUPABASE_KEY||window.CROW_SUPABASE_KEY||window.SUPABASE_ANON_KEY;
+function loadOnce(src){return new Promise((resolve,reject)=>{if([...document.scripts].some(s=>s.src===src||s.src.startsWith(src.split("?")[0]+"?"))){resolve();return}const s=document.createElement("script");s.src=src;s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error("Failed to load "+src));document.head.appendChild(s)})}
+async function ensureSupabase(){
+ if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
+ try{
+  if(!window.CROW_CONFIG)await loadOnce(CONFIG_SRC);
+  if(typeof window.CROW_BOOTSTRAP==="function")return await window.CROW_BOOTSTRAP();
+  if(!window.supabase?.createClient)await loadOnce("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2");
+  if(window.supabase?.createClient){
+   window.CROW_SUPABASE=window.supabase.createClient((window.CROW_CONFIG?.supabaseUrl||SUPABASE_URL),(window.CROW_CONFIG?.supabaseKey||SUPABASE_KEY),{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
+   window.CROW_SUPABASE_CONNECTION="connected";
+   return window.CROW_SUPABASE;
+  }
+ }catch(e){window.CROW_SUPABASE_ERROR=e;window.CROW_SUPABASE_CONNECTION="error"}
+ return null;
+}
 const COMMON=[["⌂","Home","home.html"],["◉","Podcasts","podcasts.html"],["✦","Discover","discover.html"],["▣","Episodes","episodes.html"],["⌕","Search","search.html"]];
 const LISTENER=[["♡","Following","library.html#following"],["★","Favorites","library.html#favorites"],["◷","Listening History","library.html#history"]];
 const ACCOUNT=[["◎","Library","library.html"],["♙","Profile","member-profile.html"],["◌","Notifications","notifications.html"],["◆","Membership","membership.html"],["⚙","Account","account.html"]];
@@ -10,7 +30,7 @@ const ADMIN=[["⚙","Admin Center","admin.html"],["✓","Moderation","admin.html
 const INTEL=[["✦","Creator Intelligence","creator-intelligence.html"],["✧","Recommendations","creator-recommendations.html"],["◈","Creator Analytics","creator-analytics.html"],["⌁","Platform Analytics","analytics.html"]];
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const page=()=>location.pathname.split("/").pop()||"index.html";
-async function sb(){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;if(typeof window.CROW_BOOTSTRAP==="function"){try{return await window.CROW_BOOTSTRAP()}catch(_){return null}}if(!window.supabase?.createClient||!KEY)return null;try{return window.CROW_SUPABASE=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}})}catch(_){return null}}
+async function sb(){return await ensureSupabase()}
 async function ctx(){
  const client=await sb();if(!client?.auth?.getSession)return{role:"listener",user:null,memberId:null,creatorId:null,client};
  try{
@@ -39,7 +59,7 @@ function render(x,b={}){
  host.querySelectorAll('[data-a="in"]').forEach(v=>v.onclick=()=>location.href=BASE+"/account.html?auth=signin");
  host.querySelectorAll('[data-a="out"]').forEach(v=>v.onclick=async()=>{try{await x.client?.auth?.signOut()}finally{location.href=BASE+"/home.html"}});
  host.querySelectorAll("a").forEach(a=>a.onclick=()=>{p.hidden=true;m.hidden=true});
- host.dataset.navVersion=VERSION;
+ host.dataset.navVersion=VERSION;host.dataset.supabaseConnection=window.CROW_SUPABASE?"connected":"unavailable";
 }
 async function counts(x){
  const b={creator:{},admin:{}},c=x.client;if(!c)return b;
