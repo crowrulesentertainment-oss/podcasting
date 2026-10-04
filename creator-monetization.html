@@ -110,6 +110,22 @@
 </section>
 
 <section class="section">
+<div class="kpi-row"><div><div class="eyebrow">V4.1 LIFECYCLE INTELLIGENCE</div><h2>Subscriber lifecycle</h2><p class="muted">Historical Stripe subscription events now reveal starts, upgrades, downgrades, cancellations, reactivations and status changes.</p></div><span id="lifecycleCount" class="substat">0 events</span></div>
+<div class="grid three" style="margin-top:14px">
+<div class="card"><div class="stat" id="upgradeCount">0</div><div class="stat-label">Upgrades</div></div>
+<div class="card"><div class="stat" id="downgradeCount">0</div><div class="stat-label">Downgrades</div></div>
+<div class="card"><div class="stat" id="reactivationCount">0</div><div class="stat-label">Reactivations</div></div>
+</div>
+<div class="grid three" style="margin-top:14px">
+<div class="card"><div class="stat" id="lifecycleStarts">0</div><div class="stat-label">New starts</div></div>
+<div class="card"><div class="stat" id="lifecycleCanceled">0</div><div class="stat-label">Cancellations</div></div>
+<div class="card"><div class="stat" id="lifecycleScheduled">0</div><div class="stat-label">Cancellation scheduled</div></div>
+</div>
+<div class="toolbar" style="margin-top:14px"><select id="lifecycleFilter" class="input"><option value="all">All events</option><option value="plan_upgrade">Upgrades</option><option value="plan_downgrade">Downgrades</option><option value="canceled">Cancellations</option><option value="reactivated">Reactivations</option><option value="started">New starts</option><option value="cancellation_scheduled">Cancellation scheduled</option></select><input id="lifecycleSearch" class="input" type="search" placeholder="Search subscriber or podcast…"></div>
+<div class="table-wrap" style="margin-top:12px"><table class="table"><thead><tr><th>Date</th><th>Event</th><th>Podcast</th><th>Plan change</th><th>Status</th><th>Value change</th></tr></thead><tbody id="lifecycleRows"></tbody></table></div>
+</section>
+
+<section class="section">
 <div class="kpi-row"><div><h2>Episode monetization controls</h2><p class="muted">Keep the existing Free/Premium workflow inside the V4 financial center. Premium episodes require an active membership plan.</p></div><span id="episodeCount" class="substat">0 episodes</span></div>
 <div class="toolbar" style="margin-top:12px"><input id="episodeSearch" class="input" type="search" placeholder="Search episodes…"><select id="episodeAccess" class="input"><option value="all">All access</option><option value="premium">Premium</option><option value="free">Free</option><option value="members">Members</option></select></div>
 <div class="table-wrap" style="margin-top:12px"><table class="table"><thead><tr><th>Episode</th><th>Podcast</th><th>Access</th><th>Plan</th><th>Plays</th><th>Action</th></tr></thead><tbody id="episodeRows"></tbody></table></div>
@@ -128,7 +144,7 @@ const $=id=>document.getElementById(id);
 const money=c=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(c||0)/100);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const activeStatuses=["active","trialing","past_due","paused"];
-const state={sb:null,user:null,creatorId:null,podcasts:[],plans:[],subs:[],earnings:[],revenue:[],episodes:[],model:null};
+const state={sb:null,user:null,creatorId:null,podcasts:[],plans:[],subs:[],earnings:[],revenue:[],episodes:[],lifecycle:[],model:null};
 function status(t,k=""){$("status").className="notice "+k;$("status").textContent=t}
 async function client(){
  if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
@@ -193,7 +209,7 @@ function render(){
  "<div class='kpi-row' style='padding:9px 0'><span>Weighted creator net / subscriber</span><b class='money'>"+money(m.arpu)+"</b></div>";
  const plans=state.plans.filter(p=>p.active&&p.grants_premium_access!==false);
  $("planMix").innerHTML=plans.length?plans.map(p=>{const n=m.planCounts[p.id]||0;const share=m.subs.length?n/m.subs.length*100:0;return "<div class='kpi-row' style='padding:9px 0;border-bottom:1px solid var(--line)'><span><b>"+esc(p.name)+"</b><br><span class='substat'>"+money(monthlyEquivalent(p.amount_cents,p.interval,p.interval_count))+" gross MRR / subscriber</span></span><span class='pill'>"+n+" · "+share.toFixed(1)+"%</span></div>"}).join(""):"<div class='empty'>No active subscription plans.</div>";
- renderForecast();renderMovement();renderEpisodes();renderRevenue();
+ renderForecast();renderMovement();renderLifecycle();renderEpisodes();renderRevenue();
 }
 function renderForecast(){
  const f=forecast(),max=Math.max(1,...f.months.map(x=>x.net));
@@ -239,6 +255,22 @@ async function changeEpisodePlan(id,planId){
  try{await updateEpisode(id,{access_level:"premium",monetization_enabled:true,monetization_product_id:p.id})}catch(err){status("Could not change the Premium plan: "+(err.message||err),"error")}
 }
 
+function lifecycleLabel(t){return ({started:"Started",plan_upgrade:"Upgrade",plan_downgrade:"Downgrade",plan_change:"Plan change",canceled:"Canceled",reactivated:"Reactivated",cancellation_scheduled:"Cancel scheduled",status_change:"Status change",renewed:"Renewed"})[t]||t}
+function renderLifecycle(){
+ const filter=$("lifecycleFilter")?.value||"all",term=($("lifecycleSearch")?.value||"").trim().toLowerCase();
+ const rows=state.lifecycle.filter(e=>(filter==="all"||e.event_type===filter)&&(!term||String(e.stripe_subscription_id||"").toLowerCase().includes(term)||podcastTitle(e.podcast_id).toLowerCase().includes(term)));
+ const counts=t=>state.lifecycle.filter(e=>e.event_type===t).length;
+ $("lifecycleCount").textContent=state.lifecycle.length+" event"+(state.lifecycle.length===1?"":"s");
+ $("upgradeCount").textContent=counts("plan_upgrade");$("downgradeCount").textContent=counts("plan_downgrade");$("reactivationCount").textContent=counts("reactivated");
+ $("lifecycleStarts").textContent=counts("started");$("lifecycleCanceled").textContent=counts("canceled");$("lifecycleScheduled").textContent=counts("cancellation_scheduled");
+ $("lifecycleRows").innerHTML=rows.length?rows.slice(0,200).map(e=>{
+   const from=planFor(e.from_product_id),to=planFor(e.to_product_id);
+   const oldAmt=e.from_amount_cents==null?"—":money(e.from_amount_cents),newAmt=e.to_amount_cents==null?"—":money(e.to_amount_cents);
+   const delta=(e.from_amount_cents!=null&&e.to_amount_cents!=null)?Number(e.to_amount_cents)-Number(e.from_amount_cents):null;
+   return "<tr><td>"+new Date(e.occurred_at).toLocaleString()+"</td><td><span class='pill'>"+esc(lifecycleLabel(e.event_type))+"</span></td><td>"+esc(podcastTitle(e.podcast_id))+"</td><td>"+esc(from?.name||"—")+" → "+esc(to?.name||"—")+"</td><td>"+esc((e.from_status||"—")+" → "+(e.to_status||"—"))+"</td><td class='money "+(delta>0?"success":delta<0?"danger":"")+"'>"+(delta==null?"—":(delta>0?"+":"")+money(delta))+"<br><span class='substat'>"+oldAmt+" → "+newAmt+"</span></td></tr>";
+ }).join(""):"<tr><td colspan='6'><div class='empty'>No lifecycle events recorded yet. New Stripe subscription changes will appear here automatically.</div></td></tr>";
+}
+
 function renderMovement(){
  const m=state.model,total=m.subs.length;
  const plans=state.plans.filter(p=>p.active&&p.grants_premium_access!==false);
@@ -255,19 +287,20 @@ async function load(){
  const p=await state.sb.from("podcasts").select("id,title").eq("creator_id",state.creatorId).order("created_at",{ascending:false});if(p.error)throw p.error;state.podcasts=p.data||[];
  const ids=state.podcasts.map(x=>x.id);
  if(!ids.length){$("dashboard").hidden=false;state.model=calcModel();render();status("Creator account is ready, but no podcasts exist yet.","ok");return}
- const [plans,subs,earn,rev]=await Promise.all([
+ const [plans,subs,earn,rev,lifecycle]=await Promise.all([
   state.sb.from("cr_podcast_monetization_products").select("id,podcast_id,name,amount_cents,currency,interval,interval_count,active,grants_premium_access").eq("creator_id",state.creatorId).eq("product_type","membership").order("amount_cents",{ascending:true}),
   state.sb.from("podcast_subscriptions").select("id,podcast_id,product_id,status,amount_cents,currency,created_at,canceled_at,current_period_end,creator_id").in("podcast_id",ids),
   state.sb.from("cr_podcast_creator_earnings").select("id,podcast_id,gross_amount_cents,platform_fee_cents,net_amount_cents,status,description,occurred_at,source_type").eq("creator_id",state.creatorId).order("occurred_at",{ascending:false}).limit(1000),
-  state.sb.from("cr_creator_revenue_transactions").select("id,podcast_id,creator_amount,gross_amount,platform_fee,status,description,occurred_at,transaction_type,metadata").eq("creator_id",state.creatorId).order("occurred_at",{ascending:false}).limit(1000)
+  state.sb.from("cr_creator_revenue_transactions").select("id,podcast_id,creator_amount,gross_amount,platform_fee,status,description,occurred_at,transaction_type,metadata").eq("creator_id",state.creatorId).order("occurred_at",{ascending:false}).limit(1000),
+  state.sb.from("podcast_subscription_events").select("id,stripe_subscription_id,user_id,creator_id,podcast_id,from_product_id,to_product_id,event_type,from_status,to_status,from_amount_cents,to_amount_cents,currency,stripe_event_id,occurred_at,metadata").eq("creator_id",state.creatorId).order("occurred_at",{ascending:false}).limit(1000)
  ]);
- if(plans.error)throw plans.error;if(subs.error)throw subs.error;if(earn.error)throw earn.error;
- state.plans=plans.data||[];state.subs=subs.data||[];state.earnings=earn.data||[];state.revenue=rev.error?[]:(rev.data||[]);
+ if(plans.error)throw plans.error;if(subs.error)throw subs.error;if(earn.error)throw earn.error;if(lifecycle.error)throw lifecycle.error;
+ state.plans=plans.data||[];state.subs=subs.data||[];state.earnings=earn.data||[];state.revenue=rev.error?[]:(rev.data||[]);state.lifecycle=lifecycle.data||[];
  const eps=await state.sb.from("podcast_episodes").select("id,podcast_id,title,status,access_level,monetization_product_id,monetization_enabled,play_count,created_at").in("podcast_id",ids).order("created_at",{ascending:false}).limit(1000);
  if(eps.error)throw eps.error;state.episodes=eps.data||[];
  $("dashboard").hidden=false;render();status("Creator Financial Forecasting V4 synced with Supabase.","ok");
 }
-$("forecastMode").onchange=renderForecast;$("episodeSearch").oninput=renderEpisodes;$("episodeAccess").onchange=renderEpisodes;
+$("forecastMode").onchange=renderForecast;$("episodeSearch").oninput=renderEpisodes;$("episodeAccess").onchange=renderEpisodes;$("lifecycleFilter").onchange=renderLifecycle;$("lifecycleSearch").oninput=renderLifecycle;
 $("newAdj").oninput=()=>{$("newAdjLabel").textContent=$("newAdj").value+"%";renderForecast()};
 $("churnAdj").oninput=()=>{$("churnAdjLabel").textContent=$("churnAdj").value+"%";renderForecast()};
 async function boot(){try{await load()}catch(e){console.error(e);status(e.message||"Unable to load Creator Financial Forecasting.","error")}}
