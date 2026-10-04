@@ -1,0 +1,7 @@
+-- CrowRules SECURITY DEFINER execution hardening.
+-- Applied to the live Supabase project on 2026-10-04.
+-- Revokes anonymous/public execution from privileged Podcasting/CrowSpace
+-- administration, worker, notification, payout, secret-validation and
+-- recommendation-integrity functions where direct client execution is not required.
+-- Leaves authenticated creator/member RPCs available where their function-level
+-- authorization checks are part of the application contract.
