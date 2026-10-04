@@ -79,11 +79,18 @@ var subscriptionProduct=null;
 var esc=function(v){return String(v==null?"":v).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
 var escAttr=function(v){return esc(v).replace(/'/g,"&#39;")};
 var optional=function(p,fallback){return p.then(function(v){return v}).catch(function(e){console.warn("Optional podcast request failed",e);return fallback})};
-var rest=function(path){
+var rest=function(path,attempt){
+ attempt=attempt||0;
  var url=String(cfg.supabaseUrl||"").replace(/\/$/,"")+"/rest/v1/"+path;
  return fetch(url,{headers:{"apikey":cfg.supabaseKey||"","Authorization":"Bearer "+(cfg.supabaseKey||""),"Accept":"application/json"},cache:"no-store"}).then(function(r){
    return r.text().then(function(t){var data=null;try{data=t?JSON.parse(t):null}catch(e){}
-     if(!r.ok){throw new Error("HTTP "+r.status+(data&&data.message?": "+data.message:t?" — "+t.slice(0,180):""))}
+     if(!r.ok){
+       if((r.status===503||r.status===520)&&attempt<2)return new Promise(function(resolve){setTimeout(resolve,(attempt+1)*700)}).then(function(){return rest(path,attempt+1)});
+       var detail=(data&&data.message)||"";
+       if(data&&data.hint)detail+=" — Hint: "+data.hint;
+       if(!detail&&t)detail=t.slice(0,220);
+       throw new Error("HTTP "+r.status+(detail?": "+detail:""));
+     }
      return data;
    });
  });
@@ -237,19 +244,19 @@ async function toggleFollow(){
    var sb=await ensureAuth();if(!sb){alert("Sign-in is required to follow this podcast.");return;}
    var user=await getUser();if(!user){location.href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/account.html?redirect="+encodeURIComponent(location.href);return;}
    followBtn.disabled=true;
-   var own=await sb.from("podcast_follows").select("id").eq("podcast_id",currentPodcast.id).eq("user_id",user.id).maybeSingle();
+   var own=await sb.from("podcast_follows").select("id").eq("podcast_id",currentPodcast.id).eq("user_id",user.id).limit(1);
+   if(own.error)throw own.error;
    if(own.data&&own.data.length){var del=await sb.from("podcast_follows").delete().eq("id",own.data[0].id);if(del.error)throw del.error;}
    else{var ins=await sb.from("podcast_follows").insert({podcast_id:currentPodcast.id,user_id:user.id});if(ins.error)throw ins.error;}
    await updateFollowState();
  }catch(e){alert(e.message||"Unable to update your follow.");}finally{followBtn.disabled=false;}
 }
 async function sharePodcast(){
- try{
-   var shareData={title:(currentPodcast&&currentPodcast.title||"CrowRules Podcast"),text:"Listen to "+(currentPodcast&&currentPodcast.title||"this podcast")+" on CrowRules Podcasting.",url:location.href};
-   if(navigator.share&&(!navigator.canShare||navigator.canShare(shareData))){await navigator.share(shareData);return;}
-   if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(location.href);shareBtn.classList.add("copied");shareBtn.textContent="✓ Link Copied";setTimeout(function(){shareBtn.classList.remove("copied");shareBtn.textContent="↗ Share"},1800);return;}
-   var input=document.createElement("input");input.value=location.href;document.body.appendChild(input);input.select();document.execCommand("copy");input.remove();shareBtn.classList.add("copied");shareBtn.textContent="✓ Link Copied";setTimeout(function(){shareBtn.classList.remove("copied");shareBtn.textContent="↗ Share"},1800);
- }catch(e){if(e&&e.name==="AbortError")return;alert("Unable to share this podcast link.");}
+ var shareData={title:(currentPodcast&&currentPodcast.title||"CrowRules Podcast"),text:"Listen to "+(currentPodcast&&currentPodcast.title||"this podcast")+" on CrowRules Podcasting.",url:location.href};
+ if(navigator.share&&(!navigator.canShare||navigator.canShare(shareData))){
+   try{await navigator.share(shareData);return}catch(e){if(e&&e.name==="AbortError")return}
+ }
+ if(sharePanel.classList.contains("hidden"))openSharePanel();else sharePanel.classList.add("hidden");
 }
 async function startSubscription(){
  try{
@@ -265,14 +272,12 @@ async function startSubscription(){
 }
 // Auth is strictly optional and starts only after rendering.
  setTimeout(function(){
-   var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";s.onload=function(){
-     try{
-       if(window.supabase&&window.supabase.createClient){
-         authClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
-         authClient.auth.getSession().then(function(){authStatus.textContent="Available";authStatus.className="ok";updateFollowState()}).catch(function(){authStatus.textContent="Optional / unavailable"});
-       }
-     }catch(e){authStatus.textContent="Optional / unavailable"}
-   };s.onerror=function(){authStatus.textContent="Optional / unavailable"};document.head.appendChild(s);
+   try{
+     if(window.supabase&&window.supabase.createClient){
+       authClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
+       authClient.auth.getSession().then(function(){authStatus.textContent="Available";authStatus.className="ok";updateFollowState()}).catch(function(){authStatus.textContent="Optional / unavailable"});
+     }else{authStatus.textContent="Optional / unavailable"}
+   }catch(e){authStatus.textContent="Optional / unavailable"}
  },0);
 }
 rankingTabs.forEach(function(tab){tab.onclick=function(){rankingTabs.forEach(function(t){t.classList.remove("active")});tab.classList.add("active");activePeriod=tab.getAttribute("data-period")||"today";if(window.__crowRankings)render(window.__crowPodcast,window.__crowEpisodes,window.__crowStats,window.__crowRankings);};});
