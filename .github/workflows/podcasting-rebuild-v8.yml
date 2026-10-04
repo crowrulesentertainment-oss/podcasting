@@ -1,0 +1,35 @@
+name: CrowRules Podcasting V8 Rebuild
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '.github/workflows/podcasting-rebuild-v8.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    if: ${{ !contains(github.event.head_commit.message, '[podcasting-v8]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Normalize all site pages
+        run: node .github/scripts/rebuild-podcasting-v8.mjs
+
+      - name: Commit normalized site
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- '*.html' '.github/scripts/rebuild-podcasting-v8.mjs'
+          if git diff --cached --quiet; then
+            echo "No page changes required."
+          else
+            git commit -m "chore: rebuild Podcasting site on V8 runtime [podcasting-v8]"
+            git push
+          fi
