@@ -92,7 +92,7 @@ const r=await fetch(`${cfg().supabaseUrl}/functions/v1/${'creator-connect-onboar
 const b=await r.json().catch(()=>({}));
 if(!r.ok){
   const raw=String(b.error||b.message||'');
-  if(/v2_account_storer_write|Account Storer Write|does not have the required permissions for this endpoint/i.test(raw)){
+  if(/Account Storer Write|does not have the required permissions for this endpoint/i.test(raw)){
     throw Error('The active CrowRules creator service is still returning the retired Stripe V2 permission error. Refresh this page after the latest creator-connect-onboarding deployment is active.');
   }
   throw Error(raw||`Creator finance service returned ${r.status}.`);
