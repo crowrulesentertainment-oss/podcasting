@@ -21,7 +21,7 @@
 <main class="wrap hero">
 <div class="eyebrow">CROWRULES PODCASTING • CREATOR FINANCE</div>
 <h1>Creator <span class="gradient">Payout Center.</span></h1>
-<p class="muted">Stripe onboarding, verification, earnings, transfers and payout readiness — in one live control center. Server-side Stripe key diagnostics are included so setup errors are actionable.</p>
+<p class="muted">Stripe onboarding, verification, earnings, transfers and payout readiness — in one live control center. Uses the CrowRules Connect Express creator flow with fresh Stripe-hosted onboarding links and live transfer-readiness diagnostics.</p>
 
 <section id="connection" class="panel status">
 <i id="dot" class="dot"></i>
@@ -129,16 +129,16 @@ try{
  location.href=r.onboarding_url;
 }catch(e){
  const msg=String(e?.message||e||'Unknown Stripe error');
- const permission=/v2_account_storer_write|Account Storer Write|does not have the required permissions for this endpoint/i.test(msg);
- if(permission){
-   setConnection('Stripe setup is blocked by the CrowRules Stripe key','The live Edge Function key does not have V2 Account Storer Write permission. This is a server-side Stripe key permission issue — not a problem with this page.','bad');
+ const connectDisabled=/connect is not enabled|enable connect|Connect.*enabled/i.test(msg);
+ if(connectDisabled){
+   setConnection('Stripe Connect needs to be enabled','The CrowRules platform account must have Connect enabled before Express creator accounts can be created.','bad');
    $('stateNotice').className='notice bad';
-   $('stateTitle').textContent='Stripe key permission required';
-   $('stateText').textContent='Enable V2 Account Storer Write (v2_account_storer_write) on the Stripe secret key stored in Supabase as STRIPE_SECRET_KEY, then return here and click Refresh Status → Open Stripe Setup.';
+   $('stateTitle').textContent='Stripe Connect is not enabled';
+   $('stateText').textContent='The creator payout page is ready. Stripe must first enable Connect for the CrowRules platform account; this is an account-level Stripe setting, not a browser or Supabase key setting.';
    $('platformBadge').className='pill bad';
-   $('platformBadge').textContent='KEY PERMISSION';
-   $('platformText').textContent='CrowRules is reaching the Stripe API, but Stripe is rejecting the account-onboarding write operation because the server key lacks V2 Account Storer Write permission.';
-   activity('Stripe setup blocked by key permission','V2 Account Storer Write is missing from the secret key used by the live creator-connect-onboarding function.');
+   $('platformBadge').textContent='CONNECT REQUIRED';
+   $('platformText').textContent='The new creator onboarding service uses Stripe Express connected accounts. No V2 Account Storer permission workaround is required on this page.';
+   activity('Stripe Connect is not enabled','Enable Connect for the CrowRules platform account, then return here and open Stripe Setup again.');
  }else{
    setConnection('Stripe setup could not be opened',msg,'bad');
    activity('Stripe setup error',msg);
