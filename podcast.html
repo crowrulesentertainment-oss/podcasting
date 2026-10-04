@@ -1,223 +1,230 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#05050b">
 <title>Podcast — CrowRules Podcasting</title>
-<link rel="stylesheet" href="css/podcasting.css">
-<script src="js/config.js?v=20261003-9"></script><script src="js/app.js?v=20261003-12" defer></script>
-<style>
-:root{--cyan:#00dcff;--purple:#8b5cf6;--bg:#05050b;--panel:#0d0d17;--muted:rgba(255,255,255,.62)}
-body{background:radial-gradient(circle at 20% 0%,rgba(0,220,255,.08),transparent 30%),radial-gradient(circle at 90% 10%,rgba(139,92,246,.1),transparent 32%),var(--bg)}
-.wrap{max-width:1240px}.page{padding:34px 0 90px}.hero{position:relative;overflow:hidden;min-height:520px;border:1px solid rgba(255,255,255,.1);border-radius:30px;background:#080811;display:grid;grid-template-columns:380px 1fr;gap:42px;padding:42px;align-items:end}.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,5,11,.96) 0%,rgba(5,5,11,.72) 44%,rgba(5,5,11,.25) 100%);z-index:0}.hero>*{position:relative;z-index:1}.hero-art{width:100%;aspect-ratio:1;object-fit:cover;border-radius:24px;box-shadow:0 30px 80px rgba(0,0,0,.55)}.eyebrow{letter-spacing:.18em;font-size:.72rem;color:var(--cyan);font-weight:800}.title{font-size:clamp(2.7rem,6vw,6rem);line-height:.92;margin:12px 0}.desc{max-width:720px;color:var(--muted);line-height:1.7}.chips,.actions,.stats{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0}.chip,.stat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:7px 12px;font-size:.78rem}.live{color:#7df7c7}.section{margin-top:54px}.section-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:18px}.section-head h2{margin:4px 0;font-size:2rem}.subtle{color:var(--muted);font-size:.82rem}.featured{display:grid;grid-template-columns:1.15fr .85fr;gap:20px}.card{background:rgba(13,13,23,.9);border:1px solid rgba(255,255,255,.09);border-radius:22px;padding:20px}.player{width:100%;margin-top:18px}.player audio{width:100%}.episode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.episode{overflow:hidden}.episode img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:15px}.episode h3{margin:10px 0 6px}.episode p{color:var(--muted);line-height:1.55;font-size:.9rem}.progress{height:5px;background:rgba(255,255,255,.08);border-radius:9px;overflow:hidden}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));width:0}.chat-layout{display:grid;grid-template-columns:230px 1fr;gap:16px}.rooms,.chat{background:rgba(10,10,18,.94);border:1px solid rgba(255,255,255,.09);border-radius:22px}.rooms{padding:12px}.room{width:100%;text-align:left;background:rgba(255,255,255,.04);border:1px solid transparent;color:#fff;border-radius:13px;padding:12px;margin-bottom:8px;cursor:pointer}.room.active{border-color:rgba(0,220,255,.55);background:rgba(0,220,255,.08)}.room small{display:block;color:var(--muted);margin-top:4px}.chat{min-height:600px;display:grid;grid-template-rows:auto 1fr auto}.chat-head{padding:16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between}.messages{padding:16px;overflow:auto;max-height:470px}.msg{padding:10px 12px;background:rgba(255,255,255,.045);border-radius:14px;margin-bottom:9px}.msg-top{font-size:.75rem;font-weight:800}.msg-time{color:rgba(255,255,255,.35);font-weight:400;margin-left:7px}.msg-body{margin-top:4px;line-height:1.5;word-break:break-word}.reactions{display:flex;gap:5px;margin-top:7px}.react{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#fff;border-radius:9px;padding:4px 7px;cursor:pointer}.pin{padding:10px 14px;background:rgba(139,92,246,.1);border-bottom:1px solid rgba(139,92,246,.2);font-size:.82rem}.compose{padding:14px;border-top:1px solid rgba(255,255,255,.08);display:flex;gap:8px}.compose input{flex:1;background:#07070d;color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px}.typing{padding:0 16px 8px;color:var(--muted);font-size:.75rem}.manager-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:2000;display:grid;place-items:center;padding:18px}.manager{width:min(820px,100%);max-height:92vh;overflow:auto;background:#0b0b14;border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:24px}.manager-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field input,.field textarea,.field select{background:#07070d;color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:11px}.field textarea{min-height:90px}.manager-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.analytics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric strong{display:block;font-size:1.8rem;margin-top:6px}.search{width:min(340px,100%);background:#08080f;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:12px;padding:11px}.hidden{display:none!important}.subscription-state{display:inline-flex;align-items:center;gap:7px;margin-left:10px;padding:6px 11px;border-radius:999px;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;border:1px solid rgba(255,255,255,.12);vertical-align:middle}.subscription-state.active{color:#7df7c7;background:rgba(125,247,199,.08);border-color:rgba(125,247,199,.3)}.subscription-state.processing{color:#7dd3fc;background:rgba(125,211,252,.08);border-color:rgba(125,211,252,.28)}.subscription-state.past_due{color:#fbbf24;background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.28)}.subscription-state.cancelled{color:#fb7185;background:rgba(251,113,133,.08);border-color:rgba(251,113,133,.28)}.subscription-state.none{color:rgba(255,255,255,.55);background:rgba(255,255,255,.035)}.subscribe-busy{opacity:.78;pointer-events:none}.subscribe-busy::before{content:"";display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;margin-right:8px;vertical-align:-2px;animation:crspin .7s linear infinite}@keyframes crspin{to{transform:rotate(360deg)}}
-@media(max-width:900px){.hero{grid-template-columns:1fr;padding:25px}.hero-art{max-width:310px}.featured{grid-template-columns:1fr}.episode-grid{grid-template-columns:repeat(2,1fr)}.analytics{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:650px){.episode-grid{grid-template-columns:1fr}.analytics{grid-template-columns:1fr 1fr}.chat-layout{grid-template-columns:1fr}.manager-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.hero{min-height:0}}
-</style>
-<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script>
+<link rel="stylesheet" href="css/podcasting.css?v=20261003-13">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js?v=20261003-10"></script>
+<script src="js/app.js?v=20261003-13" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script>
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
+<style>
+:root{--bg:#05050b;--panel:#0b0d16;--panel2:#101321;--line:#ffffff16;--text:#f5f7fb;--muted:#9aa5b8;--cyan:#00dcff;--purple:#8b5cf6;--green:#7df7c7;--yellow:#fbbf24;--red:#fb7185}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0%,#00dcff12,transparent 28%),radial-gradient(circle at 90% 10%,#8b5cf615,transparent 30%),var(--bg);color:var(--text)}button,input{font:inherit}.page{padding:34px 0 90px}.wrap{width:min(1240px,calc(100% - 32px));margin:auto}.hidden{display:none!important}.card{background:#0d1019e8;border:1px solid var(--line);border-radius:20px;padding:20px}.eyebrow{font-size:.7rem;font-weight:900;letter-spacing:.18em;color:var(--cyan)}.subtle{color:var(--muted);line-height:1.6}.hero{position:relative;overflow:hidden;display:grid;grid-template-columns:330px 1fr;gap:38px;align-items:end;min-height:500px;padding:38px;border:1px solid var(--line);border-radius:30px;background:#080910}.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#05050bf7 0%,#05050bb8 48%,#05050b35 100%);z-index:0}.hero>*{position:relative;z-index:1}.hero-art{width:100%;aspect-ratio:1;object-fit:cover;border-radius:22px;box-shadow:0 25px 70px #0009}.title{font-size:clamp(2.7rem,6vw,5.8rem);line-height:.92;margin:10px 0 16px}.chips,.actions,.stats{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.chip,.stat{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:#ffffff08;border-radius:999px;padding:7px 11px;font-size:.76rem}.actions{margin-top:20px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid #ffffff1b;background:#ffffff08;color:#fff;border-radius:11px;padding:10px 15px;text-decoration:none;cursor:pointer}.btn:hover{background:#ffffff12}.btn.primary{background:linear-gradient(135deg,#00bfe0,#7c4cf3);border:0}.btn:disabled{opacity:.55;cursor:not-allowed}.subscription-state{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;font-size:.7rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line)}.subscription-state.active{color:var(--green);background:#7df7c70d;border-color:#7df7c74d}.subscription-state.processing{color:#7dd3fc;background:#7dd3fc0d;border-color:#7dd3fc44}.subscription-state.past_due{color:var(--yellow);background:#fbbf2410;border-color:#fbbf2444}.subscription-state.cancelled{color:var(--red);background:#fb718510;border-color:#fb718544}.subscription-state.none{color:#aeb7c8;background:#ffffff07}.busy{opacity:.8;pointer-events:none}.section{margin-top:52px}.section-head{display:flex;justify-content:space-between;gap:18px;align-items:end;margin-bottom:17px}.section-head h2{margin:4px 0;font-size:2rem}.featured{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.featured img,.episode img{width:100%;object-fit:cover;border-radius:15px}.featured img{aspect-ratio:16/9}.episode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.episode{overflow:hidden}.episode img{aspect-ratio:16/9}.episode h3{margin:10px 0 6px}.episode p{color:var(--muted);line-height:1.55;font-size:.9rem}.player{margin-top:18px}.player audio{width:100%}.progress{height:5px;background:#ffffff0d;border-radius:9px;overflow:hidden}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple))}.search{width:min(340px,100%);background:#070912;border:1px solid var(--line);color:#fff;border-radius:11px;padding:10px}.status-box{margin-top:14px}.chat-layout{display:grid;grid-template-columns:220px 1fr;gap:15px}.rooms,.chat{background:#0a0d15e8;border:1px solid var(--line);border-radius:20px}.rooms{padding:11px}.room{width:100%;text-align:left;color:#fff;background:#ffffff06;border:1px solid transparent;border-radius:11px;padding:11px;margin-bottom:7px;cursor:pointer}.room.active{border-color:#00dcff66;background:#00dcff0d}.room small{display:block;color:var(--muted);margin-top:4px}.chat{min-height:560px;display:grid;grid-template-rows:auto 1fr auto}.chat-head{padding:15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.messages{padding:15px;overflow:auto;max-height:440px}.msg{background:#ffffff06;border-radius:13px;padding:10px 12px;margin-bottom:8px}.msg-top{font-size:.75rem;font-weight:800}.msg-time{color:#ffffff4d;font-weight:400;margin-left:6px}.msg-body{margin-top:4px;line-height:1.5;word-break:break-word}.compose{padding:13px;border-top:1px solid var(--line);display:flex;gap:8px}.compose input{flex:1;background:#060810;color:#fff;border:1px solid var(--line);border-radius:10px;padding:11px}.loading{padding:90px 20px;text-align:center}.error{border-color:#fb718555}.ok{color:var(--green)}@media(max-width:900px){.hero{grid-template-columns:1fr;padding:25px}.hero-art{max-width:320px}.featured{grid-template-columns:1fr}.episode-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.wrap{width:min(100% - 20px,1240px)}.episode-grid{grid-template-columns:1fr}.chat-layout{grid-template-columns:1fr}.hero{min-height:0}.section-head{align-items:start;flex-direction:column}.search{width:100%}}
+</style>
 </head>
 <body>
 <div data-nav></div>
 <main class="wrap page">
-<div id="loading" class="card" style="text-align:center;padding:90px">Loading podcast universe…</div>
+<section id="loading" class="card loading">
+  <div class="eyebrow">PODCAST SYSTEM</div>
+  <h2>Loading podcast universe…</h2>
+  <p class="subtle">Connecting to CrowRules Podcasting.</p>
+</section>
 <div id="app" class="hidden">
-<section id="hero"></section>
-<section class="section" id="featuredSection"></section>
-<section class="section hidden" id="continueSection"></section>
-<section class="section" id="episodesSection"></section>
-<section class="section" id="chatSection"></section>
-<section class="section hidden" id="creatorSection"></section>
+  <section id="hero"></section>
+  <section id="featured" class="section"></section>
+  <section id="continue" class="section hidden"></section>
+  <section id="episodes" class="section"></section>
+  <section id="chatSection" class="section"></section>
 </div>
 </main>
-<div id="managerModal" class="manager-modal hidden">
-<div class="manager">
-<div class="section-head"><div><div class="eyebrow">COMMUNITY OPERATIONS</div><h2>Room Manager</h2><div class="subtle">Manage rooms, status, ordering, descriptions and moderators.</div></div><button class="btn" id="closeManager">Done</button></div>
-<div id="managerRooms"></div>
-<div id="editor" class="hidden">
-<hr style="border-color:rgba(255,255,255,.08)">
-<div class="manager-grid">
-<label class="field"><span>Name</span><input id="roomName"></label>
-<label class="field"><span>Slug</span><input id="roomSlug"></label>
-<label class="field full"><span>Description</span><textarea id="roomDescription"></textarea></label>
-<label class="field"><span>Status</span><select id="roomLive"><option value="false">Offline</option><option value="true">Live</option></select></label>
-<label class="field"><span>Moderator User ID</span><input id="modUser" placeholder="Auth UUID"></label>
-</div>
-<div class="manager-actions"><button class="btn primary" id="saveRoom">Save Room</button><button class="btn" id="addMod">Add Moderator</button><button class="btn" id="deleteRoom">Delete Room</button><button class="btn" id="closeEditor">Close</button></div>
-<div id="mods" class="subtle" style="margin-top:14px"></div>
-</div>
-<div class="manager-actions"><button class="btn primary" id="newRoom">＋ New Room</button></div>
-</div>
-</div>
 <script>
 (()=>{"use strict";
-const cfg=window.CROW_CONFIG||{},pid=new URLSearchParams(location.search).get("id");
-const $=s=>document.querySelector(s),esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let sb=null,user=null,podcast=null,podcastId=null,episodes=[],rooms=[],room=null,chat=null,presence=null,editing=null,progress={},creatorMemberId=null,realtime=[],reconnectTimer=null,connectionState="connecting";
-const timeout=(p,ms=10000)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(Error("Supabase request timed out.")),ms))]);
+const cfg=window.CROW_CONFIG||{};
+const $=(s,r=document)=>r.querySelector(s);
+const esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const withTimeout=(promise,ms=10000)=>Promise.race([promise,new Promise((_,rej)=>setTimeout(()=>rej(new Error("Supabase request timed out.")),ms))]);
+let sb=null,user=null,podcast=null,podcastId=null,episodes=[],progress={},rooms=[],room=null,chatChannel=null,realtimeChannel=null,authSub=null;
+
 async function client(){
  if(sb)return sb;
- try{
-  if(window.CROW_BOOTSTRAP)sb=await timeout(window.CROW_BOOTSTRAP(),10000);
- }catch(e){console.warn("Shared Supabase bootstrap failed:",e?.message||e)}
- if(!sb&&window.CROW_SUPABASE)sb=window.CROW_SUPABASE;
- if(!sb&&window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey){
-  try{sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}})}catch(e){console.warn("Direct Supabase client failed:",e?.message||e)}
+ if(window.CROW_SUPABASE){sb=window.CROW_SUPABASE;return sb}
+ if(typeof window.CROW_BOOTSTRAP==="function"){
+   try{sb=await withTimeout(window.CROW_BOOTSTRAP(),12000);if(sb)return sb}catch(e){console.warn("CrowRules bootstrap:",e?.message||e)}
  }
- if(!sb)throw Error("Supabase client could not be initialized. Check js/config.js and the Supabase library.");
- return sb
-}
-function setConnectionState(s){connectionState=s;const el=$("#connectionStatus");if(el){el.textContent=s==="connected"?"● LIVE SYNC":s==="reconnecting"?"↻ RECONNECTING":"○ OFFLINE";el.className="chip "+(s==="connected"?"live":"")}}
-function scheduleReconnect(){clearTimeout(reconnectTimer);reconnectTimer=setTimeout(()=>setupRealtime(),2500)}
-async function setupRealtime(){const c=await client();if(!c||!podcastId)return;setConnectionState("reconnecting");realtime.forEach(x=>{try{x.unsubscribe()}catch{}});realtime=[];const base="podcast-page-"+podcastId;
- const p=c.channel(base+"-podcast").on("postgres_changes",{event:"UPDATE",schema:"public",table:"podcasts",filter:"id=eq."+podcastId},p=>{podcast={...podcast,...p.new};renderHeroOnly()}).subscribe(s=>{if(s==="SUBSCRIBED"){setConnectionState("connected")}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){setConnectionState("offline");scheduleReconnect()}});
- const e=c.channel(base+"-episodes").on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes",filter:"podcast_id=eq."+podcastId},async()=>{try{episodes=await rest("podcast_episodes",{select:"id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,play_count,status,access_level",podcast_id:"eq."+podcastId,status:"eq.published",order:"published_at.desc"});renderFeatured();renderContinue();renderEpisodes()}catch{}}).subscribe(s=>{if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED")scheduleReconnect()});
- const f=c.channel(base+"-follows").on("postgres_changes",{event:"*",schema:"public",table:"podcast_follows",filter:"podcast_id=eq."+podcastId},()=>refreshCounts()).subscribe(s=>{if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED")scheduleReconnect()});
- const subFilter=user?.id? "podcast_id=eq."+podcastId+",user_id=eq."+user.id : "podcast_id=eq."+podcastId;
- const sub=c.channel(base+"-subscriptions").on("postgres_changes",{event:"*",schema:"public",table:"podcast_subscriptions",filter:subFilter},()=>{refreshCounts();refreshSubscriptionButton()}).subscribe(s=>{if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED")scheduleReconnect()});
- const roomsChannel=c.channel(base+"-rooms").on("postgres_changes",{event:"*",schema:"public",table:"podcast_chat_rooms",filter:"podcast_id=eq."+podcastId},async()=>{try{rooms=await rest("podcast_chat_rooms",{select:"id,podcast_id,slug,name,description,is_live,sort_order,created_at",podcast_id:"eq."+podcastId,order:"sort_order.asc,created_at.asc"});renderRoomButtons();if(room&&!rooms.some(x=>x.id===room.id)){room=null;if(chat)await chat.unsubscribe();if(presence)await presence.unsubscribe();if(rooms[0])await selectRoom(rooms[0].id)}}catch(e){console.warn("Room realtime refresh:",e.message)}}).subscribe(s=>{if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED")scheduleReconnect()});
- realtime.push(p,e,f,sub,roomsChannel)}
-async function resumePendingSubscription(){
- if(!user||!podcastId)return false;
- const key="cr_pending_subscription:"+user.id+":"+podcastId;
- let pending=null;try{pending=JSON.parse(localStorage.getItem(key)||"null")}catch{}
- if(!pending||Date.now()-Number(pending.started_at||0)>30*60*1000)return false;
- const btn=$("#subscribe");if(!btn)return false;
- btn.dataset.busy="1";btn.disabled=true;btn.classList.add("subscribe-busy");btn.textContent="Processing…";renderSubscriptionStatus("processing");
- for(let i=0;i<30;i++){
-   if(await refreshSubscriptionButton())return true;
-   await new Promise(r=>setTimeout(r,2000));
+ if(window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey){
+   sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
+   window.CROW_SUPABASE=sb;return sb
  }
- btn.dataset.busy="0";btn.disabled=false;btn.classList.remove("subscribe-busy");btn.textContent="Subscribe";
- return false;
+ throw new Error("Supabase client could not be initialized.");
 }
-function renderSubscriptionStatus(status){
+async function currentUser(){
+ const c=await client();
+ try{const r=await withTimeout(c.auth.getUser(),8000);return r.data?.user||null}catch{return null}
+}
+function showFatal(message){
+ const l=$("#loading");l.classList.remove("hidden");l.innerHTML='<div class="eyebrow">PODCAST SYSTEM</div><h2>Podcast could not load</h2><p class="subtle">'+esc(message)+'</p><div class="actions" style="justify-content:center"><button class="btn primary" id="retry">Retry</button><a class="btn" href="podcasts.html">All Podcasts</a></div>';$("#retry").onclick=()=>location.reload()
+}
+function setHeroState(status){
  const el=$("#subscriptionStatus");if(!el)return;
- const map={active:["Active","active"],trialing:["Active","active"],past_due:["Past Due","past_due"],paused:["Paused","past_due"],canceled:["Cancelled","cancelled"],cancelled:["Cancelled","cancelled"],processing:["Processing","processing"]};
- const x=map[status]||["Not Subscribed","none"];el.className="subscription-state "+x[1];el.textContent=x[0];
+ const map={active:["Active","active"],trialing:["Active","active"],processing:["Processing","processing"],past_due:["Past Due","past_due"],paused:["Paused","past_due"],canceled:["Cancelled","cancelled"],cancelled:["Cancelled","cancelled"]};
+ const x=map[status]||["Not Subscribed","none"];el.className="subscription-state "+x[1];el.textContent=x[0]
 }
-async function refreshSubscriptionButton(){
- const btn=$("#subscribe"); if(!btn||!podcastId)return;
- if(!user){btn.dataset.subscribed="0";btn.textContent="Subscribe";return}
- try{
-  const c=await client();
-  const q=await c.from("podcast_subscriptions").select("id,status,updated_at").eq("podcast_id",podcastId).eq("user_id",user.id).order("updated_at",{ascending:false}).limit(1).maybeSingle();
-  const status=q.data?.status||"";
-  const active=["active","trialing"].includes(status);
-  renderSubscriptionStatus(status||"none");
-  btn.dataset.subscribed=active?"1":"0";
-  if(btn.dataset.busy!=="1"){btn.disabled=false;btn.classList.remove("subscribe-busy");btn.textContent=active?"Subscribed ✓":"Subscribe"}
- }catch(e){console.warn("Subscription button sync:",e?.message||e)}
+async function getSubscription(){
+ if(!user||!podcastId)return null;
+ const c=await client();
+ const r=await withTimeout(c.from("podcast_subscriptions").select("id,status,stripe_subscription_id,current_period_start,current_period_end,cancel_at_period_end,updated_at").eq("podcast_id",podcastId).eq("user_id",user.id).order("updated_at",{ascending:false}).limit(1).maybeSingle(),10000);
+ if(r.error)throw r.error;return r.data||null
 }
-async function refreshCounts(){const c=await client();if(!c||!$("#followers"))return;const [f,s]=await Promise.all([c.from("podcast_follows").select("id",{count:"exact",head:true}).eq("podcast_id",podcastId),c.from("podcast_subscriptions").select("id",{count:"exact",head:true}).eq("podcast_id",podcastId).in("status",["active","trialing"])]);$("#followers").textContent=Number(f.count||0).toLocaleString();$("#subs").textContent=Number(s.count||0).toLocaleString()}
-function renderHeroOnly(){const a=podcast.artwork_url||"assets/podcast-placeholder.svg";const h=$("#hero");if(!h)return;h.querySelector(".eyebrow").textContent=podcast.category||"PODCAST";h.querySelector(".title").textContent=podcast.title;const d=h.querySelector(".desc");if(d)d.textContent=podcast.description||"A CrowRules Podcasting show.";document.title=podcast.title+" — CrowRules Podcasting"}
-async function getUser(){const c=await client();if(!c)return null;const r=await c.auth.getUser();return r.data?.user||null}
-async function rest(table,params={},method="GET",body=null){const c=await client();if(!c)throw Error("Supabase client unavailable");if(method!=="GET"){const r=await timeout(c.from(table).insert(body),10000);if(r.error)throw Error("Supabase "+table+": "+r.error.message);return r.data||null}let q=c.from(table).select(params.select||"*");for(const [k,v] of Object.entries(params)){if(k==="select"||k==="order"||k==="limit")continue;if(typeof v!=="string"){q=q.eq(k,v);continue}if(v.startsWith("eq.")){q=q.eq(k,v.slice(3));continue}if(v.startsWith("in.(")&&v.endsWith(")")){q=q.in(k,v.slice(4,-1).split(",").map(x=>x.trim()).filter(Boolean));continue}const m=/^([a-z_]+)\\.(.*)$/i.exec(v);if(m&&typeof q[m[1]]==="function"){q=q[m[1]](k,m[2]);continue}q=q.eq(k,v)}if(params.order){for(const part of String(params.order).split(",").map(x=>x.trim()).filter(Boolean)){const bits=part.split(".");q=q.order(bits[0],{ascending:(bits[1]||"asc").toLowerCase()!=="desc",nullsFirst:false})}}if(params.limit)q=q.limit(Number(params.limit));const r=await timeout(q,10000);if(r.error)throw Error("Supabase "+table+": "+r.error.message+(r.error.code?" ["+r.error.code+"]":""));return r.data||[]}
-function goAccount(){location.href="account.html?returnTo="+encodeURIComponent(location.href)}
-async function load(){if(!pid)throw Error("No podcast was specified.");const c=await client();if(!c)throw Error("Supabase client could not be initialized.");const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(pid);const podcastSelect="id,title,slug,category,description,artwork_url,author_name,language,explicit_content,is_live,listener_count,status,creator_id";let q=c.from("podcasts").select(podcastSelect).eq("status","published");q=uuid?q.eq("id",pid):q.eq("slug",pid);const pr=await timeout(q.maybeSingle(),10000);if(pr.error)throw Error("Podcast lookup failed: "+pr.error.message+(pr.error.code?" ["+pr.error.code+"]":""));podcast=pr.data;if(!podcast)throw Error("This podcast is unavailable.");podcastId=podcast.id;try{const cr=await c.from("creators").select("id,member_id,name,discipline,is_active").eq("id",podcast.creator_id).limit(1).maybeSingle();if(!cr.error)creatorMemberId=cr.data?.member_id||null}catch{}document.title=podcast.title+" — CrowRules Podcasting";const er=await timeout(c.from("podcast_episodes").select("id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,play_count,status,access_level").eq("podcast_id",podcastId).eq("status","published").order("published_at",{ascending:false}),10000);if(er.error)throw Error("Episode lookup failed: "+er.error.message+(er.error.code?" ["+er.error.code+"]":""));episodes=er.data||[];await bindAuthState();user=await getUser();await loadProgress();await loadRooms();renderAll()}
-async function loadProgress(){if(!user)return;const r=await rest("podcast_episode_progress",{select:"episode_id,position_seconds,duration_seconds,percent_complete,last_played_at,completed",user_id:"eq."+user.id,order:"last_played_at.desc",limit:"12"});(r||[]).forEach(x=>progress[x.episode_id]=x)}
-async function loadRooms(){try{rooms=await rest("podcast_chat_rooms",{select:"id,podcast_id,slug,name,description,is_live,sort_order,created_at",podcast_id:"eq."+podcastId,order:"sort_order.asc,created_at.asc"});if(!rooms.length&&user&&podcast.creator_id===user.id){try{await rest("podcast_chat_rooms",{},"POST",{podcast_id:podcastId,slug:"general",name:"General",description:"General community chat",is_live:false,sort_order:0});rooms=await rest("podcast_chat_rooms",{select:"id,podcast_id,slug,name,description,is_live,sort_order,created_at",podcast_id:"eq."+podcastId,order:"sort_order.asc,created_at.asc"})}catch(e){console.warn("Chat room bootstrap skipped:",e.message)}}}catch(e){console.warn("Podcast chat is unavailable:",e.message);rooms=[]}}
-let authSubscription=null;
-async function bindAuthState(){const c=await client();if(!c?.auth)return;try{authSubscription?.unsubscribe?.()}catch{};authSubscription=c.auth.onAuthStateChange(async(_event,session)=>{user=session?.user||null;try{await loadProgress()}catch{};renderContinue();if(podcast)bindHero();renderChat()}).data?.subscription||null}
-function renderAll(){const a=podcast.artwork_url||"assets/podcast-placeholder.svg";$("#hero").innerHTML='<section class="hero" style="background-image:url('+JSON.stringify(a)+');background-size:cover;background-position:center"><img class="hero-art" src="'+esc(a)+'" alt="'+esc(podcast.title)+' artwork"><div><div class="eyebrow">'+esc(podcast.category||"PODCAST")+'</div><h1 class="title">'+esc(podcast.title)+'</h1><div class="chips">'+(podcast.author_name?(creatorMemberId?'<a class="chip" style="text-decoration:none" href="member-profile.html?user='+encodeURIComponent(creatorMemberId)+'">By '+esc(podcast.author_name)+'</a>':'<span class="chip">By '+esc(podcast.author_name)+'</span>'):"")+(podcast.language?'<span class="chip">'+esc(podcast.language.toUpperCase())+'</span>':"")+(podcast.is_live?'<span class="chip live">● LIVE NOW</span>':"")+'</div><p class="desc">'+esc(podcast.description||"A CrowRules Podcasting show.")+'</p><div class="stats"><span id="connectionStatus" class="chip">○ CONNECTING</span><span class="stat">♥ <b id="followers">—</b> followers</span><span class="stat">◆ <b id="subs">—</b> subscribers</span><span class="stat">▶ <b>'+Number(podcast.listener_count||0).toLocaleString()+'</b> listeners</span></div><div class="actions"><button id="follow" class="btn">Follow</button><button id="subscribe" class="btn primary">Subscribe</button><span id="subscriptionStatus" class="subscription-state none">Not Subscribed</span><button id="share" class="btn">Share</button><a class="btn" href="podcasts.html">All Podcasts</a></div><div id="subscriptionReadiness" class="card hidden" style="margin-top:14px;padding:14px;border-color:rgba(139,92,246,.25)"></div></div></section>';renderFeatured();renderContinue();renderEpisodes();renderChat();setupRealtime();if(user&&podcast.creator_id===user.id)renderCreator();bindHero();showCheckoutReturn();if(user){setTimeout(()=>resumePendingSubscription(),350)}}
-async function checkSubscriptionReadiness(c){const box=$("#subscriptionReadiness");if(!box||!user)return;try{const p=await rest("cr_podcast_monetization_products",{select:"id,name,amount_cents,interval,active",podcast_id:"eq."+podcastId,product_type:"eq.membership",active:"eq.true",limit:"1"});if(!p[0]){box.classList.add("hidden");$("#subscribe").disabled=false;return}const r=await c.functions.invoke("create-podcast-checkout",{body:{action:"readiness",product_id:p[0].id}});let d=r.data||{};if(r.error&&r.error.context){try{d=await r.error.context.clone().json()}catch{}}const details=d.details||{};const checks=d.checks||{};const caps=d.capabilities||{};const req=d.requirements||{};const blockers=Array.isArray(d.blockers)?d.blockers:[];const ready=d.ready===true;const badge=(ok,label,value)=>`<span style="display:inline-flex;align-items:center;gap:5px;margin:3px 12px 3px 0"><b style="color:${ok?"#7df7c7":"#ff8b8b"}">${ok?"✓":"●"}</b> ${label}: ${esc(value)}</span>`;box.classList.remove("hidden");if(ready){box.innerHTML=`<div class="eyebrow">SUBSCRIPTIONS</div><b style="color:#7df7c7">✓ Subscription checkout is ready</b><div class="subtle" style="margin-top:5px">${esc(p[0].name||"Membership")} · ${Number(p[0].amount_cents||0)/100} USD / ${esc(p[0].interval||"billing period")}</div><div style="margin-top:8px">${badge(!!checks.charges_enabled,"Charges","enabled")}${badge(!!checks.card_payments,"Card payments","active")}${badge(!!checks.transfers,"Transfers","active")}${badge(!!checks.payouts_enabled,"Payouts","enabled")}</div>`;}else{const due=[...(req.currently_due||[]),...(req.past_due||[])];const verification=req.pending_verification||[];const cardState=String(caps.card_payments||details.card_payments||"unavailable");const transferState=String(caps.transfers||details.transfers||"unavailable");box.innerHTML=`<div class="eyebrow">SUBSCRIPTIONS</div><b>Stripe setup is not complete yet</b><div style="margin-top:7px">${badge(!!checks.charges_enabled,"Charges",checks.charges_enabled?"enabled":"not enabled")}${badge(!!checks.card_payments,"Card payments",cardState)}${badge(!!checks.transfers,"Transfers",transferState)}${badge(!!checks.payouts_enabled,"Payouts",checks.payouts_enabled?"enabled":"not enabled")}</div>${due.length?`<div class="subtle" style="margin-top:7px"><b>Requirements due:</b> ${esc(due.join(", "))}</div>`:""}${verification.length?'<div class="subtle" style="margin-top:6px"><b>Verification:</b> Stripe is reviewing submitted information.</div>':""}${blockers.length?`<div class="subtle" style="margin-top:6px"><b>Blocker:</b> ${esc(blockers[0])}</div>`:""}<div class="subtle" style="margin-top:7px">Continue Stripe Connect setup, then return here. CrowRules will recheck the live account.</div><a class="btn" style="margin-top:10px" href="creator-payouts.html?stripe_return=1">Continue Stripe Setup</a>`;}$("#subscribe").disabled=!ready;$("#subscribe").title=ready?"Subscribe to this podcast":"Stripe subscription setup is not ready yet"}catch(e){box.classList.remove("hidden");box.innerHTML=`<div class="eyebrow">SUBSCRIPTIONS</div><b>Unable to verify Stripe readiness</b><div class="subtle" style="margin-top:6px">${esc(e?.message||"Please try again.")}</div>`;$("#subscribe").disabled=true}}
-async async function bindHero(){const c=await client();const followerCount=await timeout(c.from("podcast_follows").select("id",{count:"exact",head:true}).eq("podcast_id",podcastId),10000);$("#followers").textContent=Number(followerCount.count||0).toLocaleString();let following=false;if(user){const mineFollow=await c.from("podcast_follows").select("id").eq("podcast_id",podcastId).eq("user_id",user.id).maybeSingle();following=!!mineFollow.data}$("#follow").textContent=following?"Following":"Follow";const subCount=await timeout(c.from("podcast_subscriptions").select("id",{count:"exact",head:true}).eq("podcast_id",podcastId).in("status",["active","trialing"]),10000);$("#subs").textContent=Number(subCount.count||0).toLocaleString();await checkSubscriptionReadiness(c);let mine=false;if(user){const mineSub=await c.from("podcast_subscriptions").select("id,status").eq("podcast_id",podcastId).eq("user_id",user.id).in("status",["active","trialing"]).maybeSingle();mine=!!mineSub.data}$("#subscribe").dataset.subscribed=mine?"1":"0";$("#subscribe").textContent=mine?"Subscribed ✓":"Subscribe";$("#follow").onclick=async()=>{if(!user)return goAccount();const followingNow=$("#follow").textContent==="Following";const q=followingNow?await c.from("podcast_follows").delete().eq("podcast_id",podcastId).eq("user_id",user.id):await c.from("podcast_follows").insert({podcast_id:podcastId,user_id:user.id});if(q.error&&q.error.code!=="23505")return alert(q.error.message);bindHero()};$("#share").onclick=async()=>{try{if(navigator.share)await navigator.share({title:podcast.title,text:"Listen on CrowRules Podcasting",url:location.href});else{await navigator.clipboard.writeText(location.href);$("#share").textContent="Copied!"}}catch{}};$("#subscribe").onclick=async()=>{
- const btn=$("#subscribe"),box=$("#subscriptionReadiness");
- if(btn.dataset.subscribed==="1"){location.href="subscriptions.html?podcast_id="+encodeURIComponent(podcastId);return}
- if(!user){goAccount();return}
- if(btn.dataset.busy==="1")return;
- btn.dataset.busy="1";btn.disabled=true;btn.classList.add("subscribe-busy");btn.textContent="Processing…";
- const reset=()=>{btn.dataset.busy="0";btn.classList.remove("subscribe-busy");btn.disabled=false;btn.textContent="Subscribe"};
+async function refreshSubscription(){
+ const b=$("#subscribe");if(!b)return;
+ if(!user){b.disabled=false;b.textContent="Subscribe";b.dataset.subscribed="0";setHeroState("none");return null}
  try{
-  const p=await rest("cr_podcast_monetization_products",{select:"id,name,amount_cents,interval,active",podcast_id:"eq."+podcastId,product_type:"eq.membership",active:"eq.true",limit:"1"});
-  if(!p[0])throw Error("This podcast does not have an active subscription product yet.");
-  const ready=await c.functions.invoke("create-podcast-checkout",{body:{action:"readiness",product_id:p[0].id}});
-  let rd=ready.data||{};
-  if(ready.error&&ready.error.context){try{rd=await ready.error.context.clone().json()}catch{}}
-  if(ready.error||rd.ready!==true){
-   const blockers=Array.isArray(rd.blockers)?rd.blockers:[];
-   throw Error(blockers[0]||rd.error||"Stripe subscription checkout is not ready yet. Please complete Stripe setup and try again.");
-  }
-  if(box){box.classList.remove("hidden");box.innerHTML='<div class="eyebrow">SUBSCRIPTIONS</div><b style="color:#7df7c7">✓ Stripe checkout verified</b><div class="subtle" style="margin-top:5px">Opening secure Stripe Checkout…</div>'}
-  const pendingKey="cr_pending_subscription:"+user.id+":"+podcastId;
-  try{localStorage.setItem(pendingKey,JSON.stringify({started_at:Date.now(),podcast_id:podcastId,product_id:p[0].id}))}catch{}
-  const returnUrl=new URL(location.href);
-  returnUrl.searchParams.set("checkout","success");
-  returnUrl.searchParams.set("session_id","{CHECKOUT_SESSION_ID}");
-  const cancelUrl=new URL(location.href);
-  cancelUrl.searchParams.set("checkout","cancelled");
-  const r=await c.functions.invoke("create-podcast-checkout",{body:{product_id:p[0].id,origin:cfg.siteUrl,success_url:returnUrl.toString(),cancel_url:cancelUrl.toString()}});
-  if(r.error){
-   let detail=r.error.message||"Unable to start subscription.";
-   try{const ctx=r.error.context;if(ctx&&typeof ctx.clone==="function"){const j=await ctx.clone().json();if(j?.error)detail=j.error;if(j?.details?.blockers?.length)detail=j.details.blockers[0]}}catch{}
-   throw Error(detail);
-  }
-  if(!r.data?.url)throw Error(r.data?.error||"Stripe Checkout did not return a checkout URL.");
-  location.href=r.data.url;
+   const s=await getSubscription();const active=!!s&&["active","trialing"].includes(s.status);
+   setHeroState(s?.status||"none");b.dataset.subscribed=active?"1":"0";
+   if(b.dataset.busy!=="1"){b.disabled=false;b.classList.remove("busy");b.textContent=active?"Subscribed ✓":"Subscribe"}
+   return s
+ }catch(e){console.warn("Subscription sync:",e?.message||e);return null}
+}
+async function refreshCounts(){
+ const c=await client();if(!podcastId)return;
+ const [f,s]=await Promise.all([
+  c.from("podcast_follows").select("id",{count:"exact",head:true}).eq("podcast_id",podcastId),
+  c.from("podcast_subscriptions").select("id",{count:"exact",head:true}).eq("podcast_id",podcastId).in("status",["active","trialing"])
+ ]);
+ if($("#followers"))$("#followers").textContent=Number(f.count||0).toLocaleString();
+ if($("#subs"))$("#subs").textContent=Number(s.count||0).toLocaleString()
+}
+async function follow(){
+ if(!user){location.href="account.html?auth=signin&returnTo="+encodeURIComponent(location.href);return}
+ const c=await client(),b=$("#follow"),following=b.dataset.following==="1";
+ const r=following?await c.from("podcast_follows").delete().eq("podcast_id",podcastId).eq("user_id",user.id):await c.from("podcast_follows").insert({podcast_id:podcastId,user_id:user.id});
+ if(r.error&&r.error.code!=="23505")throw r.error;
+ b.dataset.following=following?"0":"1";b.textContent=following?"Follow":"Following";refreshCounts()
+}
+async function readiness(product){
+ const c=await client();
+ const r=await c.functions.invoke("create-podcast-checkout",{body:{action:"readiness",product_id:product.id}});
+ let d=r.data||{};
+ if(r.error?.context){try{d=await r.error.context.clone().json()}catch{}}
+ if(r.error||d.ready!==true)return {ready:false,data:d,error:r.error};
+ return {ready:true,data:d}
+}
+async function activeProduct(){
+ const c=await client();
+ const r=await withTimeout(c.from("cr_podcast_monetization_products").select("id,name,amount_cents,interval,active").eq("podcast_id",podcastId).eq("product_type","membership").eq("active",true).order("created_at",{ascending:false}).limit(1),10000);
+ if(r.error)throw r.error;return r.data?.[0]||null
+}
+async function startCheckout(){
+ const b=$("#subscribe"),box=$("#subscriptionStatusBox");
+ if(b.dataset.busy==="1")return;
+ if(!user){location.href="account.html?auth=signin&returnTo="+encodeURIComponent(location.href);return}
+ if(b.dataset.subscribed==="1"){location.href="subscriptions.html?podcast_id="+encodeURIComponent(podcastId);return}
+ b.dataset.busy="1";b.disabled=true;b.classList.add("busy");b.textContent="Processing…";setHeroState("processing");
+ try{
+   const product=await activeProduct();
+   if(!product)throw new Error("This podcast does not have an active subscription product yet.");
+   const rd=await readiness(product);
+   if(!rd.ready){const blockers=Array.isArray(rd.data?.blockers)?rd.data.blockers:[];throw new Error(blockers[0]||rd.data?.error||"Stripe checkout is not ready yet.")}
+   if(box){box.classList.remove("hidden");box.innerHTML='<div class="eyebrow">SUBSCRIPTIONS</div><b class="ok">✓ Checkout ready</b><div class="subtle">Opening secure Stripe Checkout…</div>'}
+   const key="cr_pending_subscription:"+user.id+":"+podcastId;
+   localStorage.setItem(key,JSON.stringify({started_at:Date.now(),podcast_id:podcastId,product_id:product.id}));
+   const success=new URL(location.href);success.searchParams.set("checkout","success");success.searchParams.set("session_id","{CHECKOUT_SESSION_ID}");
+   const cancel=new URL(location.href);cancel.searchParams.set("checkout","cancelled");
+   const c=await client();
+   const r=await c.functions.invoke("create-podcast-checkout",{body:{product_id:product.id,origin:cfg.siteUrl,success_url:success.toString(),cancel_url:cancel.toString()}});
+   if(r.error){let msg=r.error.message||"Unable to start subscription.";try{const j=await r.error.context?.clone().json();msg=j?.error||j?.details?.blockers?.[0]||msg}catch{}throw new Error(msg)}
+   if(!r.data?.url)throw new Error(r.data?.error||"Stripe Checkout did not return a URL.");
+   location.assign(r.data.url)
  }catch(e){
-  if(box){box.classList.remove("hidden");box.innerHTML='<div class="eyebrow">SUBSCRIPTIONS</div><b>Checkout could not start</b><div class="subtle" style="margin-top:6px">'+esc(e?.message||"Please try again.")+'</div><button class="btn primary" id="retrySubscribe" style="margin-top:10px">Try Again</button>';$("#retrySubscribe").onclick=()=>bindHero()}
-  reset();
+   b.dataset.busy="0";b.disabled=false;b.classList.remove("busy");b.textContent="Subscribe";setHeroState("none");
+   if(box){box.classList.remove("hidden");box.innerHTML='<div class="eyebrow">SUBSCRIPTIONS</div><b>Checkout could not start</b><div class="subtle">'+esc(e?.message||"Please try again.")+'</div>'}
  }
-};
-async function verifySubscriptionReturn(sessionId,box){
-  if(!user||!podcastId)return false;
-  const c=await client();
-  for(let attempt=0;attempt<6;attempt++){
-    try{
-      const q=await c.from("podcast_subscriptions")
-        .select("id,status,stripe_subscription_id,current_period_start,current_period_end,cancel_at_period_end,updated_at")
-        .eq("user_id",user.id).eq("podcast_id",podcastId)
-        .in("status",["active","trialing","past_due","paused"])
-        .order("updated_at",{ascending:false}).limit(1).maybeSingle();
-      if(!q.error&&q.data&&["active","trialing"].includes(q.data.status)){
-        try{localStorage.removeItem("cr_pending_subscription:"+user.id+":"+podcastId)}catch{}
-        const b=$("#subscribe");if(b){b.dataset.busy="0";b.dataset.subscribed="1";b.disabled=false;b.classList.remove("subscribe-busy");b.textContent="Subscribed ✓"}renderSubscriptionStatus("active")
-        box.innerHTML='<div class="eyebrow">SUBSCRIPTION ACTIVE</div><b style="color:#7df7c7">✓ Your subscription is active</b><div class="subtle" style="margin-top:6px">Your CrowRules Podcasting subscription is now connected to your account.</div><a class="btn primary" style="margin-top:10px" href="subscriptions.html?podcast_id='+encodeURIComponent(podcastId)+'">Open My Subscriptions</a>';
-        return true;
-      }
-    }catch(e){console.warn("Subscription verification:",e?.message||e)}
-    if(attempt<5)await new Promise(r=>setTimeout(r,2500));
-  }
-  box.innerHTML='<div class="eyebrow">SUBSCRIPTION PROCESSING</div><b style="color:#ffd166">✓ Stripe checkout completed</b><div class="subtle" style="margin-top:6px">Your payment was completed, but Stripe is still syncing your subscription into CrowRules. This usually takes a few moments.</div><a class="btn" style="margin-top:10px" href="subscriptions.html?podcast_id='+encodeURIComponent(podcastId)+'">Check My Subscriptions</a>';
-  return false;
 }
-function showCheckoutReturn(){
- const q=new URLSearchParams(location.search),state=q.get("checkout"),sessionId=q.get("session_id");
- if(!state)return;
- const box=$("#subscriptionReadiness");
- if(!box)return;
- box.classList.remove("hidden");
- if(state==="success"){
-   try{localStorage.setItem("cr_pending_subscription:"+user.id+":"+podcastId,JSON.stringify({started_at:Date.now(),podcast_id:podcastId,session_id:sessionId||null}))}catch{}
-   const b=$("#subscribe");if(b){b.dataset.busy="1";b.disabled=true;b.classList.add("subscribe-busy");b.textContent="Processing…"}renderSubscriptionStatus("processing")
-   box.innerHTML='<div class="eyebrow">SUBSCRIPTION</div><b style="color:#7df7c7">✓ Stripe checkout completed</b><div class="subtle" style="margin-top:6px">Verifying your subscription with CrowRules…</div>';
-   verifySubscriptionReturn(sessionId,box).catch(e=>{console.warn(e);box.innerHTML='<div class="eyebrow">SUBSCRIPTION</div><b>Checkout completed</b><div class="subtle" style="margin-top:6px">Your subscription is still being synchronized. Open My Subscriptions to check its status.</div><a class="btn" style="margin-top:10px" href="subscriptions.html?podcast_id='+encodeURIComponent(podcastId)+'">Open My Subscriptions</a>'});
+async function verifyReturn(sessionId){
+ const box=$("#subscriptionStatusBox");if(!user||!podcastId)return;
+ for(let i=0;i<8;i++){
+   const s=await refreshSubscription();
+   if(s&&["active","trialing"].includes(s.status)){
+     localStorage.removeItem("cr_pending_subscription:"+user.id+":"+podcastId);
+     if(box)box.innerHTML='<div class="eyebrow">SUBSCRIPTION ACTIVE</div><b class="ok">✓ Your subscription is active.</b><div class="subtle">Your CrowRules subscription is connected to this account.</div>';
+     cleanCheckoutUrl();return
+   }
+   await sleep(2000)
  }
- if(state==="cancelled"||state==="canceled"){try{localStorage.removeItem("cr_pending_subscription:"+user.id+":"+podcastId)}catch{};const b=$("#subscribe");if(b){b.dataset.busy="0";b.dataset.subscribed="0";b.disabled=false;b.classList.remove("subscribe-busy");b.textContent="Subscribe"}renderSubscriptionStatus("none");box.innerHTML='<div class="eyebrow">SUBSCRIPTION</div><b>Checkout cancelled</b><div class="subtle" style="margin-top:6px">No subscription was created. You can subscribe whenever you are ready.</div>';
- if(history.replaceState){q.delete("checkout");q.delete("session_id");const u=location.pathname+(q.toString()?"?"+q.toString():"")+location.hash;history.replaceState({},"",u)}
+ if(box)box.innerHTML='<div class="eyebrow">SUBSCRIPTION PROCESSING</div><b>✓ Stripe checkout completed</b><div class="subtle">Stripe has completed checkout and CrowRules is waiting for the subscription webhook. Your status will update automatically.</div><a class="btn" style="margin-top:10px" href="subscriptions.html?podcast_id='+encodeURIComponent(podcastId)+'">Check My Subscriptions</a>'
 }
-function renderFeatured(){const e=episodes[0];$("#featuredSection").innerHTML='<div class="section-head"><div><div class="eyebrow">NOW PLAYING</div><h2>Featured Episode</h2><div class="subtle">The latest published episode from '+esc(podcast.title)+'</div></div></div>'+(e?'<div class="featured"><div class="card"><img src="'+esc(e.thumbnail_url||podcast.artwork_url||"assets/podcast-placeholder.svg")+'" style="width:100%;border-radius:16px;aspect-ratio:16/9;object-fit:cover"><div class="eyebrow" style="margin-top:15px">EPISODE '+esc(e.episode_number||"")+'</div><h2>'+esc(e.title)+'</h2><p class="desc">'+esc(e.description||"")+'</p><div class="player">'+(e.audio_url?'<audio controls preload="metadata" src="'+esc(e.audio_url)+'"></audio>':'<div class="subtle">Audio player will appear when the episode audio is published.</div>')+'</div></div><div class="card"><div class="eyebrow">SHOW NOTES</div><h3>About this episode</h3><p class="desc">'+esc(e.description||"No additional notes yet.")+'</p><div class="chips"><span class="chip">'+(e.duration_seconds?Math.round(e.duration_seconds/60)+" min":"Podcast")+'</span><span class="chip">'+Number(e.play_count||0).toLocaleString()+' plays</span></div><a class="btn primary" href="episode.html?id='+encodeURIComponent(e.id)+'">Open Episode</a></div></div>':'<div class="card">No published episodes yet.</div>')}
-function renderContinue(){const list=episodes.filter(e=>progress[e.id]&&!progress[e.id].completed).slice(0,6);const sec=$("#continueSection");if(!user||!list.length){sec.classList.add("hidden");return}sec.classList.remove("hidden");sec.innerHTML='<div class="section-head"><div><div class="eyebrow">YOUR LIBRARY</div><h2>Continue Listening</h2></div></div><div class="episode-grid">'+list.map(e=>'<article class="card episode"><img src="'+esc(e.thumbnail_url||podcast.artwork_url||"assets/podcast-placeholder.svg")+'"><h3>'+esc(e.title)+'</h3><div class="progress"><i style="width:'+Math.min(100,Number(progress[e.id].percent_complete||0))+'%"></i></div><p>'+Math.round(Number(progress[e.id].percent_complete||0))+'% complete</p><a class="btn" href="episode.html?id='+encodeURIComponent(e.id)+'">Continue</a></article>').join("")+'</div>'}
-function renderEpisodes(){const sec=$("#episodesSection");sec.innerHTML='<div class="section-head"><div><div class="eyebrow">THE LIBRARY</div><h2>Episodes</h2><div class="subtle">'+episodes.length+' published episodes</div></div><input id="episodeSearch" class="search" placeholder="Search episodes…"></div><div id="episodeGrid" class="episode-grid"></div>';const draw=()=>{const q=$("#episodeSearch").value.toLowerCase();const list=episodes.filter(e=>(e.title+" "+(e.description||"")).toLowerCase().includes(q));$("#episodeGrid").innerHTML=list.map(e=>'<article class="card episode"><img src="'+esc(e.thumbnail_url||podcast.artwork_url||"assets/podcast-placeholder.svg")+'" alt=""><div class="eyebrow" style="margin-top:12px">EP '+esc(e.episode_number||"")+'</div><h3>'+esc(e.title)+'</h3><p>'+esc(e.description||"")+'</p><div class="chips"><span class="chip">'+(e.duration_seconds?Math.round(e.duration_seconds/60)+" min":"")+'</span><span class="chip">'+Number(e.play_count||0).toLocaleString()+' plays</span></div><a class="btn primary" href="episode.html?id='+encodeURIComponent(e.id)+'">Listen Now</a></article>').join("")||'<div class="card">No matching episodes.</div>'};$("#episodeSearch").oninput=draw;draw()}
-async function renderChat(){const sec=$("#chatSection");sec.innerHTML='<div class="section-head"><div><div class="eyebrow">COMMUNITY</div><h2>Live Chat</h2><div class="subtle">Multiple rooms, live audience, reactions and pinned messages.</div></div></div><div class="chat-layout"><aside class="rooms"><div id="rooms"></div>'+(user&&podcast.creator_id===user.id?'<button id="manage" class="btn" style="width:100%">⚙ Manage Rooms</button>':"")+'</aside><div class="chat"><div class="chat-head"><div><b id="roomTitle">Live Chat</b><div id="roomDesc" class="subtle"></div></div><div id="online" class="live">● 0 online</div></div><div id="pin" class="pin hidden"></div><div id="messages" class="messages"></div><div id="typing" class="typing"></div><div class="compose"><input id="chatInput" maxlength="1000" placeholder="Sign in to chat…"><button id="send" class="btn primary">Send</button></div></div></div>';renderRoomButtons();if(rooms[0])await selectRoom(rooms[0].id);else{$("#roomTitle").textContent="Chat unavailable";$("#roomDesc").textContent="The podcast can still be listened to normally.";$("#messages").innerHTML='<div class="subtle">Community chat is temporarily unavailable.</div>';$("#chatInput").disabled=true;$("#send").disabled=true}if($("#manage"))$("#manage").onclick=openManager}
-function renderRoomButtons(){const box=$("#rooms");if(!rooms.length){box.innerHTML='<div class="subtle" style="padding:12px">Chat rooms are temporarily unavailable. The podcast itself is still available.</div>';return}box.innerHTML=rooms.map(r=>'<button class="room '+(room?.id===r.id?"active":"")+'" data-id="'+esc(r.id)+'"><b>'+esc(r.name)+'</b><small>'+(r.is_live?"🔴 Live":"Offline")+' · '+esc(r.description||"Community room")+'</small></button>').join("");box.querySelectorAll("[data-id]").forEach(b=>b.onclick=()=>selectRoom(b.dataset.id))}
-async function selectRoom(rid){if(chat)await chat.unsubscribe();if(presence)await presence.unsubscribe();room=rooms.find(r=>r.id===rid)||rooms[0];if(!room)return;renderRoomButtons();$("#roomTitle").textContent=room.name;$("#roomDesc").textContent=room.description||"";$("#messages").innerHTML='<div class="subtle">Loading messages…</div>';try{const msgs=await rest("podcast_chat_messages",{select:"id,room_id,user_id,display_name,message,created_at,is_hidden",room_id:"eq."+room.id,is_hidden:"eq.false",order:"created_at.asc",limit:"100"});const pins=await rest("podcast_chat_pins",{select:"message_id",room_id:"eq."+room.id,order:"created_at.desc",limit:"1"});renderMessages(msgs,pins)}catch(e){$("#messages").innerHTML='<div class="subtle">'+esc(e.message)+'</div>'}const c=await client();if(!c)return;chat=c.channel("podcast-hub-chat-"+room.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"podcast_chat_messages",filter:"room_id=eq."+room.id},p=>{if(!p.new.is_hidden)append(p.new)}).subscribe();presence=c.channel("podcast-hub-presence-"+room.id,{config:{presence:{key:user?.id||crypto.randomUUID()}}}).on("presence",{event:"sync"},()=>{$("#online").textContent="● "+Object.keys(presence.presenceState()).length+" online"}).on("broadcast",{event:"typing"},p=>{if(p.payload?.user_id!==user?.id){$("#typing").textContent=(p.payload?.name||"Someone")+" is typing…";clearTimeout(window.__typing);window.__typing=setTimeout(()=>$("#typing").textContent="",1200)}}).subscribe(async st=>{if(st==="SUBSCRIBED")await presence.track({user_id:user?.id||null})});bindChat()}
-async function renderMessages(msgs,pins){const pinId=pins?.[0]?.message_id;const pm=msgs.find(m=>m.id===pinId);$("#pin").classList.toggle("hidden",!pm);if(pm)$("#pin").textContent="📌 "+pm.display_name+": "+pm.message;$("#messages").innerHTML="";if(!msgs.length){$("#messages").innerHTML='<div class="subtle">No messages yet. Start the conversation.</div>';return}for(const m of msgs)append(m)}
-function append(m){const box=$("#messages"),el=document.createElement("div");el.className="msg";el.dataset.id=m.id;el.innerHTML='<div class="msg-top">'+esc(m.display_name||"Member")+' <span class="msg-time">'+new Date(m.created_at).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+'</span></div><div class="msg-body">'+esc(m.message)+'</div><div class="reactions">'+["❤️","😂","🔥","👏","💯","👀"].map(x=>'<button class="react" data-r="'+x+'">'+x+'</button>').join("")+'</div>';box.appendChild(el);el.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>react(m.id,b.dataset.r));box.scrollTop=box.scrollHeight}
-async function react(mid,reaction){if(!user)return goAccount();const c=await client();const r=await c.from("podcast_chat_reactions").upsert({message_id:mid,user_id:user.id,reaction},{onConflict:"message_id,user_id,reaction"});if(r.error)console.warn(r.error)}
-function bindChat(){const input=$("#chatInput");$("#send").onclick=send;input.onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}};input.oninput=()=>{if(presence&&user)presence.send({type:"broadcast",event:"typing",payload:{user_id:user.id,name:user.user_metadata?.full_name||"Member"}})}}
-async function send(){const input=$("#chatInput"),text=input.value.trim();if(!text)return;if(!user)return goAccount();const c=await client();const name=user.user_metadata?.full_name||user.email?.split("@")[0]||"Member";const r=await c.from("podcast_chat_messages").insert({room_id:room.id,user_id:user.id,display_name:name,message:text,is_hidden:false});if(r.error)alert(r.error.message);else input.value=""}
-async function renderCreator(){const sec=$("#creatorSection");sec.classList.remove("hidden");const c=await client();const followers=await c.from("podcast_follows").select("id",{count:"exact",head:true}).eq("podcast_id",podcastId);const subs=await c.from("podcast_subscriptions").select("id",{count:"exact",head:true}).eq("podcast_id",podcastId).in("status",["active","trialing"]);const totalPlays=episodes.reduce((n,e)=>n+Number(e.play_count||0),0);const totalDuration=episodes.reduce((n,e)=>n+Number(e.duration_seconds||0),0);sec.innerHTML='<div class="section-head"><div><div class="eyebrow">CREATOR VIEW</div><h2>Podcast Intelligence</h2><div class="subtle">Private operational snapshot for the podcast owner.</div></div><div class="actions"><a class="btn" href="creator-dashboard.html?podcast_id='+encodeURIComponent(podcastId)+'">Creator Studio</a><a class="btn primary" href="create-episode.html?podcast_id='+encodeURIComponent(podcastId)+'">Create Episode</a></div></div><div class="analytics"><div class="card metric"><span class="subtle">Episodes</span><strong>'+episodes.length+'</strong></div><div class="card metric"><span class="subtle">Total Plays</span><strong>'+totalPlays.toLocaleString()+'</strong></div><div class="card metric"><span class="subtle">Followers</span><strong>'+Number(followers.count||0).toLocaleString()+'</strong></div><div class="card metric"><span class="subtle">Subscribers</span><strong>'+Number(subs.count||0).toLocaleString()+'</strong></div></div><div class="card" style="margin-top:14px"><div class="eyebrow">CATALOG HEALTH</div><p class="desc">'+episodes.length+' published episode'+(episodes.length===1?"":"s")+' · '+Math.round(totalDuration/60)+' total minutes · '+totalPlays.toLocaleString()+' combined plays.</p></div>'}
-function openManager(){$("#managerModal").classList.remove("hidden");renderManagerRooms()}
-function renderManagerRooms(){$("#managerRooms").innerHTML=rooms.map((r,i)=>'<div class="card" style="margin:9px 0"><b>'+esc(r.name)+'</b> <span class="chip">'+(r.is_live?"LIVE":"OFFLINE")+'</span><p class="subtle">'+esc(r.description||"No description")+'</p><div class="manager-actions"><button class="btn" data-edit="'+r.id+'">Edit</button><button class="btn" data-up="'+r.id+'" '+(i===0?"disabled":"")+'>↑</button><button class="btn" data-down="'+r.id+'" '+(i===rooms.length-1?"disabled":"")+'>↓</button></div></div>').join("");$("#managerRooms").querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editRoom(b.dataset.edit));$("#managerRooms").querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>moveRoom(b.dataset.up,-1));$("#managerRooms").querySelectorAll("[data-down]").forEach(b=>b.onclick=()=>moveRoom(b.dataset.down,1))}
-function editRoom(id){editing=rooms.find(r=>r.id===id);$("#editor").classList.remove("hidden");$("#roomName").value=editing.name||"";$("#roomSlug").value=editing.slug||"";$("#roomDescription").value=editing.description||"";$("#roomLive").value=String(!!editing.is_live);$("#modUser").value="";loadMods()}
-async function loadMods(){const r=await client();const x=await r.from("podcast_chat_room_moderators").select("id,user_id").eq("room_id",editing.id);$("#mods").innerHTML=x.data?.length?x.data.map(m=>'<div class="card" style="margin:6px 0;display:flex;justify-content:space-between"><span>'+esc(m.user_id)+'</span><button class="btn" data-remove="'+m.id+'">Remove</button></div>').join(""):"No moderators assigned.";$("#mods").querySelectorAll("[data-remove]").forEach(b=>b.onclick=async()=>{const z=await r.from("podcast_chat_room_moderators").delete().eq("id",b.dataset.remove);if(z.error)alert(z.error.message);loadMods()})}
-$("#closeManager").onclick=()=>$("#managerModal").classList.add("hidden");$("#closeEditor").onclick=()=>$("#editor").classList.add("hidden");
-$("#saveRoom").onclick=async()=>{if(!editing)return;const c=await client(),slug=$("#roomSlug").value.trim().toLowerCase().replace(/[^a-z0-9-]+/g,"-").replace(/(^-|-$)/g,"");const r=await c.from("podcast_chat_rooms").update({name:$("#roomName").value.trim(),slug,description:$("#roomDescription").value.trim(),is_live:$("#roomLive").value==="true"}).eq("id",editing.id);if(r.error)alert(r.error.message);else{rooms=await rest("podcast_chat_rooms",{select:"id,podcast_id,slug,name,description,is_live,sort_order,created_at",podcast_id:"eq."+podcastId,order:"sort_order.asc,created_at.asc"});renderManagerRooms();renderRoomButtons()}};
-$("#newRoom").onclick=async()=>{const name=prompt("New chat room name");if(!name?.trim())return;const slug=name.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"").slice(0,60),sort=rooms.length?Math.max(...rooms.map(r=>Number(r.sort_order||0)))+1:0,c=await client(),r=await c.from("podcast_chat_rooms").insert({podcast_id:podcastId,name:name.trim().slice(0,80),slug,description:"",is_live:false,sort_order:sort});if(r.error)alert(r.error.message);else{rooms=await rest("podcast_chat_rooms",{select:"id,podcast_id,slug,name,description,is_live,sort_order,created_at",podcast_id:"eq."+podcastId,order:"sort_order.asc,created_at.asc"});renderManagerRooms();renderRoomButtons()}};
-$("#deleteRoom").onclick=async()=>{if(!editing||rooms.length<=1)return alert("Keep at least one room.");if(!confirm("Delete "+editing.name+"?"))return;const c=await client(),r=await c.from("podcast_chat_rooms").delete().eq("id",editing.id);if(r.error)alert(r.error.message);else{editing=null;$("#editor").classList.add("hidden");rooms=await rest("podcast_chat_rooms",{select:"id,podcast_id,slug,name,description,is_live,sort_order,created_at",podcast_id:"eq."+podcastId,order:"sort_order.asc,created_at.asc"});renderManagerRooms();renderRoomButtons()}};
-$("#addMod").onclick=async()=>{if(!editing)return;const uid=$("#modUser").value.trim();if(!uid)return alert("Enter the moderator auth UUID.");const c=await client(),r=await c.from("podcast_chat_room_moderators").insert({room_id:editing.id,user_id:uid});if(r.error&&r.error.code!=="23505")alert(r.error.message);$("#modUser").value="";loadMods()};
-async function moveRoom(id,delta){const i=rooms.findIndex(r=>r.id===id),j=i+delta;if(i<0||j<0||j>=rooms.length)return;const c=await client(),a=rooms[i],b=rooms[j];const x=await c.from("podcast_chat_rooms").update({sort_order:b.sort_order}).eq("id",a.id);const y=await c.from("podcast_chat_rooms").update({sort_order:a.sort_order}).eq("id",b.id);if(x.error||y.error)return alert((x.error||y.error).message);rooms=await rest("podcast_chat_rooms",{select:"id,podcast_id,slug,name,description,is_live,sort_order,created_at",podcast_id:"eq."+podcastId,order:"sort_order.asc,created_at.asc"});renderManagerRooms();renderRoomButtons()}
-(async()=>{try{await load();$("#loading").classList.add("hidden");$("#app").classList.remove("hidden")}catch(e){$("#loading").innerHTML='<div class="eyebrow">PODCAST SYSTEM</div><h2>Podcast could not load</h2><p class="subtle">'+esc(e.message)+'</p><button class="btn primary" onclick="location.reload()">Retry</button>'}})();
+function cleanCheckoutUrl(){const u=new URL(location.href);u.searchParams.delete("checkout");u.searchParams.delete("session_id");history.replaceState({},document.title,u.pathname+(u.search?"?"+u.searchParams.toString():"")+u.hash)}
+async function handleCheckoutReturn(){
+ const q=new URLSearchParams(location.search),state=q.get("checkout");if(!state)return;
+ const box=$("#subscriptionStatusBox");if(box)box.classList.remove("hidden");
+ if(state==="cancelled"||state==="canceled"){if(user)localStorage.removeItem("cr_pending_subscription:"+user.id+":"+podcastId);await refreshSubscription();if(box)box.innerHTML='<div class="eyebrow">SUBSCRIPTION</div><b>Checkout cancelled</b><div class="subtle">No new subscription was created.</div>';cleanCheckoutUrl();return}
+ if(state==="success"){setHeroState("processing");await verifyReturn(q.get("session_id"));return}
+}
+async function resumePending(){
+ if(!user||!podcastId)return;
+ const key="cr_pending_subscription:"+user.id+":"+podcastId;let p=null;try{p=JSON.parse(localStorage.getItem(key)||"null")}catch{}
+ if(!p||Date.now()-Number(p.started_at||0)>30*60*1000)return;
+ const b=$("#subscribe");if(!b)return;b.dataset.busy="1";b.disabled=true;b.classList.add("busy");b.textContent="Processing…";setHeroState("processing");
+ for(let i=0;i<30;i++){const s=await refreshSubscription();if(s&&["active","trialing"].includes(s.status)){localStorage.removeItem(key);return}await sleep(2000)}
+ b.dataset.busy="0";b.disabled=false;b.classList.remove("busy");await refreshSubscription()
+}
+function renderHero(){
+ const art=podcast.artwork_url||"assets/podcast-placeholder.svg";
+ $("#hero").innerHTML='<section class="hero"><img class="hero-art" src="'+esc(art)+'" alt="'+esc(podcast.title)+' artwork"><div><div class="eyebrow">'+esc(podcast.category||"PODCAST")+'</div><h1 class="title">'+esc(podcast.title)+'</h1><p class="subtle" style="max-width:720px">'+esc(podcast.description||"A CrowRules Podcasting show.")+'</p><div class="stats"><span class="stat">👥 <b id="followers">0</b> followers</span><span class="stat">★ <b id="subs">0</b> subscribers</span><span class="stat">● '+(podcast.is_live?"LIVE":"PUBLISHED")+'</span></div><div class="actions"><button class="btn" id="follow">Follow</button><button class="btn primary" id="subscribe">Subscribe</button><span id="subscriptionStatus" class="subscription-state none">Not Subscribed</span><button class="btn" id="share">Share</button><a class="btn" href="podcasts.html">All Podcasts</a></div><div id="subscriptionStatusBox" class="card status-box hidden"></div></div></section>';
+ $("#follow").onclick=()=>follow().catch(e=>alert(e.message));$("#subscribe").onclick=()=>startCheckout();$("#share").onclick=async()=>{try{if(navigator.share)await navigator.share({title:podcast.title,text:"Listen on CrowRules Podcasting",url:location.href});else{await navigator.clipboard.writeText(location.href);$("#share").textContent="Copied!"}}catch{}}
+}
+function renderFeatured(){
+ const e=episodes[0];$("#featured").innerHTML='<div class="section-head"><div><div class="eyebrow">NOW PLAYING</div><h2>Featured Episode</h2><div class="subtle">The latest published episode.</div></div></div>'+(!e?'<div class="card">No published episodes yet.</div>':'<div class="featured"><div class="card"><img src="'+esc(e.thumbnail_url||podcast.artwork_url||"assets/podcast-placeholder.svg")+'" alt=""><h2>'+esc(e.title)+'</h2><p class="subtle">'+esc(e.description||"")+'</p><div class="player">'+(e.audio_url?'<audio controls preload="metadata" src="'+esc(e.audio_url)+'"></audio>':'<span class="subtle">Audio will appear when published.</span>')+'</div></div><div class="card"><div class="eyebrow">EPISODE INFO</div><h3>About this episode</h3><p class="subtle">'+esc(e.description||"No additional notes yet.")+'</p><div class="chips"><span class="chip">'+(e.duration_seconds?Math.round(e.duration_seconds/60)+" min":"Podcast")+'</span><span class="chip">'+Number(e.play_count||0).toLocaleString()+" plays"+'</span></div><a class="btn primary" href="episode.html?id='+encodeURIComponent(e.id)+'">Open Episode</a></div></div>')
+}
+function renderContinue(){
+ const list=episodes.filter(e=>progress[e.id]&&!progress[e.id].completed).slice(0,6),sec=$("#continue");if(!user||!list.length){sec.classList.add("hidden");return}sec.classList.remove("hidden");sec.innerHTML='<div class="section-head"><div><div class="eyebrow">YOUR LIBRARY</div><h2>Continue Listening</h2></div></div><div class="episode-grid">'+list.map(e=>'<article class="card episode"><img src="'+esc(e.thumbnail_url||podcast.artwork_url||"assets/podcast-placeholder.svg")+'" alt=""><h3>'+esc(e.title)+'</h3><div class="progress"><i style="width:'+Math.min(100,Number(progress[e.id].percent_complete||0))+'%"></i></div><p>'+Math.round(Number(progress[e.id].percent_complete||0))+'% complete</p><a class="btn" href="episode.html?id='+encodeURIComponent(e.id)+'">Continue</a></article>').join("")+'</div>'
+}
+function renderEpisodes(){
+ $("#episodes").innerHTML='<div class="section-head"><div><div class="eyebrow">THE LIBRARY</div><h2>Episodes</h2><div class="subtle">'+episodes.length+' published episodes</div></div><input id="episodeSearch" class="search" placeholder="Search episodes…"></div><div id="episodeGrid" class="episode-grid"></div>';
+ const draw=()=>{const q=($("#episodeSearch").value||"").toLowerCase();const list=episodes.filter(e=>(e.title+" "+(e.description||"")).toLowerCase().includes(q));$("#episodeGrid").innerHTML=list.map(e=>'<article class="card episode"><img src="'+esc(e.thumbnail_url||podcast.artwork_url||"assets/podcast-placeholder.svg")+'" alt=""><div class="eyebrow" style="margin-top:11px">EP '+esc(e.episode_number||"")+'</div><h3>'+esc(e.title)+'</h3><p>'+esc(e.description||"")+'</p><div class="chips"><span class="chip">'+(e.duration_seconds?Math.round(e.duration_seconds/60)+" min":"")+'</span><span class="chip">'+Number(e.play_count||0).toLocaleString()+" plays"+'</span></div><a class="btn primary" href="episode.html?id='+encodeURIComponent(e.id)+'">Listen Now</a></article>').join("")||'<div class="card">No matching episodes.</div>'};$("#episodeSearch").oninput=draw;draw()
+}
+async function loadProgress(){
+ progress={};if(!user)return;
+ const c=await client();const r=await c.from("podcast_episode_progress").select("episode_id,position_seconds,duration_seconds,percent_complete,last_played_at,completed").eq("user_id",user.id).order("last_played_at",{ascending:false}).limit(20);if(!r.error)(r.data||[]).forEach(x=>progress[x.episode_id]=x)
+}
+async function loadChat(){
+ const sec=$("#chatSection");sec.innerHTML='<div class="section-head"><div><div class="eyebrow">COMMUNITY</div><h2>Live Chat</h2><div class="subtle">Chat is optional and will never block the podcast from loading.</div></div></div><div class="chat-layout"><aside class="rooms"><div id="roomList"><div class="subtle">Loading rooms…</div></div></aside><div class="chat"><div class="chat-head"><b id="roomTitle">Live Chat</b><span id="online" class="ok">● Live</span></div><div id="messages" class="messages"><div class="subtle">Select a room.</div></div><div class="compose"><input id="chatInput" maxlength="1000" placeholder="'+(user?"Write a message…":"Sign in to chat…")+'"><button class="btn primary" id="send">Send</button></div></div></div>';
+ try{
+  const c=await client();const r=await c.from("podcast_chat_rooms").select("id,slug,name,description,is_live,sort_order").eq("podcast_id",podcastId).order("sort_order",{ascending:true});if(r.error)throw r.error;rooms=r.data||[];renderRooms();
+  $("#send").onclick=sendChat;$("#chatInput").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();sendChat()}}
+ }catch(e){$("#roomList").innerHTML='<div class="subtle">Community chat is temporarily unavailable.</div>';$("#messages").innerHTML='<div class="subtle">'+esc(e.message)+'</div>'}
+}
+function renderRooms(){const box=$("#roomList");if(!rooms.length){box.innerHTML='<div class="subtle" style="padding:10px">No chat rooms are available yet.</div>';return}box.innerHTML=rooms.map(r=>'<button class="room '+(room?.id===r.id?"active":"")+'" data-room="'+esc(r.id)+'"><b>'+esc(r.name)+'</b><small>'+(r.is_live?"🔴 Live":"Offline")+' · '+esc(r.description||"Community room")+'</small></button>').join("");box.querySelectorAll("[data-room]").forEach(b=>b.onclick=()=>selectRoom(b.dataset.room))}
+async function selectRoom(id){
+ if(chatChannel){try{await chatChannel.unsubscribe()}catch{}chatChannel=null}room=rooms.find(r=>r.id===id)||rooms[0];if(!room)return;renderRooms();$("#roomTitle").textContent=room.name;$("#messages").innerHTML='<div class="subtle">Loading messages…</div>';
+ try{
+  const c=await client(),r=await c.from("podcast_chat_messages").select("id,user_id,display_name,message,created_at,is_hidden").eq("room_id",room.id).eq("is_hidden",false).order("created_at",{ascending:true}).limit(100);if(r.error)throw r.error;renderMessages(r.data||[]);
+  chatChannel=c.channel("podcast-chat-"+room.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"podcast_chat_messages",filter:"room_id=eq."+room.id},p=>{if(!p.new?.is_hidden)appendMessage(p.new)}).subscribe()
+ }catch(e){$("#messages").innerHTML='<div class="subtle">'+esc(e.message)+'</div>'}
+}
+function renderMessages(list){$("#messages").innerHTML="";if(!list.length){$("#messages").innerHTML='<div class="subtle">No messages yet. Start the conversation.</div>';return}list.forEach(appendMessage)}
+function appendMessage(m){const box=$("#messages"),el=document.createElement("div");el.className="msg";el.innerHTML='<div class="msg-top">'+esc(m.display_name||"Member")+' <span class="msg-time">'+new Date(m.created_at).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+'</span></div><div class="msg-body">'+esc(m.message)+'</div>';box.appendChild(el);box.scrollTop=box.scrollHeight}
+async function sendChat(){const input=$("#chatInput"),text=input.value.trim();if(!text)return;if(!user){location.href="account.html?auth=signin&returnTo="+encodeURIComponent(location.href);return}if(!room)return;const c=await client(),name=user.user_metadata?.full_name||user.email?.split("@")[0]||"Member";const r=await c.from("podcast_chat_messages").insert({room_id:room.id,user_id:user.id,display_name:name,message:text,is_hidden:false});if(r.error)alert(r.error.message);else input.value=""}
+async function setupRealtime(){
+ const c=await client();if(!podcastId)return;
+ if(realtimeChannel){try{await realtimeChannel.unsubscribe()}catch{}}
+ realtimeChannel=c.channel("podcast-page-live-"+podcastId)
+ .on("postgres_changes",{event:"UPDATE",schema:"public",table:"podcasts",filter:"id=eq."+podcastId},p=>{podcast={...podcast,...p.new};renderHero()})
+ .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes",filter:"podcast_id=eq."+podcastId},async()=>{const r=await c.from("podcast_episodes").select("id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,play_count,status,access_level").eq("podcast_id",podcastId).eq("status","published").order("published_at",{ascending:false});if(!r.error){episodes=r.data||[];renderFeatured();renderContinue();renderEpisodes()}})
+ .on("postgres_changes",{event:"*",schema:"public",table:"podcast_follows",filter:"podcast_id=eq."+podcastId},()=>refreshCounts())
+ .on("postgres_changes",{event:"*",schema:"public",table:"podcast_subscriptions",filter:"podcast_id=eq."+podcastId},()=>{refreshCounts();refreshSubscription()})
+ .subscribe()
+}
+async function load(){
+ const pid=new URLSearchParams(location.search).get("id");if(!pid)throw new Error("No podcast was specified.");
+ const c=await client();
+ const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(pid);
+ let q=c.from("podcasts").select("id,title,slug,category,description,artwork_url,author_name,language,explicit_content,is_live,listener_count,status,creator_id").eq("status","published");q=uuid?q.eq("id",pid):q.eq("slug",pid);
+ const pr=await withTimeout(q.maybeSingle(),10000);if(pr.error)throw new Error("Podcast lookup failed: "+pr.error.message);if(!pr.data)throw new Error("This podcast is unavailable.");podcast=pr.data;podcastId=podcast.id;document.title=podcast.title+" — CrowRules Podcasting";
+ const er=await withTimeout(c.from("podcast_episodes").select("id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,play_count,status,access_level").eq("podcast_id",podcastId).eq("status","published").order("published_at",{ascending:false}),10000);if(er.error)throw new Error("Episode lookup failed: "+er.error.message);episodes=er.data||[];
+ user=await currentUser();renderHero();await loadProgress();renderFeatured();renderContinue();renderEpisodes();await refreshCounts();await refreshSubscription();await loadChat();setupRealtime();await handleCheckoutReturn();resumePending();
+ if(authSub)authSub.unsubscribe();authSub=c.auth.onAuthStateChange(async(_event,session)=>{user=session?.user||null;await loadProgress();renderContinue();await refreshSubscription();await refreshCounts()}).data?.subscription||null
+ $("#loading").classList.add("hidden");$("#app").classList.remove("hidden")
+}
+load().catch(e=>{console.error("Podcast page:",e);showFatal(e?.message||"Unknown error.")});
 })();
 </script>
-</body></html>
+</body>
+</html>
