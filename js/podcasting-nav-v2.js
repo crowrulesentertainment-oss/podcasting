@@ -1,11 +1,11 @@
-/* CrowRules Podcasting Navigation V2
-   Context-aware sitewide command center.
+/* CrowRules Podcasting Navigation V3
+   Capability-aware sitewide command center with live operational badges.
    Roles: listener (default), creator, admin.
    Authorization source: Supabase app_metadata only; creator fallback is a read-only
    lookup against the creators table and never grants admin access.
 */
 (()=>{"use strict";
-const VERSION="2.0.0";
+const VERSION="3.0.0";
 const CONFIG=window.CROW_CONFIG||{};
 const SUPABASE_URL=CONFIG.supabaseUrl||"https://cevylpnoexugwgygvtgu.supabase.co";
 const SUPABASE_KEY=CONFIG.supabaseKey||window.CROW_SUPABASE_KEY||window.SUPABASE_ANON_KEY;
@@ -19,11 +19,11 @@ const listener=[
   ["♡","Following","library.html#following"],["★","Favorites","library.html#favorites"],
   ["◷","Listening History","library.html#history"]
 ];
-const creator=[
+const creatorBase=[
   ["▦","My Shows","podcasts.html"],["＋","Episodes","create-episode.html"],["✚","Create","create-podcast.html"],
   ["⌘","Studio","creator-dashboard.html"],["◈","Analytics","analytics.html"],["$","Earnings","creator-payouts.html"]
 ];
-const admin=[
+const adminBase=[
   ["⚙","Admin Center","admin.html"],["✓","Moderation","admin.html?view=moderation"],
   ["⇧","Publishing","publishing-pipeline.html"],["♥","Health","admin.html?view=health"],
   ["◈","Analytics","admin.html?view=analytics"]
@@ -38,11 +38,11 @@ async function getContext(){
  if(!client&&window.supabase?.createClient&&SUPABASE_KEY){
    try{client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});window.CROW_SUPABASE=client}catch(_){}
  }
- if(!client?.auth?.getSession)return {role:"listener",user:null};
+ if(!client?.auth?.getSession)return {role:"listener",user:null,client};
  try{
    const {data}=await client.auth.getSession(), user=data?.session?.user||null;
    if(!user)return {role:"listener",user:null};
-   if(isAdmin(user))return {role:"admin",user};
+   if(isAdmin(user))return {role:"admin",user,client};
    let creator=false;
    try{
      const q=await client.from("creators").select("id").eq("user_id",user.id).limit(1);
@@ -56,8 +56,8 @@ async function getContext(){
    }
    const meta=user.app_metadata||{};
    if(["creator","podcaster"].includes(String(meta.role||"").toLowerCase())||meta.is_creator===true)creator=true;
-   return {role:creator?"creator":"listener",user};
- }catch(_){return {role:"listener",user:null}}
+   return {role:creator?"creator":"listener",user,client,creatorId:null};
+ }catch(_){return {role:"listener",user:null,client}}
 }
 function link([icon,label,href]){
  const path=href.split("#")[0].split("?")[0], active=here()===path;
@@ -66,9 +66,29 @@ function link([icon,label,href]){
 function group(title,items){
  return '<div class="crpv2-group"><div class="crpv2-group-title">'+esc(title)+'</div>'+items.map(link).join("")+'</div>';
 }
+async function capabilities(ctx,client){
+ let cap={shows:false,episodes:false,monetization:false,payouts:false,moderation:0,publishing:0,health:0};
+ if(!client)return cap;
+ const count=async(table,fn)=>{try{let q=client.from(table).select("id",{count:"exact",head:true});if(fn)q=fn(q);const r=await q;return r.error?0:Number(r.count||0)}catch(_){return 0}};
+ if(ctx.role==="creator"){
+  cap.shows=await count("podcasts",q=>q.eq("creator_id",ctx.creatorId));
+  cap.episodes=await count("podcast_episodes",q=>q.eq("creator_id",ctx.creatorId));
+  cap.monetization=await count("cr_creator_revenue_transactions",q=>q.eq("creator_id",ctx.creatorId))>0;
+  cap.payouts=cap.monetization;
+ }
+ if(ctx.role==="admin"){
+  cap.moderation=await count("podcast_moderation_queue",q=>q.eq("status","pending"));
+  cap.publishing=await count("publishing_queue",q=>q.in("status",["pending","failed","scheduled"]));
+  cap.health=await count("podcast_health_alerts",q=>q.eq("resolved",false));
+ }
+ return cap;
+}
+function badge(n){return n>0?'<span class="crpv3-badge">'+esc(n>99?"99+":n)+'</span>':""}
 function render(ctx){
  const host=document.querySelector("[data-nav]"); if(!host)return;
- const role=ctx.role, label=role==="admin"?"ADMIN COMMAND":role==="creator"?"CREATOR COMMAND":"LISTENER";
+ const cap=await capabilities(ctx,ctx.client), role=ctx.role, label=role==="admin"?"ADMIN COMMAND":role==="creator"?"CREATOR COMMAND":"LISTENER";
+ const creator=creatorBase.filter(x=>!(["Episodes","Studio","My Shows"].includes(x[1]))||cap.shows||cap.episodes);
+ const admin=adminBase.map(x=>x[1]==="Moderation"?[x[0],x[1]+badge(cap.moderation),x[2]]:x[1]==="Publishing"?[x[0],x[1]+badge(cap.publishing),x[2]]:x[1]==="Health"?[x[0],x[1]+badge(cap.health),x[2]]:x);
  const roleItems=role==="admin"?admin:role==="creator"?creator:listener;
  host.innerHTML='<div class="crpv2-shell"><div class="crpv2-bar">'+
  '<a class="crpv2-brand" href="home.html"><span class="crpv2-mark">CR</span><span>CROWRULES <b>PODCASTING</b></span></a>'+
@@ -88,8 +108,8 @@ function render(ctx){
 }
 function boot(){getContext().then(render)}
 const css=document.createElement("style");
-css.textContent='.crpv2-shell{position:sticky;top:0;z-index:10000;font-family:Montserrat,system-ui,sans-serif}.crpv2-bar{min-height:64px;padding:9px max(18px,calc((100vw - 1400px)/2));display:flex;align-items:center;gap:24px;background:rgba(5,7,14,.94);border-bottom:1px solid #ffffff14;backdrop-filter:blur(20px);box-shadow:0 8px 35px #0006}.crpv2-brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;white-space:nowrap;font:800 .72rem Orbitron,Montserrat}.crpv2-brand b{color:#55e7ff}.crpv2-mark{display:grid;place-items:center;width:36px;height:36px;border:1px solid #55e7ff55;border-radius:10px;background:linear-gradient(145deg,#55e7ff16,#a66cff16);color:#55e7ff;font-size:.65rem}.crpv2-desktop{display:flex;align-items:center;gap:6px;margin-left:auto}.crpv2-toplink,.crpv2-command{color:#c7cedd;text-decoration:none;border:1px solid transparent;background:transparent;padding:10px 11px;border-radius:10px;font:700 .67rem Montserrat;cursor:pointer}.crpv2-toplink:hover,.crpv2-command:hover{color:#fff;background:#ffffff08}.crpv2-command{border-color:#ffffff16}.crpv2-command i{font-style:normal;color:#55e7ff;margin-left:4px}.crpv2-dropdown{position:relative}.crpv2-menu{position:absolute;right:0;top:calc(100% + 10px);width:270px;max-height:min(78vh,650px);overflow:auto;padding:10px;background:rgba(8,11,20,.98);border:1px solid #ffffff18;border-radius:16px;box-shadow:0 25px 70px #000b;display:none}.crpv2-menu.open{display:block}.crpv2-group{padding:5px}.crpv2-group-title{padding:7px 9px;color:#55e7ff;font:800 .55rem Orbitron;letter-spacing:.15em;text-transform:uppercase}.crpv2-link{display:flex;align-items:center;gap:9px;padding:9px;border-radius:9px;color:#aeb7ca;text-decoration:none;font-size:.68rem}.crpv2-link:hover,.crpv2-link.active{color:#fff;background:#ffffff09}.crpv2-link.active{box-shadow:inset 2px 0 #55e7ff}.crpv2-icon{width:18px;text-align:center;color:#55e7ff}.crpv2-divider{height:1px;background:#ffffff10;margin:6px 5px}.crpv2-mobile-toggle,.crpv2-mobile{display:none}@media(max-width:760px){.crpv2-desktop{display:none}.crpv2-bar{padding:8px 12px}.crpv2-brand{margin-right:auto}.crpv2-mobile-toggle{display:block;border:1px solid #ffffff18;background:#ffffff08;color:#fff;border-radius:10px;padding:9px 12px;cursor:pointer}.crpv2-mobile{display:none;padding:10px 12px 15px;background:rgba(8,11,20,.99);border-bottom:1px solid #ffffff14}.crpv2-mobile.open{display:block}.crpv2-mobile .crpv2-group{border-top:1px solid #ffffff08}.crpv2-mobile-title{padding:8px 9px;color:#8f9bb0;font:700 .55rem Orbitron;letter-spacing:.13em}.crpv2-mobile .crpv2-link{padding:11px 10px}}@media(prefers-reduced-motion:reduce){.crpv2-menu,.crpv2-mobile{transition:none}}';
+css.textContent='.crpv2-shell{position:sticky;top:0;z-index:10000;font-family:Montserrat,system-ui,sans-serif}.crpv2-bar{min-height:64px;padding:9px max(18px,calc((100vw - 1400px)/2));display:flex;align-items:center;gap:24px;background:rgba(5,7,14,.94);border-bottom:1px solid #ffffff14;backdrop-filter:blur(20px);box-shadow:0 8px 35px #0006}.crpv2-brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;white-space:nowrap;font:800 .72rem Orbitron,Montserrat}.crpv2-brand b{color:#55e7ff}.crpv2-mark{display:grid;place-items:center;width:36px;height:36px;border:1px solid #55e7ff55;border-radius:10px;background:linear-gradient(145deg,#55e7ff16,#a66cff16);color:#55e7ff;font-size:.65rem}.crpv2-desktop{display:flex;align-items:center;gap:6px;margin-left:auto}.crpv2-toplink,.crpv2-command{color:#c7cedd;text-decoration:none;border:1px solid transparent;background:transparent;padding:10px 11px;border-radius:10px;font:700 .67rem Montserrat;cursor:pointer}.crpv2-toplink:hover,.crpv2-command:hover{color:#fff;background:#ffffff08}.crpv2-command{border-color:#ffffff16}.crpv2-command i{font-style:normal;color:#55e7ff;margin-left:4px}.crpv2-dropdown{position:relative}.crpv2-menu{position:absolute;right:0;top:calc(100% + 10px);width:270px;max-height:min(78vh,650px);overflow:auto;padding:10px;background:rgba(8,11,20,.98);border:1px solid #ffffff18;border-radius:16px;box-shadow:0 25px 70px #000b;display:none}.crpv2-menu.open{display:block}.crpv2-group{padding:5px}.crpv2-group-title{padding:7px 9px;color:#55e7ff;font:800 .55rem Orbitron;letter-spacing:.15em;text-transform:uppercase}.crpv2-link{display:flex;align-items:center;gap:9px;padding:9px;border-radius:9px;color:#aeb7ca;text-decoration:none;font-size:.68rem}.crpv2-link:hover,.crpv2-link.active{color:#fff;background:#ffffff09}.crpv2-link.active{box-shadow:inset 2px 0 #55e7ff}.crpv2-icon{width:18px;text-align:center;color:#55e7ff}.crpv3-badge{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:auto;padding:0 5px;border-radius:999px;background:#ff4f8b;color:#fff;font:800 .5rem Montserrat}.crpv2-divider{height:1px;background:#ffffff10;margin:6px 5px}.crpv2-mobile-toggle,.crpv2-mobile{display:none}@media(max-width:760px){.crpv2-desktop{display:none}.crpv2-bar{padding:8px 12px}.crpv2-brand{margin-right:auto}.crpv2-mobile-toggle{display:block;border:1px solid #ffffff18;background:#ffffff08;color:#fff;border-radius:10px;padding:9px 12px;cursor:pointer}.crpv2-mobile{display:none;padding:10px 12px 15px;background:rgba(8,11,20,.99);border-bottom:1px solid #ffffff14}.crpv2-mobile.open{display:block}.crpv2-mobile .crpv2-group{border-top:1px solid #ffffff08}.crpv2-mobile-title{padding:8px 9px;color:#8f9bb0;font:700 .55rem Orbitron;letter-spacing:.13em}.crpv2-mobile .crpv2-link{padding:11px 10px}}@media(prefers-reduced-motion:reduce){.crpv2-menu,.crpv2-mobile{transition:none}}';
 document.head.appendChild(css);
 window.addEventListener("crow:auth-changed",()=>setTimeout(boot,0));window.addEventListener("crow:ready",()=>setTimeout(boot,0));if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
-window.CrowRulesPodcastingNavV2={version:VERSION,refresh:boot};
+window.CrowRulesPodcastingNavV3={version:VERSION,refresh:boot};
 })();
