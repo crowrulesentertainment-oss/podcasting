@@ -53,7 +53,7 @@ function navMenu(label,items){
 }
 function navigation(){
   if(document.getElementById("crRebuildNav"))return;
-  const p=page(),nav=document.createElement("header");nav.id="crRebuildNav";nav.className="cr-nav";nav.dataset.navigationVersion="12.1";
+  const p=page(),nav=document.createElement("header");nav.id="crRebuildNav";nav.className="cr-nav";nav.dataset.navigationVersion="12.3.2";
   nav.innerHTML='<a class="cr-brand" href="'+BASE+'home.html"><b>CROWRULES</b><span>PODCASTING</span></a><nav class="cr-links" aria-label="CrowRules Podcasting Navigation">'+
     '<a class="nav-single '+(p==="home.html"?"active":"")+'" href="'+BASE+'home.html"><i>⌂</i><span>HOME</span></a>'+
     navMenu("DISCOVER",{icon:"◈",label:"LIVE NETWORK / DISCOVER",badge:"activity",links:[["discover.html","DISCOVER HOME","◈"],["presence.html","WHO HERE · LIVE NETWORK","●","activity"],["search.html","GLOBAL SEARCH","⌕"],["podcasts.html","ALL PODCASTS","◉"],["episodes.html","ALL EPISODES","▶"],["intelligence.html","INTELLIGENCE LAYER","✦"]]})+
