@@ -51,7 +51,29 @@ const cfg=window.CROW_CONFIG||{};
 const $=(s,r=document)=>r.querySelector(s);
 const esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const withTimeout=(promise,ms=10000,label="Supabase request")=>Promise.race([promise,new Promise((_,rej)=>setTimeout(()=>rej(new Error(label+" timed out.")),ms))]);
+function timeoutSignal(ms,label="Supabase request"){
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(new Error(label+" timed out.")),ms);
+ return {signal:controller.signal,clear:()=>clearTimeout(timer)};
+}
+async function runSupabaseQuery(factory,ms=8000,label="Supabase request",attempts=2){
+ let last;
+ for(let attempt=0;attempt<attempts;attempt++){
+  const t=timeoutSignal(ms,label);
+  try{
+   const result=await factory().abortSignal(t.signal);
+   if(result?.error)throw result.error;
+   return result;
+  }catch(e){
+   last=e;
+   if(attempt+1<attempts)await sleep(700);
+  }finally{t.clear()}
+ }
+ throw new Error(label+" failed: "+(last?.message||"request timed out."));
+}
+async function withTimeout(promise,ms=10000,label="Supabase request"){
+ return Promise.race([promise,new Promise((_,rej)=>setTimeout(()=>rej(new Error(label+" timed out.")),ms))]);
+}
 let sb=null,user=null,podcast=null,podcastId=null,episodes=[],progress={},rooms=[],room=null,chatChannel=null,realtimeChannel=null,authSub=null;
 
 async function client(){
@@ -237,7 +259,7 @@ function renderEpisodes(){
 }
 async function loadProgress(){
  progress={};if(!user)return;
- const c=await client();const r=await c.from("podcast_episode_progress").select("episode_id,position_seconds,duration_seconds,percent_complete,last_played_at,completed").eq("user_id",user.id).order("last_played_at",{ascending:false}).limit(20);if(!r.error)(r.data||[]).forEach(x=>progress[x.episode_id]=x)
+ const c=await client();try{const r=await runSupabaseQuery(()=>c.from("podcast_episode_progress").select("episode_id,position_seconds,duration_seconds,percent_complete,last_played_at,completed").eq("user_id",user.id).order("last_played_at",{ascending:false}).limit(20),6000,"Listening history request",1);(r.data||[]).forEach(x=>progress[x.episode_id]=x)}catch(e){console.warn("Listening history:",e?.message||e)}
 }
 async function loadChat(){
  const sec=$("#chatSection");sec.innerHTML='<div class="section-head"><div><div class="eyebrow">COMMUNITY</div><h2>Live Chat</h2><div class="subtle">Chat is optional and will never block the podcast from loading.</div></div></div><div class="chat-layout"><aside class="rooms"><div id="roomList"><div class="subtle">Loading rooms…</div></div></aside><div class="chat"><div class="chat-head"><b id="roomTitle">Live Chat</b><span id="online" class="ok">● Live</span></div><div id="messages" class="messages"><div class="subtle">Select a room.</div></div><div class="compose"><input id="chatInput" maxlength="1000" placeholder="'+(user?"Write a message…":"Sign in to chat…")+'"><button class="btn primary" id="send">Send</button></div></div></div>';
@@ -268,12 +290,11 @@ function monitorError(e){
  return m.length>120?m.slice(0,117)+"…":m;
 }
 async function probeDatabase(){
- const c=await client(),r=await withTimeout(c.from("podcasts").select("id").limit(1),5000,"Database monitor");
- if(r.error)throw r.error;
- return "Database query responded.";
+ const c=await client(),started=performance.now(),r=await runSupabaseQuery(()=>c.from("podcasts").select("id").limit(1),4500,"Database monitor",1);
+ return "Database responded in "+Math.round(performance.now()-started)+" ms.";
 }
 async function probeAuth(){
- const c=await client(),r=await withTimeout(c.auth.getUser(),5000,"Authentication monitor");
+ const c=await client(),r=await withTimeout(c.auth.getUser(),4500,"Authentication monitor");
  if(r.error){
    const code=r.error.code||"";
    const msg=String(r.error.message||"");
@@ -289,7 +310,9 @@ async function probeEdge(){
  try{
    const res=await fetch(base+"/functions/v1/"+encodeURIComponent(fn),{method:"GET",headers:{apikey:cfg.supabaseKey||""},signal:ctl.signal,cache:"no-store"});
    if(res.status>=500)throw new Error("HTTP "+res.status+" from "+fn);
-   return "Gateway responded (HTTP "+res.status+").";
+   if(res.status===404)throw new Error(fn+" was not found (HTTP 404).");
+   if(res.status===401||res.status===403)return "Gateway reachable; "+fn+" returned HTTP "+res.status+".";
+   return fn+" responded in "+res.status+".";
  }catch(e){
    if(e?.name==="AbortError")throw new Error(fn+" timed out.");
    throw e;
@@ -300,12 +323,13 @@ async function probeRealtime(){
  return new Promise(async(resolve,reject)=>{
    let settled=false;
    const channel=c.channel("connection-monitor-"+Date.now());
-   const finish=async(ok,msg)=>{if(settled)return;settled=true;try{await channel.unsubscribe()}catch{};ok?resolve(msg):reject(new Error(msg))};
+   const finish=async(ok,msg)=>{if(settled)return;settled=true;try{clearTimeout(timer);await channel.unsubscribe()}catch{};ok?resolve(msg):reject(new Error(msg))};
    const timer=setTimeout(()=>finish(false,"Realtime channel timed out."),6000);
    channel.subscribe((status,err)=>{
-     if(status==="SUBSCRIBED"){clearTimeout(timer);finish(true,"WebSocket channel subscribed.");}
-     else if(status==="CHANNEL_ERROR"){clearTimeout(timer);finish(false,err?.message||"Realtime channel error.");}
-     else if(status==="TIMED_OUT"){clearTimeout(timer);finish(false,"Realtime subscription timed out.");}
+     if(status==="SUBSCRIBED"){finish(true,"WebSocket channel subscribed.");}
+     else if(status==="CHANNEL_ERROR"){console.error("Realtime monitor:",status,err);finish(false,err?.message||"Realtime channel error.");}
+     else if(status==="TIMED_OUT"){console.error("Realtime monitor:",status,err);finish(false,"Realtime subscription timed out.");}
+     else if(status==="CLOSED"&&!settled){finish(false,"Realtime channel closed before diagnostics completed.");}
    });
  });
 }
@@ -333,7 +357,7 @@ async function setupRealtime(){
  .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes",filter:"podcast_id=eq."+podcastId},async()=>{const r=await c.from("podcast_episodes").select("id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,play_count,status,access_level").eq("podcast_id",podcastId).eq("status","published").order("published_at",{ascending:false});if(!r.error){episodes=r.data||[];renderFeatured();renderContinue();renderEpisodes()}})
  .on("postgres_changes",{event:"*",schema:"public",table:"podcast_follows",filter:"podcast_id=eq."+podcastId},()=>refreshCounts())
  .on("postgres_changes",{event:"*",schema:"public",table:"podcast_subscriptions",filter:"podcast_id=eq."+podcastId},()=>{refreshCounts();refreshSubscription()})
- .subscribe((status,err)=>{if(status==="SUBSCRIBED")setMonitor("realtime","healthy","Live channel connected.");else if(status==="CHANNEL_ERROR")setMonitor("realtime","failed",err?.message||"Realtime channel error.");else if(status==="TIMED_OUT")setMonitor("realtime","failed","Realtime subscription timed out.")})
+ .subscribe((status,err)=>{if(status==="SUBSCRIBED")setMonitor("realtime","healthy","Live channel connected.");else if(status==="CHANNEL_ERROR"){console.error("Realtime:",status,err);setMonitor("realtime","failed",err?.message||"Realtime channel error.")}else if(status==="TIMED_OUT"){console.error("Realtime:",status,err);setMonitor("realtime","failed",err?.message||"Realtime subscription timed out.")}else if(status==="CLOSED")setMonitor("realtime","degraded","Realtime channel closed; client may reconnect.")})
 }
 async function fetchPodcastData(pid,attempt=0){
  const c=await client();
@@ -341,8 +365,7 @@ async function fetchPodcastData(pid,attempt=0){
  let q=c.from("podcasts").select("id,title,slug,category,description,artwork_url,author_name,language,explicit_content,is_live,listener_count,status,creator_id").eq("status","published");
  q=uuid?q.eq("id",pid):q.eq("slug",pid);
  try{
-   const pr=await withTimeout(q.maybeSingle(),7000,"Podcast data request");
-   if(pr.error)throw pr.error;
+   const pr=await runSupabaseQuery(()=>q.maybeSingle(),6500,"Podcast data request",2);
    if(!pr.data)throw new Error("This podcast is unavailable.");
    return pr.data;
  }catch(e){
@@ -353,8 +376,7 @@ async function fetchPodcastData(pid,attempt=0){
 async function fetchEpisodeData(pid,attempt=0){
  const c=await client();
  try{
-   const er=await withTimeout(c.from("podcast_episodes").select("id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,play_count,status,access_level").eq("podcast_id",pid).eq("status","published").order("published_at",{ascending:false}),7000,"Episode data request");
-   if(er.error)throw er.error;
+   const er=await runSupabaseQuery(()=>c.from("podcast_episodes").select("id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,play_count,status,access_level").eq("podcast_id",pid).eq("status","published").order("published_at",{ascending:false}),6500,"Episode data request",2);
    return er.data||[];
  }catch(e){
    if(attempt<1){await sleep(900);return fetchEpisodeData(pid,attempt+1)}
@@ -372,7 +394,7 @@ async function load(){
  }
  user=await currentUser();renderHero();await loadProgress();renderFeatured();renderContinue();renderEpisodes();
  await Promise.allSettled([refreshCounts(),refreshSubscription(),loadChat()]);
- setupRealtime();await runConnectionMonitor();await handleCheckoutReturn();await resumePending();
+ setupRealtime().catch(e=>{console.warn("Realtime setup:",e?.message||e);setMonitor("realtime","degraded",monitorError(e))});runConnectionMonitor().catch(e=>console.warn("Connection monitor:",e?.message||e));await handleCheckoutReturn();await resumePending();
  if(authSub)authSub.unsubscribe();authSub=c.auth.onAuthStateChange(async(_event,session)=>{user=session?.user||null;await loadProgress();renderContinue();await refreshSubscription();await refreshCounts()}).data?.subscription||null
  $("#loading").classList.add("hidden");$("#app").classList.remove("hidden")
 }
