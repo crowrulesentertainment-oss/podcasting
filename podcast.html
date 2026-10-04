@@ -306,24 +306,30 @@ async function probeAuth(){
 async function probeEdge(){
  const c=await client(),fn=cfg.rssFunction||"podcast-rss-feed-64";
  if(!fn)throw new Error("Edge Function name is missing.");
+ const url=(cfg.supabaseUrl||"").replace(/\\/$/,"")+"/functions/v1/"+encodeURIComponent(fn);
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),6000);
  try{
    const started=performance.now();
-   const r=await withTimeout(c.functions.invoke(fn,{method:"GET",headers:{Accept:"application/json"}}),6000,"Edge Function monitor");
+   const r=await fetch(url,{method:"OPTIONS",headers:{
+     "Origin":location.origin,
+     "Access-Control-Request-Method":"GET",
+     "Access-Control-Request-Headers":"apikey,authorization,content-type"
+   },signal:controller.signal,cache:"no-store"});
    const elapsed=Math.round(performance.now()-started);
-   if(!r.error){
-     return fn+" responded successfully in "+elapsed+" ms.";
+   if(r.ok){
+     return fn+" gateway reachable in "+elapsed+" ms.";
    }
-   const e=r.error;
-   const status=e?.context?.status;
-   if(status===401||status===403)return "Gateway reachable; "+fn+" returned HTTP "+status+".";
-   if(status===404)throw new Error(fn+" was not found (HTTP 404).");
-   if(status>=500)throw new Error(fn+" returned HTTP "+status+".");
-   const msg=String(e?.message||"Edge Function request failed.");
-   if(/failed to send a request|fetch/i.test(msg))throw new Error("Edge Function gateway could not be reached.");
-   throw new Error(msg);
+   const code=r.headers.get("sb-error-code")||"";
+   if(r.status===404)throw new Error(fn+" was not found (HTTP 404).");
+   if(r.status>=500)throw new Error(fn+" gateway returned HTTP "+r.status+(code?" ("+code+")":"")+".");
+   throw new Error(fn+" gateway returned HTTP "+r.status+".");
  }catch(e){
-   throw new Error(monitorError(e));
- }
+   if(e?.name==="AbortError")throw new Error("Edge Function gateway timed out after 6 seconds.");
+   if(/Failed to fetch|NetworkError|Load failed/i.test(String(e?.message||e))){
+     throw new Error("Edge Function gateway could not be reached.");
+   }
+   throw e;
+ }finally{clearTimeout(timer);}
 }
 async function probeRealtime(){
  const c=await client();
