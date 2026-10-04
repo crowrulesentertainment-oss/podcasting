@@ -1,4 +1,4 @@
-name: CrowRules Podcasting V8 Rebuild
+name: CrowRules Podcasting V10 Rebuild
 
 on:
   push:
@@ -11,17 +11,15 @@ permissions:
 
 jobs:
   rebuild:
-    if: ${{ !contains(github.event.head_commit.message, '[podcasting-v8]') }}
+    if: ${{ !contains(github.event.head_commit.message, '[podcasting-v10]') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Normalize all site pages
         run: node .github/scripts/rebuild-podcasting-v8.mjs
-
       - name: Commit normalized site
         run: |
           git config user.name "github-actions[bot]"
@@ -30,6 +28,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No page changes required."
           else
-            git commit -m "chore: rebuild Podcasting site on V8 runtime [podcasting-v8]"
+            git commit -m "chore: rebuild Podcasting site on V10 runtime [podcasting-v10]"
             git push
           fi
