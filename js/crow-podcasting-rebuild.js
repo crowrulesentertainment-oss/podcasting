@@ -30,7 +30,7 @@ function navigation(){
  const p=page();
  const items=[
   ["home.html","HOME","⌂"],["discover.html","DISCOVER","◈"],["podcasts.html","PODCASTS","◉"],["episodes.html","EPISODES","▶"],
-  ["library.html","LIBRARY","▣"],["search.html","SEARCH","⌕"],["notifications.html","NOTIFY","◌"],["account.html","ACCOUNT","◎"]
+  ["library.html","LIBRARY","▣"],["search.html","SEARCH","⌕"],["creator-dashboard.html","STUDIO","✦"],["creator-plans.html","PLANS","◆"],["notifications.html","NOTIFY","◌"],["account.html","ACCOUNT","◎"]
  ];
  const nav=document.createElement("header");nav.id="crRebuildNav";nav.className="cr-nav";
  nav.innerHTML='<a class="cr-brand" href="'+BASE+'home.html"><b>CROWRULES</b><span>PODCASTING</span></a>'+
