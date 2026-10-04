@@ -60,18 +60,9 @@ const waitForClient=async()=>{
 };
 async function loadRows(){
  const sb=await waitForClient();
- const {data,error}=await sb.from("podcasting_podcast_directory")
-   .select("*")
-   .eq("status","published")
-   .order("created_at",{ascending:false});
+ const {data,error}=await sb.from("podcasts").select("id,title,slug,description,artwork_url,author_name,status,is_live,listener_count,total_plays,created_at").eq("status","published").order("created_at",{ascending:false});
  if(error)throw error;
- const rows=data||[];
- if(!rows.length)return rows;
- const creatorIds=[...new Set(rows.map(r=>r.creator_id).filter(Boolean))];
- const {data:creators, error:creatorError}=await sb.from("podcasting_creator_directory").select("id,name").in("id",creatorIds);
- if(creatorError)throw creatorError;
- const names=new Map((creators||[]).map(c=>[c.id,c.name]));
- return rows.map(r=>({...r,author_name:r.author_name||names.get(r.creator_id)||""}));
+ return data||[];
 }
 function buildFilters(){
  const cats=["All",...new Set(all.map(x=>x.category).filter(Boolean))].sort((a,b)=>a==="All"?-1:b==="All"?1:a.localeCompare(b));
