@@ -1,0 +1,11 @@
+/* CrowRules Podcasting — Sitewide Integration Layer V1 */
+#crIntegrationRail{position:fixed;right:14px;bottom:14px;z-index:10050;display:flex;align-items:center;gap:7px;padding:7px 9px;border:1px solid rgba(101,242,255,.18);border-radius:999px;background:rgba(4,7,14,.78);backdrop-filter:blur(16px);box-shadow:0 12px 40px rgba(0,0,0,.45);font:800 7px Montserrat,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#74859a;pointer-events:none}
+#crIntegrationRail i{width:6px;height:6px;border-radius:50%;background:#74859a;box-shadow:0 0 10px currentColor}
+#crIntegrationRail.ok i{background:#59f5b0;color:#59f5b0}
+#crIntegrationRail.warn i{background:#ffd166;color:#ffd166}
+#crIntegrationRail.bad i{background:#ff4662;color:#ff4662}
+#crIntegrationRail b{color:#c8d1dd}
+.cr-app .cr-nav{backdrop-filter:blur(22px);background:linear-gradient(180deg,rgba(3,6,13,.94),rgba(3,6,13,.76))}
+.cr-app main,.cr-app .wrap,.cr-app .page{position:relative}
+.cr-app main:before{content:"";position:absolute;inset:-80px -8vw auto;height:180px;pointer-events:none;background:radial-gradient(circle at 18% 50%,rgba(50,229,255,.07),transparent 34%),radial-gradient(circle at 82% 50%,rgba(154,92,255,.08),transparent 34%);filter:blur(20px);z-index:-1}
+@media(max-width:650px){#crIntegrationRail{right:8px;bottom:8px;font-size:6px}.cr-app main:before{inset:-30px -15vw auto;height:120px}}
