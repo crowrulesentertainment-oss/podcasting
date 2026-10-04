@@ -74,7 +74,7 @@ function wire(){
  });
  set("realtime","ready");
 }
-async function start(){
+function rail(){if(document.getElementById("crIntegrationRail"))return;const x=document.createElement("div");x.id="crIntegrationRail";x.innerHTML="<i></i><b>NETWORK INITIALIZING</b>";document.body.appendChild(x);window.addEventListener("crow:integration",()=>{const s=window.CROW_INTEGRATIONS||{},ok=s.supabase==="ready"&&(s.stripe==="ready"||s.stripe==="not_configured"),b=x.querySelector("b");x.classList.toggle("ok",ok);x.classList.toggle("warn",s.stripe==="not_configured"||s.stripe==="connecting");x.classList.toggle("bad",s.supabase==="error"||s.stripe==="error");if(b)b.textContent=s.supabase==="ready"?"SUPABASE "+(s.realtime==="ready"?"· REALTIME ":"")+"· STRIPE "+(s.stripe==="ready"?"READY":"OPTIONAL"):"NETWORK CONNECTING"},{passive:true})} async function start(){rail();
  await session();
  const sb=await bootSupabase();
  await bootStripe();
