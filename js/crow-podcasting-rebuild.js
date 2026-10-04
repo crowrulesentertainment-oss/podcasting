@@ -133,6 +133,7 @@ function setPresence(count,members){
   document.querySelectorAll('[data-badge="activity"]').forEach(e=>{e.textContent=String(n);e.classList.toggle("has-value",true);e.classList.toggle("presence-live",n>0)});
   const nav=document.getElementById("crRebuildNav");if(nav){nav.dataset.onlineMembers=String(n);nav.title=n===1?"1 member online":n+" members online";}
   window.dispatchEvent(new CustomEvent("crow:presence",{detail:{count:n,members:window.CROW_ONLINE_MEMBERS||[]}}));
+  updatePresenceMeta();
 }
 async function syncPresence(channel){
   try{
