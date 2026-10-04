@@ -7,6 +7,7 @@ window.CROW_CONFIG=Object.assign({
  membershipCheckoutFunction:"membership-checkout",
  adminFunction:"crowrules-admin-api",
  rssFunction:"podcast-rss-feed-64",
+ edgeHealthFunction:"crowrules-edge-health",
  connectFunction:"creator-connect-onboarding",
  scheduleFunction:"podcast-schedule",
  pipelineFunction:"podcast-pipeline",
