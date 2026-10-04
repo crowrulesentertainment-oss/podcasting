@@ -8,6 +8,17 @@
 html,body{background:var(--cr-halloween-night)!important}
 body{min-height:100vh}
 body.cr-halloween-theme{--cr-haunt:1}
+html.cr-haunted-lock,html.cr-haunted-lock body{overflow:hidden!important}
+.cr-haunted-gate-panel{position:relative;z-index:1;animation:crGateReveal .9s cubic-bezier(.2,.8,.2,1) both}
+@keyframes crGateReveal{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
+.cr-haunted-gate.awaken .cr-haunted-gate-panel{animation:crGateReveal 1.1s cubic-bezier(.2,.8,.2,1) both}
+.cr-haunted-stage-text{min-height:38px;transition:opacity .5s ease,transform .5s ease}
+.cr-haunted-gate-actions{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap}
+.cr-haunted-silent{appearance:none;border:0;background:transparent;color:#756c7e;min-height:44px;padding:10px 12px;font:700 9px Montserrat,sans-serif;letter-spacing:.08em;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
+.cr-haunted-silent:hover{color:#b8aebe}
+.cr-haunted-gate::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 5px);mix-blend-mode:screen;opacity:.35}
+.cr-haunted-gate::after{content:"";position:absolute;left:50%;bottom:-10%;width:min(700px,90vw);height:280px;transform:translateX(-50%);pointer-events:none;background:radial-gradient(ellipse,rgba(255,106,0,.07),transparent 68%);filter:blur(18px);animation:crGateEmber 4s ease-in-out infinite alternate}
+@keyframes crGateEmber{from{opacity:.35;transform:translateX(-50%) scale(.94)}to{opacity:.8;transform:translateX(-50%) scale(1.05)}}
 
 /* Haunted horizon / cemetery */
 .cr-halloween-cemetery{
