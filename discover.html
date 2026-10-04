@@ -45,7 +45,7 @@
 <section class="section"><div class="section-head"><div><div class="eyebrow">CREATOR SPOTLIGHT</div><h2>Top Hosts</h2><p>Creators generating strong audience signals.</p></div></div><div id="topHosts" class="rail creator-rail"></div></section>
 <section class="section"><div class="section-head"><div><div class="eyebrow">JUST ARRIVED</div><h2>Newest Episodes</h2><p>The latest published releases.</p></div></div><div id="newest" class="rail episode-rail"></div></section>
 <section class="section results-panel"><div class="section-head"><div><div class="eyebrow">CATALOG SEARCH</div><h2 id="resultsTitle">Explore the catalog</h2><p id="resultsMeta">Search across published podcasts and episodes.</p></div></div><div class="result-tabs"><button class="result-tab active" data-result-tab="all">All</button><button class="result-tab" data-result-tab="podcasts">Podcasts</button><button class="result-tab" data-result-tab="episodes">Episodes</button></div><div id="results" class="grid"></div></section></main>
-<div id="toast" class="toast" role="status" aria-live="polite"></div><div id="whyModal" class="modal" hidden><div class="modal-backdrop" data-close-modal></div><div class="modal-card"><button class="modal-close" data-close-modal>×</button><div class="eyebrow">RECOMMENDATION TRANSPARENCY</div><h2>Why am I seeing this?</h2><p id="whyText"></p><div id="whySignals" class="signal-list"></div></div></div></body></html><script>
+<div id="toast" class="toast" role="status" aria-live="polite"></div><div id="whyModal" class="modal" hidden><div class="modal-backdrop" data-close-modal></div><div class="modal-card"><button class="modal-close" data-close-modal>×</button><div class="eyebrow">RECOMMENDATION TRANSPARENCY</div><h2>Why am I seeing this?</h2><p id="whyText"></p><div id="whySignals" class="signal-list"></div></div></div><script>
 (()=>{"use strict";
 const $=id=>document.getElementById(id), esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),fmt=n=>Number(n||0).toLocaleString(),daysAgo=v=>v?Math.max(0,(Date.now()-new Date(v))/86400000):9999;
 const fmtDate=v=>v?new Intl.DateTimeFormat(undefined,{month:"short",day:"numeric",year:"numeric"}).format(new Date(v)):"";
@@ -175,4 +175,4 @@ window.addEventListener("keydown",e=>{if(e.key==="Escape")$("whyModal").hidden=t
 })();
 </script>
 </body>
-</html>
+</html></body></html>
