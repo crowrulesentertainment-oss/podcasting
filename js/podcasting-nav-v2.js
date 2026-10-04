@@ -20,6 +20,7 @@ const creatorBase=[["▦","My Shows","podcasts.html"],["＋","Episodes","create-
 const adminBase=[["⚙","Admin Center","admin.html"],["✓","Moderation","admin.html?view=moderation"],["⇧","Publishing","publishing-pipeline.html"],["♥","Health","admin.html?view=health"],["◈","Analytics","admin.html?view=analytics"]];
 
 const ADMIN_TABLES=["podcast_member_reports","cr_creator_publish_jobs_63","cr_platform_health_checks"];
+const ROLE_TABLE="members";
 const CREATOR_TABLES=["cr_creator_alerts","podcasts","podcast_episodes","cr_creator_revenue_transactions"];
 
 function isAdmin(u){
@@ -59,9 +60,17 @@ async function getContext(){
     if(!q.error&&q.data?.length){creator=true;creatorId=q.data[0].id}
    }catch(_){}
   }
-  const m=user.app_metadata||{};
-  if(["creator","podcaster"].includes(String(m.role||"").toLowerCase())||m.is_creator===true)creator=true;
-  return {role:creator?"creator":"listener",user,client,creatorId};
+  let memberRole=null;
+  try{
+   const r=await client.from("members").select("role").eq("user_id",user.id).maybeSingle();
+   if(!r.error)memberRole=r.data?.role||null;
+  }catch(_){}
+  const roleName=String(memberRole||"").trim().toLowerCase();
+  if(["admin","administrator","superadmin"].includes(roleName))
+   return {role:"admin",user,client,creatorId,memberRole};
+  if(["creator","podcaster","host","producer"].includes(roleName))
+   creator=true;
+  return {role:creator?"creator":"listener",user,client,creatorId,memberRole};
  }catch(_){return {role:"listener",user:null,client}}
 }
 
@@ -172,7 +181,7 @@ function stopRealtime(){
 async function startRealtime(ctx){
  stopRealtime();
  if(!ctx.client)return;
- const tables=ctx.role==="admin"?ADMIN_TABLES:ctx.role==="creator"?CREATOR_TABLES:[];
+ const tables=ctx.role==="admin"?[...ADMIN_TABLES,ROLE_TABLE]:ctx.role==="creator"?[...CREATOR_TABLES,ROLE_TABLE]:[ROLE_TABLE];
  if(!tables.length)return;
 
  let timer=null,running=false;
@@ -190,7 +199,11 @@ async function startRealtime(ctx){
  };
 
  const ch=ctx.client.channel("crowrules-podcasting-nav-v5-"+Date.now());
- tables.forEach(table=>ch.on("postgres_changes",{event:"*",schema:"public",table},refresh));
+ tables.forEach(table=>{
+   const cfg={event:"*",schema:"public",table};
+   if(table===ROLE_TABLE&&ctx.user?.id)cfg.filter=`user_id=eq.${ctx.user.id}`;
+   ch.on("postgres_changes",cfg,refresh);
+ });
  ch.subscribe(status=>{
   window.CROW_PODCASTING_NAV_REALTIME=status;
   if(status!=="SUBSCRIBED")refresh();
