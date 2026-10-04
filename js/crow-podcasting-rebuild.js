@@ -1,5 +1,5 @@
 (()=>{"use strict";
-if(window.__CROW_PODCASTING_REBUILD_V121__)return;
+if(window.__CROW_PODCASTING_REBUILD_V122__)return;
 window.__CROW_PODCASTING_REBUILD_V121__=true;
 
 const BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
@@ -14,7 +14,7 @@ const load=(src,attrs={})=>new Promise((res,rej)=>{
 async function bootClients(){
   try{
     if(!window.supabase?.createClient)await load(CDN);
-    if(!window.CROW_CONFIG_READY)await load(BASE+"js/config.js?v=20261004-18");
+    if(!window.CROW_CONFIG_READY)await load(BASE+"js/config.js?v=20261004-20");
     const cfg=window.CROW_CONFIG||{};
     if(!cfg.supabaseUrl||!cfg.supabaseKey)throw new Error("CrowRules Supabase configuration is incomplete.");
     if(!window.CROW_SUPABASE)window.CROW_SUPABASE=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
@@ -56,7 +56,7 @@ function navigation(){
   const p=page(),nav=document.createElement("header");nav.id="crRebuildNav";nav.className="cr-nav";nav.dataset.navigationVersion="12.1";
   nav.innerHTML='<a class="cr-brand" href="'+BASE+'home.html"><b>CROWRULES</b><span>PODCASTING</span></a><nav class="cr-links" aria-label="CrowRules Podcasting Navigation">'+
     '<a class="nav-single '+(p==="home.html"?"active":"")+'" href="'+BASE+'home.html"><i>⌂</i><span>HOME</span></a>'+
-    navMenu("DISCOVER",{icon:"◈",label:"DISCOVER THE NETWORK",badge:"activity",links:[["discover.html","DISCOVER HOME","◈"],["search.html","GLOBAL SEARCH","⌕"],["podcasts.html","ALL PODCASTS","◉"],["episodes.html","ALL EPISODES","▶"],["intelligence.html","INTELLIGENCE LAYER","✦"]]})+
+    navMenu("DISCOVER",{icon:"◈",label:"LIVE NETWORK / DISCOVER",badge:"activity",links:[["discover.html","DISCOVER HOME","◈"],["presence.html","WHO HERE","●","activity"],["search.html","GLOBAL SEARCH","⌕"],["podcasts.html","ALL PODCASTS","◉"],["episodes.html","ALL EPISODES","▶"],["intelligence.html","INTELLIGENCE LAYER","✦"]]})+
     navMenu("LIBRARY",{icon:"▣",label:"YOUR LISTENING",badge:"library",links:[["library.html","MY LIBRARY","▣"],["library.html#continue","CONTINUE LISTENING","▶","continue"],["notifications.html","NOTIFICATIONS","◌","notifications"]]})+
     navMenu("CREATORS",{icon:"✦",label:"CREATE & MANAGE",badge:"creator",links:[["create-podcast.html","CREATE PODCAST","＋"],["creator-dashboard.html","CREATOR STUDIO","✦","creator"],["creator-profile.html","CREATOR PROFILE","♙"]]})+
     navMenu("ACCOUNT",{icon:"◎",label:"CROWRULES ACCOUNT",badge:"account",links:[["account.html","ACCOUNT","◎"],["account.html#membership","MEMBERSHIP","★"],["account.html#settings","SETTINGS","⚙"]]})+
@@ -70,7 +70,7 @@ async function context(){
   const sb=window.CROW_SUPABASE;if(!sb)return;
   const user=window.__CROW_USER;
   const set=(id,v,show=true)=>{document.querySelectorAll('[data-badge="'+id+'"]').forEach(e=>{e.textContent=v||"";e.classList.toggle("has-value",show&&!!v)})};
-  set("activity","LIVE",true);
+  set("activity",window.CROW_PRESENCE_COUNT?String(window.CROW_PRESENCE_COUNT):"0",true);
   set("account",user?"SIGNED IN":"SIGN IN",true);
   if(!user){set("library","");set("continue","");set("notifications","");set("creator","");return}
   try{
@@ -96,13 +96,32 @@ async function context(){
 function realtime(){
   const sb=window.CROW_SUPABASE;if(!sb)return;
   try{
-    const channel=sb.channel("crowrules-podcasting-nav-v121")
+    const channel=sb.channel("crowrules-podcasting-nav-v122")
       .on("postgres_changes",{event:"*",schema:"public",table:"podcast_notifications"},()=>context())
       .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episode_progress"},()=>context())
       .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},()=>document.querySelector('[data-badge="activity"]')?.classList.add("pulse"))
-      .subscribe();
+      .on("presence",{event:"sync"},()=>syncPresence(channel))
+      .on("presence",{event:"join"},()=>syncPresence(channel))
+      .on("presence",{event:"leave"},()=>syncPresence(channel))
+      .subscribe(async(status,err)=>{
+        if(status==="SUBSCRIBED"){
+          const u=window.__CROW_USER;if(!u){setPresence(0);return;}
+          await channel.track({user_id:u.id,online_at:new Date().toISOString(),page:page()});
+          syncPresence(channel);
+        }else if(err){console.warn("Podcasting presence:",err)}
+      });
     window.CROW_NAV_REALTIME=channel;
+    window.CROW_PRESENCE_CHANNEL=channel;
   }catch(e){console.warn("Podcasting navigation realtime:",e)}
+}
+function setPresence(count){
+  const n=Math.max(0,Number(count)||0);window.CROW_PRESENCE_COUNT=n;
+  document.querySelectorAll('[data-badge="activity"]').forEach(e=>{e.textContent=String(n);e.classList.toggle("has-value",true);e.classList.toggle("presence-live",n>0)});
+  const nav=document.getElementById("crRebuildNav");if(nav){nav.dataset.onlineMembers=String(n);nav.title=n===1?"1 member online":n+" members online";}
+  window.dispatchEvent(new CustomEvent("crow:presence",{detail:{count:n}}));
+}
+function syncPresence(channel){
+  try{const state=channel.presenceState()||{};setPresence(Object.keys(state).length)}catch(e){console.warn("Presence sync:",e)}
 }
 function searchOverlay(){
   if(document.getElementById("crRebuildSearch"))return;
@@ -113,7 +132,7 @@ function searchOverlay(){
 let searchTimer;
 async function doSearch(term){clearTimeout(searchTimer);searchTimer=setTimeout(async()=>{const box=document.getElementById("crSearchResults"),st=document.getElementById("crSearchStatus"),sb=window.CROW_SUPABASE;if(!sb||term.trim().length<2){if(st)st.textContent="Type at least 2 characters.";if(box)box.innerHTML="";return}st.textContent="Scanning the podcast universe…";try{const t="%"+term.trim().replace(/[%_]/g,"")+"%";const [a,b,c]=await Promise.all([sb.from("podcasts").select("id,title,slug,description,artwork_url,status").eq("status","published").ilike("title",t).limit(8),sb.from("podcast_episodes").select("id,title,description,thumbnail_url,status").eq("status","published").ilike("title",t).limit(8),sb.from("creators").select("id,name,display_name,slug,bio,avatar_url,is_active").eq("is_active",true).or("name.ilike."+t+",display_name.ilike."+t).limit(8)]);if(a.error)throw a.error;if(b.error)throw b.error;if(c.error)throw c.error;const rows=[];(a.data||[]).forEach(x=>rows.push(["PODCAST",x.title,x.description,x.artwork_url,"podcast.html?slug="+encodeURIComponent(x.slug||x.id)]));(b.data||[]).forEach(x=>rows.push(["EPISODE",x.title,x.description,x.thumbnail_url,"episode.html?id="+encodeURIComponent(x.id)]));(c.data||[]).forEach(x=>rows.push(["CREATOR",x.display_name||x.name,x.bio,x.avatar_url,"creator-profile.html?slug="+encodeURIComponent(x.slug||x.id)]));st.textContent=rows.length?rows.length+" results":"No matches found.";box.innerHTML=rows.map(x=>'<a class="cr-search-row" href="'+BASE+x[4]+'">'+(x[3]?'<img src="'+esc(x[3])+'" alt="">':'<span class="cr-search-art">◉</span>')+'<span><b>'+esc(x[1])+'</b><small>'+esc(x[0])+'</small><em>'+esc(x[2]||"")+"</em></span></a>").join("")}catch(e){st.textContent="Search unavailable.";box.innerHTML='<div class="cr-empty">'+esc(e.message||"Connection error")+"</div>"}},160)}
 function status(){const el=document.createElement("div");el.id="crConnection";el.className="cr-connection";el.innerHTML='<span></span><b>CONNECTING</b>';document.body.appendChild(el);const set=(ok,label)=>{el.classList.toggle("ok",ok);el.querySelector("b").textContent=label};if(window.CROW_SUPABASE&&!window.CROW_SUPABASE_ERROR)set(true,"SUPABASE ONLINE");window.addEventListener("crow:connection",e=>set(!!e.detail?.ok,e.detail?.label||"CONNECTED"))}
-function shell(){cleanLegacy();navigation();status();document.getElementById("crGlobalSearch")?.addEventListener("click",searchOverlay);const main=document.querySelector("main");if(main&&!main.classList.contains("scene"))main.classList.add("cr-main");const link=document.createElement("link");link.rel="stylesheet";link.href=BASE+"css/crow-podcasting-rebuild.css?v=20261004-18";document.head.appendChild(link);const navCss=document.createElement("link");navCss.rel="stylesheet";navCss.href=BASE+"css/navigation-v12.css?v=20261004-18";document.head.appendChild(navCss)}
+function shell(){cleanLegacy();navigation();status();document.getElementById("crGlobalSearch")?.addEventListener("click",searchOverlay);const main=document.querySelector("main");if(main&&!main.classList.contains("scene"))main.classList.add("cr-main");const link=document.createElement("link");link.rel="stylesheet";link.href=BASE+"css/crow-podcasting-rebuild.css?v=20261004-20";document.head.appendChild(link);const navCss=document.createElement("link");navCss.rel="stylesheet";navCss.href=BASE+"css/navigation-v12.css?v=20261004-20";document.head.appendChild(navCss)}
 async function start(){const run=async()=>{if(!document.body)return;shell();try{await bootClients();await context();realtime()}catch(e){console.warn("CrowRules Supabase connection:",e)}};if(document.body)await run();else document.addEventListener("DOMContentLoaded",run,{once:true})}
 start();
 })();
