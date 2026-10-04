@@ -7,7 +7,7 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 function activeAudio(){return [...document.querySelectorAll("audio")].find(a=>!a.paused&&!a.ended&&a.currentTime>0)||null}
 function meta(a){
   const d=a?.dataset||{};
-  const root=a?.closest("[data-podcast-id],[data-episode-id,[data-content-id],article,section")||null;
+  const root=a?.closest("[data-podcast-id],[data-episode-id],[data-content-id],article,section")||null;
   const podcastId=d.podcastId||root?.dataset?.podcastId||null;
   const episodeId=d.episodeId||root?.dataset?.episodeId||null;
   const contentTitle=d.episodeTitle||d.contentTitle||root?.dataset?.contentTitle||root?.querySelector("[data-episode-title],h1,h2,h3")?.textContent?.trim()||document.title;
