@@ -37,7 +37,7 @@ jobs:
                   s=s[:body.end()]+'\n<div data-nav data-nav-owner="crowrules-podcasting-nav-v7"></div>'+s[body.end():]
 
               # Normalize shared stylesheet/config/app references.
-              s=re.sub(r"""<link[^>]+href=["'][^"']*css/podcasting\.css(?:\?[^"']*)?["'][^>]*>\s*</link>\s*""",'',s,flags=re.I)
+              s=re.sub(r"""<link[^>]+href=["'][^"']*css/podcasting\.css(?:\?[^"']*)?["'][^>]*>\s*""",'',s,flags=re.I)
               s=re.sub(r"""<script[^>]+src=["'][^"']*js/config\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*""",'',s,flags=re.I)
               s=re.sub(r"""<script[^>]+src=["'][^"']*js/app\.js(?:\?[^"']*)?["'][^>]*>\s*</script>\s*""",'',s,flags=re.I)
 
