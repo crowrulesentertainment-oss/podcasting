@@ -1,3 +1,154 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Creator Monetization — CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><script src="js/config.js"></script><script src="js/podcasting.js" defer></script><script src="js/player.js" defer></script><script src="js/app.js" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=1" defer></script>
-<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
-</head><body><div data-nav></div><main class="wrap hero"><div class="eyebrow">MONETIZATION</div><h1>Creator <span class="gradient">revenue.</span></h1><div id="auth" class="notice">Loading monetization…</div><div id="stats" class="grid"></div><section class="section"><div class="grid two"><div class="card"><h3>Subscription Plans</h3><p>Create monthly or yearly plans and set your own creator pricing.</p><a class="btn primary" href="creator-subscriptions.html">Open Subscription Manager</a></div><div class="card"><h3>Stripe Connect</h3><p>Manage your payout onboarding and account status through the existing CrowRules Connect flow.</p><a class="btn primary" href="creator-payouts.html">Open payout onboarding</a></div><div class="card"><h3>Episode attribution</h3><div id="episodes">Loading…</div></div></div></section></main><script>addEventListener("crow:ready",async()=>{if(!__CROW_USER){auth.textContent="Sign in to view monetization.";return}const r=await CROW_SUPABASE.from("cr_creator_revenue_transactions").select("creator_amount,gross_amount,status,transaction_type,episode_id,episode_title,created_at").eq("creator_id",__CROW_USER.id).order("created_at",{ascending:false});const rows=r.data||[],net=rows.reduce((n,x)=>n+Number(x.creator_amount||0),0),gross=rows.reduce((n,x)=>n+Number(x.gross_amount||0),0);stats.innerHTML=[["$"+(gross/100).toFixed(2),"Gross attributed"],["$"+(net/100).toFixed(2),"Creator net"],[""+rows.length,"Ledger events"],[""+rows.filter(x=>x.status==="paid").length,"Paid events"]].map(x=>'<div class="card"><div class="stat">'+x[0]+'</div><p>'+x[1]+'</p></div>').join("");episodes.innerHTML=rows.filter(x=>x.episode_id).slice(0,20).map(x=>'<div class="activity-row"><strong>'+String(x.episode_title||"Episode").replace(/</g,"&lt;")+'</strong><span>$'+(Number(x.creator_amount||0)/100).toFixed(2)+'</span><span class="pill">'+String(x.status||"pending")+"</span></div>").join("")||"<p>No episode-attributed revenue yet.</p>";auth.textContent="Monetization data synced with Supabase.";});</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Creator Episode Monetization — CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="js/config.js?v=13.0"></script>
+<script src="js/app.js?v=13.0" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=2" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=2" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=4" defer></script>
+<style>
+:root{--line:#ffffff18;--panel:#ffffff08;--muted:#aeb5c8;--good:#35f2a1;--bad:#ff5268;--blue:#62a8ff;--gold:#ffd166}
+*{box-sizing:border-box}body{min-height:100vh}.wrap{max-width:1320px;margin:auto;padding:42px 18px 90px}
+.hero{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap}.eyebrow{font-size:.72rem;letter-spacing:.14em;opacity:.68}.muted{color:var(--muted)}
+.gradient{background:linear-gradient(90deg,#35f2a1,#62a8ff,#c86cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.actions,.toolbar{display:flex;gap:9px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:11px;padding:10px 14px;background:#ffffff09;cursor:pointer}.btn.primary{border-color:#35f2a155}.btn:disabled{opacity:.45;cursor:not-allowed}
+.notice{padding:15px 17px;border:1px solid var(--line);border-radius:15px;background:var(--panel);margin:20px 0}.notice.ok{border-color:#35f2a133}.notice.error{border-color:#ff526855}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.two{grid-template-columns:repeat(2,1fr)}.card,.section{border:1px solid var(--line);border-radius:17px;background:var(--panel);padding:18px}.section{margin-top:18px}
+.stat{font-size:2rem;font-weight:900}.stat-label{font-size:.85rem;color:var(--muted)}.toolbar{margin-top:14px}.input{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#0006;color:inherit;min-width:210px}
+.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:900px}.table th,.table td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}.table th{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;background:#ffffff0b;font-size:.75rem;white-space:nowrap}.pill.premium{border:1px solid #c86cff44}.pill.free{border:1px solid #35f2a133}.pill.members{border:1px solid #62a8ff44}
+.plan-select{min-width:190px;border:1px solid var(--line);border-radius:9px;padding:8px;background:#070b15;color:inherit}.episode-title{font-weight:800}.episode-meta{display:block;color:var(--muted);font-size:.76rem;margin-top:3px}.empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:13px}
+.kpi-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.substat{font-size:.78rem;color:var(--muted)}.money{font-variant-numeric:tabular-nums}.success{color:var(--good)}.warn{color:var(--gold)}.danger{color:var(--bad)}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}@media(max-width:600px){.grid{grid-template-columns:1fr}.wrap{padding-top:26px}.input{width:100%}.table{min-width:820px}}
+</style>
+</head>
+<body>
+<div data-nav></div>
+<main class="wrap">
+<section class="hero">
+<div><div class="eyebrow">CROWRULES CREATOR STUDIO</div><h1>Episode <span class="gradient">Monetization.</span></h1><p class="muted">Control Free vs Premium access, connect episodes to subscription plans, and watch the subscription business behind your catalog.</p></div>
+<div class="actions"><a class="btn" href="creator-dashboard.html">Creator Studio</a><a class="btn" href="creator-subscriptions.html">Subscription Plans</a><a class="btn primary" href="create-episode.html">＋ New Episode</a></div>
+</section>
+<div id="status" class="notice">Checking creator account…</div>
+<section id="dashboard" hidden>
+<div class="grid">
+<div class="card"><div class="stat" id="premiumCount">0</div><div class="stat-label">Premium episodes</div></div>
+<div class="card"><div class="stat" id="freeCount">0</div><div class="stat-label">Free episodes</div></div>
+<div class="card"><div class="stat" id="subscriberCount">0</div><div class="stat-label">Active premium listeners</div></div>
+<div class="card"><div class="stat money" id="netRevenue">$0.00</div><div class="stat-label">Creator subscription revenue</div></div>
+</div>
+
+<section class="section">
+<div class="kpi-row"><div><div class="eyebrow">MONETIZATION HEALTH</div><h2>Premium catalog overview</h2><p class="muted">Every Premium episode is tied to an active membership product. The database trigger also enforces this association.</p></div><span id="planHealth" class="pill">Checking plans…</span></div>
+<div class="grid two" style="margin-top:14px">
+<div class="card"><h3>Subscription economics</h3><div id="economics" class="list">Loading…</div></div>
+<div class="card"><h3>Plan coverage</h3><div id="planCoverage" class="list">Loading…</div></div>
+</div>
+</section>
+
+<section class="section">
+<div class="kpi-row"><div><h2>Episode controls</h2><p class="muted">Switch access instantly. Premium episodes require a subscription plan.</p></div><span id="saveState" class="substat">Ready</span></div>
+<div class="toolbar"><input id="search" class="input" type="search" placeholder="Search episodes…"><select id="podcastFilter" class="input"><option value="all">All podcasts</option></select><select id="accessFilter" class="input"><option value="all">All access</option><option value="premium">Premium</option><option value="free">Free</option><option value="members">Members</option></select></div>
+<div class="table-wrap" style="margin-top:14px"><table class="table"><thead><tr><th>Episode</th><th>Podcast</th><th>Access</th><th>Subscription plan</th><th>Premium listeners</th><th>Episode revenue</th><th>Action</th></tr></thead><tbody id="episodeRows"></tbody></table></div>
+</section>
+
+<section class="section">
+<div class="kpi-row"><div><h2>Subscription revenue</h2><p class="muted">Creator-side earnings recorded from podcast subscription invoices.</p></div><span id="revenueCount" class="substat">0 transactions</span></div>
+<div class="table-wrap" style="margin-top:12px"><table class="table"><thead><tr><th>Date</th><th>Podcast</th><th>Source</th><th>Status</th><th>Creator net</th></tr></thead><tbody id="revenueRows"></tbody></table></div>
+</section>
+</section>
+</main>
+<script>
+(()=>{"use strict";
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money=c=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(c||0)/100);
+const state={sb:null,user:null,creatorId:null,podcasts:[],episodes:[],plans:[],subscriptions:[],earnings:[],revenue:[]};
+function status(t,kind=""){$("status").className="notice "+kind;$("status").textContent=t}
+function client(){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;throw Error("CrowRules Supabase client is still connecting. Refresh and try again.")}
+async function creatorId(){const r=await state.sb.rpc("get_my_podcast_creator_id");if(r.error)throw r.error;if(!r.data)throw Error("No active creator profile is linked to this account.");return r.data}
+function planForEpisode(e){return state.plans.find(p=>p.id===e.monetization_product_id)||null}
+function podcastTitle(id){return state.podcasts.find(p=>p.id===id)?.title||"Podcast"}
+function activeSubscriptions(){return state.subscriptions.filter(s=>["active","trialing","past_due","paused"].includes(String(s.status||"").toLowerCase()))}
+function episodeRevenue(e){return state.revenue.filter(r=>r.episode_id===e.id).reduce((n,r)=>n+Number(r.creator_amount||0),0)}
+function listenersForPlan(id){return activeSubscriptions().filter(s=>s.product_id===id).length}
+function formatCadence(p){if(!p)return"—";const n=Number(p.interval_count||1);return n===1?p.interval:n+" "+p.interval+"s"}
+async function load(){
+ state.sb=client();const s=await state.sb.auth.getSession();state.user=s.data?.session?.user;if(!state.user)throw Error("Please sign in to your CrowRules account first.");
+ state.creatorId=await creatorId();
+ const pod=await state.sb.from("podcasts").select("id,title,artwork_url").eq("creator_id",state.creatorId).order("created_at",{ascending:false});
+ if(pod.error)throw pod.error;state.podcasts=pod.data||[];
+ if(!state.podcasts.length){render();status("Creator account is ready, but no podcasts exist yet. Create a podcast first.","ok");return}
+ const ids=state.podcasts.map(p=>p.id);
+ const [ep,pl,sub,earn,rev]=await Promise.all([
+  state.sb.from("podcast_episodes").select("id,podcast_id,title,slug,status,published_at,created_at,access_level,monetization_enabled,monetization_product_id,play_count").in("podcast_id",ids).order("created_at",{ascending:false}).limit(1000),
+  state.sb.from("cr_podcast_monetization_products").select("id,podcast_id,name,description,amount_cents,currency,interval,interval_count,active,grants_premium_access,trial_period_days").eq("creator_id",state.creatorId).eq("product_type","membership").order("amount_cents",{ascending:true}),
+  state.sb.from("podcast_subscriptions").select("id,podcast_id,product_id,status,amount_cents,currency,current_period_end,creator_id").in("podcast_id",ids),
+  state.sb.from("cr_podcast_creator_earnings").select("id,podcast_id,source_type,source_id,gross_amount_cents,platform_fee_cents,net_amount_cents,currency,status,description,occurred_at").eq("creator_id",state.creatorId).order("occurred_at",{ascending:false}).limit(500),
+  state.sb.from("cr_creator_revenue_transactions").select("id,podcast_id,episode_id,episode_title,gross_amount,platform_fee,creator_amount,currency,status,description,occurred_at,transaction_type").eq("creator_id",state.creatorId).order("occurred_at",{ascending:false}).limit(500)
+ ]);
+ if(ep.error)throw ep.error;if(pl.error)throw pl.error;if(sub.error)throw sub.error;if(earn.error)throw earn.error;
+ state.episodes=ep.data||[];state.plans=pl.data||[];state.subscriptions=sub.data||[];state.earnings=earn.data||[];state.revenue=rev.error?[]:(rev.data||[]);
+ render();status("Creator monetization data synced with Supabase.","ok");
+}
+function render(){
+ $("dashboard").hidden=false;
+ const active=activeSubscriptions(),premium=state.episodes.filter(e=>e.access_level==="premium");
+ $("premiumCount").textContent=premium.length;$("freeCount").textContent=state.episodes.filter(e=>e.access_level==="free").length;$("subscriberCount").textContent=active.length;
+ const net=state.earnings.reduce((n,x)=>n+Number(x.net_amount_cents||0),0);$("netRevenue").textContent=money(net);
+ const activePlans=state.plans.filter(p=>p.active&&p.grants_premium_access!==false);$("planHealth").textContent=activePlans.length?activePlans.length+" active premium plan"+(activePlans.length===1?"":"s"):"No active premium plans";$("planHealth").className="pill "+(activePlans.length?"":"warn");
+ const gross=state.earnings.reduce((n,x)=>n+Number(x.gross_amount_cents||0),0),fees=state.earnings.reduce((n,x)=>n+Number(x.platform_fee_cents||0),0);
+ $("economics").innerHTML='<div><b>'+money(gross)+'</b><span class="substat"> gross subscription revenue</span></div><div><b>'+money(fees)+'</b><span class="substat"> CrowRules platform share</span></div><div><b>'+money(net)+'</b><span class="substat success"> creator net · 80% model</span></div><div><b>'+active.length+'</b><span class="substat"> active/trialing listeners</span></div>';
+ $("planCoverage").innerHTML=activePlans.length?activePlans.map(p=>{const count=state.episodes.filter(e=>e.monetization_product_id===p.id&&e.access_level==="premium").length;return '<div class="kpi-row"><span><b>'+esc(p.name)+'</b><br><span class="substat">'+money(p.amount_cents)+' / '+esc(formatCadence(p))+'</span></span><span class="pill">'+count+' episode'+(count===1?"":"s")+' · '+listenersForPlan(p.id)+' listener'+(listenersForPlan(p.id)===1?"":"s")+'</span></div>'}).join(""):'<div class="empty">Create an active subscription plan to enable Premium episodes.</div>';
+ $("podcastFilter").innerHTML='<option value="all">All podcasts</option>'+state.podcasts.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.title)+'</option>').join("");
+ renderEpisodes();renderRevenue();
+}
+function renderEpisodes(){
+ const term=($("search").value||"").trim().toLowerCase(),pf=$("podcastFilter").value,af=$("accessFilter").value;
+ const rows=state.episodes.filter(e=>(pf==="all"||e.podcast_id===pf)&&(af==="all"||e.access_level===af)&&(!term||[e.title,podcastTitle(e.podcast_id),e.status].some(v=>String(v||"").toLowerCase().includes(term))));
+ $("episodeRows").innerHTML=rows.length?rows.map(e=>{
+  const p=planForEpisode(e),access=e.access_level||"free",premium=access==="premium",plans=state.plans.filter(x=>x.podcast_id===e.podcast_id&&x.active&&x.grants_premium_access!==false);
+  const select='<select class="plan-select" data-plan="'+e.id+'" '+(!premium?"disabled":"")+"><option value="">"+(premium?"Choose plan…":"Free episode")+"</option>"+plans.map(x=>'<option value="'+esc(x.id)+'" '+(p?.id===x.id?"selected":"")+'>'+esc(x.name)+" · "+esc(money(x.amount_cents))+"/"+esc(formatCadence(x))+"</option>").join("")+"</select>";
+  return '<tr><td><span class="episode-title">'+esc(e.title||"Untitled episode")+'</span><span class="episode-meta">'+esc(e.status||"draft")+'</span></td><td>'+esc(podcastTitle(e.podcast_id))+'</td><td><span class="pill '+access+'">'+esc(access.toUpperCase())+'</span></td><td>'+select+'</td><td>'+listenersForPlan(p?.id)+'</td><td class="money">'+(episodeRevenue(e)?money(episodeRevenue(e)):"—")+'</td><td><div class="actions"><button class="btn '+(premium?"":"primary")+'" data-toggle="'+e.id+'" data-access="'+(premium?"free":"premium")+'">'+(premium?"Make Free":"Make Premium")+'</button><a class="btn" href="episode.html?id='+encodeURIComponent(e.id)+'">View</a></div></td></tr>'
+ }).join(""):'<tr><td colspan="7"><div class="empty">No episodes match this view.</div></td></tr>';
+ document.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>toggleAccess(b.dataset.toggle,b.dataset.access));
+ document.querySelectorAll("[data-plan]").forEach(s=>s.onchange=()=>changePlan(s.dataset.plan,s.value));
+}
+function renderRevenue(){
+ const rows=state.earnings.slice(0,100);$("revenueCount").textContent=rows.length+" transaction"+(rows.length===1?"":"s");
+ $("revenueRows").innerHTML=rows.length?rows.map(r=>'<tr><td>'+esc(new Date(r.occurred_at).toLocaleDateString())+'</td><td>'+esc(podcastTitle(r.podcast_id))+'</td><td>'+esc(r.description||r.source_type||"Subscription")+'</td><td>'+esc(r.status||"—")+'</td><td class="money">'+money(r.net_amount_cents)+'</td></tr>').join(""):'<tr><td colspan="5"><div class="empty">No subscription revenue has been recorded yet.</div></td></tr>';
+}
+async function saveEpisode(id,patch){
+ $("saveState").textContent="Saving…";
+ const r=await state.sb.from("podcast_episodes").update(patch).eq("id",id).select("id,access_level,monetization_product_id,monetization_enabled").single();
+ if(r.error)throw r.error;const i=state.episodes.findIndex(e=>e.id===id);if(i>=0)state.episodes[i]=Object.assign(state.episodes[i],r.data);render();$("saveState").textContent="Saved "+new Date().toLocaleTimeString();
+}
+async function toggleAccess(id,access){
+ const e=state.episodes.find(x=>x.id===id);if(!e)return;
+ try{
+  if(access==="premium"){
+   const plan=state.plans.find(p=>p.podcast_id===e.podcast_id&&p.active&&p.grants_premium_access!==false);
+   if(!plan){status("No active Premium subscription plan exists for this podcast. Create one first.","error");return}
+   await saveEpisode(id,{access_level:"premium",monetization_enabled:true,monetization_product_id:plan.id});
+  }else await saveEpisode(id,{access_level:"free",monetization_enabled:false,monetization_product_id:null});
+  status("Episode access updated.","ok");
+ }catch(err){$("saveState").textContent="Save failed";status("Could not update episode: "+(err.message||err),"error")}
+}
+async function changePlan(id,planId){
+ const e=state.episodes.find(x=>x.id===id);if(!e||e.access_level!=="premium")return;
+ if(!planId){status("Choose a Premium subscription plan.","error");renderEpisodes();return}
+ const plan=state.plans.find(p=>p.id===planId&&p.podcast_id===e.podcast_id&&p.active&&p.grants_premium_access!==false);
+ if(!plan){status("That plan is not valid for this podcast.","error");renderEpisodes();return}
+ try{await saveEpisode(id,{access_level:"premium",monetization_enabled:true,monetization_product_id:plan.id});status("Premium plan association updated.","ok")}catch(err){$("saveState").textContent="Save failed";status("Could not change the Premium plan: "+(err.message||err),"error")}
+}
+$("search").oninput=renderEpisodes;$("podcastFilter").onchange=renderEpisodes;$("accessFilter").onchange=renderEpisodes;
+async function boot(){try{state.sb=client();await load()}catch(e){console.error(e);$("dashboard").hidden=true;status(e.message||"Unable to load Creator Monetization.","error")}}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(boot,300),{once:true});else setTimeout(boot,300);
+})();
+</script>
+</body>
+</html>
