@@ -1,0 +1,149 @@
+/* CrowRules Podcasting — Halloween Cinematic Theme V2
+   Full haunted seasonal experience. Visual/audio hooks are opt-in and non-blocking.
+*/
+:root{
+ --cr-halloween-orange:#ff6a00;--cr-halloween-amber:#ffb347;--cr-halloween-purple:#9d5cff;
+ --cr-halloween-red:#ff3158;--cr-halloween-night:#020107;
+}
+html,body{background:var(--cr-halloween-night)!important}
+body{min-height:100vh}
+body.cr-halloween-theme{--cr-haunt:1}
+
+/* Haunted horizon / cemetery */
+.cr-halloween-cemetery{
+ position:fixed;left:0;right:0;bottom:0;height:19vh;min-height:105px;z-index:-1;
+ pointer-events:none;overflow:hidden;opacity:.48;
+ background:
+  linear-gradient(to top,rgba(1,1,4,.98) 0%,rgba(2,1,7,.92) 32%,transparent 100%);
+}
+.cr-halloween-cemetery::before{
+ content:"";position:absolute;left:0;right:0;bottom:0;height:78%;
+ background:
+  radial-gradient(ellipse at 14% 100%,#000 0 13%,transparent 13.5%),
+  radial-gradient(ellipse at 31% 100%,#000 0 16%,transparent 16.5%),
+  radial-gradient(ellipse at 54% 100%,#000 0 18%,transparent 18.5%),
+  radial-gradient(ellipse at 78% 100%,#000 0 14%,transparent 14.5%),
+  radial-gradient(ellipse at 94% 100%,#000 0 17%,transparent 17.5%);
+}
+.cr-halloween-cemetery::after{
+ content:"†   ▐▐   †      †   ▐▐     †        †   ▐▐   †";
+ position:absolute;left:-5%;right:-5%;bottom:19px;height:58px;
+ color:#050409;font:900 34px/58px Georgia,serif;letter-spacing:18px;
+ text-shadow:0 0 8px #000;white-space:nowrap;
+ animation:crGraveDrift 15s ease-in-out infinite alternate;
+}
+
+/* Pumpkins */
+.cr-halloween-pumpkins{position:fixed;inset:0;z-index:-1;pointer-events:none}
+.cr-halloween-pumpkins::before,.cr-halloween-pumpkins::after{
+ content:"🎃";position:absolute;bottom:4.5vh;font-size:clamp(28px,4vw,55px);
+ filter:saturate(.65) brightness(.45) drop-shadow(0 0 14px rgba(255,106,0,.22));
+ animation:crPumpkinFloat 4.8s ease-in-out infinite;
+}
+.cr-halloween-pumpkins::before{left:3vw}
+.cr-halloween-pumpkins::after{right:5vw;font-size:clamp(22px,3vw,42px);animation-delay:-2.3s}
+@keyframes crPumpkinFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-9px) rotate(2deg)}}
+
+/* Floating ghosts */
+.cr-halloween-ghosts{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.cr-halloween-ghosts::before,.cr-halloween-ghosts::after{
+ content:"👻";position:absolute;color:#fff;opacity:.055;font-size:42px;
+ filter:grayscale(1) blur(.2px) drop-shadow(0 0 16px rgba(210,205,255,.35));
+ animation:crGhostFloat 23s linear infinite;
+}
+.cr-halloween-ghosts::before{left:7%;top:72%;animation-delay:-7s}
+.cr-halloween-ghosts::after{left:73%;top:30%;font-size:30px;animation-duration:29s;animation-delay:-15s}
+@keyframes crGhostFloat{
+  0%{transform:translate3d(0,40px,0) rotate(-3deg);opacity:0}
+  12%{opacity:.055}50%{transform:translate3d(16vw,-26vh,0) rotate(4deg)}
+  86%{opacity:.04}100%{transform:translate3d(34vw,-52vh,0) rotate(-3deg);opacity:0}
+}
+
+/* Lightning overlay */
+.cr-halloween-lightning{position:fixed;inset:0;z-index:9990;pointer-events:none;opacity:0;background:#fff}
+.cr-halloween-lightning.flash{animation:crLightning .55s steps(2,end)}
+@keyframes crLightning{
+  0%,100%{opacity:0}12%{opacity:.09}18%{opacity:0}28%{opacity:.045}36%{opacity:0}
+}
+
+/* Candle flicker */
+.cr-halloween-candle{
+ position:fixed;right:24px;bottom:22px;width:9px;height:42px;border-radius:4px 4px 2px 2px;
+ z-index:5;pointer-events:none;background:linear-gradient(90deg,#75685a,#d7c7a4,#665c51);
+ box-shadow:0 0 20px rgba(255,106,0,.14);
+}
+.cr-halloween-candle::before{
+ content:"";position:absolute;left:-4px;top:-22px;width:17px;height:25px;border-radius:55% 45% 55% 45%;
+ background:radial-gradient(ellipse at 50% 75%,#fff 0 14%,#ffd36b 28%,#ff6a00 58%,transparent 70%);
+ filter:blur(.2px);animation:crCandle 1.15s ease-in-out infinite alternate;
+}
+@keyframes crCandle{from{transform:rotate(-5deg) scale(.88);filter:blur(.4px)}to{transform:rotate(5deg) scale(1.12);filter:blur(1px)}}
+
+/* Spooky hover state — no forced audio/autoplay */
+.cr-halloween-theme .btn:hover,
+.cr-halloween-theme .card:hover,
+.cr-halloween-theme .quick-pick:hover,
+.cr-halloween-theme .episode-row:hover,
+.cr-halloween-theme .nav-trigger:hover{
+ transform:translateY(-2px);
+ border-color:rgba(255,106,0,.48)!important;
+ box-shadow:0 12px 35px rgba(255,106,0,.075),0 0 22px rgba(157,92,255,.045)!important;
+ transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;
+}
+.cr-halloween-theme a:focus-visible,
+.cr-halloween-theme button:focus-visible{
+ outline:2px solid var(--cr-halloween-orange)!important;
+ outline-offset:3px;
+}
+
+/* Enter If You Dare overlay */
+.cr-haunted-gate{
+ position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:24px;
+ background:
+  radial-gradient(circle at 50% 44%,rgba(65,20,88,.28),transparent 25%),
+  radial-gradient(circle at 50% 110%,rgba(255,106,0,.08),transparent 40%),
+  rgba(1,1,5,.96);
+ opacity:1;visibility:visible;transition:opacity .55s ease,visibility .55s ease;
+}
+.cr-haunted-gate.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+.cr-haunted-gate-panel{
+ width:min(620px,92vw);text-align:center;padding:48px 30px 42px;
+ border:1px solid rgba(255,106,0,.24);border-radius:24px;
+ background:linear-gradient(145deg,rgba(13,7,19,.98),rgba(3,2,8,.98));
+ box-shadow:0 30px 110px rgba(0,0,0,.92),0 0 60px rgba(157,92,255,.08);
+}
+.cr-haunted-gate-moon{font-size:38px;opacity:.8;filter:drop-shadow(0 0 15px rgba(157,92,255,.5))}
+.cr-haunted-gate-kicker{margin:16px 0 10px;color:var(--cr-halloween-orange);font:800 9px Orbitron,sans-serif;letter-spacing:.35em}
+.cr-haunted-gate h1{
+ margin:0;font:900 clamp(32px,7vw,68px)/1 Orbitron,sans-serif;
+ letter-spacing:.03em;
+ background:linear-gradient(105deg,#fff,#ffb347 40%,#ff6a00 63%,#9d5cff);
+ -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.cr-haunted-gate p{max-width:480px;margin:18px auto 28px;color:#968da2;font-size:11px;line-height:1.8}
+.cr-haunted-enter{
+ appearance:none;border:1px solid rgba(255,106,0,.48);border-radius:999px;padding:15px 25px;
+ color:#fff;background:linear-gradient(90deg,rgba(255,106,0,.12),rgba(157,92,255,.12));
+ font:800 10px Montserrat,sans-serif;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;
+ box-shadow:0 0 28px rgba(255,106,0,.08);transition:.25s ease;
+}
+.cr-haunted-enter:hover{transform:scale(1.035);box-shadow:0 0 40px rgba(255,106,0,.18);border-color:#ff9d2e}
+.cr-haunted-note{margin-top:15px!important;font-size:8px!important;color:#62596d!important}
+
+/* Optional sound control */
+.cr-haunted-audio{
+ position:fixed;right:18px;bottom:18px;z-index:10001;display:none;
+ padding:8px 11px;border:1px solid rgba(255,106,0,.25);border-radius:999px;
+ background:rgba(7,3,11,.9);color:#ffb347;font:800 7px Montserrat;letter-spacing:.12em;
+ cursor:pointer;backdrop-filter:blur(12px);
+}
+.cr-haunted-audio.is-visible{display:block}
+@media(max-width:700px){
+ .cr-halloween-cemetery{height:14vh;min-height:75px}
+ .cr-halloween-candle{right:12px;bottom:14px}
+ .cr-haunted-gate-panel{padding:38px 20px}
+}
+@media(prefers-reduced-motion:reduce){
+ .cr-halloween-pumpkins::before,.cr-halloween-pumpkins::after,.cr-halloween-ghosts::before,
+ .cr-halloween-ghosts::after,.cr-halloween-candle::before,.cr-halloween-cemetery::after{animation:none!important}
+}
