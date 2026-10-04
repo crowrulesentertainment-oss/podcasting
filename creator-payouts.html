@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Creator Payouts — CrowRules Podcasting</title>
+<title>Creator Payouts — CrowRules Podcasting | Stripe Connect</title>
 <meta name="description" content="CrowRules creator finance center for Stripe onboarding, requirements, earnings, transfers and payouts.">
 <link rel="stylesheet" href="css/podcasting.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -20,7 +20,7 @@
 <main class="wrap hero">
 <div class="eyebrow">CROWRULES PODCASTING • CREATOR FINANCE</div>
 <h1>Creator <span class="gradient">Payout Center.</span></h1>
-<p class="muted">Stripe onboarding, verification, earnings, transfers and payout readiness — in one live control center.</p>
+<p class="muted">Stripe onboarding, verification, earnings, transfers and payout readiness — in one live control center. Server-side Stripe key diagnostics are included so setup errors are actionable.</p>
 
 <section id="connection" class="panel status">
 <i id="dot" class="dot"></i>
@@ -117,7 +117,33 @@ function renderTables(s){const e=Array.isArray(s?.earnings)?s.earnings:[],p=Arra
 function activity(title,text){const box=$('activity');if(box.querySelector('.empty'))box.innerHTML='';const el=document.createElement('div');el.className='event';el.innerHTML=`<i></i><div><b>${esc(title)}</b><span>${esc(text)}</span></div><time>${new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</time>`;box.prepend(el);while(box.children.length>10)box.lastElementChild.remove()}
 function schedule(){clearTimeout(timer);timer=setTimeout(()=>{if(document.visibilityState==='visible')refresh();schedule()},30000)}
 async function refresh(){if(busy)return;busy=true;try{const s=await api('status');render(s);const k=classify(s),r=reqs(s);setConnection(k==='active'?'Creator Stripe account ready':k==='action'?'Stripe setup requires attention':k==='review'?'Stripe transfer activation pending':'Creator account setup',k==='action'?`${r.past.length+r.current.length} Stripe requirement(s) due.`:k==='review'?'No requirements due; transfer activation is pending.':k==='active'?'Transfers are active.':'Status synchronized.',k==='action'||k==='reconnect'?'bad':'ok');activity('Stripe status synchronized',k==='action'?`${r.past.length+r.current.length} requirement(s) need attention.`:`Transfer capability: ${transfers(s)||'pending'}.`);schedule()}catch(e){setConnection('Creator connection could not be completed',e.message,'bad');activity('Stripe status error',e.message)}finally{busy=false}}
-async function openSetup(){try{$('setup').disabled=$('action').disabled=$('requirementsSetup').disabled=true;const ret=`${location.origin}${location.pathname}?stripe_return=1`;const r=await api('onboard',{return_url:ret,refresh_url:ret});if(!r?.onboarding_url)throw Error('Stripe did not return an onboarding URL.');location.href=r.onboarding_url}catch(e){setConnection('Stripe setup could not be opened',e.message,'bad');activity('Stripe setup error',e.message)}finally{$('setup').disabled=$('action').disabled=$('requirementsSetup').disabled=false}}
+async function openSetup(){
+try{
+ $('setup').disabled=$('action').disabled=$('requirementsSetup').disabled=true;
+ setConnection('Opening secure Stripe setup…','CrowRules is requesting a fresh Stripe onboarding session.','');
+ const ret=location.origin+location.pathname+'?stripe_return=1';
+ const r=await api('onboard',{return_url:ret,refresh_url:ret});
+ if(!r?.onboarding_url)throw Error('Stripe did not return a fresh onboarding URL.');
+ activity('Fresh Stripe onboarding link created','Redirecting to Stripe-hosted setup.');
+ location.href=r.onboarding_url;
+}catch(e){
+ const msg=String(e?.message||e||'Unknown Stripe error');
+ const permission=/v2_account_storer_write|Account Storer Write|does not have the required permissions for this endpoint/i.test(msg);
+ if(permission){
+   setConnection('Stripe setup is blocked by the CrowRules Stripe key','The live Edge Function key does not have V2 Account Storer Write permission. This is a server-side Stripe key permission issue — not a problem with this page.','bad');
+   $('stateNotice').className='notice bad';
+   $('stateTitle').textContent='Stripe key permission required';
+   $('stateText').textContent='Enable V2 Account Storer Write (v2_account_storer_write) on the Stripe secret key stored in Supabase as STRIPE_SECRET_KEY, then return here and click Refresh Status → Open Stripe Setup.';
+   $('platformBadge').className='pill bad';
+   $('platformBadge').textContent='KEY PERMISSION';
+   $('platformText').textContent='CrowRules is reaching the Stripe API, but Stripe is rejecting the account-onboarding write operation because the server key lacks V2 Account Storer Write permission.';
+   activity('Stripe setup blocked by key permission','V2 Account Storer Write is missing from the secret key used by the live creator-connect-onboarding function.');
+ }else{
+   setConnection('Stripe setup could not be opened',msg,'bad');
+   activity('Stripe setup error',msg);
+ }
+}finally{$('setup').disabled=$('action').disabled=$('requirementsSetup').disabled=false}
+}
 async function init(){try{sb=await boot();const {data,error}=await sb.auth.getSession();if(error)throw error;if(!data.session){setConnection('Sign in required','Sign in to your CrowRules account before opening Creator Payouts.','bad');return}await refresh();channel=sb.channel('creator-payouts-live').on('postgres_changes',{event:'*',schema:'public',table:'cr_podcast_creator_earnings'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'cr_podcast_payouts'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'cr_podcast_stripe_accounts'},refresh).subscribe()}catch(e){setConnection('CrowRules connection failed',e.message,'bad')}}
 $('refresh').onclick=refresh;$('refresh2').onclick=refresh;$('setup').onclick=openSetup;$('action').onclick=openSetup;$('requirementsSetup').onclick=openSetup;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh()});window.addEventListener('beforeunload',()=>{clearTimeout(timer);if(channel&&sb)sb.removeChannel(channel)});init();
 })();
