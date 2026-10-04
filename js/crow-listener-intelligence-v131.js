@@ -2,7 +2,7 @@
 if(window.__CROW_LISTENER_INTELLIGENCE_V131__)return;
 window.__CROW_LISTENER_INTELLIGENCE_V131__=true;
 const RETRACK=15000;
-let lastKey="",timer=0;\nconst CONTENT_EVENT="crow:listener-intelligence";
+let lastKey="",timer=0;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function activeAudio(){return [...document.querySelectorAll("audio")].find(a=>!a.paused&&!a.ended&&a.currentTime>0)||null}
 function meta(a){
@@ -19,15 +19,8 @@ async function track(){
   const a=activeAudio(),m=meta(a),mode=a?"listener":"browser";
   const key=[mode,m.podcast_id||"",m.episode_id||"",m.content_title||"",location.pathname].join("|");
   if(key===lastKey)return;
-  lastKey=key;\n  window.CROW_LISTENER_STATE={active:!!a,mode,podcast_id:m.podcast_id,episode_id:m.episode_id,content_title:mode==="listener"?m.content_title:null};\n  window.dispatchEvent(new CustomEvent(CONTENT_EVENT,{detail:window.CROW_LISTENER_STATE}));
+  lastKey=key;
   try{await ch.track({user_id:u.id,online_at:new Date().toISOString(),page:location.pathname.split("/").pop()||"home.html",mode,podcast_id:m.podcast_id,episode_id:m.episode_id,content_title:mode==="listener"?m.content_title:null,title:document.title})}catch(e){}
-}
-function enrichAudio(){
-  const p=window.currentPodcast||window.podcast||null, ep=window.episode||window.currentEpisode||null;
-  enrichAudio();
-  document.querySelectorAll("audio").forEach(a=>{if(p?.id&&!a.dataset.podcastId)a.dataset.podcastId=p.id;if(ep?.id&&!a.dataset.episodeId)a.dataset.episodeId=ep.id;if(ep?.title&&!a.dataset.episodeTitle)a.dataset.episodeTitle=ep.title;});
-  if(p?.id){document.querySelectorAll("[data-live-listeners]").forEach(el=>{if(!el.dataset.liveId){el.dataset.liveType="podcast";el.dataset.liveId=p.id;}})}
-  if(ep?.id){document.querySelectorAll("[data-live-listeners]").forEach(el=>{if(el.dataset.liveContent==="episode"){el.dataset.liveType="episode";el.dataset.liveId=ep.id;}})}
 }
 function bind(){
   document.querySelectorAll("audio").forEach(a=>{
@@ -40,7 +33,7 @@ function bind(){
 function start(){
   if(!window.__CROW_USER)return;
   bind();
-  clearInterval(timer);timer=setInterval(()=>{enrichAudio();bind();},RETRACK);
+  clearInterval(timer);timer=setInterval(()=>{bind();},RETRACK);
   document.addEventListener("visibilitychange",track,{passive:true});
 }
 function boot(){
