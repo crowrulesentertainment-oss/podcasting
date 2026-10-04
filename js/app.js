@@ -20,7 +20,7 @@ function ensureChrome(){
  if(!host){host=document.createElement("div");host.dataset.nav="";document.body.prepend(host)}
  host.dataset.navOwner="crowrules-podcasting-nav-v7";
  if(!document.querySelector("script[data-podcasting-nav-v7]")){
-  const s=document.createElement("script");s.src=BASE+"/js/podcasting-nav-v7.js?v=7.0.0";s.defer=true;s.dataset.podcastingNavV7="true";document.head.appendChild(s);
+  const s=document.createElement("script");s.src=BASE+"/js/podcasting-nav-v7.js?v=7.1.0";s.defer=true;s.dataset.podcastingNavV7="true";document.head.appendChild(s);
  }
  if(!document.getElementById("crOffline")){const o=document.createElement("div");o.id="crOffline";o.className="cr-offline";o.textContent="Offline — changes will resume when connection returns";document.body.appendChild(o)}
 }
