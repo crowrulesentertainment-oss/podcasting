@@ -2,7 +2,7 @@
 if(window.__CROW_SUPABASE_UNIVERSAL_V1__)return;
 window.__CROW_SUPABASE_UNIVERSAL_V1__=true;
 const BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
-const CDN="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+const CDN="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0";
 const load=(src,id)=>new Promise((resolve,reject)=>{
   const existing=document.getElementById(id)||[...document.scripts].find(s=>s.src===src||s.src.startsWith(src+"?"));
   if(existing){if(src.includes("supabase-js")&&window.supabase?.createClient)return resolve();existing.addEventListener("load",resolve,{once:true});existing.addEventListener("error",()=>reject(new Error("Unable to load "+src)),{once:true});return}
