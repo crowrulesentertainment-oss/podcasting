@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="css/podcasting-v15.css?v=20261005-01">
 <script src="js/sitewide-v15.js?v=20261005-01" defer></script>
 <link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"><link rel="stylesheet" href="css/sitewide-rebuild-v18.css">
+<link rel="stylesheet" href="css/podcasting-v19.css?v=20261005-19.1">
 </head>
 <body>
 <script src="js/app.js?v=20261004-27" defer></script>
@@ -50,4 +51,5 @@
 (()=>{const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};async function run(){try{const sb=await (window.CROW_DATA?.ready?.(10000)||window.CROW_SUPABASE_READY);if(!sb)throw Error("Supabase unavailable.");const [p,e,c]=await Promise.all([sb.from("podcasts").select("id",{count:"exact",head:true}).eq("status","published"),sb.from("podcast_episodes").select("id",{count:"exact",head:true}).eq("status","published"),sb.from("creators").select("id",{count:"exact",head:true}).eq("is_active",true)]);if(p.error)throw p.error;if(e.error)throw e.error;if(c.error)throw c.error;set("podcasts",p.count??0);set("episodes",e.count??0);set("creators",c.count??0);set("status","SUPABASE ONLINE • Intelligence Layer connected");}catch(err){console.error(err);set("status","SUPABASE CONNECTION ERROR • "+(err.message||"Refresh to retry."))}}window.addEventListener("crow:ready",run,{once:true});if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run,{once:true});else run()})();
 </script>
 <script src="js/sitewide-rebuild-v18.js"></script>
+<script src="js/podcasting-v19.js?v=20261005-19.1"></script>
 </body></html>
