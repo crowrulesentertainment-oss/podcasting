@@ -1,7 +1,0 @@
--- CrowRules public SECURITY DEFINER surface hardening.
--- Applied to the live Supabase project on 2026-10-04.
--- Removes anon execution from administrative, worker, payout, report-management,
--- secret, lifecycle-trigger and privileged universe/CrowSpace RPC surfaces.
--- Also removes authenticated execution from the sports sync-secret getter and
--- trigger-only functions. Legitimate authenticated application RPCs remain
--- available subject to their internal authorization checks.

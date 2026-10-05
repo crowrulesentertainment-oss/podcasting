@@ -1,5 +1,0 @@
--- CrowRules Podcasting RLS policy consolidation
--- Applied to the live Supabase project on 2026-10-04.
--- Keeps public published reads and authenticated creator/admin ownership boundaries intact.
--- This file documents the policy consolidation performed in migration
--- podcasting_rls_policy_consolidation_20261004.
