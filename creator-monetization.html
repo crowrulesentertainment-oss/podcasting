@@ -34,7 +34,7 @@
 <script src="js/crow-podcasting-player-v13-3.js?v=20261004-01" defer></script>
 <link rel="stylesheet" href="css/crow-podcasting-player-v13-3.css?v=20261004-01">
 </head>
-<body>
+<body><script src="js/crowrules-db-bootstrap-v2.js?v=20261004-v14"></script>
 <script src="js/app.js?v=20261004-10" defer></script>
 <script src="js/site-repair-v1.js?v=20261004-10" defer></script>
 
@@ -332,9 +332,9 @@ function renderRevenue(){
  $("revenueRows").innerHTML=rows.length?rows.map(r=>"<tr><td>"+new Date(r.occurred_at).toLocaleDateString()+"</td><td>"+esc(podcastTitle(r.podcast_id))+"</td><td>"+esc(r.description||r.transaction_type||"Subscription")+"</td><td>"+esc(r.status||"—")+"</td><td class='money'>"+money(r.creator_amount)+"</td></tr>").join(""):"<tr><td colspan='5'><div class='empty'>No creator revenue has been recorded yet.</div></td></tr>";
 }
 async function load(){
- state.sb=await client();const sess=await state.sb.auth.getSession();state.user=sess.data?.session?.user;if(!state.user)throw Error("Please sign in to your CrowRules account first.");
+ state.sb=await client();state.user=window.__CROW_USER||window.CROW_DATA?.snapshot?.().account?.user;if(!state.user)throw Error("Please sign in to your CrowRules account first.");
  const cid=await state.sb.rpc("get_my_podcast_creator_id");if(cid.error)throw cid.error;if(!cid.data)throw Error("No active creator profile is linked to this account.");state.creatorId=cid.data;
- const p=await state.sb.from("podcasts").select("id,title").eq("creator_id",state.creatorId).order("created_at",{ascending:false});if(p.error)throw p.error;state.podcasts=p.data||[];
+ const cat=window.CROW_DATA?.snapshot?.().catalog||{};state.podcasts=(cat.podcasts||[]).filter(x=>String(x.creator_id)===String(state.creatorId));
  const ids=state.podcasts.map(x=>x.id);
  if(!ids.length){$("dashboard").hidden=false;state.model=calcModel();render();status("Creator account is ready, but no podcasts exist yet.","ok");return}
  const [plans,subs,earn,rev,lifecycle]=await Promise.all([
@@ -346,7 +346,7 @@ async function load(){
  ]);
  if(plans.error)throw plans.error;if(subs.error)throw subs.error;if(earn.error)throw earn.error;if(lifecycle.error)throw lifecycle.error;
  state.plans=plans.data||[];state.subs=subs.data||[];state.earnings=earn.data||[];state.revenue=rev.error?[]:(rev.data||[]);state.lifecycle=lifecycle.data||[];
- const eps=await state.sb.from("podcast_episodes").select("id,podcast_id,title,status,access_level,monetization_product_id,monetization_enabled,play_count,created_at").in("podcast_id",ids).order("created_at",{ascending:false}).limit(1000);
+ const eps=(window.CROW_DATA?.snapshot?.().catalog?.episodes||[]).filter(x=>ids.some(id=>String(id)===String(x.podcast_id))).slice(0,1000);
  if(eps.error)throw eps.error;state.episodes=eps.data||[];
  $("dashboard").hidden=false;render();status("Creator Financial Forecasting V4 synced with Supabase.","ok");
 }
