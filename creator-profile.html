@@ -135,7 +135,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;ba
 <script>
 (()=>{"use strict";
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search),profileId=params.get("id")||params.get("creator_id"),usernameParam=params.get("username");
-const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));const fmt=v=>Number(v||0).toLocaleString();
+const creatorIdForPage=(profileId||"");\nconst esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));const fmt=v=>Number(v||0).toLocaleString();
 const date=v=>{if(!v)return"";const d=new Date(v);return Number.isNaN(d.getTime())?"":d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})};
 const initials=n=>String(n||"CR").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"CR";
 async function client(){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;if(window.CROW_BOOTSTRAP)return window.CROW_BOOTSTRAP();if(window.CROW_SUPABASE_READY)return window.CROW_SUPABASE_READY;throw Error("CrowRules connection is unavailable.")}
@@ -143,12 +143,9 @@ function image(url,name,cls="avatar"){return url?'<img class="'+cls+'" src="'+es
 function empty(a,b){return'<div class="empty"><strong>'+esc(a)+'</strong><span>'+esc(b)+'</span></div>'}
 async function table(s,name,query){try{const q=await query();if(q.error)return null;return q.data||[]}catch{return null}}
 async function loadProfile(s){const d=window.CROW_CREATOR_DOMAIN||window.CROW_DOMAIN_SERVICES?.creator;const p=await d.profilePage({id:profileId,username:usernameParam});if(!p)throw Error("Creator profile not found.");if(p.is_discoverable===false||p.discoverable===false)throw Error("This creator profile is not publicly available.");return p;}
-async function showsFor(s,p){const key=p.creator_id||p.id;const cat=window.CROW_DATA?.snapshot?.().catalog||{};return(cat.podcasts||[]).filter(x=>String(x.creator_id)===String(key)&&String(x.status||"published").toLowerCase()==="published")}
-async function episodesFor(s,ids){if(!ids.length)return[];const cat=window.CROW_DATA?.snapshot?.().catalog||{};return(cat.episodes||[]).filter(x=>ids.some(id=>String(id)===String(x.podcast_id))).sort((a,b)=>new Date(b.published_at||b.created_at||0)-new Date(a.published_at||a.created_at||0)).slice(0,50)}
-async function followerCount(s,id){
- for(const t of["creator_follows","creator_followers"]){try{const q=await s.from(t).select("id",{count:"exact",head:true}).eq("creator_id",id);if(!q.error)return q.count||0}catch{}}
- return null;
-}
+async function showsFor(s,p){const d=window.CROW_CREATOR_DOMAIN||window.CROW_DOMAIN_SERVICES?.creator;const rows=await d.podcasts(p.creator_id||p.id);return(rows||[]).filter(x=>String(x.status||"published").toLowerCase()==="published")}
+async function episodesFor(s,ids){if(!ids.length)return[];const d=window.CROW_CREATOR_DOMAIN||window.CROW_DOMAIN_SERVICES?.creator;const data=await d.analytics.creator(creatorIdForPage);return(data?.episodes||[]).filter(x=>ids.some(id=>String(id)===String(x.podcast_id))).sort((a,b)=>new Date(b.published_at||b.created_at||0)-new Date(a.published_at||a.created_at||0)).slice(0,50)}
+async function followerCount(s,id){const d=window.CROW_CREATOR_DOMAIN||window.CROW_DOMAIN_SERVICES?.creator;const x=await d.counts(id);return x.followers}
 async function socialData(p){let raw=p.social_links||p.socials||p.social_links_json||{};if(typeof raw==="string"){try{raw=JSON.parse(raw)}catch{const o={};raw.split(",").forEach(x=>{const [k,...v]=x.split("=");if(k&&v.length)o[k.trim()]=v.join("=").trim()});raw=o}}return raw&&typeof raw==="object"?raw:{}}
 function badges(p){let b=p.badges||p.creator_badges||[];if(typeof b==="string"){try{b=JSON.parse(b)}catch{b=b.split(",")}}if(!Array.isArray(b))b=[];return b.filter(Boolean).slice(0,8)}
 function showCard(x){const art=x.artwork_url||x.cover_url||x.image_url||x.thumbnail_url,title=x.title||x.name||"Untitled Podcast";const meta=[x.category,x.total_plays!=null?fmt(x.total_plays)+" plays":null,x.listener_count!=null?fmt(x.listener_count)+" listeners":null].filter(Boolean).join(" · ");return'<a class="card" href="podcast.html?id='+encodeURIComponent(x.id)+'"><div class="art">'+(art?'<img src="'+esc(art)+'" alt="" loading="lazy">':"")+'<div class="play">▶</div></div><div class="cardbody"><div class="cardtitle">'+esc(title)+'</div><div class="meta">'+esc(meta||"CrowRules Podcasting")+'</div></div></a>'}
