@@ -72,12 +72,12 @@ async function renderContinue(){
   const e=x.episode||x;const pct=Math.max(0,Math.min(100,Number(x.percent_complete||0)));
   return '<button class="cr17-continue-item" data-continue="'+esc(e.id||x.episode_id)+'" data-url="'+esc(e.audio_url||"")+'"><span class="cr17-result-art">'+(e.thumbnail_url?'<img src="'+esc(e.thumbnail_url)+'" alt="">':'◉')+'</span><span><b>'+esc(e.title||"Episode")+'</b><small>'+Math.round(pct)+'% complete</small><i><em style="width:'+pct+'%"></em></i></span></button>'
  }).join("");
- list.querySelectorAll("[data-continue]").forEach(b=>b.onclick=()=>resume(b.dataset.continue,b.dataset.url));
+ list.querySelectorAll("[data-continue]").forEach(b=>b.onclick=()=>resume(b.dataset.continue,b.dataset.url,Number(b.dataset.position||0)));
 }
-async function resume(id,url){
+async function resume(id,url,position=0){
  const p=window.CROW_PLAYER;
  const v=window.CROW_PLAYER_V13_3;
- if(v?.load){try{await v.load({id,title:"Continue Listening",url});return}catch{}}
+ if(v?.load){try{v.load({id,title:"Continue Listening",url},true);const a=document.getElementById("cr13Audio")||document.querySelector(".cr13-player audio");if(a&&position>0)a.addEventListener("loadedmetadata",()=>{try{a.currentTime=position}catch{}},{once:true});return}catch{}}
  if(p?.load&&url){p.load({id,title:"Continue Listening",url},true);return}
  location.href=BASE+"episode.html?id="+encodeURIComponent(id);
 }
