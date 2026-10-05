@@ -35,11 +35,11 @@ main{width:min(1480px,calc(100% - 32px));margin:auto;padding-top:96px}.hero{disp
 
 
 
-<script src="js/crow-podcasting-intelligence-v13.js?v=20261004-13" defer></script><link rel="stylesheet" href="css/crow-podcasting-intelligence-v13.css?v=20261004-13"><script src="js/crow-podcasting-player-v13-3.js?v=20261004-13" defer></script><link rel="stylesheet" href="css/crow-podcasting-player-v13-3.css?v=20261004-13"><script src="js/crow-podcasting-intelligence-v13.js?v=20261004-01" defer></script>
-<script src="js/crow-podcasting-player-v13-2.js?v=20261004-13" defer></script>
-<script src="js/crow-podcasting-player-v13-3.js?v=20261004-01" defer></script>
-<link rel="stylesheet" href="css/crow-podcasting-player-v13-3.css?v=20261004-01">
-</head>
+<link rel="stylesheet" href="css/crow-podcasting-intelligence-v13.css?v=20261004-13">
+
+
+
+<link rel="stylesheet" href="css/crow-podcasting-intelligence-v13.css?v=20261004-14"><script src="js/crow-podcasting-intelligence-v13.js?v=20261004-14" defer></script><link rel="stylesheet" href="css/crow-podcasting-player-v13-3.css?v=20261004-14"><script src="js/crow-podcasting-player-v13-3.js?v=20261004-14" defer></script></head>
 <body class="cr-halloween-theme">
 <script src="js/app.js?v=20261004-27"></script>
 <script src="js/sitewide-v13.js?v=20261004-13"></script>
@@ -137,22 +137,11 @@ function renderQuickPicks(es){const box=document.getElementById("quickPicks");if
 function play(url,title,episodeId){let a=document.getElementById("homeAudio");if(!a){a=document.createElement("audio");a.id="homeAudio";a.controls=true;a.style.cssText="position:fixed;left:14px;right:14px;bottom:14px;z-index:10020;width:calc(100% - 28px);height:42px";document.body.appendChild(a)}a.dataset.episodeId=episodeId||"";a.dataset.episodeTitle=title||"";a.src=url;a.setAttribute("aria-label",title||"Podcast audio");a.play().catch(()=>toast("Press play to start the episode."))}
 async function continueListening(){const r=await sb.from("podcast_episode_progress").select("episode_id,percent_complete,last_played_at").eq("user_id",user.id).order("last_played_at",{ascending:false}).limit(6);if(r.error||!r.data?.length)return;const ids=r.data.map(x=>x.episode_id);const e=await sb.from("podcast_episodes").select("id,title,thumbnail_url,status").in("id",ids).eq("status","published");const by=new Map((e.data||[]).map(x=>[x.id,x]));document.getElementById("continueList").innerHTML=r.data.map(x=>{const ep=by.get(x.episode_id);if(!ep)return"";const pct=Math.max(0,Math.min(100,Number(x.percent_complete||0)));return'<article class="episode-row"><img src="'+attr(ep.thumbnail_url||"assets/podcast-placeholder.svg")+'" alt=""><div><b>'+esc(ep.title)+'</b><small>'+Math.round(pct)+'% complete · '+date(x.last_played_at)+'</small><div style="height:3px;background:#ffffff10;margin-top:7px"><i style="display:block;width:'+pct+'%;height:100%;background:linear-gradient(90deg,#65f2ff,#a778ff)"></i></div></div><button class="play" data-open="'+attr(ep.id)+'">OPEN</button></article>'}).join("")||'<div class="empty">No current listening items.</div>';document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>location.href="episode.html?id="+encodeURIComponent(b.dataset.open))}
 function bindRealtime(){
-  if(!sb?.channel){set("rtStatus","UNAVAILABLE",false);return}
-  if(rt)try{sb.removeChannel(rt)}catch(_){}
-  set("rtStatus","CONNECTING",false);
-  rt=sb.channel("crowrules-podcasting-home-live-v14",{config:{broadcast:{ack:true}}})
-    .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},queueRefresh)
-    .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},queueRefresh)
-    .on("postgres_changes",{event:"*",schema:"public",table:"creators"},queueRefresh)
-    .subscribe(status=>{
-      const live=status==="SUBSCRIBED";
-      const failed=status==="CHANNEL_ERROR"||status==="TIMED_OUT";
-      set("rtStatus",live?"LIVE":failed?"ERROR":"CONNECTING",live);
-      if(failed){
-        clearTimeout(window.__CROW_RT_RETRY);
-        window.__CROW_RT_RETRY=setTimeout(()=>bindRealtime(),5000);
-      }
-    });
+  if(window.__CROW_HOME_INTELLIGENCE_BOUND__)return;
+  window.__CROW_HOME_INTELLIGENCE_BOUND__=true;
+  const update=e=>{const s=e.detail?.status||"STANDBY";set("rtStatus",s==="LIVE"?"LIVE":s==="ERROR"?"ERROR":"CONNECTING",s==="LIVE")};
+  window.addEventListener("crow:v13:realtime",update);
+  const current=window.CROW_INTELLIGENCE?.getRealtimeStatus?.();if(current)update({detail:{status:current}});
 }
 function queueRefresh(){clearTimeout(timer);timer=setTimeout(()=>loadCatalog().catch(e=>console.warn("Home catalog refresh:",e)),450)}
 window.addEventListener("crow:connection",e=>set("connectionLabel",e.detail?.label||"SUPABASE ONLINE",!!e.detail?.ok));
