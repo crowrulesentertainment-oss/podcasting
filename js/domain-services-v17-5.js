@@ -23,14 +23,16 @@ const services={
   ids.length?d.from("podcast_episodes").select("id").in("podcast_id",ids):Promise.resolve({data:[],error:null}),
   userId?d.from("cr_creator_revenue_transactions").select("creator_amount,status,currency").eq("user_id",userId).limit(500):Promise.resolve({data:[],error:null}),
   d.from("cr_podcast_stripe_accounts").select("onboarding_status,charges_enabled,payouts_enabled,details_submitted,requirements_due,requirements_currently_due,disabled_reason,updated_at").eq("creator_id",creatorId).maybeSingle(),
-  userId?d.from("creator_realtime_alerts").select("id,title,message,severity,is_read,created_at,action_url").eq("user_id",userId).order("created_at",{ascending:false}).limit(8):Promise.resolve({data:[],error:null})
+  userId?d.from("creator_realtime_alerts").select("id,title,message,severity,is_read,created_at,action_url").eq("user_id",userId).order("created_at",{ascending:false}).limit(8):Promise.resolve({data:[],error:null}),
+  ids.length?d.from("cr_podcast_subscriptions_65").select("id").in("podcast_id",ids):Promise.resolve({data:[],error:null}),
+  userId?d.from("creator_payouts").select("amount,status,created_at").eq("user_id",userId).order("created_at",{ascending:false}).limit(200):Promise.resolve({data:[],error:null})
  ]);
- if(follows.error)throw follows.error;if(listens.error)throw listens.error;if(revenue.error)throw revenue.error;if(stripe.error&&stripe.error.code!=="PGRST116")throw stripe.error;if(alerts.error)throw alerts.error;
+ if(follows.error)throw follows.error;if(listens.error)throw listens.error;if(revenue.error)throw revenue.error;if(stripe.error&&stripe.error.code!=="PGRST116")throw stripe.error;if(alerts.error)throw alerts.error;if(subscriptions.error)throw subscriptions.error;if(payouts.error)throw payouts.error;
  const episodeIds=(listens.data||[]).map(x=>x.id).filter(Boolean);
  let listenRows=[];
  if(episodeIds.length){const lr=await d.from("podcast_listens").select("seconds_listened,completed").in("episode_id",episodeIds).limit(1000);if(lr.error)throw lr.error;listenRows=lr.data||[]}
  const earnings=(revenue.data||[]).filter(x=>String(x.status||"").toLowerCase()!=="void");
- return {podcasts:p,followers:Number(follows.count||0),episodes:episodeIds.length,listens:listenRows,revenue:earnings,stripe:stripe.data||null,alerts:alerts.data||[]};
+ return {podcasts:p,followers:Number(follows.count||0),subscribers:(subscriptions.data||[]).length,episodes:episodeIds.length,listens:listenRows,revenue:earnings,payouts:payouts.data||[],stripe:stripe.data||null,alerts:alerts.data||[]};
  },
   async profile(creatorIdOrSlug){const d=await db();if(!d)return null;let q=d.from("creators").select("*,creator_profiles(*)");q=creatorIdOrSlug?.includes?.("-")?q.eq("slug",creatorIdOrSlug):q.eq("id",creatorIdOrSlug);const r=await q.maybeSingle();if(r.error)throw r.error;return r.data},
   async podcasts(creatorId){const d=await db();if(!d||!creatorId)return[];const r=await d.from("podcasts").select("*").eq("creator_id",creatorId).order("created_at",{ascending:false});if(r.error)throw r.error;return r.data||[]},
