@@ -38,7 +38,8 @@
 
 <link rel="stylesheet" href="css/podcasting-v15.css?v=20261005-01">
 <script src="js/sitewide-v15.js?v=20261005-01" defer></script>
-<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"></head>
+<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"><link rel="stylesheet" href="css/sitewide-rebuild-v18.css">
+</head>
 <body>
 <script src="js/app.js?v=20261004-10" defer></script>
 <script src="js/site-repair-v1.js?v=20261004-10" defer></script>
@@ -227,5 +228,6 @@ $("mobileBtn").onclick=()=>$("mobileNav").classList.toggle("hidden");
 (async()=>{try{db=await getDb();await refresh()}catch(e){hide("loading");$("error").textContent=e.message;show("error")}})();
 })();
 </script>
+<script src="js/sitewide-rebuild-v18.js"></script>
 </body>
 </html>
