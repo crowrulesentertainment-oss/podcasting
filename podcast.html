@@ -197,51 +197,8 @@ function renderRankings(){
  rankingEl.innerHTML=list("Podcast Ranking",p,"podcast_title",function(x){return num(x.followers)+" followers · "+num(x.listens)+" listens"})+list("Episode Ranking",e,"episode_title",function(x){return esc(x.podcast_title||"Podcast")+" · "+num(x.play_count||x.listens)+" plays"})+list("Host Ranking",h,"host_name",function(x){return num(x.podcast_count)+" podcasts · "+num(x.followers)+" followers"});
 }
 function renderAbout(p){document.getElementById("aboutTitle").textContent=p.title||"Podcast";document.getElementById("aboutText").textContent=p.description||"A CrowRules Podcasting show.";document.getElementById("aboutChips").innerHTML="<span class='chip cyan'>"+esc(p.category||"Podcast")+"</span>"+(p.author_name?"<span class='chip'>"+esc(p.author_name)+"</span>":"")}
-async function ensureAuth(){
- if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
- if(window.CROW_SUPABASE_READY){
-  try{authClient=await window.CROW_SUPABASE_READY;if(authClient)return authClient}catch(e){console.warn("Supabase ready promise failed; attempting direct initialization.",e)}
- }
- if(window.CROW_APP_READY){
-  try{authClient=await window.CROW_APP_READY;if(authClient)return authClient}catch(e){}
- }
- if(window.CROW_BOOTSTRAP){
-  try{authClient=await window.CROW_BOOTSTRAP();if(authClient)return authClient}catch(e){console.warn("Supabase bootstrap failed.",e)}
- }
- var cfg2=window.CROW_CONFIG||cfg||{};
- if(!cfg2.supabaseUrl&&window.SUPABASE_URL)cfg2.supabaseUrl=window.SUPABASE_URL;
- if(!cfg2.supabaseKey&&window.SUPABASE_ANON_KEY)cfg2.supabaseKey=window.SUPABASE_ANON_KEY;
- if(window.supabase&&window.supabase.createClient&&cfg2.supabaseUrl&&cfg2.supabaseKey){
-  try{
-   authClient=window.supabase.createClient(cfg2.supabaseUrl,cfg2.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
-   window.CROW_SUPABASE=authClient;
-   window.CROW_SUPABASE_READY=Promise.resolve(authClient);
-   window.CROW_SUPABASE_CONNECTION="connected";
-   return authClient;
-  }catch(e){console.error("Direct Supabase initialization failed.",e)}
- }
- return null;
-}
-async function user(){var s=await ensureAuth();if(!s)return null;var r=await s.auth.getUser();return r.data&&r.data.user||null}
-async function updateFollowState(){try{var s=await ensureAuth();if(!s)return;var u=await user(),c=await s.from("podcast_follows").select("id",{count:"exact",head:true}).eq("podcast_id",currentPodcast.id);if(typeof c.count==="number")followCount.textContent=num(c.count);if(!u)return;var own=await s.from("podcast_follows").select("id").eq("podcast_id",currentPodcast.id).eq("user_id",u.id).limit(1);if(own.data&&own.data.length){followBtn.classList.add("active");followBtn.innerHTML="♥ Following <span id='followCount'>"+followCount.textContent+"</span>";followCount=document.getElementById("followCount")}}catch(e){console.warn("Follow state unavailable",e)}}
-async function toggleFollow(){try{var s=await ensureAuth(),u=await user();if(!s||!u){location.href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/account.html?redirect="+encodeURIComponent(location.href);return}followBtn.disabled=true;var own=await s.from("podcast_follows").select("id").eq("podcast_id",currentPodcast.id).eq("user_id",u.id).limit(1);if(own.error)throw own.error;if(own.data&&own.data.length){var d=await s.from("podcast_follows").delete().eq("id",own.data[0].id);if(d.error)throw d.error}else{var i=await s.from("podcast_follows").insert({podcast_id:currentPodcast.id,user_id:u.id});if(i.error)throw i.error}await updateFollowState()}catch(e){alert(e.message||"Unable to update your follow.")}finally{followBtn.disabled=false}}
-function shareUrls(){var u=encodeURIComponent(location.href),t=encodeURIComponent((currentPodcast.title||"CrowRules Podcast")+" — CrowRules Podcasting");return{facebook:"https://www.facebook.com/sharer/sharer.php?u="+u,x:"https://twitter.com/intent/tweet?url="+u+"&text="+t,reddit:"https://www.reddit.com/submit?url="+u+"&title="+t,email:"mailto:?subject="+t+"&body="+encodeURIComponent("Listen on CrowRules Podcasting: "+location.href)}}
-function setShareLinks(){var s=shareUrls();document.getElementById("shareFacebook").href=s.facebook;document.getElementById("shareX").href=s.x;document.getElementById("shareReddit").href=s.reddit;document.getElementById("shareEmail").href=s.email}
-function status(t){var x=document.getElementById("shareStatus");x.textContent=t;setTimeout(function(){x.textContent=""},2500)}
-async function copyLink(){try{if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(location.href);else{var i=document.createElement("input");i.value=location.href;document.body.appendChild(i);i.select();document.execCommand("copy");i.remove()}status("Podcast link copied.")}catch(e){status("Copy failed.")}}
-async function nativeShare(){if(!navigator.share){status("Native Share is unavailable here.");return}try{await navigator.share({title:currentPodcast.title,text:"Listen to "+currentPodcast.title+" on CrowRules Podcasting.",url:location.href});status("Share sheet opened.")}catch(e){if(e.name!=="AbortError")status("Sharing was blocked.")}}
-function sharePodcast(){setShareLinks();sharePanel.classList.toggle("hidden")}
-async function startSubscription(productId){
- var plan=subscriptionProducts.find(function(x){return x.id===productId})||subscriptionProduct;if(!plan)return;
- try{
-  var s=await ensureAuth(),u=await user();
-  if(!s||!u){location.href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/account.html?redirect="+encodeURIComponent(location.href);return}
-  var b=await s.auth.getSession(),token=b.data&&b.data.session&&b.data.session.access_token;if(!token)throw Error("Your session has expired. Please sign in again.");
-  var endpoint=String(cfg.supabaseUrl).replace(/\/$/,"")+"/functions/v1/"+encodeURIComponent(cfg.podcastCheckoutFunction||"podcast-subscription-checkout");
-  var r=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token,apikey:cfg.supabaseKey},body:JSON.stringify({product_id:plan.id,podcast_id:currentPodcast.id,origin:cfg.siteUrl||location.origin+"/podcasting/"})});
-  var d=await r.json().catch(function(){return{}});if(!r.ok)throw Error(d.error||d.message||"Unable to start subscription checkout.");if(!d.url)throw Error("Stripe did not return a checkout URL.");location.href=d.url;
- }catch(e){alert(e.message||"Unable to start subscription.")}
-}
+async function ensureAuth(){if(window.CROW_DATA?.ready)return await window.CROW_DATA.ready();return window.CROW_SUPABASE||null}
+async function user(){return window.__CROW_USER||window.CROW_DATA?.snapshot?.().account?.user||null}
 async function load(){
  await new Promise(function(resolve){var done=false;function finish(){if(done)return;done=true;resolve()}if(window.CROW_CONFIG_READY)finish();else{window.addEventListener("crow:config-ready",finish,{once:true});setTimeout(finish,3000)}});
  cfg=window.CROW_CONFIG||{};
@@ -253,10 +210,9 @@ if(!sb)throw new Error("Supabase could not initialize. Please refresh the page."
 cfg=window.CROW_CONFIG||cfg||{};
 if(!cfg.supabaseUrl&&window.SUPABASE_URL)cfg.supabaseUrl=window.SUPABASE_URL;
 if(!cfg.supabaseKey&&window.SUPABASE_ANON_KEY)cfg.supabaseKey=window.SUPABASE_ANON_KEY;
- var uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(pid),filter=uuid?"id=eq."+encodeURIComponent(pid):"slug=eq."+encodeURIComponent(pid);
- var rows=await rest("podcasts?select=*&status=eq.published&"+filter+"&limit=1");if(!rows||!rows.length)throw new Error("Podcast not found. The show may not be published yet.");currentPodcast=rows[0];
+ var pidKey=new URLSearchParams(location.search).get("id");var data=window.CROW_DATA?.snapshot?.(),cat=data?.catalog||{};var uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(pidKey);currentPodcast=uuid?(cat.podcasts||[]).find(x=>String(x.id)===String(pidKey)):null;if(!currentPodcast)currentPodcast=await window.CROW_DATA.getPodcastBySlug(pidKey);if(!currentPodcast)throw new Error("Podcast not found. The show may not be published yet.");
  try{subscriptionProducts=await rest("cr_podcast_monetization_products?select=id,podcast_id,name,description,amount_cents,currency,interval,interval_count,trial_period_days,active,product_type&podcast_id=eq."+encodeURIComponent(currentPodcast.id)+"&product_type=eq.membership&active=eq.true&order=amount_cents.asc");subscriptionProduct=subscriptionProducts[0]||null}catch(e){subscriptionProducts=[];subscriptionProduct=null}
-allEpisodes=await rest("podcast_episodes?select=*&podcast_id=eq."+encodeURIComponent(currentPodcast.id)+"&status=eq.published&order=published_at.desc").catch(function(){return[]});
+allEpisodes=(window.CROW_DATA?.snapshot?.().catalog?.episodes||[]).filter(function(e){return String(e.podcast_id)===String(currentPodcast.id)}).sort(function(a,b){return new Date(b.published_at||b.created_at||0)-new Date(a.published_at||a.created_at||0)});
  var sr=await rest("podcast_public_stats?select=episode_count,follower_count,listen_count,seconds_listened,completed_listens&podcast_id=eq."+encodeURIComponent(currentPodcast.id)+"&limit=1").catch(function(){return[]}),st=sr[0]||{episode_count:allEpisodes.length};
  var rr=await Promise.all(["podcast_rankings_period_live","episode_rankings_period_live","host_rankings_period_live"].map(function(t){return rest(t+"?select=*&period_type=in.(today,7_days,30_days,all_time)&order=period_type.asc,ranking.asc&limit=100").catch(function(){return[]})}));
  allRankings={podcasts:{},episodes:{},hosts:{}};["today","7_days","30_days","all_time"].forEach(function(x){allRankings.podcasts[x]=[];allRankings.episodes[x]=[];allRankings.hosts[x]=[]});rr[0].forEach(function(x){(allRankings.podcasts[x.period_type]||[]).push(x)});rr[1].forEach(function(x){(allRankings.episodes[x.period_type]||[]).push(x)});rr[2].forEach(function(x){(allRankings.hosts[x.period_type]||[]).push(x)});
