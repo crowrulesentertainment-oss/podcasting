@@ -1,4 +1,6 @@
-# CrowRules Podcasting 2.0
+# CrowRules Podcasting V1.0
+
+**V1.0 release baseline:** unified HTML runtime, Supabase data/auth, persistent universal audio player, creator tools, and Stripe Billing/Connect integration.
 
 CrowRules Podcasting is an audio-first, multi-page GitHub Pages frontend connected to the existing CrowRules Supabase project.
 
@@ -44,6 +46,15 @@ Audio uploads use the existing podcast-audio bucket. The bucket is public-read w
 
 For larger audio files, Supabase recommends resumable TUS uploads rather than standard browser uploads.
 
+## V1.0 Stripe Billing
+
+Creator subscription plans are synchronized with live Stripe products/prices and stored in `public.creator_subscription_plans`:
+- Supporter — $5/month or $50/year
+- Insider — $10/month or $100/year
+- VIP — $25/month or $250/year
+
+Checkout remains server-side through Supabase Edge Functions; Stripe secret credentials never ship to GitHub Pages. Subscription lifecycle state is reconciled by webhooks, while Customer Portal handles self-service billing management.
+
 ## Stripe
 
 Recurring Universal CrowRules membership is handled by the existing server-side membership-checkout function and Stripe webhook synchronization. Creator payouts use the existing Stripe Connect onboarding and webhook infrastructure.
@@ -56,3 +67,7 @@ Google OAuth must be enabled in Supabase Auth before the Google button can compl
 
 
 <!-- Sitewide Supabase connection: 2026-10-04 -->
+
+## V1.0 sitewide standard
+
+All production HTML pages now load `css/podcasting-v1.css` and `js/podcasting-v1.js`. The V1 runtime provides a common compatibility/health layer over the existing navigation, player, Supabase bootstrap, authentication, and Stripe checkout infrastructure without exposing server secrets.
