@@ -38,5 +38,7 @@
 <script>
 (()=>{const set=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t};
 async function run(){try{const sb=await (window.CROW_DATA?.ready?.(10000)||window.CROW_SUPABASE_READY);if(!sb)throw Error("Supabase unavailable.");const s=await sb.auth.getSession();const u=s.data?.session?.user||window.__CROW_USER;if(u){set("accountNotice","Your CrowRules Universal account is connected.");set("creatorNotice","Creator alerts are available from the Creator Activity page when a creator profile is linked.");set("status","LIVE • Supabase connected • Signed in as "+(u.email||"Member"));}else{set("accountNotice","You are browsing as a guest.");set("creatorNotice","Sign in to receive creator and account notifications.");set("status","LIVE • Supabase connected • Guest session");}}catch(e){console.error(e);set("status","Connection unavailable. Refresh to retry.");}}
-window.addEventListener("crow:ready",run,{once:true});if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run,{once:true});else run();})();
+window.addEventListener("crow:ready",run,{once:true});if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run,{once:true});else run();
+window.addEventListener("crow:data:notifications",e=>renderNotifications(e.detail||[]));
+function renderNotifications(rows){const host=document.getElementById("notifications");if(!host)return;host.innerHTML=(rows||[]).map(n=>"<article class=\"notice\" style=\"margin-bottom:8px\"><strong>"+String(n.title||"Notification").replace(/[&<>]/g,"")+"</strong><div>"+String(n.body||"").replace(/[&<>]/g,"")+"</div></article>").join("")||""}})();
 </script></body></html>
