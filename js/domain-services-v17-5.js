@@ -4,7 +4,7 @@ const db=async()=>{const b=getBus();if(b?.ready)return b.ready();if(window.CROW_
 const uid=()=>window.__CROW_USER?.id||null;
 const cleanRows=r=>Array.isArray(r)?r:(r?.data||[]);
 const services={
- version:"17.5.0",
+ version:"17.5.2",
  discovery:{
   async catalog({limit=100}={}){const b=getBus();if(b?.catalog?.())return b.catalog();const s=window.CROW_DATA?.snapshot?.()||{};return s.catalog||{podcasts:[],episodes:[],creators:[]}},
   async search(q,options={}){const b=getBus();if(b?.search)return b.search(q,options);return window.CROW_INTELLIGENCE?.search?.(q,options)||[]},
@@ -17,7 +17,21 @@ const services={
   async featured(limit=12){const c=await this.catalog({limit});return {podcasts:(c.podcasts||[]).filter(x=>x.is_featured!==false).slice(0,limit),episodes:(c.episodes||[]).slice(0,limit),creators:(c.creators||[]).slice(0,limit)}}
  },
  creator:{
-  async me(){const id=uid();if(!id)return null;const d=await db();if(!d)return null;const r=await d.from("creators").select("*").eq("member_id",id).maybeSingle();if(r.error)throw r.error;return r.data},
+  async me(){const id=uid();if(!id)return null;const d=await db();if(!d)return null;const rpc=await d.rpc("get_my_podcast_creator_id");if(!rpc.error&&rpc.data){const r=await d.from("creators").select("*").eq("id",rpc.data).maybeSingle();if(r.error)throw r.error;return r.data}const r=await d.from("creators").select("*").eq("member_id",id).maybeSingle();if(r.error)throw r.error;return r.data},
+ async dashboard(creatorId,userId=uid()){const d=await db();if(!d||!creatorId)return null;const p=await services.creator.podcasts(creatorId);const ids=p.map(x=>x.id).filter(Boolean);const [follows,listens,revenue,stripe,alerts]=await Promise.all([
+  ids.length?d.from("podcast_follows").select("id",{count:"exact",head:true}).in("podcast_id",ids):Promise.resolve({count:0,error:null}),
+  ids.length?d.from("podcast_episodes").select("id").in("podcast_id",ids):Promise.resolve({data:[],error:null}),
+  userId?d.from("cr_creator_revenue_transactions").select("creator_amount,status,currency").eq("user_id",userId).limit(500):Promise.resolve({data:[],error:null}),
+  d.from("cr_podcast_stripe_accounts").select("onboarding_status,charges_enabled,payouts_enabled,details_submitted,requirements_due,requirements_currently_due,disabled_reason,updated_at").eq("creator_id",creatorId).maybeSingle(),
+  userId?d.from("creator_realtime_alerts").select("id,title,message,severity,is_read,created_at,action_url").eq("user_id",userId).order("created_at",{ascending:false}).limit(8):Promise.resolve({data:[],error:null})
+ ]);
+ if(follows.error)throw follows.error;if(listens.error)throw listens.error;if(revenue.error)throw revenue.error;if(stripe.error&&stripe.error.code!=="PGRST116")throw stripe.error;if(alerts.error)throw alerts.error;
+ const episodeIds=(listens.data||[]).map(x=>x.id).filter(Boolean);
+ let listenRows=[];
+ if(episodeIds.length){const lr=await d.from("podcast_listens").select("seconds_listened,completed").in("episode_id",episodeIds).limit(1000);if(lr.error)throw lr.error;listenRows=lr.data||[]}
+ const earnings=(revenue.data||[]).filter(x=>String(x.status||"").toLowerCase()!=="void");
+ return {podcasts:p,followers:Number(follows.count||0),episodes:episodeIds.length,listens:listenRows,revenue:earnings,stripe:stripe.data||null,alerts:alerts.data||[]};
+ },
   async profile(creatorIdOrSlug){const d=await db();if(!d)return null;let q=d.from("creators").select("*,creator_profiles(*)");q=creatorIdOrSlug?.includes?.("-")?q.eq("slug",creatorIdOrSlug):q.eq("id",creatorIdOrSlug);const r=await q.maybeSingle();if(r.error)throw r.error;return r.data},
   async podcasts(creatorId){const d=await db();if(!d||!creatorId)return[];const r=await d.from("podcasts").select("*").eq("creator_id",creatorId).order("created_at",{ascending:false});if(r.error)throw r.error;return r.data||[]},
   async follows(creatorId){const d=await db(),id=uid();if(!d||!creatorId)return[];const r=await d.from("creator_follows").select("*").eq("creator_id",creatorId);if(r.error)throw r.error;return r.data||[]},
