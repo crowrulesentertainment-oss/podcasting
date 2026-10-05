@@ -28,7 +28,8 @@
 
 <link rel="stylesheet" href="css/podcasting-v15.css?v=20261005-01">
 <script src="js/sitewide-v15.js?v=20261005-01" defer></script>
-<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"></head>
+<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"><link rel="stylesheet" href="css/sitewide-rebuild-v18.css">
+</head>
 <body>
 <script src="js/app.js?v=20261004-10" defer></script>
 <script src="js/site-repair-v1.js?v=20261004-10" defer></script>
@@ -88,4 +89,5 @@ function startPipelineLive(){
 }
 async function initPipeline(){if(initialized)return;initialized=true;auth.textContent="Connecting to CrowRules account…";try{await waitForSupabase();const authResult=await Promise.race([CROW_SUPABASE.auth.getSession(),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Supabase authentication timed out. Refresh and try again.")),10000))]);const session=authResult?.data?.session;if(!session&&!window.__CROW_USER)throw new Error("You are not signed in. Open Account → Sign In first.");auth.textContent="Signed in as "+(session?.user?.email||window.__CROW_USER?.email||"Creator");app.style.display="block";await load();startPipelineLive()}catch(e){auth.innerHTML='<span class="error">'+esc(e.message)+'</span>';console.error("Publishing Pipeline:",e)}episode.addEventListener("change",render);refresh.addEventListener("click",()=>load().catch(e=>toast(e.message,false)));review.addEventListener("click",async()=>{try{await pipeline("review");toast("Episode moved into review.");await load()}catch(e){toast(e.message,false)}});publish.addEventListener("click",async()=>{if(!confirm("Publish this episode now?"))return;try{const r=await pipeline("publish");toast("Episode published. "+(r.notified||0)+" audience notification(s) created.");await load()}catch(e){toast(e.message,false)}});schedule.addEventListener("click",async()=>{if(!scheduledAt.value){toast("Choose a publish date and time.",false);return}try{const r=await pipeline("schedule",{scheduled_at:new Date(scheduledAt.value).toISOString(),timezone:timezone.value});scheduleStatus.innerHTML='<strong>Scheduled.</strong> '+new Date(r.scheduled_at).toLocaleString();toast("Episode scheduled.");await load()}catch(e){toast(e.message,false)}})}
 window.addEventListener("crow:auth-error",e=>{auth.innerHTML='<span class="error">'+esc(e.detail?.message||"Supabase connection failed.")+'</span>';});document.addEventListener("DOMContentLoaded",()=>{initPipeline().catch(e=>{auth.innerHTML='<span class="error">'+esc(e.message||"CrowRules connection failed.")+'</span>';console.error("Publishing Pipeline:",e)})});window.setTimeout(()=>{if(!initialized)initPipeline().catch(e=>{auth.innerHTML='<span class="error">'+esc(e.message||"CrowRules connection failed.")+'</span>';console.error("Publishing Pipeline timeout:",e)})},2500);
-</script></body></html>
+</script><script src="js/sitewide-rebuild-v18.js"></script>
+</body></html>
