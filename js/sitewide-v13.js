@@ -36,44 +36,10 @@ if(!sets.length){results.innerHTML='<div class="cr13-empty">No matches yet.<br><
 results.innerHTML=sets.map(x=>{const title=x.title||x.name||x.full_name||"Untitled";const id=x.id||x.slug||"";return '<button class="cr13-result" data-id="'+esc(id)+'" data-table="'+x.__table+'"><b>'+esc(title)+'</b><small>'+esc(x.__table.replace("podcasts","Podcast").replace("podcast_episodes","Episode").replace("creators","Creator"))+'</small></button>'}).join("");results.querySelectorAll(".cr13-result").forEach(b=>b.onclick=()=>{const x=sets.find(z=>String(z.id||z.slug||"")===b.dataset.id);if(x?.__table==="episodes"){const url=x.audio_url||x.media_url||x.audio||x.url;if(url)window.CROW_PLAYER?.load({id:x.id,title:x.title||x.name,creator:x.creator_name||x.author_name||"CrowRules Podcasting",url},true)}else location.href=BASE+(x.__table==="podcasts"?"podcast.html?slug=":x.__table==="podcast_episodes"?"episode.html?id=":"search.html?q=")+encodeURIComponent(x.slug||x.title||x.name||"")});}
 o.querySelector(".cr13-search-close").onclick=()=>o.hidden=true;o.onclick=e=>{if(e.target===o)o.hidden=true};input.oninput=()=>{clearTimeout(window.__CRSEARCH);window.__CRSEARCH=setTimeout(run,250)};window.CROW_V13_SEARCH={open:()=>{o.hidden=false;setTimeout(()=>input.focus(),30)},close:()=>o.hidden=true}}
 function notifications(){const panel=document.createElement("aside");panel.className="cr13-notification-panel";panel.hidden=true;panel.innerHTML='<div><b>Notifications</b><button id="cr13NotifClose">×</button></div><section id="cr13NotifList"><span>Loading…</span></section>';document.body.appendChild(panel);async function load(){const sb=window.CROW_SUPABASE,u=window.__CROW_USER;const box=panel.querySelector("#cr13NotifList");if(!u){box.innerHTML='<span>Sign in to see your notifications.</span>';return}try{const r=await sb.from("podcast_notifications").select("*").eq("user_id",u.id).order("created_at",{ascending:false}).limit(20);if(r.error)throw r.error;box.innerHTML=(r.data||[]).map(x=>'<article><b>'+esc(x.title||"CrowRules")+'</b><p>'+esc(x.message||x.body||"New activity")+'</p></article>').join("")||"<span>No new notifications.</span>"}catch(e){box.innerHTML="<span>Notifications are temporarily unavailable.</span>"}}panel.querySelector("#cr13NotifClose").onclick=()=>panel.hidden=true;window.CROW_V13_NOTIFY={toggle:()=>{panel.hidden=!panel.hidden;if(!panel.hidden)load()},load};}
-async function intelligenceAPI(){
-const sb=window.CROW_SUPABASE;
-if(!sb)return null;
-const uid=()=>window.__CROW_USER?.id||null;
-window.CROW_INTELLIGENCE={
-async continueListening(limit=20){
- const id=uid();if(!id)return[];
- for(const table of["podcast_listening_history","podcast_watch_history","watch_history"]){
-  try{const r=await sb.from(table).select("*").eq("user_id",id).order("updated_at",{ascending:false}).limit(limit);if(!r.error){window.CROW_CONTINUE_LISTENING=r.data||[];window.dispatchEvent(new CustomEvent("crow:continue-listening",{detail:r.data||[]}));return r.data||[]}}catch(_){}
- }return[];
-},
-async followPodcast(podcastId){
- const id=uid();if(!id||!podcastId)return{error:"Sign in required"};
- for(const table of["podcast_follows","podcast_followers","follows"]){
-  try{const r=await sb.from(table).upsert({user_id:id,podcast_id:podcastId},{onConflict:"user_id,podcast_id"});if(!r.error){window.dispatchEvent(new CustomEvent("crow:follow-changed",{detail:{podcastId,following:true}}));return{data:r.data}}}catch(_){}
- }return{error:"Follow service unavailable"};
-},
-async unfollowPodcast(podcastId){
- const id=uid();if(!id||!podcastId)return{error:"Sign in required"};
- for(const table of["podcast_follows","podcast_followers","follows"]){
-  try{const r=await sb.from(table).delete().eq("user_id",id).eq("podcast_id",podcastId);if(!r.error){window.dispatchEvent(new CustomEvent("crow:follow-changed",{detail:{podcastId,following:false}}));return{data:r.data}}}catch(_){}
- }return{error:"Follow service unavailable"};
-},
-async subscribePodcast(podcastId){
- const id=uid();if(!id||!podcastId)return{error:"Sign in required"};
- for(const table of["podcast_subscriptions","subscriptions"]){
-  try{const r=await sb.from(table).upsert({user_id:id,podcast_id:podcastId,status:"active"},{onConflict:"user_id,podcast_id"});if(!r.error){window.dispatchEvent(new CustomEvent("crow:subscription-changed",{detail:{podcastId,subscribed:true}}));return{data:r.data}}}catch(_){}
- }return{error:"Subscription service unavailable"};
-},
-async unsubscribePodcast(podcastId){
- const id=uid();if(!id||!podcastId)return{error:"Sign in required"};
- for(const table of["podcast_subscriptions","subscriptions"]){
-  try{const r=await sb.from(table).delete().eq("user_id",id).eq("podcast_id",podcastId);if(!r.error){window.dispatchEvent(new CustomEvent("crow:subscription-changed",{detail:{podcastId,subscribed:false}}));return{data:r.data}}}catch(_){}
- }return{error:"Subscription service unavailable"};
+async function boot(){
+ clean();nav();status();player();searchOverlay();notifications();
+ window.addEventListener("crow:auth",()=>{memberContext()});
+ window.addEventListener("crow:ready",()=>{memberContext()},{once:false});
+ memberContext();
 }
-};return window.CROW_INTELLIGENCE
-}
-function realtime(){const sb=window.CROW_SUPABASE;if(!sb||window.CROW_SITE_REALTIME)return;window.CROW_SITE_REALTIME=true;try{const ch=sb.channel("crowrules-podcasting-v13-intelligence").on("postgres_changes",{event:"*",schema:"public",table:"podcast_notifications"},()=>{window.dispatchEvent(new Event("crow:notifications-changed"));window.CROW_V13_NOTIFY?.load()}).on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},()=>window.dispatchEvent(new Event("crow:catalog-changed"))).on("postgres_changes",{event:"*",schema:"public",table:"episodes"},()=>window.dispatchEvent(new Event("crow:catalog-changed"))).subscribe();window.CROW_SITE_CHANNEL=ch}catch(e){console.warn("CrowRules realtime:",e)}}
-async function boot(){clean();nav();status();player();searchOverlay();notifications();memberContext();realtime();await intelligenceAPI();window.dispatchEvent(new Event("crow:intelligence-ready"));window.addEventListener("crow:auth",async()=>{memberContext();await intelligenceAPI();window.dispatchEvent(new Event("crow:intelligence-ready"))});window.addEventListener("crow:ready",async()=>{memberContext();realtime();await intelligenceAPI();window.dispatchEvent(new Event("crow:intelligence-ready"))})}
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
