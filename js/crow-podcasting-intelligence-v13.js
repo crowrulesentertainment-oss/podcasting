@@ -29,7 +29,7 @@ function realtime(sb){
  ch.subscribe((s,err)=>{
    if(s==="SUBSCRIBED"){status("LIVE");return}
    if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED"){
-     api.channel=null;try{sb.removeChannel(ch)}catch(_){}
+     if(api.channel===ch)api.channel=null;
      status("ERROR",err?.message||s);retry(sb);return
    }
    status(s,err?.message||null);
@@ -48,6 +48,16 @@ async function boot(){
 api.search=search;api.saveProgress=saveProgress;api.continueListening=continueListening;api.follow=id=>relation("podcast_follows",id,true);api.unfollow=id=>relation("podcast_follows",id,false);api.subscribe=id=>relation("podcast_subscriptions",id,true);api.unsubscribe=id=>relation("podcast_subscriptions",id,false);api.notifications=notifications;api.markNotificationRead=markNotificationRead;api.presence=presence;api.activity=activity;api.getState=()=>JSON.parse(JSON.stringify(api.state));api.getRealtimeStatus=()=>api.state.realtimeStatus;api.channelName=CHANNEL;
 window.CROW_PODCASTING_V13=api;window.CROW_INTELLIGENCE=Object.assign(window.CROW_INTELLIGENCE||{},api);
 window.addEventListener("crow:ready",boot,{once:true});
-window.addEventListener("crow:auth",()=>{api.state.user=window.__CROW_USER||null;const rebuild=async()=>{const sb=await client();if(!sb)return;if(api.channel){try{await sb.removeChannel(api.channel)}catch(_){ }api.channel=null;}try{sb.realtime?.setAuth?.();}catch(_){ }realtime(sb);};rebuild().catch(()=>{});});
+window.addEventListener("crow:auth",()=>{
+  api.state.user=window.__CROW_USER||null;
+  const rebuild=async()=>{
+    const sb=await client();if(!sb)return;
+    const old=api.channel;api.channel=null;
+    if(old){try{await old.unsubscribe()}catch(_){}}
+    try{sb.realtime?.setAuth?.()}catch(_){}
+    realtime(sb);
+  };
+  rebuild().catch(()=>{});
+});
 if(window.CROW_SUPABASE)boot();
 })();
