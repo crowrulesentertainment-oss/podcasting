@@ -11,13 +11,13 @@
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
 <script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=2" defer></script>
 <link rel="stylesheet" href="css/podcasting-v10.css?v=20261004-10">
-<script src="js/crowrules-supabase-universal-v1.js?v=20261004-01" defer></script>
-<script src="js/crow-podcasting-intelligence-v13.js?v=20261004-01" defer></script>
-<script src="js/crow-podcasting-player-v13-2.js?v=20261004-13" defer></script>
+
+
+
 <script src="js/crow-podcasting-player-v13-3.js?v=20261004-01" defer></script>
 <link rel="stylesheet" href="css/crow-podcasting-player-v13-3.css?v=20261004-01">
 </head>
-<body>
+<body><script src="js/crowrules-db-bootstrap-v2.js?v=20261004-v14"></script>
 <script src="js/app.js?v=20261004-10" defer></script>
 <script src="js/site-repair-v1.js?v=20261004-10" defer></script>
 
@@ -40,115 +40,10 @@
 <script>
 (function(){
 "use strict";
-const accountEl=document.getElementById('account');
-const dashboardEl=document.getElementById('dashboard');
-const podcastsEl=document.getElementById('podcasts');
-const refreshBtn=document.getElementById('refresh');
-
-function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function render(data){
- if(!data.length){podcastsEl.innerHTML='<div class="card empty"><h3>No podcasts found</h3><p>Create your first CrowRules podcast and it will appear here automatically.</p><a class="btn primary" href="create-podcast.html">Create Podcast</a></div>';return;}
- podcastsEl.innerHTML=data.map(p=>'<article class="card pod-card"><div class="pod-art">'+(p.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="'+esc(p.title)+' artwork" loading="lazy">':'<div class="empty">No artwork</div>')+'</div><div class="pod-body"><span class="status">'+esc(p.status||'draft')+'</span><h3>'+esc(p.title)+'</h3><p>'+esc(p.description||'No description yet.')+'</p><div class="actions"><a class="btn" href="podcast.html?id='+encodeURIComponent(p.id)+'">Open Podcast</a><a class="btn" href="episode-studio.html?podcast='+encodeURIComponent(p.id)+'">Create Episode</a></div></div></article>').join('');
-}
-function showError(e){
- accountEl.className='notice error';
- accountEl.textContent='Supabase error: '+(e?.message||e);
- dashboardEl.hidden=false;
- podcastsEl.innerHTML='<div class="card empty"><h3>Could not load podcasts</h3><p>'+esc(e?.message||e)+'</p><button class="btn primary" id="retry">Try Again</button></div>';
- document.getElementById('retry')?.addEventListener('click',loadPodcasts);
-}
-function getClient(){
- if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
- const c=window.CROW_CONFIG||{};
- if(!window.supabase||!c.supabaseUrl||!c.supabaseKey)throw new Error('Supabase configuration is unavailable.');
- return window.supabase.createClient(c.supabaseUrl,c.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-}
-async function loadPodcasts(){
- accountEl.className='notice loading';
- accountEl.textContent='Connecting to Supabase…';
- dashboardEl.hidden=false;
- podcastsEl.innerHTML='<div class="notice loading">Loading podcasts from Supabase…</div>';
- try{
-   const sb=getClient();
-   window.CROW_SUPABASE=sb;
-   const result=await Promise.race([
-     sb.from('podcasts').select('id,title,slug,status,artwork_url,description,created_at,creator_id').eq('status','published').order('created_at',{ascending:false}),
-     new Promise((_,reject)=>setTimeout(()=>reject(new Error('Supabase request timed out after 10 seconds.')),10000))
-   ]);
-   if(result.error)throw result.error;
-   const rows=result.data||[];
-   accountEl.className='notice';
-   accountEl.textContent='Supabase connected • '+rows.length+' published podcast'+(rows.length===1?'':'s');
-   render(rows);
-   dashboardEl.hidden=false;
- }catch(e){showError(e)}
-}
-refreshBtn.addEventListener('click',loadPodcasts);
-loadPodcasts();
-})();document.getElementById('account');
-const dashboardEl=document.getElementById('dashboard');
-const podcastsEl=document.getElementById('podcasts');
-const refreshBtn=document.getElementById('refresh');
-function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function showError(e){
- accountEl.className='notice error';
- accountEl.textContent='Supabase error: '+(e?.message||e);
- dashboardEl.hidden=false;
-}
-function render(data){
- if(!data?.length){podcastsEl.innerHTML='<div class="card empty"><h3>No podcasts found</h3><p>Create your first CrowRules podcast and it will appear here automatically.</p><a class="btn primary" href="create-podcast.html">Create Podcast</a></div>';return;}
- podcastsEl.innerHTML=data.map(p=>'<article class="card pod-card"><div class="pod-art">'+(p.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="'+esc(p.title)+' artwork" loading="lazy">':'<div class="empty">No artwork</div>')+'</div><div class="pod-body"><span class="status">'+esc(p.status||'draft')+'</span><h3>'+esc(p.title)+'</h3><p>'+esc(p.description||'No description yet.')+'</p><div class="actions"><a class="btn" href="podcast.html?id='+encodeURIComponent(p.id)+'">Open Podcast</a><a class="btn" href="episode-studio.html?podcast='+encodeURIComponent(p.id)+'">Create Episode</a></div></div></article>').join('');
-}
-function timeout(p,ms=10000){
- return Promise.race([p,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Supabase request timed out.')),ms))]);
-}
-async function loadPodcasts(){
- podcastsEl.innerHTML='<div class="notice loading">Loading podcasts from Supabase…</div>';
- const sb=window.CROW_SUPABASE||window.supabase?.createClient?.(window.CROW_CONFIG?.supabaseUrl,window.CROW_CONFIG?.supabaseKey);
- if(!sb)throw new Error('Supabase client is not available yet.');
- window.CROW_SUPABASE=sb;
-
- const pub=await timeout(sb.from('podcasts')
-   .select('id,title,slug,status,artwork_url,description,created_at,creator_id')
-   .eq('status','published')
-   .order('created_at',{ascending:false}));
- if(pub.error)throw pub.error;
- let rows=pub.data||[];
-
- let session=null;
- try{session=(await timeout(sb.auth.getSession(),8000)).data?.session||null}catch(e){console.warn('Session restore:',e.message)}
-
- if(session?.user){
-   const own=await timeout(sb.from('podcasts')
-     .select('id,title,slug,status,artwork_url,description,created_at,creator_id')
-     .eq('creator_id',session.user.id)
-     .order('created_at',{ascending:false}));
-   if(own.error){
-     console.warn('Owned podcast query:',own.error.message);
-   }else{
-     const map=new Map(rows.map(p=>[p.id,p]));
-     (own.data||[]).forEach(p=>map.set(p.id,p));
-     rows=Array.from(map.values()).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
-   }
-   accountEl.className='notice';
-   accountEl.textContent='Signed in as '+(session.user.email||'CrowRules Member');
- }else{
-   accountEl.className='notice';
-   accountEl.textContent='Supabase connected • showing published podcasts';
- }
- dashboardEl.hidden=false;
- render(rows);
-}
-async function init(){
- try{
-   if(window.CROW_SUPABASE){
-     await loadPodcasts();
-     return;
-   }
-   window.addEventListener('crow:ready',()=>loadPodcasts().catch(showError),{once:true});
-   setTimeout(()=>{if(!window.CROW_SUPABASE)loadPodcasts().catch(showError)},5000);
- }catch(e){showError(e)}
-}
-refreshBtn.addEventListener('click',()=>loadPodcasts().catch(showError));
-init();
+const accountEl=document.getElementById("account"),dashboardEl=document.getElementById("dashboard"),podcastsEl=document.getElementById("podcasts"),refreshBtn=document.getElementById("refresh");
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function render(data){if(!data.length){podcastsEl.innerHTML='<div class="card empty"><h3>No podcasts found</h3><p>Create your first CrowRules podcast and it will appear here automatically.</p><a class="btn primary" href="create-podcast.html">Create Podcast</a></div>';return}podcastsEl.innerHTML=data.map(p=>'<article class="card pod-card"><div class="pod-art">'+(p.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="'+esc(p.title)+' artwork" loading="lazy">':'<div class="empty">No artwork</div>')+'</div><div class="pod-body"><span class="status">'+esc(p.status||"draft")+'</span><h3>'+esc(p.title)+'</h3><p>'+esc(p.description||"No description yet.")+'</p><div class="actions"><a class="btn" href="podcast.html?id='+encodeURIComponent(p.id)+'">Open Podcast</a><a class="btn" href="episode-studio.html?podcast='+encodeURIComponent(p.id)+'">Create Episode</a></div></div></article>').join("")}
+async function load(){try{await window.CROW_DATA?.bootstrap?.();const data=window.CROW_DATA?.snapshot?.()||{},u=window.__CROW_USER||data.account?.user;if(!u)throw Error("Sign in to your CrowRules account first.");const rows=(data.catalog?.podcasts||[]).filter(p=>String(p.creator_id)===String(u.id));accountEl.className="notice";accountEl.textContent="Signed in as "+(u.email||"CrowRules Member")+" · "+rows.length+" published podcast"+(rows.length===1?"":"s");dashboardEl.hidden=false;render(rows)}catch(e){accountEl.className="notice error";accountEl.textContent=e.message||"Supabase connection unavailable.";dashboardEl.hidden=false;podcastsEl.innerHTML='<div class="card empty"><h3>Could not load podcasts</h3><p>'+esc(e.message||e)+'</p></div>'}}
+refreshBtn.addEventListener("click",load);window.addEventListener("crow:data:catalog",load);window.addEventListener("crow:data:account",load);window.addEventListener("crow:auth",load);load();
+})();
 </script></body></html>
