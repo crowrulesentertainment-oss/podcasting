@@ -3,44 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Creator Studio — CrowRules Podcasting</title>\n
-<script>
-(function(){
-  "use strict";
-  var cfg=window.CROW_CONFIG||{};
-  function load(src){
-    return new Promise(function(resolve,reject){
-      if(window.supabase&&typeof window.supabase.createClient==="function"){resolve();return;}
-      var s=document.createElement("script");
-      s.src=src;s.async=true;
-      s.onload=function(){resolve();};
-      s.onerror=function(){reject(new Error("Could not load the Supabase client library."));};
-      document.head.appendChild(s);
-    });
-  }
-  async function bootClient(){
-    if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
-    if(!window.supabase||typeof window.supabase.createClient!=="function"){
-      try{await load("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2");}
-      catch(_){await load("https://unpkg.com/@supabase/supabase-js@2");}
-    }
-    if(!window.supabase||typeof window.supabase.createClient!=="function"){
-      throw new Error("The Supabase client library is unavailable.");
-    }
-    if(!cfg.supabaseUrl||!cfg.supabaseKey)throw new Error("CrowRules Supabase configuration is missing.");
-    window.CROW_SUPABASE=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{
-      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}
-    });
-    window.CROW_SUPABASE_CONNECTION="connected";
-    window.CROW_SUPABASE_ERROR=null;
-    return window.CROW_SUPABASE;
-  }
-  var ready=bootClient();
-  window.CROW_SUPABASE_READY=ready;
-  window.CROW_SUPABASE_PROMISE=ready;
-  window.CROW_BOOTSTRAP=function(){return ready;};
-})();
-</script>
+<title>Creator Studio — CrowRules Podcasting</title>
+
+
 <style>
 :root{--line:#ffffff18;--panel:#ffffff08;--muted:#aeb5c8;--good:#35f2a1;--bad:#ff5268;--blue:#62a8ff}
 *{box-sizing:border-box}body{min-height:100vh}.creator-main{max-width:1320px;margin:auto;padding:42px 18px 90px}
