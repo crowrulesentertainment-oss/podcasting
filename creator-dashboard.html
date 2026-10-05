@@ -166,45 +166,12 @@ async function getClient(){if(window.CROW_DATA?.ready)return await window.CROW_D
 
 async function connect(){setConnection(false,"CONNECTING","Waiting for CrowRules shared data layer…");sb=await getClient();var data=window.CROW_DATA?.snapshot?.()||{};user=window.__CROW_USER||data.account?.user;if(!user)throw new Error("Please sign in to your CrowRules account first.");health("authHealth","AUTH · SIGNED IN",true);setConnection(false,"ACCOUNT VERIFIED","Loading your creator profile…")}
 
-async function getCreator(){
- var r=await wait(sb.rpc("get_my_podcast_creator_id"),10000,"Creator lookup timed out.");
- var id=r.data;
- if(r.error)throw r.error;
- if(!id)throw new Error("Listener account · Create your first podcast to become a creator.");
- var q=await wait(sb.from("creators").select("id,creator_code,name,display_name,slug,role,discipline,bio,initials,profile_url,avatar_url,is_active").eq("id",id).maybeSingle(),10000,"Creator profile lookup timed out.");
- if(q.error)throw q.error;
- if(!q.data)throw new Error("Creator profile could not be found.");
- if(q.data.is_active===false)throw new Error("Your creator profile is inactive.");
- return q.data;
-}
-
+async function getCreator(){const d=window.CROW_CREATOR_DASHBOARD_DOMAIN||window.CROW_DOMAIN_SERVICES;const creator=await d?.creator?.me?.();if(!creator)throw new Error("Listener account · Create your first podcast to become a creator.");if(creator.is_active===false)throw new Error("Your creator profile is inactive.");return creator;}
 async function loadPodcasts(){var data=window.CROW_DATA?.snapshot?.()||{},rows=(data.catalog?.podcasts||[]).filter(function(p){return String(p.creator_id)===String(creator.id)});return rows}
 async function loadEpisodes(){if(!podcasts.length)return[];var data=window.CROW_DATA?.snapshot?.()||{},ids=podcasts.map(function(p){return String(p.id)});return(data.catalog?.episodes||[]).filter(function(e){return ids.indexOf(String(e.podcast_id))>=0}).slice().sort(function(a,b){return new Date(b.updated_at||b.published_at||b.created_at||0)-new Date(a.updated_at||a.published_at||a.created_at||0)}).slice(0,500)}
-async function loadFollowers(){
- if(!podcasts.length)return 0;
- try{var r=await wait(sb.from("podcast_follows").select("id",{count:"exact",head:true}).in("podcast_id",podcasts.map(function(p){return p.id})),8000,"Follower count timed out.");return r.error?0:Number(r.count||0)}catch(_){return 0}
-}
-async function loadAnalytics(){
- var box=$("analytics");
- if(!episodes.length){box.innerHTML="<b>0</b> listens<br><span class='muted'>No episodes yet.</span>";return}
- try{
-  var r=await wait(sb.from("podcast_listens").select("seconds_listened,completed").in("episode_id",episodes.map(function(e){return e.id})).limit(1000),8000,"Listening lookup timed out.");
-  if(r.error)throw r.error;
-  var rows=r.data||[],seconds=rows.reduce(function(n,x){return n+Number(x.seconds_listened||0)},0),completed=rows.filter(function(x){return x.completed}).length;
-  box.innerHTML="<b>"+rows.length.toLocaleString()+"</b> listens<br><span class='muted'>"+Math.round(seconds/60).toLocaleString()+" minutes · "+completed.toLocaleString()+" completed</span>";
- }catch(_){box.innerHTML="<span class='muted'>Listening analytics will appear when listening data is available.</span>"}
-}
-async function loadRevenue(){
- var box=$("revenue");
- try{
-  var r=await wait(sb.from("cr_creator_revenue_transactions").select("creator_amount,status,currency").eq("user_id",user.id).limit(500),8000,"Revenue lookup timed out.");
-  if(r.error)throw r.error;
-  var rows=(r.data||[]).filter(function(x){return String(x.status||"").toLowerCase()!=="void"}),total=rows.reduce(function(n,x){return n+Number(x.creator_amount||0)},0);
-  var cents=total/100;
-  box.innerHTML="<b>$"+cents.toFixed(2)+"</b><br><span class='muted'>Recorded creator revenue · "+rows.length+" transactions</span>";
- }catch(_){box.innerHTML="<span class='muted'>Revenue data is not available yet.</span>"}
-}
-
+async function loadFollowers(){if(!podcasts.length)return 0;try{const d=window.CROW_CREATOR_DASHBOARD_DOMAIN||window.CROW_DOMAIN_SERVICES;const data=await d.creator.dashboard(creator.id,user.id);return Number(data?.followers||0)}catch(_){return 0}}
+async function loadAnalytics(){const box=$("analytics");if(!episodes.length){box.innerHTML="<b>0</b> listens<br><span class='muted'>No episodes yet.</span>";return}try{const d=window.CROW_CREATOR_DASHBOARD_DOMAIN||window.CROW_DOMAIN_SERVICES;const data=await d.analytics.creator(creator.id);const rows=data?.listens||[];const seconds=rows.reduce(function(n,x){return n+Number(x.seconds_listened||0)},0),completed=rows.filter(function(x){return x.completed}).length;box.innerHTML="<b>"+rows.length.toLocaleString()+"</b> listens<br><span class='muted'>"+Math.round(seconds/60).toLocaleString()+" minutes · "+completed.toLocaleString()+" completed</span>"}catch(_){box.innerHTML="<span class='muted'>Listening analytics will appear when listening data is available.</span>"}}
+async function loadRevenue(){const box=$("revenue");try{const d=window.CROW_CREATOR_DASHBOARD_DOMAIN||window.CROW_DOMAIN_SERVICES;const data=await d.creator.dashboard(creator.id,user.id);const rows=data?.revenue||[],total=rows.reduce(function(n,x){return n+Number(x.creator_amount||0)},0);box.innerHTML="<b>$"+(total/100).toFixed(2)+"</b><br><span class='muted'>Recorded creator revenue · "+rows.length+" transactions</span>"}catch(_){box.innerHTML="<span class='muted'>Revenue data is not available yet.</span>"}}
 function renderPodcasts(){
  var term=($("podcastSearch").value||"").trim().toLowerCase(),filter=$("podcastFilter").value;
  var rows=podcasts.filter(function(p){return (filter==="all"||String(p.status||"").toLowerCase()===filter)&&(!term||[p.title,p.category,p.description].some(function(v){return String(v||"").toLowerCase().indexOf(term)>=0}))});
@@ -273,41 +240,28 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 function v13Esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(x){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[x]})}
 function v13Money(n){return "$"+(Number(n||0)/100).toFixed(2)}
 async function v13Start(){
- const sb=window.CROW_SUPABASE,user=window.__CROW_USER;if(!sb||!user)return;
+ const domain=window.CROW_CREATOR_DASHBOARD_DOMAIN||window.CROW_DOMAIN_SERVICES;
+ const user=window.__CROW_USER;if(!domain?.creator||!user)return;
  try{
-  const data=window.CROW_DATA?.snapshot?.()||{};const creatorRow=(data.catalog?.creators||[]).find(x=>String(x.user_id)===String(user.id)||String(x.member_id)===String(data.account?.member?.id));let creatorId=creatorRow?.id||null;
-  if(!creatorId){const mem=await sb.from("members").select("id").eq("user_id",user.id).maybeSingle();if(mem.data){const cr=await sb.from("creators").select("id").eq("member_id",mem.data.id).maybeSingle();if(!cr.error)creatorId=cr.data?.id||null}}
-  if(!creatorId){document.getElementById("v13Health").textContent="CREATOR PROFILE REQUIRED";return}
-  const [pods,stripe,earn,payouts,alerts]=await Promise.all([
-   Promise.resolve({data:(data.catalog?.podcasts||[]).filter(x=>String(x.creator_id)===String(creatorId))}),
-   sb.from("cr_podcast_stripe_accounts").select("onboarding_status,charges_enabled,payouts_enabled,details_submitted,requirements_due,requirements_currently_due,disabled_reason,updated_at").eq("creator_id",creatorId).maybeSingle(),
-   sb.from("creator_earnings").select("creator_amount,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(500),
-   sb.from("creator_payouts").select("amount,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(200),
-   sb.from("creator_realtime_alerts").select("id,title,message,severity,is_read,created_at,action_url").eq("user_id",user.id).order("created_at",{ascending:false}).limit(8)
-  ]);
-  const p=pods.data||[],ids=p.map(x=>x.id);
-  let followers=0,subs=0;
-  if(ids.length){const q=await sb.from("podcast_follows").select("id",{count:"exact",head:true}).in("podcast_id",ids);followers=Number(q.count||0)}
-  if(ids.length){const q=await sb.from("cr_podcast_subscriptions_65").select("id",{count:"exact",head:true}).in("podcast_id",ids);subs=Number(q.count||0)}
-  const revenue=(earn.data||[]).filter(x=>x.status!=="void").reduce((n,x)=>n+Number(x.creator_amount||0),0);
-  const paid=(payouts.data||[]).filter(x=>["paid","succeeded","complete"].includes(String(x.status||"").toLowerCase())).reduce((n,x)=>n+Number(x.amount||0),0);
+  const creatorRow=await domain.creator.me();if(!creatorRow){document.getElementById("v13Health").textContent="CREATOR PROFILE REQUIRED";return}
+  const data=await domain.creator.dashboard(creatorRow.id,user.id);
+  const p=data.podcasts||[],followers=Number(data.followers||0),subs=(await domain.monetization.podcastSubscriptions(p[0]?.id||"")).length;
+  const revenue=(data.revenue||[]).reduce((n,x)=>n+Number(x.creator_amount||0),0);
+  const stripe=data.stripe,ready=!!(stripe?.charges_enabled&&stripe?.payouts_enabled);
   document.getElementById("v13Followers").textContent=followers.toLocaleString();
   document.getElementById("v13Subscribers").textContent=subs.toLocaleString();
   document.getElementById("v13Revenue").textContent=v13Money(revenue);
-  document.getElementById("v13Payouts").textContent=v13Money(paid);
-  const s=stripe.data;const ready=!!(s?.charges_enabled&&s?.payouts_enabled);
-  document.getElementById("v13Stripe").innerHTML='<span>CHARGES · '+(s?.charges_enabled?"READY":"ACTION NEEDED")+'</span><span>PAYOUTS · '+(s?.payouts_enabled?"READY":"ACTION NEEDED")+'</span><span>DETAILS · '+(s?.details_submitted?"SUBMITTED":"ACTION NEEDED")+'</span>';
-  document.getElementById("v13StripeDetail").textContent=s?(ready?"Stripe is ready for creator monetization and payouts.":((s.requirements_currently_due||s.requirements_due||[]).length+" requirement(s) need attention.")):"No creator Stripe connection found.";
-  const rec=[];if(!ready)rec.push(["HIGH","Finish Stripe onboarding","creator-payouts.html"]);if(!p.length)rec.push(["HIGH","Create your first podcast","create-podcast.html"]);if(!subs)rec.push(["MEDIUM","Launch a paid subscription plan","creator-plans.html"]);if(!followers)rec.push(["MEDIUM","Start audience growth","creator-profile.html"]);if(p.reduce((n,x)=>n+Number(x.total_plays||0),0)>0&&followers<10)rec.push(["MEDIUM","Convert listeners into followers","creator-profile.html"]);
+  document.getElementById("v13Payouts").textContent="$0.00";
+  document.getElementById("v13Stripe").innerHTML='<span>CHARGES · '+(stripe?.charges_enabled?"READY":"ACTION NEEDED")+'</span><span>PAYOUTS · '+(stripe?.payouts_enabled?"READY":"ACTION NEEDED")+'</span><span>DETAILS · '+(stripe?.details_submitted?"SUBMITTED":"ACTION NEEDED")+'</span>';
+  document.getElementById("v13StripeDetail").textContent=stripe?(ready?"Stripe is ready for creator monetization and payouts.":((stripe.requirements_currently_due||stripe.requirements_due||[]).length+" requirement(s) need attention.")):"No creator Stripe connection found.";
+  const rec=[];if(!ready)rec.push(["HIGH","Finish Stripe onboarding","creator-payouts.html"]);if(!p.length)rec.push(["HIGH","Create your first podcast","create-podcast.html"]);if(!subs)rec.push(["MEDIUM","Launch a paid subscription plan","creator-plans.html"]);if(!followers)rec.push(["MEDIUM","Start audience growth","creator-profile.html"]);
   document.getElementById("v13Recommendations").innerHTML=rec.length?rec.map(x=>'<div class="row"><div class="row-main"><b>'+v13Esc(x[1])+'</b><small>'+x[0]+' priority</small></div><a class="btn" href="'+x[2]+'">Open</a></div>').join(""):'<div class="empty">Your operation is in good shape. Keep publishing and growing.</div>';
-  const plays=p.reduce((n,x)=>n+Number(x.total_plays||0),0);document.getElementById("v13Growth").innerHTML='<div class="row"><div class="row-main"><b>'+plays.toLocaleString()+'</b><small>Total plays</small></div><span class="pill">'+p.length+' shows</span></div><div class="row"><div class="row-main"><b>'+followers.toLocaleString()+'</b><small>Podcast followers</small></div><span class="pill">'+(followers?Math.round(followers/Math.max(plays,1)*10000)/100+"%":"—")+' conversion</span></div>';
-  document.getElementById("v13Alerts").innerHTML=(alerts.data||[]).length?(alerts.data||[]).map(a=>'<div class="row"><div class="row-main"><b>'+v13Esc(a.title)+'</b><small>'+v13Esc(a.message)+'</small></div><span class="pill">'+v13Esc(a.severity)+'</span></div>').join(""):'<div class="empty">No creator alerts right now.</div>';
+  const plays=p.reduce((n,x)=>n+Number(x.total_plays||0),0);document.getElementById("v13Growth").innerHTML='<div class="row"><div class="row-main"><b>'+plays.toLocaleString()+'</b><small>Total plays</small></div><span class="pill">'+p.length+' shows</span></div><div class="row"><div class="row-main"><b>'+followers.toLocaleString()+'</b><small>Podcast followers</small></div></div>';
+  document.getElementById("v13Alerts").innerHTML=(data.alerts||[]).length?(data.alerts||[]).map(a=>'<div class="row"><div class="row-main"><b>'+v13Esc(a.title)+'</b><small>'+v13Esc(a.message)+'</small></div><span class="pill">'+v13Esc(a.severity)+'</span></div>').join(""):'<div class="empty">No creator alerts right now.</div>';
   document.getElementById("v13Health").textContent=ready?"INTELLIGENCE ONLINE":"ACTION REQUIRED";
-  window.CROW_V14.5_CHANNEL=ch;
  }catch(e){console.warn("Creator V14.5:",e);document.getElementById("v13Health").textContent="INTELLIGENCE DEGRADED"}
 }
 window.addEventListener("crow:ready",v13Start,{once:true});window.addEventListener("crow:auth",v13Start,{once:true});setTimeout(v13Start,1800);
-})();
 </script><script src="js/podcasting-v14.js?v=20261004-14"></script>
 <script src="js/podcasting-v16.js?v=20261004-16" defer></script><script src="js/podcasting-v17.js?v=20261004-17" defer></script><script src="js/podcasting-v18.js?v=20261004-18" defer></script><script src="js/podcasting-v19.js?v=20261004-19" defer></script><script src="js/podcasting-v20.js?v=20261004-20" defer></script><script src="js/podcasting-v21.js?v=20261004-21" defer></script><script src="js/podcasting-v22.js?v=20261004-22" defer></script><script>(function(){function boot(){const d=window.CROW_DOMAIN_SERVICES;if(!d)return setTimeout(boot,100);window.CROW_CREATOR_DASHBOARD_DOMAIN={creator:d.creator,analytics:d.analytics};window.dispatchEvent(new CustomEvent("crow:domain:creator-dashboard",{detail:window.CROW_CREATOR_DASHBOARD_DOMAIN}))}boot()})();</script></body>
 </html>
