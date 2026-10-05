@@ -1,0 +1,10 @@
+(()=>{if(window.__CROW_V14_7_UNIVERSAL__)return;window.__CROW_V14_7_UNIVERSAL__=true;const BASE='https://crowrulesentertainment-oss.github.io/podcasting/';
+function load(src){return new Promise((resolve,reject)=>{if(document.querySelector('script[src*="'+src+'"]'))return resolve();const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=reject;document.head.appendChild(s)})}
+function css(href){if([...document.styleSheets].some(x=>x.href===href))return;const l=document.createElement('link');l.rel='stylesheet';l.href=href;document.head.appendChild(l)}
+css(BASE+'css/halloween-cinematic-v2.css?v=20261004-v14.7');
+window.CROW_PODCAST_URL=slug=>BASE+'podcast.html?slug='+encodeURIComponent(String(slug||'').trim().toLowerCase());
+async function normalizePodcastLinks(){const snap=window.CROW_DATA?.snapshot?.()||{},rows=snap.catalog?.podcasts||[];const byId=new Map(rows.map(p=>[String(p.id),p]));document.querySelectorAll('a[href*="podcast.html"]').forEach(a=>{try{const u=new URL(a.href,location.href);const slug=u.searchParams.get('slug');const id=u.searchParams.get('id')||u.searchParams.get('podcast_id');if(slug){u.search='?slug='+encodeURIComponent(slug);a.href=u.href;return}if(id&&byId.get(id)?.slug){a.href=window.CROW_PODCAST_URL(byId.get(id).slug)}}catch(_){} });}
+function observe(){new MutationObserver(()=>normalizePodcastLinks()).observe(document.body,{childList:true,subtree:true});normalizePodcastLinks()}
+async function boot(){try{if(!window.CROW_SUPABASE){await load(BASE+'js/crowrules-db-bootstrap-v2.js?v=20261004-v14.7')}if(!window.CROW_DATA){await load(BASE+'js/crow-podcasting-intelligence-v13.js?v=20261004-v14.7')}if(!window.CROW_PLAYER){await load(BASE+'js/crow-podcasting-player-v13-3.js?v=20261004-v14.7')}if(!window.__CROW_SITEWIDE_V14_6__){await load(BASE+'js/sitewide-v13.js?v=20261004-v14.7')}await window.CROW_DB_READY?.catch?.(()=>{});normalizePodcastLinks();observe()}catch(e){console.warn('CrowRules V14.7 universal shell:',e)}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
