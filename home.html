@@ -101,8 +101,20 @@ async function refreshAll(){
   await loadCatalog();
 }
 async function loadSessionUI(){
-  if(user){document.getElementById("accountAction").textContent="MY ACCOUNT";document.getElementById("memberNote").textContent="You’re signed in. Your listening journey can follow you across CrowRules Podcasting.";set("authStatus","SIGNED IN",true);try{await continueListening()}catch(e){console.warn("Home continue listening:",e);document.getElementById("continueList").innerHTML='<div class="empty">Listening progress is temporarily unavailable.</div>'}}
-  else{document.getElementById("accountAction").textContent="SIGN IN";document.getElementById("memberNote").textContent="Sign in to unlock personalized listening, follow your favorite shows, and continue where you stopped.";set("authStatus","GUEST",false);document.getElementById("continueList").innerHTML='<div class="empty">Sign in to see your listening progress.</div>'}
+  user=window.__CROW_USER||null;
+  if(user){
+    document.getElementById("accountAction").textContent="MY ACCOUNT";
+    document.getElementById("memberNote").textContent="You’re signed in. Your listening journey can follow you across CrowRules Podcasting.";
+    set("authStatus","SIGNED IN",true);
+    const progress=window.CROW_DATA?.snapshot?.().progress||[];
+    const ids=progress.filter(x=>!x.completed).slice(0,6).map(x=>x.episode_id).filter(Boolean);
+    document.getElementById("continueList").innerHTML=ids.length?'<div class="empty">'+ids.length+' listening item'+(ids.length===1?"":"s")+' ready to continue from your universal player.</div>':'<div class="empty">No current listening items.</div>';
+  }else{
+    document.getElementById("accountAction").textContent="SIGN IN";
+    document.getElementById("memberNote").textContent="Sign in to unlock personalized listening, follow your favorite shows, and continue where you stopped.";
+    set("authStatus","GUEST",false);
+    document.getElementById("continueList").innerHTML='<div class="empty">Sign in to see your listening progress.</div>';
+  }
 }
 async function loadCatalog(){
   const snap=window.CROW_DATA?.snapshot?.()||{};
