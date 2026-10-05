@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="CrowRules Universal Account — sign in or create your CrowRules membership account.">
+<title>CrowRules Account — Login / Sign Up</title>
+<link rel="stylesheet" href="css/sitewide-rebuild-v18.css?v=20261005-v23.5">
+<link rel="stylesheet" href="css/halloween-cinematic-v2.css?v=20261005">
+<script src="js/crowrules-db-bootstrap-v2.js?v=20261005-auth"></script>
+<script src="js/sitewide-rebuild-v18.js?v=20261005-auth" defer></script>
+<style>
+.auth-wrap{min-height:100vh;display:grid;place-items:center;padding:110px 18px 50px}
+.auth-card{width:min(100%,520px);padding:30px;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:linear-gradient(145deg,rgba(12,12,22,.97),rgba(37,12,48,.9));box-shadow:0 24px 80px rgba(0,0,0,.45)}
+.auth-head{text-align:center;margin-bottom:24px}.auth-head h1{font-size:clamp(2rem,6vw,3.2rem);margin:.25em 0}.auth-head p{color:rgba(255,255,255,.65);line-height:1.6}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:22px}.auth-tab{padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#fff;font-weight:800;cursor:pointer}.auth-tab.active{background:linear-gradient(90deg,#6d3cff,#c13cff);border-color:transparent}
+.auth-form{display:grid;gap:14px}.auth-form label{font-size:.82rem;font-weight:700;color:rgba(255,255,255,.72)}.auth-form input{width:100%;box-sizing:border-box;padding:13px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.13);background:rgba(0,0,0,.3);color:#fff;outline:none}.auth-form input:focus{border-color:#b83cff}
+.auth-btn{border:0;border-radius:13px;padding:14px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#6d3cff,#c13cff);color:#fff}.auth-btn:disabled{opacity:.55;cursor:wait}
+.auth-links{display:flex;justify-content:space-between;gap:10px;margin-top:5px}.auth-link{background:none;border:0;color:#d68cff;cursor:pointer;padding:4px}
+.auth-divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:rgba(255,255,255,.4);font-size:.75rem}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:rgba(255,255,255,.1);flex:1}
+.auth-message{margin-top:16px;padding:12px;border-radius:12px;display:none;line-height:1.5}.auth-message.show{display:block}.auth-message.error{color:#ffafbd;background:rgba(255,50,90,.08);border:1px solid rgba(255,80,120,.22)}.auth-message.success{color:#b2ffd2;background:rgba(50,255,150,.07);border:1px solid rgba(80,255,170,.2)}
+.auth-footer{text-align:center;margin-top:22px;color:rgba(255,255,255,.5);font-size:.85rem}
+</style>
+</head>
+<body class="cr-halloween-theme">
+<main class="auth-wrap">
+<section class="auth-card" aria-labelledby="auth-title">
+<div class="auth-head"><div class="eyebrow">ONE ACCOUNT. ONE UNIVERSE.</div><h1 id="auth-title">CrowRules <span class="gradient">Account</span></h1><p id="auth-copy">Sign in to your universal CrowRules account and continue across every division.</p></div>
+<div class="auth-tabs"><button id="login-tab" class="auth-tab active" type="button">Log In</button><button id="signup-tab" class="auth-tab" type="button">Sign Up</button></div>
+<form id="auth-form" class="auth-form">
+<div id="name-wrap" style="display:none"><label for="name">Display name</label><input id="name" type="text" autocomplete="name" maxlength="80" placeholder="Your CrowRules name"></div>
+<div><label for="email">Email</label><input id="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com"></div>
+<div><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required minlength="8" maxlength="72" placeholder="At least 8 characters"></div>
+<div id="confirm-wrap" style="display:none"><label for="confirm">Confirm password</label><input id="confirm" type="password" autocomplete="new-password" minlength="8" maxlength="72" placeholder="Enter it again"></div>
+<button id="submit" class="auth-btn" type="submit">Log In</button>
+<div class="auth-links"><button id="forgot" class="auth-link" type="button">Forgot password?</button><button id="back" class="auth-link" type="button">Back to membership</button></div>
+</form>
+<div class="auth-divider">SECURE SUPABASE AUTH</div>
+<button id="google" class="auth-btn" type="button">Continue with Google</button>
+<div id="message" class="auth-message" role="status" aria-live="polite"></div>
+<div class="auth-footer">Your CrowRules account is your identity across the CrowRules universe.</div>
+</section>
+</main>
+<script>
+(()=>{"use strict";
+let sb=null,mode="login";
+const $=id=>document.getElementById(id);
+const params=new URLSearchParams(location.search);
+const next=params.get("next")||"membership.html";
+const safeNext=next.startsWith("/")||/^[a-zA-Z0-9_./?=&%-]+\.html(?:[?#].*)?$/.test(next)?next:"membership.html";
+function message(text,type){const e=$("message");e.textContent=text;e.className="auth-message show "+type}
+function setMode(m){mode=m;const signup=m==="signup";$("login-tab").classList.toggle("active",!signup);$("signup-tab").classList.toggle("active",signup);$("name-wrap").style.display=signup?"block":"none";$("confirm-wrap").style.display=signup?"block":"none";$("submit").textContent=signup?"Create CrowRules Account":"Log In";$("forgot").style.display=signup?"none":"block";$("auth-title").innerHTML=signup?"Create Your <span class=\"gradient\">CrowRules Account</span>":"CrowRules <span class=\"gradient\">Account</span>";$("auth-copy").textContent=signup?"Create one account for the CrowRules universe — Podcasting, Dreamscapes, Sports, CrowSpace and more.":"Sign in to your universal CrowRules account and continue across every division.";message("","")}
+async function boot(){
+try{if(window.CROW_DB_READY)await window.CROW_DB_READY;sb=window.CROW_SUPABASE;if(!sb)throw Error("Supabase authentication is unavailable.");const s=await sb.auth.getSession();if(s.data?.session)location.replace(safeNext);sb.auth.onAuthStateChange((event,session)=>{if(session&&event!=="INITIAL_SESSION")location.replace(safeNext)})}catch(e){message(e.message||"Unable to connect to CrowRules authentication.","error")}}
+$("login-tab").onclick=()=>setMode("login");$("signup-tab").onclick=()=>setMode("signup");
+$("back").onclick=()=>location.href="membership.html";
+$("auth-form").onsubmit=async ev=>{ev.preventDefault();if(!sb)return;
+const email=$("email").value.trim(),password=$("password").value;
+$("submit").disabled=true;message("","success");
+try{
+let r;
+if(mode==="signup"){
+const name=$("name").value.trim(),confirm=$("confirm").value;
+if(password!==confirm)throw Error("Passwords do not match.");
+if(password.length<8)throw Error("Password must be at least 8 characters.");
+r=await sb.auth.signUp({email,password,options:{data:{display_name:name||email.split("@")[0]},emailRedirectTo:new URL("auth.html?next="+encodeURIComponent(safeNext),location.href).href}});
+if(r.error)throw r.error;
+if(!r.data.session){message("Account created. Check your email to confirm your CrowRules account, then return here to log in.","success");}
+else location.replace(safeNext);
+}else{
+r=await sb.auth.signInWithPassword({email,password});if(r.error)throw r.error;location.replace(safeNext);
+}
+}catch(e){message(e.message||"Authentication failed.","error")}finally{$("submit").disabled=false}};
+$("forgot").onclick=async()=>{if(!sb)return;const email=$("email").value.trim();if(!email){message("Enter your email address first.","error");return}try{const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:new URL("auth.html?next="+encodeURIComponent(safeNext)+"&reset=1",location.href).href});if(error)throw error;message("Password reset instructions have been sent if that email belongs to a CrowRules account.","success")}catch(e){message(e.message||"Unable to send reset instructions.","error")}};
+$("google").onclick=async()=>{if(!sb)return;try{const {error}=await sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:new URL("auth.html?next="+encodeURIComponent(safeNext),location.href).href}});if(error)throw error}catch(e){message(e.message||"Google sign-in is unavailable.","error")}};
+boot();
+})();
+</script>
+</body></html>
