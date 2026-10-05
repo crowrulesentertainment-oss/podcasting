@@ -116,8 +116,8 @@ async function refreshSession(){
   if(!user){
     $("status-main").textContent="Browse freely — sign in when you are ready to join.";
     $("status-sub").textContent="A CrowRules account is required before choosing a paid membership.";
-    $("status-actions").innerHTML='<button class="cr-btn secondary" style="width:auto" type="button" id="signin-btn">Sign in</button>';
-    $("signin-btn").onclick=()=>location.href="login.html?next=membership.html";
+    $("status-actions").innerHTML='<button class="cr-btn secondary" style="width:auto" type="button" id="signin-btn">Log in</button><button class="cr-btn" style="width:auto" type="button" id="signup-btn">Sign up</button>';
+    $("signin-btn").onclick=()=>location.href="auth.html?next=membership.html"; $("signup-btn").onclick=()=>location.href="auth.html?mode=signup&next=membership.html";
     return;
   }
   try{
@@ -177,7 +177,7 @@ function renderSites(sites){
 
 async function choose(key){
   const p=plans.find(x=>x.plan_key===key); if(!p)return;
-  if(!user){location.href="login.html?next=membership.html";return}
+  if(!user){location.href="auth.html?mode=signup&next=membership.html";return}
   if(key==="crow"){
     const {error}=await sb.rpc("ensure_crow_membership");
     if(error){showMessage(error.message,true);return}
