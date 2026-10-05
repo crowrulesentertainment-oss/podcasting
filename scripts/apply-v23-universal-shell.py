@@ -27,13 +27,21 @@ for path in sorted(ROOT.rglob('*.html')):
     prefix = '../' * (len(path.parent.parts) - len(ROOT.parts))
     css = f'<link rel="stylesheet" href="{prefix}css/sitewide-rebuild-v18.css?v=20261005-v23.5" data-crow-v23-css>'
     js = f'<script src="{prefix}js/sitewide-rebuild-v18.js?v=20261005-v23.3" defer data-crow-v23-js></script>'
+    v1css = f'<link rel="stylesheet" href="{prefix}css/podcasting-v1.css?v=20261005-v1.0.0" data-crow-v1-css>'
+    config = f'<script src="{prefix}js/config.js?v=20261005-v1.0.0" defer data-crow-v1-config></script>'
+    v1js = f'<script src="{prefix}js/podcasting-v1.js?v=20261005-v1.0.0" defer data-crow-v1-js></script>'
     text = re.sub(r'\s*<link[^>]+sitewide-rebuild-v18\.css[^>]*>', '', text, flags=re.I)
     text = re.sub(r'\s*<script[^>]+sitewide-rebuild-v18\.js[^>]*></script>', '', text, flags=re.I)
+    text = re.sub(r'\s*<link[^>]+podcasting-v1\.css[^>]*>', '', text, flags=re.I)
+    text = re.sub(r'\s*<script[^>]+(?:js/)?config\.js[^>]*></script>', '', text, flags=re.I)
+    text = re.sub(r'\s*<script[^>]+podcasting-v1\.js[^>]*></script>', '', text, flags=re.I)
+    if not re.search(r'<meta[^>]+name=["\']theme-color["\']', text, re.I):
+        text = re.sub(r'<head([^>]*)>', r'<head\1>\n<meta name="theme-color" content="#05070d">', text, count=1, flags=re.I)
     text = re.sub(r'\s*<link[^>]+data-crow-podcasting-logo-preload[^>]*>', '', text, flags=re.I)
     text = re.sub(r'(<audio\b[^>]*?)\s+autoplay\b', r'\1', text, flags=re.I)
     text = re.sub(r'<body\b[^>]*>', add_halloween_class, text, count=1, flags=re.I)
     if '<head' in text.lower() and '</head>' in text.lower():
-        text = re.sub(r'</head>', preload + '\n' + css + '\n' + js + '\n</head>', text, count=1, flags=re.I)
+        text = re.sub(r'</head>', preload + '\n' + css + '\n' + js + '\n' + v1css + '\n' + config + '\n' + v1js + '\n</head>', text, count=1, flags=re.I)
     if text != original:
         path.write_text(text, encoding='utf-8')
         print(path)
