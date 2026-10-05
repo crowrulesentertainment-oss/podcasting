@@ -245,13 +245,13 @@ async function v13Start(){
  try{
   const creatorRow=await domain.creator.me();if(!creatorRow){document.getElementById("v13Health").textContent="CREATOR PROFILE REQUIRED";return}
   const data=await domain.creator.dashboard(creatorRow.id,user.id);
-  const p=data.podcasts||[],followers=Number(data.followers||0),subs=(await domain.monetization.podcastSubscriptions(p[0]?.id||"")).length;
+  const p=data.podcasts||[],followers=Number(data.followers||0),subs=Number(data.subscribers||0);
   const revenue=(data.revenue||[]).reduce((n,x)=>n+Number(x.creator_amount||0),0);
   const stripe=data.stripe,ready=!!(stripe?.charges_enabled&&stripe?.payouts_enabled);
   document.getElementById("v13Followers").textContent=followers.toLocaleString();
   document.getElementById("v13Subscribers").textContent=subs.toLocaleString();
   document.getElementById("v13Revenue").textContent=v13Money(revenue);
-  document.getElementById("v13Payouts").textContent="$0.00";
+  const paid=(data.payouts||[]).filter(x=>["paid","succeeded","complete"].includes(String(x.status||"").toLowerCase())).reduce((n,x)=>n+Number(x.amount||0),0);document.getElementById("v13Payouts").textContent=v13Money(paid);
   document.getElementById("v13Stripe").innerHTML='<span>CHARGES · '+(stripe?.charges_enabled?"READY":"ACTION NEEDED")+'</span><span>PAYOUTS · '+(stripe?.payouts_enabled?"READY":"ACTION NEEDED")+'</span><span>DETAILS · '+(stripe?.details_submitted?"SUBMITTED":"ACTION NEEDED")+'</span>';
   document.getElementById("v13StripeDetail").textContent=stripe?(ready?"Stripe is ready for creator monetization and payouts.":((stripe.requirements_currently_due||stripe.requirements_due||[]).length+" requirement(s) need attention.")):"No creator Stripe connection found.";
   const rec=[];if(!ready)rec.push(["HIGH","Finish Stripe onboarding","creator-payouts.html"]);if(!p.length)rec.push(["HIGH","Create your first podcast","create-podcast.html"]);if(!subs)rec.push(["MEDIUM","Launch a paid subscription plan","creator-plans.html"]);if(!followers)rec.push(["MEDIUM","Start audience growth","creator-profile.html"]);
