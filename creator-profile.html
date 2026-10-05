@@ -172,13 +172,13 @@ async function render(){
 }
 async function editor(){
  $("editorView").classList.add("open");const st=$("editorStatus"),form=$("form"),save=$("save");
- try{const s=await client(),u=(await s.auth.getUser()).data?.user;if(!u){st.textContent="Sign in to edit your creator identity.";return}const q=await s.from("creator_profiles").select("*").eq("user_id",u.id).maybeSingle();if(q.error)throw q.error;const p=q.data;
+ try{const d=window.CROW_CREATOR_DOMAIN||window.CROW_DOMAIN_SERVICES?.creator;const u=window.CROW_DATA?.getUser?.()||window.CROW_PODCASTING_V17_3?.getUser?.();if(!u){st.textContent="Sign in to edit your creator identity.";return}const p=await d.profileForUser(u.id);
  if(p){$("display_name").value=p.display_name||p.name||"";$("username").value=p.username||"";$("headlineInput").value=p.headline||"";$("bioInput").value=p.bio||"";$("avatar_url").value=p.avatar_url||"";$("portfolio_url").value=p.portfolio_url||"";$("location").value=p.location||"";$("availability").value=p.availability||"";$("skills").value=Array.isArray(p.skills)?p.skills.join(", "):(p.skills||"");$("discoverable").checked=p.is_discoverable!==false;let so=p.social_links||p.socials||{};$("social_links").value=typeof so==="string"?so:Object.entries(so).map(([k,v])=>k+"="+v).join(", ");let b=p.badges||p.creator_badges||[];$("badges").value=Array.isArray(b)?b.join(", "):(b||"");st.textContent="Profile loaded. Your creator universe is ready."}else{$("display_name").value=u.user_metadata?.full_name||u.email?.split("@")[0]||"Creator";$("discoverable").checked=true;st.textContent="Create your cinematic creator identity."}
  form.onsubmit=async e=>{e.preventDefault();save.disabled=true;save.textContent="Saving…";let socials={};$("social_links").value.split(",").forEach(x=>{const [k,...v]=x.split("=");if(k&&v.length)socials[k.trim()]=v.join("=").trim()});const data={user_id:u.id,display_name:$("display_name").value.trim(),username:$("username").value.trim()||null,headline:$("headlineInput").value.trim()||null,bio:$("bioInput").value.trim()||null,avatar_url:$("avatar_url").value.trim()||null,portfolio_url:$("portfolio_url").value.trim()||null,location:$("location").value.trim()||null,availability:$("availability").value.trim()||null,skills:$("skills").value.split(",").map(x=>x.trim()).filter(Boolean),social_links:socials,badges:$("badges").value.split(",").map(x=>x.trim()).filter(Boolean),is_discoverable:$("discoverable").checked};const r=p?await s.from("creator_profiles").update(data).eq("user_id",u.id):await s.from("creator_profiles").insert(data);save.disabled=false;save.textContent="Save Creator Profile";st.textContent=r.error?r.error.message:"✓ Creator intelligence profile saved."};
  }catch(e){st.textContent=e.message||"Creator studio could not load.";st.classList.add("error")}
 }
 function boot(){return(profileId||usernameParam)?render():editor()}
-if(window.CROW_SUPABASE_READY)window.CROW_SUPABASE_READY.then(boot).catch(()=>boot());else window.addEventListener("crow:supabase-connected",boot,{once:true});
+if(window.CROW_DOMAIN_SERVICES)boot();else window.addEventListener("crow:domain-services",boot,{once:true});
 })();
 </script>
 <script>
