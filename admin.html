@@ -594,22 +594,44 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 
 <script id="crow-admin-theme-script">
 (()=>{"use strict";
-const KEY="crowrules-podcasting-admin-theme";
 const allowed=["cyberpunk","midnight","neon","crimson","ice","matrix","light"];
-const selectTheme=theme=>{
- const t=allowed.includes(theme)?theme:"cyberpunk";
- document.body.dataset.adminTheme=t;
- const s=document.getElementById("adminThemeSelect");if(s)s.value=t;
- try{localStorage.setItem(KEY,t)}catch(_){}
-};
 const init=()=>{
  const s=document.getElementById("adminThemeSelect");
- let saved="cyberpunk";try{saved=localStorage.getItem(KEY)||saved}catch(_){}
- selectTheme(saved);
- if(s&&!s.dataset.bound){s.dataset.bound="1";s.addEventListener("change",()=>selectTheme(s.value))}
- window.CROW_ADMIN_THEME={get:()=>document.body.dataset.adminTheme,set:selectTheme};
+ const apply=theme=>{
+  const t=allowed.includes(theme)?theme:"cyberpunk";
+  document.body.dataset.adminTheme=t;
+  if(window.CROW_SITE_THEME?.set)window.CROW_SITE_THEME.set(t);
+  else{try{localStorage.setItem("crowrules-podcasting-site-theme-v1",t)}catch(_){}}
+  if(s)s.value=t;
+ };
+ let saved="cyberpunk";
+ try{saved=localStorage.getItem("crowrules-podcasting-site-theme-v1")||saved}catch(_){}
+ apply(saved);
+ if(s&&!s.dataset.bound){s.dataset.bound="1";s.addEventListener("change",()=>apply(s.value))}
+ window.addEventListener("crow:theme-changed",e=>{const t=e.detail?.theme;if(t&&allowed.includes(t)){document.body.dataset.adminTheme=t;if(s)s.value=t}});
+ window.CROW_ADMIN_THEME={get:()=>window.CROW_SITE_THEME?.get?.()||document.body.dataset.adminTheme,set:apply};
 };
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
+})();
+</script>
+<script id="crow-admin-supabase-connection">
+(()=>{"use strict";
+const set=(ok,label)=>{
+ const status=document.getElementById("status"),rt=document.getElementById("rt"),rtText=document.getElementById("rtText");
+ if(status){status.textContent=label||"CrowRules Supabase";status.classList.toggle("bad",!ok)}
+ if(rtText&&label)rtText.textContent=label==="SUPABASE ONLINE"?"REALTIME CONNECTING":label;
+ if(rt)rt.classList.toggle("connected",!!ok);
+};
+const boot=async()=>{
+ try{
+  if(window.CROW_SUPABASE_READY)await window.CROW_SUPABASE_READY;
+  else if(window.CROW_BOOTSTRAP)await window.CROW_BOOTSTRAP();
+  if(!window.CROW_SUPABASE)throw Error("Supabase client was not initialized.");
+  set(true,"SUPABASE ONLINE · cevylpnoexugwgygvtgu");
+ }catch(e){set(false,"SUPABASE ERROR · "+(e.message||e))}
+};
+window.addEventListener("crow:connection",e=>set(!!e.detail?.ok,e.detail?.ok?"SUPABASE ONLINE · cevylpnoexugwgygvtgu":"SUPABASE ERROR · "+(e.detail?.error||"Connection failed")));
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
 </script>
 </body></html>
