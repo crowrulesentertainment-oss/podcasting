@@ -35,11 +35,19 @@ function player(){
  const save=()=>localStorage.setItem("crPlayerState",JSON.stringify({...track,time:a.currentTime||0,paused:a.paused}));
  const fmt=x=>Number.isFinite(x)?Math.floor(x/60)+":"+String(Math.floor(x%60)).padStart(2,"0"):"0:00";
  const sync=()=>{ct.textContent=fmt(a.currentTime);dt.textContent=fmt(a.duration);r.value=a.duration?a.currentTime/a.duration*100:0;b.textContent=a.paused?"▶":"❚❚";save()};
- const play=()=>a.play().then(()=>{s.textContent="Playing • Loop on";save()}).catch(()=>{s.textContent="Autoplay blocked — press ▶";save()});
+ const play=()=>a.play().then(()=>{s.textContent=a.muted?"Playing • Muted":"Playing • Loop on";save()}).catch(()=>{
+   if(!a.muted){
+     a.muted=true;
+     localStorage.setItem("crMuted","1");
+     a.play().then(()=>{s.textContent="Playing • Muted — click 🔊 for sound";save()}).catch(()=>{s.textContent="Ready • press ▶";save()});
+   }else{s.textContent="Ready • press ▶";save()}
+ });
+ const unlock=()=>{if(a.paused){play();return}if(a.muted&&localStorage.getItem("crMuted")!=="1"){a.muted=false;localStorage.setItem("crMuted","0");a.play().then(()=>{s.textContent="Playing • Loop on";save()}).catch(()=>{})}};
+ ["pointerdown","keydown","touchstart"].forEach(ev=>document.addEventListener(ev,unlock,{once:true,passive:true}));
  const renderQueue=()=>{queueBox.innerHTML=queue.length?'<strong>Up Next</strong>'+queue.map((x,i)=>'<button type="button" data-q="'+i+'">'+String(x.title||"Untitled").replace(/[<>]/g,"")+'</button>').join(""):"<strong>Up Next</strong><div>Queue empty</div>";queueBox.querySelectorAll("[data-q]").forEach(btn=>btn.onclick=()=>loadTrack(queue[+btn.dataset.q],true));};
  const loadTrack=x=>{if(!x||!x.url)return;Object.assign(track,{url:x.url,title:x.title||"Untitled",meta:x.meta||"CrowRules Podcasting",artwork:x.artwork||""});a.src=track.url;a.currentTime=0;render();save();play();};
  a.addEventListener("loadedmetadata",()=>{const t=saved.url===track.url?+saved.time:0;if(t&&t<a.duration)a.currentTime=t;render();sync();if(saved.paused){s.textContent="Ready • press ▶ to resume"}else play()},{once:true});
- a.addEventListener("play",()=>{s.textContent="Playing • Loop on";sync()});
+ a.addEventListener("play",()=>{s.textContent=a.muted?"Playing • Muted":"Playing • Loop on";sync()});
  a.addEventListener("pause",()=>{s.textContent="Paused • Silent";save();sync()});
  a.addEventListener("timeupdate",()=>{sync()});
  a.addEventListener("error",()=>{s.textContent="Audio unavailable";save()});
