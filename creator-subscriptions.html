@@ -11,7 +11,8 @@
 
 <link rel="stylesheet" href="css/podcasting-v15.css?v=20261005-01">
 <script src="js/sitewide-v15.js?v=20261005-01" defer></script>
-<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"></head><body>
+<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"><link rel="stylesheet" href="css/sitewide-rebuild-v18.css">
+</head><body>
 <script src="js/app.js?v=20261004-10" defer></script>
 <script src="js/site-repair-v1.js?v=20261004-10" defer></script>
 
@@ -25,4 +26,5 @@ async function load(){const r=await sb.from("cr_podcast_monetization_products").
 $("plans").addEventListener("click",async e=>{const b=e.target.closest("[data-id]");if(!b)return;b.disabled=true;msg("Opening secure Stripe Checkout…");try{const s=await sb.auth.getSession(),token=s.data.session?.access_token;if(!token)throw Error("Session expired. Sign in again.");const base=cfg.supabaseUrl||"https://cevylpnoexugwgygvtgu.supabase.co";const res=await fetch(base+"/functions/v1/"+(cfg.podcastCheckoutFunction||"create-podcast-checkout"),{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({product_id:b.dataset.id,origin:cfg.siteUrl||location.origin+"/"})});const d=await res.json();if(!res.ok||d.error)throw Error(d.error||"Checkout could not be created.");location.href=d.url}catch(x){msg(x.message,true);b.disabled=false}});
 boot();
 })();
-</script></body></html>
+</script><script src="js/sitewide-rebuild-v18.js"></script>
+</body></html>
