@@ -78,22 +78,29 @@ let bootPromise=null, authBound=false;
 async function boot(){
   if(bootPromise)return bootPromise;
   bootPromise=(async()=>{
-    if(window.CROW_SUPABASE_READY) await window.CROW_SUPABASE_READY;
-    else if(window.CROW_BOOTSTRAP) await window.CROW_BOOTSTRAP();
+    try{
+      if(window.CROW_SUPABASE_READY) await Promise.race([window.CROW_SUPABASE_READY,new Promise((_,rej)=>setTimeout(()=>rej(Error("Supabase bootstrap timed out.")),7000))]);
+      else if(window.CROW_BOOTSTRAP) await window.CROW_BOOTSTRAP();
+    }catch(e){console.warn("CrowRules Supabase bootstrap:",e)}
     sb=window.CROW_SUPABASE;
     if(!sb)throw Error("CrowRules Supabase client did not initialize.");
-    const session=await Promise.race([sb.auth.getSession(),new Promise((_,rej)=>setTimeout(()=>rej(Error("Supabase authentication check timed out.")),8000))]);
-    if(session.error)throw session.error;
-    user=session.data?.session?.user||null;
     set("sbStatus","ONLINE",true);
-    set("authStatus",user?"SIGNED IN":"GUEST",true);
+    try{
+      const session=await Promise.race([sb.auth.getSession(),new Promise((_,rej)=>setTimeout(()=>rej(Error("Authentication check timed out.")),5000))]);
+      if(session.error)throw session.error;
+      user=session.data?.session?.user||null;
+    }catch(e){
+      console.warn("CrowRules auth check:",e);
+      user=null;
+    }
+    set("authStatus",user?"SIGNED IN":"GUEST",!!user);
     await refreshAll();
     bindRealtime();
     if(!authBound){
       authBound=true;
       sb.auth.onAuthStateChange((event,s)=>{
         user=s?.user||null;
-        set("authStatus",user?"SIGNED IN":"GUEST",true);
+        set("authStatus",user?"SIGNED IN":"GUEST",!!user);
         clearTimeout(window.__CROW_HOME_AUTH_TIMER);
         window.__CROW_HOME_AUTH_TIMER=setTimeout(()=>refreshAll().catch(e=>console.warn("Home auth refresh:",e)),200);
       });
@@ -107,7 +114,7 @@ async function refreshAll(){
   await loadCatalog();
 }
 async function loadSessionUI(){
-  if(user){document.getElementById("accountAction").textContent="MY ACCOUNT";document.getElementById("memberNote").textContent="You’re signed in. Your listening journey can follow you across CrowRules Podcasting.";set("authStatus","SIGNED IN",true);await continueListening()}
+  if(user){document.getElementById("accountAction").textContent="MY ACCOUNT";document.getElementById("memberNote").textContent="You’re signed in. Your listening journey can follow you across CrowRules Podcasting.";set("authStatus","SIGNED IN",true);try{await continueListening()}catch(e){console.warn("Home continue listening:",e);document.getElementById("continueList").innerHTML='<div class="empty">Listening progress is temporarily unavailable.</div>'}}
   else{document.getElementById("accountAction").textContent="SIGN IN";document.getElementById("memberNote").textContent="Sign in to unlock personalized listening, follow your favorite shows, and continue where you stopped.";set("authStatus","GUEST",false);document.getElementById("continueList").innerHTML='<div class="empty">Sign in to see your listening progress.</div>'}
 }
 async function loadCatalog(){
