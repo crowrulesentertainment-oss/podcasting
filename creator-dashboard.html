@@ -68,22 +68,15 @@
 <link rel="stylesheet" href="css/podcasting-v10.css?v=20261004-10">
 <link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-13"><link rel="stylesheet" href="css/halloween-cinematic-v2.css?v=20261004-02">
 <link rel="stylesheet" href="css/podcasting-v16.css?v=20261004-16"><link rel="stylesheet" href="css/podcasting-v17.css?v=20261004-17"><link rel="stylesheet" href="css/podcasting-v19.css?v=20261004-19"><link rel="stylesheet" href="css/podcasting-v20.css?v=20261004-20"><link rel="stylesheet" href="css/podcasting-v21.css?v=20261004-21"><link rel="stylesheet" href="css/podcasting-v22.css?v=20261004-22">
-<script src="js/crow-podcasting-intelligence-v13.js?v=20261004-01" defer></script>
-<script src="js/crow-podcasting-player-v13-2.js?v=20261004-13" defer></script>
-<script src="js/crow-podcasting-player-v13-3.js?v=20261004-01" defer></script>
-<link rel="stylesheet" href="css/crow-podcasting-player-v13-3.css?v=20261004-01">
+<script src="js/crow-podcasting-player-v14-3.js?v=20261004-01" defer></script>
+<link rel="stylesheet" href="css/crow-podcasting-player-v14-3.css?v=20261004-01">
 </head>
 <body data-crow-creator="true">
 <script src="js/app.js?v=20261004-27"></script>
 <script src="js/sitewide-v13.js?v=20261004-13"></script>
 <script src="js/site-repair-v1.js?v=20261004-10" defer></script>
 
-<div data-nav data-crow-v8-runtime="8"></div>
-<div data-nav data-crow-v8-runtime="8"></div>
-<div data-nav data-crow-v8-runtime="8"></div>
-<div data-nav data-crow-v8-runtime="8"></div>
-<div data-nav data-crow-v8-runtime="8"></div>
-<div data-nav data-nav-owner="crowrules-podcasting-nav-v7"></div>
+<div data-nav data-crow-v14-runtime="14"></div>
 
 
 <main class="creator-main">
@@ -126,8 +119,8 @@
 
 <section class="section"><div class="grid two"><div><h2>Listening Activity</h2><div id="analytics" class="card">Loading…</div></div><div><h2>Revenue</h2><div id="revenue" class="card">Loading…</div></div></div></section>
 
-<section class="section v13-intelligence">
-<div class="kpi"><div><div class="eyebrow">PODCASTING V13</div><h2>Intelligence + Monetization Control Center</h2><p class="muted">Supabase intelligence · Stripe health · Realtime creator operations</p></div><span id="v13Health" class="pill">INTELLIGENCE STARTING…</span></div>
+<section class="section v14-intelligence">
+<div class="kpi"><div><div class="eyebrow">PODCASTING V14.5</div><h2>Intelligence + Monetization Control Center</h2><p class="muted">Supabase intelligence · Stripe health · Realtime creator operations</p></div><span id="v13Health" class="pill">INTELLIGENCE STARTING…</span></div>
 <div class="grid" style="margin-top:12px">
 <div class="card"><div class="eyebrow">FOLLOWERS</div><div class="stat" id="v13Followers">0</div><span class="muted">Live audience signal</span></div>
 <div class="card"><div class="eyebrow">SUBSCRIBERS</div><div class="stat" id="v13Subscribers">0</div><span class="muted">Paid subscription signal</span></div>
@@ -156,7 +149,7 @@
 var $=function(id){return document.getElementById(id)};
 var esc=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]})};
 var wait=function(p,ms,msg){var t;return Promise.race([p,new Promise(function(_,rej){t=setTimeout(function(){rej(new Error(msg))},ms)})]).finally(function(){clearTimeout(t)})};
-var sb=null,user=null,creator=null,podcasts=[],episodes=[],channel=null,refreshTimer=null,refreshing=false;
+var sb=null,user=null,creator=null,podcasts=[],episodes=[],refreshTimer=null,refreshing=false;
 
 function setConnection(ok,title,detail){$("connectionState").innerHTML='<span class="status-dot '+(ok?"live":"bad")+'"></span>'+esc(title);$("connectionDetail").textContent=detail}
 function health(id,text,good){$(id).textContent=text;$(id).style.borderColor=good?"#35f2a133":"#ff526833"}
@@ -241,31 +234,11 @@ async function refresh(){
   throw e;
  }finally{refreshing=false}
 }
-function startRealtime(){
- if(!sb||!creator)return;
- if(channel)try{sb.removeChannel(channel)}catch(_){}
- channel=sb.channel("creator-dashboard-v12-"+creator.id);
- ["podcasts","podcast_episodes","podcast_follows","podcast_listens","cr_creator_revenue_transactions"].forEach(function(table){
-   channel.on("postgres_changes",{event:"*",schema:"public",table:table},function(change){
-     var n=change.new||change.old||{};
-     if(table==="podcasts"&&n.creator_id!==creator.id)return;
-     if(table==="podcast_episodes"&&!podcasts.some(function(p){return p.id===n.podcast_id}))return;
-     if(table==="podcast_follows"&&!podcasts.some(function(p){return p.id===n.podcast_id}))return;
-     if(table==="podcast_listens"&&!episodes.some(function(e){return e.id===n.episode_id}))return;
-     if(table==="cr_creator_revenue_transactions"&&n.user_id!==user.id&&n.creator_id!==creator.id)return;
-     clearTimeout(refreshTimer);$("liveState").textContent="Realtime update received";
-     refreshTimer=setTimeout(function(){refresh().catch(function(e){console.warn(e);$("liveState").textContent="Realtime connected · refresh retry needed"})},600);
-   });
- });
- channel.subscribe(function(state){
-   var ok=state==="SUBSCRIBED";
-   health("realtimeHealth","REALTIME · "+state,true);
-   $("liveState").textContent=ok?"Realtime connected":"Realtime "+String(state).toLowerCase();
- });
-}
+function startRealtime(){window.removeEventListener("crow:v13:catalog-change",refreshHandler);window.addEventListener("crow:v13:catalog-change",refreshHandler);window.addEventListener("crow:data:follows",refreshHandler);window.addEventListener("crow:data:notifications",refreshHandler);$("liveState").textContent="Shared V14.5 realtime connected";health("realtimeHealth","REALTIME · SHARED",true)}
+function refreshHandler(){clearTimeout(refreshTimer);refreshTimer=setTimeout(function(){refresh().catch(function(e){console.warn("Creator refresh",e)})},500)}
 async function boot(){
  try{
-  await connect();creator=await getCreator();
+  await window.CROW_DATA?.bootstrap?.();await connect();creator=await getCreator();
   $("auth").className="notice ok";
   $("auth").textContent="Signed in · "+(user.email||"CrowRules member")+" · Creator profile active";
   $("dashboard").hidden=false;
@@ -322,9 +295,9 @@ async function v13Start(){
   const plays=p.reduce((n,x)=>n+Number(x.total_plays||0),0);document.getElementById("v13Growth").innerHTML='<div class="row"><div class="row-main"><b>'+plays.toLocaleString()+'</b><small>Total plays</small></div><span class="pill">'+p.length+' shows</span></div><div class="row"><div class="row-main"><b>'+followers.toLocaleString()+'</b><small>Podcast followers</small></div><span class="pill">'+(followers?Math.round(followers/Math.max(plays,1)*10000)/100+"%":"—")+' conversion</span></div>';
   document.getElementById("v13Alerts").innerHTML=(alerts.data||[]).length?(alerts.data||[]).map(a=>'<div class="row"><div class="row-main"><b>'+v13Esc(a.title)+'</b><small>'+v13Esc(a.message)+'</small></div><span class="pill">'+v13Esc(a.severity)+'</span></div>').join(""):'<div class="empty">No creator alerts right now.</div>';
   document.getElementById("v13Health").textContent=ready?"INTELLIGENCE ONLINE":"ACTION REQUIRED";
-  const ch=sb.channel("creator-v13-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"creator_realtime_alerts",filter:"user_id=eq."+user.id},()=>v13Start()).on("postgres_changes",{event:"*",schema:"public",table:"podcast_follows"},()=>v13Start()).on("postgres_changes",{event:"*",schema:"public",table:"creator_earnings",filter:"user_id=eq."+user.id},()=>v13Start()).on("postgres_changes",{event:"*",schema:"public",table:"creator_payouts",filter:"user_id=eq."+user.id},()=>v13Start()).subscribe();
-  window.CROW_V13_CHANNEL=ch;
- }catch(e){console.warn("Creator V13:",e);document.getElementById("v13Health").textContent="INTELLIGENCE DEGRADED"}
+  const ch=sb.channel("creator-v14-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"creator_realtime_alerts",filter:"user_id=eq."+user.id},()=>v13Start()).on("postgres_changes",{event:"*",schema:"public",table:"podcast_follows"},()=>v13Start()).on("postgres_changes",{event:"*",schema:"public",table:"creator_earnings",filter:"user_id=eq."+user.id},()=>v13Start()).on("postgres_changes",{event:"*",schema:"public",table:"creator_payouts",filter:"user_id=eq."+user.id},()=>v13Start()).subscribe();
+  window.CROW_V14.5_CHANNEL=ch;
+ }catch(e){console.warn("Creator V14.5:",e);document.getElementById("v13Health").textContent="INTELLIGENCE DEGRADED"}
 }
 window.addEventListener("crow:ready",v13Start,{once:true});window.addEventListener("crow:auth",v13Start,{once:true});setTimeout(v13Start,1800);
 })();
