@@ -1,30 +1,236 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#03050a"><title>Creator Plans — CrowRules Podcasting</title><meta name="description" content="Create and manage your own CrowRules Podcasting subscription plans and Stripe prices."><link rel="stylesheet" href="css/crow-podcasting-rebuild.css?v=20261004-16"><style>
-.plans-page{max-width:1280px;margin:auto}.hero{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:24px}.hero h1{font:900 clamp(2rem,5vw,4.2rem) Orbitron;margin:8px 0}.hero h1 span{background:linear-gradient(90deg,#65f2ff,#a778ff,#ff4fd8);-webkit-background-clip:text;color:transparent}.muted{color:var(--cr-muted);line-height:1.65}.panel{padding:22px;border:1px solid var(--cr-line);border-radius:18px;background:linear-gradient(145deg,#0b111af5,#070a10f5);box-shadow:0 18px 70px #0007;margin-bottom:18px}.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}.field label{font:800 8px Orbitron;letter-spacing:.15em;color:#8d9bad}.field input,.field textarea,.field select{width:100%;padding:12px;border:1px solid #ffffff16;border-radius:10px;background:#02050a;color:#fff;outline:none;font:600 .78rem Montserrat}.field textarea{min-height:90px;resize:vertical}.field input:focus,.field textarea:focus,.field select:focus{border-color:#65f2ff55}.check{display:flex;align-items:center;gap:8px;color:#aeb8c8;font-size:.7rem}.check input{accent-color:#65f2ff}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid #ffffff18;border-radius:10px;padding:11px 14px;background:#ffffff06;color:#fff;cursor:pointer;font:800 9px Orbitron}.btn.primary{border-color:#65f2ff45;background:#65f2ff0b}.btn.danger{border-color:#ff526844;color:#ff9bac}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.plan-card{padding:18px;border:1px solid #ffffff10;border-radius:15px;background:#ffffff03}.plan-card h3{font:800 1rem Orbitron;margin:0}.price{font:900 2rem Orbitron;margin:12px 0 4px}.price small{font:600 .65rem Montserrat;color:#7f8c9f}.meta{font-size:.62rem;color:#65f2ff}.plan-card p{font-size:.68rem;color:#8996a9;line-height:1.5}.plan-card code{font-size:.55rem;color:#aeb8c8;word-break:break-all}.notice{padding:13px;border-radius:11px;border:1px solid #65f2ff22;background:#65f2ff06;color:#aeb8c8;font-size:.68rem;margin-bottom:15px}.error{border-color:#ff526844;background:#ff526808;color:#ff9bac}.empty{text-align:center;padding:30px;color:#758297;border:1px dashed #ffffff18;border-radius:12px}.spinner{opacity:.65}@media(max-width:800px){.form-grid,.cards{grid-template-columns:1fr}.hero{align-items:flex-start;flex-direction:column}}
-</style><link rel="stylesheet" href="css/podcasting-v10.css?v=20261004-10">
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#03050a">
+<title>Creator Plans — CrowRules Podcasting</title>
+<meta name="description" content="Create and manage CrowRules creator subscription plans with Supabase and Stripe Connect.">
+<link rel="stylesheet" href="css/crow-podcasting-rebuild.css?v=20261004-16">
+<link rel="stylesheet" href="css/podcasting-v10.css?v=20261004-10">
+<link rel="stylesheet" href="css/crow-podcasting-player-v13-3.css?v=20261004-01">
 <script src="js/crowrules-supabase-universal-v1.js?v=20261004-01" defer></script>
 <script src="js/crow-podcasting-intelligence-v13.js?v=20261004-01" defer></script>
 <script src="js/crow-podcasting-player-v13-2.js?v=20261004-13" defer></script>
 <script src="js/crow-podcasting-player-v13-3.js?v=20261004-01" defer></script>
-<link rel="stylesheet" href="css/crow-podcasting-player-v13-3.css?v=20261004-01">
-</head><body>
 <script src="js/app.js?v=20261004-10" defer></script>
 <script src="js/site-repair-v1.js?v=20261004-10" defer></script>
+<style>
+.plans-page{max-width:1280px;margin:auto}
+.hero{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:24px}
+.hero h1{font:900 clamp(2rem,5vw,4.2rem) Orbitron;margin:8px 0}
+.hero h1 span{background:linear-gradient(90deg,#65f2ff,#a778ff,#ff4fd8);-webkit-background-clip:text;color:transparent}
+.muted{color:var(--cr-muted);line-height:1.65}
+.panel{padding:22px;border:1px solid var(--cr-line);border-radius:18px;background:linear-gradient(145deg,#0b111af5,#070a10f5);box-shadow:0 18px 70px #0007;margin-bottom:18px}
+.status-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.status-card{padding:14px;border:1px solid #ffffff10;border-radius:14px;background:#ffffff03}
+.status-card .label{font:800 8px Orbitron;letter-spacing:.12em;color:#7f8c9f}
+.status-card .value{margin-top:7px;font:800 .75rem Montserrat;color:#fff}
+.status-card.good .value{color:#65f2ff}.status-card.warn .value{color:#ffd36a}.status-card.bad .value{color:#ff9bac}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.field{display:grid;gap:6px}.field.full{grid-column:1/-1}
+.field label{font:800 8px Orbitron;letter-spacing:.15em;color:#8d9bad}
+.field input,.field textarea{width:100%;padding:12px;border:1px solid #ffffff16;border-radius:10px;background:#02050a;color:#fff;outline:none;font:600 .78rem Montserrat;box-sizing:border-box}
+.field textarea{min-height:90px;resize:vertical}
+.field input:focus,.field textarea:focus{border-color:#65f2ff55}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid #ffffff18;border-radius:10px;padding:11px 14px;background:#ffffff06;color:#fff;cursor:pointer;font:800 9px Orbitron;text-decoration:none}
+.btn.primary{border-color:#65f2ff45;background:#65f2ff0b}.btn.danger{border-color:#ff526844;color:#ff9bac}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.catalog{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.plan-card{padding:18px;border:1px solid #ffffff10;border-radius:15px;background:#ffffff03;display:flex;flex-direction:column}
+.plan-card h3{font:800 1rem Orbitron;margin:7px 0}
+.price{font:900 2rem Orbitron;margin:8px 0 4px}.price small{font:600 .62rem Montserrat;color:#7f8c9f}
+.meta{font-size:.6rem;color:#65f2ff;letter-spacing:.08em}.plan-card p{font-size:.68rem;color:#8996a9;line-height:1.5}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.badge{font:800 7px Orbitron;padding:5px 7px;border-radius:99px;border:1px solid #ffffff12;color:#aeb8c8}.badge.active{color:#65f2ff;border-color:#65f2ff33}
+.notice{padding:13px;border-radius:11px;border:1px solid #65f2ff22;background:#65f2ff06;color:#aeb8c8;font-size:.68rem;margin-bottom:15px}
+.notice.error{border-color:#ff526844;background:#ff526808;color:#ff9bac}
+.empty{text-align:center;padding:30px;color:#758297;border:1px dashed #ffffff18;border-radius:12px}
+.small{font-size:.62rem;color:#758297;line-height:1.55}
+@media(max-width:900px){.status-grid,.catalog{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){.form-grid,.status-grid,.catalog{grid-template-columns:1fr}.hero{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<main class="cr-main plans-page">
+<section class="hero">
+<div>
+<div class="cr-kicker">CROWRULES CREATOR STUDIO / SUPABASE + STRIPE CONNECT</div>
+<h1>Your <span>Plans.</span></h1>
+<p class="muted">Create recurring creator memberships in CrowRules Podcasting. Supabase handles your authenticated creator profile and catalog; Stripe Connect creates the products and recurring prices on your connected Stripe account.</p>
+</div>
+<div class="actions">
+<a class="btn" href="creator-dashboard.html">← Studio</a>
+<a class="btn" href="creator-payouts.html">Stripe Payouts</a>
+</div>
+</section>
 
-<main class="cr-main plans-page"><section class="hero"><div><div class="cr-kicker">CROWRULES CREATOR STUDIO / STRIPE BILLING</div><h1>Your <span>Plans.</span></h1><p class="muted">Creators control their own subscription products and recurring prices. Create multiple tiers, choose monthly or annual billing, and manage each offer from one place.</p></div><div class="actions"><a class="btn" href="creator-dashboard.html">← Studio</a><a class="btn" href="creator-payouts.html">Stripe Payouts</a></div></section>
-<div id="status" class="notice">Connecting to CrowRules Supabase and Stripe…</div>
-<section class="panel"><div class="cr-kicker">CREATE A SUBSCRIPTION PRICE</div><h2>New creator plan</h2><p class="muted">Each saved plan creates a Stripe Product + recurring Price through the secure Supabase Edge Function. Your browser never receives the Stripe secret key.</p>
-<form id="form"><div class="form-grid"><div class="field"><label>PODCAST</label><select id="podcast" required><option value="">Loading creator podcasts…</option></select></div><div class="field"><label>PLAN NAME</label><input id="name" maxlength="120" required placeholder="Supporter, Insider, VIP…"></div><div class="field"><label>PRICE (USD)</label><input id="amount" type="number" min="1" step="0.01" required placeholder="5.00"></div><div class="field"><label>BILLING INTERVAL</label><select id="interval"><option value="month">Monthly</option><option value="year">Annual</option></select></div><div class="field full"><label>DESCRIPTION</label><textarea id="description" maxlength="500" placeholder="What members receive…"></textarea></div><div class="field full"><label>BENEFITS</label><input id="benefits" placeholder="Bonus episodes, ad-free listening, behind the scenes"></div></div><div class="actions" style="margin-top:14px"><button class="btn primary" type="submit">◆ CREATE STRIPE PRICE</button></div></form></section>
-<section class="panel"><div class="cr-kicker">YOUR SUBSCRIPTION CATALOG</div><h2>Live creator offers</h2><div id="plans" class="cards"><div class="empty spinner">Loading plans…</div></div></section></main>
+<div id="status" class="notice">Connecting to CrowRules Supabase and Stripe Connect…</div>
+
+<section class="status-grid" aria-label="Billing connection status">
+<div id="sbCard" class="status-card"><div class="label">SUPABASE</div><div id="sbState" class="value">CONNECTING…</div></div>
+<div id="stripeCard" class="status-card"><div class="label">STRIPE CONNECT</div><div id="stripeState" class="value">CHECKING…</div></div>
+<div id="creatorCard" class="status-card"><div class="label">CREATOR</div><div id="creatorState" class="value">LOADING…</div></div>
+<div class="status-card"><div class="label">PLANS</div><div id="planCount" class="value">0</div></div>
+</section>
+
+<section class="panel">
+<div class="cr-kicker">CREATE A SUBSCRIPTION PLAN</div>
+<h2>New creator membership</h2>
+<p class="muted">One plan creates one Stripe Product with a monthly recurring Price and, when supplied, an annual recurring Price. Stripe secret keys stay inside the Supabase Edge Function.</p>
+<form id="form">
+<div class="form-grid">
+<div class="field"><label>PLAN NAME</label><input id="name" maxlength="80" required placeholder="Supporter, Insider, VIP…"></div>
+<div class="field"><label>MONTHLY PRICE (USD)</label><input id="monthly" type="number" min="1" max="1000" step="0.01" required placeholder="5.00"></div>
+<div class="field"><label>ANNUAL PRICE (OPTIONAL)</label><input id="annual" type="number" min="1" max="12000" step="0.01" placeholder="50.00"></div>
+<div class="field"><label>CURRENCY</label><input value="USD" disabled></div>
+<div class="field full"><label>DESCRIPTION</label><textarea id="description" maxlength="1000" placeholder="What members receive…"></textarea></div>
+<div class="field full"><label>BENEFITS</label><input id="benefits" placeholder="Bonus episodes, ad-free listening, behind the scenes"></div>
+</div>
+<div class="actions" style="margin-top:14px">
+<button id="createBtn" class="btn primary" type="submit">◆ CREATE STRIPE PLAN</button>
+</div>
+<p class="small">Creator subscriptions use the CrowRules Stripe Connect account attached to your creator profile. A completed Connect onboarding with charges and payouts enabled is required before a plan can be created.</p>
+</form>
+</section>
+
+<section class="panel">
+<div class="cr-kicker">YOUR SUBSCRIPTION CATALOG</div>
+<h2>Live creator offers</h2>
+<div id="plans" class="catalog"><div class="empty">Loading plans…</div></div>
+</section>
+</main>
+
 <script>
-(()=>{"use strict";const $=id=>document.getElementById(id),cfg=window.CROW_CONFIG||{};let sb,user,creator,podcasts=[];
+(()=>{"use strict";
+const $=id=>document.getElementById(id);
+const cfg=window.CROW_CONFIG||{};
+const FUNCTION="creator-subscription-manager";
+let sb=null,user=null,creator=null,plans=[];
+
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const status=(m,bad=false)=>{const e=$("status");e.textContent=m;e.classList.toggle("error",bad)};
-async function init(){try{for(let i=0;i<80&&!window.CROW_SUPABASE;i++)await new Promise(r=>setTimeout(r,100));sb=window.CROW_SUPABASE;if(!sb)throw Error("Supabase client did not initialize.");const ur=await sb.auth.getUser();user=ur.data.user;if(!user)throw Error("Sign in to manage creator plans.");const cr=await sb.rpc("get_my_podcast_creator_id");if(cr.error)throw cr.error;if(!cr.data)throw Error("Creator profile not found. Create/activate your creator profile first.");creator=cr.data;await loadPodcasts();await loadPlans();status("SUPABASE ONLINE · STRIPE BILLING READY");}catch(e){status(e.message||"Connection failed.",true)}}
-async function loadPodcasts(){const r=await sb.from("podcasts").select("id,title,status").eq("creator_id",creator).order("created_at",{ascending:false});if(r.error)throw r.error;podcasts=r.data||[];$("podcast").innerHTML='<option value="">Select a podcast…</option>'+podcasts.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.title)+" · "+esc(p.status||"draft")+"</option>").join("")}
-async function loadPlans(){const r=await sb.from("cr_podcast_monetization_products").select("id,podcast_id,name,description,amount_cents,interval,currency,active,stripe_product_id,stripe_price_id,product_type,created_at").eq("creator_id",creator).eq("product_type","membership").order("created_at",{ascending:false});if(r.error){$("plans").innerHTML='<div class="empty">'+esc(r.error.message)+"</div>";return}const rows=r.data||[];$("plans").innerHTML=rows.length?rows.map(p=>{const pod=podcasts.find(x=>x.id===p.podcast_id);return '<article class="plan-card"><div class="meta">'+esc(pod?.title||"Creator offer")+" · "+esc(p.interval||"one-time")+'</div><h3>'+esc(p.name)+'</h3><div class="price">$"+(Number(p.amount_cents||0)/100).toFixed(2)+' <small>/ '+esc(p.interval||"period")+"</small></div><p>"+esc(p.description||"No description.")+'</p><p>'+((p.active?"ACTIVE":"ARCHIVED"))+"<br><code>"+esc(p.stripe_price_id||"Stripe price pending")+"</code></p><div class="actions"><button class="btn '+(p.active?"danger":"")+'" data-action="'+(p.active?"archive":"restore")+'" data-id="'+p.id+'">'+(p.active?"ARCHIVE":"ACTIVATE")+"</button></div></article>"}).join(""):'<div class="empty">No creator subscription prices yet. Create your first offer above.</div>'}
-async function create(e){e.preventDefault();const podcastId=$("podcast").value;if(!podcastId)throw Error("Select a podcast.");const amount=Math.round(Number($("amount").value)*100);if(!Number.isInteger(amount)||amount<100)throw Error("Enter a price of at least $1.00.");const benefits=$("benefits").value.split(",").map(x=>x.trim()).filter(Boolean);status("Creating secure Stripe Product + Price…");const session=await sb.auth.getSession();const token=session.data.session?.access_token;if(!token)throw Error("Your session expired. Sign in again.");const res=await fetch((cfg.supabaseUrl||"https://cevylpnoexugwgygvtgu.supabase.co")+"/functions/v1/"+(cfg.creatorProductFunction||"create-podcast-product"),{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({name:$("name").value.trim(),description:$("description").value.trim(),amount_cents:amount,interval:$("interval").value,product_type:"membership",podcast_id:podcastId,benefits})});const data=await res.json();if(!res.ok||data.error)throw Error(data.error||"Stripe product creation failed.");status("Created Stripe Product + Price successfully.");$("form").reset();await loadPlans()}
-$("form").addEventListener("submit",e=>create(e).catch(x=>status(x.message,true)));
-$("plans").addEventListener("click",async e=>{const b=e.target.closest("[data-action]");if(!b)return;try{const session=await sb.auth.getSession(),token=session.data.session?.access_token;if(!token)throw Error("Session expired.");const action=b.dataset.action==="archive"?"archive":"update";const res=await fetch((cfg.supabaseUrl||"https://cevylpnoexugwgygvtgu.supabase.co")+"/functions/v1/"+(cfg.manageProductFunction||"manage-podcast-product"),{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({product_id:b.dataset.id,action,active:action!=="archive"})});const data=await res.json();if(!res.ok||data.error)throw Error(data.error||"Unable to update product.");await loadPlans();status(action==="archive"?"Plan archived.":"Plan activated.");}catch(x){status(x.message,true)}});
-init();
+const setStatus=(message,bad=false)=>{const e=$("status");e.textContent=message;e.classList.toggle("error",bad)};
+const setCard=(card,state,good=false,warn=false)=>{$(card).className="status-card "+(good?"good":warn?"warn":"bad")};
+const money=c=>"$"+(Number(c||0)/100).toFixed(2);
+
+async function waitForSupabase(){
+  for(let i=0;i<100&&!window.CROW_SUPABASE;i++) await new Promise(r=>setTimeout(r,100));
+  sb=window.CROW_SUPABASE;
+  if(!sb) throw Error("Supabase client did not initialize.");
+}
+
+async function invoke(action,payload={}){
+  const session=(await sb.auth.getSession()).data.session;
+  if(!session?.access_token) throw Error("Your session expired. Sign in again.");
+  const base=(cfg.supabaseUrl||"https://cevylpnoexugwgygvtgu.supabase.co").replace(/\/$/,"");
+  const res=await fetch(base+"/functions/v1/"+FUNCTION,{
+    method:"POST",
+    headers:{Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},
+    body:JSON.stringify({action,...payload})
+  });
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok||data.error) throw Error(data.error||"Creator billing request failed.");
+  return data;
+}
+
+async function loadStripeStatus(){
+  try{
+    const r=await sb.from("cr_podcast_stripe_accounts").select("stripe_account_id,onboarding_status,charges_enabled,payouts_enabled,details_submitted,disabled_reason").eq("user_id",user.id).maybeSingle();
+    if(r.error) throw r.error;
+    const a=r.data;
+    if(!a){$("stripeState").textContent="NOT CONNECTED";setCard("stripeCard","",false,true);return}
+    if(a.charges_enabled&&a.payouts_enabled){$("stripeState").textContent="CONNECTED · READY";setCard("stripeCard","",true,false)}
+    else if(a.disabled_reason){$("stripeState").textContent="ACTION REQUIRED";setCard("stripeCard","",false,false)}
+    else {$("stripeState").textContent="ONBOARDING";setCard("stripeCard","",false,true)}
+  }catch(e){$("stripeState").textContent="STATUS UNAVAILABLE";setCard("stripeCard","",false,true)}
+}
+
+async function load(){
+  const data=await invoke("list");
+  creator=data.creator||null;
+  plans=Array.isArray(data.plans)?data.plans:[];
+  $("creatorState").textContent=creator?.name||"Creator";
+  $("planCount").textContent=String(plans.length);
+  render();
+  await loadStripeStatus();
+  $("sbState").textContent="ONLINE";
+  setCard("sbCard","",true,false);
+  if(plans.length) setStatus("SUPABASE ONLINE · STRIPE CONNECT CATALOG SYNCED");
+  else setStatus("SUPABASE ONLINE · READY TO CREATE YOUR FIRST STRIPE CREATOR PLAN");
+}
+
+function render(){
+  const host=$("plans");
+  if(!plans.length){host.innerHTML='<div class="empty">No creator subscription plans yet. Create your first offer above.</div>';return}
+  host.innerHTML=plans.map(p=>{
+    const benefits=Array.isArray(p.benefits)?p.benefits:[];
+    return '<article class="plan-card">'+
+      '<div class="meta">CREATOR MEMBERSHIP</div>'+
+      '<h3>'+esc(p.name)+'</h3>'+
+      '<div class="badges"><span class="badge '+(p.active?"active":"")+'">'+(p.active?"ACTIVE":"ARCHIVED")+'</span>'+
+      (p.stripe_product_id?'<span class="badge">STRIPE PRODUCT LINKED</span>':'')+
+      '</div>'+
+      '<div class="price">'+money(p.monthly_price_cents)+' <small>/ month</small></div>'+
+      (p.annual_price_cents?'<div class="small">Annual: '+money(p.annual_price_cents)+' / year</div>':'')+
+      '<p>'+esc(p.description||"Support this creator with a recurring membership.")+'</p>'+
+      (benefits.length?'<p><strong>Benefits:</strong> '+esc(benefits.join(" · "))+'</p>':"")+
+      '<p class="small">Subscribers: '+Number(p.subscriber_count||0)+'</p>'+
+      '<div class="actions" style="margin-top:auto">'+
+      '<button class="btn '+(p.active?"danger":"primary")+'" data-action="'+(p.active?"archive_plan":"update_plan")+'" data-id="'+esc(p.id)+'">'+(p.active?"ARCHIVE PLAN":"ACTIVATE PLAN")+'</button>'+
+      '</div></article>';
+  }).join("");
+}
+
+async function createPlan(e){
+  e.preventDefault();
+  const name=$("name").value.trim();
+  const monthly=Math.round(Number($("monthly").value)*100);
+  const annualRaw=$("annual").value.trim();
+  const annual=annualRaw===""?null:Math.round(Number(annualRaw)*100);
+  const benefits=$("benefits").value.split(",").map(x=>x.trim()).filter(Boolean);
+  if(!name) throw Error("Plan name is required.");
+  if(!Number.isInteger(monthly)||monthly<100) throw Error("Monthly price must be at least $1.00.");
+  if(annual!==null&&(!Number.isInteger(annual)||annual<100)) throw Error("Annual price must be at least $1.00.");
+  $("createBtn").disabled=true;
+  setStatus("Creating Stripe Product + recurring Price(s) through Supabase…");
+  try{
+    const data=await invoke("create_plan",{name,monthly_price_cents:monthly,annual_price_cents:annual,currency:"usd",description:$("description").value.trim(),benefits});
+    plans=[data.plan,...plans.filter(p=>p.id!==data.plan?.id)];
+    render();$("planCount").textContent=String(plans.length);
+    $("form").reset();
+    setStatus("STRIPE PLAN CREATED · SUPABASE CATALOG UPDATED");
+  }finally{$("createBtn").disabled=false}
+}
+
+async function togglePlan(button){
+  const id=button.dataset.id;
+  const action=button.dataset.action;
+  button.disabled=true;
+  setStatus(action==="archive_plan"?"Archiving Stripe creator plan…":"Activating creator plan…");
+  try{
+    const data=await invoke(action,{plan_id:id,active:action!=="archive_plan"});
+    plans=plans.map(p=>p.id===id?(data.plan||p):p);
+    render();
+    setStatus(action==="archive_plan"?"PLAN ARCHIVED · EXISTING STRIPE PRICE REMAINS SAFE":"PLAN ACTIVATED · SUPABASE CATALOG UPDATED");
+  }finally{button.disabled=false}
+}
+
+$("form").addEventListener("submit",e=>createPlan(e).catch(x=>setStatus(x.message||"Unable to create plan.",true)));
+$("plans").addEventListener("click",e=>{const b=e.target.closest("[data-action]");if(b)togglePlan(b).catch(x=>setStatus(x.message||"Unable to update plan.",true))});
+
+(async()=>{
+ try{
+  await waitForSupabase();
+  const u=await sb.auth.getUser();user=u.data.user;
+  if(!user) throw Error("Sign in to manage creator subscription plans.");
+  await load();
+ }catch(e){
+  $("sbState").textContent="OFFLINE";
+  setCard("sbCard","",false,false);
+  setStatus(e.message||"Unable to connect to CrowRules billing.",true);
+ }
 })();
-</script></body></html>
+})();
+</script>
+</body>
+</html>
