@@ -3,8 +3,8 @@ if(window.__CROW_PODCASTING_V13_INTELLIGENCE__)return;
 window.__CROW_PODCASTING_V13_INTELLIGENCE__=true;
 const SESSION=crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random();
 const CHANNEL="crowrules-podcasting-live-v14";
-const PUBLIC_TABLES=["podcasts","podcast_episodes","creators","podcast_creator_activity","podcast_follows","podcast_subscriptions"];
-const MEMBER_TABLES=["podcast_notifications","podcast_episode_progress"];
+const PUBLIC_TABLES=["podcasts","podcast_episodes","creators"];
+const MEMBER_TABLES=["podcast_creator_activity","podcast_follows","podcast_subscriptions","podcast_notifications","podcast_episode_progress"];
 const api={version:"14.1.0",sessionId:SESSION,state:{user:null,realtimeStatus:"STANDBY"},events:new EventTarget(),channel:null,retryTimer:null,booted:false};
 const emit=(n,d)=>{api.events.dispatchEvent(new CustomEvent(n,{detail:d}));window.dispatchEvent(new CustomEvent("crow:v13:"+n,{detail:d}))};
 const client=async()=>window.CROW_SUPABASE||(window.CROW_SUPABASE_READY?await window.CROW_SUPABASE_READY.catch(()=>null):null);
@@ -48,6 +48,6 @@ async function boot(){
 api.search=search;api.saveProgress=saveProgress;api.continueListening=continueListening;api.follow=id=>relation("podcast_follows",id,true);api.unfollow=id=>relation("podcast_follows",id,false);api.subscribe=id=>relation("podcast_subscriptions",id,true);api.unsubscribe=id=>relation("podcast_subscriptions",id,false);api.notifications=notifications;api.markNotificationRead=markNotificationRead;api.presence=presence;api.activity=activity;api.getState=()=>JSON.parse(JSON.stringify(api.state));api.getRealtimeStatus=()=>api.state.realtimeStatus;api.channelName=CHANNEL;
 window.CROW_PODCASTING_V13=api;window.CROW_INTELLIGENCE=Object.assign(window.CROW_INTELLIGENCE||{},api);
 window.addEventListener("crow:ready",boot,{once:true});
-window.addEventListener("crow:auth",()=>{api.state.user=window.__CROW_USER||null;if(api.channel){try{client().then(sb=>sb?.realtime?.setAuth?.())}catch(_){}}});
+window.addEventListener("crow:auth",()=>{api.state.user=window.__CROW_USER||null;const rebuild=async()=>{const sb=await client();if(!sb)return;if(api.channel){try{await sb.removeChannel(api.channel)}catch(_){ }api.channel=null;}try{sb.realtime?.setAuth?.();}catch(_){ }realtime(sb);};rebuild().catch(()=>{});});
 if(window.CROW_SUPABASE)boot();
 })();
