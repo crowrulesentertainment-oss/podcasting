@@ -1,6 +1,6 @@
 (()=>{"use strict";
 if(window.__CROW_DB_BOOTSTRAP_V2__)return;window.__CROW_DB_BOOTSTRAP_V2__=true;
-const BASE="https://crowrulesentertainment-oss.github.io/podcasting/",VERSION="20261005-v14.9";
+const BASE="https://crowrulesentertainment-oss.github.io/podcasting/",VERSION="20261005-v14.10";
 const timeout=ms=>new Promise((_,r)=>setTimeout(()=>r(Error("Supabase bootstrap timeout")),ms));
 const load=src=>new Promise((ok,no)=>{const x=document.createElement("script");x.src=src;x.async=false;x.onload=ok;x.onerror=()=>no(Error("Unable to load "+src));document.head.appendChild(x)});
 async function boot(){
