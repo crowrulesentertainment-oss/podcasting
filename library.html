@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="css/podcasting-v15.css?v=20261005-01">
 <script src="js/sitewide-v15.js?v=20261005-01" defer></script>
 <link rel="stylesheet" href="css/sitewide-rebuild-v18.css">
+<link rel="stylesheet" href="css/podcasting-v19.css?v=20261005-19.1">
 </head><body>
 
     <script src="js/app.js?v=20261004-27"></script>
@@ -38,4 +39,5 @@
 
 <main class="wrap hero"><div class="eyebrow">YOUR LIBRARY</div><h1>Keep <span class="gradient">listening.</span></h1><div id="continueListening" class="grid"></div><h2 style="margin-top:50px">Followed Podcasts</h2><div id="follows" class="grid"></div><h2 style="margin-top:50px">Listening History</h2><div id="history" class="grid"></div></main><script>addEventListener("crow:ready",async()=>{const c=document.getElementById("continueListening"),f=document.getElementById("follows"),h=document.getElementById("history");const data=window.CROW_DATA?.snapshot?.()||{};if(!window.__CROW_USER){c.innerHTML='<div class="notice">Sign in to synchronize your library across CrowRules.</div>';f.innerHTML='<div class="notice">Sign in to follow podcasts.</div>';h.innerHTML='<div class="notice">Sign in to build listening history.</div>';return}const cat=data.catalog||{},progress=(data.progress||[]).filter(x=>!x.completed).slice(0,12),byId=new Map((cat.episodes||[]).map(x=>[String(x.id),x]));c.innerHTML=progress.map(x=>{const e=byId.get(String(x.episode_id));if(!e)return "";const p=(cat.podcasts||[]).find(p=>String(p.id)===String(e.podcast_id));return '<a class="card" style="text-decoration:none" href="episode.html?id='+encodeURIComponent(x.episode_id)+'"><span class="eyebrow">CONTINUE</span><h3>'+esc(e.title)+'</h3><p>'+esc(p?.title||e.podcast_title||"")+'</p><div class="progress"><i style="width:'+Number(x.percent_complete||0)+'%"></i></div></a>'}).join("")||'<div class="notice">Nothing waiting to be finished.</div>';const followed=new Set(data.follows||[]);f.innerHTML=(cat.podcasts||[]).filter(p=>followed.has(String(p.id))).slice(0,50).map(p=>'<a class="card" style="text-decoration:none" href="podcast.html?id='+encodeURIComponent(p.id)+'"><h3>'+esc(p.title)+'</h3><p>'+esc((p.description||"").slice(0,160))+'</p></a>').join("")||'<div class="notice">Follow podcasts to build your library.</div>';h.innerHTML='<div class="notice">Listening history is retained in CrowRules and will appear here as history records are available.</div>';});function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}</script><script src="js/podcasting-v14.js?v=20261004-14"></script>
 <script src="js/sitewide-rebuild-v18.js"></script>
+<script src="js/podcasting-v19.js?v=20261005-19.1"></script>
 </body></html>
