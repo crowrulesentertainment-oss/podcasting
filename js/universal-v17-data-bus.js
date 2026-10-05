@@ -122,6 +122,7 @@ async function getPlayerQueue(){
   if(r.error)throw r.error; cache.playerQueue=r.data||null; emit("player-queue",{row:cache.playerQueue}); return cache.playerQueue;
 }
 
+async function membershipEntitlements(limit=20){const db=await ready(),id=uid();if(!db||!id)return[];const r=await db.from("membership_entitlements").select("*").eq("user_id",id).limit(limit);if(r.error)throw r.error;emit("membership",{rows:r.data||[]});return r.data||[]}
 async function creatorIntelligence(){
   const db=await ready(),id=uid(); if(!db||!id)return null;
   let creatorId=null;
@@ -165,7 +166,7 @@ function bindPlayer(){
 function snapshot(){return {version:VERSION,migration:{...migration},user,cache:{notifications:[...cache.notifications],continueListening:[...cache.continueListening],follows:[...cache.follows],subscriptions:[...cache.subscriptions],presence:cache.presence,creator:cache.creator,playerQueue:cache.playerQueue}}}
 
 const bus={version:VERSION,sessionId:SESSION,ready,refreshAuth,getSession:async()=>{const db=await ready();return db?(await db.auth.getSession()).data?.session||null:null},getUser:()=>user,
-search,notifications,markNotificationRead,continueListening,getListeningHistory,saveProgress,
+search,notifications,markNotificationRead,continueListening,getListeningHistory,saveProgress,membershipEntitlements,
 follows,follow,unfollow,subscriptions,presence,playerQueue,getPlayerQueue,creatorIntelligence,on,emit,bootRealtime,snapshot};
 
 bus.getFollows=bus.follows;bus.getSubscriptions=bus.subscriptions;bus.getPresence=bus.presence;bus.getCreatorIntelligence=bus.creatorIntelligence;bus.getAuth=bus.getUser;
@@ -179,7 +180,7 @@ window.CROW_PODCASTING_V17=Object.assign(window.CROW_PODCASTING_V17||{},{
   continueListening:bus.continueListening,getListeningHistory:bus.getListeningHistory,
   saveProgress:bus.saveProgress,follows:bus.follows,follow:bus.follow,unfollow:bus.unfollow,
   subscriptions:bus.subscriptions,presence:bus.presence,playerQueue:bus.playerQueue,
-  getPlayerQueue:bus.getPlayerQueue,creatorIntelligence:bus.creatorIntelligence,
+  getPlayerQueue:bus.getPlayerQueue,creatorIntelligence:bus.creatorIntelligence,membershipEntitlements:bus.membershipEntitlements,
   on:bus.on,snapshot:bus.snapshot
 });
 
