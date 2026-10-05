@@ -14,13 +14,47 @@ function shell(){
  n.innerHTML='<div class="cr-nav-inner"><a class="cr-brand" href="home.html"><img class="cr-brand-logo" src="'+LOGO+'" alt="CrowRules Podcasting logo" width="42" height="42" decoding="async"> <span>CrowRules Podcasting</span></a><button class="cr-nav-mobile-toggle" type="button" aria-expanded="false" aria-label="Open navigation">☰</button><div class="cr-nav-links">'+nav.map(x=>'<a class="cr-nav-link '+(page===x[1]?"active":"")+'" href="'+x[1]+'">'+esc(x[0])+"</a>").join("")+dropdown("Creators",creators,"creators")+dropdown("Community",community,"community")+"</div></div>";
  document.body.prepend(n);
  const mobile=n.querySelector(".cr-nav-mobile-toggle");mobile?.addEventListener("click",e=>{e.stopPropagation();const open=n.classList.toggle("mobile-open");mobile.setAttribute("aria-expanded",String(open));});
- n.querySelectorAll(".cr-nav-drop-toggle").forEach(btn=>btn.addEventListener("click",e=>{
+ authUI(n); n.querySelectorAll(".cr-nav-drop-toggle").forEach(btn=>btn.addEventListener("click",e=>{
    e.stopPropagation();const box=btn.parentElement;const open=box.classList.contains("open");
    n.querySelectorAll(".cr-nav-drop.open").forEach(x=>{x.classList.remove("open");x.querySelector("button")?.setAttribute("aria-expanded","false")});
    if(!open){box.classList.add("open");btn.setAttribute("aria-expanded","true")}
  }));
  document.addEventListener("click",()=>n.querySelectorAll(".cr-nav-drop.open").forEach(x=>{x.classList.remove("open");x.querySelector("button")?.setAttribute("aria-expanded","false")}),{once:false});
  n.addEventListener("keydown",e=>{if(e.key==="Escape"){n.classList.remove("mobile-open");mobile?.setAttribute("aria-expanded","false");n.querySelectorAll(".cr-nav-drop.open").forEach(x=>x.classList.remove("open"))}});
+}
+function authUI(nav){
+ const existing=nav.querySelector(".cr-auth-nav"); if(existing) existing.remove();
+ const wrap=document.createElement("div"); wrap.className="cr-auth-nav";
+ wrap.innerHTML='<button type="button" class="cr-auth-toggle" aria-expanded="false">Account ▾</button><div class="cr-auth-menu" role="menu"><div class="cr-auth-loading">Checking account…</div></div>';
+ nav.querySelector(".cr-nav-inner")?.appendChild(wrap);
+ const btn=wrap.querySelector(".cr-auth-toggle"),menu=wrap.querySelector(".cr-auth-menu");
+ const close=()=>{wrap.classList.remove("open");btn.setAttribute("aria-expanded","false")};
+ btn.onclick=e=>{e.stopPropagation();const open=wrap.classList.toggle("open");btn.setAttribute("aria-expanded",String(open))};
+ document.addEventListener("click",close);
+ const go=path=>location.href=path+"?next="+encodeURIComponent(location.pathname.split("/").pop()||"index.html");
+ const render=(u)=>{
+   if(u) {
+     const email=esc(u.email||"Member");
+     btn.textContent="Account ▾";
+     menu.innerHTML='<div class="cr-auth-user"><strong>CrowRules Member</strong><span>'+email+'</span></div><a role="menuitem" href="membership.html">Membership</a><a role="menuitem" href="membership.html">My Membership</a><a role="menuitem" href="auth.html">Account</a><button type="button" role="menuitem" data-auth-logout>Log Out</button>';
+     menu.querySelector("[data-auth-logout]").onclick=async()=>{try{if(window.CROW_SUPABASE)await window.CROW_SUPABASE.auth.signOut()}finally{location.reload()}};
+   } else {
+     btn.textContent="Log In / Sign Up ▾";
+     menu.innerHTML='<a role="menuitem" href="auth.html">Log In</a><a role="menuitem" href="auth.html?mode=signup">Create Account</a><a role="menuitem" href="membership.html">Membership</a>';
+   }
+ };
+ const init=async()=>{
+   try{
+     let sb=window.CROW_SUPABASE;
+     if(!sb&&window.supabase?.createClient) sb=window.supabase.createClient("https://cevylpnoexugwgygvtgu.supabase.co","sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-",{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+     if(!sb){const existing=document.querySelector('script[data-crow-supabase]');if(existing)await new Promise(r=>{if(window.supabase)r();else existing.addEventListener("load",r,{once:true})});if(window.supabase?.createClient)sb=window.supabase.createClient("https://cevylpnoexugwgygvtgu.supabase.co","sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-",{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})}
+     if(sb)window.CROW_SUPABASE=sb;
+     const session=sb?await sb.auth.getSession():null;
+     render(session?.data?.session?.user||null);
+     sb?.auth.onAuthStateChange((_event,s)=>render(s?.user||null));
+   }catch(_e){render(null)}
+ };
+ init();
 }
 function player(){
  if(document.querySelector(".cr-universal-player"))return;
