@@ -299,13 +299,36 @@ function renderMetrics(){
  $("personal").hidden=false;
 }
 
-async function waitClient(ms=15000){const start=Date.now();while(Date.now()-start<ms){if(window.CROW_DOMAIN_SERVICES?.discovery)return window.CROW_DOMAIN_SERVICES.discovery;await new Promise(r=>setTimeout(r,100))}throw Error("Podcast discovery domain could not initialize.");}
+async function waitClient(ms=15000){
+ if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
+ const start=Date.now();
+ while(Date.now()-start<ms){
+  if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
+  if(typeof window.CROW_BOOTSTRAP==="function"){try{const x=await Promise.race([window.CROW_BOOTSTRAP(),new Promise((_,r)=>setTimeout(()=>r(Error("bootstrap timeout")),5000))]);if(x)return x}catch(e){}}
+  await new Promise(r=>setTimeout(r,150));
+ }
+ throw Error("Supabase client could not initialize.");
+}
 async function auth(){const data=window.CROW_DATA?.snapshot?.()||{};user=window.__CROW_USER||data.account?.user||null;$("profileState").textContent=user?"Signed in":"Guest"}
-async function loadCatalog(){const d=window.CROW_DISCOVERY_DOMAIN||window.CROW_DOMAIN_SERVICES?.discovery;const cat=await d?.catalog?.({limit:100});if(!cat)throw Error("Podcast catalog is still initializing.");podcasts=cat.podcasts||[];episodes=cat.episodes||[];creators=cat.creators||[]}
-async function loadPersonal(){const data=window.CROW_DATA?.snapshot?.()||{};following=new Set(data.follows||[]);saved=new Set(data.saved||[]);progress=data.progress||[];if(!user)return;try{const d=window.CROW_DISCOVERY_DOMAIN||window.CROW_DOMAIN_SERVICES?.discovery;signals=await d.signals();await refreshRecommendations()}catch(e){console.warn("discover signals",e)}}
-async function refreshRecommendations(){if(!user)return;$("engineState").textContent="Refreshing…";try{const d=window.CROW_DISCOVERY_DOMAIN||window.CROW_DOMAIN_SERVICES?.discovery;recs=await d.refreshRecommendations(30);$("engineState").textContent="Server intelligence";$("recommendedSection").hidden=!recs.length}catch(e){console.warn("recommendation engine",e);recs=[];$("engineState").textContent="Client fallback"}}
-async function savePrefs(){if(!user)return;try{const d=window.CROW_DISCOVERY_DOMAIN||window.CROW_DOMAIN_SERVICES?.discovery;await d.savePreferences({content_filter:content,sort_filter:sort,fresh_days:fresh==="all"?0:Number(fresh),active_category:activeCategory||null,focus_mode:document.body.classList.contains("focus")})}catch(e){console.warn("prefs",e)}}
-async function track(type,extra={}){if(!user)return;try{const d=window.CROW_DISCOVERY_DOMAIN||window.CROW_DOMAIN_SERVICES?.discovery;await d.track(type,extra)}catch(e){}}
+async function loadCatalog(){const data=window.CROW_DATA?.snapshot?.(),cat=data?.catalog;if(!cat)throw Error("Podcast catalog is still initializing.");podcasts=cat.podcasts||[];episodes=cat.episodes||[];creators=cat.creators||[]}
+async function loadPersonal(){const data=window.CROW_DATA?.snapshot?.()||{};following=new Set(data.follows||[]);saved=new Set(data.saved||[]);progress=data.progress||[];if(!user)return;try{const uid=user.id;const sg=await sb.from("podcast_discover_user_signals").select("*").eq("user_id",uid).maybeSingle();signals=sg.data||null;await refreshRecommendations()}catch(e){console.warn("discover signals",e)}}
+async function refreshRecommendations(){
+ if(!user)return;
+ $("engineState").textContent="Refreshing…";
+ try{
+  const r=await sb.rpc("podcast_discover_generate_recommendations",{p_user_id:user.id,p_limit:30});if(r.error)throw r.error;
+  const q=await sb.from("podcast_discover_recommendations").select("*").eq("user_id",user.id).order("rank",{ascending:true}).limit(30);if(q.error)throw q.error;
+  recs=q.data||[];$("engineState").textContent="Server intelligence";$("recommendedSection").hidden=!recs.length;
+ }catch(e){console.warn("recommendation engine",e);recs=[];$("engineState").textContent="Client fallback"}
+}
+async function savePrefs(){
+ if(!user)return;
+ try{await sb.from("podcast_discover_preferences").upsert({user_id:user.id,content_filter:content,sort_filter:sort,fresh_days:fresh==="all"?0:Number(fresh),active_category:activeCategory||null,focus_mode:document.body.classList.contains("focus"),updated_at:new Date().toISOString()},{onConflict:"user_id"})}catch(e){console.warn("prefs",e)}
+}
+async function track(type,extra={}){
+ if(!user)return;
+ try{await sb.from("podcast_discover_events").insert({user_id:user.id,event_type:type,podcast_id:extra.podcast_id||null,episode_id:extra.episode_id||null,creator_id:extra.creator_id||null,query:extra.query||null,category:extra.category||null,metadata:extra.metadata||{}})}catch(e){}
+}
 function renderSaved(){
  const el=$("saved"),rows=jget(LS.saved,[]);
  el.innerHTML=rows.length?rows.slice(0,8).map((x,i)=>'<span class="saved"><button data-load="'+i+'">'+esc(x.label||x.query)+'</button><button class="x" data-del="'+i+'">×</button></span>').join(""):'<span class="sub">No saved searches.</span>';
@@ -336,7 +359,7 @@ function surprise(){
 async function saveSearch(){
  const q=$("search").value.trim();if(!q){toast("Search for something first.");$("search").focus();return}
  const rows=jget(LS.saved,[]).filter(x=>x.query!==q);rows.unshift({query:q,label:q,at:Date.now()});jset(LS.saved,rows.slice(0,8));renderSaved();
- if(user)try{const d=window.CROW_DISCOVERY_DOMAIN||window.CROW_DOMAIN_SERVICES?.discovery;await d.saveSearch(q,{label:q,category:activeCategory||null,content_filter:content});await track("save_search",{query:q})}catch(e){}
+ if(user)try{await sb.from("podcast_discover_saved_searches").upsert({user_id:user.id,query:q,label:q,category:activeCategory||null,content_filter:content},{onConflict:"user_id,query"});await track("save_search",{query:q})}catch(e){}
  toast("Search saved.");
 }
 function share(){
@@ -348,10 +371,17 @@ function share(){
 function focus(){
  document.body.classList.toggle("focus");const on=document.body.classList.contains("focus");$("focusMode").textContent=on?"Exit Focus Mode":"Focus Mode";$("focusMode").setAttribute("aria-pressed",String(on));try{localStorage.setItem(LS.focus,on?"1":"0")}catch{}savePrefs();track(on?"focus_on":"focus_off")
 }
-function startRealtime(){if(!user||realtime)return;const d=window.CROW_DISCOVERY_DOMAIN||window.CROW_DOMAIN_SERVICES?.discovery;if(!d?.subscribe)return;d.subscribe(user.id,{recommendations:async()=>{try{recs=await d.recommendations(30);renderRecommended()}catch{}},signals:async()=>{try{signals=await d.signals();renderMetrics()}catch{}},catalog:async()=>{clearTimeout(window.__catRefresh);window.__catRefresh=setTimeout(async()=>{try{await loadCatalog();render()}catch{}},800)}}).then(ch=>{if(ch){realtime=ch;setHealth("ok","Live sync")}else setHealth("warn","Live sync unavailable")})}
+function startRealtime(){
+ if(!user||realtime)return;
+ const ch=sb.channel("discover-intelligence-live").on("postgres_changes",{event:"*",schema:"public",table:"podcast_discover_recommendations",filter:"user_id=eq."+user.id},async()=>{const q=await sb.from("podcast_discover_recommendations").select("*").eq("user_id",user.id).order("rank").limit(30);if(!q.error){recs=q.data||[];renderRecommended()}})
+ .on("postgres_changes",{event:"*",schema:"public",table:"podcast_discover_user_signals",filter:"user_id=eq."+user.id},async()=>{const q=await sb.from("podcast_discover_user_signals").select("*").eq("user_id",user.id).maybeSingle();if(!q.error){signals=q.data;renderMetrics()}})
+ .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},()=>{clearTimeout(window.__catRefresh);window.__catRefresh=setTimeout(async()=>{try{await loadCatalog();render()}catch(e){}},800)})
+ .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},()=>{clearTimeout(window.__epRefresh);window.__epRefresh=setTimeout(async()=>{try{await loadCatalog();render()}catch(e){}},800)})
+ .subscribe(status=>{if(status==="SUBSCRIBED"){realtime=ch;setHealth("ok","Live sync")}else if(status==="TIMED_OUT"||status==="CHANNEL_ERROR"){setHealth("warn","Live sync retrying");try{sb.removeChannel(ch)}catch{}realtime=null;clearTimeout(retry);retry=setTimeout(startRealtime,3000)}else if(status==="CLOSED"){realtime=null;setHealth("warn","Live sync offline")}})
+}
 async function boot(){
  try{
-  setHealth("warn","Connecting");await waitClient();await window.CROW_DATA?.bootstrap?.();await auth();await loadCatalog();await loadPersonal();
+  setHealth("warn","Connecting");sb=await waitClient();await window.CROW_DATA?.bootstrap?.();await auth();await loadCatalog();await loadPersonal();
   render();renderSaved();renderRecent();setHealth("ok",user?"Personalized + live":"Catalog connected");
   window.addEventListener("crow:data:catalog",()=>{loadCatalog().then(render).catch(()=>{})});window.addEventListener("crow:data:progress",()=>{const d=window.CROW_DATA.snapshot();progress=d.progress||[];render()});
  }catch(e){console.error("Discover boot",e);setHealth("bad","Connection issue");$("featureTitle").textContent="Discover is temporarily unavailable";$("featureCopy").textContent=e.message||"Refresh the page to reconnect.";renderRail("trending","", "Catalog could not be loaded.");renderRail("fresh","", "Catalog could not be loaded.")}
