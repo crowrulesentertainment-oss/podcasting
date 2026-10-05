@@ -205,7 +205,7 @@ await loadFeed();
 
 async function bindPodcastFollows(){
  const buttons=[...document.querySelectorAll("[data-podcast-follow]")]; if(!buttons.length)return;
- const me=(await s.auth.getUser()).data?.user;
+ const me=window.CROW_DATA?.getUser?.()||window.CROW_PODCASTING_V17_3?.getUser?.();
  for(const b of buttons){
   const pid=b.dataset.podcastFollow;
   if(me){const d=window.CROW_CREATOR_DOMAIN||window.CROW_DOMAIN_SERVICES?.creator;if(await d.podcastIsFollowing(pid)){b.textContent="✓ FOLLOWING";b.classList.add("following")}}
