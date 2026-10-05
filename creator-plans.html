@@ -1,10 +1,269 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Creator Plans — CrowRules Podcasting</title><link rel="stylesheet" href="css/crow-podcasting-rebuild.css?v=20261004-v14.8"><link rel="stylesheet" href="css/halloween-cinematic-v2.css?v=20261004-v14.8"><link rel="stylesheet" href="css/crow-podcasting-player-v13-3.css?v=20261004-v14.8"><script src="js/crowrules-db-bootstrap-v2.js?v=20261004-v14.8"></script><script src="js/crow-podcasting-intelligence-v13.js?v=20261004-v14.8"></script><script src="js/crow-podcasting-player-v13-3.js?v=20261004-v14.8"></script><script src="js/sitewide-v13.js?v=20261004-v14.8"></script><style>.wrap{max-width:1200px;margin:auto}.panel{padding:22px;border:1px solid #ffffff16;border-radius:18px;background:#080710eF;margin:18px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}label{font:800 9px Orbitron;letter-spacing:.12em;color:#9ba7ba}input,select,textarea{box-sizing:border-box;width:100%;padding:12px;border:1px solid #ffffff16;border-radius:10px;background:#05040a;color:#fff}textarea{min-height:90px}.btn{padding:10px 14px;border-radius:10px;border:1px solid #ffffff18;background:#ffffff08;color:#fff;cursor:pointer;font:800 9px Orbitron}.primary{border-color:#65f2ff44}.danger{border-color:#ff526844;color:#ff9bac}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.card{padding:18px;border:1px solid #ffffff12;border-radius:14px;background:#ffffff04}.muted,.small{color:#8793a7}.small{font-size:.68rem}.notice{padding:12px;border-radius:10px;border:1px solid #65f2ff22}.error{border-color:#ff526844;color:#ff9bac}.actions{display:flex;gap:8px;flex-wrap:wrap}@media(max-width:800px){.grid,.cards{grid-template-columns:1fr}}</style>
-<link rel="stylesheet" href="css/podcasting-v15.css?v=20261005-01">
-<script src="js/sitewide-v15.js?v=20261005-01" defer></script>
-<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal">
-<link rel="stylesheet" href="css/podcasting-v19.css?v=20261005-19.1">
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07040b">
+<title>Creator Plans — CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/crow-podcasting-rebuild.css?v=20261005-creator-plans">
+<link rel="stylesheet" href="css/halloween-cinematic-v2.css?v=20261005-creator-plans">
 <link rel="stylesheet" href="css/sitewide-rebuild-v18.css?v=20261005-v23.5" data-crow-v23-css>
+<script src="js/crowrules-db-bootstrap-v2.js?v=20261005-creator-plans"></script>
 <script src="js/sitewide-rebuild-v18.js?v=20261005-v23.3" defer data-crow-v23-js></script>
-</head><bodyclass="cr-halloween-theme"><main class="cr-main wrap"><header><div class="cr-kicker">CROWRULES CREATOR STUDIO / STRIPE</div><h1>Podcast Subscription Plans</h1><p class="muted">Choose the podcast first. Every recurring plan is owned by that podcast.</p></header><div id="status" class="notice">Connecting…</div><section class="panel"><h2>Create plan</h2><form id="form"><div class="grid"><div class="field full"><label>PODCAST</label><select id="podcast" required><option>Loading…</option></select></div><div class="field"><label>PLAN NAME</label><input id="name" maxlength="120" required placeholder="Supporter"></div><div class="field"><label>PRICE USD</label><input id="amount" type="number" min="0.50" step="0.01" required placeholder="5.00"></div><div class="field"><label>BILLING</label><select id="interval"><option value="month">Monthly</option><option value="year">Yearly</option></select></div><div class="field"><label>TRIAL DAYS</label><input id="trial" type="number" min="0" max="365" value="0"></div><div class="field full"><label>DESCRIPTION</label><textarea id="description" maxlength="2000"></textarea></div><div class="field full"><label>CONFIRM</label><label><input id="confirm" type="checkbox" required> I confirm this plan belongs to the selected podcast.</label></div></div><div class="actions"><button class="btn primary" id="create" type="submit">CREATE STRIPE PLAN</button></div></form></section><section class="panel"><div class="actions"><h2 style="margin-right:auto">Your Plans</h2><a class="btn" href="creator-monetization-center.html">Monetization</a></div><div id="plans" class="cards"><div class="card">Loading…</div></div></section></main><script>(()=>{const $=id=>document.getElementById(id),API='https://cevylpnoexugwgygvtgu.supabase.co/functions/v1/creator-subscription-manager',esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),money=v=>'$'+(Number(v||0)/100).toFixed(2);let podcasts=[],plans=[],creator=null;const say=(m,e=false)=>{$('status').textContent=m;$('status').classList.toggle('error',e)};async function call(action,data={}){const session=await (window.CROW_DATA?.getSession?.()||window.CROW_PODCASTING_V17_3?.getSession?.());if(!session?.access_token)throw Error('Session expired. Sign in again.');const r=await fetch(API,{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({action,...data})});const d=await r.json().catch(()=>({}));if(!r.ok||d.error)throw Error(d.error||'Subscription manager error.');return d}async function load(){const d=window.CROW_MONETIZATION_DOMAIN||window.CROW_DOMAIN_SERVICES?.monetization;if(!d)throw Error('Podcast monetization domain is still initializing.');const creatorService=window.CROW_DOMAIN_SERVICES?.creator;if(!creatorService)throw Error('Creator domain is still initializing.');creator=await creatorService.me();if(!creator?.id)throw Error('No active creator profile found.');const [owned,creatorPlans]=await Promise.all([creatorService.podcasts(creator.id),d.creatorPlans(creator.id)]);podcasts=owned||[];plans=creatorPlans||[];const s=$('podcast'),old=s.value;s.innerHTML='<option value="">Choose a podcast…</option>'+podcasts.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.title)+' · '+esc(p.slug)+'</option>').join('');if(podcasts.some(p=>p.id===old))s.value=old;render();say('SUPABASE DOMAIN ONLINE · STRIPE CATALOG READY')}function render(){const h=$('plans');if(!plans.length){h.innerHTML='<div class="card">No plans yet.</div>';return}h.innerHTML=plans.map(p=>{const pod=podcasts.find(x=>x.id===p.podcast_id);return '<article class="card"><b>'+esc(p.name)+'</b><div class="small">'+esc(pod?.title||'Podcast')+' · /'+esc(pod?.slug||'unknown')+'</div><h3>'+money(p.amount_cents)+' / '+esc(p.interval||'month')+'</h3><div class="small">'+Number(p.subscriber_count||0)+' active subscribers</div><div class="actions" style="margin-top:10px">'+(p.active?'<button class="btn danger" data-id="'+esc(p.id)+'" data-action="deactivate">ARCHIVE / DEACTIVATE</button>':'<button class="btn primary" data-id="'+esc(p.id)+'" data-action="activate">ACTIVATE</button>')+'</div></article>'}).join('')}$('form').onsubmit=async e=>{e.preventDefault();try{if(!$('podcast').value)throw Error('Choose a podcast first.');if(!$('confirm').checked)throw Error('Confirm the selected podcast.');const amount=Math.round(Number($('amount').value)*100);if(!Number.isInteger(amount)||amount<50)throw Error('Price must be at least $0.50.');$('create').disabled=true;say('Creating Stripe Product + Price…');await call('create',{podcast_id:$('podcast').value,name:$('name').value.trim(),amount_cents:amount,interval:$('interval').value,interval_count:1,trial_period_days:Number($('trial').value||0),description:$('description').value.trim()});e.target.reset();await load();say('PLAN CREATED · SUPABASE + STRIPE SYNCHRONIZED')}catch(x){say(x.message||'Unable to create plan.',true)}finally{$('create').disabled=false}};$('plans').onclick=async e=>{const b=e.target.closest('[data-action]');if(!b)return;try{b.disabled=true;const p=plans.find(x=>x.id===b.dataset.id);if(!p)throw Error('Plan not found.');if(b.dataset.action==='deactivate'){say('Deactivating Stripe Price + Product…');await call('deactivate',{id:p.id})}else{say('Activating plan…');await call('update',{id:p.id,name:p.name,description:p.description||'',amount_cents:p.amount_cents,interval:p.interval,interval_count:p.interval_count||1,trial_period_days:p.trial_period_days||0,active:true})}await load()}catch(x){say(x.message||'Plan update failed.',true)}finally{b.disabled=false}};async function boot(){try{const wait=async()=>{if(window.CROW_DOMAIN_SERVICES)return;await new Promise(r=>setTimeout(r,100));return wait()};await wait();const session=await (window.CROW_DATA?.getSession?.()||window.CROW_PODCASTING_V17_3?.getSession?.());if(!session?.user)throw Error('Sign in to manage creator plans.');await load()}catch(e){say(e.message||'Unable to initialize.',true)}}boot()})();</script><script>(function(){function boot(){const d=window.CROW_DOMAIN_SERVICES;if(!d)return setTimeout(boot,100);window.CROW_MONETIZATION_DOMAIN=d.monetization;window.dispatchEvent(new CustomEvent("crow:domain:monetization",{detail:d.monetization}))}boot()})();</script>
-<script src="js/podcasting-v19.js?v=20261005-19.1"></script>
-</body></html>
+<style>
+:root{--cp-bg:#07040b;--cp-panel:rgba(12,7,17,.9);--cp-border:rgba(255,122,24,.2);--cp-orange:#ff7a18;--cp-purple:#a855f7;--cp-cyan:#65f2ff;--cp-text:#f7f3fa;--cp-muted:#9da7b8}
+body{background:radial-gradient(circle at 50% -10%,rgba(255,122,24,.16),transparent 30%),radial-gradient(circle at 85% 25%,rgba(168,85,247,.12),transparent 30%),#05030a;color:var(--cp-text)}
+.cp-wrap{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:42px 0 210px}
+.cp-hero{position:relative;padding:28px;border:1px solid var(--cp-border);border-radius:24px;background:linear-gradient(145deg,rgba(17,8,21,.96),rgba(7,5,12,.9));box-shadow:0 20px 70px rgba(0,0,0,.3);overflow:hidden}
+.cp-hero:after{content:"";position:absolute;width:260px;height:260px;right:-100px;top:-120px;border-radius:50%;background:radial-gradient(circle,rgba(255,122,24,.2),transparent 65%);pointer-events:none}
+.cp-kicker{font:800 11px Orbitron,Montserrat,sans-serif;letter-spacing:.16em;color:var(--cp-orange);text-transform:uppercase}
+.cp-hero h1{margin:8px 0 10px;font:900 clamp(28px,5vw,52px) Orbitron,Montserrat,sans-serif;line-height:1.05}
+.cp-hero p{max-width:760px;color:var(--cp-muted);font-size:15px;line-height:1.65}
+.cp-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.cp-btn{min-height:42px;padding:10px 15px;border:1px solid rgba(255,255,255,.15);border-radius:11px;background:rgba(255,255,255,.06);color:#fff;text-decoration:none;cursor:pointer;font:800 10px Orbitron,Montserrat,sans-serif;letter-spacing:.04em}
+.cp-btn:hover{border-color:rgba(255,122,24,.45);background:rgba(255,122,24,.08)}
+.cp-btn.primary{background:linear-gradient(135deg,var(--cp-orange),var(--cp-purple));border:0;color:#09050b}
+.cp-btn.danger{color:#ff9aaa;border-color:rgba(255,82,104,.35)}
+.cp-btn:disabled{opacity:.55;cursor:not-allowed}
+.cp-status{margin:18px 0;padding:13px 15px;border-radius:12px;border:1px solid rgba(101,242,255,.2);background:rgba(101,242,255,.04);color:#b9c4d4;font-size:13px}
+.cp-status.error{border-color:rgba(255,82,104,.4);background:rgba(255,82,104,.06);color:#ffabb8}
+.cp-status.success{border-color:rgba(101,242,255,.35);color:#aef7ff}
+.cp-grid{display:grid;grid-template-columns:minmax(0,1fr) 1.4fr;gap:18px;margin-top:18px}
+.cp-panel{padding:22px;border:1px solid rgba(255,255,255,.1);border-radius:20px;background:var(--cp-panel);box-shadow:0 15px 50px rgba(0,0,0,.2)}
+.cp-panel h2{margin:0 0 5px;font:900 18px Orbitron,Montserrat,sans-serif}
+.cp-panel .sub{margin:0 0 18px;color:var(--cp-muted);font-size:12px;line-height:1.5}
+.cp-form{display:grid;gap:13px}
+.cp-field{display:grid;gap:6px}
+.cp-field label{font:800 9px Orbitron,Montserrat,sans-serif;letter-spacing:.1em;color:#aeb8ca;text-transform:uppercase}
+.cp-field input,.cp-field select,.cp-field textarea{width:100%;box-sizing:border-box;padding:12px 13px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#05040a;color:#fff;outline:none}
+.cp-field input:focus,.cp-field select:focus,.cp-field textarea:focus{border-color:rgba(101,242,255,.55);box-shadow:0 0 0 3px rgba(101,242,255,.06)}
+.cp-field textarea{min-height:90px;resize:vertical}
+.cp-price-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cp-check{display:flex;align-items:flex-start;gap:9px;color:#b7c0cf;font-size:12px;line-height:1.5}
+.cp-check input{margin-top:3px;accent-color:var(--cp-orange)}
+.cp-hint{color:#7f8b9f;font-size:11px;line-height:1.5}
+.cp-plans{display:grid;gap:12px}
+.cp-empty{padding:28px;text-align:center;border:1px dashed rgba(255,255,255,.14);border-radius:15px;color:var(--cp-muted)}
+.cp-card{padding:18px;border:1px solid rgba(255,255,255,.1);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.015))}
+.cp-card.archived{opacity:.68}
+.cp-card-top{display:flex;align-items:flex-start;gap:12px}
+.cp-card-title{min-width:0;flex:1}
+.cp-card-title h3{margin:0 0 5px;font-size:17px}
+.cp-meta{color:var(--cp-muted);font-size:11px;line-height:1.5}
+.cp-badge{display:inline-flex;padding:4px 8px;border-radius:999px;font:800 8px Orbitron,sans-serif;letter-spacing:.06em;background:rgba(101,242,255,.08);border:1px solid rgba(101,242,255,.2);color:#9ff7ff}
+.cp-badge.off{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12);color:#8c96a8}
+.cp-prices{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.cp-price{padding:9px 11px;border-radius:10px;background:#05040a;border:1px solid rgba(255,255,255,.08)}
+.cp-price strong{font-size:16px}.cp-price span{color:var(--cp-muted);font-size:10px}
+.cp-description{color:#bdc5d2;font-size:12px;line-height:1.55;margin:0 0 12px}
+.cp-benefits{margin:0 0 14px;padding-left:18px;color:#aeb8c7;font-size:11px;line-height:1.6}
+.cp-card-actions{display:flex;gap:8px;flex-wrap:wrap}
+.cp-statbar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.cp-stat{padding:11px;border-radius:11px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07)}
+.cp-stat b{display:block;font-size:18px}.cp-stat span{color:var(--cp-muted);font-size:9px;text-transform:uppercase;letter-spacing:.08em}
+.cp-modal{position:fixed;inset:0;z-index:20000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.72);backdrop-filter:blur(8px)}
+.cp-modal.open{display:flex}
+.cp-dialog{width:min(620px,100%);max-height:min(90vh,760px);overflow:auto;padding:22px;border:1px solid rgba(255,122,24,.28);border-radius:20px;background:#0d0811;box-shadow:0 30px 100px rgba(0,0,0,.6)}
+.cp-dialog-head{display:flex;gap:12px;align-items:center;margin-bottom:18px}.cp-dialog-head h2{margin:0;font:900 20px Orbitron,sans-serif}.cp-close{margin-left:auto}
+.cp-note{padding:11px;border-radius:10px;background:rgba(255,122,24,.06);border:1px solid rgba(255,122,24,.15);color:#c3cad5;font-size:11px;line-height:1.5}
+@media(max-width:900px){.cp-grid{grid-template-columns:1fr}.cp-wrap{padding-top:24px}}
+@media(max-width:560px){.cp-wrap{width:min(100% - 18px,1180px)}.cp-hero,.cp-panel{padding:17px}.cp-price-grid{grid-template-columns:1fr}.cp-statbar{grid-template-columns:1fr 1fr}.cp-stat:last-child{grid-column:1/-1}}
+</style>
+</head>
+<body class="cr-halloween-theme">
+<main class="cp-wrap">
+<section class="cp-hero">
+<div class="cp-kicker">CrowRules Creator Studio / Stripe Connect</div>
+<h1>Creator Subscription Plans</h1>
+<p>Create recurring subscription plans for a specific podcast. Plans are synchronized through the CrowRules Supabase subscription manager and Stripe Connect. Stripe recurring prices are intentionally created when the plan is created; existing prices are not edited in place.</p>
+<div class="cp-actions">
+<a class="cp-btn" href="creator-dashboard.html">Creator Dashboard</a>
+<a class="cp-btn" href="creator-monetization-center.html">Monetization Center</a>
+<button class="cp-btn" id="refreshBtn" type="button">Refresh Plans</button>
+</div>
+</section>
+
+<div id="status" class="cp-status" role="status" aria-live="polite">Connecting to CrowRules…</div>
+
+<section class="cp-grid">
+<section class="cp-panel">
+<h2>Create a plan</h2>
+<p class="sub">Choose the podcast this subscription supports. Monthly pricing is required; annual pricing is optional.</p>
+<form id="createForm" class="cp-form">
+<div class="cp-field">
+<label for="podcast">Podcast</label>
+<select id="podcast" required><option value="">Loading podcasts…</option></select>
+</div>
+<div class="cp-field">
+<label for="name">Plan name</label>
+<input id="name" maxlength="80" required placeholder="Supporter">
+</div>
+<div class="cp-price-grid">
+<div class="cp-field">
+<label for="monthly">Monthly price (USD)</label>
+<input id="monthly" type="number" min="1" max="1000" step="0.01" required placeholder="5.00">
+</div>
+<div class="cp-field">
+<label for="annual">Annual price (USD)</label>
+<input id="annual" type="number" min="1" max="12000" step="0.01" placeholder="50.00">
+</div>
+</div>
+<div class="cp-field">
+<label for="description">Description</label>
+<textarea id="description" maxlength="1000" placeholder="What subscribers receive…"></textarea>
+</div>
+<div class="cp-field">
+<label for="benefits">Benefits</label>
+<textarea id="benefits" placeholder="One benefit per line&#10;Early access&#10;Bonus episodes&#10;Creator updates"></textarea>
+</div>
+<label class="cp-check"><input id="confirm" type="checkbox" required><span>I confirm this plan belongs to the selected podcast and the prices are correct.</span></label>
+<div class="cp-actions" style="margin-top:2px">
+<button class="cp-btn primary" id="createBtn" type="submit">Create Stripe Plan</button>
+</div>
+<p class="cp-hint">Creator Stripe Connect onboarding must be complete with charges and payouts enabled before a plan can be created.</p>
+</form>
+</section>
+
+<section class="cp-panel">
+<h2>Your plans</h2>
+<p class="sub">Manage active and archived subscription plans connected to your creator account.</p>
+<div id="stats" class="cp-statbar" hidden></div>
+<div id="plans" class="cp-plans"><div class="cp-empty">Loading plans…</div></div>
+</section>
+</section>
+</main>
+
+<div class="cp-modal" id="editModal" aria-hidden="true">
+<div class="cp-dialog" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+<div class="cp-dialog-head"><h2 id="editTitle">Edit plan</h2><button class="cp-btn cp-close" id="closeEdit" type="button">Close</button></div>
+<form id="editForm" class="cp-form">
+<input id="editId" type="hidden">
+<div class="cp-field"><label for="editPodcast">Podcast</label><select id="editPodcast" required></select></div>
+<div class="cp-field"><label for="editName">Plan name</label><input id="editName" maxlength="80" required></div>
+<div class="cp-field"><label for="editDescription">Description</label><textarea id="editDescription" maxlength="1000"></textarea></div>
+<div class="cp-field"><label for="editBenefits">Benefits</label><textarea id="editBenefits"></textarea></div>
+<div class="cp-note">Pricing is managed by Stripe and is not changed here. To change the price, archive this plan and create a new plan.</div>
+<div class="cp-actions"><button class="cp-btn primary" id="saveEdit" type="submit">Save Changes</button><button class="cp-btn" id="cancelEdit" type="button">Cancel</button></div>
+</form>
+</div>
+</div>
+
+<script>
+(()=>{"use strict";
+const API="https://cevylpnoexugwgygvtgu.supabase.co/functions/v1/creator-subscription-manager";
+const $=id=>document.getElementById(id);
+let podcasts=[],plans=[],busy=false;
+
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const money=c=>{const n=Number(c);return Number.isFinite(n)?"$"+(n/100).toFixed(2):"—"};
+const status=(message,type="")=>{const el=$("status");el.textContent=message;el.className="cp-status"+(type?" "+type:"")};
+const session=async()=>{
+ await (window.CROW_DB_READY||Promise.resolve());
+ const sb=window.CROW_SUPABASE;
+ if(!sb?.auth)throw Error("Supabase authentication is unavailable.");
+ const r=await sb.auth.getSession();
+ if(r.error)throw r.error;
+ if(!r.data?.session?.access_token)throw Error("Sign in to manage creator subscription plans.");
+ return r.data.session;
+};
+const api=async(action,payload={})=>{
+ const s=await session();
+ const r=await fetch(API,{method:"POST",headers:{Authorization:"Bearer "+s.access_token,"Content-Type":"application/json"},body:JSON.stringify({action,...payload})});
+ const raw=await r.text();
+ let d={};try{d=raw?JSON.parse(raw):{}}catch(_){}
+ if(!r.ok||d.error)throw Error(d.error||("Subscription manager returned HTTP "+r.status+"."));
+ return d;
+};
+const benefitsText=a=>Array.isArray(a)?a.join("\n"):"";
+const populatePodcasts=()=>{
+ const options='<option value="">Choose a podcast…</option>'+podcasts.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.title||"Untitled Podcast")+(p.slug?" · /"+esc(p.slug):"")+'</option>').join("");
+ $("podcast").innerHTML=options;$("editPodcast").innerHTML=options;
+};
+const render=()=>{
+ const active=plans.filter(p=>p.active).length;
+ const subscribers=plans.reduce((n,p)=>n+Number(p.subscriber_count||0),0);
+ $("stats").hidden=false;
+ $("stats").innerHTML='<div class="cp-stat"><b>'+plans.length+'</b><span>Total plans</span></div><div class="cp-stat"><b>'+active+'</b><span>Active plans</span></div><div class="cp-stat"><b>'+subscribers+'</b><span>Subscribers</span></div>';
+ if(!plans.length){$("plans").innerHTML='<div class="cp-empty">No creator subscription plans yet. Create your first plan on the left.</div>';return}
+ $("plans").innerHTML=plans.map(p=>{
+   const pod=podcasts.find(x=>String(x.id)===String(p.podcast_id));
+   const benefits=Array.isArray(p.benefits)?p.benefits.filter(Boolean):[];
+   return '<article class="cp-card '+(p.active?"":"archived")+'">'+
+    '<div class="cp-card-top"><div class="cp-card-title"><h3>'+esc(p.name||"Untitled Plan")+'</h3><div class="cp-meta">'+esc(pod?.title||"Podcast")+(pod?.slug?" · /"+esc(pod.slug):"")+'</div></div><span class="cp-badge '+(p.active?"":"off")+'">'+(p.active?"ACTIVE":"ARCHIVED")+'</span></div>'+
+    '<div class="cp-prices">'+
+      '<div class="cp-price"><strong>'+money(p.monthly_price_cents)+'</strong> <span>/ month</span></div>'+
+      (p.annual_price_cents!=null?'<div class="cp-price"><strong>'+money(p.annual_price_cents)+'</strong> <span>/ year</span></div>':"")+
+    '</div>'+
+    (p.description?'<p class="cp-description">'+esc(p.description)+'</p>':"")+
+    (benefits.length?'<ul class="cp-benefits">'+benefits.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>':"")+
+    '<div class="cp-meta" style="margin-bottom:12px">'+Number(p.subscriber_count||0)+' active subscriber'+(Number(p.subscriber_count||0)===1?"":"s")+'</div>'+
+    '<div class="cp-card-actions"><button class="cp-btn" data-edit="'+esc(p.id)+'">Edit</button>'+
+    (p.active?'<button class="cp-btn danger" data-archive="'+esc(p.id)+'">Archive Plan</button>':'')+
+    '</div></article>';
+ }).join("");
+};
+const load=async()=>{
+ if(busy)return;
+ busy=true;
+ try{
+   status("Loading creator profile, podcasts, and plans…");
+   const d=await api("list");
+   podcasts=Array.isArray(d.podcasts)?d.podcasts:[];
+   plans=Array.isArray(d.plans)?d.plans:[];
+   populatePodcasts();render();
+   status("Creator plans online · Supabase + Stripe Connect ready","success");
+ }catch(e){
+   $("plans").innerHTML='<div class="cp-empty">Unable to load creator plans.</div>';
+   status(e.message||"Unable to load creator plans.","error");
+ }finally{busy=false}
+};
+$("createForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const btn=$("createBtn");
+ try{
+   if(!$("podcast").value)throw Error("Choose a podcast first.");
+   if(!$("confirm").checked)throw Error("Confirm the podcast and pricing first.");
+   const monthly=Math.round(Number($("monthly").value)*100);
+   const annualRaw=$("annual").value.trim();
+   const annual=annualRaw===""?null:Math.round(Number(annualRaw)*100);
+   if(!Number.isInteger(monthly)||monthly<100||monthly>100000)throw Error("Monthly price must be between $1 and $1,000.");
+   if(annual!==null&&(!Number.isInteger(annual)||annual<100||annual>1200000))throw Error("Annual price must be between $1 and $12,000.");
+   btn.disabled=true;status("Creating Stripe Product and recurring Price(s)…");
+   await api("create_plan",{podcast_id:$("podcast").value,name:$("name").value.trim(),monthly_price_cents:monthly,annual_price_cents:annual,description:$("description").value.trim(),benefits:$("benefits").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,12),currency:"usd"});
+   e.target.reset();await load();status("Plan created successfully · Supabase + Stripe synchronized","success");
+ }catch(err){status(err.message||"Unable to create plan.","error")}finally{btn.disabled=false}
+});
+$("plans").addEventListener("click",async e=>{
+ const edit=e.target.closest("[data-edit]"),archive=e.target.closest("[data-archive]");
+ if(edit){
+   const p=plans.find(x=>String(x.id)===String(edit.dataset.edit));if(!p)return;
+   $("editId").value=p.id;$("editPodcast").value=p.podcast_id||"";$("editName").value=p.name||"";$("editDescription").value=p.description||"";$("editBenefits").value=benefitsText(p.benefits);
+   $("editModal").classList.add("open");$("editModal").setAttribute("aria-hidden","false");$("editName").focus();return;
+ }
+ if(archive){
+   const p=plans.find(x=>String(x.id)===String(archive.dataset.archive));if(!p)return;
+   if(!confirm('Archive "'+(p.name||"this plan")+'"? Existing subscribers are preserved, but new subscriptions will no longer use this plan.'))return;
+   archive.disabled=true;
+   try{status("Archiving Stripe subscription plan…");await api("archive_plan",{plan_id:p.id});await load();status("Plan archived successfully.","success")}
+   catch(err){status(err.message||"Unable to archive plan.","error")}finally{archive.disabled=false}
+ }
+});
+$("editForm").addEventListener("submit",async e=>{
+ e.preventDefault();const btn=$("saveEdit");
+ try{
+   btn.disabled=true;status("Saving creator plan changes…");
+   await api("update_plan",{plan_id:$("editId").value,podcast_id:$("editPodcast").value,name:$("editName").value.trim(),description:$("editDescription").value.trim(),benefits:$("editBenefits").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,12)});
+   closeEdit();await load();status("Plan updated successfully.","success");
+ }catch(err){status(err.message||"Unable to update plan.","error")}finally{btn.disabled=false}
+});
+const closeEdit=()=>{$("editModal").classList.remove("open");$("editModal").setAttribute("aria-hidden","true")};
+$("closeEdit").onclick=closeEdit;$("cancelEdit").onclick=closeEdit;
+$("editModal").addEventListener("click",e=>{if(e.target===$("editModal"))closeEdit()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeEdit()});
+$("refreshBtn").onclick=load;
+window.addEventListener("crow:auth",()=>load(),{once:true});
+load();
+})();
+</script>
+</body>
+</html>
