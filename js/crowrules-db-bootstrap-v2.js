@@ -24,6 +24,10 @@ async function boot(){
  api.snapshot=()=>({catalog:cache.catalog,account:cache.account,notifications:cache.notifications.slice(),progress:Array.from(cache.progress.values())});
  api.bootstrap=async()=>{await api.refreshCatalog();if(window.__CROW_USER)await Promise.allSettled([api.refreshAccount(),api.refreshNotifications(),api.refreshProgress()]);return api.snapshot()};
  window.addEventListener("crow:auth",()=>{api.bootstrap().catch(()=>{})});
+ ["podcasts","podcast_episodes","creators"].forEach(t=>window.addEventListener("crow:v13:catalog-change",()=>api.refreshCatalog().catch(()=>{})));
+ window.addEventListener("crow:v13:podcast_notifications-change",()=>api.refreshNotifications().catch(()=>{}));
+ window.addEventListener("crow:v13:podcast_episode_progress-change",()=>api.refreshProgress().catch(()=>{}));
+
  window.addEventListener("crow:ready",()=>{api.bootstrap().catch(()=>{})},{once:true});
  const sb=window.CROW_SUPABASE;let session=null;try{session=(await Promise.race([sb.auth.getSession(),timeout(10000)])).data?.session||null}catch(_){}
  window.__CROW_USER=session?.user||null;window.__CROW_AUTH_READY=true;window.CROW_SUPABASE_CONNECTION="connected";try{sb.realtime?.setAuth(session?.access_token||undefined)}catch(_){}
