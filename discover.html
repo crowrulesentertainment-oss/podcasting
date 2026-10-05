@@ -302,34 +302,9 @@ async function waitClient(ms=15000){
  }
  throw Error("Supabase client could not initialize.");
 }
-async function auth(){
- try{const r=await Promise.race([sb.auth.getSession(),new Promise((_,r)=>setTimeout(()=>r(Error("auth timeout")),7000))]);user=r.data?.session?.user||null;window.__CROW_USER=user;window.__CROW_AUTH_READY=true}catch(e){user=null;window.__CROW_AUTH_READY=true}
- $("profileState").textContent=user?"Signed in":"Guest";
-}
-async function loadCatalog(){
- const [p,e,c]=await Promise.all([
-  sb.from("podcasts").select("*").eq("status","published").order("created_at",{ascending:false}),
-  sb.from("podcast_episodes").select("*").eq("status","published").order("published_at",{ascending:false}),
-  sb.from("creators").select("*").eq("is_active",true).order("sort_order",{ascending:true})
- ]);
- if(p.error)throw p.error;if(e.error)throw e.error;if(c.error)throw c.error;
- podcasts=p.data||[];episodes= e.data||[];creators=c.data||[];
-}
-async function loadPersonal(){
- if(!user)return;
- const uid=user.id;
- const [f,s,pr,sg]=await Promise.all([
-  sb.from("podcast_follows").select("podcast_id").eq("user_id",uid),
-  sb.from("podcast_saved_episodes").select("episode_id").eq("user_id",uid),
-  sb.from("cr_podcast_playback_progress").select("*").eq("user_id",uid).order("last_played_at",{ascending:false}).limit(100),
-  sb.from("podcast_discover_user_signals").select("*").eq("user_id",uid).maybeSingle()
- ]);
- if(f.error)throw f.error;if(s.error)throw s.error;if(pr.error)throw pr.error;
- following=new Set((f.data||[]).map(x=>x.podcast_id));saved=new Set((s.data||[]).map(x=>x.episode_id));progress=pr.data||[];signals=sg.data||null;
- try{await sb.rpc("podcast_discover_refresh_user_signals",{p_user_id:uid})}catch(e){console.warn("signal refresh",e)}
- const sr=await sb.from("podcast_discover_user_signals").select("*").eq("user_id",uid).maybeSingle();if(!sr.error)signals=sr.data||signals;
- await refreshRecommendations();
-}
+async function auth(){const data=window.CROW_DATA?.snapshot?.()||{};user=window.__CROW_USER||data.account?.user||null;$("profileState").textContent=user?"Signed in":"Guest"}
+async function loadCatalog(){const data=window.CROW_DATA?.snapshot?.(),cat=data?.catalog;if(!cat)throw Error("Podcast catalog is still initializing.");podcasts=cat.podcasts||[];episodes=cat.episodes||[];creators=cat.creators||[]}
+async function loadPersonal(){const data=window.CROW_DATA?.snapshot?.()||{};following=new Set(data.follows||[]);saved=new Set(data.saved||[]);progress=data.progress||[];if(!user)return;try{const uid=user.id;const sg=await sb.from("podcast_discover_user_signals").select("*").eq("user_id",uid).maybeSingle();signals=sg.data||null;await refreshRecommendations()}catch(e){console.warn("discover signals",e)}}
 async function refreshRecommendations(){
  if(!user)return;
  $("engineState").textContent="Refreshing…";
@@ -399,9 +374,9 @@ function startRealtime(){
 }
 async function boot(){
  try{
-  setHealth("warn","Connecting");sb=await waitClient();await auth();await loadCatalog();await loadPersonal();
+  setHealth("warn","Connecting");sb=await waitClient();await window.CROW_DATA?.bootstrap?.();await auth();await loadCatalog();await loadPersonal();
   render();renderSaved();renderRecent();setHealth("ok",user?"Personalized + live":"Catalog connected");
-  startRealtime();
+  window.addEventListener("crow:data:catalog",()=>{loadCatalog().then(render).catch(()=>{})});window.addEventListener("crow:data:progress",()=>{const d=window.CROW_DATA.snapshot();progress=d.progress||[];render()});
  }catch(e){console.error("Discover boot",e);setHealth("bad","Connection issue");$("featureTitle").textContent="Discover is temporarily unavailable";$("featureCopy").textContent=e.message||"Refresh the page to reconnect.";renderRail("trending","", "Catalog could not be loaded.");renderRail("fresh","", "Catalog could not be loaded.")}
 }
 
