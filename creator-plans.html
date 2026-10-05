@@ -68,7 +68,15 @@ body{background:radial-gradient(circle at 50% -10%,rgba(255,122,24,.16),transpar
 .cp-note{padding:11px;border-radius:10px;background:rgba(255,122,24,.06);border:1px solid rgba(255,122,24,.15);color:#c3cad5;font-size:11px;line-height:1.5}
 @media(max-width:900px){.cp-grid{grid-template-columns:1fr}.cp-wrap{padding-top:24px}}
 @media(max-width:560px){.cp-wrap{width:min(100% - 18px,1180px)}.cp-hero,.cp-panel{padding:17px}.cp-price-grid{grid-template-columns:1fr}.cp-statbar{grid-template-columns:1fr 1fr}.cp-stat:last-child{grid-column:1/-1}}
-</style>
+.cp-stripe{margin-top:18px;padding:20px;border:1px solid rgba(101,242,255,.18);border-radius:20px;background:linear-gradient(145deg,rgba(7,19,24,.88),rgba(12,7,17,.92));box-shadow:0 15px 50px rgba(0,0,0,.22)}
+.cp-stripe-head{display:flex;align-items:flex-start;gap:14px}.cp-stripe-icon{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(135deg,#635bff,#8b5cf6);font:900 16px Orbitron,sans-serif;color:#fff}
+.cp-stripe-title{flex:1}.cp-stripe-title h2{margin:0 0 4px;font:900 18px Orbitron,Montserrat,sans-serif}.cp-stripe-title p{margin:0;color:var(--cp-muted);font-size:11px}
+.cp-stripe-id{font:800 10px ui-monospace,SFMono-Regular,Consolas,monospace;color:#b9c4d4;word-break:break-all}
+.cp-stripe-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:16px}.cp-stripe-stat{padding:11px;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:rgba(255,255,255,.035)}.cp-stripe-stat b{display:block;font-size:13px}.cp-stripe-stat span{display:block;margin-top:3px;color:var(--cp-muted);font-size:9px;text-transform:uppercase;letter-spacing:.06em}
+.cp-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;font:800 8px Orbitron,sans-serif;letter-spacing:.06em}.cp-pill.ok{color:#9dffd8;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.22)}.cp-pill.warn{color:#ffd58a;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.22)}.cp-pill.bad{color:#ffabb8;background:rgba(255,82,104,.08);border:1px solid rgba(255,82,104,.25)}
+.cp-stripe-products{display:grid;gap:8px;margin-top:14px}.cp-stripe-product{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.06)}.cp-stripe-product-main{flex:1;min-width:0}.cp-stripe-product-main b{display:block;font-size:12px}.cp-stripe-product-main span{display:block;color:var(--cp-muted);font:9px ui-monospace,SFMono-Regular,Consolas,monospace;margin-top:3px}.cp-stripe-price{font-size:11px;color:#dce5f0;white-space:nowrap}.cp-stripe-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;color:var(--cp-muted);font-size:10px}.cp-stripe-foot button{border:0;background:none;color:#8eefff;cursor:pointer;font:800 9px Orbitron,sans-serif}
+@media(max-width:760px){.cp-stripe-grid{grid-template-columns:1fr 1fr}.cp-stripe-foot{align-items:flex-start;flex-direction:column}}
+@media(max-width:480px){.cp-stripe-grid{grid-template-columns:1fr}}</style>
 </head>
 <body class="cr-halloween-theme">
 <main class="cp-wrap">
@@ -84,6 +92,25 @@ body{background:radial-gradient(circle at 50% -10%,rgba(255,122,24,.16),transpar
 </section>
 
 <div id="status" class="cp-status" role="status" aria-live="polite">Connecting to CrowRules…</div>
+<section class="cp-stripe" aria-labelledby="stripeHeading">
+  <div class="cp-stripe-head">
+    <div class="cp-stripe-icon">S</div>
+    <div class="cp-stripe-title">
+      <h2 id="stripeHeading">Live Stripe Integration</h2>
+      <p id="stripeBusiness">Checking the connected Stripe account…</p>
+      <div class="cp-stripe-id" id="stripeAccountId">—</div>
+    </div>
+    <button class="cp-btn" id="stripeRefresh" type="button">Sync Stripe</button>
+  </div>
+  <div class="cp-stripe-grid" id="stripeStats">
+    <div class="cp-stripe-stat"><b>—</b><span>Account</span></div>
+    <div class="cp-stripe-stat"><b>—</b><span>Charges</span></div>
+    <div class="cp-stripe-stat"><b>—</b><span>Payouts</span></div>
+    <div class="cp-stripe-stat"><b>—</b><span>Currency</span></div>
+  </div>
+  <div class="cp-stripe-products" id="stripeProducts"><div class="cp-empty">Loading live Stripe products and recurring prices…</div></div>
+  <div class="cp-stripe-foot"><span id="stripeRequirements">Stripe account requirements will appear here.</span><button type="button" id="stripeDashboardHint">Connected account data is read directly from Stripe</button></div>
+</section>
 
 <section class="cp-grid">
 <section class="cp-panel">
@@ -152,7 +179,7 @@ body{background:radial-gradient(circle at 50% -10%,rgba(255,122,24,.16),transpar
 (()=>{"use strict";
 const API="https://cevylpnoexugwgygvtgu.supabase.co/functions/v1/creator-subscription-manager";
 const $=id=>document.getElementById(id);
-let podcasts=[],plans=[],busy=false;
+let podcasts=[],plans=[],stripeData=null,busy=false;
 
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const money=c=>{const n=Number(c);return Number.isFinite(n)?"$"+(n/100).toFixed(2):"—"};
@@ -202,6 +229,34 @@ const render=()=>{
     '</div></article>';
  }).join("");
 };
+const renderStripe=()=>{
+ const s=stripeData;
+ if(!s){$("stripeBusiness").textContent="No live Stripe account data loaded.";return}
+ $("stripeBusiness").textContent=(s.business_name||"Stripe account")+" · "+String(s.type||"").toUpperCase()+" account";
+ $("stripeAccountId").textContent=s.id||"—";
+ const pill=(ok,label)=>'<span class="cp-pill '+(ok?"ok":"bad")+'">'+(ok?"●":"●")+" "+label+"</span>";
+ $("stripeStats").innerHTML=
+   '<div class="cp-stripe-stat"><b>'+pill(true,"CONNECTED")+'</b><span>Account</span></div>'+
+   '<div class="cp-stripe-stat"><b>'+pill(!!s.charges_enabled,s.charges_enabled?"ENABLED":"NOT READY")+'</b><span>Charges</span></div>'+
+   '<div class="cp-stripe-stat"><b>'+pill(!!s.payouts_enabled,s.payouts_enabled?"ENABLED":"NOT READY")+'</b><span>Payouts</span></div>'+
+   '<div class="cp-stripe-stat"><b>'+esc(String(s.default_currency||"—").toUpperCase())+'</b><span>Default currency</span></div>';
+ const prices=s.prices||[], products=s.products||[];
+ const productCards=products.slice(0,20).map(p=>{
+   const pp=prices.filter(x=>x.product===p.id);
+   const plan=plans.find(x=>x.stripe_product_id===p.id);
+   const priceText=pp.length?pp.map(x=>money(x.unit_amount)+" / "+(x.recurring?.interval||"period")).join(" · "):"No recurring price";
+   return '<div class="cp-stripe-product"><div class="cp-stripe-product-main"><b>'+esc(p.name||"Untitled Stripe Product")+'</b><span>'+esc(p.id)+(plan?' · linked to '+esc(plan.name||"creator plan"):"")+'</span></div><div class="cp-stripe-price">'+esc(priceText)+'</div></div>';
+ }).join("");
+ $("stripeProducts").innerHTML=productCards||'<div class="cp-empty">No active Stripe recurring products found on the connected account.</div>';
+ const due=(s.requirements?.currently_due||[]).length+(s.requirements?.past_due||[]).length;
+ $("stripeRequirements").textContent=due?("Stripe has "+due+" outstanding requirement"+(due===1?"":"s")+" for this account."):"Stripe reports no currently due or past-due requirements.";
+};
+const loadStripe=async()=>{
+ const btn=$("stripeRefresh");if(btn)btn.disabled=true;
+ try{const d=await api("stripe_status");stripeData=d.stripe;renderStripe()}
+ catch(e){stripeData=null;$("stripeBusiness").textContent=e.message||"Unable to load Stripe account."; $("stripeProducts").innerHTML='<div class="cp-empty">Stripe integration data could not be loaded.</div>'}
+ finally{if(btn)btn.disabled=false}
+};
 const load=async()=>{
  if(busy)return;
  busy=true;
@@ -210,8 +265,8 @@ const load=async()=>{
    const d=await api("list");
    podcasts=Array.isArray(d.podcasts)?d.podcasts:[];
    plans=Array.isArray(d.plans)?d.plans:[];
-   populatePodcasts();render();
-   status("Creator plans online · Supabase + Stripe Connect ready","success");
+   populatePodcasts();render();await loadStripe();
+   status("Creator plans online · live Stripe account synchronized","success");
  }catch(e){
    $("plans").innerHTML='<div class="cp-empty">Unable to load creator plans.</div>';
    status(e.message||"Unable to load creator plans.","error");
@@ -261,6 +316,7 @@ $("closeEdit").onclick=closeEdit;$("cancelEdit").onclick=closeEdit;
 $("editModal").addEventListener("click",e=>{if(e.target===$("editModal"))closeEdit()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeEdit()});
 $("refreshBtn").onclick=load;
+$("stripeRefresh").onclick=loadStripe;
 window.addEventListener("crow:auth",()=>load(),{once:true});
 load();
 })();
