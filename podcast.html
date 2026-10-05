@@ -19,7 +19,8 @@
 
 <link rel="stylesheet" href="css/podcasting-v15.css?v=20261005-01">
 <script src="js/sitewide-v15.js?v=20261005-01" defer></script>
-<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"></head>
+<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"><link rel="stylesheet" href="css/sitewide-rebuild-v18.css">
+</head>
 <body>
 <div data-nav data-crow-v14-runtime="14"></div>
 <main class="page"><div class="wrap">
@@ -50,5 +51,6 @@ async function toggleFollow(){if(!podcast)return;if(!window.__CROW_USER){locatio
 $('followBtn').addEventListener('click',toggleFollow);$('episodeSearch').addEventListener('input',renderEpisodes);$('sort').addEventListener('change',renderEpisodes);$('shareBtn').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(location.href);$('shareBtn').textContent='Link Copied'}catch(_){prompt('Copy this podcast link:',location.href)}setTimeout(()=>$('shareBtn').textContent='Share',1500)});window.addEventListener('crow:data:catalog',()=>{if(!podcast)return;const s=window.CROW_DATA.snapshot();const fresh=(s.catalog?.podcasts||[]).find(podcastMatches);if(fresh){podcast=fresh;episodes=(s.catalog?.episodes||[]).filter(e=>String(e.podcast_id)===String(podcast.id));render()}});window.addEventListener('crow:data:follows',updateFollow);window.addEventListener('crow:auth',updateFollow);load();
 })();
 </script>
+<script src="js/sitewide-rebuild-v18.js"></script>
 </body>
 </html>
