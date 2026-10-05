@@ -46,5 +46,5 @@ async function boot(){
  window.addEventListener("crow:ready",()=>{memberContext()},{once:false});
  memberContext();
 }
-boot();
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
