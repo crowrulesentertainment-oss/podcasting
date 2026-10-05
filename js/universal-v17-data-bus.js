@@ -2,11 +2,13 @@
 if(window.__CROW_PODCASTING_V17_2_BUS__)return;
 window.__CROW_PODCASTING_V17_2_BUS__=true;
 
-const VERSION="17.2.0";
+const VERSION="17.3.0";
 const SESSION=window.__CROW_PODCASTING_V17_SESSION__||(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random());
 let sb=null,user=null,channel=null,presenceTimer=null;
 const cache={notifications:[],continueListening:[],follows:[],subscriptions:[],presence:null,creator:null,playerQueue:null};
 const listeners=new Map();
+const migration={directSupabase:0,delegated:0,startedAt:new Date().toISOString()};
+const delegate=(name,fn)=>async(...args)=>{migration.delegated++;try{return await fn(...args)}catch(e){console.warn("CrowRules V17.3 "+name,e);throw e}};
 
 const emit=(topic,detail={})=>{
   const payload={topic,...detail};
@@ -160,16 +162,18 @@ function bindPlayer(){
   window.addEventListener("crow:player:ended",e=>emit("player",{event:"ended",detail:e.detail||{}}));
 }
 
-function snapshot(){return {version:VERSION,user,cache:{notifications:[...cache.notifications],continueListening:[...cache.continueListening],follows:[...cache.follows],subscriptions:[...cache.subscriptions],presence:cache.presence,creator:cache.creator,playerQueue:cache.playerQueue}}}
+function snapshot(){return {version:VERSION,migration:{...migration},user,cache:{notifications:[...cache.notifications],continueListening:[...cache.continueListening],follows:[...cache.follows],subscriptions:[...cache.subscriptions],presence:cache.presence,creator:cache.creator,playerQueue:cache.playerQueue}}}
 
 const bus={version:VERSION,sessionId:SESSION,ready,refreshAuth,getSession:async()=>{const db=await ready();return db?(await db.auth.getSession()).data?.session||null:null},getUser:()=>user,
 search,notifications,markNotificationRead,continueListening,getListeningHistory,saveProgress,
 follows,follow,unfollow,subscriptions,presence,playerQueue,getPlayerQueue,creatorIntelligence,on,emit,bootRealtime,snapshot};
 
+bus.getFollows=bus.follows;bus.getSubscriptions=bus.subscriptions;bus.getPresence=bus.presence;bus.getCreatorIntelligence=bus.creatorIntelligence;bus.getAuth=bus.getUser;
+window.CROW_PODCASTING_V17_3=bus;
 window.CROW_PODCASTING_V17_2=bus;
 window.CROW_DATA_BUS=bus;
 window.CROW_PODCASTING_V17=Object.assign(window.CROW_PODCASTING_V17||{},{
-  version:VERSION,data:bus,bus,
+  version:VERSION,data:bus,bus,migration:migration,
   getSession:bus.getSession,getUser:bus.getUser,search:bus.search,
   notifications:bus.notifications,markNotificationRead:bus.markNotificationRead,
   continueListening:bus.continueListening,getListeningHistory:bus.getListeningHistory,
