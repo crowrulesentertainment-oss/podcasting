@@ -96,12 +96,12 @@
 
   async function loadPersonalStats(user){
     if(!user){analyticsEl.hidden=false;analyticsEl.innerHTML='<div class="notice"><strong>Sign in to track your listening.</strong> Your progress, listening history, and CrowPoints will sync to your CrowRules account.</div>';return}
-    const [progress,listens,points]=await Promise.all([
-      sb.from("podcast_episode_progress").select("position_seconds,duration_seconds,percent_complete,completed,last_played_at").eq("user_id",user.id).eq("episode_id",episode.id).maybeSingle(),
+    const progressRow=(window.CROW_DATA?.snapshot?.().progress||[]).find(x=>String(x.episode_id)===String(episode.id))||null;
+    const [listens,points]=await Promise.all([
       sb.from("podcast_listens").select("seconds_listened,completed,created_at").eq("user_id",user.id).eq("episode_id",episode.id).order("created_at",{ascending:false}).limit(50),
       sb.from("crowrules_crowpoints_ledger").select("points").eq("user_id",user.id)
     ]);
-    const p=progress.data||{};
+    const p=progressRow||{};
     const rows=listens.data||[];
     const totalSeconds=rows.reduce((n,r)=>n+Number(r.seconds_listened||0),0);
     const totalPoints=(points.data||[]).reduce((n,r)=>n+Number(r.points||0),0);
