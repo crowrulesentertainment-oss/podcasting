@@ -242,13 +242,20 @@ const renderStripe=()=>{
    '<div class="cp-stripe-stat"><b>'+pill(!!s.payouts_enabled,s.payouts_enabled?"ENABLED":"NOT READY")+'</b><span>Payouts</span></div>'+
    '<div class="cp-stripe-stat"><b>'+esc(String(s.default_currency||"—").toUpperCase())+'</b><span>Default currency</span></div>';
  const prices=s.prices||[], products=s.products||[];
- const productCards=products.slice(0,20).map(p=>{
+ const mysteryPlan={name:"Bonded in Mystery Membership",productName:"Bonded in Mystery",priceCents:999,interval:"month"};
+const productCards=products.slice(0,20).map(p=>{
    const pp=prices.filter(x=>x.product===p.id);
    const plan=plans.find(x=>x.stripe_product_id===p.id);
    const priceText=pp.length?pp.map(x=>money(x.unit_amount)+" / "+(x.recurring?.interval||"period")).join(" · "):"No recurring price";
    return '<div class="cp-stripe-product"><div class="cp-stripe-product-main"><b>'+esc(p.name||"Untitled Stripe Product")+'</b><span>'+esc(p.id)+(plan?' · linked to '+esc(plan.name||"creator plan"):"")+'</span></div><div class="cp-stripe-price">'+esc(priceText)+'</div></div>';
  }).join("");
- $("stripeProducts").innerHTML=productCards||'<div class="cp-empty">No active Stripe recurring products found on the connected account.</div>';
+ let mysteryCard="";
+ const mysteryStripe=products.find(p=>String(p.name||"").toLowerCase().includes("bonded in mystery"));
+ const mysteryPrice=prices.find(x=>x.product===(mysteryStripe?.id||"") && x.recurring?.interval==="month" && Number(x.unit_amount)===999);
+ if(mysteryStripe && mysteryPrice){
+   mysteryCard='<div class="cp-stripe-product"><div class="cp-stripe-product-main"><b>Bonded in Mystery Membership</b><span>Bonded in Mystery · '+esc(mysteryStripe.id)+'</span></div><div class="cp-stripe-price">$9.99 / month</div><span class="cp-pill ok">ACTIVE</span></div>';
+ }
+ $("stripeProducts").innerHTML=(mysteryCard||"")+productCards||'<div class="cp-empty">No active Stripe recurring products found on the connected account.</div>';
  const due=(s.requirements?.currently_due||[]).length+(s.requirements?.past_due||[]).length;
  $("stripeRequirements").textContent=due?("Stripe has "+due+" outstanding requirement"+(due===1?"":"s")+" for this account."):"Stripe reports no currently due or past-due requirements.";
 };
