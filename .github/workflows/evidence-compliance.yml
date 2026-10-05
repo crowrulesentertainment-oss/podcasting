@@ -71,6 +71,26 @@ jobs:
             node scripts/evidence-consumer-scan.mjs
           fi
 
+
+      - name: Run V7.32 preventive change guard
+        env:
+          CROW_CHANGED_FILES: ${{ env.CROW_CHANGED_FILES }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.full_scan }}" == "true" ]]; then
+            node scripts/evidence-change-guard-v732.mjs --all
+          else
+            node scripts/evidence-change-guard-v732.mjs
+          fi
+
+      - name: Upload V7.32 change-guard report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v7-32-evidence-change-guard
+          path: .evidence-compliance/change-guard.json
+          if-no-files-found: ignore
+
       - name: Upload compliance report
         if: always()
         uses: actions/upload-artifact@v4
