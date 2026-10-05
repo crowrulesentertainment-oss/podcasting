@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Creator Studio — CrowRules Podcasting</title>\n<script src="js/config.js?v=20261004-24"></script>
+<title>Creator Studio — CrowRules Podcasting</title>\n
 <script>
 (function(){
   "use strict";
@@ -162,16 +162,13 @@ var sb=null,user=null,creator=null,podcasts=[],episodes=[],refreshTimer=null,ref
 function setConnection(ok,title,detail){$("connectionState").innerHTML='<span class="status-dot '+(ok?"live":"bad")+'"></span>'+esc(title);$("connectionDetail").textContent=detail}
 function health(id,text,good){$(id).textContent=text;$(id).style.borderColor=good?"#35f2a133":"#ff526833"}
 
-async function getClient(){if(window.CROW_DATA?.ready)return await window.CROW_DATA.ready();return window.CROW_SUPABASE||null}
-
-async function connect(){setConnection(false,"CONNECTING","Waiting for CrowRules shared data layer…");sb=await getClient();var data=window.CROW_DATA?.snapshot?.()||{};user=window.__CROW_USER||data.account?.user;if(!user)throw new Error("Please sign in to your CrowRules account first.");health("authHealth","AUTH · SIGNED IN",true);setConnection(false,"ACCOUNT VERIFIED","Loading your creator profile…")}
-
+async function getClient(){return window.CROW_DATA?.ready?await window.CROW_DATA.ready():window.CROW_SUPABASE||null}
 async function getCreator(){const d=window.CROW_CREATOR_DASHBOARD_DOMAIN||window.CROW_DOMAIN_SERVICES;const creator=await d?.creator?.me?.();if(!creator)throw new Error("Listener account · Create your first podcast to become a creator.");if(creator.is_active===false)throw new Error("Your creator profile is inactive.");return creator;}
-async function loadPodcasts(){var data=window.CROW_DATA?.snapshot?.()||{},rows=(data.catalog?.podcasts||[]).filter(function(p){return String(p.creator_id)===String(creator.id)});return rows}
-async function loadEpisodes(){if(!podcasts.length)return[];var data=window.CROW_DATA?.snapshot?.()||{},ids=podcasts.map(function(p){return String(p.id)});return(data.catalog?.episodes||[]).filter(function(e){return ids.indexOf(String(e.podcast_id))>=0}).slice().sort(function(a,b){return new Date(b.updated_at||b.published_at||b.created_at||0)-new Date(a.updated_at||a.published_at||a.created_at||0)}).slice(0,500)}
-async function loadFollowers(){if(!podcasts.length)return 0;try{const d=window.CROW_CREATOR_DASHBOARD_DOMAIN||window.CROW_DOMAIN_SERVICES;const data=await d.creator.dashboard(creator.id,user.id);return Number(data?.followers||0)}catch(_){return 0}}
-async function loadAnalytics(){const box=$("analytics");if(!episodes.length){box.innerHTML="<b>0</b> listens<br><span class='muted'>No episodes yet.</span>";return}try{const d=window.CROW_CREATOR_DASHBOARD_DOMAIN||window.CROW_DOMAIN_SERVICES;const data=await d.analytics.creator(creator.id);const rows=data?.listens||[];const seconds=rows.reduce(function(n,x){return n+Number(x.seconds_listened||0)},0),completed=rows.filter(function(x){return x.completed}).length;box.innerHTML="<b>"+rows.length.toLocaleString()+"</b> listens<br><span class='muted'>"+Math.round(seconds/60).toLocaleString()+" minutes · "+completed.toLocaleString()+" completed</span>"}catch(_){box.innerHTML="<span class='muted'>Listening analytics will appear when listening data is available.</span>"}}
-async function loadRevenue(){const box=$("revenue");try{const d=window.CROW_CREATOR_DASHBOARD_DOMAIN||window.CROW_DOMAIN_SERVICES;const data=await d.creator.dashboard(creator.id,user.id);const rows=data?.revenue||[],total=rows.reduce(function(n,x){return n+Number(x.creator_amount||0)},0);box.innerHTML="<b>$"+(total/100).toFixed(2)+"</b><br><span class='muted'>Recorded creator revenue · "+rows.length+" transactions</span>"}catch(_){box.innerHTML="<span class='muted'>Revenue data is not available yet.</span>"}}
+async function loadPodcasts(){const d=window.CROW_CREATOR_DASHBOARD_DOMAIN||window.CROW_DOMAIN_SERVICES;if(!d?.creator?.podcasts)throw new Error("Creator domain is still initializing.");return await d.creator.podcasts(creator.id)}
+async function loadEpisodes(){if(!podcasts.length)return[];const d=window.CROW_CREATOR_DASHBOARD_DOMAIN||window.CROW_DOMAIN_SERVICES;const data=await d.analytics.creator(creator.id);return(data?.episodes||[]).slice().sort(function(a,b){return new Date(b.updated_at||b.published_at||b.created_at||0)-new Date(a.updated_at||a.published_at||a.created_at||0)}).slice(0,500)}
+async function loadFollowers(){try{const d=window.CROW_CREATOR_DASHBOARD_DOMAIN||window.CROW_DOMAIN_SERVICES;const data=await d.creator.dashboard(creator.id,user.id);return Number(data?.followers||0)}catch(_){return 0}}
+async function loadAnalytics(){{const box=$("analytics");if(!episodes.length){box.innerHTML="<b>0</b> listens<br><span class='muted'>No episodes yet.</span>";return}try{const d=window.CROW_CREATOR_DASHBOARD_DOMAIN||window.CROW_DOMAIN_SERVICES;const data=await d.analytics.creator(creator.id);const rows=data?.listens||[];const seconds=rows.reduce(function(n,x){return n+Number(x.seconds_listened||0)},0),completed=rows.filter(function(x){return x.completed}).length;box.innerHTML="<b>"+rows.length.toLocaleString()+"</b> listens<br><span class='muted'>"+Math.round(seconds/60).toLocaleString()+" minutes · "+completed.toLocaleString()+" completed</span>"}catch(_){box.innerHTML="<span class='muted'>Listening analytics will appear when listening data is available.</span>"}}
+async function loadRevenue(){const box=$("revenue");try{const d=window.CROW_CREATOR_DASHBOARD_DOMAIN||window.CROW_DOMAIN_SERVICES;const data=await d.analytics.creator(creator.id);const rows=data?.revenue||[],total=rows.reduce(function(n,x){return n+Number(x.creator_amount||0)},0);box.innerHTML="<b>$"+(total/100).toFixed(2)+"</b><br><span class="muted">Recorded creator revenue · "+rows.length+" transactions</span>"}catch(_){box.innerHTML="<span class="muted">Revenue data is not available yet.</span>"}}
 function renderPodcasts(){
  var term=($("podcastSearch").value||"").trim().toLowerCase(),filter=$("podcastFilter").value;
  var rows=podcasts.filter(function(p){return (filter==="all"||String(p.status||"").toLowerCase()===filter)&&(!term||[p.title,p.category,p.description].some(function(v){return String(v||"").toLowerCase().indexOf(term)>=0}))});
