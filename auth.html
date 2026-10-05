@@ -45,7 +45,7 @@
 let sb=null,mode="login";
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
-const next=params.get("next")||"membership.html";
+const next=params.get("next")||"membership.html"; const initialMode=params.get("mode")==="signup"?"signup":"login";
 const safeNext=next.startsWith("/")||/^[a-zA-Z0-9_./?=&%-]+\.html(?:[?#].*)?$/.test(next)?next:"membership.html";
 function message(text,type){const e=$("message");e.textContent=text;e.className="auth-message show "+type}
 function setMode(m){mode=m;const signup=m==="signup";$("login-tab").classList.toggle("active",!signup);$("signup-tab").classList.toggle("active",signup);$("name-wrap").style.display=signup?"block":"none";$("confirm-wrap").style.display=signup?"block":"none";$("submit").textContent=signup?"Create CrowRules Account":"Log In";$("forgot").style.display=signup?"none":"block";$("auth-title").innerHTML=signup?"Create Your <span class=\"gradient\">CrowRules Account</span>":"CrowRules <span class=\"gradient\">Account</span>";$("auth-copy").textContent=signup?"Create one account for the CrowRules universe — Podcasting, Dreamscapes, Sports, CrowSpace and more.":"Sign in to your universal CrowRules account and continue across every division.";message("","")}
@@ -72,7 +72,7 @@ r=await sb.auth.signInWithPassword({email,password});if(r.error)throw r.error;lo
 }catch(e){message(e.message||"Authentication failed.","error")}finally{$("submit").disabled=false}};
 $("forgot").onclick=async()=>{if(!sb)return;const email=$("email").value.trim();if(!email){message("Enter your email address first.","error");return}try{const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:new URL("auth.html?next="+encodeURIComponent(safeNext)+"&reset=1",location.href).href});if(error)throw error;message("Password reset instructions have been sent if that email belongs to a CrowRules account.","success")}catch(e){message(e.message||"Unable to send reset instructions.","error")}};
 $("google").onclick=async()=>{if(!sb)return;try{const {error}=await sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:new URL("auth.html?next="+encodeURIComponent(safeNext),location.href).href}});if(error)throw error}catch(e){message(e.message||"Google sign-in is unavailable.","error")}};
-boot();
+setMode(initialMode); boot();
 })();
 </script>
 </body></html>
