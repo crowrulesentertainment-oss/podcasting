@@ -224,7 +224,7 @@ function interceptPlayButtons(){
     const play=b.matches("[data-play],[data-play-episode],.crv15-play,.play")||/^(play|resume|listen|continue|▶|listen now)/i.test((b.textContent||"").trim());
     if(!play)return;
     const d=b.dataset||{};
-    const item=cleanItem({id:d.episodeId||d.episode||d.id,title:d.title||d.episodeTitle,creator:d.creator||d.creatorName,url:d.audioUrl||d.audio||d.src,artwork:d.artwork||d.artworkUrl,duration:d.duration||d.durationSeconds});
+    const item=cleanItem({id:d.episodeId||d.episode||d.id,title:d.title||d.episodeTitle,creator:d.creator||d.creatorName,url:d.audioUrl||d.audio||d.src||d.play||d.url,artwork:d.artwork||d.artworkUrl,duration:d.duration||d.durationSeconds});
     if(item){add(item,true);e.preventDefault();e.stopImmediatePropagation()}
   },true);
 }
