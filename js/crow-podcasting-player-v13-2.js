@@ -1,0 +1,37 @@
+(()=>{"use strict";
+if(window.__CROW_PODCASTING_V13_2__)return;window.__CROW_PODCASTING_V13_2__=true;
+const KEY="crowrules_universal_player_v13_2";
+const BASE="/podcasting/";
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const read=()=>{try{return JSON.parse(localStorage.getItem(KEY)||localStorage.getItem("crowrules_universal_player_v13")||"{}")}catch(_){return{}}};
+const write=s=>{try{localStorage.setItem(KEY,JSON.stringify({...s,saved_at:new Date().toISOString()}));localStorage.setItem("crowrules_universal_player_v13",JSON.stringify(s))}catch(_){}};
+let state=read();
+function announce(){window.dispatchEvent(new CustomEvent("crow:v13.2:player",{detail:{...state}}))}
+function normalize(s){if(!s)return null;return {id:s.id||s.episodeId||s.episode_id||"",title:s.title||s.name||"Episode",creator:s.creator||s.creator_name||s.author||s.author_name||"CrowRules Podcasting",url:s.url||s.audio_url||s.audio||s.src||"",position:Number(s.position||s.position_seconds||0),duration:Number(s.duration||s.duration_seconds||0),speed:Number(s.speed)||1,artwork:s.artwork||s.artwork_url||s.thumbnail_url||s.image_url||""}}
+function current(){return normalize(window.CROW_PLAYER?.state?.()||state)||state}
+function load(s,autoplay=true){s=normalize(s);if(!s?.url)return false;state={...state,...s};write(state);if(window.CROW_PLAYER?.load)window.CROW_PLAYER.load({...state},autoplay);else if(window.CROW_PLAYER?.play)window.CROW_PLAYER.play(state.url,state.title,state.creator,state.id);window.CROW_PLAYER_STATE=state;announce();return true}
+function findPlayable(el){let n=el;for(let i=0;i<6&&n;i++,n=n.parentElement){const d=n.dataset||{};const url=d.audioUrl||d.audio||d.src||n.getAttribute("data-audio-url");const id=d.episodeId||d.episode||d.id;if(url||id){let title=d.title||d.episodeTitle||n.querySelector("[data-title]")?.textContent||n.querySelector("h1,h2,h3,h4,b,strong")?.textContent;let creator=d.creator||d.creatorName||n.querySelector("[data-creator]")?.textContent;return normalize({id,title,creator,url,artwork:d.artwork||d.artworkUrl})}const a=n.querySelector?.("audio[src]");if(a){return normalize({id,title:n.querySelector("h1,h2,h3,h4,b,strong")?.textContent,url:a.currentSrc||a.src,creator:n.querySelector("[data-creator]")?.textContent})}const source=n.querySelector?.("a[href$='.mp3'],a[href$='.m4a'],a[href*='audio']");if(source)return normalize({id,title:n.querySelector("h1,h2,h3,h4,b,strong")?.textContent,url:source.href,creator:n.querySelector("[data-creator]")?.textContent})}return null}
+function bindPlayButtons(){document.addEventListener("click",e=>{const b=e.target.closest?.("button,a,[role=button]");if(!b)return;const text=(b.textContent||"").trim().toLowerCase();const cls=(b.className||"").toString().toLowerCase();if(!(b.matches("[data-play],[data-play-episode],.crv15-play,.play,[aria-label*='play' i]")||/^(play|resume|listen|continue|▶|listen now)/.test(text)||cls.includes("play")))return;const s=findPlayable(b);if(!s?.url)return;const href=b.getAttribute("href");if(href&&href!=="#"&&/\.html(?:[?#]|$)/i.test(href)&&!b.matches("[data-play],[data-play-episode],.crv15-play,.play"))return;e.preventDefault();e.stopImmediatePropagation();load(s,true)},true)}
+function bindPlayerState(){const old=window.CROW_PLAYER?.load;if(old&&!old.__v132){const wrapped=function(s,auto){const n=normalize(s);if(n){state={...state,...n};write(state)}return old.call(this,s,auto)};wrapped.__v132=true;window.CROW_PLAYER.load=wrapped}
+window.addEventListener("crow:player",e=>{const n=normalize(e.detail);if(n){state={...state,...n};write(state)}});
+window.addEventListener("pagehide",()=>{const s=current();if(s?.url)write(s)});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"){const s=current();if(s?.url)write(s)}});
+}
+function restore(){const s=read();if(!s?.url)return;state=s;const wait=()=>{if(window.CROW_PLAYER?.load){const p=normalize(window.CROW_PLAYER.state?.()||{});if(!p?.url||p.url!==s.url)window.CROW_PLAYER.load(s,false);window.CROW_PLAYER_STATE=s;announce();return}setTimeout(wait,100)};wait()}
+function softNavigation(){if(window.__CROW_V132_NAV__)return;window.__CROW_V132_NAV__=true;
+const shellSelectors=[".cr13-nav",".cr13-player",".cr13-search-overlay",".cr13-notification-panel",".cr13-mobile-panel",".cr13-status"];
+const skipSrc=/crowrules-supabase-universal|crow-podcasting-intelligence-v13|crow-podcasting-player-v13|sitewide-v13|crow-podcasting-v13-2/i;
+async function go(url,push=true){if(window.__CROW_V132_BUSY__)return;window.__CROW_V132_BUSY__=true;try{const u=new URL(url,location.href);if(u.origin!==location.origin||!u.pathname.includes("/podcasting/")||u.pathname.endsWith(".pdf"))return location.href=u.href;const r=await fetch(u.href,{credentials:"same-origin"});if(!r.ok)throw Error("Navigation failed");const html=await r.text();const doc=new DOMParser().parseFromString(html,"text/html");const nextMain=doc.querySelector("main")||doc.body;const currentMain=document.querySelector("main");if(!currentMain||!nextMain)return location.href=u.href;
+const title=doc.title;const cls=doc.body.className;const styleLinks=[...doc.head.querySelectorAll('link[rel="stylesheet"]')].map(x=>x.href).filter(Boolean);for(const href of styleLinks){if(![...document.styleSheets].some(s=>s.href===href)){const l=document.createElement("link");l.rel="stylesheet";l.href=href;document.head.appendChild(l)}}
+currentMain.replaceWith(document.importNode(nextMain,true));document.body.className=cls||document.body.className;document.title=title;if(push)history.pushState({v132:true}, "",u.href);window.scrollTo({top:0,behavior:"instant"});
+document.querySelectorAll("script[data-v132-page]").forEach(x=>x.remove());
+for(const s of [...doc.body.querySelectorAll("script")]){if(skipSrc.test(s.src))continue;const n=document.createElement("script");n.dataset.v132Page="1";if(s.src){n.src=s.src;n.async=false}else n.textContent=s.textContent;document.body.appendChild(n)}
+window.dispatchEvent(new CustomEvent("crow:v13.2:navigate",{detail:{url:u.href}}));bindPlayButtons();restore();
+}catch(e){console.warn("CrowRules V13.2 navigation:",e);location.href=url}finally{window.__CROW_V132_BUSY__=false}}
+document.addEventListener("click",e=>{const a=e.target.closest?.("a[href]");if(!a||e.defaultPrevented||a.target==="_blank"||a.hasAttribute("download")||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;const u=new URL(a.href,location.href);if(u.origin!==location.origin||!u.pathname.includes("/podcasting/")||a.matches(".cr13-brand"))return;if(a.closest(".cr13-menu,.cr13-mobile-panel")){e.preventDefault();go(u.href);return}if(u.pathname.endsWith(".html")){e.preventDefault();go(u.href)}},true);
+window.addEventListener("popstate",()=>go(location.href,false));
+}
+function api(){window.CROW_PLAYER_V13_2={version:"13.2.0",state:()=>({...current()}),load,save:()=>write(current()),restore,softNavigate:softNavigation}}
+function boot(){api();bindPlayerState();bindPlayButtons();restore();softNavigation();document.documentElement.dataset.crowPlayer="v13.2"}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
+})();
