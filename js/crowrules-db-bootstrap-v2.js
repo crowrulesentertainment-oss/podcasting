@@ -6,7 +6,7 @@ const load=src=>new Promise((ok,no)=>{const x=document.createElement("script");x
 async function boot(){
  if(!window.CROW_CONFIG_READY)await load(BASE+"js/config.js?v="+VERSION);const cfg=window.CROW_CONFIG||{};if(!cfg.supabaseUrl||!cfg.supabaseKey)throw Error("CrowRules Supabase configuration is incomplete.");
  if(window.CROW_CONFIG_CLIENT_READY){try{await Promise.race([window.CROW_CONFIG_CLIENT_READY,timeout(12000)])}catch(_){}}
- if(!window.supabase?.createClient)await load("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2");if(!window.supabase?.createClient)throw Error("Supabase client library is unavailable.");
+ if(!window.supabase?.createClient)await load("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.3");if(!window.supabase?.createClient)throw Error("Supabase client library is unavailable.");
  if(!window.CROW_SUPABASE)window.CROW_SUPABASE=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
  window.CROW_SUPABASE_READY=Promise.resolve(window.CROW_SUPABASE);window.CROW_APP_READY=window.CROW_SUPABASE_READY;window.CROW_BOOTSTRAP=async()=>window.CROW_SUPABASE;window.CROW_DATA=window.CROW_DATA||{};
  const cache=window.CROW_DATA.cache=window.CROW_DATA.cache||{catalog:null,account:null,notifications:[],progress:new Map(),follows:new Set(),saved:new Set()};const key=v=>String(v||"");const api=window.CROW_DATA;api.ready=async()=>window.CROW_SUPABASE;
