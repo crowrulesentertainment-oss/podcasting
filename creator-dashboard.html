@@ -294,13 +294,11 @@ function v13Money(n){return "$"+(Number(n||0)/100).toFixed(2)}
 async function v13Start(){
  const sb=window.CROW_SUPABASE,user=window.__CROW_USER;if(!sb||!user)return;
  try{
-  const mem=await sb.from("members").select("id").eq("user_id",user.id).maybeSingle();
-  if(mem.error)throw mem.error;
-  let creatorId=null;
-  if(mem.data){const cr=await sb.from("creators").select("id").eq("member_id",mem.data.id).maybeSingle();if(!cr.error)creatorId=cr.data?.id||null}
+  const data=window.CROW_DATA?.snapshot?.()||{};const creatorRow=(data.catalog?.creators||[]).find(x=>String(x.user_id)===String(user.id)||String(x.member_id)===String(data.account?.member?.id));let creatorId=creatorRow?.id||null;
+  if(!creatorId){const mem=await sb.from("members").select("id").eq("user_id",user.id).maybeSingle();if(mem.data){const cr=await sb.from("creators").select("id").eq("member_id",mem.data.id).maybeSingle();if(!cr.error)creatorId=cr.data?.id||null}}
   if(!creatorId){document.getElementById("v13Health").textContent="CREATOR PROFILE REQUIRED";return}
   const [pods,stripe,earn,payouts,alerts]=await Promise.all([
-   sb.from("podcasts").select("id,title,total_plays,listener_count").eq("creator_id",creatorId),
+   Promise.resolve({data:(data.catalog?.podcasts||[]).filter(x=>String(x.creator_id)===String(creatorId))}),
    sb.from("cr_podcast_stripe_accounts").select("onboarding_status,charges_enabled,payouts_enabled,details_submitted,requirements_due,requirements_currently_due,disabled_reason,updated_at").eq("creator_id",creatorId).maybeSingle(),
    sb.from("creator_earnings").select("creator_amount,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(500),
    sb.from("creator_payouts").select("amount,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(200),
