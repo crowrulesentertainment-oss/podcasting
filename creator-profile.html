@@ -178,7 +178,7 @@ async function editor(){
  }catch(e){st.textContent=e.message||"Creator studio could not load.";st.classList.add("error")}
 }
 function boot(){return(profileId||usernameParam)?render():editor()}
-if(window.CROW_DOMAIN_SERVICES)boot();else window.addEventListener("crow:domain-services",boot,{once:true});
+if(window.CROW_DOMAIN_SERVICES)boot();else {const wait=()=>window.CROW_DOMAIN_SERVICES?boot():setTimeout(wait,100);wait();}
 })();
 </script>
 <script>
