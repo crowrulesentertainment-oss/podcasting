@@ -53,3 +53,6 @@ Recurring Universal CrowRules membership is handled by the existing server-side 
 RLS remains the authorization boundary. Creator writes use existing ownership policies; administrator metrics go through the authenticated crowrules-admin-api Edge Function rather than exposing service-role credentials to the browser.
 
 Google OAuth must be enabled in Supabase Auth before the Google button can complete sign-in.
+
+
+<!-- Sitewide Supabase connection: 2026-10-04 -->
