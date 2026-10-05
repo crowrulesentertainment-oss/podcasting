@@ -87,16 +87,7 @@
   const fmtTime=s=>{s=Math.max(0,Math.floor(Number(s)||0));const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),x=s%60;return h?(h+":"+String(m).padStart(2,"0")+":"+String(x).padStart(2,"0")):(m+":"+String(x).padStart(2,"0"))};
   const fmtDuration=s=>{s=Number(s||0);if(!s)return "";const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return h?h+" hr "+String(m).padStart(2,"0")+" min":m+" min"};
 
-  async function getClient(){
-    for(let i=0;i<60;i++){if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
-      if(window.supabase&&window.CROW_CONFIG?.supabaseUrl&&window.CROW_CONFIG?.supabaseKey){
-        window.CROW_SUPABASE=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-        return window.CROW_SUPABASE;
-      }
-      await new Promise(r=>setTimeout(r,100));
-    }
-    throw Error("Supabase client did not initialize.");
-  }
+  async function getClient(){if(window.CROW_DATA?.ready)return await window.CROW_DATA.ready();return window.CROW_SUPABASE||null}
 
   function notFound(message){
     loading.hidden=true;episodeEl.hidden=false;
@@ -143,8 +134,7 @@
     if(!id){notFound("No episode was specified.");return}
     try{
       sb=await getClient();
-      const {data:e,error}=await sb.from("podcast_episodes").select("id,podcast_id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,transcript,show_notes,status,play_count,is_explicit,access_level,podcasts(id,title,slug,artwork_url,author_name,status)").eq("id",id).eq("status","published").maybeSingle();
-      if(error)throw error;if(!e||!e.podcasts||e.podcasts.status!=="published"){notFound();return}
+      const e=await window.CROW_DATA.getEpisode(id);if(!e||e.status!=="published"){notFound();return}if(!e.podcasts||e.podcasts.status!=="published"){notFound();return}
       episode=e;document.title=e.title+" — "+e.podcasts.title+" — CrowRules Podcasting";
       const art=e.thumbnail_url||e.podcasts.artwork_url||"assets/podcast-placeholder.svg";
       episodeEl.hidden=false;
