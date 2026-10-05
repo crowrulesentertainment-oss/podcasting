@@ -1,7 +1,7 @@
 (()=>{"use strict";
 if(window.__CROW_DB_BOOTSTRAP_V2__)return;
 window.__CROW_DB_BOOTSTRAP_V2__=true;
-const BASE="https://crowrulesentertainment-oss.github.io/podcasting/",VERSION="20261004-v14";
+const BASE="https://crowrulesentertainment-oss.github.io/podcasting/",VERSION="20261004-v14.7";
 const timeout=ms=>new Promise((_,r)=>setTimeout(()=>r(Error("Supabase bootstrap timeout")),ms));
 const load=src=>new Promise((ok,no)=>{const x=document.createElement("script");x.src=src;x.async=false;x.onload=ok;x.onerror=()=>no(Error("Unable to load "+src));document.head.appendChild(x)});
 async function boot(){
@@ -34,12 +34,14 @@ async function boot(){
  window.addEventListener("crow:v13:podcast_episode_progress-change",()=>api.refreshProgress().catch(()=>{}));
  window.addEventListener("crow:v13:podcast_follows-change",()=>api.refreshFollows().catch(()=>{}));
  window.addEventListener("crow:v13:podcast_saved_episodes-change",()=>api.refreshSaved().catch(()=>{}));
-
  window.addEventListener("crow:ready",()=>{api.bootstrap().catch(()=>{})},{once:true});
  const sb=window.CROW_SUPABASE;let session=null;try{session=(await Promise.race([sb.auth.getSession(),timeout(10000)])).data?.session||null}catch(_){}
  window.__CROW_USER=session?.user||null;window.__CROW_AUTH_READY=true;window.CROW_SUPABASE_CONNECTION="connected";try{sb.realtime?.setAuth(session?.access_token||undefined)}catch(_){}
  if(!window.__CROW_AUTH_BOUND_V14){window.__CROW_AUTH_BOUND_V14=true;sb.auth.onAuthStateChange((event,next)=>{window.__CROW_USER=next?.user||null;window.__CROW_AUTH_READY=true;try{sb.realtime?.setAuth(next?.access_token||undefined)}catch(_){};window.dispatchEvent(new CustomEvent("crow:auth",{detail:{event,session:next,user:window.__CROW_USER,supabase:sb}}));window.dispatchEvent(new CustomEvent("crow:ready",{detail:{supabase:sb,user:window.__CROW_USER,session:next}}));});}
- window.dispatchEvent(new CustomEvent("crow:connection",{detail:{ok:true,label:"SUPABASE ONLINE"}}));window.dispatchEvent(new CustomEvent("crow:ready",{detail:{supabase:sb,user:window.__CROW_USER,session}}));return sb;
+ window.dispatchEvent(new CustomEvent("crow:connection",{detail:{ok:true,label:"SUPABASE ONLINE"}}));window.dispatchEvent(new CustomEvent("crow:ready",{detail:{supabase:sb,user:window.__CROW_USER,session}}));
+ try{if("serviceWorker" in navigator)navigator.serviceWorker.register(BASE+"sw.js",{scope:"/podcasting/"}).catch(()=>{})}catch(_){}
+ if(!window.__CROW_V14_7_UNIVERSAL__)try{await load(BASE+"js/crowrules-v14-universal.js?v="+VERSION)}catch(_){}
+ return sb;
 }
 window.CROW_DB_READY=boot().catch(e=>{window.CROW_SUPABASE_ERROR=e;window.CROW_SUPABASE_CONNECTION="error";window.dispatchEvent(new CustomEvent("crow:connection",{detail:{ok:false,label:"SUPABASE ERROR",error:e.message||String(e)}}));throw e});
 })();
