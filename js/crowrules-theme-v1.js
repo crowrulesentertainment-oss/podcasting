@@ -1,12 +1,12 @@
 (()=>{"use strict";
 if(window.__CROW_THEME_V1__)return;window.__CROW_THEME_V1__=true;
 const KEY="crowrules-podcasting-site-theme-v1";
-const THEMES=["cyberpunk","midnight","neon","crimson","ice","matrix","light"];
-function apply(value,save=true){
+const THEMES=["cyberpunk","midnight","neon","crimson","ice","matrix","light","halloween-cinematic-v2","future-autumn","future-winter","future-sci-fi","future-retro","future-horror"];
+const CSS_THEMES={ "halloween-cinematic-v2":"css/halloween-cinematic-v2.css", "future-autumn":"css/autumn-cinematic-v1.css", "future-winter":"css/winter-cinematic-v1.css", "future-sci-fi":"css/sci-fi-cinematic-v1.css", "future-retro":"css/retro-cinematic-v1.css", "future-horror":"css/horror-cinematic-v1.css"};function cssTheme(t){ const id="crow-theme-css-"+t; document.querySelectorAll("link[data-crow-theme-css]").forEach(x=>{x.disabled=x.dataset.crowThemeCss!==t}); if(CSS_THEMES[t]&&!document.querySelector(`link[data-crow-theme-css="${t}"]`)){const l=document.createElement("link");l.rel="stylesheet";l.href=CSS_THEMES[t];l.dataset.crowThemeCss=t;l.id=id;document.head.appendChild(l)} document.body?.classList.toggle("cr-halloween-theme",t==="halloween-cinematic-v2"); document.documentElement.classList.toggle("cr-haunted-lock",false);}function apply(value,save=true){
  const t=THEMES.includes(value)?value:"cyberpunk";
  document.documentElement.dataset.crowTheme=t;
  document.body?.setAttribute("data-crow-theme",t);
- window.CROW_SITE_THEME_CURRENT=t;
+ window.CROW_SITE_THEME_CURRENT=t; cssTheme(t);
  if(save)try{localStorage.setItem(KEY,t)}catch(_){}
  if(save&&window.CROW_SUPABASE&&window.__CROW_USER){
   clearTimeout(window.__CROW_THEME_SAVE);
