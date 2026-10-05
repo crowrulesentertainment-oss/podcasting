@@ -252,7 +252,9 @@ function boot(){
   };
   window.addEventListener("crow:v13.2:navigate",()=>setTimeout(()=>{ensurePlayerUI();render();addQueueButtons();updateMediaSession()},60));
   window.addEventListener("storage",e=>{if(e.key===QUEUE_KEY&&e.newValue){try{queueState=JSON.parse(e.newValue);render();restoreCurrent(false)}catch(_){}}});
-  setTimeout(async()=>{await hydrateContinueQueue();await loadRemote();subscribeRemote();restoreCurrent(false)},300);
+  const sync=async()=>{await hydrateContinueQueue();await loadRemote();subscribeRemote();restoreCurrent(false)};
+  window.addEventListener("crow:auth",async()=>{if(remoteChannel){try{await window.CROW_SUPABASE?.removeChannel(remoteChannel)}catch(_){}remoteChannel=null}await sync()});
+  setTimeout(sync,300);
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
