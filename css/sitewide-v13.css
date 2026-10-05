@@ -4,3 +4,232 @@
 
 /* V15 Discovery Engine */
 .crv15-head{display:flex;align-items:center;justify-content:space-between;margin:28px 0 12px}.crv15-head h2{font-family:Orbitron,sans-serif;letter-spacing:.08em}.crv15-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}.crv15-card{position:relative;border:1px solid #ffffff12;border-radius:14px;background:#ffffff04;overflow:hidden;transition:.2s}.crv15-card:hover{transform:translateY(-3px);border-color:#65f2ff55}.crv15-card>a{display:block;color:inherit;text-decoration:none}.crv15-art{height:150px;display:grid;place-items:center;background:#050a10;font-size:42px;overflow:hidden}.crv15-art img{width:100%;height:100%;object-fit:cover}.crv15-card> a>div:last-child{padding:12px}.crv15-card span{font:800 9px Montserrat;color:#65f2ff;letter-spacing:.12em}.crv15-card h3{margin:6px 0;font:800 .85rem Orbitron}.crv15-card p{margin:0;color:#8b98aa;font-size:.65rem;line-height:1.5}.crv15-play{margin:0 12px 12px;width:calc(100% - 24px);border:1px solid #65f2ff44;background:#65f2ff0b;color:#dffaff;border-radius:8px;padding:8px;cursor:pointer;font:800 .6rem Montserrat}.crv15-play:hover{background:#65f2ff18;border-color:#65f2ff}.crv15-card img{display:block}
+
+/* =========================================================
+   CROWRULES PODCASTING — UNIVERSAL AUDIO PLAYER
+   Branded player layer for the sitewide V13 shell
+   ========================================================= */
+.cr13-player{
+  --cr-audio-cyan:#65f2ff;
+  --cr-audio-purple:#9d5cff;
+  --cr-audio-pink:#ff4fd8;
+  --cr-audio-bg:rgba(4,5,14,.96);
+  position:fixed;
+  left:18px;
+  right:18px;
+  bottom:18px;
+  z-index:8500;
+  display:none;
+  align-items:center;
+  gap:12px;
+  min-height:64px;
+  padding:10px 14px;
+  overflow:hidden;
+  border:1px solid rgba(101,242,255,.28);
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 8% 50%,rgba(101,242,255,.12),transparent 24%),
+    radial-gradient(circle at 92% 50%,rgba(157,92,255,.13),transparent 28%),
+    var(--cr-audio-bg);
+  box-shadow:
+    0 20px 70px rgba(0,0,0,.72),
+    0 0 35px rgba(101,242,255,.07),
+    inset 0 1px 0 rgba(255,255,255,.07);
+  backdrop-filter:blur(22px) saturate(140%);
+  -webkit-backdrop-filter:blur(22px) saturate(140%);
+}
+.cr13-player::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(101,242,255,.035),transparent);
+  animation:crUniversalPlayerSweep 6s linear infinite;
+}
+.cr13-player::after{
+  content:"CROWRULES PODCASTING";
+  position:absolute;
+  top:5px;
+  left:84px;
+  color:rgba(101,242,255,.35);
+  font:900 6px Montserrat,sans-serif;
+  letter-spacing:.24em;
+  pointer-events:none;
+}
+.cr13-player.active{display:flex}
+.cr13-player-art{
+  position:relative;
+  z-index:1;
+  flex:0 0 48px;
+  width:48px;
+  height:48px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(101,242,255,.28);
+  border-radius:14px;
+  background:
+    linear-gradient(135deg,rgba(101,242,255,.16),rgba(157,92,255,.18) 55%,rgba(255,79,216,.12));
+  color:#fff;
+  font-size:21px;
+  box-shadow:0 0 24px rgba(101,242,255,.08);
+}
+.cr13-player-art::after{
+  content:"";
+  position:absolute;
+  inset:4px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;
+}
+.cr13-player-meta{
+  position:relative;
+  z-index:1;
+  min-width:145px;
+  max-width:260px;
+  padding-top:4px;
+  overflow:hidden;
+}
+.cr13-player-meta b{
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#fff;
+  font:900 10px Orbitron,sans-serif;
+  letter-spacing:.04em;
+}
+.cr13-player-meta span{
+  display:block;
+  margin-top:5px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#8995a9;
+  font:700 7px Montserrat,sans-serif;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.cr13-player>button{
+  position:relative;
+  z-index:1;
+  flex:0 0 36px;
+  width:36px;
+  height:36px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:11px;
+  background:rgba(255,255,255,.035);
+  color:#dcecff;
+  cursor:pointer;
+  transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease;
+}
+.cr13-player>button:hover{
+  transform:translateY(-1px);
+  border-color:rgba(101,242,255,.38);
+  background:rgba(101,242,255,.08);
+  box-shadow:0 0 18px rgba(101,242,255,.1);
+}
+.cr13-player>button.primary{
+  width:42px;
+  height:42px;
+  flex-basis:42px;
+  border-color:rgba(101,242,255,.48);
+  background:linear-gradient(135deg,rgba(101,242,255,.16),rgba(157,92,255,.18));
+  color:#fff;
+  box-shadow:0 0 22px rgba(101,242,255,.12);
+}
+.cr13-player.playing>button.primary{
+  border-color:rgba(255,79,216,.45);
+  box-shadow:0 0 24px rgba(255,79,216,.12);
+}
+.cr13-progress{
+  position:relative;
+  z-index:1;
+  flex:1;
+  min-width:150px;
+  padding-top:9px;
+}
+.cr13-progress input{
+  display:block;
+  width:100%;
+  height:4px;
+  margin:0;
+  accent-color:var(--cr-audio-cyan);
+  cursor:pointer;
+}
+.cr13-progress input::-webkit-slider-runnable-track{
+  height:4px;
+  border-radius:99px;
+  background:linear-gradient(90deg,var(--cr-audio-cyan),var(--cr-audio-purple),var(--cr-audio-pink));
+}
+.cr13-progress input::-webkit-slider-thumb{
+  appearance:none;
+  width:11px;
+  height:11px;
+  margin-top:-3.5px;
+  border:2px solid #fff;
+  border-radius:50%;
+  background:var(--cr-audio-cyan);
+  box-shadow:0 0 12px rgba(101,242,255,.65);
+}
+.cr13-progress input::-moz-range-track{
+  height:4px;
+  border-radius:99px;
+  background:linear-gradient(90deg,var(--cr-audio-cyan),var(--cr-audio-purple),var(--cr-audio-pink));
+}
+.cr13-progress input::-moz-range-thumb{
+  width:9px;
+  height:9px;
+  border:2px solid #fff;
+  border-radius:50%;
+  background:var(--cr-audio-cyan);
+}
+.cr13-progress div{
+  display:flex;
+  justify-content:space-between;
+  margin-top:5px;
+  color:#687589;
+  font:800 7px Montserrat,sans-serif;
+  letter-spacing:.06em;
+}
+#cr13Speed{
+  color:#65f2ff;
+  font:900 8px Orbitron,sans-serif;
+}
+#cr13Close{
+  color:#8d98aa;
+}
+@keyframes crUniversalPlayerSweep{
+  from{transform:translateX(-100%)}
+  to{transform:translateX(100%)}
+}
+@media(max-width:760px){
+  .cr13-player{
+    left:8px;
+    right:8px;
+    bottom:8px;
+    gap:7px;
+    padding:10px;
+    min-height:58px;
+    border-radius:17px;
+  }
+  .cr13-player::after{left:67px;font-size:5px}
+  .cr13-player-art{flex-basis:40px;width:40px;height:40px;font-size:17px;border-radius:12px}
+  .cr13-player-meta{min-width:95px;max-width:145px}
+  .cr13-player-meta b{font-size:8px}
+  .cr13-player-meta span{font-size:6px}
+  .cr13-player>button{flex-basis:32px;width:32px;height:32px}
+  .cr13-player>button.primary{flex-basis:36px;width:36px;height:36px}
+  .cr13-progress{
+    position:absolute;
+    left:12px;
+    right:12px;
+    bottom:4px;
+    min-width:0;
+    padding:0;
+  }
+  .cr13-player{padding-bottom:17px}
+  #cr13Speed{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .cr13-player::before{animation:none}
+  .cr13-player>button{transition:none}
+}
