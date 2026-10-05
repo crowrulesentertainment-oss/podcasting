@@ -118,11 +118,7 @@ const setStatus=(message,bad=false)=>{const e=$("status");e.textContent=message;
 const setCard=(card,state,good=false,warn=false)=>{$(card).className="status-card "+(good?"good":warn?"warn":"bad")};
 const money=c=>"$"+(Number(c||0)/100).toFixed(2);
 
-async function waitForSupabase(){
-  for(let i=0;i<100&&!window.CROW_SUPABASE;i++) await new Promise(r=>setTimeout(r,100));
-  sb=window.CROW_SUPABASE;
-  if(!sb) throw Error("Supabase client did not initialize.");
-}
+async function waitForSupabase(){if(window.CROW_DATA?.ready){sb=await window.CROW_DATA.ready();return}if(window.CROW_SUPABASE){sb=window.CROW_SUPABASE;return}throw Error("Supabase client did not initialize.")}
 
 async function invoke(action,payload={}){
   const session=(await sb.auth.getSession()).data.session;
@@ -226,7 +222,7 @@ $("plans").addEventListener("click",e=>{const b=e.target.closest("[data-action]"
 (async()=>{
  try{
   await waitForSupabase();
-  const u=await sb.auth.getUser();user=u.data.user;
+  user=window.__CROW_USER||window.CROW_DATA?.snapshot?.().account?.user;
   if(!user) throw Error("Sign in to manage creator subscription plans.");
   await load();
  }catch(e){
