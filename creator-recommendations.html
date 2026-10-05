@@ -27,7 +27,8 @@
 
 <link rel="stylesheet" href="css/podcasting-v15.css?v=20261005-01">
 <script src="js/sitewide-v15.js?v=20261005-01" defer></script>
-<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"></head>
+<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"><link rel="stylesheet" href="css/sitewide-rebuild-v18.css">
+</head>
 <body>
 <script src="js/app.js?v=20261004-10" defer></script>
 <script src="js/site-repair-v1.js?v=20261004-10" defer></script>
@@ -338,4 +339,5 @@ const timeline=annotateTimelineChanges(timelineRows.data||[]);const serverHistor
 ['historyRec','historyEvent','historyDimension','historyWindow','historyMonth'].forEach(id=>$(id)?.addEventListener('change',()=>{historyFilter.recommendation=$('historyRec').value;historyFilter.event=$('historyEvent').value;historyFilter.dimension=$('historyDimension').value;historyFilter.window=$('historyWindow').value;historyFilter.month=$('historyMonth').value;syncInvestigationUI();render(allRecommendationRows);window.__CROW_REFRESH_HISTORY_VIEWS?.()}));$('historyReset')?.addEventListener('click',()=>{historyFilter.recommendation='all';historyFilter.event='all';historyFilter.dimension='all';historyFilter.window='all';historyFilter.month='all';render(allRecommendationRows);window.__CROW_REFRESH_HISTORY_VIEWS?.()});$('refresh').onclick=load;addEventListener('crow:ready',load);
 $('investigationShare')?.addEventListener('click',async()=>{persistInvestigationState();try{await navigator.clipboard.writeText(location.href);$('investigationShare').textContent='Link copied';setTimeout(()=>$('investigationShare').textContent='Copy investigation link',1600)}catch(e){prompt('Copy this investigation URL:',location.href)}});$('investigationClear')?.addEventListener('click',clearHistoryCrossFilter);updateInvestigationWorkspace();$('newInvestigationSession')?.addEventListener('click',()=>{$('sessionEditor').style.display='block';editingSessionId=null;$('sessionName').value='';$('sessionNotes').value='';$('saveSession').textContent='Save session';$('sessionName').focus()});$('cancelSession')?.addEventListener('click',()=>{$('sessionEditor').style.display='none';editingSessionId=null});$('saveSession')?.addEventListener('click',saveInvestigationSession);loadInvestigationSessions();
 </script>
+<script src="js/sitewide-rebuild-v18.js"></script>
 </body></html>
