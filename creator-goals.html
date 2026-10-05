@@ -16,8 +16,10 @@
 
 <link rel="stylesheet" href="css/podcasting-v15.css?v=20261005-01">
 <script src="js/sitewide-v15.js?v=20261005-01" defer></script>
-<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"><link rel="stylesheet" href="css/sitewide-rebuild-v18.css">
+<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal">
 <link rel="stylesheet" href="css/podcasting-v19.css?v=20261005-19.1">
+<link rel="stylesheet" href="css/sitewide-rebuild-v18.css?v=20261005-v23.3" data-crow-v23-css>
+<script src="js/sitewide-rebuild-v18.js?v=20261005-v23.3" defer data-crow-v23-js></script>
 </head><body>
 <script src="js/app.js?v=20261004-10" defer></script>
 <script src="js/site-repair-v1.js?v=20261004-10" defer></script>
@@ -35,6 +37,6 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 async function load(){if(!__CROW_USER){auth.textContent="Sign in to manage creator goals.";return}app.style.display="block";auth.textContent="Signed in as "+(__CROW_USER.email||"Creator");const g=await CROW_SUPABASE.rpc("cr_creator_goal_status",{p_creator_id:__CROW_USER.id});if(g.error){auth.textContent=g.error.message;return}goals.innerHTML=(g.data||[]).map(x=>{const value=Number(x.value||0),target=Number(x.target||1),p=Math.min(100,value/target*100);return '<div class="goal alert"><div><strong>'+esc(names[x.metric])+'</strong><p class="mini">'+money(x.metric,value)+' of '+money(x.metric,target)+' · '+x.period_days+' day goal</p><div class="progress"><i style="width:'+p+'%"></i></div></div><div><strong>'+p.toFixed(0)+'%</strong></div></div>'}).join("")||'<div class="notice">No active goals yet.</div>';
 const a=await CROW_SUPABASE.from("cr_creator_alerts").select("*").eq("creator_id",__CROW_USER.id).order("created_at",{ascending:false}).limit(20);alerts.innerHTML=(a.data||[]).map(x=>'<div class="alert '+esc(x.severity)+'"><strong>'+esc(x.title)+'</strong><p>'+esc(x.detail)+'</p><small>'+new Date(x.created_at).toLocaleString()+'</small></div>').join("")||'<div class="notice">No alerts yet. Your alert stream will appear as measurable events are generated.</div>'}
 add.onclick=async()=>{const t=Number(target.value);if(!t)return alert("Enter a target.");const r=await CROW_SUPABASE.from("cr_creator_goals").insert({creator_id:__CROW_USER.id,metric:metric.value,target:t,period_days:Number(days.value)});if(r.error)alert(r.error.message);else{target.value="";load()}};addEventListener("crow:ready",load);
-</script><script src="js/sitewide-rebuild-v18.js"></script>
+</script>
 <script src="js/podcasting-v19.js?v=20261005-19.1"></script>
 </body></html>

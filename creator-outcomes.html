@@ -17,8 +17,10 @@
 
 <link rel="stylesheet" href="css/podcasting-v15.css?v=20261005-01">
 <script src="js/sitewide-v15.js?v=20261005-01" defer></script>
-<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"><link rel="stylesheet" href="css/sitewide-rebuild-v18.css">
+<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal">
 <link rel="stylesheet" href="css/podcasting-v19.css?v=20261005-19.1">
+<link rel="stylesheet" href="css/sitewide-rebuild-v18.css?v=20261005-v23.3" data-crow-v23-css>
+<script src="js/sitewide-rebuild-v18.js?v=20261005-v23.3" defer data-crow-v23-js></script>
 </head><body>
 <script src="js/app.js?v=20261004-10" defer></script>
 <script src="js/site-repair-v1.js?v=20261004-10" defer></script>
@@ -38,6 +40,6 @@ function num(v){return Number(v||0)}function fmt(v){return num(v).toLocaleString
 function render(){const rows=all.filter(a=>filter==='all'||a.outcome_status===filter);if(!rows.length){$('list').innerHTML='<div class="empty">No measured outcomes yet. Complete an action to start a seven-day measurement window.</div>';return}$('list').innerHTML=rows.map(a=>{const b=a.baseline_metrics||{},o=a.outcome_metrics||{},d=a.outcome_deltas||{};return '<article class="cardx"><div class="head"><div><h3>'+esc(a.title)+'</h3><div class="muted">'+esc(a.description||'')+'</div></div><span class="pill">'+esc(a.outcome_status||'pending')+'</span></div><div class="metrics"><div class="metric"><b>'+fmt(b.sessions)+'</b><span>Baseline sessions</span></div><div class="metric"><b>'+fmt(o.sessions)+'</b><span>Observed sessions</span></div><div class="metric"><b>'+delta(d.sessions)+'</b><span>Session delta</span></div><div class="metric"><b>'+delta(d.followers_gained)+'</b><span>Follower change</span></div><div class="metric"><b>'+fmt(b.listening_seconds)+'</b><span>Baseline seconds</span></div><div class="metric"><b>'+fmt(o.listening_seconds)+'</b><span>Observed seconds</span></div><div class="metric"><b>'+delta(d.listening_seconds)+'</b><span>Listening delta</span></div><div class="metric"><b>'+delta(d.active_subscribers)+'</b><span>Subscriber change</span></div></div><p class="muted" style="margin-top:14px">'+(a.outcome_note?esc(a.outcome_note):'Measurement window: '+esc(a.outcome_window_start||'')+' → '+esc(a.outcome_window_end||''))+'</p></article>'}).join('')}
 async function load(){if(!window.__CROW_USER){$('auth').textContent='Sign in to use Creator Outcomes.';return}$('app').style.display='block';$('auth').textContent='Signed in as '+(__CROW_USER.email||'Creator');const r=await CROW_SUPABASE.from('podcast_creator_actions').select('id,title,description,status,created_at,outcome_status,outcome_window_start,outcome_window_end,baseline_metrics,outcome_metrics,outcome_deltas,outcome_note').eq('user_id',__CROW_USER.id).in('outcome_status',['measuring','ready']).order('created_at',{ascending:false}).limit(100);if(r.error){$('list').innerHTML='<div class="empty">'+esc(r.error.message)+'</div>';return}all=r.data||[];render()}
 document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');filter=b.dataset.filter;render()});$('refresh').onclick=load;addEventListener('crow:ready',load);
-</script><script src="js/sitewide-rebuild-v18.js"></script>
+</script>
 <script src="js/podcasting-v19.js?v=20261005-19.1"></script>
 </body></html>

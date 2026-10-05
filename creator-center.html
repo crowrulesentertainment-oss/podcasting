@@ -23,8 +23,10 @@
 
 <link rel="stylesheet" href="css/podcasting-v15.css?v=20261005-01">
 <script src="js/sitewide-v15.js?v=20261005-01" defer></script>
-<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"><link rel="stylesheet" href="css/sitewide-rebuild-v18.css">
+<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal">
 <link rel="stylesheet" href="css/podcasting-v19.css?v=20261005-19.1">
+<link rel="stylesheet" href="css/sitewide-rebuild-v18.css?v=20261005-v23.3" data-crow-v23-css>
+<script src="js/sitewide-rebuild-v18.js?v=20261005-v23.3" defer data-crow-v23-js></script>
 </head>
 <body>
 <script src="js/app.js?v=20261004-10" defer></script>
@@ -55,6 +57,6 @@ function render(data){if(!data.length){podcastsEl.innerHTML='<div class="card em
 async function load(){try{await window.CROW_DATA?.bootstrap?.();const data=window.CROW_DATA?.snapshot?.()||{},u=window.__CROW_USER||data.account?.user;if(!u)throw Error("Sign in to your CrowRules account first.");const rows=(data.catalog?.podcasts||[]).filter(p=>String(p.creator_id)===String(u.id));accountEl.className="notice";accountEl.textContent="Signed in as "+(u.email||"CrowRules Member")+" · "+rows.length+" published podcast"+(rows.length===1?"":"s");dashboardEl.hidden=false;render(rows)}catch(e){accountEl.className="notice error";accountEl.textContent=e.message||"Supabase connection unavailable.";dashboardEl.hidden=false;podcastsEl.innerHTML='<div class="card empty"><h3>Could not load podcasts</h3><p>'+esc(e.message||e)+'</p></div>'}}
 refreshBtn.addEventListener("click",load);window.addEventListener("crow:data:catalog",load);window.addEventListener("crow:data:account",load);window.addEventListener("crow:auth",load);load();
 })();
-</script><script src="js/sitewide-rebuild-v18.js"></script>
+</script>
 <script src="js/podcasting-v19.js?v=20261005-19.1"></script>
 </body></html>
