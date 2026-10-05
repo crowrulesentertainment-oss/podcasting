@@ -2,8 +2,8 @@
 if(window.__CROW_PODCASTING_V15__)return;window.__CROW_PODCASTING_V15__=true;
 const BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
 function loadV17(){if(window.__CROW_PODCASTING_V17__)return;const s=document.createElement("script");s.src=BASE+"js/universal-v17.js?v=20261005-01";s.defer=true;document.head.appendChild(s);const l=document.createElement("link");l.rel="stylesheet";l.href=BASE+"css/podcasting-v17.css?v=20261005-01";document.head.appendChild(l)}\nfunction loadV17Bus(){if(window.__CROW_PODCASTING_V17_2_BUS__)return;const s=document.createElement("script");s.src=BASE+"js/universal-v17-data-bus.js?v=20261005-04";s.defer=true;document.head.appendChild(s)}
-function loadV175(){if(window.__CROW_PODCASTING_V17_5__)return;const s=document.createElement("script");s.src=BASE+"js/domain-services-v17-5.js?v=20261005-02";s.defer=true;document.head.appendChild(s)}
-function loadV174(){if(window.__CROW_PODCASTING_V17_4__)return;const s=document.createElement("script");s.src=BASE+"js/universal-v17-migration.js?v=20261005-02";s.defer=true;document.head.appendChild(s)}
+function loadV175(){if(window.__CROW_PODCASTING_V17_5__)return;const s=document.createElement("script");s.src=BASE+"js/domain-services-v17-5.js?v=20261005-01";s.defer=true;document.head.appendChild(s)}
+function loadV174(){if(window.__CROW_PODCASTING_V17_4__)return;const s=document.createElement("script");s.src=BASE+"js/universal-v17-migration.js?v=20261005-01";s.defer=true;document.head.appendChild(s)}
 function loadV16(){if(window.__CROW_PODCASTING_V16__)return;const s=document.createElement("script");s.src=BASE+"js/universal-v16.js?v=20261005-01";s.defer=true;document.head.appendChild(s);const l=document.createElement("link");l.rel="stylesheet";l.href=BASE+"css/podcasting-v16.css?v=20261005-01";document.head.appendChild(l)}
 const file=()=>location.pathname.split("/").pop()||"home.html";
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
