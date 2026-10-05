@@ -23,7 +23,7 @@
 @media(max-width:720px){.launch-main{padding:80px 12px 48px}.hero{padding-top:34px}.brand img{width:70px;height:70px}.countdown{grid-template-columns:repeat(2,1fr);margin-top:27px}.cards,.health-grid{grid-template-columns:1fr}.first-grid{grid-template-columns:1fr;text-align:center}.art{margin:auto;width:min(68vw,200px)}.meta,.actions{justify-content:center}.panel{padding:18px}.first-head,.control-head{align-items:flex-start;flex-direction:column}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
-<script src="js/config.js?v=20261005-v1.0.0" defer data-crow-v1-config></script>
+<script src="js/config.js?v=20261005-v1.0.0"></script>
 </head>
 <body>
 <div class="launch-bg" aria-hidden="true"><canvas id="stars"></canvas></div>
@@ -231,8 +231,6 @@ $("interestNo").addEventListener("click",()=>updateInterest(false));
 $("lcRetry").addEventListener("click",async()=>{client=null;await Promise.allSettled([refreshInterest(),diagnostics()]);});
 addEventListener("online",()=>{client=null;refreshInterest();diagnostics();});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){lastTick=-1;tick();diagnostics();}});
-window.addEventListener("crow:v1:ready",()=>{client=window.CROW_SUPABASE||client;refreshInterest();diagnostics();});
-window.addEventListener("crow:auth",()=>{client=window.CROW_SUPABASE||client;refreshInterest();diagnostics();});
 tick();
 setTimeout(()=>{refreshInterest();diagnostics();},250);
 setInterval(diagnostics,30000);
