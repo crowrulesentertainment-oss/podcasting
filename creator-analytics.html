@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="css/podcasting-v15.css?v=20261005-01">
 <script src="js/sitewide-v15.js?v=20261005-01" defer></script>
 <link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"><link rel="stylesheet" href="css/sitewide-rebuild-v18.css">
+<link rel="stylesheet" href="css/podcasting-v19.css?v=20261005-19.1">
 </head><body>
 
 <script src="js/app.js?v=20261004-10" defer></script>
@@ -33,4 +34,5 @@
 
 
 <main class="wrap hero"><div class="eyebrow">CREATOR INTELLIGENCE</div><h1>Analytics <span class="gradient">that move with you.</span></h1><div id="auth" class="notice">Loading analytics…</div><div id="stats" class="grid"></div><section class="section"><div class="card"><h2>Recent listening activity</h2><div id="recent">Loading…</div></div></section></main><script>addEventListener("crow:ready",async()=>{if(!window.__CROW_USER){auth.textContent="Sign in to view creator analytics.";return}try{const data=window.CROW_DATA?.snapshot?.()||{},ps=(data.catalog?.podcasts||[]).filter(p=>String(p.creator_id)===String(window.__CROW_USER.id));let plays=0,listeners=0;const ids=[];for(const x of ps){plays+=Number(x.total_plays||0);listeners+=Number(x.listener_count||0);ids.push(x.id)}let sessions=[];if(ids.length){const l=await window.CROW_SUPABASE.from("podcast_listens").select("episode_id,seconds_listened,completed,created_at").in("episode_id",ids).order("created_at",{ascending:false}).limit(100);sessions=l.data||[]}const hours=sessions.reduce((n,x)=>n+Number(x.seconds_listened||0),0)/3600;stats.innerHTML=[[""+plays,"Total plays"],[""+listeners,"Listeners"],[""+sessions.length,"Recent sessions"],[hours.toFixed(1),"Hours listened"]].map(x=>'<div class="card"><div class="stat">'+x[0]+'</div><p>'+x[1]+'</p></div>').join("");recent.innerHTML=sessions.slice(0,20).map(x=>'<div class="activity-row"><span>'+new Date(x.created_at).toLocaleString()+'</span><strong>'+Math.round(Number(x.seconds_listened||0)/60)+' min</strong><span class="pill">'+(x.completed?"completed":"in progress")+'</span></div>').join("")||"<p>No listening data yet.</p>";auth.textContent="Analytics synced with CROW_DATA.";window.addEventListener("crow:data:catalog",()=>location.reload())}catch(e){auth.textContent="Analytics unavailable: "+(e.message||e)}});</script><script src="js/sitewide-rebuild-v18.js"></script>
+<script src="js/podcasting-v19.js?v=20261005-19.1"></script>
 </body></html>
