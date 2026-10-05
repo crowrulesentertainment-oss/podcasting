@@ -25,9 +25,6 @@
 @media(max-width:720px){.launch-main{padding:80px 12px 48px}.hero{padding-top:34px}.brand img{width:70px;height:70px}.countdown{grid-template-columns:repeat(2,1fr);margin-top:27px}.cards,.health-grid{grid-template-columns:1fr}.first-grid{grid-template-columns:1fr;text-align:center}.art{margin:auto;width:min(68vw,200px)}.meta,.actions{justify-content:center}.panel{padding:18px}.first-head,.control-head{align-items:flex-start;flex-direction:column}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
-<link rel="preload" as="image" href="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/sign/images/podcastinglogo.png?token=eyJraWQiOiI5Yzg1OGE1OS1lOTQ3LTQwZjYtYWUwYS0zNDA3MWZlZjIyNmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJpbWFnZXMvcG9kY2FzdGluZ2xvZ28ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MTIxMjY2MiwiZXhwIjoxOTQ4ODkyNjYyfQ.BKJBftIQ8-xRMhaC0yLHVXCyoS4YNQDrjdIrDwHW7v8jE6nZ8GRscpsVZ1TrmAnSBpTJQqx-disdr5xilI862A" fetchpriority="high" data-crow-podcasting-logo-preload>
-<link rel="stylesheet" href="css/sitewide-rebuild-v18.css?v=20261005-v23.5" data-crow-v23-css>
-<script src="js/sitewide-rebuild-v18.js?v=20261005-v23.3" defer data-crow-v23-js></script>
 <link rel="stylesheet" href="css/podcasting-v1.css?v=20261005-v1.0.0" data-crow-v1-css>
 <script src="js/config.js?v=20261005-v1.0.0" defer data-crow-v1-config></script>
 <script src="js/podcasting-v1.js?v=20261005-v1.0.0" defer data-crow-v1-js></script>
@@ -89,7 +86,6 @@
 <div class="stat"><label>Client</label><div class="value warn" id="lcClient">CHECKING</div><div class="detail" id="lcClientDetail">Shared client</div></div>
 <div class="stat"><label>Auth</label><div class="value warn" id="lcAuth">CHECKING</div><div class="detail" id="lcAuthDetail">Session status</div></div>
 <div class="stat"><label>Database</label><div class="value warn" id="lcDb">CHECKING</div><div class="detail" id="lcDbDetail">Data API</div></div>
-<div class="stat"><label>First Podcast</label><div class="value warn" id="lcPodcast">CHECKING</div><div class="detail" id="lcPodcastDetail">Published record</div></div>
 <div class="stat"><label>Interest RPC</label><div class="value warn" id="lcInterest">CHECKING</div><div class="detail" id="lcInterestDetail">Launch control</div></div>
 <div class="stat"><label>Latency</label><div class="value warn" id="lcLatency">—</div><div class="detail" id="lcLatencyDetail">Waiting for diagnostics</div></div>
 </div>
@@ -122,7 +118,6 @@
 <script>
 (()=>{"use strict";
 const $=id=>document.getElementById(id);
-const FIRST_ID="9d4f2794-249e-4201-b3a8-359ce9bd7467";
 const TARGET=Date.UTC(2027,0,1,8,0,0);
 let countdownTimer=null,lastTick=-1,client=null,diagnosticsBusy=false,retries=0;
 const page=$("launchPage");
@@ -173,34 +168,6 @@ async function identity(){
  const result=await withTimeout(c.auth.getUser(),6000,"Auth");
  return result.data?.user?.id||visitorId();
 }
-async function fetchFirstPodcast(){
- const c=await getClient();
- const result=await withTimeout(c.from("podcasts").select("id,title,slug,description,artwork_url,author_name,category,status").eq("id",FIRST_ID).maybeSingle(),8000,"Podcast query");
- if(result.error)throw result.error;
- if(!result.data)throw new Error("First podcast record not found.");
- return result.data;
-}
-async function renderFirstPodcast(){
- try{
-  const podcast=await fetchFirstPodcast();
-  const title=podcast.title||"The First CrowRules Podcast";
-  const artwork=podcast.artwork_url||"assets/podcast-placeholder.svg";
-  $("firstStatus").textContent=podcast.status==="published"?"PUBLISHED":"AVAILABLE";
-  $("firstContent").className="";
-  $("firstContent").innerHTML=`<div class="first-grid">
-<img class="art" id="firstArtwork" src="${escapeHtml(artwork)}" alt="${escapeHtml(title)} artwork" loading="eager" decoding="async">
-<div><h2>${escapeHtml(title)}</h2>
-<p class="copy">${escapeHtml(podcast.description||"The first podcast has entered the CrowRules universe.")}</p>
-<div class="meta"><span>${escapeHtml(podcast.author_name||"CrowRules Creator")}</span><span>${escapeHtml(podcast.category||"Podcast")}</span></div>
-<div class="actions"><a class="btn primary" href="podcast.html?slug=${encodeURIComponent(podcast.slug||"bonded-in-mystery")}">ENTER PODCAST</a><a class="btn" href="home.html">EXPLORE</a></div></div></div>`;
-  $("firstArtwork").addEventListener("error",event=>{event.currentTarget.src="assets/podcast-placeholder.svg"},{once:true});
- }catch(error){
-  console.error("[CrowRules Launch] first podcast",error);
-  $("firstStatus").textContent="STANDBY";
-  $("firstContent").className="error";
-  $("firstContent").textContent="The first podcast is temporarily unavailable. Run diagnostics to reconnect to Supabase.";
- }
-}
 async function refreshInterest(){
  try{
   const c=await getClient(),id=await identity();
@@ -245,10 +212,6 @@ async function diagnostics(){
    setHealth("lcDb","ok","ONLINE","public.podcasts responding");
   }catch(error){setHealth("lcDb","bad","ERROR",error.message);}
   try{
-   await fetchFirstPodcast();
-   setHealth("lcPodcast","ok","AVAILABLE","First podcast found");
-  }catch(error){setHealth("lcPodcast","warn","STANDBY",error.message);}
-  try{
    const id=await identity();
    const rpc=await withTimeout(c.rpc("podcast_launch_interest_state",{p_visitor_id:id}),6000,"Interest");
    if(rpc.error)throw rpc.error;
@@ -271,13 +234,13 @@ async function diagnostics(){
 }
 $("interestYes").addEventListener("click",()=>updateInterest(true));
 $("interestNo").addEventListener("click",()=>updateInterest(false));
-$("lcRetry").addEventListener("click",async()=>{client=null;await Promise.allSettled([renderFirstPodcast(),refreshInterest(),diagnostics()]);});
-addEventListener("online",()=>{client=null;renderFirstPodcast();refreshInterest();diagnostics();});
+$("lcRetry").addEventListener("click",async()=>{client=null;await Promise.allSettled([refreshInterest(),diagnostics()]);});
+addEventListener("online",()=>{client=null;refreshInterest();diagnostics();});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){lastTick=-1;tick();diagnostics();}});
 window.addEventListener("crow:v1:ready",()=>{client=window.CROW_SUPABASE||client;refreshInterest();diagnostics();});
 window.addEventListener("crow:auth",()=>{client=window.CROW_SUPABASE||client;refreshInterest();diagnostics();});
 tick();
-setTimeout(()=>{renderFirstPodcast();refreshInterest();diagnostics();},250);
+setTimeout(()=>{refreshInterest();diagnostics();},250);
 setInterval(diagnostics,30000);
 const canvas=$("stars"),ctx=canvas.getContext("2d");let width=0,height=0,stars=[];
 function resizeStars(){
