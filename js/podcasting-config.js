@@ -1,0 +1,1 @@
+window.CROW_CONFIG=window.CROW_CONFIG||{};window.CROW_CONFIG.supabaseUrl="https://cevylpnoexugwgygvtgu.supabase.co";window.CROW_CONFIG.projectId="cevylpnoexugwgygvtgu";window.CROW_CONFIG.podcastingBase="https://crowrulesentertainment-oss.github.io/podcasting/";window.CROW_CONFIG.edgeBase=window.CROW_CONFIG.supabaseUrl+"/functions/v1";
