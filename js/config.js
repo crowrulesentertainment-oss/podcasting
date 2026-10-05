@@ -12,6 +12,7 @@ window.CROW_CONFIG_CLIENT_READY=(async()=>{
     });
   }
   if(!window.supabase?.createClient)throw Error('Supabase client library is unavailable.');
+  if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
   window.CROW_SUPABASE=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce'}});
   window.CROW_SUPABASE_READY=Promise.resolve(window.CROW_SUPABASE);
   window.CROW_APP_READY=window.CROW_SUPABASE_READY;
