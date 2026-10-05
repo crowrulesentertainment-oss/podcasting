@@ -8,7 +8,7 @@ window.CROW_CONFIG_CLIENT_READY=(async()=>{
     await new Promise((resolve,reject)=>{
       const existing=document.querySelector('script[data-crow-supabase-cdn]');
       if(existing){existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',()=>reject(Error('Unable to load Supabase client library.')),{once:true});return;}
-      const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.3';s.async=false;s.dataset.crowSupabaseCdn='true';s.onload=resolve;s.onerror=()=>reject(Error('Unable to load Supabase client library.'));document.head.appendChild(s);
+      const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0';s.async=false;s.dataset.crowSupabaseCdn='true';s.onload=resolve;s.onerror=()=>reject(Error('Unable to load Supabase client library.'));document.head.appendChild(s);
     });
   }
   if(!window.supabase?.createClient)throw Error('Supabase client library is unavailable.');
