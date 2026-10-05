@@ -7,7 +7,7 @@
 <meta name="description" content="Your home for discovering CrowRules podcasts, episodes, creators and your listening journey.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>
+<style>
 :root{--bg:#05060a;--panel:#0b0f16;--cyan:#65f2ff;--purple:#a778ff;--text:#eef5ff;--muted:#8c98aa;--line:#ffffff12}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 8% 0,#65f2ff0d,transparent 28%),radial-gradient(circle at 92% 5%,#a778ff10,transparent 30%),linear-gradient(180deg,#05060a,#070910 55%,#040509);color:var(--text);font-family:Montserrat,Arial,sans-serif;padding-bottom:40px}a{color:inherit}
 .cr-nav{position:fixed;inset:0 0 auto;height:68px;z-index:10000;display:flex;align-items:center;gap:16px;padding:0 22px;background:#04070def;border-bottom:1px solid #65f2ff18;backdrop-filter:blur(18px);box-shadow:0 8px 35px #0008}
@@ -25,15 +25,12 @@ main{width:min(1480px,calc(100% - 32px));margin:auto;padding-top:96px}.hero{disp
 </style>
 <link rel="stylesheet" href="css/navigation-v12.css?v=20261004-12">
 <link rel="stylesheet" href="css/podcasting-v10.css?v=20261004-10">
-<link rel="stylesheet" href="css/halloween-cinematic-v1.css?v=20261004-01"><link rel="stylesheet" href="css/halloween-cinematic-v2.css?v=20261004-02">
-<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-13"><link rel="stylesheet" href="css/halloween-cinematic-v2.css?v=20261004-02">
+<link rel="stylesheet" href="css/halloween-cinematic-v2.css?v=20261004-02">
 <script src="js/crowrules-supabase-universal-v1.js?v=20261004-01" defer></script>
 <script src="js/crow-podcasting-intelligence-v13.js?v=20261004-13" defer></script>
 <link rel="stylesheet" href="css/crow-podcasting-intelligence-v13.css?v=20261004-13">
-<script src="js/crow-podcasting-intelligence-v13.js?v=20261004-01" defer></script>
-<script src="js/crow-podcasting-player-v13-2.js?v=20261004-13" defer></script>
-<script src="js/crow-podcasting-player-v13-3.js?v=20261004-01" defer></script>
-<link rel="stylesheet" href="css/crow-podcasting-player-v13-3.css?v=20261004-01">
+<script src="js/crow-podcasting-player-v13-3.js?v=20261004-13" defer></script>
+<link rel="stylesheet" href="css/crow-podcasting-player-v13-3.css?v=20261004-13">
 </head>
 <body class="cr-halloween-theme">
 <script src="js/app.js?v=20261004-27"></script>
@@ -102,32 +99,53 @@ async function loadSessionUI(){
   else{document.getElementById("accountAction").textContent="SIGN IN";document.getElementById("memberNote").textContent="Sign in to unlock personalized listening, follow your favorite shows, and continue where you stopped.";set("authStatus","GUEST",false);document.getElementById("continueList").innerHTML='<div class="empty">Sign in to see your listening progress.</div>'}
 }
 async function loadCatalog(){
-  const [p,e,c]=await Promise.all([
+  const results=await Promise.all([
     sb.from("podcasts").select("id,title,slug,category,description,artwork_url,is_featured,is_live,created_at",{count:"exact"}).eq("status","published").order("is_featured",{ascending:false}).order("created_at",{ascending:false}).limit(9),
     sb.from("podcast_episodes").select("id,title,published_at,duration_seconds,audio_url,thumbnail_url,access_level",{count:"exact"}).eq("status","published").order("published_at",{ascending:false}).limit(10),
-    sb.from("creators").select("id,name,display_name,slug,bio,avatar_url,is_featured,is_active").eq("is_active",true).order("is_featured",{ascending:false}).order("sort_order",{ascending:true}).limit(8)
+    sb.from("creators").select("id,name,display_name,slug,bio,avatar_url,is_featured,is_active,role").eq("is_active",true).order("is_featured",{ascending:false}).order("sort_order",{ascending:true}).limit(8)
   ]);
-  if(p.error)throw p.error;if(e.error)throw e.error;if(c.error)throw c.error;
+  const [p,e,c]=results;
+  const errors=[p.error,e.error,c.error].filter(Boolean);
   const ps=p.data||[],es=e.data||[],cs=c.data||[];
-  document.getElementById("pulsePodcasts").textContent=p.count??ps.length;
-  document.getElementById("pulseEpisodes").textContent=e.count??es.length;
-  document.getElementById("pulseCreators").textContent=cs.length;
+  document.getElementById("pulsePodcasts").textContent=p.error?"—":(p.count??ps.length);
+  document.getElementById("pulseEpisodes").textContent=e.error?"—":(e.count??es.length);
+  document.getElementById("pulseCreators").textContent=c.error?"—":cs.length;
   document.getElementById("pulseMode").textContent=user?"MEMBER":"GUEST";
-  renderSignalChips(ps);
-  renderQuickPicks(es);
-  document.getElementById("podcastCount").textContent=p.count??ps.length;
-  document.getElementById("episodeCount").textContent=e.count??es.length;
-  set("connectionLabel","SUPABASE ONLINE",true);set("sbStatus","ONLINE",true);set("catalogStatus","ONLINE",true);
-  document.getElementById("featured").innerHTML=ps.length?ps.slice(0,6).map(x=>'<a class="card" href="podcast.html?slug='+encodeURIComponent(x.slug||x.id)+'">'+art(x.artwork_url)+'<div class="card-body"><b>'+esc(x.title||"Untitled Podcast")+'</b><small>'+esc(x.category||"Podcast")+(x.is_live?" · LIVE":"")+'</small><span>'+esc(x.description||"Discover this CrowRules podcast.")+'</span></div></a>').join(""):'<div class="empty">No published podcasts are available yet.</div>';
-  document.getElementById("latest").innerHTML=es.length?es.slice(0,7).map(x=>'<article class="episode-row"><img src="'+attr(x.thumbnail_url||"assets/podcast-placeholder.svg")+'" alt="" onerror="this.onerror=null;this.src=\'assets/podcast-placeholder.svg\'"><div><b>'+esc(x.title||"Untitled Episode")+'</b><small>'+date(x.published_at)+(dur(x.duration_seconds)?" · "+dur(x.duration_seconds):"")+(x.access_level&&x.access_level!=="public"?" · "+esc(String(x.access_level).toUpperCase()):"")+'</small></div>'+(x.audio_url?'<button class="play" data-play="'+attr(x.audio_url)+'" data-title="'+attr(x.title)+'" data-episode-id="'+attr(x.id)+'">▶</button>':"<span style=\"color:#586579;font-size:.55rem\">NO AUDIO</span>")+'</article>').join(""):'<div class="empty">No published episodes are available yet.</div>';
-  document.getElementById("creators").innerHTML=cs.length?cs.map(x=>'<a class="card" href="creator-profile.html?slug='+encodeURIComponent(x.slug||x.id)+'">'+art(x.avatar_url,"creator")+'<div class="card-body"><b>'+esc(x.display_name||x.name||"Creator")+'</b><small>'+esc(x.role||"Creator")+'</small><span>'+esc(x.bio||"CrowRules Podcasting creator.")+'</span></div></a>').join(""):'<div class="empty">No active creators are available yet.</div>';
+  document.getElementById("podcastCount").textContent=p.error?"—":(p.count??ps.length);
+  document.getElementById("episodeCount").textContent=e.error?"—":(e.count??es.length);
+  renderSignalChips(ps);renderQuickPicks(es);
+  document.getElementById("featured").innerHTML=ps.length?ps.slice(0,6).map(x=>'<a class="card" href="podcast.html?slug='+encodeURIComponent(x.slug||x.id)+'">'+art(x.artwork_url)+'<div class="card-body"><b>'+esc(x.title||"Untitled Podcast")+'</b><small>'+esc(x.category||"Podcast")+(x.is_live?" · LIVE":"")+'</small><span>'+esc(x.description||"Discover this CrowRules podcast.")+'</span></div></a>').join(""):(p.error?'<div class="empty">Podcast catalog is temporarily unavailable. Please refresh shortly.</div>':'<div class="empty">No published podcasts are available yet.</div>');
+  document.getElementById("latest").innerHTML=es.length?es.slice(0,7).map(x=>'<article class="episode-row"><img src="'+attr(x.thumbnail_url||"assets/podcast-placeholder.svg")+'" alt="" onerror="this.onerror=null;this.src=\'assets/podcast-placeholder.svg\'"><div><b>'+esc(x.title||"Untitled Episode")+'</b><small>'+date(x.published_at)+(dur(x.duration_seconds)?" · "+dur(x.duration_seconds):"")+(x.access_level&&x.access_level!=="public"?" · "+esc(String(x.access_level).toUpperCase()):"")+'</small></div>'+(x.audio_url?'<button class="play" data-play="'+attr(x.audio_url)+'" data-title="'+attr(x.title)+'" data-episode-id="'+attr(x.id)+'">▶</button>':"<span style=\"color:#586579;font-size:.55rem\">NO AUDIO</span>")+'</article>').join(""):(e.error?'<div class="empty">Episode catalog is temporarily unavailable.</div>':'<div class="empty">No published episodes are available yet.</div>');
+  document.getElementById("creators").innerHTML=cs.length?cs.map(x=>'<a class="card" href="creator-profile.html?slug='+encodeURIComponent(x.slug||x.id)+'">'+art(x.avatar_url,"creator")+'<div class="card-body"><b>'+esc(x.display_name||x.name||"Creator")+'</b><small>'+esc(x.role||"Creator")+'</small><span>'+esc(x.bio||"CrowRules Podcasting creator.")+'</span></div></a>').join(""):(c.error?'<div class="empty">Creator catalog is temporarily unavailable.</div>':'<div class="empty">No active creators are available yet.</div>');
   document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>play(b.dataset.play,b.dataset.title,b.dataset.episodeId));
+  if(errors.length){
+    console.warn("CrowRules catalog source errors:",errors.map(x=>x.message||x));
+    set("catalogStatus",ps.length?"PARTIAL":"OFFLINE",!!ps.length);
+  }else set("catalogStatus","ONLINE",true);
+  return {podcasts:ps,episodes:es,creators:cs,errors};
 }
 function renderSignalChips(ps){const box=document.getElementById("signalChips");if(!box)return;const cats=[...new Set(ps.map(x=>String(x.category||"General").trim()).filter(Boolean))].slice(0,10);box.innerHTML=cats.length?cats.map(c=>'<button class="signal-chip" data-signal="'+attr(c)+'">◈ '+esc(c)+'</button>').join(""):'<div class="empty" style="width:100%">More signals will appear as shows are published.</div>';box.querySelectorAll("[data-signal]").forEach(b=>b.onclick=()=>location.href="search.html?q="+encodeURIComponent(b.dataset.signal))}
 function renderQuickPicks(es){const box=document.getElementById("quickPicks");if(!box)return;const picks=(es||[]).slice(0,3);box.innerHTML=picks.length?'<div class="quick-grid">'+picks.map(x=>'<a class="quick-pick" href="episode.html?id='+encodeURIComponent(x.id)+'"><img src="'+attr(x.thumbnail_url||"assets/podcast-placeholder.svg")+'" alt=""><div><b>'+esc(x.title||"Untitled Episode")+'</b><small>'+date(x.published_at)+(dur(x.duration_seconds)?" · "+dur(x.duration_seconds):"")+'</small></div></a>').join("")+'</div>':'<div class="empty">Fresh picks will appear here as episodes are published.</div>'}
 function play(url,title,episodeId){let a=document.getElementById("homeAudio");if(!a){a=document.createElement("audio");a.id="homeAudio";a.controls=true;a.style.cssText="position:fixed;left:14px;right:14px;bottom:14px;z-index:10020;width:calc(100% - 28px);height:42px";document.body.appendChild(a)}a.dataset.episodeId=episodeId||"";a.dataset.episodeTitle=title||"";a.src=url;a.setAttribute("aria-label",title||"Podcast audio");a.play().catch(()=>toast("Press play to start the episode."))}
 async function continueListening(){const r=await sb.from("podcast_episode_progress").select("episode_id,percent_complete,last_played_at").eq("user_id",user.id).order("last_played_at",{ascending:false}).limit(6);if(r.error||!r.data?.length)return;const ids=r.data.map(x=>x.episode_id);const e=await sb.from("podcast_episodes").select("id,title,thumbnail_url,status").in("id",ids).eq("status","published");const by=new Map((e.data||[]).map(x=>[x.id,x]));document.getElementById("continueList").innerHTML=r.data.map(x=>{const ep=by.get(x.episode_id);if(!ep)return"";const pct=Math.max(0,Math.min(100,Number(x.percent_complete||0)));return'<article class="episode-row"><img src="'+attr(ep.thumbnail_url||"assets/podcast-placeholder.svg")+'" alt=""><div><b>'+esc(ep.title)+'</b><small>'+Math.round(pct)+'% complete · '+date(x.last_played_at)+'</small><div style="height:3px;background:#ffffff10;margin-top:7px"><i style="display:block;width:'+pct+'%;height:100%;background:linear-gradient(90deg,#65f2ff,#a778ff)"></i></div></div><button class="play" data-open="'+attr(ep.id)+'">OPEN</button></article>'}).join("")||'<div class="empty">No current listening items.</div>';document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>location.href="episode.html?id="+encodeURIComponent(b.dataset.open))}
-function bindRealtime(){if(rt)try{sb.removeChannel(rt)}catch(_){}rt=sb.channel("crowrules-podcasting-home-v1232").on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},queueRefresh).on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},queueRefresh).on("postgres_changes",{event:"*",schema:"public",table:"creators"},queueRefresh).subscribe(status=>set("rtStatus",status==="SUBSCRIBED"?"LIVE":status==="CHANNEL_ERROR"?"ERROR":"CONNECTING",status==="SUBSCRIBED"))}
+function bindRealtime(){
+  if(!sb?.channel){set("rtStatus","UNAVAILABLE",false);return}
+  if(rt)try{sb.removeChannel(rt)}catch(_){}
+  set("rtStatus","CONNECTING",false);
+  rt=sb.channel("crowrules-podcasting-home-live-v14",{config:{broadcast:{ack:true}}})
+    .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},queueRefresh)
+    .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},queueRefresh)
+    .on("postgres_changes",{event:"*",schema:"public",table:"creators"},queueRefresh)
+    .subscribe(status=>{
+      const live=status==="SUBSCRIBED";
+      const failed=status==="CHANNEL_ERROR"||status==="TIMED_OUT";
+      set("rtStatus",live?"LIVE":failed?"ERROR":"CONNECTING",live);
+      if(failed){
+        clearTimeout(window.__CROW_RT_RETRY);
+        window.__CROW_RT_RETRY=setTimeout(()=>bindRealtime(),5000);
+      }
+    });
+}
 function queueRefresh(){clearTimeout(timer);timer=setTimeout(()=>loadCatalog().catch(e=>console.warn("Home catalog refresh:",e)),450)}
 window.addEventListener("crow:connection",e=>set("connectionLabel",e.detail?.label||"SUPABASE ONLINE",!!e.detail?.ok));
 window.addEventListener("crow:connection",e=>{if(e.detail?.ok){set("sbStatus","ONLINE",true)}else{set("sbStatus","ERROR",false)}});
