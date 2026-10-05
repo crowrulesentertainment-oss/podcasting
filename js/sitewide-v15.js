@@ -1,6 +1,7 @@
 (()=>{"use strict";
 if(window.__CROW_PODCASTING_V15__)return;window.__CROW_PODCASTING_V15__=true;
 const BASE="https://crowrulesentertainment-oss.github.io/podcasting/";
+function loadV16(){if(window.__CROW_PODCASTING_V16__)return;const s=document.createElement("script");s.src=BASE+"js/universal-v16.js?v=20261005-01";s.defer=true;document.head.appendChild(s);const l=document.createElement("link");l.rel="stylesheet";l.href=BASE+"css/podcasting-v16.css?v=20261005-01";document.head.appendChild(l)}
 const file=()=>location.pathname.split("/").pop()||"home.html";
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function cleanShell(){document.querySelectorAll("[data-nav]").forEach((el,i)=>{if(i>0)el.remove()});document.querySelectorAll("#crMobileNav,#crConnection,#crRebuildNav,#cr12SiteNav,#cr12SearchButton,#cr12HomeButton").forEach(e=>e.remove());document.body.classList.add("cr15-enhanced");document.documentElement.classList.add("cr15-ready")}
@@ -11,6 +12,6 @@ function command(){if(document.querySelector(".cr15-command"))return;const o=doc
 function repairLinks(){document.querySelectorAll('a[href*="podcast.html?"]').forEach(a=>{const u=new URL(a.href,location.href);const slug=u.searchParams.get("slug");if(slug)a.href=BASE+"podcast.html?slug="+encodeURIComponent(slug)});document.querySelectorAll("img").forEach((img,i)=>{if(!img.hasAttribute("decoding"))img.decoding="async";if(i>2&&!img.hasAttribute("loading"))img.loading="lazy"});document.querySelectorAll("a[target=_blank]").forEach(a=>{const rel=(a.getAttribute("rel")||"").split(/\s+/);if(!rel.includes("noopener"))rel.push("noopener");if(!rel.includes("noreferrer"))rel.push("noreferrer");a.rel=rel.join(" ").trim()})}
 function toast(msg){let t=document.querySelector(".cr15-toast");if(!t){t=document.createElement("div");t.className="cr15-toast";document.body.appendChild(t)}t.textContent=msg;t.hidden=false;clearTimeout(window.__CR15TOAST);window.__CR15TOAST=setTimeout(()=>t.hidden=true,2600)}
 function health(){window.addEventListener("error",e=>{if(e?.message)console.warn("CrowRules Podcasting V15:",e.message)});window.addEventListener("unhandledrejection",e=>console.warn("CrowRules Podcasting V15 promise:",e.reason||e))}
-function boot(){cleanShell();skip();progress();breadcrumb();command();repairLinks();health();window.CROW_PODCASTING_V15={version:"15.0.0",toast,openCommand:()=>document.querySelector(".cr15-command")?.classList.add("open")};window.dispatchEvent(new CustomEvent("crow:v15:ready"))}
+function boot(){loadV16();cleanShell();skip();progress();breadcrumb();command();repairLinks();health();window.CROW_PODCASTING_V15={version:"15.0.0",toast,openCommand:()=>document.querySelector(".cr15-command")?.classList.add("open")};window.dispatchEvent(new CustomEvent("crow:v15:ready"))}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
