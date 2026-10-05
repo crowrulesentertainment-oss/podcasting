@@ -4,8 +4,7 @@ const db=async()=>{const b=getBus();if(b?.ready)return b.ready();if(window.CROW_
 const uid=()=>window.__CROW_USER?.id||null;
 const cleanRows=r=>Array.isArray(r)?r:(r?.data||[]);
 const services={
- version:"17.5.3",
- telemetry:{directSupabase:0,delegated:0,errors:0,startedAt:new Date().toISOString()},
+ version:"17.5.2",
  discovery:{
   async catalog({limit=100}={}){const b=getBus();if(b?.catalog?.())return b.catalog();const s=window.CROW_DATA?.snapshot?.()||{};return s.catalog||{podcasts:[],episodes:[],creators:[]}},
   async search(q,options={}){const b=getBus();if(b?.search)return b.search(q,options);return window.CROW_INTELLIGENCE?.search?.(q,options)||[]},
@@ -95,4 +94,3 @@ const services={
 window.CROW_PODCASTING_V17_5=services;window.CROW_DOMAIN_SERVICES=services;
 window.dispatchEvent(new CustomEvent("crow:v17:domain-services",{detail:{version:services.version}}));
 })();
-window.CROW_DOMAIN_CONTRACT_V17_5_3={version:"17.5.3",domains:Object.keys(services).filter(k=>k!=="version"),required:{discovery:["catalog","search","featured"],creator:["me","profile","profilePage","podcasts","isFollowing","follow","unfollow"],membership:["plans","entitlements"],monetization:["creatorPlans","podcastSubscriptions","membershipPlans"],analytics:["creatorDashboard","episode","creator"]},validate(){const missing=[];for(const [domain,methods] of Object.entries(this.required))for(const m of methods)if(typeof services[domain]?.[m]!=="function")missing.push(domain+"."+m);return {ok:!missing.length,missing,version:this.version}}};
