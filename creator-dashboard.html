@@ -161,31 +161,9 @@ var sb=null,user=null,creator=null,podcasts=[],episodes=[],channel=null,refreshT
 function setConnection(ok,title,detail){$("connectionState").innerHTML='<span class="status-dot '+(ok?"live":"bad")+'"></span>'+esc(title);$("connectionDetail").textContent=detail}
 function health(id,text,good){$(id).textContent=text;$(id).style.borderColor=good?"#35f2a133":"#ff526833"}
 
-async function getClient(){
- if(window.CROW_SUPABASE)return window.CROW_SUPABASE;
- var ready=window.CROW_SUPABASE_READY;
- if(ready&&typeof ready.then==="function"){
-   try{var c=await wait(ready,20000,"Supabase initialization timed out.");if(c)return c}catch(e){}
- }
- if(window.supabase&&typeof window.supabase.createClient==="function"){
-   var cfg=window.CROW_CONFIG||{};
-   if(!cfg.supabaseUrl||!cfg.supabaseKey)throw new Error("CrowRules Supabase configuration is missing.");
-   window.CROW_SUPABASE=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
-   return window.CROW_SUPABASE;
- }
- throw new Error("The Supabase client library is unavailable.");
-}
+async function getClient(){if(window.CROW_DATA?.ready)return await window.CROW_DATA.ready();return window.CROW_SUPABASE||null}
 
-async function connect(){
- setConnection(false,"CONNECTING","Waiting for CrowRules Supabase…");
- sb=await getClient(); health("dataHealth","DATA · CLIENT READY",true);
- var session=await wait(sb.auth.getSession(),10000,"Supabase session check timed out.");
- if(session.error)throw session.error;
- user=session.data&&session.data.session&&session.data.session.user;
- if(!user)throw new Error("Please sign in to your CrowRules account first.");
- window.__CROW_USER=user;health("authHealth","AUTH · SIGNED IN",true);
- setConnection(false,"ACCOUNT VERIFIED","Loading your creator profile…");
-}
+async function connect(){setConnection(false,"CONNECTING","Waiting for CrowRules shared data layer…");sb=await getClient();var data=window.CROW_DATA?.snapshot?.()||{};user=window.__CROW_USER||data.account?.user;if(!user)throw new Error("Please sign in to your CrowRules account first.");health("authHealth","AUTH · SIGNED IN",true);setConnection(false,"ACCOUNT VERIFIED","Loading your creator profile…")}
 
 async function getCreator(){
  var r=await wait(sb.rpc("get_my_podcast_creator_id"),10000,"Creator lookup timed out.");
@@ -199,15 +177,8 @@ async function getCreator(){
  return q.data;
 }
 
-async function loadPodcasts(){
- var r=await wait(sb.from("podcasts").select("id,title,status,category,artwork_url,total_plays,listener_count,slug,description,is_live,created_at,updated_at").eq("creator_id",creator.id).order("created_at",{ascending:false}).limit(200),12000,"Podcast list timed out.");
- if(r.error)throw r.error;return r.data||[];
-}
-async function loadEpisodes(){
- if(!podcasts.length)return[];
- var r=await wait(sb.from("podcast_episodes").select("id,podcast_id,title,status,published_at,scheduled_at,created_at,updated_at,play_count").in("podcast_id",podcasts.map(function(p){return p.id})).order("updated_at",{ascending:false}).limit(500),12000,"Episode list timed out.");
- if(r.error)throw r.error;return r.data||[];
-}
+async function loadPodcasts(){var data=window.CROW_DATA?.snapshot?.()||{},rows=(data.catalog?.podcasts||[]).filter(function(p){return String(p.creator_id)===String(creator.id)});return rows}
+async function loadEpisodes(){if(!podcasts.length)return[];var data=window.CROW_DATA?.snapshot?.()||{},ids=podcasts.map(function(p){return String(p.id)});return(data.catalog?.episodes||[]).filter(function(e){return ids.indexOf(String(e.podcast_id))>=0}).slice().sort(function(a,b){return new Date(b.updated_at||b.published_at||b.created_at||0)-new Date(a.updated_at||a.published_at||a.created_at||0)}).slice(0,500)}
 async function loadFollowers(){
  if(!podcasts.length)return 0;
  try{var r=await wait(sb.from("podcast_follows").select("id",{count:"exact",head:true}).in("podcast_id",podcasts.map(function(p){return p.id})),8000,"Follower count timed out.");return r.error?0:Number(r.count||0)}catch(_){return 0}
