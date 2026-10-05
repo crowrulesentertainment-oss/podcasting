@@ -90,7 +90,13 @@ function player(){
  a.addEventListener("pause",()=>{s.textContent="Paused • Silent";save();sync()});
  a.addEventListener("timeupdate",()=>{sync();syncProgress()});
  a.addEventListener("error",()=>{s.textContent="Audio unavailable";save()});
- document.addEventListener("play",e=>{if(e.target instanceof HTMLMediaElement&&e.target!==a&&e.target.tagName==="AUDIO")e.target.pause()},true);
+ document.addEventListener("play",e=>{
+   if(e.target instanceof HTMLMediaElement && e.target!==a && e.target.tagName==="AUDIO"){
+     e.target.pause();
+     e.target.currentTime=0;
+   }
+ },true);
+ window.CROW_ONLY_UNIVERSAL_PLAYER=true;
  b.onclick=()=>a.paused?play():a.pause();
  p.querySelector('[data-a="b"]').onclick=()=>{a.currentTime=Math.max(0,a.currentTime-15);save()};
  p.querySelector('[data-a="f"]').onclick=()=>{a.currentTime=Math.min(a.duration||1e99,a.currentTime+30);save()};
