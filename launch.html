@@ -33,6 +33,7 @@
 <link rel="stylesheet" href="css/podcasting-v15.css?v=20261005-01">
 <script src="js/sitewide-v15.js?v=20261005-01" defer></script>
 <link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"><script src="js/sitewide-v13.js?v=20261004-universal" defer></script>
+<link rel="stylesheet" href="css/sitewide-rebuild-v18.css">
 </head>
 <body class="cr-halloween-theme">
 <div class="cr-halloween-bats" aria-hidden="true"></div>
@@ -87,5 +88,6 @@ $("supabaseRetry").onclick=reset;$("lcRetry").onclick=reset;addEventListener("on
 const c=$("stars"),ctx=c.getContext("2d");let w,h,stars=[];function resize(){w=innerWidth;h=innerHeight;c.width=w*devicePixelRatio;c.height=h*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);stars=Array.from({length:Math.min(220,Math.floor(w*h/6500))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.1+.15,s:Math.random()*.2+.02,a:Math.random()*.5+.1}))}function draw(){ctx.clearRect(0,0,w,h);for(const s of stars){s.y-=s.s;if(s.y<0)s.y=h;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle="rgba(220,235,255,"+s.a+")";ctx.fill()}requestAnimationFrame(draw)}addEventListener("resize",resize);resize();draw();
 })();
 </script>
+<script src="js/sitewide-rebuild-v18.js"></script>
 </body>
 </html>
