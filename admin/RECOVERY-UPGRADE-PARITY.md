@@ -61,3 +61,5 @@ Moving the UI into Podcasting does not create a second recovery backend. Both Cr
 - V8.27 — Recovery Pattern Intelligence: fingerprints forecast/risk/anomaly signals, detects recurrence, scores historical pattern matches, and links pattern evidence to forecast/risk/alert/escalation records without autonomous recovery execution.
 
 - V8.28 — Pattern Outcomes & Learning: records pattern outcomes, prediction accuracy, recurrence, resolution time, and confidence deltas for historical calibration without autonomous recovery execution.
+
+- V8.29 — Recovery Intelligence Calibration: measures outcome accuracy, confidence bias, reliability, calibration grade, and operator recommendation without modifying recovery automation.
