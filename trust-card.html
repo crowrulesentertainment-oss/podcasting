@@ -1,1 +1,137 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CrowRules Trust Card</title></head><body><main><h1>CrowRules Trust Certificate</h1><p>V8.54 public certificate card powered by the existing V8.48 verification gateway.</p><h2>V8.54 CERTIFICATE CARD</h2><p>Enter a Trust Key to verify the public certificate through the existing gateway.</p><input id="trustKey" placeholder="Trust Key"><button id="verifyTrust">VERIFY</button><div id="result"></div><p><a href="trust-directory.html">Open Trust Directory</a></p><section><h2>V8.55 VERIFICATION DETAILS</h2><p>Public verification is performed against the CrowRules Trust Gateway. Only certificate metadata is displayed.</p><ul><li>Certificate authenticity: checked</li><li>Trust fingerprint: checked</li><li>Publication status: checked</li><li>Forensic evidence: private</li><li>Custody records: private</li></ul></section><section><h2>V8.56 VERIFICATION TIMELINE</h2><ol><li><b>Published</b><br>Certificate entered the public Trust Center.</li><li><b>Current verification</b><br>Public status is checked through the CrowRules Trust Gateway.</li><li><b>Current state</b><br>Only the latest safe public verification state is displayed.</li></ol><p>Private incident, custody, operator, and forensic history is intentionally excluded.</p></section></main><script>const k=new URLSearchParams(location.search).get('trust');const input=document.getElementById('trustKey');if(k&&input)input.value=k;const button=document.getElementById('verifyTrust');if(button)button.onclick=()=>{const key=input?.value.trim();const out=document.getElementById('result');if(key&&out)out.textContent='Verification requested for '+key+'. Use the Trust Directory for live public verification.'};</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CrowRules Trust Certificate Card</title>
+<style>
+:root{color-scheme:dark;--bg:#03040a;--panel:#0a0d17;--line:#20273a;--text:#f5f7ff;--muted:#9ba5bd;--ok:#4dffb3;--bad:#ff647c;--warn:#ffd166}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -10%,#15112a 0,#03040a 48%);color:var(--text);font:15px Arial,sans-serif}.wrap{max-width:900px;margin:auto;padding:48px 22px}.card{background:rgba(10,13,23,.94);border:1px solid var(--line);border-radius:18px;padding:26px;margin:18px 0;box-shadow:0 18px 50px #0008}.eyebrow{letter-spacing:.16em;text-transform:uppercase;color:#b9c7ff;font-size:12px}.muted{color:var(--muted);line-height:1.7}input{width:100%;padding:14px;background:#050711;color:#fff;border:1px solid #30394f;border-radius:10px;font:inherit}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.btn{display:inline-block;padding:11px 16px;border-radius:10px;background:#101827;color:#fff;border:1px solid #38445e;text-decoration:none;cursor:pointer;font:inherit}.btn:hover{border-color:#7180a4}.status{margin-top:18px;padding:18px;border-radius:14px;border:1px solid var(--line)}.status.ok{border-color:var(--ok)}.status.bad{border-color:var(--bad)}.status.warn{border-color:var(--warn)}.statusTitle{font-size:22px;font-weight:700}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}.item{background:#050711;border:1px solid #1b2233;border-radius:12px;padding:13px}.label{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.value{overflow-wrap:anywhere}.hidden{display:none}@media(max-width:650px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<div class="eyebrow">CrowRules Trust Center · V8.57</div>
+<h1>Trust Certificate</h1>
+<p class="muted">A live public certificate verification card powered by the existing V8.48 Trust Gateway. Only safe public trust metadata is displayed.</p>
+
+<section class="card">
+<h2>LIVE CERTIFICATE VERIFICATION</h2>
+<p class="muted">Enter a Trust Key. The card checks the current public status and trust-hash integrity directly against the CrowRules Trust Gateway.</p>
+<input id="trustKey" autocomplete="off" spellcheck="false" placeholder="Enter Trust Key">
+<div class="actions">
+<button class="btn" id="verifyTrust" type="button">VERIFY NOW</button>
+<a class="btn" id="directoryLink" href="trust-directory.html">TRUST DIRECTORY</a>
+</div>
+<div id="result" class="status hidden" aria-live="polite"></div>
+</section>
+
+<section class="card hidden" id="details">
+<h2>PUBLIC CERTIFICATE DETAILS</h2>
+<div class="grid">
+<div class="item"><span class="label">Trust Key</span><span class="value" id="vTrustKey">—</span></div>
+<div class="item"><span class="label">Certificate</span><span class="value" id="vCertificate">—</span></div>
+<div class="item"><span class="label">Certificate SHA-256</span><span class="value" id="vSha">—</span></div>
+<div class="item"><span class="label">Trust Hash</span><span class="value" id="vHash">—</span></div>
+<div class="item"><span class="label">Published</span><span class="value" id="vPublished">—</span></div>
+<div class="item"><span class="label">Last Verified</span><span class="value" id="vVerified">—</span></div>
+</div>
+<div class="actions">
+<a class="btn" id="badgeLink" href="trust-badge.html">VIEW BADGE</a>
+<button class="btn" id="shareBtn" type="button">COPY SHARE URL</button>
+</div>
+</section>
+
+<section class="card">
+<h2>V8.55 VERIFICATION DETAILS</h2>
+<ul>
+<li>Certificate authenticity: checked live</li>
+<li>Trust fingerprint: checked live</li>
+<li>Publication status: checked live</li>
+<li>Forensic evidence: private</li>
+<li>Custody records: private</li>
+</ul>
+</section>
+
+<section class="card">
+<h2>V8.56 VERIFICATION TIMELINE</h2>
+<ol>
+<li><b>Published</b><br>Certificate entered the public Trust Center.</li>
+<li><b>Current verification</b><br>Public status and trust-hash integrity are checked live through the CrowRules Trust Gateway.</li>
+<li><b>Current state</b><br>The latest safe public verification result is displayed above.</li>
+</ol>
+<p class="muted">Private incident, custody, operator, and forensic history is intentionally excluded.</p>
+</section>
+
+<p class="muted"><a href="trust.html" style="color:#b9c7ff">Open Trust Center</a> · <a href="trust-directory.html" style="color:#b9c7ff">Trust Directory</a></p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+const input=document.getElementById("trustKey");
+const result=document.getElementById("result");
+const details=document.getElementById("details");
+const keyFromUrl=new URLSearchParams(location.search).get("trust");
+if(keyFromUrl) input.value=keyFromUrl;
+
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const fmt=v=>v?new Date(v).toLocaleString():"—";
+function setStatus(kind,title,message){
+ result.className="status "+kind;
+ result.innerHTML="<div class='statusTitle'>"+esc(title)+"</div><p class='muted'>"+esc(message)+"</p>";
+ result.classList.remove("hidden");
+}
+function setDetails(d){
+ details.classList.remove("hidden");
+ document.getElementById("vTrustKey").textContent=d.trust_key||"—";
+ document.getElementById("vCertificate").textContent=d.certificate_key||"—";
+ document.getElementById("vSha").textContent=d.certificate_sha256||"—";
+ document.getElementById("vHash").textContent=d.trust_hash||"—";
+ document.getElementById("vPublished").textContent=fmt(d.published_at);
+ document.getElementById("vVerified").textContent=new Date().toLocaleString();
+ document.getElementById("badgeLink").href="trust-badge.html?trust="+encodeURIComponent(d.trust_key||"");
+}
+async function verify(){
+ const key=input.value.trim();
+ details.classList.add("hidden");
+ if(!key){setStatus("warn","TRUST KEY REQUIRED","Enter a Trust Key to begin public verification.");return}
+ setStatus("","VERIFYING","Checking public certificate status and trust-hash integrity…");
+ try{
+   const {data,error}=await sb.rpc("cr_podcast_recovery_evidence_trust_public_verify_v848",{p_trust_key:key});
+   if(error) throw error;
+   if(!data){setStatus("bad","VERIFICATION ERROR","The Trust Gateway returned no verification result.");return}
+   if(data.status==="VERIFIED"){
+     setStatus("ok","VERIFIED","The public certificate is currently verified and its trust-hash integrity check passed.");
+     setDetails(data);
+   }else if(data.status==="REVOKED"){
+     setStatus("bad","REVOKED","This public certificate is marked revoked. Do not treat it as currently verified.");
+     setDetails(data);
+   }else if(data.status==="INTEGRITY_FAILED"){
+     setStatus("bad","INTEGRITY FAILED","The certificate record exists, but its public trust-hash integrity check did not pass.");
+     setDetails(data);
+   }else if(data.status==="NOT_FOUND"){
+     setStatus("bad","NOT FOUND","No public trust certificate was found for this Trust Key.");
+   }else{
+     setStatus("bad","UNVERIFIED","The Trust Gateway returned an unrecognized public status.");
+   }
+   const cleanUrl="trust-card.html?trust="+encodeURIComponent(key);
+   history.replaceState(null,"",cleanUrl);
+ }catch(e){
+   console.error(e);
+   setStatus("bad","VERIFICATION ERROR","The public Trust Gateway could not complete the check. Please try again.");
+ }
+}
+document.getElementById("verifyTrust").addEventListener("click",verify);
+document.getElementById("shareBtn").addEventListener("click",async()=>{
+ const key=input.value.trim(); if(!key)return;
+ const url=location.origin+location.pathname+"?trust="+encodeURIComponent(key);
+ try{await navigator.clipboard.writeText(url);setStatus("ok","SHARE URL COPIED","The public Trust Certificate URL is ready to share.");}
+ catch{setStatus("warn","SHARE URL","Copy this URL: "+url);}
+});
+if(keyFromUrl) verify();
+</script>
+</body>
+</html>
