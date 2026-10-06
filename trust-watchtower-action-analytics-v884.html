@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CrowRules Trust Watchtower Action Analytics Center · V8.84</title>
+<style>
+:root{color-scheme:dark;--bg:#03050b;--p:#090e18;--l:#263148;--t:#f4f7ff;--m:#9da8bd;--c:#59e8ff;--g:#55f2aa;--y:#ffd166;--r:#ff607c;--o:#ff9d66}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -10%,#18203b,#03050b 60%);color:var(--t);font:14px/1.5 Arial}.wrap{max-width:1550px;margin:auto;padding:22px 18px}.nav a{color:var(--m);text-decoration:none;margin-right:13px}.top{display:flex;justify-content:space-between;align-items:end;gap:20px}.ey{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#b7c5ff}.top h1{font-size:clamp(27px,4vw,50px);margin:5px 0}.muted,small{color:var(--m)}.posture{min-width:245px;padding:17px 20px;text-align:center;border:1px solid var(--l);border-radius:18px;background:#080c16}.posture b{display:block;font-size:23px}.stable{box-shadow:0 0 30px #55f2aa20}.watch{box-shadow:0 0 30px #ffd16620}.escalating{box-shadow:0 0 30px #ff607c25}.stats{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin:13px 0}.stat,.panel,.item{background:#090e18ed;border:1px solid var(--l);border-radius:15px}.stat{padding:10px}.stat b{display:block;font-size:21px}.stat span{font-size:9px;color:var(--m);text-transform:uppercase}.panel{padding:14px;margin:9px 0}.grid{display:grid;grid-template-columns:1.25fr .75fr;gap:10px}.item{padding:11px;margin:7px 0}.head{display:flex;justify-content:space-between;gap:8px;align-items:center}.badge{padding:4px 8px;border-radius:99px;background:#121a2a;font-size:9px}.btn{padding:7px 9px;border:1px solid #3a4861;border-radius:8px;background:#101827;color:#fff;cursor:pointer;text-decoration:none}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.bar{height:8px;background:#151d2d;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--c)}.bars{display:grid;gap:9px}.row{display:grid;grid-template-columns:150px 1fr 70px;gap:9px;align-items:center}.mono{font:10px ui-monospace,monospace;word-break:break-all}.critical{border-left:3px solid var(--r)}.high{border-left:3px solid var(--o)}.watchline{border-left:3px solid var(--y)}.normal{border-left:3px solid var(--g)}.empty{text-align:center;color:var(--m);padding:22px}.chart{width:100%;height:210px;background:#060a12;border:1px solid #1b2435;border-radius:12px}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metricline{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #182133}.metricline:last-child{border-bottom:0}.good{color:var(--g)}.warn{color:var(--y)}.bad{color:var(--r)}@media(max-width:1100px){.stats{grid-template-columns:repeat(4,1fr)}.grid,.two{grid-template-columns:1fr}}@media(max-width:650px){.stats{grid-template-columns:repeat(2,1fr)}.row{grid-template-columns:100px 1fr 55px}.top{align-items:start;flex-direction:column}}
+</style></head>
+<body><main class="wrap">
+<nav class="nav">
+<a href="trust-operations.html">← Operations</a><a href="trust-watchtower-action-v883.html">V8.83 Action Center</a><a href="trust-watchtower-decision-v882.html">V8.82 Decision Engine</a><a href="trust-watchtower-command-v881.html">V8.81 Command</a><a href="trust-autonomous-watchtower-v880.html">V8.80 Watchtower</a>
+</nav>
+<header class="top"><div><div class="ey">CrowRules Trust Center · V8.84</div><h1>Watchtower Action Analytics Center</h1><div class="muted">Measure how Trust recommendations move from open → review → completion, and identify recurring operational pressure.</div></div><div id="posture" class="posture"><b>CALCULATING</b><small>action effectiveness</small></div></header>
+<section class="stats" id="stats"></section>
+<section class="panel"><div class="toolbar"><button class="btn" id="refresh">REFRESH ANALYTICS</button><button class="btn" id="export">EXPORT ANALYTICS JSON</button><button class="btn" id="csv">EXPORT ANALYTICS CSV</button><a class="btn" href="trust-watchtower-action-v883.html">ACTION CENTER</a><a class="btn" href="trust-watchtower-command-v881.html">COMMAND CENTER</a></div><p class="muted">Analytics are derived entirely from browser-local V8.83 action state and workflow history. No new Supabase tables or RPCs.</p></section>
+<section class="two"><section class="panel"><div class="ey">COMPLETION VELOCITY</div><canvas id="velocity" class="chart"></canvas></section><section class="panel"><div class="ey">ACTIVE VS COMPLETED</div><canvas id="volume" class="chart"></canvas></section></section>
+<section class="two"><section class="panel"><div class="ey">OVERDUE-ACTION TREND</div><canvas id="overdue" class="chart"></canvas></section><section class="panel"><div class="ey">TIME-TO-COMPLETION</div><canvas id="time" class="chart"></canvas></section></section>
+<section class="grid"><section class="panel"><div class="ey">ACTION EFFECTIVENESS</div><div id="effectiveness"></div></section><section class="panel"><div class="ey">SIGNAL GENERATORS</div><div id="signals"></div></section></section>
+<section class="panel"><div class="ey">PRIORITY PERFORMANCE</div><div id="priority" class="bars"></div></section>
+<section class="panel"><div class="ey">RECOMMENDED IMPROVEMENTS</div><div id="improvements"></div></section>
+<section class="panel"><div class="ey">RECURRING RECOMMENDATIONS</div><div id="recurring"></div></section>
+<p class="muted">V8.84 measures workflow performance; it does not claim that completing a local action remediated the underlying Trust condition. Sparse history is reported as insufficient rather than fabricated.</p>
+</main>
+<script>
+(function(){
+const ACT="crowrules_trust_v883_actions",DEC="crowrules_trust_v882_decisions",DAY=86400000;
+const read=(k,d)=>{try{const x=JSON.parse(localStorage.getItem(k)||"");return x??d}catch(e){return d}};
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ageHours=a=>Math.max(0,(Date.now()-new Date(a.updated_at||a.created_at).getTime())/3600000);
+const threshold=u=>({CRITICAL:24,HIGH:48,WATCH:72,NORMAL:96}[u]||72);
+function state(){const x=read(ACT,{items:[],history:[]});return{items:Array.isArray(x.items)?x.items:[],history:Array.isArray(x.history)?x.history:[]}}
+function transitions(x,id){return x.history.filter(h=>h.id===id).sort((a,b)=>Date.parse(a.at||0)-Date.parse(b.at||0))}
+function lifecycle(a,h){
+ const hs=transitions({history:h},a.id), created=Date.parse(a.created_at||0);
+ let review=null,complete=null,ack=null;
+ hs.forEach(e=>{const t=Date.parse(e.at||0);if(!ack&&e.to==="acknowledged")ack=t;if(!review&&e.to==="review")review=t;if(!complete&&e.to==="complete")complete=t});
+ return{ack,review,complete,timeReview:review&&created?Math.max(0,review-created):null,timeComplete:complete&&created?Math.max(0,complete-created):null}
+}
+function days(n){return n==null?"—":(n/DAY).toFixed(1)+"d"} function hours(n){return n==null?"—":(n/3600000).toFixed(1)+"h"}
+function stableType(a){return String(a.title||"").replace(/\b(Review|Continue|Monitor|Check)\b/gi,"ACTION").trim().toLowerCase()}
+function analyze(){
+ const x=state(), items=x.items, active=items.filter(a=>a.status!=="complete"), done=items.filter(a=>a.status==="complete");
+ const overdue=active.filter(a=>ageHours(a)>=threshold(a.urgency));
+ const life=done.map(a=>lifecycle(a,x.history)).filter(v=>v.timeComplete!=null);
+ const reviewed=items.map(a=>lifecycle(a,x.history)).filter(v=>v.timeReview!=null);
+ const completionRate=items.length?done.length/items.length*100:0;
+ const def=items.filter(a=>a.status==="deferred").length;
+ const avgComp=life.length?life.reduce((s,v)=>s+v.timeComplete,0)/life.length:null;
+ const sortedComp=life.map(v=>v.timeComplete).sort((a,b)=>a-b), med=sortedComp.length?sortedComp[Math.floor(sortedComp.length/2)]:null;
+ const avgReview=reviewed.length?reviewed.reduce((s,v)=>s+v.timeReview,0)/reviewed.length:null;
+ const completedRecent=done.filter(a=>Date.parse(a.updated_at||0)>=Date.now()-DAY).length;
+ const velocity=completedRecent;
+ const typeMap={}; items.forEach(a=>{const k=stableType(a);typeMap[k]=(typeMap[k]||0)+1});
+ const recurring=Object.entries(typeMap).filter(e=>e[1]>1).sort((a,b)=>b[1]-a[1]);
+ const gen={}; items.forEach(a=>{const k=a.target||"Trust";gen[k]=(gen[k]||0)+1});
+ const signals=Object.entries(gen).sort((a,b)=>b[1]-a[1]);
+ return{x,items,active,done,overdue,life,reviewed,completionRate,def,avgComp,med,avgReview,velocity,recurring,signals}
+}
+function series(x,kind){
+ const now=Date.now(), pts=[];
+ for(let i=13;i>=0;i--){const end=now-i*DAY,start=end-DAY;let v=0;
+ if(kind==="complete")v=x.done.filter(a=>{const t=Date.parse(a.updated_at||a.created_at);return t>=start&&t<end}).length;
+ if(kind==="overdue")v=x.active.filter(a=>Date.parse(a.updated_at||a.created_at)<end-DAY*({CRITICAL:1,HIGH:2,WATCH:3,NORMAL:4}[a.urgency]||3)&&Date.parse(a.updated_at||a.created_at)<=end).length;
+ if(kind==="active")v=x.active.filter(a=>Date.parse(a.created_at||0)<end).length;
+ if(kind==="done")v=x.done.filter(a=>Date.parse(a.created_at||0)<end).length;
+ if(kind==="time"){const ls=x.life.filter(a=>a.complete>=start&&a.complete<end&&a.timeComplete!=null);v=ls.length?ls.reduce((s,z)=>s+z.timeComplete,0)/ls.length/3600000:null}
+ pts.push({d:new Date(end),v});
+ }return pts;
+}
+function draw(id,pts,label){
+ const c=document.getElementById(id),r=c.getBoundingClientRect(),d=devicePixelRatio||1,w=Math.max(300,r.width),h=210;c.width=w*d;c.height=h*d;const g=c.getContext("2d");g.scale(d,d);g.font="11px Arial";g.fillStyle="#9da8bd";g.fillText(label,12,18);
+ const vals=pts.map(p=>p.v).filter(v=>v!=null),max=Math.max(1,...vals),min=0;g.strokeStyle="#263148";g.lineWidth=1;
+ for(let i=0;i<4;i++){const y=35+i*42;g.beginPath();g.moveTo(10,y);g.lineTo(w-10,y);g.stroke()}
+ if(!vals.length){g.fillText("Insufficient history",12,110);return}
+ g.strokeStyle="#59e8ff";g.lineWidth=2;g.beginPath();pts.forEach((p,i)=>{if(p.v==null)return;const x=12+i*(w-24)/(pts.length-1),y=185-(p.v-min)/(max-min||1)*145;i?g.lineTo(x,y):g.moveTo(x,y)});g.stroke();
+ pts.forEach((p,i)=>{if(p.v==null)return;const x=12+i*(w-24)/(pts.length-1),y=185-(p.v-min)/(max-min||1)*145;g.fillStyle="#59e8ff";g.beginPath();g.arc(x,y,3,0,Math.PI*2);g.fill()});
+ g.fillStyle="#9da8bd";g.fillText("14-day view",w-72,202);
+}
+function render(){
+ const x=analyze(),high=x.active.filter(a=>a.urgency==="CRITICAL"||a.urgency==="HIGH").length,post=high>=2||x.overdue.length>=3?"ESCALATING":high||x.overdue.length?"WATCH":"STABLE";
+ const p=document.getElementById("posture");p.className="posture "+post.toLowerCase();p.innerHTML="<b>"+post+"</b><small>action effectiveness posture</small>";
+ document.getElementById("stats").innerHTML=[
+ ["Tracked",x.items.length],["Active",x.active.length],["Completed",x.done.length],["Overdue",x.overdue.length],
+ ["Completion",Math.round(x.completionRate)+"%"],["Time to Review",hours(x.avgReview)],["Time to Complete",days(x.avgComp)],["24h Velocity",x.velocity]
+ ].map(v=>'<div class="stat"><b>'+v[1]+'</b><span>'+v[0]+'</span></div>').join("");
+ draw("velocity",series(x,"complete"),"Completed actions / day");draw("volume",series(x,"active").map((p,i)=>({d:p.d,v:p.v-(series(x,"done")[i]?.v||0)})),"Active actions (derived)");
+ draw("overdue",series(x,"overdue"),"Overdue actions");draw("time",series(x,"time"),"Average completion hours");
+ const defRate=x.items.length?x.def/x.items.length*100:0,reviewRate=x.items.length?x.reviewed.length/x.items.length*100:0;
+ document.getElementById("effectiveness").innerHTML=[
+ ["Completion rate",Math.round(x.completionRate)+"%"],["Review rate",Math.round(reviewRate)+"%"],["Deferral rate",Math.round(defRate)+"%"],
+ ["Average time to review",hours(x.avgReview)],["Average time to completion",days(x.avgComp)],["Median time to completion",days(x.med)],
+ ["Completed in last 24h",x.velocity],["Oldest active action",x.active.length?hours(Math.max(...x.active.map(a=>ageHours(a))*3600000)): "—"]
+ ].map(v=>'<div class="metricline"><span>'+v[0]+'</span><b>'+v[1]+'</b></div>').join("");
+ document.getElementById("signals").innerHTML=x.signals.length?x.signals.slice(0,8).map(v=>'<div class="item"><div class="head"><b>'+esc(v[0])+'</b><span>'+v[1]+' action'+(v[1]===1?"":"s")+'</span></div><div class="bar"><i style="width:'+Math.min(100,v[1]/Math.max(1,x.signals[0][1])*100)+'%"></i></div></div>').join(""):'<div class="empty">No action history yet.</div>';
+ document.getElementById("priority").innerHTML=["CRITICAL","HIGH","WATCH","NORMAL"].map(u=>{const a=x.items.filter(z=>z.urgency===u),c=a.filter(z=>z.status==="complete").length,r=a.length?Math.round(c/a.length*100):0;return'<div class="row"><b>'+u+'</b><div class="bar"><i style="width:'+r+'%"></i></div><span>'+c+'/'+a.length+'</span></div>'}).join("");
+ const im=[];
+ if(x.overdue.length)im.push(["Prioritize overdue actions","There are "+x.overdue.length+" active actions beyond their urgency aging threshold.","HIGH"]);
+ if(x.def>0&&defRate>=25)im.push(["Review deferred workload","At least one quarter of tracked actions are deferred; inspect whether deferrals are masking recurring pressure.","WATCH"]);
+ if(x.recurring.length&&x.recurring[0][1]>=3)im.push(["Investigate recurring recommendations","The same normalized recommendation pattern has generated "+x.recurring[0][1]+" actions.","WATCH"]);
+ if(x.avgReview!=null&&x.avgReview>DAY)im.push(["Shorten review latency","Average time to first review exceeds 24 hours.","WATCH"]);
+ if(x.avgComp!=null&&x.avgComp>3*DAY)im.push(["Reduce completion cycle time","Average completed-action age exceeds three days.","WATCH"]);
+ if(!im.length)im.push(["Maintain current workflow","No material action-analytics pressure is detected from the available local history.","ROUTINE"]);
+ document.getElementById("improvements").innerHTML=im.map(v=>'<div class="item"><div class="head"><b>'+esc(v[0])+'</b><span class="badge">'+v[2]+'</span></div><p>'+esc(v[1])+'</p></div>').join("");
+ document.getElementById("recurring").innerHTML=x.recurring.length?x.recurring.slice(0,10).map(v=>'<div class="item"><div class="head"><b>'+esc(v[0])+'</b><span>'+v[1]+' occurrences</span></div><small>Normalized from V8.83 recommendation titles; repeated occurrences indicate recurring recommendation pressure, not duplicate execution.</small></div>').join(""):'<div class="empty">No recurring recommendation pattern detected yet.</div>';
+}
+document.getElementById("refresh").onclick=render;
+document.getElementById("export").onclick=()=>{const x=analyze(),out={generated_at:new Date().toISOString(),version:"V8.84",metrics:{tracked:x.items.length,active:x.active.length,completed:x.done.length,overdue:x.overdue.length,completion_rate:x.completionRate,deferral_rate:x.items.length?x.def/x.items.length*100:0,avg_time_to_review_ms:x.avgReview,avg_time_to_completion_ms:x.avgComp,median_time_to_completion_ms:x.med,completed_last_24h:x.velocity},recurring:x.recurring,signal_generators:x.signals,improvements:Array.from(document.querySelectorAll("#improvements .item")).map(e=>e.innerText)};const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(out,null,2)],{type:"application/json"}));a.download="crowrules-trust-v884-action-analytics.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+document.getElementById("csv").onclick=()=>{const x=analyze(),rows=["metric,value","tracked,"+x.items.length,"active,"+x.active.length,"completed,"+x.done.length,"overdue,"+x.overdue.length,"completion_rate,"+x.completionRate.toFixed(2),"deferral_rate,"+(x.items.length?x.def/x.items.length*100:0).toFixed(2),"avg_time_to_review_hours,"+(x.avgReview==null?"":x.avgReview/3600000),"avg_time_to_completion_hours,"+(x.avgComp==null?"":x.avgComp/3600000),"median_time_to_completion_hours,"+(x.med==null?"":x.med/3600000),"completed_last_24h,"+x.velocity];const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([rows.join("\n")+"\n"],{type:"text/csv"}));a.download="crowrules-trust-v884-action-analytics.csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+render();setInterval(render,15000);addEventListener("storage",render);
+})();
+</script></body></html>
