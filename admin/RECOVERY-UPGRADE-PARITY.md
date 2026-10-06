@@ -71,3 +71,5 @@ Moving the UI into Podcasting does not create a second recovery backend. Both Cr
 - V8.32 — Recovery Incident Reconstruction: groups V8.31 timeline events into incident lifecycle records with phase, health, duration, event count, peak severity, and evidence references.
 
 - V8.33 — Recovery Forensic Report Generator: immutable incident reports with classification, executive summary, metrics, evidence chain, and SHA-256 integrity hash.
+
+- V8.35 — Evidence Chain Vault & Immutable Investigation Ledger: hash-chained forensic events, immutable ledger records, and Control Room ledger explorer.
