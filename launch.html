@@ -36,6 +36,17 @@ body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-famil
 .status-dot{width:7px;height:7px;border-radius:50%;margin-right:8px;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
 .panel{padding:24px;border:1px solid var(--line);border-radius:20px;background:var(--panel);backdrop-filter:blur(14px);box-shadow:0 20px 60px rgba(0,0,0,.18)}
 .interest{text-align:center}
+.posts-panel{margin-top:16px;text-align:left}
+.posts-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:14px}
+.posts-intro{margin:8px 0 0;color:var(--muted);font-size:10px;line-height:1.6}
+.posts-link,.posts-fallback a{color:var(--cyan);font:800 7px Orbitron,sans-serif;letter-spacing:.12em;text-decoration:none;white-space:nowrap}
+.posts-link:hover,.posts-fallback a:hover{text-decoration:underline}
+.posts-frame-wrap{position:relative;min-height:260px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#060912}
+#kitPosts{display:block;width:100%;height:420px;border:0;background:#060912}
+.posts-fallback{display:none;position:absolute;inset:0;padding:34px 22px;text-align:center;background:rgba(6,9,18,.98)}
+.posts-fallback-title{font:800 10px Orbitron,sans-serif;letter-spacing:.18em}
+.posts-fallback p{max-width:520px;margin:12px auto 18px;color:var(--muted);font-size:10px;line-height:1.7}
+.posts-fallback.show{display:block}
 .section-title{font:800 10px Orbitron,sans-serif;letter-spacing:.2em;text-transform:uppercase}
 .interest-number{font:800 clamp(30px,4vw,46px) Orbitron,sans-serif;margin-top:12px;background:linear-gradient(110deg,#fff,var(--cyan),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
 .interest-sub{font-size:8px;letter-spacing:.12em;color:#737d94;margin-top:6px;min-height:12px}
@@ -47,7 +58,7 @@ body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-famil
 .is-live .live{display:block}
 .live h2{font:900 clamp(48px,10vw,96px) Orbitron,sans-serif;margin:10px 0;background:linear-gradient(110deg,#fff,var(--cyan),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
 .live p{color:var(--muted);font-size:11px}
-@media(max-width:620px){.launch-main{padding:30px 12px}.hero{padding-top:10px}.brand{flex-direction:column}.countdown{grid-template-columns:repeat(2,1fr);margin-top:27px}.panel{padding:20px}.launch-date{line-height:1.7}.choices button{flex:1;max-width:160px}}
+@media(max-width:620px){.posts-head{align-items:flex-start;flex-direction:column}.posts-link{white-space:normal}.posts-frame-wrap{min-height:220px}#kitPosts{height:360px}.launch-main{padding:30px 12px}.hero{padding-top:10px}.brand{flex-direction:column}.countdown{grid-template-columns:repeat(2,1fr);margin-top:27px}.panel{padding:20px}.launch-date{line-height:1.7}.choices button{flex:1;max-width:160px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 <link rel="preload" as="image" href="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/sign/images/podcastinglogo.png?token=eyJraWQiOiI5Yzg1OGE1OS1lOTQ3LTQwZjYtYWUwYS0zNDA3MWZlZjIyNmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJpbWFnZXMvcG9kY2FzdGluZ2xvZ28ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MTIxMjY2MiwiZXhwIjoxOTQ4ODkyNjYyfQ.BKJBftIQ8-xRMhaC0yLHVXCyoS4YNQDrjdIrDwHW7v8jE6nZ8GRscpsVZ1TrmAnSBpTJQqx-disdr5xilI862A" fetchpriority="high" data-crow-podcasting-logo-preload>
@@ -87,6 +98,29 @@ body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-famil
 <div class="choices">
 <button id="interestYes" type="button">YES — I'M IN</button>
 <button id="interestNo" type="button">NOT YET</button>
+</div>
+</section>
+
+<section class="panel posts-panel" aria-labelledby="posts-title">
+<div class="posts-head">
+<div>
+<div class="section-title" id="posts-title">CrowRules Posts</div>
+<p class="posts-intro">News, updates, announcements, and the latest from CrowRules Entertainment.</p>
+</div>
+<a class="posts-link" href="https://crowrules-entertainment.kit.com/profile/posts" target="_blank" rel="noopener noreferrer">VIEW ALL POSTS ↗</a>
+</div>
+<div class="posts-frame-wrap">
+<iframe
+ id="kitPosts"
+ title="CrowRules Entertainment Posts"
+ src="https://crowrules-entertainment.kit.com/profile/posts"
+ loading="lazy"
+ referrerpolicy="strict-origin-when-cross-origin"></iframe>
+<div class="posts-fallback" id="postsFallback">
+<div class="posts-fallback-title">CROWRULES POSTS</div>
+<p>The live post feed could not be embedded in this browser. The posts are still available directly.</p>
+<a href="https://crowrules-entertainment.kit.com/profile/posts" target="_blank" rel="noopener noreferrer">OPEN CROWRULES POSTS ↗</a>
+</div>
 </div>
 </section>
 
@@ -202,14 +236,21 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden){lastTick=
 tick();
 setTimeout(refreshInterest,350);
 
-const canvas=$("stars"),ctx=canvas.getContext("2d");let width=0,height=0,stars=[];
+const kitPosts=$("kitPosts"),postsFallback=$("postsFallback");
+let postsTimer=setTimeout(()=>postsFallback.classList.add("show"),4500);
+kitPosts.addEventListener("load",()=>{clearTimeout(postsTimer);postsFallback.classList.remove("show")});
+kitPosts.addEventListener("error",()=>{clearTimeout(postsTimer);postsFallback.classList.add("show")});
+
+const canvas=$("stars"),ctx=canvas?.getContext("2d");let width=0,height=0,stars=[];
 function resizeStars(){
+ if(!canvas||!ctx)return;
  width=innerWidth;height=innerHeight;
  const dpr=Math.min(devicePixelRatio||1,2);
  canvas.width=width*dpr;canvas.height=height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
  stars=Array.from({length:Math.min(220,Math.floor(width*height/6500))},()=>({x:Math.random()*width,y:Math.random()*height,r:Math.random()*1.1+.15,s:Math.random()*.2+.02,a:Math.random()*.5+.1}));
 }
 function drawStars(){
+ if(!canvas||!ctx)return;
  ctx.clearRect(0,0,width,height);
  for(const star of stars){star.y-=star.s;if(star.y<0)star.y=height;ctx.beginPath();ctx.arc(star.x,star.y,star.r,0,Math.PI*2);ctx.fillStyle="rgba(220,235,255,"+star.a+")";ctx.fill();}
  requestAnimationFrame(drawStars);
