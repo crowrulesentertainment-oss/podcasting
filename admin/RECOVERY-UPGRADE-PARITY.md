@@ -57,3 +57,5 @@ Moving the UI into Podcasting does not create a second recovery backend. Both Cr
 - V8.25 — Forecast Alert & Response Center: converts V8.24 forecasts into persistent admin alerts with OPEN → ACKNOWLEDGED → INVESTIGATING → RESOLVED lifecycle, operator notes, timestamps, and response controls. All state-changing RPCs retain the existing admin authorization boundary.
 
 - V8.26 — Alert Intelligence & Escalation: adds response SLAs, escalation state tracking, severity worsening detection, escalation evidence, and an admin-facing escalation check without autonomous recovery execution.
+
+- V8.27 — Recovery Pattern Intelligence: fingerprints forecast/risk/anomaly signals, detects recurrence, scores historical pattern matches, and links pattern evidence to forecast/risk/alert/escalation records without autonomous recovery execution.
