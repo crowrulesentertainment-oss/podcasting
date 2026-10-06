@@ -7,11 +7,12 @@
 <style>
 :root{color-scheme:dark;--bg:#03040a;--panel:#0a0d17;--line:#20273a;--text:#f5f7ff;--muted:#9ba5bd;--ok:#4dffb3;--bad:#ff647c;--warn:#ffd166}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -10%,#15112a 0,#03040a 48%);color:var(--text);font:15px Arial,sans-serif}.wrap{max-width:900px;margin:auto;padding:48px 22px}.card{background:rgba(10,13,23,.94);border:1px solid var(--line);border-radius:18px;padding:26px;margin:18px 0;box-shadow:0 18px 50px #0008}.eyebrow{letter-spacing:.16em;text-transform:uppercase;color:#b9c7ff;font-size:12px}.muted{color:var(--muted);line-height:1.7}input{width:100%;padding:14px;background:#050711;color:#fff;border:1px solid #30394f;border-radius:10px;font:inherit}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.btn{display:inline-block;padding:11px 16px;border-radius:10px;background:#101827;color:#fff;border:1px solid #38445e;text-decoration:none;cursor:pointer;font:inherit}.btn:hover{border-color:#7180a4}.status{margin-top:18px;padding:18px;border-radius:14px;border:1px solid var(--line)}.status.ok{border-color:var(--ok)}.status.bad{border-color:var(--bad)}.status.warn{border-color:var(--warn)}.statusTitle{font-size:22px;font-weight:700}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}.item{background:#050711;border:1px solid #1b2233;border-radius:12px;padding:13px}.label{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.value{overflow-wrap:anywhere}.hidden{display:none}@media(max-width:650px){.grid{grid-template-columns:1fr}}
+@media print{body{background:#fff;color:#000}.wrap{max-width:none;padding:20px}.card{box-shadow:none;background:#fff;border:1px solid #bbb;color:#000}.muted{color:#444}.actions,#trustKey,.eyebrow,a{display:none!important}.hidden{display:none!important}}
 </style>
 </head>
 <body>
 <main class="wrap">
-<div class="eyebrow">CrowRules Trust Center · V8.57</div>
+<div class="eyebrow">CrowRules Trust Center · V8.58</div>
 <h1>Trust Certificate</h1>
 <p class="muted">A live public certificate verification card powered by the existing V8.48 Trust Gateway. Only safe public trust metadata is displayed.</p>
 
@@ -40,6 +41,12 @@
 <a class="btn" id="badgeLink" href="trust-badge.html">VIEW BADGE</a>
 <button class="btn" id="shareBtn" type="button">COPY SHARE URL</button>
 </div>
+<div class="actions">
+<button class="btn" id="receiptBtn" type="button">DOWNLOAD RECEIPT</button>
+<button class="btn" id="summaryBtn" type="button">COPY SUMMARY</button>
+<button class="btn" id="printBtn" type="button">PRINT CERTIFICATE</button>
+</div>
+<p class="muted">V8.58 receipts contain public verification metadata only. Private forensic, incident, custody, and operator information is never included.</p>
 </section>
 
 <section class="card">
@@ -94,15 +101,34 @@ function setDetails(d){
  document.getElementById("vVerified").textContent=new Date().toLocaleString();
  document.getElementById("badgeLink").href="trust-badge.html?trust="+encodeURIComponent(d.trust_key||"");
 }
+
+const lastVerification={};
+function publicReceiptData(){
+ return {format:"CrowRules Public Trust Verification Receipt",version:"V8.58",generated_at:new Date().toISOString(),verification_status:lastVerification.status||"UNVERIFIED",trust_key:lastVerification.trust_key||input.value.trim()||null,certificate_key:lastVerification.certificate_key||null,certificate_sha256:lastVerification.certificate_sha256||null,trust_hash:lastVerification.trust_hash||null,published_at:lastVerification.published_at||null,revoked_at:lastVerification.revoked_at||null,verified_at:lastVerification.verified_at||null,verification_gateway:"V8.48 public Trust Gateway",verification_scope:"Public trust metadata and trust-hash integrity only; forensic evidence is not exposed"};
+}
+function downloadReceipt(){
+ const d=publicReceiptData(),blob=new Blob([JSON.stringify(d,null,2)+"\n"],{type:"application/json"}),a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);a.download="crowrules-trust-verification-"+(d.trust_key||"receipt").replace(/[^a-z0-9._-]+/gi,"-")+".json";document.body.appendChild(a);a.click();a.remove();
+}
+function copySummary(){
+ const d=publicReceiptData(),s=["CrowRules Trust Verification","Status: "+d.verification_status,"Trust Key: "+(d.trust_key||"—"),"Certificate: "+(d.certificate_key||"—"),"Certificate SHA-256: "+(d.certificate_sha256||"—"),"Trust Hash: "+(d.trust_hash||"—"),"Published: "+fmt(d.published_at),"Verified: "+fmt(d.verified_at),"Scope: Public trust metadata and trust-hash integrity only; forensic evidence is not exposed"].join("\n");
+ navigator.clipboard?.writeText(s).then(()=>setStatus("ok","SUMMARY COPIED","The safe public verification summary is ready to share.")).catch(()=>setStatus("warn","COPY SUMMARY",s));
+}
+document.getElementById("receiptBtn").addEventListener("click",downloadReceipt);
+document.getElementById("summaryBtn").addEventListener("click",copySummary);
+document.getElementById("printBtn").addEventListener("click",()=>window.print());
+
 async function verify(){
  const key=input.value.trim();
  details.classList.add("hidden");
+ lastVerification.status="UNVERIFIED";
  if(!key){setStatus("warn","TRUST KEY REQUIRED","Enter a Trust Key to begin public verification.");return}
  setStatus("","VERIFYING","Checking public certificate status and trust-hash integrity…");
  try{
    const {data,error}=await sb.rpc("cr_podcast_recovery_evidence_trust_public_verify_v848",{p_trust_key:key});
    if(error) throw error;
    if(!data){setStatus("bad","VERIFICATION ERROR","The Trust Gateway returned no verification result.");return}
+   lastVerification.status=data.status;lastVerification.trust_key=data.trust_key||key;lastVerification.certificate_key=data.certificate_key||null;lastVerification.certificate_sha256=data.certificate_sha256||null;lastVerification.trust_hash=data.trust_hash||null;lastVerification.published_at=data.published_at||null;lastVerification.revoked_at=data.revoked_at||null;lastVerification.verified_at=new Date().toISOString();
    if(data.status==="VERIFIED"){
      setStatus("ok","VERIFIED","The public certificate is currently verified and its trust-hash integrity check passed.");
      setDetails(data);
