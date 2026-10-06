@@ -65,3 +65,5 @@ Moving the UI into Podcasting does not create a second recovery backend. Both Cr
 - V8.29 — Recovery Intelligence Calibration: measures outcome accuracy, confidence bias, reliability, calibration grade, and operator recommendation without modifying recovery automation.
 
 - V8.30 — Recovery Intelligence Command Center: unified recovery health, intelligence score, confidence, risk, forecast, alert, pattern, calibration, recommendation, and evidence snapshot in one operator panel.
+
+- V8.31 — Recovery Intelligence Timeline & Evidence Explorer: unified chronological evidence timeline across V8.23–V8.30 with event type, severity, source version, timestamp, summary, and evidence payload.
