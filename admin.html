@@ -1,10 +1,10 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CrowRules Podcasting — Admin Command Center</title><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="css/podcasting-platform.css?v=5"><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=5" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=2" defer></script><script src="js/podcasting-config.js?v=5"></script><script src="js/podcasting-platform.js?v=5" defer></script><script src="js/podcasting-player.js?v=5" defer></script></head><body><main class="cr-shell">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CrowRules Podcasting — Admin Command Center</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="css/podcasting-platform.css?v=5"><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=5" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=2" defer></script><script src="js/podcasting-config.js?v=5"></script><script src="js/podcasting-platform.js?v=5" defer></script><script src="js/podcasting-player.js?v=5" defer></script></head><body><main class="cr-shell">
 <section class="hero"><div><div class="eyebrow">CrowRules Operations</div><h1>ADMIN COMMAND CENTER</h1><p>Publishing, moderation, holiday themes, creator health, monetization and network operations.</p><div id="adminNotice" class="notice">Authenticating administrator…</div></div><div class="hero-orb"><div class="orb-text">CONTROL<br><span style="color:var(--pink)">ROOM</span></div></div></section>
 <section class="stats"><div class="stat"><strong id="aPod">0</strong><span>Podcasts</span></div><div class="stat"><strong id="aEp">0</strong><span>Published</span></div><div class="stat"><strong id="aDue">0</strong><span>Due Now</span></div><div class="stat"><strong id="aAlerts">0</strong><span>Open Alerts</span></div><div class="stat"><strong id="aLive">0</strong><span>Live Shows</span></div></section>
 <section class="section"><div class="card panel"><h2>Holiday theme control</h2><p class="muted">Theme selection is date-aware. Use the admin API to preview/activate themes, set priority and schedule start/end dates.</p><div id="holidayList"></div></div></section><section class="section"><div class="card panel"><h2>Publishing queue</h2><button class="btn primary" id="publishDue">Publish Due Episodes</button><div id="publishing"></div></div></section>
 <section class="section"><div class="card panel"><h2>Moderation queue</h2><p class="muted">Unapproved podcast comments are surfaced here for review.</p><div id="moderation"></div></div></section>
 <section class="section"><div class="card panel"><h2>Network health</h2><div id="health" class="grid"></div><div id="audit"></div></div></section>
-</main><script>
+<section class="section"><div class="card panel"><h2>V7.51 Evidence Vault Recovery</h2><p class="muted">Protected recovery control. The original archive is never overwritten. Recovery creates a new trusted archive, preserves forensic evidence, rebuilds the chain, and issues a hashed certificate.</p><div id="recoveryNotice" class="notice">Loading recovery control…</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button class="btn primary" id="recoveryRefresh">Refresh Recovery State</button></div><div id="recoveryArchives"></div><div id="recoveryCases"></div><div id="recoveryCertificates"></div><div id="recoveryActions"></div></div></section></main><script>
 document.addEventListener('crow:ready',async()=>{const $=id=>document.getElementById(id),esc=CrowPodcasting.esc;const say=(id,t)=>$(id).innerHTML='<div class="notice">'+esc(t)+'</div>';try{const boot=await CrowPodcasting.edge('podcasting-admin-bootstrap',{});if(!boot.ok)throw Error(boot.error||'Administrator access required.');$('adminNotice').textContent='Administrator authenticated.';const ops=await CrowPodcasting.edge('crowrules-admin-api',{action:'v16_command_center'});const m=ops.metrics||{};$('aPod').textContent=CrowPodcasting.fmt((ops.podcasts||[]).length);$('aEp').textContent=CrowPodcasting.fmt(m.published||0);$('aDue').textContent=CrowPodcasting.fmt(m.due_now||0);$('aAlerts').textContent=CrowPodcasting.fmt(m.open_alerts||0);$('aLive').textContent=CrowPodcasting.fmt(m.live_podcasts||0);
 const themes=await CrowPodcasting.edge('crowrules-admin-api',{action:'list',table:'crowrules_holiday_calendar',limit:100});const today=new Date().toISOString().slice(0,10);const active=(themes.rows||[]).filter(x=>x.is_active&&x.starts_on<=today&&x.ends_on>=today).sort((a,b)=>Number(b.priority||0)-Number(a.priority||0));$('holidayList').innerHTML=(themes.rows||[]).sort((a,b)=>Number(b.priority||0)-Number(a.priority||0)).map(h=>'<div class="card" style="margin:8px 0"><b>'+esc(h.name)+'</b> <span class="badge">'+(active.some(x=>x.id===h.id)?'ACTIVE TODAY':'SCHEDULED')+'</span><p class="muted">'+esc(h.starts_on)+' → '+esc(h.ends_on)+' • priority '+esc(h.priority)+' • '+esc(h.particle_set||'standard')+'</p><button class="btn" data-theme="'+h.id+'" data-on="'+(!h.is_active)+'">'+(h.is_active?'Disable':'Enable')+'</button></div>').join('')||'<div class="notice">No holiday themes configured.</div>';
 document.querySelectorAll('[data-theme]').forEach(b=>b.onclick=async()=>{const id=b.dataset.theme;const enable=b.dataset.on==='true';try{await CrowPodcasting.edge('crowrules-admin-api',{action:'update',table:'crowrules_holiday_calendar',filters:{id},data:{is_active:enable,updated_at:new Date().toISOString()}});location.reload()}catch(e){alert(e.message)}});
@@ -14,4 +14,60 @@ document.querySelectorAll('[data-approve]').forEach(b=>b.onclick=async()=>{try{a
 document.querySelectorAll('[data-hide]').forEach(b=>b.onclick=async()=>{try{await CrowPodcasting.edge('crowrules-admin-api',{action:'update',table:'podcast_comments',filters:{id:b.dataset.hide},data:{is_approved:false,updated_at:new Date().toISOString()}});alert('Comment remains hidden.')}catch(e){alert(e.message)}});
 $('health').innerHTML='<div><b>'+CrowPodcasting.fmt(m.health_flags||0)+'</b><p class="muted">Health flags</p></div><div><b>'+CrowPodcasting.fmt(m.critical_alerts||0)+'</b><p class="muted">Critical alerts</p></div><div><b>'+CrowPodcasting.fmt(m.scheduled||0)+'</b><p class="muted">Scheduled</p></div><div><b>'+CrowPodcasting.fmt(m.live_podcasts||0)+'</b><p class="muted">Live</p></div>';$('audit').innerHTML='<h3>Recent operations</h3>'+((ops.events||[]).slice(0,20).map(e=>'<div class="card" style="margin:5px 0">'+esc(e.action||e.event_type||'operation')+' • '+esc(e.created_at||'')+'</div>').join('')||'<div class="notice">No recent operations.</div>');
 }catch(err){say('adminNotice',err.message)}})
+</script><script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const esc=(v)=>{const d=document.createElement('div');d.textContent=String(v??'');return d.innerHTML};
+ const notice=(t,ok=false)=>{const e=document.getElementById('recoveryNotice');e.textContent=t;e.style.borderColor=ok?'#55e7ff66':'#ff6b9d66'};
+ const cfg=window.CROW_CONFIG||{};
+ let sb=null;
+ async function client(){
+  if(sb)return sb;
+  if(!window.supabase?.createClient)throw new Error('Supabase client unavailable.');
+  if(!cfg.supabaseUrl||!cfg.supabaseKey)throw new Error('CrowRules Supabase configuration unavailable.');
+  sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
+  return sb;
+ }
+ async function rpc(name,args={}){
+  const c=await client(),{data,error}=await c.rpc(name,args);
+  if(error)throw error;
+  return data;
+ }
+ async function load(){
+  try{
+   notice('Authenticating administrator…');
+   const c=await client(),auth=await c.auth.getUser();
+   if(!auth.data?.user)throw new Error('Sign in required.');
+   const data=await rpc('get_vault_recovery_v751',{p_limit:25});
+   if(!data?.administrator)throw new Error('Administrator access required.');
+   notice('Administrator authenticated • recovery controls protected.',true);
+   render(data);
+  }catch(e){notice(e.message||'Recovery center unavailable.')}
+ }
+ function card(html){return '<div class="card" style="margin:8px 0">'+html+'</div>'}
+ function render(data){
+  const archives=data.archives||[],cases=data.cases||[],actions=data.actions||[],certs=data.certificates||[];
+  document.getElementById('recoveryArchives').innerHTML='<h3>Archive Sources</h3>'+(archives.length?archives.map(a=>card('<b>Archive #'+esc(a.id)+'</b> • '+esc(a.custody_status||'UNKNOWN')+' • '+esc(a.integrity_status||'UNKNOWN')+'<p class="muted">'+esc(a.report_key)+'<br>Integrity: <code>'+esc(a.integrity_sha256||'—')+'</code><br>Chain: <code>'+esc(a.chain_sha256||'—')+'</code></p><button class="btn" data-request="'+esc(a.id)+'">Request Recovery</button>')).join(''):'<div class="notice">No archive records found.</div>');
+  document.getElementById('recoveryCases').innerHTML='<h3>Recovery Cases</h3>'+(cases.length?cases.map(r=>{
+    let buttons='<button class="btn" data-preview="'+r.id+'">Preview</button>';
+    if(r.status==='PENDING_APPROVAL')buttons+='<button class="btn primary" data-approve="'+r.id+'">Approve</button>';
+    if(r.status==='APPROVED')buttons+='<button class="btn primary" data-verify="'+r.id+'">Verify</button>';
+    if(r.status==='APPROVED' && actions.some(a=>a.recovery_id===r.id&&a.action==='VERIFIED'))buttons+='<button class="btn primary" data-restore="'+r.id+'">Restore + Rebuild Chain</button>';
+    if(r.status==='RESTORED')buttons+='<button class="btn primary" data-cert="'+r.id+'">Issue Certificate</button>';
+    return card('<b>Recovery #'+r.id+'</b> • <strong>'+esc(r.status)+'</strong><p class="muted">'+esc(r.recovery_key)+'<br>Source archive: '+esc(r.source_archive_id)+' • Last known good: '+esc(r.last_known_good_id)+'<br>Recovered archive: '+esc(r.recovered_archive_id||'—')+'</p>'+buttons);
+  }).join(''):'<div class="notice">No recovery cases. This is the expected safe state until an incident is deliberately opened.</div>');
+  document.getElementById('recoveryCertificates').innerHTML='<h3>Recovery Certificates</h3>'+(certs.length?certs.map(c=>card('<b>'+esc(c.certificate_key)+'</b> • '+esc(c.status)+'<p class="muted">Recovery #'+esc(c.recovery_id)+' • '+esc(c.issued_at||'')+'<br>SHA-256: <code>'+esc(c.certificate_sha256||'—')+'</code></p>')).join(''):'<div class="notice">No recovery certificates issued.</div>');
+  document.getElementById('recoveryActions').innerHTML='<h3>Recovery Action Ledger</h3>'+(actions.length?actions.slice(0,40).map(a=>card('<b>'+esc(a.action)+'</b> • Recovery #'+esc(a.recovery_id)+' • '+esc(a.actor||'SYSTEM')+'<p class="muted">'+esc(a.created_at||'')+'</p>')).join(''):'<div class="notice">No recovery actions recorded.</div>');
+  bind();
+ }
+ function bind(){
+  document.querySelectorAll('[data-request]').forEach(b=>b.onclick=async()=>{if(!confirm('Open a V7.51 recovery case for archive #'+b.dataset.request+'?'))return;try{await rpc('request_vault_recovery_v751',{p_archive_id:Number(b.dataset.request)});notice('Recovery request created.',true);load()}catch(e){notice(e.message)}});
+  document.querySelectorAll('[data-preview]').forEach(b=>b.onclick=async()=>{try{const x=await rpc('preview_vault_recovery_v751',{p_recovery_id:Number(b.dataset.preview)});alert(JSON.stringify(x,null,2))}catch(e){notice(e.message)}});
+  document.querySelectorAll('[data-approve]').forEach(b=>b.onclick=async()=>{if(!confirm('Approve recovery #'+b.dataset.approve+'?'))return;try{await rpc('approve_vault_recovery_v751',{p_recovery_id:Number(b.dataset.approve),p_approve:true});notice('Recovery approved.',true);load()}catch(e){notice(e.message)}});
+  document.querySelectorAll('[data-verify]').forEach(b=>b.onclick=async()=>{try{const x=await rpc('verify_vault_recovery_v751',{p_recovery_id:Number(b.dataset.verify)});alert(JSON.stringify(x,null,2));load()}catch(e){notice(e.message)}});
+  document.querySelectorAll('[data-restore]').forEach(b=>b.onclick=async()=>{if(!confirm('Restore this case non-destructively and create a new trusted archive?'))return;try{const x=await rpc('restore_vault_recovery_v751',{p_recovery_id:Number(b.dataset.restore)});alert(JSON.stringify(x,null,2));load()}catch(e){notice(e.message)}});
+  document.querySelectorAll('[data-cert]').forEach(b=>b.onclick=async()=>{if(!confirm('Issue the final hashed recovery certificate?'))return;try{const x=await rpc('issue_recovery_certificate_v751',{p_recovery_id:Number(b.dataset.cert)});alert(JSON.stringify(x,null,2));load()}catch(e){notice(e.message)}});
+ }
+ document.getElementById('recoveryRefresh').addEventListener('click',load);
+ load();
+});
 </script></body></html>
