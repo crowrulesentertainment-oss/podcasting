@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CrowRules Podcasting — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/podcasting-platform.css?v=6"><script src="js/podcasting-config.js?v=5"></script>
+<style>.auth{width:min(560px,94vw);margin:70px auto}.auth .panel{padding:30px}.auth h1{font:800 34px Orbitron;margin:8px 0 12px}.auth .brand{font:800 18px Orbitron;color:#fff}.auth .brand b{color:var(--cyan)}.auth-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.auth a{color:var(--cyan)}.status{margin-top:15px;min-height:20px}.status.error{border-color:#ff4f8b66;color:#ffd2df}.status.ok{border-color:#55e7ff66}.links{display:flex;justify-content:space-between;gap:12px;margin-top:18px;font-size:12px}</style></head>
+<body><main class="auth"><div class="panel card">
+<a class="brand" href="home.html"><b>CROW</b>RULES <span class="muted">PODCASTING</span></a>
+<div class="eyebrow" style="margin-top:35px">One Account. One Universe.</div><h1>SIGN IN</h1><p class="muted">Sign in to CrowRules Podcasting with your universal CrowRules account.</p>
+<div id="status" class="notice status">Checking your session…</div>
+<form id="loginForm">
+<div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" required></div>
+<div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+<div class="auth-actions"><button class="btn primary" type="submit" id="submit">Sign In</button><button class="btn" type="button" id="google">Continue with Google</button></div>
+</form>
+<div class="links"><a href="signup.html">Create an account</a><a href="home.html">Back to Podcasting</a></div>
+</div></main>
+<script>
+(async()=>{const C=window.CROW_CONFIG||{},$=id=>document.getElementById(id),status=$('status');let sb;
+function redirect(){const p=new URLSearchParams(location.search).get('redirect');location.replace(p?decodeURIComponent(p):'home.html')}
+function set(t,kind=''){status.textContent=t;status.className='notice status '+kind}
+async function boot(){if(!window.supabase?.createClient)throw Error('Supabase client unavailable.');sb=window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce'}});const {data}=await sb.auth.getSession();if(data.session){set('You are already signed in. Redirecting…','ok');setTimeout(redirect,250)}else set('Enter your CrowRules account credentials.')}
+$('loginForm').onsubmit=async e=>{e.preventDefault();$('submit').disabled=true;set('Signing in…');try{const {data,error}=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;if(!data.session)throw Error('Sign-in completed but no session was returned.');set('Signed in successfully. Redirecting…','ok');setTimeout(redirect,250)}catch(e){set(e.message||'Unable to sign in.','error')}finally{$('submit').disabled=false}};
+$('google').onclick=async()=>{try{set('Opening Google sign-in…');const redirectTo=new URL('login.html',location.href);redirectTo.searchParams.set('redirect',new URLSearchParams(location.search).get('redirect')||'home.html');const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:redirectTo.toString()}});if(error)throw error}catch(e){set(e.message||'Google sign-in is unavailable.','error')}};
+try{await boot()}catch(e){set(e.message||'Authentication unavailable.','error')}})();
+</script></body></html>
