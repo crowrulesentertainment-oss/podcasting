@@ -8,11 +8,12 @@
 :root{color-scheme:dark;--bg:#03040a;--panel:#0a0d17;--line:#20273a;--text:#f5f7ff;--muted:#9ba5bd;--ok:#4dffb3;--bad:#ff647c;--warn:#ffd166}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -10%,#15112a 0,#03040a 48%);color:var(--text);font:15px Arial,sans-serif}.wrap{max-width:900px;margin:auto;padding:48px 22px}.card{background:rgba(10,13,23,.94);border:1px solid var(--line);border-radius:18px;padding:26px;margin:18px 0;box-shadow:0 18px 50px #0008}.eyebrow{letter-spacing:.16em;text-transform:uppercase;color:#b9c7ff;font-size:12px}.muted{color:var(--muted);line-height:1.7}input{width:100%;padding:14px;background:#050711;color:#fff;border:1px solid #30394f;border-radius:10px;font:inherit}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.btn{display:inline-block;padding:11px 16px;border-radius:10px;background:#101827;color:#fff;border:1px solid #38445e;text-decoration:none;cursor:pointer;font:inherit}.btn:hover{border-color:#7180a4}.status{margin-top:18px;padding:18px;border-radius:14px;border:1px solid var(--line)}.status.ok{border-color:var(--ok)}.status.bad{border-color:var(--bad)}.status.warn{border-color:var(--warn)}.statusTitle{font-size:22px;font-weight:700}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}.item{background:#050711;border:1px solid #1b2233;border-radius:12px;padding:13px}.label{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.value{overflow-wrap:anywhere}.hidden{display:none}@media(max-width:650px){.grid{grid-template-columns:1fr}}
 @media print{body{background:#fff;color:#000}.wrap{max-width:none;padding:20px}.card{box-shadow:none;background:#fff;border:1px solid #bbb;color:#000}.muted{color:#444}.actions,#trustKey,.eyebrow,a{display:none!important}.hidden{display:none!important}}
+.qrWrap{display:flex;justify-content:center;align-items:center;background:#fff;border-radius:14px;padding:18px;max-width:300px;margin:18px auto}.qrWrap img{width:240px;height:240px;display:block}@media print{#qrCard{display:block!important;page-break-inside:avoid}.qrWrap{border:1px solid #bbb}.qrWrap img{width:220px;height:220px}}
 </style>
 </head>
 <body>
 <main class="wrap">
-<div class="eyebrow">CrowRules Trust Center · V8.58</div>
+<div class="eyebrow">CrowRules Trust Center · V8.59</div>
 <h1>Trust Certificate</h1>
 <p class="muted">A live public certificate verification card powered by the existing V8.48 Trust Gateway. Only safe public trust metadata is displayed.</p>
 
@@ -45,7 +46,16 @@
 <button class="btn" id="receiptBtn" type="button">DOWNLOAD RECEIPT</button>
 <button class="btn" id="summaryBtn" type="button">COPY SUMMARY</button>
 <button class="btn" id="printBtn" type="button">PRINT CERTIFICATE</button>
+</div><section class="card hidden" id="qrCard">
+<h2>V8.59 SCAN TO VERIFY</h2>
+<p class="muted">Scan this public QR code to open the live Trust Certificate verifier for the current Trust Key.</p>
+<div class="qrWrap"><img id="qrImage" alt="Public Trust Certificate verification QR code"></div>
+<div class="actions">
+<button class="btn" id="qrDownloadBtn" type="button">DOWNLOAD QR</button>
+<button class="btn" id="qrCopyBtn" type="button">COPY VERIFICATION URL</button>
 </div>
+<p class="muted">The QR code contains only the public Trust Certificate URL.</p>
+</section>
 <p class="muted">V8.58 receipts contain public verification metadata only. Private forensic, incident, custody, and operator information is never included.</p>
 </section>
 
@@ -118,6 +128,10 @@ document.getElementById("receiptBtn").addEventListener("click",downloadReceipt);
 document.getElementById("summaryBtn").addEventListener("click",copySummary);
 document.getElementById("printBtn").addEventListener("click",()=>window.print());
 
+const qrCard=document.getElementById("qrCard"),qrImage=document.getElementById("qrImage");
+function publicVerificationUrl(key){return location.origin+location.pathname+"?trust="+encodeURIComponent(key)}
+function renderQr(key){if(!key){qrCard.classList.add("hidden");return}const url=publicVerificationUrl(key);qrImage.src="https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=12&data="+encodeURIComponent(url);qrImage.dataset.url=url;qrCard.classList.remove("hidden")}
+document.getElementById("qrDownloadBtn").addEventListener("click",async()=>{const src=qrImage.src;if(!src)return;try{const r=await fetch(src);const b=await r.blob();const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="crowrules-trust-qr-"+(lastVerification.trust_key||"verification").replace(/[^a-z0-9._-]+/gi,"-")+".png";document.body.appendChild(a);a.click();a.remove()}catch{window.open(src,"_blank","noopener")}});document.getElementById("qrCopyBtn").addEventListener("click",async()=>{const u=qrImage.dataset.url;if(!u)return;try{await navigator.clipboard.writeText(u);setStatus("ok","VERIFICATION URL COPIED","The public Trust Certificate URL is ready to share.")}catch{setStatus("warn","VERIFICATION URL",u)}});
 async function verify(){
  const key=input.value.trim();
  details.classList.add("hidden");
@@ -132,6 +146,7 @@ async function verify(){
    if(data.status==="VERIFIED"){
      setStatus("ok","VERIFIED","The public certificate is currently verified and its trust-hash integrity check passed.");
      setDetails(data);
+     renderQr(data.trust_key);
    }else if(data.status==="REVOKED"){
      setStatus("bad","REVOKED","This public certificate is marked revoked. Do not treat it as currently verified.");
      setDetails(data);
