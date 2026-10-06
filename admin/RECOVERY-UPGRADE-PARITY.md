@@ -73,3 +73,5 @@ Moving the UI into Podcasting does not create a second recovery backend. Both Cr
 - V8.33 — Recovery Forensic Report Generator: immutable incident reports with classification, executive summary, metrics, evidence chain, and SHA-256 integrity hash.
 
 - V8.35 — Evidence Chain Vault & Immutable Investigation Ledger: hash-chained forensic events, immutable ledger records, and Control Room ledger explorer.
+
+- V8.36 — Automated Evidence Capture: centralized evidence-capture RPC and Control Room capture interface writing hash-chained events into V8.35.
