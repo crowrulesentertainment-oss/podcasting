@@ -69,3 +69,5 @@ Moving the UI into Podcasting does not create a second recovery backend. Both Cr
 - V8.31 — Recovery Intelligence Timeline & Evidence Explorer: unified chronological evidence timeline across V8.23–V8.30 with event type, severity, source version, timestamp, summary, and evidence payload.
 
 - V8.32 — Recovery Incident Reconstruction: groups V8.31 timeline events into incident lifecycle records with phase, health, duration, event count, peak severity, and evidence references.
+
+- V8.33 — Recovery Forensic Report Generator: immutable incident reports with classification, executive summary, metrics, evidence chain, and SHA-256 integrity hash.
