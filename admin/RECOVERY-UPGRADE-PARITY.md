@@ -59,3 +59,5 @@ Moving the UI into Podcasting does not create a second recovery backend. Both Cr
 - V8.26 — Alert Intelligence & Escalation: adds response SLAs, escalation state tracking, severity worsening detection, escalation evidence, and an admin-facing escalation check without autonomous recovery execution.
 
 - V8.27 — Recovery Pattern Intelligence: fingerprints forecast/risk/anomaly signals, detects recurrence, scores historical pattern matches, and links pattern evidence to forecast/risk/alert/escalation records without autonomous recovery execution.
+
+- V8.28 — Pattern Outcomes & Learning: records pattern outcomes, prediction accuracy, recurrence, resolution time, and confidence deltas for historical calibration without autonomous recovery execution.
