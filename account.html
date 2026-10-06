@@ -1,1 +1,32 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CrowRules Podcasting — Account</title><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="css/podcasting-platform.css?v=1"><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=5" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=2" defer></script><script src="js/podcasting-config.js?v=1"></script></head><body><main class="cr-shell"><section class="hero"><div><div class="eyebrow">One Account. One Universe.</div><h1>YOUR CROWRULES ACCOUNT</h1><p>Podcasting uses the same CrowRules universal membership identity as CrowSpace, Sports, TV, Dreamscapes and the rest of the universe.</p><a class="btn primary" href="https://crowrulesentertainment-oss.github.io/crowspace/account.html">Open Universal Account</a><a class="btn" href="https://crowrulesentertainment-oss.github.io/members/">Membership Center</a></div><div class="hero-orb"><div class="orb-text">UNIVERSAL<br><span style="color:var(--cyan)">MEMBER</span></div></div></section></main></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CrowRules Podcasting — Account</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/podcasting-platform.css?v=6">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/podcasting-config.js?v=6"></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=6" defer></script>
+<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=3" defer></script>
+<style>
+.account{width:min(900px,94vw);margin:95px auto 140px}.panel{padding:30px}.account h1{font:800 clamp(32px,6vw,58px) Orbitron;margin:8px 0 14px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.identity{display:grid;grid-template-columns:76px 1fr;gap:18px;align-items:center}.avatar{width:76px;height:76px;border-radius:20px;object-fit:cover;background:#101426;border:1px solid #ffffff18}.value{font-weight:800}.status{margin-top:18px}.return{font-size:12px;margin-top:14px}.guest{display:none}.guest.show,.signed.show{display:block}.signed{display:none}.muted a,.return a{color:var(--cyan)}
+</style></head><body>
+<main class="account"><section class="panel card">
+<div class="eyebrow">CROWRULES PODCASTING // ONE ACCOUNT. ONE UNIVERSE.</div><h1>YOUR ACCOUNT</h1>
+<div id="guest" class="guest show"><p class="muted">Sign in with your universal CrowRules account. When you finish, you'll come right back to the Podcasting page you started from.</p>
+<div class="actions"><a class="btn primary" id="login" href="login.html">LOG IN</a><a class="btn" id="signup" href="signup.html">CREATE ACCOUNT</a><a class="btn" href="home.html">PODCASTING HOME</a></div>
+<div id="status" class="notice status">Checking your account session…</div></div>
+<div id="signed" class="signed"><div class="identity"><img id="avatar" class="avatar" alt=""><div><div class="eyebrow">SIGNED IN</div><div id="email" class="value"></div><div id="name" class="muted"></div></div></div>
+<div class="actions"><a class="btn primary" href="member-profile.html">MY PROFILE</a><a class="btn" href="https://crowrulesentertainment-oss.github.io/members/">MEMBERSHIP</a><button class="btn" id="logout" type="button">SIGN OUT</button></div>
+<div id="signedStatus" class="notice status">Your CrowRules universal session is active.</div></div>
+<div class="return muted">Return destination: <a id="returnLink" href="home.html">Podcasting Home</a></div>
+</section></main>
+<script>
+(async()=>{const C=window.CROW_CONFIG||{},$=id=>document.getElementById(id);let sb;
+const params=()=>new URLSearchParams(location.search);
+function destination(){const raw=params().get('returnTo')||params().get('redirect');if(!raw)return new URL('home.html',location.href).href;try{const u=new URL(decodeURIComponent(raw),location.href);if(!['http:','https:'].includes(u.protocol))throw 0;return u.href}catch{return new URL('home.html',location.href).href}}
+const target=destination();$('returnLink').href=target;$('returnLink').textContent=target===new URL('home.html',location.href).href?'Podcasting Home':'the page you came from';
+function authUrl(page){const u=new URL(page,location.href);u.searchParams.set('redirect',target);return u.href}
+$('login').href=authUrl('login.html');$('signup').href=authUrl('signup.html');
+function render(s){$('guest').classList.toggle('show',!s);$('signed').classList.toggle('show',!!s);if(s){const u=s.user||{},m=u.user_metadata||{};$('email').textContent=u.email||'';$('name').textContent=m.display_name||m.full_name||m.name||'CrowRules Member';const a=m.avatar_url||m.picture||'';$('avatar').src=a||'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2276%22 height=%2276%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 rx=%2220%22 fill=%22101426%22/%3E%3Ctext x=%2250%25%22 y=%2257%25%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22 font-family=%22Arial%22%3ECR%3C/text%3E%3C/svg%3E'}}}
+async function session(){let r=await sb.auth.getSession();let s=r.data?.session||null;if(!s){try{s=(await sb.auth.refreshSession()).data?.session||null}catch{}}return s}
+try{if(!window.supabase?.createClient)throw Error('Supabase client unavailable.');sb=window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce',storageKey:'crowrules-universal-session-v1',storage:window.localStorage}});let s=await session();render(s);if(!s)$('status').textContent='Not signed in. Choose Log In or Create Account.';sb.auth.onAuthStateChange((_e,n)=>render(n));$('logout').onclick=async()=>{await sb.auth.signOut({scope:'global'});render(null)}}catch(e){$('status').textContent=e.message||'Authentication unavailable.'}}
+)();
+</script></body></html>
