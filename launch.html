@@ -21,9 +21,9 @@ body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-famil
 .launch-main{min-height:100vh;display:grid;place-items:center;padding:42px 16px}
 .wrap{width:min(820px,100%);margin:auto}
 .hero{text-align:center;padding:20px 0 30px}
-.brand{display:inline-flex;align-items:center;justify-content:center;gap:12px;margin-bottom:24px}
-.brand img{width:76px;height:76px;object-fit:contain;filter:drop-shadow(0 0 20px rgba(103,232,249,.28))}
-.brand-name{font:800 10px Orbitron,sans-serif;letter-spacing:.16em}
+.brand{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;margin:0 auto 26px;width:100%}
+.brand img{display:block;width:clamp(150px,24vw,220px);height:clamp(150px,24vw,220px);object-fit:contain;filter:drop-shadow(0 0 28px rgba(103,232,249,.34));margin:0 auto}
+.brand-name{font:800 clamp(12px,2vw,17px) Orbitron,sans-serif;letter-spacing:.18em;text-align:center}
 .brand-name b{color:var(--cyan)}
 .eyebrow{font:700 9px Orbitron,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#7ddff0}
 .hero h1{font:900 clamp(38px,8vw,78px)/.98 Orbitron,sans-serif;margin:14px 0;background:linear-gradient(100deg,#fff 10%,#bdeff7 55%,#bba7ff 95%);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -59,7 +59,7 @@ body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-famil
 .is-live .live{display:block}
 .live h2{font:900 clamp(48px,10vw,96px) Orbitron,sans-serif;margin:10px 0;background:linear-gradient(110deg,#fff,var(--cyan),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
 .live p{color:var(--muted);font-size:11px}
-@media(max-width:620px){.posts-head{align-items:flex-start;flex-direction:column}.posts-link{white-space:normal}.posts-frame-wrap{min-height:220px}.launch-main{padding:30px 12px}.hero{padding-top:10px}.brand{flex-direction:column}.countdown{grid-template-columns:repeat(2,1fr);margin-top:27px}.panel{padding:20px}.launch-date{line-height:1.7}.choices button{flex:1;max-width:160px}}
+@media(max-width:620px){.posts-head{align-items:flex-start;flex-direction:column}.posts-link{white-space:normal}.posts-frame-wrap{min-height:220px}.launch-main{padding:30px 12px}.hero{padding-top:10px}.brand img{width:clamp(140px,48vw,190px);height:clamp(140px,48vw,190px)}.brand{flex-direction:column}.countdown{grid-template-columns:repeat(2,1fr);margin-top:27px}.panel{padding:20px}.launch-date{line-height:1.7}.choices button{flex:1;max-width:160px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 <link rel="preload" as="image" href="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/sign/images/podcastinglogo.png?token=eyJraWQiOiI5Yzg1OGE1OS1lOTQ3LTQwZjYtYWUwYS0zNDA3MWZlZjIyNmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJpbWFnZXMvcG9kY2FzdGluZ2xvZ28ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MTIxMjY2MiwiZXhwIjoxOTQ4ODkyNjYyfQ.BKJBftIQ8-xRMhaC0yLHVXCyoS4YNQDrjdIrDwHW7v8jE6nZ8GRscpsVZ1TrmAnSBpTJQqx-disdr5xilI862A" fetchpriority="high" data-crow-podcasting-logo-preload>
@@ -76,7 +76,7 @@ body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-famil
 <div class="wrap">
 <section class="hero" aria-labelledby="launch-title">
 <div class="brand">
-<img src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/sign/images/podcastinglogo.png?token=eyJraWQiOiI5Yzg1OGE1OS1lOTQ3LTQwZjYtYWUwYS0zNDA3MWZlZjIyNmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJpbWFnZXMvcG9kY2FzdGluZ2xvZ28ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MTIxMjY2MiwiZXhwIjoxOTQ4ODkyNjYyfQ.BKJBftIQ8-xRMhaC0yLHVXCyoS4YNQDrjdIrDwHW7v8jE6nZ8GRscpsVZ1TrmAnSBpTJQqx-disdr5xilI862A" alt="CrowRules Podcasting" width="76" height="76" decoding="async">
+<img src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/sign/images/podcastinglogo.png?token=eyJraWQiOiI5Yzg1OGE1OS1lOTQ3LTQwZjYtYWUwYS0zNDA3MWZlZjIyNmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJpbWFnZXMvcG9kY2FzdGluZ2xvZ28ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MTIxMjY2MiwiZXhwIjoxOTQ4ODkyNjYyfQ.BKJBftIQ8-xRMhaC0yLHVXCyoS4YNQDrjdIrDwHW7v8jE6nZ8GRscpsVZ1TrmAnSBpTJQqx-disdr5xilI862A" alt="CrowRules Podcasting logo" width="220" height="220" decoding="async" fetchpriority="high">
 <span class="brand-name">CROWRULES <b>/</b> PODCASTING</span>
 </div>
 <div class="eyebrow">THE NEXT TRANSMISSION IS APPROACHING</div>
