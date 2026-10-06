@@ -1,0 +1,18 @@
+(function(){
+function esc(v){return String(v??"").replace(/</g,"&lt;")}
+async function loadV788(){
+ const sb=window.sb; if(!sb)return;
+ let box=document.getElementById("v788TrustDrift");
+ if(!box){box=document.createElement("div");box.className="panel";box.id="v788TrustDrift";box.innerHTML='<h2>V7.88 RECOVERY TRUST HISTORY &amp; DRIFT</h2><pre id="v788Summary" class="muted">CONNECTING</pre><div id="v788History" class="muted"></div><button class="btn" id="v788Verify">VERIFY DRIFT</button><button class="btn" id="v788Baseline">SET TRUSTED BASELINE</button>';const t=document.getElementById("trustSummary")?.closest(".panel");if(t)t.parentNode.insertBefore(box,t);else document.getElementById("app")?.prepend(box)}
+ const h=await sb.rpc("cr_podcast_recovery_trust_history_v787",{p_limit:1});
+ if(h.error||!h.data?.length){document.getElementById("v788Summary").textContent=h.error?"V7.88: "+String(h.error.message||h.error):"No V7.87 trust verification exists yet.";return}
+ const id=h.data[0].id;
+ const d=await sb.rpc("cr_podcast_recovery_trust_drift_verify_v788",{p_verification_id:id});
+ document.getElementById("v788Summary").textContent=d.error?"V7.88: "+String(d.error.message||d.error):JSON.stringify(d.data,null,2);
+ const hist=await sb.rpc("cr_podcast_recovery_trust_drift_history_v788",{p_limit:25});
+ document.getElementById("v788History").innerHTML=hist.error?"V7.88: "+esc(hist.error.message):"<h3>DRIFT HISTORY</h3>"+(hist.data?.length?hist.data.map(x=>"<div class='panel'><strong>"+esc(x.drift_status)+"</strong> • Δ "+esc(x.score_delta)+" • "+esc(x.detected_at)+"<br>"+esc(JSON.stringify(x.drift_types))+"</div>").join(""):"No drift records.");
+ document.getElementById("v788Verify").onclick=loadV788;
+ document.getElementById("v788Baseline").onclick=async()=>{const r=await sb.rpc("cr_podcast_recovery_trust_baseline_v788",{p_verification_id:id});if(r.error)alert(String(r.error.message||r.error));else await loadV788()};
+}
+async function loadV789(){const sb=window.sb;if(!sb)return;const a=await sb.rpc("cr_podcast_recovery_trust_drift_alerts_v789");const s=document.getElementById("v789Summary");s.textContent=a.error?String(a.error.message||a.error):JSON.stringify(a.data,null,2);const h=await sb.rpc("cr_podcast_recovery_trust_drift_alert_history_v789",{p_limit:25});document.getElementById("v789Alerts").innerHTML=h.error?String(h.error.message||h.error):"<h3>DRIFT ALERTS</h3>"+(h.data?.length?h.data.map(x=>"<div class='panel'><strong>"+x.severity+"</strong> • "+x.status+" • "+x.alert_type+"<br>"+x.message+"</div>").join(""):"No alerts.");const r=await sb.rpc("cr_podcast_recovery_trust_drift_remediation_history_v789",{p_limit:25});document.getElementById("v789Remediation").innerHTML=r.error?String(r.error.message||r.error):"<h3>REMEDIATION</h3>"+(r.data?.length?r.data.map(x=>"<div class='panel'><strong>"+x.status+"</strong> • "+x.remediation_type+"<br>"+x.recommended_action+"<br><button class='btn' onclick='window.v789Action("+x.id+","ACKNOWLEDGE")'>ACKNOWLEDGE</button><button class='btn' onclick='window.v789Action("+x.id+","START")'>START</button><button class='btn' onclick='window.v789Action("+x.id+","VERIFY")'>VERIFY</button><button class='btn' onclick='window.v789Action("+x.id+","RESOLVE")'>RESOLVE</button><button class='btn' onclick='window.v789Action("+x.id+","ESCALATE")'>ESCALATE</button></div>").join(""):"No remediation records.")}window.v789Action=async(id,action)=>{const n=action==="NOTE"?prompt("Note:"):null;const r=await sb.rpc("cr_podcast_recovery_trust_drift_remediation_update_v789",{p_id:id,p_action:action,p_value:null,p_note:n});if(r.error)alert(String(r.error.message||r.error));else loadV789()};window.addEventListener("load",()=>setTimeout(loadV789,1400));
+})();
