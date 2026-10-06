@@ -67,3 +67,5 @@ Moving the UI into Podcasting does not create a second recovery backend. Both Cr
 - V8.30 — Recovery Intelligence Command Center: unified recovery health, intelligence score, confidence, risk, forecast, alert, pattern, calibration, recommendation, and evidence snapshot in one operator panel.
 
 - V8.31 — Recovery Intelligence Timeline & Evidence Explorer: unified chronological evidence timeline across V8.23–V8.30 with event type, severity, source version, timestamp, summary, and evidence payload.
+
+- V8.32 — Recovery Incident Reconstruction: groups V8.31 timeline events into incident lifecycle records with phase, health, duration, event count, peak severity, and evidence references.
