@@ -27,7 +27,7 @@ body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-famil
 .brand-name b{color:var(--cyan)}
 .eyebrow{font:700 9px Orbitron,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#7ddff0}
 .hero h1{font:900 clamp(38px,8vw,78px)/.98 Orbitron,sans-serif;margin:14px 0;background:linear-gradient(100deg,#fff 10%,#bdeff7 55%,#bba7ff 95%);-webkit-background-clip:text;background-clip:text;color:transparent}
-.launch-date{font:600 10px Orbitron,sans-serif;letter-spacing:.14em;color:#aeb7c7}
+.launch-date{font:600 10px Orbitron,sans-serif;letter-spacing:.14em;color:#aeb7c7}.launch-note{margin-top:9px;color:#7f8ba0;font-size:8px;letter-spacing:.11em;text-transform:uppercase}
 .countdown{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:800px;margin:34px auto 14px}
 .unit{padding:21px 10px 17px;border:1px solid var(--line);border-radius:16px;background:rgba(8,12,20,.92);box-shadow:inset 0 1px rgba(255,255,255,.04)}
 .num{font:800 clamp(30px,5vw,62px)/1 Orbitron,sans-serif}
@@ -54,6 +54,7 @@ body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-famil
 <link rel="stylesheet" href="css/sitewide-rebuild-v18.css?v=20261005-v23.5" data-crow-v23-css>
 <script src="js/sitewide-rebuild-v18.js?v=20261005-v23.3" defer data-crow-v23-js></script>
 <link rel="stylesheet" href="css/podcasting-v1.css?v=20261005-v1.0.0" data-crow-v1-css>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js?v=20261005-v1.0.0" defer data-crow-v1-config></script>
 <script src="js/podcasting-v1.js?v=20261005-v1.0.0" defer data-crow-v1-js></script>
 </head>
@@ -68,7 +69,8 @@ body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-famil
 </div>
 <div class="eyebrow">THE NEXT TRANSMISSION IS APPROACHING</div>
 <h1 id="launch-title">THE COUNTDOWN<br>HAS BEGUN</h1>
-<div class="launch-date">JANUARY 1, 2027 • 12:00 AM PACIFIC • CROWRULES PODCASTING</div>
+<div class="launch-date">TARGET LAUNCH: JANUARY 1, 2027 • 12:00 AM PACIFIC</div>
+<div class="launch-note">CURRENT COUNTDOWN TARGET — THE LAUNCH MAY HAPPEN SOONER.</div>
 <div class="countdown" aria-label="Countdown to CrowRules Podcasting launch">
 <div class="unit"><div class="num" id="days">000</div><div class="label">Days</div></div>
 <div class="unit"><div class="num" id="hours">00</div><div class="label">Hours</div></div>
@@ -129,11 +131,21 @@ function tick(){
 }
 
 async function getClient(){
- if(window.CROW_SUPABASE)return client=window.CROW_SUPABASE;
  if(client)return client;
- if(window.CROW_CONFIG_CLIENT_READY)client=await Promise.race([window.CROW_CONFIG_CLIENT_READY,new Promise((_,r)=>setTimeout(()=>r(new Error("Supabase client timed out")),12000))]);
- if(!client)throw new Error("CrowRules Supabase client is not configured.");
- return client;
+ if(window.CROW_SUPABASE)return client=window.CROW_SUPABASE;
+ if(window.supabase?.createClient){
+  client=window.supabase.createClient(
+   "https://cevylpnoexugwgygvtgu.supabase.co",
+   "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-",
+   {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
+  );
+  return client;
+ }
+ if(window.CROW_CONFIG_CLIENT_READY){
+  client=await Promise.race([window.CROW_CONFIG_CLIENT_READY,new Promise((_,r)=>setTimeout(()=>r(new Error("Supabase client timed out")),12000))]);
+  return client;
+ }
+ throw new Error("Supabase client library is unavailable.");
 }
 function visitorId(){
  let id=localStorage.getItem("crowrules_launch_visitor");
@@ -163,7 +175,7 @@ async function refreshInterest(){
   $("interestNo").classList.toggle("selected",state.interested===false);
  }catch(error){
   console.warn("[CrowRules Launch] interest",error);
-  $("interestSub").textContent="LAUNCH INTEREST IS TEMPORARILY UNAVAILABLE";
+  $("interestSub").textContent="LAUNCH INTEREST CONNECTION UNAVAILABLE — RETRYING…";
  }
 }
 async function updateInterest(interested){
@@ -188,7 +200,7 @@ $("interestNo").addEventListener("click",()=>updateInterest(false));
 addEventListener("online",refreshInterest);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){lastTick=-1;tick();refreshInterest();}});
 tick();
-setTimeout(refreshInterest,250);
+setTimeout(refreshInterest,350);
 
 const canvas=$("stars"),ctx=canvas.getContext("2d");let width=0,height=0,stars=[];
 function resizeStars(){
