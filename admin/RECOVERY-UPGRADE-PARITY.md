@@ -53,3 +53,5 @@ The authoritative recovery state, security functions, immutable evidence, RLS po
 Moving the UI into Podcasting does not create a second recovery backend. Both CrowRules Entertainment and Podcasting operate against the same Supabase recovery state so telemetry, evidence, state, and security decisions remain consistent.
 
 - V8.24 — Recovery Incident Forecasting & Anomaly Detection: forecasts incident probability, confidence, trajectory, anomaly score, dominant signal, and recommended operator action from V8.21 telemetry plus V8.23 predictive risk; protected by the existing admin authorization boundary.
+
+- V8.25 — Forecast Alert & Response Center: converts V8.24 forecasts into persistent admin alerts with OPEN → ACKNOWLEDGED → INVESTIGATING → RESOLVED lifecycle, operator notes, timestamps, and response controls. All state-changing RPCs retain the existing admin authorization boundary.
