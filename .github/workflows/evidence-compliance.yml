@@ -99,6 +99,23 @@ jobs:
           set -euo pipefail
           node scripts/evidence-deployment-gate-v733.mjs
 
+      - name: V7.34 deployment ledger
+        shell: bash
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          CROW_CHANGED_FILES: ${{ env.CROW_CHANGED_FILES }}
+        run: node scripts/evidence-deployment-ledger-v734.mjs
+
+      - name: Upload V7.34 deployment ledger
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v7-34-deployment-ledger
+          path: .evidence-compliance/deployment-ledger.json
+          if-no-files-found: ignore
+
       - name: Upload compliance report
         if: always()
         uses: actions/upload-artifact@v4
