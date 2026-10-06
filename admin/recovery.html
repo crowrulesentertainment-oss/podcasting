@@ -1,0 +1,223 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CrowRules V7.78 Recovery Executive Review & Evidence Dashboard</title><style>body{margin:0;background:#03040a;color:#f5f7ff;font:14px Arial,sans-serif}.wrap{max-width:1400px;margin:auto;padding:30px}.panel{margin:18px 0;padding:22px;background:#0a0d17;border:1px solid #20273a;border-radius:16px}.title{font-size:34px;font-weight:800}.muted{color:#9ba5bd;line-height:1.6}.btn{display:inline-block;padding:11px 15px;margin:5px;border:1px solid #57e8ff;border-radius:9px;background:#07131b;color:#57e8ff;text-decoration:none;cursor:pointer}.error{color:#ff647c;margin-top:15px}.login{max-width:600px;margin:12vh auto}.hidden{display:none!important}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;border-bottom:1px solid #20273a;font-size:12px}th{color:#57e8ff}</style><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
+<script src="./recovery-v788.js" defer></script><script src="./recovery-v790.js" defer></script><script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=5" defer></script><script src="./recovery-v846.js" defer></script><script src="./recovery-v847.js" defer></script></head><body><div id="login" class="panel login"><div class="title">RECOVERY CONTROL ROOM</div><p class="muted">V7.63 SESSION RESILIENCE<br>Your administrator session is missing or expired. The control room will refresh valid Supabase tokens when possible and will never run a protected recovery operation without a valid session.</p><a class="btn" href="../account.html?redirect=admin/recovery.html">SIGN IN TO CROWRULES</a><a class="btn" href="./index.html">ADMIN CENTER</a><div id="loginError" class="error"></div></div><main id="app" class="wrap hidden"><div class="panel"><div class="title">RECOVERY CONTROL ROOM</div><p class="muted">V7.85 • Notification & SLA Center • V7.84 • V7.82 • Certification Command Center • V7.81 • Automated Renewal & Revocation • V7.80 • Certification Lifecycle • V7.79 • Executive Certification • V7.69 • Compliance & executive reporting • V7.70 • Live compliance monitoring • V7.73 • Verification & Evidence • V7.72 • Automated Remediation • V7.71 • Remediation Center • V7.70 • Live monitoring • V7.69 • Compliance reporting • V7.68 • Evidence verification • V7.67 forensics • V7.66 incident response • V7.61 certificate automation • V7.58 alerts • V7.59 incidents</p><button id="refresh" class="btn">REFRESH NOW</button><button id="drillBtn" class="btn">RUN NON-DESTRUCTIVE DRILL</button><button id="certBtn" class="btn">ISSUE / RENEW CERTIFICATE</button><a class="btn" href="./index.html">COMMAND CENTER</a><p id="stamp" class="muted">CONNECTING</p><div class="panel" style="margin-top:14px"><h2>LIVE OPERATION</h2><pre id="operation" class="muted">IDLE</pre></div></div><div class="panel" id="v789TrustResponse"><h2>V7.89 TRUST DRIFT RESPONSE CENTER</h2><pre id="v789Summary" class="muted">CONNECTING</pre><div id="v789Alerts" class="muted"></div><div id="v789Remediation" class="muted"></div></div><div class="panel"><h2>V7.87 RECOVERY TRUST CENTER</h2><pre id="trustSummary" class="muted">CONNECTING</pre><div id="trustHistory" class="muted"></div><button class="btn" onclick="verifyRecoveryTrust()">VERIFY ENTIRE CHAIN</button></div><div class="panel"><h2>V7.86 ON-CALL &amp; NOTIFICATION ROUTING</h2><pre id="routingSummary" class="muted">CONNECTING</pre><div id="routingTable" class="muted"></div><div id="integritySummary" class="muted"></div></div><div class="panel"><h2>V7.85 NOTIFICATION &amp; SLA CENTER</h2><pre id="notificationSummary" class="muted">CONNECTING</pre><div id="slaBreaches" class="muted"></div><div id="deliveryHistory" class="muted"></div><button class="btn" onclick="processNotifications()">PROCESS QUEUE</button><button class="btn" onclick="retryNotifications()">RETRY FAILED</button></div><div class="panel"><h2>V7.84 ALERT ESCALATION CENTER</h2><pre id="escalationSummary" class="muted">CONNECTING</pre><div id="escalations" class="muted"></div><div id="notifications" class="muted"></div></div><div class="panel"><h2>V7.82 CERTIFICATION COMMAND CENTER</h2><pre id="certLifecycle" class="muted">CONNECTING</pre><div id="certActions" class="muted"></div><div id="certTimeline" class="muted"></div></div><div class="panel"><h2>READINESS</h2><pre id="readiness" class="muted"></pre></div><div class="panel"><h2>V7.70 LIVE COMPLIANCE MONITOR</h2><pre id="monitor" class="muted">CONNECTING</pre><div id="monitorAlerts" class="muted"></div><div id="monitorHistory" class="muted"></div></div><div class="panel"><h2>V7.78 EXECUTIVE RECOVERY REVIEW</h2><pre id="executiveSummary" class="muted">CONNECTING</pre><div id="exports" class="muted"></div></div><div class="panel"><h2>V7.73 VERIFICATION &amp; EVIDENCE</h2><pre id="verificationSummary" class="muted">CONNECTING</pre><div id="verifications" class="muted"></div></div><div class="panel"><h2>V7.73 VERIFICATION &amp; EVIDENCE</h2><pre id="verificationSummary" class="muted">CONNECTING</pre><div id="verifications" class="muted"></div></div><div class="panel"><h2>V7.72 AUTOMATED REMEDIATION</h2><pre id="playbookSummary" class="muted">CONNECTING</pre><div id="playbooks" class="muted"></div></div><div class="panel"><h2>V7.71 REMEDIATION CENTER</h2><pre id="remediationSummary" class="muted">CONNECTING</pre><div id="remediations" class="muted"></div></div><div class="panel"><h2>V7.69 RECOVERY COMPLIANCE</h2><pre id="compliance" class="muted">CONNECTING</pre><div id="complianceHistory" class="muted"></div></div><div class="panel"><h2>V7.60 DRILL HISTORY</h2><div id="history" class="muted"></div></div><div class="panel"><h2>V7.61 CERTIFICATE HISTORY</h2><div id="certHistory" class="muted"></div></div><div class="panel"><h2>V7.65 INCIDENT CENTER</h2><pre id="incidentSummary" class="muted">CONNECTING</pre><div id="incidentActions" class="muted"></div><div id="incidentHistory" class="muted"></div><div id="forensic" class="muted"></div><div id="custody" class="muted"></div></div></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
+const URL="https://cevylpnoexugwgygvtgu.supabase.co",KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNldnlscG5vZXh1Z3dneWd2dGd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4MTYxOTYsImV4cCI6MjEwNDM5MjE5Nn0.bvSF3qRqFNvCtaF5CSDeeEO3yJnsnYt9CXmgUaBWjNQ",
+sb=window.sb=supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce",storageKey:"crowrules-universal-session-v1"}}),
+$=x=>document.getElementById(x);
+let operationRunning=false,refreshInFlight=null,operationId=null;
+
+function classify(e){
+ const m=String(e?.message||e||"").toLowerCase();
+ if(/invalid or expired session|jwt|token.*expired|session.*expired/.test(m))return"EXPIRED_JWT";
+ if(/not signed in|no session|auth session missing/.test(m))return"NO_SESSION";
+ if(/administrator access required|not administrator|admin/.test(m)&&/administrator|admin/.test(m))return"NOT_ADMINISTRATOR";
+ if(/could not find the function|schema cache|does not exist/.test(m))return"MISSING_RPC";
+ if(/permission denied|insufficient privilege/.test(m))return"PERMISSION_DENIED";
+ if(/no eligible.*archive|eligible.*archive.*available/.test(m))return"NO_ELIGIBLE_ARCHIVE";
+ return"DRILL_FAILURE";
+}
+function messageFor(cat){
+ return ({EXPIRED_JWT:"SESSION EXPIRED — your Supabase session could not be refreshed.",NO_SESSION:"SIGN IN REQUIRED — no authenticated Supabase session is available.",NOT_ADMINISTRATOR:"ADMINISTRATOR AUTHORIZATION REQUIRED — your account is not authorized for recovery operations.",MISSING_RPC:"BACKEND COMPATIBILITY ERROR — the required recovery function is unavailable.",PERMISSION_DENIED:"BACKEND PERMISSION ERROR — the recovery operation was denied by Supabase.",NO_ELIGIBLE_ARCHIVE:"RECOVERY ARCHIVE UNAVAILABLE — no eligible last-known-good archive was found.",DRILL_FAILURE:"SAFE FAILURE — the recovery operation failed without attempting a production mutation."}[cat]||"RECOVERY ERROR");}
+function table(rows){if(!rows?.length)return"No records available.";let c=Object.keys(rows[0]);return'<table><tr>'+c.map(x=>'<th>'+x+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+c.map(x=>'<td>'+String(r[x]??'').replace(/</g,'&lt;')+'</td>').join('')+'</tr>').join('')+'</table>'}
+async function audit(type,outcome,category,details={}){
+ try{await sb.rpc("cr_podcast_recovery_session_audit_v763",{p_event_type:type,p_outcome:outcome,p_failure_category:category||null,p_details:details})}catch(e){console.warn("V7.63 audit unavailable",e)}
+}
+async function refreshSession(){
+ if(refreshInFlight)return refreshInFlight;
+ refreshInFlight=(async()=>{await audit("REFRESH_ATTEMPT","SUCCESS",null,{reason:"session_validation"});const r=await sb.auth.refreshSession();return r.data?.session||null})().finally(()=>refreshInFlight=null);
+ return refreshInFlight;
+}
+async function fresh(){
+ let g=await sb.auth.getSession(),s=g.data?.session||null;
+ if(!s){await audit("SESSION_VALIDATED","FAILED","NO_SESSION",{phase:"getSession"});s=await refreshSession()}
+ if(!s)return null;
+ let u=await sb.auth.getUser(s.access_token);
+ if(u.error||!u.data?.user){
+   await audit("SESSION_VALIDATED","FAILED","EXPIRED_JWT",{phase:"getUser"});
+   s=await refreshSession();
+   if(!s)return null;
+   u=await sb.auth.getUser(s.access_token);
+   if(u.error||!u.data?.user)return null;
+ }
+ await audit("SESSION_VALIDATED","SUCCESS",null,{user_id:u.data.user.id});
+ return {session:s,user:u.data.user};
+}
+async function showLogin(cat){
+ $("loginError").textContent=cat?messageFor(cat):"Your administrator session is missing or expired. Please sign in again.";
+ $("login").classList.remove("hidden");$("app").classList.add("hidden");
+}
+async function guard(){
+ const x=await fresh();
+ if(!x){await showLogin("NO_SESSION");return null}
+ const a=await sb.rpc("crowrules_is_admin");
+ if(a.error){const cat=classify(a.error);await audit("AUTHORIZATION_RESULT","FAILED",cat,{rpc:"crowrules_is_admin"});await showLogin(cat);return null}
+ const ok=a.data===true;
+ await audit("AUTHORIZATION_RESULT",ok?"SUCCESS":"FAILED",ok?null:"NOT_ADMINISTRATOR",{authorized:ok});
+ if(!ok){await showLogin("NOT_ADMINISTRATOR");return null}
+ return x;
+}
+async function loadTrustCenter(){
+ const r=await sb.rpc("cr_podcast_recovery_trust_verify_v787");
+ $("trustSummary").textContent=r.error?messageFor(classify(r.error)):JSON.stringify(r.data,null,2);
+ const h=await sb.rpc("cr_podcast_recovery_trust_history_v787",{p_limit:10});
+ $("trustHistory").innerHTML=h.error?messageFor(classify(h.error)):"<h3>TRUST HISTORY</h3>"+table(h.data);
+}
+async function verifyRecoveryTrust(){await loadTrustCenter();}
+async function loadRoutingCenter(){
+ const r=await sb.rpc("cr_podcast_recovery_notification_routes_v786");
+ $("routingTable").innerHTML=r.error?messageFor(classify(r.error)):table(r.data);
+ const p=await sb.rpc("cr_podcast_recovery_notification_center_v785");
+ $("routingSummary").textContent=p.error?messageFor(classify(p.error)):JSON.stringify(p.data,null,2);
+ const h=await sb.rpc("cr_podcast_recovery_audit_package_verification_history_v775",{p_limit:10});
+ $("integritySummary").innerHTML=h.error?messageFor(classify(h.error)):"<h3>PACKAGE INTEGRITY VERIFICATION</h3>"+table(h.data);
+}
+async function loadNotificationCenter(){
+ const r=await sb.rpc("cr_podcast_recovery_notification_center_v785");
+ $("notificationSummary").textContent=r.error?messageFor(classify(r.error)):JSON.stringify(r.data,null,2);
+ const q=await sb.rpc("cr_podcast_recovery_notification_queue_history_v784",{p_limit:25});
+ $("deliveryHistory").innerHTML=q.error?messageFor(classify(q.error)):"<h3>QUEUE</h3>"+table(q.data);
+ const s=await sb.rpc("cr_podcast_recovery_escalation_sla_refresh_v785");
+ if(!s.error) $("slaBreaches").innerHTML="<h3>SLA</h3>"+JSON.stringify(s.data,null,2);
+}
+async function processNotifications(){const r=await sb.rpc("cr_podcast_recovery_notification_dispatch_v785",{p_limit:25});if(r.error)alert(messageFor(classify(r.error)));await load();}
+async function retryNotifications(){const r=await sb.rpc("cr_podcast_recovery_notification_retry_v785",{p_limit:25});if(r.error)alert(messageFor(classify(r.error)));await load();}
+async function loadEscalationCenter(){
+ const r=await sb.rpc("cr_podcast_recovery_alert_escalation_v784");
+ if(r.error){$("escalationSummary").textContent=messageFor(classify(r.error));return}
+ $("escalationSummary").textContent=JSON.stringify(r.data,null,2);
+ const h=await sb.rpc("cr_podcast_recovery_alert_escalation_history_v784",{p_limit:25});
+ if(h.error){$("escalations").innerHTML=messageFor(classify(h.error));} else {
+   $("escalations").innerHTML=(h.data?.length?h.data.map(x=>'<div class="panel"><strong>'+x.escalation_level+'</strong> • '+x.status+' • '+x.trigger_reason+'<br><button class="btn" onclick="escalationAction('+x.id+',\'ACKNOWLEDGE\')">ACKNOWLEDGE</button><button class="btn" onclick="escalationAction('+x.id+',\'ESCALATE\')">ESCALATE</button><button class="btn" onclick="escalationAction('+x.id+',\'RESOLVE\')">RESOLVE</button></div>').join(''):'No escalation records.');
+ }
+ const n=await sb.rpc("cr_podcast_recovery_notification_queue_history_v784",{p_limit:25});
+ $("notifications").innerHTML=n.error?messageFor(classify(n.error)):"<h3>NOTIFICATION QUEUE</h3>"+table(n.data);
+}
+async function escalationAction(id,action){
+ const r=await sb.rpc("cr_podcast_recovery_alert_escalation_update_v784",{p_escalation_id:id,p_action:action});
+ if(r.error){alert(messageFor(classify(r.error)));return}
+ await load();
+}
+async function loadCertificationCenter(){
+ const l=await sb.rpc("cr_podcast_recovery_certification_lifecycle_history_v780",{p_limit:10});
+ if(l.error){$("certLifecycle").textContent=messageFor(classify(l.error));return}
+ const row=l.data?.[0];
+ if(!row){$("certLifecycle").textContent="NO CERTIFICATION\nV7.79 has not issued a compliance certification yet.";$("certActions").innerHTML="";$("certTimeline").innerHTML="";return}
+ const days=Math.max(0,Math.ceil((new Date(row.expires_at)-Date.now())/86400000));
+ $("certLifecycle").textContent=JSON.stringify({...row,days_until_expiration:days},null,2);
+ $("certActions").innerHTML='<button class="btn" onclick="verifyCertification()">VERIFY NOW</button><button class="btn" onclick="checkCertificationRenewal()">CHECK RENEWAL</button>';
+ const ev=await sb.rpc("cr_podcast_recovery_certification_lifecycle_event_history_v780",{p_lifecycle_id:row.id,p_limit:25});
+ $("certTimeline").innerHTML=ev.error?messageFor(classify(ev.error)):"<h3>CERTIFICATION TIMELINE</h3>"+table(ev.data);
+}
+async function verifyCertification(){
+ const r=await sb.rpc("cr_podcast_recovery_certification_automation_v781");
+ if(r.error){alert(messageFor(classify(r.error)));return}
+ alert("V7.81 certification check: "+(r.data?.status||"UNKNOWN")+"\n"+(r.data?.reason||""));
+ await load();
+}
+async function checkCertificationRenewal(){
+ const r=await sb.rpc("cr_podcast_recovery_certification_renewal_check_v781");
+ if(r.error){alert(messageFor(classify(r.error)));return}
+ alert("V7.81 renewal check: "+(r.data?.status||"UNKNOWN")+"\n"+(r.data?.reason||""));
+ await load();
+}
+async function load(){
+ const x=await guard();if(!x)return;
+ const r=await sb.rpc("cr_podcast_recovery_control_room_v756");
+ if(r.error){const cat=classify(r.error);await audit("FAILURE_CLASSIFIED","FAILED",cat,{operation:"load"});if(cat==="EXPIRED_JWT"||cat==="NO_SESSION"){await showLogin(cat)}else $("loginError").textContent=messageFor(cat);return}
+ $("login").classList.add("hidden");$("app").classList.remove("hidden");
+ $("readiness").textContent=JSON.stringify(r.data,null,2); await loadCertificationCenter(); await loadEscalationCenter(); await loadNotificationCenter(); await loadRoutingCenter(); await loadTrustCenter();
+ const h=await sb.rpc("cr_podcast_recovery_drill_history_v760");$("history").innerHTML=h.error?'<span class="error">'+messageFor(classify(h.error))+'</span>':table(h.data);
+ const ch=await sb.rpc("cr_podcast_recovery_certificate_history_v761");$("certHistory").innerHTML=ch.error?'<span class="error">'+messageFor(classify(ch.error))+'</span>':table(ch.data);
+ const ah=await sb.rpc("cr_podcast_recovery_session_audit_history_v763",{p_limit:50});
+ if(!$("audit")){const p=document.createElement("div");p.className="panel";p.innerHTML="<h2>V7.63 SESSION AUDIT</h2><div id='audit' class='muted'></div>";$("app").appendChild(p)}
+ $("audit").innerHTML=ah.error?'<span class="error">'+messageFor(classify(ah.error))+'</span>':table(ah.data);
+ const vh=await sb.rpc("cr_podcast_recovery_remediation_verification_history_v773",{p_limit:50});$("verifications").innerHTML=vh.error?messageFor(classify(vh.error)):renderVerifications(vh.data);$("verificationSummary").textContent=vh.error?messageFor(classify(vh.error)):(vh.data?.length||0)+" verification records"; const ph=await sb.rpc("cr_podcast_recovery_remediation_playbook_history_v772",{p_limit:50});$("playbooks").innerHTML=ph.error?messageFor(classify(ph.error)):renderPlaybooks(ph.data);$("playbookSummary").textContent=ph.error?messageFor(classify(ph.error)):(ph.data?.length||0)+" playbooks"; const rm=await sb.rpc("cr_podcast_recovery_compliance_remediation_center_v771");$("remediationSummary").textContent=rm.error?messageFor(classify(rm.error)):JSON.stringify(rm.data,null,2);const rh=await sb.rpc("cr_podcast_recovery_compliance_remediation_history_v771",{p_limit:50});$("remediations").innerHTML=rh.error?messageFor(classify(rh.error)):renderRemediations(rh.data); const mm=await sb.rpc("cr_podcast_recovery_compliance_monitor_v770");$("monitor").textContent=mm.error?messageFor(classify(mm.error)):JSON.stringify(mm.data,null,2);const ma=await sb.rpc("cr_podcast_recovery_compliance_alerts_v770");$("monitorAlerts").innerHTML=ma.error?messageFor(classify(ma.error)):table(ma.data);const mh=await sb.rpc("cr_podcast_recovery_compliance_monitor_history_v770",{p_limit:25});$("monitorHistory").innerHTML=mh.error?messageFor(classify(mh.error)):table(mh.data);const cp=await sb.rpc("cr_podcast_recovery_compliance_v769");$("compliance").textContent=cp.error?messageFor(classify(cp.error)):JSON.stringify(cp.data,null,2);const cph=await sb.rpc("cr_podcast_recovery_compliance_history_v769",{p_limit:25});$("complianceHistory").innerHTML=cph.error?messageFor(classify(cph.error)):table(cph.data); const ex=await sb.rpc("cr_podcast_recovery_audit_export_history_v777",{p_limit:10});$("executiveSummary").textContent=ex.error?messageFor(classify(ex.error)):(ex.data?.length||0)+" executive exports";$("exports").innerHTML=ex.error?messageFor(classify(ex.error)):renderExports(ex.data);
+const ic=await sb.rpc("cr_podcast_recovery_incident_center_v766");$("incidentSummary").textContent=ic.error?messageFor(classify(ic.error)):JSON.stringify(ic.data,null,2);const ih=await sb.rpc("cr_podcast_recovery_incident_history_v766",{p_limit:25});$("incidentHistory").innerHTML=ih.error?messageFor(classify(ih.error)):table(ih.data);if(!ih.error)renderIncidentActions(ih.data);$("stamp").textContent="LIVE • "+new Date().toLocaleTimeString();
+}
+async function drill(){
+ if(operationRunning)return;
+ const x=await guard();if(!x)return;
+ const b=$("drillBtn");operationRunning=true;b.disabled=true;b.textContent="DRILL RUNNING";$("stamp").textContent="DRILL RUNNING • validating recovery chain…";
+ try{
+   const a=await sb.rpc("cr_podcast_recovery_drill_archives_v760");
+   if(a.error)throw a.error;
+   if(!a.data?.length)throw Error("No eligible immutable, active, trusted archive is available.");
+   await audit("DRILL_PREFLIGHT","SUCCESS",null,{eligible_archive_count:a.data.length,user_id:x.user.id});
+   const n=prompt(a.data.map((z,i)=>(i+1)+". "+z.archive_key+" [ID "+z.id+"]").join("\n")+"\n\nArchive number:","1");
+   if(n===null)return;
+   const selected=a.data[Number(n)-1];if(!selected)throw Error("Invalid archive selection.");
+   if(!confirm("Start NON-DESTRUCTIVE recovery drill? No production data will be restored or modified."))return;
+   const pre=await guard();if(!pre)throw Error("SESSION_EXPIRED");
+   const start=await sb.rpc("cr_podcast_recovery_operation_start_v764",{p_archive_id:selected.id});
+   if(start.error)throw start.error;
+   operationId=start.data.operation_id;$("operation").textContent="PREFLIGHT\nOperation: "+operationId+"\nArchive: "+selected.archive_key+"\nLock: ACTIVE";
+   await sb.rpc("cr_podcast_recovery_operation_update_v764",{p_operation_id:operationId,p_status:"RUNNING",p_stage:"SELECT_LAST_KNOWN_GOOD",p_stage_status:"RUNNING",p_stages:[{stage:"SELECT_LAST_KNOWN_GOOD",status:"RUNNING"}]});
+   const d=await sb.rpc("cr_podcast_recovery_drill_v760",{p_archive_id:selected.id});
+   if(d.error)throw d.error;
+   const stages=d.data?.stages||[];
+   await sb.rpc("cr_podcast_recovery_operation_update_v764",{p_operation_id:operationId,p_status:"PASSED",p_stage:"SIMULATE_CERTIFICATE_SEAL",p_stage_status:"PASSED",p_stages:stages,p_drill_id:d.data?.drill_id,p_details:{non_destructive:true}});
+   $("operation").textContent="PASSED\nOperation: "+operationId+"\nDrill: "+(d.data?.drill_id??"")+"\nAll recovery stages passed.";operationId=null;
+   await audit("DRILL_PREFLIGHT","SUCCESS",null,{authorized:true,archive_id:selected.id,executed:true});
+   alert("V7.60 drill PASSED.\nDrill ID: "+d.data.drill_id);await load();
+ }catch(e){
+   const cat=e.message==="SESSION_EXPIRED"?"EXPIRED_JWT":classify(e);
+   if(operationId){const failedId=operationId;await sb.rpc("cr_podcast_recovery_operation_update_v764",{p_operation_id:failedId,p_status:"FAILED",p_stage:"RECOVERY_OPERATION",p_stage_status:"FAILED",p_failure_category:cat,p_details:{message:String(e?.message||e),non_destructive:true}}).catch(()=>{});const ci=await sb.rpc("cr_podcast_recovery_incident_automate_v765",{p_operation_id:failedId});$("operation").textContent="FAILED\nOperation: "+failedId+"\n"+messageFor(cat)+(ci.data?.incident_id?"\nIncident: "+ci.data.incident_id:"");operationId=null;}
+   await audit("FAILURE_CLASSIFIED","FAILED",cat,{operation:"drill"});
+   if(cat==="EXPIRED_JWT"||cat==="NO_SESSION"){await sb.auth.signOut();await showLogin(cat)}
+   else alert(messageFor(cat));
+ }finally{operationRunning=false;b.disabled=false;b.textContent="RUN NON-DESTRUCTIVE DRILL";if(!$("app").classList.contains("hidden"))$("stamp").textContent="READY • "+new Date().toLocaleTimeString()}
+}
+function renderExports(rows){if(!rows?.length)return"No audit exports yet.";return rows.map(x=>'<div class="panel"><strong>'+x.export_status+'</strong> • '+x.export_key+'<br><span class="muted">SHA-256: '+x.export_sha256+'</span><br>'+(x.export_status==='READY'?'<button class="btn" onclick="reviewExport('+x.id+',\'APPROVED\')">APPROVE</button><button class="btn" onclick="reviewExport('+x.id+',\'REJECTED\')">REJECT</button>':'')+'</div>').join('')}
+async function buildExport(id){const r=await sb.rpc("cr_podcast_recovery_audit_export_v777",{p_package_id:id});if(r.error){alert(messageFor(classify(r.error)));return}await load();}
+async function reviewExport(id,decision){const note=prompt("Executive review notes:");if(note===null)return;const r=await sb.rpc("cr_podcast_recovery_audit_export_review_v777",{p_export_id:id,p_decision:decision,p_notes:note});if(r.error){alert(messageFor(classify(r.error)));return}await load();}
+async function forensic(id){const r=await sb.rpc("cr_podcast_recovery_forensic_bundle_v767",{p_incident_id:id});if(r.error){alert(messageFor(classify(r.error)));return}const ev=r.data?.evidence_id;$("forensic").innerHTML="<div class=\"panel\"><h2>V7.68 EVIDENCE VERIFICATION</h2><pre class=\"muted\">"+JSON.stringify(r.data,null,2)+"</pre><button class=\"btn\" onclick=\"verifyEvidence("+ev+")\">VERIFY INTEGRITY</button><button class=\"btn\" onclick=\"sealEvidence("+ev+")\">SEAL EVIDENCE</button><button class=\"btn\" onclick=\"custodyHistory("+ev+")\">CHAIN OF CUSTODY</button></div>";}
+async function verifyEvidence(id){const r=await sb.rpc("cr_podcast_recovery_evidence_verify_v768",{p_evidence_id:id});if(r.error){alert(messageFor(classify(r.error)));return}$("forensic").innerHTML+="<pre class=\"muted\">"+JSON.stringify(r.data,null,2)+"</pre>";}
+async function sealEvidence(id){if(!confirm("Seal this verified evidence package?"))return;const r=await sb.rpc("cr_podcast_recovery_evidence_seal_v768",{p_evidence_id:id});if(r.error){alert(messageFor(classify(r.error)));return}$("forensic").innerHTML+="<pre class=\"muted\">"+JSON.stringify(r.data,null,2)+"</pre>";}
+async function custodyHistory(id){const r=await sb.rpc("cr_podcast_recovery_evidence_custody_history_v768",{p_evidence_id:id,p_limit:100});if(r.error){alert(messageFor(classify(r.error)));return}$("custody").innerHTML="<div class=\"panel\"><h2>CHAIN OF CUSTODY</h2>"+table(r.data)+"</div>";}
+function renderVerifications(rows){if(!rows?.length)return"No verification records yet.";return rows.slice(0,25).map(x=>'<div class="panel"><strong>'+x.verification_status+'</strong> • '+(x.sealed?'SEALED':'UNSEALED')+' • '+x.current_status+'<br><span class="muted">'+x.verification_key+'</span><br><span class="muted">Evidence: '+x.evidence_sha256+'<br>Chain: '+x.chain_sha256+'</span>'+((x.verification_status==='PASSED'&&!x.sealed)?'<br><button class="btn" onclick="sealVerification('+x.id+')">SEAL EVIDENCE</button>':'')+'</div>').join('')}
+async function sealVerification(id){const r=await sb.rpc("cr_podcast_recovery_remediation_seal_v773",{p_verification_id:id});if(r.error){alert(messageFor(classify(r.error)));return}await load();}
+function renderVerifications(rows){if(!rows?.length)return"No verification records yet.";return rows.slice(0,25).map(function(x){return '<div class="panel"><strong>'+x.result+'</strong> • '+(x.sealed?'SEALED':'UNSEALED')+' • '+(x.current_status||'UNKNOWN')+'<br><span class="muted">'+x.verification_key+'</span><br><span class="muted">'+(x.evidence_sha256||'')+'</span><br>'+(x.result==='PASSED'&&!x.sealed?'<button class="btn" onclick="sealVerification('+x.id+')">SEAL EVIDENCE</button>':'')+'</div>';}).join('');}
+async function sealVerification(id){const r=await sb.rpc("cr_podcast_recovery_remediation_seal_v773",{p_verification_id:id});if(r.error){alert(messageFor(classify(r.error)));return}await load();}
+async function verifyPlaybook(id){const r=await sb.rpc("cr_podcast_recovery_remediation_verify_v773",{p_playbook_id:id});if(r.error){alert(messageFor(classify(r.error)));return}await load();}
+function renderPlaybooks(rows){if(!rows?.length)return"No remediation playbooks yet.";return rows.slice(0,25).map(x=>'<div class="panel"><strong>'+x.playbook_type+'</strong> • '+x.status+' • Step '+x.current_step+'<br><span class="muted">'+x.playbook_key+'</span><br><button class="btn" onclick="playbookUpdate('+x.id+',\'READY\')">READY</button><button class="btn" onclick="playbookUpdate('+x.id+',\'RUNNING\')">START</button><button class="btn" onclick="verifyPlaybook('+x.id+')">VERIFY</button></div>').join('')}
+async function playbookUpdate(id,status){const r=await sb.rpc("cr_podcast_recovery_remediation_playbook_update_v772",{p_playbook_id:id,p_status:status,p_step:null,p_details:{source:"Control Room",non_destructive:true}});if(r.error){alert(messageFor(classify(r.error)));return}await load();}
+function renderRemediations(rows){if(!rows?.length)return"No remediation findings.";return rows.slice(0,25).map(x=>'<div class="panel"><strong>'+x.check_name+'</strong> • '+x.severity+' • '+x.status+'<br><span class="muted">'+(x.details?.recommended_action||'Investigate finding')+'</span><br><button class="btn" onclick="remediationAction('+x.id+',\'ACKNOWLEDGE\')">ACKNOWLEDGE</button><button class="btn" onclick="remediationAction('+x.id+',\'START\')">START</button><button class="btn" onclick="remediationAction('+x.id+',\'VERIFY\')">VERIFY</button><button class="btn" onclick="remediationAction('+x.id+',\'NOTE\')">NOTE</button><button class="btn" onclick="remediationAction('+x.id+',\'RESOLVE\')">RESOLVE</button></div>').join('')}
+async function remediationAction(id,action){const note=action==='NOTE'||action==='VERIFY'?prompt(action==='VERIFY'?'Verification note:':'Remediation note:'):null;if((action==='NOTE'||action==='VERIFY')&&!note)return;const r=await sb.rpc("cr_podcast_recovery_compliance_remediation_update_v771",{p_id:id,p_action:action,p_note:note,p_assignee:null});if(r.error){alert(messageFor(classify(r.error)));return}await load();}
+async function incidentAction(id,action){
+ const v=action==="ASSIGN"?prompt("Assign incident to:"):null;
+ const n=action==="NOTE"?prompt("Investigation note:"):null;
+ if(action==="ASSIGN"&&!v)return;if(action==="NOTE"&&!n)return;
+ const r=await sb.rpc("cr_podcast_recovery_incident_respond_v766",{p_incident_id:id,p_action:action,p_value:v,p_note:n});
+ if(r.error){alert(messageFor(classify(r.error)));return}
+ await load();
+}
+function renderIncidentActions(rows){
+ const box=$("incidentActions");if(!rows?.length){box.innerHTML="<p class='muted'>No active incidents. Recovery response center is clear.</p>";return}
+ box.innerHTML=rows.slice(0,10).map(x=>{const id=x.incident_id;return '<div class="panel"><strong>INCIDENT #'+id+'</strong> • '+x.severity+' • '+x.status+'<br><span class="muted">Operation '+(x.operation_id??"—")+' • Archive '+(x.archive_id??"—")+' • '+(x.failure_category??"—")+'</span><br><button class="btn" onclick="incidentAction('+id+',\'ACKNOWLEDGE\')">ACKNOWLEDGE</button><button class="btn" onclick="incidentAction('+id+',\'ASSIGN\')">ASSIGN</button><button class="btn" onclick="incidentAction('+id+',\'START\')">START</button><button class="btn" onclick="incidentAction('+id+',\'ESCALATE\')">ESCALATE</button><button class="btn" onclick="incidentAction('+id+',\'NOTE\')">ADD NOTE</button><button class="btn" onclick="incidentAction('+id+',\'RESOLVE\')">RESOLVE</button><button class="btn" onclick="incidentAction('+id+',\'CLOSE\')">CLOSE</button></div>'}).join("");
+}
+async function operationHistory(){const r=await sb.rpc("cr_podcast_recovery_operation_current_v764");if(r.error){$("operation").textContent=messageFor(classify(r.error));return}if(!operationRunning&&r.data?.[0]&&["PREFLIGHT","RUNNING"].includes(r.data[0].status)){$("operation").textContent=JSON.stringify(r.data[0],null,2)}}
+async function cert(){
+ const x=await guard();if(!x)return;
+ if(!confirm("Issue/renew certificate from the latest successful V7.60 drill?"))return;
+ const r=await sb.rpc("cr_podcast_recovery_certificate_automate_v761");
+ if(r.error){const cat=classify(r.error);await audit("FAILURE_CLASSIFIED","FAILED",cat,{operation:"certificate"});alert(messageFor(cat));if(cat==="EXPIRED_JWT"||cat==="NO_SESSION"){await sb.auth.signOut();await showLogin(cat)}return}
+ alert("V7.61 certificate issued: "+r.data.certificate_key);await load();
+}
+$("refresh").onclick=load;$("drillBtn").onclick=drill;$("certBtn").onclick=cert;
+sb.auth.onAuthStateChange((e)=>{if(e==="SIGNED_OUT")showLogin("NO_SESSION");if(e==="TOKEN_REFRESHED"&&!operationRunning)load()});
+load();
+setInterval(async()=>{if(document.visibilityState==="visible"&&!operationRunning){const x=await fresh();if(x){await operationHistory();load()}}},5*60*1000);
+</script><script src="./recovery-v791.js" defer></script><script src="./recovery-v792.js" defer></script><script src="./recovery-v793.js" defer></script><script src="./recovery-v794.js" defer></script><script src="./recovery-v795.js" defer></script><script src="./recovery-v796.js" defer></script><script src="./recovery-v797.js" defer></script><script src="./recovery-v798.js" defer></script><script src="./recovery-v799.js" defer></script><script src="./recovery-v800.js" defer></script><script src="./recovery-v801.js" defer></script><script src="./recovery-v802.js" defer></script><script src="./recovery-v803.js" defer></script><script src="./recovery-v804.js" defer></script><script src="./recovery-v805.js" defer></script><script src="./recovery-v820.js" defer></script><script src="./recovery-v822.js" defer></script><script src="./recovery-v823.js" defer></script><script src="./recovery-v824.js" defer></script><script src="./recovery-v825.js" defer></script><script src="./recovery-v826.js" defer></script><script src="./recovery-v827.js" defer></script><script src="./recovery-v828.js" defer></script><script src="./recovery-v829.js" defer></script><script src="./recovery-v830.js" defer></script><script src="./recovery-v831.js" defer></script><script src="./recovery-v832.js" defer></script><script src="./recovery-v833.js" defer></script><script src="./recovery-v834.js" defer></script><script src="./recovery-v835.js" defer></script><script src="./recovery-v836.js" defer></script><script src="./recovery-v837.js" defer></script><script src="./recovery-v838.js" defer></script><script src="./recovery-v839.js" defer></script></body></html>
+<script src="./recovery-v806.js" defer></script>
+
+<script src="./recovery-v807.js" defer></script>
+
+<script src="./recovery-v808.js" defer></script>
+
+<script src="./recovery-v809.js" defer></script>
+
+<script src="./recovery-v810.js" defer></script>
+
+<script src="./recovery-v811.js" defer></script>
+<script src="./recovery-v814.js" defer></script>
+<script src="./recovery-v815.js" defer></script>
+<script src="./recovery-v816.js" defer></script>
