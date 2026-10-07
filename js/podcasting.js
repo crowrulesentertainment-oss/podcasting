@@ -10,27 +10,37 @@ async function loadPodcasts(){
  const grid=document.getElementById('podcastGrid');if(!grid||!supabase)return;
  grid.innerHTML='<div class="loading-card">Connecting to the CrowRules Podcasting universe…</div>';
  try{
-  const query=supabase.from('podcasting_shows').select('id,title,slug,genre,description,artwork_url,creator_id,published').eq('published',true).order('created_at',{ascending:false}).limit(30);
-  const result=await Promise.race([query,{data:null,error:new Error('TIMEOUT')}].reduce((p)=>p,Promise.resolve()));
-  const {data,error}=result;
-  if(error)throw error;
-  const rows=data||[];
-  const cats=[...new Set(rows.map(x=>x.genre).filter(Boolean))].sort();
+  const [{data:rows,error:showError},{data:categories,error:categoryError}]=await Promise.all([
+   supabase.from('podcasts').select('id,title,slug,category,description,artwork_url,author_name,status,is_featured,is_live,created_at').in('status',['published','active']).order('created_at',{ascending:false}).limit(50),
+   supabase.from('podcast_categories').select('id,name,slug').eq('is_active',true).order('sort_order',{ascending:true})
+  ]);
+  if(showError)throw showError;
+  if(categoryError)console.warn('CrowRules Podcasting categories unavailable:',categoryError);
+  const items=rows||[];
+  const cats=categories||[];
   const sel=document.getElementById('category');
-  if(sel)sel.innerHTML='<option value="">All categories</option>'+cats.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join('');
+  if(sel)sel.innerHTML='<option value="">All categories</option>'+cats.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>').join('');
   const render=()=>{
-   const q=(document.getElementById('search')?.value||'').toLowerCase();
+   const q=(document.getElementById('search')?.value||'').trim().toLowerCase();
    const cat=sel?.value||'';
-   const filtered=rows.filter(p=>(!cat||p.genre===cat)&&(!q||[p.title,p.genre,p.description].join(' ').toLowerCase().includes(q)));
-   grid.innerHTML=filtered.length?filtered.map(p=>'<article class="podcast-card"><div class="art">'+(p.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="" style="width:100%;height:100%;object-fit:cover">':'<span>CR</span>')+'</div><div class="podcast-body"><span class="meta">'+esc(p.genre||'Podcast')+'</span><h3>'+esc(p.title)+'</h3><p>'+esc(p.description||'Independent voices from CrowRules Podcasting.')+'</p><span class="fine-print">CrowRules Creator</span><br><a class="card-link" href="podcast.html?id='+encodeURIComponent(p.id)+'">Open Podcast →</a></div></article>').join(''):'<div class="loading-card">No published podcasts are available yet.</div>';
+   const filtered=items.filter(p=>{
+    const hay=[p.title,p.category,p.description,p.author_name].filter(Boolean).join(' ').toLowerCase();
+    return (!cat||p.category_id===cat)&&(!q||hay.includes(q));
+   });
+   grid.innerHTML=filtered.length?filtered.map(p=>{
+    const art=p.artwork_url?'<img src="'+esc(p.artwork_url)+'" alt="" loading="lazy" decoding="async">':'<span>CR</span>';
+    return '<article class="podcast-card"><div class="art">'+art+'</div><div class="podcast-body"><span class="meta">'+esc(p.category||'Podcast')+'</span><h3>'+esc(p.title||'Untitled Podcast')+'</h3><p>'+esc(p.description||'Independent voices from CrowRules Podcasting.')+'</p><span class="fine-print">'+esc(p.author_name||'CrowRules Creator')+'</span><br><a class="card-link" href="podcast.html?id='+encodeURIComponent(p.id)+'">Open Podcast →</a></div></article>';
+   }).join(''):'<div class="loading-card">No published podcasts are available yet.</div>';
   };
   render();
-  document.getElementById('search')?.addEventListener('input',render,{once:false});
-  sel?.addEventListener('change',render,{once:false});
-  const count=document.getElementById('podcastCount');if(count)count.textContent=rows.length;
+  const search=document.getElementById('search');
+  if(search&&!search.dataset.discoveryBound){search.addEventListener('input',render);search.dataset.discoveryBound='1'}
+  if(sel&&!sel.dataset.discoveryBound){sel.addEventListener('change',render);sel.dataset.discoveryBound='1'}
+  const count=document.getElementById('podcastCount');if(count)count.textContent=items.length;
  }catch(error){
   console.error('CrowRules Podcasting discovery error:',error);
   grid.innerHTML='<div class="loading-card">Podcast discovery is temporarily unavailable. Please refresh the page.</div>';
+  const count=document.getElementById('podcastCount');if(count)count.textContent='0';
  }
 }
 async function updateNav(){const s=await session();document.querySelectorAll('.nav-account').forEach(a=>{if(s){a.textContent='My Account';a.href='account.html'}else{a.textContent='Sign In';a.href='auth.html'}})}
