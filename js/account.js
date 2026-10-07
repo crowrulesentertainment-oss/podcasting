@@ -12,7 +12,7 @@ async function handleAuthCallback(){
  const {params}=callbackParams();
  const hasCode=params.has("code"),hasError=params.has("error")||params.has("error_code")||params.has("error_description");
  if(hasError){const detail=params.get("error_description")||params.get("error")||"OAuth authentication failed.";setOAuthStatus("SOCIAL LOGIN FAILED — "+detail,true);msg("message",friendlyAuthError({message:detail}));cleanCallbackUrl();return false;}
- if(hasCode){setOAuthStatus("FINALIZING SOCIAL LOGIN…");const {data,error}=await db.auth.getSession();if(error){setOAuthStatus("SESSION RESTORE FAILED — "+error.message,true);msg("message",friendlyAuthError(error));cleanCallbackUrl();return false}if(data.session){setOAuthStatus("SOCIAL LOGIN COMPLETE — SESSION RESTORED.");cleanCallbackUrl();return true}setOAuthStatus("SOCIAL LOGIN CALLBACK RECEIVED — WAITING FOR SESSION…");}
+ if(hasCode){setOAuthStatus("FINALIZING SOCIAL LOGIN…");const code=params.get("code");const flowId=params.get("sb_flow_id")||undefined;const result=await db.auth.exchangeCodeForSession(code,flowId?{flowId}:undefined);if(result.error){setOAuthStatus("SESSION RESTORE FAILED — "+result.error.message,true);msg("message",friendlyAuthError(result.error));cleanCallbackUrl();return false}if(result.data.session){setOAuthStatus("SOCIAL LOGIN COMPLETE — SESSION RESTORED.");cleanCallbackUrl();return true}setOAuthStatus("SOCIAL LOGIN CALLBACK RECEIVED — NO SESSION RETURNED.",true);cleanCallbackUrl();return false;}
  return true;
 }
 function setSelectedRole(role){localStorage.setItem(ROLE_KEY,role==="podcaster"?"podcaster":"listener");updateRoleButtons(role);}
@@ -85,7 +85,7 @@ async function load(){
  }catch(e){console.error(e);msg("profileMessage","PROFILE CONNECTION ERROR — "+e.message)}
 }
 document.addEventListener("DOMContentLoaded",async()=>{
- db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+ db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
  updateRoleButtons(selectedRole());
  document.querySelectorAll(".roleCard[data-role]").forEach(b=>b.addEventListener("click",()=>setSelectedRole(b.dataset.role)));
  document.querySelectorAll(".oauthBtn[data-provider]").forEach(b=>b.addEventListener("click",()=>signInWithProvider(b.dataset.provider)));
