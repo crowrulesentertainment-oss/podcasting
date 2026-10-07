@@ -1,7 +1,7 @@
 const SUPABASE_URL="https://baiqacotatszeqmjiekr.supabase.co",SUPABASE_KEY="sb_publishable_d1HCg_kU7AtjvlTtcsfxnA_NM75pell";
 let db,user,profile;
 const $=id=>document.getElementById(id),msg=(id,t)=>$(id).textContent=t;
-const ROLE_KEY="crowrules_podcasting_role";
+const ROLE_KEY="crowrules_podcasting_role",PENDING_ROLE_KEY="crowrules_podcasting_pending_role";
 function selectedRole(){return localStorage.getItem(ROLE_KEY)==="podcaster"?"podcaster":"listener";}
 function setSelectedRole(role){localStorage.setItem(ROLE_KEY,role==="podcaster"?"podcaster":"listener");updateRoleButtons(role);}
 function updateRoleButtons(role){
@@ -47,6 +47,12 @@ async function load(){
  $("welcome").textContent="Your Podcasting identity, community activity and member type — all in one place.";
  try{
   profile=await ensureProfile();
+  const pending=localStorage.getItem(PENDING_ROLE_KEY);
+  if(pending==="podcaster"||pending==="listener"){
+   const rr=await db.from("podcasting_profiles").update({account_type:pending,is_creator:pending==="podcaster",updated_at:new Date().toISOString()}).eq("id",user.id);
+   if(!rr.error) profile={...profile,account_type:pending,is_creator:pending==="podcaster"};
+   localStorage.removeItem(PENDING_ROLE_KEY);
+  }
   if(profile.account_type!=="podcaster"&&profile.account_type!=="listener"){
    profile.account_type=selectedRole();
    await db.from("podcasting_profiles").update({account_type:profile.account_type,is_creator:profile.account_type==="podcaster"}).eq("id",user.id);
@@ -59,7 +65,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
  updateRoleButtons(selectedRole());
  document.querySelectorAll(".roleCard[data-role]").forEach(b=>b.addEventListener("click",()=>setSelectedRole(b.dataset.role)));
  $("loginForm").addEventListener("submit",async e=>{e.preventDefault();msg("message","SIGNING IN…");const r=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});msg("message",r.error?r.error.message:"CONNECTED.");if(!r.error)load();});
- $("create").addEventListener("click",async()=>{const role=selectedRole();msg("message","CREATING "+role.toUpperCase()+" ACCOUNT…");const r=await db.auth.signUp({email:$("email").value.trim(),password:$("password").value,options:{emailRedirectTo:location.href,data:{display_name:$("email").value.split("@")[0],account_type:role}}});if(r.error){msg("message",r.error.message);return}msg("message",r.data.session?"ACCOUNT CREATED — "+role.toUpperCase()+" MODE ACTIVE.":"CHECK YOUR EMAIL TO CONFIRM YOUR ACCOUNT. YOUR "+role.toUpperCase()+" CHOICE IS SAVED.");});
+ $("create").addEventListener("click",async()=>{const role=selectedRole();localStorage.setItem(PENDING_ROLE_KEY,role);msg("message","CREATING "+role.toUpperCase()+" ACCOUNT…");const r=await db.auth.signUp({email:$("email").value.trim(),password:$("password").value,options:{emailRedirectTo:location.href,data:{display_name:$("email").value.split("@")[0],account_type:role}}});if(r.error){localStorage.removeItem(PENDING_ROLE_KEY);msg("message",r.error.message);return}msg("message",r.data.session?"ACCOUNT CREATED — "+role.toUpperCase()+" MODE ACTIVE.":"CHECK YOUR EMAIL TO CONFIRM YOUR ACCOUNT. YOUR "+role.toUpperCase()+" CHOICE IS SAVED.");});
  $("signout").addEventListener("click",async()=>{await db.auth.signOut();load();});
  $("saveProfile").addEventListener("click",async()=>{const p={display_name:$("profileName").value.trim()||null,username:$("username").value.trim().toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,30)||null,avatar_url:$("avatarUrl").value.trim()||null,bio:$("bio").value.trim()||null,updated_at:new Date().toISOString()};const r=await db.from("podcasting_profiles").update(p).eq("id",user.id);msg("profileMessage",r.error?r.error.message:"PROFILE SAVED — YOUR PODCASTING IDENTITY IS UPDATED.");if(!r.error)renderProfile({...profile,...p});});
  $("listenerPath").addEventListener("click",()=>saveRole("listener"));$("podcasterPath").addEventListener("click",()=>saveRole("podcaster"));
