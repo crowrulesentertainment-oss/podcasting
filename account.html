@@ -6,7 +6,7 @@
 <title>CrowRules Podcasting — Member Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/account.css?v=2.4.0">
+<link rel="stylesheet" href="css/account.css?v=2.5.0">
 </head>
 <body>
 <div class="bg"><div class="glow g1"></div><div class="glow g2"></div><div class="grid"></div></div>
@@ -20,7 +20,7 @@
 <div class="panelHead"><span>ACCOUNT ACCESS</span><i>V2.1</i></div>
 <form id="loginForm">
 <label>Email address<input id="email" type="email" autocomplete="email" required></label>
-<label>Password<input id="password" type="password" autocomplete="current-password" required></label>
+<label>Password<input id="password" type="password" autocomplete="current-password" required></label><button type="button" class="textBtn" id="forgotPassword">FORGOT PASSWORD?</button>
 <div class="roleChoice">
 <div class="choiceTitle">CHOOSE YOUR PODCASTING PATH</div>
 <div class="roleGrid">
@@ -72,7 +72,9 @@
 <div class="stat"><b id="historyCount">0</b><span>LISTENING HISTORY</span></div>
 <div class="statusNote" id="statusNote">Listener mode is active.</div>
 </section>
+<section class="panel"><div class="panelHead"><span>SECURITY</span><i>V2.5</i></div><div class="securityRows"><div><span>EMAIL STATUS</span><b id="emailStatus">CHECKING…</b></div><div><span>LAST SIGN-IN</span><b id="lastSignIn">CHECKING…</b></div><div><span>ACCOUNT CREATED</span><b id="accountCreated">CHECKING…</b></div><div><span>AUTH PROVIDERS</span><b id="providerCount">CHECKING…</b></div></div><button class="secondary" id="changePassword">CHANGE PASSWORD</button><button class="secondary" id="signOutAll">SIGN OUT EVERYWHERE</button><p class="message" id="securityMessage"></p></section>
 </div>
+<section class="panel securityPanel"><div class="panelHead"><span>CONNECTED ACCOUNTS</span><i>IDENTITIES</i></div><div id="providerList" class="providerList"><div class="empty">Loading connected providers…</div></div></section>
 
 <div class="gridCards">
 <section class="panel listPanel"><div class="panelHead"><span>FOLLOWED SHOWS</span><i id="followLabel">0</i></div><div id="followList" class="empty">No followed shows yet.</div></section>
@@ -80,7 +82,9 @@
 </div>
 <section class="panel listPanel"><div class="panelHead"><span>LISTENING HISTORY</span><i id="historyLabel">0</i></div><div id="historyList" class="empty">No listening history yet. Start listening from the Podcasting network.</div></section>
 </div>
+<section class="panel recoveryPanel"><div class="panelHead"><span>PASSWORD RECOVERY</span><i>SECURE</i></div><p class="securityCopy">Use your email to receive a secure password-reset link from Supabase.</p><form id="recoveryForm"><label>Recovery email<input id="recoveryEmail" type="email" autocomplete="email" required></label><button class="primary">SEND RESET LINK →</button></form><p class="message" id="recoveryMessage"></p></section>
+</div>
 </section></main>
 <footer><b>CROWRULES / PODCASTING</b><span>ONE PODCASTING ACCOUNT. ONE NETWORK.</span></footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/account.js?v=2.4.0" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/account.js?v=2.5.0" defer></script>
 </body></html>
