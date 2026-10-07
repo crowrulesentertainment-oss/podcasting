@@ -67,14 +67,14 @@ function installGlobalState(client){
  state.supabase=client;
  client.auth.getSession().then(({data})=>{state.session=data?.session||null;document.dispatchEvent(new CustomEvent("crowrules:session",{detail:state.session}));}).catch(()=>{state.online=false;});
  if(!authBound){authBound=true;client.auth.onAuthStateChange((_event,session)=>{state.session=session||null;state.online=true;document.dispatchEvent(new CustomEvent("crowrules:session",{detail:state.session}));});}
- window.addEventListener("online",()=>{state.online=true;setStatus("SYSTEM ONLINE")});
- window.addEventListener("offline",()=>{state.online=false;setStatus("OFFLINE • RECONNECTING")});
+ window.addEventListener("online",()=>{state.online=true;setStatus("SYSTEM ONLINE");document.documentElement.dataset.crowOnline="true"});
+ window.addEventListener("offline",()=>{state.online=false;setStatus("OFFLINE • RECONNECTING");document.documentElement.dataset.crowOnline="false"});
 }
 function setStatus(text){
  document.querySelectorAll(".sitewide-status").forEach(el=>el.textContent=" • "+text);
 }
 function connectionStatus(){
- setStatus(navigator.onLine?"SYSTEM ONLINE":"OFFLINE • RECONNECTING");
+ setStatus(navigator.onLine?"SYSTEM ONLINE":"OFFLINE • RECONNECTING");document.documentElement.dataset.crowOnline=navigator.onLine?"true":"false";
 }
 function savePageState(){
  try{sessionStorage.setItem("crowrules_last_page",location.pathname+location.search)}catch{}
