@@ -1,1 +1,78 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05060b"><title>CrowRules Podcasting — Member Dashboard</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet"><link rel="stylesheet" href="css/account.css?v=2.0.0"></head><body><div class="bg"><div class="glow g1"></div><div class="glow g2"></div><div class="grid"></div></div><header><a class="logo" href="home.html"><span class="logoMark">CR</span><span>CROWRULES <em>/</em> PODCASTING</span></a><a class="back" href="home.html">← PODCASTING HOME</a></header><main><section class="account"><div class="eyebrow">CROWRULES PODCASTING // MEMBER SYSTEM</div><h1>YOUR <span>FREQUENCY.</span></h1><p class="intro" id="welcome">Connecting your Podcasting identity…</p><div id="loginBox" class="panel"><div class="panelHead"><span>ACCOUNT ACCESS</span><i>V2.0</i></div><form id="loginForm"><label>Email address<input id="email" type="email" autocomplete="email" required></label><label>Password<input id="password" type="password" autocomplete="current-password" required></label><button class="primary">SIGN IN →</button></form><button class="secondary" id="create">CREATE PODCASTING ACCOUNT</button><p id="message" class="message"></p></div><div id="dashboard" class="dashboard hidden"><div class="profile panel"><div class="avatar" id="avatar">CR</div><div class="profileInfo"><span class="eyebrow">MEMBER PROFILE</span><h2 id="displayName">Podcasting Member</h2><p id="memberEmail"></p><span class="badge" id="creatorBadge">LISTENER</span></div><button class="secondary small" id="signout">SIGN OUT</button></div><div class="gridCards"><section class="panel"><div class="panelHead"><span>EDIT PROFILE</span><i>IDENTITY</i></div><label>Display name<input id="profileName" maxlength="60"></label><label>Username<input id="username" maxlength="30" placeholder="yourname"></label><label>Avatar URL<input id="avatarUrl" type="url" placeholder="https://…"></label><label>Bio<textarea id="bio" maxlength="280" rows="4"></textarea></label><button class="primary" id="saveProfile">SAVE PROFILE →</button><p class="message" id="profileMessage"></p></section><section class="panel"><div class="panelHead"><span>MY PODCASTING</span><i>V2.0</i></div><div class="stat"><b id="followCount">0</b><span>FOLLOWED SHOWS</span></div><div class="stat"><b id="savedCount">0</b><span>SAVED EPISODES</span></div><div class="stat"><b id="historyCount">0</b><span>LISTENING HISTORY</span></div><button class="secondary" id="creatorToggle">APPLY FOR CREATOR STATUS</button><p class="message" id="creatorMessage"></p></section></div><div class="gridCards"><section class="panel listPanel"><div class="panelHead"><span>FOLLOWED SHOWS</span><i id="followLabel">0</i></div><div id="followList" class="empty">No followed shows yet. Your network follows will appear here.</div></section><section class="panel listPanel"><div class="panelHead"><span>SAVED EPISODES</span><i id="savedLabel">0</i></div><div id="savedList" class="empty">No saved episodes yet.</div></section></div><section class="panel listPanel"><div class="panelHead"><span>LISTENING HISTORY</span><i id="historyLabel">0</i></div><div id="historyList" class="empty">No listening history yet. Start listening from the Podcasting network.</div></section></div></section></main><footer><b>CROWRULES / PODCASTING</b><span>ONE PODCASTING ACCOUNT. ONE NETWORK.</span></footer><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/account.js?v=2.0.0" defer></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05060b">
+<title>CrowRules Podcasting — Member Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/account.css?v=2.1.0">
+</head>
+<body>
+<div class="bg"><div class="glow g1"></div><div class="glow g2"></div><div class="grid"></div></div>
+<header><a class="logo" href="home.html"><span class="logoMark">CR</span><span>CROWRULES <em>/</em> PODCASTING</span></a><a class="back" href="home.html">← PODCASTING HOME</a></header>
+<main><section class="account">
+<div class="eyebrow">CROWRULES PODCASTING // MEMBER SYSTEM</div>
+<h1>YOUR <span>FREQUENCY.</span></h1>
+<p class="intro" id="welcome">Your dedicated Podcasting identity — whether you listen, create, or do both.</p>
+
+<div id="loginBox" class="panel">
+<div class="panelHead"><span>ACCOUNT ACCESS</span><i>V2.1</i></div>
+<form id="loginForm">
+<label>Email address<input id="email" type="email" autocomplete="email" required></label>
+<label>Password<input id="password" type="password" autocomplete="current-password" required></label>
+<div class="roleChoice">
+<div class="choiceTitle">CHOOSE YOUR PODCASTING PATH</div>
+<div class="roleGrid">
+<button type="button" class="roleCard active" data-role="listener"><b>LISTENER</b><small>Discover shows, follow podcasts, save episodes and build your listening history.</small></button>
+<button type="button" class="roleCard" data-role="podcaster"><b>PODCASTER</b><small>Create a podcast identity and prepare to publish shows on the CrowRules network.</small></button>
+</div>
+<p class="choiceNote" id="roleNote">You can change your path later from your member dashboard.</p>
+</div>
+<button class="primary">SIGN IN →</button>
+</form>
+<button class="secondary" id="create">CREATE PODCASTING ACCOUNT</button>
+<p id="message" class="message"></p>
+</div>
+
+<div id="dashboard" class="dashboard hidden">
+<div class="profile panel">
+<div class="avatar" id="avatar">CR</div><div class="profileInfo"><span class="eyebrow">MEMBER PROFILE</span><h2 id="displayName">Podcasting Member</h2><p id="memberEmail"></p><span class="badge" id="creatorBadge">LISTENER</span></div>
+<button class="secondary small" id="signout">SIGN OUT</button>
+</div>
+
+<section class="panel pathPanel">
+<div class="panelHead"><span>YOUR PODCASTING PATH</span><i id="pathVersion">MEMBER TYPE</i></div>
+<div class="roleGrid">
+<button type="button" class="roleCard" id="listenerPath"><b>🎧 LISTENER</b><small>Focus on discovering, following, saving and listening.</small></button>
+<button type="button" class="roleCard" id="podcasterPath"><b>🎙 PODCASTER</b><small>Build a creator identity and move toward creating your own show.</small></button>
+</div>
+<p class="message" id="pathMessage"></p>
+</section>
+
+<div class="gridCards">
+<section class="panel"><div class="panelHead"><span>EDIT PROFILE</span><i>IDENTITY</i></div>
+<label>Display name<input id="profileName" maxlength="60"></label>
+<label>Username<input id="username" maxlength="30" placeholder="yourname"></label>
+<label>Avatar URL<input id="avatarUrl" type="url" placeholder="https://…"></label>
+<label>Bio<textarea id="bio" maxlength="280" rows="4"></textarea></label>
+<button class="primary" id="saveProfile">SAVE PROFILE →</button><p class="message" id="profileMessage"></p>
+</section>
+<section class="panel"><div class="panelHead"><span>MY PODCASTING</span><i>V2.1</i></div>
+<div class="stat"><b id="followCount">0</b><span>FOLLOWED SHOWS</span></div>
+<div class="stat"><b id="savedCount">0</b><span>SAVED EPISODES</span></div>
+<div class="stat"><b id="historyCount">0</b><span>LISTENING HISTORY</span></div>
+<div class="statusNote" id="statusNote">Listener mode is active.</div>
+</section>
+</div>
+
+<div class="gridCards">
+<section class="panel listPanel"><div class="panelHead"><span>FOLLOWED SHOWS</span><i id="followLabel">0</i></div><div id="followList" class="empty">No followed shows yet.</div></section>
+<section class="panel listPanel"><div class="panelHead"><span>SAVED EPISODES</span><i id="savedLabel">0</i></div><div id="savedList" class="empty">No saved episodes yet.</div></section>
+</div>
+<section class="panel listPanel"><div class="panelHead"><span>LISTENING HISTORY</span><i id="historyLabel">0</i></div><div id="historyList" class="empty">No listening history yet. Start listening from the Podcasting network.</div></section>
+</div>
+</section></main>
+<footer><b>CROWRULES / PODCASTING</b><span>ONE PODCASTING ACCOUNT. ONE NETWORK.</span></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/account.js?v=2.1.0" defer></script>
+</body></html>
