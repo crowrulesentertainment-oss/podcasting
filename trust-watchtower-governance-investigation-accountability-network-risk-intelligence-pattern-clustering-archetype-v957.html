@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CrowRules Trust Watchtower V9.57</title>
+<style>
+:root{--bg:#03050b;--panel:#090e18;--line:#273249;--muted:#9da8bd;--text:#eef3ff;--accent:#7dd3fc}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0,#101b35 0,transparent 35%),var(--bg);color:var(--text);font:14px Arial,sans-serif}.wrap{max-width:1550px;margin:auto;padding:24px}.panel{background:rgba(9,14,24,.94);border:1px solid var(--line);border-radius:15px;padding:18px;margin:12px 0;box-shadow:0 12px 40px #0005}h1{font-size:25px;margin:0 0 8px}h2{font-size:17px;margin:0 0 12px}.muted{color:var(--muted)}.guard{border-left:3px solid var(--accent);padding:10px 12px;background:#07101b;border-radius:8px}.stats,.archetypes{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.stat,.card,.row{background:#070b14;border:1px solid var(--line);border-radius:10px;padding:12px}.stat b{display:block;font-size:22px;margin-bottom:4px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}button,select,input{padding:9px 11px;background:#070b14;color:inherit;border:1px solid #33405a;border-radius:8px}button{cursor:pointer}button:hover{border-color:var(--accent)}.archetypes{grid-template-columns:repeat(auto-fit,minmax(270px,1fr))}.card.selected{border-color:var(--accent);box-shadow:0 0 0 1px #7dd3fc33}.pill{display:inline-block;border:1px solid #33405a;border-radius:99px;padding:3px 7px;margin:2px;font-size:12px}.good{color:#9ae6b4}.warn{color:#fde68a}.bad{color:#fca5a5}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:8px;border-bottom:1px solid #202a3d;vertical-align:top}.bar{height:7px;background:#151d2b;border-radius:9px;overflow:hidden;margin-top:5px}.bar i{display:block;height:100%;background:var(--accent)}textarea{width:100%;min-height:100px;background:#070b14;color:inherit;border:1px solid var(--line);border-radius:8px;padding:10px}.small{font-size:12px}@media(max-width:900px){.grid{grid-template-columns:1fr}.wrap{padding:14px}}
+</style>
+</head>
+<body><main class="wrap">
+<section class="panel"><h1>V9.57 · INCIDENT PATTERN CLUSTERING &amp; ARCHETYPE CENTER</h1>
+<p class="muted">Group historically similar reconstructed incidents into recurring, deterministic archetypes and inspect the characteristics that define each group.</p>
+<div class="guard"><b>Guardrail:</b> clustering is descriptive and deterministic. It is not machine learning, does not establish causation, and never changes governance automatically.</div>
+</section>
+
+<section class="panel"><div class="toolbar"><label>Similarity threshold <select id="threshold"><option value="55">55%</option><option value="65" selected>65%</option><option value="75">75%</option><option value="85">85%</option></select></label><button id="refresh">REFRESH</button><button id="json">EXPORT JSON</button><button id="csv">EXPORT CSV</button></div><div id="stats" class="stats" style="margin-top:12px"></div></section>
+
+<section class="panel"><h2>Recurring archetypes</h2><div id="clusters" class="archetypes"></div></section>
+
+<div class="grid">
+<section class="panel"><h2>Archetype intelligence</h2><div id="detail"><p class="muted">Select an archetype above.</p></div></section>
+<section class="panel"><h2>Human archetype review</h2><textarea id="note" placeholder="Record defining characteristics, limitations, naming rationale, or evidence that should be reviewed by a human."></textarea><button id="save">SAVE ARCHETYPE REVIEW</button><div id="reviews" style="margin-top:10px"></div></section>
+</div>
+</main>
+<script>
+const LED="crowrules_trust_v952_ledger",REV="crowrules_trust_v957_reviews";
+const read=k=>{try{return JSON.parse(localStorage.getItem(k)||"[]")}catch(e){return[]}},write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function verify(){const a=read(LED);return a.map((x,i)=>({...x,ok:x.previous_ledger_id===(i?a[i-1].event_id:null)}))}
+function groups(){const m=new Map;for(const x of verify()){const k=x.signal||"Unassigned signal";if(!m.has(k))m.set(k,[]);m.get(k).push(x)}return m}
+function features(e){
+ const n=e.length,matched=e.filter(x=>x.calibration==="matched").length,mismatch=e.filter(x=>x.calibration==="mismatch").length;
+ const abs=n?e.reduce((s,x)=>s+Math.abs(Number(x.movement)||0),0)/n:0,avg=n?e.reduce((s,x)=>s+(Number(x.movement)||0),0)/n:0;
+ const integrity=n?e.filter(x=>x.ok).length/n:0;
+ const forecast={rising:0,falling:0,other:0};e.forEach(x=>{if(x.forecast==="rising")forecast.rising++;else if(x.forecast==="falling")forecast.falling++;else forecast.other++});
+ return {n,accuracy:matched+mismatch?matched/(matched+mismatch):null,mismatch,abs,avg,integrity,rising:forecast.rising,falling:forecast.falling,other:forecast.other,latest:Number(e.at(-1)?.movement)||0};
+}
+function sim(a,b){
+ const x=features(a),y=features(b),norm=(u,v,scale)=>Math.max(0,1-Math.min(Math.abs(u-v)/Math.max(scale,0.0001),1));
+ const parts={
+  evidence:norm(x.n,y.n,Math.max(x.n,y.n,1)),
+  movement:norm(x.abs,y.abs,Math.max(x.abs,y.abs,1)),
+  forecast:x.accuracy==null||y.accuracy==null?.5:norm(x.accuracy,y.accuracy,1),
+  calibration:norm(x.mismatch,y.mismatch,Math.max(x.mismatch,y.mismatch,1)),
+  integrity:norm(x.integrity,y.integrity,1),
+  direction:norm(x.avg,y.avg,Math.max(Math.abs(x.avg),Math.abs(y.avg),1))
+ };
+ const score=Math.round(Object.values(parts).reduce((s,v)=>s+v,0)/Object.keys(parts).length*100);
+ return {parts,score};
+}
+function similarityMatrix(keys,g){const m=new Map;keys.forEach(a=>m.set(a,new Map));for(let i=0;i<keys.length;i++)for(let j=i+1;j<keys.length;j++){const s=sim(g.get(keys[i]),g.get(keys[j])).score;m.get(keys[i]).set(keys[j],s);m.get(keys[j]).set(keys[i],s)}return m}
+function cluster(keys,g,m,threshold){
+ const unseen=new Set(keys),out=[];
+ while(unseen.size){const seed=unseen.values().next().value;unseen.delete(seed);const members=[seed];let changed=true;
+  while(changed){changed=false;for(const k of [...unseen]){const linked=members.some(x=>(m.get(x)?.get(k)||0)>=threshold);if(linked){members.push(k);unseen.delete(k);changed=true}}}
+  out.push(members);
+ }
+ return out.sort((a,b)=>b.length-a.length);
+}
+function label(members,g){
+ const fs=members.map(k=>features(g.get(k))),avg=(key)=>fs.reduce((s,f)=>s+(Number(f[key])||0),0)/fs.length;
+ const movement=avg("abs"),acc=fs.filter(f=>f.accuracy!=null).length?avg("accuracy"):null,integrity=avg("integrity"),volume=avg("n");
+ let a=volume>=5?"High-volume":volume<=2?"Low-volume":"Moderate-volume";
+ let b=movement>=5?"high-movement":movement<=1?"stable-movement":"moderate-movement";
+ let c=acc==null?"mixed-calibration":acc>=.75?"high-calibration":"low-calibration";
+ return a+" / "+b+" / "+c;
+}
+let G=new Map,M=new Map,C=[],selected=0;
+function render(){
+ G=groups();const keys=[...G.keys()],threshold=Number(document.querySelector("#threshold").value);M=similarityMatrix(keys,G);C=cluster(keys,G,M,threshold);
+ const all=verify(),valid=all.filter(x=>x.ok).length;
+ document.querySelector("#stats").innerHTML=[
+  ["Patterns",keys.length],["Ledger events",all.length],["Valid links",all.length?Math.round(valid/all.length*100)+"%":"—"],["Archetypes",C.length],["Threshold",threshold+"%"],["Largest archetype",C[0]?.length||0]
+ ].map(x=>'<div class="stat"><b>'+x[1]+'</b><span class="muted">'+x[0]+'</span></div>').join("");
+ document.querySelector("#clusters").innerHTML=C.map((members,i)=>{
+  const f=members.map(k=>features(G.get(k))),cohesion=members.length<2?100:Math.round(members.reduce((s,k)=>s+members.filter(z=>z!==k).reduce((q,z)=>q+(M.get(k)?.get(z)||0),0)/Math.max(members.length-1,1),0)/members.length);
+  return '<div class="card '+(i===selected?"selected":"")+'"><button onclick="selectCluster('+i+')">INSPECT</button> <span class="pill">ARCHETYPE '+(i+1)+'</span><h3>'+esc(label(members,G))+'</h3><b>'+members.length+' historical patterns</b><div class="muted small">Cohesion '+cohesion+'% · Avg events '+(f.reduce((s,x)=>s+x.n,0)/f.length).toFixed(1)+'</div><div class="bar"><i style="width:'+cohesion+'%"></i></div><p>'+members.slice(0,4).map(esc).join(" · ")+(members.length>4?" · …":"")+'</p></div>'
+ }).join("")||'<p class="muted">No ledger signals are available yet.</p>';
+ showDetail();
+ showReviews();
+}
+function selectCluster(i){selected=i;render()}
+function showDetail(){
+ const members=C[selected]||[];if(!members.length){document.querySelector("#detail").innerHTML='<p class="muted">No archetype selected.</p>';return}
+ const fs=members.map(k=>features(G.get(k))),avg=k=>fs.reduce((s,f)=>s+(Number(f[k])||0),0)/fs.length;
+ const acc=fs.filter(f=>f.accuracy!=null).length?fs.filter(f=>f.accuracy!=null).reduce((s,f)=>s+f.accuracy,0)/fs.filter(f=>f.accuracy!=null).length:null;
+ const strongest=[...members].sort((a,b)=>features(G.get(b)).abs-features(G.get(a)).abs).slice(0,5);
+ const forecastR=fs.reduce((s,f)=>s+f.rising,0),forecastF=fs.reduce((s,f)=>s+f.falling,0),totalF=forecastR+forecastF+fs.reduce((s,f)=>s+f.other,0);
+ const rows=[["Average evidence events",avg("n").toFixed(1)],["Average |movement|",avg("abs").toFixed(2)],["Average movement",avg("avg").toFixed(2)],["Forecast accuracy",acc==null?"—":Math.round(acc*100)+"%"],["Calibration mismatches",Math.round(avg("mismatch"))],["Integrity rate",Math.round(avg("integrity")*100)+"%"],["Rising forecast share",totalF?Math.round(forecastR/totalF*100)+"%":"—"],["Falling forecast share",totalF?Math.round(forecastF/totalF*100)+"%":"—"]];
+ document.querySelector("#detail").innerHTML='<h3>ARCHETYPE '+(selected+1)+' · '+esc(label(members,G))+'</h3><table class="table">'+rows.map(r=>'<tr><th>'+r[0]+'</th><td>'+r[1]+'</td></tr>').join("")+'</table><h3>Member patterns</h3>'+members.map(k=>'<div class="row"><b>'+esc(k)+'</b><br><span class="muted">Events '+features(G.get(k)).n+' · |movement| '+features(G.get(k)).abs.toFixed(2)+' · integrity '+Math.round(features(G.get(k)).integrity*100)+'%</span></div>').join("")+'<h3>Strongest movement patterns</h3><p>'+strongest.map(esc).join(" · ")+'</p><p class="muted small">Archetype characteristics are summaries of recorded browser-local ledger metrics. They do not imply shared cause.</p>';
+}
+function showReviews(){const r=read(REV).filter(x=>x.archetype===selected).slice(-8).reverse();document.querySelector("#reviews").innerHTML=r.map(x=>'<div class="row"><b>'+new Date(x.at).toLocaleString()+'</b><br>'+esc(x.note)+'</div>').join("")||'<p class="muted small">No human reviews for this archetype.</p>'}
+document.querySelector("#threshold").onchange=()=>{selected=0;render()};document.querySelector("#refresh").onclick=render;
+document.querySelector("#save").onclick=()=>{const note=document.querySelector("#note").value.trim();if(!note||!C[selected])return;const r=read(REV);r.push({id:"AR-"+Date.now(),at:new Date().toISOString(),archetype:selected,members:C[selected],threshold:Number(document.querySelector("#threshold").value),label:label(C[selected],G),note});write(REV,r.slice(-300));document.querySelector("#note").value="";showReviews()};
+function download(name,type,data){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click()}
+document.querySelector("#json").onclick=()=>download("crowrules-trust-v957-archetypes.json","application/json",JSON.stringify({version:"V9.57",exported_at:new Date().toISOString(),threshold:Number(document.querySelector("#threshold").value),archetypes:C.map((members,i)=>({id:i+1,label:label(members,G),members,features:members.map(k=>({signal:k,...features(G.get(k))}))})),reviews:read(REV)},null,2));
+document.querySelector("#csv").onclick=()=>{const out=["archetype,label,signal,events,avg_abs_movement,avg_movement,accuracy,mismatches,integrity"];C.forEach((members,i)=>members.forEach(k=>{const f=features(G.get(k));out.push([i+1,'"'+label(members,G).replace(/"/g,'""')+'"','"'+k.replace(/"/g,'""')+'"',f.n,f.abs.toFixed(2),f.avg.toFixed(2),f.accuracy==null?"":Math.round(f.accuracy*100)+"%",f.mismatch,Math.round(f.integrity*100)+"%"].join(","))}));download("crowrules-trust-v957-archetypes.csv","text/csv",out.join("\n"))};
+render();addEventListener("storage",render);setInterval(render,15000);
+</script></body></html>
