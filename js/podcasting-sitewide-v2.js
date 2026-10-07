@@ -1,5 +1,5 @@
 (()=>{"use strict";
-const SUPABASE_URL="https://baiqacotatszeqmjiekr.supabase.co",SUPABASE_KEY="sb_publishable_d1HCg_kU7AtjvlTtcsfxnA_NM75pell";
+const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co",SUPABASE_KEY="sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
 const STATE_KEY="crowrules_podcasting_universal_player_v2";
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 let state=(()=>{try{return JSON.parse(localStorage.getItem(STATE_KEY)||"{}")}catch{return{}}})();
