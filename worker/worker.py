@@ -50,7 +50,7 @@ def now_iso():
 
 def sign_storage_url(bucket, path, expires=3600):
     r = requests.post(
-        f"{STORAGE}/object/sign/{bucket}/{quote(path, safe="/")}",
+        f"{STORAGE}/object/sign/{bucket}/{quote(path, safe='/')}",
         headers=HEADERS,
         json={"expiresIn": expires},
         timeout=30,
