@@ -2,6 +2,7 @@ services:
   - type: worker
     name: crowrules-podcast-media-worker
     runtime: docker
+    plan: free
     dockerfilePath: ./worker/Dockerfile
     dockerContext: .
     autoDeploy: true
