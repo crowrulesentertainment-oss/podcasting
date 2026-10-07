@@ -63,7 +63,13 @@ async function navigate(view,push=true){
   const sourceMain=doc.querySelector("main");
   if(!sourceMain)throw new Error("View has no main content");
   appView.innerHTML="";
-  const viewRoot=document.createElement("div");viewRoot.className="cr-view";viewRoot.innerHTML=sourceMain.innerHTML;appView.appendChild(viewRoot);
+  const viewRoot=document.createElement("div");viewRoot.className="cr-view";
+  [...doc.body.children].forEach(node=>{
+   if(node.tagName==="SCRIPT"||node.tagName==="FOOTER"||node.tagName==="HEADER")return;
+   viewRoot.appendChild(node.cloneNode(true));
+  });
+  if(!viewRoot.querySelector("main")){const mainClone=sourceMain.cloneNode(true);viewRoot.appendChild(mainClone)}
+  appView.appendChild(viewRoot);
   document.body.classList.add("cr-shell-view");
   bindViewLinks();
   await runScripts(doc);
