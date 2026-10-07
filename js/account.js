@@ -46,7 +46,7 @@ async function loadCollections(){
  }
 }
 async function signInWithProvider(provider){
-  const allowed=["google","discord","facebook","twitch","spotify"];
+  const allowed=["google","discord","twitch","spotify"];
   if(!allowed.includes(provider)){msg("message","UNSUPPORTED SOCIAL PROVIDER.");return;}
   const role=selectedRole();
   localStorage.setItem(PENDING_ROLE_KEY,role);
