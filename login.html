@@ -1,1 +1,113 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Podcasting Sign In</title><link rel="stylesheet" href="css/podcasting.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js" defer></script><script src="js/podcasting.js" defer></script></head><body><div id="cr-app" data-cr-shell="crowrules-podcasting-sitewide-v7"></div><main class="page"><div class="form-wrap panel"><span class="eyebrow">PODCASTING ACCOUNT</span><h1>Welcome back.</h1><form id="f"><div class="field"><label>EMAIL</label><input id="email" type="email" required></div><div class="field"><label>PASSWORD</label><input id="password" type="password" required></div><button class="btn primary">SIGN IN</button><div id="msg" class="status"></div></form><p class="status">New here? <a href="signup.html">Create your Podcasting account →</a></p></div></main><script>addEventListener('load',()=>f.onsubmit=async e=>{e.preventDefault();const{error}=await CROW_PODCASTING.auth.signInWithPassword({email:email.value,password:password.value});if(error)msg.textContent=error.message;else location.href='profile.html'})</script><div id="cr-player" data-cr-player="crowrules-podcasting-sitewide-v7"></div></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Sign in to CrowRules Podcasting as a listener or podcaster.">
+<title>Sign In — CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js" defer></script>
+<script src="js/podcasting.js" defer></script>
+</head>
+<body>
+<div id="cr-app" data-cr-shell="crowrules-podcasting-sitewide-v7"></div>
+
+<main class="page login-page">
+  <section class="login-hero">
+    <div class="login-orbit" aria-hidden="true"><span></span><span></span><span></span><b>CR</b></div>
+    <div>
+      <span class="eyebrow">CROWRULES PODCASTING • WELCOME BACK</span>
+      <h1>Return to your universe.</h1>
+      <p>Pick up where you left off. Your library, listening progress, saved episodes, queue and creator tools are waiting.</p>
+      <div class="quick-pills"><span>LISTEN</span><span>CREATE</span><span>CONNECT</span></div>
+    </div>
+  </section>
+
+  <section class="login-grid">
+    <div class="login-card panel">
+      <div class="step">01 / SIGN IN</div>
+      <h2>Choose how to continue</h2>
+      <p class="muted">Use Google, Discord or Twitch, or sign in with your CrowRules email and password.</p>
+
+      <div class="oauth-grid">
+        <button class="oauth" data-provider="google" type="button"><span>G</span><b>Google</b></button>
+        <button class="oauth" data-provider="discord" type="button"><span>◈</span><b>Discord</b></button>
+        <button class="oauth" data-provider="twitch" type="button"><span>✦</span><b>Twitch</b></button>
+      </div>
+
+      <div class="divider"><span>OR EMAIL</span></div>
+
+      <form id="loginForm" novalidate>
+        <div class="field"><label for="email">EMAIL</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+        <div class="field password-field"><label for="password">PASSWORD</label><input id="password" type="password" autocomplete="current-password" placeholder="Your password" required><button id="togglePassword" type="button">SHOW</button></div>
+        <div class="form-actions"><label class="remember"><input id="remember" type="checkbox" checked> Remember this device</label><button id="forgot" class="link-btn" type="button">Forgot password?</button></div>
+        <button id="loginBtn" class="btn primary login-btn" type="submit">SIGN IN TO CROWRULES</button>
+        <div id="msg" class="status" role="status" aria-live="polite"></div>
+      </form>
+
+      <div class="signup-line"><span>New to CrowRules Podcasting?</span><a href="signup.html">CREATE AN ACCOUNT →</a></div>
+    </div>
+
+    <aside class="login-side">
+      <div class="side-card">
+        <span class="eyebrow">LISTENER</span>
+        <h3>Keep listening.</h3>
+        <p>Your queue and progress can follow you throughout Podcasting when signed in.</p>
+        <ul><li>Personal library</li><li>Saved episodes</li><li>Continue Listening</li><li>Recommendations</li></ul>
+      </div>
+      <div class="side-card creator">
+        <span class="eyebrow">PODCASTER</span>
+        <h3>Keep creating.</h3>
+        <p>Return to your creator workspace and continue building your show.</p>
+        <ul><li>Creator Studio</li><li>Show management</li><li>Episode workflow</li><li>Audience tools</li></ul>
+      </div>
+      <div class="secure"><span>✓</span><div><strong>SECURE AUTHENTICATION</strong><small>Powered by Supabase Auth. OAuth credentials are handled by the provider.</small></div></div>
+    </aside>
+  </section>
+</main>
+
+<div id="cr-player" data-cr-player="crowrules-podcasting-sitewide-v7"></div>
+
+<style>
+.login-page{max-width:1160px;margin:auto;padding:55px 20px 130px}.login-hero{display:grid;grid-template-columns:210px 1fr;gap:40px;align-items:center;margin:30px 0 45px}.login-orbit{width:190px;height:190px;border:1px solid rgba(110,231,255,.32);border-radius:50%;display:grid;place-items:center;position:relative;box-shadow:0 0 60px rgba(110,231,255,.08),inset 0 0 45px rgba(167,139,250,.08)}.login-orbit:before,.login-orbit:after{content:"";position:absolute;border:1px solid rgba(167,139,250,.3);border-radius:50%;inset:25px;transform:rotate(35deg)}.login-orbit:after{inset:48px;transform:rotate(-50deg)}.login-orbit span{position:absolute;width:7px;height:7px;border-radius:50%;background:#78ddff;box-shadow:0 0 14px #78ddff}.login-orbit span:nth-child(1){top:13px}.login-orbit span:nth-child(2){right:20px;bottom:45px;background:#a78bfa;box-shadow:0 0 14px #a78bfa}.login-orbit span:nth-child(3){left:25px;bottom:27px;background:#f0abfc;box-shadow:0 0 14px #f0abfc}.login-orbit b{font:800 29px Orbitron,sans-serif;letter-spacing:4px}.login-hero h1{font:800 clamp(38px,6vw,68px)/1.05 Orbitron,sans-serif;margin:8px 0 16px;letter-spacing:-2px}.login-hero p{max-width:720px;color:rgba(255,255,255,.66);font-size:17px;line-height:1.7}.quick-pills{display:flex;gap:8px;margin-top:20px}.quick-pills span{font:700 9px Orbitron,sans-serif;letter-spacing:1.5px;padding:8px 11px;border:1px solid rgba(255,255,255,.1);border-radius:99px}.login-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:24px}.login-card{padding:31px}.step{font:700 10px Orbitron,sans-serif;color:#78ddff;letter-spacing:2px;margin-bottom:9px}.login-card h2{font:700 23px Orbitron,sans-serif;margin:0 0 8px}.muted{font-size:13px;line-height:1.6;color:rgba(255,255,255,.55)}.oauth-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}.oauth{min-height:50px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.035);color:#fff;border-radius:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;font:700 12px Montserrat,sans-serif}.oauth:hover{border-color:rgba(110,231,255,.45);background:rgba(110,231,255,.05)}.oauth span{font:800 17px Arial}.divider{display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.35);font:700 9px Orbitron,sans-serif;letter-spacing:1.5px;margin:24px 0}.divider:before,.divider:after{content:"";height:1px;background:rgba(255,255,255,.1);flex:1}.field{position:relative;margin-bottom:16px}.field label{display:block;font:700 10px Orbitron,sans-serif;letter-spacing:1.3px;margin-bottom:8px}.field input{width:100%;box-sizing:border-box;padding:14px;border-radius:10px;background:rgba(0,0,0,.23);border:1px solid rgba(255,255,255,.12);color:#fff;outline:none}.field input:focus{border-color:#78ddff;box-shadow:0 0 0 3px rgba(120,221,255,.07)}.password-field input{padding-right:62px}.password-field>button{position:absolute;right:8px;bottom:8px;border:0;background:transparent;color:#78ddff;font:700 9px Orbitron,sans-serif;cursor:pointer}.form-actions{display:flex;justify-content:space-between;align-items:center;margin:3px 0 20px;font-size:10px;color:rgba(255,255,255,.48)}.remember{display:flex;gap:7px;align-items:center}.link-btn{border:0;background:none;color:#78ddff;cursor:pointer;font:600 10px Montserrat,sans-serif}.login-btn{width:100%;min-height:50px;letter-spacing:1px}.status{min-height:22px;margin-top:12px;font-size:12px}.status[data-kind=error]{color:#ff8eaa}.status[data-kind=success]{color:#8df5ca}.signup-line{display:flex;justify-content:space-between;border-top:1px solid rgba(255,255,255,.08);padding-top:20px;margin-top:24px;color:rgba(255,255,255,.48);font-size:11px}.signup-line a{color:#78ddff}.login-side{display:flex;flex-direction:column;gap:14px}.side-card,.secure{padding:21px;border:1px solid rgba(255,255,255,.09);border-radius:15px;background:rgba(255,255,255,.025)}.side-card h3{font:700 17px Orbitron,sans-serif;margin:7px 0 9px}.side-card p{color:rgba(255,255,255,.52);font-size:11px;line-height:1.6}.side-card ul{margin:10px 0 0;padding-left:17px;color:rgba(255,255,255,.57);font-size:11px;line-height:1.8}.side-card.creator{border-color:rgba(167,139,250,.2)}.secure{display:flex;gap:12px}.secure>span{width:28px;height:28px;border:1px solid rgba(110,231,255,.4);border-radius:50%;display:grid;place-items:center;color:#78ddff}.secure strong{display:block;font:700 10px Orbitron,sans-serif}.secure small{display:block;color:rgba(255,255,255,.42);font-size:9px;line-height:1.5;margin-top:4px}
+@media(max-width:800px){.login-hero{grid-template-columns:1fr}.login-orbit{width:145px;height:145px;margin:auto}.login-grid{grid-template-columns:1fr}.oauth-grid{grid-template-columns:1fr}.signup-line,.form-actions{flex-direction:column;gap:12px;align-items:flex-start}}
+</style>
+
+<script>
+(()=>{const ready=f=>document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f,{once:true}):f();ready(async()=>{
+ const sb=window.CROW_PODCASTING,msg=document.querySelector('#msg'),form=document.querySelector('#loginForm'),btn=document.querySelector('#loginBtn');
+ const setMsg=(t,k='')=>{msg.textContent=t;msg.dataset.kind=k};
+ if(!sb){setMsg('Authentication is temporarily unavailable. Please try again.','error');return}
+ const target=(()=>{try{const u=new URLSearchParams(location.search).get('next');return u&&/^[a-z0-9_./-]+\.html$/i.test(u)?u:'profile.html'}catch(_){return'profile.html'}})();
+
+ try{const{data}=await sb.auth.getSession();if(data?.session){location.replace(target);return}}catch(_){}
+
+ document.querySelector('#togglePassword')?.addEventListener('click',()=>{
+   const p=document.querySelector('#password'),b=document.querySelector('#togglePassword');p.type=p.type==='password'?'text':'password';b.textContent=p.type==='password'?'SHOW':'HIDE';
+ });
+ document.querySelectorAll('.oauth').forEach(b=>b.addEventListener('click',async()=>{
+   document.querySelectorAll('.oauth').forEach(x=>x.disabled=true);setMsg('Connecting to '+b.dataset.provider.charAt(0).toUpperCase()+b.dataset.provider.slice(1)+'…');
+   const{error}=await sb.auth.signInWithOAuth({provider:b.dataset.provider,options:{redirectTo:new URL('login.html',location.href).href}});
+   if(error){document.querySelectorAll('.oauth').forEach(x=>x.disabled=false);setMsg(error.message,'error')}
+ }));
+ document.querySelector('#forgot')?.addEventListener('click',async()=>{
+   const email=document.querySelector('#email').value.trim();
+   if(!email){setMsg('Enter your email address first, then choose Forgot password.','error');document.querySelector('#email').focus();return}
+   setMsg('Sending password reset instructions…');
+   const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:new URL('login.html?reset=1',location.href).href});
+   setMsg(error?error.message:'If that email is registered, password reset instructions are on the way.',error?'error':'success');
+ });
+ form?.addEventListener('submit',async e=>{
+   e.preventDefault();if(!form.reportValidity())return;btn.disabled=true;setMsg('Signing you in…');
+   const{error}=await sb.auth.signInWithPassword({email:document.querySelector('#email').value.trim(),password:document.querySelector('#password').value});
+   if(error){setMsg(error.message,'error');btn.disabled=false;return}
+   setMsg('Signed in. Welcome back.','success');setTimeout(()=>location.href=target,250);
+ });
+});})();
+</script>
+</body>
+</html>
