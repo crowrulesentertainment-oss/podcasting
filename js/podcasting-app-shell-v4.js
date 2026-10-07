@@ -26,7 +26,7 @@ async function runScripts(doc){
   let src=source.getAttribute("src");
   if(src){
    const u=new URL(src,location.href);
-   if(u.pathname.endsWith("/podcasting-sitewide-v1.js")||u.pathname.endsWith("/podcasting-sitewide-v3.js"))u.searchParams.set("shell","1");
+   if(u.pathname.endsWith("/podcasting-sitewide-v1.js")||u.pathname.endsWith("/podcasting-sitewide-v3.js"))if(!u.pathname.endsWith("/podcasting-sitewide-v3.js"))u.searchParams.set("shell","1");
    await new Promise(resolve=>{const s=document.createElement("script");s.src=u.href;s.defer=false;s.dataset.crShellView="1";s.onload=resolve;s.onerror=resolve;document.body.appendChild(s)})
   }else if(source.textContent.trim()){
    const s=document.createElement("script");s.textContent=source.textContent;s.dataset.crShellView="1";document.body.appendChild(s)
