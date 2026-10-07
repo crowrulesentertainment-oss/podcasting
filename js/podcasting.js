@@ -6,7 +6,6 @@ const toast=(m)=>{const e=document.getElementById('toast');if(!e)return;e.textCo
 const esc=(s='')=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 async function session(){return (await supabase.auth.getSession()).data.session}
 async function edge(path,body={}){const s=await session();if(!s)throw new Error('Please sign in first.');const r=await fetch(EDGE_BASE+'/'+path,{method:'POST',headers:{Authorization:'Bearer '+s.access_token,'Content-Type':'application/json','apikey':SUPABASE_KEY},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Request failed.');return j}
-
 async function loadPodcasts(){
  const grid=document.getElementById('podcastGrid');if(!grid)return;
  const {data,error}=await supabase.from('podcasts').select('id,title,slug,category,description,artwork_url,author_name,listener_count,is_featured,status').eq('status','published').order('is_featured',{ascending:false}).order('created_at',{ascending:false}).limit(30);
@@ -16,9 +15,7 @@ async function loadPodcasts(){
  render();document.getElementById('search')?.addEventListener('input',render);sel?.addEventListener('change',render);document.getElementById('podcastCount').textContent=(data||[]).length;
 }
 async function updateNav(){const s=await session();document.querySelectorAll('.nav-account').forEach(a=>{if(s){a.textContent='My Account';a.href='account.html'}else{a.textContent='Sign In';a.href='auth.html'}})}
-async function checkout(plan){try{const s=await session();if(!s){location.href='auth.html?mode=signup&next='+encodeURIComponent('./#membership');return}const j=await edge('membership-checkout',{plan_key:plan});if(j.mode==='checkout'&&j.client_secret){toast('Checkout session created.');location.href='https://checkout.stripe.com/c/pay/'+encodeURIComponent(j.id)}else if(j.mode==='upgrade'){toast('Membership upgraded.');setTimeout(()=>location.href='account.html',700)}else{throw new Error('Stripe checkout is not available.')}}
-catch(e){toast(e.message)}}
-
+async function checkout(plan){try{const s=await session();if(!s){location.href='auth.html?mode=signup&next='+encodeURIComponent('./#membership');return}const j=await edge('membership-checkout',{plan_key:plan,checkout_mode:'hosted',origin:location.origin+location.pathname.replace(/[^/]*$/,'')});if(j.mode==='checkout'&&j.url){location.href=j.url}else if(j.mode==='upgrade'){toast('Membership upgraded.');setTimeout(()=>location.href='account.html',700)}else{throw new Error('Stripe checkout is not available.')}}catch(e){toast(e.message)}}
 async function initAuth(){
  const form=document.getElementById('authForm');if(!form)return;let mode=new URLSearchParams(location.search).get('mode')==='signup';
  const loginTab=document.getElementById('loginTab'),signupTab=document.getElementById('signupTab'),title=document.getElementById('authTitle'),sub=document.getElementById('authSubtitle'),submit=document.getElementById('authSubmit'),confirm=document.getElementById('confirmWrap'),msg=document.getElementById('authMessage');
