@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CrowRules Trust Watchtower V9.89 — Pattern Forecasting & Trajectory Intelligence</title>
+<style>
+:root{--bg:#03050b;--panel:#090e18f5;--card:#070b14;--line:#273249;--text:#eef3ff;--muted:#9da8bd;--accent:#7dd3fc;--good:#8ee7a8;--warn:#ffd27d;--hot:#ff9b9b}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0,#101b35,transparent 35%),var(--bg);color:var(--text);font:14px Arial,sans-serif}.wrap{max-width:1750px;margin:auto;padding:22px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px;margin:12px 0}.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}button,select,input,textarea{padding:9px 11px;background:var(--card);color:inherit;border:1px solid #33405a;border-radius:8px}button{cursor:pointer}button:hover{border-color:var(--accent)}textarea{width:100%;min-height:90px}.guard{border-left:3px solid var(--accent);padding:10px;background:#07101b;border-radius:8px}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}.stat,.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}.stat b{display:block;font-size:22px}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:1.25fr 1fr;gap:12px}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:8px;border-bottom:1px solid #202a3d;vertical-align:top}.pill{display:inline-block;border:1px solid #33405a;border-radius:99px;padding:3px 8px;margin:2px;font-size:11px}.rank{font-size:18px;font-weight:700}.score{font-weight:700}.barline{height:8px;background:#111827;border-radius:99px;overflow:hidden}.barline i{display:block;height:100%;background:var(--accent)}.forecast{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px}.forecast .card{min-height:115px}.good{color:var(--good)}.warn{color:var(--warn)}.danger{color:var(--hot)}.spark{height:150px;display:flex;align-items:end;gap:5px;padding:10px 0}.spark i{flex:1;background:#172235;border:1px solid #33405a;border-radius:5px 5px 1px 1px;min-height:4px}.scenario{border-left:3px solid var(--accent)}@media(max-width:950px){.grid{grid-template-columns:1fr}.wrap{padding:12px}}
+</style>
+</head>
+<body><main class="wrap">
+<section class="panel">
+<h1>V9.89 · PATTERN FORECASTING &amp; TRAJECTORY INTELLIGENCE</h1>
+<p class="muted">Extend V9.88 recurring signal-pattern profiles into transparent forward trajectory scenarios using observed directional history, recurrence, persistence, and recent momentum.</p>
+<div class="guard"><b>Forecast guardrail:</b> V9.89 produces deterministic scenario projections from retained evidence. These are not probabilities, predictions of people, causal claims, intent inference, or autonomous governance decisions. A forecast means “if the observed trajectory continues,” not “this will happen.”</div>
+</section>
+
+<section class="panel"><div class="bar">
+<label>History <select id="hist"><option>3</option><option selected>5</option><option>8</option><option>12</option></select></label>
+<label>Forecast horizon <select id="horizon"><option>1</option><option selected>3</option><option>5</option><option>8</option></select></label>
+<label>Minimum recurrence <select id="minRec"><option selected>2</option><option>3</option><option>4</option></select></label>
+<button id="refresh">REFRESH</button><button id="json">EXPORT JSON</button><button id="csv">EXPORT CSV</button>
+</div><div id="stats" class="stats" style="margin-top:12px"></div></section>
+
+<section class="panel"><h2>Trajectory Forecast Board</h2><div id="board"></div></section>
+
+<div class="grid">
+<section class="panel"><h2>Selected Pattern Forecast</h2><div id="profile"><span class="muted">Select a pattern.</span></div></section>
+<section class="panel"><h2>Trajectory Signal</h2><div id="trajectory"><span class="muted">Select a pattern.</span></div></section>
+</div>
+
+<section class="panel"><h2>Forward Scenario Bands</h2><div id="scenarios"></div></section>
+<section class="panel"><h2>Forecast Stability &amp; Drift</h2><div id="drift"></div></section>
+
+<section class="panel"><h2>Human Forecast Review</h2>
+<textarea id="note" placeholder="Record why the selected trajectory should be accepted, challenged, or monitored."></textarea>
+<button id="save" style="margin-top:8px">SAVE FORECAST REVIEW</button><div id="reviews" style="margin-top:10px"></div>
+</section>
+</main>
+
+<script>
+const SNAP="crowrules_trust_v958_snapshots",REV="crowrules_trust_v989_reviews";
+const read=k=>{try{return JSON.parse(localStorage.getItem(k)||"[]")}catch(e){return[]}};
+const write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let state={snapshots:[],patterns:[],selected:null};
+
+function impact(s){const c=s.clusters||[];return{nodes:c.length,members:new Set(c.flatMap(x=>Array.isArray(x.members)?x.members:[])).size};}
+function history(){let s=read(SNAP),h=+hist.value;return s.length>h?s.slice(-h):s;}
+function dirs(s){const d=[];for(let i=1;i<s.length;i++){const a=impact(s[i-1]),b=impact(s[i]);const delta=(b.nodes-a.nodes)*20+(b.members-a.members)*2;d.push({step:i,delta,dir:delta>0?"RISE":delta<0?"FALL":"FLAT"});}return d;}
+function patternsFrom(s,d){
+ const motifs={};
+ for(let i=1;i<d.length;i++){const key=d[i-1].dir+" → "+d[i].dir;(motifs[key]??=[]).push(i);}
+ return Object.entries(motifs).map(([motif,idx],n)=>{
+   const mags=idx.map(i=>Math.abs(d[i].delta)),avg=mags.reduce((a,b)=>a+b,0)/(mags.length||1);
+   const consistency=idx.length>1?100-Math.min(100,(Math.max(...mags)-Math.min(...mags))/(Math.max(...mags,1))*100):65;
+   const stability=Math.round(Math.min(100,50+idx.length*10+consistency*.3));
+   const strength=Math.round(Math.min(100,45+avg+idx.length*7));
+   const score=Math.round(stability*.3+strength*.3+consistency*.2+Math.min(100,idx.length*20)*.2);
+   return{id:"SP-"+String(n+1).padStart(3,"0"),motif,occurrences:idx.length,recurrence:idx.length,avgMagnitude:Math.round(avg),consistency:Math.round(consistency),stability,strength,score,indices:idx,dirs:d};
+ });
+}
+function archetype(p){if(p.motif==="RISE → RISE")return"ACCELERATOR";if(p.motif==="FALL → FALL")return"DECELERATOR";if(p.motif==="RISE → FALL"||p.motif==="FALL → RISE")return p.recurrence>=2?"OSCILLATOR":"HYBRID";if(p.recurrence>=3&&p.consistency>=75)return"ECHO";if(p.avgMagnitude<15)return"DRIFTER";if(p.strength>=80)return"BUILDER";return"HYBRID";}
+function forecast(p,h){
+ const recent=p.indices.slice(-3).map(i=>p.dirs[i].delta);
+ const last=recent.at(-1)||0, mean=recent.length?recent.reduce((a,b)=>a+b,0)/recent.length:0;
+ const trend=recent.length>1?(recent.at(-1)-recent[0])/(recent.length-1):0;
+ const persistence=Math.min(100,Math.round(35+p.recurrence*10+p.consistency*.35));
+ const momentum=Math.max(-100,Math.min(100,Math.round(mean+trend)));
+ const rows=[];
+ for(let k=1;k<=h;k++){const decay=1/(1+k*.16);const value=Math.round((mean+trend*k)*decay);rows.push({step:k,value,dir:value>0?"RISE":value<0?"FALL":"FLAT"});}
+ const directional=rows.filter(x=>x.dir!=="FLAT");
+ const direction=directional.length?directional.reduce((m,x)=>m+(x.dir==="RISE"?1:-1),0):0;
+ const stability=Math.round(Math.min(100,Math.max(0,persistence-(Math.abs(trend)*2))));
+ const confidence=Math.round(Math.min(100,Math.max(25,(p.score*.45)+(p.consistency*.25)+(persistence*.2)+(stability*.1))));
+ return{rows,mean,trend,momentum,persistence,stability,confidence,direction};
+}
+function lifecycle(p){if(p.recurrence>=4&&p.score>=85)return"ESTABLISHED";if(p.recurrence>=3)return"CONFIRMED";if(p.recurrence>=2)return"VALIDATING";return"DISCOVERED";}
+function render(){
+ const s=history(),d=dirs(s);state.snapshots=s;state.patterns=patternsFrom(s,d);
+ if(!state.selected||!state.patterns.some(p=>p.id===state.selected))state.selected=state.patterns[0]?.id||null;
+ const visible=state.patterns.filter(p=>p.recurrence>=+minRec.value).sort((a,b)=>b.score-a.score);
+ const fs=visible.map(p=>({p,f:forecast(p,+horizon.value)}));
+ stats.innerHTML=[["Patterns",state.patterns.length],["Forecastable",visible.length],["Stable",fs.filter(x=>x.f.stability>=70).length],["High signal",fs.filter(x=>x.f.confidence>=80).length],["Snapshots",s.length],["Horizon",+horizon.value+" steps"]].map(v=>'<div class="stat"><b>'+v[1]+'</b><span class="muted">'+v[0]+'</span></div>').join("");
+ board.innerHTML=visible.length?'<table class="table"><tr><th>#</th><th>Pattern</th><th>Archetype</th><th>Current score</th><th>Trajectory</th><th>Stability</th><th>Forecast signal</th><th>Lifecycle</th></tr>'+fs.map((x,i)=>'<tr data-p="'+x.p.id+'" style="cursor:pointer"><td class="rank">#'+(i+1)+'</td><td><b>'+x.p.id+'</b><br><span class="pill">'+esc(x.p.motif)+'</span></td><td>'+archetype(x.p)+'</td><td>'+x.p.score+'%</td><td class="'+(x.f.direction>0?"good":x.f.direction<0?"danger":"warn")+'">'+(x.f.direction>0?"RISING":x.f.direction<0?"FALLING":"FLAT")+'</td><td>'+x.f.stability+'%</td><td>'+x.f.confidence+'%</td><td>'+lifecycle(x.p)+'</td></tr>').join("")+'</table>':'<div class="card">No recurring patterns meet the selected threshold.</div>';
+ document.querySelectorAll("[data-p]").forEach(e=>e.onclick=()=>{state.selected=e.dataset.p;render()});
+ renderProfile();renderTrajectory();renderScenarios();renderDrift();renderReviews();
+}
+function selected(){return state.patterns.find(p=>p.id===state.selected)||state.patterns[0];}
+function renderProfile(){
+ const p=selected();if(!p){profile.innerHTML='<span class="muted">No pattern available.</span>';return}
+ const f=forecast(p,+horizon.value);
+ profile.innerHTML='<div class="card"><h3>'+p.id+' · '+archetype(p)+'</h3><p class="muted">'+esc(p.motif)+' · '+lifecycle(p)+'</p><div class="stats">'+[["Score",p.score+"%"],["Recurrence",p.recurrence],["Consistency",p.consistency+"%"],["Stability",f.stability+"%"],["Forecast signal",f.confidence+"%"],["Momentum",f.momentum]].map(v=>'<div class="stat"><b>'+v[1]+'</b><span class="muted">'+v[0]+'</span></div>').join("")+'</div><p><b>Observed mean:</b> '+Math.round(f.mean)+' · <b>Observed trend:</b> '+Math.round(f.trend)+' per step · <b>Persistence:</b> '+f.persistence+'%</p></div>';
+}
+function renderTrajectory(){
+ const p=selected();if(!p){trajectory.innerHTML='<span class="muted">No pattern available.</span>';return}
+ const f=forecast(p,+horizon.value),vals=f.rows.map(x=>Math.abs(x.value)),mx=Math.max(1,...vals);
+ trajectory.innerHTML='<div class="spark">'+f.rows.map(x=>'<i title="Step '+x.step+': '+x.dir+' '+x.value+'" style="height:'+Math.max(5,Math.round(Math.abs(x.value)/mx*125))+'px"></i>').join("")+'</div><div class="forecast">'+f.rows.map(x=>'<div class="card"><b>STEP '+x.step+'</b><h3>'+x.dir+'</h3><span class="muted">Projected directional magnitude: '+x.value+'</span></div>').join("")+'</div>';
+}
+function renderScenarios(){
+ const p=selected();if(!p){scenarios.innerHTML='<span class="muted">No pattern available.</span>';return}
+ const f=forecast(p,+horizon.value),last=p.dirs.at(-1)?.delta||0;
+ const continuation=Math.round(f.mean+f.trend*(+horizon.value||1));
+ const damped=Math.round(f.mean*.35);
+ const reversal=Math.round(-f.mean*.7);
+ scenarios.innerHTML='<div class="forecast">'+[
+  ["Continuation",continuation,"Observed direction persists with recent trend."],
+  ["Damped",damped,"Observed direction persists but weakens toward baseline."],
+  ["Reversal",reversal,"Recent direction changes sign; this is a stress scenario, not a probability."]
+ ].map(x=>'<div class="card scenario"><h3>'+x[0]+'</h3><b>'+x[1]+'</b><p class="muted">'+x[2]+'</p></div>').join("")+'</div>';
+}
+function renderDrift(){
+ const p=selected();if(!p){drift.innerHTML='<span class="muted">No pattern available.</span>';return}
+ const f=forecast(p,+horizon.value), recent=p.indices.slice(-3).map(i=>p.dirs[i].delta), volatility=recent.length>1?Math.round(Math.min(100,(Math.max(...recent)-Math.min(...recent))/(Math.max(1,Math.abs(f.mean))*2)*100)):35;
+ drift.innerHTML='<table class="table"><tr><th>Measure</th><th>Value</th><th>Interpretation</th></tr>'+
+ [['Momentum',f.momentum,'Net directional pressure in the retained observations.'],['Trend drift',Math.round(f.trend),'Change in directional magnitude across recent occurrences.'],['Persistence',f.persistence+'%','How strongly recurrence and consistency support continuation.'],['Stability',f.stability+'%','Forecast stability after accounting for recent drift.'],['Volatility',volatility+'%','Spread of recent directional magnitudes.']].map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td class="muted">'+r[2]+'</td></tr>').join("")+'</table>';
+}
+function renderReviews(){
+ const p=selected(),rows=read(REV).filter(r=>!p||r.pattern_id===p.id).slice(-8).reverse();
+ reviews.innerHTML=rows.length?rows.map(r=>'<div class="card"><b>'+new Date(r.at).toLocaleString()+'</b> · '+esc(r.pattern_id)+' · '+esc(r.disposition)+'</div><p>'+esc(r.note)+'</p>').join(""):'<span class="muted">No reviews for the selected pattern.</span>';
+}
+refresh.onclick=render;hist.onchange=render;horizon.onchange=render;minRec.onchange=render;
+save.onclick=()=>{const p=selected(),v=note.value.trim();if(!p||!v)return;const f=forecast(p,+horizon.value),r=read(REV);r.push({id:"FRI-"+Date.now(),at:new Date().toISOString(),pattern_id:p.id,archetype:archetype(p),confidence:f.confidence,stability:f.stability,disposition:"HUMAN_REVIEW",note:v});write(REV,r.slice(-300));note.value="";renderReviews()};
+function download(n,t,d){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([d],{type:t}));a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+json.onclick=()=>download("crowrules-v989-pattern-forecasting.json","application/json",JSON.stringify({version:"V9.89",exported_at:new Date().toISOString(),patterns:state.patterns,forecasts:state.patterns.map(p=>({pattern_id:p.id,archetype:archetype(p),forecast:forecast(p,+horizon.value)}))},null,2));
+csv.onclick=()=>download("crowrules-v989-pattern-forecasting.csv","text/csv","pattern_id,motif,archetype,recurrence,score,stability,forecast_signal,mean,trend\n"+state.patterns.map(p=>{const f=forecast(p,+horizon.value);return[p.id,'"'+p.motif.replaceAll('"','""')+'"',archetype(p),p.recurrence,p.score,f.stability,f.confidence,Math.round(f.mean),Math.round(f.trend)].join(",")}).join("\n"));
+addEventListener("storage",render);setInterval(render,15000);render();
+</script></body></html>
