@@ -6,6 +6,15 @@ function selectedRole(){return localStorage.getItem(ROLE_KEY)==="podcaster"?"pod
 function cleanRedirectUrl(){return location.origin+location.pathname;}
 function setOAuthStatus(text,error=false){const box=$("oauthStatus"),label=$("oauthStatusText");if(!box||!label)return;label.textContent=text;box.classList.toggle("error",!!error);}
 function providerLabel(provider){return String(provider||"").toUpperCase();}
+function callbackParams(){const url=new URL(location.href),params=new URLSearchParams(url.search);if(url.hash.startsWith("#"))new URLSearchParams(url.hash.slice(1)).forEach((v,k)=>{if(!params.has(k))params.set(k,v)});return {url,params};}
+function cleanCallbackUrl(){const {url,params}=callbackParams();const keys=["code","error","error_code","error_description","error_uri","sb_flow_id"];let changed=false;for(const key of keys){if(params.has(key)){url.searchParams.delete(key);changed=true}if(url.hash.includes(key+"=")){changed=true}}if(changed){url.hash="";history.replaceState({},document.title,url.pathname+url.search)}}
+async function handleAuthCallback(){
+ const {params}=callbackParams();
+ const hasCode=params.has("code"),hasError=params.has("error")||params.has("error_code")||params.has("error_description");
+ if(hasError){const detail=params.get("error_description")||params.get("error")||"OAuth authentication failed.";setOAuthStatus("SOCIAL LOGIN FAILED — "+detail,true);msg("message",friendlyAuthError({message:detail}));cleanCallbackUrl();return false;}
+ if(hasCode){setOAuthStatus("FINALIZING SOCIAL LOGIN…");const {data,error}=await db.auth.getSession();if(error){setOAuthStatus("SESSION RESTORE FAILED — "+error.message,true);msg("message",friendlyAuthError(error));cleanCallbackUrl();return false}if(data.session){setOAuthStatus("SOCIAL LOGIN COMPLETE — SESSION RESTORED.");cleanCallbackUrl();return true}setOAuthStatus("SOCIAL LOGIN CALLBACK RECEIVED — WAITING FOR SESSION…");}
+ return true;
+}
 function setSelectedRole(role){localStorage.setItem(ROLE_KEY,role==="podcaster"?"podcaster":"listener");updateRoleButtons(role);}
 function updateRoleButtons(role){
  document.querySelectorAll(".roleCard[data-role]").forEach(b=>b.classList.toggle("active",b.dataset.role===role));
@@ -67,7 +76,7 @@ async function load(){
    if(!rr.error) profile={...profile,account_type:pending,is_creator:pending==="podcaster"};
   }
   localStorage.removeItem(PENDING_ROLE_KEY);
-  if(location.search.includes("error=")||location.hash.includes("error=")){setOAuthStatus("SOCIAL LOGIN RETURNED AN ERROR — CHECK SUPABASE PROVIDER + REDIRECT SETTINGS.",true);msg("message","SOCIAL LOGIN COULD NOT COMPLETE. CHECK PROVIDER CONFIGURATION IN SUPABASE.");}else if(location.search.includes("code=")){setOAuthStatus("SOCIAL LOGIN RETURNED — ACCOUNT SESSION RESTORED.");}
+  
   if(profile.account_type!=="podcaster"&&profile.account_type!=="listener"){
    profile.account_type=selectedRole();
    await db.from("podcasting_profiles").update({account_type:profile.account_type,is_creator:profile.account_type==="podcaster"}).eq("id",user.id);
@@ -76,7 +85,7 @@ async function load(){
  }catch(e){console.error(e);msg("profileMessage","PROFILE CONNECTION ERROR — "+e.message)}
 }
 document.addEventListener("DOMContentLoaded",async()=>{
- db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+ db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  updateRoleButtons(selectedRole());
  document.querySelectorAll(".roleCard[data-role]").forEach(b=>b.addEventListener("click",()=>setSelectedRole(b.dataset.role)));
  document.querySelectorAll(".oauthBtn[data-provider]").forEach(b=>b.addEventListener("click",()=>signInWithProvider(b.dataset.provider)));
@@ -85,5 +94,5 @@ document.addEventListener("DOMContentLoaded",async()=>{
  $("signout").addEventListener("click",async()=>{await db.auth.signOut();load();});
  $("saveProfile").addEventListener("click",async()=>{const p={display_name:$("profileName").value.trim()||null,username:$("username").value.trim().toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,30)||null,avatar_url:$("avatarUrl").value.trim()||null,bio:$("bio").value.trim()||null,updated_at:new Date().toISOString()};const r=await db.from("podcasting_profiles").update(p).eq("id",user.id);msg("profileMessage",r.error?r.error.message:"PROFILE SAVED — YOUR PODCASTING IDENTITY IS UPDATED.");if(!r.error)renderProfile({...profile,...p});});
  $("listenerPath").addEventListener("click",()=>saveRole("listener"));$("podcasterPath").addEventListener("click",()=>saveRole("podcaster"));
- db.auth.onAuthStateChange((event)=>{if(event==="SIGNED_IN"||event==="INITIAL_SESSION")setTimeout(load,0);});load();
+ db.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_IN"&&session)setOAuthStatus("SOCIAL LOGIN COMPLETE — SESSION RESTORED.");if(event==="SIGNED_OUT")setOAuthStatus("SOCIAL LOGIN READY — SIGN IN TO CONTINUE.");if(event==="SIGNED_IN"||event==="INITIAL_SESSION"||event==="TOKEN_REFRESHED")setTimeout(load,0);});handleAuthCallback().then(()=>load()).catch(e=>{console.error(e);setOAuthStatus("AUTH CALLBACK ERROR — "+e.message,true);msg("message",e.message);load();});
 });
