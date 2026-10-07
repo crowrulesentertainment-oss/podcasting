@@ -27,7 +27,7 @@
 <div class="section-title"><div><span class="eyebrow">YOUR UNIVERSE</span><h2>Shows</h2><p>Manage the public identity and publishing state of every podcast you own.</p></div><button class="btn" id="refresh">REFRESH DATA</button></div>
 <div id="showGrid" class="studio-grid"></div><div class="panel intelligence-panel"><div class="section-title"><div><span class="eyebrow">LIVE CREATOR INTELLIGENCE</span><h3>Command Feed</h3><p>Real-time signals pulled from your CrowRules Supabase data.</p></div><button class="btn" id="refreshIntelligence">REFRESH</button></div><div id="creatorFeed" class="creator-feed"><div class="status">Loading creator intelligence…</div></div></div>
 <div id="showForm" class="panel editor" hidden>
-<div class="editor-head"><div><span class="eyebrow">SHOW EDITOR</span><h2>Build your show identity</h2></div><button class="icon-btn" id="cancelShow">×</button></div>
+<div class="editor-head"><div><span class="eyebrow">SHOW EDITOR</span><h2>Build your show identity</h2></div><button class="icon-btn" id="cancelShowTop" type="button">×</button></div>
 <input id="showId" type="hidden">
 <div class="form-grid">
 <div class="field"><label>TITLE</label><input id="showTitle" maxlength="120"></div><div class="field"><label>SLUG</label><input id="showSlug"></div>
@@ -47,7 +47,7 @@
 <div class="upload-panel"><div><span class="eyebrow">MEDIA PIPELINE</span><h3>Audio upload</h3><p id="audioName">Select an episode to upload audio. Large files use the existing resumable pipeline.</p></div><progress id="uploadProgress" max="100" value="0"></progress><div class="upload-actions"><button class="btn" id="pauseUpload" type="button">PAUSE</button><button class="btn" id="resumeUpload" type="button">RESUME</button></div></div>
 <div class="panel"><div id="episodeList"></div></div>
 <div id="episodeForm" class="panel editor" hidden>
-<div class="editor-head"><div><span class="eyebrow">EPISODE EDITOR</span><h2>Produce an episode</h2></div><button class="icon-btn" id="cancelEpisode">×</button></div>
+<div class="editor-head"><div><span class="eyebrow">EPISODE EDITOR</span><h2>Produce an episode</h2></div><button class="icon-btn" id="cancelEpisodeTop" type="button">×</button></div>
 <input id="episodeId" type="hidden">
 <div class="form-grid">
 <div class="field wide"><label>TITLE</label><input id="episodeTitle" maxlength="180"></div>
@@ -77,7 +77,7 @@
 <div class="membership-metrics"><div><span>ACTIVE TIERS</span><strong id="activePlanCount">0</strong></div><div><span>ARCHIVED</span><strong id="archivedPlanCount">0</strong></div><div><span>MEMBERS</span><strong id="subscriberTotal">0</strong></div></div>
 <div class="panel"><div class="section-title"><div><span class="eyebrow">LIVE MEMBERSHIP CATALOG</span><h3>Active tiers</h3></div><span class="status" id="planSummary">Loading…</span></div><div id="planList"></div></div>
 <div class="panel archived"><div class="section-title"><div><span class="eyebrow">HISTORY</span><h3>Archived tiers</h3></div></div><div id="archivedPlanList"></div></div>
-<div id="editPlanPanel" class="panel editor" hidden><div class="editor-head"><div><span class="eyebrow">TIER EDITOR</span><h2>Edit membership</h2></div><button class="icon-btn" id="cancelPlanEdit">×</button></div><input id="editPlanId" type="hidden"><div class="form-grid">
+<div id="editPlanPanel" class="panel editor" hidden><div class="editor-head"><div><span class="eyebrow">TIER EDITOR</span><h2>Edit membership</h2></div><button class="icon-btn" id="cancelPlanEditTop" type="button">×</button></div><input id="editPlanId" type="hidden"><div class="form-grid">
 <div class="field"><label>PLAN NAME</label><input id="editPlanName" maxlength="80"></div><div class="field"><label>TYPE</label><select id="editPlanFree"><option value="paid">PAID</option><option value="free">FREE</option></select></div>
 <div class="field"><label>MONTHLY — USD</label><input id="editPlanMonthly" type="number" min="0" max="1000" step=".01"></div><div class="field"><label>ANNUAL — USD</label><input id="editPlanAnnual" type="number" min="1" max="12000" step=".01"></div>
 <div class="field"><label>TRIAL — DAYS</label><input id="editPlanTrial" type="number" min="0" max="30"></div><div class="field"><label>MAX MEMBERS</label><input id="editPlanMax" type="number" min="1" max="100000" placeholder="Unlimited"></div>
