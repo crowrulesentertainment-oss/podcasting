@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#05070d">
 <title>Home | CrowRules Podcasting</title>
-<meta name="description" content="CrowRules Podcasting — discover shows, listen live, follow creators and build your podcast universe.">
+<meta name="description" content="CrowRules Podcasting — discover independent shows, listen to episodes, follow creators and build your podcast universe.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/podcasting.css">
@@ -13,26 +13,65 @@
 <script src="js/config.js" defer></script>
 <script src="js/podcasting.js" defer></script>
 <style>
-.home-shell{max-width:1400px;margin:0 auto;padding:120px 28px 130px}
-.home-hero{min-height:66vh;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);gap:50px;align-items:center}
-.home-kicker{font-family:Orbitron,sans-serif;letter-spacing:.18em;font-size:.78rem;color:#8eeeff}
-.home-hero h1{font-family:Orbitron,sans-serif;font-size:clamp(3.5rem,8vw,7.8rem);line-height:.9;margin:18px 0 26px;text-transform:uppercase}
-.home-hero h1 span{background:linear-gradient(90deg,#5ff7ff,#a56cff,#ff5bd7);-webkit-background-clip:text;background-clip:text;color:transparent}
-.home-hero p{max-width:700px;color:#b8c5d8;font-size:1.08rem;line-height:1.8}
-.home-actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px}
+.home-shell{width:min(1420px,calc(100% - 34px));margin:auto;padding:112px 0 150px}
+.home-hero{position:relative;min-height:650px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);gap:56px;align-items:center}
+.home-hero:after{content:"";position:absolute;left:-18%;right:-18%;bottom:0;height:1px;background:linear-gradient(90deg,transparent,#67e8f955,transparent)}
+.home-kicker{display:inline-flex;align-items:center;gap:10px;font:800 9px Orbitron;letter-spacing:.2em;color:#8eeeff}
+.home-kicker:before{content:"";width:28px;height:1px;background:currentColor;box-shadow:0 0 12px currentColor}
+.home-hero h1{font:900 clamp(3.7rem,8vw,8.4rem)/.88 Orbitron;margin:20px 0 28px;letter-spacing:-.045em;text-transform:uppercase}
+.home-hero h1 span{background:linear-gradient(100deg,#5ff7ff 0%,#a56cff 52%,#ff5bd7 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.home-lede{max-width:720px;color:#b8c5d8;font-size:1.08rem;line-height:1.85}
+.home-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
 .home-actions a{text-decoration:none}
-.home-visual{position:relative;min-height:430px;border:1px solid rgba(112,240,255,.18);border-radius:30px;background:radial-gradient(circle at 50% 45%,rgba(110,80,255,.28),transparent 34%),linear-gradient(145deg,rgba(15,25,43,.94),rgba(5,7,13,.98));box-shadow:0 0 80px rgba(83,87,255,.16);display:grid;place-items:center;overflow:hidden}
-.home-visual:before,.home-visual:after{content:"";position:absolute;border:1px solid rgba(96,240,255,.2);border-radius:50%;animation:homeSpin 18s linear infinite}
-.home-visual:before{width:330px;height:330px}.home-visual:after{width:235px;height:235px;animation-direction:reverse;animation-duration:12s}
-.home-core{position:relative;z-index:2;width:150px;height:150px;border-radius:50%;display:grid;place-items:center;text-align:center;font-family:Orbitron,sans-serif;font-size:2.2rem;font-weight:800;color:#fff;background:radial-gradient(circle,#253d68,#090d18 68%);box-shadow:0 0 50px rgba(95,247,255,.35),inset 0 0 35px rgba(165,108,255,.25)}
-.home-core small{display:block;font-size:.48rem;letter-spacing:.16em;color:#8eeeff}
+.home-mini{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
+.home-mini span{border:1px solid #ffffff10;border-radius:999px;padding:8px 11px;color:#8492a8;font:700 8px Orbitron;letter-spacing:.1em}
+.home-visual{position:relative;min-height:500px;border:1px solid #70f0ff22;border-radius:34px;background:radial-gradient(circle at 50% 45%,#6e50ff38,transparent 33%),radial-gradient(circle at 25% 25%,#67e8f918,transparent 28%),linear-gradient(145deg,#0f192bf0,#05070df8);box-shadow:0 0 100px #5357ff1c,inset 0 0 80px #67e8f908;display:grid;place-items:center;overflow:hidden}
+.home-visual:before,.home-visual:after{content:"";position:absolute;border:1px solid #60f0ff33;border-radius:50%;animation:homeSpin 18s linear infinite}
+.home-visual:before{width:370px;height:370px}.home-visual:after{width:250px;height:250px;animation-direction:reverse;animation-duration:12s}
+.home-grid{position:absolute;inset:0;background-image:linear-gradient(#67e8f90a 1px,transparent 1px),linear-gradient(90deg,#67e8f90a 1px,transparent 1px);background-size:34px 34px;mask-image:radial-gradient(circle at center,#000,transparent 72%);opacity:.55}
+.home-core{position:relative;z-index:2;width:170px;height:170px;border-radius:50%;display:grid;place-items:center;text-align:center;font:900 2.5rem Orbitron;color:#fff;background:radial-gradient(circle at 35% 30%,#253d68,#090d18 68%);border:1px solid #67e8f966;box-shadow:0 0 70px #5ff7ff44,inset 0 0 40px #a56cff30}
+.home-core small{display:block;font-size:.46rem;letter-spacing:.2em;color:#8eeeff;margin-top:5px}
+.home-orbit-label{position:absolute;z-index:3;padding:8px 10px;border:1px solid #ffffff14;background:#050910cc;backdrop-filter:blur(10px);border-radius:999px;font:800 7px Orbitron;letter-spacing:.15em;color:#aebbd0}
+.home-orbit-label.one{top:17%;left:11%}.home-orbit-label.two{right:10%;top:29%}.home-orbit-label.three{bottom:16%;left:14%}.home-orbit-label.four{right:13%;bottom:20%}
 @keyframes homeSpin{to{transform:rotate(360deg)}}
-.home-feature{margin-top:55px}
-.home-feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:20px}
-.home-panel{padding:28px;border:1px solid rgba(112,240,255,.13);border-radius:20px;background:rgba(11,16,27,.72);backdrop-filter:blur(14px)}
-.home-panel h3{font-family:Orbitron,sans-serif;margin:8px 0 10px}.home-panel p{color:#9eabc0;line-height:1.65}
-.home-panel a{color:#7cefff;text-decoration:none;font-weight:700}
-@media(max-width:900px){.home-hero{grid-template-columns:1fr}.home-visual{min-height:330px}.home-feature-grid{grid-template-columns:1fr}}
+.home-status{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}
+.home-stat{padding:18px;border:1px solid #ffffff10;border-radius:16px;background:#0b101bd1}
+.home-stat strong{display:block;font:900 22px Orbitron;color:#f7fbff}.home-stat span{display:block;margin-top:6px;color:#758299;font:700 7px Orbitron;letter-spacing:.13em}
+.home-section{margin-top:72px}
+.home-section-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:20px}
+.home-section-head h2{margin:7px 0 0;font:800 clamp(24px,4vw,34px) Orbitron}
+.home-section-head p{margin:0;color:#768399;font-size:11px;line-height:1.6;max-width:560px}
+.home-link{color:#7cefff;font:800 8px Orbitron;letter-spacing:.12em;white-space:nowrap}
+.home-grid-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.home-card{border:1px solid #ffffff10;border-radius:20px;background:linear-gradient(145deg,#0b101bd9,#080c14ee);overflow:hidden;box-shadow:0 18px 55px #0003}
+.home-card-art{position:relative;aspect-ratio:1.45;background:#080d16;overflow:hidden}
+.home-card-art img{width:100%;height:100%;object-fit:cover;display:block}
+.home-card-art .live-pill{position:absolute;left:12px;top:12px}
+.home-card-body{padding:18px}
+.home-card-body h3{font:800 15px Orbitron;margin:8px 0}
+.home-card-body p{margin:0;color:#8793a8;font-size:10px;line-height:1.65;min-height:34px}
+.home-card-meta{display:flex;justify-content:space-between;gap:8px;margin-top:15px;color:#69768c;font:700 7px Orbitron;letter-spacing:.08em}
+.home-card-actions{display:flex;gap:8px;margin-top:16px}
+.home-card-actions button,.home-card-actions a{flex:1;text-align:center;border:1px solid #ffffff12;background:#ffffff06;color:#dce5f2;border-radius:10px;padding:11px 8px;font:800 7px Orbitron;letter-spacing:.1em;cursor:pointer;text-decoration:none}
+.home-card-actions button:hover,.home-card-actions a:hover{border-color:#67e8f955;color:#67e8f9}
+.home-card-actions button[disabled]{opacity:.4;cursor:not-allowed}
+.live-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid #ff5d7566;background:#ff365d18;color:#ff8ea2;border-radius:999px;padding:7px 9px;font:800 7px Orbitron;letter-spacing:.1em}
+.live-pill:before{content:"";width:6px;height:6px;border-radius:50%;background:#ff5d75;box-shadow:0 0 10px #ff5d75;animation:livePulse 1.5s infinite}
+@keyframes livePulse{50%{opacity:.35;transform:scale(.7)}}
+.home-empty{padding:34px;border:1px dashed #ffffff16;border-radius:18px;color:#77849a;text-align:center;background:#080d15}
+.home-empty strong{display:block;color:#cbd5e1;font:800 12px Orbitron;margin-bottom:8px}
+.home-two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.home-feature-box{padding:30px;border:1px solid #ffffff10;border-radius:22px;background:linear-gradient(145deg,#0c1320e8,#080c14e8)}
+.home-feature-box .eyebrow{display:block;margin-bottom:10px}
+.home-feature-box h3{font:800 21px Orbitron;margin:0 0 10px}
+.home-feature-box p{color:#8995aa;font-size:11px;line-height:1.75;margin:0 0 20px}
+.home-feature-box ul{list-style:none;padding:0;margin:0 0 22px;display:grid;gap:9px}
+.home-feature-box li{color:#aeb9ca;font-size:10px}.home-feature-box li:before{content:"◆";color:#67e8f9;margin-right:9px;font-size:6px;vertical-align:2px}
+.home-cta{margin-top:72px;padding:48px;border:1px solid #67e8f926;border-radius:28px;text-align:center;background:radial-gradient(circle at 50% 0,#67e8f916,transparent 50%),#090e18}
+.home-cta h2{font:900 clamp(25px,4vw,42px) Orbitron;margin:0 0 12px}.home-cta p{max-width:680px;margin:0 auto;color:#8995aa;font-size:12px;line-height:1.75}
+.home-cta .home-actions{justify-content:center}
+@media(max-width:950px){.home-hero{grid-template-columns:1fr}.home-visual{min-height:390px}.home-grid-cards{grid-template-columns:1fr 1fr}.home-status{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){.home-shell{width:min(100% - 22px,1420px);padding-top:92px}.home-hero{min-height:auto;gap:28px}.home-hero h1{font-size:clamp(3.1rem,15vw,5.5rem)}.home-visual{min-height:330px;border-radius:24px}.home-visual:before{width:260px;height:260px}.home-visual:after{width:180px;height:180px}.home-core{width:125px;height:125px;font-size:1.8rem}.home-orbit-label{font-size:6px}.home-grid-cards,.home-two{grid-template-columns:1fr}.home-section-head{align-items:start;flex-direction:column}.home-cta{padding:30px 18px}.home-status{gap:8px}.home-stat{padding:14px}}
 </style>
 </head>
 <body>
@@ -43,26 +82,76 @@
 <div>
 <div class="home-kicker">CROWRULES ENTERTAINMENT / PODCASTING</div>
 <h1>Your voice.<br><span>Your universe.</span></h1>
-<p>Welcome to CrowRules Podcasting — a dedicated home for discovering independent shows, listening to your favorites, connecting with creators and building the next generation of podcasts.</p>
+<p class="home-lede">A home for independent podcasts, original shows and the creators behind them. Discover what is playing, follow the shows you care about and use CrowRules Podcasting to turn an idea into a real production.</p>
 <div class="home-actions">
 <a class="btn primary" href="index.html">EXPLORE PODCASTS</a>
 <a class="btn" href="signup.html">JOIN PODCASTING</a>
 <a class="btn" href="creator.html">CREATE A SHOW</a>
 </div>
+<div class="home-mini"><span>ON DEMAND</span><span>CREATOR STUDIO</span><span>GLOBAL PLAYER</span><span>BUILT BY CROWRULES</span></div>
 </div>
-<div class="home-visual" aria-label="CrowRules Podcasting">
+<div class="home-visual" aria-label="CrowRules Podcasting platform visualization">
+<div class="home-grid"></div>
+<div class="home-orbit-label one">DISCOVER</div>
+<div class="home-orbit-label two">LISTEN</div>
+<div class="home-orbit-label three">CREATE</div>
+<div class="home-orbit-label four">CONNECT</div>
 <div class="home-core">CR<small>PODCASTING</small></div>
 </div>
 </section>
 
-<section class="home-feature">
-<div class="section-head">
-<div><span class="eyebrow">THE PLATFORM</span><h2>Built for the next voice</h2></div>
+<section class="home-status" aria-label="Podcasting platform status">
+<div class="home-stat"><strong id="homeShowCount">—</strong><span>PUBLISHED SHOWS</span></div>
+<div class="home-stat"><strong id="homeEpisodeCount">—</strong><span>PUBLISHED EPISODES</span></div>
+<div class="home-stat"><strong id="homeListenerCount">—</strong><span>LISTENERS</span></div>
+<div class="home-stat"><strong id="homePlayCount">—</strong><span>TOTAL PLAYS</span></div>
+</section>
+
+<section class="home-section">
+<div class="home-section-head">
+<div><span class="eyebrow">FEATURED</span><h2>Shows worth discovering</h2></div>
+<a class="home-link" href="index.html">VIEW ALL PODCASTS →</a>
 </div>
-<div class="home-feature-grid">
-<article class="home-panel"><span class="eyebrow">DISCOVER</span><h3>Find your next show</h3><p>Explore podcasts, trending creators, rankings and the CrowRules Podcasting record book.</p><a href="index.html">Start listening →</a></article>
-<article class="home-panel"><span class="eyebrow">CREATE</span><h3>Build your podcast</h3><p>Creator Studio is the launch point for shows, episodes, artwork, publishing and future analytics.</p><a href="creator.html">Open Creator Studio →</a></article>
-<article class="home-panel"><span class="eyebrow">CONNECT</span><h3>Your Podcasting account</h3><p>Create a dedicated CrowRules Podcasting account to manage your profile and listening experience.</p><a href="signup.html">Create account →</a></article>
+<div id="featuredGrid" class="home-grid-cards" aria-live="polite"><div class="home-empty"><strong>Loading the Podcasting universe…</strong>Published shows will appear here.</div></div>
+</section>
+
+<section class="home-section">
+<div class="home-section-head">
+<div><span class="eyebrow">LATEST</span><h2>Fresh from the studio</h2></div>
+<a class="home-link" href="index.html">BROWSE EPISODES →</a>
+</div>
+<div id="latestEpisodesGrid" class="home-grid-cards" aria-live="polite"><div class="home-empty"><strong>Loading latest episodes…</strong>New releases will appear here.</div></div>
+</section>
+
+<section class="home-section">
+<div class="home-section-head">
+<div><span class="eyebrow">THE PLATFORM</span><h2>More than a player</h2></div>
+</div>
+<div class="home-two">
+<article class="home-feature-box">
+<span class="eyebrow">FOR LISTENERS</span>
+<h3>Build your listening universe.</h3>
+<p>Discover shows, keep your library organized and come back to the podcasts you love with one CrowRules Podcasting account.</p>
+<ul><li>Discover podcasts and creators</li><li>Follow shows and build your library</li><li>Use the persistent player on every page</li><li>Track the shows shaping the platform</li></ul>
+<a class="btn" href="discover.html">DISCOVER PODCASTS</a>
+</article>
+<article class="home-feature-box">
+<span class="eyebrow">FOR CREATORS</span>
+<h3>Turn an idea into a show.</h3>
+<p>Creator Studio is being built as the production center for podcast creation — from show setup and artwork through episodes, uploads, publishing and monetization.</p>
+<ul><li>Create and manage your podcast</li><li>Upload artwork and episode audio</li><li>Schedule and publish releases</li><li>Prepare for analytics and creator monetization</li></ul>
+<a class="btn primary" href="creator.html">OPEN CREATOR STUDIO</a>
+</article>
+</div>
+</section>
+
+<section class="home-cta">
+<span class="eyebrow">ONE ACCOUNT. ONE UNIVERSE.</span>
+<h2>Ready to find your next voice?</h2>
+<p>CrowRules Podcasting is growing from the ground up. Explore the platform today, follow the creators you discover and help shape what comes next.</p>
+<div class="home-actions">
+<a class="btn primary" href="signup.html">CREATE YOUR ACCOUNT</a>
+<a class="btn" href="index.html">START LISTENING</a>
 </div>
 </section>
 </main>
