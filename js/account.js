@@ -3,6 +3,9 @@ let db,user,profile;
 const $=id=>document.getElementById(id),msg=(id,t)=>$(id).textContent=t;
 const ROLE_KEY="crowrules_podcasting_role",PENDING_ROLE_KEY="crowrules_podcasting_pending_role";
 function selectedRole(){return localStorage.getItem(ROLE_KEY)==="podcaster"?"podcaster":"listener";}
+function cleanRedirectUrl(){return location.origin+location.pathname;}
+function setOAuthStatus(text,error=false){const box=$("oauthStatus"),label=$("oauthStatusText");if(!box||!label)return;label.textContent=text;box.classList.toggle("error",!!error);}
+function providerLabel(provider){return String(provider||"").toUpperCase();}
 function setSelectedRole(role){localStorage.setItem(ROLE_KEY,role==="podcaster"?"podcaster":"listener");updateRoleButtons(role);}
 function updateRoleButtons(role){
  document.querySelectorAll(".roleCard[data-role]").forEach(b=>b.classList.toggle("active",b.dataset.role===role));
@@ -10,7 +13,7 @@ function updateRoleButtons(role){
 }
 async function ensureProfile(){
  const r=await db.from("podcasting_profiles").select("*").eq("id",user.id).maybeSingle(); if(r.error)throw r.error;
- if(!r.data){const x=await db.from("podcasting_profiles").insert({id:user.id,display_name:user.user_metadata?.display_name||user.email?.split("@")[0],account_type:selectedRole(),is_creator:selectedRole()==="podcaster"}).select().single();if(x.error)throw x.error;return x.data}
+ if(!r.data){const role=localStorage.getItem(PENDING_ROLE_KEY)==="podcaster"?"podcaster":"listener";const meta=user.user_metadata||{};const x=await db.from("podcasting_profiles").insert({id:user.id,display_name:meta.display_name||meta.full_name||meta.name||user.email?.split("@")[0],avatar_url:meta.avatar_url||meta.picture||null,account_type:role,is_creator:role==="podcaster"}).select().single();if(x.error)throw x.error;return x.data}
  return r.data;
 }
 function renderProfile(p){
@@ -34,18 +37,16 @@ async function loadCollections(){
  }
 }
 async function signInWithProvider(provider){
+  const allowed=["google","discord","facebook","twitch","spotify"];
+  if(!allowed.includes(provider)){msg("message","UNSUPPORTED SOCIAL PROVIDER.");return;}
   const role=selectedRole();
   localStorage.setItem(PENDING_ROLE_KEY,role);
-  msg("message","CONNECTING TO "+provider.toUpperCase()+"…");
-  const {error}=await db.auth.signInWithOAuth({
-    provider,
-    options:{
-      redirectTo:location.href,
-      queryParams:provider==="google"?{prompt:"select_account"}:undefined
-    }
-  });
-  if(error){localStorage.removeItem(PENDING_ROLE_KEY);msg("message",error.message);}
+  msg("message","CONNECTING TO "+providerLabel(provider)+"…");
+  setOAuthStatus("CONNECTING TO "+providerLabel(provider)+"…");
+  const {error}=await db.auth.signInWithOAuth({provider,options:{redirectTo:cleanRedirectUrl(),queryParams:provider==="google"?{prompt:"select_account"}:undefined}});
+  if(error){localStorage.removeItem(PENDING_ROLE_KEY);setOAuthStatus(providerLabel(provider)+" LOGIN FAILED — "+error.message,true);msg("message",friendlyAuthError(error));}
 }
+function friendlyAuthError(error){const raw=String(error?.message||error||"Authentication failed.");if(/provider is not enabled/i.test(raw))return "SOCIAL LOGIN IS NOT ENABLED YET FOR THIS PROVIDER IN SUPABASE.";if(/redirect/i.test(raw))return "SOCIAL LOGIN REDIRECT IS NOT ALLOWED — ADD THE PODCASTING ACCOUNT URL TO SUPABASE AUTH REDIRECT URLS.";return raw;}
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
 async function saveRole(role){
  const r=await db.from("podcasting_profiles").update({account_type:role,is_creator:role==="podcaster",updated_at:new Date().toISOString()}).eq("id",user.id);
@@ -61,11 +62,12 @@ async function load(){
  try{
   profile=await ensureProfile();
   const pending=localStorage.getItem(PENDING_ROLE_KEY);
-  if(pending==="podcaster"||pending==="listener"){
+  if(!profile?.account_type && (pending==="podcaster"||pending==="listener")){
    const rr=await db.from("podcasting_profiles").update({account_type:pending,is_creator:pending==="podcaster",updated_at:new Date().toISOString()}).eq("id",user.id);
    if(!rr.error) profile={...profile,account_type:pending,is_creator:pending==="podcaster"};
-   localStorage.removeItem(PENDING_ROLE_KEY);
   }
+  localStorage.removeItem(PENDING_ROLE_KEY);
+  if(location.search.includes("error=")||location.hash.includes("error=")){setOAuthStatus("SOCIAL LOGIN RETURNED AN ERROR — CHECK SUPABASE PROVIDER + REDIRECT SETTINGS.",true);msg("message","SOCIAL LOGIN COULD NOT COMPLETE. CHECK PROVIDER CONFIGURATION IN SUPABASE.");}else if(location.search.includes("code=")){setOAuthStatus("SOCIAL LOGIN RETURNED — ACCOUNT SESSION RESTORED.");}
   if(profile.account_type!=="podcaster"&&profile.account_type!=="listener"){
    profile.account_type=selectedRole();
    await db.from("podcasting_profiles").update({account_type:profile.account_type,is_creator:profile.account_type==="podcaster"}).eq("id",user.id);
@@ -83,5 +85,5 @@ document.addEventListener("DOMContentLoaded",async()=>{
  $("signout").addEventListener("click",async()=>{await db.auth.signOut();load();});
  $("saveProfile").addEventListener("click",async()=>{const p={display_name:$("profileName").value.trim()||null,username:$("username").value.trim().toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,30)||null,avatar_url:$("avatarUrl").value.trim()||null,bio:$("bio").value.trim()||null,updated_at:new Date().toISOString()};const r=await db.from("podcasting_profiles").update(p).eq("id",user.id);msg("profileMessage",r.error?r.error.message:"PROFILE SAVED — YOUR PODCASTING IDENTITY IS UPDATED.");if(!r.error)renderProfile({...profile,...p});});
  $("listenerPath").addEventListener("click",()=>saveRole("listener"));$("podcasterPath").addEventListener("click",()=>saveRole("podcaster"));
- db.auth.onAuthStateChange(()=>setTimeout(load,0));load();
+ db.auth.onAuthStateChange((event)=>{if(event==="SIGNED_IN"||event==="INITIAL_SESSION")setTimeout(load,0);});load();
 });
