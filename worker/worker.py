@@ -5,6 +5,8 @@ import shutil
 import subprocess
 import tempfile
 import time
+from datetime import datetime, timezone
+from urllib.parse import quote
 from pathlib import Path
 
 import requests
@@ -41,9 +43,12 @@ def db_insert(table, payload):
     r.raise_for_status()
     return r.json()
 
+def now_iso():
+    return datetime.now(timezone.utc).isoformat()
+
 def sign_storage_url(bucket, path, expires=3600):
     r = requests.post(
-        f"{STORAGE}/object/sign/{bucket}/{path}",
+        f"{STORAGE}/object/sign/{bucket}/{quote(path, safe="/")}",
         headers=HEADERS,
         json={"expiresIn": expires},
         timeout=30,
@@ -148,7 +153,7 @@ def claim_job():
     claimed = db_patch(
         "podcast_media_processing_jobs",
         {"id": f"eq.{job['id']}", "status": "eq.queued"},
-        {"status": "processing", "started_at": "now()", "attempts": int(job.get("attempts", 0)) + 1, "updated_at": "now()"},
+        {"status": "processing", "started_at": now_iso(), "attempts": int(job.get("attempts", 0)) + 1, "updated_at": now_iso()},
     )
     return claimed[0] if claimed else None
 
@@ -212,8 +217,8 @@ def process(job):
                 "duration_seconds": round(final_duration),
             })
 
-        db_patch("podcast_media_processing_jobs", {"id": f"eq.{asset_id}", "job_type": "eq.audio_metadata", "status": "eq.queued"}, {"status": "completed", "result": {"duration_seconds": round(final_duration)}, "completed_at": "now()", "updated_at": "now()"})
-        db_patch("podcast_media_processing_jobs", {"id": f"eq.{asset_id}", "job_type": "eq.waveform", "status": "eq.queued"}, {"status": "completed", "result": {"waveform": wave, "source": "processed_master"}, "completed_at": "now()", "updated_at": "now()"})
+        db_patch("podcast_media_processing_jobs", {"media_asset_id": f"eq.{asset_id}", "job_type": "eq.audio_metadata", "status": "eq.queued"}, {"status": "completed", "result": {"duration_seconds": round(final_duration)}, "completed_at": "now()", "updated_at": "now()"})
+        db_patch("podcast_media_processing_jobs", {"media_asset_id": f"eq.{asset_id}", "job_type": "eq.waveform", "status": "eq.queued"}, {"status": "completed", "result": {"waveform": wave, "source": "processed_master"}, "completed_at": "now()", "updated_at": "now()"})
 
         return {
             "duration_source": duration,
