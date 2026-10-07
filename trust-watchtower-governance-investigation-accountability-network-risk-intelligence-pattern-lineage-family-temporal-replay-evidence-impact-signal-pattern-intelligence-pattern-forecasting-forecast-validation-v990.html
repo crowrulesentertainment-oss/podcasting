@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CrowRules Trust Watchtower V9.90 — Forecast Validation & Calibration</title>
+<style>
+:root{--bg:#03050b;--panel:#090e18f5;--card:#070b14;--line:#273249;--text:#eef3ff;--muted:#9da8bd;--accent:#7dd3fc;--good:#8ee7a8;--warn:#ffd27d;--hot:#ff9b9b}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0,#101b35,transparent 35%),var(--bg);color:var(--text);font:14px Arial,sans-serif}.wrap{max-width:1750px;margin:auto;padding:22px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px;margin:12px 0}.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}button,select,input,textarea{padding:9px 11px;background:var(--card);color:inherit;border:1px solid #33405a;border-radius:8px}button{cursor:pointer}button:hover{border-color:var(--accent)}.guard{border-left:3px solid var(--accent);padding:10px;background:#07101b;border-radius:8px}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}.stat,.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}.stat b{display:block;font-size:22px}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:1.2fr 1fr;gap:12px}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:8px;border-bottom:1px solid #202a3d;vertical-align:top}.pill{display:inline-block;border:1px solid #33405a;border-radius:99px;padding:3px 8px;margin:2px;font-size:11px}.good{color:var(--good)}.warn{color:var(--warn)}.danger{color:var(--hot)}.barline{height:8px;background:#111827;border-radius:99px;overflow:hidden}.barline i{display:block;height:100%;background:var(--accent)}@media(max-width:950px){.grid{grid-template-columns:1fr}.wrap{padding:12px}}
+</style>
+</head>
+<body><main class="wrap">
+<section class="panel">
+<h1>V9.90 · FORECAST VALIDATION &amp; CALIBRATION</h1>
+<p class="muted">Measure how V9.89 trajectory scenarios perform against later observed snapshot evidence, then expose transparent forecast error, directional hit rate, drift, and calibration history.</p>
+<div class="guard"><b>Validation guardrail:</b> This module evaluates the behavior of a deterministic heuristic against later captured evidence. Validation scores do not turn the heuristic into a probability model and do not establish causation, intent, identity, or certainty.</div>
+</section>
+<section class="panel"><div class="bar">
+<label>History <select id="hist"><option>3</option><option selected>5</option><option>8</option><option>12</option></select></label>
+<label>Minimum recurrence <select id="minRec"><option selected>2</option><option>3</option><option>4</option></select></label>
+<button id="refresh">REFRESH</button><button id="capture">CAPTURE FORECAST CHECKPOINT</button><button id="json">EXPORT JSON</button><button id="csv">EXPORT CSV</button>
+</div><div id="stats" class="stats" style="margin-top:12px"></div></section>
+<section class="panel"><h2>Calibration Scoreboard</h2><div id="scoreboard"></div></section>
+<div class="grid">
+<section class="panel"><h2>Pattern Validation</h2><div id="patterns"></div></section>
+<section class="panel"><h2>Selected Calibration Profile</h2><div id="profile"><span class="muted">Select a pattern.</span></div></section>
+</div>
+<section class="panel"><h2>Forecast Error &amp; Directional Accuracy</h2><div id="errors"></div></section>
+<section class="panel"><h2>Calibration Timeline</h2><div id="timeline"></div></section>
+<section class="panel"><h2>Human Validation Review</h2><textarea id="note" placeholder="Record a review of validation quality, limitations, or whether the heuristic should be monitored or revised."></textarea><button id="save" style="margin-top:8px">SAVE VALIDATION REVIEW</button><div id="reviews" style="margin-top:10px"></div></section>
+</main>
+<script>
+const SNAP="crowrules_trust_v958_snapshots",LEDGER="crowrules_trust_v990_checkpoints",REV="crowrules_trust_v990_reviews";
+const read=k=>{try{return JSON.parse(localStorage.getItem(k)||"[]")}catch(e){return[]}},write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let state={snapshots:[],patterns:[],selected:null,validations:[]};
+function impact(s){const c=s.clusters||[];return{nodes:c.length,members:new Set(c.flatMap(x=>Array.isArray(x.members)?x.members:[])).size};}
+function allSnapshots(){return read(SNAP)}
+function dirs(s){const d=[];for(let i=1;i<s.length;i++){const a=impact(s[i-1]),b=impact(s[i]),delta=(b.nodes-a.nodes)*20+(b.members-a.members)*2;d.push({step:i,delta,dir:delta>0?"RISE":delta<0?"FALL":"FLAT"});}return d}
+function patternsFrom(d){const motifs={};for(let i=1;i<d.length;i++){const key=d[i-1].dir+" → "+d[i].dir;(motifs[key]??=[]).push(i)}return Object.entries(motifs).map(([motif,idx],n)=>{const mags=idx.map(i=>Math.abs(d[i].delta)),avg=mags.reduce((a,b)=>a+b,0)/(mags.length||1),cons=idx.length>1?100-Math.min(100,(Math.max(...mags)-Math.min(...mags))/(Math.max(...mags,1))*100):65,stab=Math.round(Math.min(100,50+idx.length*10+cons*.3)),strength=Math.round(Math.min(100,45+avg+idx.length*7)),score=Math.round(stab*.3+strength*.3+cons*.2+Math.min(100,idx.length*20)*.2);return{id:"SP-"+String(n+1).padStart(3,"0"),motif,recurrence:idx.length,avgMagnitude:Math.round(avg),consistency:Math.round(cons),stability:stab,strength,score,indices:idx,dirs:d}})}
+function archetype(p){if(p.motif==="RISE → RISE")return"ACCELERATOR";if(p.motif==="FALL → FALL")return"DECELERATOR";if(p.motif==="RISE → FALL"||p.motif==="FALL → RISE")return p.recurrence>=2?"OSCILLATOR":"HYBRID";if(p.recurrence>=3&&p.consistency>=75)return"ECHO";if(p.avgMagnitude<15)return"DRIFTER";if(p.strength>=80)return"BUILDER";return"HYBRID"}
+function forecast(p,h){const r=p.indices.slice(-3).map(i=>p.dirs[i].delta),mean=r.length?r.reduce((a,b)=>a+b,0)/r.length:0,trend=r.length>1?(r.at(-1)-r[0])/(r.length-1):0;const rows=[];for(let k=1;k<=h;k++){const v=Math.round((mean+trend*k)/(1+k*.16));rows.push({step:k,value:v,dir:v>0?"RISE":v<0?"FALL":"FLAT"})}return{rows,mean,trend}}
+function currentModel(s){const d=dirs(s),ps=patternsFrom(d);return{d,ps}}
+function actualNext(all,start){if(start+1>=all.length)return null;const a=impact(all[start]),b=impact(all[start+1]),delta=(b.nodes-a.nodes)*20+(b.members-a.members)*2;return{delta,dir:delta>0?"RISE":delta<0?"FALL":"FLAT",step:start+1}}
+function makeForecastRows(p,h,baseStep){return forecast(p,h).rows.map(x=>({...x,absoluteStep:baseStep+x.step}))}
+function buildValidation(){
+ const all=allSnapshots(),ledger=read(LEDGER),out=[];
+ ledger.forEach(cp=>{if(cp.patterns?.length&&cp.baseSnapshotIndex!=null){cp.patterns.forEach(q=>{for(let k=1;k<=q.horizon;k++){const actual=actualNext(all,cp.baseSnapshotIndex+k-1);if(!actual)break;const pred=q.forecast[k-1];if(!pred)break;const err=Math.abs(pred.value-actual.delta),hit=pred.dir===actual.dir||(pred.dir==="FLAT"&&actual.dir==="FLAT");out.push({...q,checkpoint_id:cp.id,horizon_step:k,actual_delta:actual.delta,actual_dir:actual.dir,error:err,directional_hit:hit})}})});return out}
+function render(){
+ const all=allSnapshots(),h=+hist.value,base=all.slice(-h),model=currentModel(base);state.snapshots=all;state.patterns=model.ps;
+ if(!state.selected||!state.patterns.some(p=>p.id===state.selected))state.selected=state.patterns[0]?.id||null;
+ state.validations=buildValidation();const vis=state.patterns.filter(p=>p.recurrence>=+minRec.value);
+ const completed=state.validations, hits=completed.filter(x=>x.directional_hit).length, mae=completed.length?completed.reduce((a,x)=>a+x.error,0)/completed.length:0;
+ stats.innerHTML=[["Patterns",state.patterns.length],["Validated steps",completed.length],["Directional hit rate",completed.length?Math.round(hits/completed.length*100)+"%":"—"],["Mean abs. error",completed.length?Math.round(mae):"—"],["Checkpoints",read(LEDGER).length],["Snapshots",all.length]].map(v=>'<div class="stat"><b>'+v[1]+'</b><span class="muted">'+v[0]+'</span></div>').join("");
+ scoreboard.innerHTML='<div class="grid"><div class="card"><h3>Overall calibration</h3><p class="'+(completed.length&&hits/completed.length>=.7?"good":"warn")+'">'+(completed.length?Math.round(hits/completed.length*100):0)+'% directional agreement</p><div class="barline"><i style="width:'+(completed.length?Math.round(hits/completed.length*100):0)+'%"></i></div><p class="muted">Agreement is measured against later observed direction only.</p></div><div class="card"><h3>Forecast error</h3><p>'+ (completed.length?Math.round(mae):"—") +'</p><p class="muted">Mean absolute directional-magnitude error.</p></div></div>';
+ patterns.innerHTML=vis.length?'<table class="table"><tr><th>Pattern</th><th>Archetype</th><th>Current score</th><th>Validations</th><th>Hit rate</th><th>MAE</th></tr>'+vis.map(p=>{const v=completed.filter(x=>x.pattern_id===p.id),hh=v.filter(x=>x.directional_hit).length,ee=v.length?Math.round(v.reduce((a,x)=>a+x.error,0)/v.length):null;return'<tr data-p="'+p.id+'" style="cursor:pointer"><td><b>'+p.id+'</b><br><span class="pill">'+esc(p.motif)+'</span></td><td>'+archetype(p)+'</td><td>'+p.score+'%</td><td>'+v.length+'</td><td class="'+(v.length&&hh/v.length>=.7?"good":v.length?"warn":"")+'">'+(v.length?Math.round(hh/v.length*100)+"%":"—")+'</td><td>'+ (ee??"—")+'</td></tr>}).join("")+'</table>':'<div class="muted">No patterns meet the recurrence threshold.</div>';
+ document.querySelectorAll("[data-p]").forEach(e=>e.onclick=()=>{state.selected=e.dataset.p;render()});renderProfile();renderErrors();renderTimeline();renderReviews();
+}
+function selected(){return state.patterns.find(p=>p.id===state.selected)||state.patterns[0]}
+function renderProfile(){const p=selected();if(!p){profile.innerHTML='<span class="muted">No pattern available.</span>';return}const v=state.validations.filter(x=>x.pattern_id===p.id),hits=v.filter(x=>x.directional_hit).length,mae=v.length?Math.round(v.reduce((a,x)=>a+x.error,0)/v.length):null;profile.innerHTML='<div class="card"><h3>'+p.id+' · '+archetype(p)+'</h3><p class="muted">'+esc(p.motif)+'</p><div class="stats">'+[["Current score",p.score+"%"],["Recurrence",p.recurrence],["Validated",v.length],["Hit rate",v.length?Math.round(hits/v.length*100)+"%":"—"],["MAE",mae??"—"],["Consistency",p.consistency+"%"]].map(x=>'<div class="stat"><b>'+x[1]+'</b><span class="muted">'+x[0]+'</span></div>').join("")+'</div></div>'}
+function renderErrors(){const v=state.validations;if(!v.length){errors.innerHTML='<div class="card muted">No completed validation windows yet. Capture a checkpoint, then allow later snapshots to accumulate.</div>';return}const bins={};v.forEach(x=>{bins[x.horizon_step]??=[];bins[x.horizon_step].push(x)});errors.innerHTML='<table class="table"><tr><th>Horizon</th><th>Samples</th><th>Directional hit</th><th>MAE</th><th>Observed direction</th></tr>'+Object.entries(bins).map(([k,a])=>'<tr><td>Step '+k+'</td><td>'+a.length+'</td><td>'+Math.round(a.filter(x=>x.directional_hit).length/a.length*100)+'%</td><td>'+Math.round(a.reduce((s,x)=>s+x.error,0)/a.length)+'</td><td>'+[...new Set(a.map(x=>x.actual_dir))].join(", ")+'</td></tr>').join("")+'</table>'}
+function renderTimeline(){const cps=read(LEDGER).slice(-12);timeline.innerHTML=cps.length?'<table class="table"><tr><th>Checkpoint</th><th>Captured</th><th>Base snapshot</th><th>Patterns</th><th>Horizon</th></tr>'+cps.reverse().map(c=>'<tr><td><b>'+esc(c.id)+'</b></td><td>'+new Date(c.at).toLocaleString()+'</td><td>'+c.baseSnapshotIndex+'</td><td>'+c.patterns.length+'</td><td>'+c.horizon+'</td></tr>').join("")+'</table>':'<div class="muted">No checkpoints captured.</div>'}
+function renderReviews(){const p=selected(),r=read(REV).filter(x=>!p||x.pattern_id===p.id).slice(-8).reverse();reviews.innerHTML=r.length?r.map(x=>'<div class="card"><b>'+new Date(x.at).toLocaleString()+'</b> · '+esc(x.pattern_id)+'<p>'+esc(x.note)+'</p></div>').join(""):'<span class="muted">No validation reviews for the selected pattern.</span>'}
+capture.onclick=()=>{const all=allSnapshots(),h=+hist.value,s=all.slice(-h),m=currentModel(s),ledger=read(LEDGER),horizon=3;const cp={id:"FC-"+Date.now(),at:new Date().toISOString(),baseSnapshotIndex:Math.max(0,all.length-1),horizon,patterns:m.ps.map(p=>({pattern_id:p.id,archetype:archetype(p),score:p.score,horizon,forecast:forecast(p,h).rows}))};ledger.push(cp);write(LEDGER,ledger.slice(-200));render()};
+save.onclick=()=>{const p=selected(),v=note.value.trim();if(!p||!v)return;const r=read(REV);r.push({id:"VRI-"+Date.now(),at:new Date().toISOString(),pattern_id:p.id,note:v});write(REV,r.slice(-300));note.value="";renderReviews()};
+function download(n,t,d){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([d],{type:t}));a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+json.onclick=()=>download("crowrules-v990-forecast-validation.json","application/json",JSON.stringify({version:"V9.90",exported_at:new Date().toISOString(),validations:state.validations,checkpoints:read(LEDGER)},null,2));
+csv.onclick=()=>download("crowrules-v990-forecast-validation.csv","text/csv","checkpoint_id,pattern_id,horizon_step,predicted_dir,actual_dir,predicted_value,actual_delta,error,directional_hit\n"+state.validations.map(x=>[x.checkpoint_id,x.pattern_id,x.horizon_step,x.dir,x.actual_dir,x.value,x.actual_delta,x.error,x.directional_hit].join(",")).join("\n"));
+refresh.onclick=render;hist.onchange=render;minRec.onchange=render;addEventListener("storage",render);setInterval(render,15000);render();
+</script></body></html>
