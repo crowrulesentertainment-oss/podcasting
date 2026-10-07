@@ -1,6 +1,6 @@
 (()=>{"use strict";
 const appView=document.getElementById("appView"),menu=document.getElementById("appMenu"),toggle=document.getElementById("menuToggle"),label=document.getElementById("viewLabel"),member=document.getElementById("memberLabel");
-const views={home:"home.html?shell=1",shows:"home.html?shell=1#shows",episodes:"home.html?shell=1#episodes",community:"home.html?shell=1#community",creators:"home.html?shell=1#creators",account:"account.html?shell=1",launch:"launch.html?shell=1"};
+const views={home:"home.html?shell=1",shows:"home.html?shell=1#shows",episodes:"home.html?shell=1#episodes",community:"home.html?shell=1#community",creators:"home.html?shell=1#creators",studio:"creator-studio.html?shell=1",account:"account.html?shell=1",launch:"launch.html?shell=1"};
 const routeForHref=href=>{const h=(href||"").split("?")[0];if(h==="account.html")return"account";if(h==="launch.html")return"launch";if(h==="home.html"||h==="")return"home";if(h.startsWith("home.html#"))return h.slice(h.indexOf("#")+1);return null};
 let current="";
 
