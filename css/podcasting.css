@@ -10,7 +10,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opa
 @keyframes crSparkle{0%,100%{opacity:.22}50%{opacity:.55}}
 
 /* Global dropdown navigation upgrade */
-.navlinks{align-items:center}
+.navlinks{align-items:center}.mobile-menu-toggle{display:none;background:none;border:1px solid var(--line);border-radius:999px;color:var(--cyan);padding:11px 13px;font:800 8px Orbitron;letter-spacing:.12em;cursor:pointer}
 .drop>button{min-height:42px}
 .dropmenu{z-index:100;top:calc(100% + 8px);right:auto;left:50%;transform:translateX(-50%);grid-template-columns:1fr}
 .dropmenu:before{content:"";position:absolute;top:-9px;left:50%;width:16px;height:16px;transform:translateX(-50%) rotate(45deg);background:#080d17;border-left:1px solid var(--line);border-top:1px solid var(--line)}
@@ -20,12 +20,12 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opa
 @media(max-width:850px){
  .nav{min-height:64px}
  .logo{font-size:11px}
- .navlinks{display:flex;position:relative}
+ .mobile-menu-toggle{display:block;margin-left:auto}.navlinks{display:flex;position:relative}
  .navlinks>a:not(.nav-home),.navlinks>.drop,.authnav{display:none}
- .navlinks:after{content:"MENU";display:flex;align-items:center;padding:11px 13px;border:1px solid var(--line);border-radius:999px;color:var(--cyan);font:800 8px Orbitron;letter-spacing:.12em}
- .navlinks.mobile-open:after{content:"CLOSE"}
+
+
  .navlinks.mobile-open{position:absolute;top:64px;left:11px;right:11px;padding:10px;display:grid;grid-template-columns:1fr 1fr;background:#050910f8;border:1px solid var(--line);border-radius:16px;backdrop-filter:blur(20px);box-shadow:0 20px 60px #0009}
- .navlinks.mobile-open:after{position:absolute;right:10px;top:-54px}
+
  .navlinks.mobile-open>a,.navlinks.mobile-open>.drop{display:block}
  .navlinks.mobile-open>a{padding:13px 10px}
  .navlinks.mobile-open .dropmenu{position:static;transform:none;display:none;margin:4px 0 5px;border:0;box-shadow:none;background:#ffffff04}
