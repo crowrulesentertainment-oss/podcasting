@@ -1,1 +1,0 @@
-window.CROW_CONFIG=window.CROW_CONFIG||{supabaseUrl:"https://cevylpnoexugwgygvtgu.supabase.co",supabaseAnonKey:"sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-",storageBucket:"podcasting",accountUrl:"https://crowrulesentertainment-oss.github.io/crowrulesentertainment/account.html",stripeCheckoutFunction:"podcast-subscription-checkout",stripePlanFunction:"create-podcast-product"};
