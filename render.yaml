@@ -1,11 +1,12 @@
 services:
-  - type: worker
+  - type: web
     name: crowrules-podcast-media-worker
     runtime: docker
     plan: free
     dockerfilePath: ./worker/Dockerfile
     dockerContext: .
     autoDeploy: true
+    healthCheckPath: /health
     envVars:
       - key: SUPABASE_URL
         sync: false
