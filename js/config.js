@@ -1,0 +1,1 @@
+// CrowRules Podcasting public browser configuration.\n// Publishable key only — never place a Supabase service-role/secret key here.\nwindow.CROW_PODCASTING_CONFIG = {\n  supabaseUrl: "https://cevylpnoexugwgygvtgu.supabase.co",\n  supabasePublishableKey: "sb_publishable_AdfM5y6RqvF3tbvEV3DZSg_JuGTQLD-",\n  stripeCheckoutFunction: "podcast-subscription-checkout"\n};
