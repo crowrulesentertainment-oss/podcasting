@@ -1,4 +1,4 @@
-(()=>{"use strict";
+(()=>{"use strict";if(new URLSearchParams(location.search).get("shell")==="1")return;
 const path=(location.pathname.split("/").pop()||"home.html").toLowerCase();
 const page=path==="account.html"?"account":path==="launch.html"?"launch":"home";
 const links=[["home.html","HOME","home"],["home.html#shows","SHOWS","shows"],["home.html#episodes","EPISODES","episodes"],["home.html#community","COMMUNITY","community"],["home.html#creators","CREATORS","creators"],["launch.html","LAUNCH","launch"]];
