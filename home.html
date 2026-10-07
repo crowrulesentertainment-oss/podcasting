@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05070d">
+<title>Home | CrowRules Podcasting</title>
+<meta name="description" content="CrowRules Podcasting — discover shows, listen live, follow creators and build your podcast universe.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js" defer></script>
+<script src="js/podcasting.js" defer></script>
+<style>
+.home-shell{max-width:1400px;margin:0 auto;padding:120px 28px 130px}
+.home-hero{min-height:66vh;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);gap:50px;align-items:center}
+.home-kicker{font-family:Orbitron,sans-serif;letter-spacing:.18em;font-size:.78rem;color:#8eeeff}
+.home-hero h1{font-family:Orbitron,sans-serif;font-size:clamp(3.5rem,8vw,7.8rem);line-height:.9;margin:18px 0 26px;text-transform:uppercase}
+.home-hero h1 span{background:linear-gradient(90deg,#5ff7ff,#a56cff,#ff5bd7);-webkit-background-clip:text;background-clip:text;color:transparent}
+.home-hero p{max-width:700px;color:#b8c5d8;font-size:1.08rem;line-height:1.8}
+.home-actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px}
+.home-actions a{text-decoration:none}
+.home-visual{position:relative;min-height:430px;border:1px solid rgba(112,240,255,.18);border-radius:30px;background:radial-gradient(circle at 50% 45%,rgba(110,80,255,.28),transparent 34%),linear-gradient(145deg,rgba(15,25,43,.94),rgba(5,7,13,.98));box-shadow:0 0 80px rgba(83,87,255,.16);display:grid;place-items:center;overflow:hidden}
+.home-visual:before,.home-visual:after{content:"";position:absolute;border:1px solid rgba(96,240,255,.2);border-radius:50%;animation:homeSpin 18s linear infinite}
+.home-visual:before{width:330px;height:330px}.home-visual:after{width:235px;height:235px;animation-direction:reverse;animation-duration:12s}
+.home-core{position:relative;z-index:2;width:150px;height:150px;border-radius:50%;display:grid;place-items:center;text-align:center;font-family:Orbitron,sans-serif;font-size:2.2rem;font-weight:800;color:#fff;background:radial-gradient(circle,#253d68,#090d18 68%);box-shadow:0 0 50px rgba(95,247,255,.35),inset 0 0 35px rgba(165,108,255,.25)}
+.home-core small{display:block;font-size:.48rem;letter-spacing:.16em;color:#8eeeff}
+@keyframes homeSpin{to{transform:rotate(360deg)}}
+.home-feature{margin-top:55px}
+.home-feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:20px}
+.home-panel{padding:28px;border:1px solid rgba(112,240,255,.13);border-radius:20px;background:rgba(11,16,27,.72);backdrop-filter:blur(14px)}
+.home-panel h3{font-family:Orbitron,sans-serif;margin:8px 0 10px}.home-panel p{color:#9eabc0;line-height:1.65}
+.home-panel a{color:#7cefff;text-decoration:none;font-weight:700}
+@media(max-width:900px){.home-hero{grid-template-columns:1fr}.home-visual{min-height:330px}.home-feature-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="cr-app"></div>
+
+<main class="home-shell">
+<section class="home-hero">
+<div>
+<div class="home-kicker">CROWRULES ENTERTAINMENT / PODCASTING</div>
+<h1>Your voice.<br><span>Your universe.</span></h1>
+<p>Welcome to CrowRules Podcasting — a dedicated home for discovering independent shows, listening to your favorites, connecting with creators and building the next generation of podcasts.</p>
+<div class="home-actions">
+<a class="btn primary" href="index.html">EXPLORE PODCASTS</a>
+<a class="btn" href="signup.html">JOIN PODCASTING</a>
+<a class="btn" href="creator.html">CREATE A SHOW</a>
+</div>
+</div>
+<div class="home-visual" aria-label="CrowRules Podcasting">
+<div class="home-core">CR<small>PODCASTING</small></div>
+</div>
+</section>
+
+<section class="home-feature">
+<div class="section-head">
+<div><span class="eyebrow">THE PLATFORM</span><h2>Built for the next voice</h2></div>
+</div>
+<div class="home-feature-grid">
+<article class="home-panel"><span class="eyebrow">DISCOVER</span><h3>Find your next show</h3><p>Explore podcasts, trending creators, rankings and the CrowRules Podcasting record book.</p><a href="index.html">Start listening →</a></article>
+<article class="home-panel"><span class="eyebrow">CREATE</span><h3>Build your podcast</h3><p>Creator Studio is the launch point for shows, episodes, artwork, publishing and future analytics.</p><a href="creator.html">Open Creator Studio →</a></article>
+<article class="home-panel"><span class="eyebrow">CONNECT</span><h3>Your Podcasting account</h3><p>Create a dedicated CrowRules Podcasting account to manage your profile and listening experience.</p><a href="signup.html">Create account →</a></article>
+</div>
+</section>
+</main>
+
+<div id="cr-player"></div>
+</body>
+</html>
