@@ -1,96 +1,66 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#03040a">
-<title>CrowRules Podcasting — The Signal</title>
-<meta name="description" content="CrowRules Podcasting — Every Voice. Every Story. One Universe.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#03040a;--cyan:#55e7ff;--purple:#a66cff;--pink:#ff4fd8;--text:#f5f7ff;--muted:#a8afc2}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Montserrat,Arial,sans-serif}
-body{cursor:default}
-.scene{position:fixed;inset:0;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 50% 48%,#10132b 0,#070914 32%,#03040a 70%)}
-#stars{position:absolute;inset:0;width:100%;height:100%;opacity:.9}
-.aurora{position:absolute;inset:-30%;background:conic-gradient(from 90deg,transparent,#55e7ff12,transparent 24%,#a66cff14,transparent 48%,#ff4fd80d,transparent 70%);filter:blur(35px);animation:spin 26s linear infinite}
-.grid{position:absolute;inset:50% -20% -35%;background:linear-gradient(#55e7ff10 1px,transparent 1px),linear-gradient(90deg,#55e7ff10 1px,transparent 1px);background-size:70px 70px;transform:perspective(600px) rotateX(62deg);transform-origin:top;mask-image:linear-gradient(to bottom,transparent,#000 20%,#000 75%,transparent)}
-.core{position:absolute;width:min(58vw,760px);height:min(58vw,760px);border:1px solid #55e7ff22;border-radius:50%;box-shadow:0 0 80px #55e7ff10,inset 0 0 80px #a66cff08;animation:pulse 5s ease-in-out infinite}
-.core:before,.core:after{content:"";position:absolute;inset:10%;border:1px solid #a66cff22;border-radius:50%;animation:spin 18s linear infinite}
-.core:after{inset:24%;border-color:#ff4fd81c;animation-direction:reverse;animation-duration:11s}
-.signal{position:absolute;width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 12px 4px var(--cyan),0 0 60px 20px #a66cff66;animation:signal 5s ease-out infinite}
-.content{position:relative;z-index:5;text-align:center;width:min(1000px,92vw);padding:30px;animation:rise 2.2s cubic-bezier(.16,1,.3,1) both}
-.eyebrow{font-family:Orbitron,sans-serif;letter-spacing:.42em;font-size:11px;color:var(--cyan);text-transform:uppercase;margin-bottom:28px;opacity:.8}
-.brand{font-family:Orbitron,sans-serif;font-weight:800;letter-spacing:.08em;font-size:clamp(48px,9vw,118px);line-height:.9;margin:0;text-shadow:0 0 35px #55e7ff22}
-.brand span{display:block;background:linear-gradient(110deg,#fff 15%,#55e7ff 48%,#a66cff 78%,#fff);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:250% auto;animation:shine 5s linear infinite}
-.sub{font-family:Orbitron,sans-serif;letter-spacing:.24em;font-size:clamp(13px,2vw,22px);margin:25px 0 20px;color:#e9eaff}
-.tagline{font-size:clamp(12px,1.5vw,17px);letter-spacing:.32em;text-transform:uppercase;color:var(--muted)}
-.enter{margin-top:48px;display:inline-flex;align-items:center;gap:12px;padding:16px 24px;border:1px solid #55e7ff66;border-radius:999px;background:#07101a99;color:#fff;text-decoration:none;font-weight:700;font-size:12px;letter-spacing:.16em;text-transform:uppercase;backdrop-filter:blur(12px);box-shadow:0 0 35px #55e7ff0d;transition:.35s}
-.enter:hover{transform:translateY(-3px);border-color:var(--cyan);box-shadow:0 0 45px #55e7ff22}
-.enter i{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan);animation:blink 1.2s infinite}
-.footer{position:absolute;z-index:5;bottom:22px;left:0;right:0;text-align:center;color:#697187;font-size:9px;letter-spacing:.25em;text-transform:uppercase}
-.skip{position:absolute;z-index:8;top:22px;right:22px;color:#798197;text-decoration:none;font-size:10px;letter-spacing:.18em;text-transform:uppercase}
-.reveal{animation:reveal 1.2s ease both}
-@keyframes rise{from{opacity:0;transform:scale(.96) translateY(30px);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
-@keyframes reveal{0%,60%{opacity:0}100%{opacity:1}}
-@keyframes signal{0%{transform:scale(.2);opacity:0}15%{opacity:1}55%{transform:scale(1);opacity:1}100%{transform:scale(32);opacity:0}}
-@keyframes pulse{50%{transform:scale(1.035);opacity:.7}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes shine{to{background-position:250% center}}
-@keyframes blink{50%{opacity:.25}}
-@media(max-width:600px){.tagline{letter-spacing:.18em;line-height:1.8}.enter{margin-top:36px}.footer{padding:0 20px}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}.content{opacity:1}}
-</style>
-<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-sitewide.js?v=1" defer></script>
-<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-notifications.js?v=3" defer></script>
-<script src="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/js/crowrules-universal-member.js?v=2" defer></script>
-<link rel="stylesheet" href="css/podcasting.css?v=20261004-v8">
-<link rel="stylesheet" href="css/halloween-cinematic-v1.css?v=20261004-01">
-<script src="js/crowrules-supabase-universal-v1.js?v=20261004-01" defer></script>
-<script src="js/crow-podcasting-intelligence-v13.js?v=20261004-01" defer></script>
-<script src="js/crow-podcasting-player-v13-2.js?v=20261004-13" defer></script>
-<script src="js/crow-podcasting-player-v13-3.js?v=20261004-01" defer></script>
-<link rel="stylesheet" href="css/crow-podcasting-player-v13-3.css?v=20261004-01">
-
-<link rel="stylesheet" href="css/podcasting-v15.css?v=20261005-01">
-<script src="js/sitewide-v15.js?v=20261005-01" defer></script>
-<link rel="stylesheet" href="css/sitewide-v13.css?v=20261004-universal"><script src="js/sitewide-v13.js?v=20261004-universal" defer></script>
-<link rel="stylesheet" href="css/podcasting-v19.css?v=20261005-19.1">
-
-<!-- CROWRULES PODCASTING V1.0 -->
-<link rel="preload" as="image" href="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/sign/images/podcastinglogo.png?token=eyJraWQiOiI5Yzg1OGE1OS1lOTQ3LTQwZjYtYWUwYS0zNDA3MWZlZjIyNmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJpbWFnZXMvcG9kY2FzdGluZ2xvZ28ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MTIxMjY2MiwiZXhwIjoxOTQ4ODkyNjYyfQ.BKJBftIQ8-xRMhaC0yLHVXCyoS4YNQDrjdIrDwHW7v8jE6nZ8GRscpsVZ1TrmAnSBpTJQqx-disdr5xilI862A" fetchpriority="high" data-crow-podcasting-logo-preload>
-<link rel="stylesheet" href="css/sitewide-rebuild-v18.css?v=20261005-v23.5" data-crow-v23-css>
-<script src="js/sitewide-rebuild-v18.js?v=20261005-v23.3" defer data-crow-v23-js></script>
-<link rel="stylesheet" href="css/podcasting-v1.css?v=20261005-v1.0.0" data-crow-v1-css>
-<script src="js/config.js?v=20261005-v1.0.0" defer data-crow-v1-config></script>
-<script src="js/podcasting-v1.js?v=20261005-v1.0.0" defer data-crow-v1-js></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CrowRules Podcasting</title>
+  <meta name="description" content="CrowRules Podcasting — discover, listen, create and connect. One account. One universe.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/podcasting.css">
 </head>
-<body class="cr-halloween-theme">
-<div class="cr-halloween-bats" aria-hidden="true"></div>
-<script src="js/app.js?v=20261004-15" defer></script>
+<body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <header class="site-header">
+    <a class="brand" href="./"><span class="brand-mark">C</span><span><b>CrowRules</b><small>Podcasting</small></span></a>
+    <nav>
+      <a href="#discover">Discover</a><a href="#membership">Membership</a><a href="#about">About</a>
+      <a class="nav-account" href="auth.html">Sign In</a>
+    </nav>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+  </header>
 
-<main class="scene" aria-label="CrowRules Podcasting cinematic introduction">
-<canvas id="stars"></canvas><div class="aurora"></div><div class="grid"></div><div class="core"></div><div class="signal"></div>
-<a class="skip reveal" href="launch.html">Skip intro</a>
-<section class="content">
-<div class="eyebrow reveal">A new signal is approaching</div>
-<h1 class="brand"><span>CROWRULES</span><span class="sub">PODCASTING</span></h1>
-<div class="tagline reveal">Every Voice. Every Story. One Universe.</div>
-<a class="enter reveal" href="launch.html"><i></i> Enter your podcast home</a>
-</section>
-<div class="footer">The Next Chapter • January 1, 2027</div>
-</main>
-<script>
-(()=>{"use strict";
-const c=document.getElementById("stars"),x=c.getContext("2d"),D=devicePixelRatio||1;let w,h,p=[];
-function resize(){w=c.width=innerWidth*D;h=c.height=innerHeight*D;x.setTransform(D,0,0,D,0,0);w=innerWidth;h=innerHeight;p=Array.from({length:Math.min(220,Math.floor(w*h/6500))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.4+.2,a:Math.random()*.65+.1,s:Math.random()*.22+.03}))}
-function draw(){x.clearRect(0,0,w,h);for(const q of p){q.y-=q.s;if(q.y<0)q.y=h;x.beginPath();x.arc(q.x,q.y,q.r,0,Math.PI*2);x.fillStyle="rgba(210,235,255,"+q.a+")";x.fill()}requestAnimationFrame(draw)}
-addEventListener("resize",resize,{passive:true});resize();draw();
-setTimeout(()=>document.body.classList.add("ready"),100);
-})();
-</script>
-<script src="js/podcasting-v19.js?v=20261005-19.1"></script>
+  <main>
+    <section class="hero">
+      <div class="eyebrow">CROWRULES ENTERTAINMENT</div>
+      <h1>Stories you can <span>hear.</span></h1>
+      <p class="hero-copy">A new home for independent podcasts, live conversations, original shows and the people behind them.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#discover">Explore Podcasts</a>
+        <a class="btn btn-ghost" href="auth.html?mode=signup">Create Free Account</a>
+      </div>
+      <div class="hero-stats"><div><strong id="podcastCount">—</strong><span>Podcasts</span></div><div><strong>24/7</strong><span>Audio universe</span></div><div><strong>1</strong><span>CrowRules account</span></div></div>
+    </section>
+
+    <section id="discover" class="section">
+      <div class="section-head"><div><span class="kicker">DISCOVER</span><h2>Find your next listen.</h2></div><button class="text-btn" id="refreshPodcasts">Refresh ↻</button></div>
+      <div class="search-row"><input id="search" type="search" placeholder="Search podcasts, creators or topics…"><select id="category"><option value="">All categories</option></select></div>
+      <div id="podcastGrid" class="podcast-grid"><div class="loading-card">Loading the CrowRules Podcasting universe…</div></div>
+    </section>
+
+    <section id="membership" class="section membership-section">
+      <div class="section-head"><div><span class="kicker">ONE ACCOUNT. ONE UNIVERSE.</span><h2>Choose your CrowRules membership.</h2></div></div>
+      <p class="section-copy">Start free, then unlock more ways to participate. Payments are handled securely by Stripe; your card details never touch this website.</p>
+      <div class="plan-grid">
+        <article class="plan"><span class="plan-tag">FREE</span><h3>CROW</h3><div class="price">$0 <small>/ forever</small></div><ul><li>Universal CrowRules account</li><li>Browse and follow podcasts</li><li>Member profile</li></ul><a class="btn btn-ghost plan-action" href="auth.html?mode=signup">Join Free</a></article>
+        <article class="plan featured"><span class="plan-tag">POPULAR</span><h3>CROWNER</h3><div class="price">$5 <small>/ month</small></div><ul><li>Everything in CROW</li><li>Member benefits across CrowRules</li><li>Podcasting supporter access</li></ul><button class="btn btn-primary plan-action" data-plan="crowner">Choose CROWNER</button></article>
+        <article class="plan"><span class="plan-tag">CREATOR</span><h3>CREATOR</h3><div class="price">$10 <small>/ month</small></div><ul><li>Everything in CROWNER</li><li>Creator-focused tools</li><li>Expanded podcast participation</li></ul><button class="btn btn-primary plan-action" data-plan="creator">Choose CREATOR</button></article>
+        <article class="plan"><span class="plan-tag">FOUNDING</span><h3>FOUNDER</h3><div class="price">$25 <small>/ month</small></div><ul><li>Everything in CREATOR</li><li>Founder-level recognition</li><li>Help shape the universe</li></ul><button class="btn btn-primary plan-action" data-plan="founder">Choose FOUNDER</button></article>
+      </div>
+      <p class="fine-print">Recurring membership checkout uses Stripe. You can manage or cancel eligible subscriptions from your account.</p>
+    </section>
+
+    <section id="about" class="section split">
+      <div><span class="kicker">THE MISSION</span><h2>Built from Tacoma. Built for creators.</h2></div>
+      <div><p>CrowRules Podcasting is part of the CrowRules Entertainment universe — a low-budget, ground-up media company focused on giving independent voices a place to build.</p><p>Podcasting launches January 1, 2027. The platform is being built around creators, listeners and community rather than a single format.</p></div>
+    </section>
+  </main>
+
+  <footer><span>© 2026 CrowRules Entertainment</span><span>One company. One universe.</span><a href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/">CrowRules Entertainment</a></footer>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/podcasting.js"></script>
 </body>
 </html>
