@@ -1,5 +1,5 @@
-const SUPABASE_URL='https://baiqacotatszeqmjiekr.supabase.co';
-const SUPABASE_KEY='sb_publishable_d1HCg_kU7AtjvlTtcsfxnA_NM75pell';
+const SUPABASE_URL='https://cevylpnoexugwgygvtgu.supabase.co';
+const SUPABASE_KEY='sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-';
 const supabase=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY);
 const EDGE_BASE=SUPABASE_URL+'/functions/v1';
 const toast=(m)=>{const e=document.getElementById('toast');if(!e)return;e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),3500)};
