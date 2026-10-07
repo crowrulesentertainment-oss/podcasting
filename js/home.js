@@ -1,5 +1,5 @@
 (()=>{"use strict";
-const U="https://baiqacotatszeqmjiekr.supabase.co",K="sb_publishable_d1HCg_kU7AtjvlTtcsfxnA_NM75pell",recentKey="crowrules_podcasting_recent";
+const U="https://cevylpnoexugwgygvtgu.supabase.co",K="sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-",recentKey="crowrules_podcasting_recent";
 let db=null,shows=[],eps=[],genre="All",sort="latest";
 const $=s=>document.querySelector(s), esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fallbackShows=[
