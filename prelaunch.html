@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05070d">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Create an account or sign in before CrowRules Podcasting launches January 1, 2027.">
+<title>CrowRules Podcasting — Pre-Launch Access</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js" defer></script>
+<style>
+:root{--bg:#05070d;--panel:rgba(10,14,24,.94);--line:rgba(255,255,255,.11);--cyan:#67e8f9;--purple:#a78bfa;--text:#f5f7fb;--muted:#8995a9;--danger:#ff8fa8;--ok:#8df5ca}
+*{box-sizing:border-box}html{min-height:100%;background:var(--bg)}
+body{margin:0;min-height:100vh;color:var(--text);font-family:Montserrat,Arial,sans-serif;background:radial-gradient(circle at 50% 0,#17233d 0,transparent 42%),radial-gradient(circle at 90% 75%,rgba(167,139,250,.1),transparent 34%),#05070d;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent,#05070d 90%);z-index:-1}
+.shell{width:min(1080px,100%);margin:auto;padding:34px 18px 50px}
+.top{text-align:center;margin:8px auto 28px}.logo{width:130px;height:130px;object-fit:contain;display:block;margin:0 auto 16px;filter:drop-shadow(0 0 28px rgba(103,232,249,.28))}
+.eyebrow{font:700 9px Orbitron,sans-serif;letter-spacing:.27em;color:#7ddff0;text-transform:uppercase}
+h1{font:900 clamp(30px,6vw,58px)/1 Orbitron,sans-serif;margin:12px 0;background:linear-gradient(100deg,#fff,#bdeff7 55%,#bba7ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{max-width:680px;margin:0 auto;color:var(--muted);font-size:13px;line-height:1.7}.launch{margin-top:12px;font:600 9px Orbitron,sans-serif;letter-spacing:.14em;color:#aeb7c7}
+.card{width:min(620px,100%);margin:28px auto 0;padding:28px;border:1px solid var(--line);border-radius:22px;background:var(--panel);box-shadow:0 25px 80px rgba(0,0,0,.3);backdrop-filter:blur(18px)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.025);margin-bottom:25px}
+.tab{border:0;border-radius:9px;padding:12px;background:transparent;color:#7f8ba0;font:800 9px Orbitron,sans-serif;letter-spacing:.16em;cursor:pointer}.tab.active{color:#e9fdff;background:rgba(103,232,249,.09);box-shadow:inset 0 0 0 1px rgba(103,232,249,.2)}
+.mode-title{font:800 20px Orbitron,sans-serif;margin:0 0 7px}.mode-copy{margin:0 0 20px;color:var(--muted);font-size:12px;line-height:1.6}
+.oauth{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:21px}.oauth button{min-height:46px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.035);color:#fff;cursor:pointer;font:700 10px Montserrat,sans-serif}.oauth button:hover{border-color:rgba(103,232,249,.4);background:rgba(103,232,249,.05)}.oauth span{font:800 15px Arial;margin-right:6px}
+.divider{display:flex;align-items:center;gap:10px;color:#586378;font:700 8px Orbitron,sans-serif;letter-spacing:.16em;margin:20px 0}.divider:before,.divider:after{content:"";height:1px;background:var(--line);flex:1}
+.field{margin-bottom:14px;position:relative}.field label{display:block;margin-bottom:7px;font:700 9px Orbitron,sans-serif;letter-spacing:.14em}.field input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.25);color:#fff;outline:none;font:500 13px Montserrat,sans-serif}.field input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(103,232,249,.07)}
+.password input{padding-right:62px}.show{position:absolute;right:7px;bottom:7px;border:0;background:transparent;color:var(--cyan);padding:7px;font:800 8px Orbitron,sans-serif;cursor:pointer}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:4px 0 18px;color:#727e92;font-size:10px}.row label{display:flex;gap:7px;align-items:center}.link{border:0;background:none;color:var(--cyan);font:600 10px Montserrat,sans-serif;cursor:pointer}
+.primary{width:100%;min-height:49px;border:1px solid rgba(103,232,249,.35);border-radius:11px;background:linear-gradient(100deg,rgba(103,232,249,.16),rgba(167,139,250,.15));color:#eaffff;cursor:pointer;font:800 9px Orbitron,sans-serif;letter-spacing:.15em}.primary:hover{background:linear-gradient(100deg,rgba(103,232,249,.22),rgba(167,139,250,.2))}.primary:disabled,.oauth button:disabled{opacity:.55;cursor:wait}
+.status{min-height:22px;margin-top:12px;font-size:11px;line-height:1.5}.status[data-kind=error]{color:var(--danger)}.status[data-kind=success]{color:var(--ok)}
+.extra{display:none}.extra.active{display:block}.note{margin-top:18px;padding:12px 13px;border:1px solid rgba(103,232,249,.13);border-radius:10px;background:rgba(103,232,249,.035);color:#758197;font-size:9px;line-height:1.6}
+.footer{text-align:center;margin-top:24px;color:#5e6a7d;font-size:9px;line-height:1.7}.footer a{color:var(--cyan);text-decoration:none}.footer a:hover{text-decoration:underline}
+.back{display:inline-flex;margin-top:18px;color:#718097;text-decoration:none;font:700 8px Orbitron,sans-serif;letter-spacing:.14em}.back:hover{color:#fff}
+@media(max-width:620px){.shell{padding:25px 12px 40px}.card{padding:21px}.oauth{grid-template-columns:1fr}.row{align-items:flex-start;flex-direction:column}.logo{width:110px;height:110px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header class="top">
+<img class="logo" src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/sign/images/podcastinglogo.png" alt="CrowRules Podcasting" width="130" height="130">
+<div class="eyebrow">CROWRULES PODCASTING • PRE-LAUNCH ACCESS</div>
+<h1>ONE ACCOUNT. ONE UNIVERSE.</h1>
+<p class="sub">Create your CrowRules Podcasting account now, or sign in if you are already a member. No navigation. No audio player. Just secure access.</p>
+<div class="launch">TARGET LAUNCH • JANUARY 1, 2027 • 12:00 AM PACIFIC</div>
+</header>
+
+<section class="card" aria-label="CrowRules Podcasting account access">
+<div class="tabs" role="tablist">
+<button class="tab active" id="signupTab" type="button" role="tab" aria-selected="true">CREATE ACCOUNT</button>
+<button class="tab" id="loginTab" type="button" role="tab" aria-selected="false">SIGN IN</button>
+</div>
+
+<div id="signupPanel" class="extra active">
+<h2 class="mode-title">Join before launch.</h2>
+<p class="mode-copy">Create your account now and be ready when CrowRules Podcasting opens. You can listen, follow shows and grow into creator tools later.</p>
+<div class="oauth">
+<button type="button" data-provider="google"><span>G</span>Google</button>
+<button type="button" data-provider="discord"><span>◈</span>Discord</button>
+<button type="button" data-provider="twitch"><span>✦</span>Twitch</button>
+</div>
+<div class="divider"><span>OR EMAIL</span></div>
+<form id="signupForm" novalidate>
+<div class="field"><label for="signupName">DISPLAY NAME</label><input id="signupName" maxlength="80" autocomplete="name" placeholder="Your name or creator identity" required></div>
+<div class="field"><label for="signupEmail">EMAIL</label><input id="signupEmail" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+<div class="field password"><label for="signupPassword">PASSWORD</label><input id="signupPassword" type="password" minlength="8" autocomplete="new-password" placeholder="At least 8 characters" required><button class="show" type="button" data-toggle="signupPassword">SHOW</button></div>
+<div class="field"><label for="signupConfirm">CONFIRM PASSWORD</label><input id="signupConfirm" type="password" minlength="8" autocomplete="new-password" placeholder="Enter it again" required></div>
+<label class="row"><span><input id="agree" type="checkbox" required> I agree to use CrowRules Podcasting responsibly.</span></label>
+<button class="primary" id="signupBtn" type="submit">CREATE CROWRULES ACCOUNT</button>
+<div id="signupMsg" class="status" role="status" aria-live="polite"></div>
+</form>
+<div class="note">Your password is handled by Supabase Auth. This page never stores your password in the CrowRules database.</div>
+</div>
+
+<div id="loginPanel" class="extra">
+<h2 class="mode-title">Welcome back.</h2>
+<p class="mode-copy">Sign in now and your account will be ready for the Podcasting launch.</p>
+<div class="oauth">
+<button type="button" data-provider="google"><span>G</span>Google</button>
+<button type="button" data-provider="discord"><span>◈</span>Discord</button>
+<button type="button" data-provider="twitch"><span>✦</span>Twitch</button>
+</div>
+<div class="divider"><span>OR EMAIL</span></div>
+<form id="loginForm" novalidate>
+<div class="field"><label for="loginEmail">EMAIL</label><input id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+<div class="field password"><label for="loginPassword">PASSWORD</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Your password" required><button class="show" type="button" data-toggle="loginPassword">SHOW</button></div>
+<div class="row"><label><input id="remember" type="checkbox" checked> Remember this device</label><button class="link" id="forgot" type="button">Forgot password?</button></div>
+<button class="primary" id="loginBtn" type="submit">SIGN IN TO CROWRULES</button>
+<div id="loginMsg" class="status" role="status" aria-live="polite"></div>
+</form>
+</div>
+
+<a class="back" href="launch.html">← BACK TO PRE-LAUNCH</a>
+</section>
+<footer class="footer">CROWRULES ENTERTAINMENT • PODCASTING • THE NEXT CHAPTER<br>Account access is available before launch so members can be ready on day one.</footer>
+</main>
+
+<script>
+(()=>{"use strict";
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const CONFIG=window.CROW_PODCASTING_CONFIG;
+let sb=null;
+const setMsg=(el,text,kind="")=>{if(el){el.textContent=text;el.dataset.kind=kind}};
+const target=()=>{try{const n=new URLSearchParams(location.search).get("next");return n&&/^[a-z0-9_./-]+\.html(?:#[a-z0-9_.-]+)?$/i.test(n)?n:"profile.html"}catch(_){return"profile.html"}};
+function client(){
+ if(sb)return sb;
+ if(!CONFIG||!window.supabase?.createClient)throw new Error("Authentication is temporarily unavailable.");
+ sb=window.supabase.createClient(CONFIG.supabaseUrl,CONFIG.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+ return sb;
+}
+function switchMode(mode){
+ const signup=mode==="signup";
+ $("#signupTab").classList.toggle("active",signup);$("#loginTab").classList.toggle("active",!signup);
+ $("#signupTab").setAttribute("aria-selected",String(signup));$("#loginTab").setAttribute("aria-selected",String(!signup));
+ $("#signupPanel").classList.toggle("active",signup);$("#loginPanel").classList.toggle("active",!signup);
+ history.replaceState(null,"",location.pathname+(location.search.replace(/([?&])mode=(signup|login)(&|$)/,"$1").replace(/[?&]$/,"")));
+}
+$("#signupTab").addEventListener("click",()=>switchMode("signup"));
+$("#loginTab").addEventListener("click",()=>switchMode("login"));
+$$("[data-toggle]").forEach(b=>b.addEventListener("click",()=>{const p=$("#"+b.dataset.toggle);p.type=p.type==="password"?"text":"password";b.textContent=p.type==="password"?"SHOW":"HIDE"}));
+
+async function oauth(provider,mode){
+ const msg=$("#"+mode+"Msg");
+ try{
+  const c=client();
+  $$(".oauth button").forEach(b=>b.disabled=true);
+  setMsg(msg,"Connecting to "+provider.charAt(0).toUpperCase()+provider.slice(1)+"…");
+  sessionStorage.setItem("crp_auth_mode",mode);
+  const {error}=await c.auth.signInWithOAuth({provider,options:{redirectTo:new URL("prelaunch.html",location.href).href+(location.search?"&":"?")+"next="+encodeURIComponent(target())}});
+  if(error)throw error;
+ }catch(e){setMsg(msg,e.message||"Unable to connect to the provider.","error");$$(".oauth button").forEach(b=>b.disabled=false)}
+}
+$$(".oauth button").forEach(b=>b.addEventListener("click",()=>oauth(b.dataset.provider,b.closest(".extra").id==="signupPanel"?"signup":"login")));
+
+$("#signupForm").addEventListener("submit",async e=>{
+ e.preventDefault();const form=e.currentTarget,msg=$("#signupMsg"),btn=$("#signupBtn");
+ if(!form.reportValidity())return;
+ if($("#signupPassword").value!==$("#signupConfirm").value){setMsg(msg,"Passwords do not match.","error");return}
+ btn.disabled=true;setMsg(msg,"Creating your account…");
+ try{
+  const c=client();
+  const {data,error}=await c.auth.signUp({email:$("#signupEmail").value.trim(),password:$("#signupPassword").value,options:{data:{display_name:$("#signupName").value.trim(),account_type:"listener",is_creator:false}}});
+  if(error)throw error;
+  if(data.session){setMsg(msg,"Account created. Welcome to CrowRules Podcasting.","success");setTimeout(()=>location.replace(target()),350)}
+  else setMsg(msg,"Account created. Check your email to confirm your address, then return here to sign in.","success");
+ }catch(e){setMsg(msg,e.message||"Unable to create your account.","error")}finally{btn.disabled=false}
+});
+
+$("#loginForm").addEventListener("submit",async e=>{
+ e.preventDefault();const form=e.currentTarget,msg=$("#loginMsg"),btn=$("#loginBtn);
+ if(!form.reportValidity())return;
+ btn.disabled=true;setMsg(msg,"Signing you in…");
+ try{
+  const c=client();const {error}=await c.auth.signInWithPassword({email:$("#loginEmail").value.trim(),password:$("#loginPassword").value});
+  if(error)throw error;
+  setMsg(msg,"Signed in. Welcome back.","success");setTimeout(()=>location.replace(target()),350);
+ }catch(e){setMsg(msg,e.message||"Unable to sign in.","error")}finally{btn.disabled=false}
+});
+
+$("#forgot").addEventListener("click",async()=>{
+ const email=$("#loginEmail").value.trim(),msg=$("#loginMsg");
+ if(!email){setMsg(msg,"Enter your email address first.","error");$("#loginEmail").focus();return}
+ setMsg(msg,"Sending password reset instructions…");
+ try{
+  const c=client();const {error}=await c.auth.resetPasswordForEmail(email,{redirectTo:new URL("prelaunch.html?mode=login",location.href).href});
+  if(error)throw error;setMsg(msg,"If that email is registered, reset instructions are on the way.","success");
+ }catch(e){setMsg(msg,e.message||"Unable to send reset instructions.","error")}
+});
+
+(async()=>{
+ try{
+  const c=client();const {data}=await c.auth.getSession();
+  if(data?.session){location.replace(target());return}
+  const params=new URLSearchParams(location.search);
+  if(params.get("mode")==="login")switchMode("login");
+  if(location.hash.includes("access_token")||location.hash.includes("type=recovery"))setMsg($("#loginMsg"),"Authentication response received. Please continue.","success");
+ }catch(e){console.warn("[CrowRules Prelaunch Auth]",e)}
+})();
+})();
+</script>
+</body>
+</html>
