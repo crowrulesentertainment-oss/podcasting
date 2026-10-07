@@ -1,0 +1,1 @@
+window.CROW_PODCASTING_CONFIG={supabaseUrl:"https://cevylpnoexugwgygvtgu.supabase.co",supabasePublishableKey:"sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-",stripeCheckoutFunction:"podcasting-stripe-checkout"};
