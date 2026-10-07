@@ -1,6 +1,6 @@
 /* CrowRules Podcasting — sitewide shell v2 */
 (()=>{"use strict";
-const SUPABASE_URL="https://baiqacotatszeqmjiekr.supabase.co",SUPABASE_KEY="sb_publishable_d1HCg_kU7AtjvlTtcsfxnA_NM75pell";
+const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co",SUPABASE_KEY="sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
 const sb=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 const base=location.pathname.split("/").pop()||"index.html";
