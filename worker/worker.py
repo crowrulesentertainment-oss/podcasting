@@ -5,6 +5,8 @@ import shutil
 import subprocess
 import tempfile
 import time
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from datetime import datetime, timezone
 from urllib.parse import quote
 from pathlib import Path
@@ -208,7 +210,7 @@ def process(job):
             "waveform": wave,
             "loudness_lufs": loudness,
             "normalized_path": mp3_path,
-            "updated_at": "now()",
+            "updated_at": now_iso(),
         })
 
         if job.get("episode_id"):
@@ -217,7 +219,7 @@ def process(job):
                 "duration_seconds": round(final_duration),
             })
 
-        db_patch("podcast_media_processing_jobs", {"media_asset_id": f"eq.{asset_id}", "job_type": "eq.audio_metadata", "status": "eq.queued"}, {"status": "completed", "result": {"duration_seconds": round(final_duration)}, "completed_at": "now()", "updated_at": "now()"})
+        db_patch("podcast_media_processing_jobs", {"media_asset_id": f"eq.{asset_id}", "job_type": "eq.audio_metadata", "status": "eq.queued"}, {"status": "completed", "result": {"duration_seconds": round(final_duration)}, "completed_at": now_iso(), "updated_at": "now()"})
         db_patch("podcast_media_processing_jobs", {"media_asset_id": f"eq.{asset_id}", "job_type": "eq.waveform", "status": "eq.queued"}, {"status": "completed", "result": {"waveform": wave, "source": "processed_master"}, "completed_at": "now()", "updated_at": "now()"})
 
         return {
@@ -232,7 +234,30 @@ def process(job):
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path in ("/", "/health", "/healthz"):
+            body = b"{\"ok\":true,\"service\":\"crowrules-podcast-media-worker\"}"
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def log_message(self, fmt, *args):
+        return
+
+def start_health_server():
+    port = int(os.getenv("PORT", "10000"))
+    server = ThreadingHTTPServer(("0.0.0.0", port), HealthHandler)
+    logging.info("Health server listening on port %s", port)
+    server.serve_forever()
+
 def main():
+    threading.Thread(target=start_health_server, daemon=True).start()
     logging.info("CrowRules Podcasting FFmpeg worker online")
     while True:
         try:
