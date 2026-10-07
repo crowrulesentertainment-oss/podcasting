@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CrowRules Podcasting — Stories You Can Hear</title>
+  <meta name="description" content="CrowRules Podcasting — discover, listen, create and connect. One account. One universe.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/podcasting.css">
+  <style>
+    .home-hero{min-height:calc(100vh - 76px);display:grid;place-items:center;position:relative;overflow:hidden}
+    .home-hero:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,rgba(94,231,255,.13),transparent 25%),linear-gradient(180deg,transparent 55%,var(--bg))}
+    .hero-inner{max-width:1200px;width:100%;padding:90px 5vw;position:relative;text-align:center}
+    .signal{display:inline-flex;align-items:center;gap:9px;padding:8px 13px;border:1px solid rgba(94,231,255,.25);border-radius:999px;background:rgba(94,231,255,.04);color:var(--cyan);font:700 10px Orbitron;letter-spacing:.18em}
+    .signal i{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 14px var(--cyan);animation:pulse 1.8s infinite}
+    @keyframes pulse{50%{opacity:.3;transform:scale(.7)}}
+    .home-hero h1{font:900 clamp(54px,10vw,128px) Orbitron;line-height:.9;letter-spacing:-.05em;margin:32px auto 25px;max-width:1100px}
+    .home-hero h1 span{display:block;color:var(--cyan);text-shadow:0 0 55px rgba(94,231,255,.28)}
+    .home-lead{max-width:720px;margin:0 auto;color:var(--muted);font-size:18px;line-height:1.8}
+    .hero-actions{justify-content:center}
+    .home-rail{display:flex;justify-content:center;gap:35px;margin-top:60px;flex-wrap:wrap}
+    .home-rail div{min-width:120px}.home-rail strong{font:700 22px Orbitron;display:block}.home-rail span{font-size:9px;color:var(--muted);letter-spacing:.16em;text-transform:uppercase}
+    .feature-strip{max-width:1200px;margin:0 auto;padding:25px 5vw 80px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .feature-card{padding:25px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.025)}
+    .feature-card .icon{font:700 22px Orbitron;color:var(--cyan)}.feature-card h3{font:700 16px Orbitron}.feature-card p{font-size:12px;color:var(--muted);line-height:1.7}
+    .home-cta{text-align:center;padding:100px 5vw;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .home-cta h2{font:700 clamp(30px,5vw,58px) Orbitron;margin:12px 0 20px}.home-cta p{color:var(--muted);max-width:650px;margin:0 auto 28px;line-height:1.8}
+    @media(max-width:700px){.feature-strip{grid-template-columns:1fr}.home-hero h1{font-size:clamp(46px,14vw,80px)}}
+  </style>
+</head>
+<body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <header class="site-header">
+    <a class="brand" href="home.html"><span class="brand-mark">C</span><span><b>CrowRules</b><small>Podcasting</small></span></a>
+    <nav>
+      <a href="#discover">Discover</a><a href="#membership">Membership</a><a href="#about">About</a>
+      <a class="nav-account" href="auth.html">Sign In</a>
+    </nav>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+  </header>
+
+  <main>
+    <section class="home-hero">
+      <div class="hero-inner">
+        <div class="signal"><i></i> THE CROWRULES AUDIO UNIVERSE</div>
+        <h1>Stories.<br><span>Voices.</span> Universe.</h1>
+        <p class="home-lead">Discover independent podcasts, original shows, live conversations and the creators building something bigger — one voice at a time.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#discover">Enter Podcasting</a>
+          <a class="btn btn-ghost" href="auth.html?mode=signup">Create Your Account</a>
+        </div>
+        <div class="home-rail">
+          <div><strong id="podcastCount">—</strong><span>Podcasts</span></div>
+          <div><strong>24/7</strong><span>Audio Universe</span></div>
+          <div><strong>2027</strong><span>Official Launch</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="feature-strip">
+      <article class="feature-card"><div class="icon">01</div><h3>DISCOVER</h3><p>Find independent voices, new shows and stories from across the CrowRules universe.</p></article>
+      <article class="feature-card"><div class="icon">02</div><h3>LISTEN</h3><p>Build your listening world around the shows and creators you want to hear.</p></article>
+      <article class="feature-card"><div class="icon">03</div><h3>CREATE</h3><p>Podcasting is being built for creators — from the first idea to the finished episode.</p></article>
+    </section>
+
+    <section id="discover" class="section">
+      <div class="section-head"><div><span class="kicker">DISCOVER</span><h2>Find your next listen.</h2></div><button class="text-btn" id="refreshPodcasts">Refresh ↻</button></div>
+      <div class="search-row"><input id="search" type="search" placeholder="Search podcasts, creators or topics…"><select id="category"><option value="">All categories</option></select></div>
+      <div id="podcastGrid" class="podcast-grid"><div class="loading-card">Loading the CrowRules Podcasting universe…</div></div>
+    </section>
+
+    <section id="membership" class="section membership-section">
+      <div class="section-head"><div><span class="kicker">ONE ACCOUNT. ONE UNIVERSE.</span><h2>Choose your CrowRules membership.</h2></div></div>
+      <p class="section-copy">Start free, then unlock more ways to participate. Payments are handled securely by Stripe.</p>
+      <div class="plan-grid">
+        <article class="plan"><span class="plan-tag">FREE</span><h3>CROW</h3><div class="price">$0 <small>/ forever</small></div><ul><li>Universal CrowRules account</li><li>Browse and follow podcasts</li><li>Member profile</li></ul><a class="btn btn-ghost plan-action" href="auth.html?mode=signup">Join Free</a></article>
+        <article class="plan featured"><span class="plan-tag">POPULAR</span><h3>CROWNER</h3><div class="price">$5 <small>/ month</small></div><ul><li>Everything in CROW</li><li>Member benefits across CrowRules</li><li>Podcasting supporter access</li></ul><button class="btn btn-primary plan-action" data-plan="crowner">Choose CROWNER</button></article>
+        <article class="plan"><span class="plan-tag">CREATOR</span><h3>CREATOR</h3><div class="price">$10 <small>/ month</small></div><ul><li>Everything in CROWNER</li><li>Creator-focused tools</li><li>Expanded podcast participation</li></ul><button class="btn btn-primary plan-action" data-plan="creator">Choose CREATOR</button></article>
+        <article class="plan"><span class="plan-tag">FOUNDING</span><h3>FOUNDER</h3><div class="price">$25 <small>/ month</small></div><ul><li>Everything in CREATOR</li><li>Founder-level recognition</li><li>Help shape the universe</li></ul><button class="btn btn-primary plan-action" data-plan="founder">Choose FOUNDER</button></article>
+      </div>
+    </section>
+
+    <section id="about" class="home-cta">
+      <span class="kicker">CROWRULES ENTERTAINMENT</span>
+      <h2>One company. One universe.</h2>
+      <p>Built from Tacoma. Built for creators. CrowRules Podcasting is the next chapter of a larger entertainment universe.</p>
+      <a class="btn btn-primary" href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/">Explore CrowRules</a>
+    </section>
+  </main>
+
+  <footer><span>© 2026 CrowRules Entertainment</span><span>One company. One universe.</span><a href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/">CrowRules Entertainment</a></footer>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/podcasting.js"></script>
+</body>
+</html>
