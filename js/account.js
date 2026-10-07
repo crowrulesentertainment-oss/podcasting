@@ -33,6 +33,19 @@ async function loadCollections(){
   $(list).innerHTML=r.data.length?r.data.map(x=>`<div class="item"><b>${escapeHtml(x.title||x.show_name||x.episode_title||"Podcast item")}</b><small>${escapeHtml(x.subtitle||x.show_name||x.played_at||"Saved to your account")}</small></div>`).join(""):"Nothing here yet.";
  }
 }
+async function signInWithProvider(provider){
+  const role=selectedRole();
+  localStorage.setItem(PENDING_ROLE_KEY,role);
+  msg("message","CONNECTING TO "+provider.toUpperCase()+"…");
+  const {error}=await db.auth.signInWithOAuth({
+    provider,
+    options:{
+      redirectTo:location.href,
+      queryParams:provider==="google"?{prompt:"select_account"}:undefined
+    }
+  });
+  if(error){localStorage.removeItem(PENDING_ROLE_KEY);msg("message",error.message);}
+}
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
 async function saveRole(role){
  const r=await db.from("podcasting_profiles").update({account_type:role,is_creator:role==="podcaster",updated_at:new Date().toISOString()}).eq("id",user.id);
@@ -64,6 +77,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
  db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
  updateRoleButtons(selectedRole());
  document.querySelectorAll(".roleCard[data-role]").forEach(b=>b.addEventListener("click",()=>setSelectedRole(b.dataset.role)));
+ document.querySelectorAll(".oauthBtn[data-provider]").forEach(b=>b.addEventListener("click",()=>signInWithProvider(b.dataset.provider)));
  $("loginForm").addEventListener("submit",async e=>{e.preventDefault();msg("message","SIGNING IN…");const r=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});msg("message",r.error?r.error.message:"CONNECTED.");if(!r.error)load();});
  $("create").addEventListener("click",async()=>{const role=selectedRole();localStorage.setItem(PENDING_ROLE_KEY,role);msg("message","CREATING "+role.toUpperCase()+" ACCOUNT…");const r=await db.auth.signUp({email:$("email").value.trim(),password:$("password").value,options:{emailRedirectTo:location.href,data:{display_name:$("email").value.split("@")[0],account_type:role}}});if(r.error){localStorage.removeItem(PENDING_ROLE_KEY);msg("message",r.error.message);return}msg("message",r.data.session?"ACCOUNT CREATED — "+role.toUpperCase()+" MODE ACTIVE.":"CHECK YOUR EMAIL TO CONFIRM YOUR ACCOUNT. YOUR "+role.toUpperCase()+" CHOICE IS SAVED.");});
  $("signout").addEventListener("click",async()=>{await db.auth.signOut();load();});
