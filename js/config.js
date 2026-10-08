@@ -47,7 +47,7 @@ window.CROW_PODCASTING_CONFIG = {
   const applyHolidayTheme = (row) => {
     const enabled = !!row?.holiday_enabled;
     const theme = String(row?.holiday_theme || "standard").toLowerCase().replace(/[^a-z0-9_-]/g, "");
-    const allowed = new Set(["standard","halloween","christmas","thanksgiving","newyear","valentines","spring"]);
+    const allowed = new Set(["standard","halloween","christmas","thanksgiving","newyear","valentines","spring","easter","independence"]);
     const safeTheme = allowed.has(theme) ? theme : "standard";
     document.documentElement.classList.remove(...Array.from(allowed).filter(x => x !== "standard").map(x => "theme-" + x));
     if (enabled && safeTheme !== "standard") document.documentElement.classList.add("theme-" + safeTheme);
