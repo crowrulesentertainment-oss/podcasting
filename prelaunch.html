@@ -125,9 +125,21 @@ const safeTarget=()=>{try{const n=new URLSearchParams(location.search).get("next
 const authRedirect=()=>new URL("prelaunch.html",location.href).href;
 async function client(){
  if(sb)return sb;
- const config=window.CROW_PODCASTING_CONFIG;
+ let config=window.CROW_PODCASTING_CONFIG;
  if(!config?.supabaseUrl||!config?.supabasePublishableKey||!window.supabase?.createClient){
-  throw new Error("Authentication is still loading. Please try again in a moment.");
+  await new Promise(resolve=>{
+   let tries=0;
+   const timer=setInterval(()=>{
+    config=window.CROW_PODCASTING_CONFIG;
+    tries++;
+    if((config?.supabaseUrl&&config?.supabasePublishableKey&&window.supabase?.createClient)||tries>=100){
+     clearInterval(timer);resolve();
+    }
+   },50);
+  });
+ }
+ if(!config?.supabaseUrl||!config?.supabasePublishableKey||!window.supabase?.createClient){
+  throw new Error("Authentication service could not be initialized.");
  }
  sb=window.supabase.createClient(config.supabaseUrl,config.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  return sb;
