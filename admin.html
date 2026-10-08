@@ -69,6 +69,14 @@ function render(){
  </main><footer>CROWRULES PODCASTING • OPERATIONS CENTER • ONE COMPANY. ONE UNIVERSE. • PRE-LAUNCH: JANUARY 1, 2027</footer>`;
  bind();
 }
+function mountAudiencePresence(){
+ const channels={listener:S.channel("crowrules-ops-audience-listener",{config:{presence:{key:"ops-"+crypto.randomUUID()}}}),creator:S.channel("crowrules-ops-audience-creator",{config:{presence:{key:"ops-"+crypto.randomUUID()}}}),launch:S.channel("crowrules-ops-audience-launch",{config:{presence:{key:"ops-"+crypto.randomUUID()}}})};
+ const counts=()=>Object.fromEntries(Object.entries(channels).map(([k,ch])=>[k,Object.values(ch.presenceState()).reduce((n,v)=>n+(Array.isArray(v)?v.length:0),0)]));
+ const paint=()=>{const x=counts(),total=x.listener+x.creator+x.launch;$("#liveListenerVisitors").textContent=fmt(x.listener);$("#liveCreatorVisitors").textContent=fmt(x.creator);$("#liveLaunchVisitors").textContent=fmt(x.launch);$("#liveAudienceTotal").textContent=fmt(total);$("#liveAudienceUpdated").textContent="Last synced "+new Date().toLocaleTimeString();$("#liveAudienceStatus").textContent=total?"Live audience telemetry connected.":"Live audience telemetry connected — no active visitors detected.";};
+ Object.values(channels).forEach(ch=>ch.on("presence",{event:"sync"},paint).on("presence",{event:"join"},paint).on("presence",{event:"leave"},paint).subscribe());
+ paint();
+ return ()=>Object.values(channels).forEach(ch=>ch.untrack().catch(()=>{}));
+}
 function bind(){
  $("#signout").onclick=async()=>{await S.auth.signOut();location.href="home.html"};
  $("#refresh").onclick=async()=>{try{await load();toast("Operations Center refreshed.")}catch(e){toast(e.message)}};
@@ -104,7 +112,7 @@ async function boot(){
    $("#app").innerHTML='<div class="gate"><div class="panel"><div class="eyebrow">ACCESS CONTROL</div><h1>ACCESS DENIED</h1><p style="color:var(--muted);line-height:1.7">This account is authenticated but is not marked as an administrator. Administrator status must come from trusted app metadata/server configuration.</p><a class="btn" href="home.html">RETURN HOME</a></div></div>';
    return;
   }
-  try{await load();await realtime()}catch(e){
+  try{await load();await realtime();mountAudiencePresence()}catch(e){
    $("#app").innerHTML='<div class="gate"><div class="panel"><h1>OPERATIONS LOAD FAILED</h1><p style="color:var(--muted)">'+esc(e.message)+'</p><button class="btn primary" onclick="location.reload()">RETRY</button></div></div>';
   }
   S.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT")location.href="home.html"});
