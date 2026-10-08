@@ -12,10 +12,10 @@
 <script src="../config.js"></script>
 <style>
 :root{--bg:#05060b;--panel:rgba(13,16,28,.88);--panel2:rgba(18,22,38,.82);--line:rgba(124,143,255,.18);--text:#f5f7ff;--muted:#9ba4bd;--cyan:#6de7ff;--purple:#a98bff;--pink:#ff78c8;--good:#70f0ad;--danger:#ff6f8e;--shadow:0 24px 70px rgba(0,0,0,.45)}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 15% 0%,rgba(109,231,255,.12),transparent 30%),radial-gradient(circle at 90% 10%,rgba(169,139,255,.13),transparent 32%),linear-gradient(180deg,#05060b,#080a12 55%,#05060b);color:var(--text);font-family:Montserrat,system-ui,sans-serif;min-height:100vh}
+*{box-sizing:border-box}[hidden]{display:none!important}html{scroll-behavior:smooth;scroll-padding-top:96px}body{margin:0;background:radial-gradient(circle at 15% 0%,rgba(109,231,255,.12),transparent 30%),radial-gradient(circle at 90% 10%,rgba(169,139,255,.13),transparent 32%),linear-gradient(180deg,#05060b,#080a12 55%,#05060b);color:var(--text);font-family:Montserrat,system-ui,sans-serif;min-height:100vh}
 a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}.shell{width:min(1220px,calc(100% - 32px));margin:auto}
-.top{position:sticky;top:0;z-index:20;background:rgba(5,6,11,.78);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
-.nav{min-height:74px;display:flex;align-items:center;gap:16px;justify-content:space-between}.brand{display:flex;align-items:center;gap:12px;font-family:Orbitron;font-weight:800;letter-spacing:.08em}.brand img{width:42px;height:42px;object-fit:contain}.brand span{font-size:14px}.navlinks{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.navlinks a,.navlinks button{border:1px solid transparent;background:transparent;color:#dbe1f4;padding:10px 12px;border-radius:10px;cursor:pointer}.navlinks a:hover,.navlinks button:hover{border-color:var(--line);background:rgba(255,255,255,.035)}
+.top{position:sticky;top:0;z-index:100;background:rgba(5,6,11,.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--line);isolation:isolate}.top .shell{width:min(1440px,calc(100% - 32px))}
+.nav{min-height:74px;display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap;padding:10px 0}.brand{flex:0 1 auto;min-width:0}.brand span{white-space:nowrap}.navlinks{flex:1 1 420px}.brand{display:flex;align-items:center;gap:12px;font-family:Orbitron;font-weight:800;letter-spacing:.08em}.brand img{width:42px;height:42px;object-fit:contain}.brand span{font-size:14px}.navlinks{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.navlinks a,.navlinks button{border:1px solid transparent;background:transparent;color:#dbe1f4;padding:10px 12px;border-radius:10px;cursor:pointer}.navlinks a:hover,.navlinks button:hover{border-color:var(--line);background:rgba(255,255,255,.035)}
 .hero{padding:56px 0 28px}.eyebrow{font-size:11px;letter-spacing:.22em;color:var(--cyan);font-weight:800}.hero h1{font-family:Orbitron;font-size:clamp(30px,5vw,58px);line-height:1.02;margin:12px 0}.hero p{color:var(--muted);max-width:760px;line-height:1.7}.status{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 11px;border:1px solid rgba(112,240,173,.2);background:rgba(112,240,173,.06);border-radius:999px;color:#baf8d7;font-size:12px}.dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 14px var(--good)}
 .grid{display:grid;grid-template-columns:1.05fr 1.95fr;gap:20px;padding-bottom:50px}.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:22px}.card h2{font-family:Orbitron;font-size:16px;margin:0 0 6px;letter-spacing:.05em}.sub{font-size:12px;color:var(--muted);line-height:1.6}
 .profile-card{text-align:center;position:sticky;top:96px;height:max-content}.cover-preview{height:112px;margin:-22px -22px 20px;border-radius:19px 19px 0 0;background:linear-gradient(120deg,rgba(109,231,255,.22),rgba(169,139,255,.28),rgba(255,120,200,.16));background-size:cover;background-position:center;border-bottom:1px solid var(--line)}.completion{margin:0 0 20px;padding:16px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025)}.completion-top{display:flex;justify-content:space-between;gap:12px;font-size:12px;font-weight:800}.progress{height:7px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin:11px 0 8px}.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));transition:width .25s}.preview-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:rgba(255,255,255,.02)}.preview-cover{height:90px;background:linear-gradient(120deg,rgba(109,231,255,.22),rgba(169,139,255,.28));background-size:cover;background-position:center}.preview-body{padding:15px}.preview-name{font-family:Orbitron;font-size:15px}.preview-meta{font-size:11px;color:var(--cyan);margin-top:5px}.preview-bio{font-size:12px;color:var(--muted);line-height:1.6;margin:10px 0}.avatar{width:112px;height:112px;border-radius:50%;margin:4px auto 16px;border:2px solid rgba(109,231,255,.45);background:linear-gradient(135deg,rgba(109,231,255,.18),rgba(169,139,255,.22));display:grid;place-items:center;overflow:hidden;font-family:Orbitron;font-size:30px}.avatar img{width:100%;height:100%;object-fit:cover}.name{font-family:Orbitron;font-size:20px}.handle{color:var(--cyan);font-size:12px;margin-top:5px}.badge{display:inline-flex;margin-top:12px;padding:6px 10px;border-radius:999px;background:rgba(169,139,255,.1);border:1px solid rgba(169,139,255,.25);font-size:10px;letter-spacing:.1em;color:#d7ccff}.bio{color:var(--muted);font-size:13px;line-height:1.65;margin:18px 0}.actions{display:grid;gap:9px}.btn{border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--text);padding:12px 14px;border-radius:11px;cursor:pointer;font-weight:700}.btn.primary{background:linear-gradient(90deg,rgba(109,231,255,.16),rgba(169,139,255,.16));border-color:rgba(109,231,255,.35)}.btn.danger{color:#ffb4c4;border-color:rgba(255,111,142,.25)}.btn:disabled{opacity:.55;cursor:not-allowed}
@@ -26,8 +26,8 @@ a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}.
 .list{display:grid;gap:9px}.item{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:13px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025)}.item .title{font-weight:700;font-size:13px}.item .meta{font-size:11px;color:var(--muted);margin-top:4px}.empty{padding:20px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:12px}
 .toast{position:fixed;right:20px;bottom:20px;z-index:50;max-width:360px;padding:14px 16px;border:1px solid var(--line);border-radius:13px;background:#0c1020;box-shadow:var(--shadow);display:none;font-size:12px}.toast.show{display:block}.toast.good{border-color:rgba(112,240,173,.35)}.toast.bad{border-color:rgba(255,111,142,.35)}
 .gate{min-height:70vh;display:grid;place-items:center;padding:30px}.gate .card{max-width:560px;text-align:center}.spinner{width:28px;height:28px;border:3px solid rgba(255,255,255,.12);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 15px}@keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:900px){.grid{grid-template-columns:1fr}.profile-card{position:relative;top:auto}.stats{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.shell{width:min(100% - 20px,1220px)}.nav{align-items:flex-start;padding:13px 0}.navlinks{justify-content:flex-start}.hero{padding-top:35px}.formgrid,.checks{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.card{padding:17px}}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.profile-card{position:relative;top:auto}.stats{grid-template-columns:repeat(2,1fr)}.nav{align-items:center}.navlinks{flex:1 1 100%;justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding:2px 0 6px;scrollbar-width:thin}.navlinks a,.navlinks button{white-space:nowrap;flex:0 0 auto}}
+@media(max-width:600px){.shell{width:min(100% - 20px,1220px)}.top .shell{width:calc(100% - 20px)}.nav{align-items:flex-start;padding:10px 0;gap:8px}.brand img{width:34px;height:34px}.brand span{font-size:10px;letter-spacing:.04em}.navlinks{gap:5px}.navlinks a,.navlinks button{padding:9px 10px;font-size:11px}.hero{padding:30px 0 20px}.hero h1{font-size:clamp(28px,8vw,42px)}.formgrid,.checks{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.card{padding:17px}.cover-preview{margin:-17px -17px 18px}.section-head{align-items:flex-start;flex-direction:column;gap:6px}}
 </style>
 </head>
 <body>
@@ -125,7 +125,7 @@ let user=null, member=null, profile=null, creator=null;
 function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
 function toast(msg,good=true){const t=$("toast");t.textContent=msg;t.className="toast show "+(good?"good":"bad");clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.className="toast",3500);}
 function initials(name){return (String(name||"CR").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("")||"CR").toUpperCase();}
-function setAvatar(url,name){const a=$("avatar");a.innerHTML=url?'<img src="'+esc(url)+'" alt="Profile avatar" onerror="this.remove();this.parentElement.textContent=\''+esc(initials(name))+'\';">':esc(initials(name));}
+function setAvatar(url,name){const a=$("avatar");a.replaceChildren();if(url&&safeHttpUrl(url)){const img=document.createElement("img");img.src=url;img.alt="Profile avatar";img.referrerPolicy="no-referrer";img.addEventListener("error",()=>{a.replaceChildren();a.textContent=initials(name);},{once:true});a.appendChild(img);}else{a.textContent=initials(name);}}
 function fmtDate(v){if(!v)return "Not recorded";const d=new Date(v);return isNaN(d)?"Not recorded":d.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});}
 function fmtProvider(p){return ({google:"Google",discord:"Discord",twitch:"Twitch",email:"Email",github:"GitHub",apple:"Apple",azure:"Microsoft"}[p]||p||"Account");}
 function showGate(title,msg,actions){$("gate").innerHTML='<div class="card"><h2>'+esc(title)+'</h2><p class="sub">'+esc(msg)+'</p><div class="actions" style="margin-top:18px">'+actions+'</div></div>';$("gate").hidden=false;$("app").hidden=true;}
@@ -139,14 +139,15 @@ async function load(){
    S.from("members").select("id,user_id,display_name,username,email,membership_type,role,status,points,watch_minutes,bio,avatar_url,last_active_at,created_at").eq("user_id",user.id).maybeSingle(),
    S.from("podcast_member_profiles").select("*").eq("user_id",user.id).maybeSingle()
  ]);
- if(me)throw me;if(pe)throw pe;
+ if(me)throw new Error("Could not load your CrowRules member record: "+me.message);if(pe)throw new Error("Could not load your profile settings: "+pe.message);
+ if(!m){showGate("MEMBER PROFILE NOT FOUND","You are signed in, but no matching CrowRules member record was found. Please return to your account page or contact support.",'<a class="btn primary" href="../account.html">OPEN ACCOUNT</a><a class="btn" href="../home.html">RETURN HOME</a>');return;}
  member=m;profile=p||{user_id:user.id};
  const role=String(member?.role||"").toLowerCase();
  if(!["listener","creator"].includes(role)){
    showGate("PODCASTING PROFILE UNAVAILABLE","Your account does not currently have a Listener or Creator Podcasting role.",'<a class="btn" href="../home.html">RETURN HOME</a>');return;
  }
- const creatorResult=role==="creator"?await S.from("creators").select("id,name,slug,role,discipline,bio,avatar_url,profile_url,is_active").eq("member_id",member.id).maybeSingle():{data:null};
- creator=creatorResult.data;
+ const creatorResult=role==="creator"?await S.from("creators").select("id,name,slug,role,discipline,bio,avatar_url,profile_url,is_active").eq("member_id",member.id).maybeSingle():{data:null,error:null};
+ if(creatorResult.error)console.warn("Creator profile lookup unavailable:",creatorResult.error.message);creator=creatorResult.data||null;
  await render();
  await loadCounts();
  await loadIdentities();
@@ -173,7 +174,7 @@ function fill(){
  $("accountStatus").textContent=(member.status||"Active").toUpperCase()+" • "+(member.role||"Listener").toUpperCase();
 }
 function safeHttpUrl(v){try{const u=new URL(v);return u.protocol==="https:"||u.protocol==="http:";}catch(_){return false;}}
-function updatePreview(){const name=$("name").value.trim()||"CrowRules Member";$("previewName").textContent=name;$("previewHandle").textContent="@"+($("usernameInput").value.trim().toLowerCase().replace(/[^a-z0-9_.-]/g,"")||"member");$("previewBio").textContent=$("bioInput").value.trim()||$("tagline").value.trim()||"Your profile bio will appear here.";$("previewInterests").textContent=$("interests").value.trim()?"INTERESTS · "+$("interests").value.trim():"";const cover=$("coverUrl").value.trim();const bg=cover&&safeHttpUrl(cover)?"url("+JSON.stringify(cover)+")":"";$("previewCover").style.backgroundImage=bg;$("coverPreview").style.backgroundImage=bg;}
+function updatePreview(){const name=$("name").value.trim()||"CrowRules Member";$("previewName").textContent=name;$("previewHandle").textContent="@"+($("usernameInput").value.trim().toLowerCase().replace(/[^a-z0-9_.-]/g,"")||"member");$("previewBio").textContent=$("bioInput").value.trim()||$("tagline").value.trim()||"Your profile bio will appear here.";$("previewInterests").textContent=$("interests").value.trim()?"INTERESTS · "+$("interests").value.trim():"";const cover=$("coverUrl").value.trim();const bg=cover&&safeHttpUrl(cover)?'url("'+cover.replace(/["\\)]/g,"\\const bg=cover&&safeHttpUrl(cover)?"url("+JSON.stringify(cover)+")":"";")+'")':"";$("previewCover").style.backgroundImage=bg;$("coverPreview").style.backgroundImage=bg;}
 function updateCompletion(){const ids=["name","usernameInput","tagline","bioInput","location","website","avatarUrl","coverUrl","interests","mood"];const count=ids.filter(id=>$(id).value.trim()).length;const pct=Math.round(count/ids.length*100);$("completionText").textContent=pct+"%";$("completionFill").style.width=pct+"%";$("completionBar").setAttribute("aria-valuenow",String(pct));$("completionHint").textContent=pct===100?"Your profile details are filled in.":(ids.length-count)+" more detail"+(ids.length-count===1?"":"s")+" can help personalize your profile.";}
 async function render(){fill();$("points").textContent=Number(member?.points||0).toLocaleString();$("minutes").textContent=Number(member?.watch_minutes||0).toLocaleString();$("lastSaved").textContent=profile.updated_at?"Last updated "+fmtDate(profile.updated_at):"Not saved yet";}
 
@@ -183,8 +184,9 @@ async function loadCounts(){
    S.from("cr_podcast_social_comments_v5").select("id",{count:"exact",head:true}).eq("user_id",user.id),
    S.from("podcast_user_saved_episodes").select("id",{count:"exact",head:true}).eq("user_id",user.id)
  ]);
- $("follows").textContent=Number(f.count||0).toLocaleString();$("comments").textContent=Number(c.count||0).toLocaleString();
- $("activity").dataset.saved=String(s.count||0);
+ $("follows").textContent=f.error?"—":Number(f.count||0).toLocaleString();$("comments").textContent=c.error?"—":Number(c.count||0).toLocaleString();
+ $("activity").dataset.saved=s.error?"unavailable":String(s.count||0);
+ if(f.error||c.error||s.error)console.warn("Some listener profile counts could not be loaded.",{follows:f.error?.message,comments:c.error?.message,saved:s.error?.message});
 }
 async function loadIdentities(){
  const box=$("identities");const {data,error}=await S.auth.getUserIdentities();
@@ -200,6 +202,7 @@ async function loadActivity(){
   S.from("podcast_user_saved_episodes").select("created_at,episode_id").eq("user_id",user.id).order("created_at",{ascending:false}).limit(5)
  ]);
  const rows=[];
+ if(f.error||c.error||s.error){box.innerHTML='<div class="empty">Some activity sources are currently unavailable. Your profile remains usable; check Supabase table access and row-level security for the affected activity tables.</div>';console.warn("Listener activity query errors",{follows:f.error?.message,comments:c.error?.message,saved:s.error?.message});return;}
  (f.data||[]).forEach(x=>rows.push({date:x.created_at,title:"Followed a podcast",meta:"Podcast ID "+x.podcast_id,type:"FOLLOW"}));
  (c.data||[]).forEach(x=>rows.push({date:x.created_at,title:"Posted a comment",meta:String(x.body||"").slice(0,90),type:"COMMENT"}));
  (s.data||[]).forEach(x=>rows.push({date:x.created_at,title:"Saved an episode",meta:"Episode ID "+x.episode_id,type:"SAVE"}));
@@ -207,19 +210,20 @@ async function loadActivity(){
  box.innerHTML=rows.length?rows.slice(0,8).map(x=>'<div class="item"><div><div class="title">'+esc(x.title)+'</div><div class="meta">'+esc(x.meta||"Podcasting activity")+' • '+esc(fmtDate(x.date))+'</div></div><span class="badge">'+esc(x.type)+'</span></div>').join(""):'<div class="empty">No recent activity yet. Start listening, following, saving, or commenting to build your Podcasting footprint.</div>';
 }
 async function saveProfile(e){
- e?.preventDefault();$("saveBtn").disabled=true;$("saveBtn").textContent="SAVING…";
+ e?.preventDefault();if(!user||!S){toast("Your session is unavailable. Please sign in again.",false);return;}$("saveBtn").disabled=true;$("saveTop").disabled=true;$("saveBtn").textContent="SAVING…";
  const username=$("usernameInput").value.trim().toLowerCase();
  if(username&&!/^[a-z0-9_.-]{3,32}$/.test(username)){toast("Username must be 3–32 characters using letters, numbers, dots, underscores or hyphens.",false);$("saveBtn").disabled=false;$("saveBtn").textContent="SAVE CHANGES";return;}
  for(const id of ["website","avatarUrl","coverUrl"]){const v=$(id).value.trim();if(v&&!safeHttpUrl(v)){toast("Please use a valid http:// or https:// URL for "+({website:"website",avatarUrl:"avatar image",coverUrl:"cover image"}[id])+".",false);$("saveBtn").disabled=false;$("saveBtn").textContent="SAVE CHANGES";return;}}
  const payload={user_id:user.id,display_name:$("name").value.trim().slice(0,80),username,tagline:$("tagline").value.trim().slice(0,120),bio:$("bioInput").value.trim().slice(0,600),location:$("location").value.trim().slice(0,100),website_url:$("website").value.trim().slice(0,240)||null,avatar_url:$("avatarUrl").value.trim().slice(0,500)||null,cover_url:$("coverUrl").value.trim().slice(0,500)||null,interests:$("interests").value.trim().slice(0,400),favorite_music:$("favoriteMusic").value.trim().slice(0,300),favorite_movies:$("favoriteMovies").value.trim().slice(0,300),favorite_games:$("favoriteGames").value.trim().slice(0,300),mood:$("mood").value||null};
  const {data,error}=await S.from("podcast_member_profiles").upsert(payload,{onConflict:"user_id"}).select("*").single();
  if(error){toast(error.message,false);}else{profile=data;await render();toast("Profile saved.");}
- $("saveBtn").disabled=false;$("saveBtn").textContent="SAVE CHANGES";
+ $("saveBtn").disabled=false;$("saveTop").disabled=false;$("saveBtn").textContent="SAVE CHANGES";
 }
 async function savePrivacy(){
+ if(!user||!S){toast("Your session is unavailable. Please sign in again.",false);return;}const b=$("savePrivacy");b.disabled=true;b.textContent="SAVING…";
  const payload={is_public:$("isPublic").checked,activity_public:$("activityPublic").checked,network_public:$("networkPublic").checked,followers_public:$("followersPublic").checked,following_public:$("followingPublic").checked};
  const {data,error}=await S.from("podcast_member_profiles").upsert({user_id:user.id,...payload},{onConflict:"user_id"}).select("*").single();
- if(error)toast(error.message,false);else{profile=data;await render();toast("Privacy settings saved.");}
+ if(error)toast("Privacy settings could not be saved: "+error.message,false);else{profile={...profile,...data};await render();toast("Privacy settings saved.");}b.disabled=false;b.textContent="SAVE PRIVACY SETTINGS";
 }
 $("profileForm").addEventListener("submit",saveProfile);$("saveTop").addEventListener("click",()=>saveProfile());$("savePrivacy").addEventListener("click",savePrivacy);
 ["name","usernameInput","tagline","bioInput","location","website","avatarUrl","coverUrl","interests","favoriteMusic","favoriteMovies","favoriteGames","mood"].forEach(id=>$(id).addEventListener("input",()=>{updatePreview();updateCompletion();if(id==="avatarUrl"){const v=$(id).value.trim();if(v&&safeHttpUrl(v))setAvatar(v,$("name").value||member?.display_name||"CR");else setAvatar(member?.avatar_url||profile?.avatar_url,$("name").value||member?.display_name||"CR");}}));
