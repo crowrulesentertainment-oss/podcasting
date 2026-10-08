@@ -40,7 +40,7 @@
   <script>window.CRPage="rankings";</script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="../config.js"></script>
-  <script defer src="../js/podcasting.js"></script>
+  <script defer src="../js/podcasting.js?v=978d905"></script>
 </head>
 <body>
   <div id="app">
@@ -68,7 +68,7 @@
         if(finished||!app)return;
         var loader=document.getElementById("rankBootStatus");
         if(!loader){finished=true;return}
-        if(Date.now()-started<16000)return;
+        if(Date.now()-started<10000)return;
         finished=true;
         loader.setAttribute("role","alert");
         loader.innerHTML='<div class="eyebrow">CROWRULES PODCASTING</div><h1>The charts are taking longer than expected.</h1><p>The rankings script may not have completed, or the database request may be unavailable. You can retry safely or continue browsing while we recover.</p><div class="rank-loading-actions"><button type="button" id="rankRetry">RETRY LOADING</button><a href="index.html">LISTENER HOME</a><a href="../home.html">PODCASTING HOME</a></div><p class="rank-load-status">No ranking data has been fabricated or substituted.</p>';
