@@ -11,7 +11,7 @@
 @media(max-width:1100px){.hero,.two,.three{grid-template-columns:1fr}.grid{grid-template-columns:repeat(3,1fr)}.links{display:none}}@media(max-width:650px){.shell{width:calc(100% - 20px)}.grid{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:43px}.metric strong{font-size:24px}.user a{display:none}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 </style></head><body>
-<div id="app"><div class="gate"><div class="panel"><div class="spinner"></div><p style="color:var(--muted)">Authenticating operations access…</p></div></div></div><div id="toast" class="toast"></div>
+<div id="app"><div class="gate"><div class="panel"><div class="spinner"></div><p style="color:var(--muted)">Starting secure operations access…</p></div></div></div><div id="toast" class="toast"></div>
 <script>
 (()=>{"use strict";
 const C=window.CROW_CONFIG||{},S=window.supabase?.createClient?window.supabase.createClient(C.supabaseUrl||"",C.supabaseKey||"",{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}):null;
@@ -131,11 +131,10 @@ async function boot(){
  let authEventSeen=false;
  const {data:authListener}=S.auth.onAuthStateChange((event)=>{authEventSeen=true;if(event==="SIGNED_OUT")location.href="home.html";});
  try{
-  // Give the browser client a short window to finish restoring an OAuth/password session.
-  await withTimeout(S.auth.initialize?.()||Promise.resolve(),8000,"Supabase Auth initialization timed out.");
-  const sessionResult=await withTimeout(S.auth.getSession(),8000,"Supabase session lookup timed out.");
-  if(sessionResult.error)throw sessionResult.error;
-  if(!sessionResult.data?.session){
+  // Verify the stored JWT without waiting on the session-storage restore path.
+  // getClaims() is designed for access checks; getUser() then fetches fresh trusted user metadata.
+  const claimsResult=await withTimeout(S.auth.getClaims(),8000,"Supabase Auth verification timed out.");
+  if(claimsResult.error||!claimsResult.data?.claims){
    await showGate("ADMIN SIGN-IN REQUIRED","No active Podcasting session was found. Sign in first, then return to Operations Center.",'<a class="btn primary" href="login.html?redirect=admin.html">SIGN IN</a><button class="btn" onclick="location.reload()">RETRY</button>');
    return;
   }
