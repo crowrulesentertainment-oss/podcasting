@@ -55,16 +55,16 @@ document.querySelectorAll("[data-provider]").forEach(btn=>btn.addEventListener("
  if(!S){status.textContent="Account service is unavailable.";return}
  const role=new FormData(form).get("role"); localStorage.setItem("crowrules_podcasting_signup_role",role);
  btn.disabled=true; status.textContent="Connecting to "+btn.textContent+"…";
- const {error}=await S.auth.signInWithOAuth({provider:btn.dataset.provider,options:{redirectTo:location.href}});
+ const oauthReturn=new URL(location.href); oauthReturn.searchParams.set("oauth","1"); oauthReturn.searchParams.set("role",role); const {error}=await S.auth.signInWithOAuth({provider:btn.dataset.provider,options:{redirectTo:oauthReturn.toString()}});
  if(error){status.textContent=error.message||"Unable to start social sign-in.";btn.disabled=false;}
 }));
-if(S){const u=await S.auth.getUser();if(u.data?.user&&new URLSearchParams(location.search).get("oauth")==="1"){location.href=safeRedirect;return}}
+if(S){const u=await S.auth.getUser();if(u.data?.user&&new URLSearchParams(location.search).get("oauth")==="1"){const oauthRole=new URLSearchParams(location.search).get("role");if(["listener","creator"].includes(oauthRole)){const {error}=await S.auth.updateUser({data:{app:"podcasting",signup_role:oauthRole,podcast_role:oauthRole}});if(error){status.textContent=error.message||"Unable to finish your Podcasting profile.";return}}localStorage.removeItem("crowrules_podcasting_signup_role");location.href=safeRedirect;return}}
 form.addEventListener("submit",async e=>{
  e.preventDefault(); if(!S){status.textContent="Account service is unavailable. Please try again.";return}
  submit.disabled=true;status.textContent="Creating your CrowRules account…";
  const role=new FormData(form).get("role"),name=document.getElementById("name").value.trim(),email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;
  try{
-  const r=await S.auth.signUp({email,password,options:{data:{display_name:name,podcast_role:role},emailRedirectTo:location.origin+location.pathname+"?redirect="+encodeURIComponent(safeRedirect)}});
+  const r=await S.auth.signUp({email,password,options:{data:{app:"podcasting",signup_role:role,podcast_role:role,display_name:name},emailRedirectTo:location.origin+location.pathname+"?redirect="+encodeURIComponent(safeRedirect)}});
   if(r.error)throw r.error;
   if(r.data?.session){location.href=safeRedirect;return}
   status.textContent="Account created. Check your email to confirm your account, then sign in.";
