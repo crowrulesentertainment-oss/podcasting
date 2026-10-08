@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="css/podcasting.css">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="js/config.js" defer></script><script src="js/listener-engine.js" defer></script>
-<link rel="stylesheet" href="css/podcasting-v8.css?v=20261007-v8.0.0">
+<link rel="stylesheet" href="css/podcasting-v8.css?v=20261007-v7.0.0">
 <script src="js/podcasting-v8.js?v=20261007-v8.0.0" defer></script>
 </head>
 <body>
@@ -44,6 +44,16 @@
  <div class="cr-v4-subhead">RECENTLY PLAYED</div><div id="recentList" class="cr-v3-list"></div>
  <div class="cr-v4-subhead">SAVED EPISODES</div><div id="savedList" class="cr-v3-list"></div>
  <div class="cr-v4-subhead">LISTENING QUEUE</div><div id="queueList" class="cr-v3-list"></div><div class="cr-v4-subhead">LISTENING SNAPSHOT</div><div id="snapshot" class="cr-v5-snapshot"></div>
+</section>
+
+<section class="cr-v3-panel cr-v3-section cr-v7-discovery" id="discovery" style="margin-top:18px">
+ <div class="cr-v4-heading"><div><div class="cr-v3-kicker">PERSONALIZED DISCOVERY</div><h2>DISCOVER YOUR NEXT LISTEN</h2></div><button class="cr-v3-btn" id="refreshDiscovery" type="button">REFRESH</button></div>
+ <div class="cr-v7-hero-note" id="discoveryIntro">Your listening history is shaping these shelves.</div>
+ <div class="cr-v4-subhead">RECOMMENDED FOR YOU</div><div id="recommendedList" class="cr-v7-shelf"></div>
+ <div class="cr-v4-subhead">BECAUSE YOU LISTENED</div><div id="becauseList" class="cr-v7-shelf"></div>
+ <div class="cr-v4-subhead">TOP SHOWS</div><div id="topShows" class="cr-v7-shelf"></div>
+ <div class="cr-v4-subhead">NEW EPISODES</div><div id="newEpisodes" class="cr-v7-shelf"></div>
+ <div class="cr-v4-subhead">EXPLORE BY GENRE</div><div id="genreShelves" class="cr-v7-genres"></div>
 </section>
 
 <section class="cr-v3-panel cr-v3-section" id="subscriptions" style="margin-top:18px">
@@ -103,9 +113,9 @@ async function boot(){
   await window.CrowAccount?.refresh?.();
   renderIdentity(window.CrowAccount?.get()||{},user);
   $("#dashboard").hidden=false;note("");
-  state.listener=await getProfile();renderListening(state.listener);
+  state.listener=await getProfile();renderListening(state.listener);await loadDiscovery(state.listener);
   await Promise.all([loadMembership(user),loadSubscriptions(state.listener),loadCreator(window.CrowAccount?.get()||{})]);
-  window.CrowAccount?.onChange?.(async next=>{renderIdentity(next,user);state.listener=await getProfile();renderListening(state.listener);loadMembership(user);loadSubscriptions(state.listener);loadCreator(next)});
+  window.CrowAccount?.onChange?.(async next=>{renderIdentity(next,user);state.listener=await getProfile();renderListening(state.listener);loadDiscovery(state.listener);loadMembership(user);loadSubscriptions(state.listener);loadCreator(next)});
  }catch(e){note("Unable to load your account command center.");$("#status").insertAdjacentHTML("beforeend",'<div class="cr-v3-error">'+esc(e?.message||"Unknown error")+"</div>")}
 }
 function renderIdentity(s,user){
@@ -127,6 +137,30 @@ function bindPlayers(){document.querySelectorAll("[data-play-episode]").forEach(
  $("#savedList").innerHTML=saved.slice(0,8).map(id=>episodeRow(em.get(id),"Saved episode")).join("")||empty("Save episodes from the player to build your library."); bindPlayers();
  $("#queueList").innerHTML=queue.slice(0,8).map(x=>episodeRow(em.get(x.episode_id),"Queue #"+(Number(x.position)+1))).join("")||empty("Your listening queue is empty."); bindPlayers(); $("#snapshot").innerHTML="<div class=\"cr-v5-mini\"><strong>"+Number(progress.length)+"</strong><span>tracked episodes</span></div><div class=\"cr-v5-mini\"><strong>"+Math.round(progress.reduce((n,x)=>n+Number(x.position_seconds||0),0)/60).toLocaleString()+"</strong><span>tracked minutes</span></div><div class=\"cr-v5-mini\"><strong>"+Number(p?.streak||0)+"</strong><span>day streak</span></div>";
 }
+
+async function loadDiscovery(p){
+ const intro=$("#discoveryIntro"),rec=$("#recommendedList"),because=$("#becauseList"),shows=$("#topShows"),news=$("#newEpisodes"),genres=$("#genreShelves");
+ const card=e=>{if(!e)return"";const art=e.thumbnail_url||e.podcasts?.artwork_url||"";return '<article class="cr-v7-card"><div class="cr-v7-art">'+(art?'<img src="'+esc(art)+'" alt="">':"CR")+'</div><div class="cr-v7-card-body"><strong>'+esc(e.title||"Untitled episode")+'</strong><small>'+esc(e.podcasts?.title||"Podcast")+" • "+esc(e.podcasts?.category||"General")+'</small><div class="cr-v7-actions"><button class="cr-v3-btn primary" type="button" data-v7-play="'+esc(e.id)+'">PLAY</button><a class="cr-v3-btn" href="episode.html?id='+encodeURIComponent(e.id)+'">OPEN</a></div></div></article>'};
+ const showCard=x=>'<article class="cr-v7-show"><div class="cr-v7-show-art">'+(x.artwork_url?'<img src="'+esc(x.artwork_url)+'" alt="">':"CR")+'</div><div><strong>'+esc(x.title||"Podcast")+'</strong><small>'+esc(x.category||"Podcast")+" • "+Number(x.listener_count||0).toLocaleString()+" listeners</small><a class="cr-v3-btn" href="show.html?id='+encodeURIComponent(x.id)+'">OPEN SHOW</a></div></article>';
+ const empty7=t=>'<div class="cr-v7-empty">'+t+"</div>";
+ try{
+  const recommendations=await window.CrowListener?.recommendations?.(p)||[];
+  const followed=p?.follows||[], topCats=p?.topCategories||[];
+  intro.textContent=topCats.length?"Personalized from your listening: "+topCats.slice(0,3).join(" • ")+".":"Explore popular and newly published CrowRules episodes.";
+  rec.innerHTML=recommendations.slice(0,12).map(card).join("")||empty7("Listen to a few episodes to unlock personalized recommendations.");
+  const recentIds=new Set((p?.recent||[]).map(x=>x.episode_id));
+  let becauseEpisodes=[];
+  if(followed.length){const r=await sb.from("podcast_episodes").select("id,podcast_id,title,description,audio_url,thumbnail_url,duration_seconds,play_count,published_at,podcasts(id,title,category,artwork_url)").eq("status","published").in("podcast_id",followed).order("published_at",{ascending:false}).limit(24);becauseEpisodes=(r.data||[]).filter(e=>e.audio_url&&!recentIds.has(e.id)).slice(0,10)}
+  if(!becauseEpisodes.length&&recentIds.size){const recentShow=[...recentIds].map(id=>p?.em?.get(id)?.podcast_id).find(Boolean);if(recentShow){const r=await sb.from("podcast_episodes").select("id,podcast_id,title,description,audio_url,thumbnail_url,duration_seconds,play_count,published_at,podcasts(id,title,category,artwork_url)").eq("status","published").eq("podcast_id",recentShow).order("published_at",{ascending:false}).limit(16);becauseEpisodes=(r.data||[]).filter(e=>e.audio_url&&!recentIds.has(e.id)).slice(0,10)}}
+  because.innerHTML=becauseEpisodes.map(card).join("")||empty7("Follow a show or start listening to build your personalized "Because You Listened" shelf.");
+  const sr=await sb.from("podcasts").select("id,title,category,artwork_url,listener_count,total_plays,status").eq("status","published").order("listener_count",{ascending:false}).limit(12);shows.innerHTML=(sr.data||[]).map(showCard).join("")||empty7("Top shows will appear as the catalog grows.");
+  const nr=await sb.from("podcast_episodes").select("id,podcast_id,title,description,audio_url,thumbnail_url,duration_seconds,play_count,published_at,podcasts(id,title,category,artwork_url)").eq("status","published").order("published_at",{ascending:false}).limit(18);const fresh=nr.data||[];news.innerHTML=fresh.map(card).join("")||empty7("New episodes will appear here.");
+  const pool=[...recommendations,...becauseEpisodes,...fresh], byCat=new Map();pool.forEach(e=>{const cat=String(e.podcasts?.category||"General").trim();if(!byCat.has(cat))byCat.set(cat,[]);if(byCat.get(cat).length<6&&!byCat.get(cat).some(x=>x.id===e.id))byCat.get(cat).push(e)});
+  genres.innerHTML=[...byCat.entries()].slice(0,6).map(([cat,items])=>'<div class="cr-v7-genre"><div class="cr-v7-genre-head"><strong>'+esc(cat)+'</strong><span>'+items.length+" picks</span></div><div class=\"cr-v7-mini-shelf\">"+items.map(card).join("")+"</div></div>").join("")||empty7("Genres will build as more shows and episodes are published.");
+  document.querySelectorAll("[data-v7-play]").forEach(b=>b.onclick=()=>playDiscoveryEpisode(b.dataset.v7Play));
+ }catch(e){[rec,because,shows,news,genres].forEach(x=>x.innerHTML=empty7("Discovery is temporarily unavailable."));toast(e?.message||"Discovery could not load.","error")}
+}
+function playDiscoveryEpisode(id){const e=state.episodes.get(id);if(e)return playEpisode(id);toast("Opening this episode…","info");location.href="episode.html?id="+encodeURIComponent(id)}
 async function loadMembership(user){
  try{
   const r=await sb.functions.invoke("membership-status",{body:{}});if(r.error)throw r.error;
@@ -159,7 +193,7 @@ async function loadCreator(s){
  shows.innerHTML=ps.map(x=>'<div class="cr-v3-row"><div><strong>'+esc(x.title)+'</strong><small>'+esc(x.production_status||x.status||"draft")+" • "+Number(x.total_plays||0).toLocaleString()+" plays</small></div><a class="cr-v3-btn" href="show.html?id='+encodeURIComponent(x.id)+'">VIEW</a></div>').join("");
 }
 async function signout(){try{await sb.auth.signOut();location.href="login.html"}catch(e){toast(e?.message||"Sign out failed.","error")}}
-$("#signout").onclick=signout;$("#signout2").onclick=signout;boot();
+$("#refreshDiscovery").onclick=()=>loadDiscovery(state.listener);$("#signout").onclick=signout;$("#signout2").onclick=signout;boot();
 })();
 </script>
 </body></html>
