@@ -1,1 +1,50 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Listener Rankings — CrowRules Podcasting</title><link rel="stylesheet" href="../css/podcasting.css"><script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="../config.js"></script><script defer src="../js/podcasting.js"></script></head><body><div id="app"></div><script>window.CRPage="rankings"</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05070d">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Explore podcast rankings, popular shows, listener activity and creator momentum across CrowRules Podcasting.">
+  <title>Podcast Rankings & Charts | CrowRules Podcasting</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/podcasting.css">
+  <style>
+    :root{--chart-cyan:#67e8f9;--chart-purple:#a78bfa}
+    [hidden]{display:none!important}
+    html{scroll-behavior:smooth;scroll-padding-top:100px}
+    body{background:radial-gradient(ellipse at 8% 0,rgba(103,232,249,.10),transparent 32%),radial-gradient(ellipse at 94% 12%,rgba(167,139,250,.13),transparent 34%),#05070d}
+    #app{min-height:100vh}
+    #app .shell{width:min(1420px,calc(100% - 36px))}
+    #app main{min-height:65vh}
+    #app .rank-controls .input{background:#080f18;color:#f5f7fb}
+    #app button:focus-visible,#app a:focus-visible,#app input:focus-visible,#app select:focus-visible{outline:2px solid var(--chart-cyan);outline-offset:3px}
+    #app .rank-spotlight-art,#app .rank-art{object-fit:cover}
+    .rank-page-loading{max-width:850px;margin:32px auto;padding:clamp(22px,5vw,44px);border:1px solid rgba(103,232,249,.2);border-radius:20px;background:rgba(10,15,25,.88)}
+    .rank-page-loading h1{font:800 clamp(24px,4vw,38px) Orbitron,sans-serif;margin:12px 0}
+    .rank-page-loading p{color:#91a0b5;font-size:13px;line-height:1.8}
+    .rank-page-loading .eyebrow{color:var(--chart-cyan);font:800 10px Orbitron,sans-serif;letter-spacing:.18em}
+    @media(max-width:800px){#app .shell{width:min(100% - 24px,1420px)}}
+    @media(max-width:480px){#app .shell{width:calc(100% - 20px)}#app .card{padding:15px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+  </style>
+  <script>window.CRPage="rankings";</script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="../config.js"></script>
+  <script defer src="../js/podcasting.js"></script>
+</head>
+<body>
+  <div id="app">
+    <main class="shell">
+      <section class="rank-page-loading" role="status" aria-live="polite">
+        <div class="eyebrow">CROWRULES PODCASTING</div>
+        <h1>Loading the charts…</h1>
+        <p>Gathering published shows, play counts, listener activity and follows.</p>
+      </section>
+    </main>
+  </div>
+  <noscript><main class="shell"><section class="rank-page-loading"><h1>JavaScript is required</h1><p>Enable JavaScript to load live podcast rankings.</p></section></main></noscript>
+</body>
+</html>
