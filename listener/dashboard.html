@@ -1,1 +1,127 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Listener Dashboard — CrowRules Podcasting</title><link rel="stylesheet" href="../css/podcasting.css"><script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="../config.js"></script><script defer src="../js/podcasting.js"></script></head><body><div id="app"></div><script>window.CRPage="listener"</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#070b14">
+<title>My Listening — CrowRules Podcasting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<style>
+:root{--bg:#050811;--panel:rgba(13,19,32,.82);--line:rgba(148,163,184,.18);--text:#f8fafc;--muted:#94a3b8;--cyan:#22d3ee;--purple:#a78bfa;--pink:#f472b6;--green:#34d399;--shadow:0 20px 70px rgba(0,0,0,.38)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 15% 0%,rgba(34,211,238,.12),transparent 32%),radial-gradient(circle at 85% 8%,rgba(167,139,250,.14),transparent 30%),linear-gradient(180deg,#050811,#080d18 45%,#050811);color:var(--text);font-family:Montserrat,system-ui,sans-serif;min-height:100vh}a{color:inherit;text-decoration:none}button{font:inherit}.wrap{width:min(1180px,calc(100% - 32px));margin:auto}
+nav{position:sticky;top:0;z-index:20;background:rgba(5,8,17,.82);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}.navin{min-height:72px;display:flex;align-items:center;gap:18px}.brand{display:flex;align-items:center;gap:10px;font:700 14px Orbitron;letter-spacing:.08em;margin-right:auto}.brand img{width:42px;height:42px;object-fit:contain}.links{display:flex;gap:7px;flex-wrap:wrap}.links a,.account{padding:10px 12px;border-radius:10px;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.08em}.links a:hover,.links a.active{color:#fff;background:rgba(255,255,255,.06)}.account{border:1px solid var(--line);color:#fff}
+main{padding:52px 0 80px}.eyebrow{font:700 11px Orbitron;letter-spacing:.16em;color:var(--cyan);text-transform:uppercase}.hero{display:grid;grid-template-columns:1.25fr .75fr;gap:24px;align-items:stretch}.hero h1{font:800 clamp(40px,7vw,82px)/.92 Orbitron;margin:12px 0 20px;letter-spacing:-.045em}.hero p{max-width:690px;color:var(--muted);line-height:1.8;font-size:15px}.panel{background:linear-gradient(145deg,rgba(15,23,42,.9),rgba(8,12,23,.78));border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:24px}.identity{display:flex;align-items:center;gap:15px}.avatar{width:58px;height:58px;border-radius:16px;object-fit:cover;background:#111827;border:1px solid var(--line)}.identity strong{display:block}.identity small{color:var(--muted)}.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}.stat{padding:15px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025)}.stat b{display:block;font:700 24px Orbitron}.stat span{color:var(--muted);font-size:10px;letter-spacing:.1em}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}.btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:#fff;font-size:11px;font-weight:800;letter-spacing:.08em;cursor:pointer}.btn.primary{border-color:rgba(34,211,238,.45);background:linear-gradient(100deg,rgba(34,211,238,.16),rgba(167,139,250,.16));box-shadow:0 0 25px rgba(34,211,238,.08)}.btn:hover{transform:translateY(-1px)}
+.section{margin-top:42px}.sectionhead{display:flex;align-items:end;justify-content:space-between;gap:15px;margin-bottom:15px}.sectionhead h2{font:700 24px Orbitron;margin:0}.sectionhead a{color:var(--cyan);font-size:10px;font-weight:800;letter-spacing:.1em}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{min-width:0}.cover{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;background:linear-gradient(135deg,#111827,#172033);border:1px solid var(--line)}.card h3{margin:12px 0 6px;font-size:15px}.muted{color:var(--muted);font-size:12px;line-height:1.6}.meta{color:#64748b;font-size:10px;letter-spacing:.04em}
+.list{display:grid;gap:10px}.row{display:flex;align-items:center;gap:14px;padding:15px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025)}.row:hover{background:rgba(255,255,255,.045)}.row img{width:64px;height:64px;border-radius:12px;object-fit:cover}.rowmain{flex:1;min-width:0}.rowmain b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rowmain small{display:block;color:var(--muted);margin-top:5px;line-height:1.5}.progress{height:5px;border-radius:99px;background:#172033;overflow:hidden;margin-top:9px}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));width:var(--p,0%)}.empty{padding:26px;text-align:center;border:1px dashed var(--line);border-radius:18px;color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.feature{display:flex;gap:13px;align-items:flex-start}.icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.18);font:700 16px Orbitron;color:var(--cyan)}.notice{padding:14px;border-radius:13px;background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--muted);font-size:11px;line-height:1.6}.live{color:var(--green)}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green);margin-right:7px}
+footer{border-top:1px solid var(--line);padding:28px 0 40px;color:#64748b;font-size:10px;letter-spacing:.06em}footer .wrap{display:flex;justify-content:space-between;gap:15px}
+@media(max-width:900px){.hero,.two{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}.links a:nth-child(n+4){display:none}}
+@media(max-width:600px){.wrap{width:min(100% - 20px,1180px)}.navin{min-height:64px}.brand span{display:none}.links a{padding:8px;font-size:9px}.account{font-size:9px;padding:8px}.hero h1{font-size:44px}.grid{grid-template-columns:1fr}.statgrid{grid-template-columns:1fr 1fr 1fr}.panel{padding:18px}.row img{width:52px;height:52px}footer .wrap{display:block}.section{margin-top:32px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style>
+</head>
+<body>
+<nav><div class="wrap navin">
+<a class="brand" href="index.html"><img id="logo" src="../images/podcastinglogo.png" alt="CrowRules Podcasting"><span>CROWRULES / PODCASTING</span></a>
+<div class="links"><a href="index.html">LISTEN</a><a class="active" href="dashboard.html">MY LISTENING</a><a href="rankings.html">RANKINGS</a><a href="profile.html">PROFILE</a><a href="../launch.html">LAUNCH 2027</a></div>
+<a id="account" class="account" href="../login.html">SIGN IN</a>
+</div></nav>
+
+<main><div class="wrap">
+<section class="hero">
+<div>
+<div class="eyebrow">LISTENER EXPERIENCE • PERSONAL COMMAND CENTER</div>
+<h1>YOUR<br>LISTENING<br>UNIVERSE.</h1>
+<p>Pick up where you left off, keep your favorite shows close, track your listening journey, and stay connected to the CrowRules Podcasting community — all from one listener dashboard.</p>
+<div class="actions"><a class="btn primary" href="index.html">DISCOVER PODCASTS</a><a class="btn" href="rankings.html">VIEW RANKINGS</a></div>
+</div>
+<div class="panel" id="identityPanel"><div class="identity"><img class="avatar" id="avatar" src="../images/podcastinglogo.png" alt=""><div><strong id="welcome">Listener mode</strong><small id="email">Checking your account…</small></div></div><div class="statgrid"><div class="stat"><b id="minutes">0</b><span>MINUTES</span></div><div class="stat"><b id="follows">0</b><span>FOLLOWS</span></div><div class="stat"><b id="comments">0</b><span>COMMENTS</span></div></div><div class="notice" style="margin-top:14px"><span class="dot"></span><span id="status">Connecting to your listening universe…</span></div></div>
+</section>
+
+<section class="section"><div class="sectionhead"><h2>Continue Listening</h2><a href="index.html">DISCOVER MORE →</a></div><div id="history" class="list"><div class="empty">Loading your listening history…</div></div></section>
+
+<section class="section"><div class="sectionhead"><h2>Your Listener Toolkit</h2><span class="eyebrow">BUILT FOR LISTENERS</span></div><div class="two">
+<div class="panel feature"><div class="icon">▶</div><div><h3>Keep Your Place</h3><p class="muted">Your listening activity is designed to make returning to an episode simple instead of starting over.</p></div></div>
+<div class="panel feature"><div class="icon">♡</div><div><h3>Follow the Shows You Love</h3><p class="muted">Build a personal network of favorite podcasts and stay close to the creators you want to hear from.</p></div></div>
+<div class="panel feature"><div class="icon">#</div><div><h3>Join the Conversation</h3><p class="muted">Comments and community activity bring the listener experience beyond the play button.</p></div></div>
+<div class="panel feature"><div class="icon">★</div><div><h3>Climb the Rankings</h3><p class="muted">Listening, engagement and community participation can become part of your CrowRules journey.</p></div></div>
+</div></section>
+
+<section class="section two">
+<div class="panel"><div class="sectionhead"><h2>Live Right Now</h2><span class="eyebrow">REALTIME</span></div><div id="live" class="notice"><span class="dot"></span>Checking the live network…</div></div>
+<div class="panel"><div class="sectionhead"><h2>One Account. One Universe.</h2></div><p class="muted">Your CrowRules identity is designed to move with you between listener and creator experiences.</p><div class="actions"><a class="btn primary" href="profile.html">OPEN PROFILE</a><a class="btn" href="../home.html">PODCASTING HOME</a></div></div>
+</section>
+
+<section class="section"><div class="panel" style="text-align:center"><div class="eyebrow">CROWRULES PODCASTING • PRE-LAUNCH</div><h2 style="font:700 28px Orbitron">THE NETWORK IS GETTING READY.</h2><p class="muted">Podcasting launches January 1, 2027. Explore the listener experience now and help shape what comes next.</p><div class="actions" style="justify-content:center"><a class="btn primary" href="../launch.html">SEE LAUNCH COUNTDOWN</a><a class="btn" href="../pre-launch/index.html">PRE-LAUNCH HUB</a></div></div></section>
+</div></main>
+<footer><div class="wrap"><span>CROWRULES ENTERTAINMENT • ONE COMPANY. ONE UNIVERSE.</span><span>PODCASTING • LISTENER EXPERIENCE • 2027</span></div></footer>
+
+<script>
+const C=window.CROW_CONFIG||{}; const S=(window.supabase&&C.supabaseUrl&&C.supabaseKey)?supabase.createClient(C.supabaseUrl,C.supabaseKey):null;
+const $=s=>document.querySelector(s); const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const logo=()=>C.logoUrl||"../images/podcastinglogo.png";
+$("#logo").src=logo(); $("#avatar").src=logo();
+
+async function init(){
+ if(!S){$("#status").textContent="Supabase configuration is unavailable.";return}
+ const {data:{session}}=await S.auth.getSession();
+ if(!session){location.href="../login.html";return}
+ const u=session.user, meta=u.user_metadata||{};
+ $("#welcome").textContent=meta.full_name||meta.name||u.email?.split("@")[0]||"CrowRules Listener";
+ $("#email").textContent=u.email||"Signed in";
+ $("#account").textContent="MY ACCOUNT";
+ $("#account").href="profile.html";
+ if(meta.avatar_url||meta.picture)$("#avatar").src=meta.avatar_url||meta.picture;
+ $("#status").textContent="Your listener dashboard is connected.";
+ await Promise.all([loadHistory(u.id),loadFollows(u.id),loadComments(u.id),loadLive()]);
+ subscribe(u.id);
+}
+async function loadHistory(uid){
+ const box=$("#history");
+ let r=await S.from("watch_history").select("*").eq("user_id",uid).order("updated_at",{ascending:false}).limit(8);
+ if(r.error) r=await S.from("podcast_watch_history").select("*").eq("user_id",uid).order("updated_at",{ascending:false}).limit(8);
+ if(r.error||!r.data?.length){box.innerHTML='<div class="empty">Your recently played episodes will appear here as you listen. Start exploring the network to build your history.</div>';return}
+ let total=0;
+ box.innerHTML=r.data.map(x=>{
+   const title=x.episode_title||x.title||x.name||"Podcast episode";
+   const seconds=Number(x.watch_seconds||x.listen_seconds||x.position_seconds||x.progress_seconds||0); total+=seconds;
+   const duration=Number(x.duration_seconds||x.total_seconds||0); const pct=duration?Math.min(100,seconds/duration*100):0;
+   const href=x.episode_id?("show.html?episode="+encodeURIComponent(x.episode_id)):x.podcast_id?("show.html?id="+encodeURIComponent(x.podcast_id)):"index.html";
+   return '<a class="row" href="'+href+'"><img src="'+esc(x.artwork_url||logo())+'" alt=""><div class="rowmain"><b>'+esc(title)+'</b><small>'+esc(x.podcast_title||x.show_title||"CrowRules Podcasting")+'</small><div class="progress" style="--p:'+pct+'%"><i></i></div></div><span class="meta">'+(pct?Math.round(pct)+"%":"PLAY")+'</span></a>'
+ }).join("");
+ $("#minutes").textContent=Math.round(total/60).toLocaleString();
+}
+async function loadFollows(uid){
+ const candidates=["podcast_follows","podcast_subscriptions","podcast_followers"];
+ for(const table of candidates){
+   const r=await S.from(table).select("*").eq("user_id",uid).limit(100);
+   if(!r.error){$("#follows").textContent=Number(r.data?.length||0).toLocaleString();return}
+ }
+}
+async function loadComments(uid){
+ const candidates=["cr_podcast_social_comments_v5","podcast_comments"];
+ for(const table of candidates){
+   const r=await S.from(table).select("id",{count:"exact",head:true}).eq("user_id",uid);
+   if(!r.error){$("#comments").textContent=Number(r.count||0).toLocaleString();return}
+ }
+}
+async function loadLive(){
+ const r=await S.from("cr_podcast_live").select("*").eq("is_live",true).order("started_at",{ascending:false}).limit(1);
+ if(r.error){$("#live").innerHTML='<span class="dot" style="background:#64748b;box-shadow:none"></span>Live network status is unavailable right now.';return}
+ if(!r.data?.length){$("#live").innerHTML='<span class="dot" style="background:#64748b;box-shadow:none"></span>No podcast is live right now. Check back when the network goes live.';return}
+ const x=r.data[0]; $("#live").innerHTML='<span class="dot"></span><b class="live">'+esc(x.title||x.show_name||"CrowRules Live")+'</b><div class="muted">'+Number(x.listener_count||0).toLocaleString()+' listeners currently connected.</div>';
+}
+function subscribe(uid){
+ S.channel("listener-dashboard-"+uid).on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_live"},loadLive).subscribe();
+ S.auth.onAuthStateChange((_event,session)=>{if(!session)location.href="../login.html"});
+}
+init();
+</script>
+</body>
+</html>
