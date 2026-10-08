@@ -26,7 +26,7 @@ async function loadAuth(mode){layout('<div class="card form"><div class="eyebrow
     const [followRes,followCountRes,plansRes,subRes,likeCountsRes,likeRowsRes]=await Promise.all([
       currentUser?timeout(S.from("podcast_follows").select("id").eq("podcast_id",id).eq("user_id",currentUser.id).maybeSingle(),"Follow status"):Promise.resolve({data:null,error:null}),
       timeout(S.from("podcast_follows").select("id",{count:"exact",head:true}).eq("podcast_id",id),"Follower count").catch(error=>({data:null,error})),
-      timeout(S.from("creator_subscription_plans").select("id,name,description,monthly_price_cents,annual_price_cents,currency,active,is_free,trial_days,subscriber_count,max_subscribers,stripe_monthly_price_id,stripe_annual_price_id").eq("podcast_id",id).eq("active",true).order("tier_order",{ascending:true}),"Subscription plans").catch(error=>({data:null,error})),
+      timeout(S.from("creator_subscription_plans").select("id,name,description,monthly_price_cents,annual_price_cents,currency,benefits,active,is_free,trial_days,subscriber_count,max_subscribers,stripe_monthly_price_id,stripe_annual_price_id").eq("podcast_id",id).eq("active",true).order("tier_order",{ascending:true}),"Subscription plans").catch(error=>({data:null,error})),
       currentUser?timeout(S.from("podcast_subscriptions").select("id,status,plan_id").eq("podcast_id",id).eq("user_id",currentUser.id).in("status",["trialing","active","past_due","paused"]).limit(1),"Subscription status"):Promise.resolve({data:[],error:null}),
       ids.length?timeout(S.from("podcast_episode_likes").select("episode_id").in("episode_id",ids),"Episode like counts").catch(error=>({data:null,error})):Promise.resolve({data:[],error:null}),
       currentUser&&ids.length?timeout(S.from("podcast_episode_likes").select("episode_id").eq("user_id",currentUser.id).in("episode_id",ids),"Your episode likes").catch(error=>({data:null,error})):Promise.resolve({data:[],error:null})
@@ -39,6 +39,7 @@ async function loadAuth(mode){layout('<div class="card form"><div class="eyebrow
     (likeCountsRes.data||[]).forEach(row=>{likeCounts[row.episode_id]=(likeCounts[row.episode_id]||0)+1});
     (likeRowsRes.data||[]).forEach(row=>likedByMe.add(row.episode_id));
     const plans=plansRes.data||[];
+    const subscribedFree=!!(subscribed&&plans.some(x=>x.id===subRes.data?.[0]?.plan_id&&x.is_free));
     const currency=v=>String(v||"usd").toUpperCase();
     const moneyCents=(amount,curr)=>new Intl.NumberFormat(undefined,{style:"currency",currency:curr||"USD",maximumFractionDigits:2}).format(Number(amount||0)/100);
     const art=podcast.artwork_url||C.logoUrl||"";
@@ -49,12 +50,12 @@ async function loadAuth(mode){layout('<div class="card form"><div class="eyebrow
     const planCards=plans.length?plans.map(plan=>{
       const month=Number(plan.monthly_price_cents||0),year=Number(plan.annual_price_cents||0),cur=currency(plan.currency);
       const amount=plan.is_free?'<strong>FREE</strong>':(month>0?'<strong>'+esc(moneyCents(month,cur))+'</strong><small>/ month</small>':'<strong>Price on checkout</strong>');
-      return '<article class="plan-card"><div class="eyebrow">LISTENER MEMBERSHIP</div><h3>'+esc(plan.name||"Show membership")+'</h3><p class="muted">'+esc(plan.description||"Support this podcast and unlock creator membership benefits.")+'</p><div class="plan-price">'+amount+'</div>'+(year>0?'<small class="plan-annual">'+esc(moneyCents(year,cur))+' / year</small>':'')+'<ul>'+((Array.isArray(plan.benefits)?plan.benefits:[]).slice(0,4).map(x=>'<li>'+esc(typeof x==="string"?x:(x.label||x.name||"Member benefit"))+'</li>').join("")||'<li>Support the show</li><li>Creator membership benefits</li>')+'</ul><button class="btn primary plan-subscribe" data-plan="'+esc(plan.id)+'"> '+(subscribed?"MANAGE MEMBERSHIP":(plan.is_free?"JOIN FREE":"SUBSCRIBE"))+' </button></article>';
+      return '<article class="plan-card"><div class="eyebrow">LISTENER MEMBERSHIP</div><h3>'+esc(plan.name||"Show membership")+'</h3><p class="muted">'+esc(plan.description||"Support this podcast and unlock creator membership benefits.")+'</p><div class="plan-price">'+amount+'</div>'+(year>0?'<small class="plan-annual">'+esc(moneyCents(year,cur))+' / year</small>':'')+'<ul>'+((Array.isArray(plan.benefits)?plan.benefits:[]).slice(0,4).map(x=>'<li>'+esc(typeof x==="string"?x:(x.label||x.name||"Member benefit"))+'</li>').join("")||'<li>Support the show</li><li>Creator membership benefits</li>')+'</ul><button class="btn primary plan-subscribe" data-plan="'+esc(plan.id)+'"> '+(subscribedFree&&plan.is_free?"MEMBER ✓":(subscribed?"MANAGE MEMBERSHIP":(plan.is_free?"JOIN FREE":"SUBSCRIBE")))+' </button></article>';
     }).join(""):'<div class="notice">'+(plansRes.error?"Membership tiers could not be loaded right now.":"This show has not published subscription tiers yet.")+'</div>';
     $("#show").innerHTML=
       '<section class="show-hero"><div class="show-copy"><div class="eyebrow">'+esc(podcast.category||"CROWRULES PODCAST")+(podcast.is_featured?' • FEATURED SHOW':'')+'</div><h1>'+esc(podcast.title||"Untitled Podcast")+'</h1><p class="muted show-description">'+esc(podcast.description||"Welcome to the CrowRules Podcasting universe.")+'</p><div class="show-actions">'+
       button("followBtn",following?"FOLLOWING ✓":"＋ FOLLOW SHOW","primary")+
-      button("subscribeTop",subscribed?"MANAGE SUBSCRIPTION":"★ SUBSCRIBE","")+
+      button("subscribeTop",subscribedFree?"FREE MEMBER ✓":(subscribed?"MANAGE SUBSCRIPTION":"★ SUBSCRIBE"),"")+
       button("shareBtn","SHARE SHOW","")+
       '<button class="btn" id="copyBtn" type="button">COPY LINK</button><a class="btn" href="index.html">DISCOVER MORE</a></div><div class="show-meta"><span>'+listeners.toLocaleString()+' listeners</span><span>'+totalPlays.toLocaleString()+' plays</span><span>'+episodes.length.toLocaleString()+' episodes</span><span><b id="followCount">'+Number(followCountRes.count||podcast.follower_count||0).toLocaleString()+'</b> followers</span></div></div><img class="show-art" src="'+esc(art)+'" alt="'+esc(podcast.title||"Podcast artwork")+'" onerror="this.onerror=null;this.src=\'\'"></section>'+
       '<section class="stats show-stats"><div class="stat"><strong>'+listeners.toLocaleString()+'</strong><small>LISTENERS</small></div><div class="stat"><strong>'+totalPlays.toLocaleString()+'</strong><small>TOTAL PLAYS</small></div><div class="stat"><strong>'+episodes.length.toLocaleString()+'</strong><small>EPISODES</small></div><div class="stat"><strong id="showFollowerStat">'+Number(followCountRes.count||podcast.follower_count||0).toLocaleString()+'</strong><small>FOLLOWERS</small></div></section>'+
@@ -122,7 +123,7 @@ async function loadAuth(mode){layout('<div class="card form"><div class="eyebrow
         const r=await timeout(S.functions.invoke("podcast-subscription-checkout",{body}),"Subscription checkout",20000);
         if(r.error)throw r.error;
         if(r.data?.error)throw new Error(r.data.error);
-        if(r.data?.free){status.textContent="You’re subscribed to the free tier.";subscribed=true;$("#subscribeTop").textContent="MANAGE SUBSCRIPTION";document.querySelectorAll(".plan-subscribe").forEach(x=>x.textContent="MANAGE MEMBERSHIP");toast("Welcome to the membership!");return}
+        if(r.data?.free){status.textContent="You’re subscribed to the free tier.";subscribed=true;$("#subscribeTop").textContent="FREE MEMBER ✓";document.querySelectorAll(".plan-subscribe").forEach(x=>{if(x.dataset.plan===planId){x.textContent="MEMBER ✓";x.disabled=true}});toast("Welcome to the membership!");return}
         if(r.data?.url){location.href=r.data.url;return}
         throw new Error("Checkout did not return a secure payment link.");
       }catch(error){status.textContent=error.message||"Subscription checkout is unavailable.";toast(status.textContent)}
@@ -132,8 +133,8 @@ async function loadAuth(mode){layout('<div class="card form"><div class="eyebrow
       try{const r=await timeout(S.functions.invoke("podcast-subscription-checkout",{body:{action:"manage",podcast_id:id,origin:location.origin+location.pathname.replace(/[^/]*$/,"")}}),"Subscription portal",15000);if(r.error)throw r.error;if(r.data?.error)throw new Error(r.data.error);if(r.data?.url)location.href=r.data.url;else throw new Error("Billing portal link was not returned.")}
       catch(error){toast(error.message||"Unable to open subscription management.")}
     }
-    $("#subscribeTop").onclick=()=>subscribed?manageSubscription():document.querySelector("#membership").scrollIntoView({behavior:"smooth",block:"start"});
-    document.querySelectorAll(".plan-subscribe").forEach(b=>b.onclick=()=>subscribed?manageSubscription():subscribe(b.dataset.plan));
+    $("#subscribeTop").onclick=()=>subscribed&&!subscribedFree?manageSubscription():document.querySelector("#membership").scrollIntoView({behavior:"smooth",block:"start"});
+    document.querySelectorAll(".plan-subscribe").forEach(b=>b.onclick=()=>{if(b.disabled)return;if(subscribed&&!subscribedFree)manageSubscription();else subscribe(b.dataset.plan)});
     $("#shareBtn").onclick=async()=>{try{if(navigator.share)await navigator.share({title:podcast.title||"CrowRules Podcast",text:podcast.description||"Listen on CrowRules Podcasting.",url:location.href});else{await navigator.clipboard.writeText(location.href);toast("Show link copied.")}}catch(error){if(error?.name!=="AbortError")toast("Sharing isn’t available in this browser.")}};
     $("#copyBtn").onclick=async()=>{try{await navigator.clipboard.writeText(location.href);toast("Show link copied.")}catch{toast("Copy isn’t available in this browser.")}};
     $("#commentForm").onsubmit=async ev=>{ev.preventDefault();if(!currentUser){login();return}if(!activeEpisode){toast("Select an episode first.");return}const field=$("#commentBody"),body=field.value.trim();if(!body)return;if(body.length>2000){toast("Comments must be 2,000 characters or fewer.");return}const submit=$("#commentForm button[type=submit]");submit.disabled=true;try{const r=await timeout(S.from("cr_podcast_social_comments_v5").insert({user_id:currentUser.id,episode_id:activeEpisode,body}),"Post comment");if(r.error)throw r.error;field.value="";toast("Comment posted.");await loadComments(activeEpisode)}catch(error){toast(error.message||"Comment could not be posted.")}finally{submit.disabled=false}};
