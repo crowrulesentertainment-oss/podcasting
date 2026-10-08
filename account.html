@@ -193,10 +193,10 @@ async function loadSubscriptions(p){
 async function loadCreator(s){
  const el=$("#creatorSummary"),shows=$("#creatorShows"),c=s.creator||{};state.creator=c;
  if(!(c.is_active||s.profile?.is_creator)){el.innerHTML='<div class="cr-v3-note">You are currently a listener account. When Creator access is enabled, your shows, episodes and Creator Studio tools will appear here.</div>';shows.innerHTML="";return}
- el.innerHTML='<div class="cr-v3-row"><div><strong>'+esc(c.display_name||c.name||"Creator")+'</strong><small>'+esc(c.role||"Creator")+" • "+esc(c.discipline||"Podcasting")+'</small></div><span class="cr-v3-badge">ACTIVE CREATOR</span></div>';
+ el.innerHTML=`<div class="cr-v3-row"><div><strong>${esc(c.display_name||c.name||"Creator")}</strong><small>${esc(c.role||"Creator")} • ${esc(c.discipline||"Podcasting")}</small></div><span class="cr-v3-badge">ACTIVE CREATOR</span></div>`;
  const {data,error}=await sb.from("podcasts").select("id,title,status,production_status,listener_count,total_plays").eq("creator_id",c.id).order("created_at",{ascending:false});if(error)throw error;
  const ps=data||[];if(!ps.length){shows.innerHTML=empty("Your Creator Studio is ready. Create your first podcast to see it here.");$("#creatorEpisodes").innerHTML=empty("Your published and draft episodes will appear here.");return}
- shows.innerHTML=ps.map(x=>'<div class="cr-v3-row"><div><strong>'+esc(x.title)+'</strong><small>'+esc(x.production_status||x.status||"draft")+" • "+Number(x.total_plays||0).toLocaleString()+" plays</small></div><a class="cr-v3-btn" href="show.html?id='+encodeURIComponent(x.id)+'">VIEW</a></div>').join("");
+ shows.innerHTML=ps.map(x=>`<div class="cr-v3-row"><div><strong>${esc(x.title)}</strong><small>${esc(x.production_status||x.status||"draft")} • ${Number(x.total_plays||0).toLocaleString()} plays</small></div><a class="cr-v3-btn" href="show.html?id=${encodeURIComponent(x.id)}">VIEW</a></div>`).join("");
 }
 async function signout(){try{await sb.auth.signOut();location.href="login.html"}catch(e){toast(e?.message||"Sign out failed.","error")}}
 $("#refreshDiscovery").onclick=()=>loadDiscovery(state.listener);$("#signout").onclick=signout;$("#signout2").onclick=signout;boot();
