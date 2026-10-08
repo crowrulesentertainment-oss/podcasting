@@ -1,1 +1,175 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CrowRules Podcasting — Choose Your Experience</title><link rel="stylesheet" href="css/podcasting.css"><script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="config.js"></script><script defer src="js/podcasting.js"></script></head><body><div id="app"></div><script>window.CRPage="home"</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05070d">
+<meta name="description" content="CrowRules Podcasting — choose your Listener or Creator experience.">
+<title>CrowRules Podcasting — One Universe. Two Experiences.</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<style>
+:root{--home-glow:rgba(103,232,249,.24)}
+body{overflow-x:hidden}
+.home-shell{max-width:1480px;margin:auto;padding:24px 28px 70px;position:relative}
+.home-top{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:4px 0 28px}
+.home-brand{display:flex;align-items:center;gap:13px;color:#fff}
+.home-brand img{width:58px;height:58px;object-fit:contain;filter:drop-shadow(0 0 22px var(--home-glow))}
+.home-brand strong{font:900 15px Orbitron;letter-spacing:.09em}
+.home-brand span{color:var(--cyan)}
+.home-actions{display:flex;gap:8px;flex-wrap:wrap}
+.home-hero{min-height:calc(100vh - 120px);display:grid;grid-template-columns:1.05fr .95fr;align-items:center;gap:55px;padding:35px 0 70px}
+.home-kicker{font:800 11px Orbitron;letter-spacing:.24em;color:var(--cyan);text-transform:uppercase}
+.home-title{font:900 clamp(46px,7.5vw,96px)/.94 Orbitron;margin:15px 0 22px;background:linear-gradient(115deg,#fff 5%,#bdf5fb 48%,#bca8ff 92%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.home-lead{max-width:720px;color:#a9b5c8;font-size:16px;line-height:1.8}
+.home-live{display:inline-flex;align-items:center;gap:8px;margin:18px 0 26px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(8,15,25,.72);font-size:10px;font-weight:800;letter-spacing:.1em}
+.home-actions-large{display:flex;gap:10px;flex-wrap:wrap}
+.home-art-wrap{position:relative;min-height:500px;display:grid;place-items:center}
+.home-orbit{position:absolute;width:min(500px,80vw);aspect-ratio:1;border:1px solid rgba(103,232,249,.15);border-radius:50%;box-shadow:0 0 80px rgba(103,232,249,.08),inset 0 0 80px rgba(167,139,250,.05);animation:spin 28s linear infinite}
+.home-orbit:before,.home-orbit:after{content:"";position:absolute;border:1px solid rgba(167,139,250,.14);border-radius:50%}
+.home-orbit:before{inset:12%;transform:rotate(55deg)}
+.home-orbit:after{inset:25%;transform:rotate(-35deg)}
+.home-logo{position:relative;width:min(410px,72vw);filter:drop-shadow(0 0 45px rgba(103,232,249,.25));animation:float 5s ease-in-out infinite}
+.home-choice{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:10px}
+.home-choice .card{position:relative;min-height:340px;overflow:hidden;transition:.25s ease}
+.home-choice .card:after{content:"";position:absolute;inset:auto -80px -130px;height:240px;border-radius:50%;background:var(--home-glow);filter:blur(55px);opacity:.45;pointer-events:none}
+.home-choice .listener{border-color:rgba(103,232,249,.25)}
+.home-choice .creator{border-color:rgba(167,139,250,.25)}
+.home-choice .card:hover{transform:translateY(-6px);box-shadow:0 25px 80px rgba(0,0,0,.35)}
+.choice-icon{font-size:38px;margin-bottom:20px}
+.choice-tag{font:800 10px Orbitron;letter-spacing:.2em;margin-bottom:9px}
+.listener .choice-tag{color:var(--cyan)}
+.creator .choice-tag{color:var(--purple)}
+.choice-title{font:900 clamp(25px,3vw,38px) Orbitron;margin:0 0 12px}
+.choice-copy{color:var(--muted);line-height:1.7;max-width:590px}
+.choice-list{display:grid;gap:8px;margin:22px 0;color:#d7deea;font-size:12px}
+.choice-list span:before{content:"✓";color:var(--cyan);font-weight:900;margin-right:8px}
+.creator .choice-list span:before{color:var(--purple)}
+.home-section{margin-top:20px}
+.home-section h2{font:800 20px Orbitron;margin:0}
+.home-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.home-mini{padding:18px;border:1px solid var(--line);border-radius:15px;background:rgba(9,17,29,.7)}
+.home-mini strong{display:block;font:800 14px Orbitron;margin-bottom:7px}
+.home-mini small{color:var(--muted);line-height:1.5}
+.home-footer{text-align:center;padding:42px 0 10px;color:#66758c;font-size:10px;letter-spacing:.08em}
+@keyframes float{50%{transform:translateY(-10px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:900px){.home-hero{grid-template-columns:1fr;min-height:auto;padding-top:30px}.home-art-wrap{min-height:360px;order:-1}.home-choice{grid-template-columns:1fr}.home-strip{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.home-shell{padding:16px 14px 45px}.home-top{align-items:flex-start}.home-brand img{width:48px;height:48px}.home-brand strong{font-size:12px}.home-actions .btn{padding:10px 11px}.home-title{font-size:46px}.home-lead{font-size:14px}.home-art-wrap{min-height:290px}.home-strip{grid-template-columns:1fr}.home-choice .card{min-height:0}}
+@media(prefers-reduced-motion:reduce){.home-logo,.home-orbit{animation:none}.home-choice .card{transition:none}}
+</style>
+</head>
+<body>
+<div class="home-shell">
+  <div class="home-top">
+    <a class="home-brand" href="home.html" aria-label="CrowRules Podcasting home">
+      <img id="homeLogo" src="" alt="CrowRules Podcasting">
+      <strong>CROWRULES <span>/ PODCASTING</span></strong>
+    </a>
+    <div class="home-actions">
+      <a class="btn" href="launch.html">LAUNCH 2027</a>
+      <a class="btn" href="login.html">SIGN IN</a>
+      <a class="btn primary" href="signup.html">JOIN CROWRULES</a>
+    </div>
+  </div>
+
+  <main>
+    <section class="home-hero">
+      <div>
+        <div class="home-kicker">CROWRULES ENTERTAINMENT • PODCASTING</div>
+        <h1 class="home-title">ONE<br>UNIVERSE.<br>TWO WAYS<br>IN.</h1>
+        <p class="home-lead">CrowRules Podcasting is being built around two connected experiences. <b>Listen, discover and connect</b> as a listener — or <b>create, publish and grow</b> as a creator. One CrowRules identity ties it all together.</p>
+        <div class="home-live"><span class="live-dot"></span><span id="launchStatus">PRE-LAUNCH • JANUARY 1, 2027</span></div>
+        <div class="home-actions-large">
+          <a class="btn primary" href="#experiences">CHOOSE YOUR EXPERIENCE ↓</a>
+          <a class="btn" href="pre-launch/index.html">EXPLORE PRE-LAUNCH</a>
+        </div>
+      </div>
+      <div class="home-art-wrap" aria-hidden="true">
+        <div class="home-orbit"></div>
+        <img id="heroLogo" class="home-logo" src="" alt="">
+      </div>
+    </section>
+
+    <section id="experiences" class="home-choice" aria-label="Choose your experience">
+      <a class="card choice listener" href="listener/index.html">
+        <div class="choice-icon">🎧</div>
+        <div class="choice-tag">LISTENER EXPERIENCE</div>
+        <h2 class="choice-title">LISTEN. DISCOVER. CONNECT.</h2>
+        <p class="choice-copy">Your side of the CrowRules Podcasting universe is about the shows you love and the community around them.</p>
+        <div class="choice-list">
+          <span>Discover podcasts and episodes</span>
+          <span>Continue listening and build your queue</span>
+          <span>Follow shows and creators</span>
+          <span>Comment and join conversations</span>
+          <span>Explore rankings, profiles and live activity</span>
+        </div>
+        <span class="btn primary">ENTER LISTENER EXPERIENCE →</span>
+      </a>
+
+      <a class="card choice creator" href="creator/index.html">
+        <div class="choice-icon">🎙️</div>
+        <div class="choice-tag">CREATOR EXPERIENCE</div>
+        <h2 class="choice-title">CREATE. PUBLISH. GROW.</h2>
+        <p class="choice-copy">Your side is the production floor — a connected workspace for turning podcast ideas into an audience.</p>
+        <div class="choice-list">
+          <span>Create and manage podcasts</span>
+          <span>Build episodes and publishing workflows</span>
+          <span>Manage subscriptions and audience growth</span>
+          <span>Track operations, analytics and live activity</span>
+          <span>Connect payouts through Stripe</span>
+        </div>
+        <span class="btn primary">ENTER CREATOR EXPERIENCE →</span>
+      </a>
+    </section>
+
+    <section class="home-section card">
+      <div class="section-head">
+        <h2>ONE ACCOUNT. ONE UNIVERSE.</h2>
+        <span class="eyebrow">CROWRULES IDENTITY</span>
+      </div>
+      <p class="muted">You do not have to choose one forever. Start where you are, then move between the listener and creator sides as your CrowRules journey grows.</p>
+      <div class="home-strip">
+        <div class="home-mini"><strong>LISTEN</strong><small>Find the next show, episode or live broadcast.</small></div>
+        <div class="home-mini"><strong>ENGAGE</strong><small>Follow creators, comment and become part of the audience.</small></div>
+        <div class="home-mini"><strong>CREATE</strong><small>Turn ideas into podcasts, episodes and publishing plans.</small></div>
+        <div class="home-mini"><strong>GROW</strong><small>Build an audience, subscriptions and a sustainable creator path.</small></div>
+      </div>
+    </section>
+
+    <section class="home-section grid">
+      <div class="card">
+        <div class="eyebrow">FOR LISTENERS</div>
+        <h2>YOUR NEXT FAVORITE SHOW IS OUT THERE.</h2>
+        <p class="muted">Discovery, listening history, rankings, community comments and live activity are being built into one focused experience.</p>
+        <a class="btn" href="listener/index.html">OPEN LISTENER →</a>
+      </div>
+      <div class="card">
+        <div class="eyebrow">FOR CREATORS</div>
+        <h2>YOUR SHOW STARTS HERE.</h2>
+        <p class="muted">From the first podcast draft to episodes, subscriptions, live operations and payouts, the creator side is designed as your production command center.</p>
+        <a class="btn" href="creator/index.html">OPEN CREATOR →</a>
+      </div>
+      <div class="card">
+        <div class="eyebrow">BUILD TOGETHER</div>
+        <h2>PRE-LAUNCH WITH US.</h2>
+        <p class="muted">CrowRules Podcasting is targeting January 1, 2027. Get involved early as a listener, creator or future member of the team.</p>
+        <a class="btn" href="launch.html">SEE THE COUNTDOWN →</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="home-footer">CROWRULES PODCASTING • ONE COMPANY. ONE UNIVERSE. • PRE-LAUNCH TARGET: JANUARY 1, 2027</footer>
+</div>
+
+<script>
+(()=>{const C=window.CROW_CONFIG||{};const logo=C.logoUrl||"";document.getElementById("homeLogo").src=logo;document.getElementById("heroLogo").src=logo;
+const launch=new Date(C.launchAt||"2027-01-01T08:00:00Z");const status=document.getElementById("launchStatus");
+function tick(){const ms=launch-Date.now();if(ms<=0){status.textContent="WE'RE LIVE • CROWRULES PODCASTING";return}const d=Math.floor(ms/86400000),h=Math.floor(ms/3600000)%24,m=Math.floor(ms/60000)%60;status.textContent="PRE-LAUNCH • "+d+"D "+String(h).padStart(2,"0")+"H "+String(m).padStart(2,"0")+"M • JANUARY 1, 2027"}tick();setInterval(tick,30000);
+const S=window.supabase?.createClient&&C.supabaseUrl&&C.supabaseKey?window.supabase.createClient(C.supabaseUrl,C.supabaseKey):null;
+if(S){S.auth.getSession().then(({data})=>{if(data.session){const a=document.querySelector('.home-actions a[href="login.html"]');if(a){a.textContent="ACCOUNT";a.href="listener/profile.html"}}}).catch(()=>{});}
+})();
+</script>
+</body>
+</html>
