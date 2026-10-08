@@ -6,8 +6,8 @@
 <link rel="stylesheet" href="css/podcasting.css">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="js/config.js" defer></script><script src="js/listener-engine.js" defer></script>
-<link rel="stylesheet" href="css/podcasting-v8.css?v=20261007-v7.0.0">
-<script src="js/podcasting-v8.js?v=20261007-v8.0.0" defer></script>
+<link rel="stylesheet" href="css/podcasting-v8.css?v=20261007-v8.1.0">
+<script src="js/podcasting-v8.js?v=20261007-v8.1.0" defer></script>
 </head>
 <body>
 <main class="cr-account-v3 cr-account-v4">
@@ -125,7 +125,7 @@ function renderIdentity(s,user){
  const av=p.avatar_url||m.avatar_url||user.user_metadata?.avatar_url;if(av)$("#avatar").innerHTML='<img src="'+esc(av)+'" alt="Profile avatar">';else $("#avatar").textContent=initials(name);
  const creator=!!(c.is_active||p.is_creator);$("#creatorLink").hidden=!creator;$("#creatorStudio").hidden=!creator;$("#creatorStatus").textContent=creator?(c.display_name||c.name||"Active creator"):"Listener account";$("#accountStatus").textContent="Authenticated";
 }
-function bindPlayers(){document.querySelectorAll("[data-play-episode]").forEach(b=>b.onclick=()=>playEpisode(b.dataset.playEpisode));}\nfunction playEpisode(id){const e=state.episodes.get(id);if(!e?.audio_url){toast("This episode does not have playable audio yet.","error");return}const audio=$("#accountAudio");$("#playerTitle").textContent=e.title||"Episode";$("#playerShow").textContent=e.podcasts?.title||"CrowRules Podcasting";$("#personalPlayer").hidden=false;if(audio.src!==e.audio_url)audio.src=e.audio_url;audio.play().catch(()=>toast("Press play to start this episode.","info"));}\nfunction renderListening(p){
+function bindPlayers(){document.querySelectorAll("[data-play-episode]").forEach(b=>b.onclick=()=>playEpisode(b.dataset.playEpisode));}\nfunction playEpisode(id){const e=state.episodes.get(id);if(!e?.audio_url){toast("This episode does not have playable audio yet.","error");return}if(window.CrowPlayer){window.CrowPlayer.play({id:e.id,podcast_id:e.podcast_id,title:e.title,audio_url:e.audio_url,duration_seconds:e.duration_seconds,podcast_title:e.podcasts?.title,category:e.podcasts?.category,artwork_url:e.thumbnail_url||e.podcasts?.artwork_url,position_seconds:state.listener?.progress?.find(x=>x.episode_id===e.id)?.position_seconds||0});return}toast("Player is still loading. Try again in a moment.","info");}\nfunction renderListening(p){
  const progress=p?.progress||[],completed=p?.completed||[],recent=p?.recent||[],saved=p?.saved||[],queue=p?.queue||[],follows=p?.follows||[];
  $("#completed").textContent=completed.length;$("#recent").textContent=recent.length;$("#saved").textContent=saved.length;$("#following").textContent=follows.length;
  const mins=Math.round(progress.reduce((n,x)=>n+Number(x.position_seconds||0),0)/60);
@@ -139,26 +139,26 @@ function bindPlayers(){document.querySelectorAll("[data-play-episode]").forEach(
 }
 
 async function loadDiscovery(p){
- const intro=$("#discoveryIntro"),rec=$("#recommendedList"),because=$("#becauseList"),shows=$("#topShows"),news=$("#newEpisodes"),genres=$("#genreShelves");
+ const intro=$("#discoveryIntro"),rec=$("#recommendedList"),because=$("#becauseList"),more=$("#moreLikeThis"),shows=$("#topShows"),news=$("#newEpisodes"),genres=$("#genreShelves"),trendNow=$("#trendingNow"),trendWeek=$("#trendingWeek"),trendMonth=$("#trendingMonth");
  const card=e=>{if(!e)return"";const art=e.thumbnail_url||e.podcasts?.artwork_url||"";return '<article class="cr-v7-card"><div class="cr-v7-art">'+(art?'<img src="'+esc(art)+'" alt="">':"CR")+'</div><div class="cr-v7-card-body"><strong>'+esc(e.title||"Untitled episode")+'</strong><small>'+esc(e.podcasts?.title||"Podcast")+" • "+esc(e.podcasts?.category||"General")+'</small><div class="cr-v7-actions"><button class="cr-v3-btn primary" type="button" data-v7-play="'+esc(e.id)+'">PLAY</button><a class="cr-v3-btn" href="episode.html?id='+encodeURIComponent(e.id)+'">OPEN</a></div></div></article>'};
  const showCard=x=>'<article class="cr-v7-show"><div class="cr-v7-show-art">'+(x.artwork_url?'<img src="'+esc(x.artwork_url)+'" alt="">':"CR")+'</div><div><strong>'+esc(x.title||"Podcast")+'</strong><small>'+esc(x.category||"Podcast")+" • "+Number(x.listener_count||0).toLocaleString()+" listeners</small><a class="cr-v3-btn" href="show.html?id='+encodeURIComponent(x.id)+'">OPEN SHOW</a></div></article>';
  const empty7=t=>'<div class="cr-v7-empty">'+t+"</div>";
  try{
-  const recommendations=await window.CrowListener?.recommendations?.(p)||[];
+  const recommendations=await window.CrowListener?.recommendations?.(p)||[];const recentSeed=p?.recent?.[0]?.episode_id;const similar=recentSeed?await window.CrowListener?.moreLikeThis?.(p,recentSeed)||[]:[];
   const followed=p?.follows||[], topCats=p?.topCategories||[];
   intro.textContent=topCats.length?"Personalized from your listening: "+topCats.slice(0,3).join(" • ")+".":"Explore popular and newly published CrowRules episodes.";
-  rec.innerHTML=recommendations.slice(0,12).map(card).join("")||empty7("Listen to a few episodes to unlock personalized recommendations.");
+  rec.innerHTML=recommendations.slice(0,12).map(card).join("")||empty7("Listen to a few episodes to unlock personalized recommendations.");more.innerHTML=similar.map(card).join("")||empty7("Play an episode to unlock more like this.");
   const recentIds=new Set((p?.recent||[]).map(x=>x.episode_id));
   let becauseEpisodes=[];
   if(followed.length){const r=await sb.from("podcast_episodes").select("id,podcast_id,title,description,audio_url,thumbnail_url,duration_seconds,play_count,published_at,podcasts(id,title,category,artwork_url)").eq("status","published").in("podcast_id",followed).order("published_at",{ascending:false}).limit(24);becauseEpisodes=(r.data||[]).filter(e=>e.audio_url&&!recentIds.has(e.id)).slice(0,10)}
   if(!becauseEpisodes.length&&recentIds.size){const recentShow=[...recentIds].map(id=>p?.em?.get(id)?.podcast_id).find(Boolean);if(recentShow){const r=await sb.from("podcast_episodes").select("id,podcast_id,title,description,audio_url,thumbnail_url,duration_seconds,play_count,published_at,podcasts(id,title,category,artwork_url)").eq("status","published").eq("podcast_id",recentShow).order("published_at",{ascending:false}).limit(16);becauseEpisodes=(r.data||[]).filter(e=>e.audio_url&&!recentIds.has(e.id)).slice(0,10)}}
   because.innerHTML=becauseEpisodes.map(card).join("")||empty7("Follow a show or start listening to build your personalized "Because You Listened" shelf.");
   const sr=await sb.from("podcasts").select("id,title,category,artwork_url,listener_count,total_plays,status").eq("status","published").order("listener_count",{ascending:false}).limit(12);shows.innerHTML=(sr.data||[]).map(showCard).join("")||empty7("Top shows will appear as the catalog grows.");
-  const nr=await sb.from("podcast_episodes").select("id,podcast_id,title,description,audio_url,thumbnail_url,duration_seconds,play_count,published_at,podcasts(id,title,category,artwork_url)").eq("status","published").order("published_at",{ascending:false}).limit(18);const fresh=nr.data||[];news.innerHTML=fresh.map(card).join("")||empty7("New episodes will appear here.");
-  const pool=[...recommendations,...becauseEpisodes,...fresh], byCat=new Map();pool.forEach(e=>{const cat=String(e.podcasts?.category||"General").trim();if(!byCat.has(cat))byCat.set(cat,[]);if(byCat.get(cat).length<6&&!byCat.get(cat).some(x=>x.id===e.id))byCat.get(cat).push(e)});
-  genres.innerHTML=[...byCat.entries()].slice(0,6).map(([cat,items])=>'<div class="cr-v7-genre"><div class="cr-v7-genre-head"><strong>'+esc(cat)+'</strong><span>'+items.length+" picks</span></div><div class=\"cr-v7-mini-shelf\">"+items.map(card).join("")+"</div></div>").join("")||empty7("Genres will build as more shows and episodes are published.");
+  const nr=await sb.from("podcast_episodes").select("id,podcast_id,title,description,audio_url,thumbnail_url,duration_seconds,play_count,published_at,podcasts(id,title,category,artwork_url)").eq("status","published").order("published_at",{ascending:false}).limit(18);const fresh=nr.data||[];news.innerHTML=fresh.map(card).join("")||empty7("New episodes will appear here.");const trend=async(days,limit=12)=>{let q=sb.from("podcast_episodes").select("id,podcast_id,title,description,audio_url,thumbnail_url,duration_seconds,play_count,published_at,podcasts(id,title,category,artwork_url)").eq("status","published").order("play_count",{ascending:false}).limit(limit);if(days)q=q.gte("published_at",new Date(Date.now()-days*86400000).toISOString());const r=await q;return r.data||[]};const [tn,tw,tm]=await Promise.all([trend(0,12),trend(7,12),trend(30,12)]);trendNow.innerHTML=tn.map(card).join("")||empty7("Trending data will appear here.");trendWeek.innerHTML=tw.map(card).join("")||empty7("No weekly trend data yet.");trendMonth.innerHTML=tm.map(card).join("")||empty7("No monthly trend data yet.");
+  const pool=[...recommendations,...similar,...becauseEpisodes,...fresh], byCat=new Map();pool.forEach(e=>{const cat=String(e.podcasts?.category||"General").trim();if(!byCat.has(cat))byCat.set(cat,[]);if(byCat.get(cat).length<6&&!byCat.get(cat).some(x=>x.id===e.id))byCat.get(cat).push(e)});
+  const ranked=window.CrowListener?.personalizedGenres?.(p)||{};const ordered=[...byCat.entries()].sort((a,b)=>(ranked[b[0]]||0)-(ranked[a[0]]||0));genres.innerHTML=ordered.slice(0,6).map(([cat,items])=>'<div class="cr-v7-genre"><div class="cr-v7-genre-head"><strong>'+esc(cat)+'</strong><span>'+items.length+" picks</span></div><div class=\"cr-v7-mini-shelf\">"+items.map(card).join("")+"</div></div>").join("")||empty7("Genres will build as more shows and episodes are published.");
   document.querySelectorAll("[data-v7-play]").forEach(b=>b.onclick=()=>playDiscoveryEpisode(b.dataset.v7Play));
- }catch(e){[rec,because,shows,news,genres].forEach(x=>x.innerHTML=empty7("Discovery is temporarily unavailable."));toast(e?.message||"Discovery could not load.","error")}
+ }catch(e){[rec,because,more,shows,news,trendNow,trendWeek,trendMonth,genres].forEach(x=>x.innerHTML=empty7("Discovery is temporarily unavailable."));toast(e?.message||"Discovery could not load.","error")}
 }
 function playDiscoveryEpisode(id){const e=state.episodes.get(id);if(e)return playEpisode(id);toast("Opening this episode…","info");location.href="episode.html?id="+encodeURIComponent(id)}
 async function loadMembership(user){
