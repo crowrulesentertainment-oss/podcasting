@@ -70,12 +70,17 @@ function render(){
  bind();
 }
 function mountAudiencePresence(){
- const channels={listener:S.channel("crowrules-ops-audience-listener",{config:{presence:{key:"ops-"+crypto.randomUUID()}}}),creator:S.channel("crowrules-ops-audience-creator",{config:{presence:{key:"ops-"+crypto.randomUUID()}}}),launch:S.channel("crowrules-ops-audience-launch",{config:{presence:{key:"ops-"+crypto.randomUUID()}}})};
- const counts=()=>Object.fromEntries(Object.entries(channels).map(([k,ch])=>[k,Object.values(ch.presenceState()).reduce((n,v)=>n+(Array.isArray(v)?v.length:0),0)]));
- const paint=()=>{const x=counts(),total=x.listener+x.creator+x.launch;$("#liveListenerVisitors").textContent=fmt(x.listener);$("#liveCreatorVisitors").textContent=fmt(x.creator);$("#liveLaunchVisitors").textContent=fmt(x.launch);$("#liveAudienceTotal").textContent=fmt(total);$("#liveAudienceUpdated").textContent="Last synced "+new Date().toLocaleTimeString();$("#liveAudienceStatus").textContent=total?"Live audience telemetry connected.":"Live audience telemetry connected — no active visitors detected.";};
+ const key="ops-"+(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2));
+ const channels={
+  listener:S.channel("crowrules-podcasting-visitors-listener",{config:{presence:{key}}}),
+  creator:S.channel("crowrules-podcasting-visitors-creator",{config:{presence:{key}}}),
+  launch:S.channel("crowrules-podcasting-visitors-launch",{config:{presence:{key}}}),
+  all:S.channel("crowrules-podcasting-visitors-all",{config:{presence:{key}}})
+ };
+ const count=ch=>Object.values(ch.presenceState()).reduce((n,v)=>n+(Array.isArray(v)?v.length:0),0);
+ const paint=()=>{const x={listener:count(channels.listener),creator:count(channels.creator),launch:count(channels.launch),all:count(channels.all)};const total=x.all||x.listener+x.creator+x.launch;$("#liveListenerVisitors").textContent=fmt(x.listener);$("#liveCreatorVisitors").textContent=fmt(x.creator);$("#liveLaunchVisitors").textContent=fmt(x.launch);$("#liveAudienceTotal").textContent=fmt(total);$("#liveAudienceUpdated").textContent="Last synced "+new Date().toLocaleTimeString();$("#liveAudienceStatus").textContent=total?"Live audience telemetry connected.":"Live audience telemetry connected — no active visitors detected.";};
  Object.values(channels).forEach(ch=>ch.on("presence",{event:"sync"},paint).on("presence",{event:"join"},paint).on("presence",{event:"leave"},paint).subscribe());
  paint();
- return ()=>Object.values(channels).forEach(ch=>ch.untrack().catch(()=>{}));
 }
 function bind(){
  $("#signout").onclick=async()=>{await S.auth.signOut();location.href="home.html"};
