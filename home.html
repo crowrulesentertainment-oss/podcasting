@@ -112,7 +112,12 @@ h1{font:900 clamp(3.7rem,8vw,8.5rem)/.88 Orbitron,sans-serif;letter-spacing:-.05
 (()=>{"use strict";
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const safeUrl=s=>{try{return new URL(s,location.href).href}catch{return""}};
-const card=(e,kind)=>{const p=e.podcasts||{};const art=e.thumbnail_url||p.artwork_url||"";return '<article class="card"><div class="art">'+(art?'<img src="'+esc(safeUrl(art))+'" alt="" loading="lazy">':"")+'</div><div class="body"><span class="eyebrow">'+esc(kind)+'</span><h3>'+esc(e.title||p.title||"Untitled")+'</h3><p>'+esc(p.title||e.description||"")+'</p><div class="meta"><span>'+esc(p.category||"PODCAST")+'</span><span>'+Number(e.play_count||0).toLocaleString()+" PLAYS</span></div><div class="card-actions"><button type="button" data-play='"+esc(e.id)+"'>PLAY</button>'+'<a href="episode.html?id='+encodeURIComponent(e.id)+'">DETAILS</a></div></div></article>};
+const card=(e,kind)=>{
+const p=e.podcasts||{};
+const art=e.thumbnail_url||p.artwork_url||"";
+const artHtml=art?'<img src="'+esc(safeUrl(art))+'" alt="" loading="lazy">':"";
+return '<article class="card"><div class="art">'+artHtml+'</div><div class="body"><span class="eyebrow">'+esc(kind)+'</span><h3>'+esc(e.title||p.title||"Untitled")+'</h3><p>'+esc(p.title||e.description||"")+'</p><div class="meta"><span>'+esc(p.category||"PODCAST")+'</span><span>'+Number(e.play_count||0).toLocaleString()+' PLAYS</span></div><div class="card-actions"><button type="button" data-play="'+esc(e.id)+'">PLAY</button><a href="episode.html?id='+encodeURIComponent(e.id)+'">DETAILS</a></div></div></article>';
+};
 const playMap=new Map();
 function wire(grid){grid.querySelectorAll("[data-play]").forEach(b=>b.addEventListener("click",()=>{const e=playMap.get(b.dataset.play);if(e&&window.CrowPlayer)window.CrowPlayer.play({id:e.id,audio_url:e.audio_url,title:e.title,podcast_title:e.podcasts?.title,artwork_url:e.thumbnail_url||e.podcasts?.artwork_url})}))}
 async function init(){
