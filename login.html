@@ -82,7 +82,8 @@
  const sb=window.CROW_PODCASTING,msg=document.querySelector('#msg'),form=document.querySelector('#loginForm'),btn=document.querySelector('#loginBtn');
  const setMsg=(t,k='')=>{msg.textContent=t;msg.dataset.kind=k};
  if(!sb){setMsg('Authentication is temporarily unavailable. Please try again.','error');return}
- const target=(()=>{try{const u=new URLSearchParams(location.search).get('next');return u&&/^[a-z0-9_./-]+\.html$/i.test(u)?u:'profile.html'}catch(_){return'profile.html'}})();
+ const MEMBER_PROFILE='https://crowrulesentertainment-oss.github.io/crowspace/profile.html';
+ const target=(()=>{try{const u=new URLSearchParams(location.search).get('next');return u&&( /^[a-z0-9_./-]+\.html$/i.test(u) || u===MEMBER_PROFILE )?u:MEMBER_PROFILE}catch(_){return'profile.html'}})();
 
  try{const{data}=await sb.auth.getSession();if(data?.session){location.replace(target);return}}catch(_){}
 
