@@ -219,7 +219,7 @@
       if(pending){
         try{await saveProfile(user,pending.role,pending.display,pending.username);sessionStorage.removeItem('crp_signup_intent')}catch(e){console.warn('Profile setup after OAuth:',e)}
       }
-      location.href='profile.html';
+      location.href='https://crowrulesentertainment-oss.github.io/crowspace/profile.html';
     };
     await finishSession();
 
@@ -256,7 +256,7 @@
         }
         if(data.session){
           setMsg('Account created. Welcome to CrowRules Podcasting — taking you to your profile.');
-          setTimeout(()=>location.href='profile.html',500);
+          setTimeout(()=>location.href='https://crowrulesentertainment-oss.github.io/crowspace/profile.html',500);
         }else{
           setMsg('Account created. Check your email to confirm your address, then sign in.','success');
         }
