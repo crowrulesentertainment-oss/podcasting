@@ -23,7 +23,7 @@ async function loadAuth(mode){layout('<div class="card form"><div class="eyebrow
     if(er.error)throw new Error("Episode library: "+er.error.message);
     const episodes=er.data||[];
     const ids=episodes.map(e=>e.id);
-    const [followRes,followCountRes,plansRes,subRes,likeRowsRes]=await Promise.all([
+    const [followRes,followCountRes,plansRes,subRes,likeCountsRes,likeRowsRes]=await Promise.all([
       currentUser?timeout(S.from("podcast_follows").select("id").eq("podcast_id",id).eq("user_id",currentUser.id).maybeSingle(),"Follow status"):Promise.resolve({data:null,error:null}),
       timeout(S.from("podcast_follows").select("id",{count:"exact",head:true}).eq("podcast_id",id),"Follower count").catch(error=>({data:null,error})),
       timeout(S.from("creator_subscription_plans").select("id,name,description,monthly_price_cents,annual_price_cents,currency,active,is_free,trial_days,subscriber_count,max_subscribers,stripe_monthly_price_id,stripe_annual_price_id").eq("podcast_id",id).eq("active",true).order("tier_order",{ascending:true}),"Subscription plans").catch(error=>({data:null,error})),
@@ -36,7 +36,7 @@ async function loadAuth(mode){layout('<div class="card form"><div class="eyebrow
     let activeEpisode=null;
     const likeCounts={};
     const likedByMe=new Set();
-    (likeRowsRes.data||[]).forEach(row=>{likeCounts[row.episode_id]=(likeCounts[row.episode_id]||0)+1});
+    (likeCountsRes.data||[]).forEach(row=>{likeCounts[row.episode_id]=(likeCounts[row.episode_id]||0)+1});
     (likeRowsRes.data||[]).forEach(row=>likedByMe.add(row.episode_id));
     const plans=plansRes.data||[];
     const currency=v=>String(v||"usd").toUpperCase();
