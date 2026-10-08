@@ -57,6 +57,17 @@ window.CROW_PODCASTING_CONFIG = {
     window.dispatchEvent(new CustomEvent("crowrules:holiday-theme", { detail: window.CROW_HOLIDAY_THEME }));
   };
   window.CROW_APPLY_HOLIDAY_THEME = applyHolidayTheme;
+  // Halloween atmosphere controller: adds lightweight cinematic particle layers.
+  const halloweenFX = () => {
+    if (document.getElementById("crow-halloween-fx")) return;
+    const root = document.createElement("div"); root.id="crow-halloween-fx"; root.setAttribute("aria-hidden","true");
+    root.innerHTML='<div class="crow-halloween-fog fog-a"></div><div class="crow-halloween-fog fog-b"></div><div class="crow-halloween-bats">◥　　◤　 ◥　　 ◤</div><div class="crow-halloween-embers"></div>';
+    document.body.appendChild(root);
+    const emb=root.querySelector(".crow-halloween-embers");
+    for(let i=0;i<18;i++){const p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--d",(5+Math.random()*10)+"s");p.style.setProperty("--delay",(-Math.random()*12)+"s");p.style.setProperty("--drift",(-35+Math.random()*70)+"px");emb.appendChild(p);}
+  };
+  const removeHalloweenFX = () => document.getElementById("crow-halloween-fx")?.remove();
+
   const loadHolidayTheme = async () => {
     try {
       const { data, error } = await sb.from("crp_site_settings").select("holiday_theme,holiday_enabled,updated_at").eq("site_key", "podcasting").maybeSingle();
