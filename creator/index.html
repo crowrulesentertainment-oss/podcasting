@@ -1,1 +1,115 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Creator Experience — CrowRules Podcasting</title><link rel="stylesheet" href="../css/podcasting.css"><script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="../config.js"></script><script defer src="../js/podcasting.js"></script></head><body><div id="app"></div><script>window.CRPage="creator"</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07070d">
+<meta name="description" content="CrowRules Podcasting Creator Experience — create, publish, grow, monetize, and manage your podcast universe.">
+<title>Creator Experience — CrowRules Podcasting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<style>
+:root{--bg:#06060b;--panel:rgba(16,17,28,.82);--line:rgba(255,255,255,.11);--text:#f7f8ff;--muted:#a8adbf;--cyan:#39e7ff;--purple:#9b6cff;--pink:#ff4fd8;--green:#6dffb0;--shadow:0 24px 70px rgba(0,0,0,.42)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 15% 5%,rgba(57,231,255,.12),transparent 28%),radial-gradient(circle at 85% 12%,rgba(155,108,255,.15),transparent 30%),linear-gradient(180deg,#07070d 0%,#0a0b12 48%,#050509 100%);color:var(--text);font-family:Montserrat,Arial,sans-serif;min-height:100vh}a{color:inherit;text-decoration:none}button{font:inherit}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,#000,transparent 85%)}
+.wrap{width:min(1180px,92vw);margin:auto}.nav{position:sticky;top:0;z-index:20;background:rgba(5,6,10,.78);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}.navin{min-height:72px;display:flex;align-items:center;gap:24px}.brand{display:flex;align-items:center;gap:12px;margin-right:auto}.brand img{width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 0 16px rgba(57,231,255,.35))}.brand strong{font:800 15px Orbitron;letter-spacing:.12em}.brand span{display:block;color:var(--muted);font-size:10px;letter-spacing:.2em;margin-top:3px}.links{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.links a{padding:10px 12px;border-radius:10px;color:#cbd0df;font-size:11px;font-weight:800;letter-spacing:.08em}.links a:hover,.links a.active{background:rgba(255,255,255,.07);color:#fff}.auth{border:1px solid rgba(57,231,255,.28)!important;color:#dffbff!important}
+.hero{padding:82px 0 48px;display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:center}.eyebrow{color:var(--cyan);font:700 11px Orbitron;letter-spacing:.2em}.hero h1{font:900 clamp(38px,6vw,76px) Orbitron;line-height:1.02;margin:14px 0 22px;text-transform:uppercase}.gradient{background:linear-gradient(100deg,#fff 10%,#b9f9ff 42%,#b999ff 78%,#ff9be9);-webkit-background-clip:text;background-clip:text;color:transparent}.hero p{font-size:17px;line-height:1.75;color:var(--muted);max-width:700px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 18px;border-radius:11px;border:1px solid var(--line);font-size:11px;font-weight:900;letter-spacing:.1em}.primary{background:linear-gradient(100deg,rgba(57,231,255,.18),rgba(155,108,255,.24));border-color:rgba(57,231,255,.48);box-shadow:0 0 28px rgba(57,231,255,.08)}.secondary{background:rgba(255,255,255,.04)}.hero-card{border:1px solid var(--line);background:linear-gradient(145deg,rgba(21,23,37,.9),rgba(9,10,17,.9));box-shadow:var(--shadow);border-radius:22px;padding:24px;position:relative;overflow:hidden}.hero-card:after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;right:-100px;top:-100px;background:rgba(155,108,255,.18);filter:blur(20px)}.console{position:relative;z-index:1}.console-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:15px;margin-bottom:17px}.dot{width:9px;height:9px;background:var(--green);border-radius:50%;box-shadow:0 0 14px var(--green);display:inline-block;margin-right:8px}.console-label{font:700 10px Orbitron;letter-spacing:.14em}.identity{font-size:13px;color:#fff}.identity small{display:block;color:var(--muted);margin-top:4px}.meter{margin:18px 0}.meter-row{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:7px}.bar{height:7px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;width:64%;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:inherit}.console-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mini{padding:14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025)}.mini b{font:700 12px Orbitron}.mini span{display:block;color:var(--muted);font-size:10px;margin-top:5px;line-height:1.5}
+.section{padding:54px 0}.section-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:22px}.section h2{font:800 clamp(24px,4vw,38px) Orbitron;margin:6px 0 0}.section-head p{color:var(--muted);max-width:560px;line-height:1.6;font-size:13px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{border:1px solid var(--line);background:var(--panel);border-radius:17px;padding:23px;transition:.2s transform,.2s border-color,.2s background}.card:hover{transform:translateY(-4px);border-color:rgba(57,231,255,.32);background:rgba(20,22,34,.92)}.icon{font-size:25px}.card h3{font:700 15px Orbitron;margin:16px 0 9px}.card p{font-size:12px;color:var(--muted);line-height:1.7;margin:0}.card a.more{display:inline-block;margin-top:17px;color:var(--cyan);font-size:10px;font-weight:900;letter-spacing:.1em}
+.workflow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.step{padding:18px 15px;border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:14px}.num{font:800 11px Orbitron;color:var(--cyan)}.step b{display:block;font-size:12px;margin:10px 0 6px}.step span{font-size:10px;color:var(--muted);line-height:1.5}
+.callout{margin:24px 0 10px;padding:30px;border:1px solid rgba(155,108,255,.3);background:linear-gradient(120deg,rgba(57,231,255,.08),rgba(155,108,255,.1));border-radius:20px;display:flex;justify-content:space-between;align-items:center;gap:24px}.callout h3{font:800 21px Orbitron;margin:0 0 8px}.callout p{color:var(--muted);font-size:12px;line-height:1.6;margin:0}.status{font-size:10px;color:var(--muted);margin-top:18px}.status strong{color:var(--green)}
+footer{padding:45px 0 55px;border-top:1px solid var(--line);color:var(--muted);font-size:10px}.foot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}.foot b{font-family:Orbitron;color:#fff}
+@media(max-width:900px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}.workflow{grid-template-columns:1fr 1fr}.links a:nth-child(4),.links a:nth-child(5){display:none}}
+@media(max-width:620px){.navin{min-height:64px}.brand span{display:none}.links a{padding:8px 7px;font-size:9px}.hero{padding-top:55px}.hero h1{font-size:39px}.hero p{font-size:14px}.grid,.workflow{grid-template-columns:1fr}.section-head{display:block}.callout{display:block}.callout .btn{margin-top:18px}.console-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.card{transition:none}}
+</style>
+</head>
+<body>
+<header class="nav"><div class="wrap navin">
+<a class="brand" href="../home.html" aria-label="CrowRules Podcasting home"><img id="logo" src="../images/podcastinglogo.png" alt="CrowRules Podcasting"><div><strong>CROWRULES PODCASTING</strong><span>CREATOR EXPERIENCE</span></div></a>
+<nav class="links" aria-label="Creator navigation">
+<a class="active" href="index.html">CREATOR HOME</a><a href="studio.html">STUDIO</a><a href="podcasts.html">PODCASTS</a><a href="episodes.html">EPISODES</a><a href="subscriptions.html">SUBSCRIPTIONS</a><a href="payouts.html">PAYOUTS</a><a class="auth" id="authLink" href="../login.html">SIGN IN</a>
+</nav></div></header>
+
+<main>
+<section class="wrap hero">
+<div>
+<div class="eyebrow">CROWRULES PODCASTING • CREATOR EXPERIENCE</div>
+<h1>BUILD YOUR<br><span class="gradient">PODCAST UNIVERSE.</span></h1>
+<p>Create the show. Publish the episode. Grow the audience. Build community. Turn your ideas into a real CrowRules Podcasting presence — from your first upload to a full creator operation.</p>
+<div class="actions"><a class="btn primary" href="studio.html">OPEN CREATOR STUDIO →</a><a class="btn secondary" href="podcasts.html">MANAGE PODCASTS</a><a class="btn secondary" href="../launch.html">LAUNCH 2027</a></div>
+<div class="status" id="status">CREATOR CONNECTION: <strong>CHECKING…</strong></div>
+</div>
+<aside class="hero-card" aria-label="Creator command console"><div class="console">
+<div class="console-top"><div class="console-label"><span class="dot"></span>CREATOR COMMAND CONSOLE</div><div class="identity" id="identity">Guest Creator<small>Sign in to unlock your workspace</small></div></div>
+<div class="meter"><div class="meter-row"><span>CREATOR WORKSPACE</span><span>READY</span></div><div class="bar"><i></i></div></div>
+<div class="console-grid">
+<div class="mini"><b>CREATE</b><span>Build podcasts, seasons and episodes.</span></div>
+<div class="mini"><b>PUBLISH</b><span>Prepare artwork, audio and release timing.</span></div>
+<div class="mini"><b>GROW</b><span>Understand listeners, plays and engagement.</span></div>
+<div class="mini"><b>EARN</b><span>Subscriptions and creator payout tools.</span></div>
+</div></div></aside>
+</section>
+
+<section class="section wrap">
+<div class="section-head"><div><div class="eyebrow">THE CREATOR TOOLKIT</div><h2>Everything behind the show.</h2></div><p>Your creator side is the production floor of CrowRules Podcasting — organized around the work creators actually need to do.</p></div>
+<div class="grid">
+<article class="card"><div class="icon">🎙️</div><h3>Creator Studio</h3><p>Your operational home for creating, publishing and monitoring your podcast universe.</p><a class="more" href="studio.html">OPEN STUDIO →</a></article>
+<article class="card"><div class="icon">📡</div><h3>Podcast Management</h3><p>Create and manage shows, descriptions, categories, artwork and your public podcast identity.</p><a class="more" href="podcasts.html">MANAGE SHOWS →</a></article>
+<article class="card"><div class="icon">🎧</div><h3>Episode Operations</h3><p>Move from idea to finished episode with upload, metadata, scheduling and publishing workflows.</p><a class="more" href="episodes.html">MANAGE EPISODES →</a></article>
+<article class="card"><div class="icon">📊</div><h3>Audience & Analytics</h3><p>Track the signals that matter as your audience discovers, listens to and returns to your work.</p><a class="more" href="studio.html">VIEW WORKSPACE →</a></article>
+<article class="card"><div class="icon">💳</div><h3>Subscriptions</h3><p>Build creator-supported listening with subscription plans designed around your audience.</p><a class="more" href="subscriptions.html">OPEN SUBSCRIPTIONS →</a></article>
+<article class="card"><div class="icon">💰</div><h3>Payouts</h3><p>Connect your creator business operations to the payout experience as monetization grows.</p><a class="more" href="payouts.html">OPEN PAYOUTS →</a></article>
+</div>
+</section>
+
+<section class="section wrap">
+<div class="section-head"><div><div class="eyebrow">THE CREATOR LOOP</div><h2>Idea → audience → universe.</h2></div></div>
+<div class="workflow">
+<div class="step"><div class="num">01</div><b>IDEATE</b><span>Define the show, voice, audience and format.</span></div>
+<div class="step"><div class="num">02</div><b>CREATE</b><span>Produce episodes, artwork and supporting media.</span></div>
+<div class="step"><div class="num">03</div><b>PUBLISH</b><span>Set metadata, timing and release strategy.</span></div>
+<div class="step"><div class="num">04</div><b>CONNECT</b><span>Build follows, comments and community around the show.</span></div>
+<div class="step"><div class="num">05</div><b>GROW</b><span>Use analytics and monetization tools to keep building.</span></div>
+</div>
+</section>
+
+<section class="section wrap">
+<div class="callout"><div><h3>ONE ACCOUNT. ONE UNIVERSE.</h3><p>Your CrowRules identity connects the creator experience to the larger CrowRules ecosystem. Sign in once and keep building.</p></div><a class="btn primary" id="accountBtn" href="../login.html">CONNECT YOUR ACCOUNT →</a></div>
+<div class="callout"><div><h3>CREATING FOR THE JANUARY 1, 2027 LAUNCH?</h3><p>Get your creator workspace ready now and use the pre-launch path to stay connected to the rollout.</p></div><a class="btn secondary" href="../pre-launch/index.html">PRE-LAUNCH HUB →</a></div>
+</section>
+</main>
+
+<footer><div class="wrap foot"><div><b>CROWRULES PODCASTING</b><br>One company. One universe.</div><div>CREATOR EXPERIENCE • BUILD FROM THE GROUND UP<br>© <span id="year"></span> CrowRules Entertainment</div></div></footer>
+
+<script>
+(function(){
+const cfg=window.CROW_CONFIG||{};
+if(cfg.logoUrl) document.getElementById("logo").src=cfg.logoUrl;
+document.getElementById("year").textContent=new Date().getFullYear();
+const status=document.getElementById("status"), identity=document.getElementById("identity"), auth=document.getElementById("authLink"), account=document.getElementById("accountBtn");
+const url=cfg.supabaseUrl, key=cfg.supabaseKey;
+if(!url||!key||!window.supabase){status.innerHTML='CREATOR CONNECTION: <strong>OFFLINE</strong>';return}
+const sb=window.supabase.createClient(url,key);
+async function refresh(){
+ const {data}=await sb.auth.getSession(), user=data&&data.session&&data.session.user;
+ if(user){
+   const meta=user.user_metadata||{}, name=meta.full_name||meta.name||user.email||"Creator";
+   identity.innerHTML="";
+   const b=document.createElement("div"); b.className="identity"; b.textContent=name;
+   const s=document.createElement("small"); s.textContent="Authenticated creator";
+   b.appendChild(s); identity.replaceWith(b);
+   status.innerHTML='CREATOR CONNECTION: <strong>ONLINE</strong>';
+   auth.textContent="MY ACCOUNT"; auth.href="../account.html"; account.textContent="OPEN MY ACCOUNT →"; account.href="../account.html";
+ }else{
+   status.innerHTML='CREATOR CONNECTION: <strong>READY FOR SIGN IN</strong>';
+ }
+}
+refresh();
+sb.auth.onAuthStateChange(function(){refresh()});
+})();
+</script>
+</body>
+</html>
