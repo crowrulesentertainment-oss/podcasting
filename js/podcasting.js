@@ -28,19 +28,16 @@ async function loadAuth(mode){layout('<div class="card form"><div class="eyebrow
       timeout(S.from("podcast_follows").select("id",{count:"exact",head:true}).eq("podcast_id",id),"Follower count").catch(error=>({data:null,error})),
       timeout(S.from("creator_subscription_plans").select("id,name,description,monthly_price_cents,annual_price_cents,currency,active,is_free,trial_days,subscriber_count,max_subscribers,stripe_monthly_price_id,stripe_annual_price_id").eq("podcast_id",id).eq("active",true).order("tier_order",{ascending:true}),"Subscription plans").catch(error=>({data:null,error})),
       currentUser?timeout(S.from("podcast_subscriptions").select("id,status,plan_id").eq("podcast_id",id).eq("user_id",currentUser.id).in("status",["trialing","active","past_due","paused"]).limit(1),"Subscription status"):Promise.resolve({data:[],error:null}),
-      currentUser&&ids.length?timeout(S.from("podcast_episode_likes").select("episode_id").in("episode_id",ids),"Episode likes").catch(error=>({data:null,error})):Promise.resolve({data:[],error:null})
+      ids.length?timeout(S.from("podcast_episode_likes").select("episode_id").in("episode_id",ids),"Episode like counts").catch(error=>({data:null,error})):Promise.resolve({data:[],error:null}),
+      currentUser&&ids.length?timeout(S.from("podcast_episode_likes").select("episode_id").eq("user_id",currentUser.id).in("episode_id",ids),"Your episode likes").catch(error=>({data:null,error})):Promise.resolve({data:[],error:null})
     ]);
     let following=!!followRes.data;
     let subscribed=!!subRes.data?.length;
     let activeEpisode=null;
     const likeCounts={};
     const likedByMe=new Set();
-    (likeRowsRes.data||[]).forEach(row=>{likeCounts[row.episode_id]=(likeCounts[row.episode_id]||0)+1;likedByMe.add(row.episode_id)});
-    // Query public counts separately from the current user's likes, without exposing liker identities.
-    const likeCountResults=await Promise.all(ids.map(async episodeId=>{
-      try{const r=await timeout(S.from("podcast_episode_likes").select("id",{count:"exact",head:true}).eq("episode_id",episodeId),"Like count",8000);return [episodeId,r.count||0]}catch{return [episodeId,0]}
-    }));
-    likeCountResults.forEach(([episodeId,count])=>{likeCounts[episodeId]=count});
+    (likeRowsRes.data||[]).forEach(row=>{likeCounts[row.episode_id]=(likeCounts[row.episode_id]||0)+1});
+    (likeRowsRes.data||[]).forEach(row=>likedByMe.add(row.episode_id));
     const plans=plansRes.data||[];
     const currency=v=>String(v||"usd").toUpperCase();
     const moneyCents=(amount,curr)=>new Intl.NumberFormat(undefined,{style:"currency",currency:curr||"USD",maximumFractionDigits:2}).format(Number(amount||0)/100);
@@ -75,7 +72,7 @@ async function loadAuth(mode){layout('<div class="card form"><div class="eyebrow
       let rows=episodes.filter(e=>[e.title,e.description,e.show_notes,(e.tags||[]).join(" ")].some(v=>String(v||"").toLowerCase().includes(q)));
       rows.sort((a,b)=>{if(sort==="title")return episodeTitle(a).localeCompare(episodeTitle(b));if(sort==="popular")return Number(b.play_count||0)-Number(a.play_count||0);const da=new Date(a.published_at||a.created_at||0).getTime(),db=new Date(b.published_at||b.created_at||0).getTime();return sort==="oldest"?da-db:db-da});
       $("#episodeList").innerHTML=rows.length?rows.map((e,i)=>'<article class="episode-row" data-episode-row="'+esc(e.id)+'"><div class="episode-number">'+String(e.episode_number||i+1).padStart(2,"0")+'</div><div class="episode-info"><b>'+esc(episodeTitle(e))+'</b><small>'+esc(e.published_at?new Date(e.published_at).toLocaleDateString():"Release date pending")+(e.season_number?' • Season '+Number(e.season_number):'')+(fmtDuration(e.duration_seconds)?' • '+fmtDuration(e.duration_seconds):'')+' • '+Number(e.play_count||0).toLocaleString()+' plays</small><small>'+esc(e.description||e.show_notes||"Listen now on CrowRules Podcasting.")+'</small></div><div class="episode-actions"><button class="btn primary" data-play="'+esc(e.id)+'" type="button">▶ PLAY</button><button class="btn like-btn '+(likedByMe.has(e.id)?"liked":"")+'" data-like="'+esc(e.id)+'" type="button">'+(likedByMe.has(e.id)?"♥ LIKED":"♡ LIKE")+' <span>'+Number(likeCounts[e.id]||0)+'</span></button><button class="btn" data-comments="'+esc(e.id)+'" type="button">COMMENTS</button></div></article>').join(""):'<div class="notice">'+(episodes.length?"No episodes match your search.":"No published episodes are available yet. Check back soon.")+'</div>';
-      $("#episodeList").querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{const e=episodes.find(x=>x.id===b.dataset.play);if(!e?.audio_url){toast("Audio has not been added to this episode yet.");return}const audio=$("#audio");audio.src=e.audio_url;audio.preload="metadata";$("#playerTitle").textContent=podcast.title+" — "+episodeTitle(e);$("#player").classList.add("on");audio.play().catch(()=>toast("Press Play in the audio player to begin listening."));S.from("podcast_recommendation_events").insert({user_id:currentUser?.id||null,episode_id:e.id,podcast_id:id,event_type:"play",seconds:0,category:podcast.category,source:"show-page"}).then(({error})=>{if(error)console.debug("[CrowRules] play event not recorded",error.message)});});
+      $("#episodeList").querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{const e=episodes.find(x=>x.id===b.dataset.play);if(!e?.audio_url){toast("Audio has not been added to this episode yet.");return}const audio=$("#audio");audio.src=e.audio_url;audio.preload="metadata";$("#playerTitle").textContent=podcast.title+" — "+episodeTitle(e);$("#player").classList.add("on");audio.play().catch(()=>toast("Press Play in the audio player to begin listening."));if(currentUser)S.from("podcast_recommendation_events").insert({user_id:currentUser.id,episode_id:e.id,podcast_id:id,event_type:"play",seconds:0,category:podcast.category,source:"show-page"}).then(({error})=>{if(error)console.debug("[CrowRules] play event not recorded",error.message)});});
       $("#episodeList").querySelectorAll("[data-comments]").forEach(b=>b.onclick=()=>loadComments(b.dataset.comments));
       $("#episodeList").querySelectorAll("[data-like]").forEach(b=>b.onclick=()=>toggleLike(b.dataset.like,b));
     }
