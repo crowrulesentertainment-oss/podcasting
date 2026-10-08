@@ -62,7 +62,7 @@ window.CROW_PODCASTING_CONFIG = {
   const halloweenFX = () => {
     if (document.getElementById("crow-halloween-fx")) return;
     const root = document.createElement("div"); root.id="crow-halloween-fx"; root.setAttribute("aria-hidden","true");
-    root.innerHTML='<div class="crow-halloween-fog fog-a"></div><div class="crow-halloween-fog fog-b"></div><div class="crow-halloween-bats">◥　　◤　 ◥　　 ◤</div><div class="crow-halloween-embers"></div>';
+    root.innerHTML='<div class="crow-halloween-moon"></div><div class="crow-halloween-fog fog-a"></div><div class="crow-halloween-fog fog-b"></div><div class="crow-halloween-ghosts"><span class="ghost g1">👻</span><span class="ghost g2">👻</span><span class="ghost g3">👻</span></div><div class="crow-halloween-witches"><span class="witch w1">🧙‍♀️</span><span class="witch w2">🧙‍♀️</span></div><div class="crow-halloween-bats"><span>🦇</span><span>🦇</span><span>🦇</span><span>🦇</span></div><div class="crow-halloween-pumpkins"><span>🎃</span><span>🎃</span><span>🎃</span></div><div class="crow-halloween-embers"></div>';
     document.body.appendChild(root);
     const emb=root.querySelector(".crow-halloween-embers");
     for(let i=0;i<18;i++){const p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--d",(5+Math.random()*10)+"s");p.style.setProperty("--delay",(-Math.random()*12)+"s");p.style.setProperty("--drift",(-35+Math.random()*70)+"px");emb.appendChild(p);}
