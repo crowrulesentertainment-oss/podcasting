@@ -1,5 +1,5 @@
 (()=>{"use strict";
-const VERSION="8.1.0";
+const VERSION="9.0.0";
 const root=document.documentElement;
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -95,6 +95,6 @@ function setupServiceLinks(){
  const manifest=location.pathname.includes("/podcasting/")?"manifest.json":null;
  if(manifest&&!document.querySelector('link[rel="manifest"]'))inject("link",{rel:"manifest",href:manifest});
 }
-function boot(){setupChrome();setupGlobalPlayer();setupAccountUI();setupProgress();setupNav();setupNetwork();setupLinks();setupAuthUX();setupTheme();setupServiceLinks();root.dataset.crPodcasting="v8";window.CrowPodcastingV8={version:VERSION,toast};}
+function loadListener(){if(window.CrowListener||document.querySelector('script[data-cr-listener]'))return;const s=document.createElement("script");s.src="js/listener-engine.js?v=20261007-v9.0.0";s.defer=true;s.dataset.crListener="v9";document.head.appendChild(s)}\nfunction boot(){loadListener();setupChrome();setupGlobalPlayer();setupAccountUI();setupProgress();setupNav();setupNetwork();setupLinks();setupAuthUX();setupTheme();setupServiceLinks();root.dataset.crPodcasting="v9";window.CrowPodcastingV8={version:VERSION,toast};}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
