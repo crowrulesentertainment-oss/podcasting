@@ -1,116 +1,159 @@
 (()=>{"use strict";const C=window.CROW_CONFIG||{};const S=window.supabase?.createClient?window.supabase.createClient(C.supabaseUrl,C.supabaseKey||""):null;const $=s=>document.querySelector(s);const esc=x=>String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));const money=c=>"$"+(Number(c||0)/100).toFixed(2);const page=window.CRPage||"home";let session=null;function logo(){return C.logoUrl||""}function nav(){const nested=location.pathname.includes("/listener/")||location.pathname.includes("/creator/");const R=nested?"../":"";return '<header class="topbar"><div class="shell nav"><a class="brand" href="'+R+'home.html"><img src="'+logo()+'"><b>CROWRULES <span>/ PODCASTING</span></b></a><nav class="links"><a href="'+R+'listener/index.html">LISTEN</a><a href="'+R+'creator/index.html">CREATE</a><a href="'+R+'listener/rankings.html">RANKINGS</a><a href="'+R+'creator/subscriptions.html">SUBSCRIPTIONS</a><a href="'+R+'creator/live-admin.html">LIVE ADMIN</a></nav><div class="user"><a href="'+R+'login.html" id="loginLink">SIGN IN</a><a class="btn primary signup" href="'+R+'signup.html">JOIN</a></div></div></header>}
 function footer(){return '<footer class="footer"><div class="shell">CROWRULES PODCASTING • ONE COMPANY. ONE UNIVERSE. • PRE-LAUNCH TARGET: JANUARY 1, 2027</div></footer>'}function layout(body){document.querySelector("#app").innerHTML=nav()+'<main><div class="shell">'+body+'</div></main>'+footer()+'<div class="player" id="player"><b id="playerTitle">Now Playing</b><audio controls id="audio"></audio></div><div class="toast" id="toast"></div>';refreshAuthUI()}function toast(m){const e=$("#toast");if(e){e.textContent=m;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),3500)}}async function refreshAuthUI(){if(!S)return;const r=await S.auth.getSession();session=r.data.session;const l=$("#loginLink");if(l&&session){l.textContent="ACCOUNT";l.href="profile.html"}if(page==="login"||page==="signup")return}async function oauth(provider){if(!S)return toast("Supabase is not configured yet.");const {error}=await S.auth.signInWithOAuth({provider,options:{redirectTo:location.origin+location.pathname.replace(/[^/]*$/,"")+"listener.html"}});if(error)toast(error.message)}async function emailAuth(mode){const email=$("#email").value.trim(),password=$("#password").value; if(!email||!password)return toast("Enter email and password.");if(mode==="signup"){const {error}=await S.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname.replace(/[^/]*$/,"")+"listener.html"}});if(error)toast(error.message);else toast("Account created. Check your email if confirmation is enabled.")}else{const {error}=await S.auth.signInWithPassword({email,password});if(error)toast(error.message);else location.href="listener.html"}}async function data(table,query){if(!S)return {data:[],error:null};return await query(S.from(table))}async function loadHome(){layout('<section class="hero"><div><div class="eyebrow">CROWRULES ENTERTAINMENT • PODCASTING</div><h1>CHOOSE<br>YOUR<br>EXPERIENCE.</h1><p>One CrowRules Podcasting universe, with two focused experiences. Pick how you want to use the platform — <b>Listener</b> for discovering and engaging with shows, or <b>Creator</b> for building and managing them.</p></div><div class="hero-art"><img src="'+logo()+'" alt="CrowRules Podcasting"></div></section><section class="grid" style="grid-template-columns:repeat(2,1fr)"><a class="card choice feature" href="listener/index.html"><div class="icon">🎧</div><div class="eyebrow">LISTENER EXPERIENCE</div><h2>LISTEN • FOLLOW • COMMENT</h2><p class="muted">Discover podcasts, play episodes, continue listening, follow creators, comment, view profiles and watch live activity.</p><span class="btn primary">ENTER LISTENER EXPERIENCE →</span></a><a class="card choice" href="creator/index.html"><div class="icon">🎙️</div><div class="eyebrow">CREATOR EXPERIENCE</div><h2>CREATE • MANAGE • GROW</h2><p class="muted">Build podcasts, create episodes, manage publishing, subscriptions, analytics, live operations and Stripe payouts.</p><span class="btn primary">ENTER CREATOR EXPERIENCE →</span></a></section><section class="section card"><div class="section-head"><h2>Two Experiences. One Universe.</h2><span class="eyebrow">PRE-LAUNCH • JAN 1 2027</span></div><div class="stats"><div class="stat"><strong>01</strong><small>Listener Side</small></div><div class="stat"><strong>02</strong><small>Creator Side</small></div><div class="stat"><strong>∞</strong><small>Shared CrowRules Identity</small></div><div class="stat"><strong>LIVE</strong><small>Supabase Realtime</small></div></div></section>')}
 async function loadAuth(mode){layout('<div class="card form"><div class="eyebrow">'+(mode==="signup"?"JOIN":"WELCOME BACK")+'</div><h1 style="font-family:Orbitron">'+(mode==="signup"?"CREATE YOUR ACCOUNT":"SIGN IN")+'</h1><p class="muted">One CrowRules account. Listener or creator — switch experiences anytime.</p><label>Email</label><input class="input" id="email" type="email" autocomplete="email"><label>Password</label><input class="input" id="password" type="password" autocomplete="'+(mode==="signup"?"new-password":"current-password")+'"><button class="btn primary" id="emailBtn">'+(mode==="signup"?"CREATE ACCOUNT":"SIGN IN")+'</button><div class="notice" style="margin-top:12px">OAuth providers require the provider to be enabled in Supabase Auth and the exact redirect URL to be registered.</div><div class="oauth"><button class="btn" data-oauth="google">Google</button><button class="btn" data-oauth="discord">Discord</button><button class="btn" data-oauth="twitch">Twitch</button><button class="btn" data-oauth="github">GitHub</button></div><p class="muted" style="text-align:center"><a href="'+(mode==="signup"?"login.html":"signup.html")+'">'+(mode==="signup"?"Already have an account? Sign in":"Need an account? Join now")+'</a></p></div>');$("#emailBtn").onclick=()=>emailAuth(mode);document.querySelectorAll("[data-oauth]").forEach(b=>b.onclick=()=>oauth(b.dataset.oauth))}async function loadListener(){layout('<section class="hero"><div><div class="eyebrow">PRE-LAUNCH • LISTENER DASHBOARD</div><h1>YOUR<br>LISTENING<br>UNIVERSE.</h1><p>Everything here is built around listening: discovery, comments, follows, saved episodes, profiles and rankings.</p><a class="btn primary" href="rankings.html">SEE RANKINGS</a></div><div class="card"><h2>Live Network</h2><div id="liveBox" class="notice"><span class="live-dot"></span>Checking live broadcasts…</div></div></section><section class="section"><div class="section-head"><h2>Featured Podcasts</h2><a href="rankings.html">VIEW RANKINGS →</a></div><div class="grid" id="shows"></div></section><section class="section card"><h2>Continue Listening</h2><p class="muted">Your personal listening history will appear here as episodes are played.</p></section>');let r=await data("podcasts",q=>q.select("id,title,slug,description,category,artwork_url,author_name,listener_count,total_plays").eq("status","published").order("is_featured",{ascending:false}).order("updated_at",{ascending:false}).limit(9));const box=$("#shows");if(r.error){box.innerHTML='<div class="card"><p class="muted">Podcast catalog is connecting. '+esc(r.error.message)+'</p></div>'}else if(!r.data?.length){box.innerHTML='<div class="card"><p class="muted">Pre-launch mode: creator catalog will appear here as shows are published.</p></div>'}else box.innerHTML=r.data.map(x=>'<a class="card" href="show.html?id='+x.id+'"><img class="avatar" src="'+esc(x.artwork_url||logo())+'"><h3>'+esc(x.title)+'</h3><p class="muted">'+esc(x.description||"New CrowRules podcast")+'</p><small>'+esc(x.category||"Podcast")+' • '+Number(x.total_plays||0).toLocaleString()+' plays</small></a>').join("");let live=await data("cr_podcast_live",q=>q.select("*").eq("is_live",true).order("started_at",{ascending:false}).limit(1));$("#liveBox").innerHTML=live.data?.length?'<span class="live-dot"></span><b>LIVE:</b> '+esc(live.data[0].title)+' • '+Number(live.data[0].listener_count||0).toLocaleString()+' listeners':'<span class="live-dot" style="background:#64748b;box-shadow:none"></span>No live podcast right now.';if(S)S.channel("listener-live").on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_live"},()=>loadListener()).subscribe()}async function loadRankings(){layout('<section class="hero"><div><div class="eyebrow">CROWRULES / PODCAST RANKINGS</div><h1>WHO'S<br>MOVING<br>NOW?</h1><p>Live listener engagement, follows, listens, comments, reputation and momentum feed the ranking experience.</p></div><div class="card"><h2>Ranking Engine</h2><p class="muted">Connected to the existing CrowRules ranking tables.</p></div></section><section class="card"><div class="section-head"><h2>Live Rankings</h2><span class="eyebrow">REALTIME</span></div><div id="rankingList" class="list">Loading…</div></section>');let r=await data("cr_podcast_ranking_live_v63",q=>q.select("*").order("social_score",{ascending:false}).limit(20));const e=$("#rankingList");if(r.error||!r.data?.length){e.innerHTML='<div class="notice">No ranking rows are available yet. Rankings will populate as the pre-launch network records activity.</div>'}else e.innerHTML=r.data.map((x,i)=>'<div class="row"><div class="rank">#'+(i+1)+'</div><div class="row-main"><b>'+esc(x.user_id||"Podcast creator")+'</b><small>Social '+Number(x.social_score||0).toFixed(1)+' • Engagement '+Number(x.engagement||0).toFixed(1)+' • Listens '+Number(x.listens||0).toLocaleString()+'</small></div><strong>'+Number(x.reputation||0).toFixed(0)+'</strong></div>').join("")}async function loadProfile(){if(!session&&S){const r=await S.auth.getSession();session=r.data.session}if(!session)return location.href="login.html";layout('<section class="hero"><div><div class="eyebrow">CROWRULES PROFILE</div><h1>YOUR<br>PROFILE.</h1><p>One identity across the CrowRules Podcasting listener and creator experiences.</p></div><div class="card" id="profileCard">Loading profile…</div></section>');let r=await S.from("cr_podcast_profiles_v5").select("*").eq("user_id",session.user.id).maybeSingle();let p=r.data||{};$("#profileCard").innerHTML='<img class="avatar" src="'+esc(p.avatar_url||session.user.user_metadata?.avatar_url||logo())+'"><h2>'+esc(p.display_name||session.user.user_metadata?.full_name||session.user.email)+'</h2><p class="muted">@'+esc(p.handle||"new-member")+'</p><p>'+esc(p.bio||"Build your CrowRules Podcasting identity.")+'</p><button class="btn" id="signout">SIGN OUT</button>';$("#signout").onclick=async()=>{await S.auth.signOut();location.href="home.html"}}async function loadCreator(){if(!session&&S){const r=await S.auth.getSession();session=r.data.session}layout('<section class="hero"><div><div class="eyebrow">PRE-LAUNCH • CREATOR STUDIO</div><h1>BUILD<br>THE SHOW.</h1><p>Create podcasts and episodes, manage publishing, subscriptions, audience growth and payouts from one creator workspace.</p></div><div class="card"><h2>Creator Control</h2><p class="muted">Stripe Connect is already wired through the Supabase creator onboarding and payout functions. No Stripe secret keys belong in this browser.</p><button class="btn primary" id="connectStripe">CONNECT PAYOUTS</button></div></section><section class="grid"><div class="card"><h2>New Podcast</h2><form id="podForm"><label>Podcast title</label><input class="input" id="ptitle" required><label>Description</label><textarea class="input" id="pdesc"></textarea><label>Category</label><input class="input" id="pcat" value="Talk & Commentary"><button class="btn primary">CREATE PODCAST</button></form></div><div class="card"><h2>New Episode</h2><form id="epForm"><label>Podcast ID</label><input class="input" id="epPodcast" required><label>Episode title</label><input class="input" id="etitle" required><label>Audio URL</label><input class="input" id="eaudio" type="url"><button class="btn primary">SAVE DRAFT</button></form></div><div class="card"><h2>Creator Operations</h2><div class="list"><div class="notice">Artwork Manager</div><div class="notice">Scheduled Publishing</div><div class="notice">Analytics + Listener Growth</div><div class="notice">Subscription Plans</div><div class="notice">Stripe Payouts</div></div></div></section>');$("#podForm").onsubmit=async e=>{e.preventDefault();if(!session)return location.href="login.html";let slug=$("#ptitle").value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");let r=await S.from("podcasts").insert({title:$("#ptitle").value,slug,description:$("#pdesc").value,category:$("#pcat").value,status:"draft",creator_id:session.user.id}).select().single();if(r.error)toast(r.error.message);else toast("Podcast draft created.")};$("#epForm").onsubmit=async e=>{e.preventDefault();if(!session)return location.href="login.html";let slug=$("#etitle").value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-");let r=await S.from("podcast_episodes").insert({podcast_id:$("#epPodcast").value,title:$("#etitle").value,slug, audio_url:$("#eaudio").value||null,status:"draft"});if(r.error)toast(r.error.message);else toast("Episode draft saved.")};$("#connectStripe").onclick=async()=>{if(!session)return location.href="login.html";const {data,error}=await S.functions.invoke("creator-connect-onboarding",{body:{action:"onboard",return_url:location.href,refresh_url:location.href}});if(error||data?.error)return toast(data?.error||error.message);if(data?.onboarding_url)location.href=data.onboarding_url}}async function loadAdmin(){layout('<section class="hero"><div><div class="eyebrow">REALTIME LIVE ADMIN PANEL</div><h1>CONTROL<br>THE<br>TRANSMISSION.</h1><p>Operational visibility for live broadcasts, audience count, publishing status and network events.</p></div><div class="card"><h2><span class="live-dot"></span>Realtime</h2><p class="muted" id="rt">Connecting to Supabase Realtime…</p></div></section><section class="card"><div class="section-head"><h2>Live Broadcasts</h2><span class="eyebrow">SUPABASE REALTIME</span></div><div id="liveAdmin" class="list">Loading…</div></section>');async function refresh(){let r=await data("cr_podcast_live",q=>q.select("*").order("is_live",{ascending:false}).order("updated_at",{ascending:false}).limit(20));$("#liveAdmin").innerHTML=r.data?.length?r.data.map(x=>'<div class="row"><div class="row-main"><b>'+esc(x.title)+'</b><small>'+esc(x.show_name||"")+' • '+(x.is_live?"LIVE":"OFFLINE")+'</small></div><strong>'+Number(x.listener_count||0).toLocaleString()+'</strong></div>').join(""):'<div class="notice">No live records.</div>';$("#rt").textContent="Realtime channel active."}refresh();if(S)S.channel("admin-live").on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_live"},refresh).subscribe()}async function loadPricing(){layout('<section class="hero"><div><div class="eyebrow">CREATOR SUBSCRIPTIONS + PAYOUTS</div><h1>SUPPORT<br>THE SHOWS.</h1><p>Podcast subscriptions run through Stripe Billing with creator payouts through Stripe Connect. Checkout and billing-portal actions stay server-side in Supabase Edge Functions.</p></div><div class="card"><h2>Stripe Connected</h2><p class="muted">Existing CrowRules functions: podcast-subscription-checkout, podcast-subscription-center, creator-connect-onboarding and Stripe webhooks.</p></div></section><section class="grid" id="plans"><div class="card"><h2>Listener Membership</h2><p class="muted">Subscribe to individual creator shows when paid tiers are available.</p></div><div class="card"><h2>Creator Payouts</h2><p class="muted">Creators complete Stripe Connect onboarding before paid subscriptions can transfer funds.</p></div><div class="card"><h2>Billing Control</h2><p class="muted">Manage subscriptions through the Stripe customer portal generated by Supabase.</p><button class="btn primary" id="manageBilling">MANAGE MY SUBSCRIPTIONS</button></div></section>')};if(S){const r=await S.auth.getSession();session=r.data.session;const b=$("#manageBilling");if(b)b.onclick=async()=>{if(!session)return location.href="login.html";const {data,error}=await S.functions.invoke("podcast-subscription-center",{body:{origin:location.origin+location.pathname.replace(/[^/]*$/,"")}});if(error||data?.error)return toast(data?.error||error.message);if(data?.portal_url)location.href=data.portal_url;else toast("No active Stripe subscriptions yet.")}}async function loadShow(){
-  const id=new URLSearchParams(location.search).get("id");
-  layout('<section class="card" id="show"><div class="notice">Loading podcast universe…</div></section>');
-  if(!id)return $("#show").innerHTML='<div class="notice">Missing podcast id. Open a show from the Listener catalog to continue.</div>';
-  if(!S)return $("#show").innerHTML='<div class="notice">The podcast database is not configured on this page. Please refresh later or contact CrowRules support.</div>';
-  const userResult=await S.auth.getUser();
-  const currentUser=userResult.data?.user||null;
-  let p=await S.from("podcasts").select("*").eq("id",id).maybeSingle();
-  if(p.error)return $("#show").innerHTML='<div class="notice">We could not load this podcast right now. Please refresh and try again.</div>';
-  if(!p.data)return $("#show").innerHTML='<div class="notice">Podcast not found, unpublished, or unavailable to this account. Return to <a href="listener/index.html">Discover</a> to browse available shows.</div>';
-  let er=await S.from("podcast_episodes").select("*").eq("podcast_id",id).order("published_at",{ascending:false}).limit(100);
-  let episodes=er.data||[];
-  if(er.error){
-    er=await S.from("podcast_episodes").select("*").eq("podcast_id",id).order("created_at",{ascending:false}).limit(100);
-    episodes=er.data||[];
-  }
-  episodes=episodes.filter(x=>x.published===true||x.is_published===true||x.status==="published"||(!("published" in x)&&!("is_published" in x)&&!("status" in x)));
-  const artwork=p.data.artwork_url||logo();
-  const totalPlays=Number(p.data.total_plays||p.data.play_count||p.data.plays||0);
-  const listeners=Number(p.data.listener_count||p.data.listeners||0);
-  const followTable="podcast_follows";
-  let following=false;
-  if(currentUser){
-    const fr=await S.from(followTable).select("id").eq("podcast_id",id).eq("user_id",currentUser.id).maybeSingle();
-    following=!!fr.data;
-  }
-  const escUrl=x=>encodeURI(String(x||""));
-  $("#show").innerHTML=
-    '<div class="show-hero">'+
-      '<div class="show-copy">'+
-        '<div class="eyebrow">'+esc(p.data.category||"CROWRULES PODCAST")+'</div>'+
-        '<h1>'+esc(p.data.title||"Untitled Podcast")+'</h1>'+
-        '<p class="muted">'+esc(p.data.description||"Welcome to the CrowRules Podcasting universe.")+'</p>'+
-        '<div class="show-actions">'+
-          '<button class="btn primary" id="followBtn">'+(following?"FOLLOWING ✓":"FOLLOW SHOW +")+'</button>'+
-          '<button class="btn" id="shareBtn">SHARE SHOW</button>'+
-          '<button class="btn" id="copyBtn">COPY LINK</button>'+
-          '<a class="btn" href="listener/index.html">DISCOVER MORE</a>'+
-        '</div>'+
-        '<div class="show-meta"><span>'+listeners.toLocaleString()+' listeners</span><span>'+totalPlays.toLocaleString()+' plays</span><span>'+episodes.length.toLocaleString()+' published episodes</span></div>'+
-      '</div>'+
-      '<img class="show-art" src="'+esc(artwork)+'" alt="'+esc(p.data.title||"Podcast artwork")+'">'+
-    '</div>'+
-    '<div class="stats">'+
-      '<div class="stat"><strong>'+listeners.toLocaleString()+'</strong><small>LISTENERS</small></div>'+
-      '<div class="stat"><strong>'+totalPlays.toLocaleString()+'</strong><small>TOTAL PLAYS</small></div>'+
-      '<div class="stat"><strong>'+episodes.length.toLocaleString()+'</strong><small>EPISODES</small></div>'+
-      '<div class="stat"><strong id="followCount">'+(Number(p.data.follower_count||p.data.followers||0)+(following?0:0)).toLocaleString()+'</strong><small>FOLLOWERS</small></div>'+
-    '</div>'+
-    '<section class="section">'+
-      '<div class="section-head"><div><div class="eyebrow">EPISODE LIBRARY</div><h2>Listen to the show.</h2></div><span class="eyebrow">'+episodes.length+' RELEASES</span></div>'+
-      '<div class="episode-tools"><input class="input" id="episodeSearch" placeholder="Search episodes…"><select class="input" id="episodeSort"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="title">Title A–Z</option></select></div>'+
-      '<div id="episodeList" class="list"></div>'+
-    '</section>'+
-    '<section class="section card"><div class="section-head"><div><div class="eyebrow">COMMUNITY</div><h2>Episode conversation.</h2></div><span class="eyebrow" id="commentEpisodeLabel">SELECT AN EPISODE</span></div>'+
-      '<div id="comments" class="list"><div class="notice">Choose an episode to view its comments.</div></div>'+
-      '<form id="commentForm" style="display:none"><textarea class="input" id="commentBody" placeholder="Join the conversation…" required></textarea><button class="btn primary">POST COMMENT</button></form>'+
-    '</section>';
-  const style=document.createElement("style");
-  style.textContent=":root{--cr-line:var(--line);--cr-muted:var(--muted);--cr-cyan:var(--cyan)}.show-hero{display:grid;grid-template-columns:1fr 310px;gap:30px;align-items:center;padding:10px 0 24px}.show-copy h1{font:800 clamp(36px,6vw,68px) Orbitron;margin:8px 0 15px;line-height:1.02}.show-art{width:100%;aspect-ratio:1;object-fit:cover;border-radius:22px;border:1px solid var(--cr-line);background:rgba(255,255,255,.03);box-shadow:0 0 70px rgba(167,139,250,.12)}.show-actions{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 15px}.show-meta{display:flex;gap:16px;flex-wrap:wrap;color:var(--cr-muted);font-size:9px;font-weight:700}.show-meta span:before{content:'• ';color:var(--cr-cyan)}.episode-tools{display:grid;grid-template-columns:1fr 190px;gap:9px;margin-bottom:12px}.episode-tools .input{margin:0}.episode-row{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid rgba(255,255,255,.07);border-radius:13px;background:rgba(255,255,255,.02)}.episode-number{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:rgba(97,232,255,.08);color:var(--cr-cyan);font:700 10px Orbitron;flex:none}.episode-info{min-width:0;flex:1}.episode-info b{display:block;font-size:11px;margin-bottom:4px}.episode-info small{display:block;color:var(--cr-muted);font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.episode-actions{display:flex;gap:6px;flex:none}.comment-active{border-color:rgba(97,232,255,.35)!important;background:rgba(97,232,255,.035)}@media(max-width:800px){.show-hero{grid-template-columns:1fr}.show-art{max-width:300px;margin:auto}.episode-tools{grid-template-columns:1fr}.episode-row{align-items:flex-start}.episode-actions{flex-direction:column}}";
-  document.head.appendChild(style);
-  let activeEpisode=null;
-  const renderEpisodes=()=>{
-    const q=($("#episodeSearch").value||"").trim().toLowerCase();
-    const sort=$("#episodeSort").value;
-    let rows=episodes.filter(x=>String(x.title||x.name||"").toLowerCase().includes(q)||String(x.description||"").toLowerCase().includes(q));
-    rows=[...rows].sort((a,b)=>{
-      if(sort==="title")return String(a.title||"").localeCompare(String(b.title||""));
-      const ad=new Date(a.published_at||a.created_at||0).getTime(),bd=new Date(b.published_at||b.created_at||0).getTime();
-      return sort==="oldest"?ad-bd:bd-ad;
-    });
-    const box=$("#episodeList");
-    box.innerHTML=rows.length?rows.map((x,i)=>{
-      const date=x.published_at||x.created_at;
-      return '<div class="episode-row" data-episode-row="'+esc(x.id)+'"><div class="episode-number">'+String(i+1).padStart(2,"0")+'</div><div class="episode-info"><b>'+esc(x.title||"Untitled Episode")+'</b><small>'+esc(date?new Date(date).toLocaleDateString():"Release date pending")+' • '+esc(x.description||"Episode available now.")+'</small></div><div class="episode-actions"><button class="btn" data-play="'+esc(x.audio_url||x.audioUrl||"")+'" data-title="'+esc(x.title||"Episode")+'">PLAY</button><button class="btn" data-comments="'+esc(x.id)+'">COMMENTS</button></div></div>';
-    }).join(""):'<div class="notice">No episodes match your search.</div>';
-    box.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{if(!b.dataset.play)return toast("This episode has no audio URL yet.");$("#playerTitle").textContent=b.dataset.title;$("#audio").src=b.dataset.play;$("#player").classList.add("on");$("#audio").play().catch(()=>{})});
-    box.querySelectorAll("[data-comments]").forEach(b=>b.onclick=()=>loadComments(b.dataset.comments));
+  const params=new URLSearchParams(location.search);
+  const id=params.get("id");
+  layout('<section class="card" id="show" aria-live="polite"><div class="show-loading-inline"><div class="eyebrow">CROWRULES PODCASTING</div><h1>Loading the show…</h1><p class="muted">Connecting to the show catalog.</p><div class="loading-track"><span></span></div></div></section>');
+  const root=$("#show");
+  const renderError=(title,message,canRetry=true)=>{
+    if(!root)return;
+    root.innerHTML='<div class="show-error"><div class="eyebrow">CROWRULES PODCASTING</div><h1>'+esc(title)+'</h1><p class="muted">'+esc(message)+'</p>'+(canRetry?'<button class="btn primary" id="retryShowLoad" type="button">RETRY</button> ':'')+'<a class="btn" href="index.html">BACK TO LISTENING</a></div>';
+    root.setAttribute("role","status");
+    const retry=$("#retryShowLoad");if(retry)retry.onclick=()=>loadShow().catch(e=>{console.error("[CrowRules show] Retry failed",e);renderError("We couldn’t load this show","Please retry in a moment.")});
   };
-  async function loadComments(episodeId){
-    activeEpisode=episodeId;
-    const ep=episodes.find(x=>String(x.id)===String(episodeId));
-    $("#commentEpisodeLabel").textContent=(ep?.title||"EPISODE").toUpperCase();
-    document.querySelectorAll("[data-episode-row]").forEach(x=>x.classList.toggle("comment-active",x.dataset.episodeRow===String(episodeId)));
-    const cr=await S.from("cr_podcast_social_comments_v5").select("id,user_id,body,created_at").eq("episode_id",episodeId).order("created_at",{ascending:false}).limit(50);
-    $("#comments").innerHTML=cr.error?'<div class="notice">Comments are temporarily unavailable.</div>':(cr.data?.length?cr.data.map(c=>'<div class="row"><div class="row-main"><b>'+esc(c.body)+'</b><small>'+new Date(c.created_at).toLocaleString()+'</small></div></div>').join(""):'<div class="notice">No comments yet — be the first listener.</div>');
-    $("#commentForm").style.display="block";
-  }
-  $("#episodeSearch").oninput=renderEpisodes;$("#episodeSort").onchange=renderEpisodes;renderEpisodes();
-  $("#followBtn").onclick=async()=>{
-    if(!currentUser)return location.href="login.html";
-    const btn=$("#followBtn");
-    btn.disabled=true;
-    try{
-      if(following){
-        const r=await S.from(followTable).delete().eq("podcast_id",id).eq("user_id",currentUser.id);
-        if(r.error)throw r.error;
-        following=false;btn.textContent="FOLLOW SHOW +";toast("Show unfollowed.");
-      }else{
-        const r=await S.from(followTable).insert({podcast_id:id,user_id:currentUser.id});
-        if(r.error)throw r.error;
-        following=true;btn.textContent="FOLLOWING ✓";toast("You are now following this show.");
-      }
-    }catch(err){toast(err.message||"Follow action failed.")}finally{btn.disabled=false}
+  const timed=async(promise,label,ms=9000)=>{
+    let timer;
+    try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(label+" timed out")),ms)})])}
+    finally{clearTimeout(timer)}
   };
-  $("#shareBtn").onclick=async()=>{const share={title:p.data.title||"CrowRules Podcast",text:p.data.description||"Listen on CrowRules Podcasting.",url:location.href};try{if(navigator.share)await navigator.share(share);else{await navigator.clipboard.writeText(location.href);toast("Show link copied.")}}catch{}};
-  $("#copyBtn").onclick=async()=>{try{await navigator.clipboard.writeText(location.href);toast("Show link copied.")}catch{toast("Copy is unavailable in this browser.")}};
-  $("#commentForm").onsubmit=async ev=>{ev.preventDefault();if(!currentUser)return location.href="login.html";if(!activeEpisode)return toast("Select an episode first.");const body=$("#commentBody").value.trim();if(!body)return;const rr=await S.from("cr_podcast_social_comments_v5").insert({user_id:currentUser.id,episode_id:activeEpisode,body});if(rr.error)toast(rr.error.message);else{toast("Comment posted.");$("#commentBody").value="";loadComments(activeEpisode)}};
-  if(episodes[0])loadComments(episodes[0].id);
-  if(S&&episodes[0])S.channel("show-"+id).on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_social_comments_v5",filter:"episode_id=eq."+episodes[0].id},()=>{if(activeEpisode===episodes[0].id)loadComments(activeEpisode)}).subscribe();
-}}async function boot(){if(page==="home")return loadHome();if(page==="login")return loadAuth("login");if(page==="signup")return loadAuth("signup");if(page==="listener")return loadListener();if(page==="creator")return loadCreator();if(page==="rankings")return loadRankings();if(page==="profile")return loadProfile();if(page==="admin")return loadAdmin();if(page==="pricing")return loadPricing();if(page==="show")return loadShow()}if(S)S.auth.onAuthStateChange((_e,s)=>{session=s;refreshAuthUI()});
+  if(!id){renderError("Choose a podcast show","This link is missing its show ID. Return to Discover and choose a podcast.",false);return}
+  if(!S){renderError("Database connection unavailable","The Supabase client could not initialize. Refresh the page, and check the browser console if the problem continues.");return}
+  root.innerHTML='<div class="show-loading-inline"><div class="eyebrow">CROWRULES PODCASTING</div><h1>Loading the show…</h1><p class="muted">Preparing show details and published episodes.</p><div class="loading-track"><span></span></div></div>';
+  try{
+    const [pr,er,sr]=await Promise.allSettled([
+      timed(S.from("podcasts").select("id,title,slug,category,description,artwork_url,trailer_url,website_url,status,listener_count,total_plays,is_featured,author_name").eq("id",id).maybeSingle(),"Podcast details"),
+      timed(S.from("podcast_episodes").select("id,podcast_id,title,slug,description,episode_number,season_number,published_at,created_at,duration_seconds,audio_url,video_url,thumbnail_url,show_notes,status,play_count").eq("podcast_id",id).eq("status","published").order("published_at",{ascending:false,nullsFirst:false}).limit(100),"Episode library"),
+      timed(S.auth.getSession(),"Authentication check",5000)
+    ]);
+    if(pr.status==="rejected")throw new Error("Podcast details could not be reached. Check your connection and retry.");
+    if(pr.value.error){console.error("[CrowRules show] Podcast query failed",pr.value.error);throw new Error("The show catalog could not be read. This may be a database permission or connection issue. Retry, and check Supabase RLS policies if it continues.")}
+    const podcast=pr.value.data;
+    if(!podcast){renderError("Podcast not found","This show may have been removed or your account may not have permission to view it.",false);return}
+    if(er.status==="rejected")console.warn("[CrowRules show] Episode query timed out",er.reason);
+    else if(er.value.error)console.warn("[CrowRules show] Episode query failed",er.value.error);
+    const episodeError=er.status==="rejected"||(er.status==="fulfilled"&&!!er.value.error);
+    const episodes=er.status==="fulfilled"&&!er.value.error?(er.value.data||[]):[];
+    const user=sr.status==="fulfilled"&&!sr.value.error?(sr.value.data?.session?.user||null):null;
+    if(sr.status==="rejected")console.warn("[CrowRules show] Session lookup timed out",sr.reason);
+    let following=false,followAvailable=!!user;
+    if(user){
+      try{
+        const fr=await timed(S.from("podcast_follows").select("id").eq("podcast_id",id).eq("user_id",user.id).maybeSingle(),"Follow status",5000);
+        if(fr.error){console.warn("[CrowRules show] Follow status unavailable",fr.error);followAvailable=false}
+        else following=!!fr.data;
+      }catch(e){console.warn("[CrowRules show] Follow status timed out",e);followAvailable=false}
+    }
+    const artwork=podcast.artwork_url||logo();
+    const plays=Number(podcast.total_plays||0);
+    const listeners=Number(podcast.listener_count||0);
+    root.innerHTML=
+      '<div class="show-hero"><div class="show-copy"><div class="eyebrow">'+esc(podcast.category||"CROWRULES PODCAST")+'</div><h1>'+esc(podcast.title||"Untitled Podcast")+'</h1><p class="muted">'+esc(podcast.description||"Welcome to the CrowRules Podcasting universe.")+'</p>'+
+      (podcast.author_name?'<p class="show-author">Hosted by '+esc(podcast.author_name)+'</p>':'')+
+      '<div class="show-actions"><button class="btn primary" id="followBtn" '+(!user?'aria-label="Sign in to follow this show"':'')+' '+(user&&!followAvailable?'disabled':'')+'>'+(user?(following?"FOLLOWING ✓":"FOLLOW SHOW +"):"SIGN IN TO FOLLOW")+'</button><button class="btn" id="shareBtn">SHARE SHOW</button><button class="btn" id="copyBtn">COPY LINK</button><a class="btn" href="index.html">DISCOVER MORE</a></div>'+
+      '<div class="show-meta"><span>'+listeners.toLocaleString()+' listeners</span><span>'+plays.toLocaleString()+' plays</span><span>'+episodes.length.toLocaleString()+' published episodes</span></div></div>'+
+      '<img class="show-art" src="'+esc(artwork)+'" alt="'+esc(podcast.title||"Podcast artwork")+'" loading="eager" onerror="this.onerror=null;this.src=\''+esc(logo())+'\'"></div>'+
+      '<div class="stats"><div class="stat"><strong>'+listeners.toLocaleString()+'</strong><small>LISTENERS</small></div><div class="stat"><strong>'+plays.toLocaleString()+'</strong><small>TOTAL PLAYS</small></div><div class="stat"><strong>'+episodes.length.toLocaleString()+'</strong><small>EPISODES</small></div><div class="stat"><strong>'+episodes.reduce((n,e)=>n+Number(e.play_count||0),0).toLocaleString()+'</strong><small>EPISODE PLAYS</small></div></div>'+
+      '<section class="section"><div class="section-head"><div><div class="eyebrow">EPISODE LIBRARY</div><h2>Listen to the show.</h2></div><span class="eyebrow">'+episodes.length+' RELEASES</span></div>'+
+      '<div class="episode-tools"><input class="input" id="episodeSearch" type="search" placeholder="Search episodes…" aria-label="Search episodes"><select class="input" id="episodeSort" aria-label="Sort episodes"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="title">Title A–Z</option></select></div><div id="episodeNotice" class="notice" '+(episodeError?'':'hidden')+'>The episode library could not be loaded. Show details are available; retry to load episodes.</div><div id="episodeList" class="list"></div></section>'+
+      '<section class="section card"><div class="section-head"><div><div class="eyebrow">COMMUNITY</div><h2>Episode conversation.</h2></div><span class="eyebrow" id="commentEpisodeLabel">SELECT AN EPISODE</span></div><div id="comments" class="list"><div class="notice">Choose an episode to view comments.</div></div><form id="commentForm" hidden><label for="commentBody">Your comment</label><textarea class="input" id="commentBody" maxlength="3000" placeholder="Join the conversation…" required></textarea><button class="btn primary" type="submit">POST COMMENT</button><p class="muted" id="commentHint"></p></form></section>';
+    const style=document.createElement("style");
+    style.textContent=".show-loading-inline,.show-error{max-width:900px;margin:24px auto;padding:clamp(22px,4vw,42px);border:1px solid var(--line);border-radius:18px;background:var(--panel)}.show-loading-inline h1,.show-error h1{font:800 clamp(25px,4vw,42px) Orbitron,sans-serif;margin:14px 0}.loading-track{height:3px;overflow:hidden;background:var(--line);border-radius:9px;margin-top:22px}.loading-track span{display:block;width:35%;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));animation:crload 1.4s ease-in-out infinite alternate}@keyframes crload{from{transform:translateX(-20%)}to{transform:translateX(220%)}}.show-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,310px);gap:28px;align-items:center;padding:24px 0}.show-copy h1{font:800 clamp(34px,5vw,66px)/1.05 Orbitron,sans-serif;margin:12px 0;overflow-wrap:anywhere}.show-art{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:20px;border:1px solid var(--line);background:#0b1220}.show-actions{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}.show-meta{display:flex;gap:12px 18px;flex-wrap:wrap;color:var(--muted);font-size:11px}.show-author{color:var(--muted);font-size:12px}.episode-tools{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,210px);gap:10px;margin-bottom:12px}.episode-tools .input{margin:0;min-width:0}.episode-row{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.02);min-width:0}.episode-number{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:10px;background:rgba(103,232,249,.08);color:var(--cyan);font:700 11px Orbitron}.episode-info{flex:1;min-width:0}.episode-info b{display:block;overflow-wrap:anywhere;margin-bottom:4px}.episode-info small{display:block;color:var(--muted);font-size:11px;line-height:1.5}.episode-actions{display:flex;gap:6px;flex:none}.comment-active{border-color:var(--cyan)!important}.show-error .btn{margin:8px 8px 0 0}@media(max-width:800px){.show-hero{grid-template-columns:minmax(0,1fr)}.show-art{grid-row:1;width:min(100%,300px);margin:auto}.episode-tools{grid-template-columns:1fr}.episode-row{flex-wrap:wrap;align-items:flex-start}.episode-info{flex-basis:calc(100% - 56px)}.episode-actions{width:100%;padding-left:52px}.episode-actions .btn{flex:1}}@media(max-width:480px){.episode-actions{padding-left:0}.show-actions .btn{flex:1 1 40%}}@media(prefers-reduced-motion:reduce){.loading-track span{animation:none}}";
+    document.head.appendChild(style);
+    let activeEpisode=null;
+    const commentsQuery=async episodeId=>{
+      const comments=$("#comments"),form=$("#commentForm"),hint=$("#commentHint");
+      activeEpisode=episodeId;
+      const ep=episodes.find(x=>String(x.id)===String(episodeId));
+      $("#commentEpisodeLabel").textContent=(ep?.title||"EPISODE").toUpperCase();
+      document.querySelectorAll("[data-episode-row]").forEach(el=>el.classList.toggle("comment-active",el.dataset.episodeRow===String(episodeId)));
+      comments.innerHTML='<div class="notice">Loading comments…</div>';
+      form.hidden=!user;
+      hint.textContent=user?"Be respectful. Comments are attached to this episode.":"Sign in to post a comment.";
+      try{
+        const cr=await timed(S.from("cr_podcast_social_comments_v5").select("id,user_id,body,created_at").eq("episode_id",episodeId).order("created_at",{ascending:false}).limit(50),"Episode comments",7000);
+        if(cr.error){console.warn("[CrowRules show] Comments query failed",cr.error);comments.innerHTML='<div class="notice">Comments are temporarily unavailable. The episode itself is still available.</div>';return}
+        comments.innerHTML=cr.data?.length?cr.data.map(c=>'<div class="row"><div class="row-main"><b>'+esc(c.body)+'</b><small>'+esc(c.created_at?new Date(c.created_at).toLocaleString():"")+'</small></div></div>').join(""):'<div class="notice">No comments yet — be the first listener.</div>';
+      }catch(err){console.warn("[CrowRules show] Comments unavailable",err);comments.innerHTML='<div class="notice">Comments took too long to load. You can still listen to this episode.</div>'}
+    };
+    const renderEpisodes=()=>{
+      const query=($("#episodeSearch").value||"").trim().toLowerCase(),sort=$("#episodeSort").value;
+      let rows=episodes.filter(e=>String(e.title||"").toLowerCase().includes(query)||String(e.description||"").toLowerCase().includes(query)||String(e.show_notes||"").toLowerCase().includes(query));
+      rows=[...rows].sort((a,b)=>{
+        if(sort==="title")return String(a.title||"").localeCompare(String(b.title||""));
+        const da=new Date(a.published_at||a.created_at||0).getTime(),db=new Date(b.published_at||b.created_at||0).getTime();
+        return sort==="oldest"?da-db:db-da;
+      });
+      const box=$("#episodeList");
+      box.innerHTML=rows.length?rows.map((e,i)=>{
+        const date=e.published_at||e.created_at,parts=[];
+        if(e.season_number!=null)parts.push("Season "+e.season_number);
+        if(e.episode_number!=null)parts.push("Episode "+e.episode_number);
+        if(date)parts.push(new Date(date).toLocaleDateString());
+        if(e.duration_seconds)parts.push(Math.floor(e.duration_seconds/60)+" min");
+        if(e.play_count)parts.push(Number(e.play_count).toLocaleString()+" plays");
+        return '<div class="episode-row" data-episode-row="'+esc(e.id)+'"><div class="episode-number">'+String(i+1).padStart(2,"0")+'</div><div class="episode-info"><b>'+esc(e.title||"Untitled Episode")+'</b><small>'+esc(parts.join(" • ")||"Release date pending")+(e.description?" — "+esc(e.description):"")+'</small></div><div class="episode-actions"><button class="btn" type="button" data-play-id="'+esc(e.id)+'">PLAY</button><button class="btn" type="button" data-comments-id="'+esc(e.id)+'">COMMENTS</button></div></div>';
+      }).join(""):'<div class="notice">'+(episodeError?"Episode data is unavailable. Check database permissions and retry.":"No published episodes yet. Check back when this show releases its first episode.")+'</div>';
+      box.querySelectorAll("[data-play-id]").forEach(btn=>btn.onclick=()=>{
+        const ep=episodes.find(e=>String(e.id)===btn.dataset.playId);
+        const url=ep?.audio_url||ep?.video_url;
+        if(!url){toast("This episode does not have an audio or video URL yet.");return}
+        const audio=$("#audio"),player=$("#player");
+        if(!audio||!player)return toast("The audio player is unavailable. Refresh the page and retry.");
+        $("#playerTitle").textContent=ep.title||"Now Playing";audio.src=url;player.classList.add("on");
+        const attempt=audio.play();if(attempt&&attempt.catch)attempt.catch(()=>toast("Press play in the player to start this episode."));
+        if(activeEpisode!==ep.id)commentsQuery(ep.id);
+      });
+      box.querySelectorAll("[data-comments-id]").forEach(btn=>btn.onclick=()=>commentsQuery(btn.dataset.commentsId));
+    };
+    $("#episodeSearch").oninput=renderEpisodes;$("#episodeSort").onchange=renderEpisodes;
+    renderEpisodes();
+    $("#followBtn").onclick=async()=>{
+      if(!user){location.href="login.html";return}
+      if(!followAvailable)return toast("Follow status is unavailable. Check database permissions and retry.");
+      const btn=$("#followBtn");btn.disabled=true;
+      try{
+        if(following){
+          const result=await timed(S.from("podcast_follows").delete().eq("podcast_id",id).eq("user_id",user.id),"Unfollow request",7000);
+          if(result.error)throw result.error;
+          following=false;btn.textContent="FOLLOW SHOW +";toast("Show unfollowed.");
+        }else{
+          const result=await timed(S.from("podcast_follows").insert({podcast_id:id,user_id:user.id}),"Follow request",7000);
+          if(result.error)throw result.error;
+          following=true;btn.textContent="FOLLOWING ✓";toast("You are now following this show.");
+        }
+      }catch(err){console.warn("[CrowRules show] Follow action failed",err);toast(err?.message||"Follow action failed. Check permissions and retry.")}finally{btn.disabled=false}
+    };
+    const copyLink=async()=>{
+      try{
+        if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(location.href);toast("Show link copied.");return}
+        const input=document.createElement("textarea");input.value=location.href;input.style.position="fixed";input.style.opacity="0";document.body.appendChild(input);input.select();
+        const ok=document.execCommand("copy");input.remove();if(ok)toast("Show link copied.");else throw new Error("Copy unavailable");
+      }catch{toast("Copy is unavailable in this browser. Copy the page address from your address bar.")}
+    };
+    $("#shareBtn").onclick=async()=>{
+      const share={title:podcast.title||"CrowRules Podcast",text:podcast.description||"Listen on CrowRules Podcasting.",url:location.href};
+      if(navigator.share){try{await navigator.share(share)}catch(err){if(err?.name!=="AbortError")copyLink()}}else copyLink();
+    };
+    $("#copyBtn").onclick=copyLink;
+    $("#commentForm").onsubmit=async ev=>{
+      ev.preventDefault();if(!user){location.href="login.html";return}
+      if(!activeEpisode)return toast("Choose an episode before commenting.");
+      const input=$("#commentBody"),body=input.value.trim();if(!body)return;
+      const submit=ev.submitter||ev.currentTarget.querySelector('button[type="submit"]');if(submit)submit.disabled=true;
+      try{
+        const result=await timed(S.from("cr_podcast_social_comments_v5").insert({user_id:user.id,episode_id:activeEpisode,body}),"Post comment",7000);
+        if(result.error)throw result.error;
+        input.value="";toast("Comment posted.");await commentsQuery(activeEpisode);
+      }catch(err){console.warn("[CrowRules show] Comment post failed",err);toast(err?.message||"Could not post comment. Check permissions and retry.")}finally{if(submit)submit.disabled=false}
+    };
+    if(episodes[0])await commentsQuery(episodes[0].id);
+    else if(episodeError)$("#comments").innerHTML='<div class="notice">Comments will be available when an episode can be selected.</div>';
+  }catch(err){
+    console.error("[CrowRules show] Show initialization failed",err);
+    renderError("We couldn’t load this show",err?.message||"An unexpected error interrupted loading. Please retry.");
+  }
+}
+async function boot(){if(page==="home")return loadHome();if(page==="login")return loadAuth("login");if(page==="signup")return loadAuth("signup");if(page==="listener")return loadListener();if(page==="creator")return loadCreator();if(page==="rankings")return loadRankings();if(page==="profile")return loadProfile();if(page==="admin")return loadAdmin();if(page==="pricing")return loadPricing();if(page==="show")return loadShow()}if(S)S.auth.onAuthStateChange((_e,s)=>{session=s;refreshAuthUI()});
 if(page==="show")window.setTimeout(()=>{
  const app=$("#app");
  if(!app||!/Loading the show|Loading podcast universe|Preparing podcast details/i.test(app.textContent))return;
