@@ -120,38 +120,37 @@ function bind(){
  document.querySelectorAll(".liveBtn").forEach(b=>b.onclick=async()=>{try{const live=b.dataset.live==="true",patch=live?{is_live:true,started_at:new Date().toISOString(),ended_at:null,updated_at:new Date().toISOString()}:{is_live:false,ended_at:new Date().toISOString(),updated_at:new Date().toISOString()};const r=await fn("update",{table:"cr_podcast_live",filters:{id:b.dataset.id},data:patch});if(r?.ok===false)throw new Error(r.error||"Live control failed");toast(live?"Broadcast marked LIVE.":"Broadcast marked OFFLINE.");await load()}catch(e){toast("Live control blocked: "+e.message)}});
 }
 async function realtime(){const c=S.channel("crowrules-ops-center");c.on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_live"},()=>load().catch(()=>{}));c.on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},()=>load().catch(()=>{}));c.on("postgres_changes",{event:"*",schema:"public",table:"podcast_member_reports"},()=>load().catch(()=>{}));c.subscribe()}
+async function withTimeout(promise,ms,label){
+ return Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label)),ms))]);
+}
+async function showGate(title,message,actions){
+ $("#app").innerHTML='<div class="gate"><div class="panel"><div class="eyebrow">CROWRULES PODCASTING</div><h1>'+esc(title)+'</h1><p style="color:var(--muted);line-height:1.7">'+esc(message)+'</p><div class="toolbar" style="justify-content:center">'+(actions||"")+'</div></div></div>';
+}
 async function boot(){
- if(!S){
-  $("#app").innerHTML='<div class="gate"><div class="panel"><h1>AUTH CONFIGURATION ERROR</h1><p style="color:var(--muted)">Supabase configuration is missing from this Operations Center.</p><a class="btn" href="home.html">RETURN HOME</a></div></div>';
-  return;
- }
+ if(!S){await showGate("AUTH CONFIGURATION ERROR","Supabase configuration is missing from this Operations Center.",'<a class="btn" href="home.html">RETURN HOME</a>');return;}
+ let authEventSeen=false;
+ const {data:authListener}=S.auth.onAuthStateChange((event)=>{authEventSeen=true;if(event==="SIGNED_OUT")location.href="home.html";});
  try{
-  const sessionResult=await Promise.race([
-   S.auth.getSession(),
-   new Promise((_,reject)=>setTimeout(()=>reject(new Error("Authentication service timed out. Please refresh and try again.")),10000))
-  ]);
+  // Give the browser client a short window to finish restoring an OAuth/password session.
+  await withTimeout(S.auth.initialize?.()||Promise.resolve(),8000,"Supabase Auth initialization timed out.");
+  const sessionResult=await withTimeout(S.auth.getSession(),8000,"Supabase session lookup timed out.");
   if(sessionResult.error)throw sessionResult.error;
   if(!sessionResult.data?.session){
-   $("#app").innerHTML='<div class="gate"><div class="panel"><div class="eyebrow">CROWRULES PODCASTING</div><h1>ADMIN SIGN-IN REQUIRED</h1><p style="color:var(--muted)">Sign in with an account that has a trusted administrator role.</p><a class="btn primary" href="login.html">SIGN IN</a></div></div>';
+   await showGate("ADMIN SIGN-IN REQUIRED","No active Podcasting session was found. Sign in first, then return to Operations Center.",'<a class="btn primary" href="login.html?redirect=admin.html">SIGN IN</a><button class="btn" onclick="location.reload()">RETRY</button>');
    return;
   }
-  const userResult=await Promise.race([
-   S.auth.getUser(),
-   new Promise((_,reject)=>setTimeout(()=>reject(new Error("Could not verify the signed-in operator with Supabase Auth.")),10000))
-  ]);
+  const userResult=await withTimeout(S.auth.getUser(),8000,"Supabase could not verify the signed-in operator.");
   if(userResult.error||!userResult.data?.user)throw userResult.error||new Error("No authenticated operator found.");
   user=userResult.data.user;
   if(!isAdmin(user)){
-   $("#app").innerHTML='<div class="gate"><div class="panel"><div class="eyebrow">ACCESS CONTROL</div><h1>ACCESS DENIED</h1><p style="color:var(--muted);line-height:1.7">This account is authenticated but is not marked as an administrator. Administrator status must come from trusted app metadata/server configuration.</p><a class="btn" href="home.html">RETURN HOME</a></div></div>';
+   await showGate("ACCESS DENIED","Your account is signed in, but its trusted app_metadata role does not grant Operations Center access.",'<a class="btn" href="home.html">RETURN HOME</a>');
    return;
   }
-  try{await load();await realtime();mountAudiencePresence()}catch(e){
-   $("#app").innerHTML='<div class="gate"><div class="panel"><h1>OPERATIONS LOAD FAILED</h1><p style="color:var(--muted)">'+esc(e.message)+'</p><button class="btn primary" onclick="location.reload()">RETRY</button></div></div>';
-  }
-  S.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT")location.href="home.html"});
+  $("#app").innerHTML='<div class="gate"><div class="panel"><div class="spinner"></div><p style="color:var(--muted)">Loading operations data…</p></div></div>';
+  try{await load();await realtime();mountAudiencePresence();}
+  catch(e){await showGate("OPERATIONS LOAD FAILED",e.message||"Unable to load Operations Center data.",'<button class="btn primary" onclick="location.reload()">RETRY</button><a class="btn" href="home.html">RETURN HOME</a>');}
  }catch(e){
-  $("#app").innerHTML='<div class="gate"><div class="panel"><div class="eyebrow">CROWRULES PODCASTING</div><h1>AUTHENTICATION FAILED</h1><p style="color:var(--muted);line-height:1.7">'+esc(e.message||"Unable to verify the current session.")+'</p><div class="toolbar" style="justify-content:center"><a class="btn primary" href="login.html">SIGN IN AGAIN</a><button class="btn" onclick="location.reload()">RETRY</button></div></div></div>';
+  await showGate("AUTHENTICATION FAILED",e.message||"Unable to verify the current session.",'<a class="btn primary" href="login.html?redirect=admin.html">SIGN IN AGAIN</a><button class="btn" onclick="location.reload()">RETRY</button>');
  }
 }
-boot();
 </script></body></html>
