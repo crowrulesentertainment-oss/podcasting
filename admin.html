@@ -16,7 +16,7 @@
 (()=>{"use strict";
 const C=window.CROW_CONFIG||{},S=window.supabase?.createClient?window.supabase.createClient(C.supabaseUrl||"",C.supabaseKey||"",{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}):null;
 const $=s=>document.querySelector(s),esc=x=>String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])),fmt=n=>Number(n||0).toLocaleString(),ago=x=>x?new Date(x).toLocaleString():"—";
-let user=null,state={workspace:null,reports:[],comments:[],live:[],launch:0,events:[],audit:[]};const roles=["admin","super_admin","owner","administrator"];
+let user=null,state={workspace:null,reports:[],comments:[],live:[],launch:0,events:[],audit:[],stats:{follows:0,subscriptions:0,comments:0,saves:0,recommendations:0}};const roles=["admin","super_admin","owner","administrator"];
 function toast(x){const e=$("#toast");e.textContent=x;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),3200)}
 function isAdmin(u){const r=u?.app_metadata?.roles;return roles.includes(u?.app_metadata?.role)||(Array.isArray(r)&&r.some(x=>roles.includes(x)))}
 function logo(){return C.logoUrl||"https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png"}
@@ -24,15 +24,22 @@ function nav(){return '<header class="top"><div class="shell nav"><a class="bran
 async function fn(action,body={}){const r=await S.functions.invoke("crowrules-admin-api",{body:{action,...body}});if(r.error)throw r.error;if(r.data?.ok===false)throw new Error(r.data.error||"Admin API request failed");return r.data}
 async function load(){
  state.workspace=await fn("creator_workspace");
- const [rep,com,live,launch,events,audit]=await Promise.all([
+ const [rep,com,live,launch,events,audit,followCount,subCount,commentCount,saveCount,recommendationCount]=await Promise.all([
   S.from("podcast_member_reports").select("id,reporter_user_id,reported_user_id,reason,status,admin_notes,created_at,resolved_at,resolved_by"),
   S.from("cr_podcast_social_comments_v5").select("id,user_id,episode_id,body,created_at,updated_at"),
   S.from("cr_podcast_live").select("*").order("is_live",{ascending:false}).order("updated_at",{ascending:false}),
   S.rpc("podcast_launch_interest_count"),
   S.from("podcast_workflow_events").select("id,creator_id,task_id,event_type,message,created_at").order("created_at",{ascending:false}).limit(60),
-  S.from("cr_podcast_admin_audit").select("id,admin_user_id,action,entity_type,entity_id,details,created_at").order("created_at",{ascending:false}).limit(60)
+  S.from("cr_podcast_admin_audit").select("id,admin_user_id,action,entity_type,entity_id,details,created_at").order("created_at",{ascending:false}).limit(60),
+  S.from("podcast_follows").select("id",{count:"exact",head:true}),
+  S.from("podcast_subscriptions").select("id",{count:"exact",head:true}).eq("status","active"),
+  S.from("cr_podcast_social_comments_v5").select("id",{count:"exact",head:true}),
+  S.from("podcast_user_saved_episodes").select("id",{count:"exact",head:true}),
+  S.from("podcast_recommendation_events").select("id",{count:"exact",head:true})
  ]);
- state.reports=rep.data||[];state.comments=com.data||[];state.live=live.data||[];state.launch=Number(launch.data||0);state.events=events.data||[];state.audit=audit.data||[];render();
+ state.reports=rep.data||[];state.comments=com.data||[];state.live=live.data||[];state.launch=Number(launch.data||0);state.events=events.data||[];state.audit=audit.data||[];
+ state.stats={follows:followCount.count||0,subscriptions:subCount.count||0,comments:commentCount.count||0,saves:saveCount.count||0,recommendations:recommendationCount.count||0};
+ render();
 }
 function render(){
  const w=state.workspace||{},ms=w.members||[],cs=w.creators||[],orphan=w.orphaned_podcasts||[],allPods=cs.flatMap(c=>c.podcasts||[]),allEps=allPods.flatMap(p=>p.episodes||[]),open=state.reports.filter(x=>!["resolved","dismissed"].includes(String(x.status||"").toLowerCase())),live=state.live.filter(x=>x.is_live);
@@ -43,6 +50,20 @@ function render(){
  <section class="grid">
  <div class="panel metric"><small>Members</small><strong>${fmt(ms.length)</strong><em>Directory accounts</em></div><div class="panel metric"><small>Creators</small><strong>${fmt(cs.length)</strong><em>Creator workspace</em></div><div class="panel metric"><small>Podcasts</small><strong>${fmt(w.podcast_count)</strong><em>Show catalog</em></div><div class="panel metric"><small>Episodes</small><strong>${fmt(allEps.length)</strong><em>Episode inventory</em></div><div class="panel metric"><small>Live Now</small><strong>${fmt(live.length)</strong><em>Active broadcasts</em></div><div class="panel metric"><small>Launch Interest</small><strong>${fmt(state.launch)</strong><em>Pre-launch signals</em></div>
  </section>
+ <section class="section" id="stats"><div class="head"><h2>Audience & Content Statistics</h2><span>LIVE CATALOG SIGNALS</span></div><div class="grid">
+ <div class="panel metric"><small>Total Episode Plays</small><strong>${fmt(allEps.reduce((n,e)=>n+Number(e.play_count||0),0))}</strong><em>Across catalog</em></div>
+ <div class="panel metric"><small>Published Episodes</small><strong>${fmt(allEps.filter(e=>String(e.status||"").toLowerCase()==="published").length)}</strong><em>Public inventory</em></div>
+ <div class="panel metric"><small>Draft Episodes</small><strong>${fmt(allEps.filter(e=>["draft","review","pending_review"].includes(String(e.status||"").toLowerCase())).length)}</strong><em>In production</em></div>
+ <div class="panel metric"><small>Scheduled Episodes</small><strong>${fmt(allEps.filter(e=>String(e.status||"").toLowerCase()==="scheduled").length)}</strong><em>Queued releases</em></div>
+ <div class="panel metric"><small>Podcast Follows</small><strong>${fmt(state.stats.follows)}</strong><em>Audience relationships</em></div>
+ <div class="panel metric"><small>Active Subscriptions</small><strong>${fmt(state.stats.subscriptions)}</strong><em>Current plans</em></div>
+ <div class="panel metric"><small>Comments</small><strong>${fmt(state.stats.comments)}</strong><em>Community activity</em></div>
+ <div class="panel metric"><small>Saved Episodes</small><strong>${fmt(state.stats.saves)}</strong><em>Listener library</em></div>
+ <div class="panel metric"><small>Recommendation Events</small><strong>${fmt(state.stats.recommendations)}</strong><em>Discovery signals</em></div>
+ <div class="panel metric"><small>Open Reports</small><strong>${fmt(open.length)}</strong><em>Moderation workload</em></div>
+ <div class="panel metric"><small>Avg Plays / Episode</small><strong>${fmt(allEps.length?Math.round(allEps.reduce((n,e)=>n+Number(e.play_count||0),0)/allEps.length):0)}</strong><em>Catalog average</em></div>
+ <div class="panel metric"><small>Live Audience</small><strong id="liveAudienceTotal">0</strong><em>Realtime connections</em></div>
+ </div><div class="notice" style="margin-top:12px"><strong>Stats boundary:</strong> catalog metrics are derived from records already loaded into the Operations Center. Audience relationships use the existing Podcasting tables and their current RLS policies; blocked reads are surfaced rather than bypassed.</div></section>
  <section class="section" id="creators"><div class="head"><h2>Creator & User Management</h2><span>IDENTITY • ROLES • CATALOG</span></div><div class="panel pad"><div class="tablewrap"><table class="table"><thead><tr><th>Member</th><th>Role</th><th>Status</th><th>Creator</th><th>Shows</th><th>Episodes</th><th>Published</th><th>Action</th></tr></thead><tbody>
  ${cs.slice(0,80).map(c=>{const m=c.member||{};return '<tr><td><b>'+esc(c.display_name||c.name||"Creator")+'</b><br><span style="color:var(--muted)">'+esc(m.email||c.account_email||"No email")+'</span></td><td>'+esc(m.role||c.account_role||"—")+'</td><td>'+esc(m.status||c.account_status||"—")+'</td><td>'+esc(c.discipline||c.role||"Creator")+'</td><td>'+fmt(c.podcast_count)+'</td><td>'+fmt(c.episode_count)+'</td><td>'+fmt(c.published_episode_count)+'</td><td><div class="actions">'+(m.id?'<select class="select roleSelect" data-mid="'+esc(m.id)+'"><option value="Member" '+(String(m.role||"").toLowerCase()==="member"?"selected":"")+'">Member</option><option value="Creator" '+(String(m.role||"").toLowerCase()==="creator"?"selected":"")+'">Creator</option><option value="Moderator" '+(String(m.role||"").toLowerCase()==="moderator"?"selected":"")+'">Moderator</option><option value="Admin" '+(String(m.role||"").toLowerCase()==="admin"?"selected":"")+'">Admin</option></select><button class="btn roleBtn" data-mid="'+esc(m.id)+'">SAVE ROLE</button>':"—")+'</div></td></tr>'}).join("")||'<tr><td colspan="8" class="empty">No creator records returned.</td></tr>'
  </tbody></table></div><div class="notice" style="margin-top:12px"><strong>Role changes:</strong> the existing <code>crowrules-admin-api</code> server function performs privileged role synchronization. Only owner/super_admin operators can change administrator roles. Browser metadata is never the write authority.</div></div></section>
