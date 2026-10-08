@@ -74,7 +74,7 @@ window.CROW_PODCASTING_CONFIG = {
   const christmasFX = () => {
     if (document.getElementById("crow-christmas-fx")) return;
     const root = document.createElement("div"); root.id="crow-christmas-fx"; root.setAttribute("aria-hidden","true");
-    root.innerHTML='<div class="crow-christmas-sky"></div><div class="crow-christmas-moon"></div><div class="crow-christmas-lights"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="crow-christmas-santa">🎅</div><div class="crow-christmas-snow"></div><div class="crow-christmas-sparkles"></div><div class="crow-christmas-trees"><span>🎄</span><span>🎄</span><span>🎄</span></div>';
+    root.innerHTML='<div class="crow-christmas-sky"></div><div class="crow-christmas-moon"></div><div class="crow-christmas-lights"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="crow-christmas-snow"></div><div class="crow-christmas-sparkles"></div><div class="crow-christmas-trees"><span>🎄</span><span>🎄</span><span>🎄</span></div>';
     document.body.appendChild(root);
     const snow=root.querySelector(".crow-christmas-snow");
     for(let i=0;i<55;i++){const p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--s",(2+Math.random()*5)+"px");p.style.setProperty("--d",(7+Math.random()*12)+"s");p.style.setProperty("--delay",(-Math.random()*18)+"s");p.style.setProperty("--drift",(-45+Math.random()*90)+"px");p.style.setProperty("--spin",(180+Math.random()*360)+"deg");snow.appendChild(p);}
@@ -95,7 +95,7 @@ window.CROW_PODCASTING_CONFIG = {
       if(now>target) target.setFullYear(target.getFullYear()+1);
       const diff=Math.max(0,target-now), day=Math.floor(diff/86400000), hr=Math.floor(diff%86400000/3600000), min=Math.floor(diff%3600000/60000), sec=Math.floor(diff%60000/1000);
       box.querySelector("[data-cd-days]").textContent=String(day).padStart(2,"0"); box.querySelector("[data-cd-hours]").textContent=String(hr).padStart(2,"0"); box.querySelector("[data-cd-minutes]").textContent=String(min).padStart(2,"0"); box.querySelector("[data-cd-seconds]").textContent=String(sec).padStart(2,"0");
-      box.querySelector(".christmas-countdown-message").textContent=diff<=0?"🎅 MERRY CHRISTMAS EVE — SANTA IS ON THE WAY!":"Santa is getting ready...";
+      box.querySelector(".christmas-countdown-message").textContent=diff<=0?"🎄 MERRY CHRISTMAS EVE — THE HOLIDAY CELEBRATION HAS BEGUN!":"Christmas is getting closer...";
     }; update(); if(!box._timer) box._timer=setInterval(update,1000);
   };
   const santaGiftDeliveryFX = () => {
