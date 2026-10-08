@@ -3,233 +3,394 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Your CrowRules Podcasting listener profile and account command center.">
-<title>My Profile — CrowRules Podcasting</title>
+<meta name="theme-color" content="#070812">
+<meta name="description" content="Manage your CrowRules Podcasting listener profile, privacy, connections, and activity.">
+<title>My Profile | CrowRules Podcasting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="../config.js"></script>
 <style>
-:root{--bg:#05060b;--panel:rgba(13,16,28,.88);--panel2:rgba(18,22,38,.82);--line:rgba(124,143,255,.18);--text:#f5f7ff;--muted:#9ba4bd;--cyan:#6de7ff;--purple:#a98bff;--pink:#ff78c8;--good:#70f0ad;--danger:#ff6f8e;--shadow:0 24px 70px rgba(0,0,0,.45)}
-*{box-sizing:border-box}[hidden]{display:none!important}html{scroll-behavior:smooth;scroll-padding-top:96px}body{margin:0;background:radial-gradient(circle at 15% 0%,rgba(109,231,255,.12),transparent 30%),radial-gradient(circle at 90% 10%,rgba(169,139,255,.13),transparent 32%),linear-gradient(180deg,#05060b,#080a12 55%,#05060b);color:var(--text);font-family:Montserrat,system-ui,sans-serif;min-height:100vh}
-a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}.shell{width:min(1220px,calc(100% - 32px));margin:auto}
-.top{position:sticky;top:0;z-index:100;background:rgba(5,6,11,.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--line);isolation:isolate}.top .shell{width:min(1440px,calc(100% - 32px))}
-.nav{min-height:74px;display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap;padding:10px 0}.brand{flex:0 1 auto;min-width:0}.brand span{white-space:nowrap}.navlinks{flex:1 1 420px}.brand{display:flex;align-items:center;gap:12px;font-family:Orbitron;font-weight:800;letter-spacing:.08em}.brand img{width:42px;height:42px;object-fit:contain}.brand span{font-size:14px}.navlinks{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.navlinks a,.navlinks button{border:1px solid transparent;background:transparent;color:#dbe1f4;padding:10px 12px;border-radius:10px;cursor:pointer}.navlinks a:hover,.navlinks button:hover{border-color:var(--line);background:rgba(255,255,255,.035)}
-.hero{padding:56px 0 28px}.eyebrow{font-size:11px;letter-spacing:.22em;color:var(--cyan);font-weight:800}.hero h1{font-family:Orbitron;font-size:clamp(30px,5vw,58px);line-height:1.02;margin:12px 0}.hero p{color:var(--muted);max-width:760px;line-height:1.7}.status{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 11px;border:1px solid rgba(112,240,173,.2);background:rgba(112,240,173,.06);border-radius:999px;color:#baf8d7;font-size:12px}.dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 14px var(--good)}
-.grid{display:grid;grid-template-columns:1.05fr 1.95fr;gap:20px;padding-bottom:50px}.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:22px}.card h2{font-family:Orbitron;font-size:16px;margin:0 0 6px;letter-spacing:.05em}.sub{font-size:12px;color:var(--muted);line-height:1.6}
-.profile-card{text-align:center;position:sticky;top:96px;height:max-content}.cover-preview{height:112px;margin:-22px -22px 20px;border-radius:19px 19px 0 0;background:linear-gradient(120deg,rgba(109,231,255,.22),rgba(169,139,255,.28),rgba(255,120,200,.16));background-size:cover;background-position:center;border-bottom:1px solid var(--line)}.completion{margin:0 0 20px;padding:16px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025)}.completion-top{display:flex;justify-content:space-between;gap:12px;font-size:12px;font-weight:800}.progress{height:7px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin:11px 0 8px}.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));transition:width .25s}.preview-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:rgba(255,255,255,.02)}.preview-cover{height:90px;background:linear-gradient(120deg,rgba(109,231,255,.22),rgba(169,139,255,.28));background-size:cover;background-position:center}.preview-body{padding:15px}.preview-name{font-family:Orbitron;font-size:15px}.preview-meta{font-size:11px;color:var(--cyan);margin-top:5px}.preview-bio{font-size:12px;color:var(--muted);line-height:1.6;margin:10px 0}.avatar{width:112px;height:112px;border-radius:50%;margin:4px auto 16px;border:2px solid rgba(109,231,255,.45);background:linear-gradient(135deg,rgba(109,231,255,.18),rgba(169,139,255,.22));display:grid;place-items:center;overflow:hidden;font-family:Orbitron;font-size:30px}.avatar img{width:100%;height:100%;object-fit:cover}.name{font-family:Orbitron;font-size:20px}.handle{color:var(--cyan);font-size:12px;margin-top:5px}.badge{display:inline-flex;margin-top:12px;padding:6px 10px;border-radius:999px;background:rgba(169,139,255,.1);border:1px solid rgba(169,139,255,.25);font-size:10px;letter-spacing:.1em;color:#d7ccff}.bio{color:var(--muted);font-size:13px;line-height:1.65;margin:18px 0}.actions{display:grid;gap:9px}.btn{border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--text);padding:12px 14px;border-radius:11px;cursor:pointer;font-weight:700}.btn.primary{background:linear-gradient(90deg,rgba(109,231,255,.16),rgba(169,139,255,.16));border-color:rgba(109,231,255,.35)}.btn.danger{color:#ffb4c4;border-color:rgba(255,111,142,.25)}.btn:disabled{opacity:.55;cursor:not-allowed}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}.stat{padding:16px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025)}.stat b{display:block;font-family:Orbitron;font-size:22px;margin-bottom:5px}.stat span{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}
-.sections{display:grid;gap:20px}.section-head{display:flex;align-items:end;justify-content:space-between;gap:15px;margin-bottom:15px}.section-head h2{margin:0}.section-head span{font-size:11px;color:var(--muted)}
-.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:grid;gap:7px}.field.full{grid-column:1/-1}.field label{font-size:10px;color:#aeb7d0;text-transform:uppercase;letter-spacing:.12em;font-weight:800}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);background:#090c15;color:var(--text);border-radius:11px;padding:12px;outline:none}.field textarea{min-height:92px;resize:vertical}.field input:focus,.field textarea:focus,.field select:focus{border-color:rgba(109,231,255,.5);box-shadow:0 0 0 3px rgba(109,231,255,.06)}
-.checks{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.check{display:flex;gap:9px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:11px;color:#cbd2e6;font-size:12px}.check input{accent-color:#8e7bff}
-.list{display:grid;gap:9px}.item{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:13px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025)}.item .title{font-weight:700;font-size:13px}.item .meta{font-size:11px;color:var(--muted);margin-top:4px}.empty{padding:20px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:12px}
-.toast{position:fixed;right:20px;bottom:20px;z-index:50;max-width:360px;padding:14px 16px;border:1px solid var(--line);border-radius:13px;background:#0c1020;box-shadow:var(--shadow);display:none;font-size:12px}.toast.show{display:block}.toast.good{border-color:rgba(112,240,173,.35)}.toast.bad{border-color:rgba(255,111,142,.35)}
-.gate{min-height:70vh;display:grid;place-items:center;padding:30px}.gate .card{max-width:560px;text-align:center}.spinner{width:28px;height:28px;border:3px solid rgba(255,255,255,.12);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 15px}@keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:900px){.grid{grid-template-columns:1fr}.profile-card{position:relative;top:auto}.stats{grid-template-columns:repeat(2,1fr)}.nav{align-items:center}.navlinks{flex:1 1 100%;justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding:2px 0 6px;scrollbar-width:thin}.navlinks a,.navlinks button{white-space:nowrap;flex:0 0 auto}}
-@media(max-width:600px){.shell{width:min(100% - 20px,1220px)}.top .shell{width:calc(100% - 20px)}.nav{align-items:flex-start;padding:10px 0;gap:8px}.brand img{width:34px;height:34px}.brand span{font-size:10px;letter-spacing:.04em}.navlinks{gap:5px}.navlinks a,.navlinks button{padding:9px 10px;font-size:11px}.hero{padding:30px 0 20px}.hero h1{font-size:clamp(28px,8vw,42px)}.formgrid,.checks{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.card{padding:17px}.cover-preview{margin:-17px -17px 18px}.section-head{align-items:flex-start;flex-direction:column;gap:6px}}
+:root{color-scheme:dark;--bg:#070812;--panel:rgba(15,18,33,.92);--panel2:#101427;--line:rgba(135,151,255,.2);--text:#f5f7ff;--muted:#a0aac3;--cyan:#6de7ff;--purple:#a98bff;--pink:#ff78c8;--good:#70f0ad;--bad:#ff718e;--radius:20px;--shadow:0 24px 70px rgba(0,0,0,.35)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth;scroll-padding-top:110px}
+body{margin:0;min-height:100vh;color:var(--text);font-family:Montserrat,system-ui,sans-serif;background:radial-gradient(ellipse at 10% 0%,rgba(109,231,255,.13),transparent 35%),radial-gradient(ellipse at 95% 8%,rgba(169,139,255,.16),transparent 33%),linear-gradient(180deg,#070812,#0a0d18 52%,#06070d)}
+a{color:inherit;text-decoration:none}
+button,input,textarea,select{font:inherit}
+button,a,input,textarea,select{-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+.shell{width:min(1240px,calc(100% - 36px));margin-inline:auto}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(7,8,18,.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+.nav{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:10px 0}
+.brand{display:flex;align-items:center;gap:11px;min-width:0;font:800 12px Orbitron,sans-serif;letter-spacing:.07em}
+.brand img{width:42px;height:42px;object-fit:contain;flex:none}
+.navlinks{display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0}
+.navlinks a,.navlinks button{flex:none;border:1px solid transparent;background:transparent;color:#dce2f7;padding:10px 12px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer}
+.navlinks a:hover,.navlinks button:hover{border-color:var(--line);background:rgba(255,255,255,.04)}
+main{padding-bottom:55px}
+.hero{padding:50px 0 27px}
+.eyebrow{color:var(--cyan);font-size:10px;font-weight:800;letter-spacing:.24em}
+h1,h2,h3{font-family:Orbitron,Montserrat,sans-serif}
+.hero h1{font-size:clamp(30px,5vw,56px);line-height:1.1;letter-spacing:-.035em;margin:12px 0}
+.hero p{max-width:780px;color:var(--muted);font-size:14px;line-height:1.8;margin:0}
+.account-status{display:inline-flex;align-items:center;gap:9px;margin-top:17px;padding:9px 12px;border:1px solid rgba(112,240,173,.22);background:rgba(112,240,173,.06);border-radius:99px;color:#c5ffdf;font-size:10px;font-weight:800;letter-spacing:.08em}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 12px var(--good)}
+.layout{display:grid;grid-template-columns:minmax(260px,.82fr) minmax(0,1.8fr);align-items:start;gap:20px}
+.card{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+.card h2{font-size:14px;letter-spacing:.045em;margin:0}
+.sub{color:var(--muted);font-size:11px;line-height:1.7;margin-top:6px}
+.profile-card{position:sticky;top:96px;text-align:center;overflow:hidden}
+.cover{height:112px;margin:-22px -22px 0;background:linear-gradient(125deg,rgba(109,231,255,.24),rgba(169,139,255,.3),rgba(255,120,200,.19));background-size:cover;background-position:center;border-bottom:1px solid var(--line)}
+.avatar{position:relative;display:grid;place-items:center;width:112px;height:112px;margin:-50px auto 15px;border-radius:50%;overflow:hidden;border:3px solid #111629;background:linear-gradient(135deg,rgba(109,231,255,.24),rgba(169,139,255,.3));box-shadow:0 0 0 1px rgba(109,231,255,.45);font:800 30px Orbitron,sans-serif}
+.avatar img{display:block;width:100%;height:100%;object-fit:cover}
+.profile-name{font:700 18px Orbitron,sans-serif;overflow-wrap:anywhere}
+.handle{margin-top:7px;color:var(--cyan);font-size:12px;overflow-wrap:anywhere}
+.role-pill,.pill{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;padding:6px 10px;border-radius:99px;border:1px solid rgba(169,139,255,.27);background:rgba(169,139,255,.1);color:#ddd2ff;font-size:9px;font-weight:800;letter-spacing:.1em}
+.profile-bio{color:var(--muted);font-size:12px;line-height:1.8;margin:17px 0 20px;overflow-wrap:anywhere}
+.actions{display:grid;gap:9px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.035);color:var(--text);font-size:11px;font-weight:800;text-align:center;cursor:pointer;transition:background .15s,border-color .15s,transform .15s}
+.btn:hover:not(:disabled){background:rgba(255,255,255,.07);border-color:rgba(109,231,255,.4);transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(100deg,rgba(109,231,255,.14),rgba(169,139,255,.18));border-color:rgba(109,231,255,.4)}
+.btn.danger{border-color:rgba(255,113,142,.35);color:#ffc2ce}
+.btn:disabled{opacity:.55;cursor:wait;transform:none}
+.content{display:grid;gap:18px;min-width:0}
+.completion{padding:17px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.025)}
+.completion-head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:10px;font-weight:800;letter-spacing:.08em}
+.progress{height:7px;margin:12px 0 7px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));transition:width .2s}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.stat{min-width:0;padding:15px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025)}
+.stat strong{display:block;font:700 clamp(18px,2vw,25px) Orbitron,sans-serif;overflow-wrap:anywhere}
+.stat span{display:block;margin-top:7px;color:var(--muted);font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:17px}
+.section-tag{color:var(--muted);font-size:9px;font-weight:800;letter-spacing:.12em;white-space:nowrap}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.field{display:grid;gap:7px;min-width:0}
+.field.full{grid-column:1/-1}
+.field label{color:#bac3dc;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.field input,.field textarea,.field select{width:100%;min-width:0;border:1px solid var(--line);border-radius:11px;background:#090c17;color:var(--text);padding:12px;font-size:12px}
+.field textarea{min-height:100px;resize:vertical;line-height:1.6}
+.field input::placeholder,.field textarea::placeholder{color:#66708a}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:rgba(109,231,255,.65);box-shadow:0 0 0 3px rgba(109,231,255,.07);outline:0}
+.field-help{color:var(--muted);font-size:10px;line-height:1.6}
+.form-actions{display:flex;gap:10px;margin-top:16px}
+.form-actions .btn{width:auto;min-width:160px}
+.preview{overflow:hidden;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025)}
+.preview-cover{height:100px;background:linear-gradient(125deg,rgba(109,231,255,.2),rgba(169,139,255,.27),rgba(255,120,200,.14));background-size:cover;background-position:center}
+.preview-body{padding:17px}
+.preview-name{font:700 16px Orbitron,sans-serif;overflow-wrap:anywhere}
+.preview-handle{margin-top:7px;color:var(--cyan);font-size:11px;overflow-wrap:anywhere}
+.preview-bio{color:var(--muted);font-size:11px;line-height:1.8;overflow-wrap:anywhere}
+.preview-interests{color:#d9dff2;font-size:10px;line-height:1.8;overflow-wrap:anywhere}
+.checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.check{display:flex;align-items:center;gap:10px;min-width:0;padding:12px;border:1px solid var(--line);border-radius:11px;color:#d5dbee;font-size:11px;line-height:1.4}
+.check input{width:15px;height:15px;flex:none;accent-color:#a98bff}
+.list{display:grid;gap:9px}
+.item{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;padding:13px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.02)}
+.item-main{min-width:0}
+.item-title{font-size:11px;font-weight:800;overflow-wrap:anywhere}
+.item-meta{margin-top:5px;color:var(--muted);font-size:10px;line-height:1.6;overflow-wrap:anywhere}
+.item .pill{flex:none;margin:0}
+.empty{padding:17px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:11px;line-height:1.8}
+.error-text{color:#ffb7c5}
+.toast{position:fixed;right:18px;bottom:18px;z-index:300;width:min(380px,calc(100% - 36px));padding:14px 16px;border:1px solid var(--line);border-radius:13px;background:#11162a;box-shadow:var(--shadow);font-size:12px;line-height:1.6}
+.toast.good{border-color:rgba(112,240,173,.4)}.toast.bad{border-color:rgba(255,113,142,.4)}
+.gate{min-height:75vh;display:grid;place-items:center;padding:24px}
+.gate-card{width:min(560px,100%);padding:30px;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow)}
+.gate-card h1{font-size:22px;line-height:1.4}
+.gate-card p{color:var(--muted);font-size:12px;line-height:1.8}
+.gate-actions{display:grid;gap:9px;margin-top:20px}
+.spinner{width:28px;height:28px;margin:0 auto 15px;border:3px solid rgba(255,255,255,.13);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+footer{padding:20px 0 32px;color:#77819b;text-align:center;font-size:10px;line-height:1.8}
+@media(max-width:950px){.layout{grid-template-columns:1fr}.profile-card{position:relative;top:auto}.profile-card .actions{grid-template-columns:repeat(2,minmax(0,1fr))}.nav{flex-wrap:wrap}.navlinks{justify-content:flex-start;max-width:100%;overflow-x:auto;scrollbar-width:thin}.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:620px){.shell{width:calc(100% - 22px)}.nav{gap:8px;padding:10px 0}.brand{font-size:10px}.brand img{width:34px;height:34px}.navlinks{width:100%;justify-content:flex-start;gap:4px}.navlinks a,.navlinks button{padding:9px 10px;font-size:10px}.hero{padding:32px 0 22px}.hero h1{font-size:clamp(27px,8vw,40px)}.hero p{font-size:12px}.card{padding:16px;border-radius:16px}.cover{margin:-16px -16px 0}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.form-grid,.checks{grid-template-columns:1fr}.section-head{flex-direction:column;gap:6px}.form-actions{flex-direction:column}.form-actions .btn{width:100%}.profile-card .actions{grid-template-columns:1fr}.completion-head{font-size:9px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
-<div id="gate" class="gate" hidden></div>
+<div id="gate" class="gate" role="status" aria-live="polite">
+  <div class="gate-card"><div class="spinner" aria-hidden="true"></div><h1>CONNECTING TO CROWRULES</h1><p>Verifying your account and loading your Podcasting profile…</p></div>
+</div>
 <div id="app" hidden>
-<header class="top"><div class="shell nav">
-<a class="brand" href="../home.html"><img src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png" alt="CrowRules Podcasting"><span>CROWRULES / PODCASTING</span></a>
-<nav class="navlinks" aria-label="Profile navigation">
-<a href="index.html">LISTEN</a><a href="dashboard.html">DASHBOARD</a><a href="../home.html">HOME</a><button id="signOut">SIGN OUT</button>
-</nav>
-</div></header>
+<header class="topbar">
+  <div class="shell nav">
+    <a class="brand" href="../home.html" aria-label="CrowRules Podcasting home">
+      <img src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png" alt="">
+      <span>CROWRULES / PODCASTING</span>
+    </a>
+    <nav class="navlinks" aria-label="Main navigation">
+      <a href="index.html">LISTEN</a><a href="dashboard.html">DASHBOARD</a><a href="../home.html">HOME</a>
+      <button type="button" id="signOut">SIGN OUT</button>
+    </nav>
+  </div>
+</header>
 <main class="shell">
-<section class="hero">
-<div class="eyebrow">ONE ACCOUNT. ONE UNIVERSE.</div>
-<h1>YOUR PODCASTING PROFILE.</h1>
-<p>Manage how you appear across CrowRules Podcasting, control your public profile, see your listening footprint, and keep your account connected to the shows and creators you follow.</p>
-<div class="status"><span class="dot"></span><span id="accountStatus">ACCOUNT VERIFIED</span></div>
-</section>
-<div class="grid">
-<aside class="card profile-card">
-<div id="coverPreview" class="cover-preview" aria-label="Profile cover preview"></div><div id="avatar" class="avatar">CR</div>
-<div id="displayName" class="name">CrowRules Member</div>
-<div id="username" class="handle">@member</div>
-<div id="roleBadge" class="badge">LISTENER</div>
-<div id="bio" class="bio">Build your Podcasting identity and choose what you share with the CrowRules community.</div>
-<div class="actions">
-<button class="btn primary" id="saveTop">SAVE PROFILE</button>
-<a class="btn" href="index.html">EXPLORE PODCASTS</a>
-<a class="btn" href="dashboard.html">OPEN LISTENER DASHBOARD</a>
-<a class="btn" id="creatorLink" href="../creator/index.html" hidden>OPEN CREATOR EXPERIENCE</a>
-</div>
-</aside>
-<section class="sections">
-<div class="completion"><div class="completion-top"><span>PROFILE COMPLETION</span><span id="completionText">0%</span></div><div class="progress" role="progressbar" aria-label="Profile completion" aria-valuemin="0" aria-valuemax="100" id="completionBar"><span id="completionFill"></span></div><div class="sub" id="completionHint">Add a few details to make your profile yours.</div></div>
-<div class="stats">
-<div class="stat"><b id="points">0</b><span>CrowPoints</span></div>
-<div class="stat"><b id="minutes">0</b><span>Listening Minutes</span></div>
-<div class="stat"><b id="follows">0</b><span>Following</span></div>
-<div class="stat"><b id="comments">0</b><span>Comments</span></div>
-</div>
-<div class="card">
-<div class="section-head"><div><h2>PROFILE IDENTITY</h2><div class="sub">This information powers your public Podcasting profile.</div></div><span id="lastSaved">Not saved yet</span></div>
-<form id="profileForm">
-<div class="formgrid">
-<div class="field"><label for="name">Display Name</label><input id="name" maxlength="80" autocomplete="name"></div>
-<div class="field"><label for="usernameInput">Username</label><input id="usernameInput" maxlength="32" autocomplete="username" placeholder="yourname"></div>
-<div class="field full"><label for="tagline">Tagline</label><input id="tagline" maxlength="120" placeholder="What are you listening to?"></div>
-<div class="field full"><label for="bioInput">Bio</label><textarea id="bioInput" maxlength="600" placeholder="Tell the CrowRules community a little about yourself."></textarea></div>
-<div class="field"><label for="location">Location</label><input id="location" maxlength="100" placeholder="City, State"></div>
-<div class="field"><label for="website">Website</label><input id="website" maxlength="240" type="url" placeholder="https://"></div>
-<div class="field"><label for="avatarUrl">Avatar URL</label><input id="avatarUrl" maxlength="500" type="url" placeholder="https://…"></div>
-<div class="field"><label for="coverUrl">Cover Image URL</label><input id="coverUrl" maxlength="500" type="url" placeholder="https://…"></div>
-<div class="field full"><label for="interests">Interests</label><input id="interests" maxlength="400" placeholder="Podcasting, movies, sports, music…"></div>
-<div class="field"><label for="favoriteMusic">Favorite Music</label><input id="favoriteMusic" maxlength="300"></div>
-<div class="field"><label for="favoriteMovies">Favorite Movies</label><input id="favoriteMovies" maxlength="300"></div>
-<div class="field"><label for="favoriteGames">Favorite Games</label><input id="favoriteGames" maxlength="300"></div>
-<div class="field"><label for="mood">Profile Mood</label><select id="mood"><option value="">Choose a mood</option><option>Cinematic</option><option>Cyberpunk</option><option>Chill</option><option>Energetic</option><option>Funny</option><option>Focused</option><option>Retro</option><option>Dark</option></select></div>
-</div>
-<div style="height:14px"></div>
-<button class="btn primary" type="submit" id="saveBtn">SAVE CHANGES</button>
-</form>
-</div>
-<div class="card"><div class="section-head"><div><h2>LIVE PROFILE PREVIEW</h2><div class="sub">Preview updates as you edit. This preview excludes private account details.</div></div><span>PREVIEW</span></div><div class="preview-card"><div class="preview-cover" id="previewCover"></div><div class="preview-body"><div class="preview-name" id="previewName">CrowRules Member</div><div class="preview-meta" id="previewHandle">@member</div><p class="preview-bio" id="previewBio">Your profile bio will appear here.</p><div class="sub" id="previewInterests"></div></div></div></div>
-<div class="card">
-<div class="section-head"><div><h2>PRIVACY & VISIBILITY</h2><div class="sub">Choose which parts of your profile can be discovered by other members.</div></div></div>
-<div class="checks">
-<label class="check"><input type="checkbox" id="isPublic"> Public profile</label>
-<label class="check"><input type="checkbox" id="activityPublic"> Public activity</label>
-<label class="check"><input type="checkbox" id="networkPublic"> Public network</label>
-<label class="check"><input type="checkbox" id="followersPublic"> Show followers</label>
-<label class="check"><input type="checkbox" id="followingPublic"> Show following</label>
-</div>
-<div style="height:12px"></div><button class="btn" id="savePrivacy">SAVE PRIVACY SETTINGS</button>
-</div>
-<div class="card">
-<div class="section-head"><div><h2>ACCOUNT CONNECTIONS</h2><div class="sub">Authentication providers currently linked to your CrowRules account.</div></div></div>
-<div id="identities" class="list"><div class="empty">Loading connected providers…</div></div>
-</div>
-<div class="card">
-<div class="section-head"><div><h2>RECENT ACTIVITY</h2><div class="sub">Your Podcasting footprint from your account data.</div></div><span>PRIVATE BY DEFAULT</span></div>
-<div class="list" id="activity"><div class="empty">Loading activity…</div></div>
-</div>
-</section>
-</div>
+  <section class="hero">
+    <div class="eyebrow">ONE ACCOUNT. ONE UNIVERSE.</div>
+    <h1>YOUR PODCASTING PROFILE.</h1>
+    <p>Make your profile yours, control what the community can see, and keep track of your Podcasting activity from one place.</p>
+    <div class="account-status"><span class="status-dot"></span><span id="accountStatus">ACCOUNT VERIFIED</span></div>
+  </section>
+  <div class="layout">
+    <aside class="card profile-card" aria-label="Your profile summary">
+      <div id="coverPreview" class="cover"></div>
+      <div id="avatar" class="avatar" aria-label="Profile avatar">CR</div>
+      <div id="displayName" class="profile-name">CrowRules Member</div>
+      <div id="username" class="handle">@member</div>
+      <div id="roleBadge" class="role-pill">LISTENER</div>
+      <p id="bio" class="profile-bio">Build your Podcasting identity and choose what you share.</p>
+      <div class="actions">
+        <button class="btn primary" id="saveTop" type="button">SAVE PROFILE</button>
+        <a class="btn" href="index.html">EXPLORE PODCASTS</a>
+        <a class="btn" href="dashboard.html">LISTENER DASHBOARD</a>
+        <a class="btn" id="creatorLink" href="../creator/index.html" hidden>CREATOR EXPERIENCE</a>
+      </div>
+    </aside>
+    <section class="content" aria-label="Profile settings">
+      <div class="completion">
+        <div class="completion-head"><span>PROFILE COMPLETION</span><span id="completionText">0%</span></div>
+        <div id="completionBar" class="progress" role="progressbar" aria-label="Profile completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="completionFill" class="progress-fill"></div></div>
+        <div id="completionHint" class="sub">Add details to personalize your profile.</div>
+      </div>
+      <div class="stats" aria-label="Podcasting activity statistics">
+        <div class="stat"><strong id="points">0</strong><span>CrowPoints</span></div>
+        <div class="stat"><strong id="minutes">0</strong><span>Listening minutes</span></div>
+        <div class="stat"><strong id="follows">0</strong><span>Following</span></div>
+        <div class="stat"><strong id="comments">0</strong><span>Comments</span></div>
+      </div>
+      <section class="card">
+        <div class="section-head"><div><h2>PROFILE IDENTITY</h2><div class="sub">Update the information displayed on your Podcasting profile.</div></div><span id="lastSaved" class="section-tag">NOT SAVED YET</span></div>
+        <form id="profileForm" novalidate>
+          <div class="form-grid">
+            <div class="field"><label for="name">Display name</label><input id="name" maxlength="80" autocomplete="name" placeholder="Your display name"></div>
+            <div class="field"><label for="usernameInput">Username</label><input id="usernameInput" maxlength="32" autocomplete="username" placeholder="yourname" autocapitalize="none"><span class="field-help">3–32 characters: letters, numbers, dots, underscores, or hyphens.</span></div>
+            <div class="field full"><label for="tagline">Tagline</label><input id="tagline" maxlength="120" placeholder="A short line that captures your vibe"></div>
+            <div class="field full"><label for="bioInput">Bio</label><textarea id="bioInput" maxlength="600" placeholder="Tell the CrowRules community a little about yourself."></textarea></div>
+            <div class="field"><label for="location">Location</label><input id="location" maxlength="100" placeholder="City, State"></div>
+            <div class="field"><label for="website">Website</label><input id="website" maxlength="240" inputmode="url" placeholder="https://example.com"></div>
+            <div class="field"><label for="avatarUrl">Avatar image URL</label><input id="avatarUrl" maxlength="500" inputmode="url" placeholder="https://…"></div>
+            <div class="field"><label for="coverUrl">Cover image URL</label><input id="coverUrl" maxlength="500" inputmode="url" placeholder="https://…"></div>
+            <div class="field full"><label for="interests">Interests</label><input id="interests" maxlength="400" placeholder="Podcasting, movies, sports, music…"></div>
+            <div class="field"><label for="favoriteMusic">Favorite music</label><input id="favoriteMusic" maxlength="300"></div>
+            <div class="field"><label for="favoriteMovies">Favorite movies</label><input id="favoriteMovies" maxlength="300"></div>
+            <div class="field"><label for="favoriteGames">Favorite games</label><input id="favoriteGames" maxlength="300"></div>
+            <div class="field"><label for="mood">Profile mood</label><select id="mood"><option value="">Choose a mood</option><option value="Cinematic">Cinematic</option><option value="Cyberpunk">Cyberpunk</option><option value="Chill">Chill</option><option value="Energetic">Energetic</option><option value="Funny">Funny</option><option value="Focused">Focused</option><option value="Retro">Retro</option><option value="Dark">Dark</option></select></div>
+          </div>
+          <div class="form-actions"><button class="btn primary" type="submit" id="saveBtn">SAVE CHANGES</button><button class="btn" type="button" id="resetForm">RESET UNSAVED EDITS</button></div>
+        </form>
+      </section>
+      <section class="card">
+        <div class="section-head"><div><h2>LIVE PROFILE PREVIEW</h2><div class="sub">Preview changes before saving. Private account information is not shown here.</div></div><span class="section-tag">LIVE</span></div>
+        <div class="preview"><div id="previewCover" class="preview-cover"></div><div class="preview-body"><div id="previewName" class="preview-name">CrowRules Member</div><div id="previewHandle" class="preview-handle">@member</div><p id="previewBio" class="preview-bio">Your profile bio will appear here.</p><div id="previewInterests" class="preview-interests"></div></div></div>
+      </section>
+      <section class="card">
+        <div class="section-head"><div><h2>PRIVACY & VISIBILITY</h2><div class="sub">Control which parts of your profile are visible to other members. These settings are saved to your profile record.</div></div></div>
+        <div class="checks">
+          <label class="check"><input type="checkbox" id="isPublic"> Public profile</label>
+          <label class="check"><input type="checkbox" id="activityPublic"> Public activity</label>
+          <label class="check"><input type="checkbox" id="networkPublic"> Public network</label>
+          <label class="check"><input type="checkbox" id="followersPublic"> Show followers</label>
+          <label class="check"><input type="checkbox" id="followingPublic"> Show following</label>
+        </div>
+        <div class="form-actions"><button class="btn primary" id="savePrivacy" type="button">SAVE PRIVACY SETTINGS</button></div>
+      </section>
+      <section class="card">
+        <div class="section-head"><div><h2>ACCOUNT CONNECTIONS</h2><div class="sub">Identity providers currently linked to this CrowRules account.</div></div></div>
+        <div id="identities" class="list"><div class="empty">Loading connected providers…</div></div>
+      </section>
+      <section class="card">
+        <div class="section-head"><div><h2>RECENT ACTIVITY</h2><div class="sub">Recent follows, comments, and saved episodes recorded by Podcasting.</div></div><span class="section-tag">YOUR ACCOUNT</span></div>
+        <div id="activity" class="list"><div class="empty">Loading activity…</div></div>
+      </section>
+    </section>
+  </div>
 </main>
+<footer class="shell">CROWRULES PODCASTING · ONE COMPANY. ONE UNIVERSE.</footer>
 </div>
-<div id="toast" class="toast"></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 <script>
-(() => {
+(function(){
+'use strict';
 const C=window.CROW_CONFIG||{};
-const S=window.supabase?.createClient?window.supabase.createClient(C.supabaseUrl||"",C.supabaseKey||"",{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}):null;
-const $=id=>document.getElementById(id);
-let user=null, member=null, profile=null, creator=null;
-
-function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
-function toast(msg,good=true){const t=$("toast");t.textContent=msg;t.className="toast show "+(good?"good":"bad");clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.className="toast",3500);}
-function initials(name){return (String(name||"CR").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("")||"CR").toUpperCase();}
-function setAvatar(url,name){const a=$("avatar");a.replaceChildren();if(url&&safeHttpUrl(url)){const img=document.createElement("img");img.src=url;img.alt="Profile avatar";img.referrerPolicy="no-referrer";img.addEventListener("error",()=>{a.replaceChildren();a.textContent=initials(name);},{once:true});a.appendChild(img);}else{a.textContent=initials(name);}}
-function fmtDate(v){if(!v)return "Not recorded";const d=new Date(v);return isNaN(d)?"Not recorded":d.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});}
-function fmtProvider(p){return ({google:"Google",discord:"Discord",twitch:"Twitch",email:"Email",github:"GitHub",apple:"Apple",azure:"Microsoft"}[p]||p||"Account");}
-function showGate(title,msg,actions){$("gate").innerHTML='<div class="card"><h2>'+esc(title)+'</h2><p class="sub">'+esc(msg)+'</p><div class="actions" style="margin-top:18px">'+actions+'</div></div>';$("gate").hidden=false;$("app").hidden=true;}
-
-async function load(){
- if(!S){showGate("CONFIGURATION ERROR","Supabase configuration is missing.",'<a class="btn" href="../home.html">RETURN HOME</a>');return;}
- const {data,error}=await S.auth.getUser();
- if(error||!data?.user){showGate("SIGN IN REQUIRED","Please sign in to manage your CrowRules Podcasting profile.",'<a class="btn primary" href="../login.html?redirect=listener/profile.html">SIGN IN</a><a class="btn" href="../signup.html?redirect=listener/profile.html">CREATE ACCOUNT</a>');return;}
- user=data.user;
- const [{data:m,error:me},{data:p,error:pe}]=await Promise.all([
-   S.from("members").select("id,user_id,display_name,username,email,membership_type,role,status,points,watch_minutes,bio,avatar_url,last_active_at,created_at").eq("user_id",user.id).maybeSingle(),
-   S.from("podcast_member_profiles").select("*").eq("user_id",user.id).maybeSingle()
- ]);
- if(me)throw new Error("Could not load your CrowRules member record: "+me.message);if(pe)throw new Error("Could not load your profile settings: "+pe.message);
- if(!m){showGate("MEMBER PROFILE NOT FOUND","You are signed in, but no matching CrowRules member record was found. Please return to your account page or contact support.",'<a class="btn primary" href="../account.html">OPEN ACCOUNT</a><a class="btn" href="../home.html">RETURN HOME</a>');return;}
- member=m;profile=p||{user_id:user.id};
- const role=String(member?.role||"").toLowerCase();
- if(!["listener","creator"].includes(role)){
-   showGate("PODCASTING PROFILE UNAVAILABLE","Your account does not currently have a Listener or Creator Podcasting role.",'<a class="btn" href="../home.html">RETURN HOME</a>');return;
- }
- const creatorResult=role==="creator"?await S.from("creators").select("id,name,slug,role,discipline,bio,avatar_url,profile_url,is_active").eq("member_id",member.id).maybeSingle():{data:null,error:null};
- if(creatorResult.error)console.warn("Creator profile lookup unavailable:",creatorResult.error.message);creator=creatorResult.data||null;
- await render();
- await loadCounts();
- await loadIdentities();
- await loadActivity();
- $("gate").hidden=true;$("app").hidden=false;
+const $=function(id){return document.getElementById(id);};
+const toastTimer={id:null};
+let S=null,user=null,member=null,profile=null,creator=null,initialValues=null,loading=false;
+const profileFields=['name','usernameInput','tagline','bioInput','location','website','avatarUrl','coverUrl','interests','favoriteMusic','favoriteMovies','favoriteGames','mood'];
+function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];});}
+function initials(value){const parts=String(value||'CR').trim().split(/\s+/).filter(Boolean).slice(0,2);return (parts.map(function(part){return part.charAt(0);}).join('')||'CR').toUpperCase();}
+function safeHttpUrl(value){try{const parsed=new URL(String(value));return parsed.protocol==='https:'||parsed.protocol==='http:';}catch(_){return false;}}
+function setToast(message,kind){const el=$('toast');el.textContent=String(message||'');el.className='toast '+(kind==='bad'?'bad':'good');el.hidden=false;if(toastTimer.id)window.clearTimeout(toastTimer.id);toastTimer.id=window.setTimeout(function(){el.hidden=true;},4200);}
+function formatDate(value){if(!value)return 'Date not recorded';const date=new Date(value);return Number.isNaN(date.getTime())?'Date not recorded':date.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}
+function providerName(provider){const names={google:'Google',discord:'Discord',twitch:'Twitch',email:'Email',github:'GitHub',apple:'Apple',azure:'Microsoft'};return names[provider]||provider||'Account provider';}
+function setBackground(el,url){el.style.backgroundImage=url&&safeHttpUrl(url)?'url('+JSON.stringify(url)+')':'';}
+function setAvatar(url,name){const target=$('avatar');target.replaceChildren();if(url&&safeHttpUrl(url)){const img=document.createElement('img');img.src=url;img.alt='Profile avatar';img.referrerPolicy='no-referrer';img.addEventListener('error',function(){target.replaceChildren();target.textContent=initials(name);},{once:true});target.appendChild(img);}else{target.textContent=initials(name);}}
+function showGate(title,message,links){$('gate').innerHTML='';const card=document.createElement('section');card.className='gate-card';const heading=document.createElement('h1');heading.textContent=title;const paragraph=document.createElement('p');paragraph.textContent=message;const actions=document.createElement('div');actions.className='gate-actions';(links||[]).forEach(function(link){const a=document.createElement('a');a.className='btn'+(link.primary?' primary':'');a.href=link.href;a.textContent=link.label;actions.appendChild(a);});card.append(heading,paragraph,actions);$('gate').appendChild(card);$('gate').hidden=false;$('app').hidden=true;}
+function hideGate(){$('gate').hidden=true;$('app').hidden=false;}
+function setBusy(button,busy,label){button.disabled=!!busy;if(busy){button.dataset.previousLabel=button.textContent;button.textContent=label||'SAVING…';}else{button.textContent=button.dataset.previousLabel||label||button.textContent;delete button.dataset.previousLabel;}}
+function currentFormValues(){const result={};profileFields.forEach(function(id){result[id]=$(id).value;});return result;}
+function applyFormValues(values){profileFields.forEach(function(id){$(id).value=values[id]==null?'':values[id];});updatePreview();updateCompletion();}
+function readInitialValues(){initialValues=currentFormValues();}
+function fillForm(){
+const display=profile.display_name||member.display_name||user.user_metadata?.display_name||user.email?.split('@')[0]||'CrowRules Member';
+applyFormValues({
+name:display,usernameInput:profile.username||member.username||'',tagline:profile.tagline||'',bioInput:profile.bio||member.bio||'',location:profile.location||'',website:profile.website_url||'',avatarUrl:profile.avatar_url||member.avatar_url||'',coverUrl:profile.cover_url||'',interests:profile.interests||'',favoriteMusic:profile.favorite_music||'',favoriteMovies:profile.favorite_movies||'',favoriteGames:profile.favorite_games||'',mood:profile.mood||''
+});
+$('isPublic').checked=profile.is_public!==false;
+$('activityPublic').checked=profile.activity_public===true;
+$('networkPublic').checked=profile.network_public===true;
+$('followersPublic').checked=profile.followers_public===true;
+$('followingPublic').checked=profile.following_public===true;
+$('creatorLink').hidden=String(member.role||'').toLowerCase()!=='creator';
+$('accountStatus').textContent=String(member.status||'ACTIVE').toUpperCase()+' · '+String(member.role||'LISTENER').toUpperCase();
+$('points').textContent=Number(member.points||0).toLocaleString();
+$('minutes').textContent=Number(member.watch_minutes||0).toLocaleString();
+$('lastSaved').textContent=profile.updated_at?'LAST UPDATED '+formatDate(profile.updated_at).toUpperCase():'NOT SAVED YET';
+setAvatar(profile.avatar_url||member.avatar_url,display);
+setBackground($('coverPreview'),profile.cover_url);
+readInitialValues();
 }
-
-function fill(){
- const display=profile.display_name||member.display_name||user.user_metadata?.display_name||user.email?.split("@")[0]||"CrowRules Member";
- $("displayName").textContent=display;$("username").textContent="@"+(profile.username||member.username||"member");
- $("roleBadge").textContent=(member.role||"Listener").toUpperCase();
- $("bio").textContent=profile.bio||member.bio||"Build your Podcasting identity and choose what you share with the CrowRules community.";
- $("name").value=display;$("usernameInput").value=profile.username||member.username||"";
- $("tagline").value=profile.tagline||"";$("bioInput").value=profile.bio||member.bio||"";
- $("location").value=profile.location||"";$("website").value=profile.website_url||"";
- $("avatarUrl").value=profile.avatar_url||member.avatar_url||"";$("coverUrl").value=profile.cover_url||"";
- $("interests").value=profile.interests||"";$("favoriteMusic").value=profile.favorite_music||"";
- $("favoriteMovies").value=profile.favorite_movies||"";$("favoriteGames").value=profile.favorite_games||"";
- $("mood").value=profile.mood||"";
- $("isPublic").checked=profile.is_public!==false;$("activityPublic").checked=profile.activity_public!==false;
- $("networkPublic").checked=profile.network_public!==false;$("followersPublic").checked=profile.followers_public!==false;$("followingPublic").checked=profile.following_public!==false;
- setAvatar(profile.avatar_url||member.avatar_url,display);updatePreview();updateCompletion();
- if(String(member.role).toLowerCase()==="creator")$("creatorLink").hidden=false;
- $("accountStatus").textContent=(member.status||"Active").toUpperCase()+" • "+(member.role||"Listener").toUpperCase();
+function updatePreview(){
+const name=$('name').value.trim()||'CrowRules Member';
+const handle=$('usernameInput').value.trim().toLowerCase().replace(/[^a-z0-9_.-]/g,'')||'member';
+$('previewName').textContent=name;
+$('previewHandle').textContent='@'+handle;
+$('previewBio').textContent=$('bioInput').value.trim()||$('tagline').value.trim()||'Your profile bio will appear here.';
+$('previewInterests').textContent=$('interests').value.trim()?'INTERESTS · '+$('interests').value.trim():'';
+const cover=$('coverUrl').value.trim();
+setBackground($('previewCover'),cover);
+setBackground($('coverPreview'),cover);
+const avatar=$('avatarUrl').value.trim();
+if(avatar&&safeHttpUrl(avatar))setAvatar(avatar,name);else if(!avatar)setAvatar(member?.avatar_url||profile?.avatar_url,name);else setAvatar('',name);
 }
-function safeHttpUrl(v){try{const u=new URL(v);return u.protocol==="https:"||u.protocol==="http:";}catch(_){return false;}}
-function updatePreview(){const name=$("name").value.trim()||"CrowRules Member";$("previewName").textContent=name;$("previewHandle").textContent="@"+($("usernameInput").value.trim().toLowerCase().replace(/[^a-z0-9_.-]/g,"")||"member");$("previewBio").textContent=$("bioInput").value.trim()||$("tagline").value.trim()||"Your profile bio will appear here.";$("previewInterests").textContent=$("interests").value.trim()?"INTERESTS · "+$("interests").value.trim():"";const cover=$("coverUrl").value.trim();const bg=cover&&safeHttpUrl(cover)?'url("'+cover.replace(/["\\)]/g,"\\const bg=cover&&safeHttpUrl(cover)?"url("+JSON.stringify(cover)+")":"";")+'")':"";$("previewCover").style.backgroundImage=bg;$("coverPreview").style.backgroundImage=bg;}
-function updateCompletion(){const ids=["name","usernameInput","tagline","bioInput","location","website","avatarUrl","coverUrl","interests","mood"];const count=ids.filter(id=>$(id).value.trim()).length;const pct=Math.round(count/ids.length*100);$("completionText").textContent=pct+"%";$("completionFill").style.width=pct+"%";$("completionBar").setAttribute("aria-valuenow",String(pct));$("completionHint").textContent=pct===100?"Your profile details are filled in.":(ids.length-count)+" more detail"+(ids.length-count===1?"":"s")+" can help personalize your profile.";}
-async function render(){fill();$("points").textContent=Number(member?.points||0).toLocaleString();$("minutes").textContent=Number(member?.watch_minutes||0).toLocaleString();$("lastSaved").textContent=profile.updated_at?"Last updated "+fmtDate(profile.updated_at):"Not saved yet";}
-
+function updateCompletion(){
+const ids=['name','usernameInput','tagline','bioInput','location','website','avatarUrl','coverUrl','interests','mood'];
+const count=ids.filter(function(id){return $(id).value.trim().length>0;}).length;
+const pct=Math.round(count/ids.length*100);
+$('completionText').textContent=pct+'%';$('completionFill').style.width=pct+'%';$('completionBar').setAttribute('aria-valuenow',String(pct));
+const remaining=ids.length-count;
+$('completionHint').textContent=remaining===0?'Your profile details are filled in.':remaining+' more detail'+(remaining===1?'':'s')+' can help personalize your profile.';
+}
+async function loadProfile(){
+if(!C.supabaseUrl||!C.supabaseKey||!window.supabase?.createClient){showGate('CONFIGURATION REQUIRED','The Podcasting Supabase configuration could not be loaded. Check config.js and refresh the page.',[{label:'RETURN HOME',href:'../home.html',primary:true}]);return;}
+S=window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce'}});
+const auth=await S.auth.getUser();
+if(auth.error||!auth.data?.user){showGate('SIGN IN REQUIRED','Sign in to manage your CrowRules Podcasting profile.',[{label:'SIGN IN',href:'../login.html?redirect=listener%2Fprofile.html',primary:true},{label:'CREATE ACCOUNT',href:'../signup.html?redirect=listener%2Fprofile.html'},{label:'RETURN HOME',href:'../home.html'}]);return;}
+user=auth.data.user;
+const results=await Promise.all([
+S.from('members').select('id,user_id,display_name,username,email,membership_type,role,status,points,watch_minutes,bio,avatar_url,last_active_at,created_at').eq('user_id',user.id).maybeSingle(),
+S.from('podcast_member_profiles').select('*').eq('user_id',user.id).maybeSingle()
+]);
+if(results[0].error)throw new Error('Could not load your CrowRules member record: '+results[0].error.message);
+if(results[1].error)throw new Error('Could not load your profile settings: '+results[1].error.message);
+member=results[0].data;profile=results[1].data||{user_id:user.id};
+if(!member){showGate('MEMBER PROFILE NOT FOUND','You are signed in, but a matching CrowRules member record was not found. Open your account page or contact support.',[{label:'OPEN ACCOUNT',href:'../account.html',primary:true},{label:'RETURN HOME',href:'../home.html'}]);return;}
+const role=String(member.role||'').toLowerCase();
+if(role!=='listener'&&role!=='creator'){showGate('PODCASTING PROFILE UNAVAILABLE','This account does not currently have a Listener or Creator role for Podcasting.',[{label:'OPEN ACCOUNT',href:'../account.html',primary:true},{label:'RETURN HOME',href:'../home.html'}]);return;}
+if(role==='creator'){
+const creatorResult=await S.from('creators').select('id,name,slug,role,discipline,bio,avatar_url,profile_url,is_active').eq('member_id',member.id).maybeSingle();
+if(creatorResult.error)console.warn('Creator profile lookup unavailable:',creatorResult.error.message);
+creator=creatorResult.data||null;
+}
+fillForm();await loadCounts();await loadIdentities();await loadActivity();hideGate();
+}
 async function loadCounts(){
- const [f,c,s]=await Promise.all([
-   S.from("podcast_follows").select("id",{count:"exact",head:true}).eq("user_id",user.id),
-   S.from("cr_podcast_social_comments_v5").select("id",{count:"exact",head:true}).eq("user_id",user.id),
-   S.from("podcast_user_saved_episodes").select("id",{count:"exact",head:true}).eq("user_id",user.id)
- ]);
- $("follows").textContent=f.error?"—":Number(f.count||0).toLocaleString();$("comments").textContent=c.error?"—":Number(c.count||0).toLocaleString();
- $("activity").dataset.saved=s.error?"unavailable":String(s.count||0);
- if(f.error||c.error||s.error)console.warn("Some listener profile counts could not be loaded.",{follows:f.error?.message,comments:c.error?.message,saved:s.error?.message});
+const requests=await Promise.all([
+S.from('podcast_follows').select('id',{count:'exact',head:true}).eq('user_id',user.id),
+S.from('cr_podcast_social_comments_v5').select('id',{count:'exact',head:true}).eq('user_id',user.id),
+S.from('podcast_user_saved_episodes').select('id',{count:'exact',head:true}).eq('user_id',user.id)
+]);
+$('follows').textContent=requests[0].error?'—':Number(requests[0].count||0).toLocaleString();
+$('comments').textContent=requests[1].error?'—':Number(requests[1].count||0).toLocaleString();
+if(requests.some(function(r){return !!r.error;}))console.warn('Some profile counts were unavailable.',requests.map(function(r){return r.error?.message||null;}));
 }
+function makeActivityItem(title,meta,date,type){
+const item=document.createElement('div');item.className='item';
+const main=document.createElement('div');main.className='item-main';
+const heading=document.createElement('div');heading.className='item-title';heading.textContent=title;
+const details=document.createElement('div');details.className='item-meta';details.textContent=[meta,formatDate(date)].filter(Boolean).join(' · ');
+const badge=document.createElement('span');badge.className='pill';badge.textContent=type;
+main.append(heading,details);item.append(main,badge);return item;
+}
+function showEmpty(container,message){container.replaceChildren();const el=document.createElement('div');el.className='empty';el.textContent=message;container.appendChild(el);}
 async function loadIdentities(){
- const box=$("identities");const {data,error}=await S.auth.getUserIdentities();
- if(error){box.innerHTML='<div class="empty">Connected provider details are unavailable right now.</div>';return;}
- const ids=data?.identities||[];
- box.innerHTML=ids.length?ids.map(x=>'<div class="item"><div><div class="title">'+esc(fmtProvider(x.provider))+'</div><div class="meta">Linked to this CrowRules account</div></div><span class="badge">CONNECTED</span></div>').join(""):'<div class="empty">No linked identity providers were returned.</div>';
+const box=$('identities');
+try{
+const result=await S.auth.getUserIdentities();
+if(result.error){showEmpty(box,'Connected provider details are unavailable right now.');return;}
+const identities=result.data?.identities||[];
+if(!identities.length){showEmpty(box,'No linked identity providers were returned for this session.');return;}
+box.replaceChildren();
+identities.forEach(function(identity){const item=document.createElement('div');item.className='item';const main=document.createElement('div');main.className='item-main';const title=document.createElement('div');title.className='item-title';title.textContent=providerName(identity.provider);const meta=document.createElement('div');meta.className='item-meta';meta.textContent='Linked to this CrowRules account';const badge=document.createElement('span');badge.className='pill';badge.textContent='CONNECTED';main.append(title,meta);item.append(main,badge);box.appendChild(item);});
+}catch(error){console.warn('Could not load auth identities:',error);showEmpty(box,'Connected provider details could not be loaded.');}
 }
 async function loadActivity(){
- const box=$("activity");
- const [f,c,s]=await Promise.all([
-  S.from("podcast_follows").select("created_at,podcast_id").eq("user_id",user.id).order("created_at",{ascending:false}).limit(5),
-  S.from("cr_podcast_social_comments_v5").select("created_at,body,episode_id").eq("user_id",user.id).order("created_at",{ascending:false}).limit(5),
-  S.from("podcast_user_saved_episodes").select("created_at,episode_id").eq("user_id",user.id).order("created_at",{ascending:false}).limit(5)
- ]);
- const rows=[];
- if(f.error||c.error||s.error){box.innerHTML='<div class="empty">Some activity sources are currently unavailable. Your profile remains usable; check Supabase table access and row-level security for the affected activity tables.</div>';console.warn("Listener activity query errors",{follows:f.error?.message,comments:c.error?.message,saved:s.error?.message});return;}
- (f.data||[]).forEach(x=>rows.push({date:x.created_at,title:"Followed a podcast",meta:"Podcast ID "+x.podcast_id,type:"FOLLOW"}));
- (c.data||[]).forEach(x=>rows.push({date:x.created_at,title:"Posted a comment",meta:String(x.body||"").slice(0,90),type:"COMMENT"}));
- (s.data||[]).forEach(x=>rows.push({date:x.created_at,title:"Saved an episode",meta:"Episode ID "+x.episode_id,type:"SAVE"}));
- rows.sort((a,b)=>new Date(b.date)-new Date(a.date));
- box.innerHTML=rows.length?rows.slice(0,8).map(x=>'<div class="item"><div><div class="title">'+esc(x.title)+'</div><div class="meta">'+esc(x.meta||"Podcasting activity")+' • '+esc(fmtDate(x.date))+'</div></div><span class="badge">'+esc(x.type)+'</span></div>').join(""):'<div class="empty">No recent activity yet. Start listening, following, saving, or commenting to build your Podcasting footprint.</div>';
+const box=$('activity');
+const results=await Promise.all([
+S.from('podcast_follows').select('created_at,podcast_id').eq('user_id',user.id).order('created_at',{ascending:false}).limit(5),
+S.from('cr_podcast_social_comments_v5').select('created_at,body,episode_id').eq('user_id',user.id).order('created_at',{ascending:false}).limit(5),
+S.from('podcast_user_saved_episodes').select('created_at,episode_id').eq('user_id',user.id).order('created_at',{ascending:false}).limit(5)
+]);
+const errors=results.map(function(r){return r.error;});
+if(errors.some(Boolean)){showEmpty(box,'Some activity sources are unavailable. Profile editing still works; table access and row-level security may need review.');console.warn('Listener activity query errors',errors.map(function(e){return e?.message||null;}));return;}
+const rows=[];
+(results[0].data||[]).forEach(function(row){rows.push({date:row.created_at,title:'Followed a podcast',meta:'Podcast ID '+String(row.podcast_id||'not recorded'),type:'FOLLOW'});});
+(results[1].data||[]).forEach(function(row){rows.push({date:row.created_at,title:'Posted a comment',meta:String(row.body||'Comment posted').slice(0,110),type:'COMMENT'});});
+(results[2].data||[]).forEach(function(row){rows.push({date:row.created_at,title:'Saved an episode',meta:'Episode ID '+String(row.episode_id||'not recorded'),type:'SAVED'});});
+rows.sort(function(a,b){return new Date(b.date||0).getTime()-new Date(a.date||0).getTime();});
+if(!rows.length){showEmpty(box,'No recent activity yet. Listen to shows, follow podcasts, save episodes, or comment to build your Podcasting footprint.');return;}
+box.replaceChildren();rows.slice(0,8).forEach(function(row){box.appendChild(makeActivityItem(row.title,row.meta,row.date,row.type));});
 }
-async function saveProfile(e){
- e?.preventDefault();if(!user||!S){toast("Your session is unavailable. Please sign in again.",false);return;}$("saveBtn").disabled=true;$("saveTop").disabled=true;$("saveBtn").textContent="SAVING…";
- const username=$("usernameInput").value.trim().toLowerCase();
- if(username&&!/^[a-z0-9_.-]{3,32}$/.test(username)){toast("Username must be 3–32 characters using letters, numbers, dots, underscores or hyphens.",false);$("saveBtn").disabled=false;$("saveBtn").textContent="SAVE CHANGES";return;}
- for(const id of ["website","avatarUrl","coverUrl"]){const v=$(id).value.trim();if(v&&!safeHttpUrl(v)){toast("Please use a valid http:// or https:// URL for "+({website:"website",avatarUrl:"avatar image",coverUrl:"cover image"}[id])+".",false);$("saveBtn").disabled=false;$("saveBtn").textContent="SAVE CHANGES";return;}}
- const payload={user_id:user.id,display_name:$("name").value.trim().slice(0,80),username,tagline:$("tagline").value.trim().slice(0,120),bio:$("bioInput").value.trim().slice(0,600),location:$("location").value.trim().slice(0,100),website_url:$("website").value.trim().slice(0,240)||null,avatar_url:$("avatarUrl").value.trim().slice(0,500)||null,cover_url:$("coverUrl").value.trim().slice(0,500)||null,interests:$("interests").value.trim().slice(0,400),favorite_music:$("favoriteMusic").value.trim().slice(0,300),favorite_movies:$("favoriteMovies").value.trim().slice(0,300),favorite_games:$("favoriteGames").value.trim().slice(0,300),mood:$("mood").value||null};
- const {data,error}=await S.from("podcast_member_profiles").upsert(payload,{onConflict:"user_id"}).select("*").single();
- if(error){toast(error.message,false);}else{profile=data;await render();toast("Profile saved.");}
- $("saveBtn").disabled=false;$("saveTop").disabled=false;$("saveBtn").textContent="SAVE CHANGES";
+function validateForm(){
+const username=$('usernameInput').value.trim().toLowerCase();
+if(username&&!/^[a-z0-9_.-]{3,32}$/.test(username)){setToast('Username must be 3–32 characters and use only letters, numbers, dots, underscores, or hyphens.','bad');$('usernameInput').focus();return null;}
+for(const pair of [['website','website'],['avatarUrl','avatar image'],['coverUrl','cover image']]){
+const value=$(pair[0]).value.trim();if(value&&!safeHttpUrl(value)){setToast('Enter a valid http:// or https:// URL for your '+pair[1]+'.','bad');$(pair[0]).focus();return null;}
+}
+return {user_id:user.id,display_name:$('name').value.trim().slice(0,80)||null,username:username||null,tagline:$('tagline').value.trim().slice(0,120)||null,bio:$('bioInput').value.trim().slice(0,600)||null,location:$('location').value.trim().slice(0,100)||null,website_url:$('website').value.trim().slice(0,240)||null,avatar_url:$('avatarUrl').value.trim().slice(0,500)||null,cover_url:$('coverUrl').value.trim().slice(0,500)||null,interests:$('interests').value.trim().slice(0,400)||null,favorite_music:$('favoriteMusic').value.trim().slice(0,300)||null,favorite_movies:$('favoriteMovies').value.trim().slice(0,300)||null,favorite_games:$('favoriteGames').value.trim().slice(0,300)||null,mood:$('mood').value||null};
+}
+async function saveProfile(event){
+if(event)event.preventDefault();
+if(loading||!S||!user){setToast('Your session is unavailable. Sign in again before saving.','bad');return;}
+const payload=validateForm();if(!payload)return;
+loading=true;setBusy($('saveBtn'),true,'SAVING…');$('saveTop').disabled=true;
+try{
+const result=await S.from('podcast_member_profiles').upsert(payload,{onConflict:'user_id'}).select('*').single();
+if(result.error)throw result.error;
+profile=result.data||payload;
+fillForm();
+setToast('Your profile has been saved.','good');
+}catch(error){console.error('Profile save failed:',error);setToast('Profile could not be saved: '+(error?.message||'Unknown database error'),'bad');}
+finally{loading=false;setBusy($('saveBtn'),false);$('saveTop').disabled=false;}
 }
 async function savePrivacy(){
- if(!user||!S){toast("Your session is unavailable. Please sign in again.",false);return;}const b=$("savePrivacy");b.disabled=true;b.textContent="SAVING…";
- const payload={is_public:$("isPublic").checked,activity_public:$("activityPublic").checked,network_public:$("networkPublic").checked,followers_public:$("followersPublic").checked,following_public:$("followingPublic").checked};
- const {data,error}=await S.from("podcast_member_profiles").upsert({user_id:user.id,...payload},{onConflict:"user_id"}).select("*").single();
- if(error)toast("Privacy settings could not be saved: "+error.message,false);else{profile={...profile,...data};await render();toast("Privacy settings saved.");}b.disabled=false;b.textContent="SAVE PRIVACY SETTINGS";
+if(loading||!S||!user){setToast('Your session is unavailable. Sign in again before saving.','bad');return;}
+const button=$('savePrivacy');loading=true;setBusy(button,true,'SAVING…');
+const payload={user_id:user.id,is_public:$('isPublic').checked,activity_public:$('activityPublic').checked,network_public:$('networkPublic').checked,followers_public:$('followersPublic').checked,following_public:$('followingPublic').checked};
+try{
+const result=await S.from('podcast_member_profiles').upsert(payload,{onConflict:'user_id'}).select('*').single();
+if(result.error)throw result.error;
+profile=Object.assign({},profile||{},result.data||payload);
+$('lastSaved').textContent=profile.updated_at?'LAST UPDATED '+formatDate(profile.updated_at).toUpperCase():'SAVED';
+setToast('Privacy settings saved.','good');
+}catch(error){console.error('Privacy save failed:',error);setToast('Privacy settings could not be saved: '+(error?.message||'Unknown database error'),'bad');}
+finally{loading=false;setBusy(button,false);}
 }
-$("profileForm").addEventListener("submit",saveProfile);$("saveTop").addEventListener("click",()=>saveProfile());$("savePrivacy").addEventListener("click",savePrivacy);
-["name","usernameInput","tagline","bioInput","location","website","avatarUrl","coverUrl","interests","favoriteMusic","favoriteMovies","favoriteGames","mood"].forEach(id=>$(id).addEventListener("input",()=>{updatePreview();updateCompletion();if(id==="avatarUrl"){const v=$(id).value.trim();if(v&&safeHttpUrl(v))setAvatar(v,$("name").value||member?.display_name||"CR");else setAvatar(member?.avatar_url||profile?.avatar_url,$("name").value||member?.display_name||"CR");}}));
-$("signOut").addEventListener("click",async()=>{await S.auth.signOut();location.href="../home.html";});
-S?.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT")location.href="../home.html";});
-load().catch(e=>showGate("PROFILE ERROR",e?.message||"Unable to load your profile.",'<button class="btn primary" onclick="location.reload()">RETRY</button><a class="btn" href="../home.html">RETURN HOME</a>'));
+function wireEvents(){
+$('profileForm').addEventListener('submit',saveProfile);
+$('saveTop').addEventListener('click',function(){saveProfile();});
+$('savePrivacy').addEventListener('click',savePrivacy);
+$('resetForm').addEventListener('click',function(){if(initialValues)applyFormValues(initialValues);setToast('Unsaved profile edits have been reset.','good');});
+profileFields.forEach(function(id){$(id).addEventListener('input',function(){updatePreview();updateCompletion();});});
+$('avatarUrl').addEventListener('change',function(){setAvatar($('avatarUrl').value.trim(),$('name').value||'CR');});
+$('name').addEventListener('input',function(){setAvatar($('avatarUrl').value.trim(),$('name').value||'CR');});
+$('signOut').addEventListener('click',async function(){const button=$('signOut');button.disabled=true;try{if(S)await S.auth.signOut();}finally{window.location.href='../home.html';}});
+}
+wireEvents();
+if(window.supabase?.createClient)loadProfile().catch(function(error){console.error('Profile initialization failed:',error);showGate('PROFILE COULD NOT LOAD',error?.message||'An unexpected error prevented your profile from loading. Please try again.',[{label:'RETRY',href:'profile.html',primary:true},{label:'OPEN ACCOUNT',href:'../account.html'},{label:'RETURN HOME',href:'../home.html'}]);});
+else showGate('CONFIGURATION REQUIRED','The Supabase client did not load. Check your network connection and refresh the page.',[{label:'RETRY',href:'profile.html',primary:true},{label:'RETURN HOME',href:'../home.html'}]);
 })();
 </script>
 </body>
