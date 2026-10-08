@@ -121,6 +121,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 let sb=null;
 const launchTarget=Date.UTC(2027,0,1,8,0,0);
 const setMsg=(el,text,kind="")=>{if(el){el.textContent=text;el.dataset.kind=kind}};
+const MEMBER_PROFILE='https://crowrulesentertainment-oss.github.io/crowspace/profile.html';
 const safeTarget=()=>{try{const n=new URLSearchParams(location.search).get("next");return n&&/^[a-z0-9_./-]+\.html(?:#[a-z0-9_.-]+)?$/i.test(n)?n:"profile.html"}catch(_){return"profile.html"}};
 const authRedirect=()=>new URL("prelaunch.html",location.href).href;
 async function client(){
