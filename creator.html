@@ -26,7 +26,7 @@
 <div><span>SHOWS</span><strong id="quickShows">0</strong></div><div><span>EPISODES</span><strong id="quickEpisodes">0</strong></div><div><span>PLAYS</span><strong id="quickPlays">0</strong></div><div><span>MEMBERS</span><strong id="quickMembers">0</strong></div>
 </section>
 <nav class="studio-tabs" aria-label="Creator Studio sections">
-<button class="studio-tab-btn active" data-tab="shows">OVERVIEW</button><button class="studio-tab-btn" data-tab="episodes">PRODUCTION</button><button class="studio-tab-btn" data-tab="analytics">ANALYTICS</button><button class="studio-tab-btn" data-tab="monetization">MEMBERSHIPS</button>
+<button type="button" class="studio-tab-btn active" data-tab="shows">OVERVIEW</button><button type="button" class="studio-tab-btn" data-tab="episodes">PRODUCTION</button><button type="button" class="studio-tab-btn" data-tab="analytics">ANALYTICS</button><button type="button" class="studio-tab-btn" data-tab="monetization">MEMBERSHIPS</button>
 </nav>
 
 <section id="tab-shows" class="studio-tab">
@@ -113,5 +113,20 @@
 <script>
 document.addEventListener('DOMContentLoaded',()=>{document.querySelector('#creatorSignOut')?.addEventListener('click',async()=>{try{await window.CROW_PODCASTING?.auth.signOut()}finally{location.href='prelaunch.html?mode=login&next=creator.html'}})});
 document.addEventListener('DOMContentLoaded',()=>{const q=(s)=>document.querySelector(s);const presets={free:{name:'Free',free:'free',monthly:0,annual:'',trial:0,max:'',order:1,desc:'A free community membership.',benefits:'Community access\nPublic episodes'},supporter:{name:'Supporter',free:'paid',monthly:5,annual:50,trial:7,max:'',order:1,desc:'Support the show and unlock member extras.',benefits:'Bonus episodes\nAd-free listening'},insider:{name:'Insider',free:'paid',monthly:10,annual:100,trial:7,max:'',order:2,desc:'Deeper access for dedicated listeners.',benefits:'Bonus episodes\nBehind-the-scenes content\nEarly access'},vip:{name:'VIP',free:'paid',monthly:20,annual:200,trial:14,max:'',order:3,desc:'The premium creator experience.',benefits:'All Insider benefits\nExclusive live sessions\nVIP community access'}};document.querySelectorAll('[data-plan-preset]').forEach(b=>b.onclick=()=>{const p=presets[b.dataset.planPreset];if(!p)return;q('#planName').value=p.name;q('#planFree').value=p.free;q('#planMonthly').value=p.monthly;q('#planAnnual').value=p.annual;q('#planTrial').value=p.trial;q('#planMax').value=p.max;q('#planOrder').value=p.order;q('#planDescription').value=p.desc;q('#planBenefits').value=p.benefits})});
+</script>
+<script>
+/* Standalone tab controller: keeps Creator Studio navigation working even if a data-loading script fails. */
+document.addEventListener('DOMContentLoaded',()=>{
+  const buttons=[...document.querySelectorAll('.studio-tab-btn[data-tab]')];
+  const tabs=[...document.querySelectorAll('.studio-tab[id^="tab-"]')];
+  const activate=(name)=>{
+    buttons.forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+    tabs.forEach(t=>{t.hidden=t.id!=='tab-'+name;});
+    const target=document.getElementById('tab-'+name);
+    if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  buttons.forEach(b=>b.addEventListener('click',e=>{e.preventDefault();activate(b.dataset.tab);},{capture:true}));
+  activate('shows');
+});
 </script>
 </body></html>
