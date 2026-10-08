@@ -37,12 +37,18 @@ function setupLinks(){
  });
 }
 function setupAuthUX(){
- const sb=window.CROW_PODCASTING;if(!sb?.auth)return;
- sb.auth.onAuthStateChange((event,session)=>{
-  if(event==="SIGNED_OUT")return;
-  if(!session)return;
+ const update=(state)=>{
+  document.documentElement.dataset.crSignedIn=state?.user?"true":"false";
+  document.documentElement.dataset.crCreator=state?.creator?.is_active||state?.profile?.is_creator?"true":"false";
+  document.documentElement.dataset.crMembership=String(state?.membership?.type||"free");
+  document.querySelectorAll("[data-cr-account-name]").forEach(e=>e.textContent=state?.profile?.display_name||state?.member?.display_name||state?.user?.user_metadata?.full_name||"Account");
+  document.querySelectorAll("[data-cr-account-avatar]").forEach(e=>{const u=state?.profile?.avatar_url||state?.member?.avatar_url||state?.user?.user_metadata?.avatar_url;if(u)e.src=u;});
+ };
+ if(window.CrowAccount?.onChange) window.CrowAccount.onChange(update);
+ else window.addEventListener("crowrules:account",e=>update(e.detail));
+ window.addEventListener("crowrules:auth",e=>{
   const next=new URLSearchParams(location.search).get("next");
-  if(next&&/^[A-Za-z0-9_./?=&-]+\.html(?:[?#].*)?$/.test(next)&&!location.pathname.endsWith(next.split("?")[0].split("#")[0]))location.href=next;
+  if(e.detail?.event==="SIGNED_IN"&&next&&/^[A-Za-z0-9_./?=&-]+\.html(?:[?#].*)?$/.test(next)&&!location.pathname.endsWith(next.split("?")[0].split("#")[0])) location.href=next;
  });
 }
 function setupTheme(){document.body.dataset.crPodcastingVersion=VERSION;try{localStorage.setItem("crp_site_version",VERSION)}catch(_){}}
