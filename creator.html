@@ -10,7 +10,7 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="js/config.js" defer></script>
 <script>
-(()=>{try{const c=window.CROW_PODCASTING_CONFIG||{supabaseUrl:"https://cevylpnoexugwgygvtgu.supabase.co",supabasePublishableKey:"sb_publishable_AdfM5y6RqFv3tbvEVzDZSg_JuGTQLD-"};if(window.supabase&&!window.CROW_PODCASTING)window.CROW_PODCASTING=window.supabase.createClient(c.supabaseUrl,c.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})}catch(e){console.warn("[CrowRules Creator Prelaunch]",e)}})();
+(()=>{try{const c=window.CROW_PODCASTING_CONFIG||{supabaseUrl:"https://cevylpnoexugwgygvtgu.supabase.co",supabasePublishableKey:"sb_publishable_AdfM5y6RqFv3tbvEVzDZSg_JuGTQLD-"};if(!window.CROW_PODCASTING)console.warn("[CrowRules Creator] Waiting for sitewide Supabase client from config.js.")}catch(e){console.warn("[CrowRules Creator Prelaunch]",e)}})();
 </script>
 <script src="js/creator-studio.js" defer></script><script src="js/media-pipeline.js" defer></script>
 <script src="js/podcasting.js" defer></script>
