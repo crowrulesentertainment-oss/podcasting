@@ -56,10 +56,14 @@
     </aside>
   </section>
 
-  <section class="metrics" aria-label="Creator metrics">
+  <section class="metrics" aria-label="Creator performance metrics">
     <div class="metric"><small>Podcasts</small><strong id="podcastCount">—</strong><em>YOUR CATALOG</em></div>
     <div class="metric"><small>Episodes</small><strong id="episodeCount">—</strong><em>CONTENT PIPELINE</em></div>
     <div class="metric"><small>Published</small><strong id="publishedCount">—</strong><em>LIVE TO LISTENERS</em></div>
+    <div class="metric"><small>Drafts</small><strong id="draftCount">—</strong><em>READY TO PUBLISH</em></div>
+    <div class="metric"><small>Subscribers</small><strong id="subscriberCount">—</strong><em>CREATOR AUDIENCE</em></div>
+    <div class="metric"><small>Plays / Views</small><strong id="playCount">—</strong><em>LISTENER ACTIVITY</em></div>
+    <div class="metric"><small>Listening Time</small><strong id="listenTime">—</strong><em>TOTAL AVAILABLE</em></div>
     <div class="metric"><small>Workspace</small><strong id="workspaceState">READY</strong><em id="workspaceNote">PUBLIC CLIENT</em></div>
   </section>
 
@@ -167,8 +171,20 @@
       const eAll=Array.isArray(episodes)?episodes:[];
       $("podcastCount").textContent=hasOwnership ? pRows.length : (pe? "—" : pAll.length);
       $("episodeCount").textContent=hasOwnership ? eRows.length : (ee? "—" : eAll.length);
-      const published=(hasOwnership?pRows:pAll).filter(r=>r.published===true || r.is_published===true || String(r.status||"").toLowerCase()==="published").length;
+      const ownedP=hasOwnership?pRows:pAll, ownedE=hasOwnership?eRows:eAll;
+      const isPublished=r=>r.published===true || r.is_published===true || String(r.status||"").toLowerCase()==="published";
+      const published=ownedE.filter(isPublished).length;
+      const drafts=ownedE.filter(r=>!isPublished(r)).length;
       $("publishedCount").textContent=(pe && ee) ? "—" : published;
+      $("draftCount").textContent=(pe && ee) ? "—" : drafts;
+
+      const numeric=(row,keys)=>keys.reduce((sum,k)=>{const n=Number(row?.[k]);return Number.isFinite(n)?sum+n:sum},0);
+      const subscribers=numeric(ownedP,["subscriber_count","subscribers","followers","follower_count"]);
+      const plays=numeric(ownedE,["play_count","plays","listen_count","listens","view_count","views","total_plays"]);
+      const seconds=numeric(ownedE,["duration_seconds","duration","total_duration_seconds","listen_seconds","total_listen_seconds"]);
+      $("subscriberCount").textContent=subscribers?subscribers.toLocaleString():"0";
+      $("playCount").textContent=plays?plays.toLocaleString():"0";
+      $("listenTime").textContent=formatDuration(seconds);
       if(pe || ee){
         $("workspaceNote").textContent="RLS / SCHEMA";
         toast("Studio connected; some catalog data is restricted by current database policies.");
@@ -188,6 +204,12 @@
       $("activityList").innerHTML='<div class="empty">Studio is online, but the current public database policy did not expose creator catalog rows. The management pages remain available.</div>';
       toast("Creator Studio is online; catalog access is limited by current RLS.");
     }
+  }
+  function formatDuration(seconds){
+    seconds=Math.max(0,Math.round(Number(seconds)||0));
+    if(!seconds) return "0m";
+    const h=Math.floor(seconds/3600), m=Math.floor((seconds%3600)/60);
+    return h ? h+"h "+m+"m" : m+"m";
   }
   function escapeHtml(value){
     return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
