@@ -110,4 +110,24 @@ async function loadAuth(mode){layout('<div class="card form"><div class="eyebrow
   $("#commentForm").onsubmit=async ev=>{ev.preventDefault();if(!currentUser)return location.href="login.html";if(!activeEpisode)return toast("Select an episode first.");const body=$("#commentBody").value.trim();if(!body)return;const rr=await S.from("cr_podcast_social_comments_v5").insert({user_id:currentUser.id,episode_id:activeEpisode,body});if(rr.error)toast(rr.error.message);else{toast("Comment posted.");$("#commentBody").value="";loadComments(activeEpisode)}};
   if(episodes[0])loadComments(episodes[0].id);
   if(S&&episodes[0])S.channel("show-"+id).on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_social_comments_v5",filter:"episode_id=eq."+episodes[0].id},()=>{if(activeEpisode===episodes[0].id)loadComments(activeEpisode)}).subscribe();
-}}async function boot(){if(page==="home")return loadHome();if(page==="login")return loadAuth("login");if(page==="signup")return loadAuth("signup");if(page==="listener")return loadListener();if(page==="creator")return loadCreator();if(page==="rankings")return loadRankings();if(page==="profile")return loadProfile();if(page==="admin")return loadAdmin();if(page==="pricing")return loadPricing();if(page==="show")return loadShow()}if(S)S.auth.onAuthStateChange((_e,s)=>{session=s;refreshAuthUI()});boot()})();
+}}async function boot(){if(page==="home")return loadHome();if(page==="login")return loadAuth("login");if(page==="signup")return loadAuth("signup");if(page==="listener")return loadListener();if(page==="creator")return loadCreator();if(page==="rankings")return loadRankings();if(page==="profile")return loadProfile();if(page==="admin")return loadAdmin();if(page==="pricing")return loadPricing();if(page==="show")return loadShow()}if(S)S.auth.onAuthStateChange((_e,s)=>{session=s;refreshAuthUI()});
+if(page==="show")window.setTimeout(()=>{
+ const app=$("#app");
+ if(!app||!/Loading the show|Loading podcast universe|Preparing podcast details/i.test(app.textContent))return;
+ console.error("[CrowRules] Show loading timed out.",{hasSupabase:!!S,hasShowId:!!new URLSearchParams(location.search).get("id")});
+ const target=app.querySelector(".show-loading")||app.querySelector("#show")||app.querySelector("main");
+ if(!target)return;
+ target.innerHTML='<div class="eyebrow">CROWRULES PODCASTING</div><h1>We’re having trouble loading this show.</h1><p>The request took longer than expected. Retry loading the show or return to the listener page.</p><button class="btn primary" id="retryShowLoad" type="button">RETRY LOADING</button><a class="btn" href="index.html">BACK TO LISTENING</a>';
+ target.setAttribute("role","alert");
+ const retry=$("#retryShowLoad");if(retry)retry.onclick=()=>location.reload();
+},15000);
+boot().catch(err=>{
+ console.error("[CrowRules] Page initialization failed.",err);
+ if(page!=="show"){toast("This page could not finish loading. Please refresh and try again.");return}
+ const target=$("#show")||$(".show-loading")||$("#app main");
+ if(!target)return;
+ target.innerHTML='<div class="eyebrow">CROWRULES PODCASTING</div><h1>We couldn’t load this show.</h1><p class="muted">An unexpected error interrupted page setup. Please retry.</p><button class="btn primary" id="retryShowLoad" type="button">RETRY LOADING</button><a class="btn" href="index.html">BACK TO LISTENING</a>';
+ target.setAttribute("role","alert");
+ const retry=$("#retryShowLoad");if(retry)retry.onclick=()=>location.reload();
+});
+})();
