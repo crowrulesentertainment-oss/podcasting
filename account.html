@@ -39,7 +39,7 @@
 <div>
 <section class="cr-v3-panel cr-v3-section" id="listening">
  <div class="cr-v4-heading"><div><div class="cr-v3-kicker">LISTENING HUB</div><h2>MY PODCASTING</h2></div><a class="cr-v3-btn" href="library.html">OPEN LIBRARY</a></div>
- <div id="listeningStats"></div>
+ <div id="personalPlayer" class="cr-v6-player" hidden><div><b id="playerTitle">Ready to play</b><small id="playerShow"></small></div><audio id="accountAudio" controls preload="none"></audio></div><div id="listeningStats"></div>
  <div class="cr-v4-subhead">CONTINUE LISTENING</div><div id="continueList" class="cr-v3-list"></div>
  <div class="cr-v4-subhead">RECENTLY PLAYED</div><div id="recentList" class="cr-v3-list"></div>
  <div class="cr-v4-subhead">SAVED EPISODES</div><div id="savedList" class="cr-v3-list"></div>
@@ -115,17 +115,17 @@ function renderIdentity(s,user){
  const av=p.avatar_url||m.avatar_url||user.user_metadata?.avatar_url;if(av)$("#avatar").innerHTML='<img src="'+esc(av)+'" alt="Profile avatar">';else $("#avatar").textContent=initials(name);
  const creator=!!(c.is_active||p.is_creator);$("#creatorLink").hidden=!creator;$("#creatorStudio").hidden=!creator;$("#creatorStatus").textContent=creator?(c.display_name||c.name||"Active creator"):"Listener account";$("#accountStatus").textContent="Authenticated";
 }
-function renderListening(p){
+function bindPlayers(){document.querySelectorAll("[data-play-episode]").forEach(b=>b.onclick=()=>playEpisode(b.dataset.playEpisode));}\nfunction playEpisode(id){const e=state.episodes.get(id);if(!e?.audio_url){toast("This episode does not have playable audio yet.","error");return}const audio=$("#accountAudio");$("#playerTitle").textContent=e.title||"Episode";$("#playerShow").textContent=e.podcasts?.title||"CrowRules Podcasting";$("#personalPlayer").hidden=false;if(audio.src!==e.audio_url)audio.src=e.audio_url;audio.play().catch(()=>toast("Press play to start this episode.","info"));}\nfunction renderListening(p){
  const progress=p?.progress||[],completed=p?.completed||[],recent=p?.recent||[],saved=p?.saved||[],queue=p?.queue||[],follows=p?.follows||[];
  $("#completed").textContent=completed.length;$("#recent").textContent=recent.length;$("#saved").textContent=saved.length;$("#following").textContent=follows.length;
  const mins=Math.round(progress.reduce((n,x)=>n+Number(x.position_seconds||0),0)/60);
  $("#listeningStats").innerHTML='<div class="cr-v3-row"><div><strong>'+Number(p?.streak||0)+' day streak</strong><small>Current listening streak</small></div><div><strong>'+mins.toLocaleString()+' min</strong><small>Tracked playback</small></div></div><div class="cr-v3-row"><div><strong>'+queue.length+'</strong><small>Episodes in queue</small></div><div><strong>'+((p?.topCategories||[]).slice(0,3).join(" • ")||"Building your profile")+'</strong><small>Top categories</small></div></div>';
  const em=p?.em||new Map();state.episodes=em;
- const cont=progress.filter(x=>!x.completed&&Number(x.position_seconds||0)>0).slice(0,8).map(x=>episodeRow(em.get(x.episode_id),Math.round(Number(x.position_seconds||0)/60)+" min played","CONTINUE")).join("");
+ const cont=progress.filter(x=>!x.completed&&Number(x.position_seconds||0)>0).slice(0,8).map(x=>{const e=em.get(x.episode_id);const pct=e?.duration_seconds?Math.min(100,Number(x.position_seconds||0)/Number(e.duration_seconds)*100):0;return e?episodeRow({...e,description:(pct.toFixed(0)+"% complete")},Math.round(Number(x.position_seconds||0)/60)+" min played","CONTINUE").replace("</article>","<div class=\"cr-v6-progress\"><i style=\"width:"+pct+"%\"></i></div></article>"): ""}).join("");
  $("#continueList").innerHTML=cont||empty("Start an episode and your continue-listening shelf will appear here.");
- $("#recentList").innerHTML=recent.slice(0,8).map(x=>episodeRow(em.get(x.episode_id),x.last_played_at?new Date(x.last_played_at).toLocaleDateString():"Recently played")).join("")||empty("Your recent listening history will appear here.");
- $("#savedList").innerHTML=saved.slice(0,8).map(id=>episodeRow(em.get(id),"Saved episode")).join("")||empty("Save episodes from the player to build your library.");
- $("#queueList").innerHTML=queue.slice(0,8).map(x=>episodeRow(em.get(x.episode_id),"Queue #"+(Number(x.position)+1))).join("")||empty("Your listening queue is empty."); $("#snapshot").innerHTML="<div class=\"cr-v5-mini\"><strong>"+Number(progress.length)+"</strong><span>tracked episodes</span></div><div class=\"cr-v5-mini\"><strong>"+Math.round(progress.reduce((n,x)=>n+Number(x.position_seconds||0),0)/60).toLocaleString()+"</strong><span>tracked minutes</span></div><div class=\"cr-v5-mini\"><strong>"+Number(p?.streak||0)+"</strong><span>day streak</span></div>";
+ $("#recentList").innerHTML=recent.slice(0,8).map(x=>episodeRow(em.get(x.episode_id),x.last_played_at?new Date(x.last_played_at).toLocaleDateString():"Recently played")).join("")||empty("Your recent listening history will appear here."); bindPlayers();
+ $("#savedList").innerHTML=saved.slice(0,8).map(id=>episodeRow(em.get(id),"Saved episode")).join("")||empty("Save episodes from the player to build your library."); bindPlayers();
+ $("#queueList").innerHTML=queue.slice(0,8).map(x=>episodeRow(em.get(x.episode_id),"Queue #"+(Number(x.position)+1))).join("")||empty("Your listening queue is empty."); bindPlayers(); $("#snapshot").innerHTML="<div class=\"cr-v5-mini\"><strong>"+Number(progress.length)+"</strong><span>tracked episodes</span></div><div class=\"cr-v5-mini\"><strong>"+Math.round(progress.reduce((n,x)=>n+Number(x.position_seconds||0),0)/60).toLocaleString()+"</strong><span>tracked minutes</span></div><div class=\"cr-v5-mini\"><strong>"+Number(p?.streak||0)+"</strong><span>day streak</span></div>";
 }
 async function loadMembership(user){
  try{
