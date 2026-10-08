@@ -1,1 +1,231 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Listener Experience — CrowRules Podcasting</title><link rel="stylesheet" href="../css/podcasting.css"><script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="../config.js"></script><script defer src="../js/podcasting.js"></script></head><body><div id="app"></div><script>window.CRPage="listener"</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050816">
+<meta name="description" content="CrowRules Podcasting Listener Experience — discover, listen, follow, comment and connect.">
+<title>Listener Experience — CrowRules Podcasting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/podcasting.css">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<style>
+:root{--listener-bg:#050816;--listener-panel:rgba(12,18,40,.78);--listener-line:rgba(124,92,255,.22);--listener-cyan:#48e7ff;--listener-purple:#9b6cff;--listener-pink:#ff5bd8}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 15% 5%,rgba(72,231,255,.08),transparent 28%),radial-gradient(circle at 85% 15%,rgba(155,108,255,.12),transparent 32%),var(--listener-bg);color:#eef4ff;font-family:Montserrat,system-ui,sans-serif}
+a{text-decoration:none;color:inherit}
+.listener-page{min-height:100vh;overflow:hidden}
+.listener-shell{width:min(1240px,calc(100% - 32px));margin:auto}
+.listener-top{position:sticky;top:0;z-index:20;background:rgba(5,8,22,.84);backdrop-filter:blur(18px);border-bottom:1px solid var(--listener-line)}
+.listener-nav{min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.listener-brand{display:flex;align-items:center;gap:11px;font-family:Orbitron,sans-serif;font-weight:800;letter-spacing:.06em}
+.listener-brand img{width:42px;height:42px;object-fit:contain}
+.listener-brand span{color:var(--listener-cyan)}
+.listener-links{display:flex;gap:18px;align-items:center;font-size:12px;font-weight:800;letter-spacing:.08em}
+.listener-links a{opacity:.8}.listener-links a:hover{opacity:1;color:var(--listener-cyan)}
+.listener-actions{display:flex;gap:8px;align-items:center}
+.lbtn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 16px;border:1px solid rgba(124,92,255,.35);border-radius:10px;background:rgba(255,255,255,.035);font-size:11px;font-weight:800;letter-spacing:.08em}
+.lbtn:hover{border-color:var(--listener-cyan);transform:translateY(-1px)}
+.lbtn.primary{background:linear-gradient(135deg,rgba(72,231,255,.18),rgba(155,108,255,.25));border-color:rgba(72,231,255,.55)}
+.listener-hero{padding:78px 0 58px;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(300px,.88fr);gap:44px;align-items:center}
+.kicker{font-size:11px;font-weight:800;letter-spacing:.2em;color:var(--listener-cyan);margin-bottom:16px}
+.listener-hero h1{font:800 clamp(42px,7vw,84px)/.92 Orbitron,sans-serif;letter-spacing:-.045em;margin:0 0 22px;text-transform:uppercase}
+.gradient-text{background:linear-gradient(90deg,#fff,var(--listener-cyan),var(--listener-purple),var(--listener-pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+.listener-hero p{max-width:690px;color:#aebbd6;font-size:16px;line-height:1.75;margin:0 0 26px}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap}
+.hero-console{position:relative;min-height:390px;border:1px solid var(--listener-line);border-radius:24px;background:linear-gradient(145deg,rgba(14,24,52,.9),rgba(7,11,28,.72));box-shadow:0 25px 90px rgba(0,0,0,.35);padding:24px;overflow:hidden}
+.hero-console:before{content:"";position:absolute;width:230px;height:230px;border-radius:50%;right:-65px;top:-65px;border:1px solid rgba(72,231,255,.35);box-shadow:0 0 55px rgba(72,231,255,.12)}
+.hero-console:after{content:"";position:absolute;width:150px;height:150px;border-radius:50%;right:-25px;top:-25px;border:1px solid rgba(155,108,255,.35)}
+.console-label{font:700 11px Orbitron,sans-serif;letter-spacing:.15em;color:#8191b1}
+.console-title{font:800 30px Orbitron,sans-serif;margin:12px 0 22px}
+.signal{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);margin-bottom:10px}
+.signal-dot{width:10px;height:10px;border-radius:50%;background:var(--listener-cyan);box-shadow:0 0 16px var(--listener-cyan)}
+.signal strong{font-size:13px}.signal small{display:block;color:#8290ac;margin-top:4px}
+.section{padding:30px 0 70px}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:18px}
+.section-head h2{font:700 clamp(24px,4vw,38px) Orbitron,sans-serif;margin:0}
+.section-head p{color:#8090ad;font-size:12px;margin:7px 0 0}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.panel{border:1px solid var(--listener-line);background:var(--listener-panel);border-radius:18px;padding:22px;box-shadow:0 18px 55px rgba(0,0,0,.18)}
+.panel:hover{border-color:rgba(72,231,255,.45);transform:translateY(-2px)}
+.quick-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.quick{min-height:145px}.quick-icon{font-size:27px;margin-bottom:15px}.quick h3{font:700 16px Orbitron,sans-serif;margin:0 0 8px}.quick p{color:#8492ad;font-size:12px;line-height:1.65;margin:0}
+.show-card{min-height:250px;display:flex;flex-direction:column}
+.show-art{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;background:#0a1023;border:1px solid rgba(255,255,255,.06);margin-bottom:14px}
+.show-card h3{font:700 17px Orbitron,sans-serif;margin:0 0 7px}.show-card p{color:#8794ad;font-size:12px;line-height:1.55;margin:0 0 12px}.show-meta{margin-top:auto;color:#71809c;font-size:10px;font-weight:700;letter-spacing:.08em}
+.live-panel{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+.live-main{padding:30px;border-radius:20px;border:1px solid rgba(255,91,216,.22);background:linear-gradient(135deg,rgba(255,91,216,.08),rgba(72,231,255,.06))}
+.live-badge{display:inline-flex;align-items:center;gap:7px;color:#ff78df;font-size:10px;font-weight:800;letter-spacing:.16em}.live-badge i{width:8px;height:8px;border-radius:50%;background:#ff5bd8;box-shadow:0 0 14px #ff5bd8}
+.live-main h3{font:700 28px Orbitron,sans-serif;margin:16px 0 8px}.live-main p{color:#929fba;font-size:13px;line-height:1.7}
+.listener-note{display:flex;align-items:center;justify-content:center;text-align:center;min-height:180px}
+.note-state{color:#8190ab;font-size:12px;line-height:1.7}
+.community{grid-template-columns:repeat(3,minmax(0,1fr))}
+.community h3{font:700 17px Orbitron,sans-serif;margin:0 0 10px}.community p{color:#8b98b1;font-size:12px;line-height:1.7;margin:0 0 16px}
+.banner{padding:32px;border-radius:22px;border:1px solid rgba(72,231,255,.22);background:linear-gradient(110deg,rgba(72,231,255,.07),rgba(155,108,255,.1),rgba(255,91,216,.06));display:flex;align-items:center;justify-content:space-between;gap:25px}
+.banner h2{font:700 28px Orbitron,sans-serif;margin:0 0 8px}.banner p{color:#8c99b2;margin:0;font-size:13px;line-height:1.6}
+.listener-footer{border-top:1px solid var(--listener-line);padding:28px 0 45px;color:#6e7b95;font-size:10px;letter-spacing:.12em;text-align:center}
+.empty{grid-column:1/-1;text-align:center;color:#8190aa;padding:35px}
+@media(max-width:950px){.listener-links{display:none}.listener-hero{grid-template-columns:1fr}.hero-console{min-height:300px}.quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.live-panel{grid-template-columns:1fr}}
+@media(max-width:620px){.listener-shell{width:min(100% - 22px,1240px)}.listener-nav{min-height:64px}.listener-brand b{display:none}.listener-actions .lbtn:first-child{display:none}.listener-hero{padding:50px 0 35px}.listener-hero h1{font-size:43px}.grid,.community,.quick-grid{grid-template-columns:1fr}.section{padding-bottom:50px}.banner{display:block}.banner .lbtn{margin-top:18px;width:100%}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.panel,.lbtn{transition:none}}
+</style>
+</head>
+<body>
+<div class="listener-page">
+<header class="listener-top">
+  <div class="listener-shell listener-nav">
+    <a class="listener-brand" href="../home.html" aria-label="CrowRules Podcasting home">
+      <img id="brandLogo" src="" alt="CrowRules Podcasting">
+      <b>CROWRULES <span>/ PODCASTING</span></b>
+    </a>
+    <nav class="listener-links" aria-label="Listener navigation">
+      <a href="index.html">LISTEN</a>
+      <a href="dashboard.html">MY LISTENING</a>
+      <a href="rankings.html">RANKINGS</a>
+      <a href="profile.html">PROFILE</a>
+    </nav>
+    <div class="listener-actions">
+      <a class="lbtn" href="../launch.html">LAUNCH 2027</a>
+      <a class="lbtn primary" id="accountLink" href="../login.html">SIGN IN</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="listener-shell listener-hero">
+    <div>
+      <div class="kicker">CROWRULES PODCASTING • LISTENER EXPERIENCE</div>
+      <h1>YOUR<br><span class="gradient-text">LISTENING</span><br>UNIVERSE.</h1>
+      <p>Discover shows. Press play. Follow the voices you want to hear again. Join conversations, build your listening history and find what is moving across the CrowRules Podcasting network.</p>
+      <div class="hero-actions">
+        <a class="lbtn primary" href="#discover">EXPLORE PODCASTS →</a>
+        <a class="lbtn" href="dashboard.html">OPEN MY LISTENING</a>
+      </div>
+    </div>
+    <div class="hero-console" aria-label="Listener experience overview">
+      <div class="console-label">LISTENER CONTROL // ONLINE</div>
+      <div class="console-title">WHAT'S<br>PLAYING?</div>
+      <div class="signal"><span class="signal-dot"></span><div><strong>DISCOVER</strong><small>Find podcasts and new episodes.</small></div></div>
+      <div class="signal"><span class="signal-dot"></span><div><strong>CONNECT</strong><small>Follow creators and join conversations.</small></div></div>
+      <div class="signal"><span class="signal-dot"></span><div><strong>CONTINUE</strong><small>Pick up where your listening left off.</small></div></div>
+      <div class="signal"><span class="signal-dot"></span><div><strong>COMPETE</strong><small>See listener and community rankings.</small></div></div>
+    </div>
+  </section>
+
+  <section class="listener-shell section">
+    <div class="section-head">
+      <div><h2>LISTENER COMMAND</h2><p>Your shortcuts into the Podcasting universe.</p></div>
+    </div>
+    <div class="grid quick-grid">
+      <a class="panel quick" href="#discover"><div class="quick-icon">◈</div><h3>DISCOVER</h3><p>Browse the growing CrowRules podcast catalog and find your next show.</p></a>
+      <a class="panel quick" href="dashboard.html"><div class="quick-icon">▶</div><h3>MY LISTENING</h3><p>Continue listening, revisit your activity and build your personal queue.</p></a>
+      <a class="panel quick" href="rankings.html"><div class="quick-icon">↗</div><h3>RANKINGS</h3><p>See what shows, creators and listeners are gaining momentum.</p></a>
+      <a class="panel quick" href="profile.html"><div class="quick-icon">◎</div><h3>MY PROFILE</h3><p>Manage your listener identity and your place in the CrowRules community.</p></a>
+    </div>
+  </section>
+
+  <section class="listener-shell section" id="discover">
+    <div class="section-head">
+      <div><h2>DISCOVER THE NETWORK</h2><p>Featured podcasts from the CrowRules catalog.</p></div>
+      <a class="lbtn" href="rankings.html">VIEW RANKINGS →</a>
+    </div>
+    <div class="grid" id="shows">
+      <div class="panel empty">Scanning the podcast network…</div>
+    </div>
+  </section>
+
+  <section class="listener-shell section">
+    <div class="section-head">
+      <div><h2>LIVE RIGHT NOW</h2><p>Realtime broadcast activity from the Podcasting network.</p></div>
+    </div>
+    <div class="live-panel">
+      <div class="live-main" id="liveMain">
+        <div class="live-badge"><i></i> LIVE NETWORK</div>
+        <h3>Checking the transmission…</h3>
+        <p>Connecting to the CrowRules live feed.</p>
+      </div>
+      <div class="panel listener-note">
+        <div class="note-state"><strong>LISTENER MODE</strong><br><br>When a broadcast is live, this panel becomes your launch point into the current conversation.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="listener-shell section">
+    <div class="section-head">
+      <div><h2>BUILT FOR LISTENERS</h2><p>The experience grows around how you actually use podcasts.</p></div>
+    </div>
+    <div class="grid community">
+      <article class="panel"><h3>FOLLOW YOUR FAVORITES</h3><p>Keep the creators and shows you care about close. Following becomes the foundation for a more personal listening experience.</p><a class="lbtn" href="profile.html">OPEN PROFILE</a></article>
+      <article class="panel"><h3>JOIN THE CONVERSATION</h3><p>Episode comments and community activity turn listening from a one-way experience into something you can participate in.</p><a class="lbtn" href="#discover">FIND A SHOW</a></article>
+      <article class="panel"><h3>FIND WHAT'S NEXT</h3><p>Rankings, featured shows and future recommendations will help surface the podcasts worth your time.</p><a class="lbtn" href="rankings.html">SEE WHAT'S MOVING</a></article>
+    </div>
+  </section>
+
+  <section class="listener-shell section">
+    <div class="banner">
+      <div><h2>ONE ACCOUNT. ONE UNIVERSE.</h2><p>Your CrowRules identity connects the Listener Experience with the rest of CrowRules Podcasting.</p></div>
+      <div class="hero-actions">
+        <a class="lbtn primary" href="../signup.html">JOIN CROWRULES</a>
+        <a class="lbtn" href="../home.html">SWITCH EXPERIENCE</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="listener-shell section">
+    <div class="banner">
+      <div><h2>THE NEXT TRANSMISSION IS APPROACHING.</h2><p>CrowRules Podcasting is preparing for its January 1, 2027 launch. Visit the pre-launch hub for the latest build.</p></div>
+      <a class="lbtn primary" href="../pre-launch/index.html">OPEN PRE-LAUNCH →</a>
+    </div>
+  </section>
+</main>
+
+<footer class="listener-footer">
+  <div class="listener-shell">CROWRULES PODCASTING • LISTENER EXPERIENCE • ONE COMPANY. ONE UNIVERSE. • LAUNCHING JANUARY 1, 2027</div>
+</footer>
+</div>
+
+<script>
+(()=>{"use strict";
+const C=window.CROW_CONFIG||{};
+const S=window.supabase?.createClient&&C.supabaseUrl?window.supabase.createClient(C.supabaseUrl,C.supabaseKey||""):null;
+const $=s=>document.querySelector(s);
+const esc=x=>String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const logo=C.logoUrl||"../images/podcastinglogo.png";
+$("#brandLogo").src=logo;
+
+async function auth(){
+  if(!S)return;
+  const r=await S.auth.getSession();
+  if(r.data?.session){
+    const a=$("#accountLink");
+    a.textContent="MY ACCOUNT";
+    a.href="profile.html";
+  }
+}
+async function loadShows(){
+  const box=$("#shows");
+  if(!S){box.innerHTML='<div class="panel empty">Podcast catalog is ready for Supabase connection. Explore the listener tools above while the network is in pre-launch mode.</div>';return}
+  const r=await S.from("podcasts").select("id,title,description,category,artwork_url,total_plays,listener_count,updated_at").eq("status","published").order("is_featured",{ascending:false}).order("updated_at",{ascending:false}).limit(9);
+  if(r.error){box.innerHTML='<div class="panel empty">The catalog is temporarily unavailable. Please try again soon.</div>';return}
+  if(!r.data?.length){box.innerHTML='<div class="panel empty">No published podcasts yet. The listener network will populate here as creators launch their shows.</div>';return}
+  box.innerHTML=r.data.map(x=>'<a class="panel show-card" href="show.html?id='+encodeURIComponent(x.id)+'"><img class="show-art" src="'+esc(x.artwork_url||logo)+'" alt=""><h3>'+esc(x.title)+'</h3><p>'+esc(x.description||"Discover this CrowRules podcast.")+'</p><div class="show-meta">'+esc(x.category||"PODCAST")+' • '+Number(x.total_plays||0).toLocaleString()+' PLAYS</div></a>').join("");
+}
+async function loadLive(){
+  const box=$("#liveMain");
+  if(!S){box.querySelector("h3").textContent="PRE-LAUNCH MODE";box.querySelector("p").textContent="Live broadcasts will appear here when the network is active.";return}
+  const r=await S.from("cr_podcast_live").select("*").eq("is_live",true).order("started_at",{ascending:false}).limit(1);
+  if(r.error||!r.data?.length){box.querySelector("h3").textContent="NO LIVE BROADCAST";box.querySelector("p").textContent="Nothing is transmitting right now. Check back when the network goes live.";return}
+  const x=r.data[0];
+  box.querySelector("h3").textContent=x.title||x.show_name||"CrowRules Live";
+  box.querySelector("p").textContent=(x.show_name?x.show_name+" • ":"")+" "+Number(x.listener_count||0).toLocaleString()+" listeners currently connected.";
+  if(S)S.channel("listener-home-live").on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_live"},loadLive).subscribe();
+}
+auth();loadShows();loadLive();
+})();
+</script>
+</body>
+</html>
