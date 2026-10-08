@@ -1,1 +1,65 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Join • CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="config.js"></script><script defer src="js/podcasting.js"></script></head><body><div id="app"></div><script>window.CRPage="signup"</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Create Account • CrowRules Podcasting</title>
+<meta name="description" content="Create your CrowRules Podcasting account as a Listener or Creator.">
+<link rel="stylesheet" href="css/podcasting.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="config.js"></script>
+<style>
+body{margin:0;min-height:100vh;background:#050712;color:#fff;font-family:Montserrat,Arial,sans-serif}
+.wrap{min-height:100vh;display:grid;place-items:center;padding:30px 16px;background:radial-gradient(circle at 50% 0,rgba(0,229,255,.13),transparent 38%),radial-gradient(circle at 85% 80%,rgba(139,92,246,.14),transparent 36%)}
+.card{width:min(720px,100%);padding:34px;border:1px solid rgba(255,255,255,.13);border-radius:24px;background:rgba(8,11,25,.86);box-shadow:0 20px 80px rgba(0,0,0,.4)}
+.logo{display:block;width:150px;max-width:55%;margin:0 auto 18px;filter:drop-shadow(0 0 20px rgba(0,229,255,.25))}
+.eyebrow{text-align:center;color:#00e5ff;font:700 .72rem Orbitron,sans-serif;letter-spacing:.2em}.title{text-align:center;font:800 clamp(1.8rem,5vw,3rem) Orbitron,sans-serif;margin:10px 0}.sub{text-align:center;opacity:.68;line-height:1.6;max-width:580px;margin:0 auto 25px}
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}.role{padding:19px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.035);cursor:pointer}.role input{accent-color:#00e5ff}.role.active{border-color:#00e5ff;box-shadow:0 0 22px rgba(0,229,255,.08)}.role b{display:block;font-family:Orbitron,sans-serif;margin:7px 0}.role span{font-size:.82rem;line-height:1.5;opacity:.65}
+label.field{display:block;margin:13px 0}.field span{display:block;font-size:.75rem;font-weight:700;opacity:.75;margin-bottom:6px}.field input{width:100%;padding:13px 14px;border-radius:11px;border:1px solid rgba(255,255,255,.14);background:#0b1020;color:#fff;font:inherit;box-sizing:border-box}.submit{width:100%;padding:14px;border:0;border-radius:999px;background:#00e5ff;color:#041016;font-weight:900;cursor:pointer;margin-top:8px}.status{text-align:center;min-height:22px;margin:15px 0 0;font-size:.82rem;opacity:.8}.links{text-align:center;margin-top:20px;font-size:.84rem;opacity:.7}.links a{color:#00e5ff}.note{text-align:center;margin-top:22px;font-size:.7rem;opacity:.45;line-height:1.5}
+@media(max-width:600px){.card{padding:24px 18px}.roles{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="wrap"><section class="card">
+<a href="pre-launch/index.html"><img class="logo" src="images/podcastinglogo.png" alt="CrowRules Podcasting"></a>
+<div class="eyebrow">CROWRULES PODCASTING · LAUNCH 2027</div>
+<h1 class="title">JOIN THE UNIVERSE</h1>
+<p class="sub">Create one CrowRules account and choose how you want to participate. You can join as a <b>Listener</b> or start your journey as a <b>Creator / Podcaster</b>.</p>
+<form id="signupForm">
+<div class="roles">
+<label class="role active" id="listenerRole"><input type="radio" name="role" value="listener" checked> <b>🎧 LISTENER</b><span>Discover shows, follow podcasts, save episodes, build your queue, and join conversations.</span></label>
+<label class="role" id="creatorRole"><input type="radio" name="role" value="creator"> <b>🎙️ CREATOR / PODCASTER</b><span>Build a podcast, publish episodes, grow an audience, and use the future Creator Studio.</span></label>
+</div>
+<label class="field"><span>DISPLAY NAME</span><input id="name" required maxlength="80" autocomplete="name" placeholder="Your name or creator name"></label>
+<label class="field"><span>EMAIL</span><input id="email" type="email" required autocomplete="email" placeholder="you@example.com"></label>
+<label class="field"><span>PASSWORD</span><input id="password" type="password" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters"></label>
+<button class="submit" id="submit" type="submit">CREATE LISTENER ACCOUNT</button>
+<div class="status" id="status" role="status" aria-live="polite"></div>
+</form>
+<div class="links">Already have an account? <a id="loginLink" href="login.html">Log in</a> · <a href="home.html">Explore Podcasting</a></div>
+<div class="note">Your selected role starts your Podcasting experience. Creator access is a participation choice, not an automatic admin privilege.</div>
+</section></main>
+<script>
+(function(){
+const cfg=window.CROW_CONFIG||{},S=window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey?window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}):null;
+const form=document.getElementById("signupForm"),status=document.getElementById("status"),submit=document.getElementById("submit");
+const params=new URLSearchParams(location.search),redirect=params.get("redirect")||"home.html";
+const safeRedirect=redirect.startsWith("/")||(!redirect.includes("://")&&!redirect.startsWith("//"))?redirect:"home.html";
+document.getElementById("loginLink").href="login.html?redirect="+encodeURIComponent(safeRedirect);
+document.querySelectorAll('input[name="role"]').forEach(r=>r.addEventListener("change",()=>{document.querySelectorAll(".role").forEach(x=>x.classList.remove("active"));r.closest(".role").classList.add("active");submit.textContent=r.value==="creator"?"CREATE CREATOR ACCOUNT":"CREATE LISTENER ACCOUNT"}));
+form.addEventListener("submit",async e=>{
+ e.preventDefault(); if(!S){status.textContent="Account service is unavailable. Please try again.";return}
+ submit.disabled=true;status.textContent="Creating your CrowRules account…";
+ const role=new FormData(form).get("role"),name=document.getElementById("name").value.trim(),email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;
+ try{
+  const r=await S.auth.signUp({email,password,options:{data:{display_name:name,podcast_role:role}}});
+  if(r.error)throw r.error;
+  if(r.data?.session){location.href=safeRedirect;return}
+  status.textContent="Account created. Check your email to confirm your account, then sign in.";
+  form.reset();document.querySelector('input[value="listener"]').checked=true;submit.textContent="CREATE LISTENER ACCOUNT";
+ }catch(err){status.textContent=err.message||"Unable to create your account."}
+ finally{submit.disabled=false}
+});
+})();
+</script>
+</body></html>
