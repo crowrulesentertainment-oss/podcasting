@@ -54,7 +54,7 @@ window.CROW_PODCASTING_CONFIG = {
     document.documentElement.dataset.crowHolidayTheme = enabled ? safeTheme : "standard";
     document.documentElement.dataset.crowHolidayEnabled = enabled ? "true" : "false";
     window.CROW_HOLIDAY_THEME = { enabled, theme: enabled ? safeTheme : "standard" };
-    if (enabled && safeTheme === "halloween") { halloweenFX(); removeChristmasFX(); removeThanksgivingFX(); } else if (enabled && safeTheme === "christmas") { removeHalloweenFX(); removeThanksgivingFX(); christmasFX(); christmasCountdownFX(); } else if (enabled && safeTheme === "thanksgiving") { removeHalloweenFX(); removeChristmasFX(); document.getElementById("crow-christmas-countdown")?.remove(); thanksgivingFX(); } else { removeHalloweenFX(); removeChristmasFX(); removeThanksgivingFX(); document.getElementById("crow-christmas-countdown")?.remove(); document.getElementById("crow-santa-delivery")?.remove(); }
+    if (enabled && safeTheme === "halloween") { halloweenFX(); removeChristmasFX(); removeThanksgivingFX(); } else if (enabled && safeTheme === "christmas") { removeHalloweenFX(); removeThanksgivingFX(); christmasFX(); christmasCountdownFX(); } else if (enabled && safeTheme === "thanksgiving") { removeHalloweenFX(); removeChristmasFX(); removeNewyearFX(); document.getElementById("crow-christmas-countdown")?.remove(); thanksgivingFX(); } else if (enabled && safeTheme === "newyear") { removeHalloweenFX(); removeChristmasFX(); removeThanksgivingFX(); document.getElementById("crow-christmas-countdown")?.remove(); newyearFX(); } else { removeHalloweenFX(); removeChristmasFX(); removeThanksgivingFX(); removeNewyearFX(); document.getElementById("crow-christmas-countdown")?.remove(); document.getElementById("crow-santa-delivery")?.remove(); }
     window.dispatchEvent(new CustomEvent("crowrules:holiday-theme", { detail: window.CROW_HOLIDAY_THEME }));
   };
   window.CROW_APPLY_HOLIDAY_THEME = applyHolidayTheme;
@@ -96,6 +96,18 @@ window.CROW_PODCASTING_CONFIG = {
     for(let i=0;i<18;i++){const p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--y",Math.random()*85+"vh");p.style.setProperty("--delay",(-Math.random()*5)+"s");spark.appendChild(p);}
   };
   const removeThanksgivingFX = () => document.getElementById("crow-thanksgiving-fx")?.remove();
+
+  // New Year's Eve atmosphere: countdown, fireworks, confetti and midnight celebration.
+  const newyearFX = () => {
+    if(document.getElementById("crow-newyear-fx")) return;
+    const root=document.createElement("div"); root.id="crow-newyear-fx"; root.setAttribute("aria-hidden","true");
+    root.innerHTML='<div class="crow-newyear-sky"></div><div class="crow-newyear-moon"></div><div class="crow-newyear-stars"></div><div class="crow-newyear-fireworks"></div><div class="crow-newyear-confetti"></div><div class="crow-newyear-year">2027</div><div class="crow-newyear-message">✨ NEW YEAR • NEW CHAPTER ✨</div>';
+    document.body.appendChild(root);
+    const stars=root.querySelector(".crow-newyear-stars"); for(let i=0;i<55;i++){const p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--y",Math.random()*72+"vh");p.style.setProperty("--delay",(-Math.random()*6)+"s");stars.appendChild(p);}
+    const fireworks=root.querySelector(".crow-newyear-fireworks"); for(let i=0;i<9;i++){const p=document.createElement("i");p.style.setProperty("--x",(8+Math.random()*84)+"vw");p.style.setProperty("--y",(12+Math.random()*50)+"vh");p.style.setProperty("--delay",(Math.random()*6)+"s");p.style.setProperty("--h",(2+Math.random()*4)+"s");fireworks.appendChild(p);}
+    const confetti=root.querySelector(".crow-newyear-confetti"); for(let i=0;i<30;i++){const p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--d",(6+Math.random()*8)+"s");p.style.setProperty("--delay",(-Math.random()*10)+"s");p.style.setProperty("--drift",(-80+Math.random()*160)+"px");p.style.setProperty("--r",(360+Math.random()*720)+"deg");confetti.appendChild(p);}
+  };
+  const removeNewyearFX = () => document.getElementById("crow-newyear-fx")?.remove();
 
   // Christmas Eve countdown + Santa gift-delivery sequence.
   const christmasCountdownFX = () => {
