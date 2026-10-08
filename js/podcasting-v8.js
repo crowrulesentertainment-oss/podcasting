@@ -24,7 +24,7 @@ function setupGlobalPlayer(){
  window.CrowPlayer={play,addToQueue,playNext,next:nextFromQueue,element:audio,getState:()=>({...state})};
 }
 function setupGlobalNav(){
- if(!document.body||document.getElementById("cr8-nav"))return;
+ if(!document.body||document.getElementById("cr8-nav")||document.querySelector(".topbar"))return;
  const nav=document.createElement("header");nav.id="cr8-nav";nav.className="cr8-nav";
  nav.innerHTML='<a class="cr8-brand" href="home.html" aria-label="CrowRules Podcasting home"><img src="'+PODCASTING_LOGO+'" alt="CrowRules Podcasting"><span><b>CROWRULES</b><small>PODCASTING</small></span></a><button class="cr8-nav-toggle" type="button" aria-expanded="false" aria-controls="cr8-nav-links">MENU</button><nav id="cr8-nav-links" class="cr8-nav-links" aria-label="Podcasting navigation"><a href="home.html">HOME</a><a href="discover.html">DISCOVER</a><a href="library.html">LIBRARY</a><a href="create-podcast.html">CREATE</a><a href="creator.html">CREATOR STUDIO</a><a href="account.html">ACCOUNT</a><a class="cr8-nav-join" href="signup.html">JOIN</a></nav>';
  document.body.prepend(nav);
