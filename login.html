@@ -19,10 +19,64 @@ body{margin:0;min-height:100vh;background:#050712;color:#fff;font-family:Montser
 </section></main>
 <script>
 (async function(){
-const cfg=window.CROW_CONFIG||{},S=window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey?window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}):null;
-const p=new URLSearchParams(location.search),redirect=p.get("redirect")||"home.html",safe=redirect.startsWith("/")||(!redirect.includes("://")&&!redirect.startsWith("//"))?redirect:"home.html",form=document.getElementById("loginForm"),status=document.getElementById("status"),submit=document.getElementById("submit");\nconst oauthParams=new URLSearchParams(location.search);
-let selectedRole=localStorage.getItem("crowrules_podcasting_login_role")||"listener";document.querySelectorAll("[data-role]").forEach(b=>b.addEventListener("click",()=>{selectedRole=b.dataset.role;localStorage.setItem("crowrules_podcasting_login_role",selectedRole);document.querySelectorAll("[data-role]").forEach(x=>x.classList.toggle("active",x===b));})); if(S){const u=await S.auth.getUser();if(u.data?.user){if(oauthParams.get("oauth")==="1"){const oauthRole=oauthParams.get("role");if(["listener","creator"].includes(oauthRole)){const {error}=await S.auth.updateUser({data:{app:"podcasting",signup_role:oauthRole,podcast_role:oauthRole}});if(error){status.textContent=error.message||"Unable to finish your Podcasting profile.";return}}localStorage.removeItem("crowrules_podcasting_login_role");location.href=safe;return}status.textContent="You’re already signed in.";}}
-document.querySelectorAll("[data-provider]").forEach(btn=>btn.addEventListener("click",async()=>{if(!S){status.textContent="Account service is unavailable.";return}localStorage.setItem("crowrules_podcasting_login_role",selectedRole);btn.disabled=true;status.textContent="Connecting to "+btn.textContent+"…";const oauthReturn=new URL(location.href);oauthReturn.searchParams.set("oauth","1");oauthReturn.searchParams.set("role",selectedRole);const {error}=await S.auth.signInWithOAuth({provider:btn.dataset.provider,options:{redirectTo:oauthReturn.toString()}});if(error){status.textContent=error.message||"Unable to start social sign-in.";btn.disabled=false;}}));
-form.addEventListener("submit",async e=>{e.preventDefault();if(!S){status.textContent="Account service is unavailable.";return}submit.disabled=true;status.textContent="Signing in…";try{const r=await S.auth.signInWithPassword({email:document.getElementById("email").value.trim(),password:document.getElementById("password").value});if(r.error)throw r.error;location.href=safe}catch(err){status.textContent=err.message||"Unable to sign in."}finally{submit.disabled=false}});
+const cfg=window.CROW_CONFIG||{};
+const S=window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey
+ ? window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}):null;
+const p=new URLSearchParams(location.search);
+const redirect=p.get("redirect")||"home.html";
+const safe=/^(?:[a-zA-Z0-9_./-]+)(?:\?[\s\S]*)?$/.test(redirect)&&!redirect.startsWith("/")&&!redirect.startsWith("//")?redirect:"home.html";
+const form=document.getElementById("loginForm"),status=document.getElementById("status"),submit=document.getElementById("submit");
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const withTimeout=async(promise,ms,msg)=>Promise.race([promise,new Promise((_,rej)=>setTimeout(()=>rej(new Error(msg)),ms))]);
+let selectedRole=localStorage.getItem("crowrules_podcasting_login_role")||"listener";
+const setStatus=x=>status.textContent=x;
+document.querySelectorAll("[data-role]").forEach(b=>b.addEventListener("click",()=>{
+ selectedRole=b.dataset.role; localStorage.setItem("crowrules_podcasting_login_role",selectedRole);
+ document.querySelectorAll("[data-role]").forEach(x=>x.classList.toggle("active",x===b));
+}));
+async function finish(user){
+ const oauthRole=p.get("oauth")==="1"?p.get("role"):null;
+ const role=[oauthRole,selectedRole].find(x=>["listener","creator"].includes(x))||"listener";
+ if(user){
+  const current=user.user_metadata||{};
+  if(current.app!=="podcasting"||current.signup_role!==role||current.podcast_role!==role){
+   const {error}=await withTimeout(S.auth.updateUser({data:{...current,app:"podcasting",signup_role:role,podcast_role:role}}),8000,"Account profile sync timed out.");
+   if(error) throw error;
+   await wait(300);
+  }
+ }
+ localStorage.removeItem("crowrules_podcasting_login_role");
+ location.replace(safe);
+}
+if(!S){setStatus("Account service is unavailable. Please refresh and try again.");return;}
+try{
+ const u=await withTimeout(S.auth.getUser(),8000,"Supabase Auth verification timed out.");
+ if(u.error) throw u.error;
+ if(u.data?.user){
+  if(p.get("oauth")==="1") await finish(u.data.user);
+  else setStatus("You’re already signed in.");
+ }
+}catch(err){
+ if(p.get("oauth")==="1") setStatus("Sign-in callback could not be completed: "+(err.message||"please try again."));
+}
+document.querySelectorAll("[data-provider]").forEach(btn=>btn.addEventListener("click",async()=>{
+ if(btn.disabled)return;
+ localStorage.setItem("crowrules_podcasting_login_role",selectedRole);btn.disabled=true;setStatus("Connecting to "+btn.textContent+"…");
+ const oauthReturn=new URL(location.href);
+ oauthReturn.searchParams.set("oauth","1");oauthReturn.searchParams.set("role",selectedRole);
+ try{
+  const {error}=await withTimeout(S.auth.signInWithOAuth({provider:btn.dataset.provider,options:{redirectTo:oauthReturn.toString(),queryParams:btn.dataset.provider==="google"?{access_type:"offline",prompt:"select_account"}:undefined}}),10000,"OAuth provider did not respond.");
+  if(error)throw error;
+ }catch(err){setStatus(err.message||"Unable to start social sign-in.");btn.disabled=false;}
+}));
+form.addEventListener("submit",async e=>{
+ e.preventDefault();if(submit.disabled)return;submit.disabled=true;setStatus("Signing in…");
+ try{
+  const {data,error}=await withTimeout(S.auth.signInWithPassword({email:document.getElementById("email").value.trim(),password:document.getElementById("password").value}),10000,"Sign-in timed out. Please try again.");
+  if(error)throw error;
+  await finish(data.user);
+ }catch(err){setStatus(err.message||"Unable to sign in.");submit.disabled=false;}
+});
 })();
+</script>
 </script></body></html>
