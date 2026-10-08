@@ -14,7 +14,7 @@
 <div id="app"><div class="gate"><div class="panel"><div class="spinner"></div><p style="color:var(--muted)">Authenticating operations access…</p></div></div></div><div id="toast" class="toast"></div>
 <script>
 (()=>{"use strict";
-const C=window.CROW_CONFIG||{},S=window.supabase?.createClient?window.supabase.createClient(C.supabaseUrl||"",C.supabaseKey||""):null;
+const C=window.CROW_CONFIG||{},S=window.supabase?.createClient?window.supabase.createClient(C.supabaseUrl||"",C.supabaseKey||"",{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}):null;
 const $=s=>document.querySelector(s),esc=x=>String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])),fmt=n=>Number(n||0).toLocaleString(),ago=x=>x?new Date(x).toLocaleString():"—";
 let user=null,state={workspace:null,reports:[],comments:[],live:[],launch:0,events:[],audit:[]};const roles=["admin","super_admin","owner","administrator"];
 function toast(x){const e=$("#toast");e.textContent=x;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),3200)}
@@ -80,10 +80,37 @@ function bind(){
 }
 async function realtime(){const c=S.channel("crowrules-ops-center");c.on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_live"},()=>load().catch(()=>{}));c.on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},()=>load().catch(()=>{}));c.on("postgres_changes",{event:"*",schema:"public",table:"podcast_member_reports"},()=>load().catch(()=>{}));c.subscribe()}
 async function boot(){
- if(!S)return;const {data,error}=await S.auth.getUser();if(error||!data.user){$("#app").innerHTML='<div class="gate"><div class="panel"><div class="eyebrow">CROWRULES PODCASTING</div><h1>ADMIN SIGN-IN REQUIRED</h1><p style="color:var(--muted)">Sign in with an account that has a trusted administrator role.</p><a class="btn primary" href="login.html">SIGN IN</a></div></div>';return}
- user=data.user;if(!isAdmin(user)){$("#app").innerHTML='<div class="gate"><div class="panel"><div class="eyebrow">ACCESS CONTROL</div><h1>ACCESS DENIED</h1><p style="color:var(--muted);line-height:1.7">This account is authenticated but is not marked as an administrator. Administrator status must come from trusted app metadata/server configuration.</p><a class="btn" href="home.html">RETURN HOME</a></div></div>';return}
- try{await load();await realtime()}catch(e){$("#app").innerHTML='<div class="gate"><div class="panel"><h1>OPERATIONS LOAD FAILED</h1><p style="color:var(--muted)">'+esc(e.message)+'</p><button class="btn primary" onclick="location.reload()">RETRY</button></div></div>'}
- S.auth.onAuthStateChange(event=>{if(event==="SIGNED_OUT")location.href="home.html"});
+ if(!S){
+  $("#app").innerHTML='<div class="gate"><div class="panel"><h1>AUTH CONFIGURATION ERROR</h1><p style="color:var(--muted)">Supabase configuration is missing from this Operations Center.</p><a class="btn" href="home.html">RETURN HOME</a></div></div>';
+  return;
+ }
+ try{
+  const sessionResult=await Promise.race([
+   S.auth.getSession(),
+   new Promise((_,reject)=>setTimeout(()=>reject(new Error("Authentication service timed out. Please refresh and try again.")),10000))
+  ]);
+  if(sessionResult.error)throw sessionResult.error;
+  if(!sessionResult.data?.session){
+   $("#app").innerHTML='<div class="gate"><div class="panel"><div class="eyebrow">CROWRULES PODCASTING</div><h1>ADMIN SIGN-IN REQUIRED</h1><p style="color:var(--muted)">Sign in with an account that has a trusted administrator role.</p><a class="btn primary" href="login.html">SIGN IN</a></div></div>';
+   return;
+  }
+  const userResult=await Promise.race([
+   S.auth.getUser(),
+   new Promise((_,reject)=>setTimeout(()=>reject(new Error("Could not verify the signed-in operator with Supabase Auth.")),10000))
+  ]);
+  if(userResult.error||!userResult.data?.user)throw userResult.error||new Error("No authenticated operator found.");
+  user=userResult.data.user;
+  if(!isAdmin(user)){
+   $("#app").innerHTML='<div class="gate"><div class="panel"><div class="eyebrow">ACCESS CONTROL</div><h1>ACCESS DENIED</h1><p style="color:var(--muted);line-height:1.7">This account is authenticated but is not marked as an administrator. Administrator status must come from trusted app metadata/server configuration.</p><a class="btn" href="home.html">RETURN HOME</a></div></div>';
+   return;
+  }
+  try{await load();await realtime()}catch(e){
+   $("#app").innerHTML='<div class="gate"><div class="panel"><h1>OPERATIONS LOAD FAILED</h1><p style="color:var(--muted)">'+esc(e.message)+'</p><button class="btn primary" onclick="location.reload()">RETRY</button></div></div>';
+  }
+  S.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT")location.href="home.html"});
+ }catch(e){
+  $("#app").innerHTML='<div class="gate"><div class="panel"><div class="eyebrow">CROWRULES PODCASTING</div><h1>AUTHENTICATION FAILED</h1><p style="color:var(--muted);line-height:1.7">'+esc(e.message||"Unable to verify the current session.")+'</p><div class="toolbar" style="justify-content:center"><a class="btn primary" href="login.html">SIGN IN AGAIN</a><button class="btn" onclick="location.reload()">RETRY</button></div></div></div>';
+ }
 }
 boot();
 </script></body></html>
