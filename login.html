@@ -1,1 +1,27 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign In • CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="config.js"></script><script defer src="js/podcasting.js"></script></head><body><div id="app"></div><script>window.CRPage="login"</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign In • CrowRules Podcasting</title>
+<meta name="description" content="Sign in to your CrowRules Podcasting account.">
+<link rel="stylesheet" href="css/podcasting.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="config.js"></script>
+<style>
+body{margin:0;min-height:100vh;background:#050712;color:#fff;font-family:Montserrat,Arial,sans-serif}.wrap{min-height:100vh;display:grid;place-items:center;padding:30px 16px;background:radial-gradient(circle at 50% 0,rgba(0,229,255,.13),transparent 38%)}.card{width:min(500px,100%);padding:34px;border:1px solid rgba(255,255,255,.13);border-radius:24px;background:rgba(8,11,25,.88);box-shadow:0 20px 80px rgba(0,0,0,.4)}.logo{display:block;width:150px;max-width:55%;margin:0 auto 18px}.eyebrow{text-align:center;color:#00e5ff;font:700 .72rem Orbitron,sans-serif;letter-spacing:.2em}.title{text-align:center;font:800 2.2rem Orbitron,sans-serif;margin:10px 0}.sub{text-align:center;opacity:.65;line-height:1.5;margin-bottom:24px}label{display:block;font-size:.75rem;font-weight:700;opacity:.75;margin:13px 0 6px}input{width:100%;padding:13px 14px;box-sizing:border-box;border-radius:11px;border:1px solid rgba(255,255,255,.14);background:#0b1020;color:#fff;font:inherit}.submit{width:100%;padding:14px;border:0;border-radius:999px;background:#00e5ff;color:#041016;font-weight:900;cursor:pointer;margin-top:17px}.status{text-align:center;min-height:22px;margin-top:15px;font-size:.82rem;opacity:.8}.links{text-align:center;margin-top:20px;font-size:.84rem;opacity:.7}.links a{color:#00e5ff}
+</style></head>
+<body><main class="wrap"><section class="card">
+<a href="pre-launch/index.html"><img class="logo" src="images/podcastinglogo.png" alt="CrowRules Podcasting"></a>
+<div class="eyebrow">CROWRULES PODCASTING</div><h1 class="title">WELCOME BACK</h1><p class="sub">Sign in to continue as a Listener or Creator.</p>
+<form id="loginForm"><label for="email">EMAIL</label><input id="email" type="email" required autocomplete="email" placeholder="you@example.com"><label for="password">PASSWORD</label><input id="password" type="password" required autocomplete="current-password" placeholder="Your password"><button class="submit" id="submit" type="submit">SIGN IN</button><div class="status" id="status" role="status" aria-live="polite"></div></form>
+<div class="links"><a href="signup.html">Create an account</a> · <a href="pre-launch/index.html">Back to Pre-Launch</a></div>
+</section></main>
+<script>
+(async function(){
+const cfg=window.CROW_CONFIG||{},S=window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey?window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}):null;
+const p=new URLSearchParams(location.search),redirect=p.get("redirect")||"home.html",safe=redirect.startsWith("/")||(!redirect.includes("://")&&!redirect.startsWith("//"))?redirect:"home.html",form=document.getElementById("loginForm"),status=document.getElementById("status"),submit=document.getElementById("submit");
+if(S){const u=await S.auth.getUser();if(u.data?.user)status.textContent="You're already signed in."; }
+form.addEventListener("submit",async e=>{e.preventDefault();if(!S){status.textContent="Account service is unavailable.";return}submit.disabled=true;status.textContent="Signing in…";try{const r=await S.auth.signInWithPassword({email:document.getElementById("email").value.trim(),password:document.getElementById("password").value});if(r.error)throw r.error;location.href=safe}catch(err){status.textContent=err.message||"Unable to sign in."}finally{submit.disabled=false}});
+})();
+</script></body></html>
