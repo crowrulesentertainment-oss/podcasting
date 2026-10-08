@@ -43,6 +43,33 @@ window.CROW_PODCASTING_CONFIG = {
   const sb = window.CROW_PODCASTING;
   window.CROW_SUPABASE_READY = Promise.resolve(sb);
 
+  // Sitewide holiday theme: one setting controls every Podcasting page.
+  const applyHolidayTheme = (row) => {
+    const enabled = !!row?.holiday_enabled;
+    const theme = String(row?.holiday_theme || "standard").toLowerCase().replace(/[^a-z0-9_-]/g, "");
+    const allowed = new Set(["standard","halloween","christmas","thanksgiving","newyear","valentines","spring"]);
+    const safeTheme = allowed.has(theme) ? theme : "standard";
+    document.documentElement.classList.remove(...Array.from(allowed).filter(x => x !== "standard").map(x => "theme-" + x));
+    if (enabled && safeTheme !== "standard") document.documentElement.classList.add("theme-" + safeTheme);
+    document.documentElement.dataset.crowHolidayTheme = enabled ? safeTheme : "standard";
+    document.documentElement.dataset.crowHolidayEnabled = enabled ? "true" : "false";
+    window.CROW_HOLIDAY_THEME = { enabled, theme: enabled ? safeTheme : "standard" };
+    window.dispatchEvent(new CustomEvent("crowrules:holiday-theme", { detail: window.CROW_HOLIDAY_THEME }));
+  };
+  window.CROW_APPLY_HOLIDAY_THEME = applyHolidayTheme;
+  const loadHolidayTheme = async () => {
+    try {
+      const { data, error } = await sb.from("crp_site_settings").select("holiday_theme,holiday_enabled,updated_at").eq("site_key", "podcasting").maybeSingle();
+      if (!error) applyHolidayTheme(data || null);
+    } catch (error) { console.warn("CrowRules Podcasting: holiday theme bootstrap failed.", error); }
+  };
+  loadHolidayTheme();
+  try {
+    sb.channel("crowrules-sitewide-theme")
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "crp_site_settings", filter: "site_key=eq.podcasting" }, payload => applyHolidayTheme(payload.new))
+      .subscribe();
+  } catch (error) { console.warn("CrowRules Podcasting: holiday theme realtime unavailable.", error); }
+
   if (!window.CROW_AUTH_STATE) {
     window.CROW_AUTH_STATE = { session: null, user: null, event: "INITIALIZED" };
   }
