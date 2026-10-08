@@ -4,15 +4,19 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CrowRules Podcasting — Creator Studio</title>
 <link rel="stylesheet" href="css/podcasting.css">
+<style>
+#cr-app{position:relative;z-index:100}.studio-page{padding-top:12px}.studio-page.has-global-shell{padding-top:0}.studio-tabs{position:sticky;top:70px;z-index:30}.creator-content{position:relative;z-index:1}.prelaunch-banner{margin-top:18px}
+</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js" defer></script>
 <script>
 (()=>{try{const c=window.CROW_PODCASTING_CONFIG||{supabaseUrl:"https://cevylpnoexugwgygvtgu.supabase.co",supabasePublishableKey:"sb_publishable_AdfM5y6RqFv3tbvEVzDZSg_JuGTQLD-"};if(window.supabase&&!window.CROW_PODCASTING)window.CROW_PODCASTING=window.supabase.createClient(c.supabaseUrl,c.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})}catch(e){console.warn("[CrowRules Creator Prelaunch]",e)}})();
 </script>
 <script src="js/creator-studio.js" defer></script><script src="js/media-pipeline.js" defer></script>
+<script src="js/podcasting.js" defer></script>
 </head>
 <body>
-<main class="page studio-page">
+<div id="cr-app"></div><main class="page studio-page">
 <header class="prelaunch-banner">
 <div><span class="eyebrow">CROWRULES PODCASTING • PRE-LAUNCH CREATOR ACCESS</span><h2>Build before launch.</h2><p>Set up your show, artwork, episodes, memberships and creator profile now. Publishing goes live with CrowRules Podcasting on January 1, 2027.</p></div>
 <div class="prelaunch-actions"><a class="btn" href="prelaunch.html?mode=login&next=creator.html">ACCOUNT</a><button class="btn" id="creatorSignOut" type="button">SIGN OUT</button></div>
@@ -102,6 +106,7 @@
 </div><div class="form-actions"><button class="btn primary" id="createPlan">CREATE MEMBERSHIP TIER</button></div></div>
 </section>
 </main>
+<div id="cr-player"></div>
 
 <style>
 .studio-tab[hidden]{display:none!important}.studio-tab-btn{pointer-events:auto!important;position:relative;z-index:5}
