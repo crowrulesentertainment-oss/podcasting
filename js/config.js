@@ -54,7 +54,7 @@ window.CROW_PODCASTING_CONFIG = {
     document.documentElement.dataset.crowHolidayTheme = enabled ? safeTheme : "standard";
     document.documentElement.dataset.crowHolidayEnabled = enabled ? "true" : "false";
     window.CROW_HOLIDAY_THEME = { enabled, theme: enabled ? safeTheme : "standard" };
-    if (enabled && safeTheme === "halloween") { halloweenFX(); removeChristmasFX(); } else if (enabled && safeTheme === "christmas") { removeHalloweenFX(); christmasFX(); christmasCountdownFX(); } else { removeHalloweenFX(); removeChristmasFX(); document.getElementById("crow-christmas-countdown")?.remove(); document.getElementById("crow-santa-delivery")?.remove(); }
+    if (enabled && safeTheme === "halloween") { halloweenFX(); removeChristmasFX(); removeThanksgivingFX(); } else if (enabled && safeTheme === "christmas") { removeHalloweenFX(); removeThanksgivingFX(); christmasFX(); christmasCountdownFX(); } else if (enabled && safeTheme === "thanksgiving") { removeHalloweenFX(); removeChristmasFX(); document.getElementById("crow-christmas-countdown")?.remove(); thanksgivingFX(); } else { removeHalloweenFX(); removeChristmasFX(); removeThanksgivingFX(); document.getElementById("crow-christmas-countdown")?.remove(); document.getElementById("crow-santa-delivery")?.remove(); }
     window.dispatchEvent(new CustomEvent("crowrules:holiday-theme", { detail: window.CROW_HOLIDAY_THEME }));
   };
   window.CROW_APPLY_HOLIDAY_THEME = applyHolidayTheme;
@@ -82,6 +82,20 @@ window.CROW_PODCASTING_CONFIG = {
     for(let i=0;i<22;i++){const p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--y",Math.random()*90+"vh");p.style.setProperty("--delay",(-Math.random()*5)+"s");spark.appendChild(p);}
   };
   const removeChristmasFX = () => document.getElementById("crow-christmas-fx")?.remove();
+
+  // Thanksgiving atmosphere: autumn leaves, warm lanterns and harvest ambience.
+  const thanksgivingFX = () => {
+    if (document.getElementById("crow-thanksgiving-fx")) return;
+    const root=document.createElement("div"); root.id="crow-thanksgiving-fx"; root.setAttribute("aria-hidden","true");
+    root.innerHTML='<div class="crow-thanksgiving-sky"></div><div class="crow-thanksgiving-moon"></div><div class="crow-thanksgiving-lanterns"><span>🏮</span><span>🏮</span><span>🏮</span></div><div class="crow-thanksgiving-leaves"></div><div class="crow-thanksgiving-pumpkins"><span>🎃</span><span>🎃</span><span>🎃</span></div><div class="crow-thanksgiving-harvest"><span>🌾</span><span>🌾</span><span>🌾</span></div><div class="crow-thanksgiving-sparkles"></div>';
+    document.body.appendChild(root);
+    const leaves=root.querySelector(".crow-thanksgiving-leaves");
+    const symbols=["🍂","🍁","🍃","🍂","🍁"];
+    for(let i=0;i<38;i++){const p=document.createElement("i");p.textContent=symbols[i%symbols.length];p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--s",(10+Math.random()*13)+"px");p.style.setProperty("--d",(8+Math.random()*13)+"s");p.style.setProperty("--delay",(-Math.random()*20)+"s");p.style.setProperty("--drift",(-80+Math.random()*160)+"px");p.style.setProperty("--spin",(360+Math.random()*540)+"deg");leaves.appendChild(p);}
+    const spark=root.querySelector(".crow-thanksgiving-sparkles");
+    for(let i=0;i<18;i++){const p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--y",Math.random()*85+"vh");p.style.setProperty("--delay",(-Math.random()*5)+"s");spark.appendChild(p);}
+  };
+  const removeThanksgivingFX = () => document.getElementById("crow-thanksgiving-fx")?.remove();
 
   // Christmas Eve countdown + Santa gift-delivery sequence.
   const christmasCountdownFX = () => {
