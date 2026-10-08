@@ -19,6 +19,7 @@ h1{font:800 clamp(28px,6vw,48px) Orbitron;line-height:1.08;margin:0 0 14px;backg
 .form{display:grid;gap:13px}label{font-size:12px;font-weight:700;color:#cbd2e8;letter-spacing:.04em}input{width:100%;margin-top:7px;padding:14px 15px;border-radius:12px;border:1px solid rgba(150,165,210,.22);background:#090c16;color:#fff;outline:none;font:500 14px Montserrat}input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(85,231,255,.08)}button{border:0;border-radius:12px;padding:14px 16px;background:linear-gradient(100deg,var(--cyan),var(--purple));color:#05060b;font:800 13px Orbitron;cursor:pointer;margin-top:5px}button:disabled{opacity:.55;cursor:wait}.links{display:flex;justify-content:center;gap:18px;margin-top:18px;flex-wrap:wrap}a{color:var(--cyan);text-decoration:none;font-size:12px;font-weight:700}.msg{min-height:22px;margin-top:15px;text-align:center;font-size:12px;color:var(--muted)}.msg.error{color:var(--danger)}.note{margin-top:25px;padding-top:20px;border-top:1px solid rgba(150,165,210,.14);font-size:11px;color:#7f89a6;line-height:1.6}.hidden{display:none!important}
 @media(max-width:560px){.card{padding:25px 20px;border-radius:20px}.wrap{padding:20px 0}.brand{margin-bottom:16px}}
 </style>
+  <link rel="stylesheet" href="css/podcasting.css">
 </head>
 <body>
 <main class="wrap">
@@ -50,5 +51,6 @@ function safeNext(){const n=new URLSearchParams(location.search).get("next");ret
 (async()=>{const {data}=await sb.auth.getSession();if(data.session){location.replace(safeNext())}})();
 form.addEventListener("submit",async e=>{e.preventDefault();btn.disabled=true;say("Signing in…");try{const {error}=await sb.auth.signInWithPassword({email:email.value.trim(),password:password.value});if(error)throw error;say("Signed in. Opening Creator Studio…");location.replace(safeNext())}catch(e){say(e.message||"Unable to sign in.",true)}finally{btn.disabled=false}});
 </script>
+  <script src="js/podcasting.js"></script>
 </body>
 </html>
