@@ -35,16 +35,10 @@ document.querySelectorAll("[data-role]").forEach(b=>b.addEventListener("click",(
  document.querySelectorAll("[data-role]").forEach(x=>x.classList.toggle("active",x===b));
 }));
 async function finish(user){
- const oauthRole=p.get("oauth")==="1"?p.get("role"):null;
- const role=[oauthRole,selectedRole].find(x=>["listener","creator"].includes(x))||"listener";
- if(user){
-  const current=user.user_metadata||{};
-  if(current.app!=="podcasting"||current.signup_role!==role||current.podcast_role!==role){
-   const {error}=await withTimeout(S.auth.updateUser({data:{...current,app:"podcasting",signup_role:role,podcast_role:role}}),8000,"Account profile sync timed out.");
-   if(error) throw error;
-   await wait(300);
-  }
- }
+ // Login must not rewrite user_metadata. Authorization belongs to trusted
+ // server-side membership data, and metadata updates can fire database
+ // synchronization triggers. Signup handles first-time role provisioning.
+ if(!user) throw new Error("No authenticated user was returned.");
  localStorage.removeItem("crowrules_podcasting_login_role");
  location.replace(safe);
 }
