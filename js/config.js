@@ -54,7 +54,7 @@ window.CROW_PODCASTING_CONFIG = {
     document.documentElement.dataset.crowHolidayTheme = enabled ? safeTheme : "standard";
     document.documentElement.dataset.crowHolidayEnabled = enabled ? "true" : "false";
     window.CROW_HOLIDAY_THEME = { enabled, theme: enabled ? safeTheme : "standard" };
-    if (enabled && safeTheme === "halloween") { halloweenFX(); removeChristmasFX(); removeThanksgivingFX(); } else if (enabled && safeTheme === "christmas") { removeHalloweenFX(); removeThanksgivingFX(); christmasFX(); christmasCountdownFX(); } else if (enabled && safeTheme === "thanksgiving") { removeHalloweenFX(); removeChristmasFX(); removeNewyearFX(); document.getElementById("crow-christmas-countdown")?.remove(); thanksgivingFX(); } else if (enabled && safeTheme === "newyear") { removeHalloweenFX(); removeChristmasFX(); removeThanksgivingFX(); removeValentinesFX(); document.getElementById("crow-christmas-countdown")?.remove(); newyearFX(); } else if (enabled && safeTheme === "valentines") { removeHalloweenFX(); removeChristmasFX(); removeThanksgivingFX(); removeNewyearFX(); document.getElementById("crow-christmas-countdown")?.remove(); valentinesFX(); } else { removeHalloweenFX(); removeChristmasFX(); removeThanksgivingFX(); removeNewyearFX(); removeValentinesFX(); document.getElementById("crow-christmas-countdown")?.remove(); document.getElementById("crow-santa-delivery")?.remove(); }
+    if (enabled && safeTheme === "halloween") { halloweenFX(); removeChristmasFX(); removeThanksgivingFX(); } else if (enabled && safeTheme === "christmas") { removeHalloweenFX(); removeThanksgivingFX(); christmasFX(); christmasCountdownFX(); } else if (enabled && safeTheme === "thanksgiving") { removeHalloweenFX(); removeChristmasFX(); removeNewyearFX(); document.getElementById("crow-christmas-countdown")?.remove(); thanksgivingFX(); } else if (enabled && safeTheme === "newyear") { removeHalloweenFX(); removeChristmasFX(); removeThanksgivingFX(); removeValentinesFX(); document.getElementById("crow-christmas-countdown")?.remove(); newyearFX(); } else if (enabled && safeTheme === "valentines") { removeHalloweenFX(); removeChristmasFX(); removeThanksgivingFX(); removeNewyearFX(); removeSpringFX(); document.getElementById("crow-christmas-countdown")?.remove(); valentinesFX(); } else if (enabled && safeTheme === "spring") { removeHalloweenFX(); removeChristmasFX(); removeThanksgivingFX(); removeNewyearFX(); removeValentinesFX(); document.getElementById("crow-christmas-countdown")?.remove(); springFX(); } else { removeHalloweenFX(); removeChristmasFX(); removeThanksgivingFX(); removeNewyearFX(); removeValentinesFX(); removeSpringFX(); document.getElementById("crow-christmas-countdown")?.remove(); document.getElementById("crow-santa-delivery")?.remove(); }
     window.dispatchEvent(new CustomEvent("crowrules:holiday-theme", { detail: window.CROW_HOLIDAY_THEME }));
   };
   window.CROW_APPLY_HOLIDAY_THEME = applyHolidayTheme;
@@ -96,6 +96,18 @@ window.CROW_PODCASTING_CONFIG = {
     for(let i=0;i<18;i++){const p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--y",Math.random()*85+"vh");p.style.setProperty("--delay",(-Math.random()*5)+"s");spark.appendChild(p);}
   };
   const removeThanksgivingFX = () => document.getElementById("crow-thanksgiving-fx")?.remove();
+
+  // Spring atmosphere: drifting blossoms, butterflies, fireflies and fresh dawn ambience.
+  const springFX = () => {
+    if(document.getElementById("crow-spring-fx")) return;
+    const root=document.createElement("div"); root.id="crow-spring-fx"; root.setAttribute("aria-hidden","true");
+    root.innerHTML='<div class="crow-spring-sky"></div><div class="crow-spring-sun"></div><div class="crow-spring-clouds"><span></span><span></span><span></span></div><div class="crow-spring-blossoms"></div><div class="crow-spring-butterflies"><span>🦋</span><span>🦋</span><span>🦋</span><span>🦋</span></div><div class="crow-spring-fireflies"></div><div class="crow-spring-grass"><span>🌱</span><span>🌱</span><span>🌱</span></div><div class="crow-spring-message">NEW SEASON • NEW POSSIBILITIES</div>';
+    document.body.appendChild(root);
+    const blossoms=root.querySelector(".crow-spring-blossoms"), fire=root.querySelector(".crow-spring-fireflies");
+    for(let i=0;i<34;i++){const p=document.createElement("i");p.textContent=i%2?"✿":"❀";p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--s",(9+Math.random()*14)+"px");p.style.setProperty("--d",(9+Math.random()*14)+"s");p.style.setProperty("--delay",(-Math.random()*20)+"s");p.style.setProperty("--drift",(-75+Math.random()*150)+"px");p.style.setProperty("--spin",(180+Math.random()*540)+"deg");blossoms.appendChild(p);}
+    for(let i=0;i<24;i++){const p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--y",(35+Math.random()*55)+"vh");p.style.setProperty("--delay",(-Math.random()*6)+"s");fire.appendChild(p);}
+  };
+  const removeSpringFX = () => document.getElementById("crow-spring-fx")?.remove();
 
   // Valentine's atmosphere: glowing hearts, rose petals, stars and romantic neon ambience.
   const valentinesFX = () => {
