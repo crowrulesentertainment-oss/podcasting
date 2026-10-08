@@ -54,7 +54,7 @@ window.CROW_PODCASTING_CONFIG = {
     document.documentElement.dataset.crowHolidayTheme = enabled ? safeTheme : "standard";
     document.documentElement.dataset.crowHolidayEnabled = enabled ? "true" : "false";
     window.CROW_HOLIDAY_THEME = { enabled, theme: enabled ? safeTheme : "standard" };
-    if (enabled && safeTheme === "halloween") halloweenFX(); else removeHalloweenFX();
+    if (enabled && safeTheme === "halloween") { halloweenFX(); removeChristmasFX(); } else if (enabled && safeTheme === "christmas") { removeHalloweenFX(); christmasFX(); } else { removeHalloweenFX(); removeChristmasFX(); }
     window.dispatchEvent(new CustomEvent("crowrules:holiday-theme", { detail: window.CROW_HOLIDAY_THEME }));
   };
   window.CROW_APPLY_HOLIDAY_THEME = applyHolidayTheme;
@@ -68,6 +68,20 @@ window.CROW_PODCASTING_CONFIG = {
     for(let i=0;i<18;i++){const p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--d",(5+Math.random()*10)+"s");p.style.setProperty("--delay",(-Math.random()*12)+"s");p.style.setProperty("--drift",(-35+Math.random()*70)+"px");emb.appendChild(p);}
   };
   const removeHalloweenFX = () => document.getElementById("crow-halloween-fx")?.remove();
+
+
+  // Christmas atmosphere controller: falling snow, Santa flight, lights, stars and glow.
+  const christmasFX = () => {
+    if (document.getElementById("crow-christmas-fx")) return;
+    const root = document.createElement("div"); root.id="crow-christmas-fx"; root.setAttribute("aria-hidden","true");
+    root.innerHTML='<div class="crow-christmas-sky"></div><div class="crow-christmas-moon"></div><div class="crow-christmas-lights"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="crow-christmas-santa">🎅</div><div class="crow-christmas-snow"></div><div class="crow-christmas-sparkles"></div><div class="crow-christmas-trees"><span>🎄</span><span>🎄</span><span>🎄</span></div>';
+    document.body.appendChild(root);
+    const snow=root.querySelector(".crow-christmas-snow");
+    for(let i=0;i<55;i++){const p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--s",(2+Math.random()*5)+"px");p.style.setProperty("--d",(7+Math.random()*12)+"s");p.style.setProperty("--delay",(-Math.random()*18)+"s");p.style.setProperty("--drift",(-45+Math.random()*90)+"px");p.style.setProperty("--spin",(180+Math.random()*360)+"deg");snow.appendChild(p);}
+    const spark=root.querySelector(".crow-christmas-sparkles");
+    for(let i=0;i<22;i++){const p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--y",Math.random()*90+"vh");p.style.setProperty("--delay",(-Math.random()*5)+"s");spark.appendChild(p);}
+  };
+  const removeChristmasFX = () => document.getElementById("crow-christmas-fx")?.remove();
 
   const loadHolidayTheme = async () => {
     try {
