@@ -50,7 +50,10 @@ async function loadAuth(mode){layout('<div class="card form"><div class="eyebrow
     const planCards=plans.length?plans.map(plan=>{
       const month=Number(plan.monthly_price_cents||0),year=Number(plan.annual_price_cents||0),cur=currency(plan.currency);
       const amount=plan.is_free?'<strong>FREE</strong>':(month>0?'<strong>'+esc(moneyCents(month,cur))+'</strong><small>/ month</small>':'<strong>Price on checkout</strong>');
-      return '<article class="plan-card"><div class="eyebrow">LISTENER MEMBERSHIP</div><h3>'+esc(plan.name||"Show membership")+'</h3><p class="muted">'+esc(plan.description||"Support this podcast and unlock creator membership benefits.")+'</p><div class="plan-price">'+amount+'</div>'+(year>0?'<small class="plan-annual">'+esc(moneyCents(year,cur))+' / year</small>':'')+'<ul>'+((Array.isArray(plan.benefits)?plan.benefits:[]).slice(0,4).map(x=>'<li>'+esc(typeof x==="string"?x:(x.label||x.name||"Member benefit"))+'</li>').join("")||'<li>Support the show</li><li>Creator membership benefits</li>')+'</ul><button class="btn primary plan-subscribe" data-plan="'+esc(plan.id)+'" '+(subscribedFree&&plan.is_free?"disabled":"")+'> '+(subscribedFree&&plan.is_free?"MEMBER ✓":(subscribed?"MANAGE MEMBERSHIP":(plan.is_free?"JOIN FREE":"SUBSCRIBE")))+' </button></article>';
+      const label=subscribedFree&&plan.is_free?"MEMBER ✓":(subscribed?"MANAGE MEMBERSHIP":(plan.is_free?"JOIN FREE":"SUBSCRIBE"));
+      const monthlyButton='<button class="btn primary plan-subscribe" data-plan="'+esc(plan.id)+'" data-interval="month" '+(subscribedFree&&plan.is_free?"disabled":"")+'>'+label+(plan.is_free?"":" MONTHLY")+'</button>';
+      const annualButton=(!plan.is_free&&year>0&&plan.stripe_annual_price_id)?'<button class="btn plan-subscribe" data-plan="'+esc(plan.id)+'" data-interval="year">SUBSCRIBE ANNUALLY</button>':'';
+      return '<article class="plan-card"><div class="eyebrow">LISTENER MEMBERSHIP</div><h3>'+esc(plan.name||"Show membership")+'</h3><p class="muted">'+esc(plan.description||"Support this podcast and unlock creator membership benefits.")+'</p><div class="plan-price">'+amount+'</div>'+(year>0?'<small class="plan-annual">'+esc(moneyCents(year,cur))+' / year</small>':'')+'<ul>'+((Array.isArray(plan.benefits)?plan.benefits:[]).slice(0,4).map(x=>'<li>'+esc(typeof x==="string"?x:(x.label||x.name||"Member benefit"))+'</li>').join("")||'<li>Support the show</li><li>Creator membership benefits</li>')+'</ul>'+monthlyButton+annualButton+'</article>';
     }).join(""):'<div class="notice">'+(plansRes.error?"Membership tiers could not be loaded right now.":"This show has not published subscription tiers yet.")+'</div>';
     $("#show").innerHTML=
       '<section class="show-hero"><div class="show-copy"><div class="eyebrow">'+esc(podcast.category||"CROWRULES PODCAST")+(podcast.is_featured?' • FEATURED SHOW':'')+'</div><h1>'+esc(podcast.title||"Untitled Podcast")+'</h1><p class="muted show-description">'+esc(podcast.description||"Welcome to the CrowRules Podcasting universe.")+'</p><div class="show-actions">'+
@@ -115,11 +118,11 @@ async function loadAuth(mode){layout('<div class="card form"><div class="eyebrow
         if(!count.error){$("#followCount").textContent=Number(count.count||0).toLocaleString();$("#showFollowerStat").textContent=Number(count.count||0).toLocaleString()}
       }catch(error){toast(error.message||"Couldn’t update follow status.")}finally{b.disabled=false}
     };
-    async function subscribe(planId){
+    async function subscribe(planId,billingInterval="month"){
       if(!currentUser){toast("Sign in before subscribing.");login();return}
       const status=$("#subscribeStatus");status.textContent="Preparing secure checkout…";
       try{
-        const body={podcast_id:id,plan_id:planId,origin:location.origin+location.pathname.replace(/[^/]*$/,"")};
+        const body={podcast_id:id,plan_id:planId,billing_interval:billingInterval,origin:location.origin+location.pathname.replace(/[^/]*$/,"")};
         const r=await timeout(S.functions.invoke("podcast-subscription-checkout",{body}),"Subscription checkout",20000);
         if(r.error)throw r.error;
         if(r.data?.error)throw new Error(r.data.error);
@@ -134,7 +137,7 @@ async function loadAuth(mode){layout('<div class="card form"><div class="eyebrow
       catch(error){toast(error.message||"Unable to open subscription management.")}
     }
     $("#subscribeTop").onclick=()=>subscribed&&!subscribedFree?manageSubscription():document.querySelector("#membership").scrollIntoView({behavior:"smooth",block:"start"});
-    document.querySelectorAll(".plan-subscribe").forEach(b=>b.onclick=()=>{if(b.disabled)return;if(subscribed&&!subscribedFree)manageSubscription();else subscribe(b.dataset.plan)});
+    document.querySelectorAll(".plan-subscribe").forEach(b=>b.onclick=()=>{if(b.disabled)return;if(subscribed&&!subscribedFree)manageSubscription();else subscribe(b.dataset.plan,b.dataset.interval||"month")});
     $("#shareBtn").onclick=async()=>{try{if(navigator.share)await navigator.share({title:podcast.title||"CrowRules Podcast",text:podcast.description||"Listen on CrowRules Podcasting.",url:location.href});else{await navigator.clipboard.writeText(location.href);toast("Show link copied.")}}catch(error){if(error?.name!=="AbortError")toast("Sharing isn’t available in this browser.")}};
     $("#copyBtn").onclick=async()=>{try{await navigator.clipboard.writeText(location.href);toast("Show link copied.")}catch{toast("Copy isn’t available in this browser.")}};
     $("#commentForm").onsubmit=async ev=>{ev.preventDefault();if(!currentUser){login();return}if(!activeEpisode){toast("Select an episode first.");return}const field=$("#commentBody"),body=field.value.trim();if(!body)return;if(body.length>2000){toast("Comments must be 2,000 characters or fewer.");return}const submit=$("#commentForm button[type=submit]");submit.disabled=true;try{const r=await timeout(S.from("cr_podcast_social_comments_v5").insert({user_id:currentUser.id,episode_id:activeEpisode,body}),"Post comment");if(r.error)throw r.error;field.value="";toast("Comment posted.");await loadComments(activeEpisode)}catch(error){toast(error.message||"Comment could not be posted.")}finally{submit.disabled=false}};
