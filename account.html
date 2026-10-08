@@ -1,3 +1,165 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Account Dashboard | CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="js/config.js" defer></script><script src="js/listener-engine.js" defer></script><link rel="stylesheet" href="css/podcasting-v8.css?v=20261007-v8.0.0"><script src="js/podcasting-v8.js?v=20261007-v8.0.0" defer></script></head><body><main class="cr-account-v3"><div id="status" class="cr-v3-note">LOADING YOUR CROW RULES ACCOUNT…</div><div id="dashboard" hidden><section class="cr-v3-hero"><div class="cr-v3-panel"><div class="cr-v3-identity"><div id="avatar" class="cr-v3-avatar">CR</div><div><div class="cr-v3-kicker">CROWRULES MEMBER</div><h1 id="name" class="cr-v3-title">Account</h1><div id="email" class="cr-v3-muted"></div><span id="membership" class="cr-v3-badge">FREE</span></div></div><div class="cr-v3-actions"><a class="cr-v3-btn primary" href="profile.html">EDIT PROFILE</a><a class="cr-v3-btn" id="creatorLink" href="creator.html" hidden>CREATOR STUDIO</a><button class="cr-v3-btn danger" id="signout">SIGN OUT</button></div></div><div class="cr-v3-panel cr-v3-points"><small>CROWPOINTS</small><strong id="points">0</strong><span class="cr-v3-muted">earned across CrowRules</span></div></section><section class="cr-v3-grid"><div class="cr-v3-stat"><b id="completed">0</b><span>Completed</span></div><div class="cr-v3-stat"><b id="recent">0</b><span>Recent</span></div><div class="cr-v3-stat"><b id="saved">0</b><span>Saved Episodes</span></div><div class="cr-v3-stat"><b id="following">0</b><span>Following</span></div></section><section class="cr-v3-layout"><div><section class="cr-v3-panel cr-v3-section"><h2>LISTENING STATS</h2><div id="stats"></div></section><section class="cr-v3-panel cr-v3-section" style="margin-top:18px"><h2>SAVED EPISODES</h2><div id="savedList" class="cr-v3-list"></div><div class="cr-v3-actions"><a class="cr-v3-btn" href="library.html">OPEN FULL LIBRARY</a></div></section><section class="cr-v3-panel cr-v3-section" style="margin-top:18px"><h2>PODCAST SUBSCRIPTIONS</h2><div id="subscriptions" class="cr-v3-list"></div></section></div><div><section class="cr-v3-panel cr-v3-section" id="membership"><h2>MEMBERSHIP</h2><div id="membershipCurrent"></div><div id="plans"></div></section><section class="cr-v3-panel cr-v3-section" style="margin-top:18px"><h2>ACCOUNT SETTINGS</h2><div class="cr-v3-row"><div><strong id="username">Listener</strong><small>Podcasting username</small></div><a class="cr-v3-btn" href="profile.html">PROFILE SETTINGS</a></div><div class="cr-v3-row"><div><strong>Sign-in email</strong><small id="settingsEmail"></small></div></div><div class="cr-v3-row"><div><strong>Creator status</strong><small id="creatorStatus">Listener account</small></div></div><div class="cr-v3-actions"><a class="cr-v3-btn" href="library.html">LIBRARY</a><a class="cr-v3-btn" href="discover.html">DISCOVER</a></div></section></div></section></div></main><script>
-(()=>{const sb=window.CROW_PODCASTING,$=s=>document.querySelector(s),esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));const money=c=>"$"+(Number(c||0)/100).toFixed(2);const initials=n=>(String(n||"CR").trim().split(/\\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"CR");const empty=t=>'<div class="cr-v3-empty">'+t+"</div>";const status=t=>$("#status").textContent=t;async function boot(){try{await window.CROW_SUPABASE_READY;const{data:{user},error}=await sb.auth.getUser();if(error||!user){status("You need to sign in to open your member dashboard.");$("#status").innerHTML='<div class="cr-v3-note">SIGN IN TO CONTINUE</div><div class="cr-v3-actions"><a class="cr-v3-btn primary" href="login.html?next=account.html">SIGN IN</a><a class="cr-v3-btn" href="signup.html">JOIN CROW RULES</a></div>';return}const state=window.CrowAccount?.get()||{};const p=state.profile||{};const m=state.member||{};const c=state.creator||{};const name=p.display_name||m.display_name||user.user_metadata?.full_name||user.email?.split("@")[0]||"Account";$("#name").textContent=name;$("#email").textContent=user.email||"";$("#settingsEmail").textContent=user.email||"";$("#username").textContent=p.username?"@"+p.username:name;$("#membership").textContent=(m.membership_type||"free").toUpperCase();$("#points").textContent=Number(m.points||0).toLocaleString();$("#creatorLink").hidden=!(c.is_active||p.is_creator);$("#creatorStatus").textContent=(c.is_active||p.is_creator)?(c.display_name||c.name||"Active creator"):"Listener account";const av=p.avatar_url||m.avatar_url||user.user_metadata?.avatar_url;if(av)$("#avatar").innerHTML='<img src="'+esc(av)+'" alt="Profile avatar">';else $("#avatar").textContent=initials(name);$("#dashboard").hidden=false;status("");const listener=window.CrowListener?await window.CrowListener.profile():null;$("#completed").textContent=(listener?.completed||[]).length;$("#recent").textContent=(listener?.recent||[]).length;$("#saved").textContent=(listener?.saved||[]).length;$("#following").textContent=(listener?.follows||[]).length;$("#stats").innerHTML='<div class="cr-v3-row"><div><strong>'+((listener?.streak)||0)+' day streak</strong><small>Current listening streak</small></div></div><div class="cr-v3-row"><div><strong>'+((listener?.queue||[]).length)+'</strong><small>Episodes in queue</small></div></div><div class="cr-v3-row"><div><strong>'+((listener?.topCategories||[]).slice(0,3).join(" • ")||"Not enough data")+'</strong><small>Top listening categories</small></div></div><div class="cr-v3-row"><div><strong>'+Number(m.watch_minutes||0).toLocaleString()+' min</strong><small>CrowRules member watch/listening minutes</small></div></div>';const savedIds=(listener?.saved||[]).slice(0,8);if(savedIds.length){const{data}=await sb.from("podcast_episodes").select("id,title,podcasts(title)").in("id",savedIds);const map=new Map((data||[]).map(x=>[x.id,x]));$("#savedList").innerHTML=savedIds.map(id=>{const e=map.get(id);return e?'<div class="cr-v3-row"><div><strong>'+esc(e.title)+'</strong><small>'+esc(e.podcasts?.title||"CrowRules Podcasting")+'</small></div><a class="cr-v3-btn" href="episode.html?id='+encodeURIComponent(id)+'">OPEN</a></div>':""}).join("")||empty("Your saved episodes will appear here.");}else $("#savedList").innerHTML=empty("Save episodes from the Library or player to see them here.");await loadMembership(user);await loadSubscriptions(user)}catch(e){status("Unable to load your account dashboard.");$("#status").insertAdjacentHTML("beforeend",'<div class="cr-v3-error">'+esc(e?.message||"Unknown error")+"</div>")}}async function loadMembership(user){const box=$("#membershipCurrent"),plans=$("#plans");try{const r=await sb.functions.invoke("membership-status",{body:{}});if(r.error)throw r.error;const cur=r.data?.membership||null;box.innerHTML=cur?'<div class="cr-v3-row"><div><strong>'+esc(cur.plan_name||cur.name||cur.plan_key||"Current membership")+'</strong><small>'+esc(cur.status||"active")+(cur.cancel_at_period_end?" • cancellation scheduled":"")+'</small></div><span class="cr-v3-badge">'+esc(cur.plan_key||"MEMBER").toUpperCase()+"</span></div>"+(r.data?.entitlements?.length?'<div class="cr-v3-note">'+r.data.entitlements.map(x=>esc(x.site_key)+" • "+esc(x.access_level)).join("<br>")+"</div>":'<div class="cr-v3-note">Your membership is active across eligible CrowRules sites.</div>'):'<div class="cr-v3-note">You are currently on the free CrowRules membership.</div>';const pr=await sb.from("membership_plans").select("plan_key,name,level,price_cents,billing_interval,description,features,is_featured,sort_order,stripe_price_id").eq("is_active",true).order("sort_order");if(pr.error)throw pr.error;const currentKey=cur?.plan_key||null;plans.innerHTML=(pr.data||[]).map(p=>{const features=Array.isArray(p.features)?p.features:Object.values(p.features||{});const same=p.plan_key===currentKey;const paid=Number(p.price_cents||0)>0;return '<div class="cr-v3-plan"><h3>'+esc(p.name)+(p.is_featured?' • FEATURED':"")+'</h3><div class="cr-v3-price">'+(paid?money(p.price_cents)+" / "+esc(p.billing_interval||"month"):"FREE")+'</div><p>'+esc(p.description||"")+'</p>'+(features.length?'<ul>'+features.slice(0,6).map(x=>"<li>"+esc(typeof x==="string"?x:(x?.name||x?.label||JSON.stringify(x)))+"</li>").join("")+"</ul>":"")+'<div class="cr-v3-actions">'+(same?'<span class="cr-v3-badge">CURRENT PLAN</span>':paid?'<button class="cr-v3-btn primary" data-plan="'+esc(p.plan_key)+'">CHOOSE PLAN</button>':"")+"</div></div>"}).join("")||empty("No active membership plans are published.");plans.querySelectorAll("[data-plan]").forEach(b=>b.onclick=()=>checkout(b.dataset.plan));$("#membershipCurrent").dataset.loaded="true"}catch(e){box.innerHTML='<div class="cr-v3-error">'+esc(e?.message||"Membership status unavailable")+"</div>";plans.innerHTML=empty("Membership options are temporarily unavailable.")}}async function checkout(planKey){const b=[...document.querySelectorAll("[data-plan]")].find(x=>x.dataset.plan===planKey);if(b){b.disabled=true;b.textContent="OPENING CHECKOUT…"}try{const r=await sb.functions.invoke("membership-checkout",{body:{plan_key:planKey,checkout_mode:"hosted",origin:location.origin+location.pathname.replace(/\\/[^/]*$/,"")}});if(r.error)throw r.error;if(!r.data?.url)throw new Error(r.data?.error||"Checkout URL was not returned");location.href=r.data.url}catch(e){window.CrowPodcastingV8?.toast(e?.message||"Unable to start membership checkout.","error");if(b){b.disabled=false;b.textContent="CHOOSE PLAN"}}}async function loadSubscriptions(){const el=$("#subscriptions");try{const r=await sb.functions.invoke("podcast-subscription-center",{body:{}});if(r.error)throw r.error;const subs=r.data?.subscriptions||[];if(!subs.length){el.innerHTML=empty("No podcast subscriptions yet. Subscribe to individual creator shows as they become available.");return}el.innerHTML=subs.slice(0,12).map(s=>'<div class="cr-v3-row"><div><strong>'+esc(s.podcast_title||s.podcast_name||"Podcast subscription")+'</strong><small>'+esc(s.plan_name||s.status||"Active")+'</small></div><span class="cr-v3-badge">'+esc(s.status||"ACTIVE").toUpperCase()+"</span></div>").join("")}catch(e){el.innerHTML=empty("Podcast subscription details are unavailable right now.")}}$("#signout").onclick=async()=>{await sb.auth.signOut();location.href="login.html"};boot()})();
-</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Account Command Center | CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="js/config.js" defer></script><script src="js/listener-engine.js" defer></script>
+<link rel="stylesheet" href="css/podcasting-v8.css?v=20261007-v8.0.0">
+<script src="js/podcasting-v8.js?v=20261007-v8.0.0" defer></script>
+</head>
+<body>
+<main class="cr-account-v3 cr-account-v4">
+<div id="status" class="cr-v3-note">LOADING YOUR CROW RULES COMMAND CENTER…</div>
+<div id="dashboard" hidden>
+<section class="cr-v3-hero" id="overview">
+ <div class="cr-v3-panel">
+  <div class="cr-v3-identity"><div id="avatar" class="cr-v3-avatar">CR</div><div>
+   <div class="cr-v3-kicker">CROWRULES MEMBER COMMAND CENTER</div><h1 id="name" class="cr-v3-title">Account</h1>
+   <div id="email" class="cr-v3-muted"></div><span id="membershipBadge" class="cr-v3-badge">FREE</span>
+  </div></div>
+  <div class="cr-v3-actions"><a class="cr-v3-btn primary" href="profile.html">EDIT PROFILE</a><a class="cr-v3-btn" id="creatorLink" href="creator.html" hidden>CREATOR STUDIO</a><button class="cr-v3-btn danger" id="signout">SIGN OUT</button></div>
+ </div>
+ <div class="cr-v3-panel cr-v3-points"><small>CROWPOINTS</small><strong id="points">0</strong><span class="cr-v3-muted">lifetime points</span></div>
+</section>
+
+<nav class="cr-v4-nav" aria-label="Account dashboard">
+ <a href="#overview">OVERVIEW</a><a href="#listening">MY PODCASTING</a><a href="#membership">MEMBERSHIP</a><a href="#points-center">CROWPOINTS</a><a href="#subscriptions">SUBSCRIPTIONS</a><a href="#creator">CREATOR CENTER</a><a href="#settings">SETTINGS</a>
+</nav>
+
+<section class="cr-v3-grid cr-v4-stats">
+ <div class="cr-v3-stat"><b id="completed">0</b><span>Completed</span></div>
+ <div class="cr-v3-stat"><b id="recent">0</b><span>Recently Played</span></div>
+ <div class="cr-v3-stat"><b id="saved">0</b><span>Saved</span></div>
+ <div class="cr-v3-stat"><b id="following">0</b><span>Following</span></div>
+</section>
+
+<section class="cr-v3-layout cr-v4-layout">
+<div>
+<section class="cr-v3-panel cr-v3-section" id="listening">
+ <div class="cr-v4-heading"><div><div class="cr-v3-kicker">LISTENING HUB</div><h2>MY PODCASTING</h2></div><a class="cr-v3-btn" href="library.html">OPEN LIBRARY</a></div>
+ <div id="listeningStats"></div>
+ <div class="cr-v4-subhead">CONTINUE LISTENING</div><div id="continueList" class="cr-v3-list"></div>
+ <div class="cr-v4-subhead">RECENTLY PLAYED</div><div id="recentList" class="cr-v3-list"></div>
+ <div class="cr-v4-subhead">SAVED EPISODES</div><div id="savedList" class="cr-v3-list"></div>
+ <div class="cr-v4-subhead">LISTENING QUEUE</div><div id="queueList" class="cr-v3-list"></div>
+</section>
+
+<section class="cr-v3-panel cr-v3-section" id="subscriptions" style="margin-top:18px">
+ <div class="cr-v4-heading"><div><div class="cr-v3-kicker">SHOWS YOU FOLLOW</div><h2>PODCAST SUBSCRIPTIONS</h2></div><a class="cr-v3-btn" href="discover.html">DISCOVER</a></div>
+ <div id="subscriptionsList" class="cr-v3-list"></div>
+ <div id="paidSubscriptions" class="cr-v3-list"></div>
+</section>
+
+<section class="cr-v3-panel cr-v3-section" id="creator" style="margin-top:18px">
+ <div class="cr-v4-heading"><div><div class="cr-v3-kicker">BUILD WITH CROWRULES</div><h2>CREATOR CENTER</h2></div><a class="cr-v3-btn primary" id="creatorStudio" href="creator.html">CREATOR STUDIO</a></div>
+ <div id="creatorSummary"></div><div id="creatorShows" class="cr-v3-list"></div>
+</section>
+</div>
+
+<div>
+<section class="cr-v3-panel cr-v3-section" id="membership">
+ <div class="cr-v4-heading"><div><div class="cr-v3-kicker">ACCOUNT PLAN</div><h2>MEMBERSHIP</h2></div></div>
+ <div id="membershipCurrent"></div><div id="billingActions" class="cr-v3-actions"></div><div id="plans"></div>
+</section>
+
+<section class="cr-v3-panel cr-v3-section" id="points-center" style="margin-top:18px">
+ <div class="cr-v4-heading"><div><div class="cr-v3-kicker">REWARDS</div><h2>CROWPOINTS CENTER</h2></div></div>
+ <div class="cr-v4-points-card"><strong id="pointsLarge">0</strong><span>LIFETIME CROWPOINTS</span></div>
+ <div class="cr-v3-row"><div><strong id="monthlyPoints">Available through your membership</strong><small>Monthly point tracking will expand as the rewards system grows.</small></div></div>
+ <div class="cr-v4-subhead">WAYS TO EARN</div>
+ <div class="cr-v3-note">Listen to Podcasting, complete episodes, return regularly, follow shows, save episodes, and participate in future CrowRules community activities. Membership multipliers are applied by the CrowRules membership system when supported.</div>
+</section>
+
+<section class="cr-v3-panel cr-v3-section" id="settings" style="margin-top:18px">
+ <div class="cr-v4-heading"><div><div class="cr-v3-kicker">SECURITY & PROFILE</div><h2>ACCOUNT SETTINGS</h2></div></div>
+ <div class="cr-v3-row"><div><strong id="username">Listener</strong><small>Podcasting username</small></div><a class="cr-v3-btn" href="profile.html">PROFILE SETTINGS</a></div>
+ <div class="cr-v3-row"><div><strong>Sign-in email</strong><small id="settingsEmail"></small></div></div>
+ <div class="cr-v3-row"><div><strong>Account status</strong><small id="accountStatus">Authenticated</small></div></div>
+ <div class="cr-v3-row"><div><strong>Creator status</strong><small id="creatorStatus">Listener account</small></div></div>
+ <div class="cr-v3-actions"><a class="cr-v3-btn" href="library.html">LIBRARY</a><a class="cr-v3-btn" href="profile.html">PROFILE</a><button class="cr-v3-btn danger" id="signout2">SIGN OUT</button></div>
+</section>
+</div>
+</section>
+</div>
+</main>
+
+<script>
+(()=>{"use strict";
+const sb=window.CROW_PODCASTING,$=s=>document.querySelector(s),esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const empty=t=>'<div class="cr-v3-empty">'+t+"</div>", money=c=>"$"+(Number(c||0)/100).toFixed(2);
+const initials=n=>(String(n||"CR").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"CR");
+const state={listener:null,episodes:new Map(),membership:null,creator:null};
+function note(t){$("#status").textContent=t}
+function toast(t,k="info"){window.CrowPodcastingV8?.toast(t,k)}
+function episodeRow(e,meta="",action="OPEN"){if(!e)return"";return '<div class="cr-v3-row"><div><strong>'+esc(e.title||"Untitled episode")+'</strong><small>'+esc(e.podcasts?.title||"CrowRules Podcasting")+(meta?" • "+esc(meta):"")+'</small></div><a class="cr-v3-btn" href="episode.html?id='+encodeURIComponent(e.id)+'">'+action+"</a></div>"}
+async function getProfile(){return window.CrowListener?await window.CrowListener.profile():null}
+async function boot(){
+ try{
+  await window.CROW_SUPABASE_READY;
+  const {data:{user},error}=await sb.auth.getUser();
+  if(error||!user){note("You need to sign in to open your member dashboard.");$("#status").innerHTML='<div class="cr-v3-note">SIGN IN TO CONTINUE</div><div class="cr-v3-actions"><a class="cr-v3-btn primary" href="login.html?next=account.html">SIGN IN</a><a class="cr-v3-btn" href="signup.html">JOIN CROW RULES</a></div>';return}
+  await window.CrowAccount?.refresh?.();
+  renderIdentity(window.CrowAccount?.get()||{},user);
+  $("#dashboard").hidden=false;note("");
+  state.listener=await getProfile();renderListening(state.listener);
+  await Promise.all([loadMembership(user),loadSubscriptions(state.listener),loadCreator(window.CrowAccount?.get()||{})]);
+  window.CrowAccount?.onChange?.(async next=>{renderIdentity(next,user);state.listener=await getProfile();renderListening(state.listener);loadMembership(user);loadSubscriptions(state.listener);loadCreator(next)});
+ }catch(e){note("Unable to load your account command center.");$("#status").insertAdjacentHTML("beforeend",'<div class="cr-v3-error">'+esc(e?.message||"Unknown error")+"</div>")}
+}
+function renderIdentity(s,user){
+ const p=s.profile||{},m=s.member||{},c=s.creator||{},name=p.display_name||m.display_name||user.user_metadata?.full_name||user.email?.split("@")[0]||"Account";
+ $("#name").textContent=name;$("#email").textContent=user.email||"";$("#settingsEmail").textContent=user.email||"";$("#username").textContent=p.username?"@"+p.username:name;
+ const type=(m.membership_type||"free").toUpperCase();$("#membershipBadge").textContent=type;$("#points").textContent=Number(m.points||0).toLocaleString();$("#pointsLarge").textContent=Number(m.points||0).toLocaleString();
+ const av=p.avatar_url||m.avatar_url||user.user_metadata?.avatar_url;if(av)$("#avatar").innerHTML='<img src="'+esc(av)+'" alt="Profile avatar">';else $("#avatar").textContent=initials(name);
+ const creator=!!(c.is_active||p.is_creator);$("#creatorLink").hidden=!creator;$("#creatorStudio").hidden=!creator;$("#creatorStatus").textContent=creator?(c.display_name||c.name||"Active creator"):"Listener account";$("#accountStatus").textContent="Authenticated";
+}
+function renderListening(p){
+ const progress=p?.progress||[],completed=p?.completed||[],recent=p?.recent||[],saved=p?.saved||[],queue=p?.queue||[],follows=p?.follows||[];
+ $("#completed").textContent=completed.length;$("#recent").textContent=recent.length;$("#saved").textContent=saved.length;$("#following").textContent=follows.length;
+ const mins=Math.round(progress.reduce((n,x)=>n+Number(x.position_seconds||0),0)/60);
+ $("#listeningStats").innerHTML='<div class="cr-v3-row"><div><strong>'+Number(p?.streak||0)+' day streak</strong><small>Current listening streak</small></div><div><strong>'+mins.toLocaleString()+' min</strong><small>Tracked playback</small></div></div><div class="cr-v3-row"><div><strong>'+queue.length+'</strong><small>Episodes in queue</small></div><div><strong>'+((p?.topCategories||[]).slice(0,3).join(" • ")||"Building your profile")+'</strong><small>Top categories</small></div></div>';
+ const em=p?.em||new Map();state.episodes=em;
+ const cont=progress.filter(x=>!x.completed&&Number(x.position_seconds||0)>0).slice(0,8).map(x=>episodeRow(em.get(x.episode_id),Math.round(Number(x.position_seconds||0)/60)+" min played","CONTINUE")).join("");
+ $("#continueList").innerHTML=cont||empty("Start an episode and your continue-listening shelf will appear here.");
+ $("#recentList").innerHTML=recent.slice(0,8).map(x=>episodeRow(em.get(x.episode_id),x.last_played_at?new Date(x.last_played_at).toLocaleDateString():"Recently played")).join("")||empty("Your recent listening history will appear here.");
+ $("#savedList").innerHTML=saved.slice(0,8).map(id=>episodeRow(em.get(id),"Saved episode")).join("")||empty("Save episodes from the player to build your library.");
+ $("#queueList").innerHTML=queue.slice(0,8).map(x=>episodeRow(em.get(x.episode_id),"Queue #"+(Number(x.position)+1))).join("")||empty("Your listening queue is empty.");
+}
+async function loadMembership(user){
+ try{
+  const r=await sb.functions.invoke("membership-status",{body:{}});if(r.error)throw r.error;
+  const cur=r.data?.membership||null;state.membership=cur;
+  $("#membershipCurrent").innerHTML=cur?'<div class="cr-v3-row"><div><strong>'+esc(cur.plan_name||cur.name||cur.plan_key||"Current membership")+'</strong><small>'+esc(cur.status||"active")+(cur.cancel_at_period_end?" • cancellation scheduled":"")+(cur.current_period_end?" • renews "+new Date(cur.current_period_end).toLocaleDateString():"")+'</small></div><span class="cr-v3-badge">'+esc(cur.plan_key||"MEMBER").toUpperCase()+"</span></div>":'<div class="cr-v3-note">You are currently on the free CrowRules membership.</div>';
+ $("#billingActions").innerHTML=cur?'<button class="cr-v3-btn" id="portalBtn">MANAGE BILLING IN STRIPE</button><a class="cr-v3-btn" href="membership.html">MEMBERSHIP DETAILS</a>':'<a class="cr-v3-btn" href="membership.html">VIEW MEMBERSHIP OPTIONS</a>';
+ $("#portalBtn")?.addEventListener("click",openPortal);
+ const pr=await sb.from("membership_plans").select("plan_key,name,level,price_cents,billing_interval,description,features,is_featured,sort_order,stripe_price_id").eq("is_active",true).order("sort_order");
+ if(pr.error)throw pr.error;
+ const currentKey=cur?.plan_key||"crow", plans=$("#plans");
+ plans.innerHTML=(pr.data||[]).map(p=>{const same=p.plan_key===currentKey,paid=Number(p.price_cents||0)>0,features=Array.isArray(p.features)?p.features:Object.values(p.features||{});return '<div class="cr-v3-plan"><h3>'+esc(p.name)+(p.is_featured?" • FEATURED":"")+'</h3><div class="cr-v3-price">'+(paid?money(p.price_cents)+" / "+esc(p.billing_interval||"month"):"FREE")+'</div><p>'+esc(p.description||"")+"</p>"+(features.length?'<ul>'+features.slice(0,6).map(x=>"<li>"+esc(typeof x==="string"?x:(x?.name||x?.label||JSON.stringify(x)))+"</li>").join("")+"</ul>":"")+'<div class="cr-v3-actions">'+(same?'<span class="cr-v3-badge">CURRENT PLAN</span>':paid?'<button class="cr-v3-btn primary" data-plan="'+esc(p.plan_key)+'">CHOOSE PLAN</button>':"")+"</div></div>"}).join("")||empty("No active membership plans are published.");
+ plans.querySelectorAll("[data-plan]").forEach(b=>b.onclick=()=>checkout(b.dataset.plan));
+ }catch(e){$("#membershipCurrent").innerHTML='<div class="cr-v3-error">'+esc(e?.message||"Membership status unavailable")+"</div>";$("#plans").innerHTML=empty("Membership options are temporarily unavailable.")}
+}
+async function checkout(planKey){try{const r=await sb.functions.invoke("membership-checkout",{body:{plan_key:planKey,checkout_mode:"hosted",origin:location.origin+location.pathname.replace(/\/[^/]*$/,"")}});if(r.error)throw r.error;if(!r.data?.url)throw new Error(r.data?.error||"Checkout URL was not returned");location.href=r.data.url}catch(e){toast(e?.message||"Unable to start membership checkout.","error")}}
+async function openPortal(){const b=$("#portalBtn");if(b){b.disabled=true;b.textContent="OPENING STRIPE…"}try{const r=await sb.functions.invoke("membership-portal",{body:{return_url:location.href}});if(r.error)throw r.error;if(!r.data?.url)throw new Error(r.data?.error||"Billing portal URL was not returned");location.href=r.data.url}catch(e){toast(e?.message||"Unable to open Stripe billing.","error");if(b){b.disabled=false;b.textContent="MANAGE BILLING IN STRIPE"}}}
+async function loadSubscriptions(p){
+ const list=$("#subscriptionsList");
+ try{
+  const follows=p?.follows||[];const ids=[...new Set(follows)];if(!ids.length){list.innerHTML=empty("You are not following any podcasts yet.");}else{const {data,error}=await sb.from("podcasts").select("id,title,slug,category,artwork_url,status,listener_count").in("id",ids);if(error)throw error;const map=new Map((data||[]).map(x=>[x.id,x]));list.innerHTML=ids.map(id=>{const x=map.get(id);return x?'<div class="cr-v3-row"><div><strong>'+esc(x.title)+'</strong><small>'+esc(x.category||"Podcast")+" • "+esc(x.status||"published")+'</small></div><a class="cr-v3-btn" href="show.html?id='+encodeURIComponent(x.id)+'">OPEN SHOW</a></div>':""}).join("")||empty("Your followed shows will appear here.");}
+  const r=await sb.functions.invoke("podcast-subscription-center",{body:{}});if(!r.error){const subs=r.data?.subscriptions||[];$("#paidSubscriptions").innerHTML=subs.length?'<div class="cr-v4-subhead">PAID SUBSCRIPTIONS</div>'+subs.slice(0,12).map(s=>'<div class="cr-v3-row"><div><strong>'+esc(s.podcast_title||s.podcast_name||"Podcast subscription")+'</strong><small>'+esc(s.plan_name||s.status||"Active")+'</small></div><span class="cr-v3-badge">'+esc(s.status||"ACTIVE").toUpperCase()+"</span></div>").join(""):""}
+ }catch(e){list.innerHTML=empty("Podcast subscriptions are temporarily unavailable.")}
+}
+async function loadCreator(s){
+ const el=$("#creatorSummary"),shows=$("#creatorShows"),c=s.creator||{};state.creator=c;
+ if(!(c.is_active||s.profile?.is_creator)){el.innerHTML='<div class="cr-v3-note">You are currently a listener account. When Creator access is enabled, your shows, episodes and Creator Studio tools will appear here.</div>';shows.innerHTML="";return}
+ el.innerHTML='<div class="cr-v3-row"><div><strong>'+esc(c.display_name||c.name||"Creator")+'</strong><small>'+esc(c.role||"Creator")+" • "+esc(c.discipline||"Podcasting")+'</small></div><span class="cr-v3-badge">ACTIVE CREATOR</span></div>';
+ const {data,error}=await sb.from("podcasts").select("id,title,status,production_status,listener_count,total_plays").eq("creator_id",c.id).order("created_at",{ascending:false});if(error)throw error;
+ const ps=data||[];if(!ps.length){shows.innerHTML=empty("Your Creator Studio is ready. Create your first podcast to see it here.");return}
+ shows.innerHTML=ps.map(x=>'<div class="cr-v3-row"><div><strong>'+esc(x.title)+'</strong><small>'+esc(x.production_status||x.status||"draft")+" • "+Number(x.total_plays||0).toLocaleString()+" plays</small></div><a class="cr-v3-btn" href="show.html?id='+encodeURIComponent(x.id)+'">VIEW</a></div>').join("");
+}
+async function signout(){try{await sb.auth.signOut();location.href="login.html"}catch(e){toast(e?.message||"Sign out failed.","error")}}
+$("#signout").onclick=signout;$("#signout2").onclick=signout;boot();
+})();
+</script>
+</body></html>
