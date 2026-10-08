@@ -54,6 +54,7 @@ window.CROW_PODCASTING_CONFIG = {
     document.documentElement.dataset.crowHolidayTheme = enabled ? safeTheme : "standard";
     document.documentElement.dataset.crowHolidayEnabled = enabled ? "true" : "false";
     window.CROW_HOLIDAY_THEME = { enabled, theme: enabled ? safeTheme : "standard" };
+    if (enabled && safeTheme === "halloween") halloweenFX(); else removeHalloweenFX();
     window.dispatchEvent(new CustomEvent("crowrules:holiday-theme", { detail: window.CROW_HOLIDAY_THEME }));
   };
   window.CROW_APPLY_HOLIDAY_THEME = applyHolidayTheme;
