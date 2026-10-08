@@ -25,3 +25,14 @@ html.theme-halloween{background:#020106}
 @keyframes halloweenVignette{0%{opacity:.72}50%{opacity:.94}100%{opacity:.78}}
 @keyframes halloweenMist{0%{transform:translate3d(-3%,2%,0) scale(1);opacity:.12}50%{opacity:.24}100%{transform:translate3d(4%,-3%,0) scale(1.08);opacity:.14}}
 @media(prefers-reduced-motion:reduce){.theme-halloween body,.theme-halloween body:before,.theme-halloween body:after,.theme-halloween .hero-orb,.theme-halloween .orb-core{animation:none!important}.theme-halloween .pod-card,.theme-halloween .record-card,.theme-halloween .panel{transition:none!important}}
+
+/* Halloween FX DOM layer */
+#crow-halloween-fx{position:fixed;inset:0;z-index:38;pointer-events:none;overflow:hidden}
+.theme-halloween .crow-halloween-fog{position:absolute;width:65vw;height:30vh;border-radius:50%;filter:blur(42px);opacity:.10;background:#8b5cf6;animation:halloweenFog 26s ease-in-out infinite alternate}
+.theme-halloween .fog-a{left:-15vw;bottom:8vh}.theme-halloween .fog-b{right:-20vw;top:30vh;background:#ff6a2a;animation-delay:-12s;animation-duration:34s}
+.theme-halloween .crow-halloween-bats{position:absolute;top:13%;left:-15%;width:130%;font-size:16px;letter-spacing:5vw;color:#0b0710;text-shadow:0 0 2px #b36cff55;opacity:.55;animation:halloweenBats 30s linear infinite;transform:scale(.8)}
+.theme-halloween .crow-halloween-embers{position:absolute;inset:0}
+.theme-halloween .crow-halloween-embers i{position:absolute;left:var(--x);bottom:-12px;width:2px;height:2px;border-radius:50%;background:#ff8a3d;box-shadow:0 0 7px #ff5b2e;opacity:0;animation:halloweenEmber var(--d) linear var(--delay) infinite}
+@keyframes halloweenFog{0%{transform:translate3d(-8vw,5vh,0) scale(1)}100%{transform:translate3d(12vw,-8vh,0) scale(1.25)}}
+@keyframes halloweenBats{0%{transform:translateX(-8%) translateY(0) scale(.75);opacity:0}10%{opacity:.55}50%{transform:translateX(45%) translateY(7vh) scale(.9);opacity:.32}90%{opacity:.5}100%{transform:translateX(108%) translateY(-2vh) scale(.7);opacity:0}}
+@keyframes halloweenEmber{0%{transform:translate3d(0,0,0) scale(.5);opacity:0}12%{opacity:.7}70%{opacity:.35}100%{transform:translate3d(var(--drift),-105vh,0) scale(0);opacity:0}}
