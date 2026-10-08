@@ -54,7 +54,7 @@ window.CROW_PODCASTING_CONFIG = {
     document.documentElement.dataset.crowHolidayTheme = enabled ? safeTheme : "standard";
     document.documentElement.dataset.crowHolidayEnabled = enabled ? "true" : "false";
     window.CROW_HOLIDAY_THEME = { enabled, theme: enabled ? safeTheme : "standard" };
-    if (enabled && safeTheme === "halloween") { halloweenFX(); removeChristmasFX(); } else if (enabled && safeTheme === "christmas") { removeHalloweenFX(); christmasFX(); } else { removeHalloweenFX(); removeChristmasFX(); }
+    if (enabled && safeTheme === "halloween") { halloweenFX(); removeChristmasFX(); } else if (enabled && safeTheme === "christmas") { removeHalloweenFX(); christmasFX(); christmasCountdownFX(); } else { removeHalloweenFX(); removeChristmasFX(); document.getElementById("crow-christmas-countdown")?.remove(); document.getElementById("crow-santa-delivery")?.remove(); }
     window.dispatchEvent(new CustomEvent("crowrules:holiday-theme", { detail: window.CROW_HOLIDAY_THEME }));
   };
   window.CROW_APPLY_HOLIDAY_THEME = applyHolidayTheme;
@@ -82,6 +82,29 @@ window.CROW_PODCASTING_CONFIG = {
     for(let i=0;i<22;i++){const p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"vw");p.style.setProperty("--y",Math.random()*90+"vh");p.style.setProperty("--delay",(-Math.random()*5)+"s");spark.appendChild(p);}
   };
   const removeChristmasFX = () => document.getElementById("crow-christmas-fx")?.remove();
+
+  // Christmas Eve countdown + Santa gift-delivery sequence.
+  const christmasCountdownFX = () => {
+    if (!document.getElementById("crow-christmas-countdown")) {
+      const box=document.createElement("div"); box.id="crow-christmas-countdown"; box.setAttribute("aria-live","polite"); box.innerHTML='<div class="christmas-countdown-label">🎄 CHRISTMAS EVE COUNTDOWN</div><div class="christmas-countdown-time"><span data-cd-days>00</span><b>D</b><span data-cd-hours>00</span><b>H</b><span data-cd-minutes>00</span><b>M</b><span data-cd-seconds>00</span><b>S</b></div><div class="christmas-countdown-message">Santa is getting ready...</div>';
+      document.body.appendChild(box);
+    }
+    const box=document.getElementById("crow-christmas-countdown");
+    const update=()=>{
+      const now=new Date(), target=new Date(now.getFullYear(),11,24,0,0,0,0);
+      if(now>target) target.setFullYear(target.getFullYear()+1);
+      const diff=Math.max(0,target-now), day=Math.floor(diff/86400000), hr=Math.floor(diff%86400000/3600000), min=Math.floor(diff%3600000/60000), sec=Math.floor(diff%60000/1000);
+      box.querySelector("[data-cd-days]").textContent=String(day).padStart(2,"0"); box.querySelector("[data-cd-hours]").textContent=String(hr).padStart(2,"0"); box.querySelector("[data-cd-minutes]").textContent=String(min).padStart(2,"0"); box.querySelector("[data-cd-seconds]").textContent=String(sec).padStart(2,"0");
+      box.querySelector(".christmas-countdown-message").textContent=diff<=0?"🎅 MERRY CHRISTMAS EVE — SANTA IS ON THE WAY!":"Santa is getting ready...";
+    }; update(); if(!box._timer) box._timer=setInterval(update,1000);
+  };
+  const santaGiftDeliveryFX = () => {
+    if(document.getElementById("crow-santa-delivery")) return;
+    const root=document.createElement("div"); root.id="crow-santa-delivery"; root.setAttribute("aria-hidden","true"); root.innerHTML='<div class="santa-delivery-title">🎅 SANTA DELIVERY IN PROGRESS</div><div class="santa-route"><span class="santa-gift-bag">🎁</span><span class="santa-sleigh">🛷🎅</span></div><div class="santa-gifts">🎁　🎁　🎁　🎁</div>'; document.body.appendChild(root);
+  };
+  const removeSantaGiftDeliveryFX = () => document.getElementById("crow-santa-delivery")?.remove();
+
+  if (document.documentElement.dataset.crowHolidayTheme === "christmas") christmasCountdownFX();
 
   const loadHolidayTheme = async () => {
     try {
