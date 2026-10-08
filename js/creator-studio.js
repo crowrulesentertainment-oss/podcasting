@@ -1,4 +1,14 @@
-(()=>{const sb=window.CROW_PODCASTING||null,$=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));let user=null,creator=null,shows=[],activeShow=null,episodes=[];const msg=t=>{const e=$('#studioMsg');if(e)e.textContent=t||''};const withTimeout=(promise,ms,label)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+' timed out. Please refresh and try again.')),ms))]);async function boot(){if(!sb){location.href='prelaunch.html?mode=login&next=creator.html';return}msg('Authenticating creator account…');const auth=await withTimeout(sb.auth.getUser(),10000,'Authentication');const{data:{user:u}}=auth;user=u;if(!user){location.href='prelaunch.html?mode=login&next=creator.html';return}msg('Loading creator membership…');const mr=await withTimeout(sb.from('members').select('id').eq('user_id',user.id).maybeSingle(),10000,'Membership lookup');if(mr.error||!mr.data){msg('Creator membership record was not found.');return}msg('Loading creator profile…');let cr=await withTimeout(sb.from('creators').select('id,name,display_name,avatar_url,is_active').eq('member_id',mr.data.id).maybeSingle(),10000,'Creator profile lookup');
+(()=>{const sb=window.CROW_PODCASTING||null,$=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));let user=null,creator=null,shows=[],activeShow=null,episodes=[];const msg=t=>{const e=$('#studioMsg');if(e)e.textContent=t||''};const withTimeout=(promise,ms,label)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+' timed out. Please refresh and try again.')),ms))]);async function waitForAccount(){
+  if(window.CrowAccount?.isSignedIn()) return window.CrowAccount.get();
+  if(window.CrowAccount?.onChange){
+    return await new Promise(resolve=>{
+      const off=window.CrowAccount.onChange(state=>{if(!state.loading){off();resolve(state)}});
+      setTimeout(()=>{off();resolve(window.CrowAccount.get())},10000);
+    });
+  }
+  return null;
+}
+async function boot(){await waitForAccount();if(!sb){location.href='prelaunch.html?mode=login&next=creator.html';return}msg('Authenticating creator account…');const auth=await withTimeout(sb.auth.getUser(),10000,'Authentication');const{data:{user:u}}=auth;user=u;if(!user){location.href='prelaunch.html?mode=login&next=creator.html';return}msg('Loading creator membership…');const mr=await withTimeout(sb.from('members').select('id').eq('user_id',user.id).maybeSingle(),10000,'Membership lookup');if(mr.error||!mr.data){msg('Creator membership record was not found.');return}msg('Loading creator profile…');let cr=await withTimeout(sb.from('creators').select('id,name,display_name,avatar_url,is_active').eq('member_id',mr.data.id).maybeSingle(),10000,'Creator profile lookup');
 if(!cr.data&&!cr.error){
   msg('Preparing your creator workspace…');
   const er=await withTimeout(sb.rpc('ensure_podcasting_creator'),10000,'Creator workspace setup');
