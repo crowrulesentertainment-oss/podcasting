@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05050a">
+<meta name="description" content="CrowRules Podcasting show page — discover episodes, listen, follow, comment and connect with creators.">
+<title>CrowRules Podcasting — Show</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<style>
+:root{--cr-bg:#05050a;--cr-panel:rgba(13,15,25,.94);--cr-line:rgba(167,139,250,.22);--cr-cyan:#61e8ff;--cr-purple:#a78bfa;--cr-pink:#ff6fd8;--cr-gold:#ffd36b;--cr-text:#f7f5ff;--cr-muted:#9d9bad}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 12% 0%,rgba(97,232,255,.10),transparent 30%),radial-gradient(circle at 88% 8%,rgba(167,139,250,.13),transparent 34%),linear-gradient(180deg,#07070d,#030308 75%);color:var(--cr-text);font-family:Montserrat,system-ui,sans-serif}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px);background-size:100% 5px;opacity:.18}
+.shell{width:min(1180px,94vw);margin:auto}
+.show-shell{padding:30px 0 110px}
+.show-loading{min-height:65vh;display:grid;place-items:center}
+.show-loading .card{max-width:600px;width:100%;text-align:center}
+#app main>.shell{width:min(1180px,94vw)}
+.topbar{position:sticky!important;top:0;z-index:50;background:rgba(5,5,10,.82)!important;backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.06)}
+.card{background:var(--cr-panel)!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:18px!important;box-shadow:0 25px 80px rgba(0,0,0,.30)}
+.hero{gap:30px!important;align-items:center!important;padding:30px 0 35px!important}
+.hero>div:first-child{flex:1}
+.hero h1{font-family:Orbitron,monospace!important;font-size:clamp(36px,6vw,72px)!important;line-height:1.02!important;margin:8px 0 18px!important;letter-spacing:-.03em}
+.hero h1,.section-head h2,.card h2{color:var(--cr-text)}
+.eyebrow{font-family:Orbitron,monospace!important;color:var(--cr-cyan)!important;letter-spacing:.16em!important;font-size:9px!important;font-weight:800}
+.muted{color:var(--cr-muted)!important;line-height:1.75}
+.hero-art{width:min(34vw,330px)!important;height:min(34vw,330px)!important;object-fit:contain!important;border-radius:22px!important;border:1px solid var(--cr-line);background:rgba(255,255,255,.025);padding:15px;box-shadow:0 0 60px rgba(167,139,250,.10)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0 25px}
+.stat{padding:17px;border:1px solid rgba(255,255,255,.07);border-radius:14px;background:rgba(255,255,255,.025)}
+.stat strong{font:700 22px Orbitron;color:var(--cr-cyan)}
+.stat small{display:block;color:var(--cr-muted);margin-top:5px;font-size:8px;font-weight:800;letter-spacing:.08em}
+.section{margin-top:20px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:15px}
+.section-head h2{font-family:Orbitron,monospace;margin:0;font-size:18px}
+.section-head a{color:var(--cr-cyan);font-size:9px;font-weight:800}
+.list{display:grid;gap:8px}
+.row{display:flex!important;align-items:center;gap:14px;padding:15px!important;border:1px solid rgba(255,255,255,.06);border-radius:12px;background:rgba(255,255,255,.018);transition:.2s}
+.row:hover{border-color:var(--cr-line);transform:translateY(-1px)}
+.row-main{min-width:0;flex:1}
+.row-main b{display:block;font-size:12px;margin-bottom:5px}
+.row-main small{display:block;color:var(--cr-muted);font-size:9px;line-height:1.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn{border:1px solid var(--cr-line)!important;border-radius:10px!important;padding:10px 13px!important;background:rgba(255,255,255,.025)!important;color:#fff!important;font-size:8px!important;font-weight:800!important;letter-spacing:.08em;cursor:pointer}
+.btn.primary{background:linear-gradient(135deg,rgba(97,232,255,.13),rgba(167,139,250,.18))!important}
+.notice{border:1px solid rgba(97,232,255,.13)!important;background:rgba(97,232,255,.035)!important;color:var(--cr-muted)!important;border-radius:12px!important;padding:15px!important;font-size:10px;line-height:1.7}
+.input{width:100%;border:1px solid rgba(255,255,255,.10);background:#090a12;color:#fff;border-radius:10px;padding:12px;margin:8px 0 12px;outline:none}
+.input:focus{border-color:var(--cr-purple)}
+#commentForm{margin-top:14px}
+#commentForm .btn{margin-top:5px}
+.player{position:fixed!important;left:50%;bottom:16px;transform:translate(-50%,120px);z-index:100;width:min(920px,92vw);padding:12px 15px!important;border:1px solid var(--cr-line)!important;border-radius:16px!important;background:rgba(8,8,15,.95)!important;backdrop-filter:blur(20px);box-shadow:0 20px 70px rgba(0,0,0,.45);transition:.25s}
+.player.on{transform:translate(-50%,0)}
+.player b{display:block;font:600 10px Orbitron;margin-bottom:6px;color:var(--cr-cyan)}
+.player audio{width:100%}
+.footer{border-top:1px solid rgba(255,255,255,.06)!important;color:var(--cr-muted)!important;padding:25px 0!important;font-size:8px!important;letter-spacing:.08em}
+@media(max-width:800px){.hero{display:block!important}.hero-art{display:block;margin:25px auto 0;width:min(75vw,300px)!important;height:min(75vw,300px)!important}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.stats{grid-template-columns:1fr 1fr}.row{align-items:flex-start!important}.row .btn{padding:9px!important}}
+</style>
+</head>
+<body>
+<div id="app">
+<main class="show-loading">
+<div class="card">
+<div class="eyebrow">CROWRULES PODCASTING</div>
+<h1 style="font-family:Orbitron">LOADING SHOW…</h1>
+<p class="muted">Connecting to the CrowRules podcast universe.</p>
+</div>
+</main>
+</div>
+<script>window.CRPage="show";</script>
+<script src="js/podcasting.js"></script>
+</body>
+</html>
