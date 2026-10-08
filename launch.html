@@ -5,266 +5,94 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#05070d">
 <meta name="color-scheme" content="dark">
-<title>CrowRules Podcasting — Launch</title>
-<meta name="description" content="CrowRules Podcasting launches January 1, 2027. Join the launch interest list."><link rel="stylesheet" href="css/podcasting.css"><script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="config.js" defer></script><script src="js/podcasting.js" defer></script>
+<title>CrowRules Podcasting — Pre-Launch</title>
+<meta name="description" content="CrowRules Podcasting launches January 1, 2027. Join the launch list and help shape the next CrowRules experience.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#05070d;--panel:rgba(9,13,22,.9);--line:rgba(255,255,255,.1);--cyan:#67e8f9;--purple:#a78bfa;--text:#f5f7fb;--muted:#8e99ad}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-family:Montserrat,Arial,sans-serif;overflow-x:hidden}
-.launch-bg{position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 50% 8%,#142039 0,transparent 42%),radial-gradient(circle at 85% 70%,rgba(167,139,250,.09),transparent 35%),#05070d}
-.launch-bg:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 0,rgba(5,7,13,.2) 45%,#05070d 100%)}
-#stars{position:absolute;inset:0;width:100%;height:100%}
-.launch-main{min-height:100vh;display:grid;place-items:center;padding:42px 16px}
-.wrap{width:min(820px,100%);margin:auto}
-.hero{text-align:center;padding:20px 0 30px}
-.brand{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;margin:0 auto 26px;width:100%}
-.brand img{display:block;width:clamp(150px,24vw,220px);height:clamp(150px,24vw,220px);object-fit:contain;filter:drop-shadow(0 0 28px rgba(103,232,249,.34));margin:0 auto}
-.brand-name{font:800 clamp(12px,2vw,17px) Orbitron,sans-serif;letter-spacing:.18em;text-align:center}
-.brand-name b{color:var(--cyan)}
-.eyebrow{font:700 9px Orbitron,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#7ddff0}
-.hero h1{font:900 clamp(38px,8vw,78px)/.98 Orbitron,sans-serif;margin:14px 0;background:linear-gradient(100deg,#fff 10%,#bdeff7 55%,#bba7ff 95%);-webkit-background-clip:text;background-clip:text;color:transparent}
-.launch-date{font:600 10px Orbitron,sans-serif;letter-spacing:.14em;color:#aeb7c7}.launch-note{margin-top:9px;color:#7f8ba0;font-size:8px;letter-spacing:.11em;text-transform:uppercase}
-.countdown{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:800px;margin:34px auto 14px}
-.unit{padding:21px 10px 17px;border:1px solid var(--line);border-radius:16px;background:rgba(8,12,20,.92);box-shadow:inset 0 1px rgba(255,255,255,.04)}
-.num{font:800 clamp(30px,5vw,62px)/1 Orbitron,sans-serif}
-.label{margin-top:8px;color:#737f94;font-size:7px;letter-spacing:.22em;text-transform:uppercase}
-.status{display:inline-flex;align-items:center;color:#8792a5;font-size:8px;letter-spacing:.16em;text-transform:uppercase}
-.status-dot{width:7px;height:7px;border-radius:50%;margin-right:8px;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
-.panel{padding:24px;border:1px solid var(--line);border-radius:20px;background:var(--panel);backdrop-filter:blur(14px);box-shadow:0 20px 60px rgba(0,0,0,.18)}
-.interest{text-align:center}
-.posts-panel{margin-top:16px;text-align:left}
-.posts-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:14px}
-.posts-intro{margin:8px 0 0;color:var(--muted);font-size:10px;line-height:1.6}
-.posts-link,.posts-fallback a{color:var(--cyan);font:800 7px Orbitron,sans-serif;letter-spacing:.12em;text-decoration:none;white-space:nowrap}
-.posts-link:hover,.posts-fallback a:hover{text-decoration:underline}
-.posts-frame-wrap{position:relative;min-height:230px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#060912}
-.kit-card{display:grid;place-items:center;text-align:center;padding:34px 22px}
-.posts-fallback-title{font:800 10px Orbitron,sans-serif;letter-spacing:.18em}
-.kit-status{margin:12px auto 18px!important;max-width:560px}
-.kit-open-button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border:1px solid rgba(103,232,249,.35);border-radius:999px;background:rgba(103,232,249,.08);color:var(--cyan);font:800 7px Orbitron,sans-serif;letter-spacing:.12em;text-decoration:none}
-.kit-open-button:hover{background:rgba(103,232,249,.14)}
-.kit-note{max-width:620px;margin-top:18px;color:#68758b;font-size:8px;line-height:1.7}
-.section-title{font:800 10px Orbitron,sans-serif;letter-spacing:.2em;text-transform:uppercase}
-.interest-number{font:800 clamp(30px,4vw,46px) Orbitron,sans-serif;margin-top:12px;background:linear-gradient(110deg,#fff,var(--cyan),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
-.interest-sub{font-size:8px;letter-spacing:.12em;color:#737d94;margin-top:6px;min-height:12px}
-.choices{display:flex;justify-content:center;gap:8px;margin-top:16px}
-.choices button{padding:11px 17px;border-radius:999px;border:1px solid var(--line);background:#080c16;color:#aeb6ca;font:700 7px Montserrat;letter-spacing:.12em;cursor:pointer;transition:.2s}
-.choices button:hover,.choices button.selected{border-color:#67e8f966;color:#dffcff;background:#67e8f912}
-.live{display:none;text-align:center}
-.is-live .countdown,.is-live .status,.is-live .interest{display:none}
-.is-live .live{display:block}
-.live h2{font:900 clamp(48px,10vw,96px) Orbitron,sans-serif;margin:10px 0;background:linear-gradient(110deg,#fff,var(--cyan),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
-.live p{color:var(--muted);font-size:11px}
-@media(max-width:620px){.posts-head{align-items:flex-start;flex-direction:column}.posts-link{white-space:normal}.posts-frame-wrap{min-height:220px}.launch-main{padding:30px 12px}.hero{padding-top:10px}.brand img{width:clamp(140px,48vw,190px);height:clamp(140px,48vw,190px)}.brand{flex-direction:column}.countdown{grid-template-columns:repeat(2,1fr);margin-top:27px}.panel{padding:20px}.launch-date{line-height:1.7}.choices button{flex:1;max-width:160px}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-</style>
-<link rel="preload" as="image" href="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/sign/images/podcastinglogo.png?token=eyJraWQiOiI5Yzg1OGE1OS1lOTQ3LTQwZjYtYWUwYS0zNDA3MWZlZjIyNmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJpbWFnZXMvcG9kY2FzdGluZ2xvZ28ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MTIxMjY2MiwiZXhwIjoxOTQ4ODkyNjYyfQ.BKJBftIQ8-xRMhaC0yLHVXCyoS4YNQDrjdIrDwHW7v8jE6nZ8GRscpsVZ1TrmAnSBpTJQqx-disdr5xilI862A" fetchpriority="high" data-crow-podcasting-logo-preload>
-<link rel="stylesheet" href="css/podcasting-v1.css?v=20261005-v1.0.0" data-crow-v1-css>
+<link rel="stylesheet" href="css/podcasting.css">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="js/config.js?v=20261005-v1.0.0" defer data-crow-v1-config></script>
-<script src="js/podcasting-v1.js?v=20261005-v1.0.0" defer data-crow-v1-js></script>
-<link rel="stylesheet" href="css/podcasting-v8.css?v=20261007-v8.0.0"><script src="js/podcasting-v8.js?v=20261007-v8.0.0" defer></script></head>
-<body class="cr-halloween-theme"><div class="launch-bg" aria-hidden="true"><canvas id="stars"></canvas></div>
-<main class="launch-main" id="launchPage"><div style="position:fixed;top:18px;left:18px;right:18px;z-index:50;display:flex;justify-content:center;gap:8px;flex-wrap:wrap"><a href="home.html" style="padding:10px 14px;border:1px solid rgba(103,232,249,.3);border-radius:999px;background:rgba(8,12,20,.9);color:#67e8f9;text-decoration:none;font:800 8px Orbitron">PLATFORM</a><a href="listener.html" style="padding:10px 14px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:rgba(8,12,20,.9);color:#fff;text-decoration:none;font:800 8px Orbitron">LISTENER</a><a href="creator.html" style="padding:10px 14px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:rgba(8,12,20,.9);color:#fff;text-decoration:none;font:800 8px Orbitron">CREATOR</a><a href="login.html" style="padding:10px 14px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:rgba(8,12,20,.9);color:#fff;text-decoration:none;font:800 8px Orbitron">SIGN IN</a><a href="signup.html" style="padding:10px 14px;border:1px solid rgba(167,139,250,.35);border-radius:999px;background:rgba(167,139,250,.1);color:#fff;text-decoration:none;font:800 8px Orbitron">JOIN</a></div><div class="wrap">
+<script src="config.js" defer></script>
+<style>
+:root{--bg:#05070d;--panel:rgba(9,13,23,.84);--panel2:rgba(13,18,31,.72);--line:rgba(255,255,255,.11);--cyan:#67e8f9;--purple:#a78bfa;--pink:#f472b6;--green:#6ee7b7;--text:#f7f9fc;--muted:#94a0b4}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-family:Montserrat,Arial,sans-serif;overflow-x:hidden}
+button,a{font:inherit}.launch-bg{position:fixed;inset:0;z-index:-2;overflow:hidden;background:radial-gradient(circle at 50% 5%,rgba(103,232,249,.12),transparent 34%),radial-gradient(circle at 85% 65%,rgba(167,139,250,.12),transparent 36%),radial-gradient(circle at 15% 80%,rgba(244,114,182,.07),transparent 32%),#05070d}
+.launch-bg:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:52px 52px;mask-image:linear-gradient(to bottom,black,transparent 85%)}
+.launch-bg:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 0%,rgba(5,7,13,.15) 48%,#05070d 100%)}
+#stars{position:absolute;inset:0;width:100%;height:100%}
+.launch-main{min-height:100vh;padding:38px 16px 64px}.wrap{width:min(920px,100%);margin:auto}
+.hero{text-align:center;padding:12px 0 26px}.brand{display:flex;flex-direction:column;align-items:center;gap:13px;margin:0 auto 28px}.brand img{display:block;width:clamp(150px,24vw,230px);height:clamp(150px,24vw,230px);object-fit:contain;filter:drop-shadow(0 0 34px rgba(103,232,249,.34));border-radius:18px}.brand-name{font:800 clamp(11px,2vw,17px) Orbitron,sans-serif;letter-spacing:.18em}.brand-name b{color:var(--cyan)}
+.eyebrow{font:700 9px Orbitron,sans-serif;letter-spacing:.3em;text-transform:uppercase;color:#8be9f5}.hero h1{font:900 clamp(38px,8vw,78px)/.98 Orbitron,sans-serif;margin:14px 0 18px;background:linear-gradient(100deg,#fff 10%,#bdeff7 55%,#c4b5fd 95%);-webkit-background-clip:text;background-clip:text;color:transparent}.hero-copy{max-width:700px;margin:0 auto;color:var(--muted);font-size:clamp(12px,2vw,15px);line-height:1.75}
+.launch-date{font:700 clamp(10px,1.8vw,13px) Orbitron,sans-serif;letter-spacing:.12em;color:#d8deea;margin-top:25px}.launch-note{margin-top:8px;color:#6f7b91;font-size:8px;letter-spacing:.1em;text-transform:uppercase}
+.countdown{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:820px;margin:30px auto 12px}.unit{padding:22px 10px 18px;border:1px solid var(--line);border-radius:17px;background:rgba(8,12,20,.88);box-shadow:inset 0 1px rgba(255,255,255,.04),0 15px 40px rgba(0,0,0,.15)}.num{font:800 clamp(30px,5vw,62px)/1 Orbitron,sans-serif}.label{margin-top:8px;color:#778398;font-size:7px;letter-spacing:.22em;text-transform:uppercase}.status{display:inline-flex;align-items:center;color:#8995a8;font-size:8px;letter-spacing:.16em;text-transform:uppercase}.status-dot{width:7px;height:7px;border-radius:50%;margin-right:8px;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.panel{padding:28px;border:1px solid var(--line);border-radius:22px;background:var(--panel);backdrop-filter:blur(15px);box-shadow:0 22px 70px rgba(0,0,0,.18);margin-top:16px}.section-title{font:800 10px Orbitron,sans-serif;letter-spacing:.2em;text-transform:uppercase}.panel-intro{margin:8px 0 0;color:var(--muted);font-size:11px;line-height:1.7}
+.interest{text-align:center}.interest-number{font:800 clamp(34px,5vw,52px) Orbitron,sans-serif;margin-top:14px;background:linear-gradient(110deg,#fff,var(--cyan),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}.interest-sub{font-size:8px;letter-spacing:.1em;color:#778398;margin-top:6px;min-height:13px}.choices{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:18px}.choices button{min-width:150px;padding:12px 18px;border-radius:999px;border:1px solid var(--line);background:#080c16;color:#b9c3d4;font:800 8px Montserrat;letter-spacing:.1em;cursor:pointer;transition:.2s}.choices button:hover,.choices button.selected{border-color:rgba(103,232,249,.5);color:#e5fcff;background:rgba(103,232,249,.08);box-shadow:0 0 20px rgba(103,232,249,.08)}.choices button:disabled{opacity:.55;cursor:wait}
+.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}.feature{padding:21px;border:1px solid var(--line);border-radius:17px;background:var(--panel2)}.feature-icon{font:800 16px Orbitron,sans-serif;color:var(--cyan);margin-bottom:12px}.feature h2{font:800 11px Orbitron,sans-serif;letter-spacing:.08em;margin:0 0 8px}.feature p{margin:0;color:var(--muted);font-size:10px;line-height:1.65}
+.posts-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px}.posts-link,.action{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}.posts-link{color:var(--cyan);font:800 8px Orbitron,sans-serif;letter-spacing:.1em;white-space:nowrap}.posts-frame{margin-top:18px;min-height:190px;display:grid;place-items:center;text-align:center;padding:28px;border:1px solid var(--line);border-radius:16px;background:rgba(5,9,16,.68)}.kit-title{font:800 12px Orbitron,sans-serif;letter-spacing:.18em}.kit-status{margin:10px auto 17px;color:var(--muted);font-size:10px;line-height:1.6}.action{padding:12px 18px;border-radius:999px;border:1px solid rgba(103,232,249,.35);background:rgba(103,232,249,.07);color:var(--cyan);font:800 8px Orbitron,sans-serif;letter-spacing:.1em}.action:hover{background:rgba(103,232,249,.13)}.kit-note{max-width:620px;margin:15px auto 0;color:#69768b;font-size:8px;line-height:1.65}
+.next-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}.next-card{padding:22px;border:1px solid var(--line);border-radius:17px;background:var(--panel2)}.next-card h2{font:800 11px Orbitron,sans-serif;letter-spacing:.12em;margin:0 0 9px}.next-card p{margin:0 0 16px;color:var(--muted);font-size:10px;line-height:1.65}.action.secondary{border-color:var(--line);background:rgba(255,255,255,.03);color:#d8deea}
+.footer{text-align:center;padding:30px 0 0;color:#5e6a7e;font-size:8px;letter-spacing:.12em;text-transform:uppercase}.live{display:none;text-align:center}.is-live .countdown,.is-live .status,.is-live .interest{display:none}.is-live .live{display:block}.live h2{font:900 clamp(48px,10vw,96px) Orbitron,sans-serif;margin:10px 0;background:linear-gradient(110deg,#fff,var(--cyan),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}.live p{color:var(--muted);font-size:12px}
+@media(max-width:700px){.feature-grid,.next-grid{grid-template-columns:1fr}.posts-head{align-items:flex-start;flex-direction:column}.posts-link{white-space:normal}.panel{padding:21px}.launch-main{padding:28px 12px 48px}.countdown{grid-template-columns:repeat(2,1fr);margin-top:25px}.brand img{width:clamp(140px,48vw,190px);height:clamp(140px,48vw,190px)}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="launch-bg" aria-hidden="true"><canvas id="stars"></canvas></div>
+<main class="launch-main" id="launchPage">
+<div class="wrap">
 <section class="hero" aria-labelledby="launch-title">
-<div class="brand">
-<img src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/sign/images/podcastinglogo.png?token=eyJraWQiOiI5Yzg1OGE1OS1lOTQ3LTQwZjYtYWUwYS0zNDA3MWZlZjIyNmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJpbWFnZXMvcG9kY2FzdGluZ2xvZ28ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MTIxMjY2MiwiZXhwIjoxOTQ4ODkyNjYyfQ.BKJBftIQ8-xRMhaC0yLHVXCyoS4YNQDrjdIrDwHW7v8jE6nZ8GRscpsVZ1TrmAnSBpTJQqx-disdr5xilI862A" alt="CrowRules Podcasting logo" width="220" height="220" decoding="async" fetchpriority="high">
-<span class="brand-name">CROWRULES <b>/</b> PODCASTING</span>
-</div>
+<div class="brand"><img id="podcastLogo" src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/sign/images/podcastinglogo.png?token=eyJraWQiOiI5Yzg1OGE1OS1lOTQ3LTQwZjYtYWUwYS0zNDA3MWZlZjIyNmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJpbWFnZXMvcG9kY2FzdGluZ2xvZ28ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MTIxMjY2MiwiZXhwIjoxOTQ4ODkyNjYyfQ.BKJBftIQ8-xRMhaC0yLHVXCyoS4YNQDrjdIrDwHW7v8jE6nZ8GRscpsVZ1TrmAnSBpTJQqx-disdr5xilI862A" alt="CrowRules Podcasting logo" width="230" height="230" decoding="async" fetchpriority="high"><span class="brand-name">CROWRULES <b>/</b> PODCASTING</span></div>
 <div class="eyebrow">THE NEXT TRANSMISSION IS APPROACHING</div>
 <h1 id="launch-title">THE COUNTDOWN<br>HAS BEGUN</h1>
-<div class="launch-date">TARGET LAUNCH: JANUARY 1, 2027 • 12:00 AM PACIFIC</div>
-<div class="launch-note">CURRENT COUNTDOWN TARGET — THE LAUNCH MAY HAPPEN SOONER.</div>
-<div class="countdown" aria-label="Countdown to CrowRules Podcasting launch">
-<div class="unit"><div class="num" id="days">000</div><div class="label">Days</div></div>
-<div class="unit"><div class="num" id="hours">00</div><div class="label">Hours</div></div>
-<div class="unit"><div class="num" id="minutes">00</div><div class="label">Minutes</div></div>
-<div class="unit"><div class="num" id="seconds">00</div><div class="label">Seconds</div></div>
-</div>
+<p class="hero-copy">A new home for podcasts inside the CrowRules universe — built for listeners who want to discover and connect, and creators who want a place to build, publish, and grow.</p>
+<div class="launch-date">TARGET LAUNCH • JANUARY 1, 2027 • 12:00 AM PACIFIC</div>
+<div class="launch-note">The countdown is synchronized to the official CrowRules Podcasting launch target.</div>
+<div class="countdown" aria-label="Countdown to CrowRules Podcasting launch"><div class="unit"><div class="num" id="days">000</div><div class="label">Days</div></div><div class="unit"><div class="num" id="hours">00</div><div class="label">Hours</div></div><div class="unit"><div class="num" id="minutes">00</div><div class="label">Minutes</div></div><div class="unit"><div class="num" id="seconds">00</div><div class="label">Seconds</div></div></div>
 <div class="status"><i class="status-dot" aria-hidden="true"></i><span id="statusText">COUNTDOWN ACTIVE</span></div>
 </section>
 
 <section class="panel interest" aria-labelledby="interest-title">
-<div class="section-title" id="interest-title">Launch Interest</div>
+<div class="section-title" id="interest-title">JOIN THE PRE-LAUNCH</div>
+<p class="panel-intro">Tell us whether you're interested in CrowRules Podcasting. Your choice is stored through the existing launch-interest system.</p>
 <div class="interest-number" id="interestCount">—</div>
 <div class="interest-sub" id="interestSub">CONNECTING TO LAUNCH CONTROL…</div>
-<div class="choices">
-<button id="interestYes" type="button">YES — I'M IN</button>
-<button id="interestNo" type="button">NOT YET</button>
-</div>
+<div class="choices"><button id="interestYes" type="button">YES — I'M IN</button><button id="interestNo" type="button">NOT YET</button></div>
 </section>
 
-<section class="panel posts-panel" aria-labelledby="posts-title">
-<div class="posts-head">
-<div>
-<div class="section-title" id="posts-title">CrowRules Posts</div>
-<p class="posts-intro">Latest CrowRules Entertainment updates are published through Kit.</p>
-</div>
-<a class="posts-link" href="https://crowrules-entertainment.kit.com/profile/posts" target="_blank" rel="noopener noreferrer" id="kitPostsLink">OPEN KIT POSTS ↗</a>
-</div>
-<div class="posts-frame-wrap kit-card" id="kitPostsCard">
-<div class="posts-fallback-title">CROWRULES / KIT</div>
-<p class="posts-intro kit-status" id="kitStatus">OPENING THE PUBLIC CROWRULES POSTS FEED…</p>
-<a class="kit-open-button" href="https://crowrules-entertainment.kit.com/profile/posts" target="_blank" rel="noopener noreferrer">VIEW CROWRULES POSTS ↗</a>
-<div class="kit-note">Kit's public Posts page is kept as a direct secure link instead of an iframe so browser frame/security policies cannot break the launch page.</div>
-</div>
+<section class="feature-grid" aria-label="CrowRules Podcasting experiences">
+<article class="feature"><div class="feature-icon">01</div><h2>LISTEN</h2><p>Discover shows, follow podcasts, build a listening queue, and join episode conversations.</p></article>
+<article class="feature"><div class="feature-icon">02</div><h2>CREATE</h2><p>Creators get a dedicated home for podcasts, episodes, publishing, live tools, and audience growth.</p></article>
+<article class="feature"><div class="feature-icon">03</div><h2>CONNECT</h2><p>Profiles, rankings, comments, subscriptions, and community features bring the universe together.</p></article>
 </section>
 
-<section class="live" aria-live="polite">
-<div class="eyebrow">TRANSMISSION ESTABLISHED</div>
-<h2>WE'RE LIVE.</h2>
-<p>CrowRules Podcasting has entered the universe.</p>
+<section class="panel" aria-labelledby="posts-title">
+<div class="posts-head"><div><div class="section-title" id="posts-title">CROWRULES UPDATES</div><p class="panel-intro">Follow the latest CrowRules Entertainment posts and pre-launch announcements.</p></div><a class="posts-link" href="https://crowrules-entertainment.kit.com/profile/posts" target="_blank" rel="noopener noreferrer">OPEN KIT POSTS ↗</a></div>
+<div class="posts-frame"><div><div class="kit-title">CROWRULES / KIT</div><div class="kit-status" id="kitStatus">PUBLIC POSTS FEED READY</div><a class="action" href="https://crowrules-entertainment.kit.com/profile/posts" target="_blank" rel="noopener noreferrer">VIEW CROWRULES POSTS ↗</a><div class="kit-note">The public Kit feed opens directly in a new tab. This avoids iframe and browser security-policy failures while keeping the launch page reliable.</div></div></div>
 </section>
+
+<section class="next-grid" aria-label="Next steps">
+<article class="next-card"><h2>EXPLORE THE PLATFORM</h2><p>See the two-sided Podcasting experience as it is being built: Listener Experience and Creator Experience.</p><a class="action secondary" href="home.html">EXPLORE PODCASTING</a></article>
+<article class="next-card"><h2>RETURN TO PRE-LAUNCH</h2><p>Visit the dedicated pre-launch hub for the latest preparation and launch information.</p><a class="action secondary" href="pre-launch/index.html">OPEN PRE-LAUNCH HUB</a></article>
+</section>
+
+<section class="live" aria-live="polite"><div class="eyebrow">TRANSMISSION ESTABLISHED</div><h2>WE'RE LIVE.</h2><p>CrowRules Podcasting has entered the universe.</p></section>
+<footer class="footer">ONE COMPANY. ONE UNIVERSE. · CROWRULES PODCASTING · 2027</footer>
 </div>
 </main>
-
 <script>
 (()=>{"use strict";
-const $=id=>document.getElementById(id);
-const TARGET=Date.UTC(2027,0,1,8,0,0);
-const page=$("launchPage");
-let countdownTimer=null,lastTick=-1,client=null;
-
-function tick(){
- const remaining=TARGET-Date.now();
- if(remaining<=0){
-  page.classList.add("is-live");
-  document.title="CrowRules Podcasting — We're Live";
-  $("statusText").textContent="TRANSMISSION LIVE";
-  if(countdownTimer)clearTimeout(countdownTimer);
-  return;
- }
- const total=Math.floor(remaining/1000);
- if(total!==lastTick){
-  lastTick=total;
-  let n=total;
-  const days=Math.floor(n/86400);n%=86400;
-  const hours=Math.floor(n/3600);n%=3600;
-  const minutes=Math.floor(n/60),seconds=n%60;
-  $("days").textContent=String(days).padStart(3,"0");
-  $("hours").textContent=String(hours).padStart(2,"0");
-  $("minutes").textContent=String(minutes).padStart(2,"0");
-  $("seconds").textContent=String(seconds).padStart(2,"0");
-  $("statusText").textContent=days<30?"FINAL APPROACH":"COUNTDOWN ACTIVE";
- }
- countdownTimer=setTimeout(tick,1000-(Date.now()%1000));
-}
-
-async function getClient(){
- if(client)return client;
- if(window.CROW_SUPABASE)return client=window.CROW_SUPABASE;
- if(window.supabase?.createClient){
-  client=window.supabase.createClient(
-   "https://cevylpnoexugwgygvtgu.supabase.co",
-   "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-",
-   {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
-  );
-  return client;
- }
- if(window.CROW_CONFIG_CLIENT_READY){
-  client=await Promise.race([window.CROW_CONFIG_CLIENT_READY,new Promise((_,r)=>setTimeout(()=>r(new Error("Supabase client timed out")),12000))]);
-  return client;
- }
- throw new Error("Supabase client library is unavailable.");
-}
-function visitorId(){
- let id=localStorage.getItem("crowrules_launch_visitor");
- if(!id){
-  id=crypto.randomUUID?crypto.randomUUID():"00000000-0000-4000-8000-"+Math.random().toString(16).slice(2,14).padEnd(12,"0");
-  localStorage.setItem("crowrules_launch_visitor",id);
- }
- return id;
-}
-async function identity(){
- return visitorId();
-}
-async function refreshInterest(){
- try{
-  const c=await getClient(),id=await identity();
-  const [stateResult,countResult]=await Promise.all([
-   Promise.race([
-    c.rpc("podcast_launch_interest_state",{p_visitor_id:id}),
-    new Promise((_,r)=>setTimeout(()=>r(new Error("Interest state timed out")),7000))
-   ]),
-   Promise.race([
-    c.rpc("podcast_launch_interest_count"),
-    new Promise((_,r)=>setTimeout(()=>r(new Error("Interest count timed out")),7000))
-   ])
-  ]);
-  if(stateResult.error)throw stateResult.error;
-  if(countResult.error)throw countResult.error;
-  const state=stateResult.data||{};
-  const count=Number(countResult.data??state.count??0);
-  $("interestCount").textContent=count.toLocaleString();
-  $("interestSub").textContent=state.interested===true?"LIVE • YOU'RE TRACKED AS INTERESTED":state.interested===false?"LIVE • YOU'RE NOT TRACKED AS INTERESTED":"LIVE • TRACKING LAUNCH INTEREST";
-  $("interestYes").classList.toggle("selected",state.interested===true);
-  $("interestNo").classList.toggle("selected",state.interested===false);
- }catch(error){
-  console.warn("[CrowRules Launch] interest",error);
-  $("interestSub").textContent="LAUNCH INTEREST CONNECTION UNAVAILABLE — RETRYING…";
- }
-}
-async function updateInterest(interested){
- try{
-  const c=await getClient(),id=await identity();
-  $("interestYes").disabled=true;
-  $("interestNo").disabled=true;
-  const result=await Promise.race([
-   c.rpc("set_podcast_launch_interest",{p_visitor_id:id,p_interested:interested}),
-   new Promise((_,r)=>setTimeout(()=>r(new Error("Interest update timed out")),7000))
-  ]);
-  if(result.error)throw result.error;
-  const countResult=await Promise.race([
-   c.rpc("podcast_launch_interest_count"),
-   new Promise((_,r)=>setTimeout(()=>r(new Error("Interest count timed out")),7000))
-  ]);
-  if(countResult.error)throw countResult.error;
-  $("interestCount").textContent=Number(countResult.data??result.data??0).toLocaleString();
-  $("interestYes").classList.toggle("selected",interested);
-  $("interestNo").classList.toggle("selected",!interested);
-  $("interestSub").textContent=interested?"LIVE • YOU'RE TRACKED AS INTERESTED":"LIVE • YOU'RE NOT TRACKED AS INTERESTED";
- }catch(error){
-  console.warn("[CrowRules Launch] update",error);
-  $("interestSub").textContent="UPDATE FAILED — PLEASE RETRY";
- }finally{
-  $("interestYes").disabled=false;
-  $("interestNo").disabled=false;
- }
-}
-$("interestYes").addEventListener("click",()=>updateInterest(true));
-$("interestNo").addEventListener("click",()=>updateInterest(false));
-addEventListener("online",refreshInterest);
-document.addEventListener("visibilitychange",()=>{if(!document.hidden){lastTick=-1;tick();refreshInterest();}});
-tick();
-setTimeout(refreshInterest,350);
-
-const kitStatus=$("kitStatus"),kitPostsLink=$("kitPostsLink");
-if(kitStatus){
- const url="https://crowrules-entertainment.kit.com/profile/posts";
- kitStatus.textContent="KIT POSTS CONNECTED • PUBLIC FEED READY";
- kitPostsLink?.setAttribute("href",url);
-}
-
-const canvas=$("stars"),ctx=canvas?.getContext("2d");let width=0,height=0,stars=[];
-function resizeStars(){
- if(!canvas||!ctx)return;
- width=innerWidth;height=innerHeight;
- const dpr=Math.min(devicePixelRatio||1,2);
- canvas.width=width*dpr;canvas.height=height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
- stars=Array.from({length:Math.min(220,Math.floor(width*height/6500))},()=>({x:Math.random()*width,y:Math.random()*height,r:Math.random()*1.1+.15,s:Math.random()*.2+.02,a:Math.random()*.5+.1}));
-}
-function drawStars(){
- if(!canvas||!ctx)return;
- ctx.clearRect(0,0,width,height);
- for(const star of stars){star.y-=star.s;if(star.y<0)star.y=height;ctx.beginPath();ctx.arc(star.x,star.y,star.r,0,Math.PI*2);ctx.fillStyle="rgba(220,235,255,"+star.a+")";ctx.fill();}
- requestAnimationFrame(drawStars);
-}
-addEventListener("resize",resizeStars,{passive:true});
-resizeStars();drawStars();
+const $=id=>document.getElementById(id),page=$("launchPage"),TARGET=Date.UTC(2027,0,1,8,0,0);let timer,lastTick=-1,client;
+function tick(){const r=TARGET-Date.now();if(r<=0){page.classList.add("is-live");$("statusText").textContent="TRANSMISSION LIVE";document.title="CrowRules Podcasting — We're Live";if(timer)clearTimeout(timer);return}const t=Math.floor(r/1000);if(t!==lastTick){lastTick=t;let n=t;const d=Math.floor(n/86400);n%=86400;const h=Math.floor(n/3600);n%=3600;const m=Math.floor(n/60),s=n%60;$("days").textContent=String(d).padStart(3,"0");$("hours").textContent=String(h).padStart(2,"0");$("minutes").textContent=String(m).padStart(2,"0");$("seconds").textContent=String(s).padStart(2,"0");$("statusText").textContent=d<30?"FINAL APPROACH":"COUNTDOWN ACTIVE"}timer=setTimeout(tick,1000-(Date.now()%1000))}
+function getVisitorId(){try{let id=localStorage.getItem("crowrules_launch_visitor");if(id)return id;if(crypto?.randomUUID){id=crypto.randomUUID()}else{const a=new Uint8Array(16);crypto.getRandomValues(a);a[6]=(a[6]&15)|64;a[8]=(a[8]&63)|128;id=[...a].map((x,i)=>(i===4||i===6||i===8||i===10?"-":"")+x.toString(16).padStart(2,"0")).join("");}localStorage.setItem("crowrules_launch_visitor",id);return id}catch(e){return null}}
+async function getClient(){if(client)return client;if(window.supabase?.createClient&&window.CROW_CONFIG?.supabaseUrl){client=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});return client}throw new Error("Supabase configuration unavailable")}
+async function rpc(name,args){const c=await getClient();const result=await c.rpc(name,args);if(result.error)throw result.error;return result.data}
+async function refreshInterest(){const id=getVisitorId();if(!id){$("interestSub").textContent="BROWSER STORAGE IS UNAVAILABLE — INTEREST TRACKING DISABLED";return}try{const [state,count]=await Promise.all([rpc("podcast_launch_interest_state",{p_visitor_id:id}),rpc("podcast_launch_interest_count",{})]);const s=state||{};$("interestCount").textContent=Number(count??0).toLocaleString();$("interestYes").classList.toggle("selected",s.interested===true);$("interestNo").classList.toggle("selected",s.interested===false);$("interestSub").textContent=s.interested===true?"LIVE • YOU'RE TRACKED AS INTERESTED":s.interested===false?"LIVE • YOU'RE NOT TRACKED AS INTERESTED":"LIVE • CHOOSE YOUR PRE-LAUNCH STATUS"}catch(e){console.warn("[CrowRules Launch]",e);$("interestSub").textContent="LAUNCH CONTROL TEMPORARILY UNAVAILABLE — RETRYING…"}}
+async function setInterest(value){const id=getVisitorId();if(!id)return;const yes=$("interestYes"),no=$("interestNo");yes.disabled=no.disabled=true;$("interestSub").textContent="UPDATING LAUNCH INTEREST…";try{const count=await rpc("set_podcast_launch_interest",{p_visitor_id:id,p_interested:value});$("interestCount").textContent=Number(count??0).toLocaleString();yes.classList.toggle("selected",value);no.classList.toggle("selected",!value);$("interestSub").textContent=value?"LIVE • YOU'RE TRACKED AS INTERESTED":"LIVE • YOU'RE NOT TRACKED AS INTERESTED"}catch(e){console.warn("[CrowRules Launch]",e);$("interestSub").textContent="UPDATE FAILED — PLEASE TRY AGAIN"}finally{yes.disabled=no.disabled=false}}
+$("interestYes").addEventListener("click",()=>setInterest(true));$("interestNo").addEventListener("click",()=>setInterest(false));addEventListener("online",refreshInterest);document.addEventListener("visibilitychange",()=>{if(!document.hidden){lastTick=-1;tick();refreshInterest()}});tick();setTimeout(refreshInterest,500);
+const logo=$("podcastLogo");addEventListener("load",()=>{if(window.CROW_CONFIG?.logoUrl&&logo&&!logo.complete)logo.src=window.CROW_CONFIG.logoUrl},{once:true});
+const canvas=$("stars"),ctx=canvas?.getContext("2d");let w=0,h=0,stars=[],raf=0;
+function resize(){if(!canvas||!ctx)return;w=innerWidth;h=innerHeight;const d=Math.min(devicePixelRatio||1,2);canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0);stars=Array.from({length:Math.min(220,Math.max(60,Math.floor(w*h/7000)))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.05+.15,s:Math.random()*.18+.02,a:Math.random()*.45+.1}))}
+function animate(){if(!ctx)return;ctx.clearRect(0,0,w,h);for(const s of stars){s.y-=s.s;if(s.y<0)s.y=h;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle="rgba(220,235,255,"+s.a+")";ctx.fill()}raf=requestAnimationFrame(animate)}
+addEventListener("resize",resize,{passive:true});resize();if(!matchMedia("(prefers-reduced-motion: reduce)").matches)animate();else cancelAnimationFrame(raf);
 })();
-</script></body>
+</script>
+</body>
 </html>
