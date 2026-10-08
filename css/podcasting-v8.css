@@ -1,0 +1,21 @@
+/* CrowRules Podcasting Sitewide V8 */
+:root{--cr8-cyan:#67e8f9;--cr8-purple:#a78bfa;--cr8-panel:rgba(7,12,21,.94);--cr8-line:rgba(255,255,255,.10)}
+.cr8-progress{position:fixed;top:0;left:0;width:100%;height:2px;z-index:9999;pointer-events:none;background:transparent}
+.cr8-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cr8-cyan),var(--cr8-purple));box-shadow:0 0 12px var(--cr8-cyan)}
+.cr8-footer{width:min(1240px,calc(100% - 28px));margin:80px auto 125px;padding:24px 0 0;border-top:1px solid var(--cr8-line);color:#7e8aa0;font-size:10px;line-height:1.7}
+.cr8-footer-grid{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start}
+.cr8-footer strong{font:800 11px Orbitron,sans-serif;color:#dfe7f5;letter-spacing:.12em}
+.cr8-footer nav{display:flex;gap:14px;flex-wrap:wrap;justify-content:flex-end}
+.cr8-footer a{color:#93a1b8}.cr8-footer a:hover{color:var(--cr8-cyan)}
+.cr8-toast{position:fixed;right:18px;bottom:98px;z-index:1000;max-width:min(390px,calc(100% - 36px));padding:13px 15px;border:1px solid rgba(103,232,249,.25);border-radius:13px;background:rgba(5,9,16,.96);box-shadow:0 18px 50px #0009;color:#eafcff;font:600 11px Montserrat,sans-serif;opacity:0;transform:translateY(10px);pointer-events:none;transition:.22s}
+.cr8-toast.show{opacity:1;transform:none}
+.cr8-toast[data-kind=error]{border-color:rgba(255,100,130,.35)}
+.cr8-skip{position:fixed;top:8px;left:8px;z-index:10001;transform:translateY(-150%);padding:10px 14px;border-radius:9px;background:#fff;color:#000;font-weight:800}
+.cr8-skip:focus{transform:none}
+.cr8-up{position:fixed;right:16px;bottom:92px;z-index:59;width:38px;height:38px;border:1px solid var(--cr8-line);border-radius:50%;background:rgba(5,9,16,.86);color:var(--cr8-cyan);cursor:pointer;opacity:0;pointer-events:none;transition:.2s}
+.cr8-up.show{opacity:1;pointer-events:auto}
+.cr8-nav-active{color:var(--cr8-cyan)!important}
+.cr8-online{position:fixed;left:14px;bottom:90px;z-index:58;padding:7px 10px;border:1px solid rgba(103,232,249,.18);border-radius:999px;background:rgba(5,9,16,.82);color:#7f8ba0;font:700 7px Orbitron,sans-serif;letter-spacing:.12em}
+.cr8-offline{border-color:rgba(255,170,80,.3);color:#ffbd73}
+@media(max-width:650px){.cr8-footer-grid{grid-template-columns:1fr}.cr8-footer nav{justify-content:flex-start}.cr8-up{bottom:94px}.cr8-online{bottom:91px}}
+@media(prefers-reduced-motion:reduce){.cr8-toast,.cr8-up{transition:none}}
