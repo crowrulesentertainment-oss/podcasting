@@ -44,7 +44,35 @@ function render(){const q=$("search").value.trim().toLowerCase();const view=rows
 $("catalog").innerHTML=view.map(r=>{const title=esc(r.title||r.name||"Untitled podcast");const art=r.artwork_url||r.cover_url||r.image_url||r.logo_url;const tags=[r.category,r.show_format||r.format,status(r)].filter(Boolean).slice(0,3);return '<article class="pod"><div class="art">'+(art?'<img src="'+esc(art)+'" alt="">':'🎙️')+'</div><div><h3>'+title+'</h3><p>'+esc(r.description||"No description yet. Add the show's identity before launch.")+'</p><div class="meta">'+tags.map(t=>'<span class="tag">'+esc(t)+'</span>').join("")+'</div></div><div class="pod-actions"><a class="btn primary" href="episodes.html">EPISODES</a><button class="btn" data-edit="'+esc(r.id||"")+'">MANAGE</button></div></article>'}).join("");
 document.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>alert("Podcast management workspace is ready for this show. Full editing can be added as the podcast schema exposes the editable fields.")));
 }
-async function load(){if(!user)return;const {data,error}=await S.from("podcasts").select("*").limit(200);if(error){$("catalog").innerHTML='<div class="empty">Your account is connected, but the current RLS policy did not return the podcast catalog. You can still use the creator tools.</div>';$("authState").textContent="LIMITED ACCESS";return}rows=(data||[]).filter(r=>own(r,user.id));render()}
+async function load(){
+  if(!user)return;
+  $("catalog").innerHTML='<div class="empty">Loading your podcast catalog…</div>';
+  try{
+    // podcasts.creator_id points to creators.id in this schema. Ownership/management
+    // is represented by podcast_creators.user_id, so do not compare creator_id to auth.uid().
+    const map=await S.from("podcast_creators").select("podcast_id,role,can_manage").eq("user_id",user.id);
+    if(map.error) throw map.error;
+    const managedIds=(map.data||[]).filter(x=>x.can_manage!==false).map(x=>x.podcast_id).filter(Boolean);
+    let data=[], error=null;
+    if(managedIds.length){
+      const result=await S.from("podcasts").select("*").in("id",managedIds).order("created_at",{ascending:false});
+      data=result.data||[]; error=result.error;
+    }else{
+      // Compatibility fallback for older records that stored auth.uid() directly.
+      const result=await S.from("podcasts").select("*").eq("creator_id",user.id).order("created_at",{ascending:false}).limit(200);
+      data=result.data||[]; error=result.error;
+    }
+    if(error) throw error;
+    rows=data;
+    render();
+    $("authState").textContent="ONLINE";
+    $("identity").textContent="• "+(user.email||"Creator account")+" • "+rows.length+" managed show"+(rows.length===1?"":"s");
+  }catch(err){
+    console.error("Podcast catalog load failed:",err);
+    $("catalog").innerHTML='<div class="empty">Your creator account is connected, but the podcast catalog could not be loaded. Check the podcast RLS policies for your account.</div>';
+    $("authState").textContent="CATALOG ERROR";
+  }
+}
 async function create(e){e.preventDefault();if(!S||!user)return;const title=$("title").value.trim();if(!title)return;let slug=slugify(title)+"-"+user.id.replace(/-/g,"").slice(0,8);const {data,error}=await S.from("podcasts").insert({title,slug,category:$("category").value,description:$("description").value.trim()||null,show_format:$("format").value.trim()||null,author_name:(user.user_metadata?.display_name||user.user_metadata?.full_name||user.email?.split("@")[0]||"Creator"),author_email:user.email,status:"draft"}).select("*").single();if(error){$("createPanel").scrollIntoView({behavior:"smooth"});alert("Could not create the podcast. "+error.message);return}rows.push(data);closeCreate();render()}
 async function boot(){if(!window.supabase||!key){$("authState").textContent="CONFIG ERROR";$("catalog").innerHTML='<div class="empty">Supabase configuration is unavailable.</div>';return}try{S=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});const r=await S.auth.getUser();user=r.data.user;if(!user){$("authState").textContent="SIGN IN REQUIRED";$("identity").textContent="• Open your creator account";$("catalog").innerHTML='<div class="empty">Sign in to manage your podcasts.<br><br><a class="btn primary" href="../login.html?redirect=creator/podcasts.html&role=creator">SIGN IN</a></div>';return}
 $("authState").textContent="ONLINE";$("identity").textContent="• "+(user.email||"Creator account");await load();S.auth.onAuthStateChange((ev,s)=>{user=s?.user||null;if(user)load();else{rows=[];render();$("authState").textContent="SIGNED OUT"}})}catch(e){$("authState").textContent="ERROR";$("catalog").innerHTML='<div class="empty">Creator authentication could not be initialized.</div>'}}
