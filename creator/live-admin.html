@@ -37,7 +37,7 @@ const $=id=>document.getElementById(id);
 const cfg=window.CROW_CONFIG||{};
 const url=cfg.supabaseUrl||cfg.supabaseURL||"https://cevylpnoexugwgygvtgu.supabase.co";
 const key=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.publishableKey;
-let db=null,user=null,sessions=[],selected=null,micStream=null,broadcastStream=null,broadcastChannel=null,broadcastActive=false,peerConnections=new Map(),remoteCandidateQueues=new Map(),audioCtx=null,analyser=null,raf=0,recorder=null,recordedChunks=[],recordingStartedAt=null,autoRecorder=null,autoRecordedChunks=[],autoRecordingSessionId=null,autoRecordingMime="",autoRecordingStartedAt=null,autoSavePromise=null;
+let db=null,user=null,sessions=[],selected=null,micStream=null,broadcastStream=null,broadcastChannel=null,broadcastActive=false,peerConnections=new Map(),remoteCandidateQueues=new Map(),audioCtx=null,analyser=null,raf=0,recorder=null,recordedChunks=[],recordingStartedAt=null,autoRecorder=null,autoRecordedChunks=[],autoRecordingSessionId=null,autoRecordingMime="",autoRecordingStartedAt=null,autoSavePromise=null,broadcastAudioContext=null,broadcastAudioNodes=[],processedBroadcastStream=null;
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function msg(id,text,error=false){const el=$(id);el.textContent=text;el.className="message"+(error?" error":" ok")}
 function statusText(s){return String(s||"created").toUpperCase().replace(/_/g," ")}
@@ -140,7 +140,8 @@ async function startAutomaticBroadcastRecording(){
  if(autoRecorder&&autoRecorder.state!=="inactive")return;
  const mimeType=["audio/webm;codecs=opus","audio/webm","audio/mp4"].find(t=>MediaRecorder.isTypeSupported(t))||"";
  autoRecordedChunks=[];autoRecordingSessionId=selected.id;autoRecordingMime=mimeType||"audio/webm";autoRecordingStartedAt=Date.now();
- autoRecorder=new MediaRecorder(broadcastStream,mimeType?{mimeType}:undefined);
+ const recorderOptions={};if(mimeType)recorderOptions.mimeType=mimeType;if(mimeType.includes("opus"))recorderOptions.audioBitsPerSecond=128000;
+ autoRecorder=new MediaRecorder(broadcastStream,Object.keys(recorderOptions).length?recorderOptions:undefined);
  autoRecorder.ondataavailable=e=>{if(e.data&&e.data.size)autoRecordedChunks.push(e.data)};
  autoRecorder.onerror=e=>{msg("controlMessage","Automatic recording error: "+(e.error?.message||"unknown error"),true)};
  autoRecorder.start(1000);
@@ -188,7 +189,15 @@ async function startBroadcast(){
  if(broadcastActive)return;
  try{
   if(!navigator.mediaDevices?.getUserMedia)throw new Error("Microphone access requires HTTPS and browser permission.");
-  broadcastStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  broadcastStream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true,sampleRate:48000,latency:0.02}});
+  // Process voice before it reaches listeners and the automatic recording: remove rumble, even out speech levels, and prevent peaks from clipping.
+  broadcastAudioContext=new (window.AudioContext||window.webkitAudioContext)({sampleRate:48000});await broadcastAudioContext.resume();
+  const sourceNode=broadcastAudioContext.createMediaStreamSource(broadcastStream),highPass=broadcastAudioContext.createBiquadFilter(),compressor=broadcastAudioContext.createDynamicsCompressor(),makeup=broadcastAudioContext.createGain(),limiter=broadcastAudioContext.createDynamicsCompressor(),destination=broadcastAudioContext.createMediaStreamDestination();
+  highPass.type="highpass";highPass.frequency.value=78;highPass.Q.value=0.707;
+  compressor.threshold.value=-23;compressor.knee.value=18;compressor.ratio.value=3.2;compressor.attack.value=0.006;compressor.release.value=0.22;
+  makeup.gain.value=1.12;limiter.threshold.value=-4;limiter.knee.value=3;limiter.ratio.value=12;limiter.attack.value=0.003;limiter.release.value=0.12;
+  sourceNode.connect(highPass);highPass.connect(compressor);compressor.connect(makeup);makeup.connect(limiter);limiter.connect(destination);
+  broadcastAudioNodes=[sourceNode,highPass,compressor,makeup,limiter];processedBroadcastStream=destination.stream;
   broadcastChannel=db.channel("crowrules-live-"+selected.id,{config:{broadcast:{self:false}}});
   broadcastChannel.on("broadcast",{event:"signal"},({payload})=>{handleListenerSignal(payload).catch(e=>setBroadcastInfo("Signaling error: "+e.message,true))});
   await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error("Timed out connecting to signaling.")),10000);broadcastChannel.subscribe(status=>{if(status==="SUBSCRIBED"){clearTimeout(timer);resolve()}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){clearTimeout(timer);reject(new Error("Supabase Realtime channel status: "+status))}})});
@@ -197,14 +206,17 @@ async function startBroadcast(){
   if(error)throw error;
   await startAutomaticBroadcastRecording();
   await loadSessions();selectSession(selected.id);
-  setBroadcastInfo("LIVE BROADCAST ACTIVE · your microphone is being sent to listeners and automatically recorded. When you stop the broadcast, the recording uploads to podcast-live-recordings. Share the listener URL below.");
+  setBroadcastInfo("LIVE · voice processing active (rumble filter, speech compression and peak limiting) · Opus recording at up to 128 kbps. Keep this tab open until the saved recording confirmation appears. Share the listener URL below.");
   msg("controlMessage","Your microphone is now available to listeners who connect to this session.");
- }catch(e){await stopBroadcast();setBroadcastInfo("Could not start live broadcast: "+e.message,true);msg("controlMessage","Broadcast failed: "+e.message,true)}
+ }catch(e){await stopBroadcast();if(selected&&db&&user){await db.from("podcast_live_sessions").update({status:"created",ended_at:null}).eq("id",selected.id).eq("creator_id",user.id).then(()=>loadSessions()).catch(()=>{})}setBroadcastInfo("Could not start live broadcast: "+e.message,true);msg("controlMessage","Broadcast failed: "+e.message,true)}
 }
 async function stopBroadcast(){
  broadcastActive=false;
  if(autoRecorder&&autoRecorder.state!=="inactive"){await stopAndSaveAutomaticRecording()}
  for(const pc of peerConnections.values())pc.close();peerConnections.clear();remoteCandidateQueues.clear();
+ if(processedBroadcastStream){processedBroadcastStream.getTracks().forEach(t=>t.stop());processedBroadcastStream=null}
+ if(broadcastAudioNodes.length){broadcastAudioNodes.forEach(n=>{try{n.disconnect()}catch(e){}});broadcastAudioNodes=[]}
+ if(broadcastAudioContext){await broadcastAudioContext.close().catch(()=>{});broadcastAudioContext=null}
  if(broadcastStream){broadcastStream.getTracks().forEach(t=>t.stop());broadcastStream=null}
  if(broadcastChannel&&db){try{await db.removeChannel(broadcastChannel)}catch(e){}broadcastChannel=null}
  $("broadcastBtn").textContent="START LIVE BROADCAST";$("broadcastBtn").classList.remove("danger");
