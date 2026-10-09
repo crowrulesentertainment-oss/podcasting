@@ -237,11 +237,13 @@ if(page==="show")window.setTimeout(()=>{
 },15000);
 boot().catch(err=>{
  console.error("[CrowRules] Page initialization failed.",err);
- if(page!=="show"){toast("This page could not finish loading. Please refresh and try again.");return}
- const target=$("#show")||$(".show-loading")||$("#app main");
+ const target=page==="show"?($("#show")||$(".show-loading")||$("#app main")):($("#app")||document.body);
  if(!target)return;
- target.innerHTML='<div class="eyebrow">CROWRULES PODCASTING</div><h1>We couldn’t load this show.</h1><p class="muted">An unexpected error interrupted page setup. Please retry.</p><button class="btn primary" id="retryShowLoad" type="button">RETRY LOADING</button><a class="btn" href="index.html">BACK TO LISTENING</a>';
- target.setAttribute("role","alert");
- const retry=$("#retryShowLoad");if(retry)retry.onclick=()=>location.reload();
+ const nested=location.pathname.includes("/listener/")||location.pathname.includes("/creator/");
+ const home=nested?"../home.html":"home.html";
+ const listen=nested?"index.html":"listener/index.html";
+ const message=String(err&&err.message||"An unexpected error interrupted page setup.");
+ target.innerHTML='<section class="card" role="alert" style="max-width:900px;margin:24px auto;padding:clamp(22px,4vw,42px)"><div class="eyebrow">CROWRULES PODCASTING • SYSTEM RECOVERY</div><h1 style="font:800 clamp(25px,4vw,42px) Orbitron,sans-serif;margin:14px 0">This page hit a loading error.</h1><p class="muted">The page stopped before it could finish rendering. Your existing content has not been changed by this display error. You can retry, return to listening, or open the Podcasting hub.</p><p class="notice" style="overflow-wrap:anywhere">Diagnostic: '+esc(message)+'</p><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px"><button class="btn primary" id="retryPageLoad" type="button">RETRY LOADING</button><a class="btn" href="'+listen+'">LISTENER HOME</a><a class="btn" href="'+home+'">PODCASTING HUB</a></div></section>';
+ const retry=$("#retryPageLoad");if(retry)retry.onclick=()=>location.reload();
 });
 })();
