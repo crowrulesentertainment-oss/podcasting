@@ -1,0 +1,49 @@
+name: Online Presence Browser Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "home.html"
+      - "config.js"
+      - "js/online-presence.js"
+      - "tests/online-presence-browser-test.mjs"
+      - ".github/workflows/online-presence-browser-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: online-presence-browser-test
+  cancel-in-progress: true
+
+jobs:
+  realtime-presence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Wait for GitHub Pages to serve the current site
+        run: |
+          for attempt in $(seq 1 18); do
+            if curl -fsSL "https://crowrulesentertainment-oss.github.io/podcasting/js/online-presence.js?check=$attempt" | grep -q "crowrules-podcasting-online-v2"; then
+              echo "Presence script is publicly reachable."
+              exit 0
+            fi
+            echo "Waiting for GitHub Pages publication ($attempt/18)..."
+            sleep 5
+          done
+          echo "Presence script was not reachable from GitHub Pages."
+          exit 1
+      - name: Test two independent browser sessions join and leave
+        run: node tests/online-presence-browser-test.mjs
