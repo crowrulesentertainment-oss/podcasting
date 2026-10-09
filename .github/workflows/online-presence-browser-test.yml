@@ -10,7 +10,11 @@ on:
       - "pre-launch/**/*.html"
       - "config.js"
       - "js/online-presence.js"
+      - "js/global-audio-player.js"
+      - "rankings.html"
+      - "creator/analytics.html"
       - "tests/online-presence-browser-test.mjs"
+      - "tests/audio-playback-browser-test.mjs"
       - ".github/workflows/online-presence-browser-test.yml"
   workflow_dispatch:
 
@@ -50,3 +54,32 @@ jobs:
           exit 1
       - name: Test two independent browser sessions join and leave
         run: node tests/online-presence-browser-test.mjs
+
+  audio-playback-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Wait for GitHub Pages to serve the player
+        run: |
+          for attempt in $(seq 1 18); do
+            if curl -fsSL "https://crowrulesentertainment-oss.github.io/podcasting/js/global-audio-player.js?check=$attempt" | grep -q "CrowRulesAudioPlayer"; then
+              echo "Global audio player is publicly reachable."
+              exit 0
+            fi
+            echo "Waiting for GitHub Pages publication ($attempt/18)..."
+            sleep 5
+          done
+          echo "Global audio player was not reachable from GitHub Pages."
+          exit 1
+      - name: Test live playback, play event and navigation continuity
+        run: node tests/audio-playback-browser-test.mjs
