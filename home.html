@@ -12,7 +12,7 @@
 <script src="js/crowpoints.js" defer></script>
 <style>
 :root{--home-glow:rgba(103,232,249,.24)}
-body{overflow-x:hidden}html{scroll-behavior:smooth}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:4px}.home-top{position:relative}.home-top:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(103,232,249,.25),rgba(167,139,250,.25),transparent)}.home-quick{margin:0 0 28px;padding:17px;border:1px solid rgba(103,232,249,.16);border-radius:18px;background:linear-gradient(110deg,rgba(8,17,30,.82),rgba(16,12,32,.72));display:grid;grid-template-columns:minmax(190px,.8fr) minmax(0,2fr);gap:18px;align-items:center}.home-quick h2{font:800 12px Orbitron;margin:0 0 6px;letter-spacing:.1em}.home-quick p{margin:0;color:var(--muted);font-size:11px;line-height:1.6}.home-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.home-tool{display:flex;min-height:74px;flex-direction:column;justify-content:center;gap:7px;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(5,9,18,.65);color:#e6f4ff;transition:transform .2s,border-color .2s}.home-tool:hover{transform:translateY(-2px);border-color:rgba(103,232,249,.5)}.home-tool b{font:800 10px Orbitron;letter-spacing:.04em}.home-tool small{color:var(--muted);font-size:10px;line-height:1.4}.home-search{display:flex;gap:8px;margin-top:12px}.home-search input{min-width:0;width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#070d17;color:#fff;font:500 12px Montserrat}.home-search button{border:1px solid rgba(103,232,249,.35);border-radius:10px;padding:0 14px;background:rgba(103,232,249,.1);color:#dffcff;font:800 10px Orbitron;cursor:pointer}.home-note{font-size:11px;color:#7f91a9;line-height:1.7}.home-auth-status{flex-wrap:wrap}
+body{overflow-x:hidden}html{scroll-behavior:smooth}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:4px}.home-top{position:relative}.home-top:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(103,232,249,.25),rgba(167,139,250,.25),transparent)}.home-quick{margin:0 0 28px;padding:17px;border:1px solid rgba(103,232,249,.16);border-radius:18px;background:linear-gradient(110deg,rgba(8,17,30,.82),rgba(16,12,32,.72));display:grid;grid-template-columns:minmax(190px,.8fr) minmax(0,2fr);gap:18px;align-items:center}.home-quick h2{font:800 12px Orbitron;margin:0 0 6px;letter-spacing:.1em}.home-quick p{margin:0;color:var(--muted);font-size:11px;line-height:1.6}.home-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.home-tool{display:flex;min-height:74px;flex-direction:column;justify-content:center;gap:7px;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(5,9,18,.65);color:#e6f4ff;transition:transform .2s,border-color .2s}.home-tool:hover{transform:translateY(-2px);border-color:rgba(103,232,249,.5)}.home-tool b{font:800 10px Orbitron;letter-spacing:.04em}.home-tool small{color:var(--muted);font-size:10px;line-height:1.4}.home-search{display:flex;gap:8px;margin-top:12px}.home-search input{min-width:0;width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#070d17;color:#fff;font:500 12px Montserrat}.home-search button{border:1px solid rgba(103,232,249,.35);border-radius:10px;padding:0 14px;background:rgba(103,232,249,.1);color:#dffcff;font:800 10px Orbitron;cursor:pointer}.home-note{font-size:11px;color:#7f91a9;line-height:1.7}.home-auth-status{flex-wrap:wrap}.experience-access-message{display:none;margin:0 0 18px;padding:16px 18px;border:1px solid rgba(251,191,36,.32);border-radius:14px;background:rgba(120,72,8,.12);color:#fef3c7;font-size:12px;line-height:1.7}.experience-access-message[data-visible="true"]{display:block}.experience-access-message a{color:#a5f3fc;font-weight:800;text-decoration:underline}.experience-access-message .access-actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
 .home-liveboard{margin:12px 0 28px;padding:20px;border:1px solid rgba(103,232,249,.18);border-radius:20px;background:linear-gradient(120deg,rgba(8,16,29,.94),rgba(15,11,30,.88));box-shadow:0 20px 60px rgba(0,0,0,.2)}
 .home-liveboard-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
 .home-liveboard-head h2{font:800 16px Orbitron;margin:0 0 6px}
@@ -134,6 +134,8 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
         <img id="heroLogo" class="home-logo" src="" alt="">
       </div>
     </section>
+
+    <div id="experienceAccessMessage" class="experience-access-message" role="alert" aria-live="assertive"><div id="experienceAccessText"></div><div id="experienceAccessActions" class="access-actions"></div></div>
 
     <section id="experiences" class="home-choice" aria-label="Choose your experience">
       <a class="card choice listener" href="listener/index.html">
@@ -395,6 +397,73 @@ async function boot(){
   window.addEventListener("pagehide",()=>{try{S.removeChannel(dataChannel)}catch(_){}},{once:true});
  }catch(e){unavailable("AUTH SERVICE UNAVAILABLE");authPanel.title=e?.message||"Could not initialize Supabase authentication."}
 }
+// Experience routing: every signed-in account may use Listener Experience.
+const accessMessage=document.getElementById("experienceAccessMessage");
+const accessText=document.getElementById("experienceAccessText");
+const accessActions=document.getElementById("experienceAccessActions");
+function hideAccessMessage(){
+ accessMessage.dataset.visible="false";
+ accessText.textContent="";
+ accessActions.replaceChildren();
+}
+function showAccessMessage(message,actions=[]){
+ accessText.textContent=message;
+ accessActions.replaceChildren();
+ actions.forEach(item=>{
+  const a=document.createElement("a");
+  a.href=item.href;
+  a.textContent=item.label;
+  accessActions.appendChild(a);
+ });
+ accessMessage.dataset.visible="true";
+ accessMessage.scrollIntoView({behavior:"smooth",block:"center"});
+}
+async function enterCreatorExperience(event){
+ event.preventDefault();
+ hideAccessMessage();
+ if(!S){
+  showAccessMessage("The account service is unavailable, so creator access cannot be verified. Please refresh and try again.");
+  return;
+ }
+ const link=event.currentTarget;
+ link.setAttribute("aria-busy","true");
+ try{
+  const {data:authData,error:authError}=await S.auth.getUser();
+  if(authError)throw authError;
+  const user=authData?.user;
+  if(!user){
+   showAccessMessage("Sign in first so CrowRules can verify whether this account has creator access.",[
+    {label:"SIGN IN →",href:"login.html?redirect="+encodeURIComponent("home.html")}
+   ]);
+   return;
+  }
+  // Use the creator profile row as the access source of truth. User-editable
+  // auth metadata (including a self-selected signup role) does not grant access.
+  const {data:creator,error:creatorError}=await S.from("creators").select("user_id").eq("user_id",user.id).limit(1).maybeSingle();
+  if(creatorError){
+   showAccessMessage("Creator access could not be verified right now. Access is blocked until the creator profile check succeeds. Please try again shortly.");
+   return;
+  }
+  if(!creator){
+   showAccessMessage("This account has Listener access, but no verified Creator profile. You can still enter the Listener Experience. Creator tools are available only to accounts with a creator profile.",[
+    {label:"ENTER LISTENER EXPERIENCE →",href:"listener/index.html"},
+    {label:"OPEN ACCOUNT →",href:"account.html"}
+   ]);
+   return;
+  }
+  location.href=link.getAttribute("href");
+ }catch(error){
+  showAccessMessage("We couldn't verify your sign-in or creator profile. Creator access remains blocked for safety. Please refresh and try again.");
+ }finally{
+  link.removeAttribute("aria-busy");
+ }
+}
+document.querySelectorAll('a[href="creator/index.html"]').forEach(link=>{
+ link.addEventListener("click",enterCreatorExperience);
+});
+document.querySelectorAll('a[href="listener/index.html"]').forEach(link=>{
+ link.addEventListener("click",hideAccessMessage);
+});
 window.addEventListener("pagehide",()=>authSubscription?.unsubscribe());
 boot();
 })();
