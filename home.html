@@ -13,6 +13,33 @@
 <style>
 :root{--home-glow:rgba(103,232,249,.24)}
 body{overflow-x:hidden}html{scroll-behavior:smooth}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:4px}.home-top{position:relative}.home-top:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(103,232,249,.25),rgba(167,139,250,.25),transparent)}.home-quick{margin:0 0 28px;padding:17px;border:1px solid rgba(103,232,249,.16);border-radius:18px;background:linear-gradient(110deg,rgba(8,17,30,.82),rgba(16,12,32,.72));display:grid;grid-template-columns:minmax(190px,.8fr) minmax(0,2fr);gap:18px;align-items:center}.home-quick h2{font:800 12px Orbitron;margin:0 0 6px;letter-spacing:.1em}.home-quick p{margin:0;color:var(--muted);font-size:11px;line-height:1.6}.home-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.home-tool{display:flex;min-height:74px;flex-direction:column;justify-content:center;gap:7px;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(5,9,18,.65);color:#e6f4ff;transition:transform .2s,border-color .2s}.home-tool:hover{transform:translateY(-2px);border-color:rgba(103,232,249,.5)}.home-tool b{font:800 10px Orbitron;letter-spacing:.04em}.home-tool small{color:var(--muted);font-size:10px;line-height:1.4}.home-search{display:flex;gap:8px;margin-top:12px}.home-search input{min-width:0;width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#070d17;color:#fff;font:500 12px Montserrat}.home-search button{border:1px solid rgba(103,232,249,.35);border-radius:10px;padding:0 14px;background:rgba(103,232,249,.1);color:#dffcff;font:800 10px Orbitron;cursor:pointer}.home-note{font-size:11px;color:#7f91a9;line-height:1.7}.home-auth-status{flex-wrap:wrap}
+.home-liveboard{margin:12px 0 28px;padding:20px;border:1px solid rgba(103,232,249,.18);border-radius:20px;background:linear-gradient(120deg,rgba(8,16,29,.94),rgba(15,11,30,.88));box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.home-liveboard-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.home-liveboard-head h2{font:800 16px Orbitron;margin:0 0 6px}
+.home-liveboard-head p{font-size:11px;color:var(--muted);margin:0}
+.home-liveboard-meta{font:700 9px Orbitron;letter-spacing:.08em;color:#8da1ba}
+.home-live-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.home-live-stat{padding:15px;border:1px solid var(--line);border-radius:13px;background:rgba(5,10,20,.7)}
+.home-live-stat small{display:block;color:var(--muted);font-size:10px;margin-bottom:8px}
+.home-live-stat strong{display:block;font:800 24px Orbitron;color:#e9fbff}
+.home-live-stat em{display:block;font-size:10px;font-style:normal;color:#7f91a9;margin-top:6px}
+.home-data-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.home-data-panel{min-width:0;padding:15px;border:1px solid var(--line);border-radius:14px;background:rgba(5,10,20,.55)}
+.home-data-panel h3{font:800 11px Orbitron;letter-spacing:.08em;margin:0 0 12px}
+.home-data-list{display:grid;gap:8px}
+.home-data-item{display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid rgba(255,255,255,.055);border-radius:10px;background:rgba(255,255,255,.025)}
+.home-data-item img{width:42px;height:42px;flex:0 0 42px;border-radius:9px;object-fit:cover;background:#111a2a}
+.home-data-item-main{min-width:0;flex:1}
+.home-data-item-main b{display:block;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.home-data-item-main small{display:block;margin-top:5px;color:var(--muted);font-size:10px;line-height:1.4}
+.home-data-empty{padding:15px;border:1px dashed rgba(145,160,181,.25);border-radius:10px;color:var(--muted);font-size:11px;line-height:1.6}
+.home-data-badge{font:800 9px Orbitron;color:var(--green);white-space:nowrap}
+.home-data-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px}
+.home-data-actions a{color:var(--cyan);font-size:10px;font-weight:800}
+.home-data-actions button{background:transparent;border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:#dffcff;font:800 9px Orbitron;cursor:pointer}
+.home-data-error{color:#fda4af;font-size:10px;line-height:1.5}
+@media(max-width:700px){.home-live-stats{grid-template-columns:1fr 1fr}.home-data-grid{grid-template-columns:1fr}}
+@media(max-width:420px){.home-liveboard{padding:13px}.home-live-stats{grid-template-columns:1fr}.home-live-stat strong{font-size:21px}}
 .home-shell{max-width:1480px;margin:auto;padding:24px 28px 70px;position:relative}
 .home-top{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:4px 0 28px}
 .home-brand{display:flex;align-items:center;gap:13px;color:#fff}
@@ -77,7 +104,7 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
   </div>
 
   <main>
-    <section class="home-hero">
+    <section class="home-liveboard" id="homeLiveboard" aria-labelledby="homeLiveboardTitle">\n      <div class="home-liveboard-head"><div><h2 id="homeLiveboardTitle">LIVE PODCASTING PULSE</h2><p>Live database snapshot from CrowRules Podcasting.</p></div><div class="home-liveboard-meta" id="homeDataUpdated" aria-live="polite">CONNECTING TO SUPABASE…</div></div>\n      <div class="home-live-stats">\n        <div class="home-live-stat"><small>LIVE SESSIONS</small><strong id="homeLiveCount">—</strong><em id="homeLiveCaption">Checking session status</em></div>\n        <div class="home-live-stat"><small>REPORTED LISTENERS</small><strong id="homeListenerCount">—</strong><em>From published podcast/channel records</em></div>\n        <div class="home-live-stat"><small>PUBLISHED SHOWS</small><strong id="homeShowCount">—</strong><em>Verified published podcast records</em></div>\n      </div>\n      <div class="home-data-grid">\n        <section class="home-data-panel"><h3>🔴 LIVE NOW</h3><div class="home-data-list" id="homeLiveList"><div class="home-data-empty">Checking for active public sessions…</div></div><div class="home-data-actions"><a href="listener/index.html">OPEN LISTENER HUB →</a></div></section>\n        <section class="home-data-panel"><h3>📈 TRENDING SHOWS</h3><div class="home-data-list" id="homeTrendingList"><div class="home-data-empty">Loading published shows and play counts…</div></div><div class="home-data-actions"><a href="listener/rankings.html">VIEW RANKINGS →</a><button type="button" id="homeRefreshData">REFRESH DATA ↻</button></div></section>\n      </div>\n      <p class="home-note" id="homeDataNote">Counts reflect the fields currently stored in Supabase; listener counts are reported values, not a guaranteed count of unique people connected at this second.</p>\n    </section>\n    <section class="home-hero">
       <div>
         <div class="home-kicker">CROWRULES ENTERTAINMENT • PODCASTING</div>
         <h1 class="home-title">ONE<br>UNIVERSE.<br>TWO WAYS<br>IN.</h1>
@@ -252,8 +279,62 @@ async function checkAuth(){
   authPanel.title=e?.message||"Supabase could not check the current session.";
  }
 }
-async function boot(){
- if(!window.supabase?.createClient||!C.supabaseUrl||!C.supabaseKey){unavailable("AUTH SERVICE UNAVAILABLE");if(signLink)signLink.href="login.html";return}
+
+// Real database snapshot: no demo values are shown as live metrics.
+const pulseIds={liveCount:document.getElementById("homeLiveCount"),liveCaption:document.getElementById("homeLiveCaption"),listenerCount:document.getElementById("homeListenerCount"),showCount:document.getElementById("homeShowCount"),liveList:document.getElementById("homeLiveList"),trendingList:document.getElementById("homeTrendingList"),updated:document.getElementById("homeDataUpdated"),note:document.getElementById("homeDataNote"),refresh:document.getElementById("homeRefreshData")};
+const safeText=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+const numberFmt=value=>Math.max(0,Number(value)||0).toLocaleString();
+function dataEmpty(message){return '<div class="home-data-empty">'+safeText(message)+'</div>'}
+function renderLive(rows){
+ if(!rows.length){pulseIds.liveList.innerHTML=dataEmpty("No active public live sessions are currently recorded.");return}
+ pulseIds.liveList.innerHTML=rows.slice(0,4).map(row=>'<div class="home-data-item"><div class="home-data-item-main"><b>'+safeText(row.title||"Live podcast session")+'</b><small>'+safeText(row.status||"Active")+(row.started_at?" · Started "+new Date(row.started_at).toLocaleString():"")+'</small></div><span class="home-data-badge">● LIVE</span></div>').join("");
+}
+function renderTrending(rows){
+ if(!rows.length){pulseIds.trendingList.innerHTML=dataEmpty("No published shows are available to rank yet.");return}
+ pulseIds.trendingList.innerHTML=rows.slice(0,5).map((row,index)=>'<div class="home-data-item">'+(row.artwork_url?'<img src="'+safeText(row.artwork_url)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':'<div class="home-data-item" style="width:42px;height:42px;justify-content:center;flex:0 0 42px;padding:0;color:#67e8f9;font:800 13px Orbitron">'+(index+1)+'</div>')+'<div class="home-data-item-main"><b>'+safeText(row.title||"Untitled podcast")+'</b><small>' + safeText(row.category||"Podcast")+' · '+numberFmt(row.total_plays)+' plays · '+numberFmt(row.listener_count)+' reported listeners</small></div></div>').join("");
+}
+async function loadHomePulse(){
+ if(!S){pulseIds.updated.textContent="DATABASE UNAVAILABLE";pulseIds.liveList.innerHTML=dataEmpty("Supabase is not configured, so live data cannot be displayed.");pulseIds.trendingList.innerHTML=dataEmpty("Trending shows are unavailable until the database connection is ready.");return}
+ if(pulseIds.refresh){pulseIds.refresh.disabled=true;pulseIds.refresh.textContent="REFRESHING…"}
+ pulseIds.updated.textContent="REFRESHING DATABASE…";
+ const outcomes=await Promise.allSettled([
+  S.from("podcast_live_sessions").select("id,title,status,visibility,started_at,podcast_id").in("status",["live","active","started"]).order("started_at",{ascending:false}).limit(8),
+  S.from("podcasts").select("id,title,category,artwork_url,total_plays,listener_count,status,is_live").eq("status","published").order("total_plays",{ascending:false}).limit(5),
+  S.from("podcasts").select("id,listener_count").eq("status","published"),
+  S.from("podcast_live_channels").select("id,name,status,is_active,listener_count,current_title,updated_at").eq("is_active",true).limit(20)
+ ]);
+ const liveResult=outcomes[0].status==="fulfilled"?outcomes[0].value:{error:outcomes[0].reason};
+ const showResult=outcomes[1].status==="fulfilled"?outcomes[1].value:{error:outcomes[1].reason};
+ const countResult=outcomes[2].status==="fulfilled"?outcomes[2].value:{error:outcomes[2].reason};
+ const channelResult=outcomes[3].status==="fulfilled"?outcomes[3].value:{error:outcomes[3].reason};
+ const errors=[liveResult.error,showResult.error,countResult.error,channelResult.error].filter(Boolean);
+ if(!liveResult.error){
+  const sessions=liveResult.data||[];
+  pulseIds.liveCount.textContent=numberFmt(sessions.length);
+  pulseIds.liveCaption.textContent=sessions.length?"Active sessions reported by database":"No active sessions recorded";
+  renderLive(sessions);
+ }else{pulseIds.liveCount.textContent="—";pulseIds.liveCaption.textContent="Live session query unavailable";pulseIds.liveList.innerHTML=dataEmpty("Live session data could not be read. Check table permissions and query configuration.")}
+ if(!showResult.error){
+  const shows=showResult.data||[];
+  pulseIds.showCount.textContent=numberFmt(shows.length);
+  renderTrending(shows);
+ }else{pulseIds.showCount.textContent="—";pulseIds.trendingList.innerHTML=dataEmpty("Trending show data could not be read. Check podcast table permissions.")}
+ if(!countResult.error&&!channelResult.error){
+  const podcastListeners=(countResult.data||[]).reduce((sum,row)=>sum+Math.max(0,Number(row.listener_count)||0),0);
+  const channelListeners=(channelResult.data||[]).reduce((sum,row)=>sum+Math.max(0,Number(row.listener_count)||0),0);
+  pulseIds.listenerCount.textContent=numberFmt(podcastListeners+channelListeners);
+  pulseIds.note.textContent="Listener total combines stored listener_count values from published podcasts and active live channels. It is a reported aggregate and may include overlap; it is not a verified unique-user count.";
+ }else{
+  pulseIds.listenerCount.textContent="—";
+  pulseIds.note.textContent="Listener totals are unavailable because one or more database queries failed. Values are never substituted with sample statistics.";
+ }
+ pulseIds.updated.textContent=(errors.length?"PARTIAL DATA":"DATABASE UPDATED")+" · "+new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
+ if(errors.length){pulseIds.note.textContent+=" Some panels could not be loaded; review Supabase table permissions and the browser console.";pulseIds.note.classList.add("home-data-error")}else{pulseIds.note.classList.remove("home-data-error")}
+ if(pulseIds.refresh){pulseIds.refresh.disabled=false;pulseIds.refresh.textContent="REFRESH DATA ↻"}
+}
+pulseIds.refresh?.addEventListener("click",loadHomePulse);
+\nasync function boot(){
+ if(!window.supabase?.createClient||!C.supabaseUrl||!C.supabaseKey){unavailable("AUTH SERVICE UNAVAILABLE");if(signLink)signLink.href="login.html";loadHomePulse();return}
  try{
   S=window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
   await checkAuth();
