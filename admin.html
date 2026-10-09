@@ -227,10 +227,23 @@ document.getElementById("exportPodcasts")?.addEventListener("click",exportPodcas
 document.getElementById("exportReports")?.addEventListener("click",exportReportCsv);
 
 function renderOnline(){
- if(!presence)return;const state=presence.presenceState()||{},counts={all:0,listener:0,creator:0,launch:0,site:0};
- Object.keys(state).forEach(key=>{const sessions=state[key]||[];if(!sessions.length)counts.all++;sessions.forEach(p=>{if(!p)return;counts.all++;const area=String(p.area||"").toLowerCase();if(Object.prototype.hasOwnProperty.call(counts,area))counts[area]++})});
+ if(!presence)return;
+ const state=presence.presenceState()||{},counts={all:0,listener:0,creator:0,launch:0,site:0},seen=new Set();
+ Object.entries(state).forEach(([key,sessions])=>(sessions||[]).forEach(p=>{
+  if(!p)return;
+  const sessionKey=String(p.session_id||p.sessionId||key+":"+String(p.online_at||p.onlineAt||""));
+  if(seen.has(sessionKey))return;seen.add(sessionKey);counts.all++;
+  const role=String(p.role||p.user_role||p.mode||"").toLowerCase();
+  const area=String(p.area||p.page_type||p.page||"").toLowerCase();
+  if(role.includes("listener")||role==="user")counts.listener++;
+  if(role.includes("creator")||role==="host")counts.creator++;
+  if(area==="launch"||area.includes("launch.html")||area.includes("pre-launch"))counts.launch++;
+  if(area==="site"||area==="website"||area==="home")counts.site++;
+ }));
  [["onlineTotal",counts.all],["onlineListeners",counts.listener],["onlineCreators",counts.creator],["onlineLaunch",counts.launch]].forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=n(v)});
- const s=document.getElementById("onlineStatus"),badge=document.getElementById("presenceBadge");if(s)s.textContent="Shared presence sync updated "+new Date().toLocaleTimeString()+" • includes only clients using the same channel";if(badge)badge.textContent="LIVE PRESENCE";
+ const s=document.getElementById("onlineStatus"),badge=document.getElementById("presenceBadge");
+ if(s)s.textContent="Presence is connected • "+counts.all+" active session"+(counts.all===1?"":"s")+" detected • updates automatically when matching clients join or leave";
+ if(badge){badge.textContent="LIVE PRESENCE";badge.classList.remove("open");badge.classList.add("published")}
 }
 async function boot(){
  if(!client){connection.textContent="Configuration unavailable";gate("CONFIGURATION ERROR","config.js must define supabaseUrl and supabaseKey.",'<a class="btn" href="home.html">RETURN HOME</a>');return}
@@ -254,7 +267,7 @@ async function boot(){
   ["members","member_roles","creators","podcasts","podcast_episodes","episodes","podcast_member_reports","podcast_subscriptions","podcast_follows","cr_podcast_social_comments_v5","podcast_user_saved_episodes","podcast_listens","podcast_analytics_events"].forEach(table=>channel.on("postgres_changes",{event:"*",schema:"public",table},()=>{refreshQueued=true;if(!refreshing){refreshQueued=false;load()}}));
   channel.subscribe(status=>{realtimeConnected=status==="SUBSCRIBED";const badge=document.getElementById("presenceBadge");if(badge&&status!=="SUBSCRIBED")badge.textContent=status;if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")connection.textContent="Realtime subscription issue • polling remains enabled";else if(status==="SUBSCRIBED")connection.textContent="Realtime database feed connected";});
   presence=client.channel("crowrules-podcasting-online-v1");
-  presence.on("presence",{event:"sync"},renderOnline).subscribe(async status=>{const badge=document.getElementById("presenceBadge");if(badge&&status!=="SUBSCRIBED")badge.textContent=status;if(status==="SUBSCRIBED"){try{await presence.track({area:"admin",role:"admin",online_at:new Date().toISOString(),page:"admin.html"})}catch(e){console.warn("Presence tracking unavailable",e)}renderOnline()}});
+  presence.on("presence",{event:"sync"},renderOnline).subscribe(async status=>{const badge=document.getElementById("presenceBadge"),onlineStatus=document.getElementById("onlineStatus");if(badge&&status!=="SUBSCRIBED"){badge.textContent=status;badge.classList.remove("published");badge.classList.add("open")}if(status==="SUBSCRIBED"){try{await presence.track({area:"admin",role:"admin",session_id:"admin-"+user.id,online_at:new Date().toISOString(),page:"admin.html"})}catch(e){console.warn("Presence tracking unavailable",e)}renderOnline()}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){["onlineTotal","onlineListeners","onlineCreators","onlineLaunch"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent="—"});if(onlineStatus)onlineStatus.textContent="Supabase Presence is "+status+". Check the connection; database stats polling remains available."}});
   await load();
   refreshTimer=setInterval(()=>load(),10000);
  }catch(e){connection.textContent="Could not verify session";gate("SECURE ACCESS CHECK FAILED",e.message||"Could not verify your session.",'<a class="btn primary" href="login.html?redirect=admin.html">SIGN IN AGAIN</a><button class="btn" onclick="location.reload()">RETRY</button>')}
