@@ -18,7 +18,9 @@
       .cp-pill{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid rgba(103,232,249,.3);border-radius:999px;background:linear-gradient(120deg,rgba(103,232,249,.10),rgba(167,139,250,.10));box-shadow:0 0 22px rgba(103,232,249,.06)}
       .cp-icon{font-size:15px}.cp-muted{color:#9aa9bd;font-weight:600}.cp-login{color:#8defff;text-decoration:none}
       .cp-card{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 14px;border:1px solid rgba(103,232,249,.22);border-radius:14px;background:rgba(8,14,27,.78)}
-      .cp-card strong{font:800 11px Orbitron,Montserrat,sans-serif;letter-spacing:.08em}\n      #crowpoints-dock{position:fixed;right:14px;bottom:14px;z-index:9998;max-width:calc(100vw - 28px);padding:8px;border:1px solid rgba(103,232,249,.22);border-radius:16px;background:rgba(5,8,17,.92);backdrop-filter:blur(16px);box-shadow:0 12px 38px rgba(0,0,0,.35)}\n      #crowpoints-dock .cp-sitewide{gap:6px}#crowpoints-dock .cp-pill{padding:7px 9px;font-size:11px}
+      .cp-card strong{font:800 11px Orbitron,Montserrat,sans-serif;letter-spacing:.08em}
+      #crowpoints-dock{position:fixed;right:14px;bottom:14px;z-index:9998;max-width:calc(100vw - 28px);padding:8px;border:1px solid rgba(103,232,249,.22);border-radius:16px;background:rgba(5,8,17,.92);backdrop-filter:blur(16px);box-shadow:0 12px 38px rgba(0,0,0,.35)}
+      #crowpoints-dock .cp-sitewide{gap:6px}#crowpoints-dock .cp-pill{padding:7px 9px;font-size:11px}
       @media(prefers-reduced-motion:no-preference){.cp-pill{transition:border-color .2s,transform .2s}.cp-pill:hover{border-color:rgba(103,232,249,.7);transform:translateY(-1px)}}
     `;
     document.head.appendChild(style);
