@@ -104,7 +104,20 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
   </div>
 
   <main>
-    <section class="home-liveboard" id="homeLiveboard" aria-labelledby="homeLiveboardTitle">\n      <div class="home-liveboard-head"><div><h2 id="homeLiveboardTitle">LIVE PODCASTING PULSE</h2><p>Live database snapshot from CrowRules Podcasting.</p></div><div class="home-liveboard-meta" id="homeDataUpdated" aria-live="polite">CONNECTING TO SUPABASE…</div></div>\n      <div class="home-live-stats">\n        <div class="home-live-stat"><small>LIVE SESSIONS</small><strong id="homeLiveCount">—</strong><em id="homeLiveCaption">Checking session status</em></div>\n        <div class="home-live-stat"><small>REPORTED LISTENERS</small><strong id="homeListenerCount">—</strong><em>From published podcast/channel records</em></div>\n        <div class="home-live-stat"><small>PUBLISHED SHOWS</small><strong id="homeShowCount">—</strong><em>Verified published podcast records</em></div>\n      </div>\n      <div class="home-data-grid">\n        <section class="home-data-panel"><h3>🔴 LIVE NOW</h3><div class="home-data-list" id="homeLiveList"><div class="home-data-empty">Checking for active public sessions…</div></div><div class="home-data-actions"><a href="listener/index.html">OPEN LISTENER HUB →</a></div></section>\n        <section class="home-data-panel"><h3>📈 TRENDING SHOWS</h3><div class="home-data-list" id="homeTrendingList"><div class="home-data-empty">Loading published shows and play counts…</div></div><div class="home-data-actions"><a href="listener/rankings.html">VIEW RANKINGS →</a><button type="button" id="homeRefreshData">REFRESH DATA ↻</button></div></section>\n      </div>\n      <p class="home-note" id="homeDataNote">Counts reflect the fields currently stored in Supabase; listener counts are reported values, not a guaranteed count of unique people connected at this second.</p>\n    </section>\n    <section class="home-hero">
+    <section class="home-liveboard" id="homeLiveboard" aria-labelledby="homeLiveboardTitle">
+      <div class="home-liveboard-head"><div><h2 id="homeLiveboardTitle">LIVE PODCASTING PULSE</h2><p>Live database snapshot from CrowRules Podcasting.</p></div><div class="home-liveboard-meta" id="homeDataUpdated" aria-live="polite">CONNECTING TO SUPABASE…</div></div>
+      <div class="home-live-stats">
+        <div class="home-live-stat"><small>LIVE SESSIONS</small><strong id="homeLiveCount">—</strong><em id="homeLiveCaption">Checking session status</em></div>
+        <div class="home-live-stat"><small>REPORTED LISTENERS</small><strong id="homeListenerCount">—</strong><em>From published podcast/channel records</em></div>
+        <div class="home-live-stat"><small>PUBLISHED SHOWS</small><strong id="homeShowCount">—</strong><em>Verified published podcast records</em></div>
+      </div>
+      <div class="home-data-grid">
+        <section class="home-data-panel"><h3>🔴 LIVE NOW</h3><div class="home-data-list" id="homeLiveList"><div class="home-data-empty">Checking for active public sessions…</div></div><div class="home-data-actions"><a href="listener/index.html">OPEN LISTENER HUB →</a></div></section>
+        <section class="home-data-panel"><h3>📈 TRENDING SHOWS</h3><div class="home-data-list" id="homeTrendingList"><div class="home-data-empty">Loading published shows and play counts…</div></div><div class="home-data-actions"><a href="listener/rankings.html">VIEW RANKINGS →</a><button type="button" id="homeRefreshData">REFRESH DATA ↻</button></div></section>
+      </div>
+      <p class="home-note" id="homeDataNote">Counts reflect the fields currently stored in Supabase; listener counts are reported values, not a guaranteed count of unique people connected at this second.</p>
+    </section>
+    <section class="home-hero">
       <div>
         <div class="home-kicker">CROWRULES ENTERTAINMENT • PODCASTING</div>
         <h1 class="home-title">ONE<br>UNIVERSE.<br>TWO WAYS<br>IN.</h1>
@@ -189,7 +202,9 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
     </section>
   </main>
 
-  <section class="home-section card" aria-label="Platform highlights"><div class="section-head"><h2>BUILT FOR THE WHOLE PODCAST JOURNEY</h2><span class="eyebrow">LISTEN • CREATE • CONNECT</span></div><div class="home-strip"><div class="home-mini"><strong>🪙 CROWPOINTS</strong><small>Check your available points from the sitewide CrowPoints panel when signed in. Point awards depend on verified eligible activity.</small></div><div class="home-mini"><strong>🔴 LIVE EXPERIENCES</strong><small>Find live podcasting features as they become available. Host and listener access may depend on account permissions.</small></div><div class="home-mini"><strong>📈 CREATOR GROWTH</strong><small>Manage shows, publishing, audience engagement and subscriptions from the creator workspace.</small></div><div class="home-mini"><strong>🛡️ YOUR ACCOUNT</strong><small>Sign in to access your account, profile and member-specific features across the CrowRules universe.</small></div></div><p class="home-note">CrowRules Podcasting is in active development. Availability of individual features can change as the platform is built and tested.</p></section>\n\n  <footer class="home-footer">CROWRULES PODCASTING • ONE COMPANY. ONE UNIVERSE. • PRE-LAUNCH TARGET: JANUARY 1, 2027</footer>
+  <section class="home-section card" aria-label="Platform highlights"><div class="section-head"><h2>BUILT FOR THE WHOLE PODCAST JOURNEY</h2><span class="eyebrow">LISTEN • CREATE • CONNECT</span></div><div class="home-strip"><div class="home-mini"><strong>🪙 CROWPOINTS</strong><small>Check your available points from the sitewide CrowPoints panel when signed in. Point awards depend on verified eligible activity.</small></div><div class="home-mini"><strong>🔴 LIVE EXPERIENCES</strong><small>Find live podcasting features as they become available. Host and listener access may depend on account permissions.</small></div><div class="home-mini"><strong>📈 CREATOR GROWTH</strong><small>Manage shows, publishing, audience engagement and subscriptions from the creator workspace.</small></div><div class="home-mini"><strong>🛡️ YOUR ACCOUNT</strong><small>Sign in to access your account, profile and member-specific features across the CrowRules universe.</small></div></div><p class="home-note">CrowRules Podcasting is in active development. Availability of individual features can change as the platform is built and tested.</p></section>
+
+  <footer class="home-footer">CROWRULES PODCASTING • ONE COMPANY. ONE UNIVERSE. • PRE-LAUNCH TARGET: JANUARY 1, 2027</footer>
 </div>
 
 <script>
@@ -207,7 +222,9 @@ function tick(){
  const d=Math.floor(ms/86400000),h=Math.floor(ms/3600000)%24,m=Math.floor(ms/60000)%60;
  status.textContent="PRE-LAUNCH • "+d+"D "+String(h).padStart(2,"0")+"H "+String(m).padStart(2,"0")+"M • JANUARY 1, 2027";
 }
-tick();setInterval(tick,30000);\nconst searchForm=document.getElementById("homeSearch");\nsearchForm?.addEventListener("submit",event=>{event.preventDefault();const q=(document.getElementById("homeSearchInput")?.value||"").trim().toLowerCase();const routes=[{terms:["podcast","discover","listener","listen","episode"],url:"listener/index.html"},{terms:["rank","leaderboard","top"],url:"listener/rankings.html"},{terms:["profile","account","settings"],url:"listener/profile.html"},{terms:["creator","publish","show","upload"],url:"creator/index.html"},{terms:["launch","prelaunch","countdown"],url:"launch.html"},{terms:["sign in","login"],url:"login.html"},{terms:["join","signup","register"],url:"signup.html"}];if(!q){document.getElementById("homeSearchInput")?.focus();return}const match=routes.find(r=>r.terms.some(term=>term.includes(q)||q.includes(term)));if(match){location.href=match.url;return}const tools=document.getElementById("homeTools");tools?.scrollIntoView({behavior:"smooth",block:"center"});const input=document.getElementById("homeSearchInput");if(input){input.setCustomValidity("No exact page match. Choose one of the quick links below.");input.reportValidity();input.addEventListener("input",()=>input.setCustomValidity(""),{once:true})}});
+tick();setInterval(tick,30000);
+const searchForm=document.getElementById("homeSearch");
+searchForm?.addEventListener("submit",event=>{event.preventDefault();const q=(document.getElementById("homeSearchInput")?.value||"").trim().toLowerCase();const routes=[{terms:["podcast","discover","listener","listen","episode"],url:"listener/index.html"},{terms:["rank","leaderboard","top"],url:"listener/rankings.html"},{terms:["profile","account","settings"],url:"listener/profile.html"},{terms:["creator","publish","show","upload"],url:"creator/index.html"},{terms:["launch","prelaunch","countdown"],url:"launch.html"},{terms:["sign in","login"],url:"login.html"},{terms:["join","signup","register"],url:"signup.html"}];if(!q){document.getElementById("homeSearchInput")?.focus();return}const match=routes.find(r=>r.terms.some(term=>term.includes(q)||q.includes(term)));if(match){location.href=match.url;return}const tools=document.getElementById("homeTools");tools?.scrollIntoView({behavior:"smooth",block:"center"});const input=document.getElementById("homeSearchInput");if(input){input.setCustomValidity("No exact page match. Choose one of the quick links below.");input.reportValidity();input.addEventListener("input",()=>input.setCustomValidity(""),{once:true})}});
 const actions=document.querySelector(".home-actions");
 const signLink=actions?.querySelector('a[href="login.html"]');
 const joinLink=actions?.querySelector('a[href="signup.html"]');
@@ -333,7 +350,8 @@ async function loadHomePulse(){
  if(pulseIds.refresh){pulseIds.refresh.disabled=false;pulseIds.refresh.textContent="REFRESH DATA ↻"}
 }
 pulseIds.refresh?.addEventListener("click",loadHomePulse);
-\nasync function boot(){
+
+async function boot(){
  if(!window.supabase?.createClient||!C.supabaseUrl||!C.supabaseKey){unavailable("AUTH SERVICE UNAVAILABLE");if(signLink)signLink.href="login.html";loadHomePulse();return}
  try{
   S=window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
