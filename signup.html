@@ -2,77 +2,161 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Create Account • CrowRules Podcasting</title>
-<meta name="description" content="Create your CrowRules Podcasting account as a Listener or Creator.">
+<meta name="theme-color" content="#050712">
+<meta name="description" content="Create a CrowRules Podcasting account as a Listener or Creator using email, Google, Discord or Twitch.">
+<title>Join CrowRules Podcasting</title>
 <link rel="stylesheet" href="css/podcasting.css">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="config.js"></script>
 <script src="js/crowpoints.js" defer></script>
 <style>
-body{margin:0;min-height:100vh;background:#050712;color:#fff;font-family:Montserrat,Arial,sans-serif}
-.wrap{min-height:100vh;display:grid;place-items:center;padding:30px 16px;background:radial-gradient(circle at 50% 0,rgba(0,229,255,.13),transparent 38%),radial-gradient(circle at 85% 80%,rgba(139,92,246,.14),transparent 36%)}
-.card{width:min(720px,100%);padding:34px;border:1px solid rgba(255,255,255,.13);border-radius:24px;background:rgba(8,11,25,.86);box-shadow:0 20px 80px rgba(0,0,0,.4)}
-.logo{display:block;width:150px;max-width:55%;margin:0 auto 18px;filter:drop-shadow(0 0 20px rgba(0,229,255,.25))}
-.eyebrow{text-align:center;color:#00e5ff;font:700 .72rem Orbitron,sans-serif;letter-spacing:.2em}.title{text-align:center;font:800 clamp(1.8rem,5vw,3rem) Orbitron,sans-serif;margin:10px 0}.sub{text-align:center;opacity:.68;line-height:1.6;max-width:580px;margin:0 auto 25px}
-.roles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}.role{padding:19px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.035);cursor:pointer}.role input{accent-color:#00e5ff}.role.active{border-color:#00e5ff;box-shadow:0 0 22px rgba(0,229,255,.08)}.role b{display:block;font-family:Orbitron,sans-serif;margin:7px 0}.role span{font-size:.82rem;line-height:1.5;opacity:.65}
-label.field{display:block;margin:13px 0}.field span{display:block;font-size:.75rem;font-weight:700;opacity:.75;margin-bottom:6px}.field input{width:100%;padding:13px 14px;border-radius:11px;border:1px solid rgba(255,255,255,.14);background:#0b1020;color:#fff;font:inherit;box-sizing:border-box}.submit{width:100%;padding:14px;border:0;border-radius:999px;background:#00e5ff;color:#041016;font-weight:900;cursor:pointer;margin-top:8px}.status{text-align:center;min-height:22px;margin:15px 0 0;font-size:.82rem;opacity:.8}.links{text-align:center;margin-top:20px;font-size:.84rem;opacity:.7}.links a{color:#00e5ff}.oauth{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}.oauth button{padding:11px 8px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:#0b1020;color:#fff;font:700 .72rem Montserrat,sans-serif;cursor:pointer}.oauth button:hover{border-color:#00e5ff}.divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:#fff;opacity:.38;font-size:.7rem}.divider:before,.divider:after{content:"";height:1px;background:rgba(255,255,255,.14);flex:1}.note{text-align:center;margin-top:22px;font-size:.7rem;opacity:.45;line-height:1.5}
-@media(max-width:600px){.card{padding:24px 18px}.roles{grid-template-columns:1fr}}
+:root{color-scheme:dark;--cyan:#67e8f9;--purple:#a78bfa;--line:rgba(255,255,255,.13)}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#050712;color:#f8fafc;font-family:Montserrat,Arial,sans-serif}
+.wrap{min-height:100vh;display:grid;place-items:center;padding:30px 16px;background:radial-gradient(circle at 15% 0,rgba(0,229,255,.13),transparent 34%),radial-gradient(circle at 90% 90%,rgba(139,92,246,.16),transparent 38%)}
+.card{width:min(760px,100%);padding:clamp(22px,5vw,42px);border:1px solid var(--line);border-radius:25px;background:rgba(8,11,25,.9);box-shadow:0 24px 90px #0008}
+.logo{display:block;width:135px;max-width:50%;margin:0 auto 18px;filter:drop-shadow(0 0 20px #00e5ff30)}
+.eyebrow{text-align:center;color:var(--cyan);font:700 .7rem Orbitron,sans-serif;letter-spacing:.19em}.title{text-align:center;font:800 clamp(1.8rem,5vw,2.8rem) Orbitron,sans-serif;margin:12px 0}.sub{text-align:center;color:#a9b5c8;line-height:1.7;max-width:600px;margin:0 auto 24px}
+.section-label{font:800 .7rem Orbitron,sans-serif;letter-spacing:.12em;margin:25px 0 10px;color:#dbeafe}
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:12px}.role{display:block;position:relative;padding:18px;border:1px solid var(--line);border-radius:16px;background:#ffffff06;cursor:pointer;transition:.2s}.role.active{border-color:var(--cyan);background:linear-gradient(140deg,#67e8f915,#a78bfa10);box-shadow:0 0 22px #67e8f910}.role input{accent-color:var(--cyan);margin:0 7px 0 0}.role b{display:block;font:800 .85rem Orbitron,sans-serif;margin:9px 0}.role span{display:block;color:#a9b5c8;font-size:.78rem;line-height:1.6}
+.field{display:block;margin:13px 0}.field span{display:block;font-size:.72rem;font-weight:800;letter-spacing:.06em;color:#cbd5e1;margin-bottom:7px}.field input{width:100%;padding:13px 14px;border-radius:11px;border:1px solid var(--line);background:#0b1020;color:#fff;font:inherit}.field input:focus{outline:2px solid #67e8f966;border-color:var(--cyan)}
+.submit{width:100%;padding:15px;border:0;border-radius:999px;background:linear-gradient(100deg,var(--cyan),#a5f3fc);color:#041016;font-weight:900;cursor:pointer;margin-top:8px}.submit:disabled,.oauth button:disabled{opacity:.55;cursor:wait}
+.divider{display:flex;align-items:center;gap:12px;margin:22px 0 14px;color:#8190a5;font-size:.68rem;font-weight:800;letter-spacing:.12em}.divider:before,.divider:after{content:"";height:1px;background:var(--line);flex:1}
+.oauth{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.oauth button{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 8px;border-radius:11px;border:1px solid var(--line);background:#0b1020;color:#fff;font:800 .75rem Montserrat,sans-serif;cursor:pointer}.oauth button:hover{border-color:var(--cyan);transform:translateY(-1px)}.oauth button span{font-size:1.1rem}
+.status{padding:12px 14px;border:1px solid transparent;border-radius:11px;text-align:center;min-height:20px;margin-top:15px;font-size:.82rem;line-height:1.55;color:#cbd5e1}.status[data-kind=error]{border-color:#fb718544;background:#fb71840c;color:#fecdd3}.status[data-kind=success]{border-color:#34d39944;background:#34d3990c;color:#a7f3d0}.status[data-kind=info]{border-color:#67e8f944;background:#67e8f90c}
+.links{text-align:center;margin-top:20px;font-size:.82rem;color:#9aa9bd;line-height:1.9}.links a{color:var(--cyan)}.note{text-align:center;margin-top:18px;font-size:.69rem;color:#74839a;line-height:1.65}
+@media(max-width:560px){.roles{grid-template-columns:1fr}.oauth{grid-template-columns:1fr}.card{padding:24px 18px}.oauth button{padding:12px}}
 </style>
 </head>
 <body>
-<main class="wrap"><section class="card">
-<a href="pre-launch/index.html"><img class="logo" src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png" alt="CrowRules Podcasting"></a>
-<div class="eyebrow">CROWRULES PODCASTING · LAUNCH 2027</div>
-<h1 class="title">JOIN THE UNIVERSE</h1>
-<p class="sub">Create one CrowRules account and choose how you want to participate. You can join as a <b>Listener</b> or start your journey as a <b>Creator / Podcaster</b>.</p>
-<form id="signupForm">
-<div class="roles">
-<label class="role active" id="listenerRole"><input type="radio" name="role" value="listener" checked> <b>🎧 LISTENER</b><span>Discover shows, follow podcasts, save episodes, build your queue, and join conversations.</span></label>
-<label class="role" id="creatorRole"><input type="radio" name="role" value="creator"> <b>🎙️ CREATOR / PODCASTER</b><span>Build a podcast, publish episodes, grow an audience, and use the future Creator Studio.</span></label>
+<main class="wrap"><section class="card" aria-labelledby="signupTitle">
+<a href="home.html" aria-label="CrowRules Podcasting home"><img class="logo" src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png" alt="CrowRules Podcasting logo"></a>
+<div class="eyebrow">CROWRULES ENTERTAINMENT · PODCASTING</div>
+<h1 class="title" id="signupTitle">JOIN THE UNIVERSE</h1>
+<p class="sub">One account. Two ways to participate. Choose your starting experience, then create an account with email or continue with your preferred identity provider.</p>
+<form id="signupForm" novalidate>
+<div class="section-label">01 / CHOOSE YOUR EXPERIENCE</div>
+<div class="roles" role="radiogroup" aria-label="Choose account role">
+<label class="role active" id="listenerRole"><input type="radio" name="role" value="listener" checked><b>🎧 LISTENER</b><span>Discover shows, follow podcasts, save episodes, build your queue and join conversations.</span></label>
+<label class="role" id="creatorRole"><input type="radio" name="role" value="creator"><b>🎙️ CREATOR / PODCASTER</b><span>Create shows, publish episodes, grow an audience and access creator tools.</span></label>
 </div>
-<label class="field"><span>DISPLAY NAME</span><input id="name" required maxlength="80" autocomplete="name" placeholder="Your name or creator name"></label>
-<label class="field"><span>EMAIL</span><input id="email" type="email" required autocomplete="email" placeholder="you@example.com"></label>
-<label class="field"><span>PASSWORD</span><input id="password" type="password" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters"></label>
-<button class="submit" id="submit" type="submit">CREATE LISTENER ACCOUNT</button><div class="divider">OR CONTINUE WITH</div><div class="oauth"><button type="button" data-provider="google">Google</button><button type="button" data-provider="discord">Discord</button><button type="button" data-provider="twitch">Twitch</button></div>
+<div class="section-label">02 / CREATE YOUR ACCOUNT</div>
+<label class="field" for="name"><span>DISPLAY NAME</span><input id="name" name="name" required maxlength="80" autocomplete="name" placeholder="Your name or creator name"></label>
+<label class="field" for="email"><span>EMAIL ADDRESS</span><input id="email" name="email" type="email" required autocomplete="email" placeholder="you@example.com"></label>
+<label class="field" for="password"><span>PASSWORD · AT LEAST 8 CHARACTERS</span><input id="password" name="password" type="password" required minlength="8" autocomplete="new-password" placeholder="Create a strong password"></label>
+<button class="submit" id="submit" type="submit">CREATE LISTENER ACCOUNT</button>
+<div class="divider">OR SIGN UP WITH</div>
+<div class="oauth" aria-label="Social sign-up options">
+<button type="button" data-provider="google"><span aria-hidden="true">G</span> Google</button>
+<button type="button" data-provider="discord"><span aria-hidden="true">◈</span> Discord</button>
+<button type="button" data-provider="twitch"><span aria-hidden="true">▣</span> Twitch</button>
+</div>
 <div class="status" id="status" role="status" aria-live="polite"></div>
 </form>
-<div class="links">Already have an account? <a id="loginLink" href="login.html">Log in</a> · <a href="home.html">Explore Podcasting</a></div>
-<div class="note">Your selected role starts your Podcasting experience. Creator access is a participation choice, not an automatic admin privilege.</div>
+<div class="links">Already have an account? <a id="loginLink" href="login.html">Sign in</a><br><a href="home.html">Explore Podcasting</a> · <a href="pre-launch/index.html">Pre-launch</a></div>
+<div class="note">Your selected role is saved as account profile metadata. Choosing Creator does not grant administrator privileges. Google, Discord and Twitch must each be enabled and correctly configured in Supabase Auth before their buttons can complete sign-up.</div>
 </section></main>
 <script>
-(function(){
-const cfg=window.CROW_CONFIG||{},S=window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey?window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}):null;
+(async function(){
+"use strict";
+const cfg=window.CROW_CONFIG||{};
 const form=document.getElementById("signupForm"),status=document.getElementById("status"),submit=document.getElementById("submit");
-const params=new URLSearchParams(location.search),redirect=params.get("redirect")||"home.html";
-const logoUrl="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png";
-const savedRole=localStorage.getItem("crowrules_podcasting_signup_role");
-if(savedRole&&["listener","creator"].includes(savedRole)){const rr=document.querySelector('input[name="role"][value="'+savedRole+'"]');if(rr){rr.checked=true;rr.closest(".role").classList.add("active");submit.textContent=savedRole==="creator"?"CREATE CREATOR ACCOUNT":"CREATE LISTENER ACCOUNT";}}
-
-const safeRedirect=redirect.startsWith("/")||(!redirect.includes("://")&&!redirect.startsWith("//"))?redirect:"home.html";
-document.getElementById("loginLink").href="login.html?redirect="+encodeURIComponent(safeRedirect);
-document.querySelectorAll('input[name="role"]').forEach(r=>r.addEventListener("change",()=>{document.querySelectorAll(".role").forEach(x=>x.classList.remove("active"));r.closest(".role").classList.add("active");submit.textContent=r.value==="creator"?"CREATE CREATOR ACCOUNT":"CREATE LISTENER ACCOUNT"}));
-document.querySelectorAll("[data-provider]").forEach(btn=>btn.addEventListener("click",async()=>{
- if(!S){status.textContent="Account service is unavailable.";return}
- const role=new FormData(form).get("role"); localStorage.setItem("crowrules_podcasting_signup_role",role);
- btn.disabled=true; status.textContent="Connecting to "+btn.textContent+"…";
- const oauthReturn=new URL(location.href); oauthReturn.searchParams.set("oauth","1"); oauthReturn.searchParams.set("role",role); const {error}=await S.auth.signInWithOAuth({provider:btn.dataset.provider,options:{redirectTo:oauthReturn.toString()}});
- if(error){status.textContent=error.message||"Unable to start social sign-in.";btn.disabled=false;}
-}));
-if(S){const u=await S.auth.getUser();if(u.data?.user&&new URLSearchParams(location.search).get("oauth")==="1"){const oauthRole=new URLSearchParams(location.search).get("role");if(["listener","creator"].includes(oauthRole)){const {error}=await S.auth.updateUser({data:{app:"podcasting",signup_role:oauthRole,podcast_role:oauthRole}});if(error){status.textContent=error.message||"Unable to finish your Podcasting profile.";return}}localStorage.removeItem("crowrules_podcasting_signup_role");location.href=safeRedirect;return}}
-form.addEventListener("submit",async e=>{
- e.preventDefault(); if(!S){status.textContent="Account service is unavailable. Please try again.";return}
- submit.disabled=true;status.textContent="Creating your CrowRules account…";
- const role=new FormData(form).get("role"),name=document.getElementById("name").value.trim(),email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;
+const providerButtons=[...document.querySelectorAll("[data-provider]")];
+const params=new URLSearchParams(location.search);
+const rawRedirect=params.get("redirect")||"account.html";
+function safeRedirect(value){
+ if(!value||value.startsWith("//")||value.startsWith("/")||value.includes("\\")||/^[a-z][a-z0-9+.-]*:/i.test(value))return "account.html";
+ const path=value.split("?")[0].split("#")[0];
+ if(!/^[a-zA-Z0-9_./-]+$/.test(path)||path.split("/").includes(".."))return "account.html";
+ return value;
+}
+const redirect=safeRedirect(rawRedirect);
+document.getElementById("loginLink").href="login.html?redirect="+encodeURIComponent(redirect);
+function setStatus(message,kind="info"){status.textContent=message;status.dataset.kind=kind}
+function selectedRole(){return new FormData(form).get("role")==="creator"?"creator":"listener"}
+function updateRole(){
+ const role=selectedRole();
+ document.querySelectorAll(".role").forEach(el=>el.classList.toggle("active",el.querySelector("input")?.checked));
+ submit.textContent=role==="creator"?"CREATE CREATOR ACCOUNT":"CREATE LISTENER ACCOUNT";
+ try{localStorage.setItem("crowrules_podcasting_signup_role",role)}catch(_){}
+}
+document.querySelectorAll('input[name="role"]').forEach(el=>el.addEventListener("change",updateRole));
+let S=null;
+try{
+ if(window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey){
+  S=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
+ }
+}catch(error){setStatus("Account service could not initialize. Refresh and try again.","error")}
+if(!S){setStatus("Account service is unavailable. Please refresh and try again.","error");submit.disabled=true;providerButtons.forEach(b=>b.disabled=true);return}
+const oauthReturn=new URL(location.href);
+oauthReturn.searchParams.set("oauth","1");
+oauthReturn.searchParams.set("redirect",redirect);
+// Complete OAuth callbacks safely. Never trust role values from arbitrary query strings.
+if(params.get("oauth")==="1"){
+ setStatus("Finishing secure sign-up…");
  try{
-  const r=await S.auth.signUp({email,password,options:{data:{app:"podcasting",signup_role:role,podcast_role:role,display_name:name},emailRedirectTo:location.origin+location.pathname+"?redirect="+encodeURIComponent(safeRedirect)}});
-  if(r.error)throw r.error;
-  if(r.data?.session){location.href=safeRedirect;return}
-  status.textContent="Account created. Check your email to confirm your account, then sign in.";
-  form.reset();document.querySelectorAll(".role").forEach(x=>x.classList.remove("active"));document.getElementById("listenerRole").classList.add("active");document.querySelector('input[value="listener"]').checked=true;submit.textContent="CREATE LISTENER ACCOUNT";localStorage.removeItem("crowrules_podcasting_signup_role");
- }catch(err){status.textContent=err.message||"Unable to create your account."}
- finally{submit.disabled=false}
+  const {data,error}=await S.auth.getUser();
+  if(error)throw error;
+  if(!data?.user)throw new Error("No signed-in user was returned by the provider. Please try again.");
+  const role=params.get("role")==="creator"?"creator":"listener";
+  const current=data.user.user_metadata||{};
+  const updates={app:"podcasting",signup_role:role,podcast_role:role};
+  if(!current.display_name&&!current.full_name&&!current.name&&data.user.email)updates.display_name=data.user.email.split("@")[0];
+  const {error:updateError}=await S.auth.updateUser({data:updates});
+  if(updateError)throw updateError;
+  try{localStorage.removeItem("crowrules_podcasting_signup_role")}catch(_){}
+  setStatus("Account connected. Redirecting…","success");
+  location.replace(redirect);
+  return;
+ }catch(error){setStatus("Could not finish social sign-up: "+(error?.message||"Please try again."),"error")}
+}
+try{
+ const {data,error}=await S.auth.getUser();
+ if(!error&&data?.user&&params.get("oauth")!=="1"){
+  setStatus("You’re already signed in. Redirecting to your account…","success");
+  location.replace(redirect);
+  return;
+ }
+}catch(_){/* A transient verification failure should not prevent a new sign-up attempt. */}
+providerButtons.forEach(btn=>btn.addEventListener("click",async()=>{
+ if(btn.disabled)return;
+ const role=selectedRole();
+ try{localStorage.setItem("crowrules_podcasting_signup_role",role)}catch(_){}
+ providerButtons.forEach(b=>b.disabled=true);submit.disabled=true;
+ setStatus("Connecting to "+btn.dataset.provider+"…");
+ const callback=new URL(oauthReturn);
+ callback.searchParams.set("role",role);
+ try{
+  const {error}=await S.auth.signInWithOAuth({provider:btn.dataset.provider,options:{redirectTo:callback.toString(),queryParams:btn.dataset.provider==="google"?{prompt:"select_account"}:undefined}});
+  if(error)throw error;
+ }catch(error){
+  setStatus(error?.message||"Unable to start social sign-up. Check that this provider is enabled in Supabase Auth.","error");
+  providerButtons.forEach(b=>b.disabled=false);submit.disabled=false;
+ }
+}));
+form.addEventListener("submit",async event=>{
+ event.preventDefault();
+ if(submit.disabled)return;
+ if(!form.reportValidity())return;
+ const role=selectedRole(),name=document.getElementById("name").value.trim(),email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;
+ if(name.length<1){setStatus("Enter a display name to continue.","error");return}
+ if(password.length<8){setStatus("Your password must be at least 8 characters.","error");return}
+ submit.disabled=true;providerButtons.forEach(b=>b.disabled=true);setStatus("Creating your account…");
+ try{
+  const {data,error}=await S.auth.signUp({email,password,options:{data:{app:"podcasting",signup_role:role,podcast_role:role,display_name:name},emailRedirectTo:new URL("signup.html?redirect="+encodeURIComponent(redirect),location.href).toString()}});
+  if(error)throw error;
+  if(data?.session&&data?.user){
+   try{localStorage.removeItem("crowrules_podcasting_signup_role")}catch(_){}
+   setStatus("Account created successfully. Redirecting…","success");
+   location.replace(redirect);return;
+  }
+  setStatus("Account created. Check your email for the confirmation link, then return here to sign in.","success");
+  document.getElementById("password").value="";
+ }catch(error){setStatus(error?.message||"Unable to create your account. Please try again.","error")}
+ finally{submit.disabled=false;providerButtons.forEach(b=>b.disabled=false)}
 });
+updateRole();
 })();
 </script>
-</body></html>
+</body>
+</html>
