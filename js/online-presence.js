@@ -80,7 +80,7 @@ async function start(){
   async function track(){
     if(stopped||tracking||document.visibilityState==="hidden"||channel.state!=="joined")return;
     tracking=true;
-    payload.online_at=new Date().toISOString();payload.last_seen_at=payload.online_at;
+    payload.last_seen_at=new Date().toISOString();
     try{var status=await channel.track(payload);if(status&&status==="error")throw new Error("Supabase rejected presence tracking");countsFromState()}
     catch(e){emit("crowrules:online-error",{message:String(e&&e.message||e),status:channel.state});}
     finally{tracking=false}
