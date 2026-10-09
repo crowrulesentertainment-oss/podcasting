@@ -141,7 +141,7 @@ async function startAutomaticBroadcastRecording(){
  const mimeType=["audio/webm;codecs=opus","audio/webm","audio/mp4"].find(t=>MediaRecorder.isTypeSupported(t))||"";
  autoRecordedChunks=[];autoRecordingSessionId=selected.id;autoRecordingMime=mimeType||"audio/webm";autoRecordingStartedAt=Date.now();
  const recorderOptions={};if(mimeType)recorderOptions.mimeType=mimeType;if(mimeType.includes("opus"))recorderOptions.audioBitsPerSecond=128000;
- autoRecorder=new MediaRecorder(broadcastStream,Object.keys(recorderOptions).length?recorderOptions:undefined);
+ autoRecorder=new MediaRecorder(processedBroadcastStream||broadcastStream,Object.keys(recorderOptions).length?recorderOptions:undefined);
  autoRecorder.ondataavailable=e=>{if(e.data&&e.data.size)autoRecordedChunks.push(e.data)};
  autoRecorder.onerror=e=>{msg("controlMessage","Automatic recording error: "+(e.error?.message||"unknown error"),true)};
  autoRecorder.start(1000);
