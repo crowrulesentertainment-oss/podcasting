@@ -1,0 +1,106 @@
+/* CROWRULES PODCASTING — NEON DISTRICT / cyberpunk show interface */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@500;600;700;800;900&display=swap');
+:root{--cy-cyan:#5cf6ff;--cy-pink:#ff3bd4;--cy-violet:#9b72ff;--cy-lime:#b6ff6b;--cy-bg:#050610;--cy-panel:#0a0d1b;--cy-muted:#8e9bb7;--cy-line:rgba(92,246,255,.18)}
+html{background:var(--cy-bg);scroll-behavior:smooth}
+body{color:#edf8ff;background:radial-gradient(ellipse at 12% 0,rgba(92,246,255,.12),transparent 28%),radial-gradient(ellipse at 95% 13%,rgba(255,59,212,.11),transparent 30%),linear-gradient(180deg,#050610 0%,#080918 50%,#050610 100%);font-family:Montserrat,Arial,sans-serif}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.15;background-image:linear-gradient(rgba(92,246,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(92,246,255,.08) 1px,transparent 1px);background-size:54px 54px;mask-image:linear-gradient(to bottom,black,transparent 80%)}
+body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:10;opacity:.08;background:repeating-linear-gradient(to bottom,transparent 0,transparent 3px,rgba(0,0,0,.5) 4px);mix-blend-mode:screen}
+#app{position:relative;z-index:1;isolation:isolate}
+#app .topbar{position:sticky;top:0;z-index:20;background:rgba(5,6,16,.86);border-bottom:1px solid rgba(92,246,255,.25);backdrop-filter:blur(22px);box-shadow:0 8px 35px #0008}
+#app .topbar:after{content:"";position:absolute;bottom:-1px;left:0;width:32%;height:1px;background:linear-gradient(90deg,var(--cy-cyan),var(--cy-pink),transparent);box-shadow:0 0 12px var(--cy-cyan)}
+#app .nav{min-height:76px}
+#app .brand{gap:12px;text-decoration:none}
+#app .brand img{filter:drop-shadow(0 0 8px #5cf6ff44)}
+#app .brand b{font-family:Orbitron,sans-serif;letter-spacing:.09em;font-size:clamp(11px,1.1vw,14px)}
+#app .brand span{color:var(--cy-cyan);text-shadow:0 0 15px #5cf6ff66}
+#app .links a,#app .user>a:not(.btn){font:700 10px 'Share Tech Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:#a6b5d0}
+#app .links a:hover,#app .user>a:not(.btn):hover{color:var(--cy-cyan);background:#5cf6ff0d}
+#app .btn{position:relative;isolation:isolate;overflow:hidden;border-radius:3px;border:1px solid #5cf6ff55;background:linear-gradient(135deg,#0c1725,#101024);color:#dffaff;font:700 10px 'Share Tech Mono',monospace;letter-spacing:.11em;text-transform:uppercase;box-shadow:inset 0 0 0 1px #ffffff05;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px));transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+#app .btn:before{content:"";position:absolute;inset:0;z-index:-1;opacity:0;background:linear-gradient(100deg,#5cf6ff22,#ff3bd422);transition:opacity .2s}
+#app .btn:hover{transform:translateY(-2px);border-color:var(--cy-cyan);box-shadow:0 0 22px #5cf6ff19,inset 0 0 15px #5cf6ff0c}
+#app .btn:hover:before{opacity:1}
+#app .btn.primary{color:#041015;background:linear-gradient(105deg,var(--cy-cyan),#9cfaff 55%,#c3a0ff);border-color:transparent;text-shadow:none;box-shadow:0 0 20px #5cf6ff22}
+#app .btn.primary:hover{box-shadow:0 0 30px #5cf6ff4c,0 0 48px #ff3bd415}
+#app main.shell{padding-top:30px;padding-bottom:100px}
+#app .card,#app .section,#app .subscribe-section,#app .live-show-section{position:relative;border-radius:5px;border:1px solid rgba(92,246,255,.17);background:linear-gradient(145deg,rgba(11,15,31,.97),rgba(7,8,19,.96));box-shadow:0 25px 70px #0005}
+#app .eyebrow{font:700 10px 'Share Tech Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--cy-cyan)}
+#app .eyebrow:before{content:"// ";color:var(--cy-pink)}
+#app .show-hero{position:relative;isolation:isolate;grid-template-columns:minmax(0,1.1fr) minmax(220px,.9fr);gap:clamp(24px,4vw,54px);padding:clamp(22px,4vw,48px);margin:8px 0 22px;border-radius:5px;border:1px solid #5cf6ff3b;background:linear-gradient(115deg,#0b1324f5 0%,#0a0c1bf5 58%,#1b0b25e8 100%);box-shadow:0 25px 80px #0007,inset 0 0 60px #5cf6ff06;overflow:hidden}
+#app .show-hero:before{content:"NIGHT SIGNAL  /  TRANSMISSION OPEN";position:absolute;top:14px;left:20px;font:9px 'Share Tech Mono',monospace;letter-spacing:.17em;color:#7b8ba7;opacity:.75}
+#app .show-hero:after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,transparent 49.9%,#5cf6ff0a 50%,transparent 50.2%),radial-gradient(ellipse at 100% 0,#ff3bd417,transparent 42%)}
+#app .show-copy{position:relative;z-index:1;padding-top:10px}
+#app .show-copy h1{font:800 clamp(36px,5.8vw,76px)/1.02 Orbitron,sans-serif;letter-spacing:-.055em;text-transform:uppercase;overflow-wrap:anywhere;margin:22px 0 18px;text-shadow:3px 0 #ff3bd41a,-3px 0 #5cf6ff1a}
+#app .show-copy>.muted{max-width:62ch;color:#aab8d0;line-height:1.9;font-size:clamp(13px,1.2vw,15px)}
+#app .show-art{position:relative;justify-self:end;z-index:1;width:100%;max-width:420px;aspect-ratio:1;object-fit:cover;border-radius:3px;border:1px solid #5cf6ff55;box-shadow:10px 10px 0 #ff3bd41b,0 0 0 5px #5cf6ff08,0 25px 65px #0009;transition:transform .25s,box-shadow .25s}
+#app .show-art:hover{transform:translate(-3px,-3px);box-shadow:13px 13px 0 #ff3bd42a,0 0 28px #5cf6ff2a,0 25px 65px #0009}
+#app .show-actions{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0}
+#app .show-meta{gap:8px;flex-wrap:wrap;color:#93a1bd}
+#app .show-meta span{padding:8px 11px;border:1px solid #8e9bb725;background:#050711aa;border-radius:2px;font:10px 'Share Tech Mono',monospace;letter-spacing:.06em}
+#app .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0 34px}
+#app .stats .stat{position:relative;min-width:0;overflow:hidden;text-align:left;padding:20px 18px;border-radius:3px;border:1px solid #5cf6ff24;background:linear-gradient(140deg,#0d1629,#090b18);box-shadow:inset 0 0 25px #5cf6ff05}
+#app .stats .stat:before{content:"";position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(var(--cy-cyan),var(--cy-violet),var(--cy-pink))}
+#app .stats .stat strong{font:800 clamp(22px,3vw,33px) Orbitron,sans-serif;letter-spacing:-.04em;color:#edfcff}
+#app .stats .stat small{font:10px 'Share Tech Mono',monospace;letter-spacing:.15em;color:#8391af}
+#app .section{margin:28px 0;padding:clamp(18px,3vw,30px);border-radius:4px}
+#app .section-head{align-items:center;margin-bottom:20px}
+#app .section-head h2,#app .subscribe-head h2,#app .live-show-head h2{font:700 clamp(19px,3vw,28px) Orbitron,sans-serif;letter-spacing:-.035em;text-transform:uppercase}
+#app .section-head h2:before{content:"[ ";color:var(--cy-pink)}
+#app .section-head h2:after{content:" ]";color:var(--cy-cyan)}
+#app .episode-tools{display:grid;grid-template-columns:minmax(0,1fr) 200px;gap:10px}
+#app .episode-tools .input,#app #commentForm .input{box-sizing:border-box;width:100%;border:1px solid #5cf6ff35;border-radius:3px;background:#050711;color:#eafaff;min-height:46px;padding:12px;font:12px 'Share Tech Mono',monospace}
+#app .episode-tools .input:focus,#app #commentForm .input:focus{outline:1px solid var(--cy-cyan);box-shadow:0 0 20px #5cf6ff13}
+#app .episode-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:14px;margin:9px 0;padding:15px;border:1px solid #8e9bb71c;border-radius:3px;background:linear-gradient(100deg,#0c1425,#080a16);transition:border-color .2s,background .2s,transform .2s}
+#app .episode-row:hover{border-color:#5cf6ff65;background:linear-gradient(100deg,#101c30,#110d21);transform:translateX(2px)}
+#app .episode-number{display:grid;place-items:center;width:42px;height:42px;border-radius:2px;border:1px solid #5cf6ff4a;background:#5cf6ff0c;color:var(--cy-cyan);font:700 12px Orbitron,sans-serif}
+#app .episode-info{min-width:0}
+#app .episode-info b{display:block;font-size:13px;line-height:1.6;color:#edf8ff}
+#app .episode-info small{display:block;margin-top:5px;font:11px/1.75 'Share Tech Mono',monospace;color:#8391af;overflow-wrap:anywhere}
+#app .episode-actions{display:flex;gap:8px;align-items:center;margin:0}
+#app .episode-actions .btn{white-space:nowrap;padding:10px 12px}
+#app .notice{padding:17px;border:1px dashed #5cf6ff38;border-radius:3px;background:#5cf6ff08;color:#a6b6d0;font:12px/1.8 'Share Tech Mono',monospace}
+#app .live-show-section{border-color:#b6ff6b55;background:linear-gradient(130deg,#091914,#080b16)}
+#app .live-pill{border-radius:2px;border:1px solid #b6ff6b66;background:#b6ff6b0e;color:var(--cy-lime);font:700 10px 'Share Tech Mono',monospace;letter-spacing:.1em;padding:7px 10px}
+#app .live-show-card{border-radius:3px;border:1px solid #b6ff6b33;background:#070f12}
+#app .live-show-card h3{font:700 14px Orbitron,sans-serif}
+#app .subscribe-section{overflow:hidden;border-color:#9b72ff50;background:linear-gradient(130deg,#0b1020,#100b20)}
+#app .subscribe-section:before{content:"";position:absolute;right:-10%;top:-40%;width:45%;height:100%;background:radial-gradient(ellipse,#9b72ff20,transparent 70%);pointer-events:none}
+#app .subscribe-head,#app .subscribe-grid,#app .subscribe-status{position:relative}
+#app .subscribe-plan{border-radius:3px;border:1px solid #9b72ff42;background:linear-gradient(145deg,#11162b,#0a0b18);transition:transform .2s,border-color .2s}
+#app .subscribe-plan:hover{transform:translateY(-3px);border-color:#5cf6ff88}
+#app .subscribe-plan h3{font:700 15px Orbitron,sans-serif;text-transform:uppercase}
+#app .subscribe-price{font:800 29px Orbitron,sans-serif;color:#f3edff}
+#app .subscribe-plan p,#app .subscribe-plan li{color:#98a5c0;line-height:1.8}
+#app .subscribe-plan li::marker{color:var(--cy-cyan)}
+#app .subscribe-banner{border-radius:3px;border:1px solid #5cf6ff2d;background:#5cf6ff08;color:#c3d4e9}
+#app #commentForm .input{min-height:120px}
+#app .row{border-bottom:1px solid #8e9bb71c}
+#app .footer{border-top:1px solid #5cf6ff28;color:#687994;font:10px 'Share Tech Mono',monospace;letter-spacing:.12em}
+#app .player{border:1px solid #5cf6ff55!important;border-radius:3px!important;background:rgba(5,7,17,.96)!important;box-shadow:0 0 35px #5cf6ff16!important;backdrop-filter:blur(20px)}
+#app .toast{border:1px solid #5cf6ff66;background:#080d1bf2;color:#e9fbff;box-shadow:0 0 28px #5cf6ff16}
+#app a:focus-visible,#app button:focus-visible,#app input:focus-visible,#app select:focus-visible,#app textarea:focus-visible{outline:2px solid var(--cy-cyan);outline-offset:3px}
+.show-loading{position:relative;min-height:68vh;overflow:hidden;border:1px solid #5cf6ff35;border-radius:4px;background:linear-gradient(130deg,#0a1223,#080815 65%,#160b22);padding:clamp(20px,4vw,42px);box-shadow:0 25px 85px #0008}
+.loading-brand{display:flex;align-items:center;gap:13px;font:700 12px Orbitron,sans-serif;letter-spacing:.12em}
+.loading-orb{display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--cy-cyan);color:var(--cy-cyan);box-shadow:0 0 24px #5cf6ff22;font:800 14px Orbitron,sans-serif;transform:rotate(-4deg)}
+.loading-brand small{display:block;margin-top:7px;color:#7786a5;font:10px 'Share Tech Mono',monospace}
+.loading-grid{display:grid;grid-template-columns:1fr 300px;gap:30px;align-items:center;min-height:440px}
+.loading-copy{position:relative;z-index:1}
+.loading-kicker{font:11px 'Share Tech Mono',monospace;letter-spacing:.2em;color:var(--cy-cyan)}
+.loading-copy h1{font:800 clamp(36px,6vw,72px)/1.05 Orbitron,sans-serif;letter-spacing:-.05em;text-transform:uppercase;margin:22px 0}
+.loading-copy h1 em{font-style:normal;color:var(--cy-pink);text-shadow:0 0 24px #ff3bd42a}
+.loading-copy p{max-width:520px;color:#9aa9c5;line-height:1.9;font-size:13px}
+.loading-bars{display:flex;gap:5px;margin:24px 0}
+.loading-bars i{display:block;width:32px;height:3px;background:var(--cy-cyan);box-shadow:0 0 12px #5cf6ff55;animation:cy-signal 1s ease-in-out infinite alternate}
+.loading-bars i:nth-child(2){animation-delay:.2s;background:var(--cy-violet)}.loading-bars i:nth-child(3){animation-delay:.4s;background:var(--cy-pink)}
+.loading-copy a{display:inline-block;margin-top:16px;color:var(--cy-cyan);font:11px 'Share Tech Mono',monospace;letter-spacing:.12em;text-decoration:none}
+.loading-cover{position:relative;display:grid;place-items:center;aspect-ratio:1;width:100%;border:1px solid #5cf6ff5c;background:linear-gradient(145deg,#101b30,#130b24);box-shadow:12px 12px 0 #ff3bd41a,0 0 55px #5cf6ff15}
+.cover-ring{position:absolute;inset:12%;border:1px solid #5cf6ff88;border-radius:50%;box-shadow:0 0 30px #5cf6ff18;animation:cy-spin 18s linear infinite}
+.cover-ring:before,.cover-ring:after{content:"";position:absolute;inset:12%;border:1px dashed #ff3bd480;border-radius:50%}
+.cover-ring:after{inset:25%;border-color:#9b72ff88}
+.cover-core{display:grid;place-items:center;width:40%;aspect-ratio:1;border:1px solid var(--cy-cyan);color:var(--cy-cyan);font:800 30px Orbitron,sans-serif;box-shadow:0 0 35px #5cf6ff20}
+.cover-core span{font:10px 'Share Tech Mono',monospace;letter-spacing:.2em;color:var(--cy-pink)}
+@keyframes cy-spin{to{transform:rotate(360deg)}}@keyframes cy-signal{to{opacity:.25;transform:scaleX(.6);transform-origin:left}}
+@media(max-width:800px){#app .show-hero{grid-template-columns:1fr}#app .show-art{grid-row:1;justify-self:center;width:min(100%,320px)}#app .stats{grid-template-columns:repeat(2,minmax(0,1fr))}#app .episode-row{grid-template-columns:40px minmax(0,1fr)}#app .episode-actions{grid-column:2;justify-content:flex-start;flex-wrap:wrap}#app .episode-tools{grid-template-columns:1fr}.loading-grid{grid-template-columns:1fr;min-height:0;padding-top:45px}.loading-cover{width:min(100%,250px);justify-self:center;grid-row:1}.loading-copy h1{font-size:clamp(34px,8vw,55px)}}
+@media(max-width:480px){#app main.shell{padding-top:14px}#app .show-hero{padding:24px 17px}#app .stats{gap:8px}#app .stats .stat{padding:16px 12px}#app .episode-row{padding:12px;gap:10px}#app .episode-actions .btn{flex:1}.show-loading{padding:18px}.loading-brand{font-size:10px}}
+@media(hover:none){#app .btn:hover,#app .subscribe-plan:hover,#app .episode-row:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+[hidden]{display:none!important}
