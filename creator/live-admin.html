@@ -96,6 +96,7 @@ finally{$("createBtn").disabled=false}
 });
 async function updateStatus(status){
 if(!selected||!db||!user)return;
+if(status==="ended"&&recorder&&recorder.state!=="inactive"){$("recordingInfo").textContent="Session ending. Finalizing and automatically uploading the recording…";recorder.stop();}
 const patch={status};if(status==="live")patch.started_at=new Date().toISOString();if(status==="ended")patch.ended_at=new Date().toISOString();
 $("goLiveBtn").disabled=true;$("endBtn").disabled=true;
 const {error}=await db.from("podcast_live_sessions").update(patch).eq("id",selected.id).eq("creator_id",user.id);
