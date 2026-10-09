@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#05070d">
-<meta name="description" content="CrowRules Podcasting — choose your Listener or Creator experience.">
+<meta name="description" content="Discover podcasts, join live sessions, earn CrowPoints, and create your own show in the CrowRules Podcasting universe."><meta property="og:title" content="CrowRules Podcasting"><meta property="og:description" content="Listen. Discover. Create. Grow. One Account. One Universe."><meta property="og:type" content="website"><meta name="color-scheme" content="dark">
 <title>CrowRules Podcasting — One Universe. Two Experiences.</title>
 <link rel="stylesheet" href="css/podcasting.css">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -12,7 +12,7 @@
 <script src="js/crowpoints.js" defer></script>
 <style>
 :root{--home-glow:rgba(103,232,249,.24)}
-body{overflow-x:hidden}
+body{overflow-x:hidden}html{scroll-behavior:smooth}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:4px}.home-top{position:relative}.home-top:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(103,232,249,.25),rgba(167,139,250,.25),transparent)}.home-quick{margin:0 0 28px;padding:17px;border:1px solid rgba(103,232,249,.16);border-radius:18px;background:linear-gradient(110deg,rgba(8,17,30,.82),rgba(16,12,32,.72));display:grid;grid-template-columns:minmax(190px,.8fr) minmax(0,2fr);gap:18px;align-items:center}.home-quick h2{font:800 12px Orbitron;margin:0 0 6px;letter-spacing:.1em}.home-quick p{margin:0;color:var(--muted);font-size:11px;line-height:1.6}.home-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.home-tool{display:flex;min-height:74px;flex-direction:column;justify-content:center;gap:7px;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(5,9,18,.65);color:#e6f4ff;transition:transform .2s,border-color .2s}.home-tool:hover{transform:translateY(-2px);border-color:rgba(103,232,249,.5)}.home-tool b{font:800 10px Orbitron;letter-spacing:.04em}.home-tool small{color:var(--muted);font-size:10px;line-height:1.4}.home-search{display:flex;gap:8px;margin-top:12px}.home-search input{min-width:0;width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#070d17;color:#fff;font:500 12px Montserrat}.home-search button{border:1px solid rgba(103,232,249,.35);border-radius:10px;padding:0 14px;background:rgba(103,232,249,.1);color:#dffcff;font:800 10px Orbitron;cursor:pointer}.home-note{font-size:11px;color:#7f91a9;line-height:1.7}.home-auth-status{flex-wrap:wrap}
 .home-shell{max-width:1480px;margin:auto;padding:24px 28px 70px;position:relative}
 .home-top{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:4px 0 28px}
 .home-brand{display:flex;align-items:center;gap:13px;color:#fff}
@@ -56,8 +56,8 @@ body{overflow-x:hidden}
 .home-footer{text-align:center;padding:42px 0 10px;color:#66758c;font-size:10px;letter-spacing:.08em}
 @keyframes float{50%{transform:translateY(-10px)}}
 @keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:900px){.home-hero{grid-template-columns:1fr;min-height:auto;padding-top:30px}.home-art-wrap{min-height:360px;order:-1}.home-choice{grid-template-columns:1fr}.home-strip{grid-template-columns:1fr 1fr}}
-@media(max-width:560px){.home-shell{padding:16px 14px 45px}.home-top{align-items:flex-start}.home-brand img{width:48px;height:48px}.home-brand strong{font-size:12px}.home-actions .btn{padding:10px 11px}.home-title{font-size:46px}.home-lead{font-size:14px}.home-art-wrap{min-height:290px}.home-strip{grid-template-columns:1fr}.home-choice .card{min-height:0}}
+@media(max-width:900px){.home-quick{grid-template-columns:1fr}.home-tools{grid-template-columns:repeat(4,minmax(0,1fr))}.home-hero{grid-template-columns:1fr;min-height:auto;padding-top:30px}.home-art-wrap{min-height:360px;order:-1}.home-choice{grid-template-columns:1fr}.home-strip{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.home-tools{grid-template-columns:repeat(2,minmax(0,1fr))}.home-search button{padding:0 10px}.home-shell{padding:16px 14px 45px}.home-top{align-items:flex-start}.home-brand img{width:48px;height:48px}.home-brand strong{font-size:12px}.home-actions .btn{padding:10px 11px}.home-title{font-size:46px}.home-lead{font-size:14px}.home-art-wrap{min-height:290px}.home-strip{grid-template-columns:1fr}.home-choice .card{min-height:0}}
 @media(prefers-reduced-motion:reduce){.home-logo,.home-orbit{animation:none}.home-choice .card{transition:none}}
 a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 </style>
@@ -162,7 +162,7 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
     </section>
   </main>
 
-  <footer class="home-footer">CROWRULES PODCASTING • ONE COMPANY. ONE UNIVERSE. • PRE-LAUNCH TARGET: JANUARY 1, 2027</footer>
+  <section class="home-section card" aria-label="Platform highlights"><div class="section-head"><h2>BUILT FOR THE WHOLE PODCAST JOURNEY</h2><span class="eyebrow">LISTEN • CREATE • CONNECT</span></div><div class="home-strip"><div class="home-mini"><strong>🪙 CRO WPOINTS</strong><small>Check your available points from the sitewide CrowPoints panel when signed in. Point awards depend on verified eligible activity.</small></div><div class="home-mini"><strong>🔴 LIVE EXPERIENCES</strong><small>Find live podcasting features as they become available. Host and listener access may depend on account permissions.</small></div><div class="home-mini"><strong>📈 CREATOR GROWTH</strong><small>Manage shows, publishing, audience engagement and subscriptions from the creator workspace.</small></div><div class="home-mini"><strong>🛡️ YOUR ACCOUNT</strong><small>Sign in to access your account, profile and member-specific features across the CrowRules universe.</small></div></div><p class="home-note">CrowRules Podcasting is in active development. Availability of individual features can change as the platform is built and tested.</p></section>\n\n  <footer class="home-footer">CROWRULES PODCASTING • ONE COMPANY. ONE UNIVERSE. • PRE-LAUNCH TARGET: JANUARY 1, 2027</footer>
 </div>
 
 <script>
@@ -180,7 +180,7 @@ function tick(){
  const d=Math.floor(ms/86400000),h=Math.floor(ms/3600000)%24,m=Math.floor(ms/60000)%60;
  status.textContent="PRE-LAUNCH • "+d+"D "+String(h).padStart(2,"0")+"H "+String(m).padStart(2,"0")+"M • JANUARY 1, 2027";
 }
-tick();setInterval(tick,30000);
+tick();setInterval(tick,30000);\nconst searchForm=document.getElementById("homeSearch");\nsearchForm?.addEventListener("submit",event=>{event.preventDefault();const q=(document.getElementById("homeSearchInput")?.value||"").trim().toLowerCase();const routes=[{terms:["podcast","discover","listener","listen","episode"],url:"listener/index.html"},{terms:["rank","leaderboard","top"],url:"listener/rankings.html"},{terms:["profile","account","settings"],url:"listener/profile.html"},{terms:["creator","publish","show","upload"],url:"creator/index.html"},{terms:["launch","prelaunch","countdown"],url:"launch.html"},{terms:["sign in","login"],url:"login.html"},{terms:["join","signup","register"],url:"signup.html"}];if(!q){document.getElementById("homeSearchInput")?.focus();return}const match=routes.find(r=>r.terms.some(term=>term.includes(q)||q.includes(term)));if(match){location.href=match.url;return}const tools=document.getElementById("homeTools");tools?.scrollIntoView({behavior:"smooth",block:"center"});const input=document.getElementById("homeSearchInput");if(input){input.setCustomValidity("No exact page match. Choose one of the quick links below.");input.reportValidity();input.addEventListener("input",()=>input.setCustomValidity(""),{once:true})}});
 const actions=document.querySelector(".home-actions");
 const signLink=actions?.querySelector('a[href="login.html"]');
 const joinLink=actions?.querySelector('a[href="signup.html"]');
