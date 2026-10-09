@@ -24,7 +24,7 @@ const cfg=window.CROW_CONFIG||{};
 const client=window.supabase&&window.supabase.createClient&&cfg.supabaseUrl&&cfg.supabaseKey?window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}):null;
 const app=document.getElementById("app"),connection=document.getElementById("connection");
 const allowedRoles=["admin","super_admin","owner","administrator"];
-let podcasts=[],reports=[],refreshing=false,refreshTimer=null,channel=null,presence=null;
+let podcasts=[],reports=[],refreshing=false,refreshQueued=false,refreshTimer=null,channel=null,presence=null,realtimeConnected=false,lastRefreshAt=null;
 const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 const n=v=>Number(v||0).toLocaleString();
 const money=cents=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(cents||0)/100);
@@ -36,7 +36,7 @@ async function countQuery(table,query){try{let q=client.from(table).select("*",{
 async function dataQuery(table,columns,orderCol,limit){try{let q=client.from(table).select(columns);if(orderCol)q=q.order(orderCol,{ascending:false,nullsFirst:false});if(limit)q=q.limit(limit);const r=await q;return {data:r.data||[],error:r.error?r.error.message:null}}catch(e){return {data:[],error:e.message||String(e)}}}
 function reportStatus(r){return String(r.status||"open").toLowerCase()}
 async function load(){
- if(!client||refreshing)return;refreshing=true;connection.textContent="Refreshing statistics and moderation queues…";
+ if(!client)return;if(refreshing){refreshQueued=true;return}refreshing=true;connection.textContent=realtimeConnected?"Realtime connected • syncing database counts…":"Refreshing database counts…";
  try{
   const pairs=await Promise.all([
    countQuery("members"),countQuery("creators"),countQuery("podcasts"),countQuery("podcast_episodes"),
@@ -96,9 +96,9 @@ async function load(){
    '<section class="section panel"><div class="section-head"><h2>MEMBER REPORT QUEUE</h2><span class="pill open">'+n(openReports)+' open / reviewing</span></div><div class="toolbar"><button id="exportReports" class="btn">EXPORT REPORTS CSV</button><input id="reportSearch" class="field search" placeholder="Search report reason or member ID…" aria-label="Search reports"><select id="reportStatusFilter" class="field" aria-label="Filter report status"><option value="open">Open + reviewing</option><option value="all">All reports</option><option value="reviewing">Reviewing</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option></select></div><div class="table-wrap"><table class="table" style="min-width:800px"><thead><tr><th>Report</th><th>Reason</th><th>Status</th><th>Submitted</th><th>Moderation</th></tr></thead><tbody id="reportRows"></tbody></table></div></section>'+
    '<section class="section two"><div class="panel"><h2>TOP PODCASTS BY RECORDED PLAYS</h2><div class="list">'+(topShows.map(p=>'<div class="creator-row"><div><b>'+esc(p.title||"Untitled podcast")+'</b><div class="subline">'+esc(p.category||"Uncategorized")+' • '+esc(p.status||"unknown")+(p.is_featured?" • FEATURED":"")+'</div></div><b>'+n(p.total_plays)+'</b></div>').join("")||'<p class="muted">No podcast records are visible.</p>')+'</div></div><div class="panel"><h2>MEMBERSHIP TIER MIX</h2><div>'+tiersText+'</div><p class="muted small">Counts reflect the member records visible to this administrator session.</p></div></section>'+
    '<section class="section two"><div class="panel"><h2>RECENT REPORTS</h2><div class="list">'+(recentReports.map(r=>'<div class="creator-row"><div><b>'+esc(String(r.reason||"Report").slice(0,90))+'</b><div class="subline">'+esc(date(r.created_at))+'</div></div><span class="pill '+esc(reportStatus(r))+'">'+esc(reportStatus(r))+'</span></div>').join("")||'<p class="muted">No reports returned.</p>')+'</div></div><div class="panel"><h2>DATA & SECURITY HEALTH</h2><p class="muted">Last refreshed: '+esc(date(new Date().toISOString()))+'</p><div class="notice">'+(warnings.length?'<span class="error"><b>Some data sources need attention</b><br>'+warnings.map(esc).join("<br>")+'</span>':'<span class="success">All queried tables responded without reported errors.</span>')+'</div><p class="muted small">Unavailable tables are shown as warnings; their zero counts are not proof that no records exist.</p></div></section>';
-  renderPodcasts();renderReports();connection.textContent="Administrator verified • statistics refreshed "+new Date().toLocaleTimeString();
+  renderPodcasts();renderReports();lastRefreshAt=new Date();connection.textContent=(realtimeConnected?"LIVE DATABASE UPDATES":"Polling database counts")+" • Last synced "+lastRefreshAt.toLocaleTimeString();
  }catch(e){connection.textContent="Dashboard refresh failed";showToast(e.message||"Could not load dashboard.",false)}
- finally{refreshing=false}
+ finally{refreshing=false;if(refreshQueued){refreshQueued=false;queueMicrotask(()=>load())}}
 }
 function renderPodcasts(){
  const body=document.getElementById("podcastRows");if(!body)return;
@@ -202,7 +202,7 @@ document.getElementById("exportReports")?.addEventListener("click",exportReportC
 
 function renderOnline(){
  if(!presence)return;const state=presence.presenceState()||{},counts={all:0,listener:0,creator:0,launch:0,site:0};
- Object.keys(state).forEach(key=>(state[key]||[]).forEach(p=>{if(!p)return;counts.all++;const area=String(p.area||"").toLowerCase();if(Object.prototype.hasOwnProperty.call(counts,area))counts[area]++}));
+ Object.keys(state).forEach(key=>{const sessions=state[key]||[];if(!sessions.length)counts.all++;sessions.forEach(p=>{if(!p)return;counts.all++;const area=String(p.area||"").toLowerCase();if(Object.prototype.hasOwnProperty.call(counts,area))counts[area]++})});
  [["onlineTotal",counts.all],["onlineListeners",counts.listener],["onlineCreators",counts.creator],["onlineLaunch",counts.launch]].forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=n(v)});
  const s=document.getElementById("onlineStatus"),badge=document.getElementById("presenceBadge");if(s)s.textContent="Shared presence sync updated "+new Date().toLocaleTimeString()+" • includes only clients using the same channel";if(badge)badge.textContent="LIVE PRESENCE";
 }
@@ -223,13 +223,14 @@ async function boot(){
   const dbRoles=[member.role,...(roleResult.data||[]).map(item=>item.role)].filter(Boolean).map(role=>String(role).trim().toLowerCase());
   if(!dbRoles.some(role=>allowedRoles.includes(role))){connection.textContent="Verified account • access denied";gate("ACCESS DENIED","Your Supabase member record does not have an Admin role. Ask a project owner to assign Admin access.",'<a class="btn" href="home.html">RETURN HOME</a>');return}
   connection.textContent="Administrator verified • "+dbRoles.filter(role=>allowedRoles.includes(role)).join(", ");
-  await load();
+  // Register all database listeners before subscribing, then fetch a fresh baseline.
+  channel=client.channel("crowrules-ops-center-live-stats");
+  ["members","creators","podcasts","podcast_episodes","episodes","podcast_member_reports","podcast_subscriptions","podcast_follows","cr_podcast_social_comments_v5","podcast_user_saved_episodes"].forEach(table=>channel.on("postgres_changes",{event:"*",schema:"public",table},()=>{refreshQueued=true;if(!refreshing){refreshQueued=false;load()}}));
+  channel.subscribe(status=>{realtimeConnected=status==="SUBSCRIBED";const badge=document.getElementById("presenceBadge");if(badge&&status!=="SUBSCRIBED")badge.textContent=status;if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")connection.textContent="Realtime subscription issue • polling remains enabled";else if(status==="SUBSCRIBED")connection.textContent="Realtime database feed connected";});
   presence=client.channel("crowrules-podcasting-online-v1");
-  presence.on("presence",{event:"sync"},renderOnline).subscribe(status=>{const badge=document.getElementById("presenceBadge");if(badge&&status!=="SUBSCRIBED")badge.textContent=status;if(status==="SUBSCRIBED")renderOnline()});
-  channel=client.channel("crowrules-ops-center-safe");
-  ["podcasts","podcast_episodes","episodes","podcast_member_reports","podcast_subscriptions","podcast_follows","cr_podcast_social_comments_v5"].forEach(table=>channel.on("postgres_changes",{event:"*",schema:"public",table},()=>load()));
-  channel.subscribe();
-  refreshTimer=setInterval(()=>load(),60000);
+  presence.on("presence",{event:"sync"},renderOnline).subscribe(async status=>{const badge=document.getElementById("presenceBadge");if(badge&&status!=="SUBSCRIBED")badge.textContent=status;if(status==="SUBSCRIBED"){try{await presence.track({area:"admin",role:"admin",online_at:new Date().toISOString(),page:"admin.html"})}catch(e){console.warn("Presence tracking unavailable",e)}renderOnline()}});
+  await load();
+  refreshTimer=setInterval(()=>load(),30000);
  }catch(e){connection.textContent="Could not verify session";gate("SECURE ACCESS CHECK FAILED",e.message||"Could not verify your session.",'<a class="btn primary" href="login.html?redirect=admin.html">SIGN IN AGAIN</a><button class="btn" onclick="location.reload()">RETRY</button>')}
 }
 window.addEventListener("pagehide",()=>{if(refreshTimer)clearInterval(refreshTimer);if(channel)client.removeChannel(channel);if(presence)client.removeChannel(presence)});
