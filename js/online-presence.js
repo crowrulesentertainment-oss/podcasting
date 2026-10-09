@@ -14,12 +14,7 @@ try {
     var role=String(meta.podcast_role||meta.signup_role||meta.role||"").toLowerCase();
     return role==="creator"||role==="podcaster"?"creator":"listener";
   }
-  function applySession(session){
-    payload.area=roleFromUser(session&&session.user);
-    payload.online_at=new Date().toISOString();
-    if(channel.state==="joined")channel.track(payload).catch(function(){});
-  }
-  channel.on("presence",{event:"sync"},function(){
+  function publishCounts(){
     var state=channel.presenceState(),counts={all:0,listener:0,creator:0,guest:0};
     Object.keys(state||{}).forEach(function(k){(state[k]||[]).forEach(function(p){
       if(!p||!p.area)return;
@@ -27,11 +22,24 @@ try {
       if(Object.prototype.hasOwnProperty.call(counts,p.area))counts[p.area]++;
     })});
     window.dispatchEvent(new CustomEvent("crowrules:online",{detail:counts}));
-  });
+  }
+  function trackCurrentSession(){
+    if(channel.state!=="joined")return;
+    channel.track(payload).then(function(){publishCounts()}).catch(function(error){
+      window.dispatchEvent(new CustomEvent("crowrules:online-error",{detail:{message:String(error&&error.message||error),status:channel.state}}));
+    });
+  }
+  function applySession(session){
+    payload.area=roleFromUser(session&&session.user);
+    payload.online_at=new Date().toISOString();
+    trackCurrentSession();
+  }
+  channel.on("presence",{event:"sync"},publishCounts);
   channel.subscribe(function(status){
+    window.dispatchEvent(new CustomEvent("crowrules:online-status",{detail:{status:status}}));
     if(status==="SUBSCRIBED"){
-      client.auth.getSession().then(function(result){applySession(result&&result.data&&result.data.session)});
-      channel.track(payload).catch(function(){});
+      client.auth.getSession().then(function(result){applySession(result&&result.data&&result.data.session)}).catch(function(){trackCurrentSession()});
+      trackCurrentSession();
     }
   });
   var authListener=client.auth.onAuthStateChange(function(event,session){
