@@ -87,6 +87,33 @@ body{overflow-x:hidden}html{scroll-behavior:smooth}a:focus-visible,button:focus-
 @media(max-width:560px){.home-tools{grid-template-columns:repeat(2,minmax(0,1fr))}.home-search button{padding:0 10px}.home-shell{padding:16px 14px 45px}.home-top{align-items:flex-start}.home-brand img{width:48px;height:48px}.home-brand strong{font-size:12px}.home-actions .btn{padding:10px 11px}.home-title{font-size:46px}.home-lead{font-size:14px}.home-art-wrap{min-height:290px}.home-strip{grid-template-columns:1fr}.home-choice .card{min-height:0}}
 @media(prefers-reduced-motion:reduce){.home-logo,.home-orbit{animation:none}.home-choice .card{transition:none}}
 a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
+
+/* Home live chat */
+.home-chat{margin:22px 0;padding:20px;border:1px solid rgba(103,232,249,.22);border-radius:20px;background:linear-gradient(125deg,rgba(7,16,29,.96),rgba(19,12,35,.92));box-shadow:0 20px 60px rgba(0,0,0,.22)}
+.home-chat-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.home-chat-head h2{font:800 16px Orbitron;margin:0 0 6px}
+.home-chat-head p{font-size:11px;color:var(--muted);margin:0;line-height:1.6}
+.home-chat-state{font:800 9px Orbitron;letter-spacing:.08em;color:#9caec5}
+.home-chat-state[data-state="online"]{color:#6ee7b7}.home-chat-state[data-state="error"]{color:#fda4af}
+.home-chat-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,.65fr);gap:14px}
+.home-chat-feed{height:330px;overflow:auto;display:flex;flex-direction:column;gap:9px;padding:12px;border:1px solid var(--line);border-radius:13px;background:rgba(2,7,15,.72);scroll-behavior:smooth}
+.home-chat-message{padding:10px 12px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,255,255,.035);overflow-wrap:anywhere}
+.home-chat-message-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.home-chat-message-head b{font-size:11px;color:#dffcff}.home-chat-message-head time{font-size:9px;color:#8292a9;white-space:nowrap}
+.home-chat-message p{margin:0;color:#d4dbea;font-size:12px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
+.home-chat-empty{margin:auto;text-align:center;color:var(--muted);font-size:12px;line-height:1.8;padding:18px}
+.home-chat-side{display:flex;flex-direction:column;gap:12px}
+.home-chat-card{padding:14px;border:1px solid var(--line);border-radius:13px;background:rgba(5,10,20,.55)}
+.home-chat-card h3{font:800 11px Orbitron;margin:0 0 9px;letter-spacing:.06em}
+.home-chat-card p{font-size:11px;color:var(--muted);line-height:1.7;margin:0}
+.home-chat-form{display:grid;gap:9px;margin-top:12px}
+.home-chat-form textarea{width:100%;min-height:85px;resize:vertical;padding:12px;border:1px solid var(--line);border-radius:10px;background:#070d17;color:#fff;font:500 12px Montserrat;line-height:1.6}
+.home-chat-form button{border:1px solid rgba(103,232,249,.35);border-radius:10px;padding:12px;background:linear-gradient(100deg,rgba(103,232,249,.14),rgba(167,139,250,.16));color:#e7fbff;font:800 10px Orbitron;cursor:pointer}
+.home-chat-form button:disabled{opacity:.5;cursor:wait}
+.home-chat-feedback{min-height:16px;color:#91a4bd;font-size:10px;line-height:1.5}.home-chat-feedback[data-kind="error"]{color:#fda4af}.home-chat-feedback[data-kind="success"]{color:#6ee7b7}
+.home-chat-rules{margin-top:10px;color:#7f91a9;font-size:10px;line-height:1.6}
+@media(max-width:760px){.home-chat-layout{grid-template-columns:1fr}.home-chat-feed{height:300px}.home-chat{padding:14px}}
+
 </style>
 </head>
 <body>
@@ -206,6 +233,30 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
   </main>
 
   <section class="home-section card" aria-label="Platform highlights"><div class="section-head"><h2>BUILT FOR THE WHOLE PODCAST JOURNEY</h2><span class="eyebrow">LISTEN • CREATE • CONNECT</span></div><div class="home-strip"><div class="home-mini"><strong>🪙 CROWPOINTS</strong><small>Check your available points from the sitewide CrowPoints panel when signed in. Point awards depend on verified eligible activity.</small></div><div class="home-mini"><strong>🔴 LIVE EXPERIENCES</strong><small>Find live podcasting features as they become available. Host and listener access may depend on account permissions.</small></div><div class="home-mini"><strong>📈 CREATOR GROWTH</strong><small>Manage shows, publishing, audience engagement and subscriptions from the creator workspace.</small></div><div class="home-mini"><strong>🛡️ YOUR ACCOUNT</strong><small>Sign in to access your account, profile and member-specific features across the CrowRules universe.</small></div></div><p class="home-note">CrowRules Podcasting is in active development. Availability of individual features can change as the platform is built and tested.</p></section>
+
+  
+  <section class="home-chat" id="homeLiveChat" aria-labelledby="homeChatTitle">
+    <div class="home-chat-head">
+      <div><h2 id="homeChatTitle">💬 CROWRULES COMMUNITY CHAT</h2><p>Talk podcasts, share recommendations and meet the community in real time.</p></div>
+      <span class="home-chat-state" id="homeChatState" data-state="connecting" role="status" aria-live="polite">CONNECTING…</span>
+    </div>
+    <div class="home-chat-layout">
+      <div>
+        <div class="home-chat-feed" id="homeChatFeed" role="log" aria-live="polite" aria-relevant="additions text"><div class="home-chat-empty">Connecting to community chat…</div></div>
+        <div class="home-chat-feedback" id="homeChatFeedback" aria-live="polite"></div>
+      </div>
+      <div class="home-chat-side">
+        <div class="home-chat-card"><h3>JOIN THE CONVERSATION</h3><p id="homeChatPrompt">Sign in with your CrowRules account to send a message. You can read public messages without signing in.</p>
+          <form class="home-chat-form" id="homeChatForm">
+            <textarea id="homeChatInput" maxlength="1000" placeholder="Write a message…" aria-label="Chat message" required></textarea>
+            <button id="homeChatSend" type="submit">SEND MESSAGE →</button>
+          </form>
+          <div class="home-chat-rules">Be respectful. Do not share private information, spam, or post harmful links. Messages are limited to 1,000 characters.</div>
+        </div>
+        <div class="home-chat-card"><h3>CHAT GUIDELINES</h3><p>Keep it welcoming and podcast-focused. Never post passwords, payment details, personal addresses, or other sensitive information. Reported or moderated messages may be removed by the platform team.</p></div>
+      </div>
+    </div>
+  </section>
 
   <footer class="home-footer">CROWRULES PODCASTING • ONE COMPANY. ONE UNIVERSE. • PRE-LAUNCH TARGET: JANUARY 1, 2027</footer>
 </div>
@@ -490,6 +541,7 @@ window.addEventListener("pagehide",()=>authSubscription?.unsubscribe());
 boot();
 })();
 </script>
+<script src="js/home-live-chat.js"></script>
 <script src="js/online-presence.js"></script>
 <script src="js/global-audio-player.js"></script>
 </body>
