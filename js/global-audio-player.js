@@ -19,7 +19,7 @@ const css=[
 '#cr-global-audio .launcher{position:fixed;right:16px;bottom:14px;border:1px solid #67e8f9;border-radius:999px;background:linear-gradient(135deg,#071925,#211738);color:#fff;padding:12px 16px;box-shadow:0 8px 34px #0009;font:800 10px Orbitron,Arial,sans-serif;cursor:pointer}',
 '@media(max-width:620px){#cr-global-audio{bottom:6px;width:calc(100vw - 12px)}#cr-global-audio .top{gap:6px;padding:8px}#cr-global-audio .art{width:34px;height:34px;flex-basis:34px}#cr-global-audio button{padding:7px}#cr-global-audio .volume,#cr-global-audio .speed{display:none}}'
 ].join('\n');
-const style=document.createElement("style");style.textContent=css;document.head.appendChild(style);
+const style=document.createElement("style");style.id="cr-global-audio-style";style.textContent=css;document.head.appendChild(style);
 const host=document.createElement("div");host.id="cr-global-audio";host.innerHTML='<div class="panel"><div class="top"><img class="art" id="cr-ga-art" alt="" hidden><div class="art" id="cr-ga-fallback">CR</div><div class="meta"><div class="title" id="cr-ga-title">CrowRules Global Audio</div><div class="artist" id="cr-ga-artist">Choose an episode to start listening</div><div class="artist" id="cr-ga-plays">Episode plays: —</div></div><div class="controls"><button type="button" id="cr-ga-prev" aria-label="Previous track">⏮</button><button type="button" class="play" id="cr-ga-play" aria-label="Play">▶</button><button type="button" id="cr-ga-next" aria-label="Next track">⏭</button></div><div class="tools"><select class="speed" id="cr-ga-speed" aria-label="Playback speed"><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="1.75">1.75×</option><option value="2">2×</option></select><button type="button" id="cr-ga-queue" aria-expanded="false">QUEUE</button><button type="button" id="cr-ga-hide" aria-label="Minimize player">—</button></div></div><div class="progress"><span id="cr-ga-current">0:00</span><input class="seek" id="cr-ga-seek" type="range" min="0" max="1000" value="0" aria-label="Seek audio"><span id="cr-ga-duration">0:00</span><input class="volume" id="cr-ga-volume" type="range" min="0" max="1" value=".85" step=".01" aria-label="Volume"></div><div class="queue" id="cr-ga-list"></div></div><button type="button" class="launcher" id="cr-ga-open">♫ CROWRULES AUDIO</button>';
 document.body.appendChild(host);
 const $=s=>host.querySelector(s),audio=document.createElement("audio");audio.preload="metadata";audio.setAttribute("aria-label","CrowRules global audio playback");audio.style.display="none";host.appendChild(audio);
@@ -38,5 +38,105 @@ if("mediaSession"in navigator){try{navigator.mediaSession.setActionHandler("play
 window.CrowRulesAudioPlayer={play,async playQueue(items,start=0){await flushListenDuration(true);queue=(items||[]).filter(x=>x&&x.url);index=Math.max(0,Math.min(start,queue.length-1));return loadTrack(index,true)},add(item){if(item&&item.url&&!queue.some(x=>x.url===item.url))queue.push(item);render();save()},toggle,show,minimize,getState(){return{queue,index,paused:audio.paused,currentTime:audio.currentTime,src:audio.currentSrc}}};
 document.addEventListener("click",e=>{const b=e.target.closest("[data-global-audio-url]");if(!b)return;e.preventDefault();play({url:b.dataset.globalAudioUrl,title:b.dataset.globalAudioTitle||b.textContent.trim(),artist:b.dataset.globalAudioArtist,artwork:b.dataset.globalAudioArtwork},{queue:b.dataset.globalAudioQueue==="true"})});
 try{if(state.url){if(!queue.length)queue=[{url:state.url,title:state.title,artist:state.artist,artwork:state.artwork}];index=Math.max(0,Math.min(index,queue.length-1));const t=queue[index],shouldResume=!!state.wasPlaying,restoreTime=Number(state.time)||0;audio.src=t.url;audio.volume=Number(state.volume??.85);audio.playbackRate=Number(state.rate)||1;state.expanded?show():minimize();render();refreshEpisodePlayCount();audio.addEventListener("loadedmetadata",()=>{if(restoreTime>0)try{audio.currentTime=restoreTime}catch(_){}if(shouldResume)audio.play().catch(()=>{$("#cr-ga-artist").textContent="Playback paused after page change · Tap Play to resume";state.wasPlaying=false;save()})},{once:true})}else minimize()}catch(e){console.warn("[CrowRules global audio] restore skipped",e)}
+
+/* Keep the actual audio element alive while navigating between same-origin pages.
+   A normal document navigation destroys it, so eligible links use a lightweight
+   body swap while this player and its playback state remain mounted. */
+let crNavigationBusy=false;
+function crInternalPageLink(a){
+  if(!a||a.hasAttribute("download")||a.target&&a.target!=="_self"||a.getAttribute("rel")==="external")return false;
+  const raw=a.getAttribute("href")||"";
+  if(!raw||raw.startsWith("#")||/^(mailto:|tel:|javascript:|data:|blob:)/i.test(raw))return false;
+  let u;try{u=new URL(raw,location.href)}catch(_){return false}
+  if(u.origin!==location.origin||u.pathname===location.pathname&&u.search===location.search&&u.hash)return false;
+  if(!/\.html?$/i.test(u.pathname))return false;
+  return true;
+}
+async function crLoadPage(url,{push=true,scroll=true}={}){
+  if(crNavigationBusy)return;
+  const target=new URL(url,location.href);
+  if(target.origin!==location.origin)return;
+  crNavigationBusy=true;
+  document.documentElement.setAttribute("data-cr-navigating","true");
+  try{
+    save();
+    const response=await fetch(target.href,{credentials:"same-origin",headers:{"X-CrowRules-Navigation":"1"}});
+    if(!response.ok)throw new Error("Page request failed: "+response.status);
+    const html=await response.text();
+    const next=new DOMParser().parseFromString(html,"text/html");
+    if(!next.body||!next.title)throw new Error("Page response was not a complete HTML document");
+    const keepHost=host;
+    const currentPlayerStyle=document.getElementById("cr-global-audio-style");
+    document.title=next.title;
+    const nextDescription=next.querySelector('meta[name="description"]');
+    let currentDescription=document.querySelector('meta[name="description"]');
+    if(nextDescription){if(!currentDescription){currentDescription=document.createElement("meta");currentDescription.name="description";document.head.appendChild(currentDescription)}currentDescription.content=nextDescription.content}
+    for(const name of ["theme-color","robots"]){
+      const incoming=next.querySelector('meta[name="'+name+'"]');
+      let existing=document.querySelector('meta[name="'+name+'"]');
+      if(incoming){if(!existing){existing=document.createElement("meta");existing.name=name;document.head.appendChild(existing)}existing.content=incoming.content}
+    }
+    const canonical=next.querySelector('link[rel="canonical"]');
+    let currentCanonical=document.querySelector('link[rel="canonical"]');
+    if(canonical){if(!currentCanonical){currentCanonical=document.createElement("link");currentCanonical.rel="canonical";document.head.appendChild(currentCanonical)}currentCanonical.href=new URL(canonical.getAttribute("href"),target.href).href}
+    document.querySelectorAll('link[rel="stylesheet"]').forEach(el=>el.remove());
+    next.querySelectorAll('link[rel="stylesheet"]').forEach(el=>{
+      const link=document.createElement("link");
+      for(const attr of el.attributes)link.setAttribute(attr.name,attr.value);
+      if(link.href)link.href=new URL(el.getAttribute("href"),target.href).href;
+      document.head.appendChild(link);
+    });
+    document.querySelectorAll("head style:not(#cr-global-audio-style)").forEach(el=>el.remove());
+    next.querySelectorAll("head style").forEach(el=>{const st=document.createElement("style");for(const attr of el.attributes)st.setAttribute(attr.name,attr.value);st.textContent=el.textContent;document.head.appendChild(st)});
+    // Replace page markup, but never remove the host or its live HTMLAudioElement.
+    Array.from(document.body.children).forEach(el=>{if(el!==keepHost)el.remove()});
+    const scripts=[];
+    for(const child of Array.from(next.body.childNodes)){
+      if(child.nodeType===1&&child.tagName==="SCRIPT"){
+        scripts.push(child.cloneNode(true));
+      }else{
+        document.body.appendChild(document.importNode(child,true));
+      }
+    }
+    document.body.appendChild(keepHost);
+    for(const source of scripts){
+      const src=source.getAttribute("src")||"";
+      if(/(?:^|\/)global-audio-player\.js(?:\?|$)/i.test(src))continue;
+      if(/(?:^|\/)(?:crowpoints|online-presence|live-visitors)\.js(?:\?|$)/i.test(src))continue;
+      const script=document.createElement("script");
+      for(const attr of source.attributes){
+        if(attr.name==="src")script.src=new URL(source.getAttribute("src"),target.href).href;
+        else script.setAttribute(attr.name,attr.value);
+      }
+      if(!source.src)script.textContent=source.textContent;
+      await new Promise((resolve,reject)=>{
+        if(script.src){script.onload=resolve;script.onerror=()=>reject(new Error("Could not load page script: "+script.src))}
+        document.body.appendChild(script);
+        if(!script.src)resolve();
+      });
+    }
+    if(push)history.pushState({crNavigation:true},"",target.href);
+    else if(location.href!==target.href)history.replaceState({crNavigation:true},"",target.href);
+    document.dispatchEvent(new CustomEvent("crowrules:navigated",{detail:{url:target.href}}));
+    if(scroll){const y=target.hash?document.getElementById(decodeURIComponent(target.hash.slice(1)))?.getBoundingClientRect().top+window.scrollY:0;window.scrollTo(0,Number.isFinite(y)?y:0)}
+    render();save();
+  }catch(error){
+    console.warn("[CrowRules navigation] Keeping normal page navigation as fallback:",error?.message||error);
+    if(push)location.href=target.href;
+    else location.reload();
+  }finally{
+    crNavigationBusy=false;
+    document.documentElement.removeAttribute("data-cr-navigating");
+  }
+}
+document.addEventListener("click",event=>{
+  if(event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+  const a=event.target.closest("a");
+  if(!crInternalPageLink(a))return;
+  event.preventDefault();
+  crLoadPage(a.href,{push:true,scroll:true});
+});
+window.addEventListener("popstate",()=>crLoadPage(location.href,{push:false,scroll:true}));
+
 window.addEventListener("pagehide",save);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")save()});
 })();
