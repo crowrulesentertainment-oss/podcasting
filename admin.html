@@ -213,8 +213,16 @@ async function boot(){
   const result=await Promise.race([client.auth.getUser(),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Authentication check timed out. Sign in again and retry.")),10000))]);
   const user=result&&result.data&&result.data.user;
   if(result.error||!user){connection.textContent="Authentication required";gate("SIGN-IN REQUIRED","Sign in with an authorized CrowRules administrator account.",'<a class="btn primary" href="login.html?redirect=admin.html">SIGN IN</a>');return}
-  const meta=user.app_metadata||{},roles=Array.isArray(meta.roles)?meta.roles:[];
-  if(!allowedRoles.includes(meta.role)&&!roles.some(role=>allowedRoles.includes(role))){connection.textContent="Verified account • access denied";gate("ACCESS DENIED","Your trusted app_metadata does not contain an administrator role. Ask a project owner to grant access.",'<a class="btn" href="home.html">RETURN HOME</a>');return}
+  // Database roles are authoritative. app_metadata/user_metadata alone must not grant admin access.
+  const memberResult=await client.from("members").select("id,role").eq("user_id",user.id).maybeSingle();
+  if(memberResult.error)throw new Error("Could not verify your CrowRules member record: "+memberResult.error.message);
+  const member=memberResult.data;
+  if(!member){connection.textContent="Verified account • member record missing";gate("MEMBER RECORD NOT FOUND","Your signed-in account is not linked to a CrowRules member record. Ask a project owner to review your account.",'<a class="btn" href="home.html">RETURN HOME</a>');return}
+  const roleResult=await client.from("member_roles").select("role").eq("member_id",member.id);
+  if(roleResult.error)throw new Error("Could not verify assigned member roles: "+roleResult.error.message);
+  const dbRoles=[member.role,...(roleResult.data||[]).map(item=>item.role)].filter(Boolean).map(role=>String(role).trim().toLowerCase());
+  if(!dbRoles.some(role=>allowedRoles.includes(role))){connection.textContent="Verified account • access denied";gate("ACCESS DENIED","Your Supabase member record does not have an Admin role. Ask a project owner to assign Admin access.",'<a class="btn" href="home.html">RETURN HOME</a>');return}
+  connection.textContent="Administrator verified • "+dbRoles.filter(role=>allowedRoles.includes(role)).join(", ");
   await load();
   presence=client.channel("crowrules-podcasting-online-v1");
   presence.on("presence",{event:"sync"},renderOnline).subscribe(status=>{const badge=document.getElementById("presenceBadge");if(badge&&status!=="SUBSCRIBED")badge.textContent=status;if(status==="SUBSCRIBED")renderOnline()});
