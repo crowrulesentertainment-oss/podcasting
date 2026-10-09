@@ -198,7 +198,8 @@ document.getElementById("bulkDraft")?.addEventListener("click",()=>bulkModerate(
 document.getElementById("bulkArchive")?.addEventListener("click",()=>bulkModerate("archived"));
 document.getElementById("exportPodcasts")?.addEventListener("click",exportPodcastCsv);
 document.getElementById("exportReports")?.addEventListener("click",exportReportCsv);
-\nfunction renderOnline(){
+
+function renderOnline(){
  if(!presence)return;const state=presence.presenceState()||{},counts={all:0,listener:0,creator:0,launch:0,site:0};
  Object.keys(state).forEach(key=>(state[key]||[]).forEach(p=>{if(!p)return;counts.all++;const area=String(p.area||"").toLowerCase();if(Object.prototype.hasOwnProperty.call(counts,area))counts[area]++}));
  [["onlineTotal",counts.all],["onlineListeners",counts.listener],["onlineCreators",counts.creator],["onlineLaunch",counts.launch]].forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=n(v)});
