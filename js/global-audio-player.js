@@ -65,6 +65,9 @@ async function crLoadPage(url,{push=true,scroll=true}={}){
     const html=await response.text();
     const next=new DOMParser().parseFromString(html,"text/html");
     if(!next.body||!next.title)throw new Error("Page response was not a complete HTML document");
+    // Set the URL before inserting markup so relative images, links, and assets resolve against the destination page.
+    if(push)history.pushState({crNavigation:true},"",target.href);
+    else if(location.href!==target.href)history.replaceState({crNavigation:true},"",target.href);
     const keepHost=host;
     const currentPlayerStyle=document.getElementById("cr-global-audio-style");
     document.title=next.title;
@@ -115,8 +118,6 @@ async function crLoadPage(url,{push=true,scroll=true}={}){
         if(!script.src)resolve();
       });
     }
-    if(push)history.pushState({crNavigation:true},"",target.href);
-    else if(location.href!==target.href)history.replaceState({crNavigation:true},"",target.href);
     document.dispatchEvent(new CustomEvent("crowrules:navigated",{detail:{url:target.href}}));
     if(scroll){const y=target.hash?document.getElementById(decodeURIComponent(target.hash.slice(1)))?.getBoundingClientRect().top+window.scrollY:0;window.scrollTo(0,Number.isFinite(y)?y:0)}
     render();save();
