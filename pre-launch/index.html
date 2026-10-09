@@ -97,7 +97,7 @@ a{color:inherit}
 <div class="prelaunch">
 <header class="topbar">
 <a class="brand" href="../home.html" aria-label="CrowRules Podcasting home">
-<img src="../images/podcastinglogo.png" alt="">
+<img id="brandLogo" src="" alt="CrowRules Podcasting logo">
 <span>CROWRULES PODCASTING<small>A CROWRULES ENTERTAINMENT DIVISION</small></span>
 </a>
 <nav class="nav-actions" aria-label="Pre-launch navigation">
@@ -108,7 +108,7 @@ a{color:inherit}
 </header>
 
 <section class="hero" aria-labelledby="hero-title">
-<img class="prelaunch-logo" src="../images/podcastinglogo.png" alt="CrowRules Podcasting logo" onerror="this.style.display='none'">
+<img id="heroLogo" class="prelaunch-logo" src="" alt="CrowRules Podcasting logo">
 <div class="eyebrow">A new independent media experience</div>
 <h1 id="hero-title"><span>YOUR STORIES.</span><span class="gradient">YOUR VOICE.</span><span>YOUR UNIVERSE.</span></h1>
 <p class="prelaunch-sub">CrowRules Podcasting is being built as a home for podcast listeners and creators alike — a place to discover shows, follow the voices you love, share ideas, and give independent podcasts room to grow.</p>
@@ -209,6 +209,17 @@ a{color:inherit}
   "use strict";
   const cfg=window.CROW_CONFIG||{};
   const $=id=>document.getElementById(id);
+  // The repository has no local /images directory; use the configured hosted logo.
+  ["brandLogo","heroLogo"].forEach(function(id){
+    const img=$(id);
+    if(!img) return;
+    if(cfg.logoUrl){
+      img.src=cfg.logoUrl;
+      img.addEventListener("error",function(){img.style.display="none";},{once:true});
+    }else{
+      img.style.display="none";
+    }
+  });
   const launchAt=new Date(cfg.launchAt||"2027-01-01T08:00:00Z").getTime();
   function tick(){
     const diff=Math.max(0,launchAt-Date.now());
