@@ -139,5 +139,14 @@ document.addEventListener("click",event=>{
 });
 window.addEventListener("popstate",()=>crLoadPage(location.href,{push:false,scroll:true}));
 
-window.addEventListener("pagehide",save);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")save()});
+let lastLifecycleFlush=0;
+async function flushForLifecycle(){
+  const now=Date.now();
+  if(now-lastLifecycleFlush<1000){save();return}
+  lastLifecycleFlush=now;
+  try{if(activeListenSessionKey&&!audio.paused)await flushListenDuration(true,false)}catch(e){console.debug("[CrowRules] lifecycle listen flush deferred",e?.message||e)}
+  save();
+}
+window.addEventListener("pagehide",()=>{flushForLifecycle()});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")flushForLifecycle()});
 })();
