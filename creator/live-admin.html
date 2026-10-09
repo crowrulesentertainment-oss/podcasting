@@ -69,9 +69,36 @@ if(error){$("sessionList").innerHTML='<p class="message error">Could not load se
 sessions=data||[];render();if(selected){const fresh=sessions.find(s=>String(s.id)===String(selected.id));if(fresh)selectSession(fresh.id);else{selected=null;$("selectedPanel").hidden=true;$("selectedEmpty").hidden=false}}
 }
 async function loadShows(){
-const {data,error}=await db.from("podcasts").select("id,title,name").limit(200);
-if(error)return;
-(data||[]).forEach(p=>{const o=document.createElement("option");o.value=p.id;o.textContent=p.title||p.name||"Untitled podcast";$("showSelect").appendChild(o)});
+const select=$("showSelect");
+select.innerHTML='<option value="">No podcast selected</option>';
+select.disabled=true;
+try{
+ // The podcasts table uses title (there is no name column). Selecting a missing column makes the whole query fail silently.
+ const {data,error}=await db.from("podcasts").select("id,title").order("title",{ascending:true}).limit(500);
+ if(error)throw error;
+ const shows=data||[];
+ shows.forEach(p=>{
+  const option=document.createElement("option");
+  option.value=String(p.id);
+  option.textContent=(p.title||"Untitled podcast").trim();
+  select.appendChild(option);
+ });
+ select.disabled=false;
+ if(shows.length===0){
+  select.options[0].textContent="No available podcasts — create one first";
+  $("formMessage").textContent="No podcasts are available to link. You can still create a live session without linking a podcast.";
+  $("formMessage").className="message";
+ }else{
+  $("formMessage").textContent=shows.length+" podcast"+(shows.length===1?"":"s")+" available to link.";
+  $("formMessage").className="message ok";
+ }
+}catch(error){
+ select.innerHTML='<option value="">No podcast selected</option>';
+ select.disabled=false;
+ $("formMessage").textContent="Could not load your podcasts: "+(error?.message||"unknown error")+". You can still create an unlinked live session; refresh after checking your podcast access.";
+ $("formMessage").className="message error";
+ console.error("CrowRules live studio: could not load podcasts",error);
+}
 }
 async function init(){
 if(!window.supabase||!key){$("authStatus").textContent="Supabase configuration missing. Check ../config.js.";return}
