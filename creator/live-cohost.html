@@ -1,18 +1,80 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050a"><title>Join Live as Co-host — CrowRules Podcasting</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet"><script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="../config.js"></script>
-<style>:root{--bg:#05050a;--panel:#11121f;--cyan:#61e8ff;--purple:#a78bfa;--pink:#ff6fd8;--text:#f5f4ff;--muted:#a4a1b7;--ok:#68f5b1;--bad:#ff7b91}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 10% 0%,#10202a,transparent 35%),radial-gradient(circle at 90% 5%,#211435,transparent 35%),var(--bg);color:var(--text);font:14px Montserrat,sans-serif}.card{width:min(720px,100%);padding:clamp(22px,5vw,42px);border:1px solid #ffffff18;border-radius:22px;background:linear-gradient(145deg,#141522f5,#090910f5)}.brand{font:800 11px Orbitron;color:var(--cyan);letter-spacing:.14em}h1{font:800 clamp(26px,5vw,42px) Orbitron;line-height:1.2}h1 span{background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));color:transparent;background-clip:text}.muted{font-size:12px;color:var(--muted);line-height:1.8}.field{display:grid;gap:7px;margin:16px 0}label{font-size:10px;font-weight:800}input{background:#080911;color:white;border:1px solid #ffffff25;border-radius:9px;padding:12px;font:inherit}.btn{border:1px solid #61e8ff70;border-radius:10px;padding:13px 17px;background:linear-gradient(110deg,#61e8ff22,#a78bfa2c);color:white;font-size:10px;font-weight:900;letter-spacing:.06em;cursor:pointer}.btn:disabled{opacity:.45}.row{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.status{margin:16px 0;padding:10px;border-radius:9px;background:#ffffff08;font-size:11px}.ok{color:var(--ok)}.bad{color:var(--bad)}audio{width:100%;margin-top:16px}</style></head>
-<body><main class="card"><div class="brand">CROWRULES PODCASTING / CO-HOST STUDIO</div><h1>JOIN THE <span>CONVERSATION.</span></h1><p class="muted">Join Party Live as a guest speaker. Up to nine co-hosts can join the host (10 people total). Your voice is leveled and mixed into the host's live audio and recording. For the clearest sound, use a wired headset or headphones, a quiet room, and a microphone close to your mouth.</p>
-<div id="account" class="status">Checking account…</div><div class="field"><label for="displayName">YOUR ON-AIR NAME</label><input id="displayName" maxlength="60" placeholder="Name listeners should know you by"></div>
-<div class="row"><button class="btn" id="joinBtn">JOIN AS CO-HOST</button><button class="btn" id="muteBtn" disabled>MUTE MICROPHONE</button><button class="btn" id="leaveBtn" disabled>LEAVE STUDIO</button></div>
-<div id="status" class="status">Ready to join when the host is live.</div><audio id="hostAudio" controls autoplay playsinline hidden></audio><p class="muted">PARTY LIVE · 10-person room · host + up to 9 co-hosts. Each guest has their own mute and leave controls. The host can remove guests or end the broadcast. Use headphones; avoid speaker playback near an open mic.</p></main>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050a">
+<title>Join Live as Co-host — CrowRules Podcasting</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script><script src="../config.js"></script>
+<style>
+:root{--bg:#05050a;--panel:#11121f;--cyan:#61e8ff;--purple:#a78bfa;--pink:#ff6fd8;--text:#f5f4ff;--muted:#a4a1b7;--ok:#68f5b1;--bad:#ff7b91}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 10% 0%,#10202a,transparent 35%),radial-gradient(circle at 90% 5%,#211435,transparent 35%),var(--bg);color:var(--text);font:14px Montserrat,sans-serif}
+.card{width:min(760px,100%);padding:clamp(22px,5vw,42px);border:1px solid #ffffff18;border-radius:22px;background:linear-gradient(145deg,#141522f5,#090910f5);box-shadow:0 20px 80px #0008}
+.brand{font:800 11px Orbitron;color:var(--cyan);letter-spacing:.14em}h1{font:800 clamp(26px,5vw,42px) Orbitron;line-height:1.2}h1 span{background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));color:transparent;background-clip:text}
+.muted{font-size:12px;color:var(--muted);line-height:1.8}.field{display:grid;gap:7px;margin:16px 0}label{font-size:10px;font-weight:800}
+input{background:#080911;color:white;border:1px solid #ffffff25;border-radius:9px;padding:12px;font:inherit;width:100%}.btn{border:1px solid #61e8ff70;border-radius:10px;padding:13px 17px;background:linear-gradient(110deg,#61e8ff22,#a78bfa2c);color:white;font-size:10px;font-weight:900;letter-spacing:.06em;cursor:pointer}.btn:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.status{margin:16px 0;padding:12px;border-radius:9px;background:#ffffff08;font-size:11px;line-height:1.7;overflow-wrap:anywhere}.ok{color:var(--ok)}.bad{color:var(--bad)}.audio-stack audio{display:block;width:100%;margin-top:10px}.pill{display:inline-block;padding:6px 9px;border-radius:999px;border:1px solid #ffffff20;color:var(--muted);font-size:9px;letter-spacing:.08em}
+</style>
+</head>
+<body><main class="card">
+<div class="brand">CROWRULES PODCASTING / LIVEKIT CO-HOST STUDIO</div>
+<h1>JOIN THE <span>CONVERSATION.</span></h1>
+<p class="muted">Join a live show as a guest speaker. Your microphone is published to the same LiveKit room as the host, so listeners can hear you. Use headphones, a quiet room and a microphone close to your mouth. This invite is private, expires after 15 minutes and can be redeemed once.</p>
+<div id="account" class="status">Checking your CrowRules account…</div>
+<div class="field"><label for="displayName">YOUR ON-AIR NAME</label><input id="displayName" maxlength="60" placeholder="Name listeners should know you by"></div>
+<div class="row"><button class="btn" id="joinBtn" disabled>JOIN AS CO-HOST</button><button class="btn" id="muteBtn" disabled>MUTE MICROPHONE</button><button class="btn" id="leaveBtn" disabled>LEAVE STUDIO</button></div>
+<div id="status" class="status">Checking the invitation…</div>
+<div class="pill" id="roomState">NOT CONNECTED</div>
+<div class="audio-stack" id="audioStack" aria-label="Live room audio"></div>
+<p class="muted">LIVE AUDIO · Host + up to 9 co-hosts · Each co-host controls their own microphone. Leaving disconnects your microphone from the room. If the invite has expired or already been used, ask the host for a new one.</p>
+</main>
 <script>
-(()=>{const $=id=>document.getElementById(id),cfg=window.CROW_CONFIG||{},url=cfg.supabaseUrl||cfg.supabaseURL||"https://cevylpnoexugwgygvtgu.supabase.co",key=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.publishableKey,params=new URLSearchParams(location.search),sessionId=params.get("id"),token=params.get("token"),peerId=crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2);let db=null,user=null,channel=null,pc=null,mic=null,joined=false,remoteCandidates=[];
-function say(t,bad=false){$("status").textContent=t;$("status").className="status "+(bad?"bad":"ok")}
-async function send(payload){if(!channel)throw new Error("Realtime channel is not ready.");const {error}=await channel.send({type:"broadcast",event:"signal",payload:{...payload,from:"cohost",peerId}});if(error)throw error}
-async function signal(p){if(!p||p.from!=="host"||p.to!==peerId)return;if(p.type==="cohost-rejected"){say(p.reason||"The host rejected this invite.",true);await leave();return}if(p.type==="offer"){if(!pc)throw new Error("Peer connection is missing.");await pc.setRemoteDescription(p.description);for(const c of remoteCandidates.splice(0))await pc.addIceCandidate(c).catch(()=>{});const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:"answer",fromPeer:peerId,description:pc.localDescription});say("Microphone connected. You are joining the live mix.");}else if(p.type==="candidate"&&p.candidate&&pc){if(pc.remoteDescription)await pc.addIceCandidate(p.candidate).catch(()=>{});else remoteCandidates.push(p.candidate)}}
-async function join(){if(!sessionId||!token){say("This invite is incomplete. Ask the host to create a fresh co-host invite.",true);return}if(!db||!user){say("Sign in to CrowRules Podcasting before joining as a co-host.",true);return}if(joined)return;$("joinBtn").disabled=true;try{mic=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:false,sampleRate:48000,latency:0.01}});channel=db.channel("crowrules-live-"+sessionId,{config:{broadcast:{self:false}}});channel.on("broadcast",{event:"signal"},({payload})=>signal(payload).catch(e=>say("Connection error: "+e.message,true)));await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error("Timed out joining the studio signaling room.")),12000);channel.subscribe(st=>{if(st==="SUBSCRIBED"){clearTimeout(timer);resolve()}else if(st==="CHANNEL_ERROR"||st==="TIMED_OUT"){clearTimeout(timer);reject(new Error("Realtime status: "+st))}})});pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}]});mic.getAudioTracks().forEach(t=>pc.addTrack(t,mic));pc.onicecandidate=e=>{if(e.candidate)send({type:"candidate",fromPeer:peerId,candidate:e.candidate.toJSON()}).catch(()=>{})};pc.onconnectionstatechange=()=>{if(pc&&pc.connectionState==="connected"){say("CONNECTED · Your microphone is in the live mix.");$("muteBtn").disabled=false;$("leaveBtn").disabled=false;$("joinBtn").disabled=true}else if(pc&&["failed","closed"].includes(pc.connectionState))say("Connection "+pc.connectionState+". Try joining again or ask the host to check the studio.",true)};joined=true;await send({type:"join",role:"cohost",inviteToken:token,displayName:$("displayName").value.trim()||user.email||"Co-host"});say("Invite sent. Waiting for the host to accept and connect your microphone.");$("leaveBtn").disabled=false;}catch(e){say("Could not join: "+e.message,true);$("joinBtn").disabled=false;await leave(false)}}
-async function leave(reset=true){joined=false;if(pc){pc.close();pc=null}if(mic){mic.getTracks().forEach(t=>t.stop());mic=null}if(channel&&db){await db.removeChannel(channel).catch(()=>{});channel=null}remoteCandidates=[];$("muteBtn").disabled=true;$("leaveBtn").disabled=true;if(reset)$("joinBtn").disabled=false;say("You left the co-host studio.")}
-$("joinBtn").addEventListener("click",join);$("leaveBtn").addEventListener("click",()=>leave());$("muteBtn").addEventListener("click",()=>{if(!mic)return;const tracks=mic.getAudioTracks();const mute=tracks.some(t=>t.enabled);tracks.forEach(t=>t.enabled=!mute);$("muteBtn").textContent=mute?"UNMUTE MICROPHONE":"MUTE MICROPHONE";say(mute?"Microphone muted.":"Microphone live.");});
-(async()=>{if(!window.supabase||!key){$("account").textContent="Supabase config missing.";return}db=window.supabase.createClient(url,key);const {data:{user:u},error}=await db.auth.getUser();user=u||null;$("account").textContent=error||!user?"Not signed in. Open the CrowRules account page and sign in, then reopen this invitation.":"Signed in as "+(user.email||user.id);if(!user)$("joinBtn").disabled=true;if(!sessionId||!token){$("joinBtn").disabled=true;say("Invalid invite URL.",true)}})();window.addEventListener("beforeunload",()=>{if(pc)pc.close();if(mic)mic.getTracks().forEach(t=>t.stop())});})();
+(()=> {
+const $=id=>document.getElementById(id),cfg=window.CROW_CONFIG||{},supabaseUrl=cfg.supabaseUrl||cfg.supabaseURL||"https://cevylpnoexugwgygvtgu.supabase.co",supabaseKey=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.publishableKey;
+const TOKEN_URL="https://crowrules-livekit-token-service.onrender.com/api/livekit/token",params=new URLSearchParams(location.search),sessionId=params.get("id"),inviteToken=params.get("token");
+let db=null,user=null,room=null,localTrack=null,joined=false,muted=false;
+function say(message,bad=false){$("status").textContent=message;$("status").className="status "+(bad?"bad":"ok")}
+function roomState(message){$("roomState").textContent=message}
+function clearAudio(){ $("audioStack").replaceChildren(); }
+function attachTrack(track){if(!track||track.kind!=="audio")return;const el=track.attach();el.autoplay=true;el.controls=false;el.playsInline=true;el.style.width="100%";$("audioStack").appendChild(el);el.play?.().catch(()=>say("Room connected. If you cannot hear the host, tap the audio playback control or check your device volume."));}
+function detachTrack(track){if(!track)return;for(const el of track.detach())el.remove();}
+async function leave(showMessage=true){
+joined=false;muted=false;
+if(localTrack){try{if(room)await room.localParticipant.unpublishTrack(localTrack)}catch(e){}try{localTrack.stop()}catch(e){}localTrack=null}
+if(room){try{room.removeAllListeners();await room.disconnect()}catch(e){}room=null}
+clearAudio();$("muteBtn").disabled=true;$("leaveBtn").disabled=true;$("joinBtn").disabled=!(db&&user&&sessionId&&inviteToken);$("muteBtn").textContent="MUTE MICROPHONE";roomState("NOT CONNECTED");if(showMessage)say("You left the co-host studio.");}
+async function join(){
+if(joined)return;
+if(!sessionId||!inviteToken){say("This invitation URL is incomplete. Ask the host to create a fresh invitation.",true);return}
+if(!db||!user){say("Sign in to CrowRules Podcasting before joining as a co-host.",true);return}
+if(!window.LivekitClient?.Room||!window.LivekitClient?.createLocalAudioTrack){say("LiveKit could not load. Refresh this page and try again.",true);return}
+$("joinBtn").disabled=true;say("Checking invitation and preparing your microphone…");roomState("AUTHORIZING");
+try{
+const {data:{session},error:sessionError}=await db.auth.getSession();if(sessionError||!session?.access_token)throw new Error("Your sign-in session expired. Sign in again.");
+const response=await fetch(TOKEN_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token},body:JSON.stringify({sessionId,role:"cohost",inviteToken,displayName:$("displayName").value.trim()||user.user_metadata?.display_name||user.email||"CrowRules Co-host"})});
+const tokenData=await response.json().catch(()=>({}));if(!response.ok)throw new Error(tokenData.error||("Co-host authorization failed (HTTP "+response.status+")."));
+if(!tokenData.token||!tokenData.serverUrl)throw new Error("The server did not return LiveKit connection details.");
+localTrack=await window.LivekitClient.createLocalAudioTrack({echoCancellation:true,noiseSuppression:true,autoGainControl:false});
+room=new window.LivekitClient.Room({adaptiveStream:true,dynacast:true,stopLocalTrackOnUnpublish:true});
+room.on(window.LivekitClient.RoomEvent.TrackSubscribed,(track)=>attachTrack(track));
+room.on(window.LivekitClient.RoomEvent.TrackUnsubscribed,(track)=>detachTrack(track));
+room.on(window.LivekitClient.RoomEvent.Disconnected,()=>{if(joined){joined=false;roomState("DISCONNECTED");say("Live room disconnected. Ask the host to confirm the broadcast is still live.",true);$("joinBtn").disabled=false;$("muteBtn").disabled=true;$("leaveBtn").disabled=true;localTrack?.stop();localTrack=null;clearAudio();room=null}});
+room.on(window.LivekitClient.RoomEvent.ParticipantConnected,p=>say((p.name||"A participant")+" joined the live room."));
+room.on(window.LivekitClient.RoomEvent.ParticipantDisconnected,p=>say((p.name||"A participant")+" left the live room."));
+await room.connect(tokenData.serverUrl,tokenData.token,{autoSubscribe:true});
+await room.localParticipant.publishTrack(localTrack,{name:"crowrules-cohost-microphone"});
+for(const participant of room.remoteParticipants.values())for(const publication of participant.trackPublications.values())if(publication.track)attachTrack(publication.track);
+joined=true;$("joinBtn").disabled=true;$("muteBtn").disabled=false;$("leaveBtn").disabled=false;roomState("CONNECTED · LIVEKIT");say("Connected! Your microphone is live in the show. Keep this page open while you are speaking.");
+}catch(error){if(localTrack){try{localTrack.stop()}catch(e){}localTrack=null}if(room){try{await room.disconnect()}catch(e){}room=null}joined=false;$("joinBtn").disabled=false;$("muteBtn").disabled=true;$("leaveBtn").disabled=true;roomState("NOT CONNECTED");say("Could not join: "+error.message,true)}
+}
+$("joinBtn").addEventListener("click",join);
+$("leaveBtn").addEventListener("click",()=>leave());
+$("muteBtn").addEventListener("click",async()=>{if(!localTrack)return;try{muted=!muted;await localTrack.mute(muted);$("muteBtn").textContent=muted?"UNMUTE MICROPHONE":"MUTE MICROPHONE";say(muted?"Your microphone is muted.":"Your microphone is live.");}catch(e){say("Could not change microphone state: "+e.message,true)}});
+(async()=>{if(!window.supabase||!supabaseKey){$("account").textContent="Supabase configuration missing. Check ../config.js.";say("Account setup is unavailable.",true);return}
+db=window.supabase.createClient(supabaseUrl,supabaseKey);const {data:{user:u},error}=await db.auth.getUser();user=u||null;
+$("account").textContent=error||!user?"Not signed in. Open CrowRules Podcasting, sign in, then reopen this invitation.":"Signed in as "+(user.email||user.id);
+if(!sessionId||!inviteToken){say("Invalid invitation URL. Ask the host for a new co-host invitation.",true);return}
+if(!user){say("Sign in before redeeming this private invitation.",true);return}
+$("joinBtn").disabled=false;say("Invitation is ready. It will be redeemed only when you click JOIN AS CO-HOST.");roomState("READY TO JOIN");
+})();
+window.addEventListener("beforeunload",()=>{if(localTrack)try{localTrack.stop()}catch(e){}if(room)try{room.disconnect()}catch(e){}});
+})();
 </script></body></html>
