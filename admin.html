@@ -88,7 +88,7 @@ function startPresence(){
   var e=$("#presenceStatus");if(e)e.textContent="Presence synced "+new Date().toLocaleTimeString()+" • "+total+" tracked sessions";
   refreshLiveCounters();
  }
- specs.forEach(function(spec){var ch=S.channel(spec[1],{config:{presence:{key:key+"-"+spec[0]}}});states[spec[0]]=ch;channels.push(ch);ch.on("presence",{event:"sync"},paint).on("presence",{event:"join"},paint).on("presence",{event:"leave"},paint).subscribe(function(status){if(status==="SUBSCRIBED"){state.realtime="Connected";paint();if(spec[0]==="all")ch.track({area:"operations",user_id:user.id,joined_at:new Date().toISOString()})}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){state.realtime="Degraded";refreshLiveCounters()}})});
+ specs.forEach(function(spec){var ch=S.channel(spec[1],{config:{presence:{key:key+"-"+spec[0]}}});states[spec[0]]=ch;channels.push(ch);ch.on("presence",{event:"sync"},paint).on("presence",{event:"join"},paint).on("presence",{event:"leave"},paint).subscribe(function(status){if(status==="SUBSCRIBED"){state.realtime="Connected";paint();}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){state.realtime="Degraded";refreshLiveCounters()}})});
 }
 function startRealtime(){
  var defs=[["cr_podcast_live"],["podcast_episodes"],["podcast_member_reports"],["cr_podcast_social_comments_v5"],["podcast_follows"],["podcast_subscriptions"],["podcast_workflow_events"]];
