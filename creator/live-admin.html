@@ -96,6 +96,7 @@ finally{$("createBtn").disabled=false}
 });
 async function updateStatus(status){
 if(!selected||!db||!user)return;
+if(status==="ended"&&broadcastActive)await stopBroadcast();
 if(status==="ended"&&recorder&&recorder.state!=="inactive"){$("recordingInfo").textContent="Session ending. Finalizing and automatically uploading the recording…";recorder.stop();}
 const patch={status};if(status==="live")patch.started_at=new Date().toISOString();if(status==="ended")patch.ended_at=new Date().toISOString();
 $("goLiveBtn").disabled=true;$("endBtn").disabled=true;
@@ -186,8 +187,10 @@ async function startRecording(){
  }catch(err){recorder=null;$("recordBtn").disabled=false;msg("controlMessage","Could not start recording: "+err.message,true)}
 }
 $("broadcastBtn").addEventListener("click",()=>{if(broadcastActive)stopBroadcast();else startBroadcast()});
-$("listenerLinkBtn").addEventListener("click",async()=>{if(!selected)return;try{await navigator.clipboard.writeText(listenerUrl());msg("controlMessage","Listener link copied. Share it with your audience.")}catch(e){msg("controlMessage","Copy unavailable. Use the listener URL displayed above.",true)}});\n$("recordBtn").addEventListener("click",()=>{if(recorder&&recorder.state!=="inactive"){recorder.stop();$("recordBtn").disabled=true;$("recordingInfo").textContent="Finalizing recording and uploading…"}else startRecording()});
-\n$("goLiveBtn").addEventListener("click",()=>updateStatus("live"));
+$("listenerLinkBtn").addEventListener("click",async()=>{if(!selected)return;try{await navigator.clipboard.writeText(listenerUrl());msg("controlMessage","Listener link copied. Share it with your audience.")}catch(e){msg("controlMessage","Copy unavailable. Use the listener URL displayed above.",true)}});
+$("recordBtn").addEventListener("click",()=>{if(recorder&&recorder.state!=="inactive"){recorder.stop();$("recordBtn").disabled=true;$("recordingInfo").textContent="Finalizing recording and uploading…"}else startRecording()});
+
+$("goLiveBtn").addEventListener("click",()=>updateStatus("live"));
 $("endBtn").addEventListener("click",()=>updateStatus("ended"));
 $("refreshBtn").addEventListener("click",loadSessions);
 $("copyBtn").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(String(selected.id));msg("controlMessage","Session ID copied.")}catch(e){msg("controlMessage","Copy unavailable. Select and copy the session ID shown above.",true)}});
