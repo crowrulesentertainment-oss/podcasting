@@ -107,7 +107,6 @@ async function start(){
     try{if(authSubscription)authSubscription.unsubscribe()}catch(e){}
     try{channel.untrack()}catch(e){}
     try{client.removeChannel(channel)}catch(e){}
-    try{client.auth.signOut({scope:"local"})}catch(e){}
   }
   window.addEventListener("pagehide",leave,{once:true});
   document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")track()});
