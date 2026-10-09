@@ -29,7 +29,7 @@ const supabaseUrl=cfg.supabaseUrl||cfg.supabaseURL||"https://cevylpnoexugwgygvtg
 const supabaseKey=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.publishableKey;
 const params=new URLSearchParams(location.search);const sessionId=params.get("id");const podcastParam=params.get("podcast");
 const peerId=crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2);
-let db=null,channel=null,pc=null,connected=false,remoteCandidates=[];
+let db=null,channel=null,pc=null,connected=false,offerReceived=false,joinRetryTimer=null,remoteCandidates=[];
 $("sessionId").textContent=sessionId||"Missing ?id=SESSION_ID";
 function say(text,error=false){$("message").textContent=text;$("message").className="message"+(error?" error":" ok")}
 function setStatus(text,live=false){$("status").textContent=text;$("status").className="status"+(live?" live":"")}
@@ -41,6 +41,7 @@ async function send(payload){
 async function handleSignal(payload){
  if(!payload||payload.from!=="host"||payload.to!==peerId)return;
  if(payload.type==="offer"){
+  offerReceived=true;if(joinRetryTimer){clearInterval(joinRetryTimer);joinRetryTimer=null}
   if(!pc)createPeer();
   await pc.setRemoteDescription(payload.description);
   for(const candidate of remoteCandidates.splice(0))await pc.addIceCandidate(candidate).catch(()=>{});
@@ -79,14 +80,15 @@ async function connect(){
   channel=db.channel("crowrules-live-"+sessionId,{config:{broadcast:{self:false}}});
   channel.on("broadcast",{event:"signal"},({payload})=>handleSignal(payload).catch(e=>say("Signaling error: "+e.message,true)));
   await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error("Timed out joining live signaling.")),12000);channel.subscribe(status=>{if(status==="SUBSCRIBED"){clearTimeout(timer);resolve()}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){clearTimeout(timer);reject(new Error("Realtime status: "+status))}})});
-  createPeer();await send({type:"join"});
-  setStatus("CONNECTING");say("Connected to signaling. Asking the host to send audio…");
-  setTimeout(()=>{if(!connected)say("Still waiting for the host. Make sure the creator has pressed START LIVE BROADCAST and that the session is active.")},8000);
+  createPeer();await send({type:"join"});offerReceived=false;
+  joinRetryTimer=setInterval(()=>{if(!offerReceived&&channel)send({type:"join"}).catch(()=>{})},5000);
+  setStatus("CONNECTING");say("Connected to signaling. Waiting for the host; this page will keep requesting the connection until the broadcast starts…");
+  setTimeout(()=>{if(!connected)say("Still waiting for the host. Make sure the creator has pressed START LIVE BROADCAST. This page will keep trying while it remains open.")},8000);
   $("disconnectBtn").disabled=false;
  }catch(e){say("Could not connect: "+e.message,true);$("connectBtn").disabled=false;if(channel&&db){await db.removeChannel(channel).catch(()=>{});channel=null}}
 }
 async function disconnect(){
- connected=false;if(pc){pc.close();pc=null}
+ connected=false;offerReceived=false;if(joinRetryTimer){clearInterval(joinRetryTimer);joinRetryTimer=null}if(pc){pc.close();pc=null}
  $("remoteAudio").pause();$("remoteAudio").srcObject=null;
  if(channel&&db){await db.removeChannel(channel).catch(()=>{});channel=null}
  $("connectBtn").disabled=false;$("disconnectBtn").disabled=true;setStatus("NOT CONNECTED");say("Disconnected from the live broadcast.");
