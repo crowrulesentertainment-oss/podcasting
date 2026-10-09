@@ -266,9 +266,27 @@ function showSignedIn(user,unverified=false){
  });extra.appendChild(out);
  if(unverified)statusView("authenticated","SESSION FOUND • VERIFYING");
 }
+function showSessionUnverified(user,error){
+ statusView("error","SESSION FOUND • SIGN-IN NOT VERIFIED");
+ authPanel.title="A saved session exists, but Supabase could not verify it right now. Check your connection and retry. "+(error?.message||"");
+ let extra=authPanel.querySelector(".home-auth-extra");
+ if(!extra){extra=document.createElement("span");extra.className="home-auth-extra";authPanel.appendChild(extra)}
+ extra.replaceChildren();
+ const retry=document.createElement("button");
+ retry.type="button";retry.textContent="RETRY CHECK";
+ retry.addEventListener("click",()=>checkAuth());
+ extra.appendChild(retry);
+}
 function unavailable(message){
  statusView("error",message||"SIGN-IN STATUS UNAVAILABLE");
  authPanel.title="We couldn't check the current Supabase session. Try refreshing the page.";
+ let extra=authPanel.querySelector(".home-auth-extra");
+ if(!extra){extra=document.createElement("span");extra.className="home-auth-extra";authPanel.appendChild(extra)}
+ extra.replaceChildren();
+ const retry=document.createElement("button");
+ retry.type="button";retry.textContent="RETRY CHECK";
+ retry.addEventListener("click",()=>checkAuth());
+ extra.appendChild(retry);
 }
 let S=null,authSubscription=null,authCheckSequence=0;
 async function checkAuth(){
@@ -286,10 +304,10 @@ async function checkAuth(){
   try{
    const verified=await S.auth.getUser();
    if(seq!==authCheckSequence)return;
-   if(verified.error){showSignedIn(session.user,true);return}
+   if(verified.error){showSessionUnverified(session.user,verified.error);return}
    if(verified.data?.user)showSignedIn(verified.data.user);
    else showSignedOut();
-  }catch{if(seq===authCheckSequence)showSignedIn(session.user,true)}
+  }catch(error){if(seq===authCheckSequence)showSessionUnverified(session.user,error)}
  }catch(e){
   if(seq!==authCheckSequence)return;
   unavailable("SIGN-IN CHECK FAILED");
