@@ -26,7 +26,7 @@
 </div><div class="actions"><button class="btn primary" id="createBtn" type="submit">CREATE LIVE SESSION</button><button class="btn" id="micBtn" type="button">TEST MICROPHONE</button></div><div class="meter"><i id="micMeter"></i></div><div id="formMessage" class="message" role="status"></div></form>
 <div class="notice"><strong>Important:</strong> This page creates and manages live-session records and can test your local microphone. Live audio delivery to remote listeners requires a configured WebRTC/media streaming service and a compatible listener player; creating a session alone does not transmit audio.</div>
 </div>
-<div class="panel"><h2>Live session controls</h2><div class="muted">Select one of your sessions below to manage its status.</div><div id="selectedEmpty" class="notice">Create a session or select an existing one to see its controls.</div><div id="selectedPanel" hidden><div style="margin-top:15px"><span class="status off" id="selectedStatus">CREATED</span></div><h3 id="selectedTitle" style="font-size:15px;margin:14px 0 7px"></h3><p id="selectedDescription" class="muted"></p><div class="muted" style="margin-top:12px">Session ID</div><code id="selectedId" style="font-size:10px;overflow-wrap:anywhere"></code><div class="actions"><button class="btn primary" id="goLiveBtn" type="button">MARK SESSION LIVE</button><button class="btn danger" id="endBtn" type="button">END SESSION</button><button class="btn" id="copyBtn" type="button">COPY SESSION ID</button></div><div id="controlMessage" class="message" role="status"></div></div></div>
+<div class="panel"><h2>Live session controls</h2><div class="muted">Select one of your sessions below to manage its status.</div><div id="selectedEmpty" class="notice">Create a session or select an existing one to see its controls.</div><div id="selectedPanel" hidden><div style="margin-top:15px"><span class="status off" id="selectedStatus">CREATED</span></div><h3 id="selectedTitle" style="font-size:15px;margin:14px 0 7px"></h3><p id="selectedDescription" class="muted"></p><div class="muted" style="margin-top:12px">Session ID</div><code id="selectedId" style="font-size:10px;overflow-wrap:anywhere"></code><div class="actions"><button class="btn primary" id="goLiveBtn" type="button">MARK SESSION LIVE</button><button class="btn danger" id="endBtn" type="button">END SESSION</button><button class="btn" id="copyBtn" type="button">COPY SESSION ID</button><button class="btn primary" id="recordBtn" type="button">START AUDIO RECORDING</button></div><div id="recordingInfo" class="muted" style="margin-top:12px">Audio recording is off. Start recording to capture the microphone; it will upload automatically when stopped.</div><audio id="savedAudio" controls hidden style="width:100%;margin-top:12px"></audio><div id="controlMessage" class="message" role="status"></div></div></div>
 </section>
 <section class="panel" style="margin-top:15px"><h2>Your live sessions</h2><div class="muted">Sessions belonging to the signed-in creator account.</div><div id="sessionList" style="margin-top:10px"><p class="muted">Loading your sessions…</p></div><div class="actions"><button class="btn" id="refreshBtn" type="button">REFRESH SESSIONS</button></div></section>
 <div class="footer">CrowRules Podcasting · One company. One universe.</div>
@@ -37,7 +37,7 @@ const $=id=>document.getElementById(id);
 const cfg=window.CROW_CONFIG||{};
 const url=cfg.supabaseUrl||cfg.supabaseURL||"https://cevylpnoexugwgygvtgu.supabase.co";
 const key=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.publishableKey;
-let db=null,user=null,sessions=[],selected=null,micStream=null,audioCtx=null,analyser=null,raf=0;
+let db=null,user=null,sessions=[],selected=null,micStream=null,audioCtx=null,analyser=null,raf=0,recorder=null,recordedChunks=[],recordingStartedAt=null;
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function msg(id,text,error=false){const el=$(id);el.textContent=text;el.className="message"+(error?" error":" ok")}
 function statusText(s){return String(s||"created").toUpperCase().replace(/_/g," ")}
@@ -102,7 +102,38 @@ const {error}=await db.from("podcast_live_sessions").update(patch).eq("id",selec
 if(error){msg("controlMessage","Could not update session: "+error.message,true);$("goLiveBtn").disabled=false;$("endBtn").disabled=false;return}
 msg("controlMessage",status==="live"?"Session marked LIVE in the session directory. Audio streaming is not started by this status change.":"Session ended.");await loadSessions();selectSession(selected.id)
 }
-$("goLiveBtn").addEventListener("click",()=>updateStatus("live"));
+
+async function startRecording(){
+ if(!selected||!db||!user){msg("controlMessage","Select a session and sign in first.",true);return}
+ if(!window.MediaRecorder){msg("controlMessage","This browser does not support audio recording.",true);return}
+ try{
+  if(!micStream) micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  const mimeType=["audio/webm;codecs=opus","audio/webm","audio/mp4"].find(t=>MediaRecorder.isTypeSupported(t))||"";
+  recorder=new MediaRecorder(micStream,mimeType?{mimeType}:undefined);recordedChunks=[];recordingStartedAt=Date.now();
+  recorder.ondataavailable=e=>{if(e.data&&e.data.size)recordedChunks.push(e.data)};
+  recorder.onerror=e=>{msg("controlMessage","Recording error: "+(e.error?.message||"unknown error"),true)};
+  recorder.onstop=async()=>{const blob=new Blob(recordedChunks,{type:recorder?.mimeType||"audio/webm"});recorder=null;$("recordBtn").disabled=true;$("recordBtn").textContent="UPLOADING AUDIO…";$("recordingInfo").textContent="Recording captured ("+(blob.size/1024/1024).toFixed(2)+" MB). Uploading to private storage…";
+   try{
+    if(!blob.size)throw new Error("No audio data was captured.");
+    const ext=blob.type.includes("mp4")?"m4a":blob.type.includes("ogg")?"ogg":"webm";
+    const path=user.id+"/"+selected.id+"/"+new Date().toISOString().replace(/[:.]/g,"-")+"."+ext;
+    const {error:uploadError}=await db.storage.from("podcast-live-recordings").upload(path,blob,{contentType:blob.type,upsert:true});
+    if(uploadError)throw uploadError;
+    const {error:updateError}=await db.from("podcast_live_sessions").update({recording_path:path,recording_mime:blob.type,recording_size:blob.size}).eq("id",selected.id).eq("creator_id",user.id);
+    if(updateError)throw updateError;
+    $("recordingInfo").textContent="Audio saved securely · "+(blob.size/1024/1024).toFixed(2)+" MB";
+    const {data:signed,error:signedError}=await db.storage.from("podcast-live-recordings").createSignedUrl(path,3600);
+    if(!signedError&&signed?.signedUrl){$("savedAudio").src=signed.signedUrl;$("savedAudio").hidden=false}
+    msg("controlMessage","Recording automatically uploaded and saved to your live session.");
+    recordedChunks=[];await loadSessions();selectSession(selected.id);
+   }catch(err){msg("controlMessage","Recording exists in this browser session but upload failed: "+err.message+". Check the storage bucket and SQL policies, then record again.",true);$("recordingInfo").textContent="Upload failed. Keep this page open and retry after fixing storage permissions."}
+   finally{$("recordBtn").disabled=false;$("recordBtn").textContent="START AUDIO RECORDING"}
+  };
+  recorder.start(1000);$("recordBtn").textContent="STOP & SAVE RECORDING";$("recordBtn").disabled=false;$("recordingInfo").textContent="Recording microphone audio… stop the recording to upload and save it automatically.";msg("controlMessage","Audio recording started. Keep this page open until the upload finishes.");
+ }catch(err){recorder=null;$("recordBtn").disabled=false;msg("controlMessage","Could not start recording: "+err.message,true)}
+}
+$("recordBtn").addEventListener("click",()=>{if(recorder&&recorder.state!=="inactive"){recorder.stop();$("recordBtn").disabled=true;$("recordingInfo").textContent="Finalizing recording and uploading…"}else startRecording()});
+\n$("goLiveBtn").addEventListener("click",()=>updateStatus("live"));
 $("endBtn").addEventListener("click",()=>updateStatus("ended"));
 $("refreshBtn").addEventListener("click",loadSessions);
 $("copyBtn").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(String(selected.id));msg("controlMessage","Session ID copied.")}catch(e){msg("controlMessage","Copy unavailable. Select and copy the session ID shown above.",true)}});
