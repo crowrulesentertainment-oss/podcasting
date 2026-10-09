@@ -37,7 +37,7 @@ const $=id=>document.getElementById(id);
 const cfg=window.CROW_CONFIG||{};
 const url=cfg.supabaseUrl||cfg.supabaseURL||"https://cevylpnoexugwgygvtgu.supabase.co";
 const key=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.publishableKey;
-let db=null,user=null,sessions=[],selected=null,micStream=null,broadcastStream=null,broadcastChannel=null,broadcastActive=false,peerConnections=new Map(),remoteCandidateQueues=new Map(),audioCtx=null,analyser=null,raf=0,recorder=null,recordedChunks=[],recordingStartedAt=null;
+let db=null,user=null,sessions=[],selected=null,micStream=null,broadcastStream=null,broadcastChannel=null,broadcastActive=false,peerConnections=new Map(),remoteCandidateQueues=new Map(),audioCtx=null,analyser=null,raf=0,recorder=null,recordedChunks=[],recordingStartedAt=null,autoRecorder=null,autoRecordedChunks=[],autoRecordingSessionId=null,autoRecordingMime="",autoRecordingStartedAt=null,autoSavePromise=null;
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function msg(id,text,error=false){const el=$(id);el.textContent=text;el.className="message"+(error?" error":" ok")}
 function statusText(s){return String(s||"created").toUpperCase().replace(/_/g," ")}
@@ -134,6 +134,55 @@ async function handleListenerSignal(payload){
   const pc=peerConnections.get(payload.fromPeer);if(pc.remoteDescription)await pc.addIceCandidate(payload.candidate).catch(()=>{});else{const queued=remoteCandidateQueues.get(payload.fromPeer)||[];queued.push(payload.candidate);remoteCandidateQueues.set(payload.fromPeer,queued)}
  }
 }
+async function startAutomaticBroadcastRecording(){
+ if(!broadcastStream||!selected||!db||!user)throw new Error("Broadcast stream or live session is unavailable for recording.");
+ if(!window.MediaRecorder)throw new Error("This browser does not support automatic broadcast recording.");
+ if(autoRecorder&&autoRecorder.state!=="inactive")return;
+ const mimeType=["audio/webm;codecs=opus","audio/webm","audio/mp4"].find(t=>MediaRecorder.isTypeSupported(t))||"";
+ autoRecordedChunks=[];autoRecordingSessionId=selected.id;autoRecordingMime=mimeType||"audio/webm";autoRecordingStartedAt=Date.now();
+ autoRecorder=new MediaRecorder(broadcastStream,mimeType?{mimeType}:undefined);
+ autoRecorder.ondataavailable=e=>{if(e.data&&e.data.size)autoRecordedChunks.push(e.data)};
+ autoRecorder.onerror=e=>{msg("controlMessage","Automatic recording error: "+(e.error?.message||"unknown error"),true)};
+ autoRecorder.start(1000);
+ $("recordingInfo").textContent="AUTOMATIC RECORDING ACTIVE — broadcast audio is being captured and will upload to private storage when you stop the broadcast.";
+ $("recordBtn").textContent="RECORDING WITH LIVE BROADCAST";
+ $("recordBtn").disabled=true;
+}
+function stopAndSaveAutomaticRecording(){
+ if(!autoRecorder||autoRecorder.state==="inactive")return autoSavePromise||Promise.resolve();
+ const recorderToSave=autoRecorder,sessionId=autoRecordingSessionId,mime=recorderToSave.mimeType||autoRecordingMime||"audio/webm",started=autoRecordingStartedAt;
+ autoSavePromise=new Promise(resolve=>{
+  recorderToSave.onstop=async()=>{
+   const blob=new Blob(autoRecordedChunks,{type:mime});
+   autoRecorder=null;
+   $("recordingInfo").textContent="Broadcast ended. Uploading recording ("+(blob.size/1024/1024).toFixed(2)+" MB)…";
+   try{
+    if(!blob.size)throw new Error("No audio data was captured during the broadcast.");
+    if(blob.size>524288000)throw new Error("Recording exceeds the 500 MB storage limit. This broadcast was too long to save as one file.");
+    const ext=mime.includes("mp4")?"m4a":mime.includes("ogg")?"ogg":"webm";
+    const path=user.id+"/"+sessionId+"/broadcast-"+new Date().toISOString().replace(/[:.]/g,"-")+"."+ext;
+    const {error:uploadError}=await db.storage.from("podcast-live-recordings").upload(path,blob,{contentType:mime,upsert:true});
+    if(uploadError)throw uploadError;
+    const {error:updateError}=await db.from("podcast_live_sessions").update({recording_path:path,recording_mime:mime,recording_size:blob.size}).eq("id",sessionId).eq("creator_id",user.id);
+    if(updateError)throw updateError;
+    $("recordingInfo").textContent="AUTOMATIC SAVE COMPLETE · "+(blob.size/1024/1024).toFixed(2)+" MB · "+Math.max(1,Math.round((Date.now()-started)/1000))+" seconds. Saved to podcast-live-recordings.";
+    const {data:signed,error:signedError}=await db.storage.from("podcast-live-recordings").createSignedUrl(path,3600);
+    if(!signedError&&signed?.signedUrl){$("savedAudio").src=signed.signedUrl;$("savedAudio").hidden=false}
+    msg("controlMessage","Live broadcast recording was automatically saved to private Supabase storage.");
+    await loadSessions();if(selected&&String(selected.id)===String(sessionId))selectSession(sessionId);
+   }catch(err){
+    $("recordingInfo").textContent="AUTOMATIC SAVE FAILED: "+err.message;
+    msg("controlMessage","Broadcast audio could not be saved automatically: "+err.message+". Check storage permissions and retry with a short test broadcast.",true);
+   }finally{
+    autoRecordedChunks=[];autoRecordingSessionId=null;autoRecordingStartedAt=null;autoSavePromise=null;
+    $("recordBtn").disabled=false;$("recordBtn").textContent="START AUDIO RECORDING";
+    resolve();
+   }
+  };
+  try{recorderToSave.stop()}catch(e){autoRecorder=null;autoSavePromise=null;resolve()}
+ });
+ return autoSavePromise;
+}
 async function startBroadcast(){
  if(!selected||!db||!user){msg("controlMessage","Select a live session and sign in first.",true);return}
  if(broadcastActive)return;
@@ -146,18 +195,20 @@ async function startBroadcast(){
   broadcastActive=true;$("broadcastBtn").textContent="STOP LIVE BROADCAST";$("broadcastBtn").classList.add("danger");
   const {error}=await db.from("podcast_live_sessions").update({status:"live",started_at:new Date().toISOString()}).eq("id",selected.id).eq("creator_id",user.id);
   if(error)throw error;
+  await startAutomaticBroadcastRecording();
   await loadSessions();selectSession(selected.id);
-  setBroadcastInfo("LIVE BROADCAST ACTIVE · waiting for listeners to connect. Share the listener URL below. Each session has its own room, so different creators can broadcast separate podcasts at the same time.");
+  setBroadcastInfo("LIVE BROADCAST ACTIVE · your microphone is being sent to listeners and automatically recorded. When you stop the broadcast, the recording uploads to podcast-live-recordings. Share the listener URL below.");
   msg("controlMessage","Your microphone is now available to listeners who connect to this session.");
  }catch(e){await stopBroadcast();setBroadcastInfo("Could not start live broadcast: "+e.message,true);msg("controlMessage","Broadcast failed: "+e.message,true)}
 }
 async function stopBroadcast(){
  broadcastActive=false;
+ if(autoRecorder&&autoRecorder.state!=="inactive"){await stopAndSaveAutomaticRecording()}
  for(const pc of peerConnections.values())pc.close();peerConnections.clear();remoteCandidateQueues.clear();
  if(broadcastStream){broadcastStream.getTracks().forEach(t=>t.stop());broadcastStream=null}
  if(broadcastChannel&&db){try{await db.removeChannel(broadcastChannel)}catch(e){}broadcastChannel=null}
  $("broadcastBtn").textContent="START LIVE BROADCAST";$("broadcastBtn").classList.remove("danger");
- setBroadcastInfo("Live broadcast is off. No listener is receiving audio.");
+ if(!autoSavePromise)setBroadcastInfo("Live broadcast is off. No listener is receiving audio. If a broadcast recording was active, it has been uploaded to private storage.");
 }
 
 async function startRecording(){
