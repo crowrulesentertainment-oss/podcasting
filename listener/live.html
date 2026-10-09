@@ -6,7 +6,7 @@
 <title>Listen Live — CrowRules Podcasting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="../config.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script><script src="../config.js"></script>
 <style>
 :root{--bg:#05050a;--panel:#10111d;--cyan:#61e8ff;--purple:#a78bfa;--pink:#ff6fd8;--text:#f5f4ff;--muted:#a4a1b7;--ok:#68f5b1;--danger:#ff7b91}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 12% 0%,#10202a 0,transparent 34%),radial-gradient(circle at 90% 5%,#211435 0,transparent 35%),var(--bg);color:var(--text);font:14px Montserrat,system-ui,sans-serif;display:grid;place-items:center;padding:22px}.card{width:min(720px,100%);border:1px solid #ffffff18;border-radius:22px;padding:clamp(22px,5vw,44px);background:linear-gradient(145deg,#121320f5,#090910f5);box-shadow:0 24px 100px #0008}.brand{font:800 11px Orbitron;letter-spacing:.12em;color:var(--cyan)}h1{font:800 clamp(26px,5vw,44px) Orbitron;line-height:1.2;margin:18px 0 10px}h1 span{background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));color:transparent;background-clip:text}.muted{color:var(--muted);font-size:12px;line-height:1.8}.status{display:inline-flex;margin:18px 0 12px;padding:8px 12px;border:1px solid #ffffff20;border-radius:30px;font-size:10px;font-weight:900;letter-spacing:.08em;color:var(--muted)}.status.live{color:var(--ok);border-color:#68f5b155;background:#68f5b10c}.btn{border:1px solid #61e8ff70;border-radius:10px;padding:13px 17px;background:linear-gradient(110deg,#61e8ff22,#a78bfa2c);color:white;font-weight:900;font-size:11px;letter-spacing:.07em;cursor:pointer}.btn:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}audio{width:100%;margin-top:20px}code{overflow-wrap:anywhere;color:var(--cyan)}.message{margin-top:14px;font-size:12px;line-height:1.7;white-space:pre-wrap}.error{color:var(--danger)}.ok{color:var(--ok)}.foot{margin-top:30px;padding-top:18px;border-top:1px solid #ffffff12;font-size:10px;color:#777487}
@@ -24,88 +24,17 @@
 <div class="foot">One company. One universe. · CrowRules Podcasting</div>
 </main>
 <script>
-(()=> {
-const $=id=>document.getElementById(id),cfg=window.CROW_CONFIG||{};
-const supabaseUrl=cfg.supabaseUrl||cfg.supabaseURL||"https://cevylpnoexugwgygvtgu.supabase.co";
-const supabaseKey=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.publishableKey;
-const params=new URLSearchParams(location.search);const sessionId=params.get("id");const podcastParam=params.get("podcast");
-const peerId=crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2);
-let db=null,channel=null,pc=null,connected=false,offerReceived=false,joinRetryTimer=null,remoteCandidates=[];
+(()=>{const $=id=>document.getElementById(id),cfg=window.CROW_CONFIG||{},supabaseUrl=cfg.supabaseUrl||cfg.supabaseURL||"https://cevylpnoexugwgygvtgu.supabase.co",supabaseKey=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.publishableKey,TOKEN_URL="https://crowrules-livekit-token-service.onrender.com/api/livekit/token",params=new URLSearchParams(location.search),sessionId=params.get("id");let db=null,room=null;
 $("sessionId").textContent=sessionId||"Missing ?id=SESSION_ID";
-function say(text,error=false){$("message").textContent=text;$("message").className="message"+(error?" error":" ok")}
-function setStatus(text,live=false){$("status").textContent=text;$("status").className="status"+(live?" live":"")}
-async function send(payload){
- if(!channel)throw new Error("Signaling channel is not ready.");
- const {error}=await channel.send({type:"broadcast",event:"signal",payload:{...payload,from:"listener",peerId}});
- if(error)throw error;
-}
-async function handleSignal(payload){
- if(!payload||payload.from!=="host"||payload.to!==peerId)return;
- if(payload.type==="offer"){
-  offerReceived=true;if(joinRetryTimer){clearInterval(joinRetryTimer);joinRetryTimer=null}
-  if(!pc)createPeer();
-  await pc.setRemoteDescription(payload.description);
-  for(const candidate of remoteCandidates.splice(0))await pc.addIceCandidate(candidate).catch(()=>{});
-  const answer=await pc.createAnswer();await pc.setLocalDescription(answer);
-  await send({type:"answer",fromPeer:peerId,description:pc.localDescription});
-  say("Connected to the host. Waiting for audio…");
- }else if(payload.type==="candidate"&&payload.candidate&&pc){
-  if(pc.remoteDescription)await pc.addIceCandidate(payload.candidate).catch(()=>{});else remoteCandidates.push(payload.candidate);
- }
-}
-function createPeer(){
- pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}]});
- pc.ontrack=e=>{
- const player=$("remoteAudio");
- // Attach a single remote MediaStream once; repeated track events should not restart playback or stack listeners.
- let stream=e.streams&&e.streams[0];
- if(!stream){stream=player.srcObject||new MediaStream();if(!stream.getTracks().some(t=>t.id===e.track.id))stream.addTrack(e.track)}
- if(player.srcObject!==stream)player.srcObject=stream;
- player.muted=false;player.volume=0.85;
- player.play().catch(()=>say("Audio is connected. Press Play in the audio player to hear the broadcast."));
- setStatus("AUDIO CONNECTED",true);say("Live audio is connected. Use headphones to prevent room echo.");
-};
- pc.onicecandidate=e=>{if(e.candidate)send({type:"candidate",fromPeer:peerId,candidate:e.candidate.toJSON()}).catch(()=>{})};
- pc.onconnectionstatechange=()=>{const state=pc?.connectionState||"closed";if(state==="connected"){connected=true;setStatus("CONNECTED",true);$("disconnectBtn").disabled=false;$("connectBtn").disabled=true;say("Connection established. Audio should play through the player.")}else if(["failed","disconnected","closed"].includes(state)){if(state!=="disconnected"){setStatus("CONNECTION "+state.toUpperCase());say("The live connection ended or could not be established. Try reconnecting.",true)} }};
-}
-async function loadPodcastLink(){
- const pid=params.get("podcast")||podcastParam;if(!pid||!db)return;
- const {data,error}=await db.from("podcasts").select("id,title,slug,status").eq("id",pid).maybeSingle();
- if(error||!data){$("podcastInfo").textContent="This live session has a podcast ID, but its show details could not be loaded.";return}
- const a=document.createElement("a");a.href="show.html?id="+encodeURIComponent(data.id);a.textContent="Open podcast: "+(data.title||"View show");a.style.color="var(--cyan)";a.style.fontWeight="800";$("podcastInfo").replaceChildren(a);
-}
-async function connect(){
- if(!sessionId){say("This listener link is missing its session ID. Ask the creator for the complete listener link.",true);return}
- if(!window.supabase||!supabaseKey){say("Supabase configuration is missing from config.js.",true);return}
- $("connectBtn").disabled=true;say("Connecting to live session…");
- try{
-  db=window.supabase.createClient(supabaseUrl,supabaseKey);
-  await loadPodcastLink();
-  const {data:sessionRow,error:sessionError}=await db.from("podcast_live_sessions").select("id,title,podcast_id,status,visibility").eq("id",sessionId).maybeSingle();
-  if(sessionError)throw new Error("Could not read live session. Check the public live-session read policy: "+sessionError.message);
-  if(!sessionRow)throw new Error("This live session was not found or is not available to listeners.");
-  if(String(sessionRow.status).toLowerCase()==="ended")throw new Error("This live session has ended.");
-  if(sessionRow.podcast_id&&!podcastParam){params.set("podcast",sessionRow.podcast_id);history.replaceState(null,"",location.pathname+"?"+params.toString());await loadPodcastLink()}
-  $("sessionId").textContent=sessionRow.title?sessionRow.title+" · "+sessionRow.id:sessionRow.id;
-  channel=db.channel("crowrules-live-"+sessionId,{config:{broadcast:{self:false}}});
-  channel.on("broadcast",{event:"signal"},({payload})=>handleSignal(payload).catch(e=>say("Signaling error: "+e.message,true)));
-  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error("Timed out joining live signaling.")),12000);channel.subscribe(status=>{if(status==="SUBSCRIBED"){clearTimeout(timer);resolve()}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){clearTimeout(timer);reject(new Error("Realtime status: "+status))}})});
-  createPeer();await send({type:"join"});offerReceived=false;
-  joinRetryTimer=setInterval(()=>{if(!offerReceived&&channel)send({type:"join"}).catch(()=>{})},5000);
-  setStatus("CONNECTING");say("Connected to signaling. Waiting for the host; this page will keep requesting the connection until the broadcast starts…");
-  setTimeout(()=>{if(!connected)say("Still waiting for the host. Make sure the creator has pressed START LIVE BROADCAST. This page will keep trying while it remains open.")},8000);
-  $("disconnectBtn").disabled=false;
- }catch(e){say("Could not connect: "+e.message,true);$("connectBtn").disabled=false;if(channel&&db){await db.removeChannel(channel).catch(()=>{});channel=null}}
-}
-async function disconnect(){
- connected=false;offerReceived=false;if(joinRetryTimer){clearInterval(joinRetryTimer);joinRetryTimer=null}if(pc){pc.close();pc=null}
- $("remoteAudio").pause();$("remoteAudio").srcObject=null;
- if(channel&&db){await db.removeChannel(channel).catch(()=>{});channel=null}
- $("connectBtn").disabled=false;$("disconnectBtn").disabled=true;setStatus("NOT CONNECTED");say("Disconnected from the live broadcast.");
-}
-$("connectBtn").addEventListener("click",connect);$("disconnectBtn").addEventListener("click",disconnect);
-window.addEventListener("beforeunload",()=>{if(pc)pc.close()});
-if(sessionId)$("sessionId").textContent=sessionId;
-})();
+function say(t,err=false){$("message").textContent=t;$("message").className="message"+(err?" error":" ok")}
+function status(t,live=false){$("status").textContent=t;$("status").className="status"+(live?" live":"")}
+async function loadPodcast(pid){if(!pid||!db)return;const {data}=await db.from("podcasts").select("id,title").eq("id",pid).maybeSingle();if(data){const a=document.createElement("a");a.href="show.html?id="+encodeURIComponent(data.id);a.textContent="Open podcast: "+(data.title||"View show");a.style.color="var(--cyan)";$("podcastInfo").replaceChildren(a)}}
+function addAudio(track){if(track.kind!=="audio")return;const p=$("remoteAudio");if(!p.srcObject)p.srcObject=new MediaStream();if(!p.srcObject.getTracks().some(t=>t.id===track.mediaStreamTrack.id))p.srcObject.addTrack(track.mediaStreamTrack);p.volume=.9;p.play().catch(()=>say("Audio connected. Press Play in the audio player."));status("AUDIO CONNECTED",true)}
+async function connect(){if(!sessionId){say("Missing live session ID.",true);return}if(!window.LivekitClient?.Room){say("LiveKit browser SDK did not load. Refresh and retry.",true);return}if(!window.supabase||!supabaseKey){say("Supabase configuration is missing.",true);return}
+$("connectBtn").disabled=true;say("Checking live session…");try{db=window.supabase.createClient(supabaseUrl,supabaseKey);const {data:session,error}=await db.from("podcast_live_sessions").select("id,title,podcast_id,status").eq("id",sessionId).maybeSingle();if(error)throw new Error("Could not read live session: "+error.message);if(!session)throw new Error("Session not found or not publicly readable.");if(String(session.status).toLowerCase()!=="live")throw new Error("This session is not live right now.");$("sessionId").textContent=(session.title?session.title+" · ":"")+session.id;await loadPodcast(params.get("podcast")||session.podcast_id);
+const auth=await db.auth.getSession(),access=auth.data?.session?.access_token;const response=await fetch(TOKEN_URL,{method:"POST",headers:{"Content-Type":"application/json",...(access?{Authorization:"Bearer "+access}:{})},body:JSON.stringify({sessionId,role:"listener",displayName:"CrowRules Listener"})});const td=await response.json().catch(()=>({}));if(!response.ok)throw new Error(td.error||"Listener token request failed: HTTP "+response.status);
+room=new window.LivekitClient.Room({adaptiveStream:true,dynacast:true});room.on(window.LivekitClient.RoomEvent.TrackSubscribed,addAudio);room.on(window.LivekitClient.RoomEvent.Disconnected,()=>{status("DISCONNECTED");say("Live room disconnected. Reconnect when the broadcast is available.",true);$("connectBtn").disabled=false;$("disconnectBtn").disabled=true});await room.connect(td.serverUrl,td.token,{autoSubscribe:true});for(const p of room.remoteParticipants.values())for(const pub of p.trackPublications.values())if(pub.track)addAudio(pub.track);status("CONNECTED TO LIVEKIT",true);say("Connected to the live room. Waiting for host audio…");$("disconnectBtn").disabled=false
+}catch(e){say("Could not connect: "+e.message,true);$("connectBtn").disabled=false;if(room){await room.disconnect().catch(()=>{});room=null}}}
+async function disconnect(){if(room){await room.disconnect().catch(()=>{});room=null}$("remoteAudio").pause();$("remoteAudio").srcObject=null;$("connectBtn").disabled=false;$("disconnectBtn").disabled=true;status("NOT CONNECTED");say("Disconnected from live audio.")}
+$("connectBtn").addEventListener("click",connect);$("disconnectBtn").addEventListener("click",disconnect);window.addEventListener("beforeunload",()=>{if(room)room.disconnect()});})();
 </script>
-</body></html>
