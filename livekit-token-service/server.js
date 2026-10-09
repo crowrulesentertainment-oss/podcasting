@@ -1,4 +1,5 @@
 import express from "express";
+import crypto from "node:crypto";
 import cors from "cors";
 import { createClient } from "@supabase/supabase-js";
 import { AccessToken } from "livekit-server-sdk";
@@ -41,59 +42,42 @@ app.post("/api/livekit/token", async (req, res) => {
 
     const authHeader = req.headers.authorization || "";
     const accessToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
-    if (!accessToken) return res.status(401).json({ error: "Sign in to CrowRules Podcasting first." });
+
 
     const { sessionId, role = "host", displayName = "" } = req.body || {};
-    if (!sessionId || typeof sessionId !== "string" || sessionId.length > 100) {
-      return res.status(400).json({ error: "A valid live session ID is required." });
-    }
-    if (role !== "host") {
-      return res.status(403).json({ error: "Only the session host token flow is enabled. Co-host invite redemption will be enabled in the next integration step." });
-    }
-
+    if (!sessionId || typeof sessionId !== "string" || sessionId.length > 100) return res.status(400).json({ error: "A valid live session ID is required." });
+    if (!["host", "listener"].includes(role)) return res.status(403).json({ error: "Co-host access is not enabled until invite redemption is securely implemented." });
     const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { persistSession: false, autoRefreshToken: false },
-      global: { headers: { Authorization: `Bearer ${accessToken}` } }
+      ...(accessToken ? { global: { headers: { Authorization: `Bearer ${accessToken}` } } } : {})
     });
-    const { data: userData, error: userError } = await userClient.auth.getUser(accessToken);
-    if (userError || !userData?.user) return res.status(401).json({ error: "Your CrowRules session is invalid or expired. Sign in again." });
-
-    const { data: liveSession, error: sessionError } = await userClient
-      .from("podcast_live_sessions")
-      .select("id,creator_id,status")
-      .eq("id", sessionId)
-      .maybeSingle();
-
+    let authenticatedUser = null;
+    if (accessToken) {
+      const { data, error } = await userClient.auth.getUser(accessToken);
+      if (!error && data?.user) authenticatedUser = data.user;
+    }
+    if (role === "host" && !authenticatedUser) return res.status(401).json({ error: "Sign in to CrowRules Podcasting first." });
+    const { data: liveSession, error: sessionError } = await userClient.from("podcast_live_sessions").select("id,creator_id,status").eq("id", sessionId).maybeSingle();
     if (sessionError) {
       console.error("session authorization query failed:", sessionError.message);
-      return res.status(403).json({ error: "Could not verify your permission to host this live session." });
+      return res.status(403).json({ error: "Could not verify this live session. Check the public session-read policy." });
     }
-    if (!liveSession || liveSession.creator_id !== userData.user.id) {
-      return res.status(403).json({ error: "Only the creator who owns this live session can receive host access." });
-    }
-    if (!["live", "starting", "scheduled"].includes(String(liveSession.status || "").toLowerCase())) {
-      return res.status(409).json({ error: "This live session is not available for hosting." });
-    }
-
+    if (!liveSession) return res.status(404).json({ error: "Live session not found." });
+    const sessionStatus = String(liveSession.status || "").toLowerCase();
+    if (role === "host") {
+      if (liveSession.creator_id !== authenticatedUser.id) return res.status(403).json({ error: "Only the session owner can receive host access." });
+      if (!["live", "starting", "scheduled"].includes(sessionStatus)) return res.status(409).json({ error: "This session is not available for hosting." });
+    } else if (sessionStatus !== "live") return res.status(409).json({ error: "This live session is not currently live." });
     const roomName = `crowrules-live-${liveSession.id}`;
-    const identity = `user-${userData.user.id}`;
-    const safeName = String(displayName || userData.user.user_metadata?.display_name || userData.user.email || "CrowRules Host").slice(0, 80);
+    const identity = role === "host" ? `user-${authenticatedUser.id}` : `listener-${crypto.randomUUID()}`;
+    const safeName = String(displayName || authenticatedUser?.user_metadata?.display_name || authenticatedUser?.email || (role === "listener" ? "CrowRules Listener" : "CrowRules Host")).slice(0, 80);
     const token = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
-      identity,
-      name: safeName,
-      ttl: "10m",
-      metadata: JSON.stringify({ userId: userData.user.id, sessionId: liveSession.id, role: "host" })
+      identity, name: safeName, ttl: role === "listener" ? "5m" : "10m",
+      metadata: JSON.stringify({ userId: authenticatedUser?.id || null, sessionId: liveSession.id, role })
     });
-    token.addGrant({
-      roomJoin: true,
-      room: roomName,
-      canPublish: true,
-      canSubscribe: true,
-      canPublishData: true
-    });
-
+    token.addGrant({ roomJoin: true, room: roomName, canPublish: role === "host", canSubscribe: true, canPublishData: role === "host" });
     res.set("Cache-Control", "no-store");
-    return res.json({ token: await token.toJwt(), serverUrl: LIVEKIT_URL, roomName, identity, role: "host", expiresIn: 600 });
+    return res.json({ token: await token.toJwt(), serverUrl: LIVEKIT_URL, roomName, identity, role, expiresIn: role === "listener" ? 300 : 600 });
   } catch (error) {
     console.error("token issuance failed:", error?.message || error);
     return res.status(500).json({ error: "Unable to create a LiveKit access token." });
