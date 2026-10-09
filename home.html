@@ -338,6 +338,9 @@ pulseIds.refresh?.addEventListener("click",loadHomePulse);
  try{
   S=window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
   await checkAuth();
+  await loadHomePulse();
+  const pulseTimer=setInterval(loadHomePulse,60000);
+  window.addEventListener("pagehide",()=>clearInterval(pulseTimer),{once:true});
   const {data}=S.auth.onAuthStateChange((event,session)=>{
    // Run after the Supabase callback returns; avoid deadlocks from nested auth calls.
    Promise.resolve().then(()=>{
