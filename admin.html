@@ -28,7 +28,7 @@ let podcasts=[],reports=[],refreshing=false,refreshQueued=false,refreshTimer=nul
 const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 const n=v=>Number(v||0).toLocaleString();
 const money=cents=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(cents||0)/100);
-const date=v=>v?new Date(v).toLocaleString():"—";
+const date=v=>{if(!v)return "—";const d=new Date(v);return Number.isNaN(d.getTime())?"—":d.toLocaleString()};
 function gate(title,message,links){app.innerHTML='<section class="gate panel"><div class="eyebrow">CROWRULES PODCASTING</div><h1>'+esc(title)+'</h1><p class="muted">'+esc(message)+'</p><div class="actions">'+(links||"")+'</div></section>'}
 function metric(label,value,note){return '<div class="panel metric"><small>'+esc(label)+'</small><strong>'+esc(n(value))+'</strong><em>'+esc(note)+'</em></div>'}
 function showToast(message,ok){const el=document.getElementById("actionMessage");if(el){el.className="notice "+(ok?"success":"error");el.textContent=message;el.classList.remove("hidden");}}
@@ -57,7 +57,9 @@ async function load(){
   podcasts=podcastsR.data;reports=reportsR.data;
   const warnings=[];
   pairs.forEach((p,i)=>{if(p.error)warnings.push((["Member count","Creator count","Podcast count","Podcast episode count","Episode count","Follows","Active subscriptions","Comments","Saved episodes","Published shows","Draft shows","Archived shows","Featured shows","Published podcast episodes","Member details","Member role assignments","Podcast catalog","Podcast episodes","Legacy episodes","Moderation reports","Creator records"][i])+": "+p.error)});
-  const totalPlays=podcasts.reduce((s,p)=>s+Number(p.total_plays||0),0)+podcastEpisodesR.data.reduce((s,e)=>s+Number(e.play_count||0),0);
+  // Avoid double-counting when show-level totals already include episode plays.
+  const showPlayTotal=podcasts.reduce((s,p)=>s+Number(p.total_plays||0),0);
+  const totalPlays=showPlayTotal||podcastEpisodesR.data.reduce((s,e)=>s+Number(e.play_count||0),0);
   const activeMembers=membersR.data.filter(m=>String(m.status||"").toLowerCase()==="active").length;
   const tiers={};membersR.data.forEach(m=>{const t=m.membership_type||"Unspecified";tiers[t]=(tiers[t]||0)+1});
   const rolesByMember=new Map();memberRolesR.data.forEach(item=>{const key=String(item.member_id);if(!rolesByMember.has(key))rolesByMember.set(key,[]);rolesByMember.get(key).push(String(item.role||"").trim())});
@@ -151,7 +153,7 @@ function renderReports(){
  const search=(document.getElementById("reportSearch")?.value||"").trim().toLowerCase();
  const status=document.getElementById("reportStatusFilter")?.value||"open";
  const filtered=reports.filter(r=>{
-  const s=reportStatus(r);const hay=[r.reason,r.reporter_user_id,r.reported_user_id,r.admin_notes].join(" ").toLowerCase();
+  const s=reportStatus(r);const hay=[r.reason,r.reporter_user_id,r.reported_user_id,r.admin_notes,r.id].join(" ").toLowerCase();
   return (!search||hay.includes(search))&&(status==="all"|| (status==="open"?["open","reviewing"].includes(s):s===status));
  });
  body.innerHTML=filtered.map(r=>{
@@ -172,9 +174,9 @@ async function updatePodcast(id,patch){
 async function updateReport(id,status){
  const r=reports.find(x=>String(x.id)===String(id));if(!r)return;
  let patch={status:status};
- if(status==="resolved"||status==="dismissed"){patch.resolved_at=new Date().toISOString();try{const {data}=await client.auth.getUser();if(data?.user?.id)patch.resolved_by=data.user.id}catch(e){}}
+ if(status==="resolved"||status==="dismissed")patch.resolved_at=new Date().toISOString();
  try{
-  const {data,error}=await client.from("podcast_member_reports").update(patch).eq("id",id).select("id,status,admin_notes,resolved_at,resolved_by").maybeSingle();
+  const {data,error}=await client.from("podcast_member_reports").update(patch).eq("id",id).select("id,status,admin_notes,resolved_at").maybeSingle();
   if(error)throw error;if(!data)throw new Error("No report was updated. Check administrator RLS permissions.");
   Object.assign(r,data);renderReports();showToast("Report status updated to "+status+".",true);load();
  }catch(e){showToast("Report moderation failed: "+(e.message||String(e)),false)}
@@ -189,7 +191,7 @@ async function editReportNotes(id){
 document.getElementById("refresh").addEventListener("click",()=>load());
 document.getElementById("signout").addEventListener("click",async()=>{if(client)await client.auth.signOut();location.href="home.html"});
 app.addEventListener("input",e=>{if(["podcastSearch","reportSearch","memberSearch"].includes(e.target.id)){if(e.target.id==="podcastSearch")renderPodcasts();else if(e.target.id==="reportSearch")renderReports();else renderMembers(window.__crAdminMembers||[],window.__crAdminMemberRoles||[],window.__crAdminCreatorRows||[])}});
-app.addEventListener("change",e=>{if(["podcastStatusFilter","podcastFeatureFilter"].includes(e.target.id))renderPodcasts();if(e.target.id==="reportStatusFilter")renderReports();if(["memberRoleFilter","memberStatusFilter"].includes(e.target.id))renderMembers(window.__crAdminMembers||[],window.__crAdminMemberRoles||[])});
+app.addEventListener("change",e=>{if(["podcastStatusFilter","podcastFeatureFilter"].includes(e.target.id))renderPodcasts();if(e.target.id==="reportStatusFilter")renderReports();if(["memberRoleFilter","memberStatusFilter"].includes(e.target.id))renderMembers(window.__crAdminMembers||[],window.__crAdminMemberRoles||[],window.__crAdminCreatorRows||[])});
 app.addEventListener("click",e=>{
  const b=e.target.closest("button[data-podcast-action],button[data-report-action]");if(!b)return;
  if(b.dataset.podcastAction==="details")showPodcastDetails(b.dataset.id);
@@ -232,8 +234,11 @@ function renderOnline(){
  Object.entries(state).forEach(([key,sessions])=>(sessions||[]).forEach(p=>{
   if(!p)return;
   const sessionKey=String(p.session_id||p.sessionId||key+":"+String(p.online_at||p.onlineAt||""));
-  if(seen.has(sessionKey))return;seen.add(sessionKey);counts.all++;
+  if(seen.has(sessionKey))return;seen.add(sessionKey);
   const role=String(p.role||p.user_role||p.mode||"").toLowerCase();
+  // Exclude the admin dashboard's own Presence session from audience counts.
+  if(role.includes("admin"))return;
+  counts.all++;
   const area=String(p.area||p.page_type||p.page||"").toLowerCase();
   if(role.includes("listener")||role==="user")counts.listener++;
   if(role.includes("creator")||role==="host")counts.creator++;
