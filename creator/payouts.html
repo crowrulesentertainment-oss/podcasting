@@ -29,4 +29,6 @@ async function load(){try{if(!S)throw Error("Supabase is not configured.");const
 async function onboard(){try{$("connect").disabled=true;$("onboard").disabled=true;const base=location.href.split("#")[0];const j=await api({action:"onboard",return_url:base,refresh_url:base});if(j.onboarding_url)window.location.assign(j.onboarding_url);else throw Error("Stripe did not return an onboarding link.")}catch(e){toast(e.message)}finally{$("connect").disabled=false;$("onboard").disabled=false}}
 $("refresh").onclick=load;$("connect").onclick=onboard;$("onboard").onclick=onboard;load();if(S)S.auth.onAuthStateChange(()=>load());
 })();
-</script></body></html>
+</script>
+<script src="../js/crowpoints.js" defer></script>
+</body></html>
