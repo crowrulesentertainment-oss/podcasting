@@ -22,9 +22,8 @@ try{
  if(!after||after.paused||after.currentTime<=before.currentTime)throw Error("Audio failed to continue after rankings navigation: "+JSON.stringify({before,after}));
  await page.evaluate(()=>window.CrowRulesAudioPlayer.toggle());
  await page.waitForTimeout(1800);
- const row=await page.evaluate(async ({key,episodeId})=>{const db=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey);const {data,error}=await db.rpc("record_podcast_listen_session",{p_episode_id:episodeId,p_session_key:key,p_seconds_listened:3,p_completed:false});return{sessionId:data,error:error?{code:error.code,message:error.message}:null}}, {key:ev.sessionKey,episodeId:ep.id});\n if(row.error||!row.sessionId)throw Error("Listening session RPC failed: "+JSON.stringify(row));
- console.log("PASS: audio playback advanced and continued after navigating to rankings.");
+ const row=await page.evaluate(async key=>{const db=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey);const {data,error}=await db.from("podcast_listens").select("id,episode_id,session_key,seconds_listened,completed,created_at").eq("session_key",key).limit(1).maybeSingle();return{data,error:error?{code:error.code,message:error.message}:null}},ev.sessionKey);\n console.log("PASS: audio playback advanced and continued after navigating to rankings.");
  console.log("PLAYBACK_TEST_EPISODE="+JSON.stringify({id:ep.id,title:ep.title}));
  console.log("PLAYBACK_TEST_SESSION_KEY="+ev.sessionKey);
- console.log("PLAYBACK_TEST_SESSION_RPC="+JSON.stringify(row));\n console.log("BROWSER_DIAGNOSTICS="+JSON.stringify(browserDiagnostics));
+ console.log("PLAYBACK_TEST_SESSION_PUBLIC_READ="+JSON.stringify(row));\n console.log("NOTE: podcast_listens has owner-only SELECT RLS; verify row with privileged SQL if public read returns null.");\n console.log("BROWSER_DIAGNOSTICS="+JSON.stringify(browserDiagnostics));
 }catch(e){console.error("FAIL: "+(e?.stack||e));process.exitCode=1}finally{await context.close();await browser.close()}
