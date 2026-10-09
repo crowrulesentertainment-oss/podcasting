@@ -16,7 +16,7 @@
 <h1>YOU'RE <span>LISTENING LIVE.</span></h1>
 <p class="muted">Connect to the creator's live microphone. Keep this page open while listening. Your browser may ask you to press play after the connection is established.</p>
 <div id="status" class="status">NOT CONNECTED</div>
-<div class="muted">Session: <code id="sessionId">Reading session link…</code></div>
+<div class="muted">Session: <code id="sessionId">Reading session link…</code></div><div id="podcastInfo" class="muted" style="margin-top:10px">Loading linked podcast…</div>
 <div class="row"><button id="connectBtn" class="btn">CONNECT TO LIVE AUDIO</button><button id="disconnectBtn" class="btn" disabled>DISCONNECT</button></div>
 <audio id="remoteAudio" controls autoplay playsinline></audio>
 <div id="message" class="message" role="status">Ready to connect. If the creator is not broadcasting yet, leave this page open and try again when they go live.</div>
@@ -27,7 +27,7 @@
 const $=id=>document.getElementById(id),cfg=window.CROW_CONFIG||{};
 const supabaseUrl=cfg.supabaseUrl||cfg.supabaseURL||"https://cevylpnoexugwgygvtgu.supabase.co";
 const supabaseKey=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.publishableKey;
-const sessionId=new URLSearchParams(location.search).get("id");
+const params=new URLSearchParams(location.search);const sessionId=params.get("id");const podcastParam=params.get("podcast");
 const peerId=crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2);
 let db=null,channel=null,pc=null,connected=false,remoteCandidates=[];
 $("sessionId").textContent=sessionId||"Missing ?id=SESSION_ID";
@@ -57,12 +57,25 @@ function createPeer(){
  pc.onicecandidate=e=>{if(e.candidate)send({type:"candidate",fromPeer:peerId,candidate:e.candidate.toJSON()}).catch(()=>{})};
  pc.onconnectionstatechange=()=>{const state=pc?.connectionState||"closed";if(state==="connected"){connected=true;setStatus("CONNECTED",true);$("disconnectBtn").disabled=false;$("connectBtn").disabled=true;say("Connection established. Audio should play through the player.")}else if(["failed","disconnected","closed"].includes(state)){if(state!=="disconnected"){setStatus("CONNECTION "+state.toUpperCase());say("The live connection ended or could not be established. Try reconnecting.",true)} }};
 }
+async function loadPodcastLink(){
+ const pid=podcastParam;if(!pid||!db)return;
+ const {data,error}=await db.from("podcasts").select("id,title,slug,status").eq("id",pid).maybeSingle();
+ if(error||!data){$("podcastInfo").textContent="This live session has a podcast ID, but its show details could not be loaded.";return}
+ const a=document.createElement("a");a.href="show.html?id="+encodeURIComponent(data.id);a.textContent="Open podcast: "+(data.title||"View show");a.style.color="var(--cyan)";a.style.fontWeight="800";$("podcastInfo").replaceChildren(a);
+}
 async function connect(){
  if(!sessionId){say("This listener link is missing its session ID. Ask the creator for the complete listener link.",true);return}
  if(!window.supabase||!supabaseKey){say("Supabase configuration is missing from config.js.",true);return}
  $("connectBtn").disabled=true;say("Connecting to live session…");
  try{
   db=window.supabase.createClient(supabaseUrl,supabaseKey);
+  await loadPodcastLink();
+  const {data:sessionRow,error:sessionError}=await db.from("podcast_live_sessions").select("id,title,podcast_id,status,visibility").eq("id",sessionId).maybeSingle();
+  if(sessionError)throw new Error("Could not read live session. Check the public live-session read policy: "+sessionError.message);
+  if(!sessionRow)throw new Error("This live session was not found or is not available to listeners.");
+  if(String(sessionRow.status).toLowerCase()==="ended")throw new Error("This live session has ended.");
+  if(sessionRow.podcast_id&&!podcastParam){params.set("podcast",sessionRow.podcast_id);history.replaceState(null,"",location.pathname+"?"+params.toString());await loadPodcastLink()}
+  $("sessionId").textContent=sessionRow.title?sessionRow.title+" · "+sessionRow.id:sessionRow.id;
   channel=db.channel("crowrules-live-"+sessionId,{config:{broadcast:{self:false}}});
   channel.on("broadcast",{event:"signal"},({payload})=>handleSignal(payload).catch(e=>say("Signaling error: "+e.message,true)));
   await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error("Timed out joining live signaling.")),12000);channel.subscribe(status=>{if(status==="SUBSCRIBED"){clearTimeout(timer);resolve()}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){clearTimeout(timer);reject(new Error("Realtime status: "+status))}})});
