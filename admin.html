@@ -1,87 +1,201 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050b"><title>Operations Center • CrowRules Podcasting</title>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050b">
+<title>Operations Center • CrowRules Podcasting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="config.js"></script>
 <style>
-:root{color-scheme:dark;--bg:#05050b;--panel:#101221;--line:#272a40;--text:#f8fafc;--muted:#9ca3b5;--cyan:#22d3ee;--purple:#a78bfa;--green:#34d399;--red:#fb7185}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 10% 0%,#12303b 0,transparent 35%),radial-gradient(ellipse at 90% 0%,#24183d 0,transparent 35%),var(--bg);color:var(--text);font:14px Montserrat,Arial,sans-serif;min-height:100vh}a{color:var(--cyan);text-decoration:none}.shell{width:min(1200px,calc(100% - 32px));margin:auto}.top{border-bottom:1px solid var(--line);background:#070812dd;position:sticky;top:0;z-index:2;backdrop-filter:blur(14px)}.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0}.brand{font:800 15px Orbitron,sans-serif;letter-spacing:1px;color:white}.brand span{color:var(--cyan)}.actions{display:flex;gap:9px;flex-wrap:wrap}.btn{border:1px solid var(--line);border-radius:10px;background:#171a2c;color:var(--text);padding:10px 14px;font:700 11px Montserrat;cursor:pointer}.btn.primary{background:linear-gradient(100deg,#0891b2,#7c3aed);border:0}.hero{padding:38px 0 24px}.eyebrow{color:var(--cyan);font-size:10px;letter-spacing:2px;font-weight:800}.hero h1{font:800 clamp(30px,5vw,48px) Orbitron;margin:12px 0}.muted{color:var(--muted);line-height:1.7}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.panel{background:linear-gradient(145deg,#111424f5,#0a0b15f5);border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0}.metric small{display:block;color:var(--muted);font-weight:700}.metric strong{display:block;font:700 30px Orbitron;margin:12px 0 6px;overflow-wrap:anywhere}.metric em{font-size:11px;color:var(--cyan);font-style:normal}.section{margin:22px 0}.section h2{font:700 17px Orbitron}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.status{display:flex;align-items:center;gap:9px}.dot{width:8px;height:8px;background:var(--green);border-radius:50%;display:inline-block;box-shadow:0 0 12px var(--green)}.notice{border:1px solid var(--line);border-radius:12px;padding:13px;color:var(--muted);line-height:1.7;overflow-wrap:anywhere}.list{display:grid;gap:8px}.item{padding:11px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}.item:last-child{border-bottom:0}.item b{display:block;margin-bottom:5px}.gate{max-width:650px;margin:10vh auto;padding:24px}.gate h1{font:700 25px Orbitron}.error{color:#fecdd3}.footer{text-align:center;padding:28px;color:var(--muted);font-size:10px;letter-spacing:1px}@media(max-width:850px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}}@media(max-width:480px){.shell{width:calc(100% - 20px)}.grid{gap:8px}.panel{padding:13px}.metric strong{font-size:23px}.brand{font-size:12px}}
-</style></head><body><header class="top"><div class="shell nav"><a class="brand" href="home.html">CROWRULES <span>/ PODCASTING OPS</span></a><div class="actions"><button class="btn" id="refresh">REFRESH DATA</button><button class="btn" id="signout">SIGN OUT</button></div></div></header>
-<main class="shell"><section class="hero"><div class="eyebrow">SECURE CONTROL PLANE • REALTIME DATA</div><h1>OPERATIONS CENTER</h1><p class="muted">Creator operations, audience signals, moderation health and catalog overview.</p><div class="status"><i class="dot"></i><span id="connection">Checking secure session…</span></div></section>
-<div id="app"><div class="panel"><h2>Connecting securely</h2><p class="muted">Verifying your session and trusted administrator role. The dashboard will appear when verification completes.</p></div></div></main><footer class="shell footer">ONE COMPANY. ONE UNIVERSE. • CROWRULES PODCASTING</footer>
+:root{color-scheme:dark;--bg:#05050b;--panel:#101221;--line:#272a40;--text:#f8fafc;--muted:#9ca3b5;--cyan:#22d3ee;--purple:#a78bfa;--green:#34d399;--red:#fb7185;--amber:#fbbf24}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 10% 0%,#12303b 0,transparent 35%),radial-gradient(ellipse at 90% 0%,#24183d 0,transparent 35%),var(--bg);color:var(--text);font:14px Montserrat,Arial,sans-serif;min-height:100vh}a{color:var(--cyan);text-decoration:none}.shell{width:min(1380px,calc(100% - 32px));margin:auto}.top{border-bottom:1px solid var(--line);background:#070812ed;position:sticky;top:0;z-index:5;backdrop-filter:blur(14px)}.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0}.brand{font:800 14px Orbitron,sans-serif;letter-spacing:1px;color:white}.brand span{color:var(--cyan)}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);border-radius:10px;background:#171a2c;color:var(--text);padding:10px 12px;font:700 10px Montserrat;cursor:pointer;transition:.18s}.btn:hover{border-color:var(--cyan);transform:translateY(-1px)}.btn:disabled{opacity:.45;cursor:wait;transform:none}.btn.primary{background:linear-gradient(100deg,#0891b2,#7c3aed);border:0}.btn.good{border-color:#1e8e72;color:#a7f3d0}.btn.warn{border-color:#93651a;color:#fde68a}.btn.danger{border-color:#8e3348;color:#fecdd3}.hero{padding:32px 0 20px}.eyebrow{color:var(--cyan);font-size:10px;letter-spacing:2px;font-weight:800}.hero h1{font:800 clamp(28px,4vw,44px) Orbitron;margin:10px 0}.muted{color:var(--muted);line-height:1.65}.status{display:flex;align-items:center;gap:9px;font-size:12px}.dot{width:8px;height:8px;background:var(--green);border-radius:50%;display:inline-block;box-shadow:0 0 12px var(--green)}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.panel{background:linear-gradient(145deg,#111424f5,#0a0b15f5);border:1px solid var(--line);border-radius:15px;padding:17px;min-width:0}.metric small{display:block;color:var(--muted);font-weight:700;font-size:11px}.metric strong{display:block;font:700 clamp(23px,2.5vw,30px) Orbitron;margin:11px 0 6px;overflow-wrap:anywhere}.metric em{font-size:10px;color:var(--cyan);font-style:normal}.section{margin:20px 0}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}.section h2,.panel h2{font:700 16px Orbitron;margin:0 0 12px}.two{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.field{min-width:160px;max-width:100%;background:#080b15;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:10px 11px;font:500 12px Montserrat}.field:focus{outline:1px solid var(--cyan);border-color:var(--cyan)}.field.search{flex:1;min-width:220px}.table-wrap{overflow-x:auto}.table{width:100%;border-collapse:collapse;min-width:780px}.table th{text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;padding:11px 8px;border-bottom:1px solid var(--line)}.table td{padding:12px 8px;border-bottom:1px solid #202337;vertical-align:top;font-size:12px}.table tr:last-child td{border-bottom:0}.pod-title{font-weight:800;line-height:1.5;max-width:320px;overflow-wrap:anywhere}.subline{color:var(--muted);font-size:10px;line-height:1.6;margin-top:4px;overflow-wrap:anywhere}.pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 7px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}.pill.published,.pill.resolved{color:#a7f3d0;border-color:#21654f}.pill.draft,.pill.reviewing,.pill.open{color:#fde68a;border-color:#77571f}.pill.archived,.pill.dismissed{color:#cbd5e1;border-color:#465066}.row-actions{display:flex;gap:6px;flex-wrap:wrap;min-width:175px}.row-actions .btn{padding:7px 8px;font-size:9px}.notice{border:1px solid var(--line);border-radius:11px;padding:12px;color:var(--muted);line-height:1.7;overflow-wrap:anywhere}.error{color:#fecdd3}.success{color:#a7f3d0}.empty{text-align:center;padding:30px;color:var(--muted)}.report-reason{max-width:360px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}.creator-row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}.creator-row:last-child{border-bottom:0}.gate{max-width:650px;margin:10vh auto;padding:24px}.gate h1{font:700 25px Orbitron}.footer{text-align:center;padding:28px;color:var(--muted);font-size:10px;letter-spacing:1px}.small{font-size:10px}.hidden{display:none!important}@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}}@media(max-width:520px){.shell{width:calc(100% - 18px)}.grid{gap:7px}.panel{padding:12px}.metric strong{font-size:21px}.brand{font-size:10px}.nav{align-items:flex-start}.hero{padding-top:24px}.field.search{min-width:100%}}
+</style>
+</head>
+<body>
+<header class="top"><div class="shell nav"><a class="brand" href="home.html">CROWRULES <span>/ PODCASTING OPS</span></a><div class="actions"><button class="btn" id="refresh">↻ REFRESH</button><a class="btn" href="creator/index.html">CREATOR WORKSPACE</a><button class="btn" id="signout">SIGN OUT</button></div></div></header>
+<main class="shell">
+<section class="hero"><div class="eyebrow">SECURE CONTROL PLANE • LIVE CATALOG & MODERATION</div><h1>OPERATIONS CENTER</h1><p class="muted">Audience health, subscriptions, catalog performance and hands-on podcast/report moderation.</p><div class="status"><i class="dot"></i><span id="connection">Verifying secure administrator session…</span></div></section>
+<div id="app"><div class="panel"><h2>Connecting securely</h2><p class="muted">Verifying your session and trusted administrator role.</p></div></div>
+</main><footer class="shell footer">ONE COMPANY. ONE UNIVERSE. • CROWRULES PODCASTING</footer>
 <script>
 (function(){
 "use strict";
 const cfg=window.CROW_CONFIG||{};
 const client=window.supabase&&window.supabase.createClient&&cfg.supabaseUrl&&cfg.supabaseKey?window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}):null;
 const app=document.getElementById("app"),connection=document.getElementById("connection");
-const roles=["admin","super_admin","owner","administrator"];
-const esc=function(v){return String(v==null?"":v).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]})};
-const number=function(v){return Number(v||0).toLocaleString()};
-function gate(title,message,link){app.innerHTML='<section class="gate panel"><div class="eyebrow">CROWRULES PODCASTING</div><h1>'+esc(title)+'</h1><p class="muted">'+esc(message)+'</p><div class="actions">'+link+'</div></section>'}
-function metric(label,value,note){return '<div class="panel metric"><small>'+esc(label)+'</small><strong>'+esc(number(value))+'</strong><em>'+esc(note)+'</em></div>'}
-async function invoke(action,body){const r=await client.functions.invoke("crowrules-admin-api",{body:Object.assign({action:action},body||{})});if(r.error)throw r.error;if(r.data&&r.data.ok===false)throw new Error(r.data.error||"Admin API request failed");return r.data}
+const allowedRoles=["admin","super_admin","owner","administrator"];
+let podcasts=[],reports=[],refreshing=false,refreshTimer=null,channel=null,presence=null;
+const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+const n=v=>Number(v||0).toLocaleString();
+const money=cents=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(cents||0)/100);
+const date=v=>v?new Date(v).toLocaleString():"—";
+function gate(title,message,links){app.innerHTML='<section class="gate panel"><div class="eyebrow">CROWRULES PODCASTING</div><h1>'+esc(title)+'</h1><p class="muted">'+esc(message)+'</p><div class="actions">'+(links||"")+'</div></section>'}
+function metric(label,value,note){return '<div class="panel metric"><small>'+esc(label)+'</small><strong>'+esc(n(value))+'</strong><em>'+esc(note)+'</em></div>'}
+function showToast(message,ok){const el=document.getElementById("actionMessage");if(el){el.className="notice "+(ok?"success":"error");el.textContent=message;el.classList.remove("hidden");}}
+async function countQuery(table,query){try{let q=client.from(table).select("*",{count:"exact",head:true});if(query)q=query(q);const r=await q;return {count:r.count||0,error:r.error? r.error.message:null}}catch(e){return {count:0,error:e.message||String(e)}}}
+async function dataQuery(table,columns,orderCol,limit){try{let q=client.from(table).select(columns);if(orderCol)q=q.order(orderCol,{ascending:false,nullsFirst:false});if(limit)q=q.limit(limit);const r=await q;return {data:r.data||[],error:r.error?r.error.message:null}}catch(e){return {data:[],error:e.message||String(e)}}}
+function reportStatus(r){return String(r.status||"open").toLowerCase()}
 async function load(){
- connection.textContent="Refreshing secure data…";
- let workspace={};let warnings=[];
- try{workspace=await invoke("creator_workspace")||{}}catch(e){warnings.push("Creator workspace: "+(e.message||"unavailable"))}
- const reads=[
- ["Members",client.from("members").select("*",{count:"exact"})],
- ["Follows",client.from("podcast_follows").select("id",{count:"exact",head:true})],
- ["Subscriptions",client.from("podcast_subscriptions").select("id",{count:"exact",head:true}).eq("status","active")],
- ["Comments",client.from("cr_podcast_social_comments_v5").select("id",{count:"exact",head:true})],
- ["Saved episodes",client.from("podcast_user_saved_episodes").select("id",{count:"exact",head:true})],
- ["Reports",client.from("podcast_member_reports").select("id,status")]
- ];
- const results=await Promise.all(reads.map(async function(pair){try{const r=await pair[1];if(r.error){warnings.push(pair[0]+": "+r.error.message);return {name:pair[0],count:0,data:[]}}return {name:pair[0],count:r.count||0,data:r.data||[]}}catch(e){warnings.push(pair[0]+": "+(e.message||"read failed"));return {name:pair[0],count:0,data:[]}}}));
- const val=function(name){const r=results.find(x=>x.name===name);return r?r.count:0};
- const reports=results.find(x=>x.name==="Reports").data;
- const creators=Array.isArray(workspace.creators)?workspace.creators:[];
- const members=Array.isArray(workspace.members)?workspace.members:[];
- const memberRows=results.find(x=>x.name==="Members").data;
- const allMembers=new Map();
- memberRows.concat(members).forEach(function(m,i){if(!m||typeof m!=="object")return;const id=m.id||m.user_id||m.member_id||m.auth_user_id||("row-"+i);if(!allMembers.has(String(id)))allMembers.set(String(id),m)});
- function rolesFor(m){
-  const values=[];
-  ["role","user_role","account_role","account_type","member_type","membership_type","profile_type","type"].forEach(function(k){if(m[k]!=null)values.push(m[k])});
-  ["roles","user_roles","app_roles"].forEach(function(k){if(Array.isArray(m[k]))values.push.apply(values,m[k]);else if(typeof m[k]==="string")values.push(m[k])});
-  return values.map(function(v){return String(v).toLowerCase().trim().replace(/[ -]+/g,"_")});
- }
- const roleMembers=Array.from(allMembers.values());
- const creatorRoleCount=roleMembers.filter(function(m){return rolesFor(m).some(function(r){return ["creator","podcast_creator","host","publisher"].includes(r)})}).length;
- const listenerRoleCount=roleMembers.filter(function(m){return rolesFor(m).some(function(r){return ["listener","podcast_listener","subscriber","audience"].includes(r)})}).length;
- const podcasts=creators.reduce((n,c)=>n+(Array.isArray(c.podcasts)?c.podcasts.length:0),0);
- const episodes=creators.reduce((n,c)=>n+(Array.isArray(c.podcasts)?c.podcasts.reduce((m,p)=>m+(Array.isArray(p.episodes)?p.episodes.length:0),0):0),0);
- const openReports=reports.filter(r=>!["resolved","dismissed"].includes(String(r.status||"open").toLowerCase())).length;
- app.innerHTML='<section class="grid">'+metric("Members",val("Members")||members.length,"Directory records")+metric("Creator Roles",creatorRoleCount||creators.length,"Accounts assigned creator role")+metric("Listener Roles",listenerRoleCount,"Accounts assigned listener role")+metric("Creator Workspace",creators.length,"Creator workspace records")+metric("Podcasts",workspace.podcast_count||podcasts,"Catalog shows")+metric("Episodes",episodes,"Loaded episode records")+metric("Podcast follows",val("Follows"),"Audience relationships")+metric("Active subscriptions",val("Subscriptions"),"Active status records")+metric("Community comments",val("Comments"),"Comment records")+metric("Saved episodes",val("Saved episodes"),"Listener library")+'</section><section class="section"><div class="panel"><h2>Realtime Online Audience</h2><p class="muted">Live connected clients across pages using shared presence tracking.</p><div class="grid"><div class="panel metric"><small>Online Now</small><strong id="onlineTotal">0</strong><em>All tracked areas</em></div><div class="panel metric"><small>Listeners Online</small><strong id="onlineListeners">0</strong><em>Listener pages</em></div><div class="panel metric"><small>Creators Online</small><strong id="onlineCreators">0</strong><em>Creator pages</em></div><div class="panel metric"><small>Launch Visitors</small><strong id="onlineLaunch">0</strong><em>Launch page</em></div></div><p class="muted" id="onlineStatus">Connecting to Supabase Realtime Presence…</p></div></section><section class="section two"><div class="panel"><h2>Moderation</h2><div class="grid">'+metric("Open reports",openReports,"Needs review")+'</div><p class="muted">Read-only moderation summary. Privileged changes must go through the protected admin API.</p></div><div class="panel"><h2>Creator workspace</h2><div class="list">'+(creators.slice(0,12).map(function(c){return '<div class="item"><b>'+esc(c.display_name||c.name||"Creator")+'</b><span class="muted">'+esc((c.podcast_count||((c.podcasts||[]).length)||0)+" podcasts • "+(c.published_episode_count||0)+" published episodes")+'</span></div>'}).join("")||'<p class="muted">No creator rows returned by the workspace API.</p>')+'</div></div></section><section class="section panel"><h2>Live refresh & read health</h2><p class="muted">Last refresh: '+esc(new Date().toLocaleString())+'</p><div class="notice">'+(warnings.length?'<span class="error"><b>Some reads need attention</b><br>'+warnings.map(esc).join("<br>")+'</span>':'All dashboard reads completed without reported errors.')+'</div></section>';
- connection.textContent="Secure session verified • Dashboard refreshed";window.dispatchEvent(new Event("crowrules:dashboard-rendered"));
-}
-document.getElementById("refresh").addEventListener("click",function(){load().catch(function(e){connection.textContent="Refresh failed";gate("DATA REFRESH FAILED",e.message||"The dashboard could not refresh.",'<a class="btn" href="home.html">RETURN HOME</a>')})});
-document.getElementById("signout").addEventListener("click",async function(){if(client)await client.auth.signOut();location.href="home.html"});
-async function boot(){
- if(!client){connection.textContent="Configuration unavailable";gate("CONFIGURATION ERROR","Supabase config.js must define supabaseUrl and supabaseKey.",'<a class="btn" href="home.html">RETURN HOME</a>');return}
- client.auth.onAuthStateChange(function(event){if(event==="SIGNED_OUT")location.href="home.html"});
+ if(!client||refreshing)return;refreshing=true;connection.textContent="Refreshing statistics and moderation queues…";
  try{
-  const result=await Promise.race([client.auth.getUser(),new Promise(function(_,reject){setTimeout(function(){reject(new Error("Authentication check timed out. Sign in again and retry."))},10000)})]);
+  const pairs=await Promise.all([
+   countQuery("members"),countQuery("creators"),countQuery("podcasts"),countQuery("podcast_episodes"),
+   countQuery("episodes"),countQuery("podcast_follows"),countQuery("podcast_subscriptions",q=>q.eq("status","active")),
+   countQuery("cr_podcast_social_comments_v5"),countQuery("podcast_user_saved_episodes"),
+   countQuery("podcasts",q=>q.eq("status","published")),countQuery("podcasts",q=>q.eq("status","draft")),
+   countQuery("podcasts",q=>q.eq("status","archived")),countQuery("podcasts",q=>q.eq("is_featured",true)),
+   countQuery("podcast_episodes",q=>q.eq("status","published")),
+   dataQuery("members","id,role,membership_type,status,created_at,last_active_at"),
+   dataQuery("podcasts","id,title,slug,creator_id,category,status,is_featured,is_live,listener_count,total_plays,created_at,updated_at,author_name,author_email,explicit_content,production_status","created_at",500),
+   dataQuery("podcast_episodes","id,podcast_id,title,status,play_count,created_at,is_explicit","created_at",500),
+   dataQuery("episodes","id,show_id,title,status,is_published,is_featured,is_active,created_at","created_at",500),
+   dataQuery("podcast_member_reports","id,reporter_user_id,reported_user_id,reason,status,created_at,admin_notes,resolved_at","created_at",300),
+   dataQuery("creators","id,member_id,name,display_name,role,is_active,created_at","created_at",300)
+  ]);
+  const [membersC,creatorsC,podcastsC,podcastEpisodesC,episodesC,followsC,subsC,commentsC,savedC,publishedC,draftsC,archivedC,featuredC,publishedEpisodesC,membersR,podcastsR,podcastEpisodesR,episodesR,reportsR,creatorsR]=pairs;
+  podcasts=podcastsR.data;reports=reportsR.data;
+  const warnings=[];
+  pairs.forEach((p,i)=>{if(p.error)warnings.push((["Member count","Creator count","Podcast count","Podcast episode count","Episode count","Follows","Active subscriptions","Comments","Saved episodes","Published shows","Draft shows","Archived shows","Featured shows","Published podcast episodes","Member details","Podcast catalog","Podcast episodes","Legacy episodes","Moderation reports","Creator records"][i])+": "+p.error)});
+  const totalPlays=podcasts.reduce((s,p)=>s+Number(p.total_plays||0),0)+podcastEpisodesR.data.reduce((s,e)=>s+Number(e.play_count||0),0);
+  const activeMembers=membersR.data.filter(m=>String(m.status||"").toLowerCase()==="active").length;
+  const tiers={};membersR.data.forEach(m=>{const t=m.membership_type||"Unspecified";tiers[t]=(tiers[t]||0)+1});
+  const openReports=reports.filter(r=>["open","reviewing"].includes(reportStatus(r))).length;
+  const recentReports=reports.slice(0,8);
+  const topShows=[...podcasts].sort((a,b)=>Number(b.total_plays||0)-Number(a.total_plays||0)).slice(0,6);
+  const creatorNames=new Map(creatorsR.data.map(c=>[String(c.id),c.display_name||c.name||"Creator"]));
+  const memberNames=new Map(membersR.data.map(m=>[String(m.id),m.display_name||m.username||[m.first_name,m.last_name].filter(Boolean).join(" ")||m.email||m.id]));
+  const tiersText=Object.entries(tiers).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<div class="creator-row"><span>'+esc(k)+'</span><b>'+n(v)+'</b></div>').join("")||'<p class="muted">No membership tiers returned.</p>';
+  app.innerHTML=
+   '<div id="actionMessage" class="notice hidden" role="status" aria-live="polite"></div>'+
+   '<section class="grid">'+
+   metric("Total members",membersC.count,"Member directory records")+
+   metric("Active member records",activeMembers,"Based on member status")+
+   metric("Creator profiles",creatorsC.count,"Creator directory records")+
+   metric("Total podcasts",podcastsC.count,"All catalog statuses")+
+   metric("Published podcasts",publishedC.count,"Public catalog shows")+
+   metric("Draft podcasts",draftsC.count,"Not yet published")+
+   metric("Archived podcasts",archivedC.count,"Hidden from active catalog")+
+   metric("Featured podcasts",featuredC.count,"Featured catalog placement")+
+   metric("Podcast episodes",podcastEpisodesC.count,"Primary podcast episode table")+
+   metric("Legacy episodes",episodesC.count,"Additional episode records")+
+   metric("Published episodes",publishedEpisodesC.count,"Podcast episode status")+
+   metric("Podcast follows",followsC.count,"Listener-to-show relationships")+
+   metric("Active subscriptions",subsC.count,"Subscription status = active")+
+   metric("Community comments",commentsC.count,"Comment records")+
+   metric("Saved episodes",savedC.count,"Listener library records")+
+   metric("Recorded plays",totalPlays,"Sum of available play counters")+
+   '</section>'+
+   '<section class="section"><div class="section-head"><h2>REALTIME ONLINE AUDIENCE</h2><span class="pill open" id="presenceBadge">CONNECTING</span></div><div class="grid">'+
+   '<div class="panel metric"><small>Online Now</small><strong id="onlineTotal">—</strong><em>Presence sessions</em></div>'+
+   '<div class="panel metric"><small>Listeners Online</small><strong id="onlineListeners">—</strong><em>Listener experience</em></div>'+
+   '<div class="panel metric"><small>Creators Online</small><strong id="onlineCreators">—</strong><em>Creator experience</em></div>'+
+   '<div class="panel metric"><small>Launch Visitors</small><strong id="onlineLaunch">—</strong><em>Launch page sessions</em></div></div><p class="muted small" id="onlineStatus">Connecting to shared Supabase Realtime Presence. Counts appear only for clients using the matching presence channel.</p></section>'+
+   '<section class="section panel"><div class="section-head"><h2>PODCAST MODERATION</h2><span class="pill open">'+n(openReports)+' awaiting action</span></div><p class="muted">Review incoming member reports, track moderation status, and manage each podcast’s publication state and featured placement. Every write is subject to Supabase Row Level Security.</p>'+
+   '<div class="toolbar"><input id="podcastSearch" class="field search" placeholder="Search podcast title, creator, category…" aria-label="Search podcasts"><select id="podcastStatusFilter" class="field" aria-label="Filter podcast status"><option value="all">All statuses</option><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select><select id="podcastFeatureFilter" class="field" aria-label="Filter featured podcasts"><option value="all">Featured + standard</option><option value="featured">Featured only</option><option value="standard">Not featured</option></select><button id="clearFilters" class="btn">CLEAR FILTERS</button></div>'+
+   '<div class="table-wrap"><table class="table"><thead><tr><th>Podcast</th><th>Status</th><th>Audience</th><th>Created</th><th>Moderation actions</th></tr></thead><tbody id="podcastRows"></tbody></table></div><div class="muted small" id="podcastResultCount"></div></section>'+
+   '<section class="section panel"><div class="section-head"><h2>MEMBER REPORT QUEUE</h2><span class="pill open">'+n(openReports)+' open / reviewing</span></div><div class="toolbar"><input id="reportSearch" class="field search" placeholder="Search report reason or member ID…" aria-label="Search reports"><select id="reportStatusFilter" class="field" aria-label="Filter report status"><option value="open">Open + reviewing</option><option value="all">All reports</option><option value="reviewing">Reviewing</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option></select></div><div class="table-wrap"><table class="table" style="min-width:800px"><thead><tr><th>Report</th><th>Reason</th><th>Status</th><th>Submitted</th><th>Moderation</th></tr></thead><tbody id="reportRows"></tbody></table></div></section>'+
+   '<section class="section two"><div class="panel"><h2>TOP PODCASTS BY RECORDED PLAYS</h2><div class="list">'+(topShows.map(p=>'<div class="creator-row"><div><b>'+esc(p.title||"Untitled podcast")+'</b><div class="subline">'+esc(p.category||"Uncategorized")+' • '+esc(p.status||"unknown")+(p.is_featured?" • FEATURED":"")+'</div></div><b>'+n(p.total_plays)+'</b></div>').join("")||'<p class="muted">No podcast records are visible.</p>')+'</div></div><div class="panel"><h2>MEMBERSHIP TIER MIX</h2><div>'+tiersText+'</div><p class="muted small">Counts reflect the member records visible to this administrator session.</p></div></section>'+
+   '<section class="section two"><div class="panel"><h2>RECENT REPORTS</h2><div class="list">'+(recentReports.map(r=>'<div class="creator-row"><div><b>'+esc(String(r.reason||"Report").slice(0,90))+'</b><div class="subline">'+esc(date(r.created_at))+'</div></div><span class="pill '+esc(reportStatus(r))+'">'+esc(reportStatus(r))+'</span></div>').join("")||'<p class="muted">No reports returned.</p>')+'</div></div><div class="panel"><h2>DATA & SECURITY HEALTH</h2><p class="muted">Last refreshed: '+esc(date(new Date().toISOString()))+'</p><div class="notice">'+(warnings.length?'<span class="error"><b>Some data sources need attention</b><br>'+warnings.map(esc).join("<br>")+'</span>':'<span class="success">All queried tables responded without reported errors.</span>')+'</div><p class="muted small">Unavailable tables are shown as warnings; their zero counts are not proof that no records exist.</p></div></section>';
+  renderPodcasts();renderReports();connection.textContent="Administrator verified • statistics refreshed "+new Date().toLocaleTimeString();
+ }catch(e){connection.textContent="Dashboard refresh failed";showToast(e.message||"Could not load dashboard.",false)}
+ finally{refreshing=false}
+}
+function renderPodcasts(){
+ const body=document.getElementById("podcastRows");if(!body)return;
+ const search=(document.getElementById("podcastSearch")?.value||"").trim().toLowerCase();
+ const status=document.getElementById("podcastStatusFilter")?.value||"all";
+ const feature=document.getElementById("podcastFeatureFilter")?.value||"all";
+ const filtered=podcasts.filter(p=>{
+  const hay=[p.title,p.author_name,p.author_email,p.category,p.slug,p.production_status].join(" ").toLowerCase();
+  return (!search||hay.includes(search))&&(status==="all"||p.status===status)&&(feature==="all"||(feature==="featured"?!!p.is_featured:!p.is_featured));
+ });
+ document.getElementById("podcastResultCount").textContent="Showing "+filtered.length+" of "+podcasts.length+" podcasts";
+ body.innerHTML=filtered.map(p=>{
+  const status=String(p.status||"draft").toLowerCase();
+  const next=status==="published"?"draft":"published";
+  return '<tr><td><div class="pod-title">'+esc(p.title||"Untitled podcast")+'</div><div class="subline">'+esc(p.author_name||"Creator not listed")+(p.category?" • "+esc(p.category):"")+(p.explicit_content?" • Explicit":"")+'</div><div class="subline">'+esc(p.id)+'</div></td><td><span class="pill '+esc(status)+'">'+esc(status)+'</span>'+(p.is_featured?'<div class="subline">★ Featured</div>':"")+(p.is_live?'<div class="subline">● Live</div>':"")+'</td><td><b>'+n(p.listener_count)+'</b><div class="subline">'+n(p.total_plays)+' recorded plays</div></td><td>'+esc(date(p.created_at))+'</td><td><div class="row-actions">'+
+  (status==="published"?'<button class="btn warn" data-podcast-action="status" data-id="'+esc(p.id)+'" data-value="draft">UNPUBLISH</button>':'<button class="btn good" data-podcast-action="status" data-id="'+esc(p.id)+'" data-value="published">PUBLISH</button>')+
+  (status==="archived"?'<button class="btn" data-podcast-action="status" data-id="'+esc(p.id)+'" data-value="draft">RESTORE DRAFT</button>':'<button class="btn" data-podcast-action="status" data-id="'+esc(p.id)+'" data-value="archived">ARCHIVE</button>')+
+  '<button class="btn" data-podcast-action="feature" data-id="'+esc(p.id)+'" data-value="'+(!p.is_featured)+'">'+(p.is_featured?"UNFEATURE":"FEATURE")+'</button>'+
+  '</div></td></tr>';
+ }).join("")||'<tr><td colspan="5" class="empty">No podcasts match these filters, or the catalog table is not readable under current RLS.</td></tr>';
+}
+function renderReports(){
+ const body=document.getElementById("reportRows");if(!body)return;
+ const search=(document.getElementById("reportSearch")?.value||"").trim().toLowerCase();
+ const status=document.getElementById("reportStatusFilter")?.value||"open";
+ const filtered=reports.filter(r=>{
+  const s=reportStatus(r);const hay=[r.reason,r.reporter_user_id,r.reported_user_id,r.admin_notes].join(" ").toLowerCase();
+  return (!search||hay.includes(search))&&(status==="all"|| (status==="open"?["open","reviewing"].includes(s):s===status));
+ });
+ body.innerHTML=filtered.map(r=>{
+  const s=reportStatus(r);
+  return '<tr><td><div class="pod-title">Member report</div><div class="subline">Reporter: '+esc(r.reporter_user_id||"unknown")+'</div><div class="subline">Reported: '+esc(r.reported_user_id||"unknown")+'</div><div class="subline">ID: '+esc(r.id)+'</div></td><td><div class="report-reason">'+esc(r.reason||"No reason supplied")+'</div>'+(r.admin_notes?'<div class="subline">Admin notes: '+esc(r.admin_notes)+'</div>':"")+'</td><td><span class="pill '+esc(s)+'">'+esc(s)+'</span></td><td>'+esc(date(r.created_at))+'</td><td><div class="row-actions">'+(s!=="reviewing"?'<button class="btn warn" data-report-action="reviewing" data-id="'+esc(r.id)+'">MARK REVIEWING</button>':"")+(s!=="resolved"?'<button class="btn good" data-report-action="resolved" data-id="'+esc(r.id)+'">RESOLVE</button>':"")+(s!=="dismissed"?'<button class="btn" data-report-action="dismissed" data-id="'+esc(r.id)+'">DISMISS</button>':"")+'<button class="btn" data-report-action="notes" data-id="'+esc(r.id)+'">ADMIN NOTE</button></div></td></tr>';
+ }).join("")||'<tr><td colspan="5" class="empty">No reports match this filter. If report access failed, check the Data & Security Health panel.</td></tr>';
+}
+async function updatePodcast(id,patch){
+ const p=podcasts.find(x=>String(x.id)===String(id));if(!p)return;
+ const description=patch.status?"change status to "+patch.status:(patch.is_featured?"feature this podcast":"remove featured placement");
+ if(!confirm("Are you sure you want to "+description+"?"))return;
+ try{
+  const {data,error}=await client.from("podcasts").update(patch).eq("id",id).select("id,status,is_featured").maybeSingle();
+  if(error)throw error;if(!data)throw new Error("No row was updated. Supabase RLS may block this action or the record is no longer available.");
+  Object.assign(p,data);renderPodcasts();showToast("Podcast moderation saved successfully.",true);
+ }catch(e){showToast("Podcast update failed: "+(e.message||String(e)),false)}
+}
+async function updateReport(id,status){
+ const r=reports.find(x=>String(x.id)===String(id));if(!r)return;
+ let patch={status:status};
+ if(status==="resolved"||status==="dismissed"){patch.resolved_at=new Date().toISOString();try{const {data}=await client.auth.getUser();if(data?.user?.id)patch.resolved_by=data.user.id}catch(e){}}
+ try{
+  const {data,error}=await client.from("podcast_member_reports").update(patch).eq("id",id).select("id,status,admin_notes,resolved_at,resolved_by").maybeSingle();
+  if(error)throw error;if(!data)throw new Error("No report was updated. Check administrator RLS permissions.");
+  Object.assign(r,data);renderReports();showToast("Report status updated to "+status+".",true);load();
+ }catch(e){showToast("Report moderation failed: "+(e.message||String(e)),false)}
+}
+async function editReportNotes(id){
+ const r=reports.find(x=>String(x.id)===String(id));if(!r)return;
+ const note=prompt("Add or replace the internal moderation note (leave blank to clear):",r.admin_notes||"");
+ if(note===null)return;
+ try{const {data,error}=await client.from("podcast_member_reports").update({admin_notes:note.trim()||null}).eq("id",id).select("id,admin_notes").maybeSingle();if(error)throw error;if(!data)throw new Error("No report was updated. Check administrator RLS permissions.");Object.assign(r,data);renderReports();showToast("Internal moderation note saved.",true)}
+ catch(e){showToast("Could not save note: "+(e.message||String(e)),false)}
+}
+document.getElementById("refresh").addEventListener("click",()=>load());
+document.getElementById("signout").addEventListener("click",async()=>{if(client)await client.auth.signOut();location.href="home.html"});
+app.addEventListener("input",e=>{if(["podcastSearch","reportSearch"].includes(e.target.id)){if(e.target.id==="podcastSearch")renderPodcasts();else renderReports()}});
+app.addEventListener("change",e=>{if(["podcastStatusFilter","podcastFeatureFilter"].includes(e.target.id))renderPodcasts();if(e.target.id==="reportStatusFilter")renderReports()});
+app.addEventListener("click",e=>{
+ const b=e.target.closest("button[data-podcast-action],button[data-report-action]");if(!b)return;
+ if(b.dataset.podcastAction==="status")updatePodcast(b.dataset.id,{status:b.dataset.value});
+ else if(b.dataset.podcastAction==="feature")updatePodcast(b.dataset.id,{is_featured:b.dataset.value==="true"});
+ else if(b.dataset.reportAction==="notes")editReportNotes(b.dataset.id);
+ else if(b.dataset.reportAction)updateReport(b.dataset.id,b.dataset.reportAction);
+});
+app.addEventListener("click",e=>{if(e.target.id==="clearFilters"){document.getElementById("podcastSearch").value="";document.getElementById("podcastStatusFilter").value="all";document.getElementById("podcastFeatureFilter").value="all";renderPodcasts()}});
+function renderOnline(){
+ if(!presence)return;const state=presence.presenceState()||{},counts={all:0,listener:0,creator:0,launch:0,site:0};
+ Object.keys(state).forEach(key=>(state[key]||[]).forEach(p=>{if(!p)return;counts.all++;const area=String(p.area||"").toLowerCase();if(Object.prototype.hasOwnProperty.call(counts,area))counts[area]++}));
+ [["onlineTotal",counts.all],["onlineListeners",counts.listener],["onlineCreators",counts.creator],["onlineLaunch",counts.launch]].forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=n(v)});
+ const s=document.getElementById("onlineStatus"),badge=document.getElementById("presenceBadge");if(s)s.textContent="Shared presence sync updated "+new Date().toLocaleTimeString()+" • includes only clients using the same channel";if(badge)badge.textContent="LIVE PRESENCE";
+}
+async function boot(){
+ if(!client){connection.textContent="Configuration unavailable";gate("CONFIGURATION ERROR","config.js must define supabaseUrl and supabaseKey.",'<a class="btn" href="home.html">RETURN HOME</a>');return}
+ client.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT")location.href="home.html"});
+ try{
+  const result=await Promise.race([client.auth.getUser(),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Authentication check timed out. Sign in again and retry.")),10000))]);
   const user=result&&result.data&&result.data.user;
-  if(result.error||!user){gate("SIGN-IN REQUIRED","Sign in with an authorized CrowRules administrator account to continue.",'<a class="btn primary" href="login.html?redirect=admin.html">SIGN IN</a>');connection.textContent="Authentication required";return}
-  const appMeta=user.app_metadata||{},userRoles=Array.isArray(appMeta.roles)?appMeta.roles:[];
-  if(!roles.includes(appMeta.role)&&!userRoles.some(function(role){return roles.includes(role)})){gate("ACCESS DENIED","Your verified session does not have a trusted administrator role. Ask a project owner to grant access.",'<a class="btn" href="home.html">RETURN HOME</a>');connection.textContent="Verified account • access denied";return}
+  if(result.error||!user){connection.textContent="Authentication required";gate("SIGN-IN REQUIRED","Sign in with an authorized CrowRules administrator account.",'<a class="btn primary" href="login.html?redirect=admin.html">SIGN IN</a>');return}
+  const meta=user.app_metadata||{},roles=Array.isArray(meta.roles)?meta.roles:[];
+  if(!allowedRoles.includes(meta.role)&&!roles.some(role=>allowedRoles.includes(role))){connection.textContent="Verified account • access denied";gate("ACCESS DENIED","Your trusted app_metadata does not contain an administrator role. Ask a project owner to grant access.",'<a class="btn" href="home.html">RETURN HOME</a>');return}
   await load();
-  const presence=client.channel("crowrules-podcasting-online-v1");
-  function renderOnline(){
-   const state=presence.presenceState()||{},counts={all:0,listener:0,creator:0,launch:0,site:0};
-   Object.keys(state).forEach(function(key){(state[key]||[]).forEach(function(p){if(!p||!p.area)return;counts.all++;if(Object.prototype.hasOwnProperty.call(counts,p.area))counts[p.area]++})});
-   [["onlineTotal",counts.all],["onlineListeners",counts.listener],["onlineCreators",counts.creator],["onlineLaunch",counts.launch]].forEach(function(pair){const el=document.getElementById(pair[0]);if(el)el.textContent=number(pair[1])});
-   const status=document.getElementById("onlineStatus");if(status)status.textContent="Live presence connected • updates automatically as visitors join and leave";
-  }
-  window.addEventListener("crowrules:dashboard-rendered",renderOnline);
-  presence.on("presence",{event:"sync"},renderOnline).subscribe(function(status){if(status==="SUBSCRIBED")renderOnline();else{const el=document.getElementById("onlineStatus");if(el)el.textContent="Realtime presence status: "+status}});
-  const channel=client.channel("crowrules-ops-center-safe");
-  ["podcast_episodes","podcast_member_reports","cr_podcast_live"].forEach(function(table){channel.on("postgres_changes",{event:"*",schema:"public",table:table},function(){load().catch(function(){})})});
+  presence=client.channel("crowrules-podcasting-online-v1");
+  presence.on("presence",{event:"sync"},renderOnline).subscribe(status=>{const badge=document.getElementById("presenceBadge");if(badge&&status!=="SUBSCRIBED")badge.textContent=status;if(status==="SUBSCRIBED")renderOnline()});
+  channel=client.channel("crowrules-ops-center-safe");
+  ["podcasts","podcast_episodes","episodes","podcast_member_reports","podcast_subscriptions","podcast_follows","cr_podcast_social_comments_v5"].forEach(table=>channel.on("postgres_changes",{event:"*",schema:"public",table},()=>load()));
   channel.subscribe();
-  setInterval(function(){load().catch(function(){})},30000);
+  refreshTimer=setInterval(()=>load(),60000);
  }catch(e){connection.textContent="Could not verify session";gate("SECURE ACCESS CHECK FAILED",e.message||"Could not verify your session.",'<a class="btn primary" href="login.html?redirect=admin.html">SIGN IN AGAIN</a><button class="btn" onclick="location.reload()">RETRY</button>')}
 }
+window.addEventListener("pagehide",()=>{if(refreshTimer)clearInterval(refreshTimer);if(channel)client.removeChannel(channel);if(presence)client.removeChannel(presence)});
 boot();
 })();
 </script></body></html>
