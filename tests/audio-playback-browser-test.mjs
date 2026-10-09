@@ -25,6 +25,8 @@ try{
  if(!after||after.paused||after.currentTime<=before.currentTime)throw Error("Audio failed to continue after rankings navigation: "+JSON.stringify({before,after}));
  await page.evaluate(()=>window.CrowRulesAudioPlayer.toggle());
  await page.waitForTimeout(1800);
+ const trackingFailure=browserDiagnostics.find(d=>/detailed listening session unavailable|listening duration queued for retry|listening event failed|play event could not be saved/i.test(d.text||""));
+ if(trackingFailure)throw Error("Listening-session persistence failed: "+JSON.stringify(trackingFailure));
  const row=await page.evaluate(async key=>{const db=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey);const {data,error}=await db.from("podcast_listens").select("id,episode_id,session_key,seconds_listened,completed,created_at").eq("session_key",key).limit(1).maybeSingle();return{data,error:error?{code:error.code,message:error.message}:null}},ev.sessionKey);
  console.log("PASS: audio playback advanced and continued after navigating to rankings.");
  console.log("PLAYBACK_TEST_EPISODE="+JSON.stringify({id:ep.id,title:ep.title}));
