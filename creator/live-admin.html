@@ -24,7 +24,7 @@
 <div class="field"><label for="showSelect">LINK TO A PODCAST (OPTIONAL)</label><select id="showSelect"><option value="">No podcast selected</option></select></div>
 <div class="field"><label for="visibility">SESSION VISIBILITY</label><select id="visibility"><option value="public">Public listing</option><option value="unlisted">Unlisted link</option></select></div>
 </div><div class="actions"><button class="btn primary" id="createBtn" type="submit">CREATE LIVE SESSION</button><button class="btn" id="micBtn" type="button">TEST MICROPHONE</button></div><div class="meter"><i id="micMeter"></i></div><div id="formMessage" class="message" role="status"></div></form>
-<div class="notice"><strong>Live audio engine:</strong> This studio now connects the host microphone to LiveKit, using your secure Render token service. Listener and co-host pages must also be migrated to LiveKit before audience audio and guest audio are fully end-to-end. Click <b>START LIVE BROADCAST</b> to connect the host to the LiveKit room. Share the session’s Listener URL and have listeners open it and press Connect. Each session has its own room, so multiple creators can run separate broadcasts at the same time.<br><br><strong>Prevent echo:</strong> Use headphones on the creator and listener devices. Do not play the broadcast through speakers in the same room as an open microphone; that sound can be picked up and sent back into the stream and recording. Close any other tab or app monitoring the microphone. Browser echo cancellation helps but cannot remove every acoustic feedback situation.<br><br><b>Network note:</b> this version uses direct peer-to-peer connections and public STUN servers; some networks may require a TURN relay, and large audiences are better served by a media server.</div>
+<div class="notice"><strong>Live audio engine:</strong> The host, listeners and co-hosts now connect through LiveKit using the secure Render token service. Start the broadcast, share the Listener URL, and create private co-host invitations from this panel. Co-host links expire after 15 minutes and can be redeemed once. Each live session has its own room.<br><br><strong>Prevent echo:</strong> Use headphones on all devices. Avoid playing the broadcast through speakers near an open microphone, close duplicate monitoring tabs, and allow browser microphone access. Echo cancellation cannot remove every acoustic feedback situation.</div>
 </div>
 <div class="panel"><h2>Live session controls</h2><div class="muted">Select one of your sessions below to manage its status.</div><div id="selectedEmpty" class="notice">Create a session or select an existing one to see its controls.</div><div id="selectedPanel" hidden><div style="margin-top:15px"><span class="status off" id="selectedStatus">CREATED</span></div><h3 id="selectedTitle" style="font-size:15px;margin:14px 0 7px"></h3><p id="selectedDescription" class="muted"></p><div class="muted" style="margin-top:12px">Session ID</div><code id="selectedId" style="font-size:10px;overflow-wrap:anywhere"></code><div class="actions"><button class="btn primary" id="goLiveBtn" type="button">MARK SESSION LIVE</button><button class="btn danger" id="endBtn" type="button">END SESSION</button><button class="btn" id="copyBtn" type="button">COPY SESSION ID</button><button class="btn primary" id="recordBtn" type="button">START AUDIO RECORDING</button><button class="btn" id="recoverBtn" type="button">RECOVER INTERRUPTED RECORDING</button><button class="btn primary" id="broadcastBtn" type="button">START LIVE BROADCAST</button><button class="btn" id="listenerLinkBtn" type="button">COPY LISTENER LINK</button><button class="btn primary" id="cohostInviteBtn" type="button">CREATE CO-HOST INVITE</button><button class="btn" id="copyCohostBtn" type="button" disabled>COPY CO-HOST LINK</button></div><div id="cohostInfo" class="message" role="status">Co-hosting: up to 10 people total, including the host.</div><div id="cohostList" class="muted">No co-hosts connected.</div><div id="broadcastInfo" class="message" role="status">Live broadcast is off. Start broadcasting to transmit your microphone to connected listeners.</div><div class="muted" style="margin-top:12px">PODCAST PAGE: <a id="podcastPageLink" href="#" target="_blank" rel="noopener" style="color:var(--cyan)">Select a session linked to a podcast</a></div><div class="muted" style="margin-top:8px">LISTENER URL: <a id="listenerUrl" href="#" target="_blank" rel="noopener" style="color:var(--cyan);overflow-wrap:anywhere">Select a session first</a></div><div id="recordingInfo" class="muted" style="margin-top:12px">Audio recording is off. Start recording to capture the microphone; it will upload automatically when stopped.</div><audio id="savedAudio" controls hidden style="width:100%;margin-top:12px"></audio><div id="controlMessage" class="message" role="status"></div></div></div>
 </section>
@@ -282,10 +282,26 @@ async function recoverInterruptedRecording(){
 }
 $("recoverBtn").addEventListener("click",recoverInterruptedRecording);
 
-function renderCohosts(){const entries=[{name:"Host (you)",state:broadcastActive?"live":"waiting"},...Array.from(cohostPeers.values())];$("cohostList").innerHTML="<strong>STUDIO ROSTER · "+entries.length+"/10</strong><br>"+entries.map((p,i)=>(i+1)+". "+esc(p.name)+" — "+esc(p.state)).join("<br>");$("cohostInfo").textContent="Connected co-hosts: "+cohostPeers.size+" / 9 guest seats. Keep the studio open while live."}
-$("cohostInviteBtn").addEventListener("click",()=>{if(!selected){msg("controlMessage","Select a session first.",true);return}if(!broadcastActive){msg("controlMessage","Start the live broadcast before creating a co-host invitation.",true);return}msg("controlMessage","LiveKit co-host invite redemption is not enabled on the token service yet. Co-host controls will be enabled after the co-host token flow is secured.",true);return;cohostInviteToken=crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);$("copyCohostBtn").disabled=false;const link=location.origin+location.pathname.replace(/creator\/live-admin\.html$/,"creator/live-cohost.html")+"?id="+encodeURIComponent(selected.id)+"&token="+encodeURIComponent(cohostInviteToken);$("cohostInfo").textContent="Invite created. Share the private link with a trusted signed-in co-host. It expires when the broadcast stops or the studio refreshes. "+link;});
-$("copyCohostBtn").addEventListener("click",async()=>{if(!selected||!cohostInviteToken)return;const link=location.origin+location.pathname.replace(/creator\/live-admin\.html$/,"creator/live-cohost.html")+"?id="+encodeURIComponent(selected.id)+"&token="+encodeURIComponent(cohostInviteToken);try{await navigator.clipboard.writeText(link);$("cohostInfo").textContent="Co-host link copied. It expires when the broadcast stops or the studio refreshes."}catch(e){$("cohostInfo").textContent="Copy unavailable. Copy this URL: "+link}});
-
+function renderCohosts(){const guests=livekitRoom?Array.from(livekitRoom.remoteParticipants.values()).filter(p=>String(p.identity||"").startsWith("cohost-")):[];const entries=[{name:"Host (you)",state:broadcastActive?"live":"waiting"},...guests.map(p=>({name:p.name||"Co-host",state:"connected"}))];$("cohostList").innerHTML="<strong>STUDIO ROSTER · "+entries.length+"/10</strong><br>"+entries.map((p,i)=>(i+1)+". "+esc(p.name)+" — "+esc(p.state)).join("<br>");$("cohostInfo").textContent="Connected co-hosts: "+guests.length+" / 9 guest seats. Keep the studio open while live."}
+$("cohostInviteBtn").addEventListener("click",async()=>{
+ if(!selected||!db||!user){msg("controlMessage","Select a session and sign in first.",true);return}
+ if(!broadcastActive||!livekitConnected){msg("controlMessage","Start the LiveKit broadcast before creating a co-host invitation.",true);return}
+ const btn=$("cohostInviteBtn");btn.disabled=true;$("copyCohostBtn").disabled=true;cohostInviteToken=null;
+ try{
+  const {data,error}=await db.auth.getSession();if(error||!data?.session?.access_token)throw new Error("Your sign-in session expired. Sign in again.");
+  const response=await fetch("https://crowrules-livekit-token-service.onrender.com/api/livekit/invite",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+data.session.access_token},body:JSON.stringify({sessionId:selected.id})});
+  const result=await response.json().catch(()=>({}));if(!response.ok)throw new Error(result.error||("Invite service returned HTTP "+response.status));
+  if(!result.inviteToken)throw new Error("Invite service returned no invitation token.");
+  cohostInviteToken=result.inviteToken;$("copyCohostBtn").disabled=false;
+  const link=location.origin+location.pathname.replace(/creator\\/live-admin\\.html$/,"creator/live-cohost.html")+"?id="+encodeURIComponent(selected.id)+"&token="+encodeURIComponent(cohostInviteToken);
+  $("cohostInfo").textContent="Secure invite created. Expires "+(result.expiresAt?new Date(result.expiresAt).toLocaleTimeString():"in 15 minutes")+". Share only with the intended co-host. Copy the link to deliver it.";
+  msg("controlMessage","Secure co-host invitation created. It can be redeemed once.",false);
+  $("copyCohostBtn").dataset.inviteUrl=link;
+ }catch(error){msg("controlMessage","Could not create co-host invitation: "+error.message,true);$("cohostInfo").textContent="No invitation created. Check that the broadcast is live and try again."}
+ finally{btn.disabled=false}
+});
+$("copyCohostBtn").addEventListener("click",async()=>{const link=$("copyCohostBtn").dataset.inviteUrl;if(!selected||!cohostInviteToken||!link)return;try{await navigator.clipboard.writeText(link);$("cohostInfo").textContent="Secure co-host link copied. It expires in 15 minutes and can be redeemed once."}catch(e){$("cohostInfo").textContent="Copy unavailable. Copy this URL: "+link}});
+ 
 async function startBroadcast(){
  if(!selected||!db||!user){msg("controlMessage","Select a live session and sign in first.",true);return}
  if(broadcastActive)return;
@@ -315,8 +331,8 @@ async function startBroadcast(){
   livekitRoom=new window.LivekitClient.Room({adaptiveStream:true,dynacast:true,stopLocalTrackOnUnpublish:true});
   livekitRoom.on(window.LivekitClient.RoomEvent.ConnectionStateChanged,state=>{setBroadcastInfo("LiveKit connection: "+state+".")});
   livekitRoom.on(window.LivekitClient.RoomEvent.Disconnected,reason=>{livekitConnected=false;if(broadcastActive)setBroadcastInfo("LiveKit disconnected"+(reason?": "+reason:"")+". Reconnect or stop the broadcast.",true)});
-  livekitRoom.on(window.LivekitClient.RoomEvent.ParticipantConnected,participant=>{$("cohostList").textContent="Connected room participant: "+(participant.name||participant.identity)});
-  livekitRoom.on(window.LivekitClient.RoomEvent.ParticipantDisconnected,()=>{$("cohostList").textContent="A room participant disconnected."});
+  livekitRoom.on(window.LivekitClient.RoomEvent.ParticipantConnected,participant=>{renderCohosts();if(String(participant.identity||"").startsWith("cohost-"))setBroadcastInfo("Co-host connected: "+(participant.name||participant.identity)+".")});
+  livekitRoom.on(window.LivekitClient.RoomEvent.ParticipantDisconnected,participant=>{renderCohosts();if(String(participant?.identity||"").startsWith("cohost-"))setBroadcastInfo("A co-host left the room.")});
   await livekitRoom.connect(tokenData.serverUrl,tokenData.token,{autoSubscribe:true});
   const audioTrack=new window.LivekitClient.LocalAudioTrack(processedBroadcastStream.getAudioTracks()[0]);
   await livekitRoom.localParticipant.publishTrack(audioTrack,{name:"crowrules-host-microphone"});
@@ -324,7 +340,7 @@ async function startBroadcast(){
   $("broadcastBtn").textContent="STOP LIVE BROADCAST";$("broadcastBtn").classList.add("danger");
   await startAutomaticBroadcastRecording();
   await loadSessions();selectSession(selected.id);
-  setBroadcastInfo("CONNECTED TO LIVEKIT · Host microphone published with voice filtering, compression and peak limiting. Listener/co-host pages must be LiveKit-enabled for full end-to-end audio.");
+  setBroadcastInfo("CONNECTED TO LIVEKIT · Host microphone published with voice filtering, compression and peak limiting. Listener and co-host rooms use the same live audio engine.");
   msg("controlMessage","Host microphone is connected to the LiveKit room. The live session is marked live.");
  }catch(e){
   if(livekitRoom){try{await livekitRoom.disconnect()}catch(_){}livekitRoom=null}
@@ -342,15 +358,15 @@ async function stopBroadcast(){
  broadcastActive=false;livekitConnected=false;
  if(autoRecorder&&autoRecorder.state!=="inactive"){await stopAndSaveAutomaticRecording()}
  if(livekitRoom){try{await livekitRoom.disconnect()}catch(e){console.warn("LiveKit disconnect:",e)}livekitRoom=null}
- for(const pc of peerConnections.values())pc.close();peerConnections.clear();remoteCandidateQueues.clear();
- for(const source of cohostSources.values()){try{source.disconnect()}catch(e){}}for(const nodes of cohostNodes.values())nodes.forEach(n=>{try{n.disconnect()}catch(e){}});cohostSources.clear();cohostNodes.clear();cohostPeers.clear();cohostInviteToken=null;$("copyCohostBtn").disabled=true;$("cohostList").textContent="No co-hosts connected.";$("cohostInfo").textContent="Co-host invitations use the legacy signaling flow and are not yet connected to LiveKit. Invite links are temporarily disabled for LiveKit broadcasts.";
+ 
+ cohostInviteToken=null;$("copyCohostBtn").disabled=true;delete $("copyCohostBtn").dataset.inviteUrl;$("cohostList").textContent="No co-hosts connected.";renderCohosts();$("cohostInfo").textContent="Broadcast stopped. Unredeemed invitations cannot be used unless the session is live.";
  if(processedBroadcastStream){processedBroadcastStream.getTracks().forEach(t=>t.stop());processedBroadcastStream=null}broadcastMixDestination=null;broadcastMixInput=null;
  if(broadcastAudioNodes.length){broadcastAudioNodes.forEach(n=>{try{n.disconnect()}catch(e){}});broadcastAudioNodes=[]}
  if(broadcastAudioContext){await broadcastAudioContext.close().catch(()=>{});broadcastAudioContext=null}
  if(broadcastStream){broadcastStream.getTracks().forEach(t=>t.stop());broadcastStream=null}
  if(broadcastChannel&&db){try{await db.removeChannel(broadcastChannel)}catch(e){}broadcastChannel=null}
  $("broadcastBtn").textContent="START LIVE BROADCAST";$("broadcastBtn").classList.remove("danger");
- if(!autoSavePromise)setBroadcastInfo("LiveKit broadcast stopped. The room is disconnected. Listener and co-host pages still need their LiveKit integration before full end-to-end audio is ready.");
+ if(!autoSavePromise)setBroadcastInfo("LiveKit broadcast stopped. The room is disconnected.");
 }
 async function startRecording(){
  if(!selected||!db||!user){msg("controlMessage","Select a session and sign in first.",true);return}
