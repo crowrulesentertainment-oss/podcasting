@@ -37,7 +37,7 @@ const $=id=>document.getElementById(id);
 const cfg=window.CROW_CONFIG||{};
 const url=cfg.supabaseUrl||cfg.supabaseURL||"https://cevylpnoexugwgygvtgu.supabase.co";
 const key=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.publishableKey;
-let db=null,user=null,sessions=[],selected=null,micStream=null,broadcastStream=null,broadcastChannel=null,broadcastActive=false,peerConnections=new Map(),audioCtx=null,analyser=null,raf=0,recorder=null,recordedChunks=[],recordingStartedAt=null;
+let db=null,user=null,sessions=[],selected=null,micStream=null,broadcastStream=null,broadcastChannel=null,broadcastActive=false,peerConnections=new Map(),remoteCandidateQueues=new Map(),audioCtx=null,analyser=null,raf=0,recorder=null,recordedChunks=[],recordingStartedAt=null;
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function msg(id,text,error=false){const el=$(id);el.textContent=text;el.className="message"+(error?" error":" ok")}
 function statusText(s){return String(s||"created").toUpperCase().replace(/_/g," ")}
@@ -126,9 +126,9 @@ async function handleListenerSignal(payload){
   const offer=await pc.createOffer();await pc.setLocalDescription(offer);
   await signal({type:"offer",to:payload.peerId,description:pc.localDescription});
  }else if(payload.type==="answer"&&payload.fromPeer&&peerConnections.has(payload.fromPeer)){
-  const pc=peerConnections.get(payload.fromPeer);if(pc.signalingState!=="stable")await pc.setRemoteDescription(payload.description);
+  const pc=peerConnections.get(payload.fromPeer);if(pc.signalingState!=="stable")await pc.setRemoteDescription(payload.description);const queued=remoteCandidateQueues.get(payload.fromPeer)||[];remoteCandidateQueues.delete(payload.fromPeer);for(const candidate of queued)await pc.addIceCandidate(candidate).catch(()=>{});
  }else if(payload.type==="candidate"&&payload.fromPeer&&peerConnections.has(payload.fromPeer)){
-  const pc=peerConnections.get(payload.fromPeer);if(pc.remoteDescription)await pc.addIceCandidate(payload.candidate).catch(()=>{});
+  const pc=peerConnections.get(payload.fromPeer);if(pc.remoteDescription)await pc.addIceCandidate(payload.candidate).catch(()=>{});else{const queued=remoteCandidateQueues.get(payload.fromPeer)||[];queued.push(payload.candidate);remoteCandidateQueues.set(payload.fromPeer,queued)}
  }
 }
 async function startBroadcast(){
@@ -150,7 +150,7 @@ async function startBroadcast(){
 }
 async function stopBroadcast(){
  broadcastActive=false;
- for(const pc of peerConnections.values())pc.close();peerConnections.clear();
+ for(const pc of peerConnections.values())pc.close();peerConnections.clear();remoteCandidateQueues.clear();
  if(broadcastStream){broadcastStream.getTracks().forEach(t=>t.stop());broadcastStream=null}
  if(broadcastChannel&&db){try{await db.removeChannel(broadcastChannel)}catch(e){}broadcastChannel=null}
  $("broadcastBtn").textContent="START LIVE BROADCAST";$("broadcastBtn").classList.remove("danger");
@@ -186,7 +186,7 @@ async function startRecording(){
   recorder.start(1000);$("recordBtn").textContent="STOP & SAVE RECORDING";$("recordBtn").disabled=false;$("recordingInfo").textContent="Recording microphone audio… stop the recording to upload and save it automatically.";msg("controlMessage","Audio recording started. Keep this page open until the upload finishes.");
  }catch(err){recorder=null;$("recordBtn").disabled=false;msg("controlMessage","Could not start recording: "+err.message,true)}
 }
-$("broadcastBtn").addEventListener("click",()=>{if(broadcastActive)stopBroadcast();else startBroadcast()});
+$("broadcastBtn").addEventListener("click",async()=>{if(broadcastActive){await stopBroadcast();if(selected)await updateStatus("ended")}else startBroadcast()});
 $("listenerLinkBtn").addEventListener("click",async()=>{if(!selected)return;try{await navigator.clipboard.writeText(listenerUrl());msg("controlMessage","Listener link copied. Share it with your audience.")}catch(e){msg("controlMessage","Copy unavailable. Use the listener URL displayed above.",true)}});
 $("recordBtn").addEventListener("click",()=>{if(recorder&&recorder.state!=="inactive"){recorder.stop();$("recordBtn").disabled=true;$("recordingInfo").textContent="Finalizing recording and uploading…"}else startRecording()});
 
