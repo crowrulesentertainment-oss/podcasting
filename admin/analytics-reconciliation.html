@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#060913">
+<meta name="robots" content="noindex,nofollow">
+<title>Analytics Reconciliation | CrowRules Podcasting Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<style>
+:root{color-scheme:dark;--cyan:#67e8f9;--purple:#c084fc;--bg:#060913;--panel:#0d1422;--line:rgba(142,171,211,.19);--muted:#9aa9bf;--good:#86efac;--warn:#fbbf24;--bad:#fda4af}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 10% 0,rgba(103,232,249,.1),transparent 35%),radial-gradient(ellipse at 95% 15%,rgba(192,132,252,.1),transparent 35%),var(--bg);color:#f5f7ff;font-family:Montserrat,Arial,sans-serif}.page{width:min(1250px,calc(100% - 32px));margin:auto;padding:26px 0 64px}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding-bottom:20px;border-bottom:1px solid var(--line)}a{color:var(--cyan);text-decoration:none}.brand{font:800 12px Orbitron,sans-serif;letter-spacing:.1em;color:white}.nav{display:flex;gap:8px;flex-wrap:wrap}.btn{cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:11px 14px;background:#101827;color:#eef6ff;font-size:10px;font-weight:800;letter-spacing:.06em}.btn:hover{border-color:var(--cyan)}h1{font:800 clamp(28px,5vw,54px)/1.1 Orbitron,sans-serif;margin:25px 0 12px}h2{font:800 19px Orbitron,sans-serif;margin:0 0 12px}.eyebrow{color:var(--cyan);font:800 10px Orbitron,sans-serif;letter-spacing:.15em}.intro{max-width:850px;color:var(--muted);font-size:12px;line-height:1.9}.notice{padding:14px 16px;border:1px solid rgba(251,191,36,.32);background:rgba(251,191,36,.06);border-radius:12px;color:#fde68a;font-size:11px;line-height:1.8;margin:18px 0}.panel{margin-top:18px;padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(13,20,34,.9)}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{padding:16px;border:1px solid var(--line);border-radius:12px;background:#ffffff04;min-width:0}.metric strong{display:block;font:800 clamp(20px,3vw,30px) Orbitron,sans-serif;overflow-wrap:anywhere}.metric span{display:block;margin-top:7px;color:var(--muted);font-size:9px;letter-spacing:.09em;line-height:1.6}.status{color:var(--muted);font-size:11px;line-height:1.8}.good{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:11px;min-width:740px}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.7}th{color:var(--cyan);font:700 9px Orbitron,sans-serif;letter-spacing:.06em}td{color:#d8e1ef}.issue{font-weight:800}.empty{padding:18px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:12px;line-height:1.8}.actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.foot{color:var(--muted);font-size:10px;margin-top:26px;line-height:1.8}@media(max-width:760px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.page{width:calc(100% - 22px);padding-top:14px}}@media(max-width:420px){.cards{grid-template-columns:1fr 1fr}.metric{padding:12px}}
+</style>
+</head>
+<body><main class="page">
+<header class="top"><a class="brand" href="../home.html">CROWRULES / PODCASTING</a><nav class="nav"><a class="btn" href="../listener/rankings.html">LISTENER RANKINGS</a><a class="btn" href="../creator/index.html">CREATOR STUDIO</a><button class="btn" id="refresh" type="button">RUN CHECKS AGAIN</button></nav></header>
+<div class="eyebrow" style="margin-top:30px">READ-ONLY ADMIN DIAGNOSTICS</div>
+<h1>ANALYTICS RECONCILIATION</h1>
+<p class="intro">Compare stored show and episode counters with timestamped play-event records. Find events with missing or invalid links, duplicate session keys, and totals that need investigation. This dashboard never updates, deletes, or repairs production records.</p>
+<div class="notice"><strong>Safety first:</strong> Event counts and stored counters may follow different business rules or historical windows. A difference is a diagnostic signal, not proof that a counter is wrong. Suggested repairs are review steps only; no database changes are executed here.</div>
+<section id="gate" class="panel"><h2>Admin access required</h2><p class="status" id="gateStatus">Checking your signed-in account…</p><p class="status">This page requires an authenticated account whose Supabase auth claims identify it as an admin. If your admin role is managed only in a separate table, the page will remain locked until the approved role check is connected.</p><a class="btn" href="../login.html?redirect=%2Fpodcasting%2Fadmin%2Fanalytics-reconciliation.html">SIGN IN</a></section>
+<div id="dashboard" hidden>
+<section class="panel"><div class="eyebrow">SCAN SUMMARY</div><div class="cards" style="margin-top:14px"><div class="metric"><strong id="showN">—</strong><span>SHOW RECORDS SCANNED</span></div><div class="metric"><strong id="episodeN">—</strong><span>EPISODES SCANNED</span></div><div class="metric"><strong id="eventN">—</strong><span>PLAY EVENTS SCANNED</span></div><div class="metric"><strong id="issueN">—</strong><span>DIAGNOSTIC FINDINGS</span></div></div><p id="scanStatus" class="status" style="margin-top:12px" aria-live="polite">Waiting to run checks.</p></section>
+<section class="panel"><h2>Stored counters vs event totals</h2><p class="status">Only event_type = play is counted. Show and episode comparisons are kept separate. Differences are never auto-corrected.</p><div class="tablewrap"><table><thead><tr><th>RECORD</th><th>STORED COUNTER</th><th>EVENT COUNT</th><th>DIFFERENCE</th><th>ASSESSMENT / SUGGESTED REVIEW</th></tr></thead><tbody id="counterRows"><tr><td colspan="5">No scan has run.</td></tr></tbody></table></div></section>
+<section class="panel"><h2>Link and event integrity findings</h2><p class="status">The scan checks missing show IDs, missing episode IDs, orphan references, mismatched show/episode relationships, missing timestamps, duplicate session keys, and non-play event types.</p><div class="tablewrap"><table><thead><tr><th>CHECK</th><th>COUNT</th><th>SEVERITY</th><th>SUGGESTED NEXT STEP</th></tr></thead><tbody id="integrityRows"><tr><td colspan="4">No scan has run.</td></tr></tbody></table></div></section>
+<section class="panel"><h2>Record-level review queue</h2><p class="status">Examples are capped to keep this page responsive. IDs are shown for follow-up; nothing is changed.</p><div class="tablewrap"><table><thead><tr><th>ISSUE</th><th>EVENT / RECORD ID</th><th>SHOW ID</th><th>EPISODE ID</th><th>TIMESTAMP</th><th>RECOMMENDED REVIEW</th></tr></thead><tbody id="detailRows"><tr><td colspan="6">No scan has run.</td></tr></tbody></table></div></section>
+</div>
+<footer class="foot">CrowRules Entertainment · One company. One universe. Read-only means this page issues SELECT requests only. Supabase Row Level Security remains responsible for database access.</footer>
+</main>
+<script>
+(function(){
+"use strict";
+var cfg=window.CROW_CONFIG||{},client=null,allowed=false;
+var $=function(id){return document.getElementById(id)};
+var esc=function(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
+var fmt=function(n){return Number(n||0).toLocaleString()};
+function roleAllowed(user){if(!user)return false;var a=user.app_metadata||{},u=user.user_metadata||{},roles=[a.role,u.role].concat(Array.isArray(a.roles)?a.roles:[],Array.isArray(u.roles)?u.roles:[]).map(function(x){return String(x||"").toLowerCase()});return roles.includes("admin")||roles.includes("super_admin")}
+function finding(label,count,severity,next){return "<tr><td>"+esc(label)+"</td><td>"+fmt(count)+"</td><td class='"+(severity==="HIGH"?"bad":severity==="REVIEW"?"warn":"good")+"'>"+esc(severity)+"</td><td>"+esc(next)+"</td></tr>"}
+function counterRow(label,stored,events,entity){var diff=stored-events,assessment=diff===0?"MATCH":"REVIEW REQUIRED";var advice=diff===0?"No numerical difference found.":"Compare trigger rules, legacy imports, hidden/unpublished records, and duplicate handling before proposing a repair.";return "<tr><td>"+esc(label)+"</td><td>"+fmt(stored)+"</td><td>"+fmt(events)+"</td><td class='"+(diff===0?"good":"warn")+"'>"+(diff>0?"+":"")+fmt(diff)+"</td><td><span class='issue "+(diff===0?"good":"warn")+"'>"+assessment+"</span><br>"+esc(advice)+"</td></tr>"}
+async function allRows(table,columns,cap){var size=1000,out=[],offset=0,complete=true;while(offset<cap){var q=client.from(table).select(columns).range(offset,Math.min(offset+size-1,cap-1));if(table==="podcast_play_events")q=q.order("created_at",{ascending:true,nullsFirst:true});var r=await q;if(r.error)throw new Error(table+": "+r.error.message);var rows=r.data||[];out=out.concat(rows);if(rows.length<Math.min(size,cap-offset))break;offset+=rows.length}if(out.length>=cap)complete=false;return {rows:out,complete:complete}}
+function pushDetail(arr,issue,e,next){if(arr.length<250)arr.push({issue:issue,id:e.id,podcast_id:e.podcast_id,episode_id:e.episode_id,created_at:e.created_at,next:next})}
+async function runScan(){
+ if(!allowed||!client)return;
+ $("scanStatus").textContent="Reading catalog and event history…";$("refresh").disabled=true;
+ try{
+  var results=await Promise.all([
+   allRows("podcasts","id,title,total_plays,status",10000),
+   allRows("podcast_episodes","id,title,podcast_id,play_count,status,is_published,is_active",10000),
+   allRows("podcast_play_events","id,session_key,episode_id,podcast_id,event_type,created_at",20000)
+  ]);
+  var shows=results[0].rows,episodes=results[1].rows,events=results[2].rows,complete=results.every(function(x){return x.complete});
+  var showMap=new Map(),episodeMap=new Map();shows.forEach(function(x){showMap.set(String(x.id),x)});episodes.forEach(function(x){episodeMap.set(String(x.id),x)});
+  var showEvents=new Map(),episodeEvents=new Map(),eventCount=0,missingShow=0,missingEpisode=0,orphanShow=0,orphanEpisode=0,mismatch=0,missingTime=0,duplicateSession=0,nonPlay=0,details=[],seen=new Set();
+  events.forEach(function(e){
+   if(!e.created_at)missingTime++;
+   if(e.event_type!=="play"){nonPlay++;return}
+   eventCount++;
+   if(!e.podcast_id)missingShow++;else if(!showMap.has(String(e.podcast_id))){orphanShow++;pushDetail(details,"ORPHAN SHOW REFERENCE",e,"Check whether the show was deleted or its ID was recorded incorrectly.")}
+   else showEvents.set(String(e.podcast_id),(showEvents.get(String(e.podcast_id))||0)+1);
+   if(!e.episode_id)missingEpisode++;else if(!episodeMap.has(String(e.episode_id))){orphanEpisode++;pushDetail(details,"ORPHAN EPISODE REFERENCE",e,"Confirm the episode exists or was intentionally removed; do not fabricate a replacement link.")}
+   else{episodeEvents.set(String(e.episode_id),(episodeEvents.get(String(e.episode_id))||0)+1);var ep=episodeMap.get(String(e.episode_id));if(e.podcast_id&&String(ep.podcast_id)!==String(e.podcast_id)){mismatch++;pushDetail(details,"SHOW / EPISODE MISMATCH",e,"Verify the canonical parent show for this episode and event.")}}
+   if(e.session_key){var k=String(e.session_key);if(seen.has(k)){duplicateSession++;pushDetail(details,"DUPLICATE SESSION KEY",e,"Check the unique constraint and player retry behavior before considering deduplication.")}else seen.add(k)}
+   if(!e.created_at)pushDetail(details,"MISSING EVENT TIMESTAMP",e,"Inspect timestamp defaults and event insertion path; preserve original records until reviewed.");
+  });
+  var showStored=shows.reduce(function(n,x){return n+Math.max(0,Number(x.total_plays)||0)},0),episodeStored=episodes.reduce(function(n,x){return n+Math.max(0,Number(x.play_count)||0)},0),showEventTotal=Array.from(showEvents.values()).reduce(function(n,x){return n+x},0),episodeEventTotal=Array.from(episodeEvents.values()).reduce(function(n,x){return n+x},0);
+  var showDiff=shows.filter(function(s){return Number(s.total_plays||0)!==(showEvents.get(String(s.id))||0)}),episodeDiff=episodes.filter(function(e){return Number(e.play_count||0)!==(episodeEvents.get(String(e.id))||0)});
+  $("showN").textContent=fmt(shows.length);$("episodeN").textContent=fmt(episodes.length);$("eventN").textContent=fmt(eventCount);
+  var issueTotal=showDiff.length+episodeDiff.length+missingShow+missingEpisode+orphanShow+orphanEpisode+mismatch+missingTime+duplicateSession;
+  $("issueN").textContent=fmt(issueTotal);
+  $("counterRows").innerHTML=counterRow("All show records — total_plays",showStored,showEventTotal,"show")+counterRow("All episode records — play_count",episodeStored,episodeEventTotal,"episode");
+  var checks=[];
+  checks.push(finding("Show counter discrepancies",showDiff.length,showDiff.length?"REVIEW":"OK","Compare per-show stored total_plays with event rows grouped by podcast_id."));
+  checks.push(finding("Episode counter discrepancies",episodeDiff.length,episodeDiff.length?"REVIEW":"OK","Compare per-episode play_count with play events grouped by episode_id."));
+  checks.push(finding("Events missing podcast_id",missingShow,missingShow?"HIGH":"OK","Inspect player queue metadata and episode-to-show lookup; determine whether linkage can be recovered safely."));
+  checks.push(finding("Events missing episode_id",missingEpisode,missingEpisode?"REVIEW":"OK","Review player logs and audio URL-to-episode mapping; a show-only event may be intentional."));
+  checks.push(finding("Events pointing to absent shows",orphanShow,orphanShow?"HIGH":"OK","Check deleted/renamed catalog records and event foreign-key coverage."));
+  checks.push(finding("Events pointing to absent episodes",orphanEpisode,orphanEpisode?"HIGH":"OK","Check deleted episodes and foreign-key coverage."));
+  checks.push(finding("Show/episode parent mismatch",mismatch,mismatch?"HIGH":"OK","Compare event podcast_id to the episode's canonical podcast_id."));
+  checks.push(finding("Duplicate session keys",duplicateSession,duplicateSession?"REVIEW":"OK","Inspect uniqueness constraints and retry idempotency; a repeated key may indicate a replayed insert."));
+  checks.push(finding("Missing created_at timestamps",missingTime,missingTime?"HIGH":"OK","Verify database timestamp defaults and legacy event imports."));
+  checks.push(finding("Non-play event rows",nonPlay,nonPlay?"INFO":"OK","Confirm event_type semantics; excluded from play counter comparisons."));
+  $("integrityRows").innerHTML=checks.join("");
+  $("detailRows").innerHTML=details.length?details.map(function(x){return "<tr><td>"+esc(x.issue)+"</td><td>"+esc(x.id)+"</td><td>"+esc(x.podcast_id||"—")+"</td><td>"+esc(x.episode_id||"—")+"</td><td>"+esc(x.created_at||"MISSING")+"</td><td>"+esc(x.next)+"</td></tr>"}).join(""):"<tr><td colspan='6'>No record-level examples found in the scanned event rows.</td></tr>";
+  var caps=[];if(!results[0].complete)caps.push("podcast scan reached 10,000-row cap");if(!results[1].complete)caps.push("episode scan reached 10,000-row cap");if(!results[2].complete)caps.push("event scan reached 20,000-row cap");
+  $("scanStatus").innerHTML="<span class='"+(issueTotal?"warn":"good")+"'>Scan complete · "+fmt(issueTotal)+" diagnostic finding(s).</span> "+(complete?"All returned rows fit within scan limits.":"<span class='warn'>Partial scan: "+esc(caps.join("; "))+".</span>")+" Comparison uses accessible records only; hidden rows or RLS restrictions may affect totals. No data was changed.";
+ }catch(err){$("scanStatus").innerHTML="<span class='bad'>Scan failed:</span> "+esc(err&&err.message||String(err))+" — no database writes were performed."}
+ finally{$("refresh").disabled=false}
+}
+async function init(){
+ if(!window.supabase||!window.supabase.createClient||!cfg.supabaseUrl||!cfg.supabaseKey){$("gateStatus").textContent="Supabase configuration or client library unavailable.";return}
+ client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
+ try{var res=await client.auth.getSession(),session=res.data&&res.data.session;if(!session){$("gateStatus").textContent="Sign in with an authorized admin account to run read-only checks.";return}
+  if(!roleAllowed(session.user)){$("gateStatus").textContent="Access not granted: the current session does not contain an admin role claim. No diagnostic queries were run.";return}
+  allowed=true;$("gate").hidden=true;$("dashboard").hidden=false;$("gateStatus").textContent="Admin verified.";await runScan()
+ }catch(err){$("gateStatus").textContent="Could not verify admin session: "+(err.message||String(err))}
+}
+$("refresh").addEventListener("click",runScan);init();
+})();
+</script>
+</body></html>
