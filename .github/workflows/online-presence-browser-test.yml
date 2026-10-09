@@ -4,7 +4,10 @@ on:
   push:
     branches: [main]
     paths:
-      - "home.html"
+      - "**.html"
+      - "creator/**/*.html"
+      - "listener/**/*.html"
+      - "pre-launch/**/*.html"
       - "config.js"
       - "js/online-presence.js"
       - "tests/online-presence-browser-test.mjs"
@@ -36,7 +39,7 @@ jobs:
       - name: Wait for GitHub Pages to serve the current site
         run: |
           for attempt in $(seq 1 18); do
-            if curl -fsSL "https://crowrulesentertainment-oss.github.io/podcasting/js/online-presence.js?check=$attempt" | grep -q "crowrules-podcasting-online-v2"; then
+            if curl -fsSL "https://crowrulesentertainment-oss.github.io/podcasting/js/online-presence.js?check=$attempt" | grep -q "crowrules-podcasting-online-v1"; then
               echo "Presence script is publicly reachable."
               exit 0
             fi
