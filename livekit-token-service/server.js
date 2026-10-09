@@ -2,7 +2,7 @@ import express from "express";
 import crypto from "node:crypto";
 import cors from "cors";
 import { createClient } from "@supabase/supabase-js";
-import { AccessToken } from "livekit-server-sdk";
+import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
 
 const app = express();
 app.disable("x-powered-by");
@@ -14,6 +14,10 @@ const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY || "";
 const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET || "";
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "";
+const MAX_LIVE_PARTICIPANTS = 100;
+const roomService = LIVEKIT_URL && LIVEKIT_API_KEY && LIVEKIT_API_SECRET
+  ? new RoomServiceClient(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET)
+  : null;
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "https://crowrulesentertainment-oss.github.io")
   .split(",").map(v => v.trim()).filter(Boolean);
 
@@ -41,6 +45,22 @@ function hashInvite(token) {
 }
 function roomFor(sessionId) {
   return `crowrules-live-${sessionId}`;
+}
+async function ensureRoomCapacity(roomName) {
+  if (!roomService) throw new Error("LiveKit room service is not configured.");
+  const rooms = await roomService.listRooms([roomName]);
+  const existing = rooms.find(room => room.name === roomName);
+  if (existing) {
+    // An empty room can be safely recreated to apply the latest participant cap.
+    if (Number(existing.numParticipants || 0) === 0 && Number(existing.maxParticipants || 0) !== MAX_LIVE_PARTICIPANTS) {
+      await roomService.deleteRoom(roomName);
+      await roomService.createRoom({ name: roomName, maxParticipants: MAX_LIVE_PARTICIPANTS });
+    } else if (Number(existing.maxParticipants || 0) !== MAX_LIVE_PARTICIPANTS) {
+      console.warn(`Room ${roomName} is already active with maxParticipants=${existing.maxParticipants}; capacity applies to newly created rooms.`);
+    }
+    return;
+  }
+  await roomService.createRoom({ name: roomName, maxParticipants: MAX_LIVE_PARTICIPANTS });
 }
 function safeDisplayName(value, fallback) {
   const clean = String(value || "").replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 80);
@@ -168,7 +188,7 @@ app.post("/api/livekit/token", async (req, res) => {
       canPublishData: role === "host"
     });
     res.set("Cache-Control", "no-store");
-    return res.json({ token: await token.toJwt(), serverUrl: LIVEKIT_URL, roomName, identity, role, expiresIn: role === "listener" ? 300 : 600 });
+    return res.json({ token: await token.toJwt(), serverUrl: LIVEKIT_URL, roomName, identity, role, maxParticipants: MAX_LIVE_PARTICIPANTS, expiresIn: role === "listener" ? 300 : 600 });
   } catch (error) {
     console.error("token issuance failed:", error?.message || error);
     return res.status(500).json({ error: "Unable to create a LiveKit access token." });
