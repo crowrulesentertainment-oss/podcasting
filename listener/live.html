@@ -19,6 +19,7 @@
 <div class="muted">Session: <code id="sessionId">Reading session link…</code></div><div id="podcastInfo" class="muted" style="margin-top:10px">Loading linked podcast…</div>
 <div class="row"><button id="connectBtn" class="btn">CONNECT TO LIVE AUDIO</button><button id="disconnectBtn" class="btn" disabled>DISCONNECT</button></div>
 <audio id="remoteAudio" controls autoplay playsinline></audio>
+<p class="muted" style="margin-top:8px">Echo prevention: use headphones. If another device in the room is also playing this broadcast through speakers, its microphone can send the sound back into the live stream.</p>
 <div id="message" class="message" role="status">Ready to connect. If the creator is not broadcasting yet, leave this page open and try again when they go live.</div>
 <div class="foot">One company. One universe. · CrowRules Podcasting</div>
 </main>
@@ -54,7 +55,16 @@ async function handleSignal(payload){
 }
 function createPeer(){
  pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}]});
- pc.ontrack=e=>{const stream=e.streams&&e.streams[0];if(stream)$("remoteAudio").srcObject=stream;$("remoteAudio").play().catch(()=>say("Audio is connected. Press Play in the audio player to hear the broadcast."));setStatus("AUDIO CONNECTED",true);say("Live audio is connected. Enjoy the show.")};
+ pc.ontrack=e=>{
+ const player=$("remoteAudio");
+ // Attach a single remote MediaStream once; repeated track events should not restart playback or stack listeners.
+ let stream=e.streams&&e.streams[0];
+ if(!stream){stream=player.srcObject||new MediaStream();if(!stream.getTracks().some(t=>t.id===e.track.id))stream.addTrack(e.track)}
+ if(player.srcObject!==stream)player.srcObject=stream;
+ player.muted=false;player.volume=0.85;
+ player.play().catch(()=>say("Audio is connected. Press Play in the audio player to hear the broadcast."));
+ setStatus("AUDIO CONNECTED",true);say("Live audio is connected. Use headphones to prevent room echo.");
+};
  pc.onicecandidate=e=>{if(e.candidate)send({type:"candidate",fromPeer:peerId,candidate:e.candidate.toJSON()}).catch(()=>{})};
  pc.onconnectionstatechange=()=>{const state=pc?.connectionState||"closed";if(state==="connected"){connected=true;setStatus("CONNECTED",true);$("disconnectBtn").disabled=false;$("connectBtn").disabled=true;say("Connection established. Audio should play through the player.")}else if(["failed","disconnected","closed"].includes(state)){if(state!=="disconnected"){setStatus("CONNECTION "+state.toUpperCase());say("The live connection ended or could not be established. Try reconnecting.",true)} }};
 }
