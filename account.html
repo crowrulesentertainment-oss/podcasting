@@ -8,14 +8,83 @@
 <section class="panel" style="margin-top:14px"><h2>Account Details</h2><p class="muted">Current identity information from your authenticated CrowRules session.</p><div class="rows"><div class="row"><span>Email</span><b id="detailEmail">—</b></div><div class="row"><span>Display name</span><b id="detailName">—</b></div><div class="row"><span>Member since</span><b id="since">—</b></div><div class="row"><span>Provider</span><b id="provider">—</b></div><div class="row"><span>User ID</span><b id="uid">—</b></div></div></section></div>
 <aside><section class="panel"><h2>Podcasting Hub</h2><p class="muted">Jump into your listener and creator tools.</p><div class="quick"><a href="index.html">PODCAST HOME →</a><a href="creator/studio.html">CREATOR STUDIO →</a><a href="creator/podcasts.html">MY PODCASTS →</a><a href="creator/episodes.html">EPISODES →</a><a href="creator/subscriptions.html">SUBSCRIPTIONS →</a><a href="creator/payouts.html">PAYOUTS →</a></div></section><section class="panel" style="margin-top:14px"><h2>Security</h2><p class="muted">This public page uses the Supabase publishable key only. Authorization is based on the authenticated user returned by Supabase.</p><div class="rows"><div class="row"><span>Session</span><b id="session">CHECKING</b></div><div class="row"><span>Auto refresh</span><b>ENABLED</b></div><div class="row"><span>Authentication</span><b id="auth">CHECKING</b></div></div><div class="actions"><button class="btn" id="refresh">REFRESH ACCOUNT</button></div></section></aside></div></section></main>
 <script>
-(()=>{const $=id=>document.getElementById(id);const cfg=window.CROW_CONFIG||{};const url=cfg.supabaseUrl||cfg.supabaseURL||"https://cevylpnoexugwgygvtgu.supabase.co";const key=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.publishableKey;let S;
-const raw=new URLSearchParams(location.search).get("redirect")||new URLSearchParams(location.search).get("returnTo");
-function target(){if(!raw)return "account.html";try{const decoded=decodeURIComponent(raw);if(!decoded||decoded.startsWith("//")||/^[a-z]+:/i.test(decoded)||decoded.includes("\\\\"))return "account.html";const u=new URL(decoded,location.href);if(u.origin!==location.origin)return "account.html";const path=u.pathname.split("/").pop();return (path||"account.html")+u.search+u.hash}catch{return "account.html"}}
-const q="?redirect="+encodeURIComponent(target());$("login").href="login.html"+q;$("signup").href="signup.html"+q;
-const initials=n=>(n||"CR").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"CR";const fmt=v=>v?new Date(v).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):"—";
+(()=>{
+const $=id=>document.getElementById(id),cfg=window.CROW_CONFIG||{};
+const url=cfg.supabaseUrl||cfg.supabaseURL||"https://cevylpnoexugwgygvtgu.supabase.co";
+const key=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.publishableKey;
+let S,authSubscription,loadingUserId=null;
+const params=new URLSearchParams(location.search),raw=params.get("redirect")||params.get("returnTo");
+function target(){
+ if(!raw)return "account.html";
+ try{const decoded=decodeURIComponent(raw);if(!decoded||decoded.startsWith("//")||/^[a-z]+:/i.test(decoded)||decoded.includes("\\\\"))return "account.html";const u=new URL(decoded,location.href);if(u.origin!==location.origin)return "account.html";return (u.pathname.split("/").pop()||"account.html")+u.search+u.hash}catch{return "account.html"}
+}
+const q="?redirect="+encodeURIComponent(target());
+$("login").href="login.html"+q;$("signup").href="signup.html"+q;
+const initials=n=>(n||"CR").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"CR";
+const fmt=v=>v?new Date(v).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):"—";
+function setAuthState(user,stateMessage){
+ const signedIn=!!user;
+ $("guest").style.display=signedIn?"none":"block";
+ $("member").style.display=signedIn?"block":"none";
+ $("session").textContent=signedIn?"ACTIVE":"SIGNED OUT";
+ $("auth").textContent=signedIn?"SIGNED IN":"NOT SIGNED IN";
+ $("message").textContent=stateMessage||(signedIn?"You’re signed in to CrowRules Podcasting.":"You’re not signed in. Log in or create a Podcasting account to continue.");
+ $("message").classList.toggle("error",false);
+}
 async function one(table,field,value){try{const r=await S.from(table).select("*").eq(field,value).limit(1).maybeSingle();return r.data||null}catch{return null}}
-async function load(u){if(!u){$("guest").style.display="block";$("member").style.display="none";return}$("guest").style.display="none";$("member").style.display="block";const m=u.user_metadata||{},name=m.display_name||m.full_name||m.name||"CrowRules Member";$("name").textContent=name;$("email").textContent=u.email||"";$("detailEmail").textContent=u.email||"—";$("detailName").textContent=name;$("since").textContent=fmt(u.created_at);$("uid").textContent=u.id;$("provider").textContent=String(u.app_metadata?.provider||u.identities?.[0]?.provider||"email").toUpperCase();$("avatar").textContent=initials(name);
-const member=await one("members","user_id",u.id);const creator=await one("creators","user_id",u.id);$("membership").textContent=String(member?.membership_level||member?.membership_type||"Free").toUpperCase();$("membershipNote").textContent=member?.status?String(member.status).toUpperCase():"ACCOUNT STATUS";$("points").textContent=Number(member?.crowpoints??member?.crow_points??0).toLocaleString();$("creator").textContent=creator?"YES":"NO";$("creatorNote").textContent=creator?"CREATOR ACCESS ENABLED":"CREATOR ACCESS";
-try{let r=await S.from("podcast_episodes").select("id",{count:"exact",head:true}).eq("creator_id",u.id);if(r.error)r=await S.from("podcast_episodes").select("id",{count:"exact",head:true}).eq("user_id",u.id);$("episodes").textContent=r.error?"—":String(r.count??0)}catch{$("episodes").textContent="—"}$("session").textContent="ACTIVE";$("auth").textContent="SIGNED IN"}
-async function boot(){try{if(!window.supabase||!key)throw Error("config");S=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});const r=await S.auth.getUser();await load(r.data.user||null);S.auth.onAuthStateChange((_e,s)=>load(s?.user||null));$("logout").onclick=async()=>{await S.auth.signOut({scope:"global"});location.href="account.html"};$("refresh").onclick=async()=>{const r=await S.auth.getUser();await load(r.data.user||null)};}catch(e){$("message").textContent="Account service could not be initialized.";$("message").classList.add("error")}}boot()})();
+async function load(u,stateMessage){
+ setAuthState(u,stateMessage);
+ if(!u)return;
+ // Prevent overlapping auth events from letting an older account overwrite the current one.
+ const requestId=u.id;loadingUserId=requestId;
+ const m=u.user_metadata||{},name=m.display_name||m.full_name||m.name||"CrowRules Member";
+ $("name").textContent=name;$("email").textContent=u.email||"";$("detailEmail").textContent=u.email||"—";$("detailName").textContent=name;$("since").textContent=fmt(u.created_at);$("uid").textContent=u.id;$("provider").textContent=String(u.app_metadata?.provider||u.identities?.[0]?.provider||"email").toUpperCase();$("avatar").textContent=initials(name);
+ const [member,creator]=await Promise.all([one("members","user_id",u.id),one("creators","user_id",u.id)]);
+ if(loadingUserId!==requestId)return;
+ $("membership").textContent=String(member?.membership_level||member?.membership_type||"Free").toUpperCase();
+ $("membershipNote").textContent=member?.status?String(member.status).toUpperCase():"ACCOUNT STATUS";
+ $("points").textContent=Number(member?.crowpoints??member?.crow_points??0).toLocaleString();
+ $("creator").textContent=creator?"YES":"NO";$("creatorNote").textContent=creator?"CREATOR ACCESS ENABLED":"CREATOR ACCESS";
+ try{let r=await S.from("podcast_episodes").select("id",{count:"exact",head:true}).eq("creator_id",u.id);if(r.error)r=await S.from("podcast_episodes").select("id",{count:"exact",head:true}).eq("user_id",u.id);if(loadingUserId===requestId)$("episodes").textContent=r.error?"—":String(r.count??0)}catch{if(loadingUserId===requestId)$("episodes").textContent="—"}
+}
+async function refreshAccount(){
+ if(!S)return;
+ $("session").textContent="CHECKING";$("auth").textContent="CHECKING";
+ try{
+  const {data,error}=await S.auth.getSession();
+  if(error)throw error;
+  const session=data?.session;
+  if(!session){loadingUserId=null;setAuthState(null);return}
+  // getUser verifies the identity with Supabase; keep a valid local session visible
+  // if verification is temporarily unavailable instead of falsely signing the person out.
+  const verified=await S.auth.getUser();
+  if(verified.error){await load(session.user,"Session found; unable to verify with Supabase right now. You may still be signed in.");return}
+  await load(verified.data?.user||null);
+ }catch(e){
+  $("session").textContent="CHECK FAILED";$("auth").textContent="UNAVAILABLE";
+  $("message").textContent="Could not check your sign-in status. Check your connection and select Refresh Account.";
+  $("message").classList.add("error");
+ }
+}
+async function boot(){
+ if(!window.supabase||!key){$("session").textContent="UNAVAILABLE";$("auth").textContent="UNAVAILABLE";$("message").textContent="Account service is not configured. Please refresh or contact support.";$("message").classList.add("error");return}
+ try{
+  S=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
+  await refreshAccount();
+  const {data}=S.auth.onAuthStateChange((event,session)=>{
+   // Defer Supabase queries until after the auth callback returns.
+   setTimeout(()=>{if(event==="SIGNED_OUT"){loadingUserId=null;setAuthState(null)}else if(session?.user)load(session.user);else if(event==="INITIAL_SESSION")setAuthState(null)},0);
+  });
+  authSubscription=data?.subscription;
+  $("logout").onclick=async()=>{
+   $("logout").disabled=true;
+   try{const {error}=await S.auth.signOut();if(error)throw error;loadingUserId=null;location.replace("account.html")}
+   catch(e){$("message").textContent="Could not sign out: "+(e.message||"Please try again.");$("message").classList.add("error");$("logout").disabled=false}
+  };
+  $("refresh").onclick=refreshAccount;
+ }catch(e){$("session").textContent="UNAVAILABLE";$("auth").textContent="UNAVAILABLE";$("message").textContent="Account service could not be initialized: "+(e.message||"unknown error");$("message").classList.add("error")}
+}
+window.addEventListener("pagehide",()=>authSubscription?.unsubscribe());
+boot();
+})();
 </script></body></html>
