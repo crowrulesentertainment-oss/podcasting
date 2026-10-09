@@ -69,5 +69,6 @@ try{if(window.supabase&&window.supabase.createClient&&config.supabaseUrl&&config
 render();renderHosts();renderEpisodes();load().catch(function(err){console.error("[CrowRules rankings] Background refresh failed:",err);$("dataStatus").textContent="Live refresh unavailable. You can still search and browse this page.";});
 })();
 </script>
+<script src="../js/online-presence.js"></script>
 </body>
 </html>
