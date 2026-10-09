@@ -1,4 +1,4 @@
--- Creator activity alerts reference public.users. Older creator records can
+-- Creator activity alerts reference auth.users. Older creator records can
 -- predate a matching users row; notification side effects must not block plays.
 DO $migration$
 DECLARE
@@ -8,12 +8,12 @@ BEGIN
   v_definition := replace(
     v_definition,
     'if v_creator is null then return NEW; end if;',
-    'if v_creator is null or not exists (select 1 from public.users u where u.id = v_creator) then return NEW; end if;'
+    'if v_creator is null or not exists (select 1 from auth.users u where u.id = v_creator) then return NEW; end if;'
   );
   v_definition := replace(
     v_definition,
     'if NEW.creator_id is null then return NEW; end if;',
-    'if NEW.creator_id is null or not exists (select 1 from public.users u where u.id = NEW.creator_id) then return NEW; end if;'
+    'if NEW.creator_id is null or not exists (select 1 from auth.users u where u.id = NEW.creator_id) then return NEW; end if;'
   );
   EXECUTE v_definition;
 END
