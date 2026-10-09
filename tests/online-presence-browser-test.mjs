@@ -28,7 +28,7 @@ async function waitForEvent(page, condition, baseline, label) {
     ? () => window.__crowOnlineEvents && window.__crowOnlineEvents.length > 0
     : condition === "increase"
       ? value => (window.__crowOnlineEvents || []).some(e => e.guest >= value + 1)
-      : value => (window.__crowOnlineEvents || []).some(e => e.guest < value);
+      : value => (window.__crowOnlineEvents || []).slice(value.startIndex).some(e => e.guest < value.guest);
   await page.waitForFunction(predicate, baseline, { timeout: TIMEOUT, polling: 500 }).catch(async error => {
     const events = await page.evaluate(() => window.__crowOnlineEvents || []).catch(() => []);
     throw new Error(label + " timed out. Recent events: " + JSON.stringify(events.slice(-8)) + ". " + error.message);
@@ -69,8 +69,14 @@ try {
     }
     console.log("PASS: opening a second independent browser session increased guest presence: " + JSON.stringify({ baseline, afterJoin }));
 
+    const eventCountBeforeClose = await firstPage.evaluate(() => (window.__crowOnlineEvents || []).length);
     await secondContext.close();
-    await waitForEvent(firstPage, "decrease", afterJoin.guest, "Guest counter decrease after second session closes");
+    await waitForEvent(
+      firstPage,
+      "decrease",
+      { guest: afterJoin.guest, startIndex: eventCountBeforeClose },
+      "Guest counter decrease after second session closes"
+    );
     const afterLeave = await latestEvent(firstPage);
     assertTotal(afterLeave, "after leave");
     if (afterLeave.guest >= afterJoin.guest) {
