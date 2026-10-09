@@ -26,7 +26,7 @@
 </div><div class="actions"><button class="btn primary" id="createBtn" type="submit">CREATE LIVE SESSION</button><button class="btn" id="micBtn" type="button">TEST MICROPHONE</button></div><div class="meter"><i id="micMeter"></i></div><div id="formMessage" class="message" role="status"></div></form>
 <div class="notice"><strong>Live audio is built in:</strong> Click <b>START LIVE BROADCAST</b> to send your microphone to listeners using browser WebRTC, with Supabase Realtime handling connection signaling. Share the session’s Listener URL and have listeners open it and press Connect. Each session has its own room, so multiple creators can run separate broadcasts at the same time. <br><br><b>Network note:</b> this version uses direct peer-to-peer connections and public STUN servers; some networks may require a TURN relay, and large audiences are better served by a media server.</div>
 </div>
-<div class="panel"><h2>Live session controls</h2><div class="muted">Select one of your sessions below to manage its status.</div><div id="selectedEmpty" class="notice">Create a session or select an existing one to see its controls.</div><div id="selectedPanel" hidden><div style="margin-top:15px"><span class="status off" id="selectedStatus">CREATED</span></div><h3 id="selectedTitle" style="font-size:15px;margin:14px 0 7px"></h3><p id="selectedDescription" class="muted"></p><div class="muted" style="margin-top:12px">Session ID</div><code id="selectedId" style="font-size:10px;overflow-wrap:anywhere"></code><div class="actions"><button class="btn primary" id="goLiveBtn" type="button">MARK SESSION LIVE</button><button class="btn danger" id="endBtn" type="button">END SESSION</button><button class="btn" id="copyBtn" type="button">COPY SESSION ID</button><button class="btn primary" id="recordBtn" type="button">START AUDIO RECORDING</button><button class="btn primary" id="broadcastBtn" type="button">START LIVE BROADCAST</button><button class="btn" id="listenerLinkBtn" type="button">COPY LISTENER LINK</button></div><div id="broadcastInfo" class="message" role="status">Live broadcast is off. Start broadcasting to transmit your microphone to connected listeners.</div><div class="muted" style="margin-top:12px">PODCAST PAGE: <a id="podcastPageLink" href="#" target="_blank" rel="noopener" style="color:var(--cyan)">Select a session linked to a podcast</a></div><div class="muted" style="margin-top:8px">LISTENER URL: <a id="listenerUrl" href="#" target="_blank" rel="noopener" style="color:var(--cyan);overflow-wrap:anywhere">Select a session first</a></div><div id="recordingInfo" class="muted" style="margin-top:12px">Audio recording is off. Start recording to capture the microphone; it will upload automatically when stopped.</div><audio id="savedAudio" controls hidden style="width:100%;margin-top:12px"></audio><div id="controlMessage" class="message" role="status"></div></div></div>
+<div class="panel"><h2>Live session controls</h2><div class="muted">Select one of your sessions below to manage its status.</div><div id="selectedEmpty" class="notice">Create a session or select an existing one to see its controls.</div><div id="selectedPanel" hidden><div style="margin-top:15px"><span class="status off" id="selectedStatus">CREATED</span></div><h3 id="selectedTitle" style="font-size:15px;margin:14px 0 7px"></h3><p id="selectedDescription" class="muted"></p><div class="muted" style="margin-top:12px">Session ID</div><code id="selectedId" style="font-size:10px;overflow-wrap:anywhere"></code><div class="actions"><button class="btn primary" id="goLiveBtn" type="button">MARK SESSION LIVE</button><button class="btn danger" id="endBtn" type="button">END SESSION</button><button class="btn" id="copyBtn" type="button">COPY SESSION ID</button><button class="btn primary" id="recordBtn" type="button">START AUDIO RECORDING</button><button class="btn" id="recoverBtn" type="button">RECOVER INTERRUPTED RECORDING</button><button class="btn primary" id="broadcastBtn" type="button">START LIVE BROADCAST</button><button class="btn" id="listenerLinkBtn" type="button">COPY LISTENER LINK</button></div><div id="broadcastInfo" class="message" role="status">Live broadcast is off. Start broadcasting to transmit your microphone to connected listeners.</div><div class="muted" style="margin-top:12px">PODCAST PAGE: <a id="podcastPageLink" href="#" target="_blank" rel="noopener" style="color:var(--cyan)">Select a session linked to a podcast</a></div><div class="muted" style="margin-top:8px">LISTENER URL: <a id="listenerUrl" href="#" target="_blank" rel="noopener" style="color:var(--cyan);overflow-wrap:anywhere">Select a session first</a></div><div id="recordingInfo" class="muted" style="margin-top:12px">Audio recording is off. Start recording to capture the microphone; it will upload automatically when stopped.</div><audio id="savedAudio" controls hidden style="width:100%;margin-top:12px"></audio><div id="controlMessage" class="message" role="status"></div></div></div>
 </section>
 <section class="panel" style="margin-top:15px"><h2>Your live sessions</h2><div class="muted">Sessions belonging to the signed-in creator account.</div><div id="sessionList" style="margin-top:10px"><p class="muted">Loading your sessions…</p></div><div class="actions"><button class="btn" id="refreshBtn" type="button">REFRESH SESSIONS</button></div></section>
 <div class="footer">CrowRules Podcasting · One company. One universe.</div>
@@ -37,7 +37,7 @@ const $=id=>document.getElementById(id);
 const cfg=window.CROW_CONFIG||{};
 const url=cfg.supabaseUrl||cfg.supabaseURL||"https://cevylpnoexugwgygvtgu.supabase.co";
 const key=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.publishableKey;
-let db=null,user=null,sessions=[],selected=null,micStream=null,broadcastStream=null,broadcastChannel=null,broadcastActive=false,peerConnections=new Map(),remoteCandidateQueues=new Map(),audioCtx=null,analyser=null,raf=0,recorder=null,recordedChunks=[],recordingStartedAt=null,autoRecorder=null,autoRecordedChunks=[],autoRecordingSessionId=null,autoRecordingMime="",autoRecordingStartedAt=null,autoSavePromise=null,broadcastAudioContext=null,broadcastAudioNodes=[],processedBroadcastStream=null;
+let db=null,user=null,sessions=[],selected=null,micStream=null,broadcastStream=null,broadcastChannel=null,broadcastActive=false,peerConnections=new Map(),remoteCandidateQueues=new Map(),audioCtx=null,analyser=null,raf=0,recorder=null,recordedChunks=[],recordingStartedAt=null,autoRecorder=null,autoRecordedChunks=[],autoRecordingSessionId=null,autoRecordingMime="",autoRecordingStartedAt=null,autoSavePromise=null,autoUploadQueue=Promise.resolve(),autoChunkIndex=0,autoManifestPath=null,autoManifest={version:1,chunks:[],mimeType:"",sessionId:"",startedAt:null,updatedAt:null},autoUploadError=null,broadcastAudioContext=null,broadcastAudioNodes=[],processedBroadcastStream=null;
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function msg(id,text,error=false){const el=$(id);el.textContent=text;el.className="message"+(error?" error":" ok")}
 function statusText(s){return String(s||"created").toUpperCase().replace(/_/g," ")}
@@ -166,12 +166,31 @@ async function startAutomaticBroadcastRecording(){
  if(!window.MediaRecorder)throw new Error("This browser does not support automatic broadcast recording.");
  if(autoRecorder&&autoRecorder.state!=="inactive")return;
  const mimeType=["audio/webm;codecs=opus","audio/webm","audio/mp4"].find(t=>MediaRecorder.isTypeSupported(t))||"";
- autoRecordedChunks=[];autoRecordingSessionId=selected.id;autoRecordingMime=mimeType||"audio/webm";autoRecordingStartedAt=Date.now();
+ autoRecordedChunks=[];autoRecordingSessionId=selected.id;autoRecordingMime=mimeType||"audio/webm";autoRecordingStartedAt=Date.now();autoChunkIndex=0;autoUploadQueue=Promise.resolve();autoUploadError=null;autoManifestPath=user.id+"/"+selected.id+"/recovery-manifest.json";autoManifest={version:1,chunks:[],mimeType:autoRecordingMime,sessionId:selected.id,startedAt:new Date(autoRecordingStartedAt).toISOString(),updatedAt:new Date().toISOString(),state:"recording"};
  const recorderOptions={};if(mimeType)recorderOptions.mimeType=mimeType;if(mimeType.includes("opus"))recorderOptions.audioBitsPerSecond=128000;
  autoRecorder=new MediaRecorder(processedBroadcastStream||broadcastStream,Object.keys(recorderOptions).length?recorderOptions:undefined);
- autoRecorder.ondataavailable=e=>{if(e.data&&e.data.size)autoRecordedChunks.push(e.data)};
+ autoRecorder.ondataavailable=e=>{
+ if(!e.data||!e.data.size)return;
+ const chunk=e.data,index=autoChunkIndex++,sessionId=autoRecordingSessionId;
+ autoRecordedChunks.push(chunk);
+ autoUploadQueue=autoUploadQueue.then(async()=>{
+  if(autoUploadError)throw autoUploadError;
+  const ext=autoRecordingMime.includes("mp4")?"m4a":autoRecordingMime.includes("ogg")?"ogg":"webm";
+  const chunkPath=user.id+"/"+sessionId+"/chunks/chunk-"+String(index).padStart(6,"0")+"."+ext;
+  const {error:upErr}=await db.storage.from("podcast-live-recordings").upload(chunkPath,chunk,{contentType:autoRecordingMime,upsert:true});
+  if(upErr)throw upErr;
+  autoManifest.chunks.push({index,path:chunkPath,size:chunk.size,uploadedAt:new Date().toISOString()});
+  autoManifest.updatedAt=new Date().toISOString();
+  const manifestBlob=new Blob([JSON.stringify(autoManifest,null,2)],{type:"application/json"});
+  const {error:manifestErr}=await db.storage.from("podcast-live-recordings").upload(autoManifestPath,manifestBlob,{contentType:"application/json",upsert:true});
+  if(manifestErr)throw manifestErr;
+  const {error:rowErr}=await db.from("podcast_live_sessions").update({recording_manifest_path:autoManifestPath}).eq("id",sessionId).eq("creator_id",user.id);
+  if(rowErr)throw rowErr;
+  $("recordingInfo").textContent="LIVE RECORDING PROTECTED · "+autoManifest.chunks.length+" segment(s) uploaded · latest "+(chunk.size/1024).toFixed(0)+" KB.";
+ }).catch(err=>{autoUploadError=err;$("recordingInfo").textContent="CHUNK UPLOAD WARNING: "+err.message+" · Keep the studio open; final save will retry the complete recording.";msg("controlMessage","Live backup segment upload failed: "+err.message,true)});
+};
  autoRecorder.onerror=e=>{msg("controlMessage","Automatic recording error: "+(e.error?.message||"unknown error"),true)};
- autoRecorder.start(1000);
+ autoRecorder.start(15000);
  $("recordingInfo").textContent="AUTOMATIC RECORDING ACTIVE — broadcast audio is being captured and will upload to private storage when you stop the broadcast.";
  $("recordBtn").textContent="RECORDING WITH LIVE BROADCAST";
  $("recordBtn").disabled=true;
@@ -183,6 +202,7 @@ function stopAndSaveAutomaticRecording(){
   recorderToSave.onstop=async()=>{
    const blob=new Blob(autoRecordedChunks,{type:mime});
    autoRecorder=null;
+   try{await autoUploadQueue}catch(e){}
    $("recordingInfo").textContent="Broadcast ended. Uploading recording ("+(blob.size/1024/1024).toFixed(2)+" MB)…";
    try{
     if(!blob.size)throw new Error("No audio data was captured during the broadcast.");
@@ -191,7 +211,9 @@ function stopAndSaveAutomaticRecording(){
     const path=user.id+"/"+sessionId+"/broadcast-"+new Date().toISOString().replace(/[:.]/g,"-")+"."+ext;
     const {error:uploadError}=await db.storage.from("podcast-live-recordings").upload(path,blob,{contentType:mime,upsert:true});
     if(uploadError)throw uploadError;
-    const {error:updateError}=await db.from("podcast_live_sessions").update({recording_path:path,recording_mime:mime,recording_size:blob.size}).eq("id",sessionId).eq("creator_id",user.id);
+    autoManifest.state="finalized";autoManifest.finalRecordingPath=path;autoManifest.finalSize=blob.size;autoManifest.updatedAt=new Date().toISOString();
+    const manifestBlob=new Blob([JSON.stringify(autoManifest,null,2)],{type:"application/json"});const {error:finalManifestError}=await db.storage.from("podcast-live-recordings").upload(autoManifestPath,manifestBlob,{contentType:"application/json",upsert:true});if(finalManifestError)throw finalManifestError;
+    const {error:updateError}=await db.from("podcast_live_sessions").update({recording_path:path,recording_mime:mime,recording_size:blob.size,recording_manifest_path:autoManifestPath}).eq("id",sessionId).eq("creator_id",user.id);
     if(updateError)throw updateError;
     $("recordingInfo").textContent="AUTOMATIC SAVE COMPLETE · "+(blob.size/1024/1024).toFixed(2)+" MB · "+Math.max(1,Math.round((Date.now()-started)/1000))+" seconds. Saved to podcast-live-recordings.";
     const {data:signed,error:signedError}=await db.storage.from("podcast-live-recordings").createSignedUrl(path,3600);
@@ -202,7 +224,7 @@ function stopAndSaveAutomaticRecording(){
     $("recordingInfo").textContent="AUTOMATIC SAVE FAILED: "+err.message;
     msg("controlMessage","Broadcast audio could not be saved automatically: "+err.message+". Check storage permissions and retry with a short test broadcast.",true);
    }finally{
-    autoRecordedChunks=[];autoRecordingSessionId=null;autoRecordingStartedAt=null;autoSavePromise=null;
+    autoRecordedChunks=[];autoRecordingSessionId=null;autoRecordingStartedAt=null;autoSavePromise=null;autoUploadQueue=Promise.resolve();autoUploadError=null;
     $("recordBtn").disabled=false;$("recordBtn").textContent="START AUDIO RECORDING";
     resolve();
    }
@@ -211,6 +233,41 @@ function stopAndSaveAutomaticRecording(){
  });
  return autoSavePromise;
 }
+async function recoverInterruptedRecording(){
+ if(!selected||!db||!user){msg("controlMessage","Select one of your sessions first.",true);return}
+ const manifestPath=selected.recording_manifest_path||user.id+"/"+selected.id+"/recovery-manifest.json";
+ $("recoverBtn").disabled=true;$("recoverBtn").textContent="RECOVERING…";
+ try{
+  const {data:manifestBlob,error:downloadError}=await db.storage.from("podcast-live-recordings").download(manifestPath);
+  if(downloadError)throw downloadError;
+  const manifest=JSON.parse(await manifestBlob.text());
+  if(!Array.isArray(manifest.chunks)||!manifest.chunks.length)throw new Error("No uploaded audio segments were found for this session.");
+  const parts=[];
+  for(const item of manifest.chunks.sort((a,b)=>a.index-b.index)){
+   const {data,error}=await db.storage.from("podcast-live-recordings").download(item.path);
+   if(error)throw new Error("Could not retrieve segment "+item.index+": "+error.message);
+   parts.push(data);
+   $("recordingInfo").textContent="Recovering recording · "+parts.length+" of "+manifest.chunks.length+" segments downloaded…";
+  }
+  const mime=manifest.mimeType||"audio/webm",blob=new Blob(parts,{type:mime});
+  if(!blob.size)throw new Error("Recovered audio was empty.");
+  const ext=mime.includes("mp4")?"m4a":mime.includes("ogg")?"ogg":"webm";
+  const finalPath=user.id+"/"+selected.id+"/recovered-"+new Date().toISOString().replace(/[:.]/g,"-")+"."+ext;
+  const {error:uploadError}=await db.storage.from("podcast-live-recordings").upload(finalPath,blob,{contentType:mime,upsert:true});
+  if(uploadError)throw uploadError;
+  manifest.state="recovered";manifest.finalRecordingPath=finalPath;manifest.finalSize=blob.size;manifest.recoveredAt=new Date().toISOString();
+  const {error:manifestError}=await db.storage.from("podcast-live-recordings").upload(manifestPath,new Blob([JSON.stringify(manifest,null,2)],{type:"application/json"}),{contentType:"application/json",upsert:true});
+  if(manifestError)throw manifestError;
+  const {error:updateError}=await db.from("podcast_live_sessions").update({recording_path:finalPath,recording_mime:mime,recording_size:blob.size,recording_manifest_path:manifestPath}).eq("id",selected.id).eq("creator_id",user.id);
+  if(updateError)throw updateError;
+  const {data:signed,error:signedError}=await db.storage.from("podcast-live-recordings").createSignedUrl(finalPath,3600);
+  if(!signedError&&signed?.signedUrl){$("savedAudio").src=signed.signedUrl;$("savedAudio").hidden=false}
+  $("recordingInfo").textContent="RECOVERY COMPLETE · "+(blob.size/1024/1024).toFixed(2)+" MB assembled from "+parts.length+" uploaded segments.";
+  msg("controlMessage","Interrupted audio was recovered and saved as a playable recording.");await loadSessions();if(selected)selectSession(selected.id);
+ }catch(err){$("recordingInfo").textContent="RECOVERY FAILED: "+err.message;msg("controlMessage","Could not recover interrupted recording: "+err.message,true)}
+ finally{$("recoverBtn").disabled=false;$("recoverBtn").textContent="RECOVER INTERRUPTED RECORDING"}
+}
+$("recoverBtn").addEventListener("click",recoverInterruptedRecording);
 async function startBroadcast(){
  if(!selected||!db||!user){msg("controlMessage","Select a live session and sign in first.",true);return}
  if(broadcastActive)return;
@@ -298,7 +355,7 @@ const draw=()=>{if(!analyser)return;analyser.getByteTimeDomainData(data);let sum
 $("micStatus").textContent="READY";$("micNote").textContent="LOCAL MIC ACTIVE";$("micBtn").textContent="STOP MICROPHONE TEST";msg("formMessage","Microphone test is active on this device. This is a local test, not a live audio broadcast.")
 }catch(e){msg("formMessage","Microphone permission failed: "+e.message,true)}
 });
-window.addEventListener("beforeunload",()=>{if(micStream)micStream.getTracks().forEach(t=>t.stop());if(broadcastStream)broadcastStream.getTracks().forEach(t=>t.stop());for(const pc of peerConnections.values())pc.close()});
+window.addEventListener("beforeunload",()=>{if(autoRecorder&&autoRecorder.state!=="inactive"){try{autoRecorder.requestData()}catch(e){}}if(micStream)micStream.getTracks().forEach(t=>t.stop());if(broadcastStream)broadcastStream.getTracks().forEach(t=>t.stop());for(const pc of peerConnections.values())pc.close()});
 init();
 })();
 </script><script src="../js/live-visitors.js"></script>
