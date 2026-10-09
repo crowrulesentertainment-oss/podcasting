@@ -46,19 +46,21 @@ async function load(){
    countQuery("podcasts",q=>q.eq("status","archived")),countQuery("podcasts",q=>q.eq("is_featured",true)),
    countQuery("podcast_episodes",q=>q.eq("status","published")),
    dataQuery("members","id,role,membership_type,status,created_at,last_active_at"),
+   dataQuery("member_roles","member_id,role",null,2000),
    dataQuery("podcasts","id,title,slug,creator_id,category,status,is_featured,is_live,listener_count,total_plays,created_at,updated_at,author_name,author_email,explicit_content,production_status","created_at",500),
    dataQuery("podcast_episodes","id,podcast_id,title,status,play_count,created_at,is_explicit","created_at",500),
    dataQuery("episodes","id,show_id,title,status,is_published,is_featured,is_active,created_at","created_at",500),
    dataQuery("podcast_member_reports","id,reporter_user_id,reported_user_id,reason,status,created_at,admin_notes,resolved_at","created_at",300),
    dataQuery("creators","id,member_id,name,display_name,role,is_active,created_at","created_at",300)
   ]);
-  const [membersC,creatorsC,podcastsC,podcastEpisodesC,episodesC,followsC,subsC,commentsC,savedC,publishedC,draftsC,archivedC,featuredC,publishedEpisodesC,membersR,podcastsR,podcastEpisodesR,episodesR,reportsR,creatorsR]=pairs;
+  const [membersC,creatorsC,podcastsC,podcastEpisodesC,episodesC,followsC,subsC,commentsC,savedC,publishedC,draftsC,archivedC,featuredC,publishedEpisodesC,membersR,memberRolesR,podcastsR,podcastEpisodesR,episodesR,reportsR,creatorsR]=pairs;
   podcasts=podcastsR.data;reports=reportsR.data;
   const warnings=[];
-  pairs.forEach((p,i)=>{if(p.error)warnings.push((["Member count","Creator count","Podcast count","Podcast episode count","Episode count","Follows","Active subscriptions","Comments","Saved episodes","Published shows","Draft shows","Archived shows","Featured shows","Published podcast episodes","Member details","Podcast catalog","Podcast episodes","Legacy episodes","Moderation reports","Creator records"][i])+": "+p.error)});
+  pairs.forEach((p,i)=>{if(p.error)warnings.push((["Member count","Creator count","Podcast count","Podcast episode count","Episode count","Follows","Active subscriptions","Comments","Saved episodes","Published shows","Draft shows","Archived shows","Featured shows","Published podcast episodes","Member details","Member role assignments","Podcast catalog","Podcast episodes","Legacy episodes","Moderation reports","Creator records"][i])+": "+p.error)});
   const totalPlays=podcasts.reduce((s,p)=>s+Number(p.total_plays||0),0)+podcastEpisodesR.data.reduce((s,e)=>s+Number(e.play_count||0),0);
   const activeMembers=membersR.data.filter(m=>String(m.status||"").toLowerCase()==="active").length;
   const tiers={};membersR.data.forEach(m=>{const t=m.membership_type||"Unspecified";tiers[t]=(tiers[t]||0)+1});
+  const rolesByMember=new Map();memberRolesR.data.forEach(item=>{const key=String(item.member_id);if(!rolesByMember.has(key))rolesByMember.set(key,[]);rolesByMember.get(key).push(String(item.role||"").trim())});
   const openReports=reports.filter(r=>["open","reviewing"].includes(reportStatus(r))).length;
   const recentReports=reports.slice(0,8);
   const topShows=[...podcasts].sort((a,b)=>Number(b.total_plays||0)-Number(a.total_plays||0)).slice(0,6);
@@ -94,9 +96,9 @@ async function load(){
    '<div class="toolbar"><button id="selectVisible" class="btn">SELECT VISIBLE</button><button id="bulkPublish" class="btn good">BULK PUBLISH</button><button id="bulkDraft" class="btn warn">BULK UNPUBLISH</button><button id="bulkArchive" class="btn danger">BULK ARCHIVE</button><button id="exportPodcasts" class="btn">EXPORT CSV</button><input id="podcastSearch" class="field search" placeholder="Search podcast title, creator, category…" aria-label="Search podcasts"><select id="podcastStatusFilter" class="field" aria-label="Filter podcast status"><option value="all">All statuses</option><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select><select id="podcastFeatureFilter" class="field" aria-label="Filter featured podcasts"><option value="all">Featured + standard</option><option value="featured">Featured only</option><option value="standard">Not featured</option></select><button id="clearFilters" class="btn">CLEAR FILTERS</button></div>'+
    '<div class="table-wrap"><table class="table"><thead><tr><th><input id="selectAllPodcasts" class="check" type="checkbox" aria-label="Select all visible podcasts"></th><th>Podcast</th><th>Status</th><th>Audience</th><th>Created</th><th>Moderation actions</th></tr></thead><tbody id="podcastRows"></tbody></table></div><div class="muted small" id="podcastResultCount"></div></section>'+
    '<section class="section panel"><div class="section-head"><h2>MEMBER REPORT QUEUE</h2><span class="pill open">'+n(openReports)+' open / reviewing</span></div><div class="toolbar"><button id="exportReports" class="btn">EXPORT REPORTS CSV</button><input id="reportSearch" class="field search" placeholder="Search report reason or member ID…" aria-label="Search reports"><select id="reportStatusFilter" class="field" aria-label="Filter report status"><option value="open">Open + reviewing</option><option value="all">All reports</option><option value="reviewing">Reviewing</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option></select></div><div class="table-wrap"><table class="table" style="min-width:800px"><thead><tr><th>Report</th><th>Reason</th><th>Status</th><th>Submitted</th><th>Moderation</th></tr></thead><tbody id="reportRows"></tbody></table></div></section>'+
-   '<section class="section two"><div class="panel"><h2>TOP PODCASTS BY RECORDED PLAYS</h2><div class="list">'+(topShows.map(p=>'<div class="creator-row"><div><b>'+esc(p.title||"Untitled podcast")+'</b><div class="subline">'+esc(p.category||"Uncategorized")+' • '+esc(p.status||"unknown")+(p.is_featured?" • FEATURED":"")+'</div></div><b>'+n(p.total_plays)+'</b></div>').join("")||'<p class="muted">No podcast records are visible.</p>')+'</div></div><div class="panel"><h2>MEMBERSHIP TIER MIX</h2><div>'+tiersText+'</div><p class="muted small">Counts reflect the member records visible to this administrator session.</p></div></section>'+
+   '<section class="section panel"><div class="section-head"><h2>CURRENT MEMBERS & ASSIGNED ROLES</h2><span class="pill open" id="memberResultCount">Loading members…</span></div><p class="muted">Current member records with their database role and any additional assignments in <code>member_roles</code>. This is a read-only directory; role changes should be performed through your authorized member-management workflow.</p><div class="toolbar"><input id="memberSearch" class="field search" placeholder="Search member ID, role, or membership type…" aria-label="Search members"><select id="memberRoleFilter" class="field" aria-label="Filter member role"><option value="all">All roles</option><option value="admin">Admin</option><option value="super_admin">Super Admin</option><option value="owner">Owner</option><option value="administrator">Administrator</option><option value="creator">Creator</option><option value="listener">Listener</option><option value="none">No role assigned</option></select><select id="memberStatusFilter" class="field" aria-label="Filter member status"><option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select><button id="clearMemberFilters" class="btn">CLEAR FILTERS</button></div><div class="table-wrap"><table class="table" style="min-width:850px"><thead><tr><th>Member ID</th><th>Database role(s)</th><th>Membership type</th><th>Status</th><th>Joined</th><th>Last active</th></tr></thead><tbody id="memberRows"></tbody></table></div></section><section class="section two"><div class="panel"><h2>TOP PODCASTS BY RECORDED PLAYS</h2><div class="list">'+(topShows.map(p=>'<div class="creator-row"><div><b>'+esc(p.title||"Untitled podcast")+'</b><div class="subline">'+esc(p.category||"Uncategorized")+' • '+esc(p.status||"unknown")+(p.is_featured?" • FEATURED":"")+'</div></div><b>'+n(p.total_plays)+'</b></div>').join("")||'<p class="muted">No podcast records are visible.</p>')+'</div></div><div class="panel"><h2>MEMBERSHIP TIER MIX</h2><div>'+tiersText+'</div><p class="muted small">Counts reflect the member records visible to this administrator session.</p></div></section>'+
    '<section class="section two"><div class="panel"><h2>RECENT REPORTS</h2><div class="list">'+(recentReports.map(r=>'<div class="creator-row"><div><b>'+esc(String(r.reason||"Report").slice(0,90))+'</b><div class="subline">'+esc(date(r.created_at))+'</div></div><span class="pill '+esc(reportStatus(r))+'">'+esc(reportStatus(r))+'</span></div>').join("")||'<p class="muted">No reports returned.</p>')+'</div></div><div class="panel"><h2>DATA & SECURITY HEALTH</h2><p class="muted">Last refreshed: '+esc(date(new Date().toISOString()))+'</p><div class="notice">'+(warnings.length?'<span class="error"><b>Some data sources need attention</b><br>'+warnings.map(esc).join("<br>")+'</span>':'<span class="success">All queried tables responded without reported errors.</span>')+'</div><p class="muted small">Unavailable tables are shown as warnings; their zero counts are not proof that no records exist.</p></div></section>';
-  renderPodcasts();renderReports();lastRefreshAt=new Date();connection.textContent=(realtimeConnected?"LIVE DATABASE UPDATES":"Polling database counts")+" • Last synced "+lastRefreshAt.toLocaleTimeString();
+  renderPodcasts();renderReports();renderMembers(membersR.data,memberRolesR.data);lastRefreshAt=new Date();connection.textContent=(realtimeConnected?"LIVE DATABASE UPDATES":"Polling database counts")+" • Last synced "+lastRefreshAt.toLocaleTimeString();
  }catch(e){connection.textContent="Dashboard refresh failed";showToast(e.message||"Could not load dashboard.",false)}
  finally{refreshing=false;if(refreshQueued){refreshQueued=false;queueMicrotask(()=>load())}}
 }
@@ -119,6 +121,26 @@ function renderPodcasts(){
   '<button class="btn" data-podcast-action="feature" data-id="'+esc(p.id)+'" data-value="'+(!p.is_featured)+'">'+(p.is_featured?"UNFEATURE":"FEATURE")+'</button><button class="btn" data-podcast-action="details" data-id="'+esc(p.id)+'">DETAILS</button>'+
   '</div></td></tr>';
  }).join("")||'<tr><td colspan="6" class="empty">No podcasts match these filters, or the catalog table is not readable under current RLS.</td></tr>';
+}
+function renderMembers(members,roleRows){
+ window.__crAdminMembers=members||[];window.__crAdminMemberRoles=roleRows||[];
+ const body=document.getElementById("memberRows");if(!body)return;
+ const search=(document.getElementById("memberSearch")?.value||"").trim().toLowerCase();
+ const roleFilter=document.getElementById("memberRoleFilter")?.value||"all";
+ const statusFilter=document.getElementById("memberStatusFilter")?.value||"all";
+ const rolesByMember=new Map();
+ (roleRows||[]).forEach(row=>{const key=String(row.member_id);if(!rolesByMember.has(key))rolesByMember.set(key,[]);if(row.role)rolesByMember.get(key).push(String(row.role).trim().toLowerCase())});
+ const filtered=(members||[]).filter(m=>{
+  const roles=[m.role,...(rolesByMember.get(String(m.id))||[])].filter(Boolean).map(x=>String(x).trim().toLowerCase());
+  const uniqueRoles=[...new Set(roles)];
+  const hay=[m.id,m.role,m.membership_type,m.status,...uniqueRoles].join(" ").toLowerCase();
+  return (!search||hay.includes(search))&&(roleFilter==="all"||(roleFilter==="none"?uniqueRoles.length===0:uniqueRoles.includes(roleFilter)))&&(statusFilter==="all"||String(m.status||"").toLowerCase()===statusFilter);
+ });
+ const count=document.getElementById("memberResultCount");if(count)count.textContent=filtered.length+" of "+(members||[]).length+" members";
+ body.innerHTML=filtered.map(m=>{
+  const roles=[m.role,...(rolesByMember.get(String(m.id))||[])].filter(Boolean).map(x=>String(x).trim()).filter((x,i,a)=>x&&a.findIndex(y=>y.toLowerCase()===x.toLowerCase())===i);
+  return '<tr><td><div class="pod-title">'+esc(m.display_name||m.username||m.email||m.id)+'</div><div class="subline">ID: '+esc(m.id)+'</div></td><td>'+(roles.map(r=>'<span class="pill '+(allowedRoles.includes(r.toLowerCase())?'published':'')+'">'+esc(r)+'</span>').join(' ')||'<span class="pill archived">No role assigned</span>')+'</td><td>'+esc(m.membership_type||"—")+'</td><td><span class="pill '+(String(m.status||"").toLowerCase()==="active"?"published":"archived")+'">'+esc(m.status||"unspecified")+'</span></td><td>'+esc(date(m.created_at))+'</td><td>'+esc(date(m.last_active_at))+'</td></tr>';
+ }).join("")||'<tr><td colspan="6" class="empty">No members match this filter, or member records are not readable under current RLS.</td></tr>';
 }
 function renderReports(){
  const body=document.getElementById("reportRows");if(!body)return;
@@ -162,8 +184,8 @@ async function editReportNotes(id){
 }
 document.getElementById("refresh").addEventListener("click",()=>load());
 document.getElementById("signout").addEventListener("click",async()=>{if(client)await client.auth.signOut();location.href="home.html"});
-app.addEventListener("input",e=>{if(["podcastSearch","reportSearch"].includes(e.target.id)){if(e.target.id==="podcastSearch")renderPodcasts();else renderReports()}});
-app.addEventListener("change",e=>{if(["podcastStatusFilter","podcastFeatureFilter"].includes(e.target.id))renderPodcasts();if(e.target.id==="reportStatusFilter")renderReports()});
+app.addEventListener("input",e=>{if(["podcastSearch","reportSearch","memberSearch"].includes(e.target.id)){if(e.target.id==="podcastSearch")renderPodcasts();else if(e.target.id==="reportSearch")renderReports();else renderMembers(window.__crAdminMembers||[],window.__crAdminMemberRoles||[])}});
+app.addEventListener("change",e=>{if(["podcastStatusFilter","podcastFeatureFilter"].includes(e.target.id))renderPodcasts();if(e.target.id==="reportStatusFilter")renderReports();if(["memberRoleFilter","memberStatusFilter"].includes(e.target.id))renderMembers(window.__crAdminMembers||[],window.__crAdminMemberRoles||[])});
 app.addEventListener("click",e=>{
  const b=e.target.closest("button[data-podcast-action],button[data-report-action]");if(!b)return;
  if(b.dataset.podcastAction==="details")showPodcastDetails(b.dataset.id);
@@ -172,7 +194,7 @@ app.addEventListener("click",e=>{
  else if(b.dataset.reportAction==="notes")editReportNotes(b.dataset.id);
  else if(b.dataset.reportAction)updateReport(b.dataset.id,b.dataset.reportAction);
 });
-app.addEventListener("click",e=>{if(e.target.id==="clearFilters"){document.getElementById("podcastSearch").value="";document.getElementById("podcastStatusFilter").value="all";document.getElementById("podcastFeatureFilter").value="all";renderPodcasts()}});
+app.addEventListener("click",e=>{if(e.target.id==="clearFilters"){document.getElementById("podcastSearch").value="";document.getElementById("podcastStatusFilter").value="all";document.getElementById("podcastFeatureFilter").value="all";renderPodcasts()}if(e.target.id==="clearMemberFilters"){document.getElementById("memberSearch").value="";document.getElementById("memberRoleFilter").value="all";document.getElementById("memberStatusFilter").value="all";renderMembers(window.__crAdminMembers||[],window.__crAdminMemberRoles||[])}});
 
 function visiblePodcasts(){const search=(document.getElementById("podcastSearch")?.value||"").trim().toLowerCase(),status=document.getElementById("podcastStatusFilter")?.value||"all",feature=document.getElementById("podcastFeatureFilter")?.value||"all";return podcasts.filter(p=>[p.title,p.author_name,p.author_email,p.category,p.slug,p.production_status].join(" ").toLowerCase().includes(search)&&(status==="all"||p.status===status)&&(feature==="all"||(feature==="featured"?!!p.is_featured:!p.is_featured)))}
 function selectedPodcastIds(){return Array.from(document.querySelectorAll(".podcast-select:checked")).map(x=>x.dataset.selectPodcast)}
