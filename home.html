@@ -18,7 +18,7 @@ body{overflow-x:hidden}html{scroll-behavior:smooth}a:focus-visible,button:focus-
 .home-liveboard-head h2{font:800 16px Orbitron;margin:0 0 6px}
 .home-liveboard-head p{font-size:11px;color:var(--muted);margin:0}
 .home-liveboard-meta{font:700 9px Orbitron;letter-spacing:.08em;color:#8da1ba}
-.home-live-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.home-live-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
 .home-live-stat{padding:15px;border:1px solid var(--line);border-radius:13px;background:rgba(5,10,20,.7)}
 .home-live-stat small{display:block;color:var(--muted);font-size:10px;margin-bottom:8px}
 .home-live-stat strong{display:block;font:800 24px Orbitron;color:#e9fbff}
@@ -107,9 +107,6 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
     <section class="home-liveboard" id="homeLiveboard" aria-labelledby="homeLiveboardTitle">
       <div class="home-liveboard-head"><div><h2 id="homeLiveboardTitle">LIVE PODCASTING PULSE</h2><p>Live Supabase database snapshot · refreshes every 30 seconds and on database changes.</p></div><div class="home-liveboard-meta" id="homeDataUpdated" aria-live="polite">CONNECTING TO SUPABASE…</div></div>
       <div class="home-live-stats">
-        <div class="home-live-stat"><small>LIVE SESSIONS</small><strong id="homeLiveCount">—</strong><em id="homeLiveCaption">Checking session status</em></div>
-        <div class="home-live-stat"><small>REPORTED LISTENERS</small><strong id="homeListenerCount">—</strong><em>From published podcast/channel records</em></div>
-        <div class="home-live-stat"><small>PUBLISHED SHOWS</small><strong id="homeShowCount">—</strong><em>Verified published podcast records</em></div>
         <div class="home-live-stat"><small>ACTIVE LISTENER VIEWERS</small><strong id="homeActiveListeners">—</strong><em id="homeActiveListenersCaption">Waiting for live presence</em></div>
         <div class="home-live-stat"><small>ACTIVE CREATOR VIEWERS</small><strong id="homeActiveCreators">—</strong><em id="homeActiveCreatorsCaption">Waiting for live presence</em></div>
         <div class="home-live-stat"><small>ACTIVE GUEST VISITORS</small><strong id="homeActiveGuests">—</strong><em id="homeActiveGuestsCaption">Signed-out visitors</em></div>
@@ -119,7 +116,7 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
         <section class="home-data-panel"><h3>🔴 LIVE NOW</h3><div class="home-data-list" id="homeLiveList"><div class="home-data-empty">Checking for active public sessions…</div></div><div class="home-data-actions"><a href="listener/index.html">OPEN LISTENER HUB →</a></div></section>
         <section class="home-data-panel"><h3>📈 TRENDING SHOWS</h3><div class="home-data-list" id="homeTrendingList"><div class="home-data-empty">Loading published shows and play counts…</div></div><div class="home-data-actions"><a href="listener/rankings.html">VIEW RANKINGS →</a><button type="button" id="homeRefreshData">REFRESH DATA ↻</button></div></section>
       </div>
-      <p class="home-note" id="homeDataNote">Published-show and live-session totals are queried from Supabase. Listener totals use stored listener_count fields and can include overlap; active listener/creator/guest visitor cards use Supabase Realtime presence sessions, not unique people.</p>
+      <p class="home-note" id="homeDataNote">Active listener, creator, guest, and total visitor cards use Supabase Realtime presence sessions. Counts represent active browser sessions, not guaranteed unique people.</p>
     </section>
     <section class="home-hero">
       <div>
@@ -320,7 +317,7 @@ async function checkAuth(){
 }
 
 // Real database snapshot: no demo values are shown as live metrics.
-const pulseIds={liveCount:document.getElementById("homeLiveCount"),liveCaption:document.getElementById("homeLiveCaption"),listenerCount:document.getElementById("homeListenerCount"),showCount:document.getElementById("homeShowCount"),liveList:document.getElementById("homeLiveList"),trendingList:document.getElementById("homeTrendingList"),updated:document.getElementById("homeDataUpdated"),note:document.getElementById("homeDataNote"),refresh:document.getElementById("homeRefreshData")};
+const pulseIds={liveList:document.getElementById("homeLiveList"),trendingList:document.getElementById("homeTrendingList"),updated:document.getElementById("homeDataUpdated"),note:document.getElementById("homeDataNote"),refresh:document.getElementById("homeRefreshData")};
 const activeViewerIds={listeners:document.getElementById("homeActiveListeners"),creators:document.getElementById("homeActiveCreators"),total:document.getElementById("homeActiveTotal"),guests:document.getElementById("homeActiveGuests"),guestsCaption:document.getElementById("homeActiveGuestsCaption"),listenersCaption:document.getElementById("homeActiveListenersCaption"),creatorsCaption:document.getElementById("homeActiveCreatorsCaption"),totalCaption:document.getElementById("homeActiveTotalCaption")};
 let activePresenceReceived=false;
 window.addEventListener("crowrules:online",event=>{
@@ -356,38 +353,18 @@ async function loadHomePulse(){
  if(pulseIds.refresh){pulseIds.refresh.disabled=true;pulseIds.refresh.textContent="REFRESHING…"}
  pulseIds.updated.textContent="REFRESHING DATABASE…";
  const outcomes=await Promise.allSettled([
-  S.from("podcast_live_sessions").select("id,title,status,visibility,started_at,podcast_id",{count:"exact"}).eq("status","live").eq("visibility","public").order("started_at",{ascending:false}).limit(8),
-  S.from("podcasts").select("id,title,category,artwork_url,total_plays,listener_count,status,is_live",{count:"exact"}).eq("status","published").order("total_plays",{ascending:false}).limit(5),
-  S.from("podcasts").select("id,listener_count",{count:"exact"}).eq("status","published"),
-  S.from("podcast_live_channels").select("id,name,status,is_active,listener_count,current_title,updated_at",{count:"exact"}).eq("is_active",true).limit(1000)
+  S.from("podcast_live_sessions").select("id,title,status,visibility,started_at,podcast_id").eq("status","live").eq("visibility","public").order("started_at",{ascending:false}).limit(8),
+  S.from("podcasts").select("id,title,category,artwork_url,total_plays,listener_count,status,is_live").eq("status","published").order("total_plays",{ascending:false}).limit(5)
  ]);
  const liveResult=outcomes[0].status==="fulfilled"?outcomes[0].value:{error:outcomes[0].reason};
  const showResult=outcomes[1].status==="fulfilled"?outcomes[1].value:{error:outcomes[1].reason};
- const countResult=outcomes[2].status==="fulfilled"?outcomes[2].value:{error:outcomes[2].reason};
- const channelResult=outcomes[3].status==="fulfilled"?outcomes[3].value:{error:outcomes[3].reason};
- const errors=[liveResult.error,showResult.error,countResult.error,channelResult.error].filter(Boolean);
- if(!liveResult.error){
-  const sessions=liveResult.data||[];
-  pulseIds.liveCount.textContent=numberFmt(liveResult.count??sessions.length);
-  pulseIds.liveCaption.textContent=sessions.length?"Active sessions reported by database":"No active sessions recorded";
-  renderLive(sessions);
- }else{pulseIds.liveCount.textContent="—";pulseIds.liveCaption.textContent="Live session query unavailable";pulseIds.liveList.innerHTML=dataEmpty("Live session data could not be read. Check table permissions and query configuration.")}
- if(!showResult.error){
-  const shows=showResult.data||[];
-  pulseIds.showCount.textContent=numberFmt(showResult.count??shows.length);
-  renderTrending(shows);
- }else{pulseIds.showCount.textContent="—";pulseIds.trendingList.innerHTML=dataEmpty("Trending show data could not be read. Check podcast table permissions.")}
- if(!countResult.error&&!channelResult.error){
-  const podcastListeners=(countResult.data||[]).reduce((sum,row)=>sum+Math.max(0,Number(row.listener_count)||0),0);
-  const channelListeners=(channelResult.data||[]).reduce((sum,row)=>sum+Math.max(0,Number(row.listener_count)||0),0);
-  pulseIds.listenerCount.textContent=numberFmt(podcastListeners+channelListeners);
-  pulseIds.note.textContent="Listener total combines stored listener_count values from published podcasts and active live channels. It is a reported aggregate and may include overlap; it is not a verified unique-user count.";
- }else{
-  pulseIds.listenerCount.textContent="—";
-  pulseIds.note.textContent="Listener totals are unavailable because one or more database queries failed. Values are never substituted with sample statistics.";
- }
+ const errors=[liveResult.error,showResult.error].filter(Boolean);
+ if(!liveResult.error){renderLive(liveResult.data||[])}
+ else{pulseIds.liveList.innerHTML=dataEmpty("Live session data could not be read. Check table permissions and query configuration.")}
+ if(!showResult.error){renderTrending(showResult.data||[])}
+ else{pulseIds.trendingList.innerHTML=dataEmpty("Trending show data could not be read. Check podcast table permissions.")}
  pulseIds.updated.textContent=(errors.length?"PARTIAL DATA":"DATABASE LIVE")+" · "+new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
- if(errors.length){pulseIds.note.textContent+=" Some panels could not be loaded; review Supabase table permissions and the browser console.";pulseIds.note.classList.add("home-data-error")}else{pulseIds.note.classList.remove("home-data-error")}
+ if(errors.length){pulseIds.note.textContent="Some panels could not be loaded; review Supabase table permissions and the browser console.";pulseIds.note.classList.add("home-data-error")}else{pulseIds.note.textContent="Active listener, creator, guest, and total visitor cards use Supabase Realtime presence sessions. Counts represent active browser sessions, not guaranteed unique people.";pulseIds.note.classList.remove("home-data-error")}
  if(pulseIds.refresh){pulseIds.refresh.disabled=false;pulseIds.refresh.textContent="REFRESH DATA ↻"}
 }
 pulseIds.refresh?.addEventListener("click",loadHomePulse);
