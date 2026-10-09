@@ -5,7 +5,7 @@
 (() => {
   'use strict';
   if (window.CrowPoints && window.CrowPoints.__loaded) return;
-  const state = { client: null, user: null, lifetime: 0, monthly: 0, ready: false };
+  const state = { client: null, user: null, lifetime: 0, monthly: 0, ready: false, error: null };
   const number = value => Number.isFinite(Number(value)) ? Math.max(0, Number(value)) : 0;
   const fmt = value => Math.floor(number(value)).toLocaleString();
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -36,16 +36,27 @@
     try {
       const { data: auth } = await client.auth.getUser();
       state.user = auth && auth.user ? auth.user : null;
+      if (state.user) {
+        const { data: summary, error: summaryError } = await client.rpc('get_my_crowpoints_summary');
+        if (summaryError) throw summaryError;
+        const row = Array.isArray(summary) ? summary[0] : summary;
+        state.lifetime = number(row?.lifetime_points);
+        state.monthly = number(row?.monthly_points);
+        state.error = null;
+      } else {
+        state.lifetime = 0;
+        state.monthly = 0;
+        state.error = null;
+      }
       state.ready = true;
-      // Profile/points schema varies across CrowRules projects. The shell intentionally
-      // does not query or write guessed table/column names.
       document.dispatchEvent(new CustomEvent('crowpoints:ready', { detail: { user: state.user, lifetime: state.lifetime, monthly: state.monthly } }));
-    } catch (_) { state.ready = true; }
+    } catch (error) { state.ready = true; state.error = error?.message || 'CrowPoints could not be loaded'; }
     render();
     return state;
   }
   function markup() {
     if (!state.user) return '<span class="cp-sitewide"><span class="cp-pill"><span class="cp-icon">🪙</span><span>CrowPoints</span><span class="cp-muted">Sign in to view</span></span><a class="cp-login" href="' + loginUrl() + '">Sign in</a></span>';
+    if (state.error) return '<span class="cp-sitewide"><span class="cp-pill"><span class="cp-icon">🪙</span><span>CrowPoints</span><span class="cp-muted">Temporarily unavailable</span></span><button type="button" class="cp-login" data-cp-retry style="background:none;border:0;cursor:pointer">Retry</button></span>';
     return '<span class="cp-sitewide"><span class="cp-pill" title="Lifetime CrowPoints"><span class="cp-icon">🪙</span><span>' + fmt(state.lifetime) + '</span><span class="cp-muted">Lifetime</span></span><span class="cp-pill" title="Monthly CrowPoints"><span class="cp-icon">⚡</span><span>' + fmt(state.monthly) + '</span><span class="cp-muted">Monthly</span></span></span>';
   }
   function loginUrl() {
@@ -55,6 +66,7 @@
   function render() {
     styles();
     document.querySelectorAll('[data-crowpoints]').forEach(el => { el.innerHTML = markup(); });
+    document.querySelectorAll('[data-cp-retry]').forEach(el => { if (!el.dataset.bound) { el.dataset.bound = '1'; el.addEventListener('click', refresh); } });
     document.querySelectorAll('[data-crowpoints-card]').forEach(el => {
       el.innerHTML = '<div class="cp-card"><div><strong>CROWRULES REWARDS</strong><div class="cp-muted" style="margin-top:5px">One account. One universe.</div></div>' + markup() + '</div>';
     });
