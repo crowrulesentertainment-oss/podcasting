@@ -47,7 +47,7 @@ async function load(){
    countQuery("cr_podcast_social_comments_v5"),countQuery("podcast_user_saved_episodes"),
    countQuery("podcasts",q=>q.eq("status","published")),countQuery("podcasts",q=>q.eq("status","draft")),
    countQuery("podcasts",q=>q.eq("status","archived")),countQuery("podcasts",q=>q.eq("is_featured",true)),
-   countQuery("podcast_episodes",q=>q.eq("status","published")),
+   countQuery("podcast_episodes",q=>q.eq("status","published")),countQuery("podcast_play_events",q=>q.eq("event_type","play")),
    dataQuery("members","*",null,5000),
    dataQuery("member_roles","member_id,role",null,2000),
    dataQuery("podcasts","id,title,slug,creator_id,category,status,is_featured,is_live,listener_count,total_plays,created_at,updated_at,author_name,author_email,explicit_content,production_status","created_at",500),
@@ -56,15 +56,18 @@ async function load(){
    dataQuery("podcast_member_reports","id,reporter_user_id,reported_user_id,reason,status,created_at,admin_notes,resolved_at","created_at",300),
    dataQuery("creators","id,member_id,name,display_name,role,is_active,created_at","created_at",300),
    dataQuery("podcast_listens","*",null,5000),
-   dataQuery("podcast_analytics_events","*",null,5000)
+   dataQuery("podcast_analytics_events","*",null,5000),
+   dataQuery("podcast_play_events","id,session_key,episode_id,podcast_id,episode_title,user_id,event_type,created_at","created_at",5000)
   ]);
-  const [membersC,creatorsC,podcastsC,podcastEpisodesC,episodesC,followsC,subsC,commentsC,savedC,publishedC,draftsC,archivedC,featuredC,publishedEpisodesC,membersR,memberRolesR,podcastsR,podcastEpisodesR,episodesR,reportsR,creatorsR,listensR,analyticsEventsR]=pairs;
+  const [membersC,creatorsC,podcastsC,podcastEpisodesC,episodesC,followsC,subsC,commentsC,savedC,publishedC,draftsC,archivedC,featuredC,publishedEpisodesC,playEventsC,membersR,memberRolesR,podcastsR,podcastEpisodesR,episodesR,reportsR,creatorsR,listensR,analyticsEventsR,playEventsR]=pairs;
   podcasts=podcastsR.data;reports=reportsR.data;
   const warnings=[];
-  pairs.forEach((p,i)=>{if(p.error)warnings.push((["Member count","Creator count","Podcast count","Podcast episode count","Episode count","Follows","Active subscriptions","Comments","Saved episodes","Published shows","Draft shows","Archived shows","Featured shows","Published podcast episodes","Member details","Member role assignments","Podcast catalog","Podcast episodes","Legacy episodes","Moderation reports","Creator records","Listening sessions","Analytics events"][i])+": "+p.error)});
+  pairs.forEach((p,i)=>{if(p.error)warnings.push((["Member count","Creator count","Podcast count","Podcast episode count","Episode count","Follows","Active subscriptions","Comments","Saved episodes","Published shows","Draft shows","Archived shows","Featured shows","Published podcast episodes","Canonical play-event count","Member details","Member role assignments","Podcast catalog","Podcast episodes","Legacy episodes","Moderation reports","Creator records","Listening sessions","Analytics events","Canonical play events"][i])+": "+p.error)});
   // Avoid double-counting when show-level totals already include episode plays.
   const showPlayTotal=podcasts.reduce((s,p)=>s+Number(p.total_plays||0),0);
-  const totalPlays=showPlayTotal||podcastEpisodesR.data.reduce((s,e)=>s+Number(e.play_count||0),0);
+  const episodePlayTotal=podcastEpisodesR.data.reduce((s,e)=>s+Number(e.play_count||0),0);
+  const totalPlays=!playEventsC.error?Number(playEventsC.count||0):(showPlayTotal||episodePlayTotal);
+  const playCountSource=!playEventsC.error?"podcast_play_events":(showPlayTotal?"podcasts.total_plays":"podcast_episodes.play_count");
   const activeMembers=membersR.data.filter(m=>String(m.status||"").toLowerCase()==="active").length;
   const tiers={};membersR.data.forEach(m=>{const t=m.membership_type||"Unspecified";tiers[t]=(tiers[t]||0)+1});
   const rolesByMember=new Map();memberRolesR.data.forEach(item=>{const key=String(item.member_id);if(!rolesByMember.has(key))rolesByMember.set(key,[]);rolesByMember.get(key).push(String(item.role||"").trim())});
@@ -77,17 +80,21 @@ async function load(){
   countActivity(podcastsR.data,"created_at","podcasts");countActivity(podcastEpisodesR.data,"created_at","episodes");countActivity(membersR.data,"created_at","members");countActivity(reportsR.data,"created_at","reports");
   const activityMax=Math.max(1,...activityDays.map(d=>d.podcasts+d.episodes+d.members+d.reports));
   const activityBars=activityDays.map(d=>'<div style="min-width:0;flex:1;text-align:center"><div title="Shows: '+d.podcasts+' • Episodes: '+d.episodes+' • Members: '+d.members+' • Reports: '+d.reports+'" style="height:120px;display:flex;align-items:flex-end;justify-content:center;gap:2px;border-bottom:1px solid var(--line)"><span style="display:block;width:22%;height:'+Math.max(d.podcasts?3:0,d.podcasts/activityMax*100)+'%;background:#22d3ee;border-radius:3px 3px 0 0"></span><span style="display:block;width:22%;height:'+Math.max(d.episodes?3:0,d.episodes/activityMax*100)+'%;background:#a78bfa;border-radius:3px 3px 0 0"></span><span style="display:block;width:22%;height:'+Math.max(d.members?3:0,d.members/activityMax*100)+'%;background:#34d399;border-radius:3px 3px 0 0"></span><span style="display:block;width:22%;height:'+Math.max(d.reports?3:0,d.reports/activityMax*100)+'%;background:#fbbf24;border-radius:3px 3px 0 0"></span></div><div class="subline" style="font-size:9px">'+d.label+'</div></div>').join("");
-  const listenRows=listensR.data||[],analyticsRows=analyticsEventsR.data||[];
+  const listenRows=listensR.data||[],analyticsRows=analyticsEventsR.data||[],playEventRows=playEventsR.data||[];
   const pick=(r,keys)=>{for(const k of keys)if(r&&r[k]!==undefined&&r[k]!==null&&r[k]!=="")return r[k];return null};
   const durationSeconds=r=>{const v=Number(pick(r,["listening_duration_seconds","duration_seconds","listen_duration_seconds","seconds_listened","watch_seconds","duration"]));return Number.isFinite(v)&&v>0?(v>86400?v/1000:v):0};
   const listenTime=r=>pick(r,["created_at","listened_at","started_at","event_time","occurred_at","timestamp"]);
   const validListens=listenRows.filter(r=>listenTime(r));
   const validEvents=analyticsRows.filter(r=>listenTime(r)&&/listen|play|episode_start|playback_start/i.test(String(pick(r,["event_type","event_name","type","action"])||"")));
-  const actualListens=validListens.length?validListens:validEvents,listenSource=validListens.length?"podcast_listens":validEvents.length?"podcast_analytics_events":"none";
+  const validPlayEvents=playEventRows.filter(r=>String(r.event_type||"")==="play"&&r.created_at);
+  const actualListens=validPlayEvents.length?validPlayEvents:(validListens.length?validListens:validEvents);
+  const listenSource=validPlayEvents.length?"podcast_play_events":validListens.length?"podcast_listens":validEvents.length?"podcast_analytics_events":"none";
   const listenerIds=new Set();let listenSeconds=0;
   const listenDays=Array.from({length:14},(_,i)=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-(13-i));return {key:d.toISOString().slice(0,10),label:d.toLocaleDateString("en-US",{month:"short",day:"numeric"}),plays:0,seconds:0,users:new Set()}});
   const listenDayMap=new Map(listenDays.map(d=>[d.key,d])),episodeCounts=new Map(),episodeSeconds=new Map();
   actualListens.forEach(r=>{const ts=listenTime(r),dt=new Date(ts);if(Number.isNaN(dt.getTime()))return;const uid=pick(r,["user_id","member_id","listener_id","profile_id"]);if(uid!=null)listenerIds.add(String(uid));const sec=durationSeconds(r),ep=pick(r,["episode_id","podcast_episode_id"]),day=listenDayMap.get(dt.toISOString().slice(0,10));listenSeconds+=sec;if(day){day.plays++;day.seconds+=sec;if(uid!=null)day.users.add(String(uid))}if(ep!=null){const k=String(ep);episodeCounts.set(k,(episodeCounts.get(k)||0)+1);episodeSeconds.set(k,(episodeSeconds.get(k)||0)+sec)}});
+  // Playback-event rows contain no duration. Keep duration sourced from listening-session records only.
+  listenSeconds=validListens.reduce((sum,row)=>sum+durationSeconds(row),0);
   // Playback-event rows contain no duration. Keep duration sourced from listening-session records only.
   listenSeconds=validListens.reduce((sum,row)=>sum+durationSeconds(row),0);
   const maxListens=Math.max(1,...listenDays.map(d=>d.plays));
@@ -116,7 +123,7 @@ async function load(){
    metric("Active subscriptions",subsC.count,"Subscription status = active")+
    metric("Community comments",commentsC.count,"Comment records")+
    metric("Saved episodes",savedC.count,"Listener library records")+
-   metric("Recorded plays",totalPlays,"Sum of available play counters")+
+   metric("Recorded plays",totalPlays,"Canonical source: "+playCountSource)+
    '</section>'+
    '<section class="section"><div class="section-head"><h2>REALTIME ONLINE AUDIENCE</h2><span class="pill open" id="presenceBadge">CONNECTING</span></div><div class="grid">'+
    '<div class="panel metric"><small>Online Now</small><strong id="onlineTotal">—</strong><em>Presence sessions</em></div>'+
@@ -307,7 +314,7 @@ async function boot(){
   connection.textContent="Administrator verified • "+dbRoles.filter(role=>allowedRoles.includes(role)).join(", ");
   // Register all database listeners before subscribing, then fetch a fresh baseline.
   channel=client.channel("crowrules-ops-center-live-stats");
-  ["members","member_roles","creators","podcasts","podcast_episodes","episodes","podcast_member_reports","podcast_subscriptions","podcast_follows","cr_podcast_social_comments_v5","podcast_user_saved_episodes","podcast_listens","podcast_analytics_events"].forEach(table=>channel.on("postgres_changes",{event:"*",schema:"public",table},()=>{refreshQueued=true;if(!refreshing){refreshQueued=false;load()}}));
+  ["members","member_roles","creators","podcasts","podcast_episodes","episodes","podcast_member_reports","podcast_subscriptions","podcast_follows","cr_podcast_social_comments_v5","podcast_user_saved_episodes","podcast_listens","podcast_analytics_events","podcast_play_events"].forEach(table=>channel.on("postgres_changes",{event:"*",schema:"public",table},()=>{refreshQueued=true;if(!refreshing){refreshQueued=false;load()}}));
   channel.subscribe(status=>{realtimeConnected=status==="SUBSCRIBED";const badge=document.getElementById("presenceBadge");if(badge&&status!=="SUBSCRIBED")badge.textContent=status;if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")connection.textContent="Realtime subscription issue • polling remains enabled";else if(status==="SUBSCRIBED")connection.textContent="Realtime database feed connected";});
   presence=client.channel("crowrules-podcasting-online-v1");
   presence.on("presence",{event:"sync"},renderOnline).on("presence",{event:"join"},renderOnline).on("presence",{event:"leave"},renderOnline).subscribe(async status=>{const badge=document.getElementById("presenceBadge"),onlineStatus=document.getElementById("onlineStatus");if(badge&&status!=="SUBSCRIBED"){badge.textContent=status;badge.classList.remove("published");badge.classList.add("open")}if(status==="SUBSCRIBED"){try{await presence.track({area:"admin",role:"admin",session_id:"admin-"+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2)),online_at:new Date().toISOString(),page:"admin.html"})}catch(e){console.warn("Presence tracking unavailable",e);if(onlineStatus)onlineStatus.textContent="Presence connected, but this admin tab could not publish its own session: "+(e.message||"tracking failed")}renderOnline();if(onlineStatus&&Object.keys(presence.presenceState()||{}).length===0)onlineStatus.textContent="Connected and synced: 0 visitor sessions reported. Other pages must publish to the shared presence channel for their visitors to appear."}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){["onlineTotal","onlineListeners","onlineCreators","onlineLaunch"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent="—"});if(onlineStatus)onlineStatus.textContent="Supabase Presence is "+status+". Check the connection; database stats polling remains available."}});
