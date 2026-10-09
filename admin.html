@@ -242,8 +242,11 @@ function renderOnline(){
  }));
  [["onlineTotal",counts.all],["onlineListeners",counts.listener],["onlineCreators",counts.creator],["onlineLaunch",counts.launch]].forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=n(v)});
  const s=document.getElementById("onlineStatus"),badge=document.getElementById("presenceBadge");
- if(s)s.textContent="Presence is connected • "+counts.all+" active session"+(counts.all===1?"":"s")+" detected • updates automatically when matching clients join or leave";
- if(badge){badge.textContent="LIVE PRESENCE";badge.classList.remove("open");badge.classList.add("published")}
+ const syncedAt=new Date().toLocaleTimeString();
+ if(s)s.textContent="Last synced "+syncedAt+" • Online Now: "+counts.all+" • Listeners Online: "+counts.listener+" • Creators Online: "+counts.creator+" • Launch Visitors: "+counts.launch+". Counts refresh on every Presence sync.";
+ const launchMetric=document.getElementById("onlineLaunch");
+ if(launchMetric){const card=launchMetric.closest(".metric");if(card){let syncNote=card.querySelector("[data-launch-sync]");if(!syncNote){syncNote=document.createElement("em");syncNote.setAttribute("data-launch-sync","true");card.appendChild(syncNote)}syncNote.textContent="Updated "+syncedAt+" • refreshed every sync"}}
+ if(badge){badge.textContent="LIVE • SYNCED "+syncedAt;badge.classList.remove("open");badge.classList.add("published")}
 }
 async function boot(){
  if(!client){connection.textContent="Configuration unavailable";gate("CONFIGURATION ERROR","config.js must define supabaseUrl and supabaseKey.",'<a class="btn" href="home.html">RETURN HOME</a>');return}
