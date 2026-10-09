@@ -104,3 +104,18 @@ body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:10;opac
 @media(hover:none){#app .btn:hover,#app .subscribe-plan:hover,#app .episode-row:hover{transform:none}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 [hidden]{display:none!important}
+
+/* Episode artwork cards — Neon District */
+#app .episode-row{grid-template-columns:42px 76px minmax(0,1fr) auto;gap:15px;align-items:center}
+#app .episode-thumb-wrap{position:relative;width:76px;aspect-ratio:1;overflow:hidden;border:1px solid #5cf6ff4a;border-radius:3px;background:linear-gradient(145deg,#10243a,#1b0d2c);box-shadow:4px 4px 0 #ff3bd414,0 0 18px #5cf6ff0b}
+#app .episode-thumb-wrap:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg,#5cf6ff0c,transparent 45%,#ff3bd414)}
+#app .episode-thumb{display:block;width:100%;height:100%;object-fit:cover;transition:transform .25s ease,filter .25s ease}
+#app .episode-row:hover .episode-thumb{transform:scale(1.06);filter:saturate(1.12)}
+#app .episode-thumb-wrap.thumb-fallback:before{content:"CR";position:absolute;inset:0;display:grid;place-items:center;color:#5cf6ff;font:800 18px Orbitron,sans-serif;letter-spacing:.08em;text-shadow:0 0 18px #5cf6ff55}
+#app .episode-thumb-wrap.thumb-fallback img{display:none}
+#app .episode-info{min-width:0}
+#app .episode-info b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#app .episode-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+@media(max-width:900px){#app .episode-row{grid-template-columns:38px 68px minmax(0,1fr)}#app .episode-thumb-wrap{width:68px}#app .episode-actions{grid-column:3;justify-content:flex-start}}
+@media(max-width:560px){#app .episode-row{grid-template-columns:32px 64px minmax(0,1fr);gap:10px;padding:11px}#app .episode-thumb-wrap{width:64px}#app .episode-number{width:32px;height:36px;font-size:10px}#app .episode-info b{font-size:12px}#app .episode-info small{font-size:10px}#app .episode-actions{grid-column:2/-1;padding-left:0;width:100%}#app .episode-actions .btn{flex:1;min-width:0;padding:9px 7px;font-size:9px}}
+@media(prefers-reduced-motion:reduce){#app .episode-thumb{transition:none}#app .episode-row:hover .episode-thumb{transform:none}}
