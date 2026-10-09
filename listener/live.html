@@ -38,3 +38,4 @@ room=new window.LivekitClient.Room({adaptiveStream:true,dynacast:true});room.on(
 async function disconnect(){if(room){await room.disconnect().catch(()=>{});room=null}$("remoteAudio").pause();$("remoteAudio").srcObject=null;$("connectBtn").disabled=false;$("disconnectBtn").disabled=true;status("NOT CONNECTED");say("Disconnected from live audio.")}
 $("connectBtn").addEventListener("click",connect);$("disconnectBtn").addEventListener("click",disconnect);window.addEventListener("beforeunload",()=>{if(room)room.disconnect()});})();
 </script>
+<script src="../js/global-audio-player.js"></script>
