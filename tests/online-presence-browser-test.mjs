@@ -3,23 +3,8 @@ import { chromium } from "playwright";
 const BASE_URL = "https://crowrulesentertainment-oss.github.io/podcasting/home.html";
 const TIMEOUT = 90_000;
 
-async function waitForPresence(page, predicate, label) {
-  await page.waitForFunction(
-    predicate,
-    null,
-    { timeout: TIMEOUT, polling: 500 }
-  ).catch(async error => {
-    const events = await page.evaluate(() => window.__crowOnlineEvents || []).catch(() => []);
-    throw new Error(label + " timed out. Recent presence events: " + JSON.stringify(events.slice(-8)) + ". " + error.message);
-  });
-}
-
-const browser = await chromium.launch({ headless: true });
-const firstContext = await browser.newContext();
-const firstPage = await firstContext.newPage();
-
-try {
-  await firstPage.addInitScript(() => {
+function installPresenceRecorder(page) {
+  return page.addInitScript(() => {
     window.__crowOnlineEvents = [];
     window.addEventListener("crowrules:online", event => {
       const d = event.detail || {};
@@ -32,50 +17,64 @@ try {
       });
     });
   });
+}
 
-  await firstPage.goto(BASE_URL + "?presenceBrowserTest=" + Date.now(), { waitUntil: "domcontentloaded", timeout: TIMEOUT });
-  await waitForPresence(firstPage, () => window.__crowOnlineEvents && window.__crowOnlineEvents.length > 0, "Initial Supabase Realtime presence event");
+async function latestEvent(page) {
+  return page.evaluate(() => window.__crowOnlineEvents[window.__crowOnlineEvents.length - 1]);
+}
 
-  const baseline = await firstPage.evaluate(() => window.__crowOnlineEvents[window.__crowOnlineEvents.length - 1]);
-  if (baseline.all !== baseline.listener + baseline.creator + baseline.guest) {
-    throw new Error("Counter arithmetic failed at baseline: " + JSON.stringify(baseline));
+async function waitForEvent(page, condition, baseline, label) {
+  const predicate = condition === "initial"
+    ? () => window.__crowOnlineEvents && window.__crowOnlineEvents.length > 0
+    : condition === "increase"
+      ? value => (window.__crowOnlineEvents || []).some(e => e.guest >= value + 1)
+      : value => (window.__crowOnlineEvents || []).some(e => e.guest < value);
+  await page.waitForFunction(predicate, baseline, { timeout: TIMEOUT, polling: 500 }).catch(async error => {
+    const events = await page.evaluate(() => window.__crowOnlineEvents || []).catch(() => []);
+    throw new Error(label + " timed out. Recent events: " + JSON.stringify(events.slice(-8)) + ". " + error.message);
+  });
+}
+
+function assertTotal(counts, stage) {
+  if (!counts || counts.all !== counts.listener + counts.creator + counts.guest) {
+    throw new Error("Counter arithmetic failed at " + stage + ": " + JSON.stringify(counts));
   }
+}
+
+const browser = await chromium.launch({ headless: true });
+const firstContext = await browser.newContext();
+const firstPage = await firstContext.newPage();
+
+try {
+  await installPresenceRecorder(firstPage);
+  await firstPage.goto(BASE_URL + "?presenceBrowserTest=" + Date.now(), { waitUntil: "domcontentloaded", timeout: TIMEOUT });
+  await waitForEvent(firstPage, "initial", null, "Initial Supabase Realtime presence event");
+
+  const baseline = await latestEvent(firstPage);
+  assertTotal(baseline, "baseline");
   console.log("PASS: first browser session received presence counts: " + JSON.stringify(baseline));
 
   const secondContext = await browser.newContext();
   const secondPage = await secondContext.newPage();
   try {
-    await secondPage.addInitScript(() => {
-      window.__crowOnlineEvents = [];
-      window.addEventListener("crowrules:online", event => {
-        const d = event.detail || {};
-        window.__crowOnlineEvents.push({
-          all: Number(d.all) || 0,
-          listener: Number(d.listener) || 0,
-          creator: Number(d.creator) || 0,
-          guest: Number(d.guest) || 0,
-          at: Date.now()
-        });
-      });
-    });
+    await installPresenceRecorder(secondPage);
     await secondPage.goto(BASE_URL + "?presenceBrowserTest=" + (Date.now() + 1), { waitUntil: "domcontentloaded", timeout: TIMEOUT });
-    await waitForPresence(secondPage, () => window.__crowOnlineEvents && window.__crowOnlineEvents.length > 0, "Second browser session presence event");
-    await waitForPresence(firstPage, () => {
-      const events = window.__crowOnlineEvents || [];
-      return events.some(e => e.guest >= BASELINE_GUEST + 1);
-    }.toString().replace("BASELINE_GUEST", String(baseline.guest)), "Guest counter increase after second session");
+    await waitForEvent(secondPage, "initial", null, "Second browser session presence event");
 
-    const afterJoin = await firstPage.evaluate(() => window.__crowOnlineEvents[window.__crowOnlineEvents.length - 1]);
-    if (afterJoin.all !== afterJoin.listener + afterJoin.creator + afterJoin.guest) {
-      throw new Error("Counter arithmetic failed after join: " + JSON.stringify(afterJoin));
+    await waitForEvent(firstPage, "increase", baseline.guest, "Guest counter increase after second session");
+    const afterJoin = await latestEvent(firstPage);
+    assertTotal(afterJoin, "after join");
+    if (afterJoin.guest < baseline.guest + 1) {
+      throw new Error("Second browser session did not increase the guest count. Baseline=" + JSON.stringify(baseline) + " latest=" + JSON.stringify(afterJoin));
     }
     console.log("PASS: opening a second independent browser session increased guest presence: " + JSON.stringify({ baseline, afterJoin }));
 
     await secondContext.close();
-    await waitForPresence(firstPage, () => (window.__crowOnlineEvents || []).some(e => e.guest < JOINED_GUEST), "Guest counter decrease after second session closes");
-    const afterLeave = await firstPage.evaluate(() => window.__crowOnlineEvents[window.__crowOnlineEvents.length - 1]);
-    if (afterLeave.all !== afterLeave.listener + afterLeave.creator + afterLeave.guest) {
-      throw new Error("Counter arithmetic failed after leave: " + JSON.stringify(afterLeave));
+    await waitForEvent(firstPage, "decrease", afterJoin.guest, "Guest counter decrease after second session closes");
+    const afterLeave = await latestEvent(firstPage);
+    assertTotal(afterLeave, "after leave");
+    if (afterLeave.guest >= afterJoin.guest) {
+      throw new Error("Closing the second browser session did not reduce guest presence. AfterJoin=" + JSON.stringify(afterJoin) + " latest=" + JSON.stringify(afterLeave));
     }
     console.log("PASS: closing the second browser session reduced guest presence: " + JSON.stringify({ afterJoin, afterLeave }));
   } finally {
