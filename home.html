@@ -112,13 +112,14 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
         <div class="home-live-stat"><small>PUBLISHED SHOWS</small><strong id="homeShowCount">—</strong><em>Verified published podcast records</em></div>
         <div class="home-live-stat"><small>ACTIVE LISTENER VIEWERS</small><strong id="homeActiveListeners">—</strong><em id="homeActiveListenersCaption">Waiting for live presence</em></div>
         <div class="home-live-stat"><small>ACTIVE CREATOR VIEWERS</small><strong id="homeActiveCreators">—</strong><em id="homeActiveCreatorsCaption">Waiting for live presence</em></div>
-        <div class="home-live-stat"><small>ACTIVE VIEWERS TOTAL</small><strong id="homeActiveTotal">—</strong><em id="homeActiveTotalCaption">Listener + creator pages</em></div>
+        <div class="home-live-stat"><small>ACTIVE GUEST VISITORS</small><strong id="homeActiveGuests">—</strong><em id="homeActiveGuestsCaption">Signed-out visitors</em></div>
+        <div class="home-live-stat"><small>ALL LIVE VISITORS</small><strong id="homeActiveTotal">—</strong><em id="homeActiveTotalCaption">Listener + creator + guest sessions</em></div>
       </div>
       <div class="home-data-grid">
         <section class="home-data-panel"><h3>🔴 LIVE NOW</h3><div class="home-data-list" id="homeLiveList"><div class="home-data-empty">Checking for active public sessions…</div></div><div class="home-data-actions"><a href="listener/index.html">OPEN LISTENER HUB →</a></div></section>
         <section class="home-data-panel"><h3>📈 TRENDING SHOWS</h3><div class="home-data-list" id="homeTrendingList"><div class="home-data-empty">Loading published shows and play counts…</div></div><div class="home-data-actions"><a href="listener/rankings.html">VIEW RANKINGS →</a><button type="button" id="homeRefreshData">REFRESH DATA ↻</button></div></section>
       </div>
-      <p class="home-note" id="homeDataNote">Published-show and live-session totals are queried from Supabase. Listener totals use stored listener_count fields and can include overlap; active listener/creator viewer cards use Supabase Realtime presence sessions, not unique people.</p>
+      <p class="home-note" id="homeDataNote">Published-show and live-session totals are queried from Supabase. Listener totals use stored listener_count fields and can include overlap; active listener/creator/guest visitor cards use Supabase Realtime presence sessions, not unique people.</p>
     </section>
     <section class="home-hero">
       <div>
@@ -320,20 +321,23 @@ async function checkAuth(){
 
 // Real database snapshot: no demo values are shown as live metrics.
 const pulseIds={liveCount:document.getElementById("homeLiveCount"),liveCaption:document.getElementById("homeLiveCaption"),listenerCount:document.getElementById("homeListenerCount"),showCount:document.getElementById("homeShowCount"),liveList:document.getElementById("homeLiveList"),trendingList:document.getElementById("homeTrendingList"),updated:document.getElementById("homeDataUpdated"),note:document.getElementById("homeDataNote"),refresh:document.getElementById("homeRefreshData")};
-const activeViewerIds={listeners:document.getElementById("homeActiveListeners"),creators:document.getElementById("homeActiveCreators"),total:document.getElementById("homeActiveTotal"),listenersCaption:document.getElementById("homeActiveListenersCaption"),creatorsCaption:document.getElementById("homeActiveCreatorsCaption"),totalCaption:document.getElementById("homeActiveTotalCaption")};
+const activeViewerIds={listeners:document.getElementById("homeActiveListeners"),creators:document.getElementById("homeActiveCreators"),total:document.getElementById("homeActiveTotal"),guests:document.getElementById("homeActiveGuests"),guestsCaption:document.getElementById("homeActiveGuestsCaption"),listenersCaption:document.getElementById("homeActiveListenersCaption"),creatorsCaption:document.getElementById("homeActiveCreatorsCaption"),totalCaption:document.getElementById("homeActiveTotalCaption")};
 let activePresenceReceived=false;
 window.addEventListener("crowrules:online",event=>{
  const counts=event.detail||{};
  const listeners=Math.max(0,Number(counts.listener)||0);
  const creators=Math.max(0,Number(counts.creator)||0);
+  const guests=Math.max(0,Number(counts.guest)||0);
  // Presence keys represent active browser tabs/sessions, not guaranteed unique people.
  activePresenceReceived=true;
  if(activeViewerIds.listeners)activeViewerIds.listeners.textContent=numberFmt(listeners);
  if(activeViewerIds.creators)activeViewerIds.creators.textContent=numberFmt(creators);
- if(activeViewerIds.total)activeViewerIds.total.textContent=numberFmt(listeners+creators);
+ if(activeViewerIds.guests)activeViewerIds.guests.textContent=numberFmt(guests);
+  if(activeViewerIds.total)activeViewerIds.total.textContent=numberFmt(listeners+creators+guests);
  if(activeViewerIds.listenersCaption)activeViewerIds.listenersCaption.textContent="Active listener pages";
  if(activeViewerIds.creatorsCaption)activeViewerIds.creatorsCaption.textContent="Active creator pages";
- if(activeViewerIds.totalCaption)activeViewerIds.totalCaption.textContent="Live presence sessions · may include multiple tabs";
+ if(activeViewerIds.guestsCaption)activeViewerIds.guestsCaption.textContent="Signed-out visitor sessions";
+  if(activeViewerIds.totalCaption)activeViewerIds.totalCaption.textContent="All live sessions · may include multiple tabs";
 });
 
 const safeText=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
