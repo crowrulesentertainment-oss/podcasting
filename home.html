@@ -105,7 +105,7 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 
   <main>
     <section class="home-liveboard" id="homeLiveboard" aria-labelledby="homeLiveboardTitle">
-      <div class="home-liveboard-head"><div><h2 id="homeLiveboardTitle">LIVE PODCASTING PULSE</h2><p>Live database snapshot from CrowRules Podcasting.</p></div><div class="home-liveboard-meta" id="homeDataUpdated" aria-live="polite">CONNECTING TO SUPABASE…</div></div>
+      <div class="home-liveboard-head"><div><h2 id="homeLiveboardTitle">LIVE PODCASTING PULSE</h2><p>Live Supabase database snapshot · refreshes every 30 seconds and on database changes.</p></div><div class="home-liveboard-meta" id="homeDataUpdated" aria-live="polite">CONNECTING TO SUPABASE…</div></div>
       <div class="home-live-stats">
         <div class="home-live-stat"><small>LIVE SESSIONS</small><strong id="homeLiveCount">—</strong><em id="homeLiveCaption">Checking session status</em></div>
         <div class="home-live-stat"><small>REPORTED LISTENERS</small><strong id="homeListenerCount">—</strong><em>From published podcast/channel records</em></div>
@@ -118,7 +118,7 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
         <section class="home-data-panel"><h3>🔴 LIVE NOW</h3><div class="home-data-list" id="homeLiveList"><div class="home-data-empty">Checking for active public sessions…</div></div><div class="home-data-actions"><a href="listener/index.html">OPEN LISTENER HUB →</a></div></section>
         <section class="home-data-panel"><h3>📈 TRENDING SHOWS</h3><div class="home-data-list" id="homeTrendingList"><div class="home-data-empty">Loading published shows and play counts…</div></div><div class="home-data-actions"><a href="listener/rankings.html">VIEW RANKINGS →</a><button type="button" id="homeRefreshData">REFRESH DATA ↻</button></div></section>
       </div>
-      <p class="home-note" id="homeDataNote">Counts reflect the fields currently stored in Supabase; listener counts are reported values, not a guaranteed count of unique people connected at this second.</p>
+      <p class="home-note" id="homeDataNote">Published-show and live-session totals are queried from Supabase. Listener totals use stored listener_count fields and can include overlap; active listener/creator viewer cards use Supabase Realtime presence sessions, not unique people.</p>
     </section>
     <section class="home-hero">
       <div>
@@ -352,10 +352,10 @@ async function loadHomePulse(){
  if(pulseIds.refresh){pulseIds.refresh.disabled=true;pulseIds.refresh.textContent="REFRESHING…"}
  pulseIds.updated.textContent="REFRESHING DATABASE…";
  const outcomes=await Promise.allSettled([
-  S.from("podcast_live_sessions").select("id,title,status,visibility,started_at,podcast_id").in("status",["live","active","started"]).order("started_at",{ascending:false}).limit(8),
-  S.from("podcasts").select("id,title,category,artwork_url,total_plays,listener_count,status,is_live").eq("status","published").order("total_plays",{ascending:false}).limit(5),
-  S.from("podcasts").select("id,listener_count").eq("status","published"),
-  S.from("podcast_live_channels").select("id,name,status,is_active,listener_count,current_title,updated_at").eq("is_active",true).limit(20)
+  S.from("podcast_live_sessions").select("id,title,status,visibility,started_at,podcast_id",{count:"exact"}).eq("status","live").eq("visibility","public").order("started_at",{ascending:false}).limit(8),
+  S.from("podcasts").select("id,title,category,artwork_url,total_plays,listener_count,status,is_live",{count:"exact"}).eq("status","published").order("total_plays",{ascending:false}).limit(5),
+  S.from("podcasts").select("id,listener_count",{count:"exact"}).eq("status","published"),
+  S.from("podcast_live_channels").select("id,name,status,is_active,listener_count,current_title,updated_at",{count:"exact"}).eq("is_active",true).limit(1000)
  ]);
  const liveResult=outcomes[0].status==="fulfilled"?outcomes[0].value:{error:outcomes[0].reason};
  const showResult=outcomes[1].status==="fulfilled"?outcomes[1].value:{error:outcomes[1].reason};
@@ -364,13 +364,13 @@ async function loadHomePulse(){
  const errors=[liveResult.error,showResult.error,countResult.error,channelResult.error].filter(Boolean);
  if(!liveResult.error){
   const sessions=liveResult.data||[];
-  pulseIds.liveCount.textContent=numberFmt(sessions.length);
+  pulseIds.liveCount.textContent=numberFmt(liveResult.count??sessions.length);
   pulseIds.liveCaption.textContent=sessions.length?"Active sessions reported by database":"No active sessions recorded";
   renderLive(sessions);
  }else{pulseIds.liveCount.textContent="—";pulseIds.liveCaption.textContent="Live session query unavailable";pulseIds.liveList.innerHTML=dataEmpty("Live session data could not be read. Check table permissions and query configuration.")}
  if(!showResult.error){
   const shows=showResult.data||[];
-  pulseIds.showCount.textContent=numberFmt(shows.length);
+  pulseIds.showCount.textContent=numberFmt(showResult.count??shows.length);
   renderTrending(shows);
  }else{pulseIds.showCount.textContent="—";pulseIds.trendingList.innerHTML=dataEmpty("Trending show data could not be read. Check podcast table permissions.")}
  if(!countResult.error&&!channelResult.error){
@@ -382,7 +382,7 @@ async function loadHomePulse(){
   pulseIds.listenerCount.textContent="—";
   pulseIds.note.textContent="Listener totals are unavailable because one or more database queries failed. Values are never substituted with sample statistics.";
  }
- pulseIds.updated.textContent=(errors.length?"PARTIAL DATA":"DATABASE UPDATED")+" · "+new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
+ pulseIds.updated.textContent=(errors.length?"PARTIAL DATA":"DATABASE LIVE")+" · "+new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
  if(errors.length){pulseIds.note.textContent+=" Some panels could not be loaded; review Supabase table permissions and the browser console.";pulseIds.note.classList.add("home-data-error")}else{pulseIds.note.classList.remove("home-data-error")}
  if(pulseIds.refresh){pulseIds.refresh.disabled=false;pulseIds.refresh.textContent="REFRESH DATA ↻"}
 }
@@ -394,7 +394,7 @@ async function boot(){
   S=window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
   await checkAuth();
   await loadHomePulse();
-  const pulseTimer=setInterval(loadHomePulse,60000);
+  const pulseTimer=setInterval(loadHomePulse,30000);
   window.addEventListener("pagehide",()=>clearInterval(pulseTimer),{once:true});
   const {data}=S.auth.onAuthStateChange((event,session)=>{
    // Run after the Supabase callback returns; avoid deadlocks from nested auth calls.
@@ -405,6 +405,13 @@ async function boot(){
    });
   });
   authSubscription=data?.subscription;
+  // Refresh database-backed cards when rows change; the 30-second poll is fallback.
+  const dataChannel=S.channel("podcasting-home-db-live")
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},()=>loadHomePulse())
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_sessions"},()=>loadHomePulse())
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_channels"},()=>loadHomePulse())
+   .subscribe();
+  window.addEventListener("pagehide",()=>{try{S.removeChannel(dataChannel)}catch(_){}},{once:true});
  }catch(e){unavailable("AUTH SERVICE UNAVAILABLE");authPanel.title=e?.message||"Could not initialize Supabase authentication."}
 }
 window.addEventListener("pagehide",()=>authSubscription?.unsubscribe());
