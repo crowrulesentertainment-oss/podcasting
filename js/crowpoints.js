@@ -80,6 +80,9 @@
     if (client && client.auth && client.auth.onAuthStateChange) {
       client.auth.onAuthStateChange(() => { refresh(); });
     }
+    // Refresh earned balances while a signed-in member listens in another tab or player.
+    window.setInterval(() => { if (state.user && !document.hidden) refresh(); }, 30000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && state.user) refresh(); });
   }
   window.CrowPoints = {
     __loaded: true,
