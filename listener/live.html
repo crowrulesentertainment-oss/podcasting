@@ -59,7 +59,7 @@ function createPeer(){
  pc.onconnectionstatechange=()=>{const state=pc?.connectionState||"closed";if(state==="connected"){connected=true;setStatus("CONNECTED",true);$("disconnectBtn").disabled=false;$("connectBtn").disabled=true;say("Connection established. Audio should play through the player.")}else if(["failed","disconnected","closed"].includes(state)){if(state!=="disconnected"){setStatus("CONNECTION "+state.toUpperCase());say("The live connection ended or could not be established. Try reconnecting.",true)} }};
 }
 async function loadPodcastLink(){
- const pid=podcastParam;if(!pid||!db)return;
+ const pid=params.get("podcast")||podcastParam;if(!pid||!db)return;
  const {data,error}=await db.from("podcasts").select("id,title,slug,status").eq("id",pid).maybeSingle();
  if(error||!data){$("podcastInfo").textContent="This live session has a podcast ID, but its show details could not be loaded.";return}
  const a=document.createElement("a");a.href="show.html?id="+encodeURIComponent(data.id);a.textContent="Open podcast: "+(data.title||"View show");a.style.color="var(--cyan)";a.style.fontWeight="800";$("podcastInfo").replaceChildren(a);
