@@ -105,7 +105,7 @@ msg("controlMessage",status==="live"?"Session marked LIVE in the session directo
 }
 
 
-function listenerUrl(){return location.origin+location.pathname.replace(/creator\\/live-admin\\.html$/,"listener/live.html")+"?id="+encodeURIComponent(selected?.id||"")}
+function listenerUrl(){return location.origin+location.pathname.replace(/creator\/live-admin\.html$/,"listener/live.html")+"?id="+encodeURIComponent(selected?.id||"")}
 function setBroadcastInfo(text,error=false){$("broadcastInfo").textContent=text;$("broadcastInfo").className="message"+(error?" error":" ok")}
 async function signal(payload){
  if(!broadcastChannel)throw new Error("Broadcast signaling is not connected.");
@@ -185,7 +185,8 @@ async function startRecording(){
   recorder.start(1000);$("recordBtn").textContent="STOP & SAVE RECORDING";$("recordBtn").disabled=false;$("recordingInfo").textContent="Recording microphone audio… stop the recording to upload and save it automatically.";msg("controlMessage","Audio recording started. Keep this page open until the upload finishes.");
  }catch(err){recorder=null;$("recordBtn").disabled=false;msg("controlMessage","Could not start recording: "+err.message,true)}
 }
-$("broadcastBtn").addEventListener("click",()=>{if(broadcastActive)stopBroadcast();else startBroadcast()});\n$("listenerLinkBtn").addEventListener("click",async()=>{if(!selected)return;try{await navigator.clipboard.writeText(listenerUrl());msg("controlMessage","Listener link copied. Share it with your audience.")}catch(e){msg("controlMessage","Copy unavailable. Use the listener URL displayed above.",true)}});\n$("recordBtn").addEventListener("click",()=>{if(recorder&&recorder.state!=="inactive"){recorder.stop();$("recordBtn").disabled=true;$("recordingInfo").textContent="Finalizing recording and uploading…"}else startRecording()});
+$("broadcastBtn").addEventListener("click",()=>{if(broadcastActive)stopBroadcast();else startBroadcast()});
+$("listenerLinkBtn").addEventListener("click",async()=>{if(!selected)return;try{await navigator.clipboard.writeText(listenerUrl());msg("controlMessage","Listener link copied. Share it with your audience.")}catch(e){msg("controlMessage","Copy unavailable. Use the listener URL displayed above.",true)}});\n$("recordBtn").addEventListener("click",()=>{if(recorder&&recorder.state!=="inactive"){recorder.stop();$("recordBtn").disabled=true;$("recordingInfo").textContent="Finalizing recording and uploading…"}else startRecording()});
 \n$("goLiveBtn").addEventListener("click",()=>updateStatus("live"));
 $("endBtn").addEventListener("click",()=>updateStatus("ended"));
 $("refreshBtn").addEventListener("click",loadSessions);
