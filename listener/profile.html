@@ -206,5 +206,6 @@ wireEvents();
 if(window.supabase?.createClient)loadProfile().catch(function(e){console.error('Profile initialization failed:',e);showGate('PROFILE COULD NOT LOAD',e?.message||'An unexpected error prevented your profile from loading.',[{label:'RETRY',href:'profile.html',primary:true},{label:'OPEN ACCOUNT',href:'../account.html'},{label:'RETURN HOME',href:'../home.html'}]);});else showGate('CONFIGURATION REQUIRED','The Supabase client did not load. Check your network connection and refresh.',[{label:'RETRY',href:'profile.html',primary:true},{label:'RETURN HOME',href:'../home.html'}]);
 })();
 </script>
+<script src="../js/online-presence.js"></script>
 </body>
 </html>
