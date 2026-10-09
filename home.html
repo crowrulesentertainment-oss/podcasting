@@ -165,52 +165,110 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 </div>
 
 <script>
-(async()=>{
-const C=window.CROW_CONFIG||{},logo=C.logoUrl||"";
-document.getElementById("homeLogo").src=logo;document.getElementById("heroLogo").src=logo;
-const launch=new Date(C.launchAt||"2027-01-01T08:00:00Z"),status=document.getElementById("launchStatus");
-function tick(){const ms=launch-Date.now();if(ms<=0){status.textContent="WE'RE LIVE • CROWRULES PODCASTING";return}const d=Math.floor(ms/86400000),h=Math.floor(ms/3600000)%24,m=Math.floor(ms/60000)%60;status.textContent="PRE-LAUNCH • "+d+"D "+String(h).padStart(2,"0")+"H "+String(m).padStart(2,"0")+"M • JANUARY 1, 2027"}tick();setInterval(tick,30000);
-const S=window.supabase?.createClient&&C.supabaseUrl&&C.supabaseKey?window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}):null;
-const listenerLinks=[...document.querySelectorAll('a[href="listener/index.html"]')],creatorLinks=[...document.querySelectorAll('a[href="creator/index.html"]')];
-function gateCard(kind,role){const isCreator=role==="Creator",isListener=role==="Listener"||isCreator;return kind==="creator"?isCreator:isListener}
-function signedOut(kind){return "SIGN IN REQUIRED — "+(kind==="creator"?"Creator accounts only can enter the Creator Experience.":"Listener or Creator accounts can enter the Listener Experience.");}
-async function getRole(){
- if(!S)return null;
- const {data,error}=await S.auth.getUser();
- if(error||!data?.user)return null;
- const role=String(data.user.user_metadata?.signup_role||data.user.user_metadata?.podcast_role||"").trim();
- return {user:data.user,role:role.charAt(0).toUpperCase()+role.slice(1).toLowerCase()};
+(()=>{
+"use strict";
+const C=window.CROW_CONFIG||{};
+const $=id=>document.getElementById(id);
+const logo=C.logoUrl||"";
+$("homeLogo").src=logo;
+$("heroLogo").src=logo;
+const launch=new Date(C.launchAt||"2027-01-01T08:00:00Z"),status=$("launchStatus");
+function tick(){
+ const ms=launch-Date.now();
+ if(ms<=0){status.textContent="WE'RE LIVE • CROWRULES PODCASTING";return}
+ const d=Math.floor(ms/86400000),h=Math.floor(ms/3600000)%24,m=Math.floor(ms/60000)%60;
+ status.textContent="PRE-LAUNCH • "+d+"D "+String(h).padStart(2,"0")+"H "+String(m).padStart(2,"0")+"M • JANUARY 1, 2027";
 }
-function setLink(link,allowed,kind,role){
- link.setAttribute("aria-disabled",String(!allowed));
- if(!allowed){
-  link.title= signedOut(kind);
-  link.addEventListener("click",e=>{e.preventDefault();location.href="login.html?redirect="+encodeURIComponent(kind==="creator"?"creator/index.html":"listener/index.html");});
- }else{link.title="Enter "+kind+" experience as "+role+".";}
+tick();setInterval(tick,30000);
+const actions=document.querySelector(".home-actions");
+const signLink=actions?.querySelector('a[href="login.html"]');
+const joinLink=actions?.querySelector('a[href="signup.html"]');
+const authPanel=document.createElement("div");
+authPanel.id="homeAuthStatus";
+authPanel.className="home-auth-status";
+authPanel.setAttribute("role","status");
+authPanel.setAttribute("aria-live","polite");
+authPanel.innerHTML='<span class="home-auth-dot" aria-hidden="true"></span><span class="home-auth-copy">CHECKING SIGN-IN…</span>';
+if(actions)actions.appendChild(authPanel);
+const authStyle=document.createElement("style");
+authStyle.textContent=".home-auth-status{display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:9px 12px;border:1px solid rgba(103,232,249,.22);border-radius:999px;background:rgba(7,13,23,.82);color:#dbeafe;font:800 10px Orbitron, sans-serif;letter-spacing:.06em}.home-auth-dot{width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:#fbbf24;box-shadow:0 0 12px currentColor}.home-auth-status[data-state=authenticated] .home-auth-dot{background:#34d399}.home-auth-status[data-state=signed-out] .home-auth-dot{background:#94a3b8}.home-auth-copy{overflow-wrap:anywhere}.home-auth-extra{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}.home-auth-extra a,.home-auth-extra button{font:800 10px Orbitron,sans-serif;color:#a5f3fc;background:transparent;border:0;text-decoration:underline;cursor:pointer}.home-auth-extra button:disabled{opacity:.5;cursor:wait}@media(max-width:560px){.home-auth-status{font-size:9px;padding:8px 10px}.home-actions{align-items:center}}";
+document.head.appendChild(authStyle);
+function statusView(state,message){
+ authPanel.dataset.state=state;
+ const copy=authPanel.querySelector(".home-auth-copy");
+ copy.textContent=message;
 }
-if(!S){
- creatorLinks.forEach(x=>setLink(x,false,"creator",""));
- listenerLinks.forEach(x=>setLink(x,false,"listener",""));
- return;
+function showSignedOut(){
+ statusView("signed-out","NOT SIGNED IN");
+ if(signLink){signLink.textContent="SIGN IN";signLink.href="login.html?redirect="+encodeURIComponent("account.html");}
+ if(joinLink){joinLink.textContent="JOIN CROWRULES";joinLink.href="signup.html?redirect="+encodeURIComponent("account.html");}
+ authPanel.querySelector(".home-auth-extra")?.remove();
 }
-try{
- const r=await getRole();
- const role=r?.role||"";
- creatorLinks.forEach(x=>setLink(x,gateCard("creator",role),"creator",role));
- listenerLinks.forEach(x=>setLink(x,gateCard("listener",role),"listener",role));
- const sign=document.querySelector('.home-actions a[href="login.html"]');
- if(r){
-  if(sign){sign.textContent="ACCOUNT";sign.href="listener/profile.html";}
-  const notice=document.createElement("div");
-  notice.className="home-live";
-  notice.style.marginTop="10px";
-  notice.innerHTML="<span>ACCOUNT: <b>"+role+"</b> • "+(role==="Creator"?"CREATOR + LISTENER ACCESS":"LISTENER ACCESS")+"</span>";
-  document.querySelector(".home-top").after(notice);
- }else if(sign){sign.textContent="SIGN IN";}
-}catch(e){
- creatorLinks.forEach(x=>setLink(x,false,"creator",""));
- listenerLinks.forEach(x=>setLink(x,false,"listener",""));
+function showSignedIn(user,unverified=false){
+ const meta=user.user_metadata||{};
+ const display=meta.display_name||meta.full_name||meta.name||user.email||"CrowRules Member";
+ statusView("authenticated",unverified?"SESSION FOUND":"SIGNED IN");
+ if(signLink){signLink.textContent="MY ACCOUNT";signLink.href="account.html";signLink.title="Open your CrowRules Podcasting account";}
+ if(joinLink){joinLink.textContent="ACCOUNT PROFILE";joinLink.href="listener/profile.html";}
+ let extra=authPanel.querySelector(".home-auth-extra");
+ if(!extra){extra=document.createElement("span");extra.className="home-auth-extra";authPanel.appendChild(extra);}
+ extra.replaceChildren();
+ const who=document.createElement("span");who.textContent="• "+display;who.title=user.email||"";extra.appendChild(who);
+ const out=document.createElement("button");out.type="button";out.textContent="SIGN OUT";out.addEventListener("click",async()=>{
+  out.disabled=true;out.textContent="SIGNING OUT…";
+  try{const {error}=await S.auth.signOut();if(error)throw error;showSignedOut();}
+  catch(e){statusView("error","SIGN-OUT FAILED");out.disabled=false;out.textContent="RETRY SIGN OUT";out.title=e.message||"Could not sign out";}
+ });extra.appendChild(out);
+ if(unverified)statusView("authenticated","SESSION FOUND • VERIFYING");
 }
+function unavailable(message){
+ statusView("error",message||"SIGN-IN STATUS UNAVAILABLE");
+ authPanel.title="We couldn't check the current Supabase session. Try refreshing the page.";
+}
+let S=null,authSubscription=null,authCheckSequence=0;
+async function checkAuth(){
+ const seq=++authCheckSequence;
+ if(!S){unavailable("AUTH SERVICE UNAVAILABLE");return}
+ statusView("checking","CHECKING SIGN-IN…");
+ try{
+  const {data,error}=await S.auth.getSession();
+  if(seq!==authCheckSequence)return;
+  if(error)throw error;
+  const session=data?.session;
+  if(!session?.user){showSignedOut();return}
+  // Validate the session with Supabase. If the network is temporarily unavailable,
+  // report that a session exists instead of incorrectly claiming the user is signed out.
+  try{
+   const verified=await S.auth.getUser();
+   if(seq!==authCheckSequence)return;
+   if(verified.error){showSignedIn(session.user,true);return}
+   if(verified.data?.user)showSignedIn(verified.data.user);
+   else showSignedOut();
+  }catch{if(seq===authCheckSequence)showSignedIn(session.user,true)}
+ }catch(e){
+  if(seq!==authCheckSequence)return;
+  unavailable("SIGN-IN CHECK FAILED");
+  authPanel.title=e?.message||"Supabase could not check the current session.";
+ }
+}
+async function boot(){
+ if(!window.supabase?.createClient||!C.supabaseUrl||!C.supabaseKey){unavailable("AUTH SERVICE UNAVAILABLE");if(signLink)signLink.href="login.html";return}
+ try{
+  S=window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
+  await checkAuth();
+  const {data}=S.auth.onAuthStateChange((event,session)=>{
+   // Run after the Supabase callback returns; avoid deadlocks from nested auth calls.
+   Promise.resolve().then(()=>{
+    if(event==="SIGNED_OUT"){authCheckSequence++;showSignedOut()}
+    else if(session?.user){authCheckSequence++;showSignedIn(session.user)}
+    else if(event==="INITIAL_SESSION")checkAuth();
+   });
+  });
+  authSubscription=data?.subscription;
+ }catch(e){unavailable("AUTH SERVICE UNAVAILABLE");authPanel.title=e?.message||"Could not initialize Supabase authentication."}
+}
+window.addEventListener("pagehide",()=>authSubscription?.unsubscribe());
+boot();
 })();
 </script>
 <script src="js/online-presence.js"></script>
