@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050a">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050a"><meta name="referrer" content="no-referrer">
 <title>Join Live as Co-host — CrowRules Podcasting</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script><script src="../config.js"></script>
@@ -39,7 +39,7 @@ function detachTrack(track){if(!track)return;for(const el of track.detach())el.r
 async function leave(showMessage=true){
 joined=false;muted=false;
 if(localTrack){try{if(room)await room.localParticipant.unpublishTrack(localTrack)}catch(e){}try{localTrack.stop()}catch(e){}localTrack=null}
-if(room){try{room.removeAllListeners();await room.disconnect()}catch(e){}room=null}
+if(room){try{await room.disconnect()}catch(e){}room=null}
 clearAudio();$("muteBtn").disabled=true;$("leaveBtn").disabled=true;$("joinBtn").disabled=!(db&&user&&sessionId&&inviteToken);$("muteBtn").textContent="MUTE MICROPHONE";roomState("NOT CONNECTED");if(showMessage)say("You left the co-host studio.");}
 async function join(){
 if(joined)return;
