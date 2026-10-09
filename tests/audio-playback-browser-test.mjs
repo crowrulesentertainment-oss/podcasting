@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 const base="https://crowrulesentertainment-oss.github.io/podcasting/home.html";
-const browser=await chromium.launch({headless:true});
+const browser=await chromium.launch({headless:true,args:["--autoplay-policy=no-user-gesture-required"]});
 const context=await browser.newContext();
 const page=await context.newPage();
 try{
@@ -10,7 +10,7 @@ try{
  const ep=await page.evaluate(async()=>{const db=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey);const {data,error}=await db.from("podcast_episodes").select("id,title,audio_url,podcast_id").eq("status","published").like("audio_url","https://%").limit(20);if(error)throw Error(error.message);if(!data?.length)throw Error("No published HTTPS audio episode");return data[0]});
  await page.evaluate(ep=>{window.__crTestEpisode=ep;const b=document.createElement("button");b.id="cr-audio-test-start";b.textContent="Start test playback";b.style.cssText="position:fixed;z-index:2147483647;top:8px;left:8px;padding:12px";b.onclick=()=>window.CrowRulesAudioPlayer.playQueue([window.__crTestEpisode],0);document.body.appendChild(b)},ep);
  await page.locator("#cr-audio-test-start").click();
- await page.waitForFunction(()=>{const p=window.CrowRulesAudioPlayer?.getState?.();return p&&!p.paused&&p.currentTime>=3},null,{timeout:45000,polling:250});
+ await page.waitForFunction(()=>{const p=window.CrowRulesAudioPlayer?.getState?.();return p&&!p.paused&&p.currentTime>=3},null,{timeout:45000,polling:250}).catch(async error=>{const diagnostic=await page.evaluate(()=>({player:window.CrowRulesAudioPlayer?.getState?.(),playerMessage:document.querySelector("#cr-ga-artist")?.textContent,playEvents:window.__crPlays||[]}));throw Error("Playback did not advance to 3 seconds. Diagnostics="+JSON.stringify(diagnostic)+"; "+error.message)});
  await page.waitForFunction(id=>(window.__crPlays||[]).some(e=>e.episodeId===id),ep.id,{timeout:20000});
  const ev=await page.evaluate(id=>(window.__crPlays||[]).find(e=>e.episodeId===id),ep.id);
  if(!ev?.sessionKey)throw Error("Missing play event session key");
