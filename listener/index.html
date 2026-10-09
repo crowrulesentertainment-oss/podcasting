@@ -72,7 +72,7 @@ a{text-decoration:none;color:inherit}
 @media(max-width:950px){.listener-links{display:none}.listener-hero{grid-template-columns:1fr}.hero-console{min-height:300px}.quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.live-panel{grid-template-columns:1fr}}
 @media(max-width:620px){.listener-shell{width:min(100% - 22px,1240px)}.listener-nav{min-height:64px}.listener-brand b{display:none}.listener-actions .lbtn:first-child{display:none}.listener-hero{padding:50px 0 35px}.listener-hero h1{font-size:43px}.grid,.community,.quick-grid{grid-template-columns:1fr}.section{padding-bottom:50px}.banner{display:block}.banner .lbtn{margin-top:18px;width:100%}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.panel,.lbtn{transition:none}}
-</style>
+.live-session-list{display:grid;gap:10px;margin-top:18px}.live-session-card{display:flex;align-items:center;gap:12px;flex-wrap:wrap;text-align:left;padding:15px;border:1px solid rgba(72,231,255,.2);border-radius:13px;background:rgba(5,8,22,.6)}.live-session-copy{flex:1;min-width:200px}.live-session-card h4{font:800 14px Orbitron,sans-serif;margin:8px 0}.live-session-card p{margin:0;font-size:11px;line-height:1.6;color:var(--muted)}.live-now{font-size:9px;letter-spacing:.12em;font-weight:900;color:#68f5b1}.live-session-card .lbtn{white-space:nowrap}</style>
 </head>
 <body>
 <div class="listener-page">
@@ -214,15 +214,29 @@ async function loadShows(){
   if(!r.data?.length){box.innerHTML='<div class="panel empty">No published podcasts yet. The listener network will populate here as creators launch their shows.</div>';return}
   box.innerHTML=r.data.map(x=>'<a class="panel show-card" href="show.html?id='+encodeURIComponent(x.id)+'"><img class="show-art" src="'+esc(x.artwork_url||logo)+'" alt=""><h3>'+esc(x.title)+'</h3><p>'+esc(x.description||"Discover this CrowRules podcast.")+'</p><div class="show-meta">'+esc(x.category||"PODCAST")+' • '+Number(x.total_plays||0).toLocaleString()+' PLAYS</div></a>').join("");
 }
+let liveChannel=null;
 async function loadLive(){
   const box=$("#liveMain");
-  if(!S){box.querySelector("h3").textContent="PRE-LAUNCH MODE";box.querySelector("p").textContent="Live broadcasts will appear here when the network is active.";return}
-  const r=await S.from("cr_podcast_live").select("*").eq("is_live",true).order("started_at",{ascending:false}).limit(1);
-  if(r.error||!r.data?.length){box.querySelector("h3").textContent="NO LIVE BROADCAST";box.querySelector("p").textContent="Nothing is transmitting right now. Check back when the network goes live.";return}
-  const x=r.data[0];
-  box.querySelector("h3").textContent=x.title||x.show_name||"CrowRules Live";
-  box.querySelector("p").textContent=(x.show_name?x.show_name+" • ":"")+" "+Number(x.listener_count||0).toLocaleString()+" listeners currently connected.";
-  if(S)S.channel("listener-home-live").on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_live"},loadLive).subscribe();
+  if(!S){box.innerHTML='<div class="live-badge"><i></i> LIVE NETWORK</div><h3>PRE-LAUNCH MODE</h3><p>Live broadcasts will appear here when the network is active.</p>';return}
+  try{
+    const r=await S.from("podcast_live_sessions").select("id,title,description,podcast_id,started_at,status,visibility").eq("status","live").eq("visibility","public").order("started_at",{ascending:false,nullsFirst:false}).limit(8);
+    if(r.error)throw r.error;
+    const sessions=r.data||[];
+    if(!sessions.length){
+      box.innerHTML='<div class="live-badge"><i></i> LIVE NETWORK</div><h3>NO LIVE BROADCAST</h3><p>No public podcast is transmitting right now. When a creator starts a linked public broadcast, it will appear here automatically.</p>';
+    }else{
+      box.innerHTML='<div class="live-badge"><i></i> '+sessions.length+' LIVE '+(sessions.length===1?'BROADCAST':'BROADCASTS')+'</div><h3>Listen live now</h3><p>Choose a live podcast to join the broadcast.</p><div class="live-session-list">'+sessions.map(x=>{
+        const url='live.html?id='+encodeURIComponent(x.id)+(x.podcast_id?'&podcast='+encodeURIComponent(x.podcast_id):'');
+        return '<article class="live-session-card"><div class="live-session-copy"><span class="live-now">● ON AIR</span><h4>'+esc(x.title||'CrowRules Live Podcast')+'</h4><p>'+esc(x.description||'The creator is broadcasting now. Connect to listen live.')+'</p></div><a class="lbtn primary" href="'+url+'">LISTEN LIVE →</a>'+(x.podcast_id?'<a class="lbtn" href="show.html?id='+encodeURIComponent(x.podcast_id)+'">OPEN PODCAST</a>':'')+'</article>';
+      }).join('')+'</div>';
+    }
+  }catch(err){
+    console.warn("[CrowRules listener] Live sessions unavailable",err);
+    box.innerHTML='<div class="live-badge"><i></i> LIVE NETWORK</div><h3>LIVE FEED TEMPORARILY UNAVAILABLE</h3><p>The live broadcast list could not be loaded. Refresh to try again.</p>';
+  }
+  if(!liveChannel){
+    liveChannel=S.channel("listener-home-live-sessions").on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_sessions"},()=>loadLive()).subscribe();
+  }
 }
 auth();loadShows();loadLive();
 })();
