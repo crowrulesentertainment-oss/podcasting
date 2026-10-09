@@ -134,7 +134,8 @@ function renderMembers(members,roleRows,creatorRows){
  const filtered=(members||[]).filter(m=>{
   const roles=[m.role,...(rolesByMember.get(String(m.id))||[])].filter(Boolean).map(x=>String(x).trim().toLowerCase());
   const uniqueRoles=[...new Set(roles)];
-  const linkedCreator=creatorByMember.get(String(m.id))||"";\n  const hay=[m.id,m.display_name,m.full_name,m.name,m.username,m.email,m.user_email,m.first_name,m.last_name,linkedCreator,m.role,m.membership_type,m.status,...uniqueRoles].join(" ").toLowerCase();
+  const linkedCreator=creatorByMember.get(String(m.id))||"";
+  const hay=[m.id,m.display_name,m.full_name,m.name,m.username,m.email,m.user_email,m.first_name,m.last_name,linkedCreator,m.role,m.membership_type,m.status,...uniqueRoles].join(" ").toLowerCase();
   return (!search||hay.includes(search))&&(roleFilter==="all"||(roleFilter==="none"?uniqueRoles.length===0:uniqueRoles.includes(roleFilter)))&&(statusFilter==="all"||String(m.status||"").toLowerCase()===statusFilter);
  });
  const count=document.getElementById("memberResultCount");if(count)count.textContent=filtered.length+" of "+(members||[]).length+" members";
