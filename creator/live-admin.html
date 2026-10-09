@@ -17,7 +17,7 @@
 <section class="hero"><div class="eyebrow">CREATOR TOOLS / LIVE BROADCAST</div><h1>TAKE YOUR SHOW <span>LIVE.</span></h1><p>Create a live show session, add the details your audience needs, test your microphone, and manage your session status from one creator dashboard.</p><div class="muted" id="authStatus">Checking your CrowRules account…</div></section>
 <div class="metrics"><div class="metric"><small>YOUR LIVE SESSIONS</small><strong id="sessionCount">—</strong><em>SESSION RECORDS</em></div><div class="metric"><small>SESSION STATUS</small><strong id="liveCount">—</strong><em>LIVE RIGHT NOW</em></div><div class="metric"><small>MICROPHONE</small><strong id="micStatus">OFF</strong><em id="micNote">NOT CONNECTED</em></div></div>
 <section class="grid">
-<div class="panel"><h2>Create a live podcast</h2><div class="muted">Give your live session a title and description. You must be signed in as a creator to save a session.</div>
+<div class="panel"><h2>Create a live podcast</h2><div class="muted">Link this session to a podcast so listeners can open the show page directly. Each session has its own room, allowing multiple creators to run separate live sessions at the same time.</div>
 <form id="createForm"><div class="fields">
 <div class="field full"><label for="title">LIVE SHOW TITLE *</label><input id="title" name="title" maxlength="120" required placeholder="e.g. Back Deck Live — Live Q&amp;A"></div>
 <div class="field full"><label for="description">SHOW DESCRIPTION</label><textarea id="description" name="description" maxlength="1200" placeholder="What will listeners hear? Add guests, topics, or audience instructions."></textarea></div>
@@ -26,7 +26,7 @@
 </div><div class="actions"><button class="btn primary" id="createBtn" type="submit">CREATE LIVE SESSION</button><button class="btn" id="micBtn" type="button">TEST MICROPHONE</button></div><div class="meter"><i id="micMeter"></i></div><div id="formMessage" class="message" role="status"></div></form>
 <div class="notice"><strong>Important:</strong> This page creates and manages live-session records and can test your local microphone. Live audio delivery to remote listeners requires a configured WebRTC/media streaming service and a compatible listener player; creating a session alone does not transmit audio.</div>
 </div>
-<div class="panel"><h2>Live session controls</h2><div class="muted">Select one of your sessions below to manage its status.</div><div id="selectedEmpty" class="notice">Create a session or select an existing one to see its controls.</div><div id="selectedPanel" hidden><div style="margin-top:15px"><span class="status off" id="selectedStatus">CREATED</span></div><h3 id="selectedTitle" style="font-size:15px;margin:14px 0 7px"></h3><p id="selectedDescription" class="muted"></p><div class="muted" style="margin-top:12px">Session ID</div><code id="selectedId" style="font-size:10px;overflow-wrap:anywhere"></code><div class="actions"><button class="btn primary" id="goLiveBtn" type="button">MARK SESSION LIVE</button><button class="btn danger" id="endBtn" type="button">END SESSION</button><button class="btn" id="copyBtn" type="button">COPY SESSION ID</button><button class="btn primary" id="recordBtn" type="button">START AUDIO RECORDING</button><button class="btn primary" id="broadcastBtn" type="button">START LIVE BROADCAST</button><button class="btn" id="listenerLinkBtn" type="button">COPY LISTENER LINK</button></div><div id="broadcastInfo" class="message" role="status">Live broadcast is off. Start broadcasting to transmit your microphone to connected listeners.</div><div class="muted">Listener URL: <code id="listenerUrl" style="overflow-wrap:anywhere">Select a session first</code></div><div id="recordingInfo" class="muted" style="margin-top:12px">Audio recording is off. Start recording to capture the microphone; it will upload automatically when stopped.</div><audio id="savedAudio" controls hidden style="width:100%;margin-top:12px"></audio><div id="controlMessage" class="message" role="status"></div></div></div>
+<div class="panel"><h2>Live session controls</h2><div class="muted">Select one of your sessions below to manage its status.</div><div id="selectedEmpty" class="notice">Create a session or select an existing one to see its controls.</div><div id="selectedPanel" hidden><div style="margin-top:15px"><span class="status off" id="selectedStatus">CREATED</span></div><h3 id="selectedTitle" style="font-size:15px;margin:14px 0 7px"></h3><p id="selectedDescription" class="muted"></p><div class="muted" style="margin-top:12px">Session ID</div><code id="selectedId" style="font-size:10px;overflow-wrap:anywhere"></code><div class="actions"><button class="btn primary" id="goLiveBtn" type="button">MARK SESSION LIVE</button><button class="btn danger" id="endBtn" type="button">END SESSION</button><button class="btn" id="copyBtn" type="button">COPY SESSION ID</button><button class="btn primary" id="recordBtn" type="button">START AUDIO RECORDING</button><button class="btn primary" id="broadcastBtn" type="button">START LIVE BROADCAST</button><button class="btn" id="listenerLinkBtn" type="button">COPY LISTENER LINK</button></div><div id="broadcastInfo" class="message" role="status">Live broadcast is off. Start broadcasting to transmit your microphone to connected listeners.</div><div class="muted" style="margin-top:12px">PODCAST PAGE: <a id="podcastPageLink" href="#" target="_blank" rel="noopener" style="color:var(--cyan)">Select a session linked to a podcast</a></div><div class="muted" style="margin-top:8px">LISTENER URL: <a id="listenerUrl" href="#" target="_blank" rel="noopener" style="color:var(--cyan);overflow-wrap:anywhere">Select a session first</a></div><div id="recordingInfo" class="muted" style="margin-top:12px">Audio recording is off. Start recording to capture the microphone; it will upload automatically when stopped.</div><audio id="savedAudio" controls hidden style="width:100%;margin-top:12px"></audio><div id="controlMessage" class="message" role="status"></div></div></div>
 </section>
 <section class="panel" style="margin-top:15px"><h2>Your live sessions</h2><div class="muted">Sessions belonging to the signed-in creator account.</div><div id="sessionList" style="margin-top:10px"><p class="muted">Loading your sessions…</p></div><div class="actions"><button class="btn" id="refreshBtn" type="button">REFRESH SESSIONS</button></div></section>
 <div class="footer">CrowRules Podcasting · One company. One universe.</div>
@@ -51,6 +51,9 @@ $("sessionList").querySelectorAll("[data-session]").forEach(b=>b.addEventListene
 }
 function selectSession(id){
 selected=sessions.find(s=>String(s.id)===String(id));if(!selected)return;
+const showLink=selected.podcast_id?"../listener/show.html?id="+encodeURIComponent(selected.podcast_id):"";
+const podcastAnchor=$("podcastPageLink");podcastAnchor.href=showLink||"#";podcastAnchor.textContent=showLink?"OPEN LINKED PODCAST":"No podcast linked to this session";podcastAnchor.style.pointerEvents=showLink?"auto":"none";podcastAnchor.style.opacity=showLink?"1":".65";
+const liveLink=listenerUrl();const listenerAnchor=$("listenerUrl");listenerAnchor.href=liveLink;listenerAnchor.textContent=liveLink;
 $("selectedEmpty").hidden=true;$("selectedPanel").hidden=false;
 $("selectedTitle").textContent=selected.title||"Untitled live show";
 $("selectedDescription").textContent=selected.description||"No description added.";
@@ -106,7 +109,7 @@ msg("controlMessage",status==="live"?"Session marked LIVE in the session directo
 }
 
 
-function listenerUrl(){return location.origin+location.pathname.replace(/creator\/live-admin\.html$/,"listener/live.html")+"?id="+encodeURIComponent(selected?.id||"")}
+function listenerUrl(){return location.origin+location.pathname.replace(/creator\/live-admin\.html$/,"listener/live.html")+"?id="+encodeURIComponent(selected?.id||"")+(selected?.podcast_id?"&podcast="+encodeURIComponent(selected.podcast_id):"")}
 function setBroadcastInfo(text,error=false){$("broadcastInfo").textContent=text;$("broadcastInfo").className="message"+(error?" error":" ok")}
 async function signal(payload){
  if(!broadcastChannel)throw new Error("Broadcast signaling is not connected.");
@@ -144,7 +147,7 @@ async function startBroadcast(){
   const {error}=await db.from("podcast_live_sessions").update({status:"live",started_at:new Date().toISOString()}).eq("id",selected.id).eq("creator_id",user.id);
   if(error)throw error;
   await loadSessions();selectSession(selected.id);
-  setBroadcastInfo("LIVE BROADCAST ACTIVE · waiting for listeners to connect. Share the listener URL below.");
+  setBroadcastInfo("LIVE BROADCAST ACTIVE · waiting for listeners to connect. Share the listener URL below. Each session has its own room, so different creators can broadcast separate podcasts at the same time.");
   msg("controlMessage","Your microphone is now available to listeners who connect to this session.");
  }catch(e){await stopBroadcast();setBroadcastInfo("Could not start live broadcast: "+e.message,true);msg("controlMessage","Broadcast failed: "+e.message,true)}
 }
