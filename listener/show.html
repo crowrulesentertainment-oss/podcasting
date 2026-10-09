@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#05070d">
   <meta name="color-scheme" content="dark">
-  <meta name="description" content="Explore podcast details, listen to published episodes, follow shows and join the conversation on CrowRules Podcasting.">
-  <title>Podcast Show | CrowRules Podcasting</title>
+  <meta name="description" content="Discover the show, explore its episode library, follow creators, view listening stats and join the conversation on CrowRules Podcasting.">
+  <title>Listen to the Show | CrowRules Podcasting</title>
+  <meta property="og:site_name" content="CrowRules Podcasting">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Listen to the Show | CrowRules Podcasting">
+  <meta property="og:description" content="Explore podcast episodes, creator memberships and conversations on CrowRules Podcasting.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
@@ -28,16 +32,17 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="../config.js"></script>
 <script src="../js/crowpoints.js" defer></script>
-  <script defer src="../js/show-page.js?v=show-resolution-v20"></script>
+  <script defer src="../js/show-page.js?v=show-layout-v21"></script>
 </head>
 <body>
   <div id="app">
     <main class="shell">
-      <section class="card" aria-label="Podcast show">
-        <div class="eyebrow">CROWRULES PODCASTING</div>
-        <h1 style="font-family:Orbitron,sans-serif">Your next favorite show starts here.</h1>
-        <p class="muted">Explore published podcasts, episodes and creator memberships. Choose a show from Listen to open its full library.</p>
-        <p><a href="index.html">Browse podcasts →</a></p>
+      <section class="card" aria-label="Podcast show" aria-busy="true">
+        <div class="eyebrow">CROWRULES PODCASTING / SHOW PROFILE</div>
+        <h1 style="font-family:Orbitron,sans-serif">Loading your show…</h1>
+        <p class="muted">Preparing show details, published episodes, listener statistics and creator memberships.</p>
+        <div aria-hidden="true" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:22px 0"><div style="height:76px;border-radius:12px;background:linear-gradient(100deg,#101827,#1a2638,#101827)"></div><div style="height:76px;border-radius:12px;background:linear-gradient(100deg,#101827,#1a2638,#101827)"></div><div style="height:76px;border-radius:12px;background:linear-gradient(100deg,#101827,#1a2638,#101827)"></div></div>
+        <p><a href="index.html">← Browse all podcasts</a></p>
       </section>
     </main>
   </div>
