@@ -138,42 +138,6 @@ msg("controlMessage",status==="live"?"Session marked LIVE in the session directo
 
 function listenerUrl(){return location.origin+location.pathname.replace(/creator\/live-admin\.html$/,"listener/live.html")+"?id="+encodeURIComponent(selected?.id||"")+(selected?.podcast_id?"&podcast="+encodeURIComponent(selected.podcast_id):"")}
 function setBroadcastInfo(text,error=false){$("broadcastInfo").textContent=text;$("broadcastInfo").className="message"+(error?" error":" ok")}
-async function signal(payload){
- if(!broadcastChannel)throw new Error("Broadcast signaling is not connected.");
- const {error}=await broadcastChannel.send({type:"broadcast",event:"signal",payload:{...payload,from:"host"}});
- if(error)throw error;
-}
-async function handleListenerSignal(payload){
- if(!payload||payload.from==="host"||!payload.peerId)return;
- if(payload.type==="join"&&payload.role==="cohost"){
-  if(!broadcastActive||!processedBroadcastStream)return;
-  if(!cohostInviteToken||payload.inviteToken!==cohostInviteToken){signal({type:"cohost-rejected",to:payload.peerId,reason:"Invitation invalid or expired."}).catch(()=>{});return}
-  if(cohostPeers.size>=9&&!cohostPeers.has(payload.peerId)){signal({type:"cohost-rejected",to:payload.peerId,reason:"This broadcast already has 10 people including the host."}).catch(()=>{});return}
-  const old=peerConnections.get(payload.peerId);if(old){old.close();peerConnections.delete(payload.peerId)}
-  const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}]});
-  peerConnections.set(payload.peerId,pc);cohostPeers.set(payload.peerId,{name:String(payload.displayName||"Co-host").slice(0,60),state:"connecting"});remoteCandidateQueues.set(payload.peerId,[]);
-  pc.addTransceiver("audio",{direction:"recvonly"});
-  pc.ontrack=e=>{const stream=e.streams&&e.streams[0];if(!stream||!broadcastAudioContext||!broadcastMixDestination||cohostSources.has(payload.peerId))return;try{const source=broadcastAudioContext.createMediaStreamSource(stream),comp=broadcastAudioContext.createDynamicsCompressor(),gain=broadcastAudioContext.createGain();comp.threshold.value=-20;comp.knee.value=16;comp.ratio.value=3;comp.attack.value=.008;comp.release.value=.18;gain.gain.value=.72;source.connect(comp);comp.connect(gain);gain.connect(broadcastMixInput||broadcastMixDestination);cohostSources.set(payload.peerId,source);cohostNodes.set(payload.peerId,[comp,gain]);const item=cohostPeers.get(payload.peerId);if(item)item.state="connected";renderCohosts()}catch(err){setBroadcastInfo("Could not mix co-host audio: "+err.message,true)}};
-  pc.onicecandidate=e=>{if(e.candidate)signal({type:"candidate",to:payload.peerId,candidate:e.candidate.toJSON()}).catch(()=>{})};
-  pc.onconnectionstatechange=()=>{const state=pc.connectionState;const item=cohostPeers.get(payload.peerId);if(item){item.state=state;renderCohosts()}if(["failed","closed"].includes(state)){try{cohostSources.get(payload.peerId)?.disconnect()}catch(e){}cohostNodes.get(payload.peerId)?.forEach(n=>{try{n.disconnect()}catch(e){}});cohostNodes.delete(payload.peerId);cohostSources.delete(payload.peerId);cohostPeers.delete(payload.peerId);peerConnections.delete(payload.peerId);remoteCandidateQueues.delete(payload.peerId);pc.close();renderCohosts()}};
-  const offer=await pc.createOffer();await pc.setLocalDescription(offer);await signal({type:"offer",to:payload.peerId,description:pc.localDescription,role:"cohost"});renderCohosts();return;
- }
- if(payload.type==="join"){
-  if(!broadcastActive||!processedBroadcastStream)return;
-  const old=peerConnections.get(payload.peerId);if(old){old.close();peerConnections.delete(payload.peerId)}
-  const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}]});
-  peerConnections.set(payload.peerId,pc);remoteCandidateQueues.set(payload.peerId,[]);
-  processedBroadcastStream.getTracks().forEach(track=>pc.addTrack(track,processedBroadcastStream));
-  pc.onicecandidate=e=>{if(e.candidate)signal({type:"candidate",to:payload.peerId,candidate:e.candidate.toJSON()}).catch(()=>{})};
-  pc.onconnectionstatechange=()=>{if(["failed","closed","disconnected"].includes(pc.connectionState)){if(pc.connectionState!=="disconnected"){pc.close();peerConnections.delete(payload.peerId)}setBroadcastInfo("Listener connection: "+pc.connectionState+" · connected listeners: "+peerConnections.size)}else setBroadcastInfo("Broadcast active · peer connections: "+peerConnections.size)};
-  const offer=await pc.createOffer();await pc.setLocalDescription(offer);
-  await signal({type:"offer",to:payload.peerId,description:pc.localDescription});
- }else if(payload.type==="answer"&&payload.fromPeer&&peerConnections.has(payload.fromPeer)){
-  const pc=peerConnections.get(payload.fromPeer);if(pc.signalingState!=="stable")await pc.setRemoteDescription(payload.description);const queued=remoteCandidateQueues.get(payload.fromPeer)||[];remoteCandidateQueues.delete(payload.fromPeer);for(const candidate of queued)await pc.addIceCandidate(candidate).catch(()=>{});
- }else if(payload.type==="candidate"&&payload.fromPeer&&peerConnections.has(payload.fromPeer)){
-  const pc=peerConnections.get(payload.fromPeer);if(pc.remoteDescription)await pc.addIceCandidate(payload.candidate).catch(()=>{});else{const queued=remoteCandidateQueues.get(payload.fromPeer)||[];queued.push(payload.candidate);remoteCandidateQueues.set(payload.fromPeer,queued)}
- }
-}
 async function startAutomaticBroadcastRecording(){
  if(!broadcastStream||!selected||!db||!user)throw new Error("Broadcast stream or live session is unavailable for recording.");
  if(!window.MediaRecorder)throw new Error("This browser does not support automatic broadcast recording.");
@@ -293,7 +257,7 @@ $("cohostInviteBtn").addEventListener("click",async()=>{
   const result=await response.json().catch(()=>({}));if(!response.ok)throw new Error(result.error||("Invite service returned HTTP "+response.status));
   if(!result.inviteToken)throw new Error("Invite service returned no invitation token.");
   cohostInviteToken=result.inviteToken;$("copyCohostBtn").disabled=false;
-  const link=location.origin+location.pathname.replace(/creator\\/live-admin\\.html$/,"creator/live-cohost.html")+"?id="+encodeURIComponent(selected.id)+"&token="+encodeURIComponent(cohostInviteToken);
+  const link=location.origin+location.pathname.replace(/creator\/live-admin\.html$/,"creator/live-cohost.html")+"?id="+encodeURIComponent(selected.id)+"&token="+encodeURIComponent(cohostInviteToken);
   $("cohostInfo").textContent="Secure invite created. Expires "+(result.expiresAt?new Date(result.expiresAt).toLocaleTimeString():"in 15 minutes")+". Share only with the intended co-host. Copy the link to deliver it.";
   msg("controlMessage","Secure co-host invitation created. It can be redeemed once.",false);
   $("copyCohostBtn").dataset.inviteUrl=link;
