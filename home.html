@@ -437,17 +437,39 @@ async function enterCreatorExperience(event){
    ]);
    return;
   }
-  // Use the creator profile row as the access source of truth. User-editable
-  // auth metadata (including a self-selected signup role) does not grant access.
-  const {data:creator,error:creatorError}=await S.from("creators").select("user_id").eq("user_id",user.id).limit(1).maybeSingle();
+  // Resolve the currently authenticated Supabase user to their member record.
+  // The database member role is authoritative; user-editable auth metadata is not.
+  const {data:member,error:memberError}=await S.from("members")
+   .select("id,role")
+   .eq("user_id",user.id)
+   .maybeSingle();
+  if(memberError){
+   showAccessMessage("Your Supabase member role could not be verified. Creator access is blocked until the role check succeeds. Please try again shortly.");
+   return;
+  }
+  const memberRole=String(member?.role||"").trim().toLowerCase();
+  if(!member||memberRole!=="creator"){
+   showAccessMessage("Your current Supabase member role is "+(member?.role||"not assigned")+". Listener Experience is available to you, but Creator Experience requires a member record with the Creator role.",[
+    {label:"ENTER LISTENER EXPERIENCE →",href:"listener/index.html"},
+    {label:"OPEN ACCOUNT →",href:"account.html"}
+   ]);
+   return;
+  }
+  // A Creator role must also have an active creator profile linked to this member.
+  const {data:creator,error:creatorError}=await S.from("creators")
+   .select("id")
+   .eq("member_id",member.id)
+   .eq("is_active",true)
+   .limit(1)
+   .maybeSingle();
   if(creatorError){
-   showAccessMessage("Creator access could not be verified right now. Access is blocked until the creator profile check succeeds. Please try again shortly.");
+   showAccessMessage("Your Creator role was found, but the linked creator profile could not be verified. Access remains blocked until verification succeeds.");
    return;
   }
   if(!creator){
-   showAccessMessage("This account has Listener access, but no verified Creator profile. You can still enter the Listener Experience. Creator tools are available only to accounts with a creator profile.",[
-    {label:"ENTER LISTENER EXPERIENCE →",href:"listener/index.html"},
-    {label:"OPEN ACCOUNT →",href:"account.html"}
+   showAccessMessage("Your member role is Creator, but there is no active creator profile linked to this member yet. Please contact an administrator to finish creator setup.",[
+    {label:"OPEN ACCOUNT →",href:"account.html"},
+    {label:"ENTER LISTENER EXPERIENCE →",href:"listener/index.html"}
    ]);
    return;
   }
