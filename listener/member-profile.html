@@ -135,7 +135,7 @@ async function loadPublicPosts(){
  sections.hidden=false;
  const box=$('publicPosts'),photos=$('publicPhotos');
  try{
-  const r=await db.from('podcast_member_posts').select('id,user_id,body,media_url,privacy,is_pinned,is_featured,created_at').eq('user_id',target.user_id).order('created_at',{ascending:false}).limit(20);
+  const r=await db.from('podcast_member_posts').select('id,user_id,body,media_url,privacy,is_pinned,is_featured,created_at').eq('user_id',target.user_id).order('is_pinned',{ascending:false}).order('created_at',{ascending:false}).limit(20);
   if(r.error)throw r.error;
   publicPosts=r.data||[];box.replaceChildren();photos.replaceChildren();
   if(!publicPosts.length){box.innerHTML='<div class="activity-empty">No public community posts to show yet.</div>';photos.innerHTML='<div class="activity-empty" style="grid-column:1/-1">No shared photos yet.</div>';return}
