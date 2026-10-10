@@ -163,9 +163,9 @@ async function load(){
     console.error("[CrowRules show] Episode query failed",episodeQueryError);
     episodeError=episodeQueryError;episodes=[];
    }
-  }
   const session=await sessionPromise;
   user=!session.error?(session.data?.session?.user||null):null;
+  updateAuthHeader();
   try{
    const p=await wait(db.from("creator_subscription_plans").select("id,name,description,monthly_price_cents,annual_price_cents,currency,benefits,active,is_free,trial_days,max_subscribers,tier_order,stripe_monthly_price_id,stripe_annual_price_id").eq("podcast_id",showId).eq("active",true).order("tier_order",{ascending:true}),"Membership plans",6000);
    if(!p.error)plans=p.data||[];else{planError=true;console.warn("[CrowRules show] Membership plans unavailable",p.error)}
