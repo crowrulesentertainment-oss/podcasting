@@ -47,7 +47,7 @@
 <button class="filter" data-filter="all" aria-pressed="true">ALL CHALLENGES</button><button class="filter" data-filter="daily" aria-pressed="false">DAILY</button><button class="filter" data-filter="weekly" aria-pressed="false">WEEKLY</button><button class="filter" data-filter="monthly" aria-pressed="false">MONTHLY</button><button class="filter" data-filter="special" aria-pressed="false">SPECIAL EVENTS</button>
 </div>
 <div id="challenge-grid" class="challenge-grid" aria-live="polite"></div>
-<div class="note">Challenge ideas are shown while the live challenge catalog is being connected. CrowPoints and completion rewards should only be issued after verified server-side listening activity; this page never fabricates listening progress or grants points on its own.</div>
+<div class="note">Challenges load from Supabase. Progress is calculated from stored podcast listen sessions, with completed-episode thresholds checked against episode duration. Because playback telemetry originates in the client, it should be treated as abuse-resistant rather than proof that a human listened to every second.</div>
 </section>
 <section class="section" id="achievements">
 <div class="section-head"><div><div class="eyebrow">Your milestones</div><h2>ACHIEVEMENT COLLECTION</h2><p>Earn recognition as you explore the CrowRules audio universe.</p></div></div>
@@ -57,7 +57,7 @@
 <article class="badge-card"><div class="badge-icon">🔥</div><h3>ON A ROLL</h3><p>Complete eligible listening challenges on three separate days.</p></article>
 <article class="badge-card"><div class="badge-icon">🎙️</div><h3>PODCAST PRO</h3><p>Reach 50 eligible completed episodes.</p></article>
 </div>
-<div class="note">These are achievement definitions, not claims that any badges have already been earned. Your personal badge collection will appear when the badge records are connected.</div>
+<div class="note">Achievement definitions are displayed here; personalized badge unlocking will be added after the badge collection is integrated with the account profile.</div>
 </section>
 </main>
 <footer> <strong>CROWRULES PODCASTING</strong> · One company. One universe.<br>Challenges are designed to reward discovery and participation, not simply the largest listening totals. <a href="../index.html">CrowRules Entertainment</a></footer>
@@ -66,71 +66,79 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const challenges=[
-{id:'daily-discovery',category:'daily',icon:'🎧',title:'Daily Discovery',description:'Listen to one new eligible episode and give a new voice a chance to become your next favorite.',goal:'1 eligible episode',points:20},
-{id:'new-voices',category:'daily',icon:'🧭',title:'Meet a New Show',description:'Explore a podcast you have never listened to before. There is always another story to find.',goal:'1 new show',points:25},
-{id:'listen-and-learn',category:'daily',icon:'⏱️',title:'Listen & Learn',description:'Spend time with a published episode and make room for a fresh idea or perspective.',goal:'20 eligible minutes',points:25},
-{id:'five-episode-week',category:'weekly',icon:'📡',title:'Five-Episode Mission',description:'Make podcasts part of your week by completing five eligible episodes across your favorite shows.',goal:'5 eligible episodes',points:100},
-{id:'genre-explorer',category:'weekly',icon:'🌌',title:'Genre Explorer',description:'Step outside your usual queue and explore podcasts across three different genres.',goal:'3 genres',points:100},
-{id:'creator-discovery',category:'weekly',icon:'💜',title:'Independent Voices',description:'Discover and follow an independent creator whose work is new to you.',goal:'1 creator discovered',points:75},
-{id:'monthly-marathon',category:'monthly',icon:'🚀',title:'Monthly Listening Mission',description:'Build a listening habit over the month with a steady mix of eligible completed episodes.',goal:'20 eligible episodes',points:300},
-{id:'ten-shows',category:'monthly',icon:'🪐',title:'Universe Explorer',description:'Expand your podcast universe by sampling ten different published shows.',goal:'10 different shows',points:350},
-{id:'community-regular',category:'monthly',icon:'🤝',title:'Community Regular',description:'Connect with the listener community and discover what other fans are enjoying.',goal:'3 community activities',points:200},
-{id:'launch-pioneer',category:'special',icon:'✨',title:'CrowRules Pioneer',description:'A special launch-era challenge celebrating listeners who help test and shape CrowRules Podcasting.',goal:'Details announced with event',points:150}
-];
-let activeFilter='all',supabase=null,user=null,joined=new Set(),completed=new Set();
+let activeFilter='all',supabase=null,user=null,challenges=[],joined=new Map(),completed=new Set();
 function notify(message,type='info'){const el=$('notice');el.textContent=message;el.className='notice show '+type}
+function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+function goalLabel(c){const n=Number(c.goal)||1;switch(c.metric_key){case'completed_episodes':return n+' eligible completed episode'+(n===1?'':'s');case'unique_shows':return n+' different show'+(n===1?'':'s');case'listening_minutes':return n+' eligible listening minutes';case'unique_categories':return n+' podcast categories';default:return n+' steps'}}
 function render(){
  const list=challenges.filter(c=>activeFilter==='all'||c.category===activeFilter);
  $('challenge-grid').innerHTML=list.map(c=>{
-  const isJoined=joined.has(c.id),isDone=completed.has(c.id);
-  const category=c.category==='special'?'SPECIAL EVENT':c.category.toUpperCase();
-  return '<article class="challenge"><div class="challenge-top"><div class="challenge-icon" aria-hidden="true">'+c.icon+'</div><span class="tag">'+category+'</span></div><h3>'+c.title+'</h3><p>'+c.description+'</p><div class="challenge-bottom"><div class="reward"><span>MISSION TARGET</span><strong>'+c.goal+'</strong></div><div class="reward"><span>PROPOSED REWARD</span><span class="points">+'+c.points+' CP</span></div><button class="btn '+(isJoined?'primary':'')+'" data-join="'+c.id+'" '+(isDone?'disabled':'')+'>'+(isDone?'COMPLETED ✓':isJoined?'CHALLENGE JOINED ✓':'JOIN CHALLENGE +')+'</button></div></article>';
+  const row=joined.get(c.id),isDone=completed.has(c.id)||row?.status==='completed',isJoined=!!row;
+  const progress=Math.max(0,Number(row?.progress)||0),goal=Math.max(1,Number(c.goal)||1),pct=Math.min(100,Math.round(progress/goal*100));
+  const category=c.category==='special'?'SPECIAL EVENT':String(c.category||'').toUpperCase();
+  const statusText=isDone?'COMPLETED ✓':isJoined?'CHALLENGE JOINED ✓':'JOIN CHALLENGE +';
+  return '<article class="challenge"><div class="challenge-top"><div class="challenge-icon" aria-hidden="true">'+escapeHtml(c.icon||'🎧')+'</div><span class="tag">'+escapeHtml(category)+'</span></div><h3>'+escapeHtml(c.title)+'</h3><p>'+escapeHtml(c.description)+'</p><div class="challenge-bottom"><div class="reward"><span>MISSION TARGET</span><strong>'+escapeHtml(goalLabel(c))+'</strong></div><div class="reward"><span>REWARD</span><span class="points">+'+(Number(c.reward_points)||0)+' CP</span></div>'+(isJoined?'<div class="progress-label"><span>YOUR PROGRESS</span><span>'+progress+' / '+goal+'</span></div><div class="progress" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100" aria-label="Challenge progress"><span style="width:'+pct+'%"></span></div>':'')+'<button class="btn '+(isJoined?'primary':'')+'" data-join="'+escapeHtml(c.id)+'" '+(isDone?'disabled':'')+'>'+statusText+'</button></div></article>';
  }).join('');
- if(!list.length)$('challenge-grid').innerHTML='<div class="empty">No challenges in this category right now. Try another filter.</div>';
+ if(!list.length)$('challenge-grid').innerHTML='<div class="empty">No active challenges in this category right now. Try another filter.</div>';
  document.querySelectorAll('[data-join]').forEach(btn=>btn.addEventListener('click',()=>joinChallenge(btn.dataset.join,btn)));
- $('stat-active').textContent=joined.size;
+ $('stat-active').textContent=[...joined.values()].filter(r=>r.status!=='completed'&&r.status!=='left').length;
  $('stat-complete').textContent=completed.size;
 }
+async function loadAccount(){
+ if(!user){$('stat-points').textContent='—';return}
+ const {data:summary,error}=await supabase.rpc('get_my_crowpoints_summary');
+ if(!error&&summary){const row=Array.isArray(summary)?summary[0]:summary;$('stat-points').textContent=Number(row?.lifetime_points||0).toLocaleString()}else $('stat-points').textContent='—';
+}
 async function joinChallenge(id,button){
- if(!supabase){notify('The Supabase connection is not configured yet. You can explore the challenge ideas, but joining will be enabled after the challenge tables are installed.','info');return}
- if(!user){notify('Please sign in to your CrowRules account before joining a challenge.','info');setTimeout(()=>location.href='../login.html?next='+encodeURIComponent(location.pathname),900);return}
- const challenge=challenges.find(c=>c.id===id);if(!challenge)return;
+ if(!supabase){notify('Supabase is not configured on this page. Check ../config.js before joining.','error');return}
+ if(!user){notify('Please sign in to your CrowRules account before joining a challenge.','info');setTimeout(()=>location.href='../login.html?next='+encodeURIComponent(location.pathname),800);return}
  button.disabled=true;
  try{
-  const payload={challenge_id:id,user_id:user.id,joined_at:new Date().toISOString(),status:'active'};
-  const {error}=await supabase.from('podcast_challenge_participants').insert(payload);
-  if(error){
-   if(error.code==='23505'){joined.add(id);notify('You have already joined this challenge. Your membership is reflected here.','success');render();return}
-   if(error.code==='42P01'||error.code==='PGRST205'){notify('The challenge page is ready, but the podcast_challenge_participants table is not installed yet. Install the challenge schema before enabling joins.','error');return}
-   throw error;
-  }
-  joined.add(id);notify('Challenge joined! Progress and rewards will update once verified listening analytics are connected.','success');render();
- }catch(err){console.error('Challenge join failed',err);notify('Could not join this challenge: '+(err.message||'database request failed')+'. Check the challenge table and its Row Level Security policies.','error')}
- finally{button.disabled=false}
+  const {data,error}=await supabase.rpc('join_podcast_challenge',{p_challenge_id:id});
+  if(error)throw error;
+  joined.set(id,{status:data?.status||'active',progress:Number(data?.progress)||0});
+  notify('You joined the challenge. Progress updates from your eligible podcast listening records.','success');
+  await refreshProgress(false);
+ }catch(err){console.error('Challenge join failed',err);notify('Could not join this challenge: '+(err.message||'database request failed')+'. Verify that the challenge database setup is complete.','error')}
+ finally{button.disabled=false;render()}
+}
+async function refreshProgress(showMessage=true){
+ if(!supabase||!user)return;
+ const {data,error}=await supabase.rpc('refresh_podcast_challenge_progress');
+ if(error){console.warn('Challenge progress refresh failed',error);if(showMessage)notify('Could not refresh challenge progress: '+error.message,'error');return}
+ await loadParticipation();
+ await loadAccount();
+ render();
+ if(showMessage)notify('Challenge progress refreshed from your recorded podcast listening sessions. New completions: '+(data?.new_completions||0)+'. CrowPoints awarded: '+(data?.points_awarded||0)+'.','success');
+}
+async function loadParticipation(){
+ if(!user)return;
+ const [p,c]=await Promise.all([
+  supabase.from('podcast_challenge_participants').select('challenge_id,status,progress,completed_at,reward_points_awarded').eq('user_id',user.id),
+  supabase.from('podcast_challenge_completions').select('challenge_id').eq('user_id',user.id)
+ ]);
+ if(p.error)throw p.error;if(c.error)throw c.error;
+ joined=new Map((p.data||[]).map(row=>[row.challenge_id,row]));
+ completed=new Set((c.data||[]).map(row=>row.challenge_id));
+ (p.data||[]).filter(row=>row.status==='completed').forEach(row=>completed.add(row.challenge_id));
 }
 async function init(){
  const cfg=window.CROW_CONFIG||window.CROW_RULES_CONFIG||{};
  const url=cfg.supabaseUrl||cfg.supabaseURL||cfg.SUPABASE_URL;
  const key=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.SUPABASE_ANON_KEY||cfg.anonKey;
- if(!url||!key||!window.supabase?.createClient){$('stat-points').textContent='—';render();notify('Preview mode: connect this page to the existing CrowRules Supabase configuration to enable account-linked challenges.','info');return}
+ if(!url||!key||!window.supabase?.createClient){$('stat-points').textContent='—';$('challenge-grid').innerHTML='<div class="empty">Challenge preview is unavailable because the Supabase URL or publishable key was not found in ../config.js.</div>';notify('Connect this page to the existing CrowRules Supabase configuration to load live challenges.','error');return}
  try{
   supabase=window.supabase.createClient(url,key);
-  const {data:{session},error:sessionError}=await supabase.auth.getSession();if(sessionError)throw sessionError;
-  user=session?.user||null;
+  const {data:{session},error:sessionError}=await supabase.auth.getSession();if(sessionError)throw sessionError;user=session?.user||null;
+  const {data:catalog,error:catalogError}=await supabase.from('podcast_challenges').select('id,title,description,category,icon,metric_key,goal,reward_points,starts_at,ends_at').eq('is_published',true).order('category').order('title');
+  if(catalogError)throw catalogError;challenges=catalog||[];
   if(user){
-   try{
-    const {data,error}=await supabase.from('podcast_challenge_participants').select('challenge_id,status').eq('user_id',user.id);
-    if(error&&error.code!=='42P01'&&error.code!=='PGRST205')throw error;
-    if(!error&&data){data.forEach(row=>{if(row.status==='completed')completed.add(row.challenge_id);else joined.add(row.challenge_id)})}
-   }catch(err){console.warn('Challenge participant records unavailable',err)}
-   try{
-    const {data}=await supabase.from('members').select('crowpoints_lifetime').eq('user_id',user.id).maybeSingle();
-    if(data&&Number.isFinite(Number(data.crowpoints_lifetime))) $('stat-points').textContent=Number(data.crowpoints_lifetime).toLocaleString();else $('stat-points').textContent='—';
-   }catch(_){$('stat-points').textContent='—'}
-  }else{$('stat-points').textContent='—'}
+   try{await loadParticipation();await refreshProgress(false)}catch(err){console.warn('Challenge participation load',err);notify('Challenges loaded, but your participation/progress could not be read. Check the challenge RPC grants and RLS policies.','error')}
+   await loadAccount();
+  }else{$('stat-points').textContent='—';joined=new Map();completed=new Set()}
   render();
- }catch(err){console.warn('Challenge page initialization',err);$('stat-points').textContent='—';render();notify('Challenge preview is available. Account statistics could not be loaded; check the Supabase configuration and permissions.','error')}
+  if(!user)notify('You can browse active challenges. Sign in to join, track progress, and earn eligible rewards.','info');
+ }catch(err){console.error('Challenge page initialization',err);$('stat-points').textContent='—';$('challenge-grid').innerHTML='<div class="empty">Live challenges could not be loaded. '+escapeHtml(err.message||'Check the Supabase connection and challenge table permissions.')+'</div>';notify('Challenge database connection failed. '+(err.message||''),'error')}
 }
 document.querySelectorAll('[data-filter]').forEach(btn=>btn.addEventListener('click',()=>{activeFilter=btn.dataset.filter;document.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b===btn)));render()}));
 init();
