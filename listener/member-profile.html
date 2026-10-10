@@ -61,7 +61,7 @@ db=window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSessio
 const au=await db.auth.getUser();viewer=au.data&&au.data.user||null;
 const p=await db.from('podcast_member_profiles').select('user_id,display_name,username,bio,tagline,avatar_url,cover_url,is_public,created_at').eq('user_id',id).maybeSingle();
 if(p.error)console.warn('Profile lookup:',p.error.message);
-if(p.data&&p.data.is_public!==false)target=p.data;
+if(p.data){if(p.data.is_public!==false||(viewer&&viewer.id===id))target=p.data;else{$('profileCard').innerHTML='<div class="empty">This member has chosen to keep their profile private.</div>';return;}}
 if(!target){const m=await db.from('members').select('user_id,display_name,username,bio,avatar_url,role,created_at').eq('user_id',id).maybeSingle();if(m.error)console.warn('Member fallback:',m.error.message);target=m.data?Object.assign({},m.data,{is_public:true}):null}
 if(!target){$('profileCard').innerHTML='<div class="empty">This profile is unavailable, private, or no longer exists.</div>';return}
 if(viewer&&viewer.id!==target.user_id){await refreshConnections()}else render();
