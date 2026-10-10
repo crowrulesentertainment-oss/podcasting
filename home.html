@@ -641,7 +641,7 @@ const C=window.CROW_CONFIG||{},L=window.supabase,$=id=>document.getElementById(i
 const fmt=n=>Math.max(0,Number(n)||0).toLocaleString();
 const safe=v=>String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 const text=(id,v)=>{const el=$(id);if(el)el.textContent=v};
-let db=null,busy=false,historyIds=[];
+let db=null,busy=false,historyIds=[];const catalogCoverage={showsComplete:false,episodesComplete:false};
 function empty(id,msg){const el=$(id);if(el)el.innerHTML='<div class="home-dynamic-empty">'+safe(msg)+'</div>'}
 function showHref(id){return "listener/show.html?id="+encodeURIComponent(id)}
 function card({title,description,art,meta,href,number}) {
@@ -663,33 +663,41 @@ async function countQuery(table,filters=[]) {
  for(const [method,...args] of filters)q=q[method](...args);
  const r=await q;if(r.error)throw r.error;return Number(r.count)||0;
 }
-async function publishedShows(){
+async function readAllRows(table,variants,pageSize=1000,maxRows=50000){
  let last;
- for(const cols of ["id,title,description,category,artwork_url,total_plays,listener_count,published_at,created_at,status","id,title,description,category,artwork_url,total_plays,created_at,status","id,title,description,category,artwork_url,total_plays,created_at"]){
-  let q=db.from("podcasts").select(cols);
-  if(cols.endsWith(",status"))q=q.eq("status","published");
-  q=q.order(cols.includes("total_plays")?"total_plays":"created_at",{ascending:cols.includes("total_plays")?false:false,nullsFirst:false}).limit(40);
-  const r=await q;if(!r.error)return r.data||[];last=r.error;
-  if(!/column|does not exist|schema cache/i.test(r.error.message||""))break;
+ for(const v of variants){
+  const all=[];let offset=0,failed=null;
+  while(offset<maxRows){
+   let q=db.from(table).select(v.cols);
+   if(v.status)q=q.eq("status","published");
+   q=q.order(v.order||"created_at",{ascending:false,nullsFirst:false}).range(offset,Math.min(offset+pageSize,maxRows)-1);
+   const r=await q;
+   if(r.error){failed=r.error;last=r.error;break}
+   const batch=r.data||[];all.push(...batch);
+   if(batch.length<pageSize)return {rows:all,complete:true};
+   offset+=batch.length;
+  }
+  if(!failed)return {rows:all,complete:false};
+  if(!/column|does not exist|schema cache/i.test(failed.message||""))break;
  }
- throw last||Error("Published shows query failed");
+ throw last||Error("Catalog query failed");
+}
+async function publishedShows(){
+ const r=await readAllRows("podcasts",[
+  {cols:"id,title,description,category,artwork_url,total_plays,listener_count,published_at,created_at,status",status:true,order:"created_at"},
+  {cols:"id,title,description,category,artwork_url,total_plays,created_at,status",status:true,order:"created_at"},
+  {cols:"id,title,description,category,artwork_url,total_plays,created_at",order:"created_at"}
+ ]);
+ catalogCoverage.showsComplete=r.complete;return r.rows;
 }
 async function publishedEpisodes(){
- let last;
- const variants=[
-  {cols:"id,podcast_id,title,description,artwork_url,total_plays,published_at,created_at,status",status:true,order:"published_at"},
-  {cols:"id,podcast_id,title,description,artwork_url,total_plays,created_at,status",status:true,order:"created_at"},
-  {cols:"id,podcast_id,title,description,artwork_url,created_at,status",status:true,order:"created_at"},
-  {cols:"id,podcast_id,title,description,artwork_url,created_at",status:false,order:"created_at"}
- ];
- for(const v of variants){
-  let q=db.from("podcast_episodes").select(v.cols);
-  if(v.status)q=q.eq("status","published");
-  q=q.order(v.order,{ascending:false,nullsFirst:false}).limit(12);
-  const r=await q;if(!r.error)return r.data||[];last=r.error;
-  if(!/column|does not exist|schema cache/i.test(r.error.message||""))break;
- }
- throw last||Error("Published episodes query failed");
+ const r=await readAllRows("podcast_episodes",[
+  {cols:"id,podcast_id,title,description,artwork_url,total_plays,play_count,published_at,created_at,status",status:true,order:"published_at"},
+  {cols:"id,podcast_id,title,description,artwork_url,total_plays,play_count,created_at,status",status:true,order:"created_at"},
+  {cols:"id,podcast_id,title,description,artwork_url,total_plays,play_count,created_at",order:"created_at"},
+  {cols:"id,podcast_id,title,description,artwork_url,created_at",order:"created_at"}
+ ]);
+ catalogCoverage.episodesComplete=r.complete;return r.rows;
 }
 async function exactCount(table,filters=[]){
  let q=db.from(table).select("id",{count:"exact",head:true});
@@ -720,7 +728,7 @@ async function load(){
   const showMap=new Map(shows.map(x=>[String(x.id),x]));
   if(showsResult.status==="fulfilled")renderShows("homeFeaturedShows",shows.slice().sort((a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0)).slice(0,4),"No published shows found yet.");
   else empty("homeFeaturedShows","Published shows could not be loaded. Verify the podcasts table columns and public SELECT policy.");
-  if(episodesResult.status==="fulfilled")renderEpisodes(episodes,showMap);
+  if(episodesResult.status==="fulfilled")renderEpisodes(episodes.slice(0,12),showMap);
   else empty("homeNewEpisodes","Episodes could not be loaded. Verify podcast_episodes publication fields and public SELECT policy.");
   let user=null;try{const auth=await db.auth.getSession();user=auth.data?.session?.user||null}catch(_){}
   await loadHistory(user);
@@ -779,12 +787,12 @@ async function load(){
   if(eventsError){text("homeStatReconcile","—");text("homeStatReconcileNote","Cannot compare without canonical play events");empty("homeReconciliation","Canonical play events could not be read, so counter agreement cannot be evaluated.");}
   else if(!comparable){text("homeStatReconcile","—");text("homeStatReconcileNote","Stored play counters unavailable in loaded catalog");empty("homeReconciliation","No stored play_count or total_plays fields were available for comparison.");}
   else{
-   text("homeStatReconcile",matches+"/"+comparable);text("homeStatReconcileNote",eventsComplete?"Loaded catalog sample vs complete readable event history":"Loaded catalog sample and event history may both be incomplete");
+   text("homeStatReconcile",matches+"/"+comparable);text("homeStatReconcileNote",(catalogCoverage.showsComplete&&catalogCoverage.episodesComplete?"Full loaded catalog":"Catalog hit 50,000-row cap")+" · "+(eventsComplete?"complete readable event history":"event history may be incomplete"));
    items.sort((a,b)=>Number(a.match)-Number(b.match)||Math.abs(b.stored-b.events)-Math.abs(a.stored-a.events));
    const top=items.slice(0,8);
-   $("homeReconciliation").innerHTML='<div class="home-reconcile-list">'+top.map(x=>'<div class="home-reconcile-row"><div><b>'+safeText(x.title)+'</b><small> · '+x.kind+'</small></div><small>Stored '+fmt(x.stored)+' / Events '+fmt(x.events)+'</small><span class="home-reconcile-status" data-match="'+(x.match?'true':'false')+'">'+(x.match?'MATCH':'DIFFERENCE')+'</span></div>').join("")+'</div><p class="home-dynamic-foot">'+(eventsComplete?"Compared with de-duplicated play events from the readable event history; catalog comparison is limited to up to 40 shows and 12 episodes loaded for discovery.":"Event history reached the 50,000-row safety cap, and catalog comparison is limited to up to 40 shows and 12 episodes; mismatches may reflect incomplete data.")+' This is a read-only diagnostic and does not alter stored counters.</p>';
+   $("homeReconciliation").innerHTML='<div class="home-reconcile-list">'+top.map(x=>'<div class="home-reconcile-row"><div><b>'+safeText(x.title)+'</b><small> · '+x.kind+'</small></div><small>Stored '+fmt(x.stored)+' / Events '+fmt(x.events)+'</small><span class="home-reconcile-status" data-match="'+(x.match?'true':'false')+'">'+(x.match?'MATCH':'DIFFERENCE')+'</span></div>').join("")+'</div><p class="home-dynamic-foot">'+(eventsComplete?"Compared all loaded show and episode records with de-duplicated readable play events.":"The catalog or event history reached the 50,000-row safety cap; mismatches may reflect incomplete data.")+' This is a read-only diagnostic and does not alter stored counters.</p>';
   }
-  const issues=[showsResult.status!=="fulfilled",episodesResult.status!=="fulfilled",!!eventsError,!!sessionsError].filter(Boolean).length;
+  const issues=[showsResult.status!=="fulfilled",episodesResult.status!=="fulfilled",!catalogCoverage.showsComplete,!catalogCoverage.episodesComplete,!!eventsError,!!sessionsError].filter(Boolean).length;
   text("homeDynamicStatus",(issues?"PARTIAL ANALYTICS · ":"DATABASE UPDATED · ")+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+". Play events follow the rankings deduplication rule; duration and completions come from podcast_listens, as in admin analytics.");
  }catch(e){
   text("homeDynamicStatus","DISCOVERY UNAVAILABLE · "+(e?.message||"Could not connect to the database."));
