@@ -80,7 +80,7 @@ async function start(){
   async function track(){
     if(stopped||tracking||document.visibilityState==="hidden"||channel.state!=="joined")return;
     var now=Date.now();
-    if(now-lastTrackAt<15000)return;
+    if(now-lastTrackAt<60000)return;
     lastTrackAt=now;
     tracking=true;
     payload.last_seen_at=new Date().toISOString();
@@ -96,7 +96,7 @@ async function start(){
     if(status==="SUBSCRIBED"){
       try{var session=await client.auth.getSession();await updateRole(session&&session.data&&session.data.session)}catch(e){}
       await track();
-      if(!heartbeat)heartbeat=setInterval(track,60000);
+      if(!heartbeat)heartbeat=setInterval(track,120000);
     }
     if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")emit("crowrules:online-error",{message:"Presence channel "+status,status:status});
   });
