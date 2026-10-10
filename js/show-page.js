@@ -144,21 +144,20 @@ async function load(){
   const sessionPromise=wait(db.auth.getSession(),"Session",5000).catch(e=>({error:e}));
    let episodeError=null,episodeResult=null;
    try{
-    // Avoid PostgREST filters on optional status columns: if either column is
-    // absent from the database schema, an .or() expression fails the whole read.
-    episodeResult=await wait(db.from("podcast_episodes").select("*").eq("podcast_id",showId).limit(100),"Episode library",12000);
+    // Match the live schema and public RLS policy exactly: published episode
+    // rows on published shows. Avoid optional columns in the query itself.
+    episodeResult=await wait(db.from("podcast_episodes")
+     .select("id,podcast_id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,show_notes,status,play_count,is_explicit,created_at,access_level,is_published,is_active,release_date")
+     .eq("podcast_id",showId)
+     .eq("status","published")
+     .order("season_number",{ascending:true,nullsFirst:true})
+     .order("episode_number",{ascending:true,nullsFirst:true})
+     .order("published_at",{ascending:false,nullsFirst:false})
+     .limit(100),"Episode library",12000);
     if(episodeResult.error)throw episodeResult.error;
-    const rawEpisodes=episodeResult.data||[];
-    const hasStatus=rawEpisodes.some(ep=>Object.prototype.hasOwnProperty.call(ep,"status"));
-    const hasPublished=rawEpisodes.some(ep=>Object.prototype.hasOwnProperty.call(ep,"is_published"));
-    const hasVisibility=rawEpisodes.some(ep=>Object.prototype.hasOwnProperty.call(ep,"visibility"));
-    episodes=rawEpisodes.filter(ep=>{
-     const statusOK=!hasStatus||["published","public","live"].includes(String(ep.status||"").toLowerCase());
-     const publishedOK=!hasPublished||ep.is_published===true;
-     const visibilityOK=!hasVisibility||!ep.visibility||["public","unlisted"].includes(String(ep.visibility).toLowerCase());
-     return statusOK&&publishedOK&&visibilityOK;
-    }).map(function(ep){return Object.assign({},ep,{show_id:ep.show_id||ep.podcast_id,is_published:ep.is_published??(ep.status?String(ep.status).toLowerCase()==="published":true),is_active:ep.is_active??true,audio_url:ep.audio_url||ep.audio_file_url||ep.media_url||null,video_url:ep.video_url||null,description:ep.description||ep.summary||"",duration_seconds:ep.duration_seconds||ep.duration||null})});
-    episodes.sort((a,b)=>{const sa=Number(a.season_number||0),sb=Number(b.season_number||0);if(sa!==sb)return sa-sb;const na=a.episode_number==null?Number.MAX_SAFE_INTEGER:Number(a.episode_number),nb=b.episode_number==null?Number.MAX_SAFE_INTEGER:Number(b.episode_number);if(na!==nb)return na-nb;return new Date(a.published_at||a.created_at||0)-new Date(b.published_at||b.created_at||0)});
+    episodes=(episodeResult.data||[]).filter(ep=>ep.is_published!==false&&ep.is_active!==false).map(function(ep){
+     return Object.assign({},ep,{show_id:ep.podcast_id,is_published:ep.is_published??true,is_active:ep.is_active??true,audio_url:ep.audio_url||null,video_url:ep.video_url||null,description:ep.description||ep.show_notes||"",duration_seconds:ep.duration_seconds||null});
+    });
    }catch(episodeQueryError){
     console.error("[CrowRules show] Episode query failed",episodeQueryError);
     episodeError=episodeQueryError;episodes=[];
@@ -180,7 +179,7 @@ async function load(){
   render(!!episodeError);
   if(episodeError){
    const list=document.getElementById("episodeList");
-   if(list)list.innerHTML='<div class="notice">The show loaded, but the episode library could not be retrieved. Check the episode table permissions and published-status fields.</div>';
+   if(list)list.innerHTML='<div class="notice">The episode library could not be retrieved. '+esc(episodeError?.message||episodeError?.details||"Database query failed")+'</div>';
   }else if(!episodes.length){
    const list=document.getElementById("episodeList");
    if(list)list.innerHTML='<div class="notice">No published episodes are available for this show yet.</div>';
