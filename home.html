@@ -114,6 +114,24 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 .home-chat-rules{margin-top:10px;color:#7f91a9;font-size:10px;line-height:1.6}
 @media(max-width:760px){.home-chat-layout{grid-template-columns:1fr}.home-chat-feed{height:300px}.home-chat{padding:14px}}
 
+
+/* Homepage discovery deck upgrade */
+.home-discovery-deck{margin:10px 0 28px;padding:clamp(16px,3vw,28px);border:1px solid rgba(103,232,249,.18);border-radius:22px;background:radial-gradient(ellipse at 0 0,rgba(103,232,249,.09),transparent 48%),linear-gradient(135deg,rgba(7,15,27,.96),rgba(17,12,32,.92))}
+.home-discovery-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;margin-bottom:18px}
+.home-discovery-head h2{font:800 clamp(18px,2.6vw,26px) Orbitron;margin:8px 0}
+.home-discovery-head p{margin:0;color:var(--muted);font-size:12px;line-height:1.7;max-width:650px}
+.home-discovery-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.home-discovery-card{position:relative;display:flex;flex-direction:column;min-height:185px;padding:18px;border:1px solid var(--line);border-radius:15px;background:rgba(4,9,18,.72);color:#eef8ff;transition:transform .2s,border-color .2s}
+.home-discovery-card:hover{transform:translateY(-3px);border-color:rgba(103,232,249,.45)}
+.home-discovery-card .deck-icon{font-size:25px;margin-bottom:15px}
+.home-discovery-card h3{font:800 12px Orbitron;letter-spacing:.04em;margin:0 0 9px}
+.home-discovery-card p{color:var(--muted);font-size:11px;line-height:1.7;margin:0 0 18px}
+.home-discovery-card .deck-link{margin-top:auto;color:var(--cyan);font:800 10px Orbitron;letter-spacing:.05em}
+.home-discovery-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:15px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);color:#8ea0b8;font-size:10px;line-height:1.7}
+.home-discovery-foot a{color:#a5f3fc;font-weight:800}
+@media(max-width:760px){.home-discovery-grid{grid-template-columns:1fr 1fr}.home-discovery-card{min-height:170px}}
+@media(max-width:480px){.home-discovery-grid{grid-template-columns:1fr}.home-discovery-card{min-height:0}.home-discovery-head{align-items:flex-start}}
+
 </style>
 </head>
 <body>
@@ -163,6 +181,23 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
     </section>
 
     <div id="experienceAccessMessage" class="experience-access-message" role="alert" aria-live="assertive"><div id="experienceAccessText"></div><div id="experienceAccessActions" class="access-actions"></div></div>
+
+
+    <section class="home-discovery-deck" id="home-discovery-deck" aria-labelledby="homeDiscoveryTitle">
+      <div class="home-discovery-head">
+        <div><div class="home-kicker">YOUR NEXT LISTEN STARTS HERE</div><h2 id="homeDiscoveryTitle">EXPLORE THE UNIVERSE</h2><p>Find your way around CrowRules Podcasting. Discover new voices, check the charts, connect with the community, or take the first step toward publishing your own show.</p></div>
+        <a class="btn" href="listener/index.html#discover">BROWSE ALL PODCASTS →</a>
+      </div>
+      <div class="home-discovery-grid">
+        <a class="home-discovery-card" href="listener/index.html#discover"><span class="deck-icon" aria-hidden="true">🎧</span><h3>DISCOVER PODCASTS</h3><p>Explore published shows and episodes, find a new favorite, and keep listening from the listener hub.</p><span class="deck-link">START EXPLORING ↗</span></a>
+        <a class="home-discovery-card" href="listener/rankings.html"><span class="deck-icon" aria-hidden="true">🏆</span><h3>TOP 10 & RANKINGS</h3><p>See the charts and browse ranked shows and episodes as the podcasting catalog grows.</p><span class="deck-link">VIEW THE RANKINGS ↗</span></a>
+        <a class="home-discovery-card" href="listener/community.html"><span class="deck-icon" aria-hidden="true">💬</span><h3>COMMUNITY</h3><p>Join the conversation around the shows, creators, and ideas shaping the CrowRules community.</p><span class="deck-link">MEET THE COMMUNITY ↗</span></a>
+        <a class="home-discovery-card" href="listener/creators.html"><span class="deck-icon" aria-hidden="true">🎙️</span><h3>MEET THE CREATORS</h3><p>Discover the people behind the microphones and follow the voices you want to hear more from.</p><span class="deck-link">EXPLORE CREATORS ↗</span></a>
+        <a class="home-discovery-card" href="creator/index.html"><span class="deck-icon" aria-hidden="true">🛠️</span><h3>BUILD YOUR SHOW</h3><p>Have an idea? Start your creator journey and explore the tools for building and publishing a podcast.</p><span class="deck-link">ENTER CREATOR STUDIO ↗</span></a>
+        <a class="home-discovery-card" href="signup.html"><span class="deck-icon" aria-hidden="true">✨</span><h3>ONE ACCOUNT. ONE UNIVERSE.</h3><p>Create your CrowRules identity and grow from listener to creator when you are ready.</p><span class="deck-link">JOIN CROWRULES ↗</span></a>
+      </div>
+      <div class="home-discovery-foot"><span>Built for listeners and creators, with one connected CrowRules identity.</span><span><a href="launch.html">Launch information</a> · <a href="pre-launch/index.html">Pre-launch hub</a></span></div>
+    </section>
 
     <section id="experiences" class="home-choice" aria-label="Choose your experience">
       <a class="card choice listener" href="listener/index.html">
