@@ -646,7 +646,8 @@ function empty(id,msg){const el=$(id);if(el)el.innerHTML='<div class="home-dynam
 function showHref(id){return "listener/show.html?id="+encodeURIComponent(id)}
 function card({title,description,art,meta,href,number}) {
  const img=art?'<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="'+safe(art)+'" alt="">':'<span aria-hidden="true">'+safe(number||"CR")+'</span>';
- return '<a class="home-dynamic-card" href="'+safe(href||"listener/index.html#discover")+'"><div class="home-dynamic-art">'+img+'</div><div class="home-dynamic-copy"><h4>'+safe(title||"Untitled")+'</h4><p>'+safe(description||"Explore this show on CrowRules Podcasting.")+'</p><div class="home-dynamic-meta">'+safe(meta||"CROWRULES PODCASTING")+'</div><span class="home-dynamic-open">EXPLORE ↗</span></div></a>';
+ const summary=description?'<p>'+safe(description)+'</p>':'';
+ return '<a class="home-dynamic-card" href="'+safe(href||"listener/index.html#discover")+'"><div class="home-dynamic-art">'+img+'</div><div class="home-dynamic-copy"><h4>'+safe(title||"Untitled")+'</h4>'+summary+'<div class="home-dynamic-meta">'+safe(meta||"CROWRULES PODCASTING")+'</div><span class="home-dynamic-open">EXPLORE ↗</span></div></a>';
 }
 function renderShows(id,rows,emptyMessage){
  const el=$(id);if(!el)return;
@@ -656,7 +657,7 @@ function renderShows(id,rows,emptyMessage){
 function renderEpisodes(rows,showMap){
  const el=$("homeNewEpisodes");if(!el)return;
  if(!rows?.length){empty("homeNewEpisodes","No published episodes were returned by the database. Check episode publication status and read policies if you expected results.");return}
- el.innerHTML=rows.map((r,i)=>{const show=showMap.get(String(r.podcast_id));const parent=show?.title||r.podcast_title||"Podcast episode";const href=showHref(r.podcast_id||show?.id||"");return card({title:r.title||"Untitled episode",description:r.description||"",art:r.artwork_url||show?.artwork_url,meta:parent+(r.total_plays!=null?" · "+fmt(r.total_plays)+" plays":""),href,number:"EP"+String(i+1)})}).join("");
+ el.innerHTML=rows.map((r,i)=>{const show=showMap.get(String(r.podcast_id));const parent=show?.title||r.podcast_title||"Podcast episode";const href=showHref(r.podcast_id||show?.id||"");return card({title:r.title||"Untitled episode",art:r.thumbnail_url||r.artwork_url||r.cover_image_url||show?.artwork_url,meta:parent+(r.total_plays!=null?" · "+fmt(r.total_plays)+" plays":""),href,number:"EP"+String(i+1)})}).join("");
 }
 async function countQuery(table,filters=[]) {
  let q=db.from(table).select("id",{count:"exact",head:true});
