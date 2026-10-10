@@ -661,7 +661,9 @@ async function countQuery(table,filters=[]) {
 async function publishedShows(){
  let last;
  for(const cols of ["id,title,description,category,artwork_url,total_plays,listener_count,published_at,created_at,status","id,title,description,category,artwork_url,total_plays,created_at,status","id,title,description,category,artwork_url,total_plays,created_at"]){
-  let q=db.from("podcasts").select(cols).eq("status","published").order("total_plays",{ascending:false,nullsFirst:false}).limit(40);
+  let q=db.from("podcasts").select(cols);
+  if(cols.endsWith(",status"))q=q.eq("status","published");
+  q=q.order(cols.includes("total_plays")?"total_plays":"created_at",{ascending:cols.includes("total_plays")?false:false,nullsFirst:false}).limit(40);
   const r=await q;if(!r.error)return r.data||[];last=r.error;
   if(!/column|does not exist|schema cache/i.test(r.error.message||""))break;
  }
@@ -669,12 +671,25 @@ async function publishedShows(){
 }
 async function publishedEpisodes(){
  let last;
- for(const cols of ["id,podcast_id,title,description,artwork_url,total_plays,published_at,created_at,status","id,podcast_id,title,description,artwork_url,total_plays,created_at,status","id,podcast_id,title,description,artwork_url,created_at,status","id,podcast_id,title,description,created_at"]){
-  let q=db.from("podcast_episodes").select(cols).eq("status","published").order("published_at",{ascending:false,nullsFirst:false}).limit(12);
+ const variants=[
+  {cols:"id,podcast_id,title,description,artwork_url,total_plays,published_at,created_at,status",status:true,order:"published_at"},
+  {cols:"id,podcast_id,title,description,artwork_url,total_plays,created_at,status",status:true,order:"created_at"},
+  {cols:"id,podcast_id,title,description,artwork_url,created_at,status",status:true,order:"created_at"},
+  {cols:"id,podcast_id,title,description,artwork_url,created_at",status:false,order:"created_at"}
+ ];
+ for(const v of variants){
+  let q=db.from("podcast_episodes").select(v.cols);
+  if(v.status)q=q.eq("status","published");
+  q=q.order(v.order,{ascending:false,nullsFirst:false}).limit(12);
   const r=await q;if(!r.error)return r.data||[];last=r.error;
   if(!/column|does not exist|schema cache/i.test(r.error.message||""))break;
  }
  throw last||Error("Published episodes query failed");
+}
+async function exactCount(table,filters=[]){
+ let q=db.from(table).select("id",{count:"exact",head:true});
+ for(const [method,...args] of filters)q=q[method](...args);
+ const r=await q;if(r.error)throw r.error;return Number(r.count)||0;
 }
 async function loadHistory(user){
  historyIds=[];
@@ -695,8 +710,8 @@ async function load(){
   const [showsResult,episodesResult]=await Promise.allSettled([publishedShows(),publishedEpisodes()]);
   let shows=showsResult.status==="fulfilled"?showsResult.value:[];
   let episodes=episodesResult.status==="fulfilled"?episodesResult.value:[];
-  if(showsResult.status==="fulfilled"){text("homeStatShows",fmt(shows.length));text("homeStatShowsNote","Published shows returned (up to 40)")}else{text("homeStatShows","—");text("homeStatShowsNote","Catalog query unavailable")}
-  if(episodesResult.status==="fulfilled"){text("homeStatEpisodes",fmt(episodes.length));text("homeStatEpisodesNote","Published episodes returned (up to 12)")}else{text("homeStatEpisodes","—");text("homeStatEpisodesNote","Episode query unavailable")}
+  if(showsResult.status==="fulfilled"){try{const n=await exactCount("podcasts",[["eq","status","published"]]);text("homeStatShows",fmt(n));text("homeStatShowsNote","Exact published-show row count")}catch(_){text("homeStatShows",fmt(shows.length));text("homeStatShowsNote","Catalog rows loaded (maximum 40); exact count unavailable")}}else{text("homeStatShows","—");text("homeStatShowsNote","Catalog query unavailable")}
+  if(episodesResult.status==="fulfilled"){try{const n=await exactCount("podcast_episodes",[["eq","status","published"]]);text("homeStatEpisodes",fmt(n));text("homeStatEpisodesNote","Exact published-episode row count")}catch(_){text("homeStatEpisodes",fmt(episodes.length));text("homeStatEpisodesNote","Catalog rows loaded (maximum 12); exact count unavailable")}}else{text("homeStatEpisodes","—");text("homeStatEpisodesNote","Episode query unavailable")}
   const showMap=new Map(shows.map(s=>[String(s.id),s]));
   if(showsResult.status==="fulfilled")renderShows("homeFeaturedShows",shows.slice().sort((a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0)).slice(0,4),"No published shows found yet.");
   else empty("homeFeaturedShows","Published shows could not be loaded. Verify the podcasts table columns and public SELECT policy.");
