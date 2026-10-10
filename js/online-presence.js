@@ -44,7 +44,7 @@ async function start(){
   var channel=client.channel("crowrules-podcasting-online-v1",{config:{presence:{key:key}}});
   var currentUser=null;
   var payload={session_id:key,visitor_key:key,area:isLaunch?"launch":"site",page:page,role:"visitor",online_at:new Date().toISOString(),last_seen_at:new Date().toISOString()};
-  var stopped=false,heartbeat=null,authSubscription=null,tracking=false;
+  var stopped=false,heartbeat=null,authSubscription=null,tracking=false,lastTrackAt=0;
   function updateRole(session){
     currentUser=session&&session.user||null;
     payload.role=roleFromUser(currentUser);
@@ -79,6 +79,9 @@ async function start(){
   }
   async function track(){
     if(stopped||tracking||document.visibilityState==="hidden"||channel.state!=="joined")return;
+    var now=Date.now();
+    if(now-lastTrackAt<15000)return;
+    lastTrackAt=now;
     tracking=true;
     payload.last_seen_at=new Date().toISOString();
     try{var status=await channel.track(payload);if(status&&status==="error")throw new Error("Supabase rejected presence tracking");countsFromState()}
@@ -93,7 +96,7 @@ async function start(){
     if(status==="SUBSCRIBED"){
       try{var session=await client.auth.getSession();await updateRole(session&&session.data&&session.data.session)}catch(e){}
       await track();
-      if(!heartbeat)heartbeat=setInterval(track,30000);
+      if(!heartbeat)heartbeat=setInterval(track,60000);
     }
     if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")emit("crowrules:online-error",{message:"Presence channel "+status,status:status});
   });
