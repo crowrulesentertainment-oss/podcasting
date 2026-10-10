@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#070812">
+<meta name="description" content="Your CrowRules Podcasting community notifications and social activity.">
+<title>Notifications | CrowRules Podcasting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#070812;--panel:rgba(15,18,33,.96);--line:rgba(135,151,255,.22);--text:#f5f7ff;--muted:#a0aac3;--cyan:#6de7ff;--purple:#a98bff;--pink:#ff78c8;--good:#70f0ad}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--text);font-family:Montserrat,system-ui,sans-serif;background:radial-gradient(ellipse at 8% 0%,rgba(109,231,255,.12),transparent 33%),radial-gradient(ellipse at 96% 7%,rgba(169,139,255,.15),transparent 32%),linear-gradient(180deg,#070812,#0a0d18 58%,#06070d)}a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer}button:focus-visible,a:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}.shell{width:min(1000px,calc(100% - 28px));margin:auto}.top{position:sticky;top:0;z-index:5;border-bottom:1px solid var(--line);background:rgba(7,8,18,.94);backdrop-filter:blur(18px)}.nav{min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0}.brand{font:800 11px Orbitron,sans-serif;letter-spacing:.06em;color:var(--cyan)}.links{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.links a{padding:9px 10px;border-radius:9px;color:#dce2f7;font-size:10px;font-weight:800}.links a:hover,.links a.active{background:rgba(109,231,255,.09);border:1px solid rgba(109,231,255,.2)}.hero{padding:38px 0 22px}.eyebrow{font-size:9px;font-weight:800;letter-spacing:.23em;color:var(--cyan)}h1{font:800 clamp(28px,5vw,45px)/1.12 Orbitron,sans-serif;letter-spacing:-.03em;margin:10px 0}.hero p{color:var(--muted);font-size:12px;line-height:1.8;max-width:690px;margin:0}.status{font-size:10px;color:var(--muted);margin-top:12px}.card{border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 22px 65px #0004;overflow:hidden;margin-bottom:30px}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 18px;border-bottom:1px solid var(--line)}.toolbar h2{font:700 12px Orbitron,sans-serif;letter-spacing:.05em;margin:0}.count{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 7px;border-radius:99px;background:rgba(109,231,255,.12);color:var(--cyan);font-size:10px;font-weight:800;margin-left:8px}.filters{display:flex;gap:7px;flex-wrap:wrap}.btn{border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.035);color:var(--text);padding:9px 11px;font-size:9px;font-weight:800}.btn.active,.btn.primary{border-color:#6de7ff77;background:linear-gradient(100deg,#6de7ff1f,#a98bff2b)}.btn:disabled{opacity:.5;cursor:wait}.list{display:grid}.item{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:13px;align-items:start;padding:17px 18px;border-bottom:1px solid #8797ff1c;transition:background .2s}.item:last-child{border-bottom:0}.item:hover{background:#ffffff05}.item.unread{background:linear-gradient(90deg,#6de7ff0b,transparent 72%)}.icon{width:42px;height:42px;display:grid;place-items:center;border:1px solid #6de7ff55;border-radius:13px;background:linear-gradient(135deg,#6de7ff1c,#a98bff26);font-size:18px}.content{min-width:0}.title{font-size:11px;font-weight:800;line-height:1.6}.body{font-size:11px;color:#c3cbe0;line-height:1.8;margin-top:4px;overflow-wrap:anywhere}.meta{display:flex;gap:9px;flex-wrap:wrap;margin-top:8px;color:var(--muted);font-size:9px}.dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);align-self:center;box-shadow:0 0 12px #6de7ff99}.item-actions{display:flex;align-items:center;gap:6px}.open{white-space:nowrap}.empty{padding:45px 18px;text-align:center;color:var(--muted);font-size:11px;line-height:1.9}.empty strong{display:block;font:700 13px Orbitron,sans-serif;color:var(--text);margin-bottom:8px}.footer{color:var(--muted);font-size:9px;text-align:center;padding:0 0 30px}.toast{position:fixed;right:18px;bottom:18px;z-index:20;max-width:calc(100% - 36px);padding:12px 15px;border:1px solid var(--line);border-radius:12px;background:#11162a;font-size:11px;box-shadow:0 20px 60px #0008}.hidden{display:none!important}@media(max-width:600px){.nav{align-items:flex-start;flex-direction:column}.links{justify-content:flex-start}.toolbar{align-items:flex-start}.item{grid-template-columns:36px minmax(0,1fr);gap:10px;padding:14px}.icon{width:36px;height:36px}.item-actions{grid-column:2}.open{white-space:normal}}
+</style>
+</head>
+<body>
+<header class="top"><div class="shell nav"><a class="brand" href="../index.html">CROWRULES PODCASTING</a><nav class="links" aria-label="Main navigation"><a href="../index.html">Home</a><a href="index.html">Discover</a><a href="profile.html">My Profile</a><a href="social.html">Social Hub</a><a class="active" href="notifications.html" aria-current="page">Notifications</a><a href="rankings.html">Rankings</a><a href="chat.html">Live Chat</a></nav></div></header>
+<main class="shell">
+<section class="hero"><div class="eyebrow">YOUR COMMUNITY, IN REAL TIME</div><h1>Notifications</h1><p>Keep up with the people connecting with you on CrowRules Podcasting. Likes and comments on your posts appear here, along with other notifications sent to your account.</p><div class="status" id="status" role="status">Connecting to your account…</div></section>
+<section class="card" aria-label="Notifications">
+<div class="toolbar"><h2>ACTIVITY <span class="count" id="unreadCount">0</span></h2><div class="filters"><button class="btn active" data-filter="all">All</button><button class="btn" data-filter="unread">Unread</button><button class="btn" data-filter="social">Social</button><button class="btn" id="markAll">Mark all read</button></div></div>
+<div class="list" id="list"><div class="empty">Loading your notifications…</div></div>
+</section>
+<div class="footer">CROWRULES PODCASTING · ONE ACCOUNT. ONE UNIVERSE.</div>
+</main>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+let db=null,user=null,rows=[],filter='all',channel=null,toastTimer=null;
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const when=v=>{const d=new Date(v);if(!Number.isFinite(d.getTime()))return 'Recently';const delta=Math.max(0,Date.now()-d.getTime());if(delta<60000)return 'Just now';if(delta<3600000)return Math.floor(delta/60000)+'m ago';if(delta<86400000)return Math.floor(delta/3600000)+'h ago';if(delta<604800000)return Math.floor(delta/86400000)+'d ago';return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:d.getFullYear()!==new Date().getFullYear()?'numeric':undefined});};
+function toast(msg){$('toast').textContent=msg;$('toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),3200);}
+function icon(n){const t=String(n||'').toLowerCase();if(t.includes('like'))return '♥';if(t.includes('comment'))return '▤';if(t.includes('friend'))return '♧';if(t.includes('follow'))return '＋';if(t.includes('episode')||t.includes('podcast'))return '♫';if(t.includes('point')||t.includes('reward'))return '✦';return '✧';}
+function isSocial(n){return /social_|follow|friend|comment|like/i.test(String(n.type||''));}
+function visible(){return rows.filter(n=>filter==='unread'?!n.is_read:filter==='social'?isSocial(n):true);}
+function render(){
+const unread=rows.filter(n=>!n.is_read).length;$('unreadCount').textContent=unread>99?'99+':String(unread);
+$('markAll').disabled=!unread;
+document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===filter));
+const items=visible();
+if(!items.length){$('list').innerHTML='<div class="empty"><strong>'+ (filter==='unread'?'YOU ARE ALL CAUGHT UP':'NO NOTIFICATIONS YET') +'</strong>'+ (filter==='unread'?'Nothing unread right now. Come back when your community gets active.':'When members interact with your posts, you’ll see their activity here.')+'</div>';return;}
+$('list').innerHTML=items.map(n=>'<article class="item '+(!n.is_read?'unread':'')+'" data-id="'+esc(n.id)+'"><div class="icon" aria-hidden="true">'+icon(n.type)+'</div><div class="content"><div class="title">'+esc(n.title||'CrowRules update')+'</div><div class="body">'+esc(n.body||'There is a new update for your account.')+'</div><div class="meta"><span>'+esc(when(n.created_at))+'</span><span>'+esc(n.division||'CrowRules')+'</span>'+(!n.is_read?'<span style="color:var(--cyan)">UNREAD</span>':'')+'</div></div><div class="item-actions">'+(!n.is_read?'<button class="btn" data-read="'+esc(n.id)+'">Mark read</button>':'')+(n.action_url?'<button class="btn primary open" data-open="'+esc(n.id)+'">View</button>':'')+'</div></article>').join('');
+}
+async function load(){
+if(!user){rows=[];render();$('status').textContent='Sign in to see notifications for your account.';return;}
+$('status').textContent='Updating your activity…';
+const r=await db.from('crowrules_notifications').select('id,user_id,actor_user_id,type,title,body,division,action_url,metadata,is_read,created_at,read_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(100);
+if(r.error){console.error('Notifications query failed:',r.error);$('status').textContent='Notifications could not load. Check your account permissions and try again.';$('list').innerHTML='<div class="empty"><strong>COULD NOT LOAD ACTIVITY</strong>'+esc(r.error.message)+'</div>';return;}
+rows=r.data||[];render();$('status').textContent=rows.length?'Showing your '+rows.length+' most recent notifications. Updates arrive automatically.':'You’re connected. New activity will show up here automatically.';
+}
+async function markRead(id){
+if(!user)return;const item=rows.find(n=>n.id===id);if(!item||item.is_read)return;
+const r=await db.from('crowrules_notifications').update({is_read:true,read_at:new Date().toISOString()}).eq('id',id).eq('user_id',user.id);
+if(r.error){console.error('Mark notification read failed:',r.error);toast('Could not mark this notification as read.');return;}
+item.is_read=true;item.read_at=new Date().toISOString();render();
+}
+async function markAll(){
+if(!user)return;const unread=rows.filter(n=>!n.is_read);if(!unread.length)return;
+const r=await db.from('crowrules_notifications').update({is_read:true,read_at:new Date().toISOString()}).eq('user_id',user.id).eq('is_read',false);
+if(r.error){console.error('Mark all notifications read failed:',r.error);toast('Could not mark all notifications as read.');return;}
+rows.forEach(n=>{n.is_read=true;n.read_at=n.read_at||new Date().toISOString();});render();toast('All notifications marked as read.');
+}
+function openAction(id){
+const n=rows.find(x=>x.id===id);if(!n)return;
+const raw=String(n.action_url||'').trim();let destination='social.html';
+if(raw){try{const u=new URL(raw,window.location.href);if(u.origin===window.location.origin)destination=u.href;}catch(_e){}}
+if(!n.is_read)markRead(id).finally(()=>{window.location.href=destination;});else window.location.href=destination;
+}
+function realtime(){
+if(!db||!user)return;
+if(channel)db.removeChannel(channel);
+channel=db.channel('crowrules-notifications-'+user.id).on('postgres_changes',{event:'*',schema:'public',table:'crowrules_notifications',filter:'user_id=eq.'+user.id},()=>load()).subscribe(status=>{if(status==='CHANNEL_ERROR')console.warn('Notification realtime connection failed.');});
+}
+document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.filter;render();}));
+$('markAll').addEventListener('click',markAll);
+$('list').addEventListener('click',e=>{const r=e.target.closest('[data-read]');if(r){markRead(r.dataset.read);return;}const o=e.target.closest('[data-open]');if(o)openAction(o.dataset.open);});
+(async()=>{
+try{const cfg=window.CROW_CONFIG||{};if(!window.supabase||!cfg.supabaseUrl||!cfg.supabaseKey)throw new Error('CrowRules configuration is unavailable.');db=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);const s=await db.auth.getSession();user=s.data?.session?.user||null;await load();realtime();db.auth.onAuthStateChange((_event,session)=>{user=session?.user||null;load().then(realtime);});}
+catch(e){console.error('Notifications initialization failed:',e);$('status').textContent='Could not connect to CrowRules services.';$('list').innerHTML='<div class="empty"><strong>CONNECTION UNAVAILABLE</strong>'+esc(e.message||'Please refresh and try again.')+'</div>';}
+})();
+})();
+</script>
+</body>
+</html>
