@@ -235,7 +235,7 @@ renderFeed();
 function escapeHtml(value){return String(value==null?'':value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function makeAvatar(userId,small){const el=document.createElement('div');el.className='mini-avatar';setAvatar(el,profileAvatarFor(userId),profileNameFor(userId));if(small)el.style.width='29px';return el;}
 function renderFeed(){
-const box=$('feed');let rows=posts.slice();const sort=$('feedSort').value;if(sort==='oldest')rows.reverse();if(sort==='liked')rows.sort(function(a,b){return ((likesFor(b.id)||0)-(likesFor(a.id)||0))||new Date(b.created_at)-new Date(a.created_at);});
+const box=$('feed');let rows=posts.slice();const sort=$('feedSort').value;rows.sort(function(a,b){if(Boolean(a.is_pinned)!==Boolean(b.is_pinned))return a.is_pinned?-1:1;if(sort==='oldest')return new Date(a.created_at)-new Date(b.created_at);if(sort==='liked')return ((likesFor(b.id)||0)-(likesFor(a.id)||0))||new Date(b.created_at)-new Date(a.created_at);return new Date(b.created_at)-new Date(a.created_at);});
 if(!rows.length){box.innerHTML='<div class="empty">No posts yet. Be the first to share something with the CrowRules Podcasting community.</div>';return;}
 box.replaceChildren();rows.forEach(function(post){box.appendChild(renderPost(post));});
 }
