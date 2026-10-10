@@ -691,14 +691,21 @@ async function publishedShows(){
  catalogCoverage.showsComplete=r.complete;return r.rows;
 }
 async function publishedEpisodes(){
+ // Optional episode columns vary by schema. Fall back to a wildcard query ordered by id.
  const r=await readAllRows("podcast_episodes",[
   {cols:"id,podcast_id,title,description,artwork_url,total_plays,play_count,published_at,created_at,status",status:true,order:"published_at"},
   {cols:"id,podcast_id,title,description,artwork_url,total_plays,play_count,created_at,status",status:true,order:"created_at"},
   {cols:"id,podcast_id,title,description,artwork_url,total_plays,created_at",order:"created_at"},
   {cols:"id,podcast_id,title,description,artwork_url,play_count,created_at",order:"created_at"},
-  {cols:"id,podcast_id,title,description,artwork_url,created_at",order:"created_at"}
+  {cols:"id,podcast_id,title,artwork_url,created_at",order:"created_at"},
+  {cols:"*",order:"id"}
  ]);
- catalogCoverage.episodesComplete=r.complete;return r.rows;
+ catalogCoverage.episodesComplete=r.complete;
+ return r.rows.filter(row=>{
+  if(row.status!==undefined&&row.status!==null)return String(row.status).toLowerCase()==="published";
+  if(row.is_published!==undefined&&row.is_published!==null)return row.is_published===true;
+  return true;
+ });
 }
 async function exactCount(table,filters=[]){
  let q=db.from(table).select("id",{count:"exact",head:true});
