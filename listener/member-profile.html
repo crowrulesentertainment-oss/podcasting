@@ -79,6 +79,8 @@ function renderPublicAbout(){
  if(!items.length){box.innerHTML='<div class="activity-empty">This member has not added any extra profile details yet.</div>';return;}
  items.forEach(([icon,label,value])=>{const row=document.createElement('div');row.className='about-row';const ic=document.createElement('div');ic.className='about-icon';ic.textContent=icon;const copy=document.createElement('div');const l=document.createElement('div');l.className='about-label';l.textContent=label;const v=document.createElement('div');v.className='about-value';if(label==='Website'&&/^https?:\/\//i.test(String(value))){const a=document.createElement('a');a.href=value;a.target='_blank';a.rel='noopener noreferrer';a.textContent=value;v.appendChild(a)}else v.textContent=value;copy.append(l,v);row.append(ic,copy);box.appendChild(row)});
 }
+let memberRealtimeChannel=null,memberRealtimeTimer=null;
+function setupMemberRealtime(){if(!db||memberRealtimeChannel)return;memberRealtimeChannel=db.channel('cr-member-profile-social-sync').on('postgres_changes',{event:'*',schema:'public',table:'podcast_member_posts'},()=>{clearTimeout(memberRealtimeTimer);memberRealtimeTimer=setTimeout(()=>{loadPublicPosts();loadStats()},300)}).on('postgres_changes',{event:'*',schema:'public',table:'podcast_member_post_likes'},()=>{clearTimeout(memberRealtimeTimer);memberRealtimeTimer=setTimeout(loadPublicPosts,300)}).on('postgres_changes',{event:'*',schema:'public',table:'podcast_member_post_comments'},()=>{clearTimeout(memberRealtimeTimer);memberRealtimeTimer=setTimeout(loadPublicPosts,300)}).subscribe(status=>{if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')console.warn('Live member profile sync unavailable; refresh the page to see new activity.')});}
 function publicProfileName(id){const p=publicProfiles[id]||{};return p.display_name||p.username||'CrowRules Member'}
 function publicAvatarMarkup(id){const p=publicProfiles[id]||{};const url=p.avatar_url;return url&&/^https?:\/\//i.test(url)?'<img src="'+esc(url)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':esc(initials(publicProfileName(id)))}
 function publicPostLikes(id){return Number(publicLikeCounts[id]||0)}
@@ -175,7 +177,7 @@ if(!target){const m=await db.from('members').select('user_id,display_name,userna
 if(!target){$('profileCard').innerHTML='<div class="empty">This profile is unavailable, private, or no longer exists.</div>';return}
 if(viewer&&viewer.id!==target.user_id){await refreshConnections()}else render();
 renderPublicAbout();
-await Promise.all([loadStats(),loadPublicPosts()]);
+await Promise.all([loadStats(),loadPublicPosts()]);setupMemberRealtime();
 }
 init().catch(e=>{console.error('Member profile failed:',e);$('profileCard').innerHTML='<div class="empty">Could not load this profile. '+esc(e.message||'Please refresh and try again.')+'</div>'});
 })();
