@@ -77,7 +77,7 @@ function render(){
   const progress=Math.max(0,Number(row?.progress)||0),goal=Math.max(1,Number(c.goal)||1),pct=Math.min(100,Math.round(progress/goal*100));
   const category=c.category==='special'?'SPECIAL EVENT':String(c.category||'').toUpperCase();
   const statusText=isDone?'COMPLETED ✓':isJoined?'CHALLENGE JOINED ✓':'JOIN CHALLENGE +';
-  return '<article class="challenge"><div class="challenge-top"><div class="challenge-icon" aria-hidden="true">'+escapeHtml(c.icon||'🎧')+'</div><span class="tag">'+escapeHtml(category)+'</span></div><h3>'+escapeHtml(c.title)+'</h3><p>'+escapeHtml(c.description)+'</p><div class="challenge-bottom"><div class="reward"><span>MISSION TARGET</span><strong>'+escapeHtml(goalLabel(c))+'</strong></div><div class="reward"><span>REWARD</span><span class="points">+'+(Number(c.reward_points)||0)+' CP</span></div>'+(isJoined?'<div class="progress-label"><span>YOUR PROGRESS</span><span>'+progress+' / '+goal+'</span></div><div class="progress" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100" aria-label="Challenge progress"><span style="width:'+pct+'%"></span></div>':'')+'<button class="btn '+(isJoined?'primary':'')+'" data-join="'+escapeHtml(c.id)+'" '+(isDone?'disabled':'')+'>'+statusText+'</button></div></article>';
+  return '<article class="challenge"><div class="challenge-top"><div class="challenge-icon" aria-hidden="true">'+escapeHtml(c.icon||'🎧')+'</div><span class="tag">'+escapeHtml(category)+'</span></div><h3>'+escapeHtml(c.title)+'</h3><p>'+escapeHtml(c.description)+'</p><div class="challenge-bottom"><div class="reward"><span>MISSION TARGET</span><strong>'+escapeHtml(goalLabel(c))+'</strong></div><div class="reward"><span>REWARD</span><span class="points">+'+(Number(c.reward_points)||0)+' CP</span></div>'+(isJoined?'<div class="progress-label"><span>YOUR PROGRESS</span><span>'+progress+' / '+goal+'</span></div><div class="progress" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100" aria-label="Challenge progress"><span style="width:'+pct+'%"></span></div>':'')+'<button class="btn '+(isJoined?'primary':'')+'" data-join="'+escapeHtml(c.id)+'" '+((isDone||isJoined)?'disabled':'')+'>'+statusText+'</button></div></article>';
  }).join('');
  if(!list.length)$('challenge-grid').innerHTML='<div class="empty">No active challenges in this category right now. Try another filter.</div>';
  document.querySelectorAll('[data-join]').forEach(btn=>btn.addEventListener('click',()=>joinChallenge(btn.dataset.join,btn)));
@@ -131,7 +131,7 @@ async function init(){
   supabase=window.supabase.createClient(url,key);
   const {data:{session},error:sessionError}=await supabase.auth.getSession();if(sessionError)throw sessionError;user=session?.user||null;
   const {data:catalog,error:catalogError}=await supabase.from('podcast_challenges').select('id,title,description,category,icon,metric_key,goal,reward_points,starts_at,ends_at').eq('is_published',true).order('category').order('title');
-  if(catalogError)throw catalogError;challenges=catalog||[];
+  if(catalogError)throw catalogError;const now=Date.now();challenges=(catalog||[]).filter(c=>(!c.starts_at||Date.parse(c.starts_at)<=now)&&(!c.ends_at||Date.parse(c.ends_at)>now));
   if(user){
    try{await loadParticipation();await refreshProgress(false)}catch(err){console.warn('Challenge participation load',err);notify('Challenges loaded, but your participation/progress could not be read. Check the challenge RPC grants and RLS policies.','error')}
    await loadAccount();
