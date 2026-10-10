@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#070812">
+<meta name="description" content="Discover podcast creators, explore their shows, and connect with the voices behind CrowRules Podcasting.">
+<title>Discover Creators | CrowRules Podcasting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#070812;--panel:rgba(15,18,33,.95);--line:rgba(135,151,255,.2);--text:#f5f7ff;--muted:#a0aac3;--cyan:#6de7ff;--purple:#a98bff;--pink:#ff78c8}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--text);font-family:Montserrat,system-ui,sans-serif;background:radial-gradient(ellipse at 8% 0%,rgba(109,231,255,.12),transparent 35%),radial-gradient(ellipse at 96% 7%,rgba(169,139,255,.14),transparent 33%),linear-gradient(180deg,#070812,#0a0d18 55%,#06070d)}a{color:inherit;text-decoration:none}button,input,select{font:inherit}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}.shell{width:min(1200px,calc(100% - 30px));margin:auto}.topbar{position:sticky;top:0;z-index:10;background:rgba(7,8,18,.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}.nav{min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0}.brand{font:800 11px Orbitron;letter-spacing:.06em;display:flex;align-items:center;gap:10px}.brand img{width:38px;height:38px;object-fit:contain}.links{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.links a{padding:9px 10px;border:1px solid transparent;border-radius:9px;color:#dce2f7;font-size:10px;font-weight:800}.links a:hover{border-color:var(--line)}main{padding-bottom:50px}.hero{padding:42px 0 24px}.eyebrow{font-size:9px;font-weight:800;letter-spacing:.23em;color:var(--cyan)}h1{font:800 clamp(30px,5vw,52px)/1.12 Orbitron;margin:12px 0;background:linear-gradient(110deg,#fff,#bdf5fb 48%,#c8b7ff);color:transparent;background-clip:text}.hero p{max-width:780px;color:var(--muted);font-size:12px;line-height:1.9}.hero-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:39px;padding:10px 13px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.035);color:var(--text);font-size:9px;font-weight:800;cursor:pointer}.btn.primary{border-color:rgba(109,231,255,.4);background:linear-gradient(100deg,rgba(109,231,255,.14),rgba(169,139,255,.18))}.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:8px 0 16px}.search{flex:1;min-width:min(100%,250px);max-width:520px;padding:12px;border:1px solid var(--line);border-radius:11px;background:#090c17;color:var(--text);font-size:11px}.sort{padding:11px;border:1px solid var(--line);border-radius:10px;background:#090c17;color:var(--text);font-size:10px}.section-title{font:700 14px Orbitron;margin:0}.muted{color:var(--muted);font-size:10px;line-height:1.7;margin-top:6px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.creator{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:17px;background:linear-gradient(155deg,rgba(18,22,40,.98),rgba(10,12,23,.98));box-shadow:0 14px 38px rgba(0,0,0,.15);transition:transform .18s,border-color .18s}.creator:hover{transform:translateY(-3px);border-color:rgba(109,231,255,.4)}.cover{height:88px;background:linear-gradient(120deg,rgba(109,231,255,.23),rgba(169,139,255,.28),rgba(255,120,200,.17));border-bottom:1px solid var(--line)}.creator-body{padding:0 16px 16px}.avatar{display:grid;place-items:center;width:78px;height:78px;margin-top:-37px;position:relative;border-radius:50%;overflow:hidden;border:3px solid #101326;background:linear-gradient(135deg,rgba(109,231,255,.22),rgba(169,139,255,.3));box-shadow:0 0 0 1px rgba(109,231,255,.35);font:800 20px Orbitron}.avatar img{width:100%;height:100%;object-fit:cover}.name{font:700 14px Orbitron;line-height:1.5;overflow-wrap:anywhere;margin-top:12px}.handle{font-size:10px;color:var(--cyan);margin-top:4px;overflow-wrap:anywhere}.bio{font-size:10px;line-height:1.8;color:#c6cee3;margin:12px 0;overflow-wrap:anywhere;min-height:54px}.stats{display:flex;gap:13px;flex-wrap:wrap;padding:11px 0;border-top:1px solid rgba(135,151,255,.13);border-bottom:1px solid rgba(135,151,255,.13);color:var(--muted);font-size:9px}.stats strong{color:var(--text)}.creator-actions{display:flex;gap:8px;margin-top:12px}.creator-actions a{flex:1}.empty{padding:22px;border:1px dashed var(--line);border-radius:13px;text-align:center;color:var(--muted);font-size:11px;line-height:1.8;grid-column:1/-1}.notice{padding:14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025);color:var(--muted);font-size:10px;line-height:1.8;margin-top:17px}footer{text-align:center;padding:25px 0;color:#77819b;font-size:9px;line-height:1.8}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.grid{grid-template-columns:1fr}.nav{align-items:flex-start}.brand{max-width:130px}.links a{padding:8px;font-size:9px}.hero{padding-top:30px}.creator-actions{flex-direction:column}.bio{min-height:0}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="shell nav">
+<a class="brand" href="../home.html"><img id="brandLogo" alt="" hidden><span>CROWRULES<br>PODCASTING</span></a>
+<nav class="links" aria-label="Podcasting navigation"><a href="index.html">DISCOVER</a><a href="community.html">COMMUNITY</a><a href="profile.html">MY PROFILE</a><a href="rankings.html">RANKINGS</a><a href="../account.html">ACCOUNT</a></nav>
+</div></header>
+<main class="shell">
+<section class="hero"><div class="eyebrow">THE PEOPLE BEHIND THE VOICES</div><h1>MEET THE CREATORS.</h1><p>Discover the people making shows, sharing stories, and building the CrowRules Podcasting universe. Explore creator profiles, find their podcasts, and connect with the voices you want to hear more from.</p><div class="hero-actions"><a class="btn primary" href="index.html#discover">EXPLORE PODCASTS ↗</a><a class="btn" href="community.html">VISIT COMMUNITY</a><a class="btn" href="../creator/index.html">CREATOR STUDIO</a></div></section>
+<section aria-labelledby="creatorHeading"><div class="toolbar"><div><h2 class="section-title" id="creatorHeading">CREATOR DIRECTORY</h2><div id="resultCount" class="muted">Loading public creator profiles…</div></div><input id="search" class="search" type="search" maxlength="100" placeholder="Search creators by name, handle or bio…" aria-label="Search creators"><select id="sort" class="sort" aria-label="Sort creators"><option value="name">Name A–Z</option><option value="newest">Recently joined</option></select></div>
+<div id="creators" class="grid" aria-live="polite"><div class="empty">Connecting to the creator directory…</div></div></section>
+<div class="notice"><strong>Are you a creator?</strong> Start from the Creator Studio to manage your podcasting journey. Creator visibility depends on published profile information and the access policies configured for your Supabase project.</div>
+</main>
+<footer class="shell">CROWRULES PODCASTING · ONE ACCOUNT. ONE UNIVERSE.<br><a href="../home.html">CrowRules Entertainment</a></footer>
+<script>
+(()=>{"use strict";
+const C=window.CROW_CONFIG||{},SB=window.supabase;let db=null,all=[];
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const initials=s=>String(s||"CR").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"CR";
+function render(){
+ const term=$("search").value.trim().toLowerCase(),sort=$("sort").value;
+ let rows=all.filter(p=>[p.display_name,p.username,p.bio,p.creator_name,p.name].some(v=>String(v||"").toLowerCase().includes(term)));
+ rows.sort((a,b)=>sort==="newest"?new Date(b.created_at||0)-new Date(a.created_at||0):String(a.display_name||a.creator_name||a.username||a.name||"").localeCompare(String(b.display_name||b.creator_name||b.username||b.name||"")));
+ $("resultCount").textContent=rows.length+" creator"+(rows.length===1?"":"s")+(term?" matching your search":" available");
+ const grid=$("creators");grid.replaceChildren();
+ if(!rows.length){const empty=document.createElement("div");empty.className="empty";empty.textContent=term?"No creators match that search yet. Try another name or keyword.":"No public creator profiles are available yet. Check back as creators publish their profiles.";grid.appendChild(empty);return}
+ rows.forEach(p=>{
+  const name=p.display_name||p.creator_name||p.name||p.username||"CrowRules Creator",handle=p.username?"@"+p.username:"CrowRules Creator";
+  const card=document.createElement("article");card.className="creator";
+  const cover=document.createElement("div");cover.className="cover";
+  if(p.cover_url||p.banner_url)p.cover_url?cover.style.backgroundImage="url("+JSON.stringify(p.cover_url)+")":cover.style.backgroundImage="url("+JSON.stringify(p.banner_url)+")";
+  const body=document.createElement("div");body.className="creator-body";
+  const av=document.createElement("div");av.className="avatar";
+  if(p.avatar_url||p.profile_image_url){const img=document.createElement("img");img.loading="lazy";img.src=p.avatar_url||p.profile_image_url;img.alt=name+" profile";av.appendChild(img)}else av.textContent=initials(name);
+  const title=document.createElement("div");title.className="name";title.textContent=name;
+  const h=document.createElement("div");h.className="handle";h.textContent=handle;
+  const bio=document.createElement("div");bio.className="bio";bio.textContent=p.bio||p.description||"A member of the CrowRules Podcasting creator community.";
+  const stats=document.createElement("div");stats.className="stats";const shows=document.createElement("span");shows.innerHTML="<strong>"+Number(p.podcast_count||p.shows_count||0)+"</strong> shows";const joined=document.createElement("span");joined.textContent=p.created_at?"Joined "+new Date(p.created_at).toLocaleDateString(undefined,{month:"short",year:"numeric"}):"CrowRules Creator";stats.append(shows,joined);
+  const actions=document.createElement("div");actions.className="creator-actions";const browse=document.createElement("a");browse.className="btn primary";browse.href="index.html#discover";browse.textContent="FIND THEIR SHOWS";actions.appendChild(browse);
+  const profile=document.createElement("a");profile.className="btn";profile.href="profile.html";profile.textContent="COMMUNITY";actions.appendChild(profile);
+  body.append(av,title,h,bio,stats,actions);card.append(cover,body);grid.appendChild(card);
+ });
+}
+async function load(){
+ try{
+  if(!SB?.createClient||!C.supabaseUrl||!C.supabaseKey)throw Error("Supabase configuration is missing from ../config.js.");
+  db=SB.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  // Query the existing member-profile table first; no new tables or schema changes are required.
+  let result=await db.from("podcast_member_profiles").select("*").eq("is_public",true).limit(150);
+  if(result.error)throw result.error;
+  all=(result.data||[]).filter(p=>p.display_name||p.username||p.creator_name||p.name);
+  // If the public member directory is empty, try existing creator profiles as a compatible fallback.
+  if(!all.length){
+   const fallback=await db.from("creators").select("*").limit(150);
+   if(!fallback.error)all=fallback.data||[];
+  }
+  render();
+ }catch(e){
+  console.error("Creator directory load failed:",e);
+  $("resultCount").textContent="Directory unavailable";
+  const grid=$("creators");grid.replaceChildren();const empty=document.createElement("div");empty.className="empty";empty.textContent="Creator profiles could not be loaded. "+(e?.message||"Check Supabase access policies for public creator profiles.");grid.appendChild(empty);
+ }
+}
+$("search").addEventListener("input",render);$("sort").addEventListener("change",render);
+if(C.logoUrl){$("brandLogo").src=C.logoUrl;$("brandLogo").hidden=false}
+load();
+})();
+</script>
+</body>
+</html>
