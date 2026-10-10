@@ -26,12 +26,22 @@ const initials=v=>String(v||'CR').trim().split(/\s+/).filter(Boolean).slice(0,2)
 function toast(message,kind){const el=$('toast');el.textContent=message;el.className='toast '+(kind||'good');el.hidden=false;setTimeout(()=>{el.hidden=true},4000)}
 function setStatus(message,kind){$('status').textContent=message||'';$('status').className='status '+(kind||'')}
 function avatarHtml(url,name){return url&&/^https?:\/\//i.test(url)?'<img src="'+esc(url)+'" alt="Profile avatar" referrerpolicy="no-referrer" onerror="this.remove()">':esc(initials(name))}
+async function loadFeaturedBadge(){
+ const box=$('featuredBadge');if(!box||!db||!target)return;
+ try{
+  const r=await db.rpc('get_public_podcast_listener_featured_badge',{p_user_id:target.user_id});
+  if(r.error)throw r.error;
+  const b=(r.data||[])[0];if(!b){box.remove();return;}
+  box.innerHTML='<span class="featured-badge-icon" aria-hidden="true">'+esc(b.icon||'🏆')+'</span><div><strong>FEATURED ACHIEVEMENT</strong><div class="featured-badge-name">'+esc(b.name)+'</div><div class="featured-badge-desc">'+esc(b.description||'Listener achievement')+'</div></div>';
+  box.hidden=false;
+ }catch(e){console.warn('Featured listener achievement unavailable:',e);box.remove();}
+}
 async function loadAchievementBadges(){const box=$('achievementBadges');if(!box||!db||!target)return;box.innerHTML='<div class="badge-empty">Loading earned badges…</div>';try{const r=await db.rpc('get_podcast_listener_achievement_badges',{p_user_id:target.user_id});if(r.error)throw r.error;const rows=r.data||[];if(!rows.length){box.innerHTML='<div class="badge-empty">No public listener achievements to display yet.</div>';return;}box.innerHTML=rows.map(function(b){return '<div class="earned-badge"><span class="earned-badge-icon" aria-hidden="true">'+esc(b.icon||'🏆')+'</span><div><strong>'+esc(b.name)+'</strong><small>'+esc(b.description||'Listener achievement')+'</small><small class="earned-badge-date">UNLOCKED '+esc(b.unlocked_at?new Date(b.unlocked_at).toLocaleDateString():'')+'</small></div></div>';}).join('');}catch(e){console.warn('Listener achievements unavailable:',e);box.innerHTML='<div class="badge-empty">Achievement badges are temporarily unavailable.</div>';}}
 function getFriendLabel(){if(!friendship)return '＋ SEND FRIEND REQUEST';if(friendship.status==='accepted')return '✓ FRIENDS';if(friendship.requester_id===viewer.id)return 'REQUEST SENT';return 'RESPOND TO REQUEST'}
 function render(){
 const name=target.display_name||target.username||'CrowRules Member',handle=target.username?'@'+target.username:'CrowRules Member',bio=target.bio||target.tagline||'This member has not added a bio yet.',role=target.role||'Listener',avatar=target.avatar_url||'',cover=target.cover_url||'';
 $('profileCard').innerHTML='<div class="cover" style="'+(cover&&/^https?:\/\//i.test(cover)?'background-image:url(&quot;'+esc(cover)+'&quot;)':'')+'"></div><div class="body"><div class="identity"><div class="avatar">'+avatarHtml(avatar,name)+'</div><div class="nameblock"><div class="name">'+esc(name)+'</div><div class="handle">'+esc(handle)+'</div><span class="role">'+esc(String(role).toUpperCase())+'</span></div></div><p class="bio">'+esc(bio)+'</p><section id="featuredBadge" class="featured-badge" aria-label="Featured listener achievement" hidden></section><section class="earned-badges" aria-label="Earned listener achievements"><div class="earned-badges-head"><strong>LISTENER ACHIEVEMENTS</strong><span>VERIFIED BADGES</span></div><div id="achievementBadges" class="earned-badge-grid"><div class="badge-empty">Loading earned badges…</div></div></section><div class="stats"><div class="stat"><strong id="followers">—</strong><span>FOLLOWERS</span></div><div class="stat"><strong id="following">—</strong><span>FOLLOWING</span></div><div class="stat"><strong>'+(target.created_at?esc(new Date(target.created_at).getFullYear()):'—')+'</strong><span>MEMBER SINCE</span></div></div><div class="actions" id="actions"></div></div>';
-loadAchievementBadges();
+loadFeaturedBadge();loadAchievementBadges();
 const actions=$('actions');
 if(!viewer){actions.innerHTML='<a class="btn primary" href="../login.html?redirect='+encodeURIComponent('listener/member-profile.html?user='+target.user_id)+'">SIGN IN TO CONNECT</a>';setStatus('Sign in to follow this member or send a friend request.');return}
 if(viewer.id===target.user_id){actions.innerHTML='<a class="btn primary" href="profile.html">EDIT MY PROFILE</a>';setStatus('This is your public profile.');return}
