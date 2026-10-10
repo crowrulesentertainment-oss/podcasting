@@ -61,12 +61,31 @@
     if (state.error) return '<span class="cp-sitewide"><span class="cp-pill"><span class="cp-icon">🪙</span><span>CrowPoints</span><span class="cp-muted">Temporarily unavailable</span></span><button type="button" class="cp-login" data-cp-retry style="background:none;border:0;cursor:pointer">Retry</button></span>';
     return '<span class="cp-sitewide"><span class="cp-pill" title="Lifetime CrowPoints"><span class="cp-icon">🪙</span><span>' + fmt(state.lifetime) + '</span><span class="cp-muted">Lifetime</span></span><span class="cp-pill" title="Monthly CrowPoints"><span class="cp-icon">⚡</span><span>' + fmt(state.monthly) + '</span><span class="cp-muted">Monthly</span></span></span>';
   }
+  function challengesUrl() {
+    const path = location.pathname;
+    return (path.includes('/listener/') || path.includes('/creator/') || path.includes('/admin/')) ? 'challenges.html' : 'listener/challenges.html';
+  }
   function loginUrl() {
     const path = location.pathname;
     return (path.includes('/listener/') || path.includes('/creator/') || path.includes('/admin/')) ? '../login.html' : 'login.html';
   }
   function render() {
     styles();
+    // Universal floating balance dock: appears on every page that loads this shared script.
+    let dock = document.getElementById('crowpoints-dock');
+    if (!dock) {
+      dock = document.createElement('aside');
+      dock.id = 'crowpoints-dock';
+      dock.setAttribute('aria-label', 'Your CrowPoints balance');
+      document.body.appendChild(dock);
+    }
+    dock.innerHTML = '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+      '<a href="' + escapeHtml(challengesUrl()) + '" style="font:800 9px Orbitron,Montserrat,sans-serif;letter-spacing:.06em;color:#a5f3fc;text-decoration:none;padding:7px 8px">CROWPOINTS</a>' +
+      '<div data-crowpoints></div>' +
+      '<button type="button" data-cp-dismiss aria-label="Hide CrowPoints balance" title="Hide balance" style="border:0;background:transparent;color:#9aa9bd;cursor:pointer;padding:5px">×</button></div>';
+    dock.querySelector('[data-cp-dismiss]')?.addEventListener('click', () => { dock.hidden = true; });
+    dock.querySelectorAll('[data-crowpoints]').forEach(el => { el.innerHTML = markup(); });
+    dock.querySelectorAll('[data-cp-retry]').forEach(el => { if (!el.dataset.bound) { el.dataset.bound = '1'; el.addEventListener('click', refresh); } });
     document.querySelectorAll('[data-crowpoints]').forEach(el => { el.innerHTML = markup(); });
     document.querySelectorAll('[data-cp-retry]').forEach(el => { if (!el.dataset.bound) { el.dataset.bound = '1'; el.addEventListener('click', refresh); } });
     document.querySelectorAll('[data-crowpoints-card]').forEach(el => {
