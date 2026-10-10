@@ -27,8 +27,16 @@ a{color:inherit}.wrap{width:min(1180px,94vw);margin:28px auto 80px}.top{display:
 <section class="hero"><div class="eyebrow">YOUR ACCOUNT · YOUR LISTENING · YOUR CREATOR JOURNEY</div><h1>ACCOUNT <span>CENTER.</span></h1><p>Manage your CrowRules Podcasting identity, check your account status, find your listener and creator tools, and keep your sign-in secure. One account for your Podcasting experience.</p></section>
 <section id="guest" class="guest"><div class="panel"><div class="section-kicker">WELCOME TO CROWRULES</div><h2>Your Podcasting account starts here.</h2><p class="muted">Sign in to see your account information and available tools, or create an account to get started. Your account status will be checked with Supabase.</p><div class="actions"><a class="btn primary" id="login" href="login.html">LOG IN</a><a class="btn" id="signup" href="signup.html">CREATE ACCOUNT</a><button class="btn" id="guestRefresh" type="button">CHECK STATUS</button></div><div id="guestMessage" class="notice" role="status" aria-live="polite">Checking your sign-in status…</div></div></section>
 <section id="member" class="hidden">
-<div class="stats"><div class="stat"><small>MEMBERSHIP</small><strong id="membership">FREE</strong><em id="membershipNote">ACCOUNT LEVEL</em></div><div class="stat"><small>CROWPOINTS</small><strong id="points">—</strong><em>LIFETIME BALANCE</em></div><div class="stat"><small>CREATOR PROFILE</small><strong id="creator">—</strong><em id="creatorNote">PROFILE STATUS</em></div><div class="stat"><small>YOUR EPISODES</small><strong id="episodes">—</strong><em>CREATOR CATALOG</em></div></div>
-<div class="layout"><div class="stack">
+<div class="stats">
+<div class="stat"><small>MEMBERSHIP</small><strong id="membership">—</strong><em id="membershipNote">MEMBER RECORD</em></div>
+<div class="stat"><small>CROWPOINTS</small><strong id="points">—</strong><em>LIFETIME BALANCE</em></div>
+<div class="stat"><small>CREATOR PROFILE</small><strong id="creator">—</strong><em id="creatorNote">PROFILE STATUS</em></div>
+<div class="stat"><small>YOUR EPISODES</small><strong id="episodes">—</strong><em id="episodeNote">CREATOR CATALOG</em></div>
+<div class="stat"><small>RECORDED PLAYS</small><strong id="plays">—</strong><em id="playsNote">PLAY EVENT SOURCE</em></div>
+<div class="stat"><small>LISTENING HOURS</small><strong id="hours">—</strong><em id="hoursNote">RECORDED DURATION</em></div>
+<div class="stat"><small>COMPLETED LISTENS</small><strong id="completed">—</strong><em id="completedNote">EXPLICIT COMPLETIONS</em></div>
+<div class="stat"><small>SUBSCRIPTIONS</small><strong id="subscriptions">—</strong><em id="subscriptionsNote">SUBSCRIBER RECORDS</em></div>
+</div><div id="analyticsNotice" class="notice" role="status" aria-live="polite">Account analytics have not loaded yet.</div><div class="layout"><div class="stack">
 <section class="panel"><div class="eyebrow">ACCOUNT IDENTITY</div><div class="identity"><div id="avatar" class="avatar" aria-hidden="true">CR</div><div><h3 id="name">CrowRules Member</h3><p id="email">—</p><span id="authBadge" class="badge">SESSION ACTIVE</span></div></div><div class="actions"><a class="btn primary" href="listener/profile.html">LISTENER PROFILE</a><a class="btn" href="listener/index.html">BROWSE PODCASTS</a><button class="btn danger" id="logout" type="button">SIGN OUT</button></div></section>
 <section class="panel"><div class="section-kicker">PROFILE SETTINGS</div><h2>Make this account yours</h2><p class="muted">Update the display name attached to your Supabase sign-in. Your email address remains managed by your authentication provider.</p><form id="profileForm"><div class="field"><label for="displayName">DISPLAY NAME</label><input id="displayName" name="displayName" maxlength="80" autocomplete="name" placeholder="Your display name" required></div><div class="actions"><button class="btn primary" id="saveProfile" type="submit">SAVE PROFILE</button><button class="btn" id="resetProfile" type="button">RESET FORM</button></div></form><div id="profileMessage" class="notice hidden" role="status" aria-live="polite"></div></section>
 <section class="panel"><div class="section-kicker">ACCOUNT DETAILS</div><h2>Your account information</h2><div class="rows"><div class="row"><span>Email address</span><b id="detailEmail">—</b></div><div class="row"><span>Display name</span><b id="detailName">—</b></div><div class="row"><span>Member since</span><b id="since">—</b></div><div class="row"><span>Sign-in provider</span><b id="provider">—</b></div><div class="row"><span>Account ID</span><b id="uid">—</b></div></div><div class="actions"><button class="btn" id="copyId" type="button">COPY ACCOUNT ID</button></div><p class="fine">Your account ID is a reference for support. Never share your password or authentication tokens.</p></section>
@@ -53,21 +61,45 @@ const fmt=v=>v?new Date(v).toLocaleDateString(undefined,{month:'short',day:'nume
 function message(id,text,type){const el=$(id);el.textContent=text;el.classList.remove('hidden','ok','error');if(type)el.classList.add(type)}
 function signedOut(text){currentUser=null;loadToken++;$('guest').classList.remove('hidden');$('member').classList.add('hidden');$('session').textContent='SIGNED OUT';$('auth').textContent='NOT SIGNED IN';$('guestMessage').textContent=text||'You are not signed in. Log in or create a Podcasting account to continue.';$('guestMessage').classList.remove('error','ok')}
 function signedInShell(user){$('guest').classList.add('hidden');$('member').classList.remove('hidden');$('session').textContent='ACTIVE';$('auth').textContent='VERIFIED';$('guestMessage').textContent='You are signed in.';currentUser=user}
-async function lookupOne(table,field,value){try{const {data,error}=await S.from(table).select('*').eq(field,value).limit(1).maybeSingle();if(error)return null;return data||null}catch{return null}}
-async function loadUser(user,noticeText){if(!user){signedOut();return}currentUser=user;const token=++loadToken; signedInShell(user);
+async function lookupOne(table,field,value){try{const {data,error}=await S.from(table).select('*').eq(field,value).limit(1).maybeSingle();if(error)return {data:null,error:error.message};return {data:data||null,error:null}}catch(e){return {data:null,error:e.message||String(e)}}}
+async function readRows(table){try{const {data,error}=await S.from(table).select('*').limit(5000);if(error)return {data:null,error:error.message};return {data:Array.isArray(data)?data:[],error:null}}catch(e){return {data:null,error:e.message||String(e)}}}
+function rowOwner(r){return r.user_id||r.member_id||r.listener_id||r.profile_id||r.subscriber_id||r.account_id||null}
+function rowSeconds(r){for(const k of ['seconds_listened','listening_duration_seconds','duration_seconds','listen_duration_seconds','listened_seconds','listen_seconds','watch_seconds','duration_sec']){const v=Number(r?.[k]);if(Number.isFinite(v)&&v>0)return v>86400?v/1000:v}return 0}
+function fmtCount(n){return Number(n||0).toLocaleString()}
+async function loadUser(user,noticeText){if(!user){signedOut();return}currentUser=user;const token=++loadToken;signedInShell(user);
 const meta=user.user_metadata||{},display=meta.display_name||meta.full_name||meta.name||'CrowRules Member';
 $('name').textContent=display;$('email').textContent=user.email||'Email unavailable';$('detailEmail').textContent=user.email||'—';$('detailName').textContent=display;$('displayName').value=display==='CrowRules Member'?'':display;$('since').textContent=fmt(user.created_at);$('provider').textContent=String(user.app_metadata?.provider||user.identities?.[0]?.provider||'email').toUpperCase();$('uid').textContent=user.id;$('avatar').textContent=initials(display);$('authBadge').textContent='SESSION ACTIVE';
 if(noticeText)message('securityMessage',noticeText,'error');
-const [member,creator]=await Promise.all([lookupOne('members','user_id',user.id),lookupOne('creator_profiles','user_id',user.id)]);
+$('analyticsNotice').textContent='Syncing account analytics from Podcasting event and listening-session tables…';
+const [memberResult,creatorResult,episodesResult,playsResult,listensResult,subsResult]=await Promise.all([
+lookupOne('members','user_id',user.id),lookupOne('creators','user_id',user.id),readRows('podcast_episodes'),readRows('podcast_play_events'),readRows('podcast_listens'),lookupOne('creator_subscriptions','subscriber_id',user.id)
+]);
 if(token!==loadToken||currentUser?.id!==user.id)return;
-const level=member?.membership_level||member?.membership_type||member?.plan_name||'Free';
-$('membership').textContent=String(level).toUpperCase();$('membershipNote').textContent=member?.status?String(member.status).toUpperCase():'MEMBER ACCOUNT';
-const pts=member?.crowpoints_lifetime??member?.lifetime_crowpoints??member?.crowpoints??member?.crow_points??0;
-$('points').textContent=Number.isFinite(Number(pts))?Number(pts).toLocaleString():'—';
-$('creator').textContent=creator?'YES':'NO';$('creatorNote').textContent=creator?'CREATOR PROFILE FOUND':'NO CREATOR PROFILE';
-let episodeCount='—';
-try{let r=await S.from('podcast_episodes').select('id',{count:'exact',head:true}).eq('creator_id',user.id);if(r.error)r=await S.from('podcast_episodes').select('id',{count:'exact',head:true}).eq('user_id',user.id);if(!r.error)episodeCount=String(r.count??0)}catch{}
-if(token===loadToken&&currentUser?.id===user.id)$('episodes').textContent=episodeCount;
+const member=memberResult.data,creator=creatorResult.data;
+const level=member?.membership_level||member?.membership_type||member?.plan_name||member?.membership||'Free';
+$('membership').textContent=String(level).toUpperCase();$('membershipNote').textContent=member?.status?String(member.status).toUpperCase():(member?'MEMBER RECORD':'DEFAULT ACCOUNT');
+const pts=member?.crowpoints_lifetime??member?.lifetime_crowpoints??member?.crowpoints??member?.crow_points??member?.lifetime_points;
+$('points').textContent=pts==null?'—':fmtCount(pts);
+$('creator').textContent=creator?'YES':'NO';$('creatorNote').textContent=creator?'CREATOR RECORD FOUND':(creatorResult.error?'CREATOR QUERY UNAVAILABLE':'NO CREATOR RECORD');
+const allEpisodes=episodesResult.data,ownedEpisodes=allEpisodes?allEpisodes.filter(r=>[r.user_id,r.creator_id,r.owner_id,r.created_by].some(v=>v!=null&&String(v)===String(user.id))):null;
+$('episodes').textContent=ownedEpisodes===null?'—':fmtCount(ownedEpisodes.length);$('episodeNote').textContent=ownedEpisodes===null?'QUERY UNAVAILABLE':'OWNED CATALOG · READABLE ROWS';
+const allPlays=playsResult.data,ownedPlays=allPlays?allPlays.filter(r=>String(rowOwner(r)||'')===String(user.id)):null;
+const playEvents=ownedPlays?ownedPlays.filter(r=>String(r.event_type||r.event_name||r.type||'play').toLowerCase()==='play'):null;
+$('plays').textContent=playEvents===null?'—':fmtCount(playEvents.length);$('playsNote').textContent=allPlays===null?'EVENT QUERY UNAVAILABLE':(ownedPlays.length?'PODCAST_PLAY_EVENTS':'NO MATCHING USER EVENTS');
+const allListens=listensResult.data,ownedSessions=allListens?allListens.filter(r=>String(rowOwner(r)||'')===String(user.id)):null;
+if(ownedSessions===null){$('hours').textContent='—';$('hoursNote').textContent='SESSION QUERY UNAVAILABLE';$('completed').textContent='—';$('completedNote').textContent='SESSION QUERY UNAVAILABLE'}
+else{
+const durationAvailable=ownedSessions.some(r=>['seconds_listened','listening_duration_seconds','duration_seconds','listen_duration_seconds','listened_seconds','listen_seconds','watch_seconds','duration_sec'].some(k=>r[k]!==undefined&&r[k]!==null&&r[k]!==''));const seconds=ownedSessions.reduce((sum,r)=>sum+rowSeconds(r),0);
+$('hours').textContent=durationAvailable?(seconds/3600).toLocaleString(undefined,{minimumFractionDigits:1,maximumFractionDigits:1}):'—';$('hoursNote').textContent=durationAvailable?'PODCAST_LISTENS · RECORDED DURATION':'NO READABLE DURATION FIELD';
+const completionAvailable=ownedSessions.some(r=>r.completed!==undefined||r.is_completed!==undefined||r.status!==undefined);const completed=ownedSessions.filter(r=>r.completed===true||r.is_completed===true||String(r.status||'').toLowerCase()==='completed').length;
+$('completed').textContent=completionAvailable?fmtCount(completed):'—';$('completedNote').textContent=completionAvailable?'EXPLICITLY MARKED COMPLETE':'NO COMPLETION FIELD';
+}
+if(subsResult.error){$('subscriptions').textContent='—';$('subscriptionsNote').textContent='SUBSCRIPTION QUERY UNAVAILABLE'}
+else if(!subsResult.data){$('subscriptions').textContent='0';$('subscriptionsNote').textContent='NO SUBSCRIBER RECORD FOUND'}
+else{$('subscriptions').textContent='1';$('subscriptionsNote').textContent=String(subsResult.data.status||'RECORD FOUND').toUpperCase()}
+const issues=[];if(memberResult.error)issues.push('membership record unavailable');if(creatorResult.error)issues.push('creator record unavailable');if(episodesResult.error)issues.push('episode catalog unavailable');if(playsResult.error)issues.push('play events unavailable');if(listensResult.error)issues.push('listening sessions unavailable');if(subsResult.error)issues.push('subscription records unavailable');
+$('analyticsNotice').textContent=issues.length?'Some metrics could not be read: '+issues.join('; ')+'. Unavailable values are shown as dashes, not reported as zero.':'Account metrics loaded from Podcasting tables. Plays use podcast_play_events; duration and completions use podcast_listens. Values depend on records visible under current Supabase policies.';
+$('analyticsNotice').classList.toggle('error',issues.length>0);$('analyticsNotice').classList.toggle('ok',issues.length===0);
 }
 async function refreshAccount(){if(!S)return;$('session').textContent='CHECKING';$('auth').textContent='CHECKING';$('refresh').disabled=true;
 try{const {data,error}=await S.auth.getSession();if(error)throw error;const session=data?.session;if(!session){signedOut();return}const verified=await S.auth.getUser();if(verified.error){await loadUser(session.user,'Identity verification is temporarily unavailable. Your existing session was found; retry refresh shortly.');$('auth').textContent='CHECK INCOMPLETE';return}if(verified.data?.user)await loadUser(verified.data.user);else signedOut()}
