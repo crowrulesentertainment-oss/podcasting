@@ -49,9 +49,22 @@ const actions=$('actions');
 if(!viewer){actions.innerHTML='<a class="btn primary" href="../login.html?redirect='+encodeURIComponent('listener/member-profile.html?user='+target.user_id)+'">SIGN IN TO CONNECT</a>';setStatus('Sign in to follow this member or send a friend request.');return}
 if(viewer.id===target.user_id){actions.innerHTML='<a class="btn primary" href="profile.html">EDIT MY PROFILE</a>';setStatus('This is your public profile.');return}
 const follow=document.createElement('button');follow.className='btn primary';follow.textContent=followed?'✓ FOLLOWING':'＋ FOLLOW';follow.addEventListener('click',toggleFollow);
-const friend=document.createElement('button');friend.className='btn';friend.textContent=getFriendLabel();friend.disabled=!!friendship;friend.addEventListener('click',sendFriendRequest);
-actions.append(follow,friend);if(friendship&&friendship.status==='pending'&&friendship.addressee_id===viewer.id){friend.disabled=false;friend.textContent='ACCEPT FRIEND REQUEST';friend.addEventListener('click',acceptRequest);}
-if(friendship&&friendship.status==='pending'&&friendship.addressee_id===viewer.id){const decline=document.createElement('button');decline.className='btn';decline.textContent='DECLINE REQUEST';decline.addEventListener('click',()=>respondRequest('rejected',decline));actions.appendChild(decline)}
+const friend=document.createElement('button');friend.className='btn';
+if(!friendship){
+  friend.textContent='＋ SEND FRIEND REQUEST';
+  friend.addEventListener('click',sendFriendRequest);
+}else if(friendship.status==='pending'&&friendship.addressee_id===viewer.id){
+  friend.textContent='ACCEPT FRIEND REQUEST';
+  friend.addEventListener('click',acceptRequest);
+}else{
+  friend.textContent=getFriendLabel();
+  friend.disabled=true;
+}
+actions.append(follow,friend);
+if(friendship&&friendship.status==='pending'&&friendship.addressee_id===viewer.id){
+  const decline=document.createElement('button');decline.className='btn';decline.textContent='DECLINE REQUEST';
+  decline.addEventListener('click',()=>respondRequest('rejected',decline));actions.appendChild(decline);
+}
 setStatus(friendship&&friendship.status==='accepted'?'You are friends.':friendship&&friendship.status==='pending'?(friendship.requester_id===viewer.id?'Friend request pending.':'This member sent you a friend request.'):'Connect with this member using the buttons above.');
 }
 async function refreshConnections(){
