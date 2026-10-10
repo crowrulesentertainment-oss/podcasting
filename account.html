@@ -1,94 +1,89 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050a"><title>Account — CrowRules Podcasting</title><link rel="stylesheet" href="css/podcasting.css"><script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="config.js"></script><style>
-:root{--bg:#05050a;--panel:rgba(13,15,25,.9);--line:rgba(157,126,255,.24);--cyan:#61e8ff;--purple:#a78bfa;--pink:#ff6fd8;--gold:#ffd36b;--text:#f5f4ff;--muted:#9d9bb0;--ok:#68f5b1;--danger:#ff7b91}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0%,rgba(97,232,255,.1),transparent 30%),radial-gradient(circle at 85% 10%,rgba(167,139,250,.14),transparent 35%),linear-gradient(180deg,#07070d,#040409);color:var(--text);font:13px Montserrat,system-ui,sans-serif}.wrap{width:min(1180px,94vw);margin:40px auto 80px}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:35px}.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff}.brand img{width:64px;height:64px;object-fit:contain}.brand b,h1,h2,h3,.stat strong{font-family:Orbitron,monospace}.brand b{font-size:14px}.brand small{display:block;color:var(--cyan);font-size:8px;letter-spacing:.16em;font-weight:800}.back{color:var(--muted);font-size:9px;font-weight:800}.eyebrow{color:var(--cyan);font:800 10px Orbitron;letter-spacing:.16em}.hero{padding:20px 0 28px}.hero h1{font-size:clamp(38px,6vw,68px);line-height:1;margin:10px 0}.hero h1 span{background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));-webkit-background-clip:text;color:transparent}.hero p{max-width:760px;color:var(--muted);line-height:1.8}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat,.panel{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:16px;box-shadow:0 18px 55px rgba(0,0,0,.25)}.stat{padding:18px}.stat small{display:block;color:var(--muted);font-size:8px;font-weight:800;letter-spacing:.13em;margin-bottom:8px}.stat strong{font-size:24px}.stat em{display:block;color:var(--ok);font-size:8px;font-style:normal;font-weight:800;margin-top:7px}.layout{display:grid;grid-template-columns:1.25fr .75fr;gap:14px;margin-top:14px}.panel{padding:22px}.panel h2{margin:0 0 7px;font-size:17px}.muted{color:var(--muted);font-size:10px;line-height:1.65}.identity{display:flex;align-items:center;gap:16px;margin:18px 0}.avatar{width:78px;height:78px;border-radius:22px;border:1px solid var(--line);object-fit:cover;background:#111522;display:grid;place-items:center;color:var(--cyan);font:700 20px Orbitron}.identity h3{margin:0 0 6px;font-size:18px}.identity p{margin:0;color:var(--muted);font-size:11px}.badge{display:inline-block;margin-top:9px;padding:5px 9px;border-radius:99px;border:1px solid rgba(104,245,177,.2);color:var(--ok);font-size:8px;font-weight:800}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.btn{border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:rgba(255,255,255,.025);color:#fff;font-size:9px;font-weight:800;letter-spacing:.08em;cursor:pointer;text-decoration:none}.btn.primary{background:linear-gradient(135deg,rgba(97,232,255,.15),rgba(167,139,250,.18))}.btn.danger{color:#ff9cad;border-color:rgba(255,123,145,.25)}.rows{margin-top:14px}.row{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:10px}.row span{color:var(--muted)}.row b{text-align:right;word-break:break-all}.quick{display:grid;gap:8px;margin-top:15px}.quick a{padding:13px;border:1px solid rgba(255,255,255,.07);border-radius:11px;color:#fff;text-decoration:none;font-size:10px;font-weight:800}.notice{margin-top:14px;padding:13px;border:1px solid rgba(255,211,107,.18);border-radius:11px;color:#cfc5a5;background:rgba(255,211,107,.04);font-size:9px;line-height:1.6}.guest{display:none}.show{display:block}.error{color:var(--danger)}@media(max-width:850px){.stats{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}}@media(max-width:600px){.stats{grid-template-columns:1fr}.top{align-items:flex-start}.wrap{margin-top:25px}}
-</style></head><body><main class="wrap"><header class="top"><a class="brand" href="index.html"><img src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png" alt="CrowRules Podcasting"><div><b>CROWRULES</b><small>PODCASTING • YOUR PODCASTING ACCOUNT</small></div></a><a class="back" href="index.html">← PODCASTING</a></header>
-<section class="hero"><div class="eyebrow">CROWRULES PODCASTING • ACCOUNT CENTER</div><h1>YOUR <span>ACCOUNT.</span></h1><p>Your CrowRules Podcasting home for account access, listener activity, creator tools and security. This page stays inside the Podcasting experience.</p></section>
-<section id="guest"><div class="panel"><div class="eyebrow">WELCOME</div><h2>Sign in to CrowRules Podcasting</h2><p class="muted">Sign in or create your Podcasting account. After authentication, you’ll return to this account center.</p><div class="actions"><a class="btn primary" id="login" href="#">LOG IN</a><a class="btn" id="signup" href="#">CREATE ACCOUNT</a></div><div class="notice" id="message">Not signed in.</div></div></section>
-<section id="member" style="display:none"><div class="stats"><div class="stat"><small>MEMBERSHIP</small><strong id="membership">FREE</strong><em id="membershipNote">ACCOUNT STATUS</em></div><div class="stat"><small>CROWPOINTS</small><strong id="points">0</strong><em>LIFETIME BALANCE</em></div><div class="stat"><small>CREATOR</small><strong id="creator">NO</strong><em id="creatorNote">CREATOR ACCESS</em></div><div class="stat"><small>EPISODES</small><strong id="episodes">0</strong><em>YOUR PODCAST CATALOG</em></div></div>
-<div class="layout"><div><section class="panel"><div class="eyebrow">PROFILE</div><div class="identity"><div id="avatar" class="avatar">CR</div><div><h3 id="name">CrowRules Member</h3><p id="email">—</p><span class="badge">AUTHENTICATED</span></div></div><div class="actions"><a class="btn primary" href="creator/studio.html">CREATOR STUDIO</a><a class="btn" href="listener/profile.html">LISTENER PROFILE</a><a class="btn" href="creator/subscriptions.html">PODCASTING SUBSCRIPTIONS</a><button class="btn danger" id="logout">SIGN OUT</button></div></section>
-<section class="panel" style="margin-top:14px"><h2>Account Details</h2><p class="muted">Current identity information from your authenticated CrowRules session.</p><div class="rows"><div class="row"><span>Email</span><b id="detailEmail">—</b></div><div class="row"><span>Display name</span><b id="detailName">—</b></div><div class="row"><span>Member since</span><b id="since">—</b></div><div class="row"><span>Provider</span><b id="provider">—</b></div><div class="row"><span>User ID</span><b id="uid">—</b></div></div></section></div>
-<aside><section class="panel"><h2>Podcasting Hub</h2><p class="muted">Jump into your listener and creator tools.</p><div class="quick"><a href="index.html">PODCAST HOME →</a><a href="creator/studio.html">CREATOR STUDIO →</a><a href="creator/podcasts.html">MY PODCASTS →</a><a href="creator/episodes.html">EPISODES →</a><a href="creator/subscriptions.html">SUBSCRIPTIONS →</a><a href="creator/payouts.html">PAYOUTS →</a></div></section><section class="panel" style="margin-top:14px"><h2>Security</h2><p class="muted">This public page uses the Supabase publishable key only. Authorization is based on the authenticated user returned by Supabase.</p><div class="rows"><div class="row"><span>Session</span><b id="session">CHECKING</b></div><div class="row"><span>Auto refresh</span><b>ENABLED</b></div><div class="row"><span>Authentication</span><b id="auth">CHECKING</b></div></div><div class="actions"><button class="btn" id="refresh">REFRESH ACCOUNT</button></div></section></aside></div></section></main>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05050a">
+<meta name="description" content="Manage your CrowRules Podcasting account, profile, security and creator tools.">
+<title>Account Center — CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="config.js"></script>
+<style>
+:root{--bg:#05050a;--panel:rgba(13,15,25,.92);--line:rgba(157,126,255,.25);--cyan:#61e8ff;--purple:#a78bfa;--pink:#ff6fd8;--gold:#ffd36b;--text:#f5f4ff;--muted:#9d9bb0;--ok:#68f5b1;--danger:#ff7b91}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 12% 0%,rgba(97,232,255,.11),transparent 31%),radial-gradient(circle at 90% 9%,rgba(167,139,250,.15),transparent 34%),linear-gradient(180deg,#07070d,#040409);color:var(--text);font:13px Montserrat,system-ui,sans-serif;min-height:100vh}
+a{color:inherit}.wrap{width:min(1180px,94vw);margin:28px auto 80px}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:26px}.brand{display:flex;align-items:center;gap:12px;text-decoration:none}.brand img{width:58px;height:58px;object-fit:contain}.brand b,h1,h2,h3,.stat strong{font-family:Orbitron,monospace}.brand b{font-size:14px}.brand small{display:block;color:var(--cyan);font-size:8px;letter-spacing:.16em;font-weight:800;margin-top:4px}.back{color:var(--muted);font-size:9px;font-weight:800;text-decoration:none}
+.hero{padding:16px 0 24px}.eyebrow{color:var(--cyan);font:800 10px Orbitron,monospace;letter-spacing:.16em}.hero h1{font-size:clamp(36px,6vw,64px);line-height:1.02;margin:12px 0}.hero h1 span{background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}.hero p{max-width:760px;color:var(--muted);line-height:1.8}
+.panel,.stat{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:16px;box-shadow:0 18px 55px rgba(0,0,0,.22)}.panel{padding:21px}.panel h2{font-size:16px;margin:0 0 7px}.muted{color:var(--muted);font-size:10px;line-height:1.7}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.stat{padding:17px;min-width:0}.stat small{display:block;color:var(--muted);font-size:8px;font-weight:800;letter-spacing:.13em;margin-bottom:8px}.stat strong{font-size:clamp(17px,2.4vw,24px);overflow-wrap:anywhere}.stat em{display:block;color:var(--ok);font-size:8px;font-style:normal;font-weight:800;margin-top:7px}
+.layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(270px,.8fr);gap:14px;margin-top:14px}.stack{display:grid;gap:14px}.identity{display:flex;align-items:center;gap:15px;margin:17px 0}.avatar{width:74px;height:74px;flex:0 0 74px;border-radius:22px;border:1px solid var(--line);object-fit:cover;background:#111522;display:grid;place-items:center;color:var(--cyan);font:700 20px Orbitron,monospace}.identity h3{margin:0 0 6px;font-size:18px;overflow-wrap:anywhere}.identity p{margin:0;color:var(--muted);font-size:11px;overflow-wrap:anywhere}.badge{display:inline-block;margin-top:9px;padding:5px 9px;border-radius:99px;border:1px solid rgba(104,245,177,.2);color:var(--ok);font-size:8px;font-weight:800}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:rgba(255,255,255,.025);color:#fff;font:800 9px Montserrat,system-ui,sans-serif;letter-spacing:.06em;cursor:pointer;text-decoration:none;transition:transform .15s,border-color .15s}.btn:hover{transform:translateY(-1px);border-color:var(--cyan)}.btn.primary{background:linear-gradient(135deg,rgba(97,232,255,.14),rgba(167,139,250,.18))}.btn.danger{color:#ff9cad;border-color:rgba(255,123,145,.25)}.btn:disabled{opacity:.55;cursor:wait;transform:none}
+.rows{margin-top:12px}.row{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:10px}.row:last-child{border-bottom:0}.row span{color:var(--muted);flex:0 0 auto}.row b{text-align:right;overflow-wrap:anywhere;max-width:70%}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:15px}.quick a{padding:13px;border:1px solid rgba(255,255,255,.07);border-radius:11px;color:#fff;text-decoration:none;font-size:9px;font-weight:800;line-height:1.5}.quick a:hover{border-color:var(--purple);background:rgba(167,139,250,.06)}
+.notice{margin-top:13px;padding:12px 13px;border:1px solid rgba(255,211,107,.18);border-radius:11px;color:#d9cfaf;background:rgba(255,211,107,.04);font-size:10px;line-height:1.65;overflow-wrap:anywhere}.notice.ok{border-color:rgba(104,245,177,.2);color:var(--ok);background:rgba(104,245,177,.04)}.notice.error{border-color:rgba(255,123,145,.25);color:var(--danger);background:rgba(255,123,145,.04)}
+.field{display:grid;gap:7px;margin:13px 0}.field label{font-size:9px;font-weight:800;color:var(--muted);letter-spacing:.08em}.field input{width:100%;min-width:0;background:#090b14;border:1px solid rgba(255,255,255,.13);border-radius:9px;padding:12px;color:var(--text);font:12px Montserrat,system-ui,sans-serif;outline:none}.field input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(97,232,255,.08)}.field input:disabled{opacity:.7}.hidden{display:none!important}.guest{max-width:740px}.guest h2{font-size:20px}.section-kicker{font:800 8px Orbitron,monospace;color:var(--purple);letter-spacing:.15em;margin-bottom:9px}.fine{font-size:9px;color:var(--muted);line-height:1.7}.divider{height:1px;background:rgba(255,255,255,.07);margin:17px 0}
+@media(max-width:850px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}}@media(max-width:560px){.wrap{margin-top:18px}.top{align-items:flex-start}.brand img{width:45px;height:45px}.brand small{max-width:190px;line-height:1.5}.stats{gap:8px}.stat{padding:13px}.panel{padding:16px}.quick{grid-template-columns:1fr 1fr}.actions .btn{flex:1 1 auto}.row{gap:10px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="top"><a class="brand" href="index.html"><img src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png" alt="CrowRules Podcasting"><div><b>CROWRULES</b><small>PODCASTING · ACCOUNT CENTER</small></div></a><a class="back" href="index.html">← PODCASTING HOME</a></header>
+<section class="hero"><div class="eyebrow">YOUR ACCOUNT · YOUR LISTENING · YOUR CREATOR JOURNEY</div><h1>ACCOUNT <span>CENTER.</span></h1><p>Manage your CrowRules Podcasting identity, check your account status, find your listener and creator tools, and keep your sign-in secure. One account for your Podcasting experience.</p></section>
+<section id="guest" class="guest"><div class="panel"><div class="section-kicker">WELCOME TO CROWRULES</div><h2>Your Podcasting account starts here.</h2><p class="muted">Sign in to see your account information and available tools, or create an account to get started. Your account status will be checked with Supabase.</p><div class="actions"><a class="btn primary" id="login" href="login.html">LOG IN</a><a class="btn" id="signup" href="signup.html">CREATE ACCOUNT</a><button class="btn" id="guestRefresh" type="button">CHECK STATUS</button></div><div id="guestMessage" class="notice" role="status" aria-live="polite">Checking your sign-in status…</div></div></section>
+<section id="member" class="hidden">
+<div class="stats"><div class="stat"><small>MEMBERSHIP</small><strong id="membership">FREE</strong><em id="membershipNote">ACCOUNT LEVEL</em></div><div class="stat"><small>CROWPOINTS</small><strong id="points">—</strong><em>LIFETIME BALANCE</em></div><div class="stat"><small>CREATOR PROFILE</small><strong id="creator">—</strong><em id="creatorNote">PROFILE STATUS</em></div><div class="stat"><small>YOUR EPISODES</small><strong id="episodes">—</strong><em>CREATOR CATALOG</em></div></div>
+<div class="layout"><div class="stack">
+<section class="panel"><div class="eyebrow">ACCOUNT IDENTITY</div><div class="identity"><div id="avatar" class="avatar" aria-hidden="true">CR</div><div><h3 id="name">CrowRules Member</h3><p id="email">—</p><span id="authBadge" class="badge">SESSION ACTIVE</span></div></div><div class="actions"><a class="btn primary" href="listener/profile.html">LISTENER PROFILE</a><a class="btn" href="listener/index.html">BROWSE PODCASTS</a><button class="btn danger" id="logout" type="button">SIGN OUT</button></div></section>
+<section class="panel"><div class="section-kicker">PROFILE SETTINGS</div><h2>Make this account yours</h2><p class="muted">Update the display name attached to your Supabase sign-in. Your email address remains managed by your authentication provider.</p><form id="profileForm"><div class="field"><label for="displayName">DISPLAY NAME</label><input id="displayName" name="displayName" maxlength="80" autocomplete="name" placeholder="Your display name" required></div><div class="actions"><button class="btn primary" id="saveProfile" type="submit">SAVE PROFILE</button><button class="btn" id="resetProfile" type="button">RESET FORM</button></div></form><div id="profileMessage" class="notice hidden" role="status" aria-live="polite"></div></section>
+<section class="panel"><div class="section-kicker">ACCOUNT DETAILS</div><h2>Your account information</h2><div class="rows"><div class="row"><span>Email address</span><b id="detailEmail">—</b></div><div class="row"><span>Display name</span><b id="detailName">—</b></div><div class="row"><span>Member since</span><b id="since">—</b></div><div class="row"><span>Sign-in provider</span><b id="provider">—</b></div><div class="row"><span>Account ID</span><b id="uid">—</b></div></div><div class="actions"><button class="btn" id="copyId" type="button">COPY ACCOUNT ID</button></div><p class="fine">Your account ID is a reference for support. Never share your password or authentication tokens.</p></section>
+</div>
+<aside class="stack"><section class="panel"><div class="eyebrow">PODCASTING HUB</div><h2>Pick up where you left off.</h2><p class="muted">Shortcuts to your Podcasting experience. Some creator pages require an eligible creator profile.</p><div class="quick"><a href="index.html">PODCASTING HOME ↗</a><a href="listener/index.html">DISCOVER SHOWS ↗</a><a href="listener/community.html">LISTENER COMMUNITY ↗</a><a href="listener/creators.html">MEET CREATORS ↗</a><a href="listener/rankings.html">TOP 10 RANKINGS ↗</a><a href="listener/profile.html">LISTENER PROFILE ↗</a><a href="creator/studio.html">CREATOR STUDIO ↗</a><a href="creator/podcasts.html">MY PODCASTS ↗</a><a href="creator/episodes.html">MY EPISODES ↗</a><a href="creator/subscriptions.html">SUBSCRIPTIONS ↗</a><a href="creator/payouts.html">PAYOUTS ↗</a><a href="signup.html">ACCOUNT HELP ↗</a></div></section>
+<section class="panel"><div class="section-kicker">SECURITY & ACCESS</div><h2>Keep your account secure</h2><div class="rows"><div class="row"><span>Session</span><b id="session">CHECKING</b></div><div class="row"><span>Identity check</span><b id="auth">CHECKING</b></div><div class="row"><span>Token refresh</span><b>AUTOMATIC</b></div></div><div class="divider"></div><p class="muted">Request a password reset link for the email address associated with this account. If you sign in with a social provider, manage credentials with that provider.</p><button class="btn" id="resetPassword" type="button">EMAIL PASSWORD RESET</button><div id="securityMessage" class="notice hidden" role="status" aria-live="polite"></div><div class="actions"><button class="btn" id="refresh" type="button">REFRESH ACCOUNT</button></div></section>
+</aside></div></section>
+<footer class="fine" style="padding:25px 2px 0">CROWRULES PODCASTING · ONE COMPANY. ONE UNIVERSE. <span style="float:right"><a href="index.html">Home</a> · <a href="login.html">Sign in</a></span></footer>
+</main>
 <script>
-(()=>{
+(()=>{'use strict';
 const $=id=>document.getElementById(id),cfg=window.CROW_CONFIG||{};
 const url=cfg.supabaseUrl||cfg.supabaseURL||"https://cevylpnoexugwgygvtgu.supabase.co";
 const key=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.publishableKey;
-let S,authSubscription,loadingUserId=null;
-const params=new URLSearchParams(location.search),raw=params.get("redirect")||params.get("returnTo");
-function target(){
- if(!raw)return "account.html";
- try{const decoded=decodeURIComponent(raw);if(!decoded||decoded.startsWith("//")||/^[a-z]+:/i.test(decoded)||decoded.includes("\\\\"))return "account.html";const u=new URL(decoded,location.href);if(u.origin!==location.origin)return "account.html";return (u.pathname.split("/").pop()||"account.html")+u.search+u.hash}catch{return "account.html"}
+let S=null,authSubscription=null,currentUser=null,loadToken=0;
+const rawRedirect=new URLSearchParams(location.search).get('redirect')||new URLSearchParams(location.search).get('returnTo');
+function safeRedirect(value){if(!value)return 'account.html';try{const u=new URL(value,location.href);if(u.origin!==location.origin||u.username||u.password)return 'account.html';return u.pathname+u.search+u.hash}catch{return 'account.html'}}
+const redirect=safeRedirect(rawRedirect),redirectQuery='?redirect='+encodeURIComponent(redirect);
+$('login').href='login.html'+redirectQuery;$('signup').href='signup.html'+redirectQuery;
+const initials=n=>(String(n||'CR').trim().split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'CR');
+const fmt=v=>v?new Date(v).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'—';
+function message(id,text,type){const el=$(id);el.textContent=text;el.classList.remove('hidden','ok','error');if(type)el.classList.add(type)}
+function signedOut(text){currentUser=null;loadToken++;$('guest').classList.remove('hidden');$('member').classList.add('hidden');$('session').textContent='SIGNED OUT';$('auth').textContent='NOT SIGNED IN';$('guestMessage').textContent=text||'You are not signed in. Log in or create a Podcasting account to continue.';$('guestMessage').classList.remove('error','ok')}
+function signedInShell(user){$('guest').classList.add('hidden');$('member').classList.remove('hidden');$('session').textContent='ACTIVE';$('auth').textContent='VERIFIED';$('guestMessage').textContent='You are signed in.';currentUser=user}
+async function lookupOne(table,field,value){try{const {data,error}=await S.from(table).select('*').eq(field,value).limit(1).maybeSingle();if(error)return null;return data||null}catch{return null}}
+async function loadUser(user,noticeText){if(!user){signedOut();return}currentUser=user;const token=++loadToken; signedInShell(user);
+const meta=user.user_metadata||{},display=meta.display_name||meta.full_name||meta.name||'CrowRules Member';
+$('name').textContent=display;$('email').textContent=user.email||'Email unavailable';$('detailEmail').textContent=user.email||'—';$('detailName').textContent=display;$('displayName').value=display==='CrowRules Member'?'':display;$('since').textContent=fmt(user.created_at);$('provider').textContent=String(user.app_metadata?.provider||user.identities?.[0]?.provider||'email').toUpperCase();$('uid').textContent=user.id;$('avatar').textContent=initials(display);$('authBadge').textContent='SESSION ACTIVE';
+if(noticeText)message('securityMessage',noticeText,'error');
+const [member,creator]=await Promise.all([lookupOne('members','user_id',user.id),lookupOne('creator_profiles','user_id',user.id)]);
+if(token!==loadToken||currentUser?.id!==user.id)return;
+const level=member?.membership_level||member?.membership_type||member?.plan_name||'Free';
+$('membership').textContent=String(level).toUpperCase();$('membershipNote').textContent=member?.status?String(member.status).toUpperCase():'MEMBER ACCOUNT';
+const pts=member?.crowpoints_lifetime??member?.lifetime_crowpoints??member?.crowpoints??member?.crow_points??0;
+$('points').textContent=Number.isFinite(Number(pts))?Number(pts).toLocaleString():'—';
+$('creator').textContent=creator?'YES':'NO';$('creatorNote').textContent=creator?'CREATOR PROFILE FOUND':'NO CREATOR PROFILE';
+let episodeCount='—';
+try{let r=await S.from('podcast_episodes').select('id',{count:'exact',head:true}).eq('creator_id',user.id);if(r.error)r=await S.from('podcast_episodes').select('id',{count:'exact',head:true}).eq('user_id',user.id);if(!r.error)episodeCount=String(r.count??0)}catch{}
+if(token===loadToken&&currentUser?.id===user.id)$('episodes').textContent=episodeCount;
 }
-const q="?redirect="+encodeURIComponent(target());
-$("login").href="login.html"+q;$("signup").href="signup.html"+q;
-const initials=n=>(n||"CR").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"CR";
-const fmt=v=>v?new Date(v).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):"—";
-function setAuthState(user,stateMessage){
- const signedIn=!!user;
- $("guest").style.display=signedIn?"none":"block";
- $("member").style.display=signedIn?"block":"none";
- $("session").textContent=signedIn?"ACTIVE":"SIGNED OUT";
- $("auth").textContent=signedIn?"SIGNED IN":"NOT SIGNED IN";
- $("message").textContent=stateMessage||(signedIn?"You’re signed in to CrowRules Podcasting.":"You’re not signed in. Log in or create a Podcasting account to continue.");
- $("message").classList.toggle("error",false);
-}
-async function one(table,field,value){try{const r=await S.from(table).select("*").eq(field,value).limit(1).maybeSingle();return r.data||null}catch{return null}}
-async function load(u,stateMessage){
- setAuthState(u,stateMessage);
- if(!u)return;
- // Prevent overlapping auth events from letting an older account overwrite the current one.
- const requestId=u.id;loadingUserId=requestId;
- const m=u.user_metadata||{},name=m.display_name||m.full_name||m.name||"CrowRules Member";
- $("name").textContent=name;$("email").textContent=u.email||"";$("detailEmail").textContent=u.email||"—";$("detailName").textContent=name;$("since").textContent=fmt(u.created_at);$("uid").textContent=u.id;$("provider").textContent=String(u.app_metadata?.provider||u.identities?.[0]?.provider||"email").toUpperCase();$("avatar").textContent=initials(name);
- const [member,creator]=await Promise.all([one("members","user_id",u.id),one("creators","user_id",u.id)]);
- if(loadingUserId!==requestId)return;
- $("membership").textContent=String(member?.membership_level||member?.membership_type||"Free").toUpperCase();
- $("membershipNote").textContent=member?.status?String(member.status).toUpperCase():"ACCOUNT STATUS";
- $("points").textContent=Number(member?.crowpoints??member?.crow_points??0).toLocaleString();
- $("creator").textContent=creator?"YES":"NO";$("creatorNote").textContent=creator?"CREATOR ACCESS ENABLED":"CREATOR ACCESS";
- try{let r=await S.from("podcast_episodes").select("id",{count:"exact",head:true}).eq("creator_id",u.id);if(r.error)r=await S.from("podcast_episodes").select("id",{count:"exact",head:true}).eq("user_id",u.id);if(loadingUserId===requestId)$("episodes").textContent=r.error?"—":String(r.count??0)}catch{if(loadingUserId===requestId)$("episodes").textContent="—"}
-}
-async function refreshAccount(){
- if(!S)return;
- $("session").textContent="CHECKING";$("auth").textContent="CHECKING";
- try{
-  const {data,error}=await S.auth.getSession();
-  if(error)throw error;
-  const session=data?.session;
-  if(!session){loadingUserId=null;setAuthState(null);return}
-  // getUser verifies the identity with Supabase; keep a valid local session visible
-  // if verification is temporarily unavailable instead of falsely signing the person out.
-  const verified=await S.auth.getUser();
-  if(verified.error){await load(session.user,"Session found; unable to verify with Supabase right now. You may still be signed in.");return}
-  await load(verified.data?.user||null);
- }catch(e){
-  $("session").textContent="CHECK FAILED";$("auth").textContent="UNAVAILABLE";
-  $("message").textContent="Could not check your sign-in status. Check your connection and select Refresh Account.";
-  $("message").classList.add("error");
- }
-}
-async function boot(){
- if(!window.supabase||!key){$("session").textContent="UNAVAILABLE";$("auth").textContent="UNAVAILABLE";$("message").textContent="Account service is not configured. Please refresh or contact support.";$("message").classList.add("error");return}
- try{
-  S=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
-  await refreshAccount();
-  const {data}=S.auth.onAuthStateChange((event,session)=>{
-   // Defer Supabase queries until after the auth callback returns.
-   setTimeout(()=>{if(event==="SIGNED_OUT"){loadingUserId=null;setAuthState(null)}else if(session?.user)load(session.user);else if(event==="INITIAL_SESSION")setAuthState(null)},0);
-  });
-  authSubscription=data?.subscription;
-  $("logout").onclick=async()=>{
-   $("logout").disabled=true;
-   try{const {error}=await S.auth.signOut();if(error)throw error;loadingUserId=null;location.replace("account.html")}
-   catch(e){$("message").textContent="Could not sign out: "+(e.message||"Please try again.");$("message").classList.add("error");$("logout").disabled=false}
-  };
-  $("refresh").onclick=refreshAccount;
- }catch(e){$("session").textContent="UNAVAILABLE";$("auth").textContent="UNAVAILABLE";$("message").textContent="Account service could not be initialized: "+(e.message||"unknown error");$("message").classList.add("error")}
-}
-window.addEventListener("pagehide",()=>authSubscription?.unsubscribe());
-boot();
+async function refreshAccount(){if(!S)return;$('session').textContent='CHECKING';$('auth').textContent='CHECKING';$('refresh').disabled=true;
+try{const {data,error}=await S.auth.getSession();if(error)throw error;const session=data?.session;if(!session){signedOut();return}const verified=await S.auth.getUser();if(verified.error){await loadUser(session.user,'Identity verification is temporarily unavailable. Your existing session was found; retry refresh shortly.');$('auth').textContent='CHECK INCOMPLETE';return}if(verified.data?.user)await loadUser(verified.data.user);else signedOut()}
+catch(e){$('session').textContent='CHECK FAILED';$('auth').textContent='UNAVAILABLE';message('guestMessage','Could not check sign-in status. Check your connection and try again.','error')}
+finally{$('refresh').disabled=false}}
+$('guestRefresh').addEventListener('click',refreshAccount);$('refresh').addEventListener('click',refreshAccount);
+$('profileForm').addEventListener('submit',async e=>{e.preventDefault();if(!S||!currentUser)return;const name=$('displayName').value.trim();if(!name){message('profileMessage','Enter a display name before saving.','error');return}const btn=$('saveProfile');btn.disabled=true;btn.textContent='SAVING…';try{const {data,error}=await S.auth.updateUser({data:{...(currentUser.user_metadata||{}),display_name:name}});if(error)throw error;if(data?.user)await loadUser(data.user);message('profileMessage','Your display name was updated.','ok')}catch(err){message('profileMessage','Could not update profile: '+(err.message||'Please try again.'),'error')}finally{btn.disabled=false;btn.textContent='SAVE PROFILE'}});
+$('resetProfile').addEventListener('click',()=>{$('displayName').value=currentUser?.user_metadata?.display_name||currentUser?.user_metadata?.full_name||currentUser?.user_metadata?.name||'';$('profileMessage').classList.add('hidden')});
+$('resetPassword').addEventListener('click',async()=>{if(!S||!currentUser?.email){message('securityMessage','Sign in with an email address to request a password reset.','error');return}const btn=$('resetPassword');btn.disabled=true;try{const {error}=await S.auth.resetPasswordForEmail(currentUser.email,{redirectTo:new URL('login.html',location.href).href});if(error)throw error;message('securityMessage','If password reset is available for this account, a reset link has been sent to '+currentUser.email+'. Check your inbox and spam folder.','ok')}catch(e){message('securityMessage','Could not request a password reset: '+(e.message||'Please try again.'),'error')}finally{btn.disabled=false}});
+$('copyId').addEventListener('click',async()=>{if(!currentUser?.id)return;try{await navigator.clipboard.writeText(currentUser.id);$('copyId').textContent='ACCOUNT ID COPIED';setTimeout(()=>$('copyId').textContent='COPY ACCOUNT ID',1800)}catch{message('securityMessage','Clipboard access was blocked. Select and copy the Account ID shown above.','error')}});
+$('logout').addEventListener('click',async()=>{if(!S)return;const btn=$('logout');btn.disabled=true;btn.textContent='SIGNING OUT…';try{const {error}=await S.auth.signOut();if(error)throw error;signedOut('You have signed out successfully.');location.replace('account.html')}catch(e){message('guestMessage','Could not sign out: '+(e.message||'Please try again.'),'error');btn.disabled=false;btn.textContent='SIGN OUT'}});
+async function boot(){if(!window.supabase||!key){$('session').textContent='UNAVAILABLE';$('auth').textContent='UNAVAILABLE';message('guestMessage','Account service is not configured. Please refresh or contact support.','error');return}
+try{S=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce'}});await refreshAccount();const {data}=S.auth.onAuthStateChange((event,session)=>{Promise.resolve().then(()=>{if(event==='SIGNED_OUT'){signedOut()}else if(session?.user){loadUser(session.user)}else if(event==='INITIAL_SESSION'){signedOut()}})});authSubscription=data?.subscription}
+catch(e){$('session').textContent='UNAVAILABLE';$('auth').textContent='UNAVAILABLE';message('guestMessage','Account service could not initialize. Check your connection and refresh the page.','error')}}
+window.addEventListener('pagehide',()=>authSubscription?.unsubscribe());boot();
 })();
 </script>
-<script src="js/crowpoints.js" defer></script>
-<script src="js/online-presence.js"></script>
-<script src="js/global-audio-player.js"></script>
+<script src="js/crowpoints.js" defer></script><script src="js/online-presence.js"></script><script src="js/global-audio-player.js"></script>
 </body></html>
