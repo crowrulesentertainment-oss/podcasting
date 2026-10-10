@@ -80,10 +80,10 @@ const member=memberResult.data;
 const creatorResult=member?.id?await lookupOne('creators','member_id',member.id):{data:null,error:memberResult.error||null};
 if(token!==loadToken||currentUser?.id!==user.id)return;
 const creator=creatorResult.data;
-const level=member?.membership_level||member?.membership_type||member?.plan_name||member?.membership||'Free';
-$('membership').textContent=String(level).toUpperCase();$('membershipNote').textContent=member?.status?String(member.status).toUpperCase():(member?'MEMBER RECORD':'DEFAULT ACCOUNT');
+const level=member?.membership_level||member?.membership_type||member?.plan_name||member?.membership||null;
+$('membership').textContent=memberResult.error?'—':String(level||'Free').toUpperCase();$('membershipNote').textContent=memberResult.error?'MEMBER QUERY UNAVAILABLE':(member?.status?String(member.status).toUpperCase():(member?'MEMBER RECORD':'DEFAULT ACCOUNT'));
 const pts=member?.points??member?.crowpoints_lifetime??member?.lifetime_crowpoints??member?.crowpoints??member?.crow_points??member?.lifetime_points;
-$('points').textContent=pts==null?'—':fmtCount(pts);
+$('points').textContent=memberResult.error?'—':(pts==null?'—':fmtCount(pts));
 $('creator').textContent=creator?'YES':'NO';$('creatorNote').textContent=creator?'CREATOR RECORD FOUND':(creatorResult.error?'CREATOR QUERY UNAVAILABLE':'NO CREATOR RECORD');
 const allEpisodes=episodesResult.data,allPodcasts=podcastsResult.data;
 const ownedPodcastIds=creator&&allPodcasts?new Set(allPodcasts.filter(p=>String(p.creator_id)===String(creator.id)).map(p=>String(p.id))):null;
@@ -104,7 +104,7 @@ const completionAvailable=ownedSessions.some(r=>r.completed!==undefined||r.is_co
 $('completed').textContent=completionAvailable?fmtCount(completed):'—';$('completedNote').textContent=completionAvailable?'EXPLICITLY MARKED COMPLETE':'NO COMPLETION FIELD';
 }
 if(subsResult.error){$('subscriptions').textContent='—';$('subscriptionsNote').textContent='SUBSCRIPTION QUERY UNAVAILABLE'}
-else {const ownedSubs=(subsResult.data||[]).filter(r=>String(r.subscriber_id||r.user_id||r.member_id||'')===String(user.id));const activeSubs=ownedSubs.filter(r=>['active','trialing','past_due'].includes(String(r.status||'').toLowerCase()));$('subscriptions').textContent=fmtCount(activeSubs.length);$('subscriptionsNote').textContent=ownedSubs.length?'ACTIVE / TRIALING / PAST DUE':'NO SUBSCRIPTIONS FOUND'}
+else {const ownerIds=new Set([user.id,member?.id].filter(Boolean).map(String));const ownedSubs=(subsResult.data||[]).filter(r=>[r.subscriber_id,r.user_id,r.member_id].some(id=>id!=null&&ownerIds.has(String(id))));const activeSubs=ownedSubs.filter(r=>['active','trialing','past_due'].includes(String(r.status||'').toLowerCase()));$('subscriptions').textContent=fmtCount(activeSubs.length);$('subscriptionsNote').textContent=ownedSubs.length?'ACTIVE / TRIALING / PAST DUE':'NO SUBSCRIPTIONS FOUND'}
 const issues=[];if(memberResult.error)issues.push('membership record unavailable');if(creatorResult.error)issues.push('creator record unavailable');if(episodesResult.error||podcastsResult.error)issues.push('episode/podcast catalog unavailable');if(playsResult.error)issues.push('play events unavailable');if(listensResult.error)issues.push('listening sessions unavailable');if(subsResult.error)issues.push('subscription records unavailable');
 $('analyticsNotice').textContent=issues.length?'Some metrics could not be read: '+issues.join('; ')+'. Unavailable values are shown as dashes, not reported as zero.':'Account metrics loaded from Podcasting tables. Membership uses members; creator ownership follows members.id → creators.member_id → podcasts.creator_id → podcast_episodes.podcast_id. Plays use podcast_play_events; duration and completions use podcast_listens. Values depend on records visible under current Supabase policies.';
 $('analyticsNotice').classList.toggle('error',issues.length>0);$('analyticsNotice').classList.toggle('ok',issues.length===0);
