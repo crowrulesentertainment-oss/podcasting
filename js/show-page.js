@@ -150,9 +150,9 @@ async function load(){
    console.warn("[CrowRules show] Published episode query failed; trying compatible query",primaryEpisodeError);
    episodeError=primaryEpisodeError;
    try{
-    const fallback=await wait(db.from("podcast_episodes").select("*").eq("podcast_id",showId).order("created_at",{ascending:false,nullsFirst:false}).limit(100),"Episode library fallback",10000);
+    const fallback=await wait(db.from("podcast_episodes").select("*").eq("podcast_id",showId).or("status.eq.published,is_published.eq.true").order("created_at",{ascending:false,nullsFirst:false}).limit(100),"Episode library fallback",10000);
     if(fallback.error)throw fallback.error;
-    episodes=(fallback.data||[]).filter(ep=>ep.status==="published"||ep.is_published===true||ep.is_active===true).map(function(ep){return Object.assign({},ep,{show_id:ep.show_id||ep.podcast_id,is_published:ep.is_published??true,is_active:ep.is_active??true,audio_url:ep.audio_url||ep.audio_file_url||ep.media_url||null,video_url:ep.video_url||null,description:ep.description||ep.summary||"",duration_seconds:ep.duration_seconds||ep.duration||null})});
+    episodes=(fallback.data||[]).filter(ep=>ep.status==="published"||ep.is_published===true).map(function(ep){return Object.assign({},ep,{show_id:ep.show_id||ep.podcast_id,is_published:ep.is_published??(ep.status==="published"),is_active:ep.is_active??true,audio_url:ep.audio_url||ep.audio_file_url||ep.media_url||null,video_url:ep.video_url||null,description:ep.description||ep.summary||"",duration_seconds:ep.duration_seconds||ep.duration||null})});
     episodeError=null;
    }catch(fallbackError){console.error("[CrowRules show] Both episode queries failed",fallbackError);episodeError=fallbackError;episodes=[]}
   }
