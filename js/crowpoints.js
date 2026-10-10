@@ -63,7 +63,11 @@
   }
   function challengesUrl() {
     const path = location.pathname;
-    return (path.includes('/listener/') || path.includes('/creator/') || path.includes('/admin/')) ? 'challenges.html' : 'listener/challenges.html';
+    // The challenge center lives under /listener/; only listener pages are
+    // already in that directory. Creator/admin pages need to cross into it.
+    if (path.includes('/listener/')) return 'challenges.html';
+    if (path.includes('/creator/') || path.includes('/admin/')) return '../listener/challenges.html';
+    return 'listener/challenges.html';
   }
   function loginUrl() {
     const path = location.pathname;
