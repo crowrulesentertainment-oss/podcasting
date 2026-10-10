@@ -185,7 +185,7 @@ const r=await Promise.all([S.from('members').select('id,user_id,display_name,use
 if(r[0].error)throw new Error('Could not load your member record: '+r[0].error.message);if(r[1].error)throw new Error('Could not load profile settings: '+r[1].error.message);member=r[0].data;profile=r[1].data||{user_id:user.id};
 if(!member){showGate('MEMBER PROFILE NOT FOUND','Your login is active, but a CrowRules member record was not found. Open your account page or contact support.',[{label:'OPEN ACCOUNT',href:'../account.html',primary:true},{label:'RETURN HOME',href:'../home.html'}]);return;}
 const role=String(member.role||'').toLowerCase();if(role!=='listener'&&role!=='creator'){showGate('PODCASTING PROFILE UNAVAILABLE','This account does not currently have a Listener or Creator role.',[{label:'OPEN ACCOUNT',href:'../account.html',primary:true},{label:'RETURN HOME',href:'../home.html'}]);return;}
-fillForm();hideGate();await Promise.allSettled([loadCounts(),loadIdentities(),loadActivity(),loadFeed(),loadNetwork(true),loadAchievementBadges()]);
+fillForm();hideGate();await Promise.allSettled([loadCounts(),loadIdentities(),loadActivity(),loadFeed(),loadNetwork(true),loadAchievementBadges()]);setupSocialRealtime();
 }
 function networkName(p){return p.display_name||p.username||'CrowRules Member';}
 function networkAvatar(p){const el=document.createElement('div');el.className='mini-avatar';setAvatar(el,p.avatar_url,networkName(p));return el;}
