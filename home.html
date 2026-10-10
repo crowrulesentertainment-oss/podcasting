@@ -694,7 +694,8 @@ async function publishedEpisodes(){
  const r=await readAllRows("podcast_episodes",[
   {cols:"id,podcast_id,title,description,artwork_url,total_plays,play_count,published_at,created_at,status",status:true,order:"published_at"},
   {cols:"id,podcast_id,title,description,artwork_url,total_plays,play_count,created_at,status",status:true,order:"created_at"},
-  {cols:"id,podcast_id,title,description,artwork_url,total_plays,play_count,created_at",order:"created_at"},
+  {cols:"id,podcast_id,title,description,artwork_url,total_plays,created_at",order:"created_at"},
+  {cols:"id,podcast_id,title,description,artwork_url,play_count,created_at",order:"created_at"},
   {cols:"id,podcast_id,title,description,artwork_url,created_at",order:"created_at"}
  ]);
  catalogCoverage.episodesComplete=r.complete;return r.rows;
@@ -779,10 +780,10 @@ async function load(){
   // Compare the same event totals against stored counters, only where the queried rows expose those counters.
   const byEpisode=new Map(),byShow=new Map();
   plays.forEach(e=>{if(e.episode_id)byEpisode.set(String(e.episode_id),(byEpisode.get(String(e.episode_id))||0)+1);if(e.podcast_id)byShow.set(String(e.podcast_id),(byShow.get(String(e.podcast_id))||0)+1)});
-  const episodeRows=episodes.filter(e=>e.play_count!==undefined&&e.play_count!==null);
+  const episodeRows=episodes.filter(e=>e.play_count!=null||e.total_plays!=null||e.plays!=null);
   const showRows=shows.filter(x=>x.total_plays!==undefined&&x.total_plays!==null);
   let comparable=0,matches=0,items=[];
-  episodeRows.forEach(e=>{const count=byEpisode.get(String(e.id))||0,stored=Number(e.play_count)||0;comparable++;if(count===stored)matches++;items.push({title:e.title||"Untitled episode",kind:"EPISODE",stored,events:count,match:count===stored})});
+  episodeRows.forEach(e=>{const count=byEpisode.get(String(e.id))||0,stored=Number(e.play_count??e.total_plays??e.plays)||0;comparable++;if(count===stored)matches++;items.push({title:e.title||"Untitled episode",kind:"EPISODE",stored,events:count,match:count===stored})});
   showRows.forEach(x=>{const count=byShow.get(String(x.id))||0,stored=Number(x.total_plays)||0;comparable++;if(count===stored)matches++;items.push({title:x.title||"Untitled show",kind:"SHOW",stored,events:count,match:count===stored})});
   if(eventsError){text("homeStatReconcile","—");text("homeStatReconcileNote","Cannot compare without canonical play events");empty("homeReconciliation","Canonical play events could not be read, so counter agreement cannot be evaluated.");}
   else if(!comparable){text("homeStatReconcile","—");text("homeStatReconcileNote","Stored play counters unavailable in loaded catalog");empty("homeReconciliation","No stored play_count or total_plays fields were available for comparison.");}
