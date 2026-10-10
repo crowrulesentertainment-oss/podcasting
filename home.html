@@ -132,6 +132,41 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 @media(max-width:760px){.home-discovery-grid{grid-template-columns:1fr 1fr}.home-discovery-card{min-height:170px}}
 @media(max-width:480px){.home-discovery-grid{grid-template-columns:1fr}.home-discovery-card{min-height:0}.home-discovery-head{align-items:flex-start}}
 
+
+/* Data-driven podcast discovery hub */
+.home-dynamic{margin:26px 0;padding:clamp(16px,3vw,26px);border:1px solid rgba(103,232,249,.18);border-radius:22px;background:radial-gradient(ellipse at 0 0,rgba(103,232,249,.07),transparent 45%),linear-gradient(140deg,rgba(8,15,27,.96),rgba(15,11,30,.93))}
+.home-dynamic-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.home-dynamic-head h2{font:800 clamp(18px,2.8vw,27px) Orbitron;margin:7px 0}
+.home-dynamic-head p{max-width:680px;color:var(--muted);font-size:11px;line-height:1.7;margin:0}
+.home-dynamic-section{margin-top:24px}
+.home-dynamic-section:first-of-type{margin-top:0}
+.home-dynamic-title{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.home-dynamic-title h3{font:800 13px Orbitron;letter-spacing:.08em;margin:0}
+.home-dynamic-title a{color:var(--cyan);font:800 9px Orbitron}
+.home-dynamic-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.home-dynamic-card{display:flex;flex-direction:column;min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:rgba(4,9,18,.8);transition:transform .2s,border-color .2s}
+.home-dynamic-card:hover{transform:translateY(-3px);border-color:rgba(103,232,249,.45)}
+.home-dynamic-art{display:grid;place-items:center;aspect-ratio:1.35;background:linear-gradient(135deg,rgba(103,232,249,.13),rgba(167,139,250,.17));overflow:hidden;color:#c5faff;font:800 25px Orbitron}
+.home-dynamic-art img{width:100%;height:100%;object-fit:cover}
+.home-dynamic-copy{display:flex;flex-direction:column;gap:7px;padding:12px;flex:1}
+.home-dynamic-copy h4{font:800 11px/1.5 Montserrat;margin:0;overflow-wrap:anywhere}
+.home-dynamic-copy p{font-size:10px;line-height:1.6;color:var(--muted);margin:0;overflow-wrap:anywhere}
+.home-dynamic-meta{font-size:9px;color:#91a4bd;line-height:1.5}
+.home-dynamic-open{margin-top:auto;padding-top:6px;color:var(--cyan);font:800 9px Orbitron}
+.home-dynamic-empty{grid-column:1/-1;padding:18px;border:1px dashed rgba(145,160,181,.25);border-radius:12px;color:var(--muted);font-size:11px;line-height:1.7}
+.home-stat-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.home-stat-tile{padding:15px;border:1px solid var(--line);border-radius:13px;background:rgba(4,9,18,.7)}
+.home-stat-tile small{display:block;color:var(--muted);font-size:9px;letter-spacing:.08em;margin-bottom:8px}
+.home-stat-tile strong{display:block;font:800 clamp(20px,3vw,28px) Orbitron;color:#e8fbff}
+.home-stat-tile em{display:block;color:#7f91a9;font-size:9px;font-style:normal;line-height:1.6;margin-top:6px}
+.home-dynamic-foot{margin-top:12px;color:#71839c;font-size:9px;line-height:1.7}
+.home-dynamic-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.home-dynamic-controls button{border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.03);color:#dffcff;padding:9px 11px;font:800 9px Orbitron;cursor:pointer}
+.home-dynamic-controls button:disabled{opacity:.5;cursor:wait}
+@media(max-width:900px){.home-dynamic-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.home-dynamic-grid{grid-template-columns:1fr 1fr;gap:8px}.home-dynamic-copy{padding:9px}.home-dynamic-copy h4{font-size:10px}.home-stat-strip{grid-template-columns:1fr}.home-dynamic{padding:13px}}
+@media(prefers-reduced-motion:reduce){.home-dynamic-card{transition:none}.home-dynamic-card:hover{transform:none}}
+
 </style>
 </head>
 <body>
@@ -197,6 +232,23 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
         <a class="home-discovery-card" href="signup.html"><span class="deck-icon" aria-hidden="true">✨</span><h3>ONE ACCOUNT. ONE UNIVERSE.</h3><p>Create your CrowRules identity and grow from listener to creator when you are ready.</p><span class="deck-link">JOIN CROWRULES ↗</span></a>
       </div>
       <div class="home-discovery-foot"><span>Built for listeners and creators, with one connected CrowRules identity.</span><span><a href="launch.html">Launch information</a> · <a href="pre-launch/index.html">Pre-launch hub</a></span></div>
+    </section>
+
+
+    <section class="home-dynamic" id="home-dynamic-discovery" aria-labelledby="homeDynamicTitle">
+      <div class="home-dynamic-head">
+        <div><div class="home-kicker">POWERED BY THE CROWRULES CATALOG</div><h2 id="homeDynamicTitle">YOUR NEXT FAVORITE LISTEN</h2><p>Fresh shows and episodes, personalized picks when your listening history is available, and playback totals sourced from the podcast database. No sample or invented counts.</p></div>
+        <div class="home-dynamic-controls"><button type="button" id="homeDynamicRefresh">REFRESH DISCOVERY ↻</button><a class="btn primary" href="listener/index.html#discover">BROWSE ALL →</a></div>
+      </div>
+      <div class="home-stat-strip" aria-live="polite">
+        <div class="home-stat-tile"><small>PUBLISHED SHOWS</small><strong id="homeStatShows">—</strong><em id="homeStatShowsNote">Reading published catalog</em></div>
+        <div class="home-stat-tile"><small>PUBLISHED EPISODES</small><strong id="homeStatEpisodes">—</strong><em id="homeStatEpisodesNote">Reading episode catalog</em></div>
+        <div class="home-stat-tile"><small>RECORDED PLAY EVENTS</small><strong id="homeStatPlays">—</strong><em id="homeStatPlaysNote">Verified event rows where permitted</em></div>
+      </div>
+      <section class="home-dynamic-section" aria-labelledby="homeFeaturedTitle"><div class="home-dynamic-title"><h3 id="homeFeaturedTitle">✦ FEATURED & POPULAR SHOWS</h3><a href="listener/rankings.html">OPEN RANKINGS →</a></div><div class="home-dynamic-grid" id="homeFeaturedShows"><div class="home-dynamic-empty">Connecting to the published podcast catalog…</div></div></section>
+      <section class="home-dynamic-section" aria-labelledby="homeNewTitle"><div class="home-dynamic-title"><h3 id="homeNewTitle">◷ NEW EPISODES</h3><a href="listener/index.html#discover">ALL EPISODES →</a></div><div class="home-dynamic-grid" id="homeNewEpisodes"><div class="home-dynamic-empty">Loading recently published episodes…</div></div></section>
+      <section class="home-dynamic-section" aria-labelledby="homeRecommendedTitle"><div class="home-dynamic-title"><h3 id="homeRecommendedTitle">✧ PICKED FOR YOU</h3><a href="listener/profile.html">YOUR LISTENER PROFILE →</a></div><div class="home-dynamic-grid" id="homeRecommendedShows"><div class="home-dynamic-empty">Checking whether listening history is available…</div></div></section>
+      <p class="home-dynamic-foot" id="homeDynamicStatus" role="status" aria-live="polite">Waiting for database connection. Counts only display when the corresponding Supabase query succeeds.</p>
     </section>
 
     <section id="experiences" class="home-choice" aria-label="Choose your experience">
@@ -576,6 +628,104 @@ window.addEventListener("pagehide",()=>authSubscription?.unsubscribe());
 boot();
 })();
 </script>
+
+<script>
+/* Data-driven homepage discovery. Read-only: this module never writes analytics or invents counts. */
+(()=>{"use strict";
+const C=window.CROW_CONFIG||{},L=window.supabase,$=id=>document.getElementById(id);
+const fmt=n=>Math.max(0,Number(n)||0).toLocaleString();
+const safe=v=>String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+const text=(id,v)=>{const el=$(id);if(el)el.textContent=v};
+let db=null,busy=false,historyIds=[];
+function empty(id,msg){const el=$(id);if(el)el.innerHTML='<div class="home-dynamic-empty">'+safe(msg)+'</div>'}
+function showHref(id){return "listener/show.html?id="+encodeURIComponent(id)}
+function card({title,description,art,meta,href,number}) {
+ const img=art?'<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="'+safe(art)+'" alt="">':'<span aria-hidden="true">'+safe(number||"CR")+'</span>';
+ return '<a class="home-dynamic-card" href="'+safe(href||"listener/index.html#discover")+'"><div class="home-dynamic-art">'+img+'</div><div class="home-dynamic-copy"><h4>'+safe(title||"Untitled")+'</h4><p>'+safe(description||"Explore this show on CrowRules Podcasting.")+'</p><div class="home-dynamic-meta">'+safe(meta||"CROWRULES PODCASTING")+'</div><span class="home-dynamic-open">EXPLORE ↗</span></div></a>';
+}
+function renderShows(id,rows,emptyMessage){
+ const el=$(id);if(!el)return;
+ if(!rows?.length){empty(id,emptyMessage);return}
+ el.innerHTML=rows.map((r,i)=>card({title:r.title,description:r.description,art:r.artwork_url,meta:(r.category||"Podcast")+" · "+fmt(r.total_plays)+" plays",href:showHref(r.id),number:String(i+1).padStart(2,"0")})).join("");
+}
+function renderEpisodes(rows,showMap){
+ const el=$("homeNewEpisodes");if(!el)return;
+ if(!rows?.length){empty("homeNewEpisodes","No published episodes were returned by the database. Check episode publication status and read policies if you expected results.");return}
+ el.innerHTML=rows.map((r,i)=>{const show=showMap.get(String(r.podcast_id));const parent=show?.title||r.podcast_title||"Podcast episode";const href=showHref(r.podcast_id||show?.id||"");return card({title:r.title||"Untitled episode",description:r.description||"",art:r.artwork_url||show?.artwork_url,meta:parent+(r.total_plays!=null?" · "+fmt(r.total_plays)+" plays":""),href,number:"EP"+String(i+1)})}).join("");
+}
+async function countQuery(table,filters=[]) {
+ let q=db.from(table).select("id",{count:"exact",head:true});
+ for(const [method,...args] of filters)q=q[method](...args);
+ const r=await q;if(r.error)throw r.error;return Number(r.count)||0;
+}
+async function publishedShows(){
+ let last;
+ for(const cols of ["id,title,description,category,artwork_url,total_plays,listener_count,published_at,created_at,status","id,title,description,category,artwork_url,total_plays,created_at,status","id,title,description,category,artwork_url,total_plays,created_at"]){
+  let q=db.from("podcasts").select(cols).eq("status","published").order("total_plays",{ascending:false,nullsFirst:false}).limit(40);
+  const r=await q;if(!r.error)return r.data||[];last=r.error;
+  if(!/column|does not exist|schema cache/i.test(r.error.message||""))break;
+ }
+ throw last||Error("Published shows query failed");
+}
+async function publishedEpisodes(){
+ let last;
+ for(const cols of ["id,podcast_id,title,description,artwork_url,total_plays,published_at,created_at,status","id,podcast_id,title,description,artwork_url,total_plays,created_at,status","id,podcast_id,title,description,artwork_url,created_at,status","id,podcast_id,title,description,created_at"]){
+  let q=db.from("podcast_episodes").select(cols).eq("status","published").order("published_at",{ascending:false,nullsFirst:false}).limit(12);
+  const r=await q;if(!r.error)return r.data||[];last=r.error;
+  if(!/column|does not exist|schema cache/i.test(r.error.message||""))break;
+ }
+ throw last||Error("Published episodes query failed");
+}
+async function loadHistory(user){
+ historyIds=[];
+ if(!user)return;
+ // Uses the same event table and user_id used by the player. RLS may limit results to the signed-in user.
+ try{
+  const r=await db.from("podcast_play_events").select("podcast_id,created_at").eq("user_id",user.id).not("podcast_id","is",null).order("created_at",{ascending:false}).limit(100);
+  if(!r.error)historyIds=[...new Set((r.data||[]).map(x=>String(x.podcast_id)).filter(Boolean))];
+ }catch(_){}
+}
+async function load(){
+ if(busy)return;busy=true;
+ const button=$("homeDynamicRefresh");if(button){button.disabled=true;button.textContent="REFRESHING…"}
+ text("homeDynamicStatus","Reading published catalog and recorded analytics…");
+ try{
+  if(!L?.createClient||!C.supabaseUrl||!C.supabaseKey)throw Error("Supabase configuration is unavailable.");
+  if(!db)db=L.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  const [showsResult,episodesResult]=await Promise.allSettled([publishedShows(),publishedEpisodes()]);
+  let shows=showsResult.status==="fulfilled"?showsResult.value:[];
+  let episodes=episodesResult.status==="fulfilled"?episodesResult.value:[];
+  if(showsResult.status==="fulfilled"){text("homeStatShows",fmt(shows.length));text("homeStatShowsNote","Published shows returned (up to 40)")}else{text("homeStatShows","—");text("homeStatShowsNote","Catalog query unavailable")}
+  if(episodesResult.status==="fulfilled"){text("homeStatEpisodes",fmt(episodes.length));text("homeStatEpisodesNote","Published episodes returned (up to 12)")}else{text("homeStatEpisodes","—");text("homeStatEpisodesNote","Episode query unavailable")}
+  const showMap=new Map(shows.map(s=>[String(s.id),s]));
+  if(showsResult.status==="fulfilled")renderShows("homeFeaturedShows",shows.slice().sort((a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0)).slice(0,4),"No published shows found yet.");
+  else empty("homeFeaturedShows","Published shows could not be loaded. Verify the podcasts table columns and public SELECT policy.");
+  if(episodesResult.status==="fulfilled")renderEpisodes(episodes,showMap);
+  else empty("homeNewEpisodes","Episodes could not be loaded. Verify podcast_episodes publication fields and public SELECT policy.");
+  let user=null;try{const s=await db.auth.getSession();user=s.data?.session?.user||null}catch(_){}
+  await loadHistory(user);
+  let picks=[];
+  if(historyIds.length){picks=shows.filter(s=>!historyIds.includes(String(s.id))).sort((a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0)).slice(0,4)}
+  if(!picks.length){picks=shows.slice().sort((a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0)).slice(0,4)}
+  if(picks.length)renderShows("homeRecommendedShows",picks, "No recommendations available yet.");
+  else empty("homeRecommendedShows",user?"Recommendations will appear when published shows are available.":"Sign in and listen to shows to unlock history-informed picks. Popular published shows are shown here until then.");
+  try{
+   const count=await countQuery("podcast_play_events");
+   text("homeStatPlays",fmt(count));text("homeStatPlaysNote","Rows in podcast_play_events; duplicate-session handling depends on database constraints");
+  }catch(_){
+   text("homeStatPlays","—");text("homeStatPlaysNote","Play-event table unavailable or count not permitted");
+  }
+  const issues=[showsResult.status!=="fulfilled",episodesResult.status!=="fulfilled"].filter(Boolean).length;
+  text("homeDynamicStatus",(issues?"PARTIAL CATALOG · ":"DATABASE UPDATED · ")+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+". Stored play-event rows are distinct from accumulated listening duration.");
+ }catch(e){text("homeDynamicStatus","DISCOVERY UNAVAILABLE · "+(e?.message||"Could not connect to the database."));empty("homeFeaturedShows","The published catalog could not be reached.");empty("homeNewEpisodes","The published episode catalog could not be reached.");empty("homeRecommendedShows","Recommendations are unavailable until the database connection works.");text("homeStatShows","—");text("homeStatEpisodes","—");text("homeStatPlays","—");}
+ finally{busy=false;if(button){button.disabled=false;button.textContent="REFRESH DISCOVERY ↻"}}
+}
+$("homeDynamicRefresh")?.addEventListener("click",load);
+load();
+setInterval(()=>{if(!document.hidden)load()},60000);
+})();
+</script>
+
 <script src="js/home-live-chat.js"></script>
 <script src="js/online-presence.js"></script>
 <script src="js/global-audio-player.js"></script>
