@@ -69,6 +69,19 @@ const $=id=>document.getElementById(id);
 let activeFilter='all',supabase=null,user=null,challenges=[],joined=new Map(),completed=new Set();
 function notify(message,type='info'){const el=$('notice');el.textContent=message;el.className='notice show '+type}
 function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+function currentPeriodKey(category){
+ const now=new Date();
+ if(category==='daily')return now.toISOString().slice(0,10);
+ if(category==='monthly')return now.toISOString().slice(0,7);
+ if(category==='weekly'){
+  const d=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()));
+  d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));
+  const year=d.getUTCFullYear(),start=new Date(Date.UTC(year,0,1));
+  const week=Math.ceil((((d-start)/86400000)+1)/7);
+  return year+'-W'+String(week).padStart(2,'0');
+ }
+ return 'lifetime';
+}
 function goalLabel(c){const n=Number(c.goal)||1;switch(c.metric_key){case'completed_episodes':return n+' eligible completed episode'+(n===1?'':'s');case'unique_shows':return n+' different show'+(n===1?'':'s');case'listening_minutes':return n+' eligible listening minutes';case'unique_categories':return n+' podcast categories';default:return n+' steps'}}
 function render(){
  const list=challenges.filter(c=>activeFilter==='all'||c.category===activeFilter);
@@ -114,13 +127,16 @@ async function refreshProgress(showMessage=true){
 async function loadParticipation(){
  if(!user)return;
  const [p,c]=await Promise.all([
-  supabase.from('podcast_challenge_participants').select('challenge_id,status,progress,completed_at,reward_points_awarded').eq('user_id',user.id),
-  supabase.from('podcast_challenge_completions').select('challenge_id').eq('user_id',user.id)
+  supabase.from('podcast_challenge_participants').select('challenge_id,status,progress,completed_at,reward_points_awarded,period_key').eq('user_id',user.id),
+  supabase.from('podcast_challenge_completions').select('challenge_id,period_key').eq('user_id',user.id)
  ]);
  if(p.error)throw p.error;if(c.error)throw c.error;
- joined=new Map((p.data||[]).map(row=>[row.challenge_id,row]));
- completed=new Set((c.data||[]).map(row=>row.challenge_id));
- (p.data||[]).filter(row=>row.status==='completed').forEach(row=>completed.add(row.challenge_id));
+ const expectedPeriods=new Map(challenges.map(challenge=>[challenge.id,currentPeriodKey(challenge.category)]));
+ const currentParticipants=(p.data||[]).filter(row=>row.period_key===expectedPeriods.get(row.challenge_id));
+ const currentCompletions=(c.data||[]).filter(row=>row.period_key===expectedPeriods.get(row.challenge_id));
+ joined=new Map(currentParticipants.map(row=>[row.challenge_id,row]));
+ completed=new Set(currentCompletions.map(row=>row.challenge_id));
+ currentParticipants.filter(row=>row.status==='completed').forEach(row=>completed.add(row.challenge_id));
 }
 async function init(){
  const cfg=window.CROW_CONFIG||window.CROW_RULES_CONFIG||{};
