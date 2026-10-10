@@ -71,18 +71,23 @@ const meta=user.user_metadata||{},display=meta.display_name||meta.full_name||met
 $('name').textContent=display;$('email').textContent=user.email||'Email unavailable';$('detailEmail').textContent=user.email||'—';$('detailName').textContent=display;$('displayName').value=display==='CrowRules Member'?'':display;$('since').textContent=fmt(user.created_at);$('provider').textContent=String(user.app_metadata?.provider||user.identities?.[0]?.provider||'email').toUpperCase();$('uid').textContent=user.id;$('avatar').textContent=initials(display);$('authBadge').textContent='SESSION ACTIVE';
 if(noticeText)message('securityMessage',noticeText,'error');
 $('analyticsNotice').textContent='Syncing account analytics from Podcasting event and listening-session tables…';
-const [memberResult,creatorResult,episodesResult,playsResult,listensResult,subsResult]=await Promise.all([
-lookupOne('members','user_id',user.id),lookupOne('creators','user_id',user.id),readRows('podcast_episodes'),readRows('podcast_play_events'),readRows('podcast_listens'),readRows('creator_subscriptions')
+const [memberResult,episodesResult,podcastsResult,playsResult,listensResult,subsResult]=await Promise.all([
+lookupOne('members','user_id',user.id),readRows('podcast_episodes'),readRows('podcasts'),readRows('podcast_play_events'),readRows('podcast_listens'),readRows('creator_subscriptions')
 ]);
 if(token!==loadToken||currentUser?.id!==user.id)return;
-const member=memberResult.data,creator=creatorResult.data;
+const member=memberResult.data;
+const creatorResult=member?.id?await lookupOne('creators','member_id',member.id):{data:null,error:memberResult.error||null};
+if(token!==loadToken||currentUser?.id!==user.id)return;
+const creator=creatorResult.data;
 const level=member?.membership_level||member?.membership_type||member?.plan_name||member?.membership||'Free';
 $('membership').textContent=String(level).toUpperCase();$('membershipNote').textContent=member?.status?String(member.status).toUpperCase():(member?'MEMBER RECORD':'DEFAULT ACCOUNT');
-const pts=member?.crowpoints_lifetime??member?.lifetime_crowpoints??member?.crowpoints??member?.crow_points??member?.lifetime_points;
+const pts=member?.points??member?.crowpoints_lifetime??member?.lifetime_crowpoints??member?.crowpoints??member?.crow_points??member?.lifetime_points;
 $('points').textContent=pts==null?'—':fmtCount(pts);
 $('creator').textContent=creator?'YES':'NO';$('creatorNote').textContent=creator?'CREATOR RECORD FOUND':(creatorResult.error?'CREATOR QUERY UNAVAILABLE':'NO CREATOR RECORD');
-const allEpisodes=episodesResult.data,ownedEpisodes=allEpisodes?allEpisodes.filter(r=>[r.user_id,r.creator_id,r.owner_id,r.created_by].some(v=>v!=null&&String(v)===String(user.id))):null;
-$('episodes').textContent=ownedEpisodes===null?'—':fmtCount(ownedEpisodes.length);$('episodeNote').textContent=ownedEpisodes===null?'QUERY UNAVAILABLE':'OWNED CATALOG · READABLE ROWS';
+const allEpisodes=episodesResult.data,allPodcasts=podcastsResult.data;
+const ownedPodcastIds=creator&&allPodcasts?new Set(allPodcasts.filter(p=>String(p.creator_id)===String(creator.id)).map(p=>String(p.id))):null;
+const ownedEpisodes=allEpisodes&&ownedPodcastIds?allEpisodes.filter(e=>ownedPodcastIds.has(String(e.podcast_id))):null;
+$('episodes').textContent=ownedEpisodes===null?'—':fmtCount(ownedEpisodes.length);$('episodeNote').textContent=ownedEpisodes===null?(episodesResult.error||podcastsResult.error?'CATALOG QUERY UNAVAILABLE':'NO LINKED CREATOR'): 'EPISODES LINKED THROUGH YOUR PODCASTS';
 const allPlays=playsResult.data,ownedPlays=allPlays?allPlays.filter(r=>String(rowOwner(r)||'')===String(user.id)):null;
 const playEvents=ownedPlays?ownedPlays.filter(r=>String(r.event_type||r.event_name||r.type||'play').toLowerCase()==='play'):null;
 $('plays').textContent=playEvents===null?'—':fmtCount(playEvents.length);$('playsNote').textContent=allPlays===null?'EVENT QUERY UNAVAILABLE':(ownedPlays.length?'PODCAST_PLAY_EVENTS':'NO MATCHING USER EVENTS');
@@ -96,8 +101,8 @@ $('completed').textContent=completionAvailable?fmtCount(completed):'—';$('comp
 }
 if(subsResult.error){$('subscriptions').textContent='—';$('subscriptionsNote').textContent='SUBSCRIPTION QUERY UNAVAILABLE'}
 else {const ownedSubs=(subsResult.data||[]).filter(r=>String(r.subscriber_id||r.user_id||r.member_id||'')===String(user.id));const activeSubs=ownedSubs.filter(r=>['active','trialing','past_due'].includes(String(r.status||'').toLowerCase()));$('subscriptions').textContent=fmtCount(activeSubs.length);$('subscriptionsNote').textContent=ownedSubs.length?'ACTIVE / TRIALING / PAST DUE':'NO SUBSCRIPTIONS FOUND'}
-const issues=[];if(memberResult.error)issues.push('membership record unavailable');if(creatorResult.error)issues.push('creator record unavailable');if(episodesResult.error)issues.push('episode catalog unavailable');if(playsResult.error)issues.push('play events unavailable');if(listensResult.error)issues.push('listening sessions unavailable');if(subsResult.error)issues.push('subscription records unavailable');
-$('analyticsNotice').textContent=issues.length?'Some metrics could not be read: '+issues.join('; ')+'. Unavailable values are shown as dashes, not reported as zero.':'Account metrics loaded from Podcasting tables. Plays use podcast_play_events; duration and completions use podcast_listens. Values depend on records visible under current Supabase policies.';
+const issues=[];if(memberResult.error)issues.push('membership record unavailable');if(creatorResult.error)issues.push('creator record unavailable');if(episodesResult.error||podcastsResult.error)issues.push('episode/podcast catalog unavailable');if(playsResult.error)issues.push('play events unavailable');if(listensResult.error)issues.push('listening sessions unavailable');if(subsResult.error)issues.push('subscription records unavailable');
+$('analyticsNotice').textContent=issues.length?'Some metrics could not be read: '+issues.join('; ')+'. Unavailable values are shown as dashes, not reported as zero.':'Account metrics loaded from Podcasting tables. Membership uses members; creator ownership follows members.id → creators.member_id → podcasts.creator_id → podcast_episodes.podcast_id. Plays use podcast_play_events; duration and completions use podcast_listens. Values depend on records visible under current Supabase policies.';
 $('analyticsNotice').classList.toggle('error',issues.length>0);$('analyticsNotice').classList.toggle('ok',issues.length===0);
 }
 async function refreshAccount(){if(!S)return;$('session').textContent='CHECKING';$('auth').textContent='CHECKING';$('refresh').disabled=true;
