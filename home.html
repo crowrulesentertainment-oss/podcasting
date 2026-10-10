@@ -155,6 +155,7 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 .home-dynamic-open{margin-top:auto;padding-top:6px;color:var(--cyan);font:800 9px Orbitron}
 .home-dynamic-empty{grid-column:1/-1;padding:18px;border:1px dashed rgba(145,160,181,.25);border-radius:12px;color:var(--muted);font-size:11px;line-height:1.7}
 .home-stat-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.home-stat-strip-analytics{grid-template-columns:repeat(3,minmax(0,1fr))}.home-reconcile-panel{margin-top:14px}.home-reconcile-list{display:grid;gap:8px}.home-reconcile-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:10px;border:1px solid rgba(255,255,255,.06);border-radius:9px;font-size:10px}.home-reconcile-row b{overflow-wrap:anywhere}.home-reconcile-row small{color:var(--muted)}.home-reconcile-status{font:800 9px Orbitron;white-space:nowrap}.home-reconcile-status[data-match="true"]{color:#6ee7b7}.home-reconcile-status[data-match="false"]{color:#fbbf24}.home-reconcile-status[data-match="unknown"]{color:#94a3b8}
 .home-stat-tile{padding:15px;border:1px solid var(--line);border-radius:13px;background:rgba(4,9,18,.7)}
 .home-stat-tile small{display:block;color:var(--muted);font-size:9px;letter-spacing:.08em;margin-bottom:8px}
 .home-stat-tile strong{display:block;font:800 clamp(20px,3vw,28px) Orbitron;color:#e8fbff}
@@ -164,7 +165,7 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 .home-dynamic-controls button{border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.03);color:#dffcff;padding:9px 11px;font:800 9px Orbitron;cursor:pointer}
 .home-dynamic-controls button:disabled{opacity:.5;cursor:wait}
 @media(max-width:900px){.home-dynamic-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:480px){.home-dynamic-grid{grid-template-columns:1fr 1fr;gap:8px}.home-dynamic-copy{padding:9px}.home-dynamic-copy h4{font-size:10px}.home-stat-strip{grid-template-columns:1fr}.home-dynamic{padding:13px}}
+@media(max-width:480px){.home-dynamic-grid{grid-template-columns:1fr 1fr;gap:8px}.home-dynamic-copy{padding:9px}.home-dynamic-copy h4{font-size:10px}.home-stat-strip{grid-template-columns:1fr 1fr}.home-dynamic{padding:13px}.home-reconcile-row{grid-template-columns:minmax(0,1fr) auto}.home-reconcile-row small{grid-column:1/-1}}
 @media(prefers-reduced-motion:reduce){.home-dynamic-card{transition:none}.home-dynamic-card:hover{transform:none}}
 
 </style>
@@ -240,11 +241,15 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
         <div><div class="home-kicker">POWERED BY THE CROWRULES CATALOG</div><h2 id="homeDynamicTitle">YOUR NEXT FAVORITE LISTEN</h2><p>Fresh shows and episodes, personalized picks when your listening history is available, and playback totals sourced from the podcast database. No sample or invented counts.</p></div>
         <div class="home-dynamic-controls"><button type="button" id="homeDynamicRefresh">REFRESH DISCOVERY ↻</button><a class="btn primary" href="listener/index.html#discover">BROWSE ALL →</a></div>
       </div>
-      <div class="home-stat-strip" aria-live="polite">
+      <div class="home-stat-strip home-stat-strip-analytics" aria-live="polite">
         <div class="home-stat-tile"><small>PUBLISHED SHOWS</small><strong id="homeStatShows">—</strong><em id="homeStatShowsNote">Reading published catalog</em></div>
         <div class="home-stat-tile"><small>PUBLISHED EPISODES</small><strong id="homeStatEpisodes">—</strong><em id="homeStatEpisodesNote">Reading episode catalog</em></div>
-        <div class="home-stat-tile"><small>RECORDED PLAY EVENTS</small><strong id="homeStatPlays">—</strong><em id="homeStatPlaysNote">Verified event rows where permitted</em></div>
+        <div class="home-stat-tile"><small>CANONICAL PLAY EVENTS</small><strong id="homeStatPlays">—</strong><em id="homeStatPlaysNote">Matches rankings event source</em></div>
+        <div class="home-stat-tile"><small>LISTENING HOURS</small><strong id="homeStatHours">—</strong><em id="homeStatHoursNote">Recorded duration only</em></div>
+        <div class="home-stat-tile"><small>COMPLETED LISTENS</small><strong id="homeStatCompleted">—</strong><em id="homeStatCompletedNote">Explicit session completions only</em></div>
+        <div class="home-stat-tile"><small>COUNTER RECONCILIATION</small><strong id="homeStatReconcile">—</strong><em id="homeStatReconcileNote">Stored counters vs canonical events</em></div>
       </div>
+      <div class="home-data-panel home-reconcile-panel"><h3>PLAY-COUNT RECONCILIATION · LIVE READ-ONLY CHECK</h3><div id="homeReconciliation"><div class="home-data-empty">Comparing stored episode and show counters against canonical play events…</div></div></div>
       <section class="home-dynamic-section" aria-labelledby="homeFeaturedTitle"><div class="home-dynamic-title"><h3 id="homeFeaturedTitle">✦ FEATURED & POPULAR SHOWS</h3><a href="listener/rankings.html">OPEN RANKINGS →</a></div><div class="home-dynamic-grid" id="homeFeaturedShows"><div class="home-dynamic-empty">Connecting to the published podcast catalog…</div></div></section>
       <section class="home-dynamic-section" aria-labelledby="homeNewTitle"><div class="home-dynamic-title"><h3 id="homeNewTitle">◷ NEW EPISODES</h3><a href="listener/index.html#discover">ALL EPISODES →</a></div><div class="home-dynamic-grid" id="homeNewEpisodes"><div class="home-dynamic-empty">Loading recently published episodes…</div></div></section>
       <section class="home-dynamic-section" aria-labelledby="homeRecommendedTitle"><div class="home-dynamic-title"><h3 id="homeRecommendedTitle">✧ PICKED FOR YOU</h3><a href="listener/profile.html">YOUR LISTENER PROFILE →</a></div><div class="home-dynamic-grid" id="homeRecommendedShows"><div class="home-dynamic-empty">Checking whether listening history is available…</div></div></section>
@@ -703,37 +708,89 @@ async function loadHistory(user){
 async function load(){
  if(busy)return;busy=true;
  const button=$("homeDynamicRefresh");if(button){button.disabled=true;button.textContent="REFRESHING…"}
- text("homeDynamicStatus","Reading published catalog and recorded analytics…");
+ text("homeDynamicStatus","Reading catalog, canonical plays and listening sessions…");
  try{
   if(!L?.createClient||!C.supabaseUrl||!C.supabaseKey)throw Error("Supabase configuration is unavailable.");
   if(!db)db=L.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   const [showsResult,episodesResult]=await Promise.allSettled([publishedShows(),publishedEpisodes()]);
   let shows=showsResult.status==="fulfilled"?showsResult.value:[];
   let episodes=episodesResult.status==="fulfilled"?episodesResult.value:[];
-  if(showsResult.status==="fulfilled"){try{const n=await exactCount("podcasts",[["eq","status","published"]]);text("homeStatShows",fmt(n));text("homeStatShowsNote","Exact published-show row count")}catch(_){text("homeStatShows",fmt(shows.length));text("homeStatShowsNote","Catalog rows loaded (maximum 40); exact count unavailable")}}else{text("homeStatShows","—");text("homeStatShowsNote","Catalog query unavailable")}
-  if(episodesResult.status==="fulfilled"){try{const n=await exactCount("podcast_episodes",[["eq","status","published"]]);text("homeStatEpisodes",fmt(n));text("homeStatEpisodesNote","Exact published-episode row count")}catch(_){text("homeStatEpisodes",fmt(episodes.length));text("homeStatEpisodesNote","Catalog rows loaded (maximum 12); exact count unavailable")}}else{text("homeStatEpisodes","—");text("homeStatEpisodesNote","Episode query unavailable")}
-  const showMap=new Map(shows.map(s=>[String(s.id),s]));
+  if(showsResult.status==="fulfilled"){try{const n=await exactCount("podcasts",[["eq","status","published"]]);text("homeStatShows",fmt(n));text("homeStatShowsNote","Exact published-show row count")}catch(_){text("homeStatShows",fmt(shows.length));text("homeStatShowsNote","Loaded rows only; exact count unavailable")}}else{text("homeStatShows","—");text("homeStatShowsNote","Catalog query unavailable")}
+  if(episodesResult.status==="fulfilled"){try{const n=await exactCount("podcast_episodes",[["eq","status","published"]]);text("homeStatEpisodes",fmt(n));text("homeStatEpisodesNote","Exact published-episode row count")}catch(_){text("homeStatEpisodes",fmt(episodes.length));text("homeStatEpisodesNote","Loaded rows only; exact count unavailable")}}else{text("homeStatEpisodes","—");text("homeStatEpisodesNote","Episode query unavailable")}
+  const showMap=new Map(shows.map(x=>[String(x.id),x]));
   if(showsResult.status==="fulfilled")renderShows("homeFeaturedShows",shows.slice().sort((a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0)).slice(0,4),"No published shows found yet.");
   else empty("homeFeaturedShows","Published shows could not be loaded. Verify the podcasts table columns and public SELECT policy.");
   if(episodesResult.status==="fulfilled")renderEpisodes(episodes,showMap);
   else empty("homeNewEpisodes","Episodes could not be loaded. Verify podcast_episodes publication fields and public SELECT policy.");
-  let user=null;try{const s=await db.auth.getSession();user=s.data?.session?.user||null}catch(_){}
+  let user=null;try{const auth=await db.auth.getSession();user=auth.data?.session?.user||null}catch(_){}
   await loadHistory(user);
-  let picks=[];
-  if(historyIds.length){picks=shows.filter(s=>!historyIds.includes(String(s.id))).sort((a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0)).slice(0,4)}
-  if(!picks.length){picks=shows.slice().sort((a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0)).slice(0,4)}
-  if(picks.length)renderShows("homeRecommendedShows",picks, "No recommendations available yet.");
+  let picks=[];if(historyIds.length)picks=shows.filter(x=>!historyIds.includes(String(x.id))).sort((a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0)).slice(0,4);
+  if(!picks.length)picks=shows.slice().sort((a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0)).slice(0,4);
+  if(picks.length)renderShows("homeRecommendedShows",picks,"No recommendations available yet.");
   else empty("homeRecommendedShows",user?"Recommendations will appear when published shows are available.":"Sign in and listen to shows to unlock history-informed picks. Popular published shows are shown here until then.");
+
+  // Align play counts with the rankings/admin source: podcast_play_events, event_type=play,
+  // with the same session_key de-duplication rule as rankings. Read-only; never writes analytics.
+  let events=[],eventsError=null,eventsComplete=false;
   try{
-   const count=await countQuery("podcast_play_events");
-   text("homeStatPlays",fmt(count));text("homeStatPlaysNote","Rows in podcast_play_events; duplicate-session handling depends on database constraints");
-  }catch(_){
-   text("homeStatPlays","—");text("homeStatPlaysNote","Play-event table unavailable or count not permitted");
+   const pageSize=1000,maxRows=50000;let offset=0;
+   while(offset<maxRows){
+    const q=await db.from("podcast_play_events").select("id,podcast_id,episode_id,session_key,event_type,created_at").order("created_at",{ascending:false}).range(offset,Math.min(offset+pageSize-1,maxRows-1));
+    if(q.error)throw q.error;const batch=q.data||[];events=events.concat(batch);if(batch.length<pageSize){eventsComplete=true;break}offset+=batch.length;
+   }
+  }catch(e){eventsError=e}
+  const seen=new Set(),plays=[];
+  events.forEach(e=>{if(e.event_type&&String(e.event_type).toLowerCase()!=="play")return;const key=e.session_key?"session:"+String(e.session_key):"id:"+String(e.id);if(seen.has(key))return;seen.add(key);plays.push(e)});
+  if(!eventsError){
+   text("homeStatPlays",fmt(plays.length));
+   text("homeStatPlaysNote",eventsComplete?"Unique play sessions from podcast_play_events (rankings rule)":"Loaded event history capped at 50,000 rows; total may be incomplete");
+  }else{text("homeStatPlays","—");text("homeStatPlaysNote","Canonical play events unavailable; check read access")}
+  let sessions=[],sessionsError=null,sessionsComplete=false;
+  try{
+   const pageSize=1000,maxRows=50000;let offset=0;
+   while(offset<maxRows){
+    const q=await db.from("podcast_listens").select("*").order("created_at",{ascending:false,nullsFirst:false}).range(offset,Math.min(offset+pageSize-1,maxRows-1));
+    if(q.error)throw q.error;const batch=q.data||[];sessions=sessions.concat(batch);if(batch.length<pageSize){sessionsComplete=true;break}offset+=batch.length;
+   }
+  }catch(e){sessionsError=e}
+  const durationKeys=["seconds_listened","listening_duration_seconds","duration_seconds","listen_duration_seconds","listened_seconds","watch_seconds","duration_sec"];
+  function seconds(row){for(const key of durationKeys){if(row[key]!==undefined&&row[key]!==null&&row[key]!==""){const n=Number(row[key]);if(Number.isFinite(n)&&n>0)return n>86400?n/1000:n}}return 0}
+  if(!sessionsError){
+   const durationAvailable=sessions.some(r=>durationKeys.some(k=>r[k]!==undefined&&r[k]!==null&&r[k]!==""));
+   const totalSeconds=sessions.reduce((sum,r)=>sum+seconds(r),0);
+   const hasCompletion=sessions.some(r=>r.completed!==undefined||r.is_completed!==undefined||r.status!==undefined);
+   const completed=sessions.filter(r=>r.completed===true||r.is_completed===true||String(r.status||"").toLowerCase()==="completed").length;
+   text("homeStatHours",durationAvailable?(totalSeconds/3600).toLocaleString(undefined,{maximumFractionDigits:1}):"—");
+   text("homeStatHoursNote",durationAvailable?(sessionsComplete?"Sum of recorded podcast_listens duration":"Session history capped at 50,000 rows; hours may be incomplete"):"No readable duration field in podcast_listens");
+   text("homeStatCompleted",hasCompletion?fmt(completed):"—");
+   text("homeStatCompletedNote",hasCompletion?(sessionsComplete?"Explicitly completed sessions only":"Session history capped at 50,000 rows; count may be incomplete"):"No explicit completion field in podcast_listens");
+  }else{
+   text("homeStatHours","—");text("homeStatHoursNote","Listening-session data unavailable or blocked");
+   text("homeStatCompleted","—");text("homeStatCompletedNote","Listening-session data unavailable or blocked");
   }
-  const issues=[showsResult.status!=="fulfilled",episodesResult.status!=="fulfilled"].filter(Boolean).length;
-  text("homeDynamicStatus",(issues?"PARTIAL CATALOG · ":"DATABASE UPDATED · ")+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+". Stored play-event rows are distinct from accumulated listening duration.");
- }catch(e){text("homeDynamicStatus","DISCOVERY UNAVAILABLE · "+(e?.message||"Could not connect to the database."));empty("homeFeaturedShows","The published catalog could not be reached.");empty("homeNewEpisodes","The published episode catalog could not be reached.");empty("homeRecommendedShows","Recommendations are unavailable until the database connection works.");text("homeStatShows","—");text("homeStatEpisodes","—");text("homeStatPlays","—");}
- finally{busy=false;if(button){button.disabled=false;button.textContent="REFRESH DISCOVERY ↻"}}
+  // Compare the same event totals against stored counters, only where the queried rows expose those counters.
+  const byEpisode=new Map(),byShow=new Map();
+  plays.forEach(e=>{if(e.episode_id)byEpisode.set(String(e.episode_id),(byEpisode.get(String(e.episode_id))||0)+1);if(e.podcast_id)byShow.set(String(e.podcast_id),(byShow.get(String(e.podcast_id))||0)+1)});
+  const episodeRows=episodes.filter(e=>e.play_count!==undefined&&e.play_count!==null);
+  const showRows=shows.filter(x=>x.total_plays!==undefined&&x.total_plays!==null);
+  let comparable=0,matches=0,items=[];
+  episodeRows.forEach(e=>{const count=byEpisode.get(String(e.id))||0,stored=Number(e.play_count)||0;comparable++;if(count===stored)matches++;items.push({title:e.title||"Untitled episode",kind:"EPISODE",stored,events:count,match:count===stored})});
+  showRows.forEach(x=>{const count=byShow.get(String(x.id))||0,stored=Number(x.total_plays)||0;comparable++;if(count===stored)matches++;items.push({title:x.title||"Untitled show",kind:"SHOW",stored,events:count,match:count===stored})});
+  if(eventsError){text("homeStatReconcile","—");text("homeStatReconcileNote","Cannot compare without canonical play events");empty("homeReconciliation","Canonical play events could not be read, so counter agreement cannot be evaluated.");}
+  else if(!comparable){text("homeStatReconcile","—");text("homeStatReconcileNote","Stored play counters unavailable in loaded catalog");empty("homeReconciliation","No stored play_count or total_plays fields were available for comparison.");}
+  else{
+   text("homeStatReconcile",matches+"/"+comparable);text("homeStatReconcileNote",eventsComplete?"Stored counters matching canonical event totals":"Comparison uses loaded event history only; totals may be incomplete");
+   items.sort((a,b)=>Number(a.match)-Number(b.match)||Math.abs(b.stored-b.events)-Math.abs(a.stored-a.events));
+   const top=items.slice(0,8);
+   $("homeReconciliation").innerHTML='<div class="home-reconcile-list">'+top.map(x=>'<div class="home-reconcile-row"><div><b>'+safeText(x.title)+'</b><small> · '+x.kind+'</small></div><small>Stored '+fmt(x.stored)+' / Events '+fmt(x.events)+'</small><span class="home-reconcile-status" data-match="'+(x.match?'true':'false')+'">'+(x.match?'MATCH':'DIFFERENCE')+'</span></div>').join("")+'</div><p class="home-dynamic-foot">'+(eventsComplete?"Compared with de-duplicated play events from the readable event history.":"Event history reached the 50,000-row safety cap; mismatches may reflect incomplete history.")+' This is a read-only diagnostic and does not alter stored counters.</p>';
+  }
+  const issues=[showsResult.status!=="fulfilled",episodesResult.status!=="fulfilled",!!eventsError,!!sessionsError].filter(Boolean).length;
+  text("homeDynamicStatus",(issues?"PARTIAL ANALYTICS · ":"DATABASE UPDATED · ")+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+". Play events follow the rankings deduplication rule; duration and completions come from podcast_listens, as in admin analytics.");
+ }catch(e){
+  text("homeDynamicStatus","DISCOVERY UNAVAILABLE · "+(e?.message||"Could not connect to the database."));
+  empty("homeFeaturedShows","The published catalog could not be reached.");empty("homeNewEpisodes","The published episode catalog could not be reached.");empty("homeRecommendedShows","Recommendations are unavailable until the database connection works.");
+  ["homeStatShows","homeStatEpisodes","homeStatPlays","homeStatHours","homeStatCompleted","homeStatReconcile"].forEach(id=>text(id,"—"));
+ }finally{busy=false;if(button){button.disabled=false;button.textContent="REFRESH DISCOVERY ↻"}}
 }
 $("homeDynamicRefresh")?.addEventListener("click",load);
 load();
