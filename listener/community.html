@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#070812">
+<meta name="description" content="Connect with listeners and creators in the CrowRules Podcasting community.">
+<title>Community Network | CrowRules Podcasting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#070812;--panel:rgba(15,18,33,.94);--line:rgba(135,151,255,.2);--text:#f5f7ff;--muted:#a0aac3;--cyan:#6de7ff;--purple:#a98bff;--pink:#ff78c8}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--text);font-family:Montserrat,system-ui,sans-serif;background:radial-gradient(ellipse at 8% 0%,rgba(109,231,255,.12),transparent 35%),radial-gradient(ellipse at 96% 7%,rgba(169,139,255,.14),transparent 33%),linear-gradient(180deg,#070812,#0a0d18 55%,#06070d)}a{color:inherit;text-decoration:none}button,input{font:inherit}button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}.shell{width:min(1180px,calc(100% - 30px));margin:auto}.topbar{position:sticky;top:0;z-index:10;background:rgba(7,8,18,.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}.nav{min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0}.brand{font:800 11px Orbitron;letter-spacing:.06em;display:flex;align-items:center;gap:10px}.brand img{width:38px;height:38px;object-fit:contain}.links{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.links a,.links button{padding:9px 10px;border:1px solid transparent;border-radius:9px;color:#dce2f7;background:transparent;font-size:10px;font-weight:800;cursor:pointer}.links a:hover,.links button:hover{border-color:var(--line)}main{padding-bottom:50px}.hero{padding:42px 0 25px}.eyebrow{font-size:9px;font-weight:800;letter-spacing:.23em;color:var(--cyan)}h1{font:800 clamp(30px,5vw,52px)/1.1 Orbitron;margin:12px 0;background:linear-gradient(110deg,#fff,#bdf5fb 48%,#c8b7ff);color:transparent;background-clip:text}.hero p{max-width:760px;color:var(--muted);font-size:12px;line-height:1.9}.status{display:inline-flex;margin-top:8px;padding:8px 11px;border:1px solid var(--line);border-radius:999px;color:#bdefff;font-size:9px;font-weight:800;letter-spacing:.06em}.layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(250px,.75fr);gap:16px;align-items:start}.stack{display:grid;gap:15px;min-width:0}.panel{min-width:0;padding:19px;border:1px solid var(--line);border-radius:17px;background:var(--panel);box-shadow:0 16px 45px rgba(0,0,0,.14)}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}.panel h2{font:700 13px Orbitron;margin:0;letter-spacing:.04em}.sub{color:var(--muted);font-size:10px;line-height:1.7;margin-top:6px}.search{display:flex;gap:8px;margin-bottom:13px}.search input{flex:1;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#090c17;color:var(--text);font-size:11px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.035);color:var(--text);font-size:9px;font-weight:800;cursor:pointer}.btn.primary{border-color:rgba(109,231,255,.4);background:linear-gradient(100deg,rgba(109,231,255,.14),rgba(169,139,255,.18))}.btn:disabled{opacity:.55;cursor:wait}.feed{display:grid;gap:11px}.post{padding:15px;border:1px solid rgba(135,151,255,.17);border-radius:14px;background:linear-gradient(155deg,rgba(18,22,40,.98),rgba(10,12,23,.98))}.post-head{display:flex;gap:10px;align-items:center}.avatar{display:grid;place-items:center;width:39px;height:39px;flex:none;border-radius:50%;overflow:hidden;border:1px solid rgba(109,231,255,.35);background:linear-gradient(135deg,rgba(109,231,255,.18),rgba(169,139,255,.25));font:700 11px Orbitron}.avatar img{width:100%;height:100%;object-fit:cover}.author{font-size:11px;font-weight:800}.meta{margin-top:4px;color:var(--muted);font-size:9px}.body{margin:13px 0;color:#e8ecfa;font-size:12px;line-height:1.85;white-space:pre-wrap;overflow-wrap:anywhere}.media{display:block;max-width:100%;max-height:380px;object-fit:contain;border-radius:11px;margin:10px 0;border:1px solid var(--line)}.counts{display:flex;gap:12px;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--line);color:var(--muted);font-size:9px}.actions{display:flex;gap:7px;flex-wrap:wrap;padding-top:9px}.actions .btn{flex:1}.empty{padding:18px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:10px;line-height:1.8;text-align:center}.member-list{display:grid;gap:8px}.member{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid rgba(135,151,255,.13);border-radius:12px;background:rgba(255,255,255,.02)}.member-info{min-width:0;flex:1}.member-name{font-size:10px;font-weight:800;overflow-wrap:anywhere}.member-handle{font-size:9px;color:var(--muted);margin-top:4px}.member a{color:var(--cyan);font-size:9px;font-weight:800;white-space:nowrap}.quicklinks{display:grid;gap:8px}.quicklinks a{padding:12px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.02);font-size:10px;font-weight:800}.quicklinks a span{display:block;color:var(--muted);font-size:9px;font-weight:500;line-height:1.6;margin-top:5px}.note{font-size:9px;color:var(--muted);line-height:1.7;margin-top:12px}.toast{position:fixed;right:16px;bottom:16px;z-index:20;width:min(360px,calc(100% - 32px));padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:#11162a;font-size:11px;line-height:1.6}.toast[hidden]{display:none}footer{text-align:center;padding:25px 0;color:#77819b;font-size:9px;line-height:1.8}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.nav{align-items:flex-start}.brand{max-width:130px}.links a{padding:8px;font-size:9px}.panel{padding:14px}.hero{padding-top:30px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="shell nav">
+<a class="brand" href="../home.html"><img id="brandLogo" alt="" hidden><span>CROWRULES<br>PODCASTING</span></a>
+<nav class="links" aria-label="Community navigation"><a href="index.html">DISCOVER</a><a href="feed.html">MY FEED</a><a href="profile.html">MY PROFILE</a><a href="rankings.html">RANKINGS</a><a href="../account.html">ACCOUNT</a></nav>
+</div></header>
+<main class="shell">
+<section class="hero"><div class="eyebrow">LISTENERS · CREATORS · CONNECTIONS</div><h1>YOUR COMMUNITY.<br>YOUR UNIVERSE.</h1><p>Meet the people behind the podcasts, catch up on conversations, and find your next community connection. Your posts and reactions use the existing CrowRules Podcasting social network.</p><div id="status" class="status" role="status" aria-live="polite">CONNECTING TO COMMUNITY…</div></section>
+<div class="layout">
+<div class="stack">
+<section class="panel"><div class="panel-head"><div><h2>COMMUNITY CONVERSATIONS</h2><div class="sub">Recent member posts, images, reactions and comments.</div></div><button id="refresh" class="btn" type="button">REFRESH ↻</button></div>
+<div class="search"><input id="filter" type="search" maxlength="100" placeholder="Search posts or member names…" aria-label="Search community posts"><button id="clear" class="btn" type="button">CLEAR</button></div>
+<div id="feed" class="feed"><div class="empty">Loading the latest community posts…</div></div>
+<div class="note">To publish posts, react, comment, and manage your profile, open My Profile. This page reuses existing community tables and does not create new database tables.</div>
+</section>
+<section class="panel"><div class="panel-head"><div><h2>MEMBER DIRECTORY</h2><div class="sub">Discover public profiles from the community.</div></div></div><div id="members" class="member-list"><div class="empty">Loading public profiles…</div></div></section>
+</div>
+<aside class="stack">
+<section class="panel"><div class="panel-head"><div><h2>COMMUNITY SHORTCUTS</h2><div class="sub">Pick up where you left off.</div></div></div><div class="quicklinks">
+<a href="profile.html">MY PROFILE & POSTS<span>Update your profile, publish posts, react, and comment.</span></a>
+<a href="feed.html">MY PERSONAL FEED<span>Follow your podcasting network and catch up.</span></a>
+<a href="social.html">SOCIAL NETWORK<span>Explore community and connection features.</span></a>
+<a href="index.html#discover">DISCOVER PODCASTS<span>Find shows and episodes to listen to.</span></a>
+<a href="rankings.html">TOP 10 RANKINGS<span>See popular podcasts and episodes.</span></a>
+</div></section>
+<section class="panel"><h2>COMMUNITY GUIDELINES</h2><p class="sub">Be welcoming to new listeners and creators. Keep conversations constructive, respect creators' work, and only share images or links you have permission to post. Do not publish private information or spam.</p><p class="note">Some profile details appear only when members have chosen to make their profiles public. If data access is blocked by Supabase Row Level Security, this page will show a clear message rather than inventing results.</p></section>
+</aside>
+</div>
+</main>
+<footer class="shell">CROWRULES PODCASTING · ONE ACCOUNT. ONE UNIVERSE.<br><a href="../home.html">CrowRules Entertainment</a></footer>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<script>
+(()=>{"use strict";
+const C=window.CROW_CONFIG||{},SB=window.supabase;let db=null,allPosts=[],profiles=new Map(),likes=[],comments=[],shares=[];
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const date=v=>{if(!v)return"Recently";const d=new Date(v);return Number.isNaN(+d)?"Recently":d.toLocaleString([], {dateStyle:"medium",timeStyle:"short"})};
+function message(id,msg){$(id).innerHTML='<div class="empty">'+esc(msg)+'</div>'}
+function initials(s){return String(s||"CR").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"CR"}
+function avatar(p){const url=p?.avatar_url;return '<div class="avatar">'+(url?'<img loading="lazy" src="'+esc(url)+'" alt="">':esc(initials(p?.display_name||p?.username)))+'</div>'}
+function toast(s){const t=$("toast");t.textContent=s;t.hidden=false;setTimeout(()=>t.hidden=true,3600)}
+function profileName(id){const p=profiles.get(String(id));return p?.display_name||p?.username||"CrowRules Member"}
+function renderFeed(){
+ const term=$("filter").value.trim().toLowerCase();
+ const rows=allPosts.filter(p=>(String(p.body||"")+" "+profileName(p.user_id)).toLowerCase().includes(term));
+ const box=$("feed");box.replaceChildren();
+ if(!rows.length){message("feed",term?"No posts match that search.":"No community posts are available yet. Visit My Profile to start the conversation.");return}
+ rows.forEach(p=>{
+  const author=profiles.get(String(p.user_id))||{};
+  const card=document.createElement("article");card.className="post";
+  const head=document.createElement("div");head.className="post-head";
+  const av=document.createElement("div");av.className="avatar";
+  if(author.avatar_url){const img=document.createElement("img");img.loading="lazy";img.src=author.avatar_url;img.alt="";av.appendChild(img)}else av.textContent=initials(profileName(p.user_id));
+  const who=document.createElement("div");who.style.minWidth="0";
+  const name=document.createElement("div");name.className="author";name.textContent=profileName(p.user_id);
+  const meta=document.createElement("div");meta.className="meta";meta.textContent="@"+(author.username||"member")+" · "+date(p.created_at);
+  who.append(name,meta);head.append(av,who);card.appendChild(head);
+  const body=document.createElement("div");body.className="body";body.textContent=p.body||"";card.appendChild(body);
+  if(p.media_url){const a=document.createElement("a");a.href=p.media_url;a.target="_blank";a.rel="noopener noreferrer";a.setAttribute("aria-label","Open shared image in new tab");const img=document.createElement("img");img.className="media";img.loading="lazy";img.src=p.media_url;img.alt="Image shared by "+profileName(p.user_id);a.appendChild(img);card.appendChild(a)}
+  const count=document.createElement("div");count.className="counts";count.textContent="♥ "+likes.filter(x=>x.post_id===p.id).length+" likes · "+comments.filter(x=>x.post_id===p.id).length+" comments · "+shares.filter(x=>x.post_id===p.id).length+" shares";card.appendChild(count);
+  const actions=document.createElement("div");actions.className="actions";
+  const profileLink=document.createElement("a");profileLink.className="btn";profileLink.href="profile.html";profileLink.textContent="JOIN CONVERSATION";actions.appendChild(profileLink);
+  const share=document.createElement("button");share.type="button";share.className="btn";share.textContent="SHARE ↗";share.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(location.origin+location.pathname+"#post-"+encodeURIComponent(p.id));toast("Community page link copied.");}catch(_){toast("Use your browser address bar to share the community page.")}});actions.appendChild(share);
+  card.id="post-"+String(p.id).replace(/[^a-zA-Z0-9_-]/g,"");card.appendChild(actions);box.appendChild(card);
+ });
+}
+async function load(){
+ $("refresh").disabled=true;$("status").textContent="LOADING COMMUNITY…";
+ try{
+  if(!SB?.createClient||!C.supabaseUrl||!C.supabaseKey)throw Error("Supabase configuration is unavailable. Check ../config.js.");
+  if(!db)db=SB.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  const result=await db.from("podcast_member_posts").select("id,user_id,body,media_url,created_at,updated_at").order("created_at",{ascending:false}).limit(60);
+  if(result.error)throw result.error;allPosts=result.data||[];
+  const ids=[...new Set(allPosts.map(p=>p.user_id).filter(Boolean))];
+  profiles=new Map();likes=[];comments=[];shares=[];
+  if(ids.length){
+   const [pr,lr,cr,sr]=await Promise.all([
+    db.from("podcast_member_profiles").select("user_id,display_name,username,avatar_url,is_public").in("user_id",ids),
+    db.from("podcast_member_post_likes").select("post_id,user_id").in("post_id",allPosts.map(p=>p.id)),
+    db.from("podcast_member_post_comments").select("id,post_id,user_id,body,created_at").in("post_id",allPosts.map(p=>p.id)).order("created_at",{ascending:true}),
+    db.from("podcast_member_post_shares").select("post_id,user_id").in("post_id",allPosts.map(p=>p.id))
+   ]);
+   (pr.data||[]).filter(p=>p.is_public!==false).forEach(p=>profiles.set(String(p.user_id),p));
+   likes=lr.data||[];comments=cr.data||[];shares=sr.data||[];
+  }
+  renderFeed();
+  const publicResult=await db.from("podcast_member_profiles").select("user_id,display_name,username,avatar_url,is_public").eq("is_public",true).limit(12);
+  if(publicResult.error){message("members","Public member directory is unavailable under the current database access policies.");}
+  else{
+   const box=$("members");box.replaceChildren();
+   if(!(publicResult.data||[]).length){message("members","No public profiles are available yet. Members can choose to make their profile visible from profile settings.");}
+   else publicResult.data.forEach(p=>{const row=document.createElement("div");row.className="member";const av=document.createElement("div");av.className="avatar";if(p.avatar_url){const img=document.createElement("img");img.loading="lazy";img.src=p.avatar_url;img.alt="";av.appendChild(img)}else av.textContent=initials(p.display_name||p.username);const info=document.createElement("div");info.className="member-info";const n=document.createElement("div");n.className="member-name";n.textContent=p.display_name||p.username||"CrowRules Member";const h=document.createElement("div");h.className="member-handle";h.textContent="@"+(p.username||"member");info.append(n,h);const a=document.createElement("a");a.href="profile.html";a.textContent="CONNECT →";row.append(av,info,a);box.appendChild(row);profiles.set(String(p.user_id),p)});
+  }
+  $("status").textContent="COMMUNITY CONNECTED · "+allPosts.length+" RECENT POSTS";
+ }catch(e){
+  console.error("Community page load failed:",e);
+  $("status").textContent="COMMUNITY CONNECTION ISSUE";
+  message("feed","Community posts could not be loaded. "+(e?.message||"Check the existing podcast_member_posts table and its SELECT policy."));
+  message("members","Member directory could not be loaded. Check the existing podcast_member_profiles table and public-profile SELECT policy.");
+ }finally{$("refresh").disabled=false}
+}
+$("refresh").addEventListener("click",load);$("filter").addEventListener("input",renderFeed);$("clear").addEventListener("click",()=>{$("filter").value="";renderFeed()});
+if(C.logoUrl){$("brandLogo").src=C.logoUrl;$("brandLogo").hidden=false}
+load();
+})();
+</script>
+</body>
+</html>
