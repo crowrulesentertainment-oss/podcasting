@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#070812">
+<meta name="description" content="Create CrowRules Podcasting photo albums and share your favorite moments.">
+<title>Photo Albums | CrowRules Podcasting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="../config.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#070812;--panel:#101427;--line:rgba(135,151,255,.22);--text:#f5f7ff;--muted:#a0aac3;--cyan:#6de7ff;--purple:#a98bff;--pink:#ff78c8;--good:#70f0ad;--bad:#ff718e}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--text);font-family:Montserrat,system-ui,sans-serif;background:radial-gradient(ellipse at 8% 0%,rgba(109,231,255,.12),transparent 33%),radial-gradient(ellipse at 96% 7%,rgba(169,139,255,.15),transparent 32%),linear-gradient(180deg,#070812,#0a0d18 60%,#06070d)}a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}.shell{width:100%;padding:0 clamp(12px,2vw,28px);margin:auto}.top{position:sticky;top:0;z-index:10;border-bottom:1px solid var(--line);background:#070812ed;backdrop-filter:blur(18px)}.nav{min-height:66px;display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{font:800 11px Orbitron,sans-serif;letter-spacing:.06em;color:var(--cyan)}.navlinks{display:flex;gap:8px;flex-wrap:wrap}.navlinks a{font-size:10px;font-weight:800;padding:9px 11px;border:1px solid var(--line);border-radius:9px}.hero{padding:34px 0 20px}.eyebrow{font-size:9px;letter-spacing:.22em;color:var(--cyan);font-weight:800}.hero h1{font:800 clamp(27px,4vw,43px)/1.15 Orbitron,sans-serif;margin:10px 0}.hero p{max-width:820px;color:var(--muted);font-size:12px;line-height:1.8}.status{margin:12px 0;color:var(--muted);font-size:11px;line-height:1.7}.status.good{color:var(--good)}.status.bad{color:#ffb7c5}.layout{display:grid;grid-template-columns:minmax(270px,.65fr) minmax(0,1.6fr);gap:16px;align-items:start}.card{min-width:0;padding:20px;border:1px solid var(--line);border-radius:18px;background:rgba(15,18,33,.95);box-shadow:0 24px 70px #0004}.card h2{font:700 13px Orbitron,sans-serif;margin:0}.hint{font-size:10px;color:var(--muted);line-height:1.7;margin:8px 0 16px}.field{display:grid;gap:7px;margin:13px 0}.field label{font-size:9px;color:#dbe2f5;font-weight:800;letter-spacing:.06em}.field input,.field textarea,.field select{width:100%;padding:11px 12px;color:var(--text);background:#080b17;border:1px solid var(--line);border-radius:10px;outline:none}.field textarea{min-height:82px;resize:vertical}.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--cyan)}.btn{display:inline-flex;justify-content:center;align-items:center;gap:7px;min-height:39px;padding:10px 13px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.04);color:var(--text);font-size:10px;font-weight:800;cursor:pointer}.btn.primary{border-color:#6de7ff70;background:linear-gradient(100deg,#6de7ff22,#a98bff2e)}.btn.danger{border-color:#ff718e66;color:#ffb7c5}.btn:disabled{opacity:.55;cursor:wait}.actions{display:flex;flex-wrap:wrap;gap:8px}.albums{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}.album{overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#0a0d19;min-width:0}.album-cover{width:100%;aspect-ratio:16/10;display:block;object-fit:cover;background:linear-gradient(130deg,#14213b,#281943);cursor:pointer}.album-cover.empty{display:grid;place-items:center;color:var(--cyan);font:700 12px Orbitron,sans-serif}.album-body{padding:12px}.album-title{font:700 11px Orbitron,sans-serif;overflow-wrap:anywhere}.album-meta{margin-top:7px;font-size:9px;color:var(--muted);line-height:1.6}.album-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}.album-actions .btn{min-height:32px;padding:7px 9px;font-size:9px}.photo-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:22px 0 13px}.photo-head h2{margin:0}.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}.photo{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:#090b16}.photo img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;cursor:pointer}.photo-caption{padding:9px;font-size:9px;line-height:1.6;color:#dbe2f5;overflow-wrap:anywhere}.photo-delete{position:absolute;right:7px;top:7px;border:1px solid #ffffff44;border-radius:8px;background:#070812d9;color:white;padding:6px 8px;font-size:9px;cursor:pointer}.empty{padding:30px 14px;text-align:center;border:1px dashed var(--line);border-radius:13px;color:var(--muted);font-size:11px;line-height:1.8}.upload-panel{margin-top:15px;padding:15px;border:1px solid rgba(109,231,255,.18);border-radius:13px;background:rgba(109,231,255,.035)}.upload-panel h3{margin:0;font:700 10px Orbitron,sans-serif}.upload-panel input[type=file]{width:100%;margin:12px 0;color:var(--muted);font-size:10px}.preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:7px;margin:10px 0}.preview-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;border:1px solid var(--line)}.lightbox{position:fixed;inset:0;z-index:100;background:#000e;display:grid;place-items:center;padding:20px}.lightbox[hidden]{display:none}.lightbox img{max-width:96vw;max-height:88vh;object-fit:contain}.lightbox button{position:absolute;right:18px;top:18px}.count{display:inline-block;padding:5px 8px;border:1px solid var(--line);border-radius:99px;color:var(--cyan);font-size:8px;font-weight:800}footer{text-align:center;padding:28px 10px;color:#77819b;font-size:9px}@media(max-width:760px){.layout{grid-template-columns:1fr}.hero{padding-top:24px}.card{padding:15px}.nav{align-items:flex-start;padding:12px 0;flex-direction:column}.albums{grid-template-columns:repeat(auto-fill,minmax(155px,1fr))}.photo-grid{grid-template-columns:repeat(auto-fill,minmax(115px,1fr))}}
+</style>
+</head>
+<body>
+<header class="top"><div class="shell nav"><a class="brand" href="../index.html">CROWRULES PODCASTING</a><nav class="navlinks"><a href="profile.html">My Profile</a><a href="feed.html">Community Feed</a><a href="social.html">Social</a><a href="../index.html">Podcasting Home</a></nav></div></header>
+<main class="shell">
+<section class="hero"><div class="eyebrow">YOUR MOMENTS · YOUR COLLECTION</div><h1>Photo Albums</h1><p>Create albums, upload multiple photos at once, add captions, and choose whether each album is public or private. Your photos are stored in your CrowRules account media space.</p><div id="pageStatus" class="status" role="status">Connecting to CrowRules…</div></section>
+<div class="layout">
+<section class="card"><h2>Create an album</h2><p class="hint">Give your collection a name and optional description. You can change visibility later.</p>
+<form id="createForm">
+<div class="field"><label for="albumTitle">ALBUM NAME *</label><input id="albumTitle" maxlength="100" required placeholder="Summer memories"></div>
+<div class="field"><label for="albumDescription">DESCRIPTION</label><textarea id="albumDescription" maxlength="1000" placeholder="What's this album about?"></textarea></div>
+<div class="field"><label for="albumVisibility">VISIBILITY</label><select id="albumVisibility"><option value="public">Public — visible to everyone</option><option value="private">Private — only you</option></select></div>
+<button class="btn primary" id="createBtn" type="submit">＋ Create album</button>
+</form>
+<div id="createStatus" class="status" role="status"></div>
+<div class="upload-panel"><h3>PHOTO UPLOAD GUIDELINES</h3><p class="hint">Select up to 25 images per upload. Each image must be 10 MB or smaller. JPG, PNG, WebP, GIF, and AVIF are supported.</p></div>
+</section>
+<section class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><h2>Your albums</h2><span class="count" id="albumCount">0 ALBUMS</span></div><p class="hint">Open an album to see its photos, add more images, or manage its settings.</p>
+<div id="albumList" class="albums"><div class="empty">Sign in to load your albums.</div></div>
+<section id="albumDetail" hidden>
+<div class="photo-head"><div><h2 id="detailTitle">Album</h2><p class="hint" id="detailDescription"></p></div><button class="btn" id="closeAlbum" type="button">Close album</button></div>
+<div class="actions" style="margin-bottom:14px"><button class="btn" id="editAlbum" type="button">Edit album details</button><button class="btn danger" id="deleteAlbum" type="button">Delete album</button></div>
+<div id="editPanel" class="upload-panel" hidden><div class="field"><label for="editTitle">ALBUM NAME</label><input id="editTitle" maxlength="100"></div><div class="field"><label for="editDescription">DESCRIPTION</label><textarea id="editDescription" maxlength="1000"></textarea></div><div class="field"><label for="editVisibility">VISIBILITY</label><select id="editVisibility"><option value="public">Public</option><option value="private">Private</option></select></div><div class="actions"><button class="btn primary" id="saveEdit" type="button">Save changes</button><button class="btn" id="cancelEdit" type="button">Cancel</button></div></div>
+<div class="upload-panel"><h3>ADD PHOTOS TO THIS ALBUM</h3><p class="hint">Choose up to 25 images. Uploads are added to this album and the first image becomes its cover if it doesn't have one yet.</p><input id="photoFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" multiple><div id="uploadPreviews" class="preview-grid"></div><div class="field"><label for="photoCaption">CAPTION (OPTIONAL — APPLIES TO ALL SELECTED PHOTOS)</label><input id="photoCaption" maxlength="300" placeholder="Add a shared caption"></div><div class="actions"><button class="btn primary" id="uploadBtn" type="button">Upload photos</button><span id="uploadStatus" class="status" role="status"></span></div></div>
+<div class="photo-head"><h2>Photos</h2><span class="count" id="photoCount">0 PHOTOS</span></div><div id="photoGrid" class="photo-grid"><div class="empty">Open an album to view photos.</div></div>
+</section>
+</section>
+</div>
+</main>
+<footer>One Account. One Universe. · CrowRules Entertainment</footer>
+<div id="lightbox" class="lightbox" hidden role="dialog" aria-modal="true" aria-label="Photo preview"><button class="btn" id="lightboxClose" type="button">Close ✕</button><img id="lightboxImage" alt="Expanded album photo"></div>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const MAX_FILES=25,MAX_BYTES=10*1024*1024,BUCKET='podcast-member-media';
+let sb=null,user=null,albums=[],activeAlbum=null,photos=[];
+const say=(id,msg,kind='')=>{const el=$(id);if(!el)return;el.textContent=msg;el.className='status'+(kind?' '+kind:'')};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const slug=s=>String(s||'photo').normalize('NFKD').replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,90)||'photo';
+function publicUrl(path){return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl}
+function showLightbox(url,alt){$('lightboxImage').src=url;$('lightboxImage').alt=alt||'Album photo';$('lightbox').hidden=false}
+function closeLightbox(){$('lightbox').hidden=true;$('lightboxImage').src=''}
+async function init(){
+ const cfg=window.CROW_CONFIG||{};
+ if(!window.supabase||!cfg.supabaseUrl||!cfg.supabaseKey){say('pageStatus','Supabase configuration is missing. Check config.js.','bad');return}
+ sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
+ const {data:{session},error}=await sb.auth.getSession();
+ if(error){say('pageStatus','Could not verify your session: '+error.message,'bad');return}
+ user=session?.user||null;
+ if(!user){say('pageStatus','Please sign in to create albums and upload photos.','bad');$('albumList').innerHTML='<div class="empty">You need to be signed in. <a href="../login.html" style="color:var(--cyan);text-decoration:underline">Sign in</a>, then return to Photo Albums.</div>';return}
+ say('pageStatus','Signed in · your albums are ready to manage.','good');
+ await loadAlbums();
+ sb.auth.onAuthStateChange((_event,sessionNow)=>{user=sessionNow?.user||null;if(!user){say('pageStatus','Your session ended. Sign in again to manage albums.','bad')}});
+}
+async function loadAlbums(){
+ const {data,error}=await sb.from('crowspace_albums').select('id,user_id,title,description,cover_url,visibility,created_at').eq('user_id',user.id).order('created_at',{ascending:false});
+ if(error){say('pageStatus','Could not load albums: '+error.message,'bad');$('albumList').innerHTML='<div class="empty">Album loading failed. Check the Supabase RLS policies for crowspace_albums.</div>';return}
+ albums=data||[];$('albumCount').textContent=albums.length+' ALBUM'+(albums.length===1?'':'S');
+ if(!albums.length){$('albumList').innerHTML='<div class="empty">No albums yet. Create your first album, then open it to add photos.</div>';return}
+ const counts=await Promise.all(albums.map(async a=>{const r=await sb.from('crowspace_album_photos').select('id',{count:'exact',head:true}).eq('album_id',a.id);return [a.id,r.count||0]}));
+ const countMap=Object.fromEntries(counts);
+ $('albumList').innerHTML=albums.map(a=>'<article class="album" data-album="'+a.id+'">'+(a.cover_url?'<img class="album-cover" data-open="'+a.id+'" src="'+esc(a.cover_url)+'" alt="'+esc(a.title)+' cover" loading="lazy">':'<div class="album-cover empty" data-open="'+a.id+'">PHOTO ALBUM</div>')+'<div class="album-body"><div class="album-title">'+esc(a.title)+'</div><div class="album-meta">'+countMap[a.id]+' photo'+(countMap[a.id]===1?'':'s')+' · '+esc(a.visibility)+'<br>'+esc(a.description||'No description yet.')+'</div><div class="album-actions"><button class="btn primary" data-open="'+a.id+'" type="button">Open album</button><button class="btn" data-quick-edit="'+a.id+'" type="button">Edit</button></div></div></article>').join('');
+ $('albumList').querySelectorAll('[data-open]').forEach(el=>el.addEventListener('click',()=>openAlbum(el.dataset.open)));
+ $('albumList').querySelectorAll('[data-quick-edit]').forEach(el=>el.addEventListener('click',async()=>{await openAlbum(el.dataset.quickEdit);$('editPanel').hidden=false;$('editTitle').focus()}));
+}
+async function openAlbum(id){
+ activeAlbum=albums.find(a=>a.id===id)||null;if(!activeAlbum)return;
+ $('albumDetail').hidden=false;$('detailTitle').textContent=activeAlbum.title;$('detailDescription').textContent=activeAlbum.description||'No description added.';$('editTitle').value=activeAlbum.title;$('editDescription').value=activeAlbum.description||'';$('editVisibility').value=activeAlbum.visibility||'public';$('editPanel').hidden=true;$('photoFiles').value='';$('uploadPreviews').innerHTML='';say('uploadStatus','');
+ $('albumDetail').scrollIntoView({behavior:'smooth',block:'start'});
+ const {data,error}=await sb.from('crowspace_album_photos').select('id,album_id,user_id,image_url,caption,sort_order,created_at').eq('album_id',id).order('sort_order',{ascending:true}).order('created_at',{ascending:true});
+ if(error){say('pageStatus','Could not load photos: '+error.message,'bad');$('photoGrid').innerHTML='<div class="empty">Photos could not be loaded. Check the album photo RLS policies.</div>';return}
+ photos=data||[];$('photoCount').textContent=photos.length+' PHOTO'+(photos.length===1?'':'S');
+ $('photoGrid').innerHTML=photos.length?photos.map(p=>'<article class="photo"><button class="photo-delete" data-delete-photo="'+p.id+'" type="button" aria-label="Delete photo">Delete</button><img src="'+esc(p.image_url)+'" alt="'+esc(p.caption||'Album photo')+'" loading="lazy" data-photo-open="'+p.id+'"><div class="photo-caption">'+esc(p.caption||'')+'</div></article>').join(''):'<div class="empty">This album is empty. Select images above and upload your first photos.</div>';
+ $('photoGrid').querySelectorAll('[data-photo-open]').forEach(el=>el.addEventListener('click',()=>{const p=photos.find(x=>x.id===el.dataset.photoOpen);if(p)showLightbox(p.image_url,p.caption)}));
+ $('photoGrid').querySelectorAll('[data-delete-photo]').forEach(el=>el.addEventListener('click',()=>deletePhoto(el.dataset.deletePhoto)));
+}
+$('createForm').addEventListener('submit',async e=>{
+ e.preventDefault();if(!user){say('createStatus','Sign in first.','bad');return}
+ const title=$('albumTitle').value.trim();if(!title){say('createStatus','Enter an album name.','bad');return}
+ $('createBtn').disabled=true;say('createStatus','Creating album…');
+ try{const {data,error}=await sb.from('crowspace_albums').insert({user_id:user.id,title,description:$('albumDescription').value.trim()||null,visibility:$('albumVisibility').value}).select('id').single();
+ if(error)throw error;$('createForm').reset();say('createStatus','Album created. You can upload photos now.','good');await loadAlbums();if(data?.id)await openAlbum(data.id);
+ }catch(err){say('createStatus','Could not create album: '+(err.message||err),'bad')}finally{$('createBtn').disabled=false}
+});
+$('photoFiles').addEventListener('change',()=>{
+ const files=[...($('photoFiles').files||[])];$('uploadPreviews').innerHTML='';
+ if(files.length>MAX_FILES){say('uploadStatus','Choose no more than '+MAX_FILES+' images.','bad');$('photoFiles').value='';return}
+ const bad=files.find(f=>!/^image\/(jpeg|png|webp|gif|avif)$/.test(f.type)||f.size>MAX_BYTES);
+ if(bad){say('uploadStatus',bad.name+' is not a supported image or exceeds 10 MB.','bad');$('photoFiles').value='';return}
+ say('uploadStatus',files.length+' image(s) selected.');
+ files.forEach(f=>{const img=document.createElement('img');img.alt=f.name;img.src=URL.createObjectURL(f);img.onload=()=>URL.revokeObjectURL(img.src);$('uploadPreviews').appendChild(img)});
+});
+$('uploadBtn').addEventListener('click',async()=>{
+ if(!user||!activeAlbum){say('uploadStatus','Open an album and sign in before uploading.','bad');return}
+ const files=[...($('photoFiles').files||[])];if(!files.length){say('uploadStatus','Select one or more photos first.','bad');return}
+ if(files.length>MAX_FILES||files.some(f=>f.size>MAX_BYTES||!/^image\/(jpeg|png|webp|gif|avif)$/.test(f.type))){say('uploadStatus','Please choose up to 25 supported images, each no larger than 10 MB.','bad');return}
+ $('uploadBtn').disabled=true;let uploaded=0;const caption=$('photoCaption').value.trim();
+ try{
+ for(const file of files){
+  say('uploadStatus','Uploading '+(uploaded+1)+' of '+files.length+' · '+file.name);
+  const path=user.id+'/albums/'+activeAlbum.id+'/'+Date.now()+'-'+crypto.randomUUID()+'-'+slug(file.name);
+  const {error:storageError}=await sb.storage.from(BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});
+  if(storageError)throw storageError;
+  const url=publicUrl(path);
+  const {error:rowError}=await sb.from('crowspace_album_photos').insert({album_id:activeAlbum.id,user_id:user.id,image_url:url,caption:caption||null,sort_order:photos.length+uploaded});
+  if(rowError){await sb.storage.from(BUCKET).remove([path]);throw rowError}
+  if(!activeAlbum.cover_url){const {error:coverError}=await sb.from('crowspace_albums').update({cover_url:url}).eq('id',activeAlbum.id).eq('user_id',user.id);if(!coverError)activeAlbum.cover_url=url}
+  uploaded++;
+ }
+ $('photoFiles').value='';$('uploadPreviews').innerHTML='';$('photoCaption').value='';say('uploadStatus','Uploaded '+uploaded+' photo(s).','good');await loadAlbums();await openAlbum(activeAlbum.id);
+ }catch(err){say('uploadStatus','Upload stopped after '+uploaded+' photo(s): '+(err.message||err),'bad');await loadAlbums();await openAlbum(activeAlbum.id)}finally{$('uploadBtn').disabled=false}
+});
+$('closeAlbum').addEventListener('click',()=>{$('albumDetail').hidden=true;activeAlbum=null});
+$('editAlbum').addEventListener('click',()=>{$('editPanel').hidden=!$('editPanel').hidden});
+$('cancelEdit').addEventListener('click',()=>{$('editPanel').hidden=true});
+$('saveEdit').addEventListener('click',async()=>{
+ if(!activeAlbum)return;const title=$('editTitle').value.trim();if(!title){say('pageStatus','Album name cannot be empty.','bad');return}
+ $('saveEdit').disabled=true;
+ try{const {error}=await sb.from('crowspace_albums').update({title,description:$('editDescription').value.trim()||null,visibility:$('editVisibility').value}).eq('id',activeAlbum.id).eq('user_id',user.id);if(error)throw error;
+ const id=activeAlbum.id;say('pageStatus','Album updated.','good');await loadAlbums();await openAlbum(id);$('editPanel').hidden=true;
+ }catch(err){say('pageStatus','Could not update album: '+(err.message||err),'bad')}finally{$('saveEdit').disabled=false}
+});
+$('deleteAlbum').addEventListener('click',async()=>{
+ if(!activeAlbum||!confirm('Delete “'+activeAlbum.title+'” and all photos in this album? This cannot be undone.'))return;
+ $('deleteAlbum').disabled=true;
+ try{
+ const {data,error}=await sb.from('crowspace_album_photos').select('image_url').eq('album_id',activeAlbum.id).eq('user_id',user.id);if(error)throw error;
+ const prefix=user.id+'/albums/'+activeAlbum.id+'/';const paths=(data||[]).map(p=>{try{const u=new URL(p.image_url);const marker='/storage/v1/object/public/'+BUCKET+'/';return u.pathname.includes(marker)?decodeURIComponent(u.pathname.split(marker)[1]):null}catch{return null}}).filter(p=>p&&p.startsWith(prefix));
+ if(paths.length){const {error:storageError}=await sb.storage.from(BUCKET).remove(paths);if(storageError)console.warn('Storage cleanup:',storageError.message)}
+ const {error:delError}=await sb.from('crowspace_albums').delete().eq('id',activeAlbum.id).eq('user_id',user.id);if(delError)throw delError;
+ $('albumDetail').hidden=true;activeAlbum=null;say('pageStatus','Album deleted.','good');await loadAlbums();
+ }catch(err){say('pageStatus','Could not delete album: '+(err.message||err),'bad')}finally{$('deleteAlbum').disabled=false}
+});
+async function deletePhoto(id){
+ const photo=photos.find(p=>p.id===id);if(!photo||!confirm('Delete this photo from the album?'))return;
+ try{
+ const {error}=await sb.from('crowspace_album_photos').delete().eq('id',id).eq('user_id',user.id);if(error)throw error;
+ try{const u=new URL(photo.image_url);const marker='/storage/v1/object/public/'+BUCKET+'/';if(u.pathname.includes(marker)){const path=decodeURIComponent(u.pathname.split(marker)[1]);if(path.startsWith(user.id+'/'))await sb.storage.from(BUCKET).remove([path])}}catch(e){console.warn('Could not remove storage object',e)}
+ if(activeAlbum.cover_url===photo.image_url){const next=photos.find(p=>p.id!==id);await sb.from('crowspace_albums').update({cover_url:next?.image_url||null}).eq('id',activeAlbum.id).eq('user_id',user.id);activeAlbum.cover_url=next?.image_url||null}
+ say('pageStatus','Photo deleted.','good');await loadAlbums();await openAlbum(activeAlbum.id);
+ }catch(err){say('pageStatus','Could not delete photo: '+(err.message||err),'bad')}
+}
+$('lightboxClose').addEventListener('click',closeLightbox);$('lightbox').addEventListener('click',e=>{if(e.target===$('lightbox'))closeLightbox()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox()});
+init();
+})();
+</script>
+</body></html>
