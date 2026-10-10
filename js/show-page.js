@@ -144,32 +144,15 @@ async function load(){
   const sessionPromise=wait(db.auth.getSession(),"Session",5000).catch(e=>({error:e}));
    let episodeError=null,episodeResult=null;
    try{
-    // Keep the public episode query deliberately small and avoid server-side
-    // sorting: optional columns/order metadata can make PostgREST reject an
-    // otherwise valid published episode query.
+    // Select the live table schema wholesale to avoid a brittle list of
+    // optional columns. The public RLS policy limits this query to published
+    // rows; we also validate status and flags client-side before rendering.
     episodeResult=await wait(db.from("podcast_episodes")
-     .select("id,podcast_id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,show_notes,status,play_count,created_at")
+     .select("*")
      .eq("podcast_id",showId)
      .eq("status","published")
-     .limit(100),"Episode library",12000);
+     .limit(100),"Episode library",15000);
     if(episodeResult.error)throw episodeResult.error;
-   }catch(primaryEpisodeError){
-    console.warn("[CrowRules show] Primary episode query failed; trying compatibility query",primaryEpisodeError);
-    try{
-     // Compatibility path: let the API return rows using the minimal schema,
-     // then apply published/active checks in the browser.
-     episodeResult=await wait(db.from("podcast_episodes")
-      .select("id,podcast_id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,show_notes,status,play_count,created_at,is_published,is_active")
-      .eq("podcast_id",showId)
-      .limit(100),"Episode compatibility query",12000);
-     if(episodeResult.error)throw episodeResult.error;
-    }catch(compatibilityEpisodeError){
-     console.error("[CrowRules show] Episode queries failed",primaryEpisodeError,compatibilityEpisodeError);
-     episodeError=compatibilityEpisodeError;
-     episodes=[];
-    }
-   }
-   if(!episodeError){
     episodes=(episodeResult.data||[])
      .filter(ep=>String(ep.status||"").toLowerCase()==="published"&&ep.is_published!==false&&ep.is_active!==false)
      .sort((a,b)=>{
@@ -179,9 +162,10 @@ async function load(){
       if(episodeA!==episodeB)return episodeA-episodeB;
       return new Date(b.published_at||b.created_at||0)-new Date(a.published_at||a.created_at||0);
      })
-     .map(function(ep){
-      return Object.assign({},ep,{show_id:ep.podcast_id,is_published:ep.is_published??true,is_active:ep.is_active??true,audio_url:ep.audio_url||null,video_url:ep.video_url||null,description:ep.description||ep.show_notes||"",duration_seconds:ep.duration_seconds||null});
-     });
+     .map(ep=>Object.assign({},ep,{show_id:ep.podcast_id,is_published:ep.is_published??true,is_active:ep.is_active??true,audio_url:ep.audio_url||null,video_url:ep.video_url||null,description:ep.description||ep.show_notes||"",duration_seconds:ep.duration_seconds||null}));
+   }catch(episodeQueryError){
+    console.error("[CrowRules show] Episode query failed",episodeQueryError);
+    episodeError=episodeQueryError;episodes=[];
    }
   const session=await sessionPromise;
   user=!session.error?(session.data?.session?.user||null):null;
