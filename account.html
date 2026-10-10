@@ -89,9 +89,12 @@ const allEpisodes=episodesResult.data,allPodcasts=podcastsResult.data;
 const ownedPodcastIds=creator&&allPodcasts?new Set(allPodcasts.filter(p=>String(p.creator_id)===String(creator.id)).map(p=>String(p.id))):null;
 const ownedEpisodes=allEpisodes&&ownedPodcastIds?allEpisodes.filter(e=>ownedPodcastIds.has(String(e.podcast_id))):null;
 $('episodes').textContent=ownedEpisodes===null?'—':fmtCount(ownedEpisodes.length);$('episodeNote').textContent=ownedEpisodes===null?(episodesResult.error||podcastsResult.error?'CATALOG QUERY UNAVAILABLE':'NO LINKED CREATOR'): 'EPISODES LINKED THROUGH YOUR PODCASTS';
-const allPlays=playsResult.data,ownedPlays=allPlays?allPlays.filter(r=>String(rowOwner(r)||'')===String(user.id)):null;
-const playEvents=ownedPlays?ownedPlays.filter(r=>String(r.event_type||r.event_name||r.type||'play').toLowerCase()==='play'):null;
-$('plays').textContent=playEvents===null?'—':fmtCount(playEvents.length);$('playsNote').textContent=allPlays===null?'EVENT QUERY UNAVAILABLE':(ownedPlays.length?'PODCAST_PLAY_EVENTS':'NO MATCHING USER EVENTS');
+// Creator plays are attributed through owned episodes, not by the listener user_id on each event.
+const allPlays=playsResult.data;
+const ownedEpisodeIds=ownedEpisodes===null?null:new Set(ownedEpisodes.map(e=>String(e.id)));
+const ownedPlayEvents=allPlays&&ownedEpisodeIds?allPlays.filter(r=>ownedEpisodeIds.has(String(r.episode_id))&&String(r.event_type||'play').toLowerCase()==='play'):null;
+$('plays').textContent=ownedPlayEvents===null?'—':fmtCount(ownedPlayEvents.length);
+$('playsNote').textContent=allPlays===null?'EVENT QUERY UNAVAILABLE':(ownedEpisodes===null?'CREATOR CATALOG UNAVAILABLE':(ownedEpisodes.length?'PLAYS ON YOUR EPISODES':'NO LINKED CREATOR EPISODES'));
 const allListens=listensResult.data,ownedSessions=allListens?allListens.filter(r=>String(rowOwner(r)||'')===String(user.id)):null;
 if(ownedSessions===null){$('hours').textContent='—';$('hoursNote').textContent='SESSION QUERY UNAVAILABLE';$('completed').textContent='—';$('completedNote').textContent='SESSION QUERY UNAVAILABLE'}
 else{
