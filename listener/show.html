@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/podcasting.css">
-  <link rel="stylesheet" href="../css/show-cyberpunk.css?v=show-load-fix-v29">
+  <link rel="stylesheet" href="../css/show-cyberpunk.css?v=no-loading-screen-v30">
   <style>
     :root{--show-cyan:#67e8f9;--show-purple:#a78bfa;--show-ink:#05070d;--show-panel:rgba(11,16,29,.82);--show-line:rgba(148,163,184,.18)}
     body{background:radial-gradient(ellipse at 50% -18%,rgba(103,232,249,.16),transparent 42%),radial-gradient(ellipse at 100% 30%,rgba(167,139,250,.12),transparent 34%),linear-gradient(180deg,#05070d 0%,#080b14 52%,#05070d 100%);color:#eef5ff}
@@ -45,14 +45,16 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="../config.js"></script>
 <script src="../js/crowpoints.js" defer></script>
-  <script defer src="../js/show-page.js?v=show-load-fix-v29"></script>
+  <script defer src="../js/show-page.js?v=no-loading-screen-v30"></script>
 </head>
 <body>
   <div id="app">
     <main class="shell">
-      <section class="show-loading" aria-label="Podcast show" aria-busy="true">
-        <div class="loading-brand"><span class="loading-orb">CR</span><span><b>CROWRULES / PODCASTING</b><small>ONE COMPANY. ONE UNIVERSE.</small></span></div>
-        <div class="loading-grid"><div class="loading-copy"><span class="loading-kicker">NEON DISTRICT // SIGNAL ACQUIRED</span><h1>Enter the<br><em>soundscape.</em></h1><p>Syncing show data, episode transmissions, live signals and creator access.</p><div class="loading-bars"><i></i><i></i><i></i></div><a href="index.html">← RETURN TO THE NETWORK</a></div><div class="loading-cover"><div class="cover-ring"></div><div class="cover-core">CR<span>PLAY</span></div></div></div>
+      <section class="card show-ready" aria-label="Podcast show">
+        <div class="eyebrow">CROWRULES PODCASTING</div>
+        <h1>Your next favorite show starts here.</h1>
+        <p class="muted">Explore published podcasts, episodes and creator memberships.</p>
+        <a class="btn primary" href="index.html#discover">BROWSE PODCASTS</a>
       </section>
     </main>
   </div>
