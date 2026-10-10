@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050816">
+<meta name="description" content="Take on listening challenges, discover new podcasts, and earn CrowRules Podcasting achievements.">
+<title>Podcast Challenges | CrowRules Podcasting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/podcasting.css">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<script src="../js/crowpoints.js" defer></script>
+<style>
+:root{color-scheme:dark;--cyan:#67e8f9;--purple:#c084fc;--pink:#fb72d0;--bg:#050816;--panel:rgba(13,20,39,.88);--line:rgba(139,163,204,.2);--muted:#9aa9bf}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 8% 0,rgba(103,232,249,.12),transparent 32%),radial-gradient(ellipse at 95% 15%,rgba(192,132,252,.13),transparent 35%),var(--bg);color:#f4f7ff;font-family:Montserrat,Arial,sans-serif}a{color:inherit;text-decoration:none}button,input,select{font:inherit}button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}.page{width:min(1240px,calc(100% - 32px));margin:auto;padding:20px 0 70px}.mast{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 0 20px;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:11px;font:800 12px Orbitron,sans-serif;letter-spacing:.08em}.brand-mark{display:grid;place-items:center;width:44px;height:44px;border:1px solid rgba(103,232,249,.45);border-radius:13px;color:var(--cyan);font:900 22px Orbitron,sans-serif;box-shadow:0 0 26px rgba(103,232,249,.1)}.brand span{color:var(--cyan)}.nav{display:flex;gap:8px;flex-wrap:wrap}.nav a,.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:rgba(255,255,255,.025);color:#edf4ff;font-size:10px;font-weight:800;letter-spacing:.06em;cursor:pointer;transition:.2s}.nav a:hover,.btn:hover{border-color:var(--cyan);background:rgba(103,232,249,.08)}.btn.primary{background:linear-gradient(110deg,rgba(103,232,249,.16),rgba(192,132,252,.19));border-color:rgba(103,232,249,.48)}.btn:disabled{opacity:.5;cursor:wait}.hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);gap:24px;align-items:center;padding:48px 0 28px}.eyebrow{font:800 10px Orbitron,sans-serif;letter-spacing:.18em;color:var(--cyan);text-transform:uppercase}.hero h1{font:900 clamp(38px,6vw,76px)/1.03 Orbitron,sans-serif;letter-spacing:-.05em;margin:13px 0 16px;background:linear-gradient(110deg,#fff 5%,#baf5ff 52%,#c9b6ff 90%);background-clip:text;-webkit-background-clip:text;color:transparent}.hero p{max-width:690px;color:var(--muted);font-size:13px;line-height:1.9}.hero-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}.console{padding:22px;border:1px solid rgba(103,232,249,.24);border-radius:20px;background:linear-gradient(145deg,rgba(14,23,42,.96),rgba(10,12,27,.96));box-shadow:0 22px 70px rgba(0,0,0,.24)}.console-title{font:800 12px Orbitron,sans-serif;letter-spacing:.12em;color:#a9b7ce}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:15px 0}.stat{padding:14px 10px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025)}.stat strong{display:block;font:800 clamp(20px,3vw,30px) Orbitron,sans-serif}.stat span{display:block;margin-top:7px;color:var(--muted);font-size:9px;letter-spacing:.07em}.stat:nth-child(1) strong{color:var(--cyan)}.stat:nth-child(2) strong{color:var(--purple)}.stat:nth-child(3) strong{color:var(--pink)}.streak{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid rgba(192,132,252,.2);border-radius:12px;background:rgba(192,132,252,.05)}.streak-icon{font-size:25px}.streak strong{font-size:12px}.streak small{display:block;color:var(--muted);font-size:10px;line-height:1.7;margin-top:4px}.section{padding:24px 0}.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin:10px 0 16px}.section-head h2{font:800 clamp(20px,3vw,28px) Orbitron,sans-serif;margin:8px 0 0}.section-head p{color:var(--muted);font-size:11px;line-height:1.7;margin:7px 0 0}.filters{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.filter{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.025);padding:10px 14px;color:#dfe8f7;font-size:10px;font-weight:800;cursor:pointer}.filter[aria-pressed=true]{border-color:var(--cyan);background:rgba(103,232,249,.12);color:var(--cyan)}.challenge-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.challenge{display:flex;flex-direction:column;min-width:0;padding:19px;border:1px solid var(--line);border-radius:17px;background:linear-gradient(150deg,rgba(17,26,45,.97),rgba(8,13,27,.97));transition:transform .2s,border-color .2s}.challenge:hover{transform:translateY(-3px);border-color:rgba(103,232,249,.45)}.challenge-top{display:flex;justify-content:space-between;align-items:center;gap:10px}.challenge-icon{display:grid;place-items:center;width:44px;height:44px;border:1px solid rgba(103,232,249,.24);border-radius:13px;background:rgba(103,232,249,.07);font-size:22px}.tag{border:1px solid rgba(192,132,252,.3);border-radius:999px;padding:6px 8px;color:#d8baff;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.challenge h3{font:800 15px/1.5 Orbitron,sans-serif;margin:17px 0 8px}.challenge p{color:var(--muted);font-size:11px;line-height:1.8;margin:0 0 16px}.challenge-bottom{margin-top:auto}.reward{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 0;color:#cbd6e7;font-size:10px;border-top:1px solid var(--line)}.points{color:var(--cyan);font:800 12px Orbitron,sans-serif;white-space:nowrap}.progress-label{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:10px;margin:12px 0 7px}.progress{height:7px;overflow:hidden;border-radius:99px;background:#202a3a}.progress span{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--cyan),var(--purple))}.challenge .btn{width:100%;margin-top:12px}.empty{grid-column:1/-1;padding:30px;text-align:center;border:1px dashed var(--line);border-radius:16px;color:var(--muted);font-size:12px;line-height:1.8}.badges{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.badge-card{padding:18px 12px;text-align:center;border:1px solid var(--line);border-radius:15px;background:rgba(13,20,39,.75)}.badge-icon{display:grid;place-items:center;width:56px;height:56px;margin:0 auto 12px;border:1px solid rgba(103,232,249,.27);border-radius:50%;background:radial-gradient(circle,rgba(103,232,249,.12),transparent);font-size:24px}.badge-card h3{font:700 11px Orbitron,sans-serif;margin:0 0 7px}.badge-card p{color:var(--muted);font-size:10px;line-height:1.7;margin:0}.note{margin-top:18px;padding:14px 16px;border:1px solid rgba(103,232,249,.17);border-radius:12px;background:rgba(103,232,249,.035);color:var(--muted);font-size:10px;line-height:1.8}.notice{display:none;margin:12px 0;padding:12px 14px;border-radius:10px;font-size:11px;line-height:1.7}.notice.show{display:block}.notice.info{border:1px solid rgba(103,232,249,.25);color:#b9eff7;background:rgba(103,232,249,.06)}.notice.error{border:1px solid rgba(251,114,208,.3);color:#ffc4e9;background:rgba(251,114,208,.06)}.notice.success{border:1px solid rgba(110,231,183,.25);color:#b9f7dd;background:rgba(110,231,183,.06)}footer{padding:25px 0;border-top:1px solid var(--line);color:#7e8ba1;font-size:10px;line-height:1.8}footer a{color:var(--cyan)}@media(max-width:900px){.hero{grid-template-columns:1fr}.challenge-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.badges{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:580px){.page{width:calc(100% - 22px)}.nav{width:100%}.nav a{flex:1}.hero{padding-top:32px}.challenge-grid{grid-template-columns:1fr}.stats{gap:6px}.stat{padding:12px 7px}.badges{grid-template-columns:repeat(2,minmax(0,1fr))}.section{padding:17px 0}}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="mast">
+<a class="brand" href="index.html" aria-label="CrowRules Podcasting listener home"><span class="brand-mark">CR</span><span>CROWRULES <span>PODCASTING</span></span></a>
+<nav class="nav" aria-label="Listener navigation">
+<a href="index.html">DISCOVER</a><a href="rankings.html">RANKINGS</a><a href="profile.html">MY PROFILE</a><a href="social.html">COMMUNITY</a>
+</nav>
+</header>
+<main>
+<section class="hero">
+<div>
+<div class="eyebrow">Your next level starts here</div>
+<h1>THE<br><span>CHALLENGE</span><br>CENTER</h1>
+<p>Discover new voices. Finish great episodes. Build your listening streak. Take on challenges at your own pace and celebrate every milestone across CrowRules Podcasting.</p>
+<div class="hero-actions"><a class="btn primary" href="#challenges">EXPLORE CHALLENGES ↓</a><a class="btn" href="index.html#discover">FIND A PODCAST ↗</a></div>
+<div id="notice" class="notice" role="status" aria-live="polite"></div>
+</div>
+<aside class="console" aria-label="Your challenge summary">
+<div class="console-title">YOUR CHALLENGE STATS</div>
+<div class="stats"><div class="stat"><strong id="stat-points">—</strong><span>CROWPOINTS*</span></div><div class="stat"><strong id="stat-active">0</strong><span>JOINED</span></div><div class="stat"><strong id="stat-complete">0</strong><span>COMPLETED</span></div></div>
+<div class="streak"><div class="streak-icon">⚡</div><div><strong>Every listen moves you forward.</strong><small>Join a challenge to start tracking your journey. Your real progress appears when supported by your account and listening data.</small></div></div>
+</aside>
+</section>
+<section class="section" id="challenges">
+<div class="section-head"><div><div class="eyebrow">Pick your next mission</div><h2>ACTIVE CHALLENGES</h2><p>Choose a challenge that fits your listening style.</p></div><a class="btn" href="#achievements">VIEW ACHIEVEMENTS ↓</a></div>
+<div class="filters" role="group" aria-label="Filter challenges">
+<button class="filter" data-filter="all" aria-pressed="true">ALL CHALLENGES</button><button class="filter" data-filter="daily" aria-pressed="false">DAILY</button><button class="filter" data-filter="weekly" aria-pressed="false">WEEKLY</button><button class="filter" data-filter="monthly" aria-pressed="false">MONTHLY</button><button class="filter" data-filter="special" aria-pressed="false">SPECIAL EVENTS</button>
+</div>
+<div id="challenge-grid" class="challenge-grid" aria-live="polite"></div>
+<div class="note">Challenge ideas are shown while the live challenge catalog is being connected. CrowPoints and completion rewards should only be issued after verified server-side listening activity; this page never fabricates listening progress or grants points on its own.</div>
+</section>
+<section class="section" id="achievements">
+<div class="section-head"><div><div class="eyebrow">Your milestones</div><h2>ACHIEVEMENT COLLECTION</h2><p>Earn recognition as you explore the CrowRules audio universe.</p></div></div>
+<div class="badges">
+<article class="badge-card"><div class="badge-icon">🎧</div><h3>FIRST LISTEN</h3><p>Complete your first eligible episode.</p></article>
+<article class="badge-card"><div class="badge-icon">🧭</div><h3>EXPLORER</h3><p>Discover five different published shows.</p></article>
+<article class="badge-card"><div class="badge-icon">🔥</div><h3>ON A ROLL</h3><p>Complete eligible listening challenges on three separate days.</p></article>
+<article class="badge-card"><div class="badge-icon">🎙️</div><h3>PODCAST PRO</h3><p>Reach 50 eligible completed episodes.</p></article>
+</div>
+<div class="note">These are achievement definitions, not claims that any badges have already been earned. Your personal badge collection will appear when the badge records are connected.</div>
+</section>
+</main>
+<footer> <strong>CROWRULES PODCASTING</strong> · One company. One universe.<br>Challenges are designed to reward discovery and participation, not simply the largest listening totals. <a href="../index.html">CrowRules Entertainment</a></footer>
+</div>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const challenges=[
+{id:'daily-discovery',category:'daily',icon:'🎧',title:'Daily Discovery',description:'Listen to one new eligible episode and give a new voice a chance to become your next favorite.',goal:'1 eligible episode',points:20},
+{id:'new-voices',category:'daily',icon:'🧭',title:'Meet a New Show',description:'Explore a podcast you have never listened to before. There is always another story to find.',goal:'1 new show',points:25},
+{id:'listen-and-learn',category:'daily',icon:'⏱️',title:'Listen & Learn',description:'Spend time with a published episode and make room for a fresh idea or perspective.',goal:'20 eligible minutes',points:25},
+{id:'five-episode-week',category:'weekly',icon:'📡',title:'Five-Episode Mission',description:'Make podcasts part of your week by completing five eligible episodes across your favorite shows.',goal:'5 eligible episodes',points:100},
+{id:'genre-explorer',category:'weekly',icon:'🌌',title:'Genre Explorer',description:'Step outside your usual queue and explore podcasts across three different genres.',goal:'3 genres',points:100},
+{id:'creator-discovery',category:'weekly',icon:'💜',title:'Independent Voices',description:'Discover and follow an independent creator whose work is new to you.',goal:'1 creator discovered',points:75},
+{id:'monthly-marathon',category:'monthly',icon:'🚀',title:'Monthly Listening Mission',description:'Build a listening habit over the month with a steady mix of eligible completed episodes.',goal:'20 eligible episodes',points:300},
+{id:'ten-shows',category:'monthly',icon:'🪐',title:'Universe Explorer',description:'Expand your podcast universe by sampling ten different published shows.',goal:'10 different shows',points:350},
+{id:'community-regular',category:'monthly',icon:'🤝',title:'Community Regular',description:'Connect with the listener community and discover what other fans are enjoying.',goal:'3 community activities',points:200},
+{id:'launch-pioneer',category:'special',icon:'✨',title:'CrowRules Pioneer',description:'A special launch-era challenge celebrating listeners who help test and shape CrowRules Podcasting.',goal:'Details announced with event',points:150}
+];
+let activeFilter='all',supabase=null,user=null,joined=new Set(),completed=new Set();
+function notify(message,type='info'){const el=$('notice');el.textContent=message;el.className='notice show '+type}
+function render(){
+ const list=challenges.filter(c=>activeFilter==='all'||c.category===activeFilter);
+ $('challenge-grid').innerHTML=list.map(c=>{
+  const isJoined=joined.has(c.id),isDone=completed.has(c.id);
+  const category=c.category==='special'?'SPECIAL EVENT':c.category.toUpperCase();
+  return '<article class="challenge"><div class="challenge-top"><div class="challenge-icon" aria-hidden="true">'+c.icon+'</div><span class="tag">'+category+'</span></div><h3>'+c.title+'</h3><p>'+c.description+'</p><div class="challenge-bottom"><div class="reward"><span>MISSION TARGET</span><strong>'+c.goal+'</strong></div><div class="reward"><span>PROPOSED REWARD</span><span class="points">+'+c.points+' CP</span></div><button class="btn '+(isJoined?'primary':'')+'" data-join="'+c.id+'" '+(isDone?'disabled':'')+'>'+(isDone?'COMPLETED ✓':isJoined?'CHALLENGE JOINED ✓':'JOIN CHALLENGE +')+'</button></div></article>';
+ }).join('');
+ if(!list.length)$('challenge-grid').innerHTML='<div class="empty">No challenges in this category right now. Try another filter.</div>';
+ document.querySelectorAll('[data-join]').forEach(btn=>btn.addEventListener('click',()=>joinChallenge(btn.dataset.join,btn)));
+ $('stat-active').textContent=joined.size;
+ $('stat-complete').textContent=completed.size;
+}
+async function joinChallenge(id,button){
+ if(!supabase){notify('The Supabase connection is not configured yet. You can explore the challenge ideas, but joining will be enabled after the challenge tables are installed.','info');return}
+ if(!user){notify('Please sign in to your CrowRules account before joining a challenge.','info');setTimeout(()=>location.href='../login.html?next='+encodeURIComponent(location.pathname),900);return}
+ const challenge=challenges.find(c=>c.id===id);if(!challenge)return;
+ button.disabled=true;
+ try{
+  const payload={challenge_id:id,user_id:user.id,joined_at:new Date().toISOString(),status:'active'};
+  const {error}=await supabase.from('podcast_challenge_participants').insert(payload);
+  if(error){
+   if(error.code==='23505'){joined.add(id);notify('You have already joined this challenge. Your membership is reflected here.','success');render();return}
+   if(error.code==='42P01'||error.code==='PGRST205'){notify('The challenge page is ready, but the podcast_challenge_participants table is not installed yet. Install the challenge schema before enabling joins.','error');return}
+   throw error;
+  }
+  joined.add(id);notify('Challenge joined! Progress and rewards will update once verified listening analytics are connected.','success');render();
+ }catch(err){console.error('Challenge join failed',err);notify('Could not join this challenge: '+(err.message||'database request failed')+'. Check the challenge table and its Row Level Security policies.','error')}
+ finally{button.disabled=false}
+}
+async function init(){
+ const cfg=window.CROW_CONFIG||window.CROW_RULES_CONFIG||{};
+ const url=cfg.supabaseUrl||cfg.supabaseURL||cfg.SUPABASE_URL;
+ const key=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.SUPABASE_ANON_KEY||cfg.anonKey;
+ if(!url||!key||!window.supabase?.createClient){$('stat-points').textContent='—';render();notify('Preview mode: connect this page to the existing CrowRules Supabase configuration to enable account-linked challenges.','info');return}
+ try{
+  supabase=window.supabase.createClient(url,key);
+  const {data:{session},error:sessionError}=await supabase.auth.getSession();if(sessionError)throw sessionError;
+  user=session?.user||null;
+  if(user){
+   try{
+    const {data,error}=await supabase.from('podcast_challenge_participants').select('challenge_id,status').eq('user_id',user.id);
+    if(error&&error.code!=='42P01'&&error.code!=='PGRST205')throw error;
+    if(!error&&data){data.forEach(row=>{if(row.status==='completed')completed.add(row.challenge_id);else joined.add(row.challenge_id)})}
+   }catch(err){console.warn('Challenge participant records unavailable',err)}
+   try{
+    const {data}=await supabase.from('members').select('crowpoints_lifetime').eq('user_id',user.id).maybeSingle();
+    if(data&&Number.isFinite(Number(data.crowpoints_lifetime))) $('stat-points').textContent=Number(data.crowpoints_lifetime).toLocaleString();else $('stat-points').textContent='—';
+   }catch(_){$('stat-points').textContent='—'}
+  }else{$('stat-points').textContent='—'}
+  render();
+ }catch(err){console.warn('Challenge page initialization',err);$('stat-points').textContent='—';render();notify('Challenge preview is available. Account statistics could not be loaded; check the Supabase configuration and permissions.','error')}
+}
+document.querySelectorAll('[data-filter]').forEach(btn=>btn.addEventListener('click',()=>{activeFilter=btn.dataset.filter;document.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b===btn)));render()}));
+init();
+})();
+</script>
+</body>
+</html>
