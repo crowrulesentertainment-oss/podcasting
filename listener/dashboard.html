@@ -41,7 +41,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 40px;color:#64748b;font-s
 <p>Pick up where you left off, keep your favorite shows close, track your listening journey, and stay connected to the CrowRules Podcasting community — all from one listener dashboard.</p>
 <div class="actions"><a class="btn primary" href="index.html">DISCOVER PODCASTS</a><a class="btn" href="rankings.html">VIEW RANKINGS</a></div>
 </div>
-<div class="panel" id="identityPanel"><div class="identity"><img class="avatar" id="avatar" src="../images/podcastinglogo.png" alt=""><div><strong id="welcome">Listener mode</strong><small id="email">Checking your account…</small></div></div><div class="statgrid"><div class="stat"><b id="minutes">0</b><span>MINUTES</span></div><div class="stat"><b id="follows">0</b><span>FOLLOWS</span></div><div class="stat"><b id="comments">0</b><span>COMMENTS</span></div></div><div class="notice" style="margin-top:14px"><span class="dot"></span><span id="status">Connecting to your listening universe…</span></div></div>
+<div class="panel" id="identityPanel"><div class="identity"><img class="avatar" id="avatar" src="../images/podcastinglogo.png" alt=""><div><strong id="welcome">Listener mode</strong><small id="email">Checking your account…</small></div></div><div class="statgrid" data-accurate-metrics="podcast_listens,podcast_follows,podcast_comments,podcast_episode_comments"><div class="stat"><b id="minutes">0</b><span>MINUTES</span></div><div class="stat"><b id="follows">0</b><span>FOLLOWS</span></div><div class="stat"><b id="comments">0</b><span>COMMENTS</span></div></div><div class="notice" style="margin-top:14px"><span class="dot"></span><span id="status">Connecting to your listening universe…</span></div></div>
 </section>
 
 <section class="section"><div class="sectionhead"><h2>Continue Listening</h2><a href="index.html">DISCOVER MORE →</a></div><div id="history" class="list"><div class="empty">Loading your listening history…</div></div></section>
@@ -68,57 +68,98 @@ const $=s=>document.querySelector(s); const esc=v=>String(v??"").replace(/[&<>"'
 const logo=()=>C.logoUrl||"../images/podcastinglogo.png";
 $("#logo").src=logo(); $("#avatar").src=logo();
 
+function setMetric(id,value){const el=$("#"+id);if(el)el.textContent=value}
+function metricUnavailable(id){setMetric(id,"—")}
 async function init(){
- if(!S){$("#status").textContent="Supabase configuration is unavailable.";return}
- const {data:{session}}=await S.auth.getSession();
+ if(!S){$("#status").textContent="Supabase configuration is unavailable.";["minutes","follows","comments"].forEach(metricUnavailable);return}
+ const {data:{session},error:sessionError}=await S.auth.getSession();
+ if(sessionError){$("#status").textContent="Could not verify your sign-in: "+sessionError.message;["minutes","follows","comments"].forEach(metricUnavailable);return}
  if(!session){location.href="../login.html";return}
- const u=session.user, meta=u.user_metadata||{};
+ const u=session.user,meta=u.user_metadata||{};
  $("#welcome").textContent=meta.full_name||meta.name||u.email?.split("@")[0]||"CrowRules Listener";
  $("#email").textContent=u.email||"Signed in";
- $("#account").textContent="MY ACCOUNT";
- $("#account").href="profile.html";
+ $("#account").textContent="MY ACCOUNT";$("#account").href="profile.html";
  if(meta.avatar_url||meta.picture)$("#avatar").src=meta.avatar_url||meta.picture;
- $("#status").textContent="Your listener dashboard is connected.";
- await Promise.all([loadHistory(u.id),loadFollows(u.id),loadComments(u.id),loadLive()]);
+ $("#status").textContent="Loading verified activity from your account…";
+ ["minutes","follows","comments"].forEach(id=>setMetric(id,"…"));
+ const results=await Promise.allSettled([loadHistory(u.id),loadListeningMinutes(u.id),loadFollows(u.id),loadComments(u.id),loadLive()]);
+ const labels=["Listening history","listening minutes","follows","comments","live status"];
+ const failed=results.map((r,i)=>r.status==="rejected"?labels[i]+": "+(r.reason?.message||String(r.reason)):null).filter(Boolean);
+ $("#status").textContent=failed.length?"Some account data could not be verified. Unavailable metrics are marked —.":"Your listener dashboard is up to date.";
+ $("#status").title=failed.join("\n");
  subscribe(u.id);
+}
+async function loadListeningMinutes(uid){
+ // Sum the canonical per-session analytics records; never infer listened time from a playback position.
+ let seconds=0,offset=0,batchSize=1000;
+ while(true){
+  const r=await S.from("podcast_listens").select("seconds_listened").eq("user_id",uid).range(offset,offset+batchSize-1);
+  if(r.error){metricUnavailable("minutes");throw new Error("Could not read podcast_listens: "+r.error.message)}
+  const rows=r.data||[];seconds+=rows.reduce((sum,row)=>sum+Math.max(0,Number(row.seconds_listened)||0),0);
+  if(rows.length<batchSize)break;
+  offset+=rows.length;
+ }
+ setMetric("minutes",Math.floor(seconds/60).toLocaleString());
 }
 async function loadHistory(uid){
  const box=$("#history");
- let r=await S.from("watch_history").select("*").eq("user_id",uid).order("updated_at",{ascending:false}).limit(8);
- if(r.error) r=await S.from("podcast_watch_history").select("*").eq("user_id",uid).order("updated_at",{ascending:false}).limit(8);
- if(r.error||!r.data?.length){box.innerHTML='<div class="empty">Your recently played episodes will appear here as you listen. Start exploring the network to build your history.</div>';return}
- let total=0;
- box.innerHTML=r.data.map(x=>{
-   const title=x.episode_title||x.title||x.name||"Podcast episode";
-   const seconds=Number(x.watch_seconds||x.listen_seconds||x.position_seconds||x.progress_seconds||0); total+=seconds;
-   const duration=Number(x.duration_seconds||x.total_seconds||0); const pct=duration?Math.min(100,seconds/duration*100):0;
-   const href=x.episode_id?("show.html?episode="+encodeURIComponent(x.episode_id)):x.podcast_id?("show.html?id="+encodeURIComponent(x.podcast_id)):"index.html";
-   return '<a class="row" href="'+href+'"><img src="'+esc(x.artwork_url||logo())+'" alt=""><div class="rowmain"><b>'+esc(title)+'</b><small>'+esc(x.podcast_title||x.show_title||"CrowRules Podcasting")+'</small><div class="progress" style="--p:'+pct+'%"><i></i></div></div><span class="meta">'+(pct?Math.round(pct)+"%":"PLAY")+'</span></a>'
+ const r=await S.from("podcast_episode_progress").select("episode_id,position_seconds,duration_seconds,percent_complete,last_played_at,completed").eq("user_id",uid).order("last_played_at",{ascending:false}).limit(8);
+ if(r.error){box.innerHTML='<div class="empty">Listening history is unavailable right now. '+esc(r.error.message)+'</div>';throw new Error("Could not load episode progress: "+r.error.message)}
+ const progress=r.data||[];
+ if(!progress.length){box.innerHTML='<div class="empty">No listening progress has been recorded yet. Start an episode and your recent activity will appear here.</div>';return}
+ const ids=[...new Set(progress.map(x=>x.episode_id).filter(Boolean))];
+ let episodes=[];
+ if(ids.length){
+  const er=await S.from("podcast_episodes").select("id,title,thumbnail_url,artwork_url,duration_seconds,podcast_id").in("id",ids);
+  if(er.error){box.innerHTML='<div class="empty">Your progress is saved, but episode details could not be loaded.</div>';throw new Error("Could not load episode details: "+er.error.message)}
+  episodes=er.data||[];
+ }
+ const episodeMap=Object.fromEntries(episodes.map(x=>[x.id,x]));
+ const podcastIds=[...new Set(episodes.map(x=>x.podcast_id).filter(Boolean))];
+ let podcasts=[];
+ if(podcastIds.length){const pr=await S.from("podcasts").select("id,title,artwork_url").in("id",podcastIds);if(!pr.error)podcasts=pr.data||[]}
+ const podcastMap=Object.fromEntries(podcasts.map(x=>[x.id,x]));
+ box.innerHTML=progress.map(x=>{
+  const ep=episodeMap[x.episode_id]||{},pod=podcastMap[ep.podcast_id]||{};
+  const pos=Math.max(0,Number(x.position_seconds)||0),duration=Math.max(0,Number(x.duration_seconds)||Number(ep.duration_seconds)||0);
+  const pct=Number.isFinite(Number(x.percent_complete))&&x.percent_complete!==null?Math.max(0,Math.min(100,Number(x.percent_complete))):(duration?Math.min(100,pos/duration*100):0);
+  const title=ep.title||"Episode";
+  const art=ep.thumbnail_url||ep.artwork_url||pod.artwork_url||logo();
+  const href="show.html?episode="+encodeURIComponent(x.episode_id);
+  return '<a class="row" href="'+href+'"><img src="'+esc(art)+'" alt=""><div class="rowmain"><b>'+esc(title)+'</b><small>'+esc(pod.title||"CrowRules Podcasting")+' · '+(x.completed?"Completed":(x.last_played_at?"Last played "+esc(new Date(x.last_played_at).toLocaleDateString()):"In progress"))+'</small><div class="progress" style="--p:'+pct+'%"><i></i></div></div><span class="meta">'+Math.round(pct)+'%</span></a>'
  }).join("");
- $("#minutes").textContent=Math.round(total/60).toLocaleString();
 }
 async function loadFollows(uid){
- const candidates=["podcast_follows","podcast_subscriptions","podcast_followers"];
- for(const table of candidates){
-   const r=await S.from(table).select("*").eq("user_id",uid).limit(100);
-   if(!r.error){$("#follows").textContent=Number(r.data?.length||0).toLocaleString();return}
- }
+ const r=await S.from("podcast_follows").select("id",{count:"exact",head:true}).eq("user_id",uid);
+ if(r.error){metricUnavailable("follows");throw new Error("Could not count podcast_follows: "+r.error.message)}
+ setMetric("follows",Number(r.count||0).toLocaleString());
 }
 async function loadComments(uid){
- const candidates=["cr_podcast_social_comments_v5","podcast_comments"];
- for(const table of candidates){
-   const r=await S.from(table).select("id",{count:"exact",head:true}).eq("user_id",uid);
-   if(!r.error){$("#comments").textContent=Number(r.count||0).toLocaleString();return}
- }
+ // Count authored comments from both established episode-comment systems, without counting comments by other members.
+ const [general,episode]=await Promise.all([
+  S.from("podcast_comments").select("id",{count:"exact",head:true}).eq("user_id",uid),
+  S.from("podcast_episode_comments").select("id",{count:"exact",head:true}).eq("user_id",uid)
+ ]);
+ if(general.error&&episode.error){metricUnavailable("comments");throw new Error("Could not count comments: "+general.error.message+"; "+episode.error.message)}
+ // If one legacy table is inaccessible, show a partial count only when the other table succeeded, and flag it visibly.
+ const total=(general.error?0:Number(general.count||0))+(episode.error?0:Number(episode.count||0));
+ setMetric("comments",total.toLocaleString()+(general.error||episode.error?"*":""));
+ if(general.error||episode.error)throw new Error("Comment count may be partial because one comment source is unavailable.");
 }
 async function loadLive(){
  const r=await S.from("cr_podcast_live").select("*").eq("is_live",true).order("started_at",{ascending:false}).limit(1);
  if(r.error){$("#live").innerHTML='<span class="dot" style="background:#64748b;box-shadow:none"></span>Live network status is unavailable right now.';return}
  if(!r.data?.length){$("#live").innerHTML='<span class="dot" style="background:#64748b;box-shadow:none"></span>No podcast is live right now. Check back when the network goes live.';return}
- const x=r.data[0]; $("#live").innerHTML='<span class="dot"></span><b class="live">'+esc(x.title||x.show_name||"CrowRules Live")+'</b><div class="muted">'+Number(x.listener_count||0).toLocaleString()+' listeners currently connected.</div>';
+ const x=r.data[0];$("#live").innerHTML='<span class="dot"></span><b class="live">'+esc(x.title||x.show_name||"CrowRules Live")+'</b><div class="muted">'+Number(x.listener_count||0).toLocaleString()+' listeners currently connected.</div>';
 }
 function subscribe(uid){
- S.channel("listener-dashboard-"+uid).on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_live"},loadLive).subscribe();
+ S.channel("listener-dashboard-"+uid)
+  .on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_live"},loadLive)
+  .on("postgres_changes",{event:"*",schema:"public",table:"podcast_listens",filter:"user_id=eq."+uid},()=>loadListeningMinutes(uid))
+  .on("postgres_changes",{event:"*",schema:"public",table:"podcast_follows",filter:"user_id=eq."+uid},()=>loadFollows(uid))
+  .on("postgres_changes",{event:"*",schema:"public",table:"podcast_comments",filter:"user_id=eq."+uid},()=>loadComments(uid))
+  .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episode_comments",filter:"user_id=eq."+uid},()=>loadComments(uid))
+  .subscribe();
  S.auth.onAuthStateChange((_event,session)=>{if(!session)location.href="../login.html"});
 }
 init();
