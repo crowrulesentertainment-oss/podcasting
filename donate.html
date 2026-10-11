@@ -25,12 +25,13 @@ main{width:min(920px,calc(100% - 32px));margin:clamp(38px,8vh,90px) auto;flex:1}
 </section>
 <section class="panel">
 <h2>Make a contribution</h2>
-<p>Choose a one-time contribution. You'll complete your payment on Stripe's secure checkout page.</p>
+<p>Choose a one-time gift or recurring monthly or yearly support through Stripe Checkout.</p>
 <div class="impact">
 <div><strong>Creator discovery</strong><span>Help listeners find new voices and shows.</span></div>
 <div><strong>Platform improvements</strong><span>Support testing, accessibility, and reliability.</span></div>
 <div><strong>Independent stories</strong><span>Help grow a community built around audio.</span></div>
 </div>
+<div class="amounts" role="group" aria-label="Choose donation frequency"><button class="amount" type="button" data-frequency="one_time" aria-pressed="true">One-time</button><button class="amount" type="button" data-frequency="monthly" aria-pressed="false">Monthly</button><button class="amount" type="button" data-frequency="yearly" aria-pressed="false">Yearly</button></div>
 <div class="amounts" role="group" aria-label="Choose donation amount">
 <button class="amount" type="button" data-amount="5" aria-pressed="true">$5</button>
 <button class="amount" type="button" data-amount="10" aria-pressed="false">$10</button>
@@ -45,7 +46,7 @@ main{width:min(920px,calc(100% - 32px));margin:clamp(38px,8vh,90px) auto;flex:1}
 <input id="donor-email" type="email" maxlength="320" autocomplete="email" placeholder="you@example.com">
 <div class="status" id="status" role="status" aria-live="polite" hidden></div>
 <button class="donate" id="donate-button" type="button">CONTINUE TO SECURE STRIPE CHECKOUT</button>
-<p class="note">Your payment details are entered on Stripe, not on this website. Donations are one-time and voluntary.</p>
+<p class="note">Your payment details are entered on Stripe, not on this website. Recurring donations repeat until cancelled.</p>
 </section>
 </main>
 <footer>© <span id="year"></span> CrowRules Entertainment · One company. One universe.<br><a href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/">Main website</a></footer>
@@ -59,6 +60,8 @@ main{width:min(920px,calc(100% - 32px));margin:clamp(38px,8vh,90px) auto;flex:1}
   const donate = document.getElementById('donate-button');
   const status = document.getElementById('status');
   let selectedAmount = 5;
+  let donationFrequency = "one_time";
+  document.querySelectorAll("[data-frequency]").forEach(button => button.addEventListener("click", () => { donationFrequency = button.dataset.frequency; document.querySelectorAll("[data-frequency]").forEach(b => b.setAttribute("aria-pressed", String(b === button))); status.hidden = true; }));
   const setStatus = (message, error = false) => {
     status.textContent = message;
     status.hidden = false;
@@ -95,7 +98,7 @@ main{width:min(920px,calc(100% - 32px));margin:clamp(38px,8vh,90px) auto;flex:1}
         headers: { 'Content-Type': 'application/json', 'apikey': cfg.supabaseKey },
         body: JSON.stringify({
           amount_cents: Math.round(amount * 100),
-          donation_type: 'one_time',
+          donation_type: donationFrequency,
           campaign: 'CrowRules Podcasting',
           purpose: 'Support CrowRules Podcasting',
           donor_name: document.getElementById('donor-name').value.trim() || null,
