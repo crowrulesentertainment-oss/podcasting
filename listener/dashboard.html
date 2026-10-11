@@ -97,10 +97,10 @@ async function loadListeningMinutes(uid){
  const canonical=await S.rpc("get_my_podcast_playback_state");
  if(!canonical.error&&Array.isArray(canonical.data)){
   const seconds=canonical.data.reduce((sum,row)=>sum+Math.max(0,Number(row.verified_seconds)||0),0);
-  setMetric("minutes",Math.floor(seconds/60).toLocaleString());
-  return;
- }
- console.warn("Verified listening summary unavailable; trying legacy listen records:",canonical.error?.message||"Unexpected response");
+  if(seconds>0){setMetric("minutes",Math.floor(seconds/60).toLocaleString());return;}
+  // If no verified seconds exist yet, check legacy recorded listening instead of showing a misleading hard zero.
+  console.info("No verified listening seconds yet; checking existing listen records.");
+ }else console.warn("Verified listening summary unavailable; trying legacy listen records:",canonical.error?.message||"Unexpected response");
  let seconds=0,offset=0,batchSize=1000;
  while(true){
   const r=await S.from("podcast_listens").select("seconds_listened").eq("user_id",uid).range(offset,offset+batchSize-1);
@@ -127,8 +127,16 @@ async function loadHistory(uid){
   .select("episode_id,position_seconds,duration_seconds,percent_complete,last_played_at,completed")
   .eq("user_id",uid).order("last_played_at",{ascending:false}).limit(50);
  if(!legacy.error){
-  const known=new Set(progress.map(x=>x.episode_id));
-  for(const x of (legacy.data||[])){if(x.episode_id&&!known.has(x.episode_id)){progress.push(x);known.add(x.episode_id)}}
+  const byEpisode=new Map(progress.filter(x=>x.episode_id).map(x=>[x.episode_id,x]));
+  for(const x of (legacy.data||[])){
+   if(!x.episode_id)continue;
+   const current=byEpisode.get(x.episode_id);
+   if(!current){progress.push(x);byEpisode.set(x.episode_id,x);continue;}
+   // Preserve verified totals but use the furthest saved position when an older player recorded it.
+   if(Number(x.position_seconds||0)>Number(current.position_seconds||0)){
+    Object.assign(current,{position_seconds:x.position_seconds,duration_seconds:current.duration_seconds||x.duration_seconds,last_played_at:current.last_played_at||x.last_played_at,completed:current.completed||x.completed});
+   }
+  }
  }else if(canonical.error){
   box.innerHTML='<div class="empty">We couldn’t access your saved listening progress. Please refresh after signing in again.</div>';
   throw new Error("Playback progress sources unavailable: "+canonical.error.message+"; legacy: "+legacy.error.message);
