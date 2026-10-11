@@ -85,7 +85,7 @@
    window.dispatchEvent(new Event('crowrules:config-ready'));
    if(!window.CrowPoints?.__loaded)
     await load(new URL('js/crowpoints.js?crowrules-sitewide=20261011-rewards-menu',root).href);
-   // Admin is an operations-only screen: never inject the floating audio player there.
+   // Keep admin and donation checkout/confirmation pages focused: no floating audio player.
    const isFocusedFlowPage = new RegExp('(^|/)(admin|donate|donation-success|donation-cancel)\\.html$', 'i').test(window.location.pathname);
    // Keep checkout and operations flows uncluttered; they have dedicated primary actions.
    if(isFocusedFlowPage){
