@@ -1,0 +1,16 @@
+/* CrowRules Podcasting — universal sitewide refinement layer */
+:root{color-scheme:dark;scroll-padding-top:88px}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{overflow-x:clip;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+img,video,canvas,svg{max-width:100%}
+button,input,select,textarea{font:inherit}
+button,a,[role="button"]{-webkit-tap-highlight-color:transparent}
+a,button{transition:color .18s ease,border-color .18s ease,background-color .18s ease,box-shadow .18s ease,transform .18s ease}
+:where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:2px solid var(--cyan,#67e8f9)!important;outline-offset:3px}
+::selection{background:rgba(103,232,249,.28);color:#fff}
+:where(input,textarea,select){max-width:100%}
+:where(button,[type=button],[type=submit],[role=button]){cursor:pointer}
+:where(button:disabled,[type=button]:disabled,[type=submit]:disabled){cursor:not-allowed;opacity:.6}
+@media(max-width:760px){.shell{padding-left:14px!important;padding-right:14px!important}.home-quick{grid-template-columns:1fr!important}.home-tools{grid-template-columns:repeat(2,minmax(0,1fr))!important}.home-live-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}.home-data-grid{grid-template-columns:1fr!important}.home-liveboard{padding:14px!important}table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}pre,code{overflow-wrap:anywhere}dialog{max-width:calc(100vw - 24px)}}
+@media(max-width:420px){.home-tools{grid-template-columns:1fr 1fr!important}.home-live-stat strong{font-size:20px!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
