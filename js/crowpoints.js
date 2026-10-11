@@ -1,4 +1,4 @@
-/* CrowRules Podcasting — sitewide CrowPoints shell
+/* CrowRules Podcasting — sitewide CrowPoints integration
  * Loads on any page after config.js and Supabase JS v2.
  * Read-only by default: this script never awards points by guessing a database schema.
  */
@@ -19,8 +19,15 @@
       .cp-icon{font-size:15px}.cp-muted{color:#9aa9bd;font-weight:600}.cp-login{color:#8defff;text-decoration:none}
       .cp-card{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 14px;border:1px solid rgba(103,232,249,.22);border-radius:14px;background:rgba(8,14,27,.78)}
       .cp-card strong{font:800 11px Orbitron,Montserrat,sans-serif;letter-spacing:.08em}
-      #crowpoints-dock{position:fixed;right:14px;bottom:14px;z-index:9998;max-width:calc(100vw - 28px);padding:8px;border:1px solid rgba(103,232,249,.22);border-radius:16px;background:rgba(5,8,17,.92);backdrop-filter:blur(16px);box-shadow:0 12px 38px rgba(0,0,0,.35)}
+      #crowpoints-dock{position:fixed;left:14px;right:auto;bottom:14px;z-index:9997;max-width:min(520px,calc(100vw - 28px));padding:8px;border:1px solid rgba(103,232,249,.22);border-radius:16px;background:rgba(5,8,17,.94);backdrop-filter:blur(16px);box-shadow:0 12px 38px rgba(0,0,0,.35)}
       #crowpoints-dock .cp-sitewide{gap:6px}#crowpoints-dock .cp-pill{padding:7px 9px;font-size:11px}
+      #crowpoints-nav-balance{display:inline-flex;align-items:center;max-width:100%;margin:4px 6px;vertical-align:middle}
+      #crowpoints-nav-balance .cp-sitewide{gap:5px}
+      #crowpoints-nav-balance .cp-pill{padding:7px 9px;font-size:11px}
+      #crowpoints-nav-balance .cp-muted{font-size:10px}
+      #crowpoints-nav-balance .cp-login{display:inline-flex;align-items:center;padding:7px 9px;border:1px solid rgba(103,232,249,.3);border-radius:999px}
+      @media(max-width:620px){#crowpoints-nav-balance .cp-muted{display:none}#crowpoints-nav-balance .cp-pill{padding:7px}#crowpoints-nav-balance .cp-sitewide{gap:4px}#crowpoints-dock{left:8px;bottom:8px;max-width:calc(100vw - 16px)}}
+      @media(prefers-reduced-motion:reduce){#crowpoints-nav-balance *{transition:none!important}}
       @media(prefers-reduced-motion:no-preference){.cp-pill{transition:border-color .2s,transform .2s}.cp-pill:hover{border-color:rgba(103,232,249,.7);transform:translateY(-1px)}}
     `;
     document.head.appendChild(style);
@@ -75,23 +82,38 @@
   }
   function render() {
     styles();
-    // Universal floating balance dock: appears on every page that loads this shared script.
-    let dock = document.getElementById('crowpoints-dock');
-    if (!dock) {
-      dock = document.createElement('aside');
-      dock.id = 'crowpoints-dock';
-      dock.setAttribute('aria-label', 'Your CrowPoints balance');
-      document.body.appendChild(dock);
+    const nav = document.querySelector('header nav, nav[aria-label="Main navigation"], nav[aria-label="Primary navigation"], header .nav-links, header .nav, nav');
+    let navBalance = document.getElementById('crowpoints-nav-balance');
+    if (nav && !navBalance) {
+      navBalance = document.createElement('span');
+      navBalance.id = 'crowpoints-nav-balance';
+      navBalance.setAttribute('aria-label', 'CrowPoints member balance');
+      nav.appendChild(navBalance);
     }
-    dock.innerHTML = '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
-      '<a href="' + escapeHtml(challengesUrl()) + '" style="font:800 9px Orbitron,Montserrat,sans-serif;letter-spacing:.06em;color:#a5f3fc;text-decoration:none;padding:7px 8px">CROWPOINTS</a>' +
-      '<div data-crowpoints></div>' +
-      '<button type="button" data-cp-dismiss aria-label="Hide CrowPoints balance" title="Hide balance" style="border:0;background:transparent;color:#9aa9bd;cursor:pointer;padding:5px">×</button></div>';
-    dock.querySelector('[data-cp-dismiss]')?.addEventListener('click', () => { dock.hidden = true; });
-    dock.querySelectorAll('[data-crowpoints]').forEach(el => { el.innerHTML = markup(); });
-    dock.querySelectorAll('[data-cp-retry]').forEach(el => { if (!el.dataset.bound) { el.dataset.bound = '1'; el.addEventListener('click', refresh); } });
+    // Prefer a compact balance in the shared navigation. Pages without a
+    // navigation menu use a bottom-left dock so it never covers Donate CTAs.
+    let dock = document.getElementById('crowpoints-dock');
+    if (navBalance) {
+      if (dock) dock.remove();
+      navBalance.innerHTML = markup();
+    } else {
+      if (!dock) {
+        dock = document.createElement('aside');
+        dock.id = 'crowpoints-dock';
+        dock.setAttribute('aria-label', 'Your CrowPoints balance');
+        document.body.appendChild(dock);
+      }
+      dock.innerHTML = '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+        '<a href="' + escapeHtml(challengesUrl()) + '" style="font:800 9px Orbitron,Montserrat,sans-serif;letter-spacing:.06em;color:#a5f3fc;text-decoration:none;padding:7px 8px">CROWPOINTS</a>' +
+        '<div data-crowpoints></div>' +
+        '<button type="button" data-cp-dismiss aria-label="Hide CrowPoints balance" title="Hide balance" style="border:0;background:transparent;color:#9aa9bd;cursor:pointer;padding:5px">×</button></div>';
+      dock.querySelector('[data-cp-dismiss]')?.addEventListener('click', () => { dock.hidden = true; });
+      dock.querySelectorAll('[data-crowpoints]').forEach(el => { el.innerHTML = markup(); });
+    }
     document.querySelectorAll('[data-crowpoints]').forEach(el => { el.innerHTML = markup(); });
-    document.querySelectorAll('[data-cp-retry]').forEach(el => { if (!el.dataset.bound) { el.dataset.bound = '1'; el.addEventListener('click', refresh); } });
+    document.querySelectorAll('[data-cp-retry]').forEach(el => {
+      if (!el.dataset.bound) { el.dataset.bound = '1'; el.addEventListener('click', refresh); }
+    });
     document.querySelectorAll('[data-crowpoints-card]').forEach(el => {
       el.innerHTML = '<div class="cp-card"><div><strong>CROWRULES REWARDS</strong><div class="cp-muted" style="margin-top:5px">One account. One universe.</div></div>' + markup() + '</div>';
     });
