@@ -27,7 +27,9 @@
  const ensureDonateLink=()=>{
   if(/(^|\\/)donate(?:\\.html)?$/i.test(window.location.pathname)||/(^|\\/)admin(?:\\.html)?$/i.test(window.location.pathname))return;
   if(document.getElementById('crow-sitewide-donate'))return;
-  const link=document.createElement('a');link.id='crow-sitewide-donate';link.href=new URL('donate.html',new URL('../',document.currentScript?.src||window.location.href)).href;link.textContent='♥  SUPPORT CROWRULES';link.setAttribute('aria-label','Donate to support CrowRules Podcasting');
+  const ownScript=Array.from(document.scripts).find(s=>/\\/js\\/sitewide\\.js(?:\\?|$)/.test(s.src));
+  const root=ownScript?new URL('../',ownScript.src):new URL('./',window.location.href);
+  const link=document.createElement('a');link.id='crow-sitewide-donate';link.href=new URL('donate.html',root).href;link.textContent='♥  SUPPORT CROWRULES';link.setAttribute('aria-label','Donate to support CrowRules Podcasting');
   link.style.cssText='position:fixed;left:18px;bottom:18px;z-index:9998;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border:1px solid rgba(103,232,249,.55);border-radius:999px;background:linear-gradient(110deg,rgba(8,20,34,.97),rgba(28,19,52,.97));color:#9df4ff;text-decoration:none;font:800 10px/1.2 Montserrat,Arial,sans-serif;letter-spacing:.09em;box-shadow:0 8px 30px rgba(0,0,0,.4),0 0 22px rgba(103,232,249,.12);backdrop-filter:blur(12px)';
   link.addEventListener('mouseenter',()=>{link.style.borderColor='rgba(167,139,250,.9)';link.style.transform='translateY(-2px)'});link.addEventListener('mouseleave',()=>{link.style.borderColor='rgba(103,232,249,.55)';link.style.transform='translateY(0)'});
   document.body.appendChild(link);
