@@ -174,7 +174,7 @@
       if (state.detailsLoading) transactions.innerHTML = '<div class="cp-menu-status">Loading your latest rewards…</div>';
       else if (state.detailsError) transactions.innerHTML = '<div class="cp-menu-status">Activity could not be loaded. <button type="button" data-cp-details-retry style="background:none;border:0;color:#67e8f9;cursor:pointer">Try again</button></div>';
       else if (!state.transactions.length) transactions.innerHTML = '<div class="cp-menu-status">No point transactions yet. Verified listening and eligible challenges will appear here.</div>';
-      else transactions.innerHTML = state.transactions.map(row => '<div class="cp-menu-row"><div><b>' + escapeHtml(row.reason || row.source || 'CrowPoints reward') + '</b><small>' + escapeHtml(relativeDate(row.created_at)) + (row.source ? ' · ' + escapeHtml(row.source) : '') + '</small></div><span class="cp-menu-points">' + (Number(row.points) > 0 ? '+' : '') + fmt(Math.abs(Number(row.points) || 0)) + '</span></div>').join('');
+      else transactions.innerHTML = state.transactions.map(row => '<div class="cp-menu-row"><div><b>' + escapeHtml(row.reason || row.source || 'CrowPoints reward') + '</b><small>' + escapeHtml(relativeDate(row.created_at)) + (row.source ? ' · ' + escapeHtml(row.source) : '') + '</small></div><span class="cp-menu-points">' + (Number(row.points) > 0 ? '+' : Number(row.points) < 0 ? '−' : '') + fmt(Math.abs(Number(row.points) || 0)) + '</span></div>').join('');
     }
     if (achievements) {
       if (state.detailsLoading) achievements.innerHTML = '<div class="cp-menu-status">Loading achievements…</div>';
