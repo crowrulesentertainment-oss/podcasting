@@ -278,6 +278,10 @@
     if (navBalance) {
       if (dock) dock.remove();
       navBalance.innerHTML = markup();
+    } else if (document.querySelector('[data-crowpoints-card]')) {
+      // Pages with a dedicated rewards card (such as donate.html) use that
+      // inline mount instead of duplicating the balance in a floating dock.
+      if (dock) dock.remove();
     } else {
       if (!dock) {
         dock = document.createElement('aside');
