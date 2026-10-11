@@ -24,7 +24,15 @@
  const normalizeForms=()=>document.querySelectorAll('form').forEach(form=>{if(!form.hasAttribute('novalidate'))form.querySelectorAll('input,select,textarea').forEach(el=>{if(el.required&&!el.getAttribute('aria-required'))el.setAttribute('aria-required','true')})});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'){const open=document.querySelector('dialog[open]');if(open&&typeof open.close==='function')open.close()}});
  document.addEventListener('error',e=>{const el=e.target;if(el&&el.tagName==='IMG'&&!el.dataset.crowFallback){el.dataset.crowFallback='1';el.style.background='#111827';el.style.objectFit='contain';el.setAttribute('aria-label',el.alt||'Image unavailable');const alt=(el.alt||'').toLowerCase();if(window.CROW_CONFIG?.logoUrl&&(el.id==='homeLogo'||el.id==='heroLogo'||el.id==='podcastLogo'||alt.includes('crowrules')||alt.includes('podcasting logo'))&&el.src!==window.CROW_CONFIG.logoUrl){el.dataset.crowLogoRetry='1';el.src=window.CROW_CONFIG.logoUrl}}},true);
- const start=()=>{safeExternalLinks();improveImages();normalizeForms();repairBrandLogos();document.documentElement.dataset.crowSitewide='ready';ensurePodcastingSystems()};
+ const ensureDonateLink=()=>{
+  if(/(^|\\/)donate(?:\\.html)?$/i.test(window.location.pathname)||/(^|\\/)admin(?:\\.html)?$/i.test(window.location.pathname))return;
+  if(document.getElementById('crow-sitewide-donate'))return;
+  const link=document.createElement('a');link.id='crow-sitewide-donate';link.href=new URL('donate.html',new URL('../',document.currentScript?.src||window.location.href)).href;link.textContent='♥  SUPPORT CROWRULES';link.setAttribute('aria-label','Donate to support CrowRules Podcasting');
+  link.style.cssText='position:fixed;left:18px;bottom:18px;z-index:9998;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border:1px solid rgba(103,232,249,.55);border-radius:999px;background:linear-gradient(110deg,rgba(8,20,34,.97),rgba(28,19,52,.97));color:#9df4ff;text-decoration:none;font:800 10px/1.2 Montserrat,Arial,sans-serif;letter-spacing:.09em;box-shadow:0 8px 30px rgba(0,0,0,.4),0 0 22px rgba(103,232,249,.12);backdrop-filter:blur(12px)';
+  link.addEventListener('mouseenter',()=>{link.style.borderColor='rgba(167,139,250,.9)';link.style.transform='translateY(-2px)'});link.addEventListener('mouseleave',()=>{link.style.borderColor='rgba(103,232,249,.55)';link.style.transform='translateY(0)'});
+  document.body.appendChild(link);
+ };
+ const start=()=>{safeExternalLinks();improveImages();normalizeForms();repairBrandLogos();ensureDonateLink();document.documentElement.dataset.crowSitewide='ready';ensurePodcastingSystems()};
  // Ensure every Podcasting page has the shared Supabase config, CrowPoints balance,
  // and audio player, including lightweight landing pages that do not declare them.
  async function ensurePodcastingSystems(){
