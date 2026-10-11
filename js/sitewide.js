@@ -1,7 +1,7 @@
 /* CrowRules Podcasting — sitewide reliability and accessibility helpers */
 (()=>{'use strict';
  if(window.CrowSitewide&&window.CrowSitewide.loaded)return;
- const api={loaded:true,version:'2026.10.11'};
+ const api={loaded:true,version:'2026.10.11-donate-integration'};
  const announce=(message,kind='info')=>{
   let node=document.getElementById('crow-sitewide-live');
   if(!node){node=document.createElement('div');node.id='crow-sitewide-live';node.setAttribute('role','status');node.setAttribute('aria-live','polite');node.style.cssText='position:fixed;left:16px;bottom:16px;z-index:99999;max-width:min(420px,calc(100vw - 32px));padding:12px 16px;border:1px solid rgba(103,232,249,.35);border-radius:12px;background:#08111f;color:#eafaff;box-shadow:0 12px 36px #0008;font:500 13px/1.5 Montserrat,Arial,sans-serif;display:none';document.body.appendChild(node)}
@@ -27,7 +27,8 @@
  const ensureDonateLink=()=>{
   const path=window.location.pathname.toLowerCase();
   if(path.endsWith('/donate.html')||path.endsWith('/admin.html'))return;
-  const ownScript=Array.from(document.scripts).find(s=>/\\/js\\/sitewide\\.js(?:\\?|$)/.test(s.src));
+  const ownScript=Array.from(document.scripts).find(s=>/\/js\/sitewide\.js(?:\?|$)/.test(s.src));
+  // Resolve the site root from this shared script so nested pages link correctly.
   const root=ownScript?new URL('../',ownScript.src):new URL('./',window.location.href);
   const donateUrl=new URL('donate.html',root).href;
   const styleId='crow-sitewide-donate-style';
@@ -85,8 +86,9 @@
    if(!window.CrowPoints?.__loaded)
     await load(new URL('js/crowpoints.js?crowrules-sitewide=20261011-rewards-menu',root).href);
    // Admin is an operations-only screen: never inject the floating audio player there.
-   const isAdminPage=/(^|\/)admin\.html$/i.test(window.location.pathname);
-   if(isAdminPage){
+   const isFocusedFlowPage=/(^|\/)\(admin|donate|donation-success|donation-cancel\)\.html$/i.test(window.location.pathname);
+   // Keep checkout and operations flows uncluttered; they have dedicated primary actions.
+   if(isFocusedFlowPage){
     document.getElementById('cr-global-audio')?.remove();
     document.getElementById('cr-global-audio-style')?.remove();
    }else if(!window.__CROW_GLOBAL_AUDIO__){
