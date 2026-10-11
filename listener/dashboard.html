@@ -216,6 +216,7 @@ function subscribe(uid){
  S.channel("listener-dashboard-"+uid)
   .on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_live"},loadLive)
   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_listens",filter:"user_id=eq."+uid},()=>loadListeningMinutes(uid))
+  .on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_playback_progress",filter:"user_id=eq."+uid},()=>{loadListeningMinutes(uid);loadHistory(uid)})
   .on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_follows_65",filter:"follower_id=eq."+uid},()=>loadFollows(uid))
   .on("postgres_changes",{event:"*",schema:"public",table:"cr_podcast_social_comments_v5",filter:"user_id=eq."+uid},()=>loadComments(uid))
   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episode_comments",filter:"user_id=eq."+uid},()=>loadComments(uid))
