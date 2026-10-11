@@ -96,6 +96,9 @@
       el.innerHTML = '<div class="cp-card"><div><strong>CROWRULES REWARDS</strong><div class="cp-muted" style="margin-top:5px">One account. One universe.</div></div>' + markup() + '</div>';
     });
   }
+  // Refresh the displayed balance immediately after the server confirms a
+  // verified whole-minute listening reward.
+  document.addEventListener('crowpoints:balance-refresh', () => { refresh(); });
   function mount() {
     styles();
     // Optional universal mount point can be added to any page/header: data-crowpoints.
