@@ -141,12 +141,31 @@ async function loadHistory(uid){
   box.innerHTML='<div class="empty">We couldn’t access your saved listening progress. Please refresh after signing in again.</div>';
   throw new Error("Playback progress sources unavailable: "+canonical.error.message+"; legacy: "+legacy.error.message);
  }
+ // If the database heartbeat has not landed yet, keep the episode currently playing
+ // visible using shared player state. Verified listening time and CrowPoints still come
+ // only from the server-side RPC; this fallback does not award or fabricate analytics.
+ if(!progress.length){
+  try{
+   const playerState=window.CROWRulesAudioPlayer?.getState?.()||{};
+   const currentUrl=String(playerState.url||"").trim();
+   const currentPosition=Math.max(0,Math.floor(Number(playerState.positionSeconds??playerState.currentTime)||0));
+   if(currentUrl&&currentPosition>0){
+    const currentEpisode=await S.from("podcast_episodes").select("id,duration_seconds").eq("audio_url",currentUrl).limit(1).maybeSingle();
+    if(!currentEpisode.error&&currentEpisode.data?.id){
+     const ep=currentEpisode.data;
+     progress.push({episode_id:ep.id,position_seconds:currentPosition,duration_seconds:Number(ep.duration_seconds)||0,
+      percent_complete:ep.duration_seconds?Math.min(100,currentPosition/Number(ep.duration_seconds)*100):0,
+      completed:false,last_played_at:new Date().toISOString(),_livePlayerFallback:true});
+    }
+   }
+  }catch(e){console.debug("Current-player Continue Listening fallback unavailable:",e?.message||e)}
+ }
  // Show only unfinished, resumable episodes.
- progress=progress.filter(x=>!x.completed&&(Number(x.position_seconds)>0||Number(x.verified_seconds)>0||Number(x.percent_complete??x.progress_percent)>0));
+ progress=progress.filter(x=>x.completed!==true&&(Number(x.position_seconds)>0||Number(x.verified_seconds)>0||Number(x.percent_complete??x.progress_percent)>0));
  progress.sort((a,b)=>new Date(b.last_played_at||b.updated_at||0)-new Date(a.last_played_at||a.updated_at||0));
  progress=progress.slice(0,8);
  if(!progress.length){
-  box.innerHTML='<div class="empty">No unfinished episodes yet. Start listening to an episode while signed in, and your saved progress will appear here.</div>';
+  box.innerHTML='<div class="empty">No unfinished episodes yet. Start an episode while signed in; saved progress will appear here after playback is recorded.</div>';
   return;
  }
  const ids=[...new Set(progress.map(x=>x.episode_id).filter(Boolean))];
@@ -182,7 +201,7 @@ async function loadHistory(uid){
   const resume=duration>0?Math.max(0,duration-pos):0;
   const remaining=resume>0?" · "+Math.ceil(resume/60)+" min left":"";
   const played=x.last_played_at||x.updated_at;
-  return '<button type="button" class="row resume-track" data-episode="'+esc(x.episode_id)+'" data-podcast="'+esc(ep.podcast_id||"")+'" data-title="'+esc(title)+'" data-artist="'+esc(pod.title||"CrowRules Podcasting")+'" data-artwork="'+esc(art)+'" data-url="'+esc(ep.audio_url||"")+'" data-position="'+pos+'" aria-label="Resume '+esc(title)+' at '+Math.round(pct)+' percent"><img src="'+esc(art)+'" alt=""><span class="rowmain"><b>'+esc(title)+'</b><small>'+esc(pod.title||"CrowRules Podcasting")+' · '+(played?"Last played "+esc(new Date(played).toLocaleDateString()):"Ready to resume")+esc(remaining)+'</small><span class="progress" style="--p:'+pct+'%"><i></i></span></span><span class="meta">RESUME<br>'+Math.round(pct)+'%</span></button>';
+  return '<button type="button" class="row resume-track" data-episode="'+esc(x.episode_id)+'" data-podcast="'+esc(ep.podcast_id||"")+'" data-title="'+esc(title)+'" data-artist="'+esc(pod.title||"CrowRules Podcasting")+'" data-artwork="'+esc(art)+'" data-url="'+esc(ep.audio_url||"")+'" data-position="'+pos+'" aria-label="Resume '+esc(title)+' at '+Math.round(pct)+' percent"><img src="'+esc(art)+'" alt=""><span class="rowmain"><b>'+esc(title)+'</b><small>'+esc(pod.title||"CrowRules Podcasting")+' · '+(x._livePlayerFallback?"Currently playing":(played?"Last played "+esc(new Date(played).toLocaleDateString()):"Ready to resume"))+esc(remaining)+'</small><span class="progress" style="--p:'+pct+'%"><i></i></span></span><span class="meta">RESUME<br>'+Math.round(pct)+'%</span></button>';
  }).join("");
 }
 async function loadFollows(uid){
