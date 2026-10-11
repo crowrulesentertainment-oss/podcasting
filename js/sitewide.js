@@ -39,8 +39,8 @@
   try{
    if(!window.supabase||typeof window.supabase.createClient!=='function')
     await load('https://unpkg.com/@supabase/supabase-js@2');
-   if(!window.CROW_CONFIG?.supabaseUrl||!window.CROW_CONFIG?.supabaseKey)
-    await load(new URL('config.js?crowrules-config=20261010',root).href);
+   if(!window.CROW_CONFIG?.supabaseUrl||!window.CROW_CONFIG?.supabaseKey||!window.CROW_CONFIG?.logoUrl)
+    await load(new URL('config.js?crowrules-config=20261011',root).href);
    repairBrandLogos();
    window.dispatchEvent(new Event('crowrules:config-ready'));
    if(!window.CrowPoints?.__loaded)
