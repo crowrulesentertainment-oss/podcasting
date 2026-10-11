@@ -5,7 +5,7 @@
 (() => {
   'use strict';
   if (window.CrowPoints && window.CrowPoints.__loaded) return;
-  const state = { client: null, user: null, lifetime: 0, monthly: 0, ready: false, error: null, transactions: [], achievements: [], detailsLoaded: false, detailsLoading: false, detailsError: null };
+  const state = { client: null, user: null, lifetime: 0, monthly: 0, ready: false, error: null, transactions: [], achievements: [], detailsLoaded: false, detailsLoading: false, detailsError: null, transactionOffset: 0, loadingMore: false };
   const number = value => Number.isFinite(Number(value)) ? Math.max(0, Number(value)) : 0;
   const fmt = value => Math.floor(number(value)).toLocaleString();
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -68,7 +68,21 @@
     if (!client) { state.ready = true; state.error = 'Supabase configuration is not ready'; render(); return state; }
     try {
       const { data: auth } = await client.auth.getUser();
+      const previousUserId = state.user?.id || null;
       state.user = auth && auth.user ? auth.user : null;
+      if (previousUserId !== (state.user?.id || null)) {
+        state.transactions = [];
+        state.achievements = [];
+        state.detailsLoaded = false;
+        state.detailsLoading = false;
+        state.detailsError = null;
+        state.transactionOffset = 0;
+        state.loadingMore = false;
+        if (!state.user) {
+          const rewardsPanel = document.getElementById('crowpoints-menu');
+          if (rewardsPanel) rewardsPanel.hidden = true;
+        }
+      }
       if (state.user) {
         const { data: summary, error: summaryError } = await client.rpc('get_my_crowpoints_summary');
         if (summaryError) throw summaryError;
@@ -156,12 +170,33 @@
       ]);
       if (ledgerResult.error) throw ledgerResult.error;
       state.transactions = ledgerResult.data || [];
+      state.transactionOffset = state.transactions.length;
       state.achievements = achievementResult.error ? [] : (achievementResult.data || []);
       state.detailsLoaded = true;
     } catch (error) {
       state.detailsError = error?.message || 'Could not load rewards activity.';
     } finally {
       state.detailsLoading = false;
+      renderMenuDetails();
+    }
+  }
+  async function loadMoreTransactions() {
+    if (!state.user || state.loadingMore || state.detailsError) return;
+    state.loadingMore = true;
+    renderMenuDetails();
+    try {
+      const { data, error } = await getClient().from('crowrules_crowpoints_ledger')
+        .select('id,points,reason,source,metadata,created_at')
+        .eq('user_id', state.user.id)
+        .order('created_at', { ascending: false })
+        .range(state.transactionOffset, state.transactionOffset + 7);
+      if (error) throw error;
+      state.transactions = state.transactions.concat(data || []);
+      state.transactionOffset = state.transactions.length;
+    } catch (error) {
+      state.detailsError = error?.message || 'Could not load older activity.';
+    } finally {
+      state.loadingMore = false;
       renderMenuDetails();
     }
   }
@@ -174,7 +209,7 @@
       if (state.detailsLoading) transactions.innerHTML = '<div class="cp-menu-status">Loading your latest rewards…</div>';
       else if (state.detailsError) transactions.innerHTML = '<div class="cp-menu-status">Activity could not be loaded. <button type="button" data-cp-details-retry style="background:none;border:0;color:#67e8f9;cursor:pointer">Try again</button></div>';
       else if (!state.transactions.length) transactions.innerHTML = '<div class="cp-menu-status">No point transactions yet. Verified listening and eligible challenges will appear here.</div>';
-      else transactions.innerHTML = state.transactions.map(row => '<div class="cp-menu-row"><div><b>' + escapeHtml(row.reason || row.source || 'CrowPoints reward') + '</b><small>' + escapeHtml(relativeDate(row.created_at)) + (row.source ? ' · ' + escapeHtml(row.source) : '') + '</small></div><span class="cp-menu-points">' + (Number(row.points) > 0 ? '+' : Number(row.points) < 0 ? '−' : '') + fmt(Math.abs(Number(row.points) || 0)) + '</span></div>').join('');
+      else transactions.innerHTML = state.transactions.map(row => '<div class="cp-menu-row"><div><b>' + escapeHtml(row.reason || row.source || 'CrowPoints reward') + '</b><small>' + escapeHtml(relativeDate(row.created_at)) + (row.source ? ' · ' + escapeHtml(row.source) : '') + '</small></div><span class="cp-menu-points">' + (Number(row.points) > 0 ? '+' : Number(row.points) < 0 ? '−' : '') + fmt(Math.abs(Number(row.points) || 0)) + '</span></div>').join('') + (state.transactions.length >= 8 ? '<button type="button" data-cp-load-more style="width:100%;padding:9px;border:1px solid #ffffff1e;border-radius:10px;background:#ffffff08;color:#bff7ff;cursor:pointer;font-weight:700;font-size:11px">' + (state.loadingMore ? 'Loading older activity…' : 'Load older activity') + '</button>' : '');
     }
     if (achievements) {
       if (state.detailsLoading) achievements.innerHTML = '<div class="cp-menu-status">Loading achievements…</div>';
@@ -183,6 +218,11 @@
         const def = Array.isArray(row.podcast_listener_achievement_definitions) ? row.podcast_listener_achievement_definitions[0] : row.podcast_listener_achievement_definitions;
         return '<div class="cp-menu-row"><div><b>' + escapeHtml((def && def.icon ? def.icon + ' ' : '🏆 ') + ((def && def.name) || row.achievement_key || 'Achievement')) + '</b><small>' + escapeHtml((def && def.description) || ('Unlocked ' + relativeDate(row.unlocked_at))) + '</small></div><span class="cp-menu-points">✓</span></div>';
       }).join('');
+    }
+    const more = panel.querySelector('[data-cp-load-more]');
+    if (more && !more.dataset.bound) {
+      more.dataset.bound = '1';
+      more.addEventListener('click', loadMoreTransactions);
     }
     const retry = panel.querySelector('[data-cp-details-retry]');
     if (retry && !retry.dataset.bound) {
