@@ -83,7 +83,7 @@
    repairBrandLogos();
    window.dispatchEvent(new Event('crowrules:config-ready'));
    if(!window.CrowPoints?.__loaded)
-    await load(new URL('js/crowpoints.js?crowrules-sitewide=20261010',root).href);
+    await load(new URL('js/crowpoints.js?crowrules-sitewide=20261011',root).href);
    // Admin is an operations-only screen: never inject the floating audio player there.
    const isAdminPage=/(^|\/)admin\.html$/i.test(window.location.pathname);
    if(isAdminPage){
