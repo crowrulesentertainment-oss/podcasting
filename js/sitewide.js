@@ -45,8 +45,14 @@
    window.dispatchEvent(new Event('crowrules:config-ready'));
    if(!window.CrowPoints?.__loaded)
     await load(new URL('js/crowpoints.js?crowrules-sitewide=20261010',root).href);
-   if(!window.__CROW_GLOBAL_AUDIO__)
-    await load(new URL('js/global-audio-player.js?crowrules-sitewide=20261010',root).href);
+   // Admin is an operations-only screen: never inject the floating audio player there.
+   const isAdminPage=/(^|\/)admin\.html$/i.test(window.location.pathname);
+   if(isAdminPage){
+    document.getElementById('cr-global-audio')?.remove();
+    document.getElementById('cr-global-audio-style')?.remove();
+   }else if(!window.__CROW_GLOBAL_AUDIO__){
+    await load(new URL('js/global-audio-player.js?crowrules-sitewide=20261011',root).href);
+   }
   }catch(error){console.error('[CrowRules sitewide] Shared rewards/audio setup failed:',error?.message||error);announce('CrowPoints could not initialize. Refresh the page and try again.','error')}
  }
 
