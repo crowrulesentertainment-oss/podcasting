@@ -3,5 +3,7 @@
  */
 window.CROW_CONFIG = Object.assign({}, window.CROW_CONFIG || {}, {
   supabaseUrl: "https://cevylpnoexugwgygvtgu.supabase.co",
-  supabaseKey: "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-"
+  supabaseKey: "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-",
+  logoUrl: "https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/sign/images/podcastinglogo.png?token=eyJraWQiOiI5Yzg1OGE1OS1lOTQ3LTQwZjYtYWUwYS0zNDA3MWZlZjIyNmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJpbWFnZXMvcG9kY2FzdGluZ2xvZ28ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MTIxMjY2MiwiZXhwIjoxOTQ4ODkyNjYyfQ.BKJBftIQ8-xRMhaC0yLHVXCyoS4YNQDrjdIrDwHW7v8jE6nZ8GRscpsVZ1TrmAnSBpTJQqx-disdr5xilI862A",
+  launchAt: "2027-01-01T08:00:00Z"
 });
