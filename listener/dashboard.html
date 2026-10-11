@@ -171,21 +171,33 @@ async function loadHistory(uid){
  }).join("");
 }
 async function loadFollows(uid){
- const r=await S.from("podcast_follows").select("id",{count:"exact",head:true}).eq("user_id",uid);
- if(r.error){metricUnavailable("follows");throw new Error("Could not count podcast_follows: "+r.error.message)}
- setMetric("follows",Number(r.count||0).toLocaleString());
+ // Current schema stores show follows in cr_podcast_follows_65 (follower_id).
+ const current=await S.from("cr_podcast_follows_65").select("id",{count:"exact",head:true}).eq("follower_id",uid);
+ if(!current.error){setMetric("follows",Number(current.count||0).toLocaleString());return;}
+ const legacy=await S.from("podcast_follows").select("id",{count:"exact",head:true}).eq("user_id",uid);
+ if(!legacy.error){setMetric("follows",Number(legacy.count||0).toLocaleString());return;}
+ metricUnavailable("follows");
+ throw new Error("Could not count current or legacy podcast follows: "+current.error.message+"; "+legacy.error.message);
 }
 async function loadComments(uid){
- // Count authored comments from both established episode-comment systems, without counting comments by other members.
- const [general,episode]=await Promise.all([
+ // Count current social comments plus episode comments; only fall back to legacy source when needed.
+ const [social,episode]=await Promise.all([
+  S.from("cr_podcast_social_comments_v5").select("id",{count:"exact",head:true}).eq("user_id",uid),
+  S.from("podcast_episode_comments").select("id",{count:"exact",head:true}).eq("user_id",uid)
+ ]);
+ if(!social.error&&!episode.error){setMetric("comments",(Number(social.count||0)+Number(episode.count||0)).toLocaleString());return;}
+ const [legacy,episodeRetry]=await Promise.all([
   S.from("podcast_comments").select("id",{count:"exact",head:true}).eq("user_id",uid),
   S.from("podcast_episode_comments").select("id",{count:"exact",head:true}).eq("user_id",uid)
  ]);
- if(general.error&&episode.error){metricUnavailable("comments");throw new Error("Could not count comments: "+general.error.message+"; "+episode.error.message)}
- // If one legacy table is inaccessible, show a partial count only when the other table succeeded, and flag it visibly.
- const total=(general.error?0:Number(general.count||0))+(episode.error?0:Number(episode.count||0));
- setMetric("comments",total.toLocaleString()+(general.error||episode.error?"*":""));
- if(general.error||episode.error)throw new Error("Comment count may be partial because one comment source is unavailable.");
+ if(!legacy.error&&!episodeRetry.error){setMetric("comments",(Number(legacy.count||0)+Number(episodeRetry.count||0)).toLocaleString());return;}
+ if(!social.error||!episode.error){
+  const total=(social.error?0:Number(social.count||0))+(episode.error?0:Number(episode.count||0));
+  setMetric("comments",total.toLocaleString()+"*");
+  throw new Error("Comment count is partial. Social source: "+(social.error?.message||"OK")+"; episode source: "+(episode.error?.message||"OK"));
+ }
+ metricUnavailable("comments");
+ throw new Error("Could not count comments: "+social.error.message+"; "+episode.error.message);
 }
 async function loadLive(){
  const r=await S.from("cr_podcast_live").select("*").eq("is_live",true).order("started_at",{ascending:false}).limit(1);
