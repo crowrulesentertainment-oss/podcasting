@@ -18,7 +18,7 @@ main{padding:52px 0 80px}.eyebrow{font:700 11px Orbitron;letter-spacing:.16em;co
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}.btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:#fff;font-size:11px;font-weight:800;letter-spacing:.08em;cursor:pointer}.btn.primary{border-color:rgba(34,211,238,.45);background:linear-gradient(100deg,rgba(34,211,238,.16),rgba(167,139,250,.16));box-shadow:0 0 25px rgba(34,211,238,.08)}.btn:hover{transform:translateY(-1px)}
 .section{margin-top:42px}.sectionhead{display:flex;align-items:end;justify-content:space-between;gap:15px;margin-bottom:15px}.sectionhead h2{font:700 24px Orbitron;margin:0}.sectionhead a{color:var(--cyan);font-size:10px;font-weight:800;letter-spacing:.1em}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{min-width:0}.cover{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;background:linear-gradient(135deg,#111827,#172033);border:1px solid var(--line)}.card h3{margin:12px 0 6px;font-size:15px}.muted{color:var(--muted);font-size:12px;line-height:1.6}.meta{color:#64748b;font-size:10px;letter-spacing:.04em}
-.list{display:grid;gap:10px}.row{display:flex;align-items:center;gap:14px;padding:15px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025)}.row:hover{background:rgba(255,255,255,.045)}.row img{width:64px;height:64px;border-radius:12px;object-fit:cover}.rowmain{flex:1;min-width:0}.rowmain b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rowmain small{display:block;color:var(--muted);margin-top:5px;line-height:1.5}.progress{height:5px;border-radius:99px;background:#172033;overflow:hidden;margin-top:9px}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));width:var(--p,0%)}.empty{padding:26px;text-align:center;border:1px dashed var(--line);border-radius:18px;color:var(--muted)}
+.list{display:grid;gap:10px}.row{display:flex;width:100%;text-align:left;font:inherit;color:inherit;align-items:center;gap:14px;padding:15px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025);cursor:pointer}.resume-track:disabled{opacity:.6;cursor:wait}.row:hover{background:rgba(255,255,255,.045)}.row img{width:64px;height:64px;border-radius:12px;object-fit:cover}.rowmain{flex:1;min-width:0}.rowmain b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rowmain small{display:block;color:var(--muted);margin-top:5px;line-height:1.5}.progress{height:5px;border-radius:99px;background:#172033;overflow:hidden;margin-top:9px}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));width:var(--p,0%)}.empty{padding:26px;text-align:center;border:1px dashed var(--line);border-radius:18px;color:var(--muted)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.feature{display:flex;gap:13px;align-items:flex-start}.icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.18);font:700 16px Orbitron;color:var(--cyan)}.notice{padding:14px;border-radius:13px;background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--muted);font-size:11px;line-height:1.6}.live{color:var(--green)}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green);margin-right:7px}
 footer{border-top:1px solid var(--line);padding:28px 0 40px;color:#64748b;font-size:10px;letter-spacing:.06em}footer .wrap{display:flex;justify-content:space-between;gap:15px}
 @media(max-width:900px){.hero,.two{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}.links a:nth-child(n+4){display:none}}
@@ -93,11 +93,18 @@ async function init(){
  subscribe(u.id);
 }
 async function loadListeningMinutes(uid){
- // Sum the canonical per-session analytics records; never infer listened time from a playback position.
+ // Prefer verified seconds from the same playback engine used by Continue Listening and CrowPoints.
+ const canonical=await S.rpc("get_my_podcast_playback_state");
+ if(!canonical.error&&Array.isArray(canonical.data)){
+  const seconds=canonical.data.reduce((sum,row)=>sum+Math.max(0,Number(row.verified_seconds)||0),0);
+  setMetric("minutes",Math.floor(seconds/60).toLocaleString());
+  return;
+ }
+ console.warn("Verified listening summary unavailable; trying legacy listen records:",canonical.error?.message||"Unexpected response");
  let seconds=0,offset=0,batchSize=1000;
  while(true){
   const r=await S.from("podcast_listens").select("seconds_listened").eq("user_id",uid).range(offset,offset+batchSize-1);
-  if(r.error){metricUnavailable("minutes");throw new Error("Could not read podcast_listens: "+r.error.message)}
+  if(r.error){metricUnavailable("minutes");throw new Error("Verified playback summary unavailable: "+(canonical.error?.message||"Unexpected response")+"; legacy listen records: "+r.error.message)}
   const rows=r.data||[];seconds+=rows.reduce((sum,row)=>sum+Math.max(0,Number(row.seconds_listened)||0),0);
   if(rows.length<batchSize)break;
   offset+=rows.length;
@@ -135,7 +142,7 @@ async function loadHistory(uid){
   return;
  }
  const ids=[...new Set(progress.map(x=>x.episode_id).filter(Boolean))];
- const er=await S.from("podcast_episodes").select("id,title,thumbnail_url,artwork_url,duration_seconds,podcast_id").in("id",ids);
+ const er=await S.from("podcast_episodes").select("id,title,thumbnail_url,artwork_url,duration_seconds,podcast_id,audio_url").in("id",ids);
  if(er.error){
   box.innerHTML='<div class="empty">Your listening progress is saved, but episode details are temporarily unavailable.</div>';
   throw new Error("Could not load episode details: "+er.error.message);
@@ -167,7 +174,7 @@ async function loadHistory(uid){
   const resume=duration>0?Math.max(0,duration-pos):0;
   const remaining=resume>0?" · "+Math.ceil(resume/60)+" min left":"";
   const played=x.last_played_at||x.updated_at;
-  return '<a class="row" href="'+href+'"><img src="'+esc(art)+'" alt=""><div class="rowmain"><b>'+esc(title)+'</b><small>'+esc(pod.title||"CrowRules Podcasting")+' · '+(played?"Last played "+esc(new Date(played).toLocaleDateString()):"Ready to resume")+esc(remaining)+'</small><div class="progress" style="--p:'+pct+'%"><i></i></div></div><span class="meta">RESUME<br>'+Math.round(pct)+'%</span></a>';
+  return '<button type="button" class="row resume-track" data-episode="'+esc(x.episode_id)+'" data-podcast="'+esc(ep.podcast_id||"")+'" data-title="'+esc(title)+'" data-artist="'+esc(pod.title||"CrowRules Podcasting")+'" data-artwork="'+esc(art)+'" data-url="'+esc(ep.audio_url||"")+'" data-position="'+pos+'" aria-label="Resume '+esc(title)+' at '+Math.round(pct)+' percent"><img src="'+esc(art)+'" alt=""><span class="rowmain"><b>'+esc(title)+'</b><small>'+esc(pod.title||"CrowRules Podcasting")+' · '+(played?"Last played "+esc(new Date(played).toLocaleDateString()):"Ready to resume")+esc(remaining)+'</small><span class="progress" style="--p:'+pct+'%"><i></i></span></span><span class="meta">RESUME<br>'+Math.round(pct)+'%</span></button>';
  }).join("");
 }
 async function loadFollows(uid){
@@ -215,6 +222,15 @@ function subscribe(uid){
   .subscribe();
  S.auth.onAuthStateChange((_event,session)=>{if(!session)location.href="../login.html"});
 }
+document.addEventListener("click",async event=>{
+ const button=event.target.closest(".resume-track");if(!button)return;
+ const url=button.dataset.url;if(!url){$("#status").textContent="This episode has no playable audio URL yet.";return}
+ const player=window.CROWRulesAudioPlayer;if(!player?.play){$("#status").textContent="The audio player is still loading. Try again in a moment.";return}
+ button.disabled=true;
+ try{const ok=await player.play({url,title:button.dataset.title,artist:button.dataset.artist,artwork:button.dataset.artwork,episodeId:button.dataset.episode,podcastId:button.dataset.podcast||null},{autoplay:true,positionSeconds:Number(button.dataset.position)||0});if(!ok)throw Error("The episode could not be loaded.");$("#status").textContent="Resuming "+button.dataset.title+"…"}
+ catch(e){$("#status").textContent="Could not resume episode: "+(e?.message||"Please try again.");}
+ finally{button.disabled=false}
+});
 init();
 </script>
 <script src="../js/live-visitors.js"></script>
