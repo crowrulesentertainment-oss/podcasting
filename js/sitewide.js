@@ -30,6 +30,7 @@
     await load('https://unpkg.com/@supabase/supabase-js@2');
    if(!window.CROW_CONFIG?.supabaseUrl||!window.CROW_CONFIG?.supabaseKey)
     await load(new URL('config.js?crowrules-config=20261010',root).href);
+   window.dispatchEvent(new Event('crowrules:config-ready'));
    if(!window.CrowPoints?.__loaded)
     await load(new URL('js/crowpoints.js?crowrules-sitewide=20261010',root).href);
    if(!window.__CROW_GLOBAL_AUDIO__)
