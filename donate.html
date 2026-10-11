@@ -11,7 +11,8 @@
 :root{color-scheme:dark;--bg:#080b14;--panel:#111827;--cyan:#53e7ff;--purple:#a78bfa;--muted:#aab5c9}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 15% 5%,#14294a 0,transparent 42%),radial-gradient(ellipse at 85% 35%,#28164b 0,transparent 38%),var(--bg);color:#f5f7ff;font-family:Montserrat,Arial,sans-serif;display:flex;flex-direction:column}
 header{padding:22px clamp(20px,5vw,72px);border-bottom:1px solid #ffffff18;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}header a{color:var(--cyan);text-decoration:none;font-weight:800;letter-spacing:.08em}.back{color:#dbe5f7;font-size:.92rem}
-main{width:min(920px,calc(100% - 32px));margin:clamp(38px,8vh,90px) auto;flex:1}.eyebrow{color:var(--cyan);letter-spacing:.2em;text-transform:uppercase;font-size:.76rem;font-weight:800}.hero{text-align:center;margin-bottom:30px}h1{font-size:clamp(2.3rem,7vw,4.7rem);line-height:1.03;margin:16px 0;background:linear-gradient(100deg,#fff,var(--cyan),var(--purple));color:transparent;background-clip:text}.intro{max-width:650px;margin:0 auto;color:var(--muted);font-size:1.08rem;line-height:1.8}.panel{max-width:700px;margin:34px auto;background:#101827d9;border:1px solid #64eaff45;border-radius:24px;padding:clamp(22px,5vw,42px);box-shadow:0 25px 90px #0007}.panel h2{margin-top:0}.panel p,.panel li{color:#c4cee0;line-height:1.75}.impact{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:24px 0}.impact div{padding:16px;border-radius:14px;background:#ffffff08;border:1px solid #ffffff12}.impact strong{display:block;color:var(--cyan);margin-bottom:6px}.donate{display:block;text-align:center;width:100%;padding:17px 22px;border-radius:999px;background:linear-gradient(100deg,#36dff8,#a78bfa);color:#080b14;font-weight:900;text-decoration:none;letter-spacing:.04em;margin-top:24px}.donate:hover{filter:brightness(1.08)}.note{font-size:.85rem!important;color:#8f9bb2!important;text-align:center;margin-bottom:0}.status{padding:13px 15px;border-radius:12px;background:#382a16;border:1px solid #9c7736;color:#ffe0a0;font-size:.9rem;line-height:1.6}footer{text-align:center;color:#77839a;padding:25px;font-size:.85rem}footer a{color:#a9b6d0}
+main{width:min(920px,calc(100% - 32px));margin:clamp(38px,8vh,90px) auto;flex:1}.eyebrow{color:var(--cyan);letter-spacing:.2em;text-transform:uppercase;font-size:.76rem;font-weight:800}.hero{text-align:center;margin-bottom:30px}h1{font-size:clamp(2.3rem,7vw,4.7rem);line-height:1.03;margin:16px 0;background:linear-gradient(100deg,#fff,var(--cyan),var(--purple));color:transparent;background-clip:text}.intro{max-width:650px;margin:0 auto;color:var(--muted);font-size:1.08rem;line-height:1.8}.panel{max-width:700px;margin:34px auto;background:#101827d9;border:1px solid #64eaff45;border-radius:24px;padding:clamp(22px,5vw,42px);box-shadow:0 25px 90px #0007}.panel h2{margin-top:0}.panel p{color:#c4cee0;line-height:1.75}.impact{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:24px 0}.impact div{padding:16px;border-radius:14px;background:#ffffff08;border:1px solid #ffffff12}.impact strong{display:block;color:var(--cyan);margin-bottom:6px}.amounts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:22px 0}.amount{padding:14px 8px;border-radius:12px;border:1px solid #ffffff30;background:#ffffff08;color:#fff;font-weight:800;font-size:1rem;cursor:pointer}.amount[aria-pressed=true]{background:#53e7ff20;border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan) inset;color:var(--cyan)}label{display:block;font-size:.9rem;color:#c4cee0;margin:15px 0 7px}input{width:100%;padding:13px 14px;border-radius:10px;border:1px solid #ffffff30;background:#080d19;color:white;font:inherit}input:focus,.amount:focus,.donate:focus{outline:2px solid var(--cyan);outline-offset:3px}.donate{display:block;text-align:center;width:100%;padding:17px 22px;border:0;border-radius:999px;background:linear-gradient(100deg,#36dff8,#a78bfa);color:#080b14;font-weight:900;text-decoration:none;letter-spacing:.04em;margin-top:24px;cursor:pointer}.donate:disabled{opacity:.6;cursor:wait}.note{font-size:.85rem!important;color:#8f9bb2!important;text-align:center;margin-bottom:0}.status{padding:13px 15px;border-radius:12px;background:#102333;border:1px solid #36758b;color:#c9f6ff;font-size:.9rem;line-height:1.6}.status.error{background:#382022;border-color:#a64d57;color:#ffd6d9}.status[hidden]{display:none}footer{text-align:center;color:#77839a;padding:25px;font-size:.85rem}footer a{color:#a9b6d0}
+@media(max-width:460px){.amounts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -24,34 +25,100 @@ main{width:min(920px,calc(100% - 32px));margin:clamp(38px,8vh,90px) auto;flex:1}
 </section>
 <section class="panel">
 <h2>Make a contribution</h2>
-<p>Every contribution helps us keep building CrowRules Podcasting. Choose an amount on our secure Stripe-hosted donation page.</p>
+<p>Choose a one-time contribution. You'll complete your payment on Stripe's secure checkout page.</p>
 <div class="impact">
 <div><strong>Creator discovery</strong><span>Help listeners find new voices and shows.</span></div>
 <div><strong>Platform improvements</strong><span>Support testing, accessibility, and reliability.</span></div>
 <div><strong>Independent stories</strong><span>Help grow a community built around audio.</span></div>
 </div>
-<div class="status" id="setup-note">Donation checkout is being connected. The Stripe link must be configured before contributions can be accepted.</div>
-<a class="donate" id="donate-button" href="#" aria-label="Donate through Stripe">DONATION CHECKOUT COMING SOON</a>
-<p class="note">Payments will be processed securely by Stripe. Do not enter payment details on this website.</p>
+<div class="amounts" role="group" aria-label="Choose donation amount">
+<button class="amount" type="button" data-amount="5" aria-pressed="true">$5</button>
+<button class="amount" type="button" data-amount="10" aria-pressed="false">$10</button>
+<button class="amount" type="button" data-amount="25" aria-pressed="false">$25</button>
+<button class="amount" type="button" data-amount="50" aria-pressed="false">$50</button>
+</div>
+<label for="custom-amount">Or enter another amount (USD)</label>
+<input id="custom-amount" type="number" min="1" max="1000000" step="0.01" inputmode="decimal" placeholder="Enter amount, e.g. 15.00">
+<label for="donor-name">Name (optional)</label>
+<input id="donor-name" type="text" maxlength="200" autocomplete="name" placeholder="Your name">
+<label for="donor-email">Email for your receipt (optional)</label>
+<input id="donor-email" type="email" maxlength="320" autocomplete="email" placeholder="you@example.com">
+<div class="status" id="status" role="status" aria-live="polite" hidden></div>
+<button class="donate" id="donate-button" type="button">CONTINUE TO SECURE STRIPE CHECKOUT</button>
+<p class="note">Your payment details are entered on Stripe, not on this website. Donations are one-time and voluntary.</p>
 </section>
 </main>
 <footer>© <span id="year"></span> CrowRules Entertainment · One company. One universe.<br><a href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/">Main website</a></footer>
+<script src="config.js"></script>
 <script>
-document.getElementById("year").textContent=new Date().getFullYear();
-/*
-STRIPE SETUP:
-1. In Stripe Dashboard, create a Payment Link using “Customers choose what to pay”
-   and configure it for one-time donations.
-2. Paste the generated https://buy.stripe.com/... URL below as STRIPE_DONATION_URL.
-3. Commit this file. Never put a Stripe secret key in GitHub Pages or browser code.
-*/
-const STRIPE_DONATION_URL = "";
-const button=document.getElementById("donate-button");
-const note=document.getElementById("setup-note");
-if(STRIPE_DONATION_URL && /^https:\/\/buy\.stripe\.com\//.test(STRIPE_DONATION_URL)){
- button.href=STRIPE_DONATION_URL;button.target="_blank";button.rel="noopener noreferrer";
- button.textContent="DONATE SECURELY WITH STRIPE";note.textContent="Choose a one-time contribution amount on Stripe’s secure checkout page.";note.style.display="none";
-}else{button.addEventListener("click",e=>{e.preventDefault();note.textContent="Stripe checkout is not active yet. Add your Stripe Payment Link to STRIPE_DONATION_URL in donate.html to enable donations.";});}
+(() => {
+  'use strict';
+  document.getElementById('year').textContent = new Date().getFullYear();
+  const buttons = [...document.querySelectorAll('[data-amount]')];
+  const custom = document.getElementById('custom-amount');
+  const donate = document.getElementById('donate-button');
+  const status = document.getElementById('status');
+  let selectedAmount = 5;
+  const setStatus = (message, error = false) => {
+    status.textContent = message;
+    status.hidden = false;
+    status.classList.toggle('error', error);
+  };
+  buttons.forEach(button => button.addEventListener('click', () => {
+    selectedAmount = Number(button.dataset.amount);
+    custom.value = '';
+    buttons.forEach(b => b.setAttribute('aria-pressed', String(b === button)));
+    status.hidden = true;
+  }));
+  custom.addEventListener('input', () => {
+    buttons.forEach(b => b.setAttribute('aria-pressed', 'false'));
+    status.hidden = true;
+  });
+  donate.addEventListener('click', async () => {
+    const raw = custom.value.trim();
+    const amount = raw ? Number(raw) : selectedAmount;
+    if (!Number.isFinite(amount) || amount < 1 || amount > 1000000 || Math.round(amount * 100) !== amount * 100) {
+      setStatus('Enter a valid donation amount between $1.00 and $1,000,000.00, with no more than two decimal places.', true);
+      return;
+    }
+    const cfg = window.CROW_CONFIG || {};
+    if (!cfg.supabaseUrl || !cfg.supabaseKey) {
+      setStatus('Donation checkout is temporarily unavailable because the site configuration could not be loaded.', true);
+      return;
+    }
+    donate.disabled = true;
+    donate.textContent = 'CONNECTING TO STRIPE…';
+    setStatus('Creating your secure checkout session. Please wait.');
+    try {
+      const response = await fetch(cfg.supabaseUrl.replace(/\/$/, '') + '/functions/v1/create-donation-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': cfg.supabaseKey },
+        body: JSON.stringify({
+          amount_cents: Math.round(amount * 100),
+          donation_type: 'one_time',
+          campaign: 'CrowRules Podcasting',
+          purpose: 'Support CrowRules Podcasting',
+          donor_name: document.getElementById('donor-name').value.trim() || null,
+          donor_email: document.getElementById('donor-email').value.trim() || null,
+          success_url: 'https://crowrulesentertainment-oss.github.io/podcasting/donation-success.html',
+          cancel_url: 'https://crowrulesentertainment-oss.github.io/podcasting/donation-cancel.html'
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'Checkout could not be created. Please try again.');
+      if (!data.checkout_url || !/^https:\/\/checkout\.stripe\.com\//.test(data.checkout_url)) {
+        throw new Error('Stripe returned an invalid checkout URL. Please contact support.');
+      }
+      window.location.assign(data.checkout_url);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : 'Unable to start checkout. Please try again.', true);
+      donate.disabled = false;
+      donate.textContent = 'TRY STRIPE CHECKOUT AGAIN';
+    }
+  });
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('checkout') === 'cancelled') setStatus('Your checkout was cancelled. No payment was completed. You can choose an amount and try again.');
+})();
 </script>
 <script src="js/sitewide.js" defer></script>
 </body>
