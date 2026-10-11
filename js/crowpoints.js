@@ -34,7 +34,7 @@
   }
   async function refresh() {
     const client = getClient();
-    if (!client) return state;
+    if (!client) { state.ready = true; state.error = 'Supabase configuration is not ready'; render(); return state; }
     try {
       const { data: auth } = await client.auth.getUser();
       state.user = auth && auth.user ? auth.user : null;
@@ -99,6 +99,7 @@
   // Refresh the displayed balance immediately after the server confirms a
   // verified whole-minute listening reward.
   document.addEventListener('crowpoints:balance-refresh', () => { refresh(); });
+  window.addEventListener('crowrules:config-ready', () => { refresh(); });
   function mount() {
     styles();
     // Optional universal mount point can be added to any page/header: data-crowpoints.
@@ -109,7 +110,7 @@
       client.auth.onAuthStateChange(() => { refresh(); });
     }
     // Refresh earned balances while a signed-in member listens in another tab or player.
-    window.setInterval(() => { if (state.user && !document.hidden) refresh(); }, 30000);
+    window.setInterval(() => { if (!document.hidden && (!state.user || !state.client || state.error)) refresh(); else if (state.user && !document.hidden) refresh(); }, 15000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden && state.user) refresh(); });
   }
   window.CrowPoints = {
