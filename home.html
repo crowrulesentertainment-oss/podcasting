@@ -508,10 +508,15 @@ function renderTrending(rows){
  if(!rows.length){pulseIds.trendingList.innerHTML=dataEmpty("No published shows are available to rank yet.");return}
  pulseIds.trendingList.innerHTML=rows.slice(0,5).map((row,index)=>'<div class="home-data-item">'+(row.artwork_url?'<img src="'+safeText(row.artwork_url)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':'<div class="home-data-item" style="width:42px;height:42px;justify-content:center;flex:0 0 42px;padding:0;color:#67e8f9;font:800 13px Orbitron">'+(index+1)+'</div>')+'<div class="home-data-item-main"><b>'+safeText(row.title||"Untitled podcast")+'</b><small>' + safeText(row.category||"Podcast")+' · '+numberFmt(row.total_plays)+' plays · '+numberFmt(row.listener_count)+' reported listeners</small></div></div>').join("");
 }
-let pulseLoadInFlight=false,pulseRealtimeState="CONNECTING";
+let pulseLoadInFlight=false,pulseRefreshQueued=false,pulseRealtimeState="CONNECTING";
+function requestHomePulseRefresh(){
+ if(document.hidden)return;
+ if(pulseLoadInFlight){pulseRefreshQueued=true;return;}
+ loadHomePulse();
+}
 async function loadHomePulse(){
  if(!S){pulseIds.updated.textContent="DATABASE UNAVAILABLE";pulseIds.liveList.innerHTML=dataEmpty("Supabase is not configured, so live data cannot be displayed.");pulseIds.trendingList.innerHTML=dataEmpty("Trending shows are unavailable until the database connection is ready.");return}
- if(pulseLoadInFlight)return;
+ if(pulseLoadInFlight){pulseRefreshQueued=true;return;}
  pulseLoadInFlight=true;
  if(pulseIds.refresh){pulseIds.refresh.disabled=true;pulseIds.refresh.textContent="REFRESHING…"}
  pulseIds.updated.textContent=pulseRealtimeState==="SUBSCRIBED"?"REALTIME CONNECTED · SYNCING…":"SYNCING LIVE DATA…";
@@ -531,7 +536,12 @@ async function loadHomePulse(){
   if(errors.length){pulseIds.note.textContent="Some live panels failed to load. Realtime updates require Supabase Realtime replication for podcasts and podcast_live_sessions; polling is the fallback.";pulseIds.note.classList.add("home-data-error")}
   else{pulseIds.note.textContent="Database-backed live sessions and trending shows. "+(pulseRealtimeState==="SUBSCRIBED"?"Realtime database changes are connected; a 15-second refresh also checks for missed events.":"Realtime is not connected yet; data refreshes every 15 seconds while this page is visible.")+" Visitor counts represent active browser sessions, not guaranteed unique people.";pulseIds.note.classList.remove("home-data-error")}
  }catch(error){pulseIds.updated.textContent="LIVE DATA ERROR";pulseIds.note.textContent="Could not refresh live data: "+(error?.message||"unknown error");pulseIds.note.classList.add("home-data-error")}
- finally{pulseLoadInFlight=false;if(pulseIds.refresh){pulseIds.refresh.disabled=false;pulseIds.refresh.textContent="REFRESH DATA ↻"}}
+ finally{
+  pulseLoadInFlight=false;
+  if(pulseIds.refresh){pulseIds.refresh.disabled=false;pulseIds.refresh.textContent="REFRESH DATA ↻"}
+  // Queue a follow-up read when a Realtime event arrived during an active request.
+  if(pulseRefreshQueued){pulseRefreshQueued=false;if(!document.hidden)setTimeout(loadHomePulse,0)}
+ }
 }
 pulseIds.refresh?.addEventListener("click",loadHomePulse);
 async function boot(){
@@ -540,7 +550,7 @@ async function boot(){
   S=window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
   await checkAuth();
   await loadHomePulse();
-  const pulseTimer=setInterval(()=>{if(!document.hidden)loadHomePulse()},15000);
+  const pulseTimer=setInterval(()=>{if(!document.hidden)requestHomePulseRefresh()},15000);
   window.addEventListener("pagehide",()=>clearInterval(pulseTimer),{once:true});
   const {data}=S.auth.onAuthStateChange((event,session)=>{
    // Run after the Supabase callback returns; avoid deadlocks from nested auth calls.
@@ -551,11 +561,11 @@ async function boot(){
    });
   });
   authSubscription=data?.subscription;
-  // Refresh database-backed cards when rows change; the 30-second poll is fallback.
+  // Row changes refresh the live panels immediately; polling is only a safety fallback.
   const dataChannel=S.channel("podcasting-home-db-live")
-   .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},()=>loadHomePulse())
-   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_sessions"},()=>loadHomePulse())
-   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_channels"},()=>loadHomePulse())
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},()=>requestHomePulseRefresh())
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_sessions"},()=>requestHomePulseRefresh())
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_channels"},()=>requestHomePulseRefresh())
    .subscribe(status=>{pulseRealtimeState=status;if(status==="SUBSCRIBED"){loadHomePulse()}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){pulseIds.updated.textContent="REALTIME RECONNECTING · POLLING ACTIVE"}});
   window.addEventListener("pagehide",()=>{try{S.removeChannel(dataChannel)}catch(_){}},{once:true});
  }catch(e){unavailable("AUTH SERVICE UNAVAILABLE");authPanel.title=e?.message||"Could not initialize Supabase authentication."}
