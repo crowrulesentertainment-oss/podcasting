@@ -694,8 +694,9 @@ const text=(id,v)=>{const el=$(id);if(!el)return;el.textContent=id==="homeDynami
 let db=null,busy=false,loadQueued=false,discoveryRefreshTimer=null,historyIds=[];const catalogCoverage={showsComplete:false,episodesComplete:false};
 function empty(id,msg){const el=$(id);if(el)el.innerHTML='<div class="home-dynamic-empty">'+safe(msg)+'</div>'}
 function showHref(id){return "listener/show.html?id="+encodeURIComponent(id)}
-function card({title,description,art,meta,href,number}) {
- const img=art?'<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="'+safe(art)+'" alt="">':'<span aria-hidden="true">'+safe(number||"CR")+'</span>';
+function card({title,description,art,fallbackArt,meta,href,number}) {
+ const fallback=fallbackArt?safe(fallbackArt):"";
+ const img=art?'<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="'+safe(art)+'" data-fallback="'+fallback+'" onerror="if(this.dataset.fallback && this.src!==this.dataset.fallback){this.src=this.dataset.fallback;this.dataset.fallback=\'\'}else{this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'CROWRULES\'}))}" alt="">':(fallbackArt?'<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="'+fallback+'" alt="">':'<span aria-hidden="true">'+safe(number||"CR")+'</span>');
  const summary=description?'<p>'+safe(description)+'</p>':'';
  return '<a class="home-dynamic-card" href="'+safe(href||"listener/index.html#discover")+'"><div class="home-dynamic-art">'+img+'</div><div class="home-dynamic-copy"><h4>'+safe(title||"Untitled")+'</h4>'+summary+'<div class="home-dynamic-meta">'+safe(meta||"CROWRULES PODCASTING")+'</div><span class="home-dynamic-open">EXPLORE ↗</span></div></a>';
 }
@@ -707,7 +708,7 @@ function renderShows(id,rows,emptyMessage){
 function renderEpisodes(rows,showMap){
  const el=$("homeNewEpisodes");if(!el)return;
  if(!rows?.length){empty("homeNewEpisodes","No published episodes were returned by the database. Check episode publication status and read policies if you expected results.");return}
- el.innerHTML=rows.map((r,i)=>{const show=showMap.get(String(r.podcast_id));const parent=show?.title||r.podcast_title||"Podcast episode";const href=showHref(r.podcast_id||show?.id||"");return card({title:r.title||"Untitled episode",art:r.thumbnail_url||r.artwork_url||r.cover_image_url||show?.artwork_url,meta:parent+(r.total_plays!=null?" · "+fmt(r.total_plays)+" plays":""),href,number:"EP"+String(i+1)})}).join("");
+ el.innerHTML=rows.map((r,i)=>{const show=showMap.get(String(r.podcast_id));const parent=show?.title||r.podcast_title||"Podcast episode";const href=showHref(r.podcast_id||show?.id||"");const yt=String(r.video_url||"").match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|live\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);const fallbackArt=yt?"https://i.ytimg.com/vi/"+yt[1]+"/hqdefault.jpg":"";return card({title:r.title||"Untitled episode",art:r.thumbnail_url||r.artwork_url||r.cover_image_url||show?.artwork_url,fallbackArt,meta:parent+(r.total_plays!=null?" · "+fmt(r.total_plays)+" plays":""),href,number:"EP"+String(i+1)})}).join("");
 }
 async function countQuery(table,filters=[]) {
  let q=db.from(table).select("id",{count:"exact",head:true});
@@ -744,11 +745,11 @@ async function publishedShows(){
 async function publishedEpisodes(){
  // Optional episode columns vary by schema. Fall back to a wildcard query ordered by id.
  const r=await readAllRows("podcast_episodes",[
-  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,total_plays,play_count,published_at,created_at,status,is_published",status:true,order:"published_at"},
-  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,total_plays,play_count,created_at,status,is_published",status:true,order:"created_at"},
-  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,total_plays,created_at",order:"created_at"},
-  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,play_count,created_at",order:"created_at"},
-  {cols:"id,podcast_id,title,thumbnail_url,artwork_url,cover_image_url,created_at",order:"created_at"},
+  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,video_url,total_plays,play_count,published_at,created_at,status,is_published",status:true,order:"published_at"},
+  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,video_url,total_plays,play_count,created_at,status,is_published",status:true,order:"created_at"},
+  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,video_url,total_plays,created_at",order:"created_at"},
+  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,video_url,play_count,created_at",order:"created_at"},
+  {cols:"id,podcast_id,title,thumbnail_url,artwork_url,cover_image_url,video_url,created_at",order:"created_at"},
   {cols:"*",order:"id"}
  ]);
  catalogCoverage.episodesComplete=r.complete;
