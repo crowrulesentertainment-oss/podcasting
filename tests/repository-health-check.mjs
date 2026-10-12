@@ -18,7 +18,7 @@ async function walk(dir) {
 }
 function checkSyntax(source, label, ext = ".mjs") {
   const dir = syntaxDir;
-  const file = path.join(dir, "check" + ext);
+  const file = path.join(dir, "check.mjs");
   // Each check is sequential so this temporary filename is safe.
   return writeFile(file, source, "utf8").then(() => {
     const result = spawnSync(process.execPath, ["--check", file], { encoding: "utf8" });
@@ -33,7 +33,7 @@ try {
   console.log("Checking " + jsFiles.length + " JavaScript files and " + htmlFiles.length + " HTML pages.");
 
   for (const file of jsFiles) {
-    await checkSyntax(await readFile(path.join(root, file), "utf8"), file, path.extname(file) || ".mjs");
+    await checkSyntax(await readFile(path.join(root, file), "utf8"), file, ".mjs");
   }
 
   for (const file of htmlFiles) {
