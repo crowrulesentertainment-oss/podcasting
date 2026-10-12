@@ -67,9 +67,9 @@
     const client = getClient();
     if (!client) { state.ready = true; state.error = 'Supabase configuration is not ready'; render(); return state; }
     try {
-      const { data: auth } = await client.auth.getUser();
+      const { data: auth } = await client.auth.getSession();
       const previousUserId = state.user?.id || null;
-      state.user = auth && auth.user ? auth.user : null;
+      state.user = auth && auth.session && auth.session.user ? auth.session.user : null;
       if (previousUserId !== (state.user?.id || null)) {
         state.transactions = [];
         state.achievements = [];
@@ -324,7 +324,7 @@
       client.auth.onAuthStateChange(() => { refresh(); });
     }
     // Refresh earned balances while a signed-in member listens in another tab or player.
-    window.setInterval(() => { if (!document.hidden && (!state.user || !state.client || state.error)) refresh(); else if (state.user && !document.hidden) refresh(); }, 15000);
+    window.setInterval(() => { if (!document.hidden) refresh(); }, 60000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden && state.user) refresh(); });
   }
   window.CrowPoints = {
