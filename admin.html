@@ -176,8 +176,10 @@ async function updatePodcast(id,patch){
  const p=podcasts.find(x=>String(x.id)===String(id));if(!p)return;
  const description=patch.status?"change status to "+patch.status:(patch.is_featured?"feature this podcast":"remove featured placement");
  if(!confirm("Are you sure you want to "+description+"?"))return;
+ const update={...patch,updated_at:new Date().toISOString()};
+ if(patch.status==="published"&&!p.published_at)update.published_at=new Date().toISOString();
  try{
-  const {data,error}=await client.from("podcasts").update(patch).eq("id",id).select("id,status,is_featured").maybeSingle();
+  const {data,error}=await client.from("podcasts").update(update).eq("id",id).select("id,status,is_featured,published_at,updated_at").maybeSingle();
   if(error)throw error;if(!data)throw new Error("No row was updated. Supabase RLS may block this action or the record is no longer available.");
   Object.assign(p,data);renderPodcasts();showToast("Podcast moderation saved successfully.",true);
  }catch(e){showToast("Podcast update failed: "+(e.message||String(e)),false)}
@@ -220,7 +222,7 @@ async function bulkModerate(action){
  const label={published:"publish",draft:"unpublish to draft",archived:"archive"}[action];
  if(!confirm("Apply "+label+" to "+ids.length+" selected podcast(s)?"))return;
  ["bulkPublish","bulkDraft","bulkArchive"].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=true});
- const results=await Promise.all(ids.map(async id=>{try{const {data,error}=await client.from("podcasts").update({status:action}).eq("id",id).select("id,status").maybeSingle();if(error)throw error;if(!data)throw new Error("Blocked by RLS or record missing");const p=podcasts.find(p=>String(p.id)===String(id));if(p)p.status=data.status;return {id,ok:true}}catch(e){return {id,ok:false,error:e.message||String(e)}}}));
+ const results=await Promise.all(ids.map(async id=>{try{const p=podcasts.find(p=>String(p.id)===String(id));const now=new Date().toISOString();const patch={status:action,updated_at:now};if(action==="published"&&p&&!p.published_at)patch.published_at=now;const {data,error}=await client.from("podcasts").update(patch).eq("id",id).select("id,status,published_at,updated_at").maybeSingle();if(error)throw error;if(!data)throw new Error("No row was updated. Administrator RLS may block this action or the record is missing.");if(p)Object.assign(p,data);return {id,ok:true}}catch(e){return {id,ok:false,error:e.message||String(e)}}}));
  ["bulkPublish","bulkDraft","bulkArchive"].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=false});
  const ok=results.filter(x=>x.ok).length,failed=results.filter(x=>!x.ok);
  renderPodcasts();showToast(ok+" podcast(s) updated"+(failed.length?"; "+failed.length+" failed (permissions or missing records).":"."),!failed.length);
@@ -231,14 +233,29 @@ function downloadCsv(filename,rows){if(!rows.length){showToast("There are no row
 function exportPodcastCsv(){downloadCsv("crowrules-podcasts-"+new Date().toISOString().slice(0,10)+".csv",[["id","title","slug","creator_id","creator_name","creator_email","category","status","featured","live","listeners","total_plays","created_at","updated_at"],...visiblePodcasts().map(p=>[p.id,p.title,p.slug,p.creator_id,p.author_name,p.author_email,p.category,p.status,p.is_featured,p.is_live,p.listener_count,p.total_plays,p.created_at,p.updated_at])])}
 function exportReportCsv(){downloadCsv("crowrules-moderation-reports-"+new Date().toISOString().slice(0,10)+".csv",[["id","reporter_user_id","reported_user_id","reason","status","admin_notes","created_at","resolved_at"],...reports.map(r=>[r.id,r.reporter_user_id,r.reported_user_id,r.reason,r.status,r.admin_notes,r.created_at,r.resolved_at])])}
 function showPodcastDetails(id){const p=podcasts.find(x=>String(x.id)===String(id));if(!p)return;const details=[["Podcast ID",p.id],["Title",p.title],["Slug",p.slug],["Creator ID",p.creator_id],["Creator name",p.author_name],["Creator email",p.author_email],["Category",p.category],["Status",p.status],["Featured",p.is_featured],["Live",p.is_live],["Explicit content",p.explicit_content],["Production status",p.production_status],["Listeners",p.listener_count],["Recorded plays",p.total_plays],["Created",date(p.created_at)],["Updated",date(p.updated_at)]];const overlay=document.createElement("div");overlay.style.cssText="position:fixed;inset:0;background:#000c;z-index:20;display:grid;place-items:center;padding:18px";overlay.innerHTML='<div class="panel" role="dialog" aria-modal="true" aria-label="Podcast details" style="width:min(680px,100%);max-height:85vh;overflow:auto;box-shadow:0 20px 80px #000"><div class="section-head"><h2 style="margin:0">PODCAST DETAILS</h2><button class="btn" data-close-details>CLOSE</button></div><div class="table-wrap"><table class="table" style="min-width:0">'+details.map(([k,v])=>'<tr><th style="width:180px">'+esc(k)+'</th><td style="overflow-wrap:anywhere">'+esc(v==null?"—":typeof v==="object"?JSON.stringify(v):String(v))+'</td></tr>').join("")+'</table></div><p class="muted small">Details reflect fields returned by the current admin query. Sensitive creator information should only be visible to authorized staff.</p></div>';overlay.addEventListener("click",e=>{if(e.target===overlay||e.target.closest("[data-close-details]"))overlay.remove()});document.body.appendChild(overlay);overlay.querySelector("[data-close-details]").focus()}
-document.getElementById("selectVisible")?.addEventListener("click",()=>{document.querySelectorAll(".podcast-select").forEach(x=>x.checked=true);const all=document.getElementById("selectAllPodcasts");if(all)all.checked=true});
-document.getElementById("selectAllPodcasts")?.addEventListener("change",e=>document.querySelectorAll(".podcast-select").forEach(x=>x.checked=e.target.checked));
-document.getElementById("bulkPublish")?.addEventListener("click",()=>bulkModerate("published"));
-document.getElementById("bulkDraft")?.addEventListener("click",()=>bulkModerate("draft"));
-document.getElementById("bulkArchive")?.addEventListener("click",()=>bulkModerate("archived"));
-document.getElementById("exportPodcasts")?.addEventListener("click",exportPodcastCsv);
-document.getElementById("exportReports")?.addEventListener("click",exportReportCsv);
- document.getElementById("exportDonations")?.addEventListener("click",exportDonationCsv);
+// These controls are rendered dynamically inside #app, so use delegated
+// handlers instead of binding before the admin dashboard has rendered.
+app.addEventListener("click",e=>{
+ const button=e.target.closest("button");
+ if(!button||!app.contains(button))return;
+ switch(button.id){
+  case "selectVisible":
+   document.querySelectorAll(".podcast-select").forEach(x=>x.checked=true);
+   {const all=document.getElementById("selectAllPodcasts");if(all)all.checked=true;}
+   break;
+  case "bulkPublish": bulkModerate("published"); break;
+  case "bulkDraft": bulkModerate("draft"); break;
+  case "bulkArchive": bulkModerate("archived"); break;
+  case "exportPodcasts": exportPodcastCsv(); break;
+  case "exportReports": exportReportCsv(); break;
+  case "exportDonations": exportDonationCsv(); break;
+ }
+});
+app.addEventListener("change",e=>{
+ if(e.target.id==="selectAllPodcasts"&&e.target instanceof HTMLInputElement){
+  document.querySelectorAll(".podcast-select").forEach(x=>x.checked=e.target.checked);
+ }
+});
 
 function renderOnline(){
  if(!presence)return;
