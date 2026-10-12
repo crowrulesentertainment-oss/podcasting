@@ -670,8 +670,9 @@ boot();
 const C=window.CROW_CONFIG||{},L=window.supabase,$=id=>document.getElementById(id);
 const fmt=n=>Math.max(0,Number(n)||0).toLocaleString();
 const safe=v=>String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
-const text=(id,v)=>{const el=$(id);if(el)el.textContent=v};
-let db=null,busy=false,historyIds=[];const catalogCoverage={showsComplete:false,episodesComplete:false};
+let discoveryRealtimeState="CONNECTING";
+const text=(id,v)=>{const el=$(id);if(!el)return;el.textContent=id==="homeDynamicStatus"?v+" · "+(discoveryRealtimeState==="SUBSCRIBED"?"REALTIME LIVE":(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(discoveryRealtimeState)?"REALTIME RECONNECTING · FALLBACK ACTIVE":"REALTIME CONNECTING")):v};
+let db=null,busy=false,loadQueued=false,discoveryRefreshTimer=null,historyIds=[];const catalogCoverage={showsComplete:false,episodesComplete:false};
 function empty(id,msg){const el=$(id);if(el)el.innerHTML='<div class="home-dynamic-empty">'+safe(msg)+'</div>'}
 function showHref(id){return "listener/show.html?id="+encodeURIComponent(id)}
 function card({title,description,art,meta,href,number}) {
@@ -753,7 +754,7 @@ async function loadHistory(user){
  }catch(_){}
 }
 async function load(){
- if(busy)return;busy=true;
+ if(busy){loadQueued=true;return}busy=true;
  const button=$("homeDynamicRefresh");if(button){button.disabled=true;button.textContent="REFRESHING…"}
  text("homeDynamicStatus","Reading catalog, canonical plays and listening sessions…");
  try{
@@ -837,10 +838,27 @@ async function load(){
   text("homeDynamicStatus","DISCOVERY UNAVAILABLE · "+(e?.message||"Could not connect to the database."));
   empty("homeFeaturedShows","The published catalog could not be reached.");empty("homeNewEpisodes","The published episode catalog could not be reached.");empty("homeRecommendedShows","Recommendations are unavailable until the database connection works.");
   ["homeStatShows","homeStatEpisodes","homeStatPlays","homeStatHours","homeStatCompleted","homeStatReconcile"].forEach(id=>text(id,"—"));
- }finally{busy=false;if(button){button.disabled=false;button.textContent="REFRESH DISCOVERY ↻"}}
+ }finally{busy=false;if(button){button.disabled=false;button.textContent="REFRESH DISCOVERY ↻"}if(loadQueued){loadQueued=false;setTimeout(load,0)}}
+function scheduleDiscoveryRefresh(){
+ if(document.hidden)return;
+ if(discoveryRefreshTimer)clearTimeout(discoveryRefreshTimer);
+ discoveryRefreshTimer=setTimeout(()=>{discoveryRefreshTimer=null;load()},500);
 }
 $("homeDynamicRefresh")?.addEventListener("click",load);
 load();
+if(L?.createClient&&C.supabaseUrl&&C.supabaseKey){
+ try{
+  if(!db)db=L.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  const discoveryChannel=db.channel("podcasting-home-discovery-live")
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},scheduleDiscoveryRefresh)
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},scheduleDiscoveryRefresh)
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_play_events"},scheduleDiscoveryRefresh)
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_listens"},scheduleDiscoveryRefresh)
+   .subscribe(status=>{discoveryRealtimeState=status;if(status==="SUBSCRIBED")scheduleDiscoveryRefresh();else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(status))text("homeDynamicStatus","Realtime connection interrupted; the 60-second fallback remains active")});
+  window.addEventListener("pagehide",()=>{if(discoveryRefreshTimer)clearTimeout(discoveryRefreshTimer);db?.removeChannel(discoveryChannel)});
+ }catch(error){discoveryRealtimeState="CHANNEL_ERROR";text("homeDynamicStatus","Realtime setup failed; the 60-second fallback remains active")}
+}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)scheduleDiscoveryRefresh()});
 setInterval(()=>{if(!document.hidden)load()},60000);
 })();
 </script>
