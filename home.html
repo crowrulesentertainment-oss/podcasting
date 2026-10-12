@@ -14,7 +14,7 @@
 :root{--home-glow:rgba(103,232,249,.24)}
 body{overflow-x:hidden}html{scroll-behavior:smooth}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:4px}.home-top{position:relative}.home-top:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(103,232,249,.25),rgba(167,139,250,.25),transparent)}.home-quick{margin:0 0 28px;padding:17px;border:1px solid rgba(103,232,249,.16);border-radius:18px;background:linear-gradient(110deg,rgba(8,17,30,.82),rgba(16,12,32,.72));display:grid;grid-template-columns:minmax(190px,.8fr) minmax(0,2fr);gap:18px;align-items:center}.home-quick h2{font:800 12px Orbitron;margin:0 0 6px;letter-spacing:.1em}.home-quick p{margin:0;color:var(--muted);font-size:11px;line-height:1.6}.home-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.home-tool{display:flex;min-height:74px;flex-direction:column;justify-content:center;gap:7px;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(5,9,18,.65);color:#e6f4ff;transition:transform .2s,border-color .2s}.home-tool:hover{transform:translateY(-2px);border-color:rgba(103,232,249,.5)}.home-tool b{font:800 10px Orbitron;letter-spacing:.04em}.home-tool small{color:var(--muted);font-size:10px;line-height:1.4}.home-search{display:flex;gap:8px;margin-top:12px}.home-search input{min-width:0;width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#070d17;color:#fff;font:500 12px Montserrat}.home-search button{border:1px solid rgba(103,232,249,.35);border-radius:10px;padding:0 14px;background:rgba(103,232,249,.1);color:#dffcff;font:800 10px Orbitron;cursor:pointer}.home-note{font-size:11px;color:#7f91a9;line-height:1.7}.home-auth-status{flex-wrap:wrap}.experience-access-message{display:none;margin:0 0 18px;padding:16px 18px;border:1px solid rgba(251,191,36,.32);border-radius:14px;background:rgba(120,72,8,.12);color:#fef3c7;font-size:12px;line-height:1.7}.experience-access-message[data-visible="true"]{display:block}.experience-access-message a{color:#a5f3fc;font-weight:800;text-decoration:underline}.experience-access-message .access-actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
 .home-liveboard{margin:12px 0 28px;padding:20px;border:1px solid rgba(103,232,249,.18);border-radius:20px;background:linear-gradient(120deg,rgba(8,16,29,.94),rgba(15,11,30,.88));box-shadow:0 20px 60px rgba(0,0,0,.2)}
-.home-liveboard-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.home-liveboard-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}.home-live-clock{display:flex;flex-direction:column;gap:3px;min-width:150px;padding:10px 13px;border:1px solid rgba(103,232,249,.22);border-radius:12px;background:rgba(3,10,20,.72)}.home-live-clock-label{font:700 8px Orbitron;letter-spacing:.12em;color:#67e8f9}.home-live-clock strong{font:800 22px Orbitron;letter-spacing:.06em;color:#f0fdff;font-variant-numeric:tabular-nums}.home-live-clock small{font-size:10px;color:var(--muted)}
 .home-liveboard-head h2{font:800 16px Orbitron;margin:0 0 6px}
 .home-liveboard-head p{font-size:11px;color:var(--muted);margin:0}
 .home-liveboard-meta{font:700 9px Orbitron;letter-spacing:.08em;color:#8da1ba}
@@ -189,7 +189,7 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 
   <main>
     <section class="home-liveboard" id="homeLiveboard" aria-labelledby="homeLiveboardTitle">
-      <div class="home-liveboard-head"><div><h2 id="homeLiveboardTitle">LIVE PODCASTING PULSE</h2><p>Live Supabase database snapshot · refreshes every 30 seconds and on database changes.</p></div><div class="home-liveboard-meta" id="homeDataUpdated" aria-live="polite">CONNECTING TO SUPABASE…</div></div>
+      <div class="home-liveboard-head"><div><h2 id="homeLiveboardTitle">LIVE PODCASTING PULSE</h2><p>Live Supabase database snapshot · updates automatically from Supabase Realtime, with a 15-second backup refresh. Live clock updates every second.</p></div><div class="home-live-clock" aria-label="Current Pacific time"><span class="home-live-clock-label">PACIFIC TIME · LIVE</span><strong id="homeLiveClock">--:--:--</strong><small id="homeLiveDate">Syncing local time…</small></div><div class="home-liveboard-meta" id="homeDataUpdated" aria-live="polite">CONNECTING TO SUPABASE…</div></div>
       <div class="home-live-stats">
         <div class="home-live-stat"><small>ACTIVE LISTENER VIEWERS</small><strong id="homeActiveListeners">—</strong><em id="homeActiveListenersCaption">Waiting for live presence</em></div>
         <div class="home-live-stat"><small>ACTIVE CREATOR VIEWERS</small><strong id="homeActiveCreators">—</strong><em id="homeActiveCreatorsCaption">Waiting for live presence</em></div>
@@ -464,6 +464,17 @@ async function checkAuth(){
   authPanel.title=e?.message||"Supabase could not check the current session.";
  }
 }
+
+// A real-time Pacific clock, independent of database refreshes.
+const liveClockEl=document.getElementById("homeLiveClock");
+const liveDateEl=document.getElementById("homeLiveDate");
+const pacificClockFormatter=new Intl.DateTimeFormat("en-US",{timeZone:"America/Los_Angeles",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:true});
+const pacificDateFormatter=new Intl.DateTimeFormat("en-US",{timeZone:"America/Los_Angeles",weekday:"short",month:"short",day:"numeric",year:"numeric"});
+function updateHomeClock(){const now=new Date();if(liveClockEl)liveClockEl.textContent=pacificClockFormatter.format(now);if(liveDateEl)liveDateEl.textContent=pacificDateFormatter.format(now)}
+updateHomeClock();
+const homeClockTimer=setInterval(updateHomeClock,1000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)updateHomeClock()});
+window.addEventListener("pagehide",()=>clearInterval(homeClockTimer),{once:true});
 
 // Real database snapshot: no demo values are shown as live metrics.
 const pulseIds={liveList:document.getElementById("homeLiveList"),trendingList:document.getElementById("homeTrendingList"),updated:document.getElementById("homeDataUpdated"),note:document.getElementById("homeDataNote"),refresh:document.getElementById("homeRefreshData")};
