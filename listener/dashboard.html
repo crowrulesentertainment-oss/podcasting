@@ -31,7 +31,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 40px;color:#64748b;font-s
 </head>
 <body>
 <nav><div class="wrap navin">
-<a class="brand" href="index.html"><img id="logo" src="../images/podcastinglogo.png" alt="CrowRules Podcasting"><span>CROWRULES / PODCASTING</span></a>
+<a class="brand" href="index.html"><img id="logo" src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png" alt="CrowRules Podcasting"><span>CROWRULES / PODCASTING</span></a>
 <div class="links"><a href="index.html">LISTEN</a><a class="active" href="dashboard.html">MY LISTENING</a><a href="rankings.html">RANKINGS</a><a href="profile.html">PROFILE</a><a href="../launch.html">LAUNCH 2027</a></div>
 <a id="account" class="account" href="../login.html">SIGN IN</a>
 </div></nav>
@@ -44,7 +44,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 40px;color:#64748b;font-s
 <p>Pick up where you left off, keep your favorite shows close, track your listening journey, and stay connected to the CrowRules Podcasting community — all from one listener dashboard.</p>
 <div class="actions"><a class="btn primary" href="index.html">DISCOVER PODCASTS</a><a class="btn" href="rankings.html">VIEW RANKINGS</a></div>
 </div>
-<div class="panel" id="identityPanel"><div class="identity"><img class="avatar" id="avatar" src="../images/podcastinglogo.png" alt=""><div><strong id="welcome">Listener mode</strong><small id="email">Checking your account…</small></div></div><div class="statgrid" data-accurate-metrics="podcast_listens,podcast_follows,podcast_comments,podcast_episode_comments"><div class="stat"><b id="minutes">0</b><span>MINUTES</span></div><div class="stat"><b id="follows">0</b><span>FOLLOWS</span></div><div class="stat"><b id="comments">0</b><span>COMMENTS</span></div></div><div class="notice" style="margin-top:14px"><span class="dot"></span><span id="status">Connecting to your listening universe…</span></div></div>
+<div class="panel" id="identityPanel"><div class="identity"><img class="avatar" id="avatar" src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png" alt=""><div><strong id="welcome">Listener mode</strong><small id="email">Checking your account…</small></div></div><div class="statgrid" data-accurate-metrics="podcast_listens,podcast_follows,podcast_comments,podcast_episode_comments"><div class="stat"><b id="minutes">0</b><span>MINUTES</span></div><div class="stat"><b id="follows">0</b><span>FOLLOWS</span></div><div class="stat"><b id="comments">0</b><span>COMMENTS</span></div></div><div class="notice" style="margin-top:14px"><span class="dot"></span><span id="status">Connecting to your listening universe…</span></div></div>
 </section>
 
 <section class="section"><div class="sectionhead"><h2>Continue Listening</h2><a href="index.html">DISCOVER MORE →</a></div><div id="history" class="list"><div class="empty">Loading your listening history…</div></div></section>
@@ -68,7 +68,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 40px;color:#64748b;font-s
 <script>
 const C=window.CROW_CONFIG||{}; const S=(window.supabase&&C.supabaseUrl&&C.supabaseKey)?supabase.createClient(C.supabaseUrl,C.supabaseKey):null;
 const $=s=>document.querySelector(s); const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-const logo=()=>C.logoUrl||"../images/podcastinglogo.png";
+const logo=()=>C.logoUrl||"https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png";
 $("#logo").src=logo(); $("#avatar").src=logo();
 
 function setMetric(id,value){const el=$("#"+id);if(el)el.textContent=value}
