@@ -519,9 +519,28 @@ window.addEventListener("crowrules:online",event=>{
 function safeText(value){return String(value??"").replace(/[&<>"\']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","\'":"&#39;"}[ch]))}
 const numberFmt=value=>Math.max(0,Number(value)||0).toLocaleString();
 function dataEmpty(message){return '<div class="home-data-empty">'+safeText(message)+'</div>'}
-function renderLive(rows){
- if(!rows.length){pulseIds.liveList.innerHTML=dataEmpty("No active public live sessions are currently recorded.");return}
- pulseIds.liveList.innerHTML=rows.slice(0,4).map(row=>'<div class="home-data-item"><div class="home-data-item-main"><b>'+safeText(row.title||"Live podcast session")+'</b><small>'+safeText(row.status||"Active")+(row.started_at?" · Started "+new Date(row.started_at).toLocaleString():"")+'</small></div><span class="home-data-badge">● LIVE</span></div>').join("");
+function formatLiveTime(value, timezone){
+ if(!value)return "Time to be announced";
+ const date=new Date(value);
+ if(Number.isNaN(date.getTime()))return "Time to be announced";
+ try{return new Intl.DateTimeFormat("en-US",{timeZone:timezone||"America/Los_Angeles",weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit",timeZoneName:"short"}).format(date)}catch(_){return date.toLocaleString()}
+}
+function renderLive(rows,upcomingRows){
+ const active=(rows||[]).slice(0,4);
+ const upcoming=(upcomingRows||[]).filter(row=>row.starts_at&&new Date(row.starts_at).getTime()>Date.now()).slice(0,5);
+ const parts=[];
+ if(active.length){
+  parts.push(active.map(row=>'<div class="home-data-item"><div class="home-data-item-main"><b>'+safeText(row.title||"Live podcast session")+'</b><small>'+safeText(row.status||"Active")+(row.started_at?" · Started "+formatLiveTime(row.started_at):"")+'</small></div><span class="home-data-badge">● LIVE</span></div>').join(""));
+ }
+ if(upcoming.length){
+  parts.push('<div style="margin:14px 0 8px;font:800 10px Orbitron;letter-spacing:.1em;color:#a5f3fc">UPCOMING LIVE SHOWS</div>');
+  parts.push(upcoming.map(row=>'<div class="home-data-item"><div class="home-data-item-main"><b>'+safeText(row.title||"Scheduled live show")+'</b><small>'+safeText(formatLiveTime(row.starts_at,row.timezone))+(row.ends_at?" – "+safeText(new Intl.DateTimeFormat("en-US",{timeZone:row.timezone||"America/Los_Angeles",hour:"numeric",minute:"2-digit",timeZoneName:"short"}).format(new Date(row.ends_at))):"")+(row.recurrence?" · "+safeText(row.recurrence):"")+'</small></div><span class="home-data-badge" style="color:#a5f3fc">UPCOMING</span></div>').join(""));
+ }
+ if(!parts.length){
+  pulseIds.liveList.innerHTML=dataEmpty("No live broadcast is active and no upcoming live shows are scheduled yet.");
+  return;
+ }
+ pulseIds.liveList.innerHTML=parts.join("");
 }
 function renderTrending(rows){
  if(!rows.length){pulseIds.trendingList.innerHTML=dataEmpty("No published shows are available to rank yet.");return}
@@ -542,12 +561,16 @@ async function loadHomePulse(){
  try{
   const outcomes=await Promise.allSettled([
    S.from("podcast_live_sessions").select("id,title,status,visibility,started_at,podcast_id").eq("status","live").eq("visibility","public").order("started_at",{ascending:false}).limit(8),
+   S.from("podcast_schedule").select("id,title,starts_at,ends_at,timezone,recurrence,status,podcast_id").neq("status","cancelled").gte("starts_at",new Date().toISOString()).order("starts_at",{ascending:true}).limit(5),
    S.from("podcasts").select("id,title,category,artwork_url,total_plays,listener_count,status,is_live").eq("status","published").order("total_plays",{ascending:false}).limit(5)
   ]);
   const liveResult=outcomes[0].status==="fulfilled"?outcomes[0].value:{error:outcomes[0].reason};
-  const showResult=outcomes[1].status==="fulfilled"?outcomes[1].value:{error:outcomes[1].reason};
-  const errors=[liveResult.error,showResult.error].filter(Boolean);
-  if(!liveResult.error)renderLive(liveResult.data||[]);else pulseIds.liveList.innerHTML=dataEmpty("Live sessions could not be queried. Verify podcast_live_sessions columns, SELECT policies, and Supabase permissions.");
+  const scheduleResult=outcomes[1].status==="fulfilled"?outcomes[1].value:{error:outcomes[1].reason};
+  const showResult=outcomes[2].status==="fulfilled"?outcomes[2].value:{error:outcomes[2].reason};
+  const errors=[liveResult.error,scheduleResult.error,showResult.error].filter(Boolean);
+  if(!liveResult.error&&!scheduleResult.error)renderLive(liveResult.data||[],scheduleResult.data||[]);
+  else if(liveResult.error&&!scheduleResult.error)renderLive([],scheduleResult.data||[]);
+  else pulseIds.liveList.innerHTML=dataEmpty("Live and upcoming sessions could not be loaded. Check the live-session and podcast-schedule SELECT permissions.");
   if(!showResult.error)renderTrending(showResult.data||[]);else pulseIds.trendingList.innerHTML=dataEmpty("Trending shows could not be queried. Verify the podcasts table and its SELECT policy.");
   // Keep the Pacific live clock as the only clock in LIVE PODCASTING PULSE.
   // Connection status stays text-only and does not append another timestamp.
