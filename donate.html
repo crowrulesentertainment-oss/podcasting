@@ -42,8 +42,9 @@ main{width:min(920px,calc(100% - 32px));margin:clamp(38px,8vh,90px) auto;flex:1}
 <input id="custom-amount" type="number" min="1" max="1000000" step="0.01" inputmode="decimal" placeholder="Enter amount, e.g. 15.00">
 <label for="donor-name">Name (optional)</label>
 <input id="donor-name" type="text" maxlength="200" autocomplete="name" placeholder="Your name">
-<label for="donor-email">Email for your receipt (optional)</label>
+<label for="donor-email">Email for your receipt <span id="email-requirement">(optional for one-time gifts)</span></label>
 <input id="donor-email" type="email" maxlength="320" autocomplete="email" placeholder="you@example.com">
+<p class="note" id="recurring-email-note" hidden>Email is required for monthly or yearly donations so Stripe can send receipts and manage your recurring support.</p>
 <div class="status" id="status" role="status" aria-live="polite" hidden></div>
 <button class="donate" id="donate-button" type="button">CONTINUE TO SECURE STRIPE CHECKOUT</button>
 <p class="note">Your payment details are entered on Stripe, not on this website. Recurring donations repeat until cancelled.</p>
@@ -61,7 +62,23 @@ main{width:min(920px,calc(100% - 32px));margin:clamp(38px,8vh,90px) auto;flex:1}
   const status = document.getElementById('status');
   let selectedAmount = 5;
   let donationFrequency = "one_time";
-  document.querySelectorAll("[data-frequency]").forEach(button => button.addEventListener("click", () => { donationFrequency = button.dataset.frequency; document.querySelectorAll("[data-frequency]").forEach(b => b.setAttribute("aria-pressed", String(b === button))); status.hidden = true; }));
+  const donorEmail = document.getElementById("donor-email");
+  const emailRequirement = document.getElementById("email-requirement");
+  const recurringEmailNote = document.getElementById("recurring-email-note");
+  function updateFrequencyUI() {
+    const recurring = donationFrequency !== "one_time";
+    donorEmail.required = recurring;
+    emailRequirement.textContent = recurring ? "(required for recurring support)" : "(optional for one-time gifts)";
+    recurringEmailNote.hidden = !recurring;
+    donate.textContent = recurring ? "CONTINUE TO RECURRING STRIPE CHECKOUT" : "CONTINUE TO SECURE STRIPE CHECKOUT";
+  }
+  document.querySelectorAll("[data-frequency]").forEach(button => button.addEventListener("click", () => {
+    donationFrequency = button.dataset.frequency;
+    document.querySelectorAll("[data-frequency]").forEach(b => b.setAttribute("aria-pressed", String(b === button)));
+    updateFrequencyUI();
+    status.hidden = true;
+  }));
+  updateFrequencyUI();
   const setStatus = (message, error = false) => {
     status.textContent = message;
     status.hidden = false;
@@ -79,6 +96,16 @@ main{width:min(920px,calc(100% - 32px));margin:clamp(38px,8vh,90px) auto;flex:1}
   });
   donate.addEventListener('click', async () => {
     const raw = custom.value.trim();
+    if (donationFrequency !== "one_time" && !donorEmail.value.trim()) {
+      donorEmail.focus();
+      setStatus("Please enter your email address for monthly or yearly donations.", true);
+      return;
+    }
+    if (donorEmail.value.trim() && !donorEmail.checkValidity()) {
+      donorEmail.focus();
+      setStatus("Please enter a valid email address for your receipt.", true);
+      return;
+    }
     const amount = raw ? Number(raw) : selectedAmount;
     if (!Number.isFinite(amount) || amount < 1 || amount > 1000000 || Math.round(amount * 100) !== amount * 100) {
       setStatus('Enter a valid donation amount between $1.00 and $1,000,000.00, with no more than two decimal places.', true);
