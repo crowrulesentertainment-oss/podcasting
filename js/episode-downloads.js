@@ -9,10 +9,13 @@ const style=document.createElement("style");style.textContent=".episode-download
 const files=new Map(),counts=new Map();
 async function loadCounts(){
  try{
-  const {data,error}=await db.from("podcast_episode_download_events").select("episode_id").eq("podcast_id",showId);
+  const {data,error}=await db.rpc("get_podcast_episode_download_counts",{p_podcast_id:showId});
   if(error)throw error;
-  counts.clear();(data||[]).forEach(x=>counts.set(String(x.episode_id),(counts.get(String(x.episode_id))||0)+1));
-  document.querySelectorAll("[data-download-count]").forEach(el=>{el.textContent=(counts.get(el.dataset.downloadCount)||0).toLocaleString()+" downloads"});
+  counts.clear();
+  (data||[]).forEach(x=>counts.set(String(x.episode_id),Number(x.download_count)||0));
+  document.querySelectorAll("[data-download-count]").forEach(el=>{
+   el.textContent=(counts.get(el.dataset.downloadCount)||0).toLocaleString()+" downloads";
+  });
  }catch(e){console.warn("[CrowRules downloads] Download totals unavailable",e.message)}
 }
 function addButtons(){
@@ -56,7 +59,7 @@ async function logDownload(ep){
   const {error}=await db.from("podcast_episode_download_events").insert({episode_id:ep.id,podcast_id:ep.podcast_id||showId,user_id:currentUser?.id||null,source:"listener_show"});
   if(error)throw error;
   counts.set(String(ep.id),(counts.get(String(ep.id))||0)+1);
-  const counter=document.querySelector('[data-download-count="'+CSS.escape(String(ep.id))+'"]');
+  const counter=Array.from(document.querySelectorAll("[data-download-count]")).find(el=>el.dataset.downloadCount===String(ep.id));
   if(counter)counter.textContent=counts.get(String(ep.id)).toLocaleString()+" downloads";
  }catch(e){console.warn("[CrowRules downloads] Could not record download request",e.message)}
 }
