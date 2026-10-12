@@ -168,6 +168,13 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 @media(max-width:480px){.home-dynamic-grid{grid-template-columns:1fr 1fr;gap:8px}.home-dynamic-copy{padding:9px}.home-dynamic-copy h4{font-size:10px}.home-stat-strip{grid-template-columns:1fr 1fr}.home-dynamic{padding:13px}.home-reconcile-row{grid-template-columns:minmax(0,1fr) auto}.home-reconcile-row small{grid-column:1/-1}}
 @media(prefers-reduced-motion:reduce){.home-dynamic-card{transition:none}.home-dynamic-card:hover{transform:none}}
 
+
+/* CrowRules updates / Kit profile CTA */
+.home-kit-invite{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:24px;margin:26px 0;padding:clamp(20px,3vw,32px);overflow:hidden;border:1px solid rgba(167,139,250,.3);border-radius:20px;background:radial-gradient(ellipse at 0 0,rgba(103,232,249,.11),transparent 48%),linear-gradient(120deg,rgba(8,15,27,.96),rgba(22,12,39,.94))}
+.home-kit-invite:after{content:"";position:absolute;width:220px;height:220px;right:10%;top:-150px;border-radius:50%;background:rgba(167,139,250,.12);filter:blur(20px);pointer-events:none}
+.home-kit-copy{position:relative;z-index:1}.home-kit-copy h2{font:800 clamp(17px,2.4vw,24px) Orbitron;margin:8px 0 10px;color:#f3f7ff}.home-kit-copy p{max-width:720px;margin:0;color:var(--muted);font-size:12px;line-height:1.8}.home-kit-actions{position:relative;z-index:1;display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:205px}.home-kit-button{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:13px 16px;border:1px solid rgba(103,232,249,.42);border-radius:11px;background:linear-gradient(110deg,rgba(103,232,249,.16),rgba(167,139,250,.18));color:#ecfeff;font:800 10px Orbitron;letter-spacing:.04em;text-align:center;transition:transform .2s,border-color .2s}.home-kit-button:hover{transform:translateY(-2px);border-color:rgba(103,232,249,.8)}.home-kit-note{font-size:9px;line-height:1.5;color:#8797ad;text-align:center}
+@media(max-width:650px){.home-kit-invite{grid-template-columns:1fr;gap:18px}.home-kit-actions{min-width:0}.home-kit-note{text-align:left}}
+
 </style>
 
 <link rel="stylesheet" href="css/sitewide-refinements.css">
@@ -258,6 +265,18 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
       <section class="home-dynamic-section" aria-labelledby="homeNewTitle"><div class="home-dynamic-title"><h3 id="homeNewTitle">◷ NEW EPISODES</h3><a href="listener/index.html#discover">ALL EPISODES →</a></div><div class="home-dynamic-grid" id="homeNewEpisodes"><div class="home-dynamic-empty">Loading recently published episodes…</div></div></section>
       <section class="home-dynamic-section" aria-labelledby="homeRecommendedTitle"><div class="home-dynamic-title"><h3 id="homeRecommendedTitle">✧ PICKED FOR YOU</h3><a href="listener/profile.html">YOUR LISTENER PROFILE →</a></div><div class="home-dynamic-grid" id="homeRecommendedShows"><div class="home-dynamic-empty">Checking whether listening history is available…</div></div></section>
       <p class="home-dynamic-foot" id="homeDynamicStatus" role="status" aria-live="polite">Waiting for database connection. Counts only display when the corresponding Supabase query succeeds.</p>
+    </section>
+
+    <section class="home-kit-invite" aria-labelledby="homeKitTitle">
+      <div class="home-kit-copy">
+        <div class="home-kicker">STAY CONNECTED WITH CROWRULES</div>
+        <h2 id="homeKitTitle">THE NEXT CHAPTER STARTS WITH YOU.</h2>
+        <p>Follow CrowRules beyond the listening experience. Visit our official profile for updates, announcements, and ways to stay connected as CrowRules Podcasting works toward its January 1, 2027 launch.</p>
+      </div>
+      <div class="home-kit-actions">
+        <a class="home-kit-button" href="https://crowrules-entertainment.kit.com/profile" target="_blank" rel="noopener noreferrer">VISIT THE CROWRULES PROFILE ↗</a>
+        <span class="home-kit-note">Opens the official CrowRules profile in a new tab.</span>
+      </div>
     </section>
 
     <section id="experiences" class="home-choice" aria-label="Choose your experience">
