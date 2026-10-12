@@ -1,7 +1,7 @@
 /* CrowRules Podcasting — sitewide reliability and accessibility helpers */
 (()=>{'use strict';
  if(window.CrowSitewide&&window.CrowSitewide.loaded)return;
- const api={loaded:true,version:'2026.10.11-donate-integration'};
+ const api={loaded:true,version:'2026.10.12-sitewide-reliability'};
  const announce=(message,kind='info')=>{
   let node=document.getElementById('crow-sitewide-live');
   if(!node){node=document.createElement('div');node.id='crow-sitewide-live';node.setAttribute('role','status');node.setAttribute('aria-live','polite');node.style.cssText='position:fixed;left:16px;bottom:16px;z-index:99999;max-width:min(420px,calc(100vw - 32px));padding:12px 16px;border:1px solid rgba(103,232,249,.35);border-radius:12px;background:#08111f;color:#eafaff;box-shadow:0 12px 36px #0008;font:500 13px/1.5 Montserrat,Arial,sans-serif;display:none';document.body.appendChild(node)}
@@ -80,11 +80,11 @@
    if(!window.supabase||typeof window.supabase.createClient!=='function')
     await load('https://unpkg.com/@supabase/supabase-js@2');
    if(!window.CROW_CONFIG?.supabaseUrl||!window.CROW_CONFIG?.supabaseKey||!window.CROW_CONFIG?.logoUrl)
-    await load(new URL('config.js?crowrules-config=20261011',root).href);
+    await load(new URL('config.js?crowrules-config=20261012',root).href);
    repairBrandLogos();
    window.dispatchEvent(new Event('crowrules:config-ready'));
    if(!window.CrowPoints?.__loaded)
-    await load(new URL('js/crowpoints.js?crowrules-sitewide=20261011-rewards-menu',root).href);
+    await load(new URL('js/crowpoints.js?crowrules-sitewide=20261012-reliability',root).href);
    // Keep admin and donation checkout/confirmation pages focused: no floating audio player.
    const isFocusedFlowPage = new RegExp('(^|/)(admin|donate|donation-success|donation-cancel)\\.html$', 'i').test(window.location.pathname);
    // Keep checkout and operations flows uncluttered; they have dedicated primary actions.
@@ -92,9 +92,9 @@
     document.getElementById('cr-global-audio')?.remove();
     document.getElementById('cr-global-audio-style')?.remove();
    }else if(!window.__CROW_GLOBAL_AUDIO__){
-    await load(new URL('js/global-audio-player.js?crowrules-sitewide=20261011-rewards-menu',root).href);
+    await load(new URL('js/global-audio-player.js?crowrules-sitewide=20261012-reliability',root).href);
    }
-  }catch(error){console.error('[CrowRules sitewide] Shared rewards/audio setup failed:',error?.message||error);announce('CrowPoints could not initialize. Refresh the page and try again.','error')}
+  }catch(error){console.error('[CrowRules sitewide] Shared rewards/audio setup failed:',error?.message||error);announce('Shared player and rewards tools could not initialize. Refresh the page and try again.','error')}
  }
 
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
