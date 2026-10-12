@@ -188,7 +188,16 @@ user=auth.data.user;
 const r=await Promise.all([S.from('members').select('*').eq('user_id',user.id).maybeSingle(),S.from('podcast_member_profiles').select('*').eq('user_id',user.id).maybeSingle()]);
 if(r[0].error)throw new Error('Could not load your member record: '+r[0].error.message);if(r[1].error)throw new Error('Could not load profile settings: '+r[1].error.message);member=r[0].data;profile=r[1].data||{user_id:user.id};
 if(!member){showGate('MEMBER PROFILE NOT FOUND','Your login is active, but a CrowRules member record was not found. Open your account page or contact support.',[{label:'OPEN ACCOUNT',href:'../account.html',primary:true},{label:'RETURN HOME',href:'../home.html'}]);return;}
-const role=String(member.role||'').toLowerCase();if(role!=='listener'&&role!=='creator'){showGate('PODCASTING PROFILE UNAVAILABLE','This account does not currently have a Listener or Creator role.',[{label:'OPEN ACCOUNT',href:'../account.html',primary:true},{label:'RETURN HOME',href:'../home.html'}]);return;}
+// Creator access is also represented by a row in public.creators linked through members.id.
+// Do not reject a real creator just because members.role is blank or out of sync.
+let creatorRecord=null;
+if(member.id){
+  const creatorLookup=await S.from('creators').select('id,member_id').eq('member_id',member.id).maybeSingle();
+  if(!creatorLookup.error) creatorRecord=creatorLookup.data;
+}
+const role=String(member.role||'').trim().toLowerCase();
+if(role!=='listener'&&role!=='creator'&&!creatorRecord){showGate('PODCASTING PROFILE UNAVAILABLE','We could not confirm a Listener role or a linked Creator profile for this account. If you recently became a creator, refresh your account and try again.',[{label:'OPEN ACCOUNT',href:'../account.html',primary:true},{label:'REFRESH PROFILE',href:'profile.html'},{label:'RETURN HOME',href:'../home.html'}]);return;}
+if(creatorRecord) member.role='creator';
 fillForm();hideGate();await Promise.allSettled([loadCrowPoints(),loadCounts(),loadIdentities(),loadActivity(),loadFeed(),loadNetwork(true),loadAchievementBadges()]);setupSocialRealtime();
 }
 function networkName(p){return p.display_name||p.username||'CrowRules Member';}
