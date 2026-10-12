@@ -525,21 +525,19 @@ function formatLiveTime(value, timezone){
  if(Number.isNaN(date.getTime()))return "Time to be announced";
  try{return new Intl.DateTimeFormat("en-US",{timeZone:timezone||"America/Los_Angeles",weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit",timeZoneName:"short"}).format(date)}catch(_){return date.toLocaleString()}
 }
-function renderLive(rows,upcomingRows){
- const active=(rows||[]).slice(0,4);
- const upcoming=(upcomingRows||[]).filter(row=>row.starts_at&&new Date(row.starts_at).getTime()>Date.now()).slice(0,5);
+function renderLive(episodes){
+ const now=Date.now();
+ const active=(episodes||[]).filter(row=>String(row.status||"").toLowerCase()==="live"||(!row.scheduled_at&&String(row.status||"").toLowerCase()==="recording")).slice(0,4);
+ const upcoming=(episodes||[]).filter(row=>row.scheduled_at&&new Date(row.scheduled_at).getTime()>now&&["scheduled","upcoming","live"].includes(String(row.status||"").toLowerCase())).sort((x,y)=>new Date(x.scheduled_at)-new Date(y.scheduled_at)).slice(0,5);
+ const episodeLink=row=>"listener/show.html?id="+encodeURIComponent(row.id);
+ const card=(row,isUpcoming)=>'<div class="home-data-item"><div class="home-data-item-main"><b><a href="'+episodeLink(row)+'" style="color:inherit;text-decoration:none">'+safeText(row.title||"Live show episode")+'</a></b><small>'+safeText(isUpcoming?formatLiveTime(row.scheduled_at):row.started_at?"Started "+formatLiveTime(row.started_at):"Live episode")+'</small></div><a class="home-data-badge" href="'+episodeLink(row)+'" style="'+(isUpcoming?'color:#a5f3fc;text-decoration:none':'text-decoration:none')+'">'+(isUpcoming?"UPCOMING":"● LIVE")+'</a></div>';
  const parts=[];
- if(active.length){
-  parts.push(active.map(row=>'<div class="home-data-item"><div class="home-data-item-main"><b>'+safeText(row.title||"Live podcast session")+'</b><small>'+safeText(row.status||"Active")+(row.started_at?" · Started "+formatLiveTime(row.started_at):"")+'</small></div><span class="home-data-badge">● LIVE</span></div>').join(""));
- }
+ if(active.length)parts.push(active.map(row=>card(row,false)).join(""));
  if(upcoming.length){
   parts.push('<div style="margin:14px 0 8px;font:800 10px Orbitron;letter-spacing:.1em;color:#a5f3fc">UPCOMING LIVE SHOWS</div>');
-  parts.push(upcoming.map(row=>'<div class="home-data-item"><div class="home-data-item-main"><b>'+safeText(row.title||"Scheduled live show")+'</b><small>'+safeText(formatLiveTime(row.starts_at,row.timezone))+(row.ends_at?" – "+safeText(new Intl.DateTimeFormat("en-US",{timeZone:row.timezone||"America/Los_Angeles",hour:"numeric",minute:"2-digit",timeZoneName:"short"}).format(new Date(row.ends_at))):"")+(row.recurrence?" · "+safeText(row.recurrence):"")+'</small></div><span class="home-data-badge" style="color:#a5f3fc">UPCOMING</span></div>').join(""));
+  parts.push(upcoming.map(row=>card(row,true)).join(""));
  }
- if(!parts.length){
-  pulseIds.liveList.innerHTML=dataEmpty("No live broadcast is active and no upcoming live shows are scheduled yet.");
-  return;
- }
+ if(!parts.length){pulseIds.liveList.innerHTML=dataEmpty("No live or upcoming show episodes are currently scheduled.");return}
  pulseIds.liveList.innerHTML=parts.join("");
 }
 function renderTrending(rows){
@@ -560,22 +558,19 @@ async function loadHomePulse(){
  pulseIds.updated.textContent=pulseRealtimeState==="SUBSCRIBED"?"REALTIME CONNECTED · SYNCING…":"SYNCING LIVE DATA…";
  try{
   const outcomes=await Promise.allSettled([
-   S.from("podcast_live_sessions").select("id,title,status,visibility,started_at,podcast_id").eq("status","live").eq("visibility","public").order("started_at",{ascending:false}).limit(8),
-   S.from("podcast_schedule").select("id,title,starts_at,ends_at,timezone,recurrence,status,podcast_id").neq("status","cancelled").gte("starts_at",new Date().toISOString()).order("starts_at",{ascending:true}).limit(5),
+   S.from("podcast_episodes").select("id,title,status,scheduled_at,published_at,podcast_id,video_url,thumbnail_url").eq("is_active",true).in("status",["live","recording","scheduled","upcoming"]).order("scheduled_at",{ascending:true,nullsFirst:false}).limit(40),
    S.from("podcasts").select("id,title,category,artwork_url,total_plays,listener_count,status,is_live").eq("status","published").order("total_plays",{ascending:false}).limit(5)
   ]);
-  const liveResult=outcomes[0].status==="fulfilled"?outcomes[0].value:{error:outcomes[0].reason};
-  const scheduleResult=outcomes[1].status==="fulfilled"?outcomes[1].value:{error:outcomes[1].reason};
-  const showResult=outcomes[2].status==="fulfilled"?outcomes[2].value:{error:outcomes[2].reason};
-  const errors=[liveResult.error,scheduleResult.error,showResult.error].filter(Boolean);
-  if(!liveResult.error&&!scheduleResult.error)renderLive(liveResult.data||[],scheduleResult.data||[]);
-  else if(liveResult.error&&!scheduleResult.error)renderLive([],scheduleResult.data||[]);
-  else pulseIds.liveList.innerHTML=dataEmpty("Live and upcoming sessions could not be loaded. Check the live-session and podcast-schedule SELECT permissions.");
+  const episodeResult=outcomes[0].status==="fulfilled"?outcomes[0].value:{error:outcomes[0].reason};
+  const showResult=outcomes[1].status==="fulfilled"?outcomes[1].value:{error:outcomes[1].reason};
+  const errors=[episodeResult.error,showResult.error].filter(Boolean);
+  if(!episodeResult.error)renderLive(episodeResult.data||[]);
+  else pulseIds.liveList.innerHTML=dataEmpty("Show episodes could not be loaded. Verify podcast_episodes SELECT permissions.");
   if(!showResult.error)renderTrending(showResult.data||[]);else pulseIds.trendingList.innerHTML=dataEmpty("Trending shows could not be queried. Verify the podcasts table and its SELECT policy.");
   // Keep the Pacific live clock as the only clock in LIVE PODCASTING PULSE.
   // Connection status stays text-only and does not append another timestamp.
   pulseIds.updated.textContent=errors.length?"PARTIAL DATA":pulseRealtimeState==="SUBSCRIBED"?"REALTIME LIVE":"LIVE DATA · POLLING FALLBACK";
-  if(errors.length){pulseIds.note.textContent="Some live panels failed to load. Realtime updates require Supabase Realtime replication for podcasts and podcast_live_sessions; polling is the fallback.";pulseIds.note.classList.add("home-data-error")}
+  if(errors.length){pulseIds.note.textContent="Some live panels failed to load. Realtime updates require Supabase Realtime replication for podcast_episodes and podcasts; polling is the fallback.";pulseIds.note.classList.add("home-data-error")}
   else{pulseIds.note.textContent="Database-backed live sessions and trending shows. "+(pulseRealtimeState==="SUBSCRIBED"?"Realtime database changes are connected; a 15-second refresh also checks for missed events.":"Realtime is not connected yet; data refreshes every 15 seconds while this page is visible.")+" Visitor counts represent active browser sessions, not guaranteed unique people.";pulseIds.note.classList.remove("home-data-error")}
  }catch(error){pulseIds.updated.textContent="LIVE DATA ERROR";pulseIds.note.textContent="Could not refresh live data: "+(error?.message||"unknown error");pulseIds.note.classList.add("home-data-error")}
  finally{
@@ -606,8 +601,7 @@ async function boot(){
   // Row changes refresh the live panels immediately; polling is only a safety fallback.
   const dataChannel=S.channel("podcasting-home-db-live")
    .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},()=>requestHomePulseRefresh())
-   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_sessions"},()=>requestHomePulseRefresh())
-   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_channels"},()=>requestHomePulseRefresh())
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},()=>requestHomePulseRefresh())
    .subscribe(status=>{pulseRealtimeState=status;if(status==="SUBSCRIBED"){loadHomePulse()}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){pulseIds.updated.textContent="REALTIME RECONNECTING · POLLING ACTIVE"}});
   window.addEventListener("pagehide",()=>{try{S.removeChannel(dataChannel)}catch(_){}},{once:true});
  }catch(e){unavailable("AUTH SERVICE UNAVAILABLE");authPanel.title=e?.message||"Could not initialize Supabase authentication."}
