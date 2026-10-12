@@ -839,6 +839,7 @@ async function load(){
   empty("homeFeaturedShows","The published catalog could not be reached.");empty("homeNewEpisodes","The published episode catalog could not be reached.");empty("homeRecommendedShows","Recommendations are unavailable until the database connection works.");
   ["homeStatShows","homeStatEpisodes","homeStatPlays","homeStatHours","homeStatCompleted","homeStatReconcile"].forEach(id=>text(id,"—"));
  }finally{busy=false;if(button){button.disabled=false;button.textContent="REFRESH DISCOVERY ↻"}if(loadQueued){loadQueued=false;setTimeout(load,0)}}
+}
 function scheduleDiscoveryRefresh(){
  if(document.hidden)return;
  if(discoveryRefreshTimer)clearTimeout(discoveryRefreshTimer);
