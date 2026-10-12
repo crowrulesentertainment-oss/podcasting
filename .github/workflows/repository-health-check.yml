@@ -1,0 +1,31 @@
+name: Repository Health Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-health-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript, inline scripts, local assets, JSON, and public config
+        run: node tests/repository-health-check.mjs
+      - name: Validate LiveKit service package metadata
+        run: node -e "const p=require('./livekit-token-service/package.json'); if(!p.scripts?.start || !p.dependencies?.express || !p.dependencies?.['livekit-server-sdk']) process.exit(1); console.log('LiveKit service package metadata is valid.')"
