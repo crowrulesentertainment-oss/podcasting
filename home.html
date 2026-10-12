@@ -530,7 +530,8 @@ function renderLive(episodes){
  const active=(episodes||[]).filter(row=>String(row.status||"").toLowerCase()==="live"||(!row.scheduled_at&&String(row.status||"").toLowerCase()==="recording")).slice(0,4);
  const upcoming=(episodes||[]).filter(row=>row.scheduled_at&&new Date(row.scheduled_at).getTime()>now&&["scheduled","upcoming","live"].includes(String(row.status||"").toLowerCase())).sort((x,y)=>new Date(x.scheduled_at)-new Date(y.scheduled_at)).slice(0,5);
  const episodeLink=row=>"listener/show.html?id="+encodeURIComponent(row.id);
- const card=(row,isUpcoming)=>'<div class="home-data-item"><div class="home-data-item-main"><b><a href="'+episodeLink(row)+'" style="color:inherit;text-decoration:none">'+safeText(row.title||"Live show episode")+'</a></b><small>'+safeText(isUpcoming?formatLiveTime(row.scheduled_at):row.started_at?"Started "+formatLiveTime(row.started_at):"Live episode")+'</small></div><a class="home-data-badge" href="'+episodeLink(row)+'" style="'+(isUpcoming?'color:#a5f3fc;text-decoration:none':'text-decoration:none')+'">'+(isUpcoming?"UPCOMING":"● LIVE")+'</a></div>';
+ const showLink=row=>"listener/show.html?id="+encodeURIComponent(row.podcast_id||row.id);
+ const card=(row,isUpcoming)=>'<div class="home-data-item"><div class="home-data-item-main"><b><a href="'+showLink(row)+'" style="color:inherit;text-decoration:none">'+safeText(row.title||"Live show episode")+'</a></b><small>'+safeText(isUpcoming?formatLiveTime(row.scheduled_at):row.started_at?"Started "+formatLiveTime(row.started_at):"Live episode")+'</small></div><a class="home-data-badge" href="'+episodeLink(row)+'" style="'+(isUpcoming?'color:#a5f3fc;text-decoration:none':'text-decoration:none')+'">'+(isUpcoming?"UPCOMING":"● LIVE")+'</a></div>';
  const parts=[];
  if(active.length)parts.push(active.map(row=>card(row,false)).join(""));
  if(upcoming.length){
