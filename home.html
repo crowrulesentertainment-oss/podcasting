@@ -744,11 +744,11 @@ async function publishedShows(){
 async function publishedEpisodes(){
  // Optional episode columns vary by schema. Fall back to a wildcard query ordered by id.
  const r=await readAllRows("podcast_episodes",[
-  {cols:"id,podcast_id,title,description,artwork_url,total_plays,play_count,published_at,created_at,status",status:true,order:"published_at"},
-  {cols:"id,podcast_id,title,description,artwork_url,total_plays,play_count,created_at,status",status:true,order:"created_at"},
-  {cols:"id,podcast_id,title,description,artwork_url,total_plays,created_at",order:"created_at"},
-  {cols:"id,podcast_id,title,description,artwork_url,play_count,created_at",order:"created_at"},
-  {cols:"id,podcast_id,title,artwork_url,created_at",order:"created_at"},
+  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,total_plays,play_count,published_at,created_at,status,is_published",status:true,order:"published_at"},
+  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,total_plays,play_count,created_at,status,is_published",status:true,order:"created_at"},
+  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,total_plays,created_at",order:"created_at"},
+  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,play_count,created_at",order:"created_at"},
+  {cols:"id,podcast_id,title,thumbnail_url,artwork_url,cover_image_url,created_at",order:"created_at"},
   {cols:"*",order:"id"}
  ]);
  catalogCoverage.episodesComplete=r.complete;
@@ -785,9 +785,9 @@ async function load(){
   if(showsResult.status==="fulfilled"){try{const n=await exactCount("podcasts",[["eq","status","published"]]);text("homeStatShows",fmt(n));text("homeStatShowsNote","Exact published-show row count")}catch(_){text("homeStatShows",fmt(shows.length));text("homeStatShowsNote","Loaded rows only; exact count unavailable")}}else{text("homeStatShows","—");text("homeStatShowsNote","Catalog query unavailable")}
   if(episodesResult.status==="fulfilled"){try{const n=await exactCount("podcast_episodes",[["eq","status","published"]]);text("homeStatEpisodes",fmt(n));text("homeStatEpisodesNote","Exact published-episode row count")}catch(_){text("homeStatEpisodes",fmt(episodes.length));text("homeStatEpisodesNote","Loaded rows only; exact count unavailable")}}else{text("homeStatEpisodes","—");text("homeStatEpisodesNote","Episode query unavailable")}
   const showMap=new Map(shows.map(x=>[String(x.id),x]));
-  if(showsResult.status==="fulfilled")renderShows("homeFeaturedShows",shows.slice().sort((a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0)).slice(0,4),"No published shows found yet.");
+  if(showsResult.status==="fulfilled")renderShows("homeFeaturedShows",shows.slice().sort((a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0)),"No published shows found yet.");
   else empty("homeFeaturedShows","Published shows could not be loaded. Verify the podcasts table columns and public SELECT policy.");
-  if(episodesResult.status==="fulfilled")renderEpisodes(episodes.slice(0,12),showMap);
+  if(episodesResult.status==="fulfilled")renderEpisodes(episodes,showMap);
   else empty("homeNewEpisodes","Episodes could not be loaded. Verify podcast_episodes publication fields and public SELECT policy.");
   let user=null;try{const auth=await db.auth.getSession();user=auth.data?.session?.user||null}catch(_){}
   await loadHistory(user);
