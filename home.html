@@ -525,8 +525,9 @@ async function loadHomePulse(){
   const errors=[liveResult.error,showResult.error].filter(Boolean);
   if(!liveResult.error)renderLive(liveResult.data||[]);else pulseIds.liveList.innerHTML=dataEmpty("Live sessions could not be queried. Verify podcast_live_sessions columns, SELECT policies, and Supabase permissions.");
   if(!showResult.error)renderTrending(showResult.data||[]);else pulseIds.trendingList.innerHTML=dataEmpty("Trending shows could not be queried. Verify the podcasts table and its SELECT policy.");
-  const stamp=new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit",second:"2-digit"});
-  pulseIds.updated.textContent=(errors.length?"PARTIAL DATA":pulseRealtimeState==="SUBSCRIBED"?"REALTIME LIVE":"LIVE DATA · POLLING FALLBACK")+" · "+stamp;
+  // Keep the Pacific live clock as the only clock in LIVE PODCASTING PULSE.
+  // Connection status stays text-only and does not append another timestamp.
+  pulseIds.updated.textContent=errors.length?"PARTIAL DATA":pulseRealtimeState==="SUBSCRIBED"?"REALTIME LIVE":"LIVE DATA · POLLING FALLBACK";
   if(errors.length){pulseIds.note.textContent="Some live panels failed to load. Realtime updates require Supabase Realtime replication for podcasts and podcast_live_sessions; polling is the fallback.";pulseIds.note.classList.add("home-data-error")}
   else{pulseIds.note.textContent="Database-backed live sessions and trending shows. "+(pulseRealtimeState==="SUBSCRIBED"?"Realtime database changes are connected; a 15-second refresh also checks for missed events.":"Realtime is not connected yet; data refreshes every 15 seconds while this page is visible.")+" Visitor counts represent active browser sessions, not guaranteed unique people.";pulseIds.note.classList.remove("home-data-error")}
  }catch(error){pulseIds.updated.textContent="LIVE DATA ERROR";pulseIds.note.textContent="Could not refresh live data: "+(error?.message||"unknown error");pulseIds.note.classList.add("home-data-error")}
