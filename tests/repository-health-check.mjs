@@ -53,7 +53,7 @@ try {
     const attr = /\b(?:href|src|poster)\s*=\s*(["'])(.*?)\1/gi;
     while ((match = attr.exec(html))) {
       let value = match[2].trim();
-      if (!value || /^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(value) || /[{}<>]/.test(value)) continue;
+      if (!value || /^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(value) || /[{}<>]/.test(value) || value.includes("+")) continue;
       value = value.split("#")[0].split("?")[0];
       if (!value) continue;
       try { value = decodeURIComponent(value); } catch {}
