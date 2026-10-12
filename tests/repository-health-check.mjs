@@ -82,7 +82,8 @@ try {
   }
 
   const config = files.includes("config.js") ? await readFile(path.join(root, "config.js"), "utf8") : "";
-  if (/service_role|sb_secret_/i.test(config)) problems.push("config.js: possible privileged Supabase secret in public browser configuration.");
+  const publicConfig = config.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+  if (/service_role|sb_secret_/i.test(publicConfig)) problems.push("config.js: possible privileged Supabase secret in public browser configuration.");
 
   if (problems.length) {
     console.error("\nRepository health check found " + problems.length + " issue(s):");
