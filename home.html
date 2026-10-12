@@ -763,11 +763,11 @@ async function publishedShows(){
 async function publishedEpisodes(){
  // Optional episode columns vary by schema. Fall back to a wildcard query ordered by id.
  const r=await readAllRows("podcast_episodes",[
-  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,video_url,total_plays,play_count,published_at,created_at,status,is_published",status:true,order:"published_at"},
-  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,video_url,total_plays,play_count,created_at,status,is_published",status:true,order:"created_at"},
-  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,video_url,total_plays,created_at",order:"created_at"},
-  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,cover_image_url,video_url,play_count,created_at",order:"created_at"},
-  {cols:"id,podcast_id,title,thumbnail_url,artwork_url,cover_image_url,video_url,created_at",order:"created_at"},
+  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,video_url,total_plays,play_count,published_at,created_at,status,is_published",status:true,order:"published_at"},
+  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,video_url,total_plays,play_count,created_at,status,is_published",status:true,order:"created_at"},
+  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,video_url,total_plays,created_at",order:"created_at"},
+  {cols:"id,podcast_id,title,description,thumbnail_url,artwork_url,video_url,play_count,created_at",order:"created_at"},
+  {cols:"id,podcast_id,title,thumbnail_url,artwork_url,video_url,created_at",order:"created_at"},
   {cols:"*",order:"id"}
  ]);
  catalogCoverage.episodesComplete=r.complete;
