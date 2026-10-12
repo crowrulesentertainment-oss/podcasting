@@ -6,7 +6,6 @@
 <title>Account Center — CrowRules Podcasting</title>
 <link rel="stylesheet" href="css/podcasting.css">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="config.js"></script>
-<script src="js/crowpoints.js" defer></script>
 <style>
 :root{--bg:#05050a;--panel:rgba(13,15,25,.92);--line:rgba(157,126,255,.25);--cyan:#61e8ff;--purple:#a78bfa;--pink:#ff6fd8;--gold:#ffd36b;--text:#f5f4ff;--muted:#9d9bb0;--ok:#68f5b1;--danger:#ff7b91}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 12% 0%,rgba(97,232,255,.11),transparent 31%),radial-gradient(circle at 90% 9%,rgba(167,139,250,.15),transparent 34%),linear-gradient(180deg,#07070d,#040409);color:var(--text);font:13px Montserrat,system-ui,sans-serif;min-height:100vh}
@@ -33,14 +32,14 @@ a{color:inherit}.wrap{width:min(1180px,94vw);margin:28px auto 80px}.top{display:
 <section id="member" class="hidden">
 <div class="stats">
 <div class="stat"><small>MEMBERSHIP</small><strong id="membership">—</strong><em id="membershipNote">MEMBER RECORD</em></div>
-<div class="stat"><small>CROWPOINTS</small><strong id="points">—</strong><em>LIFETIME BALANCE</em></div>
+<div class="stat"><small>LIFETIME CROWPOINTS</small><strong id="points">—</strong><em>ALL-TIME VERIFIED POINTS</em></div><div class="stat"><small>MONTHLY CROWPOINTS</small><strong id="monthlyPoints">—</strong><em id="monthlyPointsNote">CURRENT MONTH</em></div>
 <div class="stat"><small>CREATOR PROFILE</small><strong id="creator">—</strong><em id="creatorNote">PROFILE STATUS</em></div>
 <div class="stat"><small>YOUR EPISODES</small><strong id="episodes">—</strong><em id="episodeNote">CREATOR CATALOG</em></div>
 <div class="stat"><small>RECORDED PLAYS</small><strong id="plays">—</strong><em id="playsNote">PLAY EVENT SOURCE</em></div>
 <div class="stat"><small>LISTENING HOURS</small><strong id="hours">—</strong><em id="hoursNote">RECORDED DURATION</em></div>
 <div class="stat"><small>COMPLETED LISTENS</small><strong id="completed">—</strong><em id="completedNote">EXPLICIT COMPLETIONS</em></div>
 <div class="stat"><small>SUBSCRIPTIONS</small><strong id="subscriptions">—</strong><em id="subscriptionsNote">SUBSCRIBER RECORDS</em></div>
-</div><div id="analyticsNotice" class="notice" role="status" aria-live="polite">Account analytics have not loaded yet.</div><div class="layout"><div class="stack">
+</div><div id="analyticsNotice" class="notice" role="status" aria-live="polite">Account analytics have not loaded yet.</div><section class="panel" style="margin-top:14px"><div class="section-kicker">REWARDS LEDGER</div><h2>Your CrowPoints activity</h2><p class="muted">Recent verified point transactions from your account ledger. Balances are read from the canonical CrowPoints summary function.</p><div id="pointsActivity" class="rows"><div class="row"><span>Activity</span><b>Loading rewards ledger…</b></div></div><div class="actions"><button class="btn" id="refreshPoints" type="button">REFRESH CROWPOINTS</button><a class="btn" href="listener/challenges.html">CHALLENGES & ACHIEVEMENTS ↗</a></div></section><div class="layout"><div class="stack">
 <section class="panel"><div class="eyebrow">ACCOUNT IDENTITY</div><div class="identity"><div id="avatar" class="avatar" aria-hidden="true">CR</div><div><h3 id="name">CrowRules Member</h3><p id="email">—</p><span id="authBadge" class="badge">SESSION ACTIVE</span></div></div><div class="actions"><a class="btn primary" href="listener/profile.html">LISTENER PROFILE</a><a class="btn" href="listener/index.html">BROWSE PODCASTS</a><button class="btn danger" id="logout" type="button">SIGN OUT</button></div></section>
 <section class="panel"><div class="section-kicker">PROFILE SETTINGS</div><h2>Make this account yours</h2><p class="muted">Update the display name attached to your Supabase sign-in. Your email address remains managed by your authentication provider.</p><form id="profileForm"><div class="field"><label for="displayName">DISPLAY NAME</label><input id="displayName" name="displayName" maxlength="80" autocomplete="name" placeholder="Your display name" required></div><div class="actions"><button class="btn primary" id="saveProfile" type="submit">SAVE PROFILE</button><button class="btn" id="resetProfile" type="button">RESET FORM</button></div></form><div id="profileMessage" class="notice hidden" role="status" aria-live="polite"></div></section>
 <section class="panel"><div class="section-kicker">ACCOUNT DETAILS</div><h2>Your account information</h2><div class="rows"><div class="row"><span>Email address</span><b id="detailEmail">—</b></div><div class="row"><span>Display name</span><b id="detailName">—</b></div><div class="row"><span>Member since</span><b id="since">—</b></div><div class="row"><span>Sign-in provider</span><b id="provider">—</b></div><div class="row"><span>Account ID</span><b id="uid">—</b></div></div><div class="actions"><button class="btn" id="copyId" type="button">COPY ACCOUNT ID</button></div><p class="fine">Your account ID is a reference for support. Never share your password or authentication tokens.</p></section>
@@ -56,6 +55,9 @@ const $=id=>document.getElementById(id),cfg=window.CROW_CONFIG||{};
 const url=cfg.supabaseUrl||cfg.supabaseURL||"https://cevylpnoexugwgygvtgu.supabase.co";
 const key=cfg.supabaseKey||cfg.supabaseAnonKey||cfg.publishableKey;
 let S=null,authSubscription=null,currentUser=null,loadToken=0;
+const fmtPoints=v=>Number(v||0).toLocaleString();
+function escapeText(v){return String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c]));}
+async function loadCrowPoints(user){const box=$('pointsActivity');$('points').textContent='…';$('monthlyPoints').textContent='…';box.textContent='Loading rewards ledger…';try{const {data,error}=await S.rpc('get_my_crowpoints_summary');if(error)throw error;const row=Array.isArray(data)?data[0]:data;if(!row)throw new Error('No CrowPoints summary returned.');$('points').textContent=fmtPoints(row.lifetime_points);$('monthlyPoints').textContent=fmtPoints(row.monthly_points);$('monthlyPointsNote').textContent='EARNED THIS MONTH';const {data:ledger,error:ledgerError}=await S.from('crowrules_crowpoints_ledger').select('id,points,reason,source,created_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(10);if(ledgerError)throw ledgerError;if(!ledger?.length){box.innerHTML='<div class="notice">No CrowPoints transactions yet. Eligible verified activity will appear here.</div>';return}box.innerHTML=ledger.map(r=>'<div class="row"><div><b style="display:block;text-align:left;max-width:none">'+escapeText(r.reason||r.source||'CrowPoints transaction')+'</b><span>'+escapeText(r.created_at?new Date(r.created_at).toLocaleString():'Date unavailable')+(r.source?' · '+escapeText(r.source):'')+'</span></div><b style="color:'+(Number(r.points)<0?'var(--danger)':'var(--ok)')+'">'+(Number(r.points)>0?'+':'')+fmtPoints(r.points)+'</b></div>').join('')}catch(e){$('points').textContent='—';$('monthlyPoints').textContent='—';$('monthlyPointsNote').textContent='NOT AVAILABLE';box.textContent='CrowPoints could not be loaded: '+(e.message||'Please try again.')}}
 const rawRedirect=new URLSearchParams(location.search).get('redirect')||new URLSearchParams(location.search).get('returnTo');
 function safeRedirect(value){if(!value)return 'account.html';try{const u=new URL(value,location.href);if(u.origin!==location.origin||u.username||u.password)return 'account.html';return u.pathname+u.search+u.hash}catch{return 'account.html'}}
 const redirect=safeRedirect(rawRedirect),redirectQuery='?redirect='+encodeURIComponent(redirect);
@@ -72,6 +74,7 @@ function rowSeconds(r){for(const k of ['seconds_listened','listening_duration_se
 function fmtCount(n){return Number(n||0).toLocaleString()}
 async function loadUser(user,noticeText){if(!user){signedOut();return}currentUser=user;const token=++loadToken;signedInShell(user);
 const meta=user.user_metadata||{},display=meta.display_name||meta.full_name||meta.name||'CrowRules Member';
+loadCrowPoints(user);
 $('name').textContent=display;$('email').textContent=user.email||'Email unavailable';$('detailEmail').textContent=user.email||'—';$('detailName').textContent=display;$('displayName').value=display==='CrowRules Member'?'':display;$('since').textContent=fmt(user.created_at);$('provider').textContent=String(user.app_metadata?.provider||user.identities?.[0]?.provider||'email').toUpperCase();$('uid').textContent=user.id;$('avatar').textContent=initials(display);$('authBadge').textContent='SESSION ACTIVE';
 if(noticeText)message('securityMessage',noticeText,'error');
 $('analyticsNotice').textContent='Syncing account analytics from Podcasting event and listening-session tables…';
@@ -85,8 +88,7 @@ if(token!==loadToken||currentUser?.id!==user.id)return;
 const creator=creatorResult.data;
 const level=member?.membership_level||member?.membership_type||member?.plan_name||member?.membership||null;
 $('membership').textContent=memberResult.error?'—':String(level||'Free').toUpperCase();$('membershipNote').textContent=memberResult.error?'MEMBER QUERY UNAVAILABLE':(member?.status?String(member.status).toUpperCase():(member?'MEMBER RECORD':'DEFAULT ACCOUNT'));
-const pts=member?.points??member?.crowpoints_lifetime??member?.lifetime_crowpoints??member?.crowpoints??member?.crow_points??member?.lifetime_points;
-$('points').textContent=memberResult.error?'—':(pts==null?'—':fmtCount(pts));
+// CrowPoints balances are sourced from get_my_crowpoints_summary.
 $('creator').textContent=creator?'YES':'NO';$('creatorNote').textContent=creator?'CREATOR RECORD FOUND':(creatorResult.error?'CREATOR QUERY UNAVAILABLE':'NO CREATOR RECORD');
 const allEpisodes=episodesResult.data,allPodcasts=podcastsResult.data;
 const ownedPodcastIds=creator&&allPodcasts?new Set(allPodcasts.filter(p=>String(p.creator_id)===String(creator.id)).map(p=>String(p.id))):null;
@@ -116,7 +118,7 @@ async function refreshAccount(){if(!S)return;$('session').textContent='CHECKING'
 try{const {data,error}=await S.auth.getSession();if(error)throw error;const session=data?.session;if(!session){signedOut();return}const verified=await S.auth.getUser();if(verified.error){await loadUser(session.user,'Identity verification is temporarily unavailable. Your existing session was found; retry refresh shortly.');$('auth').textContent='CHECK INCOMPLETE';return}if(verified.data?.user)await loadUser(verified.data.user);else signedOut()}
 catch(e){$('session').textContent='CHECK FAILED';$('auth').textContent='UNAVAILABLE';message('guestMessage','Could not check sign-in status. Check your connection and try again.','error')}
 finally{$('refresh').disabled=false}}
-$('guestRefresh').addEventListener('click',refreshAccount);$('refresh').addEventListener('click',refreshAccount);
+$('guestRefresh').addEventListener('click',refreshAccount);$('refresh').addEventListener('click',refreshAccount);$('refreshPoints').addEventListener('click',()=>{if(currentUser)loadCrowPoints(currentUser)});
 $('profileForm').addEventListener('submit',async e=>{e.preventDefault();if(!S||!currentUser)return;const name=$('displayName').value.trim();if(!name){message('profileMessage','Enter a display name before saving.','error');return}const btn=$('saveProfile');btn.disabled=true;btn.textContent='SAVING…';try{const {data,error}=await S.auth.updateUser({data:{...(currentUser.user_metadata||{}),display_name:name}});if(error)throw error;if(data?.user)await loadUser(data.user);message('profileMessage','Your display name was updated.','ok')}catch(err){message('profileMessage','Could not update profile: '+(err.message||'Please try again.'),'error')}finally{btn.disabled=false;btn.textContent='SAVE PROFILE'}});
 $('resetProfile').addEventListener('click',()=>{$('displayName').value=currentUser?.user_metadata?.display_name||currentUser?.user_metadata?.full_name||currentUser?.user_metadata?.name||'';$('profileMessage').classList.add('hidden')});
 $('resetPassword').addEventListener('click',async()=>{if(!S||!currentUser?.email){message('securityMessage','Sign in with an email address to request a password reset.','error');return}const btn=$('resetPassword');btn.disabled=true;try{const {error}=await S.auth.resetPasswordForEmail(currentUser.email,{redirectTo:new URL('login.html',location.href).href});if(error)throw error;message('securityMessage','If password reset is available for this account, a reset link has been sent to '+currentUser.email+'. Check your inbox and spam folder.','ok')}catch(e){message('securityMessage','Could not request a password reset: '+(e.message||'Please try again.'),'error')}finally{btn.disabled=false}});
@@ -128,5 +130,5 @@ catch(e){$('session').textContent='UNAVAILABLE';$('auth').textContent='UNAVAILAB
 window.addEventListener('pagehide',()=>authSubscription?.unsubscribe());boot();
 })();
 </script>
-<script src="js/crowpoints.js" defer></script><script src="js/online-presence.js"></script><script src="js/global-audio-player.js"></script>
+<script src="js/online-presence.js"></script><script src="js/global-audio-player.js"></script>
 </body></html>
