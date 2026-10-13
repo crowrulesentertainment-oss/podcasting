@@ -146,16 +146,15 @@ a{text-decoration:none;color:inherit}
     <div class="section-head">
       <div><h2>LIVE RIGHT NOW</h2><p>Realtime broadcast activity from the Podcasting network.</p></div>
     </div>
-    <article class="back-deck-feature" aria-label="Back Deck Live episodes">
+    <article class="back-deck-feature" aria-label="Back Deck Live broadcast">
       <div class="back-deck-copy">
-        <div class="live-badge"><i></i> BACK DECK LIVE • EPISODE FEED</div>
+        <div class="live-badge"><i></i> FEATURED BROADCAST</div>
         <h3>BACK DECK LIVE</h3>
-        <p>Latest Back Deck Live episodes from the CrowRules Podcasting catalog. Choose an episode to play it here or open its video source.</p>
-        <div id="backDeckStatus" class="note-state" role="status" aria-live="polite">Loading Back Deck Live episodes…</div>
+        <p>Join CrowRules for Back Deck Live. Watch the broadcast here, or open it directly on YouTube.</p>
+        <a class="lbtn primary" href="https://www.youtube.com/watch?v=Fe9so6aSOcY" target="_blank" rel="noopener noreferrer">WATCH ON YOUTUBE ↗</a>
       </div>
-      <div class="back-deck-video" id="backDeckPlayer"><div class="note-state" style="padding:24px">Finding the latest episode…</div></div>
+      <div class="back-deck-video"><iframe src="https://www.youtube-nocookie.com/embed/Fe9so6aSOcY" title="Back Deck Live — CrowRules" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>
     </article>
-    <div class="grid" id="backDeckEpisodes" aria-live="polite"><div class="panel empty">Loading Back Deck Live episodes…</div></div>
     <div class="live-panel">
       <div class="live-main" id="liveMain">
         <div class="live-badge"><i></i> LIVE NETWORK</div>
@@ -228,35 +227,6 @@ async function loadShows(){
   if(!r.data?.length){box.innerHTML='<div class="panel empty">No published podcasts yet. The listener network will populate here as creators launch their shows.</div>';return}
   box.innerHTML=r.data.map(x=>'<a class="panel show-card" href="show.html?id='+encodeURIComponent(x.id)+'"><img class="show-art" src="'+esc(x.artwork_url||logo)+'" alt=""><h3>'+esc(x.title)+'</h3><p>'+esc(x.description||"Discover this CrowRules podcast.")+'</p><div class="show-meta">'+esc(x.category||"PODCAST")+' • '+Number(x.total_plays||0).toLocaleString()+' PLAYS</div></a>').join("");
 }
-async function loadBackDeckEpisodes(){
-  const list=$("#backDeckEpisodes"), player=$("#backDeckPlayer"), status=$("#backDeckStatus");
-  if(!list||!player||!status)return;
-  const fallbackVideo="https://www.youtube-nocookie.com/embed/Fe9so6aSOcY";
-  if(!S){status.textContent="Episode feed is unavailable until Supabase is connected.";list.innerHTML='<div class="panel empty">Connect to the podcast catalog to load Back Deck Live episodes.</div>';player.innerHTML='<iframe src="'+fallbackVideo+'" title="Back Deck Live — CrowRules" loading="lazy" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>';return;}
-  try{
-    const p=await S.from("podcasts").select("id,title,description,artwork_url").ilike("title","%Back Deck Live%").limit(5);
-    if(p.error)throw p.error;
-    const show=(p.data||[]).find(x=>/back\s*deck\s*live/i.test(x.title||""));
-    if(!show){status.textContent="Back Deck Live has not been published in the podcast catalog yet.";list.innerHTML='<div class="panel empty">No Back Deck Live show was found in the published catalog.</div>';return;}
-    const q=await S.from("podcast_episodes").select("*").eq("podcast_id",show.id).order("created_at",{ascending:false}).limit(12);
-    if(q.error)throw q.error;
-    const episodes=(q.data||[]).filter(e=>!e.status||/publish|live|public/i.test(String(e.status))||e.is_published===true);
-    if(!episodes.length){status.textContent="The Back Deck Live show is connected, but no episodes are available yet.";list.innerHTML='<div class="panel empty">Back Deck Live episodes will appear here when published.</div>';return;}
-    const pick=(e,keys)=>{for(const k of keys){const v=e[k];if(typeof v==="string"&&v.trim())return v.trim();}return "";};
-    const mediaUrl=e=>pick(e,["audio_url","audio_file_url","media_url","episode_url","video_url","youtube_url","external_url","enclosure_url"]);
-    const videoId=url=>{try{const u=new URL(url);if(u.hostname.includes("youtu.be"))return u.pathname.slice(1);if(u.hostname.includes("youtube.com"))return u.searchParams.get("v")||u.pathname.split("/").filter(Boolean).pop();}catch(_){}return "";};
-    function selectEpisode(index){
-      const e=episodes[index], url=mediaUrl(e), title=e.title||e.name||"Back Deck Live episode", vid=videoId(url);
-      if(vid){player.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+esc(vid)+'" title="'+esc(title)+'" loading="lazy" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>';return;}
-      if(url&&/\.(mp3|m4a|aac|ogg|wav|mp4|webm)(\?|$)/i.test(url)){const type=/\.(mp4|webm)(\?|$)/i.test(url)?"video":"audio";player.innerHTML=type==="video"?'<video controls playsinline preload="metadata" style="width:100%;height:100%;background:#000" src="'+esc(url)+'"></video>':'<div style="padding:22px"><strong>'+esc(title)+'</strong><audio controls preload="metadata" style="display:block;width:100%;margin-top:16px" src="'+esc(url)+'"></audio></div>';return;}
-      player.innerHTML='<div class="note-state" style="padding:22px"><strong>'+esc(title)+'</strong><p>This episode does not have a direct playable media URL. Use the episode link to open its source.</p>'+(url?'<a class="lbtn primary" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">OPEN EPISODE ↗</a>':'')+'</div>';
-    }
-    list.innerHTML=episodes.map((e,i)=>'<article class="panel show-card"><div class="show-meta">BACK DECK LIVE • EPISODE '+(i+1)+'</div><h3>'+esc(e.title||e.name||"Untitled episode")+'</h3><p>'+esc(e.description||e.summary||"Listen to the latest Back Deck Live conversation.")+'</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="lbtn primary" type="button" data-back-deck-index="'+i+'">PLAY EPISODE ▶</button>'+(mediaUrl(e)?'<a class="lbtn" href="'+esc(mediaUrl(e))+'" target="_blank" rel="noopener noreferrer">OPEN SOURCE ↗</a>':'')+'</div></article>').join("");
-    list.querySelectorAll("[data-back-deck-index]").forEach(b=>b.addEventListener("click",()=>selectEpisode(Number(b.dataset.backDeckIndex))));
-    status.textContent=episodes.length+" episode"+(episodes.length===1?"":"s")+" loaded from the Back Deck Live catalog.";
-    selectEpisode(0);
-  }catch(err){console.warn("[CrowRules listener] Back Deck Live episodes unavailable",err);status.textContent="Could not load Back Deck Live episodes right now.";list.innerHTML='<div class="panel empty">The Back Deck Live episode feed could not be loaded. Check that the podcast_episodes table and public episode policies are available.</div>';}
-}
 let liveChannel=null;
 async function loadLive(){
   const box=$("#liveMain");
@@ -281,7 +251,7 @@ async function loadLive(){
     liveChannel=S.channel("listener-home-live-sessions").on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_sessions"},()=>loadLive()).subscribe();
   }
 }
-auth();loadShows();loadBackDeckEpisodes();loadLive();
+auth();loadShows();loadLive();
 })();
 </script>
 <script src="../js/live-visitors.js"></script><script src="../js/online-presence.js"></script>
