@@ -175,6 +175,23 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 .home-kit-copy{position:relative;z-index:1}.home-kit-copy h2{font:800 clamp(17px,2.4vw,24px) Orbitron;margin:8px 0 10px;color:#f3f7ff}.home-kit-copy p{max-width:720px;margin:0;color:var(--muted);font-size:12px;line-height:1.8}.home-kit-actions{position:relative;z-index:1;display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:205px}.home-kit-button{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:13px 16px;border:1px solid rgba(103,232,249,.42);border-radius:11px;background:linear-gradient(110deg,rgba(103,232,249,.16),rgba(167,139,250,.18));color:#ecfeff;font:800 10px Orbitron;letter-spacing:.04em;text-align:center;transition:transform .2s,border-color .2s}.home-kit-button:hover{transform:translateY(-2px);border-color:rgba(103,232,249,.8)}.home-kit-note{font-size:9px;line-height:1.5;color:#8797ad;text-align:center}
 @media(max-width:650px){.home-kit-invite{grid-template-columns:1fr;gap:18px}.home-kit-actions{min-width:0}.home-kit-note{text-align:left}}
 
+
+/* Horizontal discovery shelves with accessible scrolling arrows */
+.home-shelf-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+.home-shelf-arrows{display:flex;gap:7px}
+.home-shelf-arrows button{display:grid;place-items:center;width:36px;height:36px;border:1px solid rgba(103,232,249,.34);border-radius:50%;background:linear-gradient(135deg,rgba(103,232,249,.12),rgba(167,139,250,.13));color:#e8fbff;font:700 25px/1 Montserrat;cursor:pointer;transition:transform .18s,border-color .18s,background .18s}
+.home-shelf-arrows button:hover{transform:translateY(-2px);border-color:rgba(103,232,249,.75);background:rgba(103,232,249,.2)}
+.home-shelf-arrows button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+.home-dynamic-grid{display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;padding:3px 2px 14px;scroll-snap-type:x mandatory;scroll-behavior:smooth;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:rgba(103,232,249,.45) rgba(255,255,255,.04)}
+.home-dynamic-grid::-webkit-scrollbar{height:7px}
+.home-dynamic-grid::-webkit-scrollbar-track{background:rgba(255,255,255,.04);border-radius:99px}
+.home-dynamic-grid::-webkit-scrollbar-thumb{background:linear-gradient(90deg,rgba(103,232,249,.65),rgba(167,139,250,.65));border-radius:99px}
+.home-dynamic-card{flex:0 0 clamp(210px,23%,270px);scroll-snap-align:start}
+.home-dynamic-empty{flex:0 0 100%}
+@media(max-width:760px){.home-dynamic-card{flex-basis:clamp(190px,42%,245px)}}
+@media(max-width:480px){.home-dynamic-card{flex-basis:78%}.home-shelf-actions{width:100%;justify-content:space-between}.home-dynamic-title{align-items:center}}
+@media(prefers-reduced-motion:reduce){.home-dynamic-grid{scroll-behavior:auto}.home-shelf-arrows button{transition:none}}
+
 </style>
 
 <link rel="stylesheet" href="css/sitewide-refinements.css?v=20261012">
@@ -261,9 +278,9 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
         <div class="home-stat-tile"><small>COUNTER RECONCILIATION</small><strong id="homeStatReconcile">—</strong><em id="homeStatReconcileNote">Stored counters vs canonical events</em></div>
       </div>
       <div class="home-data-panel home-reconcile-panel"><h3>PLAY-COUNT RECONCILIATION · LIVE READ-ONLY CHECK</h3><div id="homeReconciliation"><div class="home-data-empty">Comparing stored episode and show counters against canonical play events…</div></div></div>
-      <section class="home-dynamic-section" aria-labelledby="homeFeaturedTitle"><div class="home-dynamic-title"><h3 id="homeFeaturedTitle">✦ FEATURED & POPULAR SHOWS</h3><a href="listener/rankings.html">OPEN RANKINGS →</a></div><div class="home-dynamic-grid" id="homeFeaturedShows"><div class="home-dynamic-empty">Connecting to the published podcast catalog…</div></div></section>
-      <section class="home-dynamic-section" aria-labelledby="homeNewTitle"><div class="home-dynamic-title"><h3 id="homeNewTitle">◷ NEW EPISODES</h3><a href="listener/index.html#discover">ALL EPISODES →</a></div><div class="home-dynamic-grid" id="homeNewEpisodes"><div class="home-dynamic-empty">Loading recently published episodes…</div></div></section>
-      <section class="home-dynamic-section" aria-labelledby="homeRecommendedTitle"><div class="home-dynamic-title"><h3 id="homeRecommendedTitle">✧ PICKED FOR YOU</h3><a href="listener/profile.html">YOUR LISTENER PROFILE →</a></div><div class="home-dynamic-grid" id="homeRecommendedShows"><div class="home-dynamic-empty">Checking whether listening history is available…</div></div></section>
+      <section class="home-dynamic-section" aria-labelledby="homeFeaturedTitle"><div class="home-dynamic-title"><h3 id="homeFeaturedTitle">✦ FEATURED & POPULAR SHOWS</h3><div class="home-shelf-actions"><a href="listener/rankings.html">OPEN RANKINGS →</a><div class="home-shelf-arrows" aria-label="Scroll featured shows"><button type="button" data-shelf-scroll="-1" data-shelf-target="homeFeaturedShows" aria-label="Scroll featured shows left">‹</button><button type="button" data-shelf-scroll="1" data-shelf-target="homeFeaturedShows" aria-label="Scroll featured shows right">›</button></div></div></div><div class="home-dynamic-grid" id="homeFeaturedShows"><div class="home-dynamic-empty">Connecting to the published podcast catalog…</div></div></section>
+      <section class="home-dynamic-section" aria-labelledby="homeNewTitle"><div class="home-dynamic-title"><h3 id="homeNewTitle">◷ NEW EPISODES</h3><div class="home-shelf-actions"><a href="listener/index.html#discover">ALL EPISODES →</a><div class="home-shelf-arrows" aria-label="Scroll new episodes"><button type="button" data-shelf-scroll="-1" data-shelf-target="homeNewEpisodes" aria-label="Scroll new episodes left">‹</button><button type="button" data-shelf-scroll="1" data-shelf-target="homeNewEpisodes" aria-label="Scroll new episodes right">›</button></div></div></div><div class="home-dynamic-grid" id="homeNewEpisodes"><div class="home-dynamic-empty">Loading recently published episodes…</div></div></section>
+      <section class="home-dynamic-section" aria-labelledby="homeRecommendedTitle"><div class="home-dynamic-title"><h3 id="homeRecommendedTitle">✧ PICKED FOR YOU</h3><div class="home-shelf-actions"><a href="listener/profile.html">YOUR LISTENER PROFILE →</a><div class="home-shelf-arrows" aria-label="Scroll recommended shows"><button type="button" data-shelf-scroll="-1" data-shelf-target="homeRecommendedShows" aria-label="Scroll recommended shows left">‹</button><button type="button" data-shelf-scroll="1" data-shelf-target="homeRecommendedShows" aria-label="Scroll recommended shows right">›</button></div></div></div><div class="home-dynamic-grid" id="homeRecommendedShows"><div class="home-dynamic-empty">Checking whether listening history is available…</div></div></section>
       <p class="home-dynamic-foot" id="homeDynamicStatus" role="status" aria-live="polite">Waiting for database connection. Counts only display when the corresponding Supabase query succeeds.</p>
     </section>
 
@@ -915,5 +932,21 @@ setInterval(()=>{if(!document.hidden)load()},60000);
 <script src="js/home-live-chat.js"></script>
 <script src="js/online-presence.js"></script>
 <script src="js/global-audio-player.js"></script>
+
+<script>
+/* Scroll controls for the CrowRules Catalog shelves. */
+(()=>{"use strict";
+document.addEventListener("click",event=>{
+ const button=event.target.closest("[data-shelf-scroll][data-shelf-target]");
+ if(!button)return;
+ const shelf=document.getElementById(button.dataset.shelfTarget);
+ if(!shelf)return;
+ const firstCard=shelf.querySelector(".home-dynamic-card");
+ const distance=firstCard?firstCard.getBoundingClientRect().width+14:Math.max(240,shelf.clientWidth*.8);
+ shelf.scrollBy({left:Number(button.dataset.shelfScroll)*distance*2,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+});
+})();
+</script>
+
 </body>
 </html>
