@@ -33,6 +33,7 @@
 <div class="panel" id="cohostInvitationPanel" style="margin-top:15px;border:1px solid rgba(0,229,255,.35)"><h2>Co-host invitations</h2><p class="muted">Invite a trusted co-host into your LiveKit broadcast. Select a live session and start the live broadcast first; invitations expire after 15 minutes and can be redeemed once.</p><div class="actions"><button class="btn primary" id="cohostInviteBtn" type="button">CREATE CO-HOST INVITE</button><button class="btn" id="copyCohostBtn" type="button" disabled>COPY CO-HOST LINK</button></div><div id="cohostInfo" class="message" role="status">Select a session, then start the live broadcast to enable invitations.</div><div id="cohostList" class="muted">No co-hosts connected.</div></div>
 </section>
 <section class="panel" style="margin-top:15px"><h2>Your live sessions</h2><div class="muted">Sessions belonging to the signed-in creator account.</div><div id="sessionList" style="margin-top:10px"><p class="muted">Loading your sessions…</p></div><div class="actions"><button class="btn" id="refreshBtn" type="button">REFRESH SESSIONS</button></div></section>
+<section class="panel" style="margin-top:15px" id="liveDirectoryPanel"><h2>Live now across CrowRules</h2><div class="muted">Public broadcasts from all creators appear here. Each creator can run a separate LiveKit room at the same time.</div><div id="liveDirectory" style="margin-top:10px"><p class="muted">Loading public broadcasts…</p></div><div class="actions"><button class="btn" id="refreshDirectoryBtn" type="button">REFRESH LIVE DIRECTORY</button></div><div id="directoryMessage" class="message" role="status"></div></section>
 <div class="footer">CrowRules Podcasting · One company. One universe.</div>
 </main>
 <script>
@@ -46,6 +47,28 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 function msg(id,text,error=false){const el=$(id);el.textContent=text;el.className="message"+(error?" error":" ok")}
 function statusText(s){return String(s||"created").toUpperCase().replace(/_/g," ")}
 function isLive(s){return ["live","broadcasting","on_air"].includes(String(s.status||"").toLowerCase())}
+let publicBroadcasts=[];
+function renderLiveDirectory(){
+ const el=$("liveDirectory");
+ if(!publicBroadcasts.length){el.innerHTML='<p class="muted">No public broadcasts are live right now. When a creator goes live, the broadcast will appear here.</p>';return}
+ el.innerHTML=publicBroadcasts.map(s=>{const href="../listener/live.html?id="+encodeURIComponent(s.id)+(s.podcast_id?"&podcast="+encodeURIComponent(s.podcast_id):"");return '<div class="session"><div style="min-width:0;flex:1"><h3>'+esc(s.title||"Untitled live show")+'</h3><p>'+esc(s.description||"Live now on CrowRules Podcasting")+'</p><p style="margin-top:5px">Creator · '+esc(String(s.creator_id||"CrowRules creator").slice(0,8))+' · Started '+esc(s.started_at?new Date(s.started_at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):"time unavailable")+'</p><div style="margin-top:8px"><span class="status">LIVE NOW</span></div></div><a class="btn primary" href="'+esc(href)+'" target="_blank" rel="noopener">OPEN LISTENER</a></div>'}).join("");
+}
+async function loadLiveDirectory(){
+ if(!db)return;
+ const el=$("liveDirectory");
+ try{
+  const {data,error}=await db.from("podcast_live_sessions").select("id,title,description,status,visibility,created_at,started_at,podcast_id,creator_id").in("status",["live","broadcasting","on_air"]).eq("visibility","public").order("started_at",{ascending:false}).limit(100);
+  if(error)throw error;
+  publicBroadcasts=data||[];
+  $("liveCount").textContent=publicBroadcasts.length;
+  renderLiveDirectory();
+  $("directoryMessage").textContent="Updated "+new Date().toLocaleTimeString()+" · "+publicBroadcasts.length+" public broadcast"+(publicBroadcasts.length===1?"":"s")+" live.";
+  $("directoryMessage").className="message ok";
+ }catch(error){
+  el.innerHTML='<p class="message error">Could not load the public live directory. Verify SELECT policies for public live sessions in Supabase.</p>';
+  $("directoryMessage").textContent="Live directory error: "+(error?.message||"Unknown error");$("directoryMessage").className="message error";
+ }
+}
 function render(){
 $("sessionCount").textContent=sessions.length;
 $("liveCount").textContent=sessions.filter(isLive).length;
@@ -111,8 +134,8 @@ db=window.supabase.createClient(url,key);
 const {data:{user:u},error}=await db.auth.getUser();user=u||null;
 if(error||!user){$("authStatus").textContent="Please sign in to create or manage live sessions.";$("createBtn").disabled=true;$("micBtn").disabled=false;$("sessionList").innerHTML='<p class="muted">Sign in to see your sessions.</p>';return}
 $("authStatus").textContent="Signed in as "+(user.email||user.id)+" · Creator access is enforced by Supabase row-level security.";
-await Promise.all([loadSessions(),loadShows()]);
-if(db.channel){db.channel("live-admin-refresh").on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_sessions",filter:"creator_id=eq."+user.id},()=>loadSessions()).subscribe()}
+await Promise.all([loadSessions(),loadShows(),loadLiveDirectory()]);
+if(db.channel){db.channel("live-admin-refresh").on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_sessions"},()=>{loadSessions();loadLiveDirectory()}).subscribe()}
 }catch(e){$("authStatus").textContent="Could not initialize Supabase: "+e.message}
 }
 $("createForm").addEventListener("submit",async e=>{
@@ -375,6 +398,8 @@ $("recordBtn").addEventListener("click",()=>{if(recorder&&recorder.state!=="inac
 $("goLiveBtn").addEventListener("click",()=>updateStatus("live"));
 $("endBtn").addEventListener("click",()=>updateStatus("ended"));
 $("refreshBtn").addEventListener("click",loadSessions);
+$("refreshDirectoryBtn").addEventListener("click",loadLiveDirectory);
+setInterval(()=>{loadLiveDirectory();if(document.visibilityState==="visible")loadSessions()},15000);
 $("copyBtn").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(String(selected.id));msg("controlMessage","Session ID copied.")}catch(e){msg("controlMessage","Copy unavailable. Select and copy the session ID shown above.",true)}});
 async function stopMic(){if(raf)cancelAnimationFrame(raf);raf=0;if(micStream)micStream.getTracks().forEach(t=>t.stop());micStream=null;if(audioCtx){await audioCtx.close().catch(()=>{});audioCtx=null}analyser=null;$("micMeter").style.width="0%";$("micStatus").textContent="OFF";$("micNote").textContent="NOT CONNECTED";$("micBtn").textContent="TEST MICROPHONE"}
 $("micBtn").addEventListener("click",async()=>{
