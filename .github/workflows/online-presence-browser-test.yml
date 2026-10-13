@@ -15,6 +15,10 @@ on:
       - "creator/analytics.html"
       - "tests/online-presence-browser-test.mjs"
       - "tests/audio-playback-browser-test.mjs"
+      - "tests/show-integration-health-check.mjs"
+      - "js/show-page.js"
+      - "js/episode-downloads.js"
+      - "listener/show.html"
       - ".github/workflows/online-presence-browser-test.yml"
   workflow_dispatch:
 
@@ -83,3 +87,32 @@ jobs:
           exit 1
       - name: Test live playback, play event and navigation continuity
         run: node tests/audio-playback-browser-test.mjs
+
+  show-integration-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Wait for show page publication
+        run: |
+          for attempt in $(seq 1 18); do
+            if curl -fsSL "https://crowrulesentertainment-oss.github.io/podcasting/listener/show.html?health=$attempt" | grep -q "show-page.js"; then
+              echo "Show page is publicly reachable."
+              exit 0
+            fi
+            echo "Waiting for GitHub Pages publication ($attempt/18)..."
+            sleep 5
+          done
+          echo "Show page was not reachable from GitHub Pages."
+          exit 1
+      - name: Audit episode visibility, media URLs, play counts, memberships and Realtime
+        run: node tests/show-integration-health-check.mjs
