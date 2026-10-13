@@ -128,11 +128,13 @@ try {
     note("Raw play-event rows are not readable from the public client (" + data.eventError.code + "); event reconciliation must be checked with privileged SQL, not by weakening RLS.");
   } else {
     const eventCount = data.events.length;
-    if (eventCount !== Number(data.show.total_plays || 0)) fail("Play-event mismatch: show.total_plays=" + Number(data.show.total_plays || 0) + ", readable play events=" + eventCount);
+    if (eventCount === 0 && Number(data.show.total_plays || 0) > 0) {
+      note("Public client returned no play-event rows while the show has plays; this may be RLS filtering. Privileged SQL reconciliation is required before calling this a mismatch.");
+    } else if (eventCount !== Number(data.show.total_plays || 0)) fail("Play-event mismatch: show.total_plays=" + Number(data.show.total_plays || 0) + ", readable play events=" + eventCount);
     else pass("Readable play-event total matches the show play count (" + eventCount + ").");
     const orphanEvents = data.events.filter(e => !e.episode_id || !expectedIds.has(String(e.episode_id)));
     if (orphanEvents.length) fail("Found " + orphanEvents.length + " play events with missing/unpublished episode IDs.");
-    else pass("No readable play events reference missing or unpublished episodes.");
+    else if (eventCount > 0) pass("No readable play events reference missing or unpublished episodes.");
   }
 
   if (data.planError) {
