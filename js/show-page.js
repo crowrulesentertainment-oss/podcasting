@@ -140,6 +140,11 @@ async function load(){
   }
   if(!show){fail("Podcast not found","This link did not match a podcast ID or slug. Return to Listen and open the show again.",false);return}
   showId=String(show.id||id);
+  // Paint the show shell as soon as its record is available. The episode query
+  // can be slow or blocked by network/RLS, but it must not leave the whole page blank.
+  render(false);
+  const initialEpisodeList=document.getElementById("episodeList");
+  if(initialEpisodeList)initialEpisodeList.innerHTML='<div class="notice" role="status">Loading published episodes…</div>';
   const sessionPromise=wait(db.auth.getSession(),"Session",5000).catch(e=>({error:e}));
    let episodeError=null,episodeResult=null;
    try{
@@ -176,9 +181,8 @@ async function load(){
     console.error("[CrowRules show] Episode query failed",episodeQueryError);
     episodeError=episodeQueryError;episodes=[];
    }
-  // Render the core show and episode library before waiting on optional membership,
-  // follower, subscriber-count, and live-session queries. These secondary services
-  // must never leave the entire page looking blank when one of them is slow.
+  // Refresh the already-visible shell with the completed episode result before
+  // waiting for optional membership, follower, subscriber-count, or live services.
   render(!!episodeError);
   if(episodeError){
    const list=document.getElementById("episodeList");
