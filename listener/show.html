@@ -60,7 +60,19 @@
     </main>
   </div>
   <noscript><main class="shell"><section class="card"><h1>JavaScript is required</h1><p>Enable JavaScript to load podcast details and the episode player.</p></section></main></noscript>
-  <script src="../js/show-page.js?v=fast-show-render-v38" onerror="document.getElementById('app').innerHTML='<main class=&quot;shell&quot;><section class=&quot;card show-error&quot;><h1>Show page script failed to load</h1><p>Refresh this page. If the problem continues, the show-page JavaScript file could not be downloaded.</p><a class=&quot;btn primary&quot; href=&quot;index.html#discover&quot;>BROWSE PODCASTS</a></section></main>'"></script>
+  <script>
+    window.addEventListener("error",function(event){
+      if(!/show-page\\.js(?:\\?|$)/i.test(String(event.filename||"")))return;
+      var root=document.getElementById("app");if(!root)return;
+      var panel=document.createElement("section");panel.className="card show-error";panel.setAttribute("role","alert");
+      var heading=document.createElement("h1");heading.textContent="This show could not finish loading";
+      var message=document.createElement("p");message.className="muted";message.textContent="A show-page script error interrupted this view. Your podcast data has not been changed. Refresh the page or return to the show directory.";
+      var retry=document.createElement("button");retry.className="btn primary";retry.textContent="RELOAD SHOW";retry.onclick=function(){location.reload()};
+      var browse=document.createElement("a");browse.className="btn";browse.href="index.html#discover";browse.textContent="BROWSE SHOWS";
+      panel.append(heading,message,retry,browse);root.replaceChildren(panel);
+    });
+  </script>
+  <script src="../js/show-page.js?v=show-shell-first-v39" onerror="document.getElementById('app').innerHTML='<main class=&quot;shell&quot;><section class=&quot;card show-error&quot;><h1>Show page script failed to load</h1><p>Refresh this page. If the problem continues, the show-page JavaScript file could not be downloaded.</p><a class=&quot;btn primary&quot; href=&quot;index.html#discover&quot;>BROWSE PODCASTS</a></section></main>'"></script>
   <script src="../js/episode-downloads.js?v=20261012" defer></script>
   <script src="../js/online-presence.js"></script>
   <script src="../js/global-audio-player.js"></script>
