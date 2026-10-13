@@ -35,7 +35,7 @@
 <footer class="shell">CROWRULES PODCASTING · ONE ACCOUNT. ONE UNIVERSE.<br><a href="../home.html">CrowRules Entertainment</a></footer>
 <script>
 (()=>{"use strict";
-const C=window.CROW_CONFIG||{},SB=window.supabase;let db=null,all=[];
+const C=window.CROW_CONFIG||{},SB=window.supabase;let db=null,all=[],showsByCreator=new Map();
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const initials=s=>String(s||"CR").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"CR";
@@ -57,25 +57,53 @@ function render(){
   const title=document.createElement("div");title.className="name";title.textContent=name;
   const h=document.createElement("div");h.className="handle";h.textContent=handle;
   const bio=document.createElement("div");bio.className="bio";bio.textContent=p.bio||p.description||"A member of the CrowRules Podcasting creator community.";
-  const stats=document.createElement("div");stats.className="stats";const shows=document.createElement("span");shows.innerHTML="<strong>"+Number(p.podcast_count||p.shows_count||0)+"</strong> shows";const joined=document.createElement("span");joined.textContent=p.created_at?"Joined "+new Date(p.created_at).toLocaleDateString(undefined,{month:"short",year:"numeric"}):"CrowRules Creator";stats.append(shows,joined);
-  const actions=document.createElement("div");actions.className="creator-actions";const browse=document.createElement("a");browse.className="btn primary";browse.href="index.html#discover";browse.textContent="FIND THEIR SHOWS";actions.appendChild(browse);
+  const creatorShows=showsByCreator.get(String(p.id||p.creator_id||p.member_id||""))||[];
+  const stats=document.createElement("div");stats.className="stats";const showStat=document.createElement("span");showStat.innerHTML="<strong>"+creatorShows.length+"</strong> show"+(creatorShows.length===1?"":"s");const joined=document.createElement("span");joined.textContent=p.created_at?"Joined "+new Date(p.created_at).toLocaleDateString(undefined,{month:"short",year:"numeric"}):"CrowRules Creator";stats.append(showStat,joined);
+  const showList=document.createElement("div");showList.className="creator-shows";showList.style.cssText="display:grid;gap:8px;margin-top:12px";
+  if(creatorShows.length){
+   const label=document.createElement("div");label.style.cssText="font-size:9px;font-weight:800;letter-spacing:.12em;color:var(--cyan);margin-bottom:2px";label.textContent="SHOWS BY THIS CREATOR";showList.appendChild(label);
+   creatorShows.forEach(show=>{const link=document.createElement("a");link.href="show.html?id="+encodeURIComponent(show.id);link.className="btn";link.style.cssText="display:block;text-align:left;line-height:1.5;padding:10px 11px";link.textContent=show.title||show.name||show.podcast_name||"Untitled show";link.setAttribute("aria-label","Open show: "+link.textContent);showList.appendChild(link)});
+  }else{const none=document.createElement("div");none.className="muted";none.textContent="No published shows yet.";showList.appendChild(none)}
+  const actions=document.createElement("div");actions.className="creator-actions";const browse=document.createElement("a");browse.className="btn primary";browse.href=creatorShows.length?"show.html?id="+encodeURIComponent(creatorShows[0].id):"index.html#discover";browse.textContent=creatorShows.length?"OPEN FIRST SHOW":"EXPLORE PODCASTS";actions.appendChild(browse);
   const profile=document.createElement("a");profile.className="btn";profile.href="profile.html";profile.textContent="COMMUNITY";actions.appendChild(profile);
-  body.append(av,title,h,bio,stats,actions);card.append(cover,body);grid.appendChild(card);
+  body.append(av,title,h,bio,stats,showList,actions);card.append(cover,body);grid.appendChild(card);
  });
 }
 async function load(){
  try{
   if(!SB?.createClient||!C.supabaseUrl||!C.supabaseKey)throw Error("Supabase configuration is missing from ../config.js.");
   db=SB.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-  // Query the existing member-profile table first; no new tables or schema changes are required.
+  // Load public member profiles and active creator identities using existing tables.
   let result=await db.from("podcast_member_profiles").select("*").eq("is_public",true).limit(150);
   if(result.error)throw result.error;
   all=(result.data||[]).filter(p=>p.display_name||p.username||p.creator_name||p.name);
-  // If the public member directory is empty, try existing creator profiles as a compatible fallback.
-  if(!all.length){
-   const fallback=await db.from("creators").select("*").limit(150);
-   if(!fallback.error)all=fallback.data||[];
+  let creatorResult=await db.from("creators").select("*").eq("is_active",true).limit(150);
+  if(!creatorResult.error){
+   const identities=creatorResult.data||[];
+   const known=new Set(all.map(p=>String(p.id||p.member_id||p.user_id||"")));
+   identities.forEach(c=>{if(!all.some(p=>String(p.id||p.member_id||p.user_id||"")===String(c.id||c.member_id||"")))all.push(c)});
   }
+  // Public/published shows only. Some legacy rows use different publication flags,
+  // so support common existing field names without requiring a schema migration.
+  const podcastResult=await db.from("podcasts").select("*").limit(500);
+  if(!podcastResult.error){
+   const publicShows=(podcastResult.data||[]).filter(s=>{
+    const flags=[s.is_published,s.published,s.is_public,s.is_active].filter(v=>typeof v==="boolean");
+    const status=String(s.status||s.visibility||"").toLowerCase();
+    return flags.includes(true)||["published","public","live","active"].includes(status);
+   });
+   publicShows.forEach(s=>{
+    const keys=[s.creator_id,s.creatorId,s.member_id,s.owner_id].filter(v=>v!==null&&v!==undefined).map(String);
+    all.forEach(p=>{
+     const ids=[p.id,p.creator_id,p.member_id,p.user_id].filter(v=>v!==null&&v!==undefined).map(String);
+     if(keys.some(k=>ids.includes(k))){
+      const key=String(p.id||p.creator_id||p.member_id||p.user_id||"");
+      if(!showsByCreator.has(key))showsByCreator.set(key,[]);
+      showsByCreator.get(key).push(s);
+     }
+    });
+   });
+  }else console.warn("Could not load creator shows:",podcastResult.error.message);
   render();
  }catch(e){
   console.error("Creator directory load failed:",e);
