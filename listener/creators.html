@@ -40,12 +40,12 @@ const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const initials=s=>String(s||"CR").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"CR";
 function canonicalName(value){
- return String(value||"").trim().toLowerCase().replace(/\\s+/g," ").replace(/\\s+(ii|2nd)$/i,"");
+ return String(value||"").trim().toLowerCase().replace(/\s+/g," ").replace(/\s+(ii|2nd)$/i,"");
 }
 function samePerson(a,b){
  const aNames=[a.display_name,a.creator_name,a.name,a.username].filter(Boolean).map(canonicalName);
  const bNames=[b.display_name,b.creator_name,b.name,b.username].filter(Boolean).map(canonicalName);
- return aNames.some(n=>bNames.includes(n))||String(a.member_id||a.user_id||"")!==""&&String(a.member_id||a.user_id)===String(b.member_id||b.user_id);
+ const aid=a.member_id||a.user_id, bid=b.member_id||b.user_id;\n return aNames.some(n=>bNames.includes(n))||Boolean(aid&&bid&&String(aid)===String(bid));
 }
 function mergeSamePersonProfiles(profiles){
  const merged=[];
