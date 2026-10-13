@@ -126,8 +126,7 @@ function updateAuthHeader(){const nav=document.getElementById("showAuthNav");if(
 async function load(){
  const r=document.getElementById("show");
  if(!r)return;
- r.className="card show-ready";
- r.innerHTML='<div class="eyebrow">CROWRULES PODCASTING</div><h1>Opening this show…</h1><p class="muted">Connecting to the podcast library.</p>';
+ // Keep the page shell visible while data loads; no blocking loading screen.
  if(!id){fail("No show was selected","Open a show from the listening page to view its episodes.",false);return}
  if(!db){fail("Podcast connection unavailable","The Supabase client did not initialize. Refresh the page; if this continues, the service connection needs attention.");return}
  try{
@@ -147,12 +146,22 @@ async function load(){
     // Select the live table schema wholesale to avoid a brittle list of
     // optional columns. The public RLS policy limits this query to published
     // rows; we also validate status and flags client-side before rendering.
-    episodeResult=await wait(db.from("podcast_episodes")
-     .select("*")
-     .eq("podcast_id",showId)
-     .eq("status","published")
-     .limit(100),"Episode library",15000);
-    if(episodeResult.error)throw episodeResult.error;
+    episodeResult={data:[],error:null};
+    // Page through published episodes instead of silently truncating shows at 100.
+    // Keep a safety ceiling so unusually large catalogs cannot create unbounded requests.
+    for(let offset=0;offset<1000;offset+=100){
+     const batch=await wait(db.from("podcast_episodes")
+      .select("*")
+      .eq("podcast_id",showId)
+      .eq("status","published")
+      .range(offset,offset+99),"Episode library batch "+(Math.floor(offset/100)+1),15000);
+     if(batch.error)throw batch.error;
+     const page=batch.data||[];
+     episodeResult.data.push(...page);
+     if(page.length<100)break;
+    }
+    if(episodeResult.data.length>=1000)console.warn("[CrowRules show] Episode library reached the 1,000-episode safety limit.");
+
     episodes=(episodeResult.data||[])
      .filter(ep=>String(ep.status||"").toLowerCase()==="published"&&ep.is_published!==false&&ep.is_active!==false)
      .sort((a,b)=>{
