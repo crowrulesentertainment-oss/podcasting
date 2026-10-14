@@ -590,7 +590,7 @@ async function loadHomePulse(){
   // Connection status stays text-only and does not append another timestamp.
   pulseIds.updated.textContent=errors.length?"PARTIAL DATA":pulseRealtimeState==="SUBSCRIBED"?"REALTIME LIVE":"LIVE DATA · POLLING FALLBACK";
   if(errors.length){pulseIds.note.textContent="Some live panels failed to load. Realtime updates require Supabase Realtime replication for podcast_episodes and podcasts; polling is the fallback.";pulseIds.note.classList.add("home-data-error")}
-  else{pulseIds.note.textContent="Database-backed live sessions and trending shows. "+(pulseRealtimeState==="SUBSCRIBED"?"Realtime database changes are connected; a 15-second refresh also checks for missed events.":"Realtime is not connected yet; data refreshes every 15 seconds while this page is visible.")+" Visitor counts represent active browser sessions, not guaranteed unique people.";pulseIds.note.classList.remove("home-data-error")}
+  else{pulseIds.note.textContent="Database-backed live sessions and trending shows. "+(pulseRealtimeState==="SUBSCRIBED"?"Realtime catalog changes are connected; a 60-second refresh checks for missed events.":"Realtime is not connected yet; data refreshes every 60 seconds while this page is visible.")+" Visitor counts represent active browser sessions, not guaranteed unique people.";pulseIds.note.classList.remove("home-data-error")}
  }catch(error){pulseIds.updated.textContent="LIVE DATA ERROR";pulseIds.note.textContent="Could not refresh live data: "+(error?.message||"unknown error");pulseIds.note.classList.add("home-data-error")}
  finally{
   pulseLoadInFlight=false;
@@ -604,9 +604,10 @@ async function boot(){
  if(!window.supabase?.createClient||!C.supabaseUrl||!C.supabaseKey){unavailable("AUTH SERVICE UNAVAILABLE");if(signLink)signLink.href="login.html";loadHomePulse();return}
  try{
   S=window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
+  window.CROW_HOME_SUPABASE=S;
   await checkAuth();
   await loadHomePulse();
-  const pulseTimer=setInterval(()=>{if(!document.hidden)requestHomePulseRefresh()},15000);
+  const pulseTimer=setInterval(()=>{if(!document.hidden)requestHomePulseRefresh()},60000);
   window.addEventListener("pagehide",()=>clearInterval(pulseTimer),{once:true});
   const {data}=S.auth.onAuthStateChange((event,session)=>{
    // Run after the Supabase callback returns; avoid deadlocks from nested auth calls.
@@ -619,8 +620,8 @@ async function boot(){
   authSubscription=data?.subscription;
   // Row changes refresh the live panels immediately; polling is only a safety fallback.
   const dataChannel=S.channel("podcasting-home-db-live")
-   .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},()=>requestHomePulseRefresh())
-   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},()=>requestHomePulseRefresh())
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},()=>{requestHomePulseRefresh();window.dispatchEvent(new CustomEvent("crowrules:home-catalog-change"))})
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},()=>{requestHomePulseRefresh();window.dispatchEvent(new CustomEvent("crowrules:home-catalog-change"))})
    .subscribe(status=>{pulseRealtimeState=status;if(status==="SUBSCRIBED"){loadHomePulse()}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){pulseIds.updated.textContent="REALTIME RECONNECTING · POLLING ACTIVE"}});
   window.addEventListener("pagehide",()=>{try{S.removeChannel(dataChannel)}catch(_){}},{once:true});
  }catch(e){unavailable("AUTH SERVICE UNAVAILABLE");authPanel.title=e?.message||"Could not initialize Supabase authentication."}
@@ -737,7 +738,7 @@ const fmt=n=>Math.max(0,Number(n)||0).toLocaleString();
 const safe=v=>String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 let discoveryRealtimeState="CONNECTING";
 const text=(id,v)=>{const el=$(id);if(!el)return;el.textContent=id==="homeDynamicStatus"?v+" · "+(discoveryRealtimeState==="SUBSCRIBED"?"REALTIME LIVE":(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(discoveryRealtimeState)?"REALTIME RECONNECTING · FALLBACK ACTIVE":"REALTIME CONNECTING")):v};
-let db=null,busy=false,loadQueued=false,discoveryRefreshTimer=null,historyIds=[];const catalogCoverage={showsComplete:false,episodesComplete:false};
+let db=window.CROW_HOME_SUPABASE||null,busy=false,loadQueued=false,discoveryRefreshTimer=null,historyIds=[];const catalogCoverage={showsComplete:false,episodesComplete:false};
 function empty(id,msg){const el=$(id);if(el)el.innerHTML='<div class="home-dynamic-empty">'+safe(msg)+'</div>'}
 function showHref(id){return "listener/show.html?id="+encodeURIComponent(id)}
 function card({title,description,art,fallbackArt,meta,href,number}) {
@@ -761,7 +762,7 @@ async function countQuery(table,filters=[]) {
  for(const [method,...args] of filters)q=q[method](...args);
  const r=await q;if(r.error)throw r.error;return Number(r.count)||0;
 }
-async function readAllRows(table,variants,pageSize=1000,maxRows=50000){
+async function readAllRows(table,variants,pageSize=1000,maxRows=10000){
  let last;
  for(const v of variants){
   const all=[];let offset=0,failed=null;
@@ -847,7 +848,7 @@ async function load(){
   // with the same session_key de-duplication rule as rankings. Read-only; never writes analytics.
   let events=[],eventsError=null,eventsComplete=false;
   try{
-   const pageSize=1000,maxRows=50000;let offset=0;
+   const pageSize=1000,maxRows=5000;let offset=0;
    while(offset<maxRows){
     const q=await db.from("podcast_play_events").select("id,podcast_id,episode_id,session_key,event_type,created_at").order("created_at",{ascending:false}).range(offset,Math.min(offset+pageSize-1,maxRows-1));
     if(q.error)throw q.error;const batch=q.data||[];events=events.concat(batch);if(batch.length<pageSize){eventsComplete=true;break}offset+=batch.length;
@@ -857,11 +858,11 @@ async function load(){
   events.forEach(e=>{if(e.event_type&&String(e.event_type).toLowerCase()!=="play")return;const key=e.session_key?"session:"+String(e.session_key):"id:"+String(e.id);if(seen.has(key))return;seen.add(key);plays.push(e)});
   if(!eventsError){
    text("homeStatPlays",fmt(plays.length));
-   text("homeStatPlaysNote",eventsComplete?"Unique play sessions from podcast_play_events (rankings rule)":"Loaded event history capped at 50,000 rows; total may be incomplete");
+   text("homeStatPlaysNote",eventsComplete?"Unique play sessions from podcast_play_events (rankings rule)":"Loaded event history capped at 5,000 rows; total may be incomplete");
   }else{text("homeStatPlays","—");text("homeStatPlaysNote","Canonical play events unavailable; check read access")}
   let sessions=[],sessionsError=null,sessionsComplete=false;
   try{
-   const pageSize=1000,maxRows=50000;let offset=0;
+   const pageSize=1000,maxRows=5000;let offset=0;
    while(offset<maxRows){
     const q=await db.from("podcast_listens").select("*").order("created_at",{ascending:false,nullsFirst:false}).range(offset,Math.min(offset+pageSize-1,maxRows-1));
     if(q.error)throw q.error;const batch=q.data||[];sessions=sessions.concat(batch);if(batch.length<pageSize){sessionsComplete=true;break}offset+=batch.length;
@@ -875,9 +876,9 @@ async function load(){
    const hasCompletion=sessions.some(r=>r.completed!==undefined||r.is_completed!==undefined||r.status!==undefined);
    const completed=sessions.filter(r=>r.completed===true||r.is_completed===true||String(r.status||"").toLowerCase()==="completed").length;
    text("homeStatHours",durationAvailable?(totalSeconds/3600).toLocaleString(undefined,{maximumFractionDigits:1}):"—");
-   text("homeStatHoursNote",durationAvailable?(sessionsComplete?"Sum of recorded podcast_listens duration":"Session history capped at 50,000 rows; hours may be incomplete"):"No readable duration field in podcast_listens");
+   text("homeStatHoursNote",durationAvailable?(sessionsComplete?"Sum of recorded podcast_listens duration":"Session history capped at 5,000 rows; hours may be incomplete"):"No readable duration field in podcast_listens");
    text("homeStatCompleted",hasCompletion?fmt(completed):"—");
-   text("homeStatCompletedNote",hasCompletion?(sessionsComplete?"Explicitly completed sessions only":"Session history capped at 50,000 rows; count may be incomplete"):"No explicit completion field in podcast_listens");
+   text("homeStatCompletedNote",hasCompletion?(sessionsComplete?"Explicitly completed sessions only":"Session history capped at 5,000 rows; count may be incomplete"):"No explicit completion field in podcast_listens");
   }else{
    text("homeStatHours","—");text("homeStatHoursNote","Listening-session data unavailable or blocked");
    text("homeStatCompleted","—");text("homeStatCompletedNote","Listening-session data unavailable or blocked");
@@ -893,10 +894,10 @@ async function load(){
   if(eventsError){text("homeStatReconcile","—");text("homeStatReconcileNote","Cannot compare without canonical play events");empty("homeReconciliation","Canonical play events could not be read, so counter agreement cannot be evaluated.");}
   else if(!comparable){text("homeStatReconcile","—");text("homeStatReconcileNote","Stored play counters unavailable in loaded catalog");empty("homeReconciliation","No stored play_count or total_plays fields were available for comparison.");}
   else{
-   text("homeStatReconcile",matches+"/"+comparable);text("homeStatReconcileNote",(catalogCoverage.showsComplete&&catalogCoverage.episodesComplete?"Full loaded catalog":"Catalog hit 50,000-row cap")+" · "+(eventsComplete?"complete readable event history":"event history may be incomplete"));
+   text("homeStatReconcile",matches+"/"+comparable);text("homeStatReconcileNote",(catalogCoverage.showsComplete&&catalogCoverage.episodesComplete?"Full loaded catalog":"Catalog hit 10,000-row cap")+" · "+(eventsComplete?"complete readable event history":"event history may be incomplete"));
    items.sort((a,b)=>Number(a.match)-Number(b.match)||Math.abs(b.stored-b.events)-Math.abs(a.stored-a.events));
    const top=items.slice(0,8);
-   $("homeReconciliation").innerHTML='<div class="home-reconcile-list">'+top.map(x=>'<div class="home-reconcile-row"><div><b>'+safe(x.title)+'</b><small> · '+x.kind+'</small></div><small>Stored '+fmt(x.stored)+' / Events '+fmt(x.events)+'</small><span class="home-reconcile-status" data-match="'+(x.match?'true':'false')+'">'+(x.match?'MATCH':'DIFFERENCE')+'</span></div>').join("")+'</div><p class="home-dynamic-foot">'+(eventsComplete?"Compared all loaded show and episode records with de-duplicated readable play events.":"The catalog or event history reached the 50,000-row safety cap; mismatches may reflect incomplete data.")+' This is a read-only diagnostic and does not alter stored counters.</p>';
+   $("homeReconciliation").innerHTML='<div class="home-reconcile-list">'+top.map(x=>'<div class="home-reconcile-row"><div><b>'+safe(x.title)+'</b><small> · '+x.kind+'</small></div><small>Stored '+fmt(x.stored)+' / Events '+fmt(x.events)+'</small><span class="home-reconcile-status" data-match="'+(x.match?'true':'false')+'">'+(x.match?'MATCH':'DIFFERENCE')+'</span></div>').join("")+'</div><p class="home-dynamic-foot">'+(eventsComplete?"Compared all loaded show and episode records with de-duplicated readable play events.":"The catalog or event history reached the 10,000-row safety cap; mismatches may reflect incomplete data.")+' This is a read-only diagnostic and does not alter stored counters.</p>';
   }
   const issues=[showsResult.status!=="fulfilled",episodesResult.status!=="fulfilled",!catalogCoverage.showsComplete,!catalogCoverage.episodesComplete,!!eventsError,!!sessionsError].filter(Boolean).length;
   text("homeDynamicStatus",(issues?"PARTIAL ANALYTICS · ":"DATABASE UPDATED · ")+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+". Play events follow the rankings deduplication rule; duration and completions come from podcast_listens, as in admin analytics.");
@@ -916,17 +917,12 @@ load();
 if(L?.createClient&&C.supabaseUrl&&C.supabaseKey){
  try{
   if(!db)db=L.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-  const discoveryChannel=db.channel("podcasting-home-discovery-live")
-   .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},scheduleDiscoveryRefresh)
-   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},scheduleDiscoveryRefresh)
-   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_play_events"},scheduleDiscoveryRefresh)
-   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_listens"},scheduleDiscoveryRefresh)
-   .subscribe(status=>{discoveryRealtimeState=status;if(status==="SUBSCRIBED")scheduleDiscoveryRefresh();else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(status))text("homeDynamicStatus","Realtime connection interrupted; the 60-second fallback remains active")});
-  window.addEventListener("pagehide",()=>{if(discoveryRefreshTimer)clearTimeout(discoveryRefreshTimer);db?.removeChannel(discoveryChannel)});
+  window.addEventListener("crowrules:home-catalog-change",scheduleDiscoveryRefresh);
  }catch(error){discoveryRealtimeState="CHANNEL_ERROR";text("homeDynamicStatus","Realtime setup failed; the 60-second fallback remains active")}
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)scheduleDiscoveryRefresh()});
-setInterval(()=>{if(!document.hidden)load()},60000);
+const discoveryPollTimer=setInterval(()=>{if(!document.hidden)load()},60000);
+window.addEventListener("pagehide",()=>{if(discoveryRefreshTimer)clearTimeout(discoveryRefreshTimer);clearInterval(discoveryPollTimer)},{once:true});
 })();
 </script>
 
