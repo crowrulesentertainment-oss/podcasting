@@ -192,6 +192,156 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 @media(max-width:480px){.home-dynamic-card{flex-basis:78%}.home-shelf-actions{width:100%;justify-content:space-between}.home-dynamic-title{align-items:center}}
 @media(prefers-reduced-motion:reduce){.home-dynamic-grid{scroll-behavior:auto}.home-shelf-arrows button{transition:none}}
 
+
+/* Compact homepage refinement — preserves existing data, auth, chat and shelf behavior. */
+.home-shell{max-width:1320px;padding:16px 22px 44px}
+.home-top{padding:2px 0 16px;gap:12px}
+.home-brand img{width:44px;height:44px}
+.home-brand strong{font-size:12px}
+.home-actions{gap:6px}
+.home-actions .btn{padding:9px 12px;font-size:10px}
+.home-liveboard{margin:8px 0 18px;padding:14px;border-radius:15px;box-shadow:none}
+.home-liveboard-head{gap:10px;margin-bottom:10px}
+.home-liveboard-head h2{font-size:13px;margin-bottom:4px}
+.home-liveboard-head p{max-width:560px;font-size:10px;line-height:1.5}
+.home-live-clock{min-width:128px;padding:8px 10px}
+.home-live-clock strong{font-size:18px}
+.home-live-clock-label{font-size:7px}
+.home-live-clock small{font-size:9px}
+.home-liveboard-meta{font-size:8px}
+.home-live-stats{gap:7px;margin-bottom:9px}
+.home-live-stat{padding:10px;border-radius:10px}
+.home-live-stat small{font-size:8px;margin-bottom:5px}
+.home-live-stat strong{font-size:19px}
+.home-live-stat em{font-size:9px;margin-top:4px}
+.home-data-grid{gap:9px}
+.home-data-panel{padding:11px;border-radius:11px}
+.home-data-panel h3{font-size:10px;margin-bottom:8px}
+.home-data-list{gap:6px}
+.home-data-item{padding:7px;gap:8px}
+.home-data-item img{width:34px;height:34px;flex-basis:34px}
+.home-data-item-main b{font-size:10px}
+.home-data-item-main small{font-size:9px;margin-top:3px}
+.home-note{font-size:9px;line-height:1.5;margin:8px 0 0}
+.home-hero{min-height:0;grid-template-columns:1.1fr .9fr;gap:28px;padding:22px 0 28px}
+.home-kicker{font-size:9px;letter-spacing:.16em}
+.home-title{font-size:clamp(36px,5.2vw,66px);line-height:.98;margin:10px 0 14px}
+.home-lead{font-size:13px;line-height:1.65;max-width:600px}
+.home-live{margin:12px 0 16px;padding:6px 10px;font-size:9px}
+.home-actions-large{gap:8px}
+.home-actions-large .btn{padding:10px 13px;font-size:10px}
+.home-art-wrap{min-height:300px}
+.home-orbit{width:min(350px,72vw)}
+.home-logo{width:min(290px,66vw)}
+.home-discovery-deck,.home-dynamic{margin:16px 0;padding:18px;border-radius:16px}
+.home-discovery-head{gap:12px;margin-bottom:12px}
+.home-discovery-head h2,.home-dynamic-head h2{font-size:clamp(17px,2vw,22px);margin:5px 0}
+.home-discovery-head p,.home-dynamic-head p{font-size:10px;line-height:1.6}
+.home-discovery-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.home-discovery-card{min-height:145px;padding:12px;border-radius:11px}
+.home-discovery-card .deck-icon{font-size:20px;margin-bottom:8px}
+.home-discovery-card h3{font-size:10px;margin-bottom:6px}
+.home-discovery-card p{font-size:10px;line-height:1.5;margin-bottom:10px}
+.home-discovery-card .deck-link{font-size:8px}
+.home-discovery-foot{margin-top:10px;padding-top:10px;font-size:9px}
+.home-dynamic-head{margin-bottom:11px}
+.home-dynamic-section{margin-top:16px}
+.home-dynamic-title{margin-bottom:8px}
+.home-dynamic-title h3{font-size:11px}
+.home-dynamic-grid{gap:10px;padding-bottom:10px}
+.home-dynamic-card{flex-basis:clamp(165px,19%,220px);border-radius:11px}
+.home-dynamic-art{aspect-ratio:1.45}
+.home-dynamic-copy{gap:5px;padding:9px}
+.home-dynamic-copy h4{font-size:10px}
+.home-dynamic-meta,.home-dynamic-open{font-size:8px}
+.home-stat-strip-analytics{grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;margin:10px 0}
+.home-stat-tile{padding:9px;border-radius:10px}
+.home-stat-tile small{font-size:7px;letter-spacing:.04em;margin-bottom:5px}
+.home-stat-tile strong{font-size:18px}
+.home-stat-tile em{font-size:8px;line-height:1.4;margin-top:4px}
+.home-reconcile-panel{margin-top:9px}
+.home-reconcile-panel h3{font-size:9px}
+.home-reconcile-row{padding:7px;gap:7px;font-size:9px}
+.home-kit-invite{gap:16px;margin:16px 0;padding:18px;border-radius:15px}
+.home-kit-copy h2{font-size:18px;margin:5px 0 7px}
+.home-kit-copy p{font-size:10px;line-height:1.6}
+.home-kit-actions{min-width:180px}
+.home-kit-button{padding:10px 12px;font-size:9px}
+.home-choice{gap:10px;margin-top:8px}
+.home-choice .card{min-height:0;padding:18px}
+.choice-icon{font-size:28px;margin-bottom:12px}
+.choice-title{font-size:clamp(20px,2.4vw,30px)}
+.choice-copy{font-size:11px;line-height:1.6}
+.choice-list{gap:6px;margin:14px 0;font-size:10px}
+.home-section{margin-top:14px}
+.home-section.card,.home-section.grid>.card{padding:16px}
+.home-section h2{font-size:16px}
+.home-strip{gap:8px;margin-top:10px}
+.home-mini{padding:12px;border-radius:11px}
+.home-mini strong{font-size:11px;margin-bottom:5px}
+.home-mini small{font-size:10px;line-height:1.45}
+.home-chat{margin:16px 0;padding:14px;border-radius:15px;box-shadow:none}
+.home-chat-head{margin-bottom:10px}
+.home-chat-head h2{font-size:13px}
+.home-chat-head p{font-size:10px}
+.home-chat-layout{gap:10px}
+.home-chat-feed{height:260px;padding:9px;gap:7px}
+.home-chat-card{padding:11px}
+.home-chat-card h3{font-size:10px}
+.home-chat-card p,.home-chat-form textarea{font-size:11px}
+.home-chat-form{gap:7px;margin-top:9px}
+.home-chat-form textarea{min-height:70px;padding:9px}
+.home-chat-form button{padding:10px;font-size:9px}
+.home-footer{padding:24px 0 6px;font-size:9px}
+@media(max-width:1050px){
+ .home-discovery-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .home-stat-strip-analytics{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .home-dynamic-card{flex-basis:clamp(180px,27%,230px)}
+}
+@media(max-width:760px){
+ .home-shell{padding:12px 14px 34px}
+ .home-hero{grid-template-columns:1fr;gap:6px;padding:12px 0 22px}
+ .home-art-wrap{min-height:220px;order:-1}
+ .home-orbit{width:220px}
+ .home-logo{width:190px}
+ .home-title{font-size:clamp(36px,10vw,54px)}
+ .home-live-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .home-data-grid{grid-template-columns:1fr}
+ .home-discovery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .home-discovery-card{min-height:125px}
+ .home-kit-invite{grid-template-columns:1fr}
+ .home-kit-actions{min-width:0;align-items:flex-start}
+ .home-kit-note{text-align:left}
+ .home-chat-layout{grid-template-columns:1fr}
+ .home-chat-feed{height:230px}
+}
+@media(max-width:480px){
+ .home-top{align-items:center;flex-wrap:wrap}
+ .home-brand img{width:36px;height:36px}
+ .home-brand strong{font-size:10px}
+ .home-actions{width:100%}
+ .home-actions .btn{flex:1;text-align:center;padding:8px 6px;font-size:8px}
+ .home-liveboard-head{align-items:stretch}
+ .home-live-clock{min-width:0}
+ .home-liveboard-meta{width:100%}
+ .home-live-stats{gap:6px}
+ .home-live-stat{padding:9px}
+ .home-live-stat strong{font-size:17px}
+ .home-discovery-deck,.home-dynamic{padding:12px}
+ .home-discovery-grid{gap:7px}
+ .home-discovery-card{padding:10px;min-height:0}
+ .home-discovery-card p{font-size:9px}
+ .home-stat-strip-analytics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .home-dynamic-card{flex-basis:72%}
+ .home-choice{grid-template-columns:1fr}
+ .home-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .home-shelf-arrows button{width:30px;height:30px;font-size:21px}
+}
+@media(prefers-reduced-motion:reduce){
+ .home-orbit,.home-logo{animation:none}
+ .home-choice .card:hover,.home-dynamic-card:hover,.home-kit-button:hover{transform:none}
+}
+
 </style>
 
 <link rel="stylesheet" href="css/sitewide-refinements.css?v=20261012">
