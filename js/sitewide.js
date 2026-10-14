@@ -64,7 +64,18 @@
    }
   }
  };
- const start=()=>{safeExternalLinks();improveImages();normalizeForms();repairBrandLogos();ensureDonateLink();document.documentElement.dataset.crowSitewide='ready';ensurePodcastingSystems()};
+ function ensureFavicon(){
+  const href='https://crowrulesentertainment-oss.github.io/podcasting/test.jpg?v=1';
+  let icon=document.querySelector('link[rel~="icon"]');
+  if(!icon){icon=document.createElement('link');icon.rel='icon';document.head.appendChild(icon);}
+  icon.type='image/jpeg';
+  icon.href=href;
+  let shortcut=document.querySelector('link[rel="shortcut icon"]');
+  if(!shortcut){shortcut=document.createElement('link');shortcut.rel='shortcut icon';document.head.appendChild(shortcut);}
+  shortcut.type='image/jpeg';
+  shortcut.href=href;
+ }
+ const start=()=>{ensureFavicon();safeExternalLinks();improveImages();normalizeForms();repairBrandLogos();ensureDonateLink();document.documentElement.dataset.crowSitewide='ready';ensurePodcastingSystems()};
  // Ensure every Podcasting page has the shared Supabase config, CrowPoints balance,
  // and audio player, including lightweight landing pages that do not declare them.
  async function ensurePodcastingSystems(){
