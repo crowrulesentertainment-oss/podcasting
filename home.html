@@ -622,7 +622,7 @@ async function boot(){
   const dataChannel=S.channel("podcasting-home-db-live")
    .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},()=>{requestHomePulseRefresh();window.dispatchEvent(new CustomEvent("crowrules:home-catalog-change"))})
    .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},()=>{requestHomePulseRefresh();window.dispatchEvent(new CustomEvent("crowrules:home-catalog-change"))})
-   .subscribe(status=>{pulseRealtimeState=status;if(status==="SUBSCRIBED"){loadHomePulse()}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){pulseIds.updated.textContent="REALTIME RECONNECTING · POLLING ACTIVE"}});
+   .subscribe(status=>{pulseRealtimeState=status;window.CROW_HOME_REALTIME_STATE=status;window.dispatchEvent(new CustomEvent("crowrules:home-realtime-state",{detail:{status}}));if(status==="SUBSCRIBED"){loadHomePulse()}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){pulseIds.updated.textContent="REALTIME RECONNECTING · POLLING ACTIVE"}});
   window.addEventListener("pagehide",()=>{try{S.removeChannel(dataChannel)}catch(_){}},{once:true});
  }catch(e){unavailable("AUTH SERVICE UNAVAILABLE");authPanel.title=e?.message||"Could not initialize Supabase authentication."}
 }
@@ -736,7 +736,7 @@ boot();
 const C=window.CROW_CONFIG||{},L=window.supabase,$=id=>document.getElementById(id);
 const fmt=n=>Math.max(0,Number(n)||0).toLocaleString();
 const safe=v=>String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
-let discoveryRealtimeState="CONNECTING";
+let discoveryRealtimeState=window.CROW_HOME_REALTIME_STATE||"CONNECTING";
 const text=(id,v)=>{const el=$(id);if(!el)return;el.textContent=id==="homeDynamicStatus"?v+" · "+(discoveryRealtimeState==="SUBSCRIBED"?"REALTIME LIVE":(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(discoveryRealtimeState)?"REALTIME RECONNECTING · FALLBACK ACTIVE":"REALTIME CONNECTING")):v};
 let db=window.CROW_HOME_SUPABASE||null,busy=false,loadQueued=false,discoveryRefreshTimer=null,historyIds=[];const catalogCoverage={showsComplete:false,episodesComplete:false};
 function empty(id,msg){const el=$(id);if(el)el.innerHTML='<div class="home-dynamic-empty">'+safe(msg)+'</div>'}
@@ -918,6 +918,7 @@ if(L?.createClient&&C.supabaseUrl&&C.supabaseKey){
  try{
   if(!db)db=L.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   window.addEventListener("crowrules:home-catalog-change",scheduleDiscoveryRefresh);
+window.addEventListener("crowrules:home-realtime-state",event=>{discoveryRealtimeState=event.detail?.status||"CONNECTING";if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(discoveryRealtimeState))text("homeDynamicStatus","Realtime connection interrupted; the 60-second fallback remains active")});
  }catch(error){discoveryRealtimeState="CHANNEL_ERROR";text("homeDynamicStatus","Realtime setup failed; the 60-second fallback remains active")}
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)scheduleDiscoveryRefresh()});
