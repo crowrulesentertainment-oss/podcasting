@@ -77,16 +77,22 @@ async function start(){
     emit("crowrules:online",counts);
     return counts;
   }
-  async function track(){
+  async function track(force){
     if(stopped||tracking||document.visibilityState==="hidden"||channel.state!=="joined")return;
     var now=Date.now();
-    if(now-lastTrackAt<60000)return;
+    // Do not let a recent heartbeat suppress the first publish after reconnect or auth change.
+    if(!force&&now-lastTrackAt<15000)return;
     lastTrackAt=now;
     tracking=true;
     payload.last_seen_at=new Date().toISOString();
-    try{var status=await channel.track(payload);if(status&&status==="error")throw new Error("Supabase rejected presence tracking");countsFromState()}
-    catch(e){emit("crowrules:online-error",{message:String(e&&e.message||e),status:channel.state});}
-    finally{tracking=false}
+    try{
+      var status=await channel.track(payload);
+      if(status&&String(status).toLowerCase()==="error")throw new Error("Supabase rejected presence tracking");
+      countsFromState();
+      emit("crowrules:online-status",{status:"TRACKED",area:payload.area,page:payload.page,role:payload.role});
+    }catch(e){
+      emit("crowrules:online-error",{message:String(e&&e.message||e),status:channel.state});
+    }finally{tracking=false}
   }
   channel.on("presence",{event:"sync"},countsFromState)
     .on("presence",{event:"join"},countsFromState)
@@ -94,14 +100,22 @@ async function start(){
   channel.subscribe(async function(status){
     emit("crowrules:online-status",{status:status});
     if(status==="SUBSCRIBED"){
-      try{var session=await client.auth.getSession();await updateRole(session&&session.data&&session.data.session)}catch(e){}
-      await track();
-      if(!heartbeat)heartbeat=setInterval(track,120000);
+      // Publish a guest session immediately; a slow or RLS-blocked role lookup must
+      // never prevent this page from appearing in the live audience.
+      await track(true);
+      try{
+        var session=await client.auth.getSession();
+        await updateRole(session&&session.data&&session.data.session);
+        await track(true);
+      }catch(e){emit("crowrules:online-error",{message:"Role refresh failed: "+String(e&&e.message||e),status:channel.state})}
+      if(!heartbeat)heartbeat=setInterval(function(){track(true)},20000);
     }
-    if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")emit("crowrules:online-error",{message:"Presence channel "+status,status:status});
+    if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){
+      emit("crowrules:online-error",{message:"Presence channel "+status,status:status});
+    }
   });
   var authResult=client.auth.onAuthStateChange(function(event,session){
-    Promise.resolve().then(async function(){await updateRole(session);await track()});
+    Promise.resolve().then(async function(){await updateRole(session);await track(true)});
   });
   authSubscription=authResult&&authResult.data&&authResult.data.subscription;
   function leave(){
@@ -112,7 +126,7 @@ async function start(){
     try{client.removeChannel(channel)}catch(e){}
   }
   window.addEventListener("pagehide",leave,{once:true});
-  document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")track()});
+  document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")track(true)});
   window.CrowRulesOnline={channel:channel,client:client,getCounts:countsFromState,stop:leave};
   emit("crowrules:online-status",{status:"INITIALIZED"});
 }
