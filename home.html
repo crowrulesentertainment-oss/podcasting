@@ -553,7 +553,7 @@ function renderLive(episodes){
  const parts=[];
  if(active.length)parts.push(active.map(row=>card(row,false)).join(""));
  if(upcoming.length){
-  parts.push('<div style="margin:14px 0 8px;font:800 10px Orbitron;letter-spacing:.1em;color:#a5f3fc">UPCOMING LIVE SHOWS</div>');
+  parts.push('<div style="margin:14px 0 8px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><span style="font:800 10px Orbitron;letter-spacing:.1em;color:#a5f3fc">UPCOMING LIVE SHOWS</span><a href="listener/show.html?id=ab335e1a-56db-47de-98a1-73bd67c2a1c8" style="font:800 9px Orbitron;letter-spacing:.04em;color:#c4b5fd;text-decoration:none">BACK DECK LIVE PAGE ↗</a></div>');
   parts.push(upcoming.map(row=>card(row,true)).join(""));
  }
  if(!parts.length){pulseIds.liveList.innerHTML=dataEmpty("No live or upcoming show episodes are currently scheduled.");return}
