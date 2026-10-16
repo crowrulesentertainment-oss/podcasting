@@ -5,7 +5,7 @@ const supabaseUrl = cfg.supabaseUrl;
 const supabaseKey = cfg.supabaseKey;
 const BUCKET = 'studio-recordings';
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, devices:[], tracks:[], master:null, openingFile:null, endingFile:null, openingBuffer:null, endingBuffer:null, audioContext:null, destination:null, startedAt:0, elapsedBeforePause:0, timerInterval:null, raf:null, saved:[], busy:false };
+const state = { client:null, user:null, devices:[], tracks:[], master:null, openingFile:null, endingFile:null, openingBuffer:null, endingBuffer:null, openingSource:null, endingSource:null, audioContext:null, destination:null, startedAt:0, elapsedBeforePause:0, timerInterval:null, raf:null, saved:[], busy:false };
 const say = (message, error=false) => { const el=$('status'); el.textContent=message; el.classList.toggle('error',!!error); };
 const fmt = seconds => { seconds=Math.max(0,Math.floor(seconds)); return [Math.floor(seconds/3600),Math.floor(seconds%3600/60),seconds%60].map(n=>String(n).padStart(2,'0')).join(':'); };
 const slug = s => (s||'episode').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,70)||'episode';
@@ -55,9 +55,20 @@ function renderTracks(){
  if(!state.tracks.length){root.innerHTML='<div class="message">No tracks added yet. Select a microphone above and choose “Add microphone track”.</div>';return;}
  state.tracks.forEach((t,i)=>{const row=document.createElement('div');row.className='track';const info=document.createElement('div');const name=document.createElement('b');name.textContent=t.name;const sub=document.createElement('small');sub.textContent=t.status||'Ready';info.append(name,sub);const sel=document.createElement('select');sel.setAttribute('aria-label','Microphone for '+t.name);state.devices.forEach((d,n)=>{const o=document.createElement('option');o.value=d.deviceId;o.textContent=d.label||'Microphone '+(n+1);sel.append(o);});sel.value=t.deviceId;sel.disabled=state.busy;sel.addEventListener('change',()=>{t.deviceId=sel.value;});const remove=document.createElement('button');remove.className='btn';remove.textContent='Remove';remove.disabled=state.busy;remove.addEventListener('click',()=>{t.stream?.getTracks().forEach(x=>x.stop());state.tracks=state.tracks.filter(x=>x!==t);renderTracks();});row.append(info,sel,remove);root.append(row);});
 }
-function setupBedTracks(){
+async function setupBedTracks(){
  state.openingFile=$('openingFile').files?.[0]||null;
  state.endingFile=$('endingFile').files?.[0]||null;
+ state.openingSource=null;state.endingSource=null;
+ const getSaved=async id=>{
+  if(!id)return null;
+  for(const row of state.saved||[]){
+   const track=(row.tracks||[]).find(t=>t.path===id);
+   if(track)return {row,track};
+  }
+  return null;
+ };
+ if(!state.openingFile){state.openingSource=await getSaved($('openingSavedTrack').value);if(state.openingSource){const {data,error}=await state.client.storage.from(BUCKET).download(state.openingSource.track.path);if(error)throw error;state.openingFile=new File([data],state.openingSource.track.name||'saved-opening-track',{type:state.openingSource.track.mime_type||data.type||'audio/webm'});}}
+ if(!state.endingFile){state.endingSource=await getSaved($('endingSavedTrack').value);if(state.endingSource){const {data,error}=await state.client.storage.from(BUCKET).download(state.endingSource.track.path);if(error)throw error;state.endingFile=new File([data],state.endingSource.track.name||'saved-ending-track',{type:state.endingSource.track.mime_type||data.type||'audio/webm'});}}
 }
 async function decodeOptionalTrack(file){
  if(!file)return null;
@@ -162,9 +173,20 @@ async function saveRecording(button){
   say('Save failed: '+(e.message||String(e))+' — any uploaded partial files were queued for cleanup and remain private.',true);
  }finally{state.busy=false;button.disabled=false;}
 }
+function populateSavedTrackOptions(){
+ for(const id of ['openingSavedTrack','endingSavedTrack']){
+  const select=$(id);const prior=select.value;select.innerHTML='<option value="">No saved track selected</option>';
+  (state.saved||[]).forEach(row=>(row.tracks||[]).forEach(track=>{
+   const option=document.createElement('option');option.value=track.path;
+   option.textContent=row.title+' — '+(track.name||track.role||'Audio track');
+   select.append(option);
+  }));
+  if([...select.options].some(o=>o.value===prior))select.value=prior;
+ }
+}
 async function loadSaved(){
  const {data,error}=await state.client.from('studio_recordings').select('id,title,status,duration_seconds,tracks,created_at,podcast_id').neq('status','deleted').order('created_at',{ascending:false}).limit(25);
- if(error)throw error;state.saved=data||[];const root=$('savedList');root.innerHTML='';
+ if(error)throw error;state.saved=data||[];populateSavedTrackOptions();const root=$('savedList');root.innerHTML='';
  if(!state.saved.length){root.innerHTML='<div class="message">No saved recordings yet. Your private sessions will show here.</div>';return;}
  state.saved.forEach(row=>{const card=document.createElement('div');card.className='saved';const strong=document.createElement('strong');strong.textContent=row.title;const p=document.createElement('p');p.textContent=fmt(row.duration_seconds)+' · '+(row.tracks||[]).length+' files · '+row.status+' · '+new Date(row.created_at).toLocaleString();card.append(strong,p);
   const master=(row.tracks||[]).find(t=>t.role==='master');if(master){const play=document.createElement('button');play.className='btn';play.textContent='▶ Preview master mix';play.addEventListener('click',async()=>{try{const {data,error}=await state.client.storage.from(BUCKET).createSignedUrl(master.path,300);if(error)throw error;const audio=document.createElement('audio');audio.controls=true;audio.src=data.signedUrl;audio.style.width='100%';play.replaceWith(audio);}catch(e){say('Could not create private preview: '+e.message,true);}});card.append(play);}
@@ -190,7 +212,8 @@ async function createDraft(row,button,chosenPodcast){
   await loadSaved();
  }catch(e){say('Could not create episode draft: '+(e.message||String(e)),true);button.disabled=false;}
 }
-$('openingFile').addEventListener('change',setupBedTracks);$('endingFile').addEventListener('change',setupBedTracks);
+$('openingFile').addEventListener('change',()=>{if($('openingFile').files.length)$('openingSavedTrack').value='';});$('endingFile').addEventListener('change',()=>{if($('endingFile').files.length)$('endingSavedTrack').value='';});
+$('openingSavedTrack').addEventListener('change',()=>{if($('openingSavedTrack').value)$('openingFile').value='';});$('endingSavedTrack').addEventListener('change',()=>{if($('endingSavedTrack').value)$('endingFile').value='';});
 $('refreshDevices').addEventListener('click',refreshDevices);$('addTrack').addEventListener('click',addTrack);$('startBtn').addEventListener('click',startRecording);$('pauseBtn').addEventListener('click',pauseRecording);$('stopBtn').addEventListener('click',stopRecording);
 window.addEventListener('beforeunload',e=>{if(state.tracks.some(t=>t.recorder&&t.recorder.state!=='inactive')){e.preventDefault();e.returnValue='Recording in progress';}});
 drawWave();init();
