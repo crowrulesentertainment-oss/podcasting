@@ -5,7 +5,7 @@ const supabaseUrl = cfg.supabaseUrl;
 const supabaseKey = cfg.supabaseKey;
 const BUCKET = 'studio-recordings';
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, devices:[], tracks:[], master:null, audioContext:null, destination:null, startedAt:0, elapsedBeforePause:0, timerInterval:null, raf:null, saved:[], busy:false };
+const state = { client:null, user:null, devices:[], tracks:[], master:null, openingFile:null, endingFile:null, openingBuffer:null, endingBuffer:null, audioContext:null, destination:null, startedAt:0, elapsedBeforePause:0, timerInterval:null, raf:null, saved:[], busy:false };
 const say = (message, error=false) => { const el=$('status'); el.textContent=message; el.classList.toggle('error',!!error); };
 const fmt = seconds => { seconds=Math.max(0,Math.floor(seconds)); return [Math.floor(seconds/3600),Math.floor(seconds%3600/60),seconds%60].map(n=>String(n).padStart(2,'0')).join(':'); };
 const slug = s => (s||'episode').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,70)||'episode';
@@ -55,6 +55,21 @@ function renderTracks(){
  if(!state.tracks.length){root.innerHTML='<div class="message">No tracks added yet. Select a microphone above and choose “Add microphone track”.</div>';return;}
  state.tracks.forEach((t,i)=>{const row=document.createElement('div');row.className='track';const info=document.createElement('div');const name=document.createElement('b');name.textContent=t.name;const sub=document.createElement('small');sub.textContent=t.status||'Ready';info.append(name,sub);const sel=document.createElement('select');sel.setAttribute('aria-label','Microphone for '+t.name);state.devices.forEach((d,n)=>{const o=document.createElement('option');o.value=d.deviceId;o.textContent=d.label||'Microphone '+(n+1);sel.append(o);});sel.value=t.deviceId;sel.disabled=state.busy;sel.addEventListener('change',()=>{t.deviceId=sel.value;});const remove=document.createElement('button');remove.className='btn';remove.textContent='Remove';remove.disabled=state.busy;remove.addEventListener('click',()=>{t.stream?.getTracks().forEach(x=>x.stop());state.tracks=state.tracks.filter(x=>x!==t);renderTracks();});row.append(info,sel,remove);root.append(row);});
 }
+function setupBedTracks(){
+ state.openingFile=$('openingFile').files?.[0]||null;
+ state.endingFile=$('endingFile').files?.[0]||null;
+}
+async function decodeOptionalTrack(file){
+ if(!file)return null;
+ const bytes=await file.arrayBuffer();
+ return await state.audioContext.decodeAudioData(bytes.slice(0));
+}
+function playBuffer(buffer){
+ if(!buffer||!state.audioContext||!state.destination)return null;
+ const source=state.audioContext.createBufferSource();
+ source.buffer=buffer;source.connect(state.destination);source.start();
+ return source;
+}
 function addTrack(){
  if(state.busy)return;
  const deviceId=$('inputSelect').value;if(!deviceId){say('Choose a microphone first.',true);return;}
@@ -70,11 +85,13 @@ function recorderFor(stream,trackName){
 async function startRecording(){
  if(state.busy||!state.user)return;
  if(!state.tracks.length){say('Add at least one microphone track before recording.',true);return;}
+ setupBedTracks();
  if(!window.MediaRecorder){say('This browser does not support MediaRecorder.',true);return;}
  state.busy=true;renderTracks();$('startBtn').disabled=true;
  try{
   state.audioContext=new (window.AudioContext||window.webkitAudioContext)();
   state.destination=state.audioContext.createMediaStreamDestination();
+  state.openingBuffer=await decodeOptionalTrack(state.openingFile);state.endingBuffer=await decodeOptionalTrack(state.endingFile);
   for(const t of state.tracks){
    t.stream=await navigator.mediaDevices.getUserMedia({audio:{deviceId:{exact:t.deviceId},echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
    t.chunks=[];t.blob=null;t.source=state.audioContext.createMediaStreamSource(t.stream);t.analyser=state.audioContext.createAnalyser();t.analyser.fftSize=1024;t.source.connect(t.analyser);t.source.connect(state.destination);
@@ -85,6 +102,7 @@ async function startRecording(){
   state.master.recorder.ondataavailable=e=>{if(e.data?.size)state.master.chunks.push(e.data);};
   state.master.recorder.onstop=()=>{state.master.blob=new Blob(state.master.chunks,{type:state.master.recorder.mimeType||'audio/webm'});};
   state.tracks.forEach(t=>{t.recorder.start(1000);t.status='Recording';});state.master.recorder.start(1000);
+  if(state.openingBuffer)playBuffer(state.openingBuffer);
   state.startedAt=Date.now();state.elapsedBeforePause=0;state.timerInterval=setInterval(()=>{$('timer').textContent=fmt(state.elapsedBeforePause+(state.startedAt?((Date.now()-state.startedAt)/1000):0));},250);
   $('pauseBtn').disabled=false;$('stopBtn').disabled=false;$('pauseBtn').textContent='Ⅱ Pause';say('Recording. Keep this browser tab open. All tracks are captured separately plus the master mix.');
  }catch(e){cleanupStreams();say('Could not start every track: '+(e.message||e)+'. Check device permissions and try again.',true);}
@@ -99,6 +117,10 @@ function cleanupStreams(){state.tracks.forEach(t=>t.stream?.getTracks().forEach(
 async function stopRecording(){
  const recs=[...state.tracks.map(t=>t.recorder),state.master?.recorder].filter(Boolean);
  if(!recs.some(r=>r.state==='recording'||r.state==='paused'))return;
+ if(state.endingBuffer&&state.audioContext){
+  $('stopBtn').disabled=true;$('pauseBtn').disabled=true;say('Playing ending track into the master mix…');
+  try{if(state.audioContext.state==='suspended')await state.audioContext.resume();playBuffer(state.endingBuffer);await new Promise(resolve=>setTimeout(resolve,state.endingBuffer.duration*1000+150));}catch(e){say('Ending track could not finish: '+(e.message||e)+'. Stopping recording now.',true);}
+ }
  clearInterval(state.timerInterval);if(state.startedAt)state.elapsedBeforePause+=(Date.now()-state.startedAt)/1000;state.startedAt=0;$('timer').textContent=fmt(state.elapsedBeforePause);
  await Promise.all(recs.map(r=>new Promise(resolve=>{if(r.state==='inactive')return resolve();r.addEventListener('stop',resolve,{once:true});try{r.stop();}catch{resolve();}})));
  state.tracks.forEach(t=>t.stream?.getTracks().forEach(x=>x.stop()));state.master?.stream?.getTracks().forEach(x=>x.stop());
@@ -118,13 +140,15 @@ async function saveRecording(button){
  if(!all.length){say('No captured audio found. Record a take first.',true);return;}
  state.busy=true;button.disabled=true;
  const title=$('sessionTitle').value.trim()||'Untitled recording';const podcastId=$('podcastSelect').value||null;const recordingId=crypto.randomUUID();const uploaded=[];
+ if(state.openingFile)all.push({name:'Opening track',blob:state.openingFile,role:'opening'});
+ if(state.endingFile)all.push({name:'Ending track',blob:state.endingFile,role:'ending'});
  try{
   for(let i=0;i<all.length;i++){
    const t=all[i];const ext=(t.blob.type.includes('mp4')?'mp4':t.blob.type.includes('ogg')?'ogg':'webm');
    const path=state.user.id+'/'+recordingId+'/'+(t.name==='Master mix'?'master-mix':safeName(t.name))+'.'+ext;
    say('Uploading '+(i+1)+' of '+all.length+': '+t.name+'…');
    const {error}=await state.client.storage.from(BUCKET).upload(path,t.blob,{contentType:(t.blob.type||'audio/webm').split(';')[0],upsert:false});if(error)throw error;
-   uploaded.push({name:t.name,path,mime_type:t.blob.type||'audio/webm',size_bytes:t.blob.size,role:t.name==='Master mix'?'master':'track'});
+   uploaded.push({name:t.name,path,mime_type:t.blob.type||'audio/webm',size_bytes:t.blob.size,role:t.role||(t.name==='Master mix'?'master':'track')});
   }
   const duration=Math.round(state.elapsedBeforePause);
   const {data:row,error}=await state.client.from('studio_recordings').insert({id:recordingId,owner_user_id:state.user.id,podcast_id:podcastId,title,status:'saved',duration_seconds:duration,tracks:uploaded}).select().single();if(error)throw error;
@@ -163,6 +187,7 @@ async function createDraft(row,button,chosenPodcast){
   await loadSaved();
  }catch(e){say('Could not create episode draft: '+(e.message||String(e)),true);button.disabled=false;}
 }
+$('openingFile').addEventListener('change',setupBedTracks);$('endingFile').addEventListener('change',setupBedTracks);
 $('refreshDevices').addEventListener('click',refreshDevices);$('addTrack').addEventListener('click',addTrack);$('startBtn').addEventListener('click',startRecording);$('pauseBtn').addEventListener('click',pauseRecording);$('stopBtn').addEventListener('click',stopRecording);
 window.addEventListener('beforeunload',e=>{if(state.tracks.some(t=>t.recorder&&t.recorder.state!=='inactive')){e.preventDefault();e.returnValue='Recording in progress';}});
 drawWave();init();
