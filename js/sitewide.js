@@ -48,11 +48,29 @@
   const makeLink=(id,label)=>{const a=document.createElement('a');a.id=id;a.href=donateUrl;a.textContent=label;a.setAttribute('aria-label','Donate to support CrowRules Podcasting');a.title='Support CrowRules Podcasting';return a};
   let link=document.getElementById('crow-sitewide-donate');
   const nav=document.querySelector('header nav, nav[aria-label="Main navigation"], nav[aria-label="Primary navigation"], header .nav-links, header .nav, nav');
-  if(!link){
-   link=makeLink('crow-sitewide-donate','♥ Donate');
-   if(nav){link.style.margin='6px';nav.appendChild(link)}
-   else{link.textContent='♥  SUPPORT CROWRULES';link.classList.add('crow-donate-floating');link.style.cssText+=';position:fixed;right:18px;bottom:18px;z-index:9998;padding:12px 16px;box-shadow:0 8px 30px rgba(0,0,0,.4),0 0 22px rgba(103,232,249,.12);backdrop-filter:blur(12px)';document.body.appendChild(link)}
-  }else if(link.href!==donateUrl){link.href=donateUrl}
+  // Prefer the hero's primary CTA row so the donation action is visible with the page's main message.
+  const hero=document.querySelector('.listener-hero .hero-actions, .hero .hero-actions, .hero-actions, .hero-cta, .hero-actions-row, header .hero-actions');
+  if(!link)link=makeLink('crow-sitewide-donate','♥ Donate');
+  if(link.href!==donateUrl)link.href=donateUrl;
+  if(hero){
+   link.classList.remove('crow-donate-floating');
+   link.style.margin='0';
+   link.style.position='static';
+   link.style.boxShadow='';
+   link.style.backdropFilter='';
+   link.style.zIndex='';
+   if(!hero.contains(link))hero.appendChild(link);
+  }else if(nav){
+   link.style.margin='6px';
+   link.style.position='static';
+   link.style.boxShadow='';
+   if(!nav.contains(link))nav.appendChild(link);
+  }else if(!link.isConnected){
+   link.textContent='♥  SUPPORT CROWRULES';
+   link.classList.add('crow-donate-floating');
+   link.style.cssText+=';position:fixed;right:18px;bottom:18px;z-index:9998;padding:12px 16px;box-shadow:0 8px 30px rgba(0,0,0,.4),0 0 22px rgba(103,232,249,.12);backdrop-filter:blur(12px)';
+   document.body.appendChild(link);
+  }
   // Add a compact, consistent support message near the footer on content pages.
   if(!document.getElementById('crow-sitewide-support')){
    const footer=document.querySelector('body > footer, main + footer, footer');
