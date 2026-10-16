@@ -48,6 +48,43 @@ function showToast(message,ok){const el=document.getElementById("actionMessage")
 async function countQuery(table,query){try{let q=client.from(table).select("*",{count:"exact",head:true});if(query)q=query(q);const r=await q;return {count:r.count||0,error:r.error? r.error.message:null}}catch(e){return {count:0,error:e.message||String(e)}}}
 async function dataQuery(table,columns,orderCol,limit){try{let q=client.from(table).select(columns);if(orderCol)q=q.order(orderCol,{ascending:false,nullsFirst:false});if(limit)q=q.limit(limit);const r=await q;return {data:r.data||[],error:r.error?r.error.message:null}}catch(e){return {data:[],error:e.message||String(e)}}}
 function reportStatus(r){return String(r.status||"open").toLowerCase()}
+const GITHUB_REPO_API="https://api.github.com/repos/crowrulesentertainment-oss/crowrulesentertainment";
+let githubStatsLastLoaded=0,githubStatsLoading=false;
+function githubStat(id,value){const el=document.getElementById(id);if(el)el.textContent=value===null||value===undefined?"—":Number(value).toLocaleString()}
+function githubDate(value){if(!value)return "—";const d=new Date(value);return Number.isNaN(d.getTime())?"—":d.toLocaleString()}
+async function loadGithubRepoStats(force=false){
+ if(githubStatsLoading||(!force&&Date.now()-githubStatsLastLoaded<300000))return;
+ const status=document.getElementById("githubRepoStatus");if(!status)return;
+ githubStatsLoading=true;status.textContent="FETCHING";status.classList.remove("published");status.classList.add("open");
+ const rows=document.getElementById("githubCommitRows");
+ try{
+  const since=new Date(Date.now()-30*24*60*60*1000).toISOString();
+  const responses=await Promise.all([
+   fetch(GITHUB_REPO_API,{headers:{Accept:"application/vnd.github+json"}}),
+   fetch(GITHUB_REPO_API+"/commits?per_page=5",{headers:{Accept:"application/vnd.github+json"}}),
+   fetch(GITHUB_REPO_API+"/commits?since="+encodeURIComponent(since)+"&per_page=100",{headers:{Accept:"application/vnd.github+json"}})
+  ]);
+  if(responses.some(response=>!response.ok))throw new Error("GitHub API returned HTTP "+responses.find(response=>!response.ok).status);
+  const [repo,commits,recent]=await Promise.all(responses.map(response=>response.json()));
+  githubStat("githubStars",repo.stargazers_count);githubStat("githubForks",repo.forks_count);
+  githubStat("githubIssues",repo.open_issues_count);githubStat("githubWatchers",repo.subscribers_count);
+  githubStat("githubRecentCommits",Array.isArray(recent)?recent.length:0);
+  const size=document.getElementById("githubSize");if(size)size.textContent=repo.size===undefined?"—":(repo.size>=1024?(repo.size/1024).toFixed(1)+" MB":Number(repo.size).toLocaleString()+" KB");
+  const details=document.getElementById("githubRepoDetails");
+  if(details)details.textContent="Default branch: "+(repo.default_branch||"—")+" • Language: "+(repo.language||"Not specified")+" • Visibility: "+(repo.private?"Private":"Public")+" • Created: "+githubDate(repo.created_at);
+  const updated=document.getElementById("githubRepoUpdated");
+  if(updated)updated.textContent="Last repository update: "+githubDate(repo.updated_at)+" • Stats retrieved: "+new Date().toLocaleString()+" • Open Issues includes pull requests in GitHub repository metadata.";
+  if(rows)rows.innerHTML=(Array.isArray(commits)&&commits.length?commits.map(commit=>{
+   const sha=String(commit.sha||"").slice(0,7),message=String(commit.commit?.message||"").split("\n")[0],author=commit.author?.login||commit.commit?.author?.name||"Unknown";
+   return '<tr><td><a href="'+esc(commit.html_url||("https://github.com/crowrulesentertainment-oss/crowrulesentertainment/commit/"+commit.sha))+'" target="_blank" rel="noopener noreferrer">'+esc(sha||"—")+'</a></td><td>'+esc(message)+'</td><td>'+esc(author)+'</td><td>'+esc(githubDate(commit.commit?.author?.date))+'</td></tr>';
+  }).join(""):'<tr><td colspan="4" class="muted">No recent commits returned.</td></tr>');
+  status.textContent="LIVE • PUBLIC API";status.classList.remove("open");status.classList.add("published");githubStatsLastLoaded=Date.now();
+ }catch(error){
+  status.textContent="UNAVAILABLE";status.classList.remove("published");status.classList.add("open");
+  if(rows)rows.innerHTML='<tr><td colspan="4" class="muted">Could not load GitHub stats. Check network access or GitHub API rate limits, then retry.</td></tr>';
+  const details=document.getElementById("githubRepoDetails");if(details)details.textContent=error.message||"Unable to retrieve public repository stats.";
+ }finally{githubStatsLoading=false}
+}
 async function load(){
  if(!client)return;if(refreshing){refreshQueued=true;return}refreshing=true;connection.textContent=realtimeConnected?"Realtime connected • syncing database counts…":"Refreshing database counts…";
  try{
@@ -120,6 +157,7 @@ async function load(){
    metric("Recorded plays",totalPlays,"Sum of available play counters")+
     metric("Donations received",donations.filter(r=>["paid","succeeded","complete","completed","success"].includes(String(r.payment_status||r.status||"").toLowerCase())).length,"Records with a successful payment status")+
    '</section>'+
+   '<section class="section panel" id="githubRepoPanel"><div class="section-head"><h2>CROWRULES ENTERTAINMENT • GITHUB STATS</h2><div class="toolbar"><span class="pill open" id="githubRepoStatus">Loading repository…</span><button class="btn" id="refreshGithubStats">REFRESH GITHUB STATS</button><a class="btn" href="https://github.com/crowrulesentertainment-oss/crowrulesentertainment" target="_blank" rel="noopener noreferrer">OPEN REPOSITORY ↗</a></div></div><p class="muted">Public repository metadata and recent commit activity from the CrowRules Entertainment GitHub repository. These figures are separate from Podcasting database metrics.</p><div class="grid stripe-metrics"><div class="panel metric"><small>Stars</small><strong id="githubStars">—</strong><em>Public GitHub stars</em></div><div class="panel metric"><small>Forks</small><strong id="githubForks">—</strong><em>Repository forks</em></div><div class="panel metric"><small>Open Issues</small><strong id="githubIssues">—</strong><em>GitHub open issue count</em></div><div class="panel metric"><small>Watchers</small><strong id="githubWatchers">—</strong><em>Repository subscribers</em></div><div class="panel metric"><small>Recent Commits</small><strong id="githubRecentCommits">—</strong><em>Last 30 days · capped at 100</em></div><div class="panel metric"><small>Repository Size</small><strong id="githubSize">—</strong><em>GitHub-reported KB</em></div></div><div class="ops-statline" id="githubRepoDetails" aria-live="polite">Waiting for public GitHub API response…</div><h3 class="small">LATEST COMMITS</h3><div class="table-wrap"><table class="table" style="min-width:620px"><thead><tr><th>Commit</th><th>Message</th><th>Author</th><th>Date</th></tr></thead><tbody id="githubCommitRows"><tr><td colspan="4" class="muted">Loading recent commits…</td></tr></tbody></table></div><p class="muted small" id="githubRepoUpdated">Repository update timestamp will appear here.</p></section>'+
    '<section class="section"><div class="section-head"><h2>REALTIME ONLINE AUDIENCE</h2><span class="pill open" id="presenceBadge">CONNECTING</span></div><div class="grid">'+
    '<div class="panel metric"><small>Online Now</small><strong id="onlineTotal">—</strong><em>Presence sessions</em></div>'+
    '<div class="panel metric"><small>Listeners Online</small><strong id="onlineListeners">—</strong><em>Listener experience</em></div>'+
@@ -301,7 +339,7 @@ async function load(){
   document.getElementById("exportDataHealth")?.addEventListener("click",()=>downloadCsv("crowrules-data-health-"+new Date().toISOString().slice(0,10)+".csv",[["metric","value"],["generated_at",new Date().toISOString()],["event_source",eventSource||"unavailable"],["raw_event_rows",eventData.length],["recognized_play_events",eventCount===null?"unavailable":eventCount],["latest_event_at",latestEventAt?latestEventAt.toISOString():"unknown"],["event_age_hours",eventAgeHours===null?"unknown":Math.floor(eventAgeHours)],["stale_threshold_hours",staleThresholdHours],["show_counter_total",showCounterTotal],["episode_counter_total",episodeCounterTotal],["counter_mismatch",counterMismatch],["events_with_episode_id",eventEpisodeLinked],["matched_episode_events",matchedEpisodeEvents],["orphan_episode_event_refs",orphanEpisodeEvents],["warnings",warnings.length],["finding_level","finding_title","detail"],...healthFindings.map(h=>[h.level,h.title,h.detail])]));
 
   document.getElementById("exportAnalytics")?.addEventListener("click",()=>downloadCsv("crowrules-listening-analytics-"+new Date().toISOString().slice(0,10)+".csv",[["metric","value"],["generated_at",new Date().toISOString()],["event_source",eventSource||"unavailable"],["raw_event_rows",eventData.length],["recognized_play_events",eventCount===null?"unavailable":eventCount],["show_counter_total",showCounterTotal],["episode_counter_total",episodeCounterTotal],["event_minus_episode_counter",counterDelta===null?"unavailable":counterDelta],["events_with_show_id",eventShowLinked],["events_with_episode_id",eventEpisodeLinked],["events_matched_to_episode",matchedEpisodeEvents],["events_matched_to_show",matchedShowEvents],["orphan_episode_event_refs",orphanEpisodeEvents],["loaded_episodes",podcastEpisodesR.data.length],["loaded_podcasts",podcasts.length],["warnings",warnings.length],["episode_title","show_id","play_count"],...episodeRank.map(e=>[e.title,e.podcast_id,e.play_count]),["event_episode_id","episode_title","show_id","event_rows","match_status"],...Array.from(eventEpisodeAgg.entries()).map(function(pair){const id=pair[0],count=pair[1],ep=podcastEpisodesR.data.find(function(e){return String(e.id)===id});return [id,ep?ep.title:"Unknown episode ID",ep?ep.podcast_id:"",count,ep?"matched":"orphaned"]}),["creator","shows","published_shows","show_plays"],...creatorRank.map(c=>[c.name,c.shows,c.published,c.plays])]));
-  renderPodcasts();renderReports();renderMembers(membersR.data,memberRolesR.data,creatorsR.data);renderDonations();renderCreatorFinance();lastRefreshAt=new Date();connection.textContent=(realtimeConnected?"LIVE DATABASE UPDATES":"Polling database counts")+" • Last synced "+lastRefreshAt.toLocaleTimeString();
+  renderPodcasts();renderReports();renderMembers(membersR.data,memberRolesR.data,creatorsR.data);renderDonations();renderCreatorFinance();loadGithubRepoStats();const githubRefreshButton=document.getElementById("refreshGithubStats");if(githubRefreshButton&&!githubRefreshButton.dataset.bound){githubRefreshButton.dataset.bound="1";githubRefreshButton.addEventListener("click",()=>loadGithubRepoStats(true))}lastRefreshAt=new Date();connection.textContent=(realtimeConnected?"LIVE DATABASE UPDATES":"Polling database counts")+" • Last synced "+lastRefreshAt.toLocaleTimeString();
  }catch(e){connection.textContent="Dashboard refresh failed";showToast(e.message||"Could not load dashboard.",false)}
  finally{refreshing=false;if(refreshQueued){refreshQueued=false;queueMicrotask(()=>load())}}
 }
