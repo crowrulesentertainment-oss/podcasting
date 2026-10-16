@@ -59,11 +59,16 @@ async function loadGithubRepoStats(force=false){
  const rows=document.getElementById("githubCommitRows");
  try{
   const since=new Date(Date.now()-30*24*60*60*1000).toISOString();
-  const responses=await Promise.all([
-   fetch(GITHUB_REPO_API,{headers:{Accept:"application/vnd.github+json"}}),
-   fetch(GITHUB_REPO_API+"/commits?per_page=5",{headers:{Accept:"application/vnd.github+json"}}),
-   fetch(GITHUB_REPO_API+"/commits?since="+encodeURIComponent(since)+"&per_page=100",{headers:{Accept:"application/vnd.github+json"}})
-  ]);
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),12000);
+  let responses;
+  try{
+   responses=await Promise.all([
+    fetch(GITHUB_REPO_API,{headers:{Accept:"application/vnd.github+json"},signal:controller.signal}),
+    fetch(GITHUB_REPO_API+"/commits?per_page=5",{headers:{Accept:"application/vnd.github+json"},signal:controller.signal}),
+    fetch(GITHUB_REPO_API+"/commits?since="+encodeURIComponent(since)+"&per_page=100",{headers:{Accept:"application/vnd.github+json"},signal:controller.signal})
+   ]);
+  }finally{clearTimeout(timeout)}
   if(responses.some(response=>!response.ok))throw new Error("GitHub API returned HTTP "+responses.find(response=>!response.ok).status);
   const [repo,commits,recent]=await Promise.all(responses.map(response=>response.json()));
   githubStat("githubStars",repo.stargazers_count);githubStat("githubForks",repo.forks_count);
@@ -80,11 +85,20 @@ async function loadGithubRepoStats(force=false){
   }).join(""):'<tr><td colspan="4" class="muted">No recent commits returned.</td></tr>');
   status.textContent="LIVE • PUBLIC API";status.classList.remove("open");status.classList.add("published");githubStatsLastLoaded=Date.now();
  }catch(error){
-  status.textContent="UNAVAILABLE";status.classList.remove("published");status.classList.add("open");
+  status.textContent="UNAVAILABLE • RETRY AVAILABLE";status.classList.remove("published");status.classList.add("open");
   if(rows)rows.innerHTML='<tr><td colspan="4" class="muted">Could not load GitHub stats. Check network access or GitHub API rate limits, then retry.</td></tr>';
-  const details=document.getElementById("githubRepoDetails");if(details)details.textContent=error.message||"Unable to retrieve public repository stats.";
+  const details=document.getElementById("githubRepoDetails");if(details)details.textContent=(error.name==="AbortError"?"GitHub API request timed out after 12 seconds.":(error.message||"Unable to retrieve public repository stats."))+" Use REFRESH GITHUB STATS to retry.";
  }finally{githubStatsLoading=false}
 }
+function startGithubStatsWhenVisible(){
+ const status=document.getElementById("githubRepoStatus");
+ if(!status)return false;
+ const button=document.getElementById("refreshGithubStats");
+ if(button&&!button.dataset.bound){button.dataset.bound="1";button.addEventListener("click",()=>loadGithubRepoStats(true))}
+ if(!status.dataset.started){status.dataset.started="1";loadGithubRepoStats(true)}
+ return true;
+}
+const githubStatsBootstrap=setInterval(()=>{if(startGithubStatsWhenVisible())clearInterval(githubStatsBootstrap)},500);
 async function load(){
  if(!client)return;if(refreshing){refreshQueued=true;return}refreshing=true;connection.textContent=realtimeConnected?"Realtime connected • syncing database counts…":"Refreshing database counts…";
  try{
@@ -339,7 +353,7 @@ async function load(){
   document.getElementById("exportDataHealth")?.addEventListener("click",()=>downloadCsv("crowrules-data-health-"+new Date().toISOString().slice(0,10)+".csv",[["metric","value"],["generated_at",new Date().toISOString()],["event_source",eventSource||"unavailable"],["raw_event_rows",eventData.length],["recognized_play_events",eventCount===null?"unavailable":eventCount],["latest_event_at",latestEventAt?latestEventAt.toISOString():"unknown"],["event_age_hours",eventAgeHours===null?"unknown":Math.floor(eventAgeHours)],["stale_threshold_hours",staleThresholdHours],["show_counter_total",showCounterTotal],["episode_counter_total",episodeCounterTotal],["counter_mismatch",counterMismatch],["events_with_episode_id",eventEpisodeLinked],["matched_episode_events",matchedEpisodeEvents],["orphan_episode_event_refs",orphanEpisodeEvents],["warnings",warnings.length],["finding_level","finding_title","detail"],...healthFindings.map(h=>[h.level,h.title,h.detail])]));
 
   document.getElementById("exportAnalytics")?.addEventListener("click",()=>downloadCsv("crowrules-listening-analytics-"+new Date().toISOString().slice(0,10)+".csv",[["metric","value"],["generated_at",new Date().toISOString()],["event_source",eventSource||"unavailable"],["raw_event_rows",eventData.length],["recognized_play_events",eventCount===null?"unavailable":eventCount],["show_counter_total",showCounterTotal],["episode_counter_total",episodeCounterTotal],["event_minus_episode_counter",counterDelta===null?"unavailable":counterDelta],["events_with_show_id",eventShowLinked],["events_with_episode_id",eventEpisodeLinked],["events_matched_to_episode",matchedEpisodeEvents],["events_matched_to_show",matchedShowEvents],["orphan_episode_event_refs",orphanEpisodeEvents],["loaded_episodes",podcastEpisodesR.data.length],["loaded_podcasts",podcasts.length],["warnings",warnings.length],["episode_title","show_id","play_count"],...episodeRank.map(e=>[e.title,e.podcast_id,e.play_count]),["event_episode_id","episode_title","show_id","event_rows","match_status"],...Array.from(eventEpisodeAgg.entries()).map(function(pair){const id=pair[0],count=pair[1],ep=podcastEpisodesR.data.find(function(e){return String(e.id)===id});return [id,ep?ep.title:"Unknown episode ID",ep?ep.podcast_id:"",count,ep?"matched":"orphaned"]}),["creator","shows","published_shows","show_plays"],...creatorRank.map(c=>[c.name,c.shows,c.published,c.plays])]));
-  renderPodcasts();renderReports();renderMembers(membersR.data,memberRolesR.data,creatorsR.data);renderDonations();renderCreatorFinance();loadGithubRepoStats();const githubRefreshButton=document.getElementById("refreshGithubStats");if(githubRefreshButton&&!githubRefreshButton.dataset.bound){githubRefreshButton.dataset.bound="1";githubRefreshButton.addEventListener("click",()=>loadGithubRepoStats(true))}lastRefreshAt=new Date();connection.textContent=(realtimeConnected?"LIVE DATABASE UPDATES":"Polling database counts")+" • Last synced "+lastRefreshAt.toLocaleTimeString();
+  renderPodcasts();renderReports();renderMembers(membersR.data,memberRolesR.data,creatorsR.data);renderDonations();renderCreatorFinance();lastRefreshAt=new Date();connection.textContent=(realtimeConnected?"LIVE DATABASE UPDATES":"Polling database counts")+" • Last synced "+lastRefreshAt.toLocaleTimeString();
  }catch(e){connection.textContent="Dashboard refresh failed";showToast(e.message||"Could not load dashboard.",false)}
  finally{refreshing=false;if(refreshQueued){refreshQueued=false;queueMicrotask(()=>load())}}
 }
@@ -617,7 +631,7 @@ async function boot(){
   ["members","member_roles","creators","podcasts","podcast_episodes","episodes","podcast_member_reports","podcast_subscriptions","podcast_follows","cr_podcast_social_comments_v5","podcast_user_saved_episodes","podcast_listens","podcast_analytics_events","cr_donations","cr_podcast_stripe_accounts","cr_podcast_creator_earnings","cr_podcast_payouts"].forEach(table=>channel.on("postgres_changes",{event:"*",schema:"public",table},()=>{refreshQueued=true;if(!refreshing){refreshQueued=false;load()}}));
   channel.subscribe(status=>{realtimeConnected=status==="SUBSCRIBED";const badge=document.getElementById("presenceBadge");if(badge&&status!=="SUBSCRIBED")badge.textContent=status;if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")connection.textContent="Realtime subscription issue • polling remains enabled";else if(status==="SUBSCRIBED")connection.textContent="Realtime database feed connected";});
   presence=client.channel("crowrules-podcasting-online-v1",{config:{presence:{key:"crowrules-admin-"+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2))}}});
-  presence.on("presence",{event:"sync"},renderOnline).on("presence",{event:"join"},renderOnline).on("presence",{event:"leave"},renderOnline).subscribe(async status=>{const badge=document.getElementById("presenceBadge"),onlineStatus=document.getElementById("onlineStatus");if(badge&&status!=="SUBSCRIBED"){badge.textContent=status;badge.classList.remove("published");badge.classList.add("open")}if(status==="SUBSCRIBED"){try{const trackResult=await presence.track({area:"admin",role:"admin",session_id:"admin-"+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2)),online_at:new Date().toISOString(),last_seen_at:new Date().toISOString(),page:"admin.html"});if(trackResult&&String(trackResult).toLowerCase()==="error")throw new Error("Supabase rejected the admin presence track");presenceTrackingError="";renderOnline();if(onlineStatus&&Object.keys(presence.presenceState()||{}).length<=1)onlineStatus.textContent="Presence connected. No other visitor sessions are currently visible; confirm public pages load js/online-presence.js and publish to the shared channel."}catch(e){presenceTrackingError=e.message||"tracking failed";console.warn("Presence tracking unavailable",e);if(onlineStatus)onlineStatus.textContent="Presence connected, but this admin tab could not publish its own session: "+presenceTrackingError;renderOnline()}}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){presenceTrackingError="Supabase Presence is "+status;["onlineTotal","onlineListeners","onlineCreators"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent="—"});const launchCount=document.getElementById("onlineLaunch");if(launchCount&&launchCount.textContent.trim()==="—")launchCount.textContent="0";if(onlineStatus)onlineStatus.textContent=presenceTrackingError+". Check the connection; database stats polling remains available."}});
+  presence.on("presence",{event:"sync"},renderOnline).on("presence",{event:"join"},renderOnline).on("presence",{event:"leave"},renderOnline).subscribe(async status=>{const badge=document.getElementById("presenceBadge"),onlineStatus=document.getElementById("onlineStatus");if(badge&&status!=="SUBSCRIBED"){badge.textContent=status;badge.classList.remove("published");badge.classList.add("open")}if(status==="SUBSCRIBED"){try{const trackResult=await presence.track({area:"admin",role:"admin",session_id:"admin-"+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2)),online_at:new Date().toISOString(),last_seen_at:new Date().toISOString(),page:"admin.html"});if(trackResult&&String(trackResult).toLowerCase()==="error")throw new Error("Supabase rejected the admin presence track");presenceTrackingError="";renderOnline();if(onlineStatus&&Object.keys(presence.presenceState()||{}).length<=1)onlineStatus.textContent="Presence connected. No other visitor sessions are currently visible; confirm public pages load js/online-presence.js and publish to the shared channel."}catch(e){presenceTrackingError=e.message||"tracking failed";console.warn("Presence tracking unavailable",e);if(onlineStatus)onlineStatus.textContent="Presence connected, but this admin tab could not publish its own session: "+presenceTrackingError;renderOnline()}}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){presenceTrackingError="Supabase Presence is "+status;["onlineTotal","onlineListeners","onlineCreators"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent="—"});const launchCount=document.getElementById("onlineLaunch");if(launchCount)launchCount.textContent=launchCount.textContent.trim()==="—"?"0":launchCount.textContent;if(onlineStatus)onlineStatus.textContent=presenceTrackingError+". Check the connection; database stats polling remains available."}});
   await load();
   refreshTimer=setInterval(()=>load(),10000);
  }catch(e){connection.textContent="Could not verify session";gate("SECURE ACCESS CHECK FAILED",e.message||"Could not verify your session.",'<a class="btn primary" href="login.html?redirect=admin.html">SIGN IN AGAIN</a><button class="btn" onclick="location.reload()">RETRY</button>')}
