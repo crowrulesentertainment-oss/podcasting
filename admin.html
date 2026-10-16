@@ -148,7 +148,7 @@ async function load(){
    for(const name of Object.values(stateCodes)){if(normalized.includes(name.toLowerCase()))return name}
    return "State not identified";
   }
-  const profileByUserId=new Map((creatorProfileLocationsR.data||[]).map(p=>[String(p.user_id),p]));
+  const profileByUserId=new Map((creatorProfileLocationsR.data||[]).filter(p=>p.is_public===true).map(p=>[String(p.user_id),p]));
   const memberById=new Map(membersR.data.map(m=>[String(m.id),m]));
   const creatorsByStateRows=(creatorsR.data||[]).map(creator=>{
    const member=creator.member_id?memberById.get(String(creator.member_id)):null;
