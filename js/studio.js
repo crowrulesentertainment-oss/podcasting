@@ -31,6 +31,7 @@ async function loadPodcasts(){
  if(pe) throw pe;
  $('podcastSelect').innerHTML='<option value="">Private recording — choose later</option>';
  (shows||[]).forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.title+(p.status==='draft'?' · Draft':'');$('podcastSelect').append(o);});
+ const requestedPodcast=new URLSearchParams(location.search).get("podcast_id");if(requestedPodcast&&(shows||[]).some(p=>String(p.id)===requestedPodcast))$("podcastSelect").value=requestedPodcast;
 }
 async function refreshDevices(){
  try{
