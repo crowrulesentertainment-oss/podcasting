@@ -311,7 +311,7 @@ async function loadCreatorsByState(){
     stateCreators.forEach(p=>{
       const state=normalizedState(p);if(!state)return;
       const name=String(p.display_name||p.creator_name||p.name||p.username||"CrowRules Creator").trim();
-      const key=(String(p.user_id||p.member_id||p.creator_id||"")||name.toLowerCase())+"|"+state;
+      const canonicalName=name.toLowerCase().replace(/\\s+(ii|2nd)$/i,"").replace(/\\s+/g," ").trim();\n      const key=canonicalName+"|"+state;
       if(!unique.has(key))unique.set(key,p);
     });
     stateCreators=[...unique.values()];
