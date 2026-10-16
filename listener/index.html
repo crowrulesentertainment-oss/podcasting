@@ -73,7 +73,23 @@ a{text-decoration:none;color:inherit}
 @media(max-width:950px){.listener-links{display:none}.listener-hero{grid-template-columns:1fr}.hero-console{min-height:300px}.quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.live-panel{grid-template-columns:1fr}}
 @media(max-width:620px){.listener-shell{width:min(100% - 22px,1240px)}.listener-nav{min-height:64px}.listener-brand b{display:none}.listener-actions .lbtn:first-child{display:none}.listener-hero{padding:50px 0 35px}.listener-hero h1{font-size:43px}.grid,.community,.quick-grid{grid-template-columns:1fr}.section{padding-bottom:50px}.banner{display:block}.banner .lbtn{margin-top:18px;width:100%}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.panel,.lbtn{transition:none}}
-.back-deck-feature{margin:0 0 16px;padding:20px;border:1px solid rgba(255,91,216,.3);border-radius:20px;background:linear-gradient(135deg,rgba(255,91,216,.08),rgba(72,231,255,.06));display:grid;grid-template-columns:minmax(0,1.1fr) minmax(260px,.9fr);gap:22px;align-items:center}.back-deck-video{width:100%;aspect-ratio:16/9;border:1px solid rgba(72,231,255,.24);border-radius:13px;background:#000;overflow:hidden}.back-deck-video iframe{display:block;width:100%;height:100%;border:0}.back-deck-copy h3{font:800 clamp(21px,3vw,30px) Orbitron,sans-serif;margin:12px 0 8px}.back-deck-copy p{font-size:12px;line-height:1.7;color:#9aa7c1;margin:0 0 15px}.back-deck-feature .live-badge{color:#ff78df}@media(max-width:760px){.back-deck-feature{grid-template-columns:1fr}}.live-session-list{display:grid;gap:10px;margin-top:18px}.live-session-card{display:flex;align-items:center;gap:12px;flex-wrap:wrap;text-align:left;padding:15px;border:1px solid rgba(72,231,255,.2);border-radius:13px;background:rgba(5,8,22,.6)}.live-session-copy{flex:1;min-width:200px}.live-session-card h4{font:800 14px Orbitron,sans-serif;margin:8px 0}.live-session-card p{margin:0;font-size:11px;line-height:1.6;color:var(--muted)}.live-now{font-size:9px;letter-spacing:.12em;font-weight:900;color:#68f5b1}.live-session-card .lbtn{white-space:nowrap}</style>
+.back-deck-feature{margin:0 0 16px;padding:20px;border:1px solid rgba(255,91,216,.3);border-radius:20px;background:linear-gradient(135deg,rgba(255,91,216,.08),rgba(72,231,255,.06));display:grid;grid-template-columns:minmax(0,1.1fr) minmax(260px,.9fr);gap:22px;align-items:center}.back-deck-video{width:100%;aspect-ratio:16/9;border:1px solid rgba(72,231,255,.24);border-radius:13px;background:#000;overflow:hidden}.back-deck-video iframe{display:block;width:100%;height:100%;border:0}.back-deck-copy h3{font:800 clamp(21px,3vw,30px) Orbitron,sans-serif;margin:12px 0 8px}.back-deck-copy p{font-size:12px;line-height:1.7;color:#9aa7c1;margin:0 0 15px}.back-deck-feature .live-badge{color:#ff78df}@media(max-width:760px){.back-deck-feature{grid-template-columns:1fr}}.live-session-list{display:grid;gap:10px;margin-top:18px}.live-session-card{display:flex;align-items:center;gap:12px;flex-wrap:wrap;text-align:left;padding:15px;border:1px solid rgba(72,231,255,.2);border-radius:13px;background:rgba(5,8,22,.6)}.live-session-copy{flex:1;min-width:200px}.live-session-card h4{font:800 14px Orbitron,sans-serif;margin:8px 0}.live-session-card p{margin:0;font-size:11px;line-height:1.6;color:var(--muted)}.live-now{font-size:9px;letter-spacing:.12em;font-weight:900;color:#68f5b1}.live-session-card .lbtn{white-space:nowrap}
+.state-directory{border:1px solid var(--listener-line);border-radius:20px;padding:24px;background:linear-gradient(135deg,rgba(72,231,255,.045),rgba(155,108,255,.07))}
+.state-tools{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.state-search,.state-select{min-height:42px;min-width:0;padding:11px 13px;border:1px solid var(--listener-line);border-radius:10px;background:#090d20;color:#eef4ff;font:600 12px Montserrat,sans-serif}
+.state-search{flex:1;min-width:220px}
+.state-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.state-card{padding:16px;border:1px solid rgba(124,92,255,.22);border-radius:14px;background:rgba(255,255,255,.025);min-width:0}
+.state-card h3{font:700 13px Orbitron,sans-serif;margin:0 0 8px}
+.state-count{font:800 26px Orbitron,sans-serif;color:var(--listener-cyan)}
+.state-caption{font-size:10px;color:#8794ad;margin:5px 0 12px}
+.state-creator-list{display:grid;gap:7px}
+.state-creator{font-size:11px;color:#dce7ff;overflow-wrap:anywhere}
+.state-creator:hover{color:var(--listener-cyan)}
+.state-empty{grid-column:1/-1;text-align:center;color:#8190aa;padding:25px;line-height:1.7}
+@media(max-width:900px){.state-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.state-grid{grid-template-columns:1fr}.state-directory{padding:15px}.state-search{min-width:100%}}
+</style>
 
 <link rel="stylesheet" href="../css/sitewide-refinements.css?v=20261012">
 <script src="../js/sitewide.js?crowrules-sitewide=20261012-reliability" defer></script>
@@ -139,6 +155,23 @@ a{text-decoration:none;color:inherit}
     </div>
     <div class="grid" id="shows">
       <div class="panel empty">Scanning the podcast network…</div>
+    </div>
+  </section>
+
+
+  <section class="listener-shell section" id="creators-by-state">
+    <div class="section-head">
+      <div><h2>CREATORS BY STATE</h2><p>Find the voices and independent podcasters building their corner of the CrowRules network.</p></div>
+      <a class="lbtn" href="creators.html">ALL CREATORS ↗</a>
+    </div>
+    <div class="state-directory">
+      <div class="kicker">EXPLORE THE CREATOR MAP</div>
+      <p style="color:#9aa7c1;font-size:12px;line-height:1.7;margin:0">Browse creator profiles by their listed U.S. state. Locations appear only when creators have shared state information on their public profiles.</p>
+      <div class="state-tools">
+        <input class="state-search" id="stateCreatorSearch" type="search" maxlength="100" placeholder="Search a state or creator…" aria-label="Search creators by state or name">
+        <select class="state-select" id="stateCreatorSort" aria-label="Sort states"><option value="count">Most creators</option><option value="name">State name A–Z</option></select>
+      </div>
+      <div class="state-grid" id="stateCreatorGrid" aria-live="polite"><div class="state-empty">Creator locations will appear here when available.</div></div>
     </div>
   </section>
 
@@ -210,6 +243,65 @@ const esc=x=>String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&
 const logo=C.logoUrl||"../images/podcastinglogo.png";
 $("#brandLogo").src=logo;
 
+
+const US_STATES={AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming",DC:"District of Columbia"};
+let stateCreators=[];
+function normalizedState(p){
+  const raw=String(p.state||p.location_state||p.region_state||p.us_state||"").trim();
+  if(!raw)return "";
+  const upper=raw.toUpperCase();
+  if(US_STATES[upper])return US_STATES[upper];
+  return Object.values(US_STATES).find(v=>v.toLowerCase()===raw.toLowerCase())||"";
+}
+function renderCreatorsByState(){
+  const grid=$("#stateCreatorGrid");if(!grid)return;
+  const term=($("#stateCreatorSearch")?.value||"").trim().toLowerCase();
+  const sort=$("#stateCreatorSort")?.value||"count";
+  const grouped=new Map();
+  stateCreators.forEach(p=>{
+    const state=normalizedState(p);if(!state)return;
+    const name=p.display_name||p.creator_name||p.name||p.username||"CrowRules Creator";
+    const handle=p.username?"@"+String(p.username).replace(/^@/,""):"";
+    if(term&&!state.toLowerCase().includes(term)&&!(name+" "+handle).toLowerCase().includes(term))return;
+    if(!grouped.has(state))grouped.set(state,[]);
+    if(!grouped.get(state).some(x=>String(x.id||x.member_id||x.user_id||x.username||x.display_name)===String(p.id||p.member_id||p.user_id||p.username||p.display_name)))grouped.get(state).push({name,handle});
+  });
+  const states=[...grouped.entries()].sort((a,b)=>sort==="name"?a[0].localeCompare(b[0]):b[1].length-a[1].length||a[0].localeCompare(b[0]));
+  grid.replaceChildren();
+  if(!states.length){const empty=document.createElement("div");empty.className="state-empty";empty.textContent=stateCreators.length?"No public creator locations match that search yet. Try a state name or creator.":"No state locations are available yet. As creators add a state to their public profile, they will appear here.";grid.appendChild(empty);return;}
+  states.forEach(([state,people])=>{
+    const card=document.createElement("article");card.className="state-card";
+    const title=document.createElement("h3");title.textContent=state;
+    const count=document.createElement("div");count.className="state-count";count.textContent=people.length;
+    const caption=document.createElement("div");caption.className="state-caption";caption.textContent=people.length===1?"public creator":"public creators";
+    const list=document.createElement("div");list.className="state-creator-list";
+    people.slice(0,4).forEach(p=>{const a=document.createElement("a");a.className="state-creator";a.href="creators.html";a.textContent=p.name+(p.handle?" · "+p.handle:"");list.appendChild(a)});
+    if(people.length>4){const more=document.createElement("a");more.className="state-creator";more.href="creators.html";more.textContent="+"+(people.length-4)+" more creators →";list.appendChild(more)}
+    card.append(title,count,caption,list);grid.appendChild(card);
+  });
+}
+async function loadCreatorsByState(){
+  const grid=$("#stateCreatorGrid");if(!grid||!S)return;
+  try{
+    const result=await S.from("podcast_member_profiles").select("*").eq("is_public",true).limit(300);
+    if(result.error)throw result.error;
+    stateCreators=result.data||[];
+    // Add active creator records only when they have state data and aren't already represented.
+    const extras=await S.from("creators").select("*").eq("is_active",true).limit(300);
+    if(!extras.error)(extras.data||[]).forEach(p=>{
+      const state=normalizedState(p);if(!state)return;
+      const id=String(p.member_id||p.user_id||p.id||"");
+      if(!stateCreators.some(x=>String(x.member_id||x.user_id||x.id||"")===id))stateCreators.push(p);
+    });
+    renderCreatorsByState();
+  }catch(err){
+    console.warn("[CrowRules listener] Creator state directory unavailable",err);
+    grid.innerHTML='<div class="state-empty">Creator locations could not be loaded right now. Public profile access or state fields may not be configured yet. The rest of the listener experience is still available.</div>';
+  }
+}
+$("#stateCreatorSearch")?.addEventListener("input",renderCreatorsByState);
+$("#stateCreatorSort")?.addEventListener("change",renderCreatorsByState);
+
 async function auth(){
   if(!S)return;
   const r=await S.auth.getSession();
@@ -251,7 +343,7 @@ async function loadLive(){
     liveChannel=S.channel("listener-home-live-sessions").on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_sessions"},()=>loadLive()).subscribe();
   }
 }
-auth();loadShows();loadLive();
+auth();loadShows();loadLive();loadCreatorsByState();
 })();
 </script>
 <script src="../js/live-visitors.js"></script><script src="../js/online-presence.js"></script>
