@@ -247,11 +247,20 @@ $("#brandLogo").src=logo;
 const US_STATES={AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming",DC:"District of Columbia"};
 let stateCreators=[];
 function normalizedState(p){
-  const raw=String(p.state||p.location_state||p.region_state||p.us_state||"").trim();
-  if(!raw)return "";
-  const upper=raw.toUpperCase();
-  if(US_STATES[upper])return US_STATES[upper];
-  return Object.values(US_STATES).find(v=>v.toLowerCase()===raw.toLowerCase())||"";
+  const direct=String(p.state||p.location_state||p.region_state||p.us_state||"").trim();
+  const location=String(p.location||p.city_state||p.region||"").trim();
+  const candidates=[direct, ...location.split(",").map(x=>x.trim()).reverse(), location];
+  for(const rawValue of candidates){
+    const raw=String(rawValue||"").trim().replace(/[.]/g,"");
+    if(!raw)continue;
+    const upper=raw.toUpperCase();
+    if(US_STATES[upper])return US_STATES[upper];
+    const full=Object.values(US_STATES).find(v=>v.toLowerCase()===raw.toLowerCase());
+    if(full)return full;
+    const trailing=raw.match(/(?:^|\\s)([A-Z]{2})$/);
+    if(trailing&&US_STATES[trailing[1]])return US_STATES[trailing[1]];
+  }
+  return "";
 }
 function renderCreatorsByState(){
   const grid=$("#stateCreatorGrid");if(!grid)return;
@@ -283,20 +292,33 @@ function renderCreatorsByState(){
 async function loadCreatorsByState(){
   const grid=$("#stateCreatorGrid");if(!grid||!S)return;
   try{
-    const result=await S.from("podcast_member_profiles").select("*").eq("is_public",true).limit(300);
-    if(result.error)throw result.error;
-    stateCreators=result.data||[];
-    // Add active creator records only when they have state data and aren't already represented.
-    const extras=await S.from("creators").select("*").eq("is_active",true).limit(300);
-    if(!extras.error)(extras.data||[]).forEach(p=>{
-      const state=normalizedState(p);if(!state)return;
-      const id=String(p.member_id||p.user_id||p.id||"");
-      if(!stateCreators.some(x=>String(x.member_id||x.user_id||x.id||"")===id))stateCreators.push(p);
+    const [memberResult, profileResult, creatorResult]=await Promise.all([
+      S.from("podcast_member_profiles").select("*").eq("is_public",true).limit(300),
+      S.from("creator_profiles").select("*").eq("is_discoverable",true).limit(300),
+      S.from("creators").select("*").eq("is_active",true).limit(300)
+    ]);
+    if(memberResult.error)throw memberResult.error;
+    stateCreators=memberResult.data||[];
+    // Creator Studio profiles store location as a free-text field, e.g. "Tacoma, Washington".
+    if(!profileResult.error)(profileResult.data||[]).forEach(p=>{
+      if(normalizedState(p))stateCreators.push(p);
     });
+    if(!creatorResult.error)(creatorResult.data||[]).forEach(p=>{
+      if(normalizedState(p))stateCreators.push(p);
+    });
+    // Merge duplicate public profiles by identity/name so one person is not counted twice.
+    const unique=new Map();
+    stateCreators.forEach(p=>{
+      const state=normalizedState(p);if(!state)return;
+      const name=String(p.display_name||p.creator_name||p.name||p.username||"CrowRules Creator").trim();
+      const key=(String(p.user_id||p.member_id||p.creator_id||"")||name.toLowerCase())+"|"+state;
+      if(!unique.has(key))unique.set(key,p);
+    });
+    stateCreators=[...unique.values()];
     renderCreatorsByState();
   }catch(err){
     console.warn("[CrowRules listener] Creator state directory unavailable",err);
-    grid.innerHTML='<div class="state-empty">Creator locations could not be loaded right now. Public profile access or state fields may not be configured yet. The rest of the listener experience is still available.</div>';
+    grid.innerHTML='<div class="state-empty">Creator locations could not be loaded right now. Public profile access or location fields may not be configured yet. The rest of the listener experience is still available.</div>';
   }
 }
 $("#stateCreatorSearch")?.addEventListener("input",renderCreatorsByState);
