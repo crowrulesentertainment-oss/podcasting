@@ -20,6 +20,7 @@
 <h2>01 / Session setup</h2>
 <div class="field"><label for="sessionTitle">Recording title</label><input id="sessionTitle" maxlength="120" value="Untitled recording" placeholder="Episode or session name"></div>
 <div class="field"><label for="podcastSelect">Attach to podcast (optional)</label><select id="podcastSelect"><option value="">Private recording — choose later</option></select></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:18px 0"><div class="field"><label for="openingFile">Opening track (optional)</label><input id="openingFile" type="file" accept="audio/*"><span class="hint">Plays at the beginning of the master mix.</span></div><div class="field"><label for="endingFile">Ending track (optional)</label><input id="endingFile" type="file" accept="audio/*"><span class="hint">Plays after you press Stop, then the recording finishes.</span></div></div>
 <div class="field"><label for="inputSelect">Available microphones</label><select id="inputSelect"><option value="">Grant microphone permission to list devices</option></select></div>
 <div class="actions"><button class="btn" id="refreshDevices">Refresh devices</button><button class="btn primary" id="addTrack">＋ Add microphone track</button></div>
 <div style="margin:22px 0 12px;display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="small-label">Separate audio tracks</span><span class="pill" id="trackCount">0 tracks</span></div>
@@ -32,7 +33,7 @@
 <h2>02 / Saved recordings</h2>
 <p class="hint">Your saved sessions stay private. Use “Create episode draft” to make an unpublished episode entry linked to your selected podcast.</p>
 <div class="saved-list" id="savedList"><div class="message">Your saved recordings will appear here after sign-in.</div></div>
-<div style="margin-top:20px;border-top:1px solid var(--line);padding-top:18px"><h2>Studio notes</h2><p class="hint">• Use a separate microphone/input for each track.<br>• Keep this tab open while recording and uploading.<br>• Multi-track files are stored separately; the master mix is saved too.<br>• Browser permissions and supported recording formats depend on your device.</p></div>
+<div style="margin-top:20px;border-top:1px solid var(--line);padding-top:18px"><h2>Studio notes</h2><p class="hint">• Use a separate microphone/input for each track.<br>• Keep this tab open while recording and uploading.<br>• Multi-track files are stored separately; the master mix is saved too.<br>• Optional opening and ending tracks are mixed into the master and saved as their own files.<br>• Browser permissions and supported recording formats depend on your device.</p></div>
 </aside>
 </div>
 <div class="foot">CrowRules Podcasting · One company. One universe. · Studio recordings remain private unless you explicitly publish an episode.</div>
