@@ -266,7 +266,7 @@
   }
   function render() {
     styles();
-    const hero = document.querySelector('.listener-hero .hero-actions, .hero .hero-actions, .hero-actions, .hero-cta, .hero-actions-row, header .hero-actions');
+    const hero = document.querySelector('.listener-hero .hero-actions, .hero .hero-actions, .hero .actions, .hero-actions, .hero-cta, .hero-actions-row, header .hero-actions');
     const nav = document.querySelector('header nav, nav[aria-label="Main navigation"], nav[aria-label="Primary navigation"], header .nav-links, header .nav, nav');
     let heroBalance = document.getElementById('crowpoints-hero-balance');
     let navBalance = document.getElementById('crowpoints-nav-balance');
