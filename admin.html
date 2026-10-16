@@ -68,6 +68,7 @@ async function load(){
   ]);
   const [membersC,creatorsC,podcastsC,podcastEpisodesC,episodesC,followsC,subsC,commentsC,savedC,publishedC,draftsC,archivedC,featuredC,publishedEpisodesC,membersR,memberRolesR,podcastsR,podcastEpisodesR,episodesR,reportsR,creatorsR,donationsR,stripeAccountsR]=pairs;
   podcasts=podcastsR.data;reports=reportsR.data;donations=donationsR.data||[];stripeAccounts=stripeAccountsR.data||[];stripeCreators=creatorsR.data||[];stripeMembers=membersR.data||[];
+  const creatorProfileLocationsR=await dataQuery("podcast_member_profiles","user_id,location,display_name,username,is_public","updated_at",5000);
   const financeSources=await Promise.all([
    dataQuery("cr_podcast_creator_earnings","id,creator_id,podcast_id,source_type,source_id,gross_amount_cents,platform_fee_cents,net_amount_cents,currency,status,description,occurred_at,created_at,stripe_payment_intent_id,stripe_charge_id,refunded_amount_cents,reconciliation_status,refund_status","occurred_at",2000),
    dataQuery("cr_podcast_payouts","id,creator_id,statement_id,amount_cents,currency,status,scheduled_for,paid_at,external_payout_id,external_reference,notes,created_at,updated_at","created_at",2000)
@@ -80,6 +81,7 @@ async function load(){
   ]);
   const [playEventsR,listensR,analyticsEventsR]=analyticsSources;
   const warnings=[];
+  if(creatorProfileLocationsR.error)warnings.push("Member profile locations: "+creatorProfileLocationsR.error);
   pairs.forEach((p,i)=>{if(p.error)warnings.push((["Member count","Creator count","Podcast count","Podcast episode count","Episode count","Follows","Active subscriptions","Comments","Saved episodes","Published shows","Draft shows","Archived shows","Featured shows","Published podcast episodes","Member details","Member role assignments","Podcast catalog","Podcast episodes","Legacy episodes","Moderation reports","Creator records","CrowRules donation ledger","Stripe Connect accounts"][i])+": "+p.error)});
   financeSources.forEach((p,i)=>{if(p.error)warnings.push(["Creator earnings ledger","Creator payouts ledger"][i]+": "+p.error)});
   analyticsSources.forEach((p,i)=>{if(p.error)warnings.push(["Play event ledger","Listening history","Analytics event stream"][i]+": "+p.error)});
@@ -128,6 +130,45 @@ async function load(){
    '<section class="section panel"><div class="section-head"><h2>MEMBER REPORT QUEUE</h2><span class="pill open">'+n(openReports)+' open / reviewing</span></div><div class="toolbar"><button id="exportReports" class="btn">EXPORT REPORTS CSV</button><input id="reportSearch" class="field search" placeholder="Search report reason or member ID…" aria-label="Search reports"><select id="reportStatusFilter" class="field" aria-label="Filter report status"><option value="open">Open + reviewing</option><option value="all">All reports</option><option value="reviewing">Reviewing</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option></select></div><div class="table-wrap"><table class="table" style="min-width:800px"><thead><tr><th>Report</th><th>Reason</th><th>Status</th><th>Submitted</th><th>Moderation</th></tr></thead><tbody id="reportRows"></tbody></table></div></section>'+
    '<section class="section panel"><div class="section-head"><h2>CURRENT MEMBERS & ASSIGNED ROLES</h2><span class="pill open" id="memberResultCount">Loading members…</span></div><p class="muted">Manage each member’s primary role in <code>members.role</code>. Changes are checked by Supabase Row Level Security; additional assignments in <code>member_roles</code> remain separate.</p><div class="toolbar"><input id="memberSearch" class="field search" placeholder="Search name, email, member ID, role, or membership type…" aria-label="Search members"><select id="memberRoleFilter" class="field" aria-label="Filter member role"><option value="all">All roles</option><option value="admin">Admin</option><option value="super_admin">Super Admin</option><option value="owner">Owner</option><option value="administrator">Administrator</option><option value="creator">Creator</option><option value="listener">Listener</option><option value="none">No role assigned</option></select><select id="memberStatusFilter" class="field" aria-label="Filter member status"><option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select><button id="exportMembers" class="btn">EXPORT MEMBERS CSV</button><button id="clearMemberFilters" class="btn">CLEAR FILTERS</button></div><div class="table-wrap"><table class="table" style="min-width:850px"><thead><tr><th>Member Name</th><th>Primary role & assigned roles</th><th>Membership type</th><th>Status</th><th>Joined</th><th>Last active</th></tr></thead><tbody id="memberRows"></tbody></table></div></section><section class="section two"><div class="panel"><h2>TOP PODCASTS BY RECORDED PLAYS</h2><div class="list">'+(topShows.map(p=>'<div class="creator-row"><div><b>'+esc(p.title||"Untitled podcast")+'</b><div class="subline">'+esc(p.category||"Uncategorized")+' • '+esc(p.status||"unknown")+(p.is_featured?" • FEATURED":"")+'</div></div><b>'+n(p.total_plays)+'</b></div>').join("")||'<p class="muted">No podcast records are visible.</p>')+'</div></div><div class="panel"><h2>MEMBERSHIP TIER MIX</h2><div>'+tiersText+'</div><p class="muted small">Counts reflect the member records visible to this administrator session.</p></div></section>'+
    '<section class="section two"><div class="panel"><h2>RECENT REPORTS</h2><div class="list">'+(recentReports.map(r=>'<div class="creator-row"><div><b>'+esc(String(r.reason||"Report").slice(0,90))+'</b><div class="subline">'+esc(date(r.created_at))+'</div></div><span class="pill '+esc(reportStatus(r))+'">'+esc(reportStatus(r))+'</span></div>').join("")||'<p class="muted">No reports returned.</p>')+'</div></div><div class="panel"><h2>DATA & SECURITY HEALTH</h2><p class="muted">Last refreshed: '+esc(date(new Date().toISOString()))+'</p><div class="notice">'+(warnings.length?'<span class="error"><b>Some data sources need attention</b><br>'+warnings.map(esc).join("<br>")+'</span>':'<span class="success">All queried tables responded without reported errors.</span>')+'</div><p class="muted small">Unavailable tables are shown as warnings; their zero counts are not proof that no records exist.</p></div></section>';
+
+  // Creator geography is based only on a member's saved profile location.
+  const stateCodes={"AL":"Alabama","AK":"Alaska","AZ":"Arizona","AR":"Arkansas","CA":"California","CO":"Colorado","CT":"Connecticut","DE":"Delaware","FL":"Florida","GA":"Georgia","HI":"Hawaii","ID":"Idaho","IL":"Illinois","IN":"Indiana","IA":"Iowa","KS":"Kansas","KY":"Kentucky","LA":"Louisiana","ME":"Maine","MD":"Maryland","MA":"Massachusetts","MI":"Michigan","MN":"Minnesota","MS":"Mississippi","MO":"Missouri","MT":"Montana","NE":"Nebraska","NV":"Nevada","NH":"New Hampshire","NJ":"New Jersey","NM":"New Mexico","NY":"New York","NC":"North Carolina","ND":"North Dakota","OH":"Ohio","OK":"Oklahoma","OR":"Oregon","PA":"Pennsylvania","RI":"Rhode Island","SC":"South Carolina","SD":"South Dakota","TN":"Tennessee","TX":"Texas","UT":"Utah","VT":"Vermont","VA":"Virginia","WA":"Washington","WV":"West Virginia","WI":"Wisconsin","WY":"Wyoming","DC":"District of Columbia"};
+  const stateLookup=new Map();
+  Object.entries(stateCodes).forEach(([code,name])=>{stateLookup.set(code,name);stateLookup.set(name.toLowerCase(),name)});
+  function stateFromLocation(location){
+   const raw=String(location||"").trim();
+   if(!raw)return "Location not provided";
+   const parts=raw.split(/[,|·]/).map(part=>part.trim()).filter(Boolean);
+   for(let i=parts.length-1;i>=0;i--){
+    const candidate=parts[i].replace(/\b(USA|United States|US)\b/ig,"").trim();
+    const found=stateLookup.get(candidate.toUpperCase())||stateLookup.get(candidate.toLowerCase());
+    if(found)return found;
+   }
+   const normalized=raw.toLowerCase();
+   for(const name of Object.values(stateCodes)){if(normalized.includes(name.toLowerCase()))return name}
+   return "State not identified";
+  }
+  const profileByUserId=new Map((creatorProfileLocationsR.data||[]).map(p=>[String(p.user_id),p]));
+  const memberById=new Map(membersR.data.map(m=>[String(m.id),m]));
+  const creatorsByStateRows=(creatorsR.data||[]).map(creator=>{
+   const member=creator.member_id?memberById.get(String(creator.member_id)):null;
+   const profile=member&&member.user_id?profileByUserId.get(String(member.user_id)):null;
+   return {id:creator.id,name:creator.display_name||creator.name||(profile&&(profile.display_name||profile.username))||"Unnamed creator",discipline:creator.discipline||creator.role||"Creator",active:creator.is_active!==false,location:profile&&profile.location?profile.location:"",state:stateFromLocation(profile&&profile.location)};
+  });
+  const stateCounts=new Map();
+  creatorsByStateRows.forEach(row=>stateCounts.set(row.state,(stateCounts.get(row.state)||0)+1));
+  const stateOptions=[...stateCounts.keys()].sort((a,b)=>a.localeCompare(b));
+  const creatorsByStateMarkup='<section class="section panel" id="creatorsByStateSection"><div class="section-head"><div><h2>CREATORS BY STATE</h2><p class="muted small">Creator profiles grouped by the location members chose to share. No location is guessed or inferred.</p></div><div class="toolbar"><select id="creatorStateFilter" class="field" aria-label="Filter creators by state"><option value="all">All states / locations</option>'+stateOptions.map(state=>'<option value="'+esc(state)+'">'+esc(state)+'</option>').join("")+'</select><input id="creatorStateSearch" class="field" placeholder="Search creator or location…" aria-label="Search creators by name or location"><button id="exportCreatorsByState" class="btn">EXPORT CSV</button></div></div><div class="grid">'+metric("Creator profiles",creatorsByStateRows.length,"All loaded creator records")+metric("States / locations",stateCounts.size,"Based on profile locations")+metric("With state identified",creatorsByStateRows.filter(row=>row.state!=="Location not provided"&&row.state!=="State not identified").length,"Recognized US states or DC")+metric("Location not provided",creatorsByStateRows.filter(row=>row.state==="Location not provided").length,"Members can add a location")+'</div><div class="table-wrap" style="margin-top:12px"><table class="table" style="min-width:760px"><thead><tr><th>Creator</th><th>State / location</th><th>Discipline</th><th>Status</th><th>Profile location</th></tr></thead><tbody id="creatorsByStateRows"></tbody></table></div><p id="creatorStateNote" class="muted small" aria-live="polite"></p></section>';
+  function renderCreatorsByState(){
+   const filter=document.getElementById("creatorStateFilter")?.value||"all";
+   const search=(document.getElementById("creatorStateSearch")?.value||"").trim().toLowerCase();
+   const rows=creatorsByStateRows.filter(row=>(filter==="all"||row.state===filter)&&(!search||[row.name,row.state,row.location,row.discipline,row.id].join(" ").toLowerCase().includes(search))).sort((a,b)=>a.state.localeCompare(b.state)||a.name.localeCompare(b.name));
+   const tbody=document.getElementById("creatorsByStateRows");
+   if(tbody)tbody.innerHTML=rows.map(row=>'<tr><td><div class="pod-title">'+esc(row.name)+'</div><div class="subline">'+esc(row.id)+'</div></td><td><b>'+esc(row.state)+'</b></td><td>'+esc(row.discipline)+'</td><td><span class="pill '+(row.active?"published":"archived")+'">'+(row.active?"Active":"Inactive")+'</span></td><td>'+esc(row.location||"Not shared")+'</td></tr>').join("")||'<tr><td colspan="5" class="empty">No creator profiles match this filter. Creators without a saved location appear under “Location not provided.”</td></tr>';
+   const note=document.getElementById("creatorStateNote");
+   if(note)note.textContent="Showing "+n(rows.length)+" of "+n(creatorsByStateRows.length)+" creator profiles. State grouping is based only on saved profile locations.";
+  }
+
   const healthState=warnings.length?"warn":"ok";
   const opsMarkup='<section class="ops-command" aria-label="Operations quick controls">'+
    '<div class="panel ops-search-panel"><h3>COMMAND SEARCH</h3><input id="opsGlobalSearch" class="field" placeholder="Search podcasts, reports, or members…" aria-label="Global operations search"><div class="ops-shortcuts"><button class="btn primary" id="opsRunSearch">SEARCH CATALOG</button><button class="btn" id="opsClearSearch">CLEAR</button></div><div class="ops-help">Shortcuts: <kbd>/</kbd> search podcasts · <kbd>Ctrl</kbd> + <kbd>K</kbd> global search · <kbd>R</kbd> refresh</div></div>'+
@@ -136,6 +177,12 @@ async function load(){
    '<div class="panel"><h3>DATA QUALITY</h3><div class="ops-big">'+(warnings.length?n(warnings.length)+" warnings":"ALL CLEAR")+'</div><p>'+(warnings.length?"One or more data sources could not be verified.":"All queried sources responded without reported errors.")+'</p><span class="ops-chip '+(healthState==="ok"?"":"warn")+'">'+(healthState==="ok"?"Health check passed":"Review health panel")+'</span><div class="ops-shortcuts"><button class="btn" id="opsHealth">VIEW DIAGNOSTICS</button><button class="btn" id="exportHealthSnapshot">EXPORT SNAPSHOT</button></div></div>'+
    '</section>';
   app.insertAdjacentHTML("afterbegin",opsMarkup);
+  const memberDirectory=document.getElementById("memberRows")?.closest("section");
+  if(memberDirectory)memberDirectory.insertAdjacentHTML("beforebegin",creatorsByStateMarkup);
+  renderCreatorsByState();
+  document.getElementById("creatorStateFilter")?.addEventListener("change",renderCreatorsByState);
+  document.getElementById("creatorStateSearch")?.addEventListener("input",renderCreatorsByState);
+  document.getElementById("exportCreatorsByState")?.addEventListener("click",()=>downloadCsv("crowrules-creators-by-state-"+new Date().toISOString().slice(0,10)+".csv",[["creator_id","creator_name","state","profile_location","discipline","active"],...creatorsByStateRows.map(row=>[row.id,row.name,row.state,row.location,row.discipline,row.active])]));
   const globalSearch=document.getElementById("opsGlobalSearch");
   const runGlobalSearch=()=>{const term=(globalSearch?.value||"").trim();if(!term){showToast("Enter a search term first.",false);return}const ps=document.getElementById("podcastSearch"),rs=document.getElementById("reportSearch"),ms=document.getElementById("memberSearch");if(ps)ps.value=term;if(rs)rs.value=term;if(ms)ms.value=term;renderPodcasts();renderReports();renderMembers(membersR.data,memberRolesR.data,creatorsR.data);document.querySelector(".section.panel")?.scrollIntoView({behavior:"smooth",block:"start"});showToast("Search applied across catalog, reports and member directory.",true)};
   document.getElementById("opsRunSearch")?.addEventListener("click",runGlobalSearch);
