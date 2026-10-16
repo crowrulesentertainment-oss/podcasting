@@ -257,7 +257,7 @@ function normalizedState(p){
     if(US_STATES[upper])return US_STATES[upper];
     const full=Object.values(US_STATES).find(v=>v.toLowerCase()===raw.toLowerCase());
     if(full)return full;
-    const trailing=raw.match(/(?:^|\\s)([A-Z]{2})$/);
+    const trailing=raw.match(/(?:^|\s)([A-Z]{2})$/);
     if(trailing&&US_STATES[trailing[1]])return US_STATES[trailing[1]];
   }
   return "";
@@ -311,7 +311,8 @@ async function loadCreatorsByState(){
     stateCreators.forEach(p=>{
       const state=normalizedState(p);if(!state)return;
       const name=String(p.display_name||p.creator_name||p.name||p.username||"CrowRules Creator").trim();
-      const canonicalName=name.toLowerCase().replace(/\\s+(ii|2nd)$/i,"").replace(/\\s+/g," ").trim();\n      const key=canonicalName+"|"+state;
+      const canonicalName=name.toLowerCase().replace(/\s+(ii|2nd)$/i,"").replace(/\s+/g," ").trim();
+      const key=canonicalName+"|"+state;
       if(!unique.has(key))unique.set(key,p);
     });
     stateCreators=[...unique.values()];
