@@ -123,7 +123,7 @@ async function saveRecording(button){
    const t=all[i];const ext=(t.blob.type.includes('mp4')?'mp4':t.blob.type.includes('ogg')?'ogg':'webm');
    const path=state.user.id+'/'+recordingId+'/'+(t.name==='Master mix'?'master-mix':safeName(t.name))+'.'+ext;
    say('Uploading '+(i+1)+' of '+all.length+': '+t.name+'…');
-   const {error}=await state.client.storage.from(BUCKET).upload(path,t.blob,{contentType:t.blob.type||'audio/webm',upsert:false});if(error)throw error;
+   const {error}=await state.client.storage.from(BUCKET).upload(path,t.blob,{contentType:(t.blob.type||'audio/webm').split(';')[0],upsert:false});if(error)throw error;
    uploaded.push({name:t.name,path,mime_type:t.blob.type||'audio/webm',size_bytes:t.blob.size,role:t.name==='Master mix'?'master':'track'});
   }
   const duration=Math.round(state.elapsedBeforePause);
@@ -131,7 +131,8 @@ async function saveRecording(button){
   say('Saved privately. '+uploaded.length+' audio files uploaded. You can create an episode draft below.');
   await loadSaved();
  }catch(e){
-  say('Save failed: '+(e.message||String(e))+' — if an upload partly succeeded, those files remain private; try again or remove the partial files from your storage dashboard.',true);
+  if(uploaded.length){await state.client.storage.from(BUCKET).remove(uploaded.map(x=>x.path)).catch(()=>{});}
+  say('Save failed: '+(e.message||String(e))+' — any uploaded partial files were queued for cleanup and remain private.',true);
  }finally{state.busy=false;button.disabled=false;}
 }
 async function loadSaved(){
