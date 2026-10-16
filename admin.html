@@ -196,7 +196,7 @@ async function load(){
    if(!creatorMap){
     creatorMap=L.map(mapEl,{scrollWheelZoom:false,worldCopyJump:true}).setView([25,0],2);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:10,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'}).addTo(creatorMap);
-    creatorMapLayer=L.layerGroup().addTo(creatorMap);
+    creatorMapLayer=L.featureGroup().addTo(creatorMap);
    }
    creatorMapLayer.clearLayers();
    const grouped=new Map();
