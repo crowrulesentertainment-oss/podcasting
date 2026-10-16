@@ -96,10 +96,10 @@ function recorderFor(stream,trackName){
 async function startRecording(){
  if(state.busy||!state.user)return;
  if(!state.tracks.length){say('Add at least one microphone track before recording.',true);return;}
- setupBedTracks();
  if(!window.MediaRecorder){say('This browser does not support MediaRecorder.',true);return;}
  state.busy=true;renderTracks();$('startBtn').disabled=true;
  try{
+  await setupBedTracks();
   state.audioContext=new (window.AudioContext||window.webkitAudioContext)();
   state.destination=state.audioContext.createMediaStreamDestination();
   state.openingBuffer=await decodeOptionalTrack(state.openingFile);state.endingBuffer=await decodeOptionalTrack(state.endingFile);
