@@ -43,7 +43,7 @@ const n=v=>Number(v||0).toLocaleString();
 const money=cents=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(cents||0)/100);
 const date=v=>{if(!v)return "—";const d=new Date(v);return Number.isNaN(d.getTime())?"—":d.toLocaleString()};
 function gate(title,message,links){app.innerHTML='<section class="gate panel"><div class="eyebrow">CROWRULES PODCASTING</div><h1>'+esc(title)+'</h1><p class="muted">'+esc(message)+'</p><div class="actions">'+(links||"")+'</div></section>'}
-function metric(label,value,note){return '<div class="panel metric"><small>'+esc(label)+'</small><strong>'+esc(n(value))+'</strong><em>'+esc(note)+'</em></div>'}
+function metric(label,value,note){const display=value===null||value===undefined?"—":(typeof value==="number"&&Number.isFinite(value)?n(value):String(value));return '<div class="panel metric"><small>'+esc(label)+'</small><strong>'+esc(display)+'</strong><em>'+esc(note)+'</em></div>'}
 function showToast(message,ok){const el=document.getElementById("actionMessage");if(el){el.className="notice "+(ok?"success":"error");el.textContent=message;el.classList.remove("hidden");}}
 async function countQuery(table,query){try{let q=client.from(table).select("*",{count:"exact",head:true});if(query)q=query(q);const r=await q;return {count:r.count||0,error:r.error? r.error.message:null}}catch(e){return {count:0,error:e.message||String(e)}}}
 async function dataQuery(table,columns,orderCol,limit){try{let q=client.from(table).select(columns);if(orderCol)q=q.order(orderCol,{ascending:false,nullsFirst:false});if(limit)q=q.limit(limit);const r=await q;return {data:r.data||[],error:r.error?r.error.message:null}}catch(e){return {data:[],error:e.message||String(e)}}}
