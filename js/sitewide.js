@@ -49,7 +49,7 @@
   let link=document.getElementById('crow-sitewide-donate');
   const nav=document.querySelector('header nav, nav[aria-label="Main navigation"], nav[aria-label="Primary navigation"], header .nav-links, header .nav, nav');
   // Prefer the hero's primary CTA row so the donation action is visible with the page's main message.
-  const hero=document.querySelector('.listener-hero .hero-actions, .hero .hero-actions, .hero-actions, .hero-cta, .hero-actions-row, header .hero-actions');
+  const hero=document.querySelector('.listener-hero .hero-actions, .hero .hero-actions, .hero .actions, .hero-actions, .hero-cta, .hero-actions-row, header .hero-actions');
   if(!link)link=makeLink('crow-sitewide-donate','♥ Donate');
   if(link.href!==donateUrl)link.href=donateUrl;
   if(hero){
