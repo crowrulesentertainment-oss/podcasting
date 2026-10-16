@@ -118,7 +118,10 @@ async function stopRecording(){
  const recs=[...state.tracks.map(t=>t.recorder),state.master?.recorder].filter(Boolean);
  if(!recs.some(r=>r.state==='recording'||r.state==='paused'))return;
  if(state.endingBuffer&&state.audioContext){
-  $('stopBtn').disabled=true;$('pauseBtn').disabled=true;say('Playing ending track into the master mix…');
+  $('stopBtn').disabled=true;$('pauseBtn').disabled=true;
+  [...state.tracks.map(t=>t.recorder),state.master?.recorder].filter(Boolean).forEach(r=>{if(r.state==='paused')r.resume();});
+  if(!state.startedAt)state.startedAt=Date.now();
+  say('Playing ending track into the master mix…');
   try{if(state.audioContext.state==='suspended')await state.audioContext.resume();playBuffer(state.endingBuffer);await new Promise(resolve=>setTimeout(resolve,state.endingBuffer.duration*1000+150));}catch(e){say('Ending track could not finish: '+(e.message||e)+'. Stopping recording now.',true);}
  }
  clearInterval(state.timerInterval);if(state.startedAt)state.elapsedBeforePause+=(Date.now()-state.startedAt)/1000;state.startedAt=0;$('timer').textContent=fmt(state.elapsedBeforePause);
@@ -144,7 +147,7 @@ async function saveRecording(button){
  if(state.endingFile)all.push({name:'Ending track',blob:state.endingFile,role:'ending'});
  try{
   for(let i=0;i<all.length;i++){
-   const t=all[i];const ext=(t.blob.type.includes('mp4')?'mp4':t.blob.type.includes('ogg')?'ogg':'webm');
+   const t=all[i];const mime=(t.blob.type||'audio/webm').split(';')[0].toLowerCase();const ext=mime.includes('mp4')?'m4a':mime.includes('mpeg')?'mp3':mime.includes('wav')?'wav':mime.includes('aac')?'aac':mime.includes('ogg')?'ogg':'webm';
    const path=state.user.id+'/'+recordingId+'/'+(t.name==='Master mix'?'master-mix':safeName(t.name))+'.'+ext;
    say('Uploading '+(i+1)+' of '+all.length+': '+t.name+'…');
    const {error}=await state.client.storage.from(BUCKET).upload(path,t.blob,{contentType:(t.blob.type||'audio/webm').split(';')[0],upsert:false});if(error)throw error;
