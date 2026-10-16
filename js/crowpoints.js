@@ -21,11 +21,13 @@
       .cp-card strong{font:800 11px Orbitron,Montserrat,sans-serif;letter-spacing:.08em}
       #crowpoints-dock{position:fixed;left:14px;right:auto;bottom:14px;z-index:9997;max-width:min(520px,calc(100vw - 28px));padding:8px;border:1px solid rgba(103,232,249,.22);border-radius:16px;background:rgba(5,8,17,.94);backdrop-filter:blur(16px);box-shadow:0 12px 38px rgba(0,0,0,.35)}
       #crowpoints-dock .cp-sitewide{gap:6px}#crowpoints-dock .cp-pill{padding:7px 9px;font-size:11px}
-      #crowpoints-nav-balance{display:inline-flex;align-items:center;max-width:100%;margin:4px 6px;vertical-align:middle}
-      #crowpoints-nav-balance .cp-sitewide{gap:5px}
-      #crowpoints-nav-balance .cp-pill{padding:7px 9px;font-size:11px}
-      #crowpoints-nav-balance .cp-muted{font-size:10px}
-      #crowpoints-nav-balance .cp-login{display:inline-flex;align-items:center;padding:7px 9px;border:1px solid rgba(103,232,249,.3);border-radius:999px}
+      #crowpoints-nav-balance,#crowpoints-hero-balance{display:inline-flex;align-items:center;max-width:100%;margin:4px 6px;vertical-align:middle}
+      #crowpoints-nav-balance .cp-sitewide,#crowpoints-hero-balance .cp-sitewide{gap:5px}
+      #crowpoints-nav-balance .cp-pill,#crowpoints-hero-balance .cp-pill{padding:7px 9px;font-size:11px}
+      #crowpoints-nav-balance .cp-muted,#crowpoints-hero-balance .cp-muted{font-size:10px}
+      #crowpoints-nav-balance .cp-login,#crowpoints-hero-balance .cp-login{display:inline-flex;align-items:center;padding:7px 9px;border:1px solid rgba(103,232,249,.3);border-radius:999px}
+      #crowpoints-hero-balance{margin:0 8px 0 0}
+      #crowpoints-hero-balance .cp-menu-toggle{white-space:nowrap}
       .cp-menu-toggle{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid rgba(103,232,249,.38);border-radius:999px;background:linear-gradient(120deg,rgba(103,232,249,.13),rgba(167,139,250,.15));color:#eafcff;font:800 11px Montserrat,system-ui,sans-serif;cursor:pointer}
       .cp-menu-toggle:hover,.cp-menu-toggle[aria-expanded="true"]{border-color:#67e8f9;box-shadow:0 0 20px rgba(103,232,249,.12)}
       #crowpoints-menu{position:fixed;top:76px;right:14px;z-index:10020;width:min(390px,calc(100vw - 24px));max-height:min(78vh,720px);overflow:auto;padding:18px;border:1px solid rgba(103,232,249,.32);border-radius:20px;background:linear-gradient(145deg,rgba(8,15,31,.98),rgba(22,14,43,.98));color:#eef7ff;box-shadow:0 22px 70px rgba(0,0,0,.55);backdrop-filter:blur(18px)}
@@ -264,31 +266,49 @@
   }
   function render() {
     styles();
+    const hero = document.querySelector('.listener-hero .hero-actions, .hero .hero-actions, .hero-actions, .hero-cta, .hero-actions-row, header .hero-actions');
     const nav = document.querySelector('header nav, nav[aria-label="Main navigation"], nav[aria-label="Primary navigation"], header .nav-links, header .nav, nav');
+    let heroBalance = document.getElementById('crowpoints-hero-balance');
     let navBalance = document.getElementById('crowpoints-nav-balance');
-    if (nav && !navBalance) {
-      navBalance = document.createElement('span');
-      navBalance.id = 'crowpoints-nav-balance';
-      navBalance.setAttribute('aria-label', 'CrowPoints member balance');
-      nav.appendChild(navBalance);
-    }
-    // Prefer a compact balance in the shared navigation. Pages without a
-    // navigation menu use a bottom-left dock so it never covers Donate CTAs.
     let dock = document.getElementById('crowpoints-dock');
-    if (navBalance) {
+
+    // Prefer the hero CTA row, keeping CrowPoints alongside the page's main actions.
+    // Fall back to navigation on pages without a hero, then to a dock on minimal pages.
+    if (hero) {
+      if (!heroBalance) {
+        heroBalance = document.createElement('span');
+        heroBalance.id = 'crowpoints-hero-balance';
+        heroBalance.setAttribute('aria-label', 'CrowPoints member balance');
+      }
+      if (!hero.contains(heroBalance)) hero.appendChild(heroBalance);
+      navBalance?.remove();
+      dock?.remove();
+      heroBalance.innerHTML = markup();
+    } else if (nav) {
+      if (!navBalance) {
+        navBalance = document.createElement('span');
+        navBalance.id = 'crowpoints-nav-balance';
+        navBalance.setAttribute('aria-label', 'CrowPoints member balance');
+      }
+      if (!nav.contains(navBalance)) nav.appendChild(navBalance);
+      heroBalance?.remove();
       if (dock) dock.remove();
       navBalance.innerHTML = markup();
     } else if (document.querySelector('[data-crowpoints-card]')) {
-      // Pages with a dedicated rewards card (such as donate.html) use that
-      // inline mount instead of duplicating the balance in a floating dock.
+      // Pages with a dedicated rewards card use that inline mount instead of a dock.
+      heroBalance?.remove();
+      navBalance?.remove();
       if (dock) dock.remove();
     } else {
+      heroBalance?.remove();
+      navBalance?.remove();
       if (!dock) {
         dock = document.createElement('aside');
         dock.id = 'crowpoints-dock';
         dock.setAttribute('aria-label', 'Your CrowPoints balance');
         document.body.appendChild(dock);
       }
+      dock.hidden = false;
       dock.innerHTML = '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
         '<a href="' + escapeHtml(challengesUrl()) + '" style="font:800 9px Orbitron,Montserrat,sans-serif;letter-spacing:.06em;color:#a5f3fc;text-decoration:none;padding:7px 8px">CROWPOINTS</a>' +
         '<div data-crowpoints></div>' +
