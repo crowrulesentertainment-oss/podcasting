@@ -382,7 +382,7 @@
    }
   }
   await loadHistory();
-  say(requestedEpisodeId&&state.episodes.some(e=>e.id===requestedEpisodeId)?'Distribution handoff loaded. Review the episode details, select a video file, and explicitly confirm before upload.':'Signed in. Select your podcast, video file, and visibility. Upload starts only after manual confirmation.','success');
+  say(requestedEpisodeId&&state.episodes.some(e=>e.id===requestedEpisodeId)?'Episode handoff loaded. Review the episode details, select or load its saved video, and explicitly confirm before upload.':'Signed in. Select your podcast, video file, and visibility. Upload starts only after manual confirmation.','success');
  }
  function prefill(){
   const ep=selectedEpisode();
