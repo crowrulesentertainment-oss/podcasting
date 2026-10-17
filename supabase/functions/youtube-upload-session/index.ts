@@ -29,6 +29,12 @@ async function decryptToken(ciphertext: string) {
 
 function toB64Url(bytes: Uint8Array) { let binary = ""; for (const byte of bytes) binary += String.fromCharCode(byte); return btoa(binary).split("+").join("-").split("/").join("_").replace(/=+$/g, ""); }
 async function signUploadSession(payload: Record<string, unknown>) { const secret = fromHex(Deno.env.get("DISTRIBUTION_TOKEN_ENCRYPTION_KEY") || ""); const key = await crypto.subtle.importKey("raw", secret, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]); const encoded = toB64Url(new TextEncoder().encode(JSON.stringify(payload))); const signature = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(encoded))); return encoded + "." + toB64Url(signature); }
+async function encryptSessionToken(value: string) {
+ const key = await crypto.subtle.importKey("raw", fromHex(Deno.env.get("DISTRIBUTION_TOKEN_ENCRYPTION_KEY") || ""), "AES-GCM", false, ["encrypt"]);
+ const iv = crypto.getRandomValues(new Uint8Array(12));
+ const encrypted = new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv}, key, new TextEncoder().encode(value)));
+ return toB64Url(iv) + "." + toB64Url(encrypted);
+}
 \nDeno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers });
   if (req.method !== "POST") return json(405, { error: "POST required." });
@@ -49,7 +55,7 @@ async function signUploadSession(payload: Record<string, unknown>) { const secre
   const description = String(body.description || "").trim();
   const mimeType = String(body.mime_type || "");
   const fileSize = Number(body.file_size || 0);
-  const filename = String(body.filename || "episode-video").slice(0, 180);
+  const filename = String(body.filename || "episode-video").slice(0, 180);\n  const historyId = String(body.history_id || "");\n  if (!/^[0-9a-f-]{36}$/i.test(historyId)) return json(400, { error: "Upload history ID is required for secure recovery." });
   const tags = Array.isArray(body.tags) ? body.tags.map((tag) => String(tag).trim()).filter(Boolean).slice(0, 30) : [];
 
   if (!/^[0-9a-f-]{36}$/i.test(podcastId)) return json(400, { error: "Select a podcast first." });
@@ -72,6 +78,8 @@ async function signUploadSession(payload: Record<string, unknown>) { const secre
   if (podcastError || !podcast) return json(403, { error: "This podcast does not belong to your creator account." });
 
   const service = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data: historyRow, error: historyLookupError } = await service.from("youtube_upload_history").select("id,user_id,podcast_id,status,file_size,mime_type").eq("id", historyId).eq("user_id", user.id).eq("podcast_id", podcastId).maybeSingle();
+  if (historyLookupError || !historyRow || historyRow.status !== "preparing" || Number(historyRow.file_size) !== fileSize || historyRow.mime_type !== mimeType) return json(409, { error: "Upload history does not match this file or is not recoverable. Refresh history before retrying." });
   const { data: account, error: accountError } = await service.from("podcast_distribution_accounts")
     .select("id,connection_status").eq("user_id", user.id).eq("podcast_id", podcastId).eq("platform", "youtube").maybeSingle();
   if (accountError || !account || account.connection_status !== "connected") {
@@ -125,5 +133,8 @@ async function signUploadSession(payload: Record<string, unknown>) { const secre
 
   const uploadSession = { url: uploadUrl, user_id: user.id, podcast_id: podcastId, file_size: fileSize, mime_type: mimeType, expires_at: Date.now() + 60 * 60 * 1000, filename };
   const uploadToken = await signUploadSession(uploadSession);
-  return json(200, { ok: true, upload_session: uploadToken, privacy_status: "private", podcast_title: podcast.title, filename, chunk_size: 8 * 1024 * 1024, message: "Upload session created. No video bytes have been uploaded yet. The video will remain private." });
+  const encryptedSession = await encryptSessionToken(uploadToken);
+  const { error: persistError } = await service.from("youtube_upload_history").update({upload_session_ciphertext:encryptedSession,upload_session_expires_at:new Date(uploadSession.expires_at).toISOString(),status:"uploading"}).eq("id",historyId).eq("user_id",user.id);
+  if (persistError) return json(500, { error: "Could not securely save the resumable session. No video bytes have been uploaded yet." });
+  return json(200, { ok: true, upload_session: uploadToken, privacy_status: "private", podcast_title: podcast.title, filename, chunk_size: 8 * 1024 * 1024, message: "Upload session created and encrypted recovery state saved. The video will remain private." });
 });
