@@ -66,6 +66,79 @@
   }
   return row.status||'Unknown';
  }
+ async function resumeUploadAttempt(historyId,file){
+  if(!client||!state.user||state.busy)throw new Error('Sign in and finish any current upload before recovery.');
+  if(!file)throw new Error('Choose the original video file first.');
+  state.busy=true;state.historyId=historyId;validate();$('result').innerHTML='';$('progress').value=0;
+  try{
+   $('progressText').textContent='Verifying original file fingerprint…';
+   const fingerprint=await fingerprintFile(file);
+   if(!fingerprint)throw new Error('This browser cannot safely fingerprint this file, or it exceeds the 512 MiB recovery limit. Do not retry blindly; check YouTube Studio.');
+   const {data:row,error:rowError}=await client.from('youtube_upload_history').select('id,podcast_id,title,file_size,mime_type,filename,file_sha256,status,video_id').eq('id',historyId).eq('user_id',state.user.id).maybeSingle();
+   if(rowError||!row)throw new Error('Could not load this upload attempt.');
+   if(row.video_id)throw new Error('This attempt already has a saved YouTube video ID. Open Studio and check that video instead of uploading again.');
+   if(Number(row.file_size)!==file.size||row.file_sha256!==fingerprint)throw new Error('The selected file does not exactly match the original upload fingerprint. Nothing was uploaded.');
+   if(row.mime_type&&file.type&&row.mime_type!==file.type)throw new Error('The selected file type does not match the original attempt. Nothing was uploaded.');
+   const {data:recovery,error:recoveryError}=await client.functions.invoke('youtube-upload-recover',{body:{history_id:historyId}});
+   if(recoveryError)throw new Error('Could not retrieve the secure recovery session: '+recoveryError.message);
+   if(recovery?.error)throw new Error(recovery.error);
+   if(recovery?.complete&&recovery.video_id){
+    await saveHistory({status:'completed',video_id:recovery.video_id,studio_url:recovery.studio_url,progress_percent:100,completed_at:new Date().toISOString(),error_message:null});
+    $('progress').value=100;$('progressText').textContent='YouTube already completed this upload.';
+    $('result').innerHTML='<div class="alert success">Existing private upload found. <a href="'+esc(recovery.studio_url)+'" target="_blank" rel="noopener">Open in YouTube Studio ↗</a></div>';
+    await loadHistory();return;
+   }
+   const token=recovery?.upload_session;
+   if(!token)throw new Error('No usable recovery session was returned. Check YouTube Studio before retrying.');
+   const authToken=(await client.auth.getSession()).data.session?.access_token;
+   if(!authToken)throw new Error('Your sign-in session expired. Sign in again before recovery.');
+   const proxyUrl=cfg.supabaseUrl+'/functions/v1/youtube-upload-proxy';
+   const common={'Authorization':'Bearer '+authToken,'apikey':cfg.supabaseKey,'Content-Type':'application/octet-stream','x-upload-session':token,'x-upload-total':String(file.size),'x-upload-mime':file.type};
+   $('progressText').textContent='Checking YouTube’s confirmed upload position…';
+   const probeResponse=await fetch(proxyUrl,{method:'POST',headers:{...common,'x-upload-status-check':'true','Content-Range':'bytes */'+file.size},body:''});
+   const probe=await probeResponse.json().catch(()=>({}));
+   if(!probeResponse.ok)throw new Error((probe.error||'YouTube could not confirm this session.')+' No new upload was started. Check Studio before retrying.');
+   if(probe.complete&&probe.video_id){
+    const studio='https://studio.youtube.com/video/'+encodeURIComponent(probe.video_id)+'/edit';
+    await saveHistory({status:'completed',video_id:probe.video_id,studio_url:studio,progress_percent:100,completed_at:new Date().toISOString(),error_message:null});
+    $('progress').value=100;$('progressText').textContent='YouTube already completed this upload.';
+    $('result').innerHTML='<div class="alert success">YouTube confirms this upload is complete. <a href="'+esc(studio)+'" target="_blank" rel="noopener">Open in YouTube Studio ↗</a></div>';
+    await loadHistory();return;
+   }
+   if(!Number.isFinite(probe.next_offset)||probe.next_offset<0||probe.next_offset>file.size)throw new Error('YouTube returned an invalid upload position. Stopped safely; check Studio.');
+   let offset=probe.next_offset;
+   if(offset<file.size&&offset%(256*1024)!==0)throw new Error('YouTube reported a non-aligned byte position. Stopped safely to avoid corrupting the video.');
+   await saveHistory({status:'uploading',progress_percent:Math.floor(offset/file.size*100),error_message:null});
+   const chunkSize=8*1024*1024;let result=null;
+   for(let start=offset;start<file.size;){
+    const end=Math.min(start+chunkSize,file.size)-1;
+    $('progress').value=Math.floor((start/file.size)*100);
+    $('progressText').textContent='Resuming confirmed upload · '+$('progress').value+'% ('+bytes(start)+' / '+bytes(file.size)+')';
+    let response,part={};
+    try{response=await fetch(proxyUrl,{method:'POST',headers:{...common,'Content-Range':'bytes '+start+'-'+end+'/'+file.size},body:file.slice(start,end+1)});part=await response.json().catch(()=>({}))}catch(networkError){response=null}
+    if(!response||!response.ok||part.error){
+     $('progressText').textContent='Checking YouTube after an uncertain chunk…';
+     const verify=await fetch(proxyUrl,{method:'POST',headers:{...common,'x-upload-status-check':'true','Content-Range':'bytes */'+file.size},body:''});
+     const confirmed=await verify.json().catch(()=>({}));
+     if(verify.ok&&confirmed.complete&&confirmed.video_id){result=confirmed;break}
+     if(!verify.ok||!Number.isFinite(confirmed.next_offset))throw new Error('Upload response was uncertain and YouTube could not confirm progress. Check Studio; do not start a new upload.');
+     const next=confirmed.next_offset;
+     if(next===start)throw new Error('YouTube did not accept the last chunk. Recovery stopped without retrying blindly; check Studio and try resume again.');
+     if(next===end+1){offset=next;start=next;await saveHistory({status:'uploading',progress_percent:Math.floor(offset/file.size*100),error_message:null});continue}
+     throw new Error('YouTube reported a partial or unexpected chunk position. Recovery stopped safely; check Studio.');
+    }
+    if(part.complete){result=part;break}
+    offset=end+1;start=offset;$('progress').value=Math.floor(offset/file.size*100);
+    await saveHistory({status:'uploading',progress_percent:$('progress').value,error_message:null});
+   }
+   if(!result?.complete||!result.video_id)throw new Error('YouTube did not confirm a completed video. Check Studio before retrying.');
+   const videoId=result.video_id,studio='https://studio.youtube.com/video/'+encodeURIComponent(videoId)+'/edit';
+   await saveHistory({status:'completed',progress_percent:100,video_id:videoId,studio_url:studio,completed_at:new Date().toISOString(),error_message:null});
+   $('progress').value=100;$('progressText').textContent='Recovered upload completed; processing may continue in Studio.';
+   $('result').innerHTML='<div class="alert success"><strong>Recovered private upload completed.</strong><br>Video ID: '+esc(videoId)+'<br><a href="'+esc(studio)+'" target="_blank" rel="noopener">Open in YouTube Studio ↗</a></div>';
+   await loadHistory();say('Recovered upload completed. Check processing and picture/audio in YouTube Studio.','success');
+  }finally{state.busy=false;validate()}
+ }
  async function loadHistory(){
   if(!client||!state.user){$('historyNotice').textContent='Sign in to view upload history.';return}
   $('historyNotice').textContent='Loading upload history…';
@@ -84,8 +157,9 @@
    const playbackReady=row.status==='completed'&&row.video_id&&row.youtube_processing_status==='succeeded'&&row.youtube_privacy_status==='private'&&['uploaded','processed'].includes(row.youtube_upload_status);
    const playback=row.status==='completed'&&row.video_id?'<div class="alert" style="margin-top:9px"><strong>'+esc(row.playback_verification_status==='verified'?'Playback verified by you':row.playback_verification_status==='needs_attention'?'Playback needs attention':'Playback not yet verified')+'</strong>'+(row.playback_verified_at?' · Confirmed '+esc(fmtDate(row.playback_verified_at)):'')+(row.playback_verification_note?'<br>'+esc(row.playback_verification_note):'')+(playbackReady?'<br>Open the private video in Studio and check both picture and audio. This confirmation is manual; YouTube status cannot verify playback quality.':'<br>Playback verification becomes available after YouTube reports processing succeeded and actual visibility is private.')+'</div>'+(playbackReady&&row.playback_verification_status!=='verified'?'<div class="actions" style="margin-top:9px"><button class="btn" type="button" data-playback="verified" data-history-id="'+esc(row.id)+'">I watched it and checked audio</button><button class="btn" type="button" data-playback="needs_attention" data-history-id="'+esc(row.id)+'">Playback needs attention</button></div>':'')+(row.playback_verification_status==='verified'?'<div class="actions" style="margin-top:9px"><button class="btn" type="button" data-playback="not_verified" data-history-id="'+esc(row.id)+'">Reopen verification</button></div>':''):'';
    const fingerprint=row.file_sha256?'<div class="muted" style="margin-top:5px">SHA-256: <code>'+esc(row.file_sha256.slice(0,16))+'…</code></div>':'';
+   const resumeButton=['preparing','uploading','unknown'].includes(row.status)&&row.file_sha256&&!row.video_id?'<div class="actions" style="margin-top:9px"><button class="btn" type="button" data-resume-upload="'+esc(row.id)+'">Resume this upload safely</button></div>':'';
    const recoveryButtons=row.status==='unknown'&&row.recovery_status!=='reviewed_no_video'&&row.recovery_status!=='keep_existing'?'<div class="alert error" style="margin-top:9px">Recovery required: check YouTube Studio for this title before trying again. Do not retry until you have searched the channel content list.</div><div class="actions" style="margin-top:9px"><button class="btn" type="button" data-recovery="reviewed_no_video" data-history-id="'+esc(row.id)+'">I checked Studio — no video found</button><button class="btn" type="button" data-recovery="keep_existing" data-history-id="'+esc(row.id)+'">Keep existing attempt</button><a href="https://studio.youtube.com/" target="_blank" rel="noopener">Open YouTube Studio ↗</a></div>':row.recovery_status==='reviewed_no_video'?'<div class="alert success" style="margin-top:9px">Studio checked: you marked this attempt as not found. A new attempt is permitted after the duplicate check.</div>':row.recovery_status==='keep_existing'?'<div class="alert" style="margin-top:9px">Keeping this attempt. Check Studio again if needed; do not retry unless you change this recovery decision.</div>':'';
-   return '<article class="post" style="border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;background:#0b0d16"><div class="actions" style="justify-content:space-between"><strong>'+esc(row.title)+'</strong><span class="private '+statusClass+'">'+esc(label)+'</span></div><p class="muted" style="margin:7px 0">'+esc(row.podcasts?.title||'Podcast')+' · '+esc(fmtDate(row.completed_at||row.created_at))+'</p><div class="muted">'+esc(row.filename||'Video file')+' · '+esc(bytes(Number(row.file_size)||0))+' · Visibility requested: PRIVATE'+(row.status==='uploading'?' · '+esc(row.progress_percent)+'%':'')+'</div>'+video+fingerprint+checked+'<div class="actions" style="margin-top:9px">'+studio+checkButton+'</div>'+playback+err+processingNote+recoveryButtons+'</article>';
+   return '<article class="post" style="border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;background:#0b0d16"><div class="actions" style="justify-content:space-between"><strong>'+esc(row.title)+'</strong><span class="private '+statusClass+'">'+esc(label)+'</span></div><p class="muted" style="margin:7px 0">'+esc(row.podcasts?.title||'Podcast')+' · '+esc(fmtDate(row.completed_at||row.created_at))+'</p><div class="muted">'+esc(row.filename||'Video file')+' · '+esc(bytes(Number(row.file_size)||0))+' · Visibility requested: PRIVATE'+(row.status==='uploading'?' · '+esc(row.progress_percent)+'%':'')+'</div>'+video+fingerprint+checked+'<div class="actions" style="margin-top:9px">'+studio+checkButton+'</div>'+playback+err+processingNote+resumeButton+recoveryButtons+'</article>';
   }).join('');
  }
  async function fingerprintFile(file){
@@ -130,6 +204,13 @@
  $('show').addEventListener('change',async()=>{await loadEpisodes();validate()});
  $('reloadHistory').addEventListener('click',loadHistory);
  $('historyList').addEventListener('click',async event=>{
+  const resume=event.target.closest('[data-resume-upload]');
+  if(resume){
+   const id=resume.dataset.resumeUpload;
+   const picker=document.createElement('input');picker.type='file';picker.accept='video/*';
+   picker.addEventListener('change',async()=>{const file=picker.files?.[0];if(!file)return;try{await resumeUploadAttempt(id,file)}catch(err){$('result').innerHTML='<div class="alert error">'+esc(err.message||'Recovery stopped safely.')+'</div>';say('Recovery could not safely continue. Check YouTube Studio before retrying.','error');if(state.historyId){await saveHistory({status:'unknown',error_message:String(err.message||'Recovery stopped.').slice(0,500)});await loadHistory()} }});
+   picker.click();return;
+  }
   const playbackButton=event.target.closest('[data-playback]');
   if(playbackButton){
    const id=playbackButton.getAttribute('data-history-id'),decision=playbackButton.getAttribute('data-playback');
