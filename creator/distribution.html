@@ -62,7 +62,7 @@
   $('connections').innerHTML=platformList.map(p=>{
    const a=byPlatform.get(p.id), connected=a?.connection_status==='connected';
    const detail=connected?'Connected'+(a.account_label?' · '+a.account_label:''):'Not connected · setup required';
-   const connectButton=p.id==='youtube'&&!connected?'<button class="btn primary" data-connect-youtube>Connect YouTube</button>':(p.id==='youtube'&&connected?'<button class="btn" data-test-youtube-refresh>Test token refresh</button>':'');
+   const connectButton=connected?(p.id==='youtube'?'<button class="btn" data-test-youtube-refresh>Test token refresh</button>':'<span class="status">Connected</span>'):'<button class="btn primary" data-connect-platform="'+p.id+'">Connect '+esc(p.name)+'</button>';
    const profile=connected&&a.profile_url?'<br><a href="'+esc(a.profile_url)+'" target="_blank" rel="noopener">Open channel</a>':'';
    return '<div class="platform"><span><b>'+p.name+'</b><br><small>'+esc(detail)+'</small>'+profile+'</span>'+connectButton+'</div>';
   }).join('');
@@ -216,16 +216,24 @@
    }catch(err){say('YouTube token refresh test failed: '+(err.message||'Please reconnect and retry.'));refreshButton.disabled=false;refreshButton.textContent='Test token refresh'}
    return;
   }
-  const button=ev.target.closest('[data-connect-youtube]');if(!button)return;
-  const podcastId=$('show').value;if(!podcastId){say('Select a podcast before connecting YouTube.');return}
+  const button=ev.target.closest('[data-connect-platform]');if(!button)return;
+  const platform=button.dataset.connectPlatform,podcastId=$('show').value;
+  if(!podcastId){say('Select a podcast before connecting '+titleCase(platform)+'.');return}
   button.disabled=true;button.textContent='Starting secure connection…';
   try{
-   const {data,error}=await client.functions.invoke('youtube-oauth',{body:{action:'start',podcast_id:podcastId}});
+   if(platform==='youtube'){
+    const {data,error}=await client.functions.invoke('youtube-oauth',{body:{action:'start',podcast_id:podcastId}});
+    if(error)throw error;
+    if(data?.error){say(data.error+(data.redirect_uri?' OAuth callback URL: '+data.redirect_uri:''));button.disabled=false;button.textContent='Connect YouTube';return}
+    if(!data?.authorization_url)throw new Error('The secure authorization URL was not returned.');
+    window.location.assign(data.authorization_url);return;
+   }
+   const {data,error}=await client.functions.invoke('podcast-distribution-api',{body:{action:'start_connection',platform,podcast_id:podcastId}});
    if(error)throw error;
-   if(data?.error){say(data.error+(data.redirect_uri?' OAuth callback URL: '+data.redirect_uri:''));button.disabled=false;button.textContent='Connect YouTube';return}
-   if(!data?.authorization_url)throw new Error('The secure authorization URL was not returned.');
-   window.location.assign(data.authorization_url);
-  }catch(err){say('Could not start YouTube authorization: '+(err.message||'Please retry.'));button.disabled=false;button.textContent='Connect YouTube'}
+   if(data?.authorization_url){window.location.assign(data.authorization_url);return}
+   if(data?.status==='connected'){await loadConnections();say(data.message||'CrowRules profile connected.',true);return}
+   say(data?.message||'This provider needs its official OAuth app credentials and callback setup before it can connect. No external account was connected.',false);
+  }catch(err){say('Could not start '+titleCase(platform)+' connection: '+(err.message||'Please retry.'));button.disabled=false;button.textContent='Connect '+titleCase(platform)}
  });
  renderPlatforms();init();
 })();
