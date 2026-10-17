@@ -29,7 +29,7 @@
 <div class="actions"><button class="btn primary" id="upload" disabled>Start private video upload</button><button class="btn" id="refreshToken" type="button">Refresh YouTube token</button></div>
 </section>
 <section class="panel"><h2>03 · Upload progress</h2><progress id="progress" max="100" value="0"></progress><p id="progressText" class="muted">No upload started.</p><div id="result"></div><div class="alert">Safety note: this page does not make the video public, set a schedule, or upload automatically. A completed upload can still need YouTube processing before it is playable.</div></section>
-<section class="panel"><div class="actions" style="justify-content:space-between"><h2>04 · Upload history</h2><button class="btn" id="reloadHistory" type="button">Refresh history</button></div><p class="muted">Your latest 50 uploads and attempts. History is private to your signed-in creator account. Completed videos link directly to YouTube Studio.</p><div id="historyNotice" class="muted">Loading upload history…</div><div id="historyList"></div></section>
+<section class="panel"><div class="actions" style="justify-content:space-between"><h2>04 · Upload history</h2><button class="btn" id="reloadHistory" type="button">Refresh history</button></div><p class="muted">Your latest 50 uploads and attempts. Completed means YouTube accepted the upload, not necessarily that processing finished. Use Check YouTube status to retrieve processing and actual privacy from YouTube. Uncertain transfers are flagged so you can check Studio before retrying.</p><div id="historyNotice" class="muted">Loading upload history…</div><div id="historyList"></div></section>
 </main>
 <script>
 (() => {
@@ -52,20 +52,36 @@
  }
 
  function fmtDate(value){if(!value)return '—';const d=new Date(value);return Number.isNaN(d.getTime())?'—':d.toLocaleString()}
- function statusLabel(status){return ({preparing:'Preparing',uploading:'Uploading',completed:'Completed · Private',failed:'Failed',unknown:'Needs review'})[status]||status||'Unknown'}
+ function statusLabel(row){
+  if(row.status==='unknown')return 'Needs review · Verify before retry';
+  if(row.status==='failed')return 'Upload failed';
+  if(row.status==='preparing')return 'Preparing';
+  if(row.status==='uploading')return 'Uploading';
+  if(row.status==='completed'){
+   if(row.youtube_privacy_status && row.youtube_privacy_status!=='private')return 'Needs review · '+row.youtube_privacy_status;
+   if(row.youtube_processing_status==='processing')return 'Processing';
+   if(row.youtube_processing_status==='failed'||row.youtube_processing_status==='terminated'||row.youtube_upload_status==='failed'||row.youtube_upload_status==='rejected')return 'Processing failed';
+   if(row.youtube_processing_status==='succeeded'&&row.youtube_privacy_status==='private'&&['uploaded','processed'].includes(row.youtube_upload_status))return 'Ready · Private';
+   return 'Upload complete · Check status';
+  }
+  return row.status||'Unknown';
+ }
  async function loadHistory(){
   if(!client||!state.user){$('historyNotice').textContent='Sign in to view upload history.';return}
   $('historyNotice').textContent='Loading upload history…';
-  const {data,error}=await client.from('youtube_upload_history').select('id,podcast_id,episode_id,title,visibility,status,video_id,studio_url,filename,file_size,progress_percent,error_message,created_at,completed_at,podcasts(title)').order('created_at',{ascending:false}).limit(50);
+  const {data,error}=await client.from('youtube_upload_history').select('id,podcast_id,episode_id,title,visibility,status,video_id,studio_url,filename,file_size,progress_percent,error_message,created_at,completed_at,youtube_processing_status,youtube_privacy_status,youtube_upload_status,status_checked_at,processing_failure_reason,podcasts(title)').order('created_at',{ascending:false}).limit(50);
   if(error){$('historyNotice').textContent='Upload history is not available: '+error.message;$('historyList').innerHTML='';return}
   if(!data?.length){$('historyNotice').textContent='No upload attempts saved yet. Your next upload will appear here.';$('historyList').innerHTML='';return}
   $('historyNotice').textContent=data.length+' recent upload attempt'+(data.length===1?'':'s')+'.';
   $('historyList').innerHTML=data.map(row=>{
-   const statusClass=row.status==='completed'?'success':row.status==='failed'?'error':'';
+   const label=statusLabel(row); const statusClass=label.startsWith('Ready')?'success':(label.includes('failed')||label.startsWith('Needs review'))?'error':label==='Processing'?'':'success';
    const studio=row.video_id?' <a href="https://studio.youtube.com/video/'+encodeURIComponent(row.video_id)+'/edit" target="_blank" rel="noopener">Open in YouTube Studio ↗</a>':'';
    const video=row.video_id?'<div class="muted">Video ID: <code>'+esc(row.video_id)+'</code></div>':'';
    const err=row.error_message?'<div class="alert error" style="margin-top:9px">'+esc(row.error_message)+'</div>':'';
-   return '<article class="post" style="border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;background:#0b0d16"><div class="actions" style="justify-content:space-between"><strong>'+esc(row.title)+'</strong><span class="private">'+esc(statusLabel(row.status))+'</span></div><p class="muted" style="margin:7px 0">'+esc(row.podcasts?.title||'Podcast')+' · '+esc(fmtDate(row.completed_at||row.created_at))+'</p><div class="muted">'+esc(row.filename||'Video file')+' · '+esc(bytes(Number(row.file_size)||0))+' · Visibility: PRIVATE'+(row.status==='uploading'?' · '+esc(row.progress_percent)+'%':'')+'</div>'+video+'<div style="margin-top:9px">'+studio+'</div>'+err+'</article>';
+   const processingNote=row.processing_failure_reason?'<div class="alert error" style="margin-top:9px">YouTube processing reason: '+esc(row.processing_failure_reason)+'</div>':'';
+   const checked=row.status_checked_at?'<div class="muted" style="margin-top:6px">YouTube status checked: '+esc(fmtDate(row.status_checked_at))+(row.youtube_privacy_status?' · Actual visibility: '+esc(row.youtube_privacy_status.toUpperCase()):'')+(row.youtube_upload_status?' · Upload state: '+esc(row.youtube_upload_status):'')+'</div>':'';
+   const checkButton=row.status==='completed'&&row.video_id?'<button class="btn" type="button" data-check-video="'+esc(row.id)+'">Check YouTube status</button>':'';
+   return '<article class="post" style="border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;background:#0b0d16"><div class="actions" style="justify-content:space-between"><strong>'+esc(row.title)+'</strong><span class="private '+statusClass+'">'+esc(label)+'</span></div><p class="muted" style="margin:7px 0">'+esc(row.podcasts?.title||'Podcast')+' · '+esc(fmtDate(row.completed_at||row.created_at))+'</p><div class="muted">'+esc(row.filename||'Video file')+' · '+esc(bytes(Number(row.file_size)||0))+' · Visibility requested: PRIVATE'+(row.status==='uploading'?' · '+esc(row.progress_percent)+'%':'')+'</div>'+video+checked+'<div class="actions" style="margin-top:9px">'+studio+checkButton+'</div>'+err+processingNote+(row.status==='unknown'?'<div class="alert error" style="margin-top:9px">The transfer outcome is uncertain. Open YouTube Studio and search for this video before retrying to avoid creating a duplicate.</div>':'')+'</article>';
   }).join('');
  }
  async function saveHistory(patch){
@@ -103,6 +119,25 @@
  }
  $('show').addEventListener('change',async()=>{await loadEpisodes();validate()});
  $('reloadHistory').addEventListener('click',loadHistory);
+ $('historyList').addEventListener('click',async event=>{
+  const button=event.target.closest('[data-check-video]');
+  if(!button)return;
+  const historyId=button.getAttribute('data-check-video');
+  button.disabled=true;button.textContent='Checking YouTube…';
+  $('historyNotice').textContent='Checking YouTube processing and actual privacy status…';
+  try{
+   const {data,error}=await client.functions.invoke('youtube-video-status',{body:{history_id:historyId}});
+   if(error)throw error;
+   if(data?.error)throw new Error(data.error);
+   await loadHistory();
+   $('historyNotice').textContent=(data.message||'YouTube status checked.')+(data.checked_at?' Checked '+fmtDate(data.checked_at)+'.':'');
+  }catch(e){
+   $('historyNotice').textContent='Could not verify YouTube status: '+(e.message||'Unknown error')+' Check YouTube Studio before retrying.';
+  }finally{
+   const current=$('historyList').querySelector('[data-check-video="'+CSS.escape(historyId)+'"]');
+   if(current){current.disabled=false;current.textContent='Check YouTube status'}
+  }
+ });
  $('episode').addEventListener('change',prefill);
  $('file').addEventListener('change',()=>{const f=$('file').files?.[0];$('fileInfo').textContent=f?f.name+' · '+bytes(f.size)+' · '+(f.type||'unknown MIME type'):'No file selected.';validate()});
  ['title','description','tags','confirm'].forEach(id=>$(id).addEventListener('input',validate));
