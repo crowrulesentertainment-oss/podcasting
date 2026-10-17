@@ -17,7 +17,7 @@
 <section class="panel"><h2>01 · Episode and video</h2>
 <div class="field"><label for="show">YOUR PODCAST</label><select id="show"><option value="">Loading your podcasts…</option></select></div>
 <div class="field"><label for="episode">EPISODE (OPTIONAL METADATA PRE-FILL)</label><select id="episode"><option value="">Choose a podcast first</option></select></div>
-<div class="field"><label for="file">VIDEO FILE</label><input id="file" type="file" accept="video/*"><small>Choose a video file you have permission to upload. Large files may take time; keep this tab open while uploading.</small></div>
+<div class="field"><label for="file">VIDEO FILE</label><input id="file" type="file" accept="video/*"><div class="actions" style="margin-top:8px"><button class="btn" id="useEpisodeVideo" type="button" disabled>Use saved episode video</button></div><small>Choose a video file you have permission to upload. If the selected episode has a saved video in CrowRules storage, you can load that file here for review. Large files may take time; keep this tab open while uploading.</small></div>
 <div id="fileInfo" class="muted">No file selected.</div>
 </section>
 <section class="panel"><h2>02 · YouTube details</h2>
@@ -377,8 +377,8 @@
   if(requestedEpisodeId&&state.episodes.some(e=>e.id===requestedEpisodeId)){
    $('episode').value=requestedEpisodeId;
    prefill();
-   if(handoffParams.get('fromDistribution')==='1'){
-    $('result').innerHTML='<div class="alert">Episode details were prefilled from Distribution Center. Select the actual video file, verify title, description and visibility, and explicitly confirm before uploading. No upload has started.</div>';
+   if(['1','true'].includes(handoffParams.get('fromDistribution'))||handoffParams.get('fromEpisode')==='1'){
+    $('result').innerHTML='<div class="alert">Episode details were prefilled. Select the saved episode video with “Use saved episode video” or choose a local video file, verify title, description and visibility, and explicitly confirm before uploading. No upload has started.</div>';
    }
   }
   await loadHistory();
@@ -386,7 +386,21 @@
  }
  function prefill(){
   const ep=selectedEpisode();
+  $('useEpisodeVideo').disabled=!ep||!ep.video_url||state.busy;
   if(ep){$('title').value=(ep.title||'').slice(0,100);$('description').value=(ep.description||'').slice(0,5000)}
+ }
+ async function useSavedEpisodeVideo(){
+  const ep=selectedEpisode();if(!ep?.video_url){say('This episode does not have a saved video file.','error');return}
+  const button=$('useEpisodeVideo');button.disabled=true;button.textContent='Loading saved video…';say('Retrieving the saved episode video. Review the file and all YouTube details before confirming upload. No upload has started.');
+  try{
+   const response=await fetch(ep.video_url,{mode:'cors',credentials:'omit'});if(!response.ok)throw new Error('Could not retrieve the saved video (HTTP '+response.status+'). Download it from the episode manager and choose it manually.');
+   const blob=await response.blob();if(!blob.size)throw new Error('The saved video file is empty.');
+   const rawName=(ep.title||'crowrules-episode-video').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,80)||'crowrules-episode-video';
+   const type=blob.type&&blob.type.startsWith('video/')?blob.type:'video/webm';const file=new File([blob],rawName+(type.includes('mp4')?'.mp4':type.includes('quicktime')?'.mov':'.webm'),{type,lastModified:Date.now()});
+   const transfer=new DataTransfer();transfer.items.add(file);$('file').files=transfer.files;$('fileInfo').textContent=file.name+' · '+bytes(file.size)+' · Loaded from saved episode draft';
+   $('result').innerHTML='<div class="alert success">Saved episode video selected. Review the title, description, podcast and visibility. You must still confirm and start the upload manually.</div>';validate();
+  }catch(error){say('Could not load the saved episode video: '+(error.message||'Unknown error'),'error')}
+  finally{button.textContent='Use saved episode video';button.disabled=!selectedEpisode()?.video_url||state.busy}
  }
  function updateVisibilityCopy(){const v=$('visibility').value;const labels={public:'PUBLIC · viewers may find this video on YouTube',unlisted:'UNLISTED · anyone with the link can watch',private:'PRIVATE · only you and invited viewers'};$('visibilitySummary').textContent=labels[v]||labels.public;$('confirmText').textContent='I confirm that I own this video or have permission to upload it, and I understand it will be uploaded as '+v+' on YouTube.';$('upload').textContent='Start '+v+' video upload'}
  function validate(){
@@ -493,7 +507,8 @@
    if(current){current.disabled=false;current.textContent='Check YouTube status'}
   }
  });
- $('episode').addEventListener('change',prefill);
+ $('episode').addEventListener('change',()=>{prefill();validate()});
+ $('useEpisodeVideo').addEventListener('click',useSavedEpisodeVideo);
  $('file').addEventListener('change',()=>{const f=$('file').files?.[0];$('fileInfo').textContent=f?f.name+' · '+bytes(f.size)+' · '+(f.type||'unknown MIME type'):'No file selected.';validate()});
  ['title','description','tags','confirm','visibility'].forEach(id=>$(id).addEventListener('input',()=>{updateVisibilityCopy();validate()}));
  $('refreshToken').addEventListener('click',async()=>{
