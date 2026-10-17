@@ -66,8 +66,7 @@ Deno.serve(async (req: Request) => {
   if (description.length > 5000) return json(400, { error: "Description must be 5,000 characters or fewer." });
   if (!/^video\/[a-zA-Z0-9.+-]+$/.test(mimeType)) return json(400, { error: "Choose a video file with a supported video MIME type." });
   if (!Number.isSafeInteger(fileSize) || fileSize < 1 || fileSize > 256 * 1024 * 1024 * 1024) return json(400, { error: "File size must be between 1 byte and 256 GB." });
-  if (!filename || /[\r
-]/.test(filename)) return json(400, { error: "Invalid filename." });
+  if (!filename || /[\r\n]/.test(filename)) return json(400, { error: "Invalid filename." });
 
   const userClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authorization } }, auth: { persistSession: false, autoRefreshToken: false } });
   const { data: { user }, error: userError } = await userClient.auth.getUser();
