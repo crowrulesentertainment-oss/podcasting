@@ -18,7 +18,8 @@
 <section class="hero"><div class="eyebrow">CREATOR TOOLS / VIDEO PRODUCTION</div><h1>VIDEO CREATION <span style="color:var(--cyan)">STUDIO</span></h1><p>Build a 16:9 YouTube video from your own images, titles, scene cards, and optional background music. Preview it, export a WebM video or a thumbnail, then send the finished file to the private YouTube uploader.</p></section>
 <div class="layout">
 <section class="panel" aria-labelledby="projectHeading"><h2 id="projectHeading">01 · Project & scenes</h2>
-<div class="field"><label for="projectTitle">PROJECT TITLE</label><input id="projectTitle" type="text" maxlength="120" value="My CrowRules Video"></div>\n<div class="field"><label for="episodePodcast">ASSOCIATE WITH PODCAST</label><select id="episodePodcast"><option value="">Sign in to load your podcasts…</option></select><small>Your exported video can be uploaded to your podcast’s episode files and saved as an unpublished draft.</small></div>
+<div class="field"><label for="projectTitle">PROJECT TITLE</label><input id="projectTitle" type="text" maxlength="120" value="My CrowRules Video"></div>
+<div class="field"><label for="episodePodcast">ASSOCIATE WITH PODCAST</label><select id="episodePodcast"><option value="">Sign in to load your podcasts…</option></select><small>Your exported video can be uploaded to your podcast’s episode files and saved as an unpublished draft.</small></div>
 <div class="field"><label for="style">VISUAL STYLE</label><select id="style"><option value="cinematic">Cinematic neon</option><option value="clean">Clean editorial</option><option value="halloween">Haunted / supernatural</option><option value="minimal">Minimal dark</option></select></div>
 <div class="field"><label for="music">BACKGROUND MUSIC (OPTIONAL)</label><input id="music" type="file" accept="audio/*"><small>Use audio you own or have permission to use. Music is mixed into the exported video in supported browsers.</small></div>
 <div class="field"><label class="checkbox"><input id="musicOn" type="checkbox" checked> Include background music</label></div>
@@ -52,7 +53,8 @@
 (()=>{
 'use strict';
 const $=id=>document.getElementById(id);
-const canvas=$('canvas'),ctx=canvas.getContext('2d');\nconst cfg=window.CROW_CONFIG||{};let S=null,currentUser=null,creatorPodcasts=[];
+const canvas=$('canvas'),ctx=canvas.getContext('2d');
+const cfg=window.CROW_CONFIG||{};let S=null,currentUser=null,creatorPodcasts=[];
 let scenes=[],active=0,previewTimer=null,rendering=false,musicUrl=null,lastExportBlob=null,lastExportName='crowrules-video.webm';
 const images=new Map();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
