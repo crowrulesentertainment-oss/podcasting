@@ -95,20 +95,32 @@
    const payload={podcast_id:show.id,title:$('title').value.trim(),description:$('description').value.trim(),tags:$('tags').value.split(',').map(s=>s.trim()).filter(Boolean),filename:file.name,mime_type:file.type,file_size:file.size};
    const {data:session,error}=await client.functions.invoke('youtube-upload-session',{body:payload});
    if(error)throw error;if(session?.error)throw new Error(session.error);if(!session?.upload_url)throw new Error('The server did not return an upload session.');
-   $('progressText').textContent='Uploading '+file.name+' to YouTube…';
-   const uploaded=await new Promise((resolve,reject)=>{
-    const xhr=new XMLHttpRequest();
-    xhr.open('PUT',session.upload_url,true);
-    xhr.setRequestHeader('Content-Type',file.type);
-    xhr.upload.onprogress=event=>{
-     if(event.lengthComputable){const percent=Math.round((event.loaded/event.total)*100);$('progress').value=percent;$('progressText').textContent='Uploading '+file.name+' · '+percent+'% ('+bytes(event.loaded)+' / '+bytes(event.total)+')';}
-    };
-    xhr.onerror=()=>reject(new Error('The browser could not reach YouTube upload. Check the connection and try again. If the browser reports a CORS error, the upload endpoint may need a server-side chunk proxy.'));
-    xhr.onabort=()=>reject(new Error('Upload was cancelled before YouTube confirmed completion.'));
-    xhr.onload=()=>{let parsed={};try{parsed=JSON.parse(xhr.responseText||'{}')}catch{};if(xhr.status>=200&&xhr.status<300)resolve(parsed);else reject(new Error('YouTube upload failed (HTTP '+xhr.status+'). '+(parsed.error?.message||String(xhr.responseText||'').slice(0,350)||'No success was reported.')));};
-    xhr.send(file);
-   });
-   const result=uploaded;
+   $('progressText').textContent='Uploading '+file.name+' through CrowRules secure proxy…';
+   const chunkSize=8*1024*1024;
+   let result=null;
+   for(let start=0;start<file.size;start+=chunkSize){
+    const end=Math.min(start+chunkSize,file.size)-1;
+    const chunk=file.slice(start,end+1);
+    const response=await fetch(cfg.supabaseUrl+'/functions/v1/youtube-upload-proxy',{
+     method:'POST',
+     headers:{
+      'Authorization':'Bearer '+(await client.auth.getSession()).data.session.access_token,
+      'apikey':cfg.supabaseKey,
+      'Content-Type':'application/octet-stream',
+      'x-upload-session':session.upload_url,
+      'x-upload-total':String(file.size),
+      'x-upload-mime':file.type,
+      'Content-Range':'bytes '+start+'-'+end+'/'+file.size
+     },
+     body:chunk
+    });
+    let part={};try{part=await response.json()}catch{}
+    if(!response.ok||part.error)throw new Error(part.error||('Upload proxy failed (HTTP '+response.status+').'));
+    $('progress').value=Math.round(((end+1)/file.size)*100);
+    $('progressText').textContent='Uploading '+file.name+' · '+$('progress').value+'% ('+bytes(end+1)+' / '+bytes(file.size)+')';
+    if(part.complete)result=part;
+   }
+   if(!result?.complete)throw new Error('All chunks were sent, but YouTube did not confirm a completed video. Check YouTube Studio before retrying.');
    $('progress').value=100;
    const videoId=result.id;
    $('progressText').textContent='Upload accepted by YouTube. Video processing may continue in YouTube Studio.';
