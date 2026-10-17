@@ -236,6 +236,7 @@
    button.disabled=false;button.textContent='Connect '+titleCase(platform);
   }catch(err){say('Could not start '+titleCase(platform)+' connection: '+(err.message||'Please retry.'));button.disabled=false;button.textContent='Connect '+titleCase(platform)}
  });
- renderPlatforms();init();
+ renderPlatforms();
+ (async()=>{await init();const q=new URLSearchParams(window.location.search);const result=q.get('oauth');if(result){const platform=titleCase(q.get('platform')||'social account');const message=q.get('message')|| (result==='success'?'Account authorization completed.':'Account authorization needs attention.');say(platform+': '+message,result==='success');history.replaceState({},document.title,window.location.pathname+window.location.hash);await loadConnections();}})();
 })();
 </script></body></html>
