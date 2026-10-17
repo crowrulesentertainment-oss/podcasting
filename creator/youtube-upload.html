@@ -96,9 +96,19 @@
    const {data:session,error}=await client.functions.invoke('youtube-upload-session',{body:payload});
    if(error)throw error;if(session?.error)throw new Error(session.error);if(!session?.upload_url)throw new Error('The server did not return an upload session.');
    $('progressText').textContent='Uploading '+file.name+' to YouTube…';
-   const response=await fetch(session.upload_url,{method:'PUT',headers:{'Content-Type':file.type,'Content-Length':String(file.size)},body:file});
-   const text=await response.text();let result={};try{result=JSON.parse(text)}catch{}
-   if(!response.ok)throw new Error('YouTube upload failed (HTTP '+response.status+'). '+(result.error?.message||text.slice(0,350)||'Try again; no success was reported.'));
+   const uploaded=await new Promise((resolve,reject)=>{
+    const xhr=new XMLHttpRequest();
+    xhr.open('PUT',session.upload_url,true);
+    xhr.setRequestHeader('Content-Type',file.type);
+    xhr.upload.onprogress=event=>{
+     if(event.lengthComputable){const percent=Math.round((event.loaded/event.total)*100);$('progress').value=percent;$('progressText').textContent='Uploading '+file.name+' · '+percent+'% ('+bytes(event.loaded)+' / '+bytes(event.total)+')';}
+    };
+    xhr.onerror=()=>reject(new Error('The browser could not reach YouTube upload. Check the connection and try again. If the browser reports a CORS error, the upload endpoint may need a server-side chunk proxy.'));
+    xhr.onabort=()=>reject(new Error('Upload was cancelled before YouTube confirmed completion.'));
+    xhr.onload=()=>{let parsed={};try{parsed=JSON.parse(xhr.responseText||'{}')}catch{};if(xhr.status>=200&&xhr.status<300)resolve(parsed);else reject(new Error('YouTube upload failed (HTTP '+xhr.status+'). '+(parsed.error?.message||String(xhr.responseText||'').slice(0,350)||'No success was reported.')));};
+    xhr.send(file);
+   });
+   const result=uploaded;
    $('progress').value=100;
    const videoId=result.id;
    $('progressText').textContent='Upload accepted by YouTube. Video processing may continue in YouTube Studio.';
