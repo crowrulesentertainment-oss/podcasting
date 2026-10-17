@@ -163,6 +163,13 @@ async function stopRecording(){
  say('Recording stopped. Save session to upload the separate tracks and master mix privately.');
  showPreview();
 }
+function bytesLabel(bytes){
+ if(!Number.isFinite(bytes)||bytes<0)return '—';
+ if(bytes<1024)return bytes+' B';
+ const units=['KB','MB','GB'];let value=bytes/1024,index=0;
+ while(value>=1024&&index<units.length-1){value/=1024;index++;}
+ return value.toFixed(value>=100?0:value>=10?1:2)+' '+units[index];
+}
 function downloadBlob(blob, filename){
  if(!blob?.size)return;
  const url=URL.createObjectURL(blob);const link=document.createElement('a');
@@ -172,15 +179,15 @@ function downloadBlob(blob, filename){
 function showPreview(){
  const root=$('savedList');const preview=document.createElement('div');preview.className='saved';
  const title=document.createElement('strong');title.textContent='Current take · not saved yet';preview.append(title);
- const meta=document.createElement('p');meta.textContent=fmt(state.elapsedBeforePause)+' · '+state.tracks.filter(t=>t.blob?.size).length+' microphone tracks + master mix';preview.append(meta);
+ const meta=document.createElement('p');const captured=[...state.tracks.filter(t=>t.blob?.size),...(state.master?.blob?.size?[state.master]:[])];const totalBytes=captured.reduce((sum,t)=>sum+(t.blob?.size||0),0);meta.textContent=fmt(state.elapsedBeforePause)+' · '+captured.length+' audio files · '+bytesLabel(totalBytes)+' total';preview.append(meta);
  const master=state.master?.blob;
  if(master){
   const audio=document.createElement('audio');audio.controls=true;audio.src=URL.createObjectURL(master);audio.style.width='100%';audio.setAttribute('aria-label','Preview master mix');preview.append(audio);
-  const masterDownload=document.createElement('button');masterDownload.className='btn';masterDownload.textContent='↓ Download master mix';masterDownload.style.marginTop='8px';
+  const masterInfo=document.createElement('p');masterInfo.className='hint';masterInfo.textContent='Master mix · '+bytesLabel(master.size);preview.append(masterInfo);const masterDownload=document.createElement('button');masterDownload.className='btn';masterDownload.textContent='↓ Download master mix';masterDownload.style.marginTop='8px';
   masterDownload.addEventListener('click',()=>downloadBlob(master,safeName($('sessionTitle').value||'recording')+'-master.webm'));preview.append(masterDownload);
  }
  const downloads=document.createElement('div');downloads.className='actions';
- state.tracks.filter(t=>t.blob?.size).forEach((track,index)=>{const link=document.createElement('button');link.className='btn';link.textContent='↓ '+track.name;link.addEventListener('click',()=>downloadBlob(track.blob,safeName($('sessionTitle').value||'recording')+'-'+safeName(track.name||('track-'+(index+1)))+'.webm'));downloads.append(link);});
+ state.tracks.filter(t=>t.blob?.size).forEach((track,index)=>{const link=document.createElement('button');link.className='btn';link.textContent='↓ '+track.name+' · '+bytesLabel(track.blob.size);link.addEventListener('click',()=>downloadBlob(track.blob,safeName($('sessionTitle').value||'recording')+'-'+safeName(track.name||('track-'+(index+1)))+'.webm'));downloads.append(link);});
  if(downloads.childElementCount)preview.append(downloads);
  const save=document.createElement('button');save.className='btn primary';save.textContent='Save private recording';save.style.marginTop='10px';save.addEventListener('click',()=>saveRecording(save));preview.append(save);
  root.prepend(preview);
@@ -251,6 +258,6 @@ async function createDraft(row,button,chosenPodcast){
 $('openingFile').addEventListener('change',()=>{if($('openingFile').files.length)$('openingSavedTrack').value='';});$('endingFile').addEventListener('change',()=>{if($('endingFile').files.length)$('endingSavedTrack').value='';});
 $('openingSavedTrack').addEventListener('change',()=>{if($('openingSavedTrack').value)$('openingFile').value='';});$('endingSavedTrack').addEventListener('change',()=>{if($('endingSavedTrack').value)$('endingFile').value='';});
 $('refreshDevices').addEventListener('click',refreshDevices);$('addTrack').addEventListener('click',addTrack);$('startBtn').addEventListener('click',startRecording);$('pauseBtn').addEventListener('click',pauseRecording);$('stopBtn').addEventListener('click',stopRecording);
-window.addEventListener('beforeunload',e=>{if(state.tracks.some(t=>t.recorder&&t.recorder.state!=='inactive')){e.preventDefault();e.returnValue='Recording in progress';}});
+window.addEventListener('beforeunload',e=>{const recording=state.tracks.some(t=>t.recorder&&t.recorder.state!=='inactive')||(state.master?.recorder&&state.master.recorder.state!=='inactive');const unsaved=state.tracks.some(t=>t.blob?.size)||!!state.master?.blob?.size;if(recording||unsaved||state.busy){e.preventDefault();e.returnValue=recording?'Recording in progress':state.busy?'Audio upload in progress':'Your recorded audio has not been saved yet';}});
 drawWave();init();
 })();
