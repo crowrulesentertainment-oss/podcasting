@@ -1,0 +1,50 @@
+name: Podcast distribution queue worker
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: podcast-distribution-worker
+  cancel-in-progress: false
+
+jobs:
+  process-queue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Validate worker secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          DISTRIBUTION_WORKER_SECRET: ${{ secrets.DISTRIBUTION_WORKER_SECRET }}
+        run: |
+          test -n "$SUPABASE_URL" || (echo "Missing SUPABASE_URL repository secret" && exit 1)
+          test -n "$SUPABASE_ANON_KEY" || (echo "Missing SUPABASE_ANON_KEY repository secret" && exit 1)
+          test -n "$DISTRIBUTION_WORKER_SECRET" || (echo "Missing DISTRIBUTION_WORKER_SECRET repository secret" && exit 1)
+
+      - name: Invoke secure distribution queue worker
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          DISTRIBUTION_WORKER_SECRET: ${{ secrets.DISTRIBUTION_WORKER_SECRET }}
+        run: |
+          set -euo pipefail
+          response_file="$(mktemp)"
+          status="$(curl --silent --show-error --max-time 90 \
+            --output "$response_file" --write-out "%{http_code}" \
+            --request POST "${SUPABASE_URL%/}/functions/v1/podcast-distribution-worker" \
+            --header "Content-Type: application/json" \
+            --header "apikey: $SUPABASE_ANON_KEY" \
+            --header "x-worker-secret: $DISTRIBUTION_WORKER_SECRET" \
+            --data '{}')"
+          cat "$response_file"
+          rm -f "$response_file"
+          test "$status" -ge 200 -a "$status" -lt 300 || {
+            echo "Distribution worker returned HTTP $status"
+            exit 1
+          }
