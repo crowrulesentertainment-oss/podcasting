@@ -369,9 +369,20 @@
   if(sErr){say('Unable to load podcasts: '+sErr.message,'error');return}
   state.shows=shows||[];
   $('show').innerHTML=state.shows.length?state.shows.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.title)+'</option>').join(''):'<option value="">No podcasts found</option>';
+  const handoffParams=new URLSearchParams(location.search);
+  const requestedPodcastId=handoffParams.get('podcast_id');
+  const requestedEpisodeId=handoffParams.get('episode_id');
+  if(requestedPodcastId&&state.shows.some(s=>s.id===requestedPodcastId))$('show').value=requestedPodcastId;
   await loadEpisodes();
+  if(requestedEpisodeId&&state.episodes.some(e=>e.id===requestedEpisodeId)){
+   $('episode').value=requestedEpisodeId;
+   prefill();
+   if(handoffParams.get('fromDistribution')==='1'){
+    $('result').innerHTML='<div class="alert">Episode details were prefilled from Distribution Center. Select the actual video file, verify title, description and visibility, and explicitly confirm before uploading. No upload has started.</div>';
+   }
+  }
   await loadHistory();
-  say('Signed in. Select your podcast, video file, and visibility. Upload starts only after manual confirmation.','success');
+  say(requestedEpisodeId&&state.episodes.some(e=>e.id===requestedEpisodeId)?'Distribution handoff loaded. Review the episode details, select a video file, and explicitly confirm before upload.':'Signed in. Select your podcast, video file, and visibility. Upload starts only after manual confirmation.','success');
  }
  function prefill(){
   const ep=selectedEpisode();
