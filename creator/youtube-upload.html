@@ -29,7 +29,7 @@
 <div class="actions"><button class="btn primary" id="upload" disabled>Start private video upload</button><button class="btn" id="refreshToken" type="button">Refresh YouTube token</button></div>
 </section>
 <section class="panel"><h2>03 · Upload progress</h2><progress id="progress" max="100" value="0"></progress><p id="progressText" class="muted">No upload started.</p><div id="result"></div><div class="alert">Safety note: this page does not make the video public, set a schedule, or upload automatically. A completed upload can still need YouTube processing before it is playable.</div></section>
-<section class="panel"><div class="actions" style="justify-content:space-between"><h2>04 · Upload history</h2><button class="btn" id="reloadHistory" type="button">Refresh history</button></div><p class="muted">Your latest 50 uploads and attempts. Completed means YouTube accepted the upload, not necessarily that processing finished. Use Check YouTube status to retrieve processing and actual privacy from YouTube. Uncertain transfers are flagged so you can check Studio before retrying.</p><div id="historyNotice" class="muted">Loading upload history…</div><div id="historyList"></div></section>
+<section class="panel"><div class="actions" style="justify-content:space-between"><h2>04 · Upload history</h2><button class="btn" id="reloadHistory" type="button">Refresh history</button></div><p class="muted">Your latest 50 uploads and attempts. Completed means YouTube accepted the upload, not necessarily that processing finished. Check YouTube status for processing and actual privacy. After processing succeeds, open Studio and manually confirm picture and audio before marking playback verified. Uncertain transfers are flagged so you can check Studio before retrying.</p><div id="historyNotice" class="muted">Loading upload history…</div><div id="historyList"></div></section>
 </main>
 <script>
 (() => {
@@ -69,7 +69,7 @@
  async function loadHistory(){
   if(!client||!state.user){$('historyNotice').textContent='Sign in to view upload history.';return}
   $('historyNotice').textContent='Loading upload history…';
-  const {data,error}=await client.from('youtube_upload_history').select('id,podcast_id,episode_id,title,visibility,status,video_id,studio_url,filename,file_size,progress_percent,error_message,created_at,completed_at,youtube_processing_status,youtube_privacy_status,youtube_upload_status,status_checked_at,processing_failure_reason,recovery_status,recovery_reviewed_at,recovery_note,podcasts(title)').order('created_at',{ascending:false}).limit(50);
+  const {data,error}=await client.from('youtube_upload_history').select('id,podcast_id,episode_id,title,visibility,status,video_id,studio_url,filename,file_size,progress_percent,error_message,created_at,completed_at,youtube_processing_status,youtube_privacy_status,youtube_upload_status,status_checked_at,processing_failure_reason,recovery_status,recovery_reviewed_at,recovery_note,file_sha256,playback_verification_status,playback_verified_at,playback_verification_note,podcasts(title)').order('created_at',{ascending:false}).limit(50);
   if(error){$('historyNotice').textContent='Upload history is not available: '+error.message;$('historyList').innerHTML='';return}
   if(!data?.length){$('historyNotice').textContent='No upload attempts saved yet. Your next upload will appear here.';$('historyList').innerHTML='';return}
   $('historyNotice').textContent=data.length+' recent upload attempt'+(data.length===1?'':'s')+'.';
