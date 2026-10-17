@@ -12,12 +12,12 @@
 </head>
 <body><main class="wrap">
 <nav class="nav"><div class="brand">CROWRULES <span>·</span> PUBLISH EVERYWHERE</div><div class="actions"><a href="../creator.html">Creator Dashboard</a><a href="../studio.html">Studio</a><a href="youtube-upload.html">Video Upload</a><a href="#podcastPlatforms">Podcast Platforms</a></div></nav>
-<header style="padding:28px 0 8px"><div class="eyebrow">CREATOR DISTRIBUTION CENTER</div><h1>One episode.<br><span style="color:var(--cyan)">Everywhere.</span></h1><p>Prepare platform-specific episode posts, preview every caption, and approve drafts before publication. External social accounts are not connected until a verified authorization flow is implemented.</p></header>
+<header style="padding:28px 0 8px"><div class="eyebrow">CREATOR DISTRIBUTION CENTER</div><h1>One episode.<br><span style="color:var(--cyan)">Everywhere.</span></h1><p>Manage YouTube episode promotion and podcast-directory distribution in one place. Preview and approve YouTube copy, then track podcast RSS feed submissions to podcast platforms. No other social networks are included.</p></header>
 <div id="notice" class="alert">Sign in to load your shows and saved distribution drafts.</div>
 <section class="panel"><h2>01 · Select an episode</h2><div class="grid"><div class="field"><label for="show">YOUR PODCAST</label><select id="show"><option value="">Loading your shows…</option></select></div><div class="field"><label for="episode">EPISODE</label><select id="episode"><option value="">Select a podcast first</option></select></div></div><div id="episodeInfo" class="muted"></div></section>
-<section class="panel"><h2>02 · Choose destinations</h2><p class="muted">Select channels for which you want tailored draft copy. CrowRules publishing and social network APIs require separate integrations.</p><div id="platforms" class="platforms"></div><div class="field"><label for="baseCaption">MESSAGE / CALL TO ACTION (OPTIONAL)</label><textarea id="baseCaption" placeholder="What should listeners know about this episode?"></textarea></div><div class="actions"><button class="btn primary" id="generate">Generate preview drafts</button><button class="btn" id="refresh">Refresh saved drafts</button></div></section>
-<section class="panel"><div class="row" style="justify-content:space-between"><h2>03 · Preview and approve</h2><span id="draftCount" class="status">0 drafts</span></div><div class="field"><label for="scheduleAt">SCHEDULE APPROVED POSTS (OPTIONAL)</label><input id="scheduleAt" type="datetime-local"><small>Leave blank to queue for the next worker run.</small></div><div id="drafts" class="empty">Choose an episode and generate draft captions.</div><div class="alert" style="margin-top:14px">Safety status: approving a draft records your approval only. Until a platform's official API connection and server-side publisher are configured, posts remain marked for manual publishing; this page will not pretend they were sent.</div></section>
-<section class="panel"><h2>04 · Connection status</h2><p class="muted">Connections are per creator and podcast. No tokens or passwords are collected by this page.</p><div id="connections" class="platforms"></div></section><section class="panel" id="podcastPlatforms"><h2>05 · Podcast platform distribution</h2>
+<section class="panel"><h2>02 · YouTube promotion</h2><p class="muted">Create a YouTube-specific title and description preview. Actual video uploads are handled by the secure YouTube upload workflow.</p><div id="platforms" class="platforms"></div><div class="field"><label for="baseCaption">MESSAGE / CALL TO ACTION (OPTIONAL)</label><textarea id="baseCaption" placeholder="What should listeners know about this episode?"></textarea></div><div class="actions"><button class="btn primary" id="generate">Generate preview drafts</button><button class="btn" id="refresh">Refresh saved drafts</button></div></section>
+<section class="panel"><div class="row" style="justify-content:space-between"><h2>03 · Preview and approve YouTube copy</h2><span id="draftCount" class="status">0 drafts</span></div><div class="field"><label for="scheduleAt">SCHEDULE APPROVED POSTS (OPTIONAL)</label><input id="scheduleAt" type="datetime-local"><small>Leave blank to queue for the next worker run.</small></div><div id="drafts" class="empty">Choose an episode and generate draft captions.</div><div class="alert" style="margin-top:14px">Safety status: approving a draft records your approval only. Until a platform's official API connection and server-side publisher are configured, posts remain marked for manual publishing; this page will not pretend they were sent.</div></section>
+<section class="panel"><h2>04 · YouTube connection</h2><p class="muted">Your YouTube authorization is managed securely through the server-side OAuth flow. This page never collects tokens or passwords.</p><div id="connections" class="platforms"></div></section><section class="panel" id="podcastPlatforms"><h2>05 · Podcast platform distribution</h2>
 <p class="muted">Prepare your podcast RSS feed and track submissions to podcast directories. These platforms generally ingest your feed after you submit it; selecting a status here only records your progress in CrowRules and does not submit or publish your show for you.</p>
 <div class="field"><label for="rssFeedUrl">PUBLIC RSS FEED FOR THE SELECTED PODCAST</label><div class="row"><input id="rssFeedUrl" readonly style="flex:1;min-width:220px;background:#080a12;border:1px solid #34354c;color:var(--text);border-radius:9px;padding:12px" value=""><button class="btn" id="copyRssFeed" type="button">Copy RSS URL</button><a class="btn" id="openRssFeed" href="#" target="_blank" rel="noopener">Open feed</a></div><small>Only distribute a feed after your show metadata and at least one published episode with a working public audio URL are ready.</small></div>
 <div id="podcastDirectoryCards" class="directory-grid"><div class="empty">Select a podcast to load directory status.</div></div>
@@ -30,13 +30,7 @@
  const cfg=window.CROW_CONFIG||{};
  const client=window.supabase?.createClient(cfg.supabaseUrl,cfg.supabaseKey);
  const platformList=[
-  {id:'facebook',name:'Facebook',hint:'Page post / episode link'},
-  {id:'instagram',name:'Instagram',hint:'Caption; media publishing needs eligible account'},
-  {id:'tiktok',name:'TikTok',hint:'Caption; direct posting needs app approval'},
-  {id:'youtube',name:'YouTube',hint:'Video upload required for a full episode post'},
-  {id:'x',name:'X',hint:'Post with episode link'},
-  {id:'threads',name:'Threads',hint:'Text and supported media'},
-  {id:'crowrules',name:'CrowRules',hint:'Creator page / episode link'}
+  {id:'youtube',name:'YouTube',hint:'Official YouTube channel · video upload and episode promotion'}
  ];
  const podcastPlatforms=[
   {id:'spotify',name:'Spotify for Creators',url:'https://creators.spotify.com/',hint:'Claim or add your show using its RSS feed.'},
@@ -133,15 +127,9 @@
  function episodeUrl(show,ep){return show.website_url||('https://crowrulesentertainment-oss.github.io/podcasting/show.html?podcast_id='+encodeURIComponent(show.id)+'&episode_id='+encodeURIComponent(ep.id))}
  function makeCaption(platform,show,ep,base){
   const url=episodeUrl(show,ep),desc=(base||ep.description||'A new episode from '+show.title+'.').trim();
-  const tags='#CrowRules #Podcast #IndependentPodcast';
+  const tags='#CrowRules #Podcast #YouTube';
   const captions={
-   facebook:'🎙️ New episode: '+ep.title+'\n\n'+desc+'\n\nListen here: '+url+'\n\n'+tags,
-   instagram:'🎙️ '+ep.title+'\n\n'+desc+'\n\nFind the episode through the link in our profile.\n\n'+tags,
-   tiktok:'🎙️ New episode: '+ep.title+' — '+desc+' Listen via the link in our profile. '+tags,
-   youtube:ep.title+' | '+show.title+'\n\n'+desc+'\n\nListen / learn more: '+url+'\n\nSubscribe for more independent shows.\n\n'+tags,
-   x:'🎙️ New episode: '+ep.title+' — '+desc+' '+url+' #Podcast #CrowRules',
-   threads:'🎙️ New episode: '+ep.title+'\n\n'+desc+'\n\nListen: '+url+'\n\n'+tags,
-   crowrules:'🎙️ Now featuring: '+ep.title+'\n\n'+desc+'\n\nOpen episode: '+url+'\n\n'+tags
+   youtube:ep.title+' | '+show.title+'\n\n'+desc+'\n\nListen / learn more: '+url+'\n\nSubscribe for more independent shows.\n\n'+tags
   };
   return captions[platform]||desc+' '+url;
  }
@@ -198,7 +186,7 @@
    try{const raw=$('scheduleAt').value;const scheduled_at=raw?new Date(raw).toISOString():new Date().toISOString();await distributionAction('queue',d.id,{scheduled_at});await loadDrafts();say(titleCase(d.platform)+' queued. External delivery remains unverified.',true)}
    catch(err){say('Could not queue automatically: '+(err.message||'Queue API is not deployed/configured')+'. Draft remains saved; use manual publishing checklist.',false)}
   }
-  if(b.dataset.action==='manual'){const links={facebook:'https://www.facebook.com/',instagram:'https://www.instagram.com/',tiktok:'https://www.tiktok.com/',youtube:'https://studio.youtube.com/',x:'https://x.com/',threads:'https://www.threads.net/',crowrules:'../home.html'};const w=window.open(links[d.platform],'_blank','noopener');say('Manual publishing checklist: confirm episode link and media, review caption, publish in '+titleCase(d.platform)+', then update external post URL in a future release. This dashboard did not publish it.');}
+  if(b.dataset.action==='manual'){const links={youtube:'https://studio.youtube.com/'}const w=window.open(links[d.platform],'_blank','noopener');say('Manual publishing checklist: confirm episode link and media, review caption, publish in '+titleCase(d.platform)+', then update external post URL in a future release. This dashboard did not publish it.');}
  });
  $('copyRssFeed').addEventListener('click',async()=>{const value=$('rssFeedUrl').value;if(!value){say('Select a podcast first.');return}try{await navigator.clipboard.writeText(value);say('RSS feed URL copied.',true)}catch{$('rssFeedUrl').focus();$('rssFeedUrl').select();say('Select and copy the RSS feed URL manually.')}});
  $('podcastDirectoryCards').addEventListener('click',async ev=>{const b=ev.target.closest('[data-save-directory]');if(!b)return;b.disabled=true;const label=b.textContent;b.textContent='Saving…';try{await savePodcastDistribution(b.dataset.saveDirectory)}finally{b.disabled=false;b.textContent=label}});
