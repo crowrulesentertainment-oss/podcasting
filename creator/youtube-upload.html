@@ -42,6 +42,23 @@
  function bytes(n){if(!Number.isFinite(n)||n<0)return '';const units=['B','KB','MB','GB','TB'];let i=0;while(n>=1024&&i<units.length-1){n/=1024;i++}return n.toFixed(i?1:0)+' '+units[i]}
  function mimeType(file){return String(file?.type||'').split(';')[0].trim().toLowerCase()}
  async function functionErrorMessage(error){try{const context=error?.context;if(context?.clone){const body=await context.clone().json();if(body?.error||body?.message)return body.error||body.message}}catch{}return error?.message||'The upload service returned an error.'}
+ async function createUploadSession(show,payload){
+  const invoke=()=>client.functions.invoke('youtube-upload-session',{body:{...payload,history_id:state.historyId}});
+  let result=await invoke();
+  let message=result.error?await functionErrorMessage(result.error):String(result.data?.error||'');
+  if(message&&/(access token.*(near expiry|expired|rejected)|token.*near expiry|refresh the token)/i.test(message)){
+   $('progressText').textContent='YouTube access token needs refreshing. Refreshing securely before starting the upload…';
+   const {data:refresh,error:refreshError}=await client.functions.invoke('youtube-oauth',{body:{action:'refresh',podcast_id:show.id}});
+   if(refreshError)throw new Error('Automatic token refresh failed: '+await functionErrorMessage(refreshError)+' No video data was sent. You can use Test token refresh and retry.');
+   if(refresh?.error)throw new Error('Automatic token refresh failed: '+refresh.error+' No video data was sent. Reconnect YouTube if requested.');
+   $('progressText').textContent='Token refreshed. Preparing a new private upload session…';
+   result=await invoke();
+   message=result.error?await functionErrorMessage(result.error):String(result.data?.error||'');
+  }
+  if(message)throw new Error(message);
+  if(!result.data?.upload_session)throw new Error('The server did not return a signed upload session.');
+  return result.data;
+ }
  async function restoreStudioHandoff(){
   if(new URLSearchParams(location.search).get('fromStudio')!=='1')return;
   let db;
@@ -334,8 +351,7 @@
    if(historyError)throw new Error('Could not save upload history, so the upload was not started: '+historyError.message);
    state.historyId=history.id;await loadHistory();
    const payload={podcast_id:show.id,title:$('title').value.trim(),description:$('description').value.trim(),tags:$('tags').value.split(',').map(s=>s.trim()).filter(Boolean),filename:file.name,mime_type:mimeType(file),file_size:file.size};
-   const {data:session,error}=await client.functions.invoke('youtube-upload-session',{body:{...payload,history_id:state.historyId}});
-   if(error)throw new Error(await functionErrorMessage(error));if(session?.error)throw new Error(session.error);if(!session?.upload_session)throw new Error('The server did not return a signed upload session.');
+   const session=await createUploadSession(show,payload);
    await saveHistory({status:'uploading',progress_percent:0});
    $('progressText').textContent='Uploading '+file.name+' through CrowRules secure proxy…';
    const chunkSize=8*1024*1024;
