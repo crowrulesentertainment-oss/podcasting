@@ -7,17 +7,23 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="../config.js"></script>
 <style>
 :root{color-scheme:dark;--bg:#06070c;--panel:#10121d;--line:#2a2b40;--cyan:#61e8ff;--purple:#a78bfa;--muted:#a6a4b9;--text:#f6f5ff;--green:#70f0b4;--gold:#ffd36b;--red:#ff8094}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 8% 0,#12303a 0,transparent 30%),radial-gradient(circle at 92% 2%,#24183b 0,transparent 32%),var(--bg);color:var(--text);font:14px Montserrat,Arial,sans-serif}a{color:var(--cyan)}button,input,select,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:1200px;margin:auto;padding:24px}.nav,.row,.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.nav{justify-content:space-between;border-bottom:1px solid var(--line);padding:12px 0 20px}.brand{font:800 14px Orbitron;letter-spacing:.04em}.brand span{color:var(--cyan)}.eyebrow{font:700 10px Orbitron;letter-spacing:.18em;color:var(--cyan)}h1{font:800 clamp(28px,5vw,48px) Orbitron;margin:12px 0}h2{font:700 16px Orbitron;margin:0 0 10px}p{line-height:1.65;color:#c4c2d2}.muted,small{color:var(--muted)}.panel{background:#10121deF;border:1px solid var(--line);border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 18px 50px #0004}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:7px;margin:10px 0}.field label{font-size:11px;font-weight:800;color:#d5d2e5}.field input,.field select,.field textarea{width:100%;background:#080a12;border:1px solid #34354c;color:var(--text);border-radius:9px;padding:12px}.field textarea{min-height:130px;resize:vertical}.btn{border:1px solid #45435e;border-radius:9px;background:#191a29;color:#fff;padding:10px 14px;font-weight:800;font-size:11px}.btn.primary{background:linear-gradient(120deg,#12404b,#30224f);border-color:#3c8395}.btn:disabled{opacity:.5;cursor:not-allowed}.platforms{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.platform{border:1px solid var(--line);background:#0a0c14;border-radius:11px;padding:12px;display:flex;gap:9px;align-items:center;font-size:12px}.platform input{accent-color:var(--cyan)}.status{display:inline-block;border:1px solid #45435e;border-radius:99px;padding:4px 8px;font-size:10px;color:var(--gold)}.post{border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;background:#0b0d16}.posthead{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.post textarea{width:100%;margin-top:12px;min-height:100px;background:#070911;border:1px solid #34354c;color:#fff;padding:12px;border-radius:8px}.alert{padding:12px;border:1px solid #715c29;background:#241e12;border-radius:10px;color:#ffe2a1;font-size:12px;line-height:1.6}.success{color:var(--green)}.hidden{display:none!important}.empty{padding:20px;text-align:center;color:var(--muted)}@media(max-width:760px){.wrap{padding:15px}.grid{grid-template-columns:1fr}.platforms{grid-template-columns:repeat(2,1fr)}}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 8% 0,#12303a 0,transparent 30%),radial-gradient(circle at 92% 2%,#24183b 0,transparent 32%),var(--bg);color:var(--text);font:14px Montserrat,Arial,sans-serif}a{color:var(--cyan)}button,input,select,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:1200px;margin:auto;padding:24px}.nav,.row,.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.nav{justify-content:space-between;border-bottom:1px solid var(--line);padding:12px 0 20px}.brand{font:800 14px Orbitron;letter-spacing:.04em}.brand span{color:var(--cyan)}.eyebrow{font:700 10px Orbitron;letter-spacing:.18em;color:var(--cyan)}h1{font:800 clamp(28px,5vw,48px) Orbitron;margin:12px 0}h2{font:700 16px Orbitron;margin:0 0 10px}p{line-height:1.65;color:#c4c2d2}.muted,small{color:var(--muted)}.panel{background:#10121deF;border:1px solid var(--line);border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 18px 50px #0004}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:7px;margin:10px 0}.field label{font-size:11px;font-weight:800;color:#d5d2e5}.field input,.field select,.field textarea{width:100%;background:#080a12;border:1px solid #34354c;color:var(--text);border-radius:9px;padding:12px}.field textarea{min-height:130px;resize:vertical}.btn{border:1px solid #45435e;border-radius:9px;background:#191a29;color:#fff;padding:10px 14px;font-weight:800;font-size:11px}.btn.primary{background:linear-gradient(120deg,#12404b,#30224f);border-color:#3c8395}.btn:disabled{opacity:.5;cursor:not-allowed}.platforms{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.platform{border:1px solid var(--line);background:#0a0c14;border-radius:11px;padding:12px;display:flex;gap:9px;align-items:center;font-size:12px}.platform input{accent-color:var(--cyan)}.status{display:inline-block;border:1px solid #45435e;border-radius:99px;padding:4px 8px;font-size:10px;color:var(--gold)}.post{border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;background:#0b0d16}.posthead{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.post textarea{width:100%;margin-top:12px;min-height:100px;background:#070911;border:1px solid #34354c;color:#fff;padding:12px;border-radius:8px}.alert{padding:12px;border:1px solid #715c29;background:#241e12;border-radius:10px;color:#ffe2a1;font-size:12px;line-height:1.6}.success{color:var(--green)}.hidden{display:none!important}.empty{padding:20px;text-align:center;color:var(--muted)} .directory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.directory-card{border:1px solid var(--line);background:#0a0c14;border-radius:12px;padding:14px}.directory-card h3{font:700 13px Orbitron;margin:0 0 8px}.directory-card p{font-size:11px;margin:4px 0 10px}.directory-card .field{margin:9px 0}.directory-card .field input,.directory-card .field select,.directory-card .field textarea{padding:9px;font-size:12px}.directory-card .field textarea{min-height:65px}.directory-actions{display:flex;gap:8px;flex-wrap:wrap}.directory-actions a{font-size:11px}.directory-card .status{margin-bottom:8px}@media(max-width:760px){.wrap{padding:15px}.grid{grid-template-columns:1fr}.platforms{grid-template-columns:repeat(2,1fr)}.directory-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body><main class="wrap">
-<nav class="nav"><div class="brand">CROWRULES <span>·</span> PUBLISH EVERYWHERE</div><div class="actions"><a href="../creator.html">Creator Dashboard</a><a href="../studio.html">Studio</a><a href="youtube-upload.html">YouTube Private Upload</a></div></nav>
+<nav class="nav"><div class="brand">CROWRULES <span>·</span> PUBLISH EVERYWHERE</div><div class="actions"><a href="../creator.html">Creator Dashboard</a><a href="../studio.html">Studio</a><a href="youtube-upload.html">Video Upload</a><a href="#podcastPlatforms">Podcast Platforms</a></div></nav>
 <header style="padding:28px 0 8px"><div class="eyebrow">CREATOR DISTRIBUTION CENTER</div><h1>One episode.<br><span style="color:var(--cyan)">Everywhere.</span></h1><p>Prepare platform-specific episode posts, preview every caption, and approve drafts before publication. External social accounts are not connected until a verified authorization flow is implemented.</p></header>
 <div id="notice" class="alert">Sign in to load your shows and saved distribution drafts.</div>
 <section class="panel"><h2>01 · Select an episode</h2><div class="grid"><div class="field"><label for="show">YOUR PODCAST</label><select id="show"><option value="">Loading your shows…</option></select></div><div class="field"><label for="episode">EPISODE</label><select id="episode"><option value="">Select a podcast first</option></select></div></div><div id="episodeInfo" class="muted"></div></section>
 <section class="panel"><h2>02 · Choose destinations</h2><p class="muted">Select channels for which you want tailored draft copy. CrowRules publishing and social network APIs require separate integrations.</p><div id="platforms" class="platforms"></div><div class="field"><label for="baseCaption">MESSAGE / CALL TO ACTION (OPTIONAL)</label><textarea id="baseCaption" placeholder="What should listeners know about this episode?"></textarea></div><div class="actions"><button class="btn primary" id="generate">Generate preview drafts</button><button class="btn" id="refresh">Refresh saved drafts</button></div></section>
 <section class="panel"><div class="row" style="justify-content:space-between"><h2>03 · Preview and approve</h2><span id="draftCount" class="status">0 drafts</span></div><div class="field"><label for="scheduleAt">SCHEDULE APPROVED POSTS (OPTIONAL)</label><input id="scheduleAt" type="datetime-local"><small>Leave blank to queue for the next worker run.</small></div><div id="drafts" class="empty">Choose an episode and generate draft captions.</div><div class="alert" style="margin-top:14px">Safety status: approving a draft records your approval only. Until a platform's official API connection and server-side publisher are configured, posts remain marked for manual publishing; this page will not pretend they were sent.</div></section>
-<section class="panel"><h2>04 · Connection status</h2><p class="muted">Connections are per creator and podcast. No tokens or passwords are collected by this page.</p><div id="connections" class="platforms"></div></section><section class="panel"><h2>05 · Delivery log</h2><p class="muted">Audit history for approvals, queue changes and delivery attempts.</p><div id="deliveryLogs" class="empty">Select an episode to view its log.</div></section>
+<section class="panel"><h2>04 · Connection status</h2><p class="muted">Connections are per creator and podcast. No tokens or passwords are collected by this page.</p><div id="connections" class="platforms"></div></section><section class="panel" id="podcastPlatforms"><h2>05 · Podcast platform distribution</h2>
+<p class="muted">Prepare your podcast RSS feed and track submissions to podcast directories. These platforms generally ingest your feed after you submit it; selecting a status here only records your progress in CrowRules and does not submit or publish your show for you.</p>
+<div class="field"><label for="rssFeedUrl">PUBLIC RSS FEED FOR THE SELECTED PODCAST</label><div class="row"><input id="rssFeedUrl" readonly style="flex:1;min-width:220px;background:#080a12;border:1px solid #34354c;color:var(--text);border-radius:9px;padding:12px" value=""><button class="btn" id="copyRssFeed" type="button">Copy RSS URL</button><a class="btn" id="openRssFeed" href="#" target="_blank" rel="noopener">Open feed</a></div><small>Only distribute a feed after your show metadata and at least one published episode with a working public audio URL are ready.</small></div>
+<div id="podcastDirectoryCards" class="directory-grid"><div class="empty">Select a podcast to load directory status.</div></div>
+<div class="alert" style="margin-top:14px">Important: the RSS feed must be publicly reachable, include valid episode audio enclosures and accurate artwork/metadata. Directory approval, account verification and listing times are controlled by each provider. CrowRules does not claim these directories are connected.</div>
+</section>
+<section class="panel"><h2>06 · Delivery log</h2><p class="muted">Audit history for approvals, queue changes and delivery attempts.</p><div id="deliveryLogs" class="empty">Select an episode to view its log.</div></section>
 </main>
 <script>
 (() => {
@@ -32,8 +38,20 @@
   {id:'threads',name:'Threads',hint:'Text and supported media'},
   {id:'crowrules',name:'CrowRules',hint:'Creator page / episode link'}
  ];
+ const podcastPlatforms=[
+  {id:'spotify',name:'Spotify for Creators',url:'https://creators.spotify.com/',hint:'Claim or add your show using its RSS feed.'},
+  {id:'apple_podcasts',name:'Apple Podcasts',url:'https://podcastsconnect.apple.com/',hint:'Submit and validate your RSS feed in Apple Podcasts Connect.'},
+  {id:'amazon_music',name:'Amazon Music',url:'https://podcasters.amazon.com/',hint:'Submit your podcast RSS feed to Amazon.'},
+  {id:'youtube_music',name:'YouTube Music',url:'https://studio.youtube.com/',hint:'Use YouTube Studio podcast tools; RSS ingestion availability depends on account and region.'},
+  {id:'iheart',name:'iHeartRadio',url:'https://www.iheart.com/content/submit-your-podcast/',hint:'Submit your show for directory review.'},
+  {id:'tunein',name:'TuneIn',url:'https://tunein.com/',hint:'Review TuneIn podcast submission requirements.'},
+  {id:'podcast_index',name:'Podcast Index',url:'https://podcastindex.org/add',hint:'Add your public RSS feed to the open podcast directory.'},
+  {id:'pocket_casts',name:'Pocket Casts',url:'https://pocketcasts.com/submit/',hint:'Submit your feed for directory inclusion.'},
+  {id:'castbox',name:'Castbox',url:'https://castbox.fm/',hint:'Search for your show or use Castbox creator tools.'},
+  {id:'overcast',name:'Overcast',url:'https://overcast.fm/',hint:'Public RSS availability is the main requirement.'}
+ ];
  const $=id=>document.getElementById(id);
- const state={user:null,shows:[],episodes:[],creatorIds:new Set(),selectedEpisode:null,drafts:[]};
+ const state={user:null,shows:[],episodes:[],creatorIds:new Set(),selectedEpisode:null,drafts:[],directoryStatuses:[]};
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const say=(msg,good=false)=>{$('notice').textContent=msg;$('notice').className=good?'alert success':'alert'};
  const titleCase=s=>s==='x'?'X':s[0].toUpperCase()+s.slice(1);
@@ -48,6 +66,36 @@
    const profile=connected&&a.profile_url?'<br><a href="'+esc(a.profile_url)+'" target="_blank" rel="noopener">Open channel</a>':'';
    return '<div class="platform"><span><b>'+p.name+'</b><br><small>'+esc(detail)+'</small>'+profile+'</span>'+connectButton+'</div>';
   }).join('');
+ }
+ async function loadPodcastDistribution(){
+  const show=state.shows.find(s=>s.id===$('show').value);
+  if(!show){$('rssFeedUrl').value='';$('openRssFeed').href='#';$('podcastDirectoryCards').innerHTML='<div class="empty">Select a podcast first.</div>';return}
+  const feed=String(show.rss_url||'').trim()||String(cfg.supabaseUrl||'').replace(/\/$/,'')+'/functions/v1/podcast-rss-feed-64?slug='+encodeURIComponent(show.slug||'');
+  $('rssFeedUrl').value=feed;$('openRssFeed').href=feed;
+  const {data,error}=await client.from('podcast_distribution_status').select('id,podcast_id,platform,status,submission_url,external_url,notes,updated_at').eq('podcast_id',show.id);
+  if(error){$('podcastDirectoryCards').innerHTML='<div class="empty">Could not load saved directory status: '+esc(error.message)+'</div>';return}
+  state.directoryStatuses=data||[];renderPodcastDistribution();
+ }
+ function renderPodcastDistribution(){
+  const showId=$('show').value;
+  const byPlatform=new Map(state.directoryStatuses.filter(x=>x.podcast_id===showId).map(x=>[x.platform,x]));
+  const statuses=[['not_submitted','Not submitted'],['preparing','Preparing'],['submitted','Submitted'],['listed','Listed'],['needs_attention','Needs attention'],['rejected','Rejected']];
+  $('podcastDirectoryCards').innerHTML=podcastPlatforms.map(p=>{
+   const d=byPlatform.get(p.id)||{status:'not_submitted',submission_url:'',external_url:'',notes:''};
+   return '<article class="directory-card" data-directory="'+esc(p.id)+'"><h3>'+esc(p.name)+'</h3><p>'+esc(p.hint)+'</p><span class="status">'+esc((d.status||'not_submitted').replaceAll('_',' ').toUpperCase())+'</span><div class="field"><label>Status</label><select data-dir-status>'+statuses.map(s=>'<option value="'+s[0]+'" '+(d.status===s[0]?'selected':'')+'>'+s[1]+'</option>').join('')+'</select></div><div class="field"><label>Submission / claim URL (optional)</label><input data-dir-submission type="url" placeholder="Provider submission URL" value="'+esc(d.submission_url||'')+'"></div><div class="field"><label>Public listing URL (optional)</label><input data-dir-external type="url" placeholder="Listed show URL" value="'+esc(d.external_url||'')+'"></div><div class="field"><label>Notes (optional)</label><textarea data-dir-notes placeholder="Confirmation, next steps, or review notes">'+esc(d.notes||'')+'</textarea></div><div class="directory-actions"><a class="btn" href="'+esc(p.url)+'" target="_blank" rel="noopener">Open '+esc(p.name)+' ↗</a><button class="btn primary" type="button" data-save-directory="'+esc(p.id)+'">Save status</button></div><small>Last saved: '+esc(d.updated_at?new Date(d.updated_at).toLocaleString():'Not saved yet')+'</small></article>';
+  }).join('');
+ }
+ async function savePodcastDistribution(platform){
+  const show=state.shows.find(s=>s.id===$('show').value), card=$('podcastDirectoryCards').querySelector('[data-directory="'+CSS.escape(platform)+'"]');
+  if(!show||!card)return;
+  const status=card.querySelector('[data-dir-status]').value, submission_url=card.querySelector('[data-dir-submission]').value.trim()||null, external_url=card.querySelector('[data-dir-external]').value.trim()||null, notes=card.querySelector('[data-dir-notes]').value.trim()||null;
+  for(const value of [submission_url,external_url]){if(value){try{const u=new URL(value);if(!['http:','https:'].includes(u.protocol))throw new Error()}catch{say('Enter a valid http or https URL for '+platform+'.');return}}}
+  const row={podcast_id:show.id,platform,status,submission_url,external_url,notes,updated_by:state.user.id,updated_at:new Date().toISOString()};
+  const {data,error}=await client.from('podcast_distribution_status').upsert(row,{onConflict:'podcast_id,platform'}).select('id,podcast_id,platform,status,submission_url,external_url,notes,updated_at').single();
+  if(error){say('Could not save '+platform+' status: '+error.message);return}
+  const idx=state.directoryStatuses.findIndex(x=>x.platform===platform&&x.podcast_id===show.id);
+  if(idx>=0)state.directoryStatuses[idx]=data;else state.directoryStatuses.push(data);
+  renderPodcastDistribution();say(platform.replaceAll('_',' ')+' directory status saved. This records your progress only; it does not submit the feed.',true);
  }
  async function loadConnections(){
   if(!state.user)return;
@@ -133,7 +181,7 @@
   return data;
  }
  async function updateDraft(id,patch){const {data,error}=await client.from('podcast_distribution_posts').update({...patch,updated_at:new Date().toISOString()}).eq('id',id).select().maybeSingle();if(error){say('Update failed: '+error.message);return null}const i=state.drafts.findIndex(d=>d.id===id);if(i>=0)state.drafts[i]=data;renderDrafts();return data}
- $('show').addEventListener('change',async()=>{await loadEpisodes();await loadDrafts();await loadConnections()});
+ $('show').addEventListener('change',async()=>{await loadEpisodes();await loadDrafts();await loadConnections();await loadPodcastDistribution()});
  $('episode').addEventListener('change',()=>{showEpisodeInfo();loadDrafts()});
  $('generate').addEventListener('click',generate);
  $('refresh').addEventListener('click',loadDrafts);
@@ -152,6 +200,8 @@
   }
   if(b.dataset.action==='manual'){const links={facebook:'https://www.facebook.com/',instagram:'https://www.instagram.com/',tiktok:'https://www.tiktok.com/',youtube:'https://studio.youtube.com/',x:'https://x.com/',threads:'https://www.threads.net/',crowrules:'../home.html'};const w=window.open(links[d.platform],'_blank','noopener');say('Manual publishing checklist: confirm episode link and media, review caption, publish in '+titleCase(d.platform)+', then update external post URL in a future release. This dashboard did not publish it.');}
  });
+ $('copyRssFeed').addEventListener('click',async()=>{const value=$('rssFeedUrl').value;if(!value){say('Select a podcast first.');return}try{await navigator.clipboard.writeText(value);say('RSS feed URL copied.',true)}catch{$('rssFeedUrl').focus();$('rssFeedUrl').select();say('Select and copy the RSS feed URL manually.')}});
+ $('podcastDirectoryCards').addEventListener('click',async ev=>{const b=ev.target.closest('[data-save-directory]');if(!b)return;b.disabled=true;const label=b.textContent;b.textContent='Saving…';try{await savePodcastDistribution(b.dataset.saveDirectory)}finally{b.disabled=false;b.textContent=label}});
  $('connections').addEventListener('click',async ev=>{
   const refreshButton=ev.target.closest('[data-test-youtube-refresh]');
   if(refreshButton){
