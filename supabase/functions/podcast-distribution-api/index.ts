@@ -54,7 +54,7 @@ Deno.serve(async(req:Request)=>{
  }
  const postId=String(body.post_id||"");
  if(!postId) return reply(400,{error:"post_id required"});
- const {data:post,error:postError}=await db.from("podcast_distribution_posts").select("id,user_id,podcast_id,platform,status,scheduled_at,caption").eq("id",postId).eq("user_id",user.id).maybeSingle();
+ const {data:post,error:postError}=await db.from("podcast_distribution_posts").select("id,user_id,podcast_id,episode_id,platform,status,scheduled_at,caption").eq("id",postId).eq("user_id",user.id).maybeSingle();
  if(postError||!post) return reply(404,{error:"Distribution draft not found"});
  if(action==="approve"){
   if(post.platform==="youtube"){
