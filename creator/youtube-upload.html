@@ -293,7 +293,7 @@
    const checked=row.status_checked_at?'<div class="muted" style="margin-top:6px">YouTube status checked: '+esc(fmtDate(row.status_checked_at))+(row.youtube_privacy_status?' · Actual visibility: '+esc(row.youtube_privacy_status.toUpperCase()):'')+(row.youtube_upload_status?' · Upload state: '+esc(row.youtube_upload_status):'')+'</div>':'';
    const checkButton=row.status==='completed'&&row.video_id?'<button class="btn" type="button" data-check-video="'+esc(row.id)+'">Check YouTube status</button>':'';
    const playbackReady=row.status==='completed'&&row.video_id&&row.youtube_processing_status==='succeeded'&&['public','unlisted','private'].includes(row.youtube_privacy_status)&&['uploaded','processed'].includes(row.youtube_upload_status);
-   const playback=row.status==='completed'&&row.video_id?'<div class="alert" style="margin-top:9px"><strong>'+esc(row.playback_verification_status==='verified'?'Playback verified by you':row.playback_verification_status==='needs_attention'?'Playback needs attention':'Playback not yet verified')+'</strong>'+(row.playback_verified_at?' · Confirmed '+esc(fmtDate(row.playback_verified_at)):'')+(row.playback_verification_note?'<br>'+esc(row.playback_verification_note):'')+(playbackReady?'<br>Open the video in Studio and check both picture and audio. This confirmation is manual; YouTube status cannot verify playback quality.':'<br>Playback verification becomes available after YouTube reports processing succeeded and YouTube confirms its visibility.')+'</div>'+(playbackReady&&row.playback_verification_status!=='verified'?'<div class="actions" style="margin-top:9px"><button class="btn" type="button" data-playback="verified" data-history-id="'+esc(row.id)+'">I watched it and checked audio</button><button class="btn" type="button" data-playback="needs_attention" data-history-id="'+esc(row.id)+'">Playback needs attention</button></div>':'')+(row.playback_verification_status==='verified'?'<div class="actions" style="margin-top:9px"><button class="btn" type="button" data-playback="not_verified" data-history-id="'+esc(row.id)+'">Reopen verification</button></div>':''):'';
+   const playback=row.status==='completed'&&row.video_id?'<div class="alert" style="margin-top:9px"><strong>'+esc(row.playback_verification_status==='verified'?'Playback verified by you':row.playback_verification_status==='needs_attention'?'Playback needs attention':'Playback not yet verified')+'</strong>'+(row.playback_verified_at?' · Confirmed '+esc(fmtDate(row.playback_verified_at)):'')+(row.playback_verification_note?'<br>'+esc(row.playback_verification_note):'')+(playbackReady?'<br>Open the video in Studio and check both picture and audio. This confirmation is manual; YouTube status cannot verify playback quality.':'<br>Playback verification becomes available after YouTube reports processing succeeded and YouTube confirms its visibility.')+'</div>'+(playbackReady&&row.playback_verification_status!=='verified'?'<div class="actions" style="margin-top:9px"><button class="btn" type="button" data-playback="verified" data-history-id="'+esc(row.id)+'">I watched it and checked audio</button><button class="btn" type="button" data-playback="needs_attention" data-history-id="'+esc(row.id)+'">Playback needs attention</button></div>':'')+(row.playback_verification_status==='verified'?'<div class="actions" style="margin-top:9px"><button class="btn" type="button" data-playback="not_verified" data-history-id="'+esc(row.id)+'">Reopen verification</button><button class="btn primary" type="button" data-approve-promotion="'+esc(row.id)+'">Approve episode promotion</button></div>':''):'';
    const fingerprint=row.file_sha256?'<div class="muted" style="margin-top:5px">SHA-256: <code>'+esc(row.file_sha256.slice(0,16))+'…</code></div>':'';
    const recoveryOutcomeLabels={resumed_successfully:'Resumed successfully',already_completed:'Already completed — no additional upload sent',needs_review:'Needs review — check YouTube Studio before retrying'};
    const recoveryOutcome=row.recovery_outcome?'<div class="alert '+(row.recovery_outcome==='needs_review'?'error':'success')+'" style="margin-top:9px"><strong>Recovery outcome: '+esc(recoveryOutcomeLabels[row.recovery_outcome]||row.recovery_outcome)+'</strong>'+(row.recovery_outcome_at?' · '+esc(fmtDate(row.recovery_outcome_at)):'')+'</div>':'';
@@ -437,6 +437,22 @@
    if(error){$('historyNotice').textContent='Could not save playback verification: '+error.message;playbackButton.disabled=false;return}
    await loadHistory();
    $('historyNotice').textContent=decision==='verified'?'Manual playback verification saved. Video visibility is unchanged.':decision==='needs_attention'?'Playback flagged for attention. Video visibility is unchanged.':'Playback verification reopened.';
+   return;
+  }
+  const promotion=event.target.closest('[data-approve-promotion]');
+  if(promotion){
+   const id=promotion.getAttribute('data-approve-promotion');
+   if(!confirm('Approve this YouTube video for external promotion? CrowRules will require a recent YouTube status check and your saved manual playback verification. This records approval only; it will not publish a social post or change YouTube visibility.'))return;
+   promotion.disabled=true;promotion.textContent='Verifying approval…';
+   try{
+    const {data,error}=await client.functions.invoke('youtube-video-status',{body:{action:'approve_promotion',history_id:id}});
+    if(error)throw error;if(data?.error)throw new Error(data.error);
+    await loadHistory();
+    $('historyNotice').textContent=(data.message||'Promotion approval saved.')+' Episode association saved in Supabase.';
+   }catch(err){
+    $('historyNotice').textContent='Promotion was not approved: '+(err.message||'Status or playback checks did not pass.');
+    promotion.disabled=false;promotion.textContent='Approve episode promotion';
+   }
    return;
   }
   const recovery=event.target.closest('[data-recovery]');
