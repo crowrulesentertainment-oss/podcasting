@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
 const cors = {
   "Access-Control-Allow-Origin": "https://crowrulesentertainment-oss.github.io",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-upload-session, content-range",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-upload-session, x-upload-total, x-upload-mime, content-range",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Content-Type": "application/json; charset=utf-8",
   "Cache-Control": "no-store",
