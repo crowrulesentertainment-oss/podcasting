@@ -37,7 +37,24 @@
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const say=(msg,good=false)=>{$('notice').textContent=msg;$('notice').className=good?'alert success':'alert'};
  const titleCase=s=>s==='x'?'X':s[0].toUpperCase()+s.slice(1);
- function renderPlatforms(){ $('platforms').innerHTML=platformList.map(p=>'<label class="platform"><input type="checkbox" value="'+p.id+'" checked><span><b>'+p.name+'</b><br><small>'+p.hint+'</small></span></label>').join('');$('connections').innerHTML=platformList.map(p=>'<div class="platform"><span><b>'+p.name+'</b><br><small>Not connected · setup required</small></span></div>').join('');}
+ function renderPlatforms(){ $('platforms').innerHTML=platformList.map(p=>'<label class="platform"><input type="checkbox" value="'+p.id+'" checked><span><b>'+p.name+'</b><br><small>'+p.hint+'</small></span></label>').join('');renderConnections(); }
+ function renderConnections(accounts=[]){
+  const showId=$('show').value;
+  const byPlatform=new Map(accounts.filter(a=>a.podcast_id===showId).map(a=>[a.platform,a]));
+  $('connections').innerHTML=platformList.map(p=>{
+   const a=byPlatform.get(p.id), connected=a?.connection_status==='connected';
+   const detail=connected?'Connected'+(a.account_label?' · '+a.account_label:''):'Not connected · setup required';
+   const connectButton=p.id==='youtube'&&!connected?'<button class="btn primary" data-connect-youtube>Connect YouTube</button>':'';
+   const profile=connected&&a.profile_url?'<br><a href="'+esc(a.profile_url)+'" target="_blank" rel="noopener">Open channel</a>':'';
+   return '<div class="platform"><span><b>'+p.name+'</b><br><small>'+esc(detail)+'</small>'+profile+'</span>'+connectButton+'</div>';
+  }).join('');
+ }
+ async function loadConnections(){
+  if(!state.user)return;
+  const {data,error}=await client.functions.invoke('podcast-distribution-api',{body:{action:'connection_status'}});
+  if(error||data?.error){$('connections').innerHTML='<div class="empty">Connection status unavailable. '+esc(data?.error||error?.message||'Try refreshing.')+'</div>';return}
+  renderConnections(data.accounts||[]);
+ }
  async function init(){
   if(!client){say('Supabase configuration did not load. Check config.js.');return}
   const {data:{session},error}=await client.auth.getSession();
@@ -53,7 +70,7 @@
   if(sErr){say('Unable to load your podcasts: '+sErr.message);return}
   state.shows=shows||[];
   $('show').innerHTML=state.shows.length?state.shows.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.title)+'</option>').join(''):'<option value="">No podcasts found</option>';
-  if(state.shows.length){await loadEpisodes();await loadDrafts();say('Signed in. '+state.shows.length+' podcast(s) available. No social accounts are connected.',true)}else say('No podcasts found for your creator profile.');
+  if(state.shows.length){await loadEpisodes();await loadDrafts();await loadConnections();say('Signed in. '+state.shows.length+' podcast(s) available. Connection status loaded.',true)}else say('No podcasts found for your creator profile.');
  }
  async function loadEpisodes(){
   const show=state.shows.find(s=>s.id===$('show').value);if(!show)return;
@@ -116,7 +133,7 @@
   return data;
  }
  async function updateDraft(id,patch){const {data,error}=await client.from('podcast_distribution_posts').update({...patch,updated_at:new Date().toISOString()}).eq('id',id).select().maybeSingle();if(error){say('Update failed: '+error.message);return null}const i=state.drafts.findIndex(d=>d.id===id);if(i>=0)state.drafts[i]=data;renderDrafts();return data}
- $('show').addEventListener('change',async()=>{await loadEpisodes();await loadDrafts()});
+ $('show').addEventListener('change',async()=>{await loadEpisodes();await loadDrafts();await loadConnections()});
  $('episode').addEventListener('change',()=>{showEpisodeInfo();loadDrafts()});
  $('generate').addEventListener('click',generate);
  $('refresh').addEventListener('click',loadDrafts);
@@ -134,6 +151,18 @@
    catch(err){say('Could not queue automatically: '+(err.message||'Queue API is not deployed/configured')+'. Draft remains saved; use manual publishing checklist.',false)}
   }
   if(b.dataset.action==='manual'){const links={facebook:'https://www.facebook.com/',instagram:'https://www.instagram.com/',tiktok:'https://www.tiktok.com/',youtube:'https://studio.youtube.com/',x:'https://x.com/',threads:'https://www.threads.net/',crowrules:'../home.html'};const w=window.open(links[d.platform],'_blank','noopener');say('Manual publishing checklist: confirm episode link and media, review caption, publish in '+titleCase(d.platform)+', then update external post URL in a future release. This dashboard did not publish it.');}
+ });
+ $('connections').addEventListener('click',async ev=>{
+  const button=ev.target.closest('[data-connect-youtube]');if(!button)return;
+  const podcastId=$('show').value;if(!podcastId){say('Select a podcast before connecting YouTube.');return}
+  button.disabled=true;button.textContent='Starting secure connection…';
+  try{
+   const {data,error}=await client.functions.invoke('youtube-oauth',{body:{action:'start',podcast_id:podcastId}});
+   if(error)throw error;
+   if(data?.error){say(data.error+(data.redirect_uri?' OAuth callback URL: '+data.redirect_uri:''));button.disabled=false;button.textContent='Connect YouTube';return}
+   if(!data?.authorization_url)throw new Error('The secure authorization URL was not returned.');
+   window.location.assign(data.authorization_url);
+  }catch(err){say('Could not start YouTube authorization: '+(err.message||'Please retry.'));button.disabled=false;button.textContent='Connect YouTube'}
  });
  renderPlatforms();init();
 })();
