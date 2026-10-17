@@ -5,7 +5,7 @@ const supabaseUrl = cfg.supabaseUrl;
 const supabaseKey = cfg.supabaseKey;
 const BUCKET = 'studio-recordings';
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, devices:[], tracks:[], master:null, openingFile:null, endingFile:null, openingBuffer:null, endingBuffer:null, openingSource:null, endingSource:null, openingGain:0.7, endingGain:0.7, previewSource:null, audioContext:null, destination:null, startedAt:0, elapsedBeforePause:0, timerInterval:null, raf:null, saved:[], busy:false };
+const state = { client:null, user:null, devices:[], tracks:[], master:null, openingFile:null, endingFile:null, openingBuffer:null, endingBuffer:null, openingSource:null, endingSource:null, openingGain:0.7, endingGain:0.7, previewSource:null, audioContext:null, destination:null, startedAt:0, elapsedBeforePause:0, timerInterval:null, raf:null, saved:[], resumeRow:null, resumeMasterBlob:null, busy:false };
 const say = (message, error=false) => { const el=$('status'); el.textContent=message; el.classList.toggle('error',!!error); };
 const fmt = seconds => { seconds=Math.max(0,Math.floor(seconds)); return [Math.floor(seconds/3600),Math.floor(seconds%3600/60),seconds%60].map(n=>String(n).padStart(2,'0')).join(':'); };
 const slug = s => (s||'episode').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,70)||'episode';
@@ -179,7 +179,7 @@ async function startRecording(){
   state.master.recorder.onstop=()=>{state.master.blob=new Blob(state.master.chunks,{type:state.master.recorder.mimeType||'audio/webm'});};
   state.tracks.forEach(t=>{t.recorder.start(1000);t.status='Recording';});state.master.recorder.start(1000);
   if(state.openingBuffer)playBuffer(state.openingBuffer,'opening');
-  state.startedAt=Date.now();state.elapsedBeforePause=0;state.timerInterval=setInterval(()=>{$('timer').textContent=fmt(state.elapsedBeforePause+(state.startedAt?((Date.now()-state.startedAt)/1000):0));},250);
+  state.startedAt=Date.now();state.elapsedBeforePause=Number(state.resumeRow?.duration_seconds||0);$('timer').textContent=fmt(state.elapsedBeforePause);state.timerInterval=setInterval(()=>{$('timer').textContent=fmt(state.elapsedBeforePause+(state.startedAt?((Date.now()-state.startedAt)/1000):0));},250);
   $('pauseBtn').disabled=false;$('stopBtn').disabled=false;$('pauseBtn').textContent='Ⅱ Pause';say('Recording. Keep this browser tab open. All tracks are captured separately plus the master mix.');
  }catch(e){cleanupStreams();say('Could not start every track: '+(e.message||e)+'. Check device permissions and try again.',true);}
  finally{state.busy=false;renderTracks();$('startBtn').disabled=false;}
@@ -202,6 +202,7 @@ async function stopRecording(){
  }
  clearInterval(state.timerInterval);if(state.startedAt)state.elapsedBeforePause+=(Date.now()-state.startedAt)/1000;state.startedAt=0;$('timer').textContent=fmt(state.elapsedBeforePause);
  await Promise.all(recs.map(r=>new Promise(resolve=>{if(r.state==='inactive')return resolve();r.addEventListener('stop',resolve,{once:true});try{r.stop();}catch{resolve();}})));
+ if(state.resumeMasterBlob&&state.master?.blob?.size){try{say('Combining this take with the previously saved master…');state.master.blob=await mergeAudioBlobs(state.resumeMasterBlob,state.master.blob);state.master.durationSeconds=Math.round(state.resumeRow?.duration_seconds||0)+Math.round(Math.max(0,state.elapsedBeforePause-(state.resumeRow?.duration_seconds||0)));}catch(e){say('Could not combine the previous master automatically: '+(e.message||e)+'. This new take can still be saved separately.',true);state.resumeRow=null;state.resumeMasterBlob=null;}}
  state.tracks.forEach(t=>t.stream?.getTracks().forEach(x=>x.stop()));state.master?.stream?.getTracks().forEach(x=>x.stop());
  if(state.audioContext&&state.audioContext.state!=='closed')await state.audioContext.close().catch(()=>{});state.audioContext=null;
  $('pauseBtn').disabled=true;$('stopBtn').disabled=true;$('startBtn').disabled=false;$('pauseBtn').textContent='Ⅱ Pause';
@@ -283,26 +284,45 @@ async function saveRecording(button){
  if(state.busy)return;const all=[...state.tracks.filter(t=>t.blob?.size),...(state.master?.blob?.size?[state.master]:[])];
  if(!all.length){say('No captured audio found. Record a take first.',true);return;}
  state.busy=true;button.disabled=true;
- const title=$('sessionTitle').value.trim()||'Untitled recording';const podcastId=$('podcastSelect').value||null;const recordingId=crypto.randomUUID();const uploaded=[];
+ const title=$('sessionTitle').value.trim()||'Untitled recording';const podcastId=$('podcastSelect').value||null;const resuming=state.resumeRow;const recordingId=resuming?.id||crypto.randomUUID();const uploadFolder=recordingId+'/take-'+crypto.randomUUID();const uploaded=[];
  if(state.openingFile)all.push({name:'Opening track',blob:state.openingFile,role:'opening'});
  if(state.endingFile)all.push({name:'Ending track',blob:state.endingFile,role:'ending'});
  try{
   for(let i=0;i<all.length;i++){
    const t=all[i];const mime=(t.blob.type||'audio/webm').split(';')[0].toLowerCase();const ext=mime.includes('mp4')?'m4a':mime.includes('mpeg')?'mp3':mime.includes('wav')?'wav':mime.includes('aac')?'aac':mime.includes('ogg')?'ogg':'webm';
-   const path=state.user.id+'/'+recordingId+'/'+(t.name==='Master mix'?'master-mix':safeName(t.name))+'.'+ext;
+   const path=state.user.id+'/'+uploadFolder+'/'+(t.name==='Master mix'?'master-mix':safeName(t.name))+'-'+(i+1)+'.'+ext;
    say('Uploading '+(i+1)+' of '+all.length+': '+t.name+'…');
    const {error}=await state.client.storage.from(BUCKET).upload(path,t.blob,{contentType:(t.blob.type||'audio/webm').split(';')[0],upsert:false});if(error)throw error;
    uploaded.push({name:t.name,path,mime_type:t.blob.type||'audio/webm',size_bytes:t.blob.size,duration_seconds:t.name==='Master mix'?(state.master?.durationSeconds||Math.round(state.elapsedBeforePause)):undefined,role:t.role||(t.name==='Master mix'?'master':'track')});
   }
   const duration=Math.round(state.elapsedBeforePause);
-  const {data:row,error}=await state.client.from('studio_recordings').insert({id:recordingId,owner_user_id:state.user.id,podcast_id:podcastId,title,status:'saved',duration_seconds:duration,tracks:uploaded}).select().single();if(error)throw error;
-  say('Saved privately. '+uploaded.length+' audio files uploaded. You can create an episode draft below.');
+  const mergedTracks=[...(resuming?.tracks||[]).filter(t=>t.role!=='master'),...uploaded];
+  const payload={title,podcast_id:podcastId||resuming?.podcast_id||null,status:'saved',duration_seconds:duration,tracks:mergedTracks};
+  let error;
+  if(resuming){({error}=await state.client.from('studio_recordings').update(payload).eq('id',resuming.id).eq('owner_user_id',state.user.id));}
+  else {({error}=await state.client.from('studio_recordings').insert({id:recordingId,owner_user_id:state.user.id,...payload}));}
+  if(error)throw error;
+  state.resumeRow=null;state.resumeMasterBlob=null;
+  say((resuming?'Saved progress to the existing session. ':'Saved privately. ')+uploaded.length+' new audio files uploaded. You can continue later or create an episode draft.');
   await loadSaved();
  }catch(e){
   if(uploaded.length){await state.client.storage.from(BUCKET).remove(uploaded.map(x=>x.path)).catch(()=>{});}
   say('Save failed: '+(e.message||String(e))+' — any uploaded partial files were queued for cleanup and remain private.',true);
  }finally{state.busy=false;button.disabled=false;}
 }
+async function mergeAudioBlobs(firstBlob,secondBlob){
+ const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)throw new Error('Audio decoding is not supported in this browser.');
+ const ctx=new Ctx();
+ try{
+  const [a,b]=await Promise.all([firstBlob.arrayBuffer().then(x=>ctx.decodeAudioData(x.slice(0))),secondBlob.arrayBuffer().then(x=>ctx.decodeAudioData(x.slice(0)))]);
+  const rate=Math.max(a.sampleRate,b.sampleRate),channels=Math.max(a.numberOfChannels,b.numberOfChannels);
+  const offline=new OfflineAudioContext(channels,Math.ceil((a.duration+b.duration)*rate),rate);
+  const makeSource=(buffer,offset)=>{const source=offline.createBufferSource();source.buffer=buffer;source.connect(offline.destination);source.start(offset);};
+  makeSource(a,0);makeSource(b,a.duration);
+  const merged=await offline.startRendering();return encodeWav(merged);
+ }finally{await ctx.close().catch(()=>{});}
+}
+
 function populateSavedTrackOptions(){
  for(const id of ['openingSavedTrack','endingSavedTrack']){
   const select=$(id);const prior=select.value;select.innerHTML='<option value="">No saved track selected</option>';
@@ -320,10 +340,28 @@ async function loadSaved(){
  if(!state.saved.length){root.innerHTML='<div class="message">No saved recordings yet. Your private sessions will show here.</div>';return;}
  state.saved.forEach(row=>{const card=document.createElement('div');card.className='saved';const strong=document.createElement('strong');strong.textContent=row.title;const p=document.createElement('p');p.textContent=fmt(row.duration_seconds)+' · '+(row.tracks||[]).length+' files · '+row.status+' · '+new Date(row.created_at).toLocaleString();card.append(strong,p);
   const master=(row.tracks||[]).find(t=>t.role==='master');if(master){const play=document.createElement('button');play.className='btn';play.textContent='▶ Preview master mix';play.addEventListener('click',async()=>{try{const {data,error}=await state.client.storage.from(BUCKET).createSignedUrl(master.path,300);if(error)throw error;const audio=document.createElement('audio');audio.controls=true;audio.src=data.signedUrl;audio.style.width='100%';play.replaceWith(audio);}catch(e){say('Could not create private preview: '+e.message,true);}});card.append(play);}
+  const resume=document.createElement('button');resume.className='btn';resume.style.marginLeft='6px';resume.textContent='Continue session';resume.addEventListener('click',()=>continueSavedSession(row,resume));card.append(resume);
   if(row.podcast_id){const draft=document.createElement('button');draft.className='btn primary';draft.style.marginLeft='6px';draft.textContent='Create episode draft';draft.addEventListener('click',()=>createDraft(row,draft));card.append(draft);}
   else {const note=document.createElement('p');note.textContent='Select a podcast above and save a new session to link it, or choose a podcast in the draft form below.';card.append(note);const choose=document.createElement('select');choose.style.cssText='width:100%;margin:6px 0;background:#090a13;color:white;border:1px solid #ffffff22;padding:10px;border-radius:8px';choose.innerHTML=$('podcastSelect').innerHTML;card.append(choose);const draft=document.createElement('button');draft.className='btn primary';draft.textContent='Create episode draft';draft.addEventListener('click',()=>createDraft(row,draft,choose.value));card.append(draft);}
   root.append(card);
  });
+}
+async function continueSavedSession(row,button){
+ if(state.busy||state.tracks.some(t=>t.recorder&&t.recorder.state!=='inactive')){say('Stop the current recording before continuing a saved session.',true);return;}
+ const master=(row.tracks||[]).find(t=>t.role==='master');
+ if(!master){say('This saved session has no master mix to continue. Save a master mix first.',true);return;}
+ button.disabled=true;
+ try{
+  say('Loading your private saved master…');
+  const {data,error}=await state.client.storage.from(BUCKET).download(master.path);if(error)throw error;
+  state.resumeRow=row;state.resumeMasterBlob=data;
+  $('sessionTitle').value=row.title||'';if(row.podcast_id)$('podcastSelect').value=row.podcast_id;
+  state.elapsedBeforePause=Number(row.duration_seconds||0);$('timer').textContent=fmt(state.elapsedBeforePause);
+  $('openingFile').value='';$('endingFile').value='';state.openingFile=null;state.endingFile=null;
+  say('Session ready to continue. Add microphone track(s), record the next segment, then save progress to update this same saved session. Existing takes stay stored.');
+  $('sessionTitle').focus();window.scrollTo({top:0,behavior:'smooth'});
+ }catch(e){say('Could not load saved session: '+(e.message||String(e)),true);}
+ finally{button.disabled=false;}
 }
 async function createDraft(row,button,chosenPodcast){
  const podcastId=chosenPodcast||row.podcast_id||$('podcastSelect').value;if(!podcastId){say('Choose one of your podcasts before creating an episode draft.',true);return;}
