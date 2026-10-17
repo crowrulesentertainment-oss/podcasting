@@ -38,6 +38,20 @@ async function encryptToken(token: string) {
   const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(token));
   return b64(iv) + "." + b64(new Uint8Array(encrypted));
 }
+
+function fromB64(value: string) {
+  const binary = atob(value);
+  return Uint8Array.from(binary, c => c.charCodeAt(0));
+}
+async function decryptToken(ciphertext: string) {
+  const parts = String(ciphertext || "").split(".");
+  if (parts.length !== 2) throw new Error("Encrypted token format is invalid.");
+  const keyBytes = fromHex(Deno.env.get("DISTRIBUTION_TOKEN_ENCRYPTION_KEY") || "");
+  const key = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["decrypt"]);
+  const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromB64(parts[0]) }, key, fromB64(parts[1]));
+  return new TextDecoder().decode(plaintext);
+}
+
 function randomString(size = 32) {
   return b64(crypto.getRandomValues(new Uint8Array(size))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
@@ -60,6 +74,62 @@ Deno.serve(async (req: Request) => {
     if (!supabaseUrl || !anonKey || !serviceKey || !auth) return json(401, { error: "Sign in required." });
     let body: Record<string, unknown>;
     try { body = await req.json(); } catch { return json(400, { error: "Invalid JSON." }); }
+
+    if (body.action === "refresh") {
+      if (!Deno.env.get("DISTRIBUTION_TOKEN_ENCRYPTION_KEY")) return json(503, { error: "Token encryption is not configured." });
+      let podcastId = String(body.podcast_id || "");
+      if (!/^[0-9a-f-]{36}$/i.test(podcastId)) return json(400, { error: "Select a podcast first." });
+      const userClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: auth } }, auth: { persistSession: false, autoRefreshToken: false } });
+      const { data: { user }, error: userError } = await userClient.auth.getUser();
+      if (userError || !user) return json(401, { error: "Your session is invalid. Sign in again." });
+      const { data: member } = await userClient.from("members").select("id").eq("user_id", user.id).maybeSingle();
+      if (!member) return json(403, { error: "Your CrowRules member profile could not be verified." });
+      const { data: creators } = await userClient.from("creators").select("id").eq("member_id", member.id);
+      const creatorIds = (creators || []).map((row: { id: string }) => row.id);
+      const { data: podcast } = await userClient.from("podcasts").select("id").eq("id", podcastId).in("creator_id", creatorIds).maybeSingle();
+      if (!podcast) return json(403, { error: "This podcast does not belong to your creator account." });
+      if (!clientId || !clientSecret) return json(503, { error: "Google OAuth credentials are not configured." });
+      const service = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+      const { data: account, error: accountError } = await service.from("podcast_distribution_accounts")
+        .select("id,connection_status").eq("user_id", user.id).eq("podcast_id", podcastId).eq("platform", "youtube").maybeSingle();
+      if (accountError || !account) return json(404, { error: "No YouTube connection record exists for this podcast." });
+      const { data: rows, error: tokenError } = await service.rpc("distribution_oauth_get_youtube_token", { p_account_id: account.id, p_user_id: user.id });
+      const tokenRow = Array.isArray(rows) ? rows[0] : rows;
+      if (tokenError || !tokenRow?.refresh_token_ciphertext) return json(409, { error: "No stored refresh token is available. Reconnect YouTube and approve offline access." });
+      let refreshToken = "";
+      try { refreshToken = await decryptToken(tokenRow.refresh_token_ciphertext); }
+      catch { return json(500, { error: "Could not decrypt the stored refresh token. Check the encryption key; no token was changed." }); }
+      const response = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ client_id: clientId, client_secret: clientSecret, refresh_token: refreshToken, grant_type: "refresh_token" }),
+      });
+      const refreshed = await response.json();
+      if (!response.ok || !refreshed.access_token) {
+        const invalidGrant = refreshed.error === "invalid_grant";
+        if (invalidGrant) await service.rpc("distribution_oauth_set_youtube_status", { p_account_id: account.id, p_user_id: user.id, p_status: "expired" });
+        return json(invalidGrant ? 409 : 502, { error: invalidGrant ? "Google rejected the refresh token. Reconnect YouTube to restore access." : "Google token refresh failed. Retry later; no upload was attempted.", provider_error: String(refreshed.error || "refresh_failed") });
+      }
+      let accessCipher = "";
+      let refreshCipher: string | null = null;
+      try {
+        accessCipher = await encryptToken(String(refreshed.access_token));
+        if (refreshed.refresh_token) refreshCipher = await encryptToken(String(refreshed.refresh_token));
+      } catch { return json(500, { error: "Could not encrypt the refreshed token. No token update was saved." }); }
+      const expiresAt = new Date(Date.now() + Number(refreshed.expires_in || 3600) * 1000).toISOString();
+      const { error: saveError } = await service.rpc("distribution_oauth_update_youtube_token", {
+        p_account_id: account.id, p_user_id: user.id, p_access_token_ciphertext: accessCipher,
+        p_refresh_token_ciphertext: refreshCipher, p_expires_at: expiresAt,
+        p_token_type: String(refreshed.token_type || "Bearer"),
+        p_scopes: refreshed.scope ? String(refreshed.scope).split(" ") : null,
+      });
+      if (saveError) return json(500, { error: "Google refreshed access, but secure storage update failed. Check server logs before retrying." });
+      await service.rpc("distribution_oauth_set_youtube_status", { p_account_id: account.id, p_user_id: user.id, p_status: "connected" });
+      const channelResponse = await fetch("https://www.googleapis.com/youtube/v3/channels?part=id%2Csnippet&mine=true", { headers: { Authorization: "Bearer " + refreshed.access_token } });
+      const channelData = await channelResponse.json();
+      if (!channelResponse.ok || !channelData.items?.length) return json(502, { error: "Token refreshed and saved, but channel verification failed. No upload was attempted." });
+      return json(200, { ok: true, status: "connected", channel: String(channelData.items[0].snippet?.title || "YouTube channel"), expires_at: expiresAt, message: "Token refreshed, encrypted, saved, and channel access verified. No video was uploaded." });
+    }
     if (body.action !== "start") return json(400, { error: "Unsupported action." });
     if (!clientId || !clientSecret || !Deno.env.get("DISTRIBUTION_TOKEN_ENCRYPTION_KEY")) {
       return json(503, {
