@@ -88,6 +88,12 @@
    return '<article class="post" style="border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;background:#0b0d16"><div class="actions" style="justify-content:space-between"><strong>'+esc(row.title)+'</strong><span class="private '+statusClass+'">'+esc(label)+'</span></div><p class="muted" style="margin:7px 0">'+esc(row.podcasts?.title||'Podcast')+' · '+esc(fmtDate(row.completed_at||row.created_at))+'</p><div class="muted">'+esc(row.filename||'Video file')+' · '+esc(bytes(Number(row.file_size)||0))+' · Visibility requested: PRIVATE'+(row.status==='uploading'?' · '+esc(row.progress_percent)+'%':'')+'</div>'+video+fingerprint+checked+'<div class="actions" style="margin-top:9px">'+studio+checkButton+'</div>'+playback+err+processingNote+recoveryButtons+'</article>';
   }).join('');
  }
+ async function fingerprintFile(file){
+  // SHA-256 is computed for files up to 512 MiB to avoid excessive browser memory use.
+  if(!globalThis.crypto?.subtle||file.size>536870912)return null;
+  const digest=await crypto.subtle.digest('SHA-256',await file.arrayBuffer());
+  return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
+ }
  async function saveHistory(patch){
   if(!state.historyId)return null;
   const {error}=await client.from('youtube_upload_history').update({...patch,updated_at:new Date().toISOString()}).eq('id',state.historyId);
@@ -192,6 +198,16 @@
   let transferStarted=false;
   try{
    const episode=selectedEpisode();
+   const fileSha256=await fingerprintFile(file);
+   if(fileSha256){
+    $('progressText').textContent='Checking SHA-256 fingerprint and previous upload attempts…';
+    const {data:fingerprintMatches,error:fingerprintError}=await client.from('youtube_upload_history').select('id,status,recovery_status').eq('user_id',state.user.id).eq('file_sha256',fileSha256).in('status',['preparing','uploading','completed','unknown']).order('created_at',{ascending:false}).limit(10);
+    if(fingerprintError)throw new Error('Could not check the file fingerprint, so the upload was not started: '+fingerprintError.message);
+    const fingerprintDuplicate=(fingerprintMatches||[]).find(row=>row.status!=='unknown'||row.recovery_status!=='reviewed_no_video');
+    if(fingerprintDuplicate)throw new Error('This exact file matches a previous upload attempt ('+fingerprintDuplicate.id+'). Review upload history and YouTube Studio before uploading again. No new upload was started.');
+   }else{
+    $('progressText').textContent='Fingerprint skipped for this very large file or unsupported browser; metadata duplicate protection remains active.';
+   }
    const duplicateBase=client.from('youtube_upload_history')
     .select('id,title,filename,file_size,status,video_id,studio_url,recovery_status,created_at')
     .eq('user_id',state.user.id).eq('podcast_id',show.id)
@@ -211,7 +227,7 @@
       :'A matching upload attempt is already preparing or uploading.';
     throw new Error(reason+' Existing history entry: '+duplicate.id+(duplicate.video_id?' · Video ID '+duplicate.video_id:'')+'. No new upload was started. Review section 04 before continuing.');
    }
-   const historyPayload={user_id:state.user.id,podcast_id:show.id,episode_id:episode?.id||null,title:$('title').value.trim(),description:$('description').value.trim(),visibility:'private',status:'preparing',filename:file.name,mime_type:file.type,file_size:file.size,progress_percent:0,error_message:null};
+   const historyPayload={user_id:state.user.id,podcast_id:show.id,episode_id:episode?.id||null,title:$('title').value.trim(),description:$('description').value.trim(),visibility:'private',status:'preparing',filename:file.name,mime_type:file.type,file_size:file.size,file_sha256:fileSha256,progress_percent:0,error_message:null};
    const {data:history,error:historyError}=await client.from('youtube_upload_history').insert(historyPayload).select('id').single();
    if(historyError)throw new Error('Could not save upload history, so the upload was not started: '+historyError.message);
    state.historyId=history.id;await loadHistory();
