@@ -114,11 +114,11 @@
   if(cErr){say('Unable to load creator profile: '+cErr.message);return}
   const ids=(creators||[]).map(c=>c.id);state.creatorIds=new Set(ids);
   if(!ids.length){say('No creator profile is linked to this member account yet.');$('show').innerHTML='<option value="">No creator profile</option>';return}
-  const {data:shows,error:sErr}=await client.from('podcasts').select('id,title,description,artwork_url,website_url,slug,creator_id').in('creator_id',ids).order('title');
+  const {data:shows,error:sErr}=await client.from('podcasts').select('id,title,description,artwork_url,website_url,rss_url,slug,creator_id').in('creator_id',ids).order('title');
   if(sErr){say('Unable to load your podcasts: '+sErr.message);return}
   state.shows=shows||[];
   $('show').innerHTML=state.shows.length?state.shows.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.title)+'</option>').join(''):'<option value="">No podcasts found</option>';
-  if(state.shows.length){await loadEpisodes();await loadDrafts();await loadConnections();say('Signed in. '+state.shows.length+' podcast(s) available. Connection status loaded.',true)}else say('No podcasts found for your creator profile.');
+  if(state.shows.length){await loadEpisodes();await loadDrafts();await loadConnections();await loadPodcastDistribution();say('Signed in. '+state.shows.length+' podcast(s) available. Connection and podcast directory status loaded.',true)}else{await loadPodcastDistribution();say('No podcasts found for your creator profile.');}
  }
  async function loadEpisodes(){
   const show=state.shows.find(s=>s.id===$('show').value);if(!show)return;
