@@ -216,6 +216,32 @@ function bytesLabel(bytes){
  while(value>=1024&&index<units.length-1){value/=1024;index++;}
  return value.toFixed(value>=100?0:value>=10?1:2)+' '+units[index];
 }
+function encodeWav(buffer){
+ const channels=buffer.numberOfChannels,samples=buffer.length,rate=buffer.sampleRate,bytes=44+samples*channels*2;
+ const out=new ArrayBuffer(bytes),view=new DataView(out);
+ const write=(offset,str)=>{for(let i=0;i<str.length;i++)view.setUint8(offset+i,str.charCodeAt(i));};
+ write(0,'RIFF');view.setUint32(4,bytes-8,true);write(8,'WAVE');write(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,channels,true);view.setUint32(24,rate,true);view.setUint32(28,rate*channels*2,true);view.setUint16(32,channels*2,true);view.setUint16(34,16,true);write(36,'data');view.setUint32(40,bytes-44,true);
+ const data=Array.from({length:channels},(_,c)=>buffer.getChannelData(c));let offset=44;
+ for(let i=0;i<samples;i++)for(let c=0;c<channels;c++){const sample=Math.max(-1,Math.min(1,data[c][i]));view.setInt16(offset,sample<0?sample*32768:sample*32767,true);offset+=2;}
+ return new Blob([out],{type:'audio/wav'});
+}
+async function applyMasterEdit(button,player,startInput,endInput,fadeInInput,fadeOutInput,notice){
+ const sourceBlob=state.master?.originalBlob||state.master?.blob;if(!sourceBlob?.size)return;
+ const originalLabel=button.textContent;button.disabled=true;button.textContent='Processing audio…';
+ try{
+  const bytes=await sourceBlob.arrayBuffer();const decodeContext=new (window.AudioContext||window.webkitAudioContext)();let decoded;
+  try{decoded=await decodeContext.decodeAudioData(bytes);}finally{await decodeContext.close().catch(()=>{});}
+  const duration=decoded.duration;const start=Math.max(0,Math.min(duration,Number(startInput.value)||0));const endRaw=endInput.value===''?duration:Number(endInput.value);const end=Math.max(0,Math.min(duration,endRaw));
+  if(end<=start)throw new Error('Trim end must be later than trim start.');
+  const clipDuration=end-start;const length=Math.max(1,Math.floor(clipDuration*decoded.sampleRate));const offline=new OfflineAudioContext(decoded.numberOfChannels,length,decoded.sampleRate);const source=offline.createBufferSource();source.buffer=decoded;const gain=offline.createGain();const fadeIn=Math.min(clipDuration,Math.max(0,Number(fadeInInput.value)||0));const fadeOut=Math.min(clipDuration-fadeIn,Math.max(0,Number(fadeOutInput.value)||0));const fadeOutStart=clipDuration-fadeOut;
+  gain.gain.setValueAtTime(fadeIn>0?0:1,0);if(fadeIn>0)gain.gain.linearRampToValueAtTime(1,fadeIn);if(fadeOut>0){gain.gain.setValueAtTime(1,fadeOutStart);gain.gain.linearRampToValueAtTime(0,clipDuration);}
+  source.connect(gain);gain.connect(offline.destination);source.start(0,start,clipDuration);const rendered=await offline.startRendering();const edited=encodeWav(rendered);
+  state.master.originalBlob=state.master.originalBlob||state.master.blob;state.master.blob=edited;
+  player.src=URL.createObjectURL(edited);player.load();notice.textContent='Edited master ready · '+fmt(clipDuration)+' · '+bytesLabel(edited.size)+' WAV. Original master is retained in memory; separate microphone tracks are unchanged.';
+  say('Master edit applied. Preview the edited mix before saving.');
+ }catch(e){notice.textContent='Could not edit master: '+(e.message||e);say('Master edit failed: '+(e.message||e),true);}
+ finally{button.disabled=false;button.textContent=originalLabel;}
+}
 function downloadBlob(blob, filename){
  if(!blob?.size)return;
  const url=URL.createObjectURL(blob);const link=document.createElement('a');
@@ -229,8 +255,15 @@ function showPreview(){
  const master=state.master?.blob;
  if(master){
   const audio=document.createElement('audio');audio.controls=true;audio.src=URL.createObjectURL(master);audio.style.width='100%';audio.setAttribute('aria-label','Preview master mix');preview.append(audio);
-  const masterInfo=document.createElement('p');masterInfo.className='hint';masterInfo.textContent='Master mix · '+bytesLabel(master.size);preview.append(masterInfo);const masterDownload=document.createElement('button');masterDownload.className='btn';masterDownload.textContent='↓ Download master mix';masterDownload.style.marginTop='8px';
-  masterDownload.addEventListener('click',()=>downloadBlob(master,safeName($('sessionTitle').value||'recording')+'-master.webm'));preview.append(masterDownload);
+  const masterInfo=document.createElement('p');masterInfo.className='hint';masterInfo.textContent='Master mix · '+bytesLabel(master.size);preview.append(masterInfo);
+  const editor=document.createElement('div');editor.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px;margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:12px';
+  const field=(labelText,min,max,step,value)=>{const wrap=document.createElement('label');wrap.style.cssText='display:grid;gap:5px;font-size:12px;color:var(--muted)';wrap.textContent=labelText;const input=document.createElement('input');input.type='number';input.min=String(min);input.max=String(max);input.step=String(step);input.value=String(value);input.style.width='100%';input.setAttribute('aria-label',labelText);wrap.append(input);editor.append(wrap);return input;};
+  const trimStart=field('Trim start (seconds)',0,36000,.1,0);const trimEnd=field('Trim end (seconds; blank = full length)',0,36000,.1,'');trimEnd.value='';
+  const fadeIn=field('Fade in (seconds)',0,30,.1,0);const fadeOut=field('Fade out (seconds)',0,30,.1,0);
+  const editNotice=document.createElement('p');editNotice.className='hint';editNotice.style.gridColumn='1 / -1';editNotice.textContent='Trim and fade the master mix. Separate microphone takes remain untouched.';editor.append(editNotice);
+  const apply=document.createElement('button');apply.className='btn primary';apply.textContent='Apply trim & fades';apply.style.gridColumn='1 / -1';apply.addEventListener('click',()=>applyMasterEdit(apply,audio,trimStart,trimEnd,fadeIn,fadeOut,editNotice));editor.append(apply);preview.append(editor);
+  const masterDownload=document.createElement('button');masterDownload.className='btn';masterDownload.textContent='↓ Download current master';masterDownload.style.marginTop='8px';
+  masterDownload.addEventListener('click',()=>downloadBlob(state.master?.blob,safeName($('sessionTitle').value||'recording')+'-master.'+((state.master?.blob?.type||'').includes('wav')?'wav':'webm')));preview.append(masterDownload);
  }
  const trackReview=document.createElement('div');trackReview.style.cssText='display:grid;gap:12px;margin-top:14px';
  state.tracks.filter(t=>t.blob?.size).forEach((track,index)=>{
