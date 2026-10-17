@@ -35,7 +35,8 @@ async function encryptSessionToken(value: string) {
  const encrypted = new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv}, key, new TextEncoder().encode(value)));
  return toB64Url(iv) + "." + toB64Url(encrypted);
 }
-\nDeno.serve(async (req: Request) => {
+
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers });
   if (req.method !== "POST") return json(405, { error: "POST required." });
 
@@ -55,7 +56,9 @@ async function encryptSessionToken(value: string) {
   const description = String(body.description || "").trim();
   const mimeType = String(body.mime_type || "");
   const fileSize = Number(body.file_size || 0);
-  const filename = String(body.filename || "episode-video").slice(0, 180);\n  const historyId = String(body.history_id || "");\n  if (!/^[0-9a-f-]{36}$/i.test(historyId)) return json(400, { error: "Upload history ID is required for secure recovery." });
+  const filename = String(body.filename || "episode-video").slice(0, 180);
+  const historyId = String(body.history_id || "");
+  if (!/^[0-9a-f-]{36}$/i.test(historyId)) return json(400, { error: "Upload history ID is required for secure recovery." });
   const tags = Array.isArray(body.tags) ? body.tags.map((tag) => String(tag).trim()).filter(Boolean).slice(0, 30) : [];
 
   if (!/^[0-9a-f-]{36}$/i.test(podcastId)) return json(400, { error: "Select a podcast first." });
@@ -63,7 +66,8 @@ async function encryptSessionToken(value: string) {
   if (description.length > 5000) return json(400, { error: "Description must be 5,000 characters or fewer." });
   if (!/^video\/[a-zA-Z0-9.+-]+$/.test(mimeType)) return json(400, { error: "Choose a video file with a supported video MIME type." });
   if (!Number.isSafeInteger(fileSize) || fileSize < 1 || fileSize > 256 * 1024 * 1024 * 1024) return json(400, { error: "File size must be between 1 byte and 256 GB." });
-  if (!filename || /[\r\n]/.test(filename)) return json(400, { error: "Invalid filename." });
+  if (!filename || /[\r
+]/.test(filename)) return json(400, { error: "Invalid filename." });
 
   const userClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authorization } }, auth: { persistSession: false, autoRefreshToken: false } });
   const { data: { user }, error: userError } = await userClient.auth.getUser();
