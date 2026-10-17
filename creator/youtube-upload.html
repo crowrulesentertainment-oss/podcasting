@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>YouTube Private Upload · CrowRules Podcasting</title>
+<title>YouTube Upload · CrowRules Podcasting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="../config.js"></script>
 <style>
@@ -12,8 +12,8 @@
 </head>
 <body><main class="wrap">
 <nav class="nav"><div class="brand">CROWRULES <span>·</span> YOUTUBE UPLOAD</div><div class="actions"><a href="distribution.html">← Distribution Center</a><a href="../creator.html">Creator Dashboard</a></div><a href="video-creation-studio.html">Video Creation Studio</a></nav>
-<header style="padding:26px 0 8px"><div class="eyebrow">CONTROLLED PUBLISHING WORKFLOW</div><h1>Upload to <span style="color:var(--cyan)">YouTube.</span></h1><p>Prepare an episode video, review its metadata, then confirm the upload. This workflow starts a resumable upload and sends the selected file to YouTube. <strong>Visibility is locked to Private</strong>; public publishing is not part of this test.</p></header>
-<div id="notice" class="alert">Sign in to CrowRules Podcasting to prepare a private upload.</div>
+<header style="padding:26px 0 8px"><div class="eyebrow">CONTROLLED PUBLISHING WORKFLOW</div><h1>Upload to <span style="color:var(--cyan)">YouTube.</span></h1><p>Prepare an episode video, choose its YouTube visibility, review the details, then confirm the upload. Uploads start only when you click the button; visibility is set to the option you choose.</p></header>
+<div id="notice" class="alert">Sign in to CrowRules Podcasting to prepare a YouTube upload.</div>
 <section class="panel"><h2>01 · Episode and video</h2>
 <div class="field"><label for="show">YOUR PODCAST</label><select id="show"><option value="">Loading your podcasts…</option></select></div>
 <div class="field"><label for="episode">EPISODE (OPTIONAL METADATA PRE-FILL)</label><select id="episode"><option value="">Choose a podcast first</option></select></div>
@@ -24,11 +24,12 @@
 <div class="field"><label for="title">VIDEO TITLE (REQUIRED · UP TO 100 CHARACTERS)</label><input id="title" maxlength="100" placeholder="Episode title"></div>
 <div class="field"><label for="description">DESCRIPTION (UP TO 5,000 CHARACTERS)</label><textarea id="description" maxlength="5000" placeholder="Describe this episode for viewers…"></textarea></div>
 <div class="field"><label for="tags">TAGS (OPTIONAL · COMMA-SEPARATED)</label><input id="tags" maxlength="500" value="CrowRules, podcast, independent podcast"></div>
-<div class="meta"><div><small>Visibility</small><p><span class="private">PRIVATE — LOCKED</span></p></div><div><small>Upload behavior</small><p>Manual start only · no automatic publish</p></div></div>
-<label class="check"><input type="checkbox" id="confirm"><span>I confirm that I own this video or have permission to upload it, and I understand it will be sent to the connected YouTube channel as a <strong>private</strong> video.</span></label>
-<div class="actions"><button class="btn primary" id="upload" disabled>Start private video upload</button><button class="btn" id="refreshToken" type="button">Refresh YouTube token</button></div>
+<div class="field"><label for="visibility">YOUTUBE VISIBILITY</label><select id="visibility"><option value="public" selected>Public · Anyone can watch</option><option value="unlisted">Unlisted · Anyone with the link can watch</option><option value="private">Private · Only you and invited viewers</option></select><small>Public videos can appear in search, recommendations, and on your channel. Unlisted videos are viewable by anyone with the link. Choose deliberately before uploading.</small></div>
+<div class="meta"><div><small>Upload behavior</small><p>Manual start only · no automatic publishing or scheduling</p></div><div><small>Selected visibility</small><p id="visibilitySummary">PUBLIC · viewers may find this video on YouTube</p></div></div>
+<label class="check"><input type="checkbox" id="confirm"><span id="confirmText">I confirm that I own this video or have permission to upload it, and I understand it will be uploaded as a public video.</span></label>
+<div class="actions"><button class="btn primary" id="upload" disabled>Start public video upload</button><button class="btn" id="refreshToken" type="button">Refresh YouTube token</button></div>
 </section>
-<section class="panel"><h2>03 · Upload progress</h2><progress id="progress" max="100" value="0"></progress><p id="progressText" class="muted">No upload started.</p><div id="result"></div><div class="alert">Safety note: this page does not make the video public, set a schedule, or upload automatically. A completed upload can still need YouTube processing before it is playable.</div></section>
+<section class="panel"><h2>03 · Upload progress</h2><progress id="progress" max="100" value="0"></progress><p id="progressText" class="muted">No upload started.</p><div id="result"></div><div class="alert">Safety note: the uploader uses the visibility you select. Public videos may be seen by anyone. Uploads are never started automatically or scheduled, and a completed upload may still need YouTube processing.</div></section>
 <section class="panel"><div class="actions" style="justify-content:space-between"><h2>04 · Upload history</h2><button class="btn" id="reloadHistory" type="button">Refresh history</button></div><p class="muted">Your latest 50 uploads and attempts. Completed means YouTube accepted the upload, not necessarily that processing finished. Check YouTube status for processing and actual privacy. After processing succeeds, open Studio and manually confirm picture and audio before marking playback verified. Uncertain transfers are flagged so you can check Studio before retrying.</p><div class="history-search">
 <label for="historySearch">Search upload history</label>
 <div class="history-search-control"><input id="historySearch" type="search" autocomplete="off" placeholder="Search title, filename, or YouTube video ID…" aria-describedby="historySearchHelp"><button class="btn" type="button" id="clearHistorySearch" aria-label="Clear upload history search">Clear</button></div>
@@ -66,7 +67,7 @@
    const {data:refresh,error:refreshError}=await client.functions.invoke('youtube-oauth',{body:{action:'refresh',podcast_id:show.id}});
    if(refreshError)throw new Error('Automatic token refresh failed: '+await functionErrorMessage(refreshError)+' No video data was sent. You can use Test token refresh and retry.');
    if(refresh?.error)throw new Error('Automatic token refresh failed: '+refresh.error+' No video data was sent. Reconnect YouTube if requested.');
-   $('progressText').textContent='Token refreshed. Preparing a new private upload session…';
+   $('progressText').textContent='Token refreshed. Preparing a new upload session…';
    result=await invoke();
    message=result.error?await functionErrorMessage(result.error):String(result.data?.error||'');
   }
@@ -86,7 +87,7 @@
    const transfer=new DataTransfer();transfer.items.add(file);$('file').files=transfer.files;
    if(!$('title').value.trim())$('title').value=String(item.title||file.name.replace(/\\.[^.]+$/,'')).slice(0,100);
    $('fileInfo').textContent=file.name+' · '+bytes(file.size)+' · '+(file.type||'unknown MIME type')+' · Sent from Video Studio';
-   $('result').innerHTML='<div class="alert success">Video received from CrowRules Video Studio. Choose your podcast, review the title and details, confirm the private upload, then click Start private video upload. Nothing has been uploaded yet.</div>';
+   $('result').innerHTML='<div class="alert success">Video received from CrowRules Video Studio. Choose your podcast and visibility, review the details, then confirm and start the upload. Nothing has been uploaded yet.</div>';
    $('progressText').textContent='Video received from Video Studio. Ready for your review.';
    await new Promise((resolve,reject)=>{const tx=db.transaction('handoff','readwrite');tx.objectStore('handoff').delete('latest');tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('Could not clear temporary handoff data.'))});
    validate();
@@ -370,16 +371,18 @@
   $('show').innerHTML=state.shows.length?state.shows.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.title)+'</option>').join(''):'<option value="">No podcasts found</option>';
   await loadEpisodes();
   await loadHistory();
-  say('Signed in. Select your podcast, video file, and details. Upload remains manual and private.','success');
+  say('Signed in. Select your podcast, video file, and visibility. Upload starts only after manual confirmation.','success');
  }
  function prefill(){
   const ep=selectedEpisode();
   if(ep){$('title').value=(ep.title||'').slice(0,100);$('description').value=(ep.description||'').slice(0,5000)}
  }
+ function updateVisibilityCopy(){const v=$('visibility').value;const labels={public:'PUBLIC · viewers may find this video on YouTube',unlisted:'UNLISTED · anyone with the link can watch',private:'PRIVATE · only you and invited viewers'};$('visibilitySummary').textContent=labels[v]||labels.public;$('confirmText').textContent='I confirm that I own this video or have permission to upload it, and I understand it will be uploaded as '+v+' on YouTube.';$('upload').textContent='Start '+v+' video upload'}
  function validate(){
   const file=$('file').files?.[0];
-  $('upload').disabled=state.busy||!state.user||!selectedShow()||!file||!file.type.startsWith('video/')||!$('title').value.trim()||!$('confirm').checked;
+  $('upload').disabled=state.busy||!state.user||!selectedShow()||!file||!file.type.startsWith('video/')||!$('title').value.trim()||!$('confirm').checked||!['public','unlisted','private'].includes($('visibility').value);
  }
+ updateVisibilityCopy();
  $('show').addEventListener('change',async()=>{await loadEpisodes();validate()});
  $('reloadHistory').addEventListener('click',()=>{state.historyPage=0;loadHistory()});
  $('exportHistoryCsv').addEventListener('click',exportHistoryCsv);
@@ -465,7 +468,7 @@
  });
  $('episode').addEventListener('change',prefill);
  $('file').addEventListener('change',()=>{const f=$('file').files?.[0];$('fileInfo').textContent=f?f.name+' · '+bytes(f.size)+' · '+(f.type||'unknown MIME type'):'No file selected.';validate()});
- ['title','description','tags','confirm'].forEach(id=>$(id).addEventListener('input',validate));
+ ['title','description','tags','confirm','visibility'].forEach(id=>$(id).addEventListener('input',()=>{updateVisibilityCopy();validate()}));
  $('refreshToken').addEventListener('click',async()=>{
   const show=selectedShow();if(!show){say('Select a podcast first.');return}
   $('refreshToken').disabled=true;
@@ -476,8 +479,8 @@
  $('upload').addEventListener('click',async()=>{
   const show=selectedShow(),file=$('file').files?.[0];
   if(!show||!file||!$('confirm').checked){validate();return}
-  if(!confirm('Upload "'+file.name+'" to '+show.title+' as a PRIVATE YouTube video? The selected video file will be sent to YouTube.'))return;
-  state.busy=true;state.historyId=null;validate();$('result').innerHTML='';$('progress').value=0;$('progressText').textContent='Saving upload attempt…';say('Preparing upload. No video is public; privacy is locked to Private.');
+  const visibility=$('visibility').value;const visibilityLabel=visibility.toUpperCase();if(!confirm('Upload "'+file.name+'" to '+show.title+' as '+visibilityLabel+'? '+(visibility==='public'?'Anyone may be able to watch this video on YouTube.':visibility==='unlisted'?'Anyone with the link may watch this video.':'Only you and viewers you invite may watch this video.')+' The selected video file will be sent to YouTube.'))return;
+  state.busy=true;state.historyId=null;validate();$('result').innerHTML='';$('progress').value=0;$('progressText').textContent='Saving upload attempt…';say('Preparing '+visibilityLabel.toLowerCase()+' upload. Upload will use the visibility you selected.');
   let transferStarted=false;
   try{
    const episode=selectedEpisode();
@@ -510,11 +513,11 @@
       :'A matching upload attempt is already preparing or uploading.';
     throw new Error(reason+' Existing history entry: '+duplicate.id+(duplicate.video_id?' · Video ID '+duplicate.video_id:'')+'. No new upload was started. Review section 04 before continuing.');
    }
-   const historyPayload={user_id:state.user.id,podcast_id:show.id,episode_id:episode?.id||null,title:$('title').value.trim(),description:$('description').value.trim(),visibility:'private',status:'preparing',filename:file.name,mime_type:mimeType(file),file_size:file.size,file_sha256:fileSha256,progress_percent:0,error_message:null};
+   const historyPayload={user_id:state.user.id,podcast_id:show.id,episode_id:episode?.id||null,title:$('title').value.trim(),description:$('description').value.trim(),visibility:visibility,status:'preparing',filename:file.name,mime_type:mimeType(file),file_size:file.size,file_sha256:fileSha256,progress_percent:0,error_message:null};
    const {data:history,error:historyError}=await client.from('youtube_upload_history').insert(historyPayload).select('id').single();
    if(historyError)throw new Error('Could not save upload history, so the upload was not started: '+historyError.message);
    state.historyId=history.id;await loadHistory();
-   const payload={podcast_id:show.id,title:$('title').value.trim(),description:$('description').value.trim(),tags:$('tags').value.split(',').map(s=>s.trim()).filter(Boolean),filename:file.name,mime_type:mimeType(file),file_size:file.size};
+   const payload={podcast_id:show.id,title:$('title').value.trim(),description:$('description').value.trim(),tags:$('tags').value.split(',').map(s=>s.trim()).filter(Boolean),filename:file.name,mime_type:mimeType(file),file_size:file.size,visibility};
    const session=await createUploadSession(show,payload);
    await saveHistory({status:'uploading',progress_percent:0});
    $('progressText').textContent='Uploading '+file.name+' through CrowRules secure proxy…';
@@ -551,10 +554,10 @@
    const studioUrl=videoId?'https://studio.youtube.com/video/'+encodeURIComponent(videoId)+'/edit':null;
    const historySaveError=await saveHistory({status:'completed',progress_percent:100,video_id:videoId||null,studio_url:studioUrl,completed_at:new Date().toISOString(),error_message:null});
    $('progressText').textContent='Upload accepted by YouTube. Video processing may continue in YouTube Studio.';
-   $('result').innerHTML='<div class="alert success"><strong>Private upload completed.</strong><br>Visibility was set to Private before upload. '+(videoId?'Video ID: '+esc(videoId)+'<br><a href="https://studio.youtube.com/video/'+encodeURIComponent(videoId)+'/edit" target="_blank" rel="noopener">Open in YouTube Studio</a>':'YouTube accepted the upload; video ID was not returned.')+'</div>';
+   $('result').innerHTML='<div class="alert success"><strong>'+esc(visibilityLabel)+' upload completed.</strong><br>Visibility was requested as '+esc(visibilityLabel)+'. Check the actual visibility and processing status in YouTube Studio. '+(videoId?'Video ID: '+esc(videoId)+'<br><a href="https://studio.youtube.com/video/'+encodeURIComponent(videoId)+'/edit" target="_blank" rel="noopener">Open in YouTube Studio</a>':'YouTube accepted the upload; video ID was not returned.')+'</div>';
    if(historySaveError){$('result').innerHTML+='<div class="alert">YouTube upload completed, but the history update could not be saved. Refresh history and verify the video in YouTube Studio.</div>'}
    await loadHistory();
-   say('YouTube accepted the video upload. It remains private; review it in YouTube Studio.','success');
+   say('YouTube accepted the '+visibilityLabel.toLowerCase()+' upload. Review processing and actual visibility in YouTube Studio.','success');
   }catch(e){
    if(state.historyId){await saveHistory({status:transferStarted?'unknown':'failed',progress_percent:$('progress').value,error_message:String(e.message||'Upload failed.').slice(0,500)});await loadHistory()}
    $('progressText').textContent='Upload did not complete.';
