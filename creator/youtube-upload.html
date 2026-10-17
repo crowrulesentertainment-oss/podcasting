@@ -207,30 +207,9 @@
  function renderHistoryRows(){
   const rows=state.historyRows.filter(row=>matchesHistoryFilter(row,state.historyFilter));
   $('historyFilterNotice').textContent='Showing '+rows.length+' of '+state.historyRows.length+' upload attempts'+(state.historyFilter==='all'?'.':'. Filter: '+({needs_review:'Needs review',recovered:'Recovered',ready_private:'Ready · Private'}[state.historyFilter]||'All uploads')+'.');
-  if(!rows.length){
-   $('historyList').innerHTML='<div class="alert">No upload attempts match this filter.</div>';
-   return;
-  }
+  if(!rows.length){$('historyList').innerHTML='<div class="alert">No upload attempts match this filter.</div>';return}
   $('historyList').innerHTML=rows.map(row=>{
-  const totals={resumed_successfully:0,already_completed:0,needs_review:0};
-  (rows||[]).forEach(row=>{if(Object.prototype.hasOwnProperty.call(totals,row.recovery_outcome))totals[row.recovery_outcome]++});
-  $('recoveryResumed').textContent=String(totals.resumed_successfully);
-  $('recoveryCompleted').textContent=String(totals.already_completed);
-  $('recoveryNeedsReview').textContent=String(totals.needs_review);
- }
- async function loadHistory(){
-  if(!client||!state.user){renderRecoverySummary([]);$('historyNotice').textContent='Sign in to view upload history.';return}
-  $('historyNotice').textContent='Loading upload history…';
-  const {data,error}=await client.from('youtube_upload_history').select('id,podcast_id,episode_id,title,visibility,status,video_id,studio_url,filename,file_size,progress_percent,error_message,upload_session_expires_at,created_at,completed_at,youtube_processing_status,youtube_privacy_status,youtube_upload_status,status_checked_at,processing_failure_reason,recovery_status,recovery_reviewed_at,recovery_note,recovery_outcome,recovery_outcome_at,file_sha256,playback_verification_status,playback_verified_at,playback_verification_note,podcasts(title)').order('created_at',{ascending:false}).limit(50);
-  if(error){renderRecoverySummary([]);$('historyNotice').textContent='Upload history is not available: '+error.message;$('historyList').innerHTML='';return}
-  renderRecoverySummary(data||[]);if(!data?.length){$('historyNotice').textContent='No upload attempts saved yet. Your next upload will appear here.';$('historyList').innerHTML='';return}
-  state.historyRows=data||[];
-  $('historyNotice').textContent=data.length+' recent upload attempt'+(data.length===1?'':'s')+'.';
-  renderHistoryFilterCounts(state.historyRows);
-  renderHistoryRows();
- }
- async function fingerprintFile(file){
-   const label=statusLabel(row); const statusClass=label.startsWith('Ready')?'success':(label.includes('failed')||label.startsWith('Needs review'))?'error':label==='Processing'?'':'success';
+  const label=statusLabel(row); const statusClass=label.startsWith('Ready')?'success':(label.includes('failed')||label.startsWith('Needs review'))?'error':label==='Processing'?'':'success';
    const studio=row.video_id?' <a href="https://studio.youtube.com/video/'+encodeURIComponent(row.video_id)+'/edit" target="_blank" rel="noopener">Open in YouTube Studio ↗</a>':'';
    const video=row.video_id?'<div class="muted">Video ID: <code>'+esc(row.video_id)+'</code></div>':'';
    const err=row.error_message?'<div class="alert error" style="margin-top:9px">'+esc(row.error_message)+'</div>':'';
@@ -246,7 +225,26 @@
    const resumeButton=['preparing','uploading','unknown'].includes(row.status)&&row.file_sha256&&!row.video_id?'<div class="muted" style="margin-top:9px">To resume after closing this page, choose the exact original video file. CrowRules will fingerprint it and ask YouTube for the confirmed byte position before sending anything else.</div><div class="actions" style="margin-top:9px"><button class="btn" type="button" data-resume-upload="'+esc(row.id)+'">Resume this upload safely</button></div>':'';
    const recoveryButtons=row.status==='unknown'&&row.recovery_status!=='reviewed_no_video'&&row.recovery_status!=='keep_existing'?'<div class="alert error" style="margin-top:9px">Recovery required: check YouTube Studio for this title before trying again. Do not retry until you have searched the channel content list.</div><div class="actions" style="margin-top:9px"><button class="btn" type="button" data-recovery="reviewed_no_video" data-history-id="'+esc(row.id)+'">I checked Studio — no video found</button><button class="btn" type="button" data-recovery="keep_existing" data-history-id="'+esc(row.id)+'">Keep existing attempt</button><a href="https://studio.youtube.com/" target="_blank" rel="noopener">Open YouTube Studio ↗</a></div>':row.recovery_status==='reviewed_no_video'?'<div class="alert success" style="margin-top:9px">Studio checked: you marked this attempt as not found. A new attempt is permitted after the duplicate check.</div>':row.recovery_status==='keep_existing'?'<div class="alert" style="margin-top:9px">Keeping this attempt. Check Studio again if needed; do not retry unless you change this recovery decision.</div>':'';
    return '<article class="post" style="border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;background:#0b0d16"><div class="actions" style="justify-content:space-between"><strong>'+esc(row.title)+'</strong><span class="private '+statusClass+'">'+esc(label)+'</span></div><p class="muted" style="margin:7px 0">'+esc(row.podcasts?.title||'Podcast')+' · '+esc(fmtDate(row.completed_at||row.created_at))+'</p><div class="muted">'+esc(row.filename||'Video file')+' · '+esc(bytes(Number(row.file_size)||0))+' · Visibility requested: PRIVATE'+(row.status==='uploading'?' · '+esc(row.progress_percent)+'%':'')+'</div>'+video+fingerprint+recoveryOutcome+recoveryExpiry+checked+'<div class="actions" style="margin-top:9px">'+studio+checkButton+'</div>'+playback+err+processingNote+resumeButton+recoveryButtons+'</article>';
+
   }).join('');
+ }
+ function renderRecoverySummary(rows){
+  const totals={resumed_successfully:0,already_completed:0,needs_review:0};
+  (rows||[]).forEach(row=>{if(Object.prototype.hasOwnProperty.call(totals,row.recovery_outcome))totals[row.recovery_outcome]++});
+  $('recoveryResumed').textContent=String(totals.resumed_successfully);
+  $('recoveryCompleted').textContent=String(totals.already_completed);
+  $('recoveryNeedsReview').textContent=String(totals.needs_review);
+ }
+ async function loadHistory(){
+  if(!client||!state.user){state.historyRows=[];renderRecoverySummary([]);renderHistoryFilterCounts([]);$('historyNotice').textContent='Sign in to view upload history.';renderHistoryRows();return}
+  $('historyNotice').textContent='Loading upload history…';
+  const {data,error}=await client.from('youtube_upload_history').select('id,podcast_id,episode_id,title,visibility,status,video_id,studio_url,filename,file_size,progress_percent,error_message,upload_session_expires_at,created_at,completed_at,youtube_processing_status,youtube_privacy_status,youtube_upload_status,status_checked_at,processing_failure_reason,recovery_status,recovery_reviewed_at,recovery_note,recovery_outcome,recovery_outcome_at,file_sha256,playback_verification_status,playback_verified_at,playback_verification_note,podcasts(title)').order('created_at',{ascending:false}).limit(50);
+  if(error){state.historyRows=[];renderRecoverySummary([]);renderHistoryFilterCounts([]);$('historyNotice').textContent='Upload history is not available: '+error.message;renderHistoryRows();return}
+  state.historyRows=data||[];
+  renderRecoverySummary(state.historyRows);
+  renderHistoryFilterCounts(state.historyRows);
+  $('historyNotice').textContent=state.historyRows.length?state.historyRows.length+' recent upload attempt'+(state.historyRows.length===1?'':'s')+'.':'No upload attempts saved yet. Your next upload will appear here.';
+  renderHistoryRows();
  }
  async function fingerprintFile(file){
   // SHA-256 is computed for files up to 512 MiB to avoid excessive browser memory use.
