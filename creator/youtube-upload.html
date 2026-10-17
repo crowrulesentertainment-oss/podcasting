@@ -39,8 +39,7 @@
  const state={user:null,shows:[],episodes:[],busy:false,historyId:null};
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function say(message,type='alert'){$('notice').className='alert '+type;$('notice').textContent=message}
- function bytes(n){if(!Number.isFinite(n)||n<0)return '';const units=['B','KB','MB','GB','TB'];let i=0;while(n>=1024&&i<units.length-1){n/=1024;i++}return n.toFixed(i?1:0)+' '+units[i]}
-
+ function bytes(n){if(!Number.isFinite(n)||n<0)return '';const units=['B','KB','MB','GB','TB'];let i=0;while(n>=1024&&i<units.length-1){n/=1024;i++}return n.toFixed(i?1:0)+' '+units[i]}\n function mimeType(file){return String(file?.type||'').split(';')[0].trim().toLowerCase()}\n async function functionErrorMessage(error){try{const context=error?.context;if(context?.clone){const body=await context.clone().json();if(body?.error||body?.message)return body.error||body.message}}catch{}return error?.message||'The upload service returned an error.'}\n
  async function restoreStudioHandoff(){
   if(new URLSearchParams(location.search).get('fromStudio')!=='1')return;
   let db;
@@ -98,7 +97,7 @@
    if(rowError||!row)throw new Error('Could not load this upload attempt.');
    if(row.video_id)throw new Error('This attempt already has a saved YouTube video ID. Open Studio and check that video instead of uploading again.');
    if(Number(row.file_size)!==file.size||row.file_sha256!==fingerprint)throw new Error('The selected file does not exactly match the original upload fingerprint. Nothing was uploaded.');
-   if(row.mime_type&&file.type&&row.mime_type!==file.type)throw new Error('The selected file type does not match the original attempt. Nothing was uploaded.');
+   if(row.mime_type&&mimeType(file)&&row.mime_type!==mimeType(file))throw new Error('The selected file type does not match the original attempt. Nothing was uploaded.');
    const {data:recovery,error:recoveryError}=await client.functions.invoke('youtube-upload-recover',{body:{history_id:historyId}});
    if(recoveryError)throw new Error('Could not retrieve the secure recovery session: '+recoveryError.message);
    if(recovery?.error)throw new Error(recovery.error);
@@ -113,7 +112,7 @@
    const authToken=(await client.auth.getSession()).data.session?.access_token;
    if(!authToken)throw new Error('Your sign-in session expired. Sign in again before recovery.');
    const proxyUrl=cfg.supabaseUrl+'/functions/v1/youtube-upload-proxy';
-   const common={'Authorization':'Bearer '+authToken,'apikey':cfg.supabaseKey,'Content-Type':'application/octet-stream','x-upload-session':token,'x-upload-total':String(file.size),'x-upload-mime':file.type};
+   const common={'Authorization':'Bearer '+authToken,'apikey':cfg.supabaseKey,'Content-Type':'application/octet-stream','x-upload-session':token,'x-upload-total':String(file.size),'x-upload-mime':mimeType(file)};
    $('progressText').textContent='Checking YouTube’s confirmed upload position…';
    const probeResponse=await fetch(proxyUrl,{method:'POST',headers:{...common,'x-upload-status-check':'true','Content-Range':'bytes */'+file.size},body:''});
    const probe=await probeResponse.json().catch(()=>({}));
@@ -328,13 +327,13 @@
       :'A matching upload attempt is already preparing or uploading.';
     throw new Error(reason+' Existing history entry: '+duplicate.id+(duplicate.video_id?' · Video ID '+duplicate.video_id:'')+'. No new upload was started. Review section 04 before continuing.');
    }
-   const historyPayload={user_id:state.user.id,podcast_id:show.id,episode_id:episode?.id||null,title:$('title').value.trim(),description:$('description').value.trim(),visibility:'private',status:'preparing',filename:file.name,mime_type:file.type,file_size:file.size,file_sha256:fileSha256,progress_percent:0,error_message:null};
+   const historyPayload={user_id:state.user.id,podcast_id:show.id,episode_id:episode?.id||null,title:$('title').value.trim(),description:$('description').value.trim(),visibility:'private',status:'preparing',filename:file.name,mime_type:mimeType(file),file_size:file.size,file_sha256:fileSha256,progress_percent:0,error_message:null};
    const {data:history,error:historyError}=await client.from('youtube_upload_history').insert(historyPayload).select('id').single();
    if(historyError)throw new Error('Could not save upload history, so the upload was not started: '+historyError.message);
    state.historyId=history.id;await loadHistory();
-   const payload={podcast_id:show.id,title:$('title').value.trim(),description:$('description').value.trim(),tags:$('tags').value.split(',').map(s=>s.trim()).filter(Boolean),filename:file.name,mime_type:file.type,file_size:file.size};
+   const payload={podcast_id:show.id,title:$('title').value.trim(),description:$('description').value.trim(),tags:$('tags').value.split(',').map(s=>s.trim()).filter(Boolean),filename:file.name,mime_type:mimeType(file),file_size:file.size};
    const {data:session,error}=await client.functions.invoke('youtube-upload-session',{body:{...payload,history_id:state.historyId}});
-   if(error)throw error;if(session?.error)throw new Error(session.error);if(!session?.upload_session)throw new Error('The server did not return a signed upload session.');
+   if(error)throw new Error(await functionErrorMessage(error));if(session?.error)throw new Error(session.error);if(!session?.upload_session)throw new Error('The server did not return a signed upload session.');
    await saveHistory({status:'uploading',progress_percent:0});
    $('progressText').textContent='Uploading '+file.name+' through CrowRules secure proxy…';
    const chunkSize=8*1024*1024;
@@ -345,7 +344,7 @@
     const authToken=(await client.auth.getSession()).data.session.access_token;
     let response,part={};
     try {
-     response=await fetch(cfg.supabaseUrl+'/functions/v1/youtube-upload-proxy',{method:'POST',headers:{'Authorization':'Bearer '+authToken,'apikey':cfg.supabaseKey,'Content-Type':'application/octet-stream','x-upload-session':session.upload_session,'x-upload-total':String(file.size),'x-upload-mime':file.type,'Content-Range':'bytes '+start+'-'+end+'/'+file.size},body:chunk});
+     response=await fetch(cfg.supabaseUrl+'/functions/v1/youtube-upload-proxy',{method:'POST',headers:{'Authorization':'Bearer '+authToken,'apikey':cfg.supabaseKey,'Content-Type':'application/octet-stream','x-upload-session':session.upload_session,'x-upload-total':String(file.size),'x-upload-mime':mimeType(file),'Content-Range':'bytes '+start+'-'+end+'/'+file.size},body:chunk});
      try{part=await response.json()}catch{}
     } catch(networkError) {
      $('progressText').textContent='Connection interrupted. Checking YouTube upload progress…';
