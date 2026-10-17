@@ -145,10 +145,27 @@ async function stopRecording(){
  say('Recording stopped. Save session to upload the separate tracks and master mix privately.');
  showPreview();
 }
+function downloadBlob(blob, filename){
+ if(!blob?.size)return;
+ const url=URL.createObjectURL(blob);const link=document.createElement('a');
+ link.href=url;link.download=filename;document.body.append(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
 function showPreview(){
- const root=$('savedList');const preview=document.createElement('div');preview.className='saved';const title=document.createElement('strong');title.textContent='Current take · not saved yet';preview.append(title);
- const master=state.master?.blob;if(master){const audio=document.createElement('audio');audio.controls=true;audio.src=URL.createObjectURL(master);audio.style.width='100%';preview.append(audio);}
- const save=document.createElement('button');save.className='btn primary';save.textContent='Save private recording';save.style.marginTop='10px';save.addEventListener('click',()=>saveRecording(save));preview.append(save);root.prepend(preview);
+ const root=$('savedList');const preview=document.createElement('div');preview.className='saved';
+ const title=document.createElement('strong');title.textContent='Current take · not saved yet';preview.append(title);
+ const meta=document.createElement('p');meta.textContent=fmt(state.elapsedBeforePause)+' · '+state.tracks.filter(t=>t.blob?.size).length+' microphone tracks + master mix';preview.append(meta);
+ const master=state.master?.blob;
+ if(master){
+  const audio=document.createElement('audio');audio.controls=true;audio.src=URL.createObjectURL(master);audio.style.width='100%';audio.setAttribute('aria-label','Preview master mix');preview.append(audio);
+  const masterDownload=document.createElement('button');masterDownload.className='btn';masterDownload.textContent='↓ Download master mix';masterDownload.style.marginTop='8px';
+  masterDownload.addEventListener('click',()=>downloadBlob(master,safeName($('sessionTitle').value||'recording')+'-master.webm'));preview.append(masterDownload);
+ }
+ const downloads=document.createElement('div');downloads.className='actions';
+ state.tracks.filter(t=>t.blob?.size).forEach((track,index)=>{const link=document.createElement('button');link.className='btn';link.textContent='↓ '+track.name;link.addEventListener('click',()=>downloadBlob(track.blob,safeName($('sessionTitle').value||'recording')+'-'+safeName(track.name||('track-'+(index+1)))+'.webm'));downloads.append(link);});
+ if(downloads.childElementCount)preview.append(downloads);
+ const save=document.createElement('button');save.className='btn primary';save.textContent='Save private recording';save.style.marginTop='10px';save.addEventListener('click',()=>saveRecording(save));preview.append(save);
+ root.prepend(preview);
 }
 async function saveRecording(button){
  if(state.busy)return;const all=[...state.tracks.filter(t=>t.blob?.size),...(state.master?.blob?.size?[state.master]:[])];
