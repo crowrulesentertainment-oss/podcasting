@@ -20,6 +20,11 @@
 <section class="panel"><h2>04 · YouTube connection</h2><p class="muted">Your YouTube authorization is managed securely through the server-side OAuth flow. This page never collects tokens or passwords.</p><div id="connections" class="platforms"></div></section><section class="panel" id="podcastPlatforms"><h2>05 · Podcast platform distribution</h2>
 <p class="muted">Prepare your podcast RSS feed and track submissions to podcast directories. These platforms generally ingest your feed after you submit it; selecting a status here only records your progress in CrowRules and does not submit or publish your show for you.</p>
 <div class="field"><label for="rssFeedUrl">PUBLIC RSS FEED FOR THE SELECTED PODCAST</label><div class="row"><input id="rssFeedUrl" readonly style="flex:1;min-width:220px;background:#080a12;border:1px solid #34354c;color:var(--text);border-radius:9px;padding:12px" value=""><button class="btn" id="copyRssFeed" type="button">Copy RSS URL</button><a class="btn" id="openRssFeed" href="#" target="_blank" rel="noopener">Open feed</a></div><small>Only distribute a feed after your show metadata and at least one published episode with a working public audio URL are ready.</small></div>
+<div class="panel" id="feedReadinessPanel" style="margin:14px 0;background:#0b0d16">
+<h2>RSS feed readiness</h2>
+<p class="muted">A quick pre-submission check using the selected podcast's saved metadata and episode records. This does not verify that external services can reach the feed.</p>
+<div id="feedReadiness" class="grid"><div class="empty">Loading readiness checks…</div></div>
+</div>
 <div id="podcastDirectoryCards" class="directory-grid"><div class="empty">Select a podcast to load directory status.</div></div>
 <div class="alert" style="margin-top:14px">Important: the RSS feed must be publicly reachable, include valid episode audio enclosures and accurate artwork/metadata. Directory approval, account verification and listing times are controlled by each provider. CrowRules does not claim these directories are connected.</div>
 </section>
@@ -61,11 +66,25 @@
    return '<div class="platform"><span><b>'+p.name+'</b><br><small>'+esc(detail)+'</small>'+profile+'</span>'+connectButton+'</div>';
   }).join('');
  }
+ function renderFeedReadiness(show){
+  const episodes=state.episodes.filter(e=>e.podcast_id===show.id);
+  const published=episodes.filter(e=>e.is_published===true||!!e.published_at);
+  const playable=published.filter(e=>{try{return !!e.audio_url&&['http:','https:'].includes(new URL(e.audio_url).protocol)}catch{return false}});
+  const checks=[
+   {label:'Public RSS URL configured',ok:(()=>{try{return new URL($('rssFeedUrl').value).protocol==='https:'}catch{return false}})(),detail:'Use a public HTTPS feed URL.'},
+   {label:'Show description',ok:!!String(show.description||'').trim(),detail:'Add a clear description to your podcast metadata.'},
+   {label:'Show artwork',ok:(()=>{try{return !!show.artwork_url&&['http:','https:'].includes(new URL(show.artwork_url).protocol)}catch{return false}})(),detail:'Add a publicly hosted artwork URL.'},
+   {label:'Published episode with audio',ok:playable.length>0,detail:published.length+' published episode(s) found; '+playable.length+' have an audio URL.'}
+  ];
+  const passed=checks.filter(x=>x.ok).length;
+  $('feedReadiness').innerHTML='<div class="post" style="margin:0"><div class="posthead"><b>'+passed+' / '+checks.length+' checks passed</b><span class="status">'+(passed===checks.length?'READY FOR MANUAL REVIEW':'NEEDS ATTENTION')+'</span></div><p class="muted">Metadata preflight only — not a live feed validation or directory approval.</p></div>'+checks.map(x=>'<div class="post" style="margin:0"><b class="'+(x.ok?'success':'')+'">'+(x.ok?'✓':'!')+' '+esc(x.label)+'</b><p style="margin-bottom:0">'+esc(x.ok?'Looks configured.':x.detail)+'</p></div>').join('');
+ }
  async function loadPodcastDistribution(){
   const show=state.shows.find(s=>s.id===$('show').value);
   if(!show){$('rssFeedUrl').value='';$('openRssFeed').href='#';$('podcastDirectoryCards').innerHTML='<div class="empty">Select a podcast first.</div>';return}
   const feed=String(show.rss_url||'').trim()||String(cfg.supabaseUrl||'').replace(/\/$/,'')+'/functions/v1/podcast-rss-feed-64?slug='+encodeURIComponent(show.slug||'');
   $('rssFeedUrl').value=feed;$('openRssFeed').href=feed;
+  renderFeedReadiness(show);
   const {data,error}=await client.from('podcast_distribution_status').select('id,podcast_id,platform,status,submission_url,external_url,notes,updated_at').eq('podcast_id',show.id);
   if(error){$('podcastDirectoryCards').innerHTML='<div class="empty">Could not load saved directory status: '+esc(error.message)+'</div>';return}
   state.directoryStatuses=data||[];renderPodcastDistribution();
