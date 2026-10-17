@@ -29,13 +29,14 @@
 <div class="actions"><button class="btn primary" id="upload" disabled>Start private video upload</button><button class="btn" id="refreshToken" type="button">Refresh YouTube token</button></div>
 </section>
 <section class="panel"><h2>03 · Upload progress</h2><progress id="progress" max="100" value="0"></progress><p id="progressText" class="muted">No upload started.</p><div id="result"></div><div class="alert">Safety note: this page does not make the video public, set a schedule, or upload automatically. A completed upload can still need YouTube processing before it is playable.</div></section>
+<section class="panel"><div class="actions" style="justify-content:space-between"><h2>04 · Upload history</h2><button class="btn" id="reloadHistory" type="button">Refresh history</button></div><p class="muted">Your latest 50 uploads and attempts. History is private to your signed-in creator account. Completed videos link directly to YouTube Studio.</p><div id="historyNotice" class="muted">Loading upload history…</div><div id="historyList"></div></section>
 </main>
 <script>
 (() => {
  const cfg=window.CROW_CONFIG||{};
  const client=window.supabase?.createClient(cfg.supabaseUrl,cfg.supabaseKey);
  const $=id=>document.getElementById(id);
- const state={user:null,shows:[],episodes:[],busy:false};
+ const state={user:null,shows:[],episodes:[],busy:false,historyId:null};
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function say(message,type='alert'){$('notice').className='alert '+type;$('notice').textContent=message}
  function bytes(n){if(!Number.isFinite(n)||n<0)return '';const units=['B','KB','MB','GB','TB'];let i=0;while(n>=1024&&i<units.length-1){n/=1024;i++}return n.toFixed(i?1:0)+' '+units[i]}
@@ -48,6 +49,30 @@
   if(error){say('Could not load episodes: '+error.message,'error');return}
   state.episodes=data||[];
   $('episode').innerHTML='<option value="">Custom upload (no episode selected)</option>'+state.episodes.map(e=>'<option value="'+esc(e.id)+'">'+esc(e.title||'Untitled episode')+'</option>').join('');
+ }
+
+ function fmtDate(value){if(!value)return '—';const d=new Date(value);return Number.isNaN(d.getTime())?'—':d.toLocaleString()}
+ function statusLabel(status){return ({preparing:'Preparing',uploading:'Uploading',completed:'Completed · Private',failed:'Failed',unknown:'Needs review'})[status]||status||'Unknown'}
+ async function loadHistory(){
+  if(!client||!state.user){$('historyNotice').textContent='Sign in to view upload history.';return}
+  $('historyNotice').textContent='Loading upload history…';
+  const {data,error}=await client.from('youtube_upload_history').select('id,podcast_id,episode_id,title,visibility,status,video_id,studio_url,filename,file_size,progress_percent,error_message,created_at,completed_at,podcasts(title)').order('created_at',{ascending:false}).limit(50);
+  if(error){$('historyNotice').textContent='Upload history is not available: '+error.message;$('historyList').innerHTML='';return}
+  if(!data?.length){$('historyNotice').textContent='No upload attempts saved yet. Your next upload will appear here.';$('historyList').innerHTML='';return}
+  $('historyNotice').textContent=data.length+' recent upload attempt'+(data.length===1?'':'s')+'.';
+  $('historyList').innerHTML=data.map(row=>{
+   const statusClass=row.status==='completed'?'success':row.status==='failed'?'error':'';
+   const studio=row.video_id?' <a href="https://studio.youtube.com/video/'+encodeURIComponent(row.video_id)+'/edit" target="_blank" rel="noopener">Open in YouTube Studio ↗</a>':'';
+   const video=row.video_id?'<div class="muted">Video ID: <code>'+esc(row.video_id)+'</code></div>':'';
+   const err=row.error_message?'<div class="alert error" style="margin-top:9px">'+esc(row.error_message)+'</div>':'';
+   return '<article class="post" style="border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;background:#0b0d16"><div class="actions" style="justify-content:space-between"><strong>'+esc(row.title)+'</strong><span class="private">'+esc(statusLabel(row.status))+'</span></div><p class="muted" style="margin:7px 0">'+esc(row.podcasts?.title||'Podcast')+' · '+esc(fmtDate(row.completed_at||row.created_at))+'</p><div class="muted">'+esc(row.filename||'Video file')+' · '+esc(bytes(Number(row.file_size)||0))+' · Visibility: PRIVATE'+(row.status==='uploading'?' · '+esc(row.progress_percent)+'%':'')+'</div>'+video+'<div style="margin-top:9px">'+studio+'</div>'+err+'</article>';
+  }).join('');
+ }
+ async function saveHistory(patch){
+  if(!state.historyId)return null;
+  const {error}=await client.from('youtube_upload_history').update({...patch,updated_at:new Date().toISOString()}).eq('id',state.historyId);
+  if(error){console.warn('Could not update YouTube upload history:',error.message);return error}
+  return null;
  }
  async function init(){
   if(!client){say('Supabase configuration did not load. Check config.js.','error');return}
@@ -65,6 +90,7 @@
   state.shows=shows||[];
   $('show').innerHTML=state.shows.length?state.shows.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.title)+'</option>').join(''):'<option value="">No podcasts found</option>';
   await loadEpisodes();
+  await loadHistory();
   say('Signed in. Select your podcast, video file, and details. Upload remains manual and private.','success');
  }
  function prefill(){
@@ -76,6 +102,7 @@
   $('upload').disabled=state.busy||!state.user||!selectedShow()||!file||!file.type.startsWith('video/')||!$('title').value.trim()||!$('confirm').checked;
  }
  $('show').addEventListener('change',async()=>{await loadEpisodes();validate()});
+ $('reloadHistory').addEventListener('click',loadHistory);
  $('episode').addEventListener('change',prefill);
  $('file').addEventListener('change',()=>{const f=$('file').files?.[0];$('fileInfo').textContent=f?f.name+' · '+bytes(f.size)+' · '+(f.type||'unknown MIME type'):'No file selected.';validate()});
  ['title','description','tags','confirm'].forEach(id=>$(id).addEventListener('input',validate));
@@ -90,11 +117,17 @@
   const show=selectedShow(),file=$('file').files?.[0];
   if(!show||!file||!$('confirm').checked){validate();return}
   if(!confirm('Upload "'+file.name+'" to '+show.title+' as a PRIVATE YouTube video? The selected video file will be sent to YouTube.'))return;
-  state.busy=true;validate();$('result').innerHTML='';$('progress').value=0;$('progressText').textContent='Preparing secure upload session…';say('Preparing upload. No video is public; privacy is locked to Private.');
+  state.busy=true;state.historyId=null;validate();$('result').innerHTML='';$('progress').value=0;$('progressText').textContent='Saving upload attempt…';say('Preparing upload. No video is public; privacy is locked to Private.');
   try{
+   const episode=selectedEpisode();
+   const historyPayload={user_id:state.user.id,podcast_id:show.id,episode_id:episode?.id||null,title:$('title').value.trim(),description:$('description').value.trim(),visibility:'private',status:'preparing',filename:file.name,mime_type:file.type,file_size:file.size,progress_percent:0,error_message:null};
+   const {data:history,error:historyError}=await client.from('youtube_upload_history').insert(historyPayload).select('id').single();
+   if(historyError)throw new Error('Could not save upload history, so the upload was not started: '+historyError.message);
+   state.historyId=history.id;await loadHistory();
    const payload={podcast_id:show.id,title:$('title').value.trim(),description:$('description').value.trim(),tags:$('tags').value.split(',').map(s=>s.trim()).filter(Boolean),filename:file.name,mime_type:file.type,file_size:file.size};
    const {data:session,error}=await client.functions.invoke('youtube-upload-session',{body:payload});
    if(error)throw error;if(session?.error)throw new Error(session.error);if(!session?.upload_session)throw new Error('The server did not return a signed upload session.');
+   await saveHistory({status:'uploading',progress_percent:0});
    $('progressText').textContent='Uploading '+file.name+' through CrowRules secure proxy…';
    const chunkSize=8*1024*1024;
    let result=null;
@@ -118,15 +151,21 @@
     if(!response.ok||part.error)throw new Error(part.error||('Upload proxy failed (HTTP '+response.status+').'));
     $('progress').value=Math.round(((end+1)/file.size)*100);
     $('progressText').textContent='Uploading '+file.name+' · '+$('progress').value+'% ('+bytes(end+1)+' / '+bytes(file.size)+')';
+    await saveHistory({status:'uploading',progress_percent:$('progress').value,error_message:null});
     if(part.complete)result=part;
    }
    if(!result?.complete)throw new Error('All chunks were sent, but YouTube did not confirm a completed video. Check YouTube Studio before retrying.');
    $('progress').value=100;
    const videoId=result.video_id;
+   const studioUrl=videoId?'https://studio.youtube.com/video/'+encodeURIComponent(videoId)+'/edit':null;
+   const historySaveError=await saveHistory({status:'completed',progress_percent:100,video_id:videoId||null,studio_url:studioUrl,completed_at:new Date().toISOString(),error_message:null});
    $('progressText').textContent='Upload accepted by YouTube. Video processing may continue in YouTube Studio.';
    $('result').innerHTML='<div class="alert success"><strong>Private upload completed.</strong><br>Visibility was set to Private before upload. '+(videoId?'Video ID: '+esc(videoId)+'<br><a href="https://studio.youtube.com/video/'+encodeURIComponent(videoId)+'/edit" target="_blank" rel="noopener">Open in YouTube Studio</a>':'YouTube accepted the upload; video ID was not returned.')+'</div>';
+   if(historySaveError){$('result').innerHTML+='<div class="alert">YouTube upload completed, but the history update could not be saved. Refresh history and verify the video in YouTube Studio.</div>'}
+   await loadHistory();
    say('YouTube accepted the video upload. It remains private; review it in YouTube Studio.','success');
   }catch(e){
+   if(state.historyId){await saveHistory({status:$('progress').value>0?'unknown':'failed',progress_percent:$('progress').value,error_message:String(e.message||'Upload failed.').slice(0,500)});await loadHistory()}
    $('progressText').textContent='Upload did not complete.';
    $('result').innerHTML='<div class="alert error">'+esc(e.message||'Upload failed.')+'</div>';
    say('Upload failed or could not be confirmed. Check the message below before retrying.','error');
