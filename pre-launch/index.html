@@ -248,12 +248,24 @@ a{color:inherit}
   }catch(err){client=null;}
 
   function setSignedIn(user){
+    const loginLink=document.querySelector('.topbar a[href*="login.html"]');
+    const signupLink=document.querySelector('.topbar a[href*="signup.html"]');
     if(!user){
       status.textContent="Not signed in yet — create your account or log in above.";
+      if(loginLink){loginLink.textContent="LOG IN";loginLink.href="../login.html?redirect=pre-launch/index.html";}
+      if(signupLink){signupLink.textContent="SIGN UP";signupLink.href="../signup.html?redirect=pre-launch/index.html";}
+      document.querySelectorAll(".account-actions a").forEach(function(link){
+        if(link.dataset.authOriginalText){link.textContent=link.dataset.authOriginalText;delete link.dataset.authOriginalText;}
+        if(link.dataset.authOriginalHref){link.href=link.dataset.authOriginalHref;delete link.dataset.authOriginalHref;}
+      });
       return;
     }
     status.textContent="You’re signed in as "+(user.email||"a CrowRules member")+". Your account is ready.";
+    if(loginLink){loginLink.textContent="ACCOUNT";loginLink.href="../home.html";}
+    if(signupLink){signupLink.textContent="OPEN PODCASTING";signupLink.href="../home.html";}
     document.querySelectorAll(".account-actions a").forEach(function(link){
+      if(!link.dataset.authOriginalText)link.dataset.authOriginalText=link.textContent;
+      if(!link.dataset.authOriginalHref)link.dataset.authOriginalHref=link.href;
       if(link.textContent.includes("CREATE YOUR ACCOUNT")||link.textContent.includes("JOIN CROWRULES")){
         link.textContent="EXPLORE PODCASTING";
         link.href="../home.html";
@@ -265,7 +277,7 @@ a{color:inherit}
   }
   async function checkAccount(){
     if(!client){
-      status.textContent="You can create an account or sign in using the links above.";
+      status.textContent="Account status is unavailable right now. You can still use the Log In or Sign Up links.";
       return;
     }
     try{
@@ -273,13 +285,15 @@ a{color:inherit}
       if(result.error) throw result.error;
       setSignedIn(result.data&&result.data.user?result.data.user:null);
     }catch(err){
-      status.textContent="You can create an account or sign in using the links above.";
+      // Do not mistake an auth/network verification failure for a confirmed signed-out state.
+      status.textContent="Could not verify your sign-in status. Please refresh or open Log In to check your account.";
     }
   }
   if(client){
     client.auth.onAuthStateChange(function(event,session){
       if(event==="SIGNED_IN"&&session&&session.user) setSignedIn(session.user);
       else if(event==="SIGNED_OUT") setSignedIn(null);
+      else if(event==="TOKEN_REFRESHED"&&session&&session.user) setSignedIn(session.user);
     });
   }
   checkAccount();
