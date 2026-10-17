@@ -223,11 +223,16 @@
   let query=client.from('youtube_upload_history').select(select,{count:'exact',head:countOnly}).order('created_at',{ascending:false});
   if(filters.start)query=query.gte('created_at',filters.start+'T00:00:00.000Z');
   if(filters.end){const endDate=new Date(filters.end+'T00:00:00.000Z');endDate.setUTCDate(endDate.getUTCDate()+1);query=query.lt('created_at',endDate.toISOString())}
-  if(filters.search){const term='%'+filters.search+'%';query=query.or('title.ilike.'+term+',filename.ilike.'+term+',video_id.ilike.'+term)}
   const activeFilter=filter===null?filters.filter:filter;
-  if(activeFilter==='needs_review')query=query.or('recovery_outcome.eq.needs_review,status.eq.unknown,and(status.eq.completed,youtube_privacy_status.not.is.null,youtube_privacy_status.neq.private),youtube_processing_status.in.(failed,terminated),youtube_upload_status.in.(failed,rejected)');
-  else if(activeFilter==='recovered')query=query.in('recovery_outcome',['resumed_successfully','already_completed']);
-  else if(activeFilter==='ready_private')query=query.eq('status','completed').not('video_id','is',null).eq('youtube_processing_status','succeeded').eq('youtube_privacy_status','private').in('youtube_upload_status',['uploaded','processed']);
+  const searchExpression=filters.search?'title.ilike.%'+filters.search+'%,filename.ilike.%'+filters.search+'%,video_id.ilike.%'+filters.search+'%':'';
+  const reviewExpression='recovery_outcome.eq.needs_review,status.eq.unknown,and(status.eq.completed,youtube_privacy_status.not.is.null,youtube_privacy_status.neq.private),youtube_processing_status.in.(failed,terminated),youtube_upload_status.in.(failed,rejected)';
+  if(activeFilter==='needs_review'){
+   query=query.or(filters.search?'and(or('+searchExpression+'),or('+reviewExpression+'))':reviewExpression);
+  }else{
+   if(filters.search)query=query.or(searchExpression);
+   if(activeFilter==='recovered')query=query.in('recovery_outcome',['resumed_successfully','already_completed']);
+   else if(activeFilter==='ready_private')query=query.eq('status','completed').not('video_id','is',null).eq('youtube_processing_status','succeeded').eq('youtube_privacy_status','private').in('youtube_upload_status',['uploaded','processed']);
+  }
   if(!countOnly&&from!==null&&to!==null)query=query.range(from,to);
   return query;
  }
@@ -240,19 +245,6 @@
   $('historyPrevPage').disabled=state.historyLoading||state.historyPage<=0;
   $('historyNextPage').disabled=state.historyLoading||state.historyPage+1>=pages;
   $('historyPageSize').disabled=state.historyLoading;
- }
-  function getVisibleHistoryRows(){
-  const query=String($('historySearch')?.value||'').trim().toLocaleLowerCase();
-  const start=$('historyStartDate')?.value||'';
-  const end=$('historyEndDate')?.value||'';
-  return state.historyRows.filter(row=>{
-   if(!matchesHistoryFilter(row,state.historyFilter))return false;
-   const created=String(row.created_at||'').slice(0,10);
-   if(start&&(!created||created<start))return false;
-   if(end&&(!created||created>end))return false;
-   if(!query)return true;
-   return [row.title,row.filename,row.video_id].some(value=>String(value||'').toLocaleLowerCase().includes(query));
-  });
  }
  function csvCell(value){
   const text=String(value??'');
