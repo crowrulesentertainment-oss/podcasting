@@ -384,13 +384,16 @@
   await loadHistory();
   say(requestedEpisodeId&&state.episodes.some(e=>e.id===requestedEpisodeId)?'Episode handoff loaded. Review the episode details, select or load its saved video, and explicitly confirm before upload.':'Signed in. Select your podcast, video file, and visibility. Upload starts only after manual confirmation.','success');
  }
+ function isCrowRulesStoredVideo(ep){
+  try{const fileUrl=new URL(ep?.video_url||''),base=new URL(cfg.supabaseUrl);return fileUrl.origin===base.origin&&fileUrl.pathname.startsWith('/storage/v1/object/public/podcasting/')}catch{return false}
+ }
  function prefill(){
   const ep=selectedEpisode();
-  $('useEpisodeVideo').disabled=!ep||!ep.video_url||state.busy;
+  $('useEpisodeVideo').disabled=!isCrowRulesStoredVideo(ep)||state.busy;
   if(ep){$('title').value=(ep.title||'').slice(0,100);$('description').value=(ep.description||'').slice(0,5000)}
  }
  async function useSavedEpisodeVideo(){
-  const ep=selectedEpisode();if(!ep?.video_url){say('This episode does not have a saved video file.','error');return}
+  const ep=selectedEpisode();if(!isCrowRulesStoredVideo(ep)){say('This episode does not have a downloadable video in CrowRules podcast storage. Choose the rendered video file from your computer instead.','error');return}
   const button=$('useEpisodeVideo');button.disabled=true;button.textContent='Loading saved video…';say('Retrieving the saved episode video. Review the file and all YouTube details before confirming upload. No upload has started.');
   try{
    const response=await fetch(ep.video_url,{mode:'cors',credentials:'omit'});if(!response.ok)throw new Error('Could not retrieve the saved video (HTTP '+response.status+'). Download it from the episode manager and choose it manually.');
@@ -400,7 +403,7 @@
    const transfer=new DataTransfer();transfer.items.add(file);$('file').files=transfer.files;$('fileInfo').textContent=file.name+' · '+bytes(file.size)+' · Loaded from saved episode draft';
    $('result').innerHTML='<div class="alert success">Saved episode video selected. Review the title, description, podcast and visibility. You must still confirm and start the upload manually.</div>';validate();
   }catch(error){say('Could not load the saved episode video: '+(error.message||'Unknown error'),'error')}
-  finally{button.textContent='Use saved episode video';button.disabled=!selectedEpisode()?.video_url||state.busy}
+  finally{button.textContent='Use saved episode video';button.disabled=!isCrowRulesStoredVideo(selectedEpisode())||state.busy}
  }
  function updateVisibilityCopy(){const v=$('visibility').value;const labels={public:'PUBLIC · viewers may find this video on YouTube',unlisted:'UNLISTED · anyone with the link can watch',private:'PRIVATE · only you and invited viewers'};$('visibilitySummary').textContent=labels[v]||labels.public;$('confirmText').textContent='I confirm that I own this video or have permission to upload it, and I understand it will be uploaded as '+v+' on YouTube.';$('upload').textContent='Start '+v+' video upload'}
  function validate(){
