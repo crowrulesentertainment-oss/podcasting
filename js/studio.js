@@ -104,7 +104,7 @@ function addTrack(){
  if(state.busy)return;
  const deviceId=$('inputSelect').value;if(!deviceId){say('Choose a microphone first.',true);return;}
  if(state.tracks.some(t=>t.deviceId===deviceId)){say('That microphone is already assigned to a track. Choose another input or use the same device in your operating system mixer.',true);return;}
- state.tracks.push({id:crypto.randomUUID(),name:'Track '+(state.tracks.length+1),deviceId,stream:null,recorder:null,chunks:[],blob:null,status:'Ready',analyser:null,source:null});
+ state.tracks.push({id:crypto.randomUUID(),name:'Track '+(state.tracks.length+1),deviceId,stream:null,recorder:null,chunks:[],blob:null,status:'Ready',analyser:null,source:null,gainNode:null,mixGain:1});
  renderTracks();
 }
 function recorderFor(stream,trackName){
@@ -124,7 +124,7 @@ async function startRecording(){
   state.openingBuffer=await decodeOptionalTrack(state.openingFile);state.endingBuffer=await decodeOptionalTrack(state.endingFile);
   for(const t of state.tracks){
    t.stream=await navigator.mediaDevices.getUserMedia({audio:{deviceId:{exact:t.deviceId},echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-   t.chunks=[];t.blob=null;t.source=state.audioContext.createMediaStreamSource(t.stream);t.analyser=state.audioContext.createAnalyser();t.analyser.fftSize=1024;t.source.connect(t.analyser);t.source.connect(state.destination);
+   t.chunks=[];t.blob=null;t.source=state.audioContext.createMediaStreamSource(t.stream);t.analyser=state.audioContext.createAnalyser();t.analyser.fftSize=1024;t.source.connect(t.analyser);t.gainNode=state.audioContext.createGain();t.mixGain=t.mixGain??1;t.gainNode.gain.value=t.mixGain;t.source.connect(t.gainNode);t.gainNode.connect(state.destination);
    t.recorder=recorderFor(t.stream,t.name);t.recorder.ondataavailable=e=>{if(e.data?.size)t.chunks.push(e.data);};t.recorder.onstop=()=>{t.blob=new Blob(t.chunks,{type:t.recorder.mimeType||'audio/webm'});t.status='Captured · '+(t.blob.size/1024/1024).toFixed(1)+' MB';renderTracks();};
   }
   const mixStream=state.destination.stream;
