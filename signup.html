@@ -148,15 +148,21 @@ form.addEventListener("submit",async event=>{
  submit.disabled=true;providerButtons.forEach(b=>b.disabled=true);setStatus("Creating your account…");
  try{
   const {data,error}=await S.auth.signUp({email,password,options:{data:{app:"podcasting",signup_role:role,podcast_role:role,display_name:name},emailRedirectTo:new URL("signup.html?redirect="+encodeURIComponent(redirect),location.href).toString()}});
-  if(error)throw error;
+  if(error){
+   const message=String(error.message||"");
+   if(/database error saving new user/i.test(message)) throw new Error("Supabase rejected account creation in its database signup trigger. The database-side signup fix has been applied; please retry. If this continues, check Supabase Auth logs for the remaining trigger error.");
+   if(/already registered|already exists|user already registered/i.test(message)) throw new Error("An account may already exist for this email. Try signing in or use password recovery.");
+   if(/password/i.test(message)&&/weak|short|least/i.test(message)) throw new Error("Choose a stronger password that meets the password requirements.");
+   throw error;
+  }
   if(data?.session&&data?.user){
    try{localStorage.removeItem("crowrules_podcasting_signup_role")}catch(_){}
    setStatus("Account created successfully. Redirecting…","success");
    location.replace(redirect);return;
   }
-  setStatus("Account created. Check your email for the confirmation link, then return here to sign in.","success");
+  setStatus("Account created. Check your inbox (and spam folder) for the confirmation link. After confirming, sign in to continue. Your selected Listener/Creator experience is saved with your signup request.","success");
   document.getElementById("password").value="";
- }catch(error){setStatus(error?.message||"Unable to create your account. Please try again.","error")}
+ }catch(error){setStatus(error?.message||"Unable to create your account. Please try again.","error");}
  finally{submit.disabled=false;providerButtons.forEach(b=>b.disabled=false)}
 });
 updateRole();
