@@ -236,7 +236,7 @@ async function applyMasterEdit(button,player,startInput,endInput,fadeInInput,fad
   const clipDuration=end-start;const length=Math.max(1,Math.floor(clipDuration*decoded.sampleRate));const offline=new OfflineAudioContext(decoded.numberOfChannels,length,decoded.sampleRate);const source=offline.createBufferSource();source.buffer=decoded;const gain=offline.createGain();const fadeIn=Math.min(clipDuration,Math.max(0,Number(fadeInInput.value)||0));const fadeOut=Math.min(clipDuration-fadeIn,Math.max(0,Number(fadeOutInput.value)||0));const fadeOutStart=clipDuration-fadeOut;
   gain.gain.setValueAtTime(fadeIn>0?0:1,0);if(fadeIn>0)gain.gain.linearRampToValueAtTime(1,fadeIn);if(fadeOut>0){gain.gain.setValueAtTime(1,fadeOutStart);gain.gain.linearRampToValueAtTime(0,clipDuration);}
   source.connect(gain);gain.connect(offline.destination);source.start(0,start,clipDuration);const rendered=await offline.startRendering();const edited=encodeWav(rendered);
-  state.master.originalBlob=state.master.originalBlob||state.master.blob;state.master.blob=edited;
+  state.master.originalBlob=state.master.originalBlob||state.master.blob;state.master.blob=edited;state.master.durationSeconds=clipDuration;
   player.src=URL.createObjectURL(edited);player.load();notice.textContent='Edited master ready · '+fmt(clipDuration)+' · '+bytesLabel(edited.size)+' WAV. Original master is retained in memory; separate microphone tracks are unchanged.';
   say('Master edit applied. Preview the edited mix before saving.');
  }catch(e){notice.textContent='Could not edit master: '+(e.message||e);say('Master edit failed: '+(e.message||e),true);}
@@ -264,6 +264,7 @@ function showPreview(){
   const apply=document.createElement('button');apply.className='btn primary';apply.textContent='Apply trim & fades';apply.style.gridColumn='1 / -1';apply.addEventListener('click',()=>applyMasterEdit(apply,audio,trimStart,trimEnd,fadeIn,fadeOut,editNotice));editor.append(apply);preview.append(editor);
   const masterDownload=document.createElement('button');masterDownload.className='btn';masterDownload.textContent='↓ Download current master';masterDownload.style.marginTop='8px';
   masterDownload.addEventListener('click',()=>downloadBlob(state.master?.blob,safeName($('sessionTitle').value||'recording')+'-master.'+((state.master?.blob?.type||'').includes('wav')?'wav':'webm')));preview.append(masterDownload);
+  const originalDownload=document.createElement('button');originalDownload.className='btn';originalDownload.textContent='↓ Download original master';originalDownload.style.margin='8px 0 0 6px';originalDownload.disabled=!(state.master?.originalBlob?.size);originalDownload.addEventListener('click',()=>downloadBlob(state.master?.originalBlob,safeName($('sessionTitle').value||'recording')+'-master-original.webm'));preview.append(originalDownload);
  }
  const trackReview=document.createElement('div');trackReview.style.cssText='display:grid;gap:12px;margin-top:14px';
  state.tracks.filter(t=>t.blob?.size).forEach((track,index)=>{
@@ -291,7 +292,7 @@ async function saveRecording(button){
    const path=state.user.id+'/'+recordingId+'/'+(t.name==='Master mix'?'master-mix':safeName(t.name))+'.'+ext;
    say('Uploading '+(i+1)+' of '+all.length+': '+t.name+'…');
    const {error}=await state.client.storage.from(BUCKET).upload(path,t.blob,{contentType:(t.blob.type||'audio/webm').split(';')[0],upsert:false});if(error)throw error;
-   uploaded.push({name:t.name,path,mime_type:t.blob.type||'audio/webm',size_bytes:t.blob.size,role:t.role||(t.name==='Master mix'?'master':'track')});
+   uploaded.push({name:t.name,path,mime_type:t.blob.type||'audio/webm',size_bytes:t.blob.size,duration_seconds:t.name==='Master mix'?(state.master?.durationSeconds||Math.round(state.elapsedBeforePause)):undefined,role:t.role||(t.name==='Master mix'?'master':'track')});
   }
   const duration=Math.round(state.elapsedBeforePause);
   const {data:row,error}=await state.client.from('studio_recordings').insert({id:recordingId,owner_user_id:state.user.id,podcast_id:podcastId,title,status:'saved',duration_seconds:duration,tracks:uploaded}).select().single();if(error)throw error;
@@ -335,7 +336,7 @@ async function createDraft(row,button,chosenPodcast){
  try{
   const {data:episodes,error:countErr}=await state.client.from('podcast_episodes').select('episode_number').eq('podcast_id',podcastId).order('episode_number',{ascending:false}).limit(1);if(countErr)throw countErr;
   const next=(episodes?.[0]?.episode_number||0)+1;const episodeSlug=slug(row.title)+'-'+row.id.slice(0,8);
-  const {data:episode,error}=await state.client.from('podcast_episodes').insert({podcast_id:podcastId,title:row.title,slug:episodeSlug,description:'Recorded in CrowRules Studio. Audio is private until the episode is reviewed and published.',episode_number:next,duration_seconds:row.duration_seconds,audio_url:master.path,status:'draft',is_published:false,is_active:true,access_level:'free'}).select('id').single();if(error)throw error;
+  const {data:episode,error}=await state.client.from('podcast_episodes').insert({podcast_id:podcastId,title:row.title,slug:episodeSlug,description:'Recorded in CrowRules Studio. Audio is private until the episode is reviewed and published.',episode_number:next,duration_seconds:master.duration_seconds||row.duration_seconds,audio_url:master.path,status:'draft',is_published:false,is_active:true,access_level:'free'}).select('id').single();if(error)throw error;
   const {error:updateErr}=await state.client.from('studio_recordings').update({status:'draft_created',podcast_id:podcastId}).eq('id',row.id);if(updateErr)throw updateErr;
   say('Episode draft created for '+show.title+'. The recording remains private; publishing must preserve authenticated access to the private audio or copy it to your approved delivery bucket.');
   await loadSaved();
