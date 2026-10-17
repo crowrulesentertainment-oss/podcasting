@@ -339,6 +339,21 @@ async function loadSaved(){
  if(error)throw error;state.saved=data||[];populateSavedTrackOptions();const root=$('savedList');root.innerHTML='';
  if(!state.saved.length){root.innerHTML='<div class="message">No saved recordings yet. Your private sessions will show here.</div>';return;}
  state.saved.forEach(row=>{const card=document.createElement('div');card.className='saved';const strong=document.createElement('strong');strong.textContent=row.title;const p=document.createElement('p');p.textContent=fmt(row.duration_seconds)+' · '+(row.tracks||[]).length+' files · '+row.status+' · '+new Date(row.created_at).toLocaleString();card.append(strong,p);
+  const backup=document.createElement('div');backup.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin:8px 0';
+  (row.tracks||[]).forEach((track,index)=>{
+   const download=document.createElement('button');download.className='btn';download.textContent='↓ '+(track.role==='master'?'Master':(track.name||track.role||('Track '+(index+1))));
+   download.title='Download '+(track.name||track.role||'saved audio track');download.addEventListener('click',async()=>{
+    if(download.disabled)return;download.disabled=true;const label=download.textContent;download.textContent='Preparing…';
+    try{
+     const {data,error}=await state.client.storage.from(BUCKET).download(track.path);if(error)throw error;
+     const ext=(track.path.split('.').pop()||'webm').replace(/[^a-z0-9]/gi,'').slice(0,8)||'webm';
+     downloadBlob(data,safeName(row.title||'recording')+'-'+safeName(track.name||track.role||('track-'+(index+1)))+'.'+ext);
+     say('Downloaded '+(track.name||track.role||'audio track')+'.');
+    }catch(e){say('Could not download saved track: '+(e.message||String(e)),true);}
+    finally{download.disabled=false;download.textContent=label;}
+   });backup.append(download);
+  });
+  if(backup.childElementCount)card.append(backup);
   const master=(row.tracks||[]).find(t=>t.role==='master');if(master){const play=document.createElement('button');play.className='btn';play.textContent='▶ Preview master mix';play.addEventListener('click',async()=>{try{const {data,error}=await state.client.storage.from(BUCKET).createSignedUrl(master.path,300);if(error)throw error;const audio=document.createElement('audio');audio.controls=true;audio.src=data.signedUrl;audio.style.width='100%';play.replaceWith(audio);}catch(e){say('Could not create private preview: '+e.message,true);}});card.append(play);}
   const resume=document.createElement('button');resume.className='btn';resume.style.marginLeft='6px';resume.textContent='Continue session';resume.addEventListener('click',()=>continueSavedSession(row,resume));card.append(resume);
   if(row.podcast_id){const draft=document.createElement('button');draft.className='btn primary';draft.style.marginLeft='6px';draft.textContent='Create episode draft';draft.addEventListener('click',()=>createDraft(row,draft));card.append(draft);}
