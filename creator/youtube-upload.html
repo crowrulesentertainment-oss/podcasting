@@ -580,8 +580,16 @@
    const videoId=result.video_id;
    const studioUrl=videoId?'https://studio.youtube.com/video/'+encodeURIComponent(videoId)+'/edit':null;
    const historySaveError=await saveHistory({status:'completed',progress_percent:100,video_id:videoId||null,studio_url:studioUrl,completed_at:new Date().toISOString(),error_message:null});
+   let episodeAssociationMessage='';
+   if(videoId&&episode?.id&&!historySaveError){
+    try{
+     const {data:association,error:associationError}=await client.functions.invoke('youtube-video-status',{body:{action:'associate_video',history_id:state.historyId}});
+     if(associationError)throw associationError;if(association?.error)throw new Error(association.error);
+     episodeAssociationMessage='<br>Episode association: '+esc(association.message||'YouTube video linked to this episode.');
+    }catch(associationError){episodeAssociationMessage='<br><span>Episode link needs attention: '+esc(associationError.message||'association failed')+'. Refresh status from Distribution Center or review this upload.</span>'}
+   }else if(videoId&&!episode?.id){episodeAssociationMessage='<br>This was a custom upload without an episode selected, so it was not linked to a podcast episode.'}
    $('progressText').textContent='Upload accepted by YouTube. Video processing may continue in YouTube Studio.';
-   $('result').innerHTML='<div class="alert success"><strong>'+esc(visibilityLabel)+' upload completed.</strong><br>Visibility was requested as '+esc(visibilityLabel)+'. Check the actual visibility and processing status in YouTube Studio. '+(videoId?'Video ID: '+esc(videoId)+'<br><a href="https://studio.youtube.com/video/'+encodeURIComponent(videoId)+'/edit" target="_blank" rel="noopener">Open in YouTube Studio</a>':'YouTube accepted the upload; video ID was not returned.')+'</div>';
+   $('result').innerHTML='<div class="alert success"><strong>'+esc(visibilityLabel)+' upload completed.</strong><br>Visibility was requested as '+esc(visibilityLabel)+'. Check the actual visibility and processing status in YouTube Studio. '+(videoId?'Video ID: '+esc(videoId)+'<br><a href="https://studio.youtube.com/video/'+encodeURIComponent(videoId)+'/edit" target="_blank" rel="noopener">Open in YouTube Studio</a>':'YouTube accepted the upload; video ID was not returned.')+episodeAssociationMessage+'</div>';
    if(historySaveError){$('result').innerHTML+='<div class="alert">YouTube upload completed, but the history update could not be saved. Refresh history and verify the video in YouTube Studio.</div>'}
    await loadHistory();
    say('YouTube accepted the '+visibilityLabel.toLowerCase()+' upload. Review processing and actual visibility in YouTube Studio.','success');
