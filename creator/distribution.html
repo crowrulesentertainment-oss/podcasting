@@ -16,8 +16,8 @@
 <div id="notice" class="alert">Sign in to load your shows and saved distribution drafts.</div>
 <section class="panel"><h2>01 · Select an episode</h2><div class="grid"><div class="field"><label for="show">YOUR PODCAST</label><select id="show"><option value="">Loading your shows…</option></select></div><div class="field"><label for="episode">EPISODE</label><select id="episode"><option value="">Select a podcast first</option></select></div></div><div id="episodeInfo" class="muted"></div></section>
 <section class="panel"><h2>02 · Choose destinations</h2><p class="muted">Select channels for which you want tailored draft copy. CrowRules publishing and social network APIs require separate integrations.</p><div id="platforms" class="platforms"></div><div class="field"><label for="baseCaption">MESSAGE / CALL TO ACTION (OPTIONAL)</label><textarea id="baseCaption" placeholder="What should listeners know about this episode?"></textarea></div><div class="actions"><button class="btn primary" id="generate">Generate preview drafts</button><button class="btn" id="refresh">Refresh saved drafts</button></div></section>
-<section class="panel"><div class="row" style="justify-content:space-between"><h2>03 · Preview and approve</h2><span id="draftCount" class="status">0 drafts</span></div><div id="drafts" class="empty">Choose an episode and generate draft captions.</div><div class="alert" style="margin-top:14px">Safety status: approving a draft records your approval only. Until a platform's official API connection and server-side publisher are configured, posts remain marked for manual publishing; this page will not pretend they were sent.</div></section>
-<section class="panel"><h2>04 · Connection status</h2><p class="muted">Connections are per creator and podcast. No tokens or passwords are collected by this page.</p><div id="connections" class="platforms"></div></section>
+<section class="panel"><div class="row" style="justify-content:space-between"><h2>03 · Preview and approve</h2><span id="draftCount" class="status">0 drafts</span></div><div class="field"><label for="scheduleAt">SCHEDULE APPROVED POSTS (OPTIONAL)</label><input id="scheduleAt" type="datetime-local"><small>Leave blank to queue for the next worker run.</small></div><div id="drafts" class="empty">Choose an episode and generate draft captions.</div><div class="alert" style="margin-top:14px">Safety status: approving a draft records your approval only. Until a platform's official API connection and server-side publisher are configured, posts remain marked for manual publishing; this page will not pretend they were sent.</div></section>
+<section class="panel"><h2>04 · Connection status</h2><p class="muted">Connections are per creator and podcast. No tokens or passwords are collected by this page.</p><div id="connections" class="platforms"></div></section><section class="panel"><h2>05 · Delivery log</h2><p class="muted">Audit history for approvals, queue changes and delivery attempts.</p><div id="deliveryLogs" class="empty">Select an episode to view its log.</div></section>
 </main>
 <script>
 (() => {
@@ -102,6 +102,19 @@
   if(!state.drafts.length){$('drafts').innerHTML='<div class="empty">No saved drafts for this episode yet.</div>';return}
   $('drafts').innerHTML=state.drafts.map(d=>'<article class="post" data-id="'+esc(d.id)+'"><div class="posthead"><div><b>'+esc(titleCase(d.platform))+'</b> <span class="status">'+esc(d.status.replace('_',' '))+'</span><br><small>'+esc(platformList.find(p=>p.id===d.platform)?.hint||'Platform post')+'</small></div><div class="actions"><button class="btn" data-action="save" data-id="'+esc(d.id)+'">Save caption</button><button class="btn primary" data-action="approve" data-id="'+esc(d.id)+'" '+(['published','publishing'].includes(d.status)?'disabled':'')+'>Approve draft</button><button class="btn" data-action="manual" data-id="'+esc(d.id)+'">Manual publish checklist</button></div></div><textarea aria-label="'+esc(d.platform)+' caption" data-caption="'+esc(d.id)+'">'+esc(d.caption)+'</textarea><small>External publication: '+(d.external_post_url?'<a target="_blank" rel="noopener" href="'+esc(d.external_post_url)+'">View post</a>':'not verified')+'</small></article>').join('');
  }
+ async function loadDeliveryLogs(){
+  const ids=state.drafts.map(d=>d.id);
+  if(!ids.length){$('deliveryLogs').innerHTML='<div class="empty">No delivery events recorded for these drafts yet.</div>';return}
+  const {data,error}=await client.from('podcast_distribution_delivery_logs').select('id,post_id,platform,event_type,outcome,message,created_at').in('post_id',ids).order('created_at',{ascending:false}).limit(50);
+  if(error){$('deliveryLogs').innerHTML='<div class="empty">Delivery log unavailable: '+esc(error.message)+'</div>';return}
+  $('deliveryLogs').innerHTML=(data||[]).length?data.map(x=>'<article class="post"><div class="posthead"><b>'+esc(titleCase(x.platform))+' · '+esc(x.event_type.replaceAll('_',' '))+'</b><span class="status">'+esc(x.outcome)+'</span></div><small>'+esc(new Date(x.created_at).toLocaleString())+'</small><p>'+esc(x.message)+'</p></article>').join(''):'<div class="empty">No delivery events recorded for these drafts yet.</div>';
+ }
+ async function distributionAction(action,postId,extra={}) {
+  const {data,error}=await client.functions.invoke('podcast-distribution-api',{body:{action,post_id:postId,...extra}});
+  if(error) throw error;
+  if(data?.error) throw new Error(data.error);
+  return data;
+ }
  async function updateDraft(id,patch){const {data,error}=await client.from('podcast_distribution_posts').update({...patch,updated_at:new Date().toISOString()}).eq('id',id).select().maybeSingle();if(error){say('Update failed: '+error.message);return null}const i=state.drafts.findIndex(d=>d.id===id);if(i>=0)state.drafts[i]=data;renderDrafts();return data}
  $('show').addEventListener('change',async()=>{await loadEpisodes();await loadDrafts()});
  $('episode').addEventListener('change',()=>{showEpisodeInfo();loadDrafts()});
@@ -110,7 +123,16 @@
  $('drafts').addEventListener('click',async ev=>{
   const b=ev.target.closest('button[data-action]');if(!b)return;const d=state.drafts.find(x=>x.id===b.dataset.id);if(!d)return;
   if(b.dataset.action==='save'){const ta=$('drafts').querySelector('[data-caption="'+d.id+'"]');const out=await updateDraft(d.id,{caption:ta.value,status:d.status==='draft'?'draft':d.status});if(out)say('Caption saved.',true)}
-  if(b.dataset.action==='approve'){const ta=$('drafts').querySelector('[data-caption="'+d.id+'"]');const out=await updateDraft(d.id,{caption:ta.value,status:'manual_required',approved_at:new Date().toISOString(),last_error:'Approved in CrowRules. No direct publishing integration is configured; publish manually using the platform checklist.'});if(out)say(titleCase(d.platform)+' draft approved and marked for manual publishing. No post was sent.',true)}
+  if(b.dataset.action==='approve'){
+   const ta=$('drafts').querySelector('[data-caption="'+d.id+'"]');
+   const saved=await updateDraft(d.id,{caption:ta.value}); if(!saved)return;
+   try{await distributionAction('approve',d.id);await loadDrafts();say(titleCase(d.platform)+' draft approved. It has not been published.',true)}
+   catch(err){const out=await updateDraft(d.id,{caption:ta.value,status:'manual_required',approved_at:new Date().toISOString(),last_error:'Queue API is not deployed yet. Approved locally for manual publishing; no post was sent.'});if(out)say('Queue API unavailable; saved as manual-required. No post was sent. '+(err.message||''))}
+  }
+  if(b.dataset.action==='queue'){
+   try{const raw=$('scheduleAt').value;const scheduled_at=raw?new Date(raw).toISOString():new Date().toISOString();await distributionAction('queue',d.id,{scheduled_at});await loadDrafts();say(titleCase(d.platform)+' queued. External delivery remains unverified.',true)}
+   catch(err){say('Could not queue automatically: '+(err.message||'Queue API is not deployed/configured')+'. Draft remains saved; use manual publishing checklist.',false)}
+  }
   if(b.dataset.action==='manual'){const links={facebook:'https://www.facebook.com/',instagram:'https://www.instagram.com/',tiktok:'https://www.tiktok.com/',youtube:'https://studio.youtube.com/',x:'https://x.com/',threads:'https://www.threads.net/',crowrules:'../home.html'};const w=window.open(links[d.platform],'_blank','noopener');say('Manual publishing checklist: confirm episode link and media, review caption, publish in '+titleCase(d.platform)+', then update external post URL in a future release. This dashboard did not publish it.');}
  });
  renderPlatforms();init();
