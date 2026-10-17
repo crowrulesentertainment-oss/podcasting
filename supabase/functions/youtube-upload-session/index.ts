@@ -82,7 +82,7 @@ Deno.serve(async (req: Request) => {
 
   const service = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const { data: historyRow, error: historyLookupError } = await service.from("youtube_upload_history").select("id,user_id,podcast_id,status,file_size,mime_type").eq("id", historyId).eq("user_id", user.id).eq("podcast_id", podcastId).maybeSingle();
-  if (historyLookupError || !historyRow || historyRow.status !== "preparing" || Number(historyRow.file_size) !== fileSize || historyRow.mime_type !== mimeType) return json(409, { error: "Upload history does not match this file or is not recoverable. Refresh history before retrying." });
+  if (historyLookupError || !historyRow || !["preparing","uploading"].includes(historyRow.status) || Number(historyRow.file_size) !== fileSize || historyRow.mime_type !== mimeType) return json(409, { error: "Upload history does not match this file or is not recoverable. Refresh history before retrying." });
   const { data: account, error: accountError } = await service.from("podcast_distribution_accounts")
     .select("id,connection_status").eq("user_id", user.id).eq("podcast_id", podcastId).eq("platform", "youtube").maybeSingle();
   if (accountError || !account || account.connection_status !== "connected") {
