@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
 const cors = {
   "Access-Control-Allow-Origin": "https://crowrulesentertainment-oss.github.io",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-upload-session, x-upload-total, x-upload-mime, content-range",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-upload-session, x-upload-total, x-upload-mime, content-range, x-upload-status-check",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Content-Type": "application/json; charset=utf-8",
   "Cache-Control": "no-store",
@@ -47,10 +47,24 @@ Deno.serve(async (req: Request) => {
   catch (e) { return json(400, { error: (e as Error).message }); }
   if (session.user_id !== user.id) return json(403, { error: "This upload session belongs to another signed-in user." });
   const range = req.headers.get("Content-Range") || "";
+  const expectedTotal = Number(session.file_size);
+  if (req.headers.get("x-upload-status-check") === "true") {
+    if (range !== "bytes */" + expectedTotal) return json(400, { error: "Invalid upload status probe." });
+    const probe = await fetch(String(session.url), { method: "PUT", headers: { "Content-Length": "0", "Content-Range": range } });
+    const probeText = await probe.text();
+    let provider: Record<string, unknown> = {};
+    try { provider = JSON.parse(probeText); } catch {}
+    if (probe.status === 308) {
+      const received = probe.headers.get("Range") || "";
+      const found = /bytes=0-(\d+)/.exec(received);
+      return json(200, { ok: true, complete: false, next_offset: found ? Number(found[1]) + 1 : 0, received_range: received || null });
+    }
+    if (probe.status === 200 || probe.status === 201) return json(200, { ok: true, complete: true, video_id: String(provider.id || ""), privacy_status: String((provider.status as Record<string, unknown> | undefined)?.privacyStatus || "private") });
+    return json(probe.status === 404 || probe.status === 410 ? 410 : 502, { error: "YouTube could not resume this upload session.", provider_status: probe.status, provider_message: probeText.slice(0, 500) });
+  }
   const match = /^bytes (\d+)-(\d+)\/(\d+)$/.exec(range);
   if (!match) return json(400, { error: "A valid Content-Range header is required." });
   const start = Number(match[1]), end = Number(match[2]), total = Number(match[3]);
-  const expectedTotal = Number(session.file_size);
   const contentLength = end - start + 1;
   if (total !== expectedTotal || start < 0 || end < start || end >= total || contentLength > 8 * 1024 * 1024 || (start % (256 * 1024) !== 0) || (end + 1 < total && contentLength % (256 * 1024) !== 0)) {
     return json(400, { error: "Chunk range is invalid. Use aligned chunks up to 8 MiB." });
