@@ -47,6 +47,7 @@
 <label class="field" for="name"><span>DISPLAY NAME</span><input id="name" name="name" required maxlength="80" autocomplete="name" placeholder="Your name or creator name"></label>
 <label class="field" for="email"><span>EMAIL ADDRESS</span><input id="email" name="email" type="email" required autocomplete="email" placeholder="you@example.com"></label>
 <label class="field" for="password"><span>PASSWORD · AT LEAST 8 CHARACTERS</span><input id="password" name="password" type="password" required minlength="8" autocomplete="new-password" placeholder="Create a strong password"></label>
+<label class="field" for="confirmPassword"><span>CONFIRM PASSWORD</span><input id="confirmPassword" name="confirmPassword" type="password" required minlength="8" autocomplete="new-password" placeholder="Enter your password again"></label>
 <button class="submit" id="submit" type="submit">CREATE LISTENER ACCOUNT</button>
 <div class="divider">OR SIGN UP WITH</div>
 <div class="oauth" aria-label="Social sign-up options">
@@ -142,16 +143,18 @@ form.addEventListener("submit",async event=>{
  event.preventDefault();
  if(submit.disabled)return;
  if(!form.reportValidity())return;
- const role=selectedRole(),name=document.getElementById("name").value.trim(),email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;
+ const role=selectedRole(),name=document.getElementById("name").value.trim(),email=document.getElementById("email").value.trim().toLowerCase(),password=document.getElementById("password").value,confirmPassword=document.getElementById("confirmPassword").value;
  if(name.length<1){setStatus("Enter a display name to continue.","error");return}
  if(password.length<8){setStatus("Your password must be at least 8 characters.","error");return}
+ if(password!==confirmPassword){setStatus("The passwords do not match. Re-enter them and try again.","error");document.getElementById("confirmPassword").focus();return}
  submit.disabled=true;providerButtons.forEach(b=>b.disabled=true);setStatus("Creating your account…");
  try{
   const {data,error}=await S.auth.signUp({email,password,options:{data:{app:"podcasting",signup_role:role,podcast_role:role,display_name:name},emailRedirectTo:new URL("signup.html?redirect="+encodeURIComponent(redirect),location.href).toString()}});
   if(error){
    const message=String(error.message||"");
-   if(/database error saving new user/i.test(message)) throw new Error("Supabase rejected account creation in its database signup trigger. The database-side signup fix has been applied; please retry. If this continues, check Supabase Auth logs for the remaining trigger error.");
+   if(/database error saving new user/i.test(message)) throw new Error("Supabase rejected account creation inside a database trigger. This is a server-side signup issue, not an email/password form error. Please try again later; the project administrator must inspect the Supabase Auth and Postgres logs and fix the failing trigger before email registration can succeed.");
    if(/already registered|already exists|user already registered/i.test(message)) throw new Error("An account may already exist for this email. Try signing in or use password recovery.");
+   if(/invalid email/i.test(message)) throw new Error("Enter a valid email address and try again.");
    if(/password/i.test(message)&&/weak|short|least/i.test(message)) throw new Error("Choose a stronger password that meets the password requirements.");
    throw error;
   }
@@ -161,7 +164,7 @@ form.addEventListener("submit",async event=>{
    location.replace(redirect);return;
   }
   setStatus("Account created. Check your inbox (and spam folder) for the confirmation link. After confirming, sign in to continue. Your selected Listener/Creator experience is saved with your signup request.","success");
-  document.getElementById("password").value="";
+  document.getElementById("password").value="";document.getElementById("confirmPassword").value="";
  }catch(error){setStatus(error?.message||"Unable to create your account. Please try again.","error");}
  finally{submit.disabled=false;providerButtons.forEach(b=>b.disabled=false)}
 });
