@@ -39,7 +39,7 @@ Deno.serve(async(req:Request)=>{
   if(!episode.youtube_promotion_approved_at||!episode.youtube_video_id||episode.youtube_processing_status!=="succeeded"||!["uploaded","processed"].includes(episode.youtube_upload_status)||!["private","unlisted","public"].includes(episode.youtube_privacy_status))return reply(409,{error:"Episode is not eligible. Refresh YouTube status, verify playback, and approve promotion first."});
   const {data:post,error}=await db.from("podcast_distribution_posts").insert({user_id:user.id,podcast_id:episode.podcast_id,episode_id:episode.id,platform:"youtube",caption,status:"draft"}).select().single();
   if(error||!post)return reply(400,{error:"Could not save caption draft: "+(error?.message||"unknown error")});
-  const log=await db.from("podcast_distribution_delivery_logs").insert({post_id:post.id,user_id:user.id,platform:"youtube",event_type:"draft_created",outcome:"success",message:"Eligible YouTube promotion caption drafted. Nothing published."});
+  const log=await db.from("podcast_distribution_delivery_logs").insert({post_id:post.id,user_id:user.id,platform:"youtube",event_type:"draft_saved",outcome:"success",message:"Eligible YouTube promotion caption drafted. Nothing published."});
   if(log.error)return reply(500,{error:"Draft saved, but audit logging failed."});
   return reply(200,{post,message:"YouTube caption saved as draft. Nothing was published."});
  }
@@ -76,7 +76,7 @@ Deno.serve(async(req:Request)=>{
    if(!episode||!episode.youtube_promotion_approved_at||!episode.youtube_video_id||episode.youtube_processing_status!=="succeeded"||!["uploaded","processed"].includes(episode.youtube_upload_status)||!["private","unlisted","public"].includes(episode.youtube_privacy_status))return reply(409,{error:"YouTube status or episode approval is no longer valid. Refresh and review again."});
    const {data,error}=await db.from("podcast_distribution_posts").update({status:"manual_required",scheduled_at:null,next_attempt_at:null,last_error:"Final review confirmed. Manual publishing only; no automated YouTube publisher is configured.",updated_at:new Date().toISOString()}).eq("id",post.id).eq("user_id",user.id).select().single();
    if(error)return reply(400,{error:error.message});
-   const log=await db.from("podcast_distribution_delivery_logs").insert({post_id:post.id,user_id:user.id,platform:"youtube",event_type:"final_review_confirmed",outcome:"info",message:"Creator explicitly confirmed final review. Marked manual-required; no external post was sent."});
+   const log=await db.from("podcast_distribution_delivery_logs").insert({post_id:post.id,user_id:user.id,platform:"youtube",event_type:"queued",outcome:"info",message:"Creator explicitly confirmed final review. Marked manual-required; no external post was sent."});
    if(log.error)return reply(500,{error:"Final review saved, but audit logging failed."});
    return reply(200,{post:data,message:"Final review confirmed. Saved for manual publishing; no external publishing action was performed."});
   }
