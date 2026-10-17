@@ -178,8 +178,40 @@ async function loadListeners(){
 async function load(){if(!client){$("dataStatus").textContent="Database unavailable: check config.js and the Supabase CDN connection."; $("topStatus").textContent="Showing page without live database data.";return} $("dataStatus").textContent="Updating chart data in the background…";var result=null,lastError=null;var attempts=[ "id,title,slug,category,description,artwork_url,author_name,creator_id,listener_count,total_plays,is_featured,created_at,updated_at,status", "id,title,slug,description,artwork_url,author_name,creator_id,created_at,status", "id,title,description,author_name,creator_id,created_at,status" ];for(var i=0;i<attempts.length;i++){try{var q=client.from("podcasts").select(attempts[i]).eq("status","published").limit(200);var res=await q;if(!res.error){result=res;break}lastError=res.error}catch(err){lastError=err}}if(!result){shows=[];render();var message=lastError&&lastError.message?lastError.message:"Unable to query the published podcast catalog.";console.error("[CrowRules rankings] Catalog query failed:",lastError);$("dataStatus").textContent="Could not read published shows: "+message;$("topStatus").textContent="Database query failed";return}shows=(result.data||[]).map(normalize);creatorDirectory=new Map();try{var cr=await client.from("creators").select("id,name,display_name,avatar_url");if(!cr.error)(cr.data||[]).forEach(function(row){creatorDirectory.set(String(row.id),row)})}catch(creatorErr){console.warn("[CrowRules rankings] Creator directory unavailable; using podcast host names:",creatorErr)}try{var auth=await client.auth.getSession();session=auth.data&&auth.data.session||null;if(session)$("accountLink").textContent="MY ACCOUNT"}catch(err){console.warn("[CrowRules rankings] Auth state unavailable:",err)}render();await Promise.all([loadFollowCounts(),loadEpisodeCounts(),loadEpisodes(),loadListeners(),loadTimestampedEvents()]);render();renderEpisodes();renderHosts();renderTrends();$("topStatus").textContent=shows.length?"LIVE CATALOG · "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):"No published shows found";$("dataStatus").textContent=shows.length?"Catalog connected. Show plays use stored show totals; episode charts use each episode’s stored play_count. Missing data is not estimated.":"Connected to the catalog; no published shows were returned."}
 async function toggleFollow(id){if(!client){toast("Following is unavailable while the database is disconnected.");return}if(!session){location.href="../login.html?redirect="+encodeURIComponent(location.pathname);return}var item=shows.find(function(x){return String(x.id)===String(id)});if(!item)return;try{if(item.following){var del=await client.from("podcast_follows").delete().eq("podcast_id",id).eq("user_id",session.user.id);if(del.error)throw del.error;item.following=false;item.followers=Math.max(0,item.followers-1);toast("Show unfollowed.")}else{var ins=await client.from("podcast_follows").insert({podcast_id:id,user_id:session.user.id});if(ins.error&&ins.error.code!=="23505")throw ins.error;if(!ins.error)item.followers++;item.following=true;toast("You are now following this show.")}render()}catch(err){console.error("[CrowRules rankings] Follow action failed:",err);toast("Could not update follow: "+(err.message||"database error"))}}
 $("year").textContent=String(new Date().getFullYear());setupRankingRails();$("brandLogo").src=config.logoUrl||"";$("search").addEventListener("input",render);$("sort").addEventListener("change",render);$("period").addEventListener("change",function(){loadTimestampedEvents().catch(function(err){console.warn("[CrowRules rankings] Period refresh failed:",err)})});document.querySelectorAll("[data-filter]").forEach(function(btn){btn.addEventListener("click",function(){filter=btn.getAttribute("data-filter");document.querySelectorAll("[data-filter]").forEach(function(other){var active=other===btn;other.classList.toggle("primary",active);other.setAttribute("aria-pressed",String(active))});render()})});$("refresh").addEventListener("click",function(){load().catch(function(err){console.error("[CrowRules rankings] Refresh failed:",err);$("dataStatus").textContent="Refresh failed. Your current view is still available."})});
+var liveRefreshTimer=null,liveChannel=null;
+function scheduleLiveRefresh(reason){
+ if(document.visibilityState==="hidden")return;
+ clearTimeout(liveRefreshTimer);
+ liveRefreshTimer=setTimeout(function(){
+  load().catch(function(err){
+   console.warn("[CrowRules rankings] Live refresh failed ("+reason+"):",err);
+   $("dataStatus").textContent="Live update could not be loaded. Last successful database values remain visible.";
+  });
+ },900);
+}
+function subscribeToLiveStats(){
+ if(!client||liveChannel)return;
+ try{
+  liveChannel=client.channel("cr-listener-rankings-live-stats")
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},function(){scheduleLiveRefresh("podcasts")})
+   .on("postgres_changes",{event:"*",schema:"public",table:"creators"},function(){scheduleLiveRefresh("creators")})
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},function(){scheduleLiveRefresh("episodes")})
+   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_follows"},function(){scheduleLiveRefresh("follows")})
+   .on("postgres_changes",{event:"INSERT",schema:"public",table:"podcast_play_events"},function(){scheduleLiveRefresh("play events")})
+   .subscribe(function(status){
+    if(status==="SUBSCRIBED"){
+     $("dataStatus").textContent="Connected to Supabase live updates · "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
+    }else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){
+     $("dataStatus").textContent="Supabase live updates disconnected. Use Refresh Charts or return to this page to reload current database stats.";
+    }
+   });
+ }catch(err){console.warn("[CrowRules rankings] Realtime subscription unavailable:",err)}
+}
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")scheduleLiveRefresh("page visible")});
+window.addEventListener("focus",function(){scheduleLiveRefresh("window focus")});
+
 try{if(window.supabase&&window.supabase.createClient&&config.supabaseUrl&&config.supabaseKey){client=window.supabase.createClient(config.supabaseUrl,config.supabaseKey)}else{console.warn("[CrowRules rankings] Supabase configuration or SDK is missing.")}}catch(err){console.error("[CrowRules rankings] Supabase initialization failed:",err)}
-render();renderHosts();renderEpisodes();load().catch(function(err){console.error("[CrowRules rankings] Background refresh failed:",err);$("dataStatus").textContent="Live refresh unavailable. You can still search and browse this page.";});
+render();renderHosts();renderEpisodes();load().then(function(){subscribeToLiveStats()}).catch(function(err){console.error("[CrowRules rankings] Background refresh failed:",err);$("dataStatus").textContent="Live refresh unavailable. You can still search and browse this page.";});
 })();
 </script>
 <script src="../js/online-presence.js"></script>
