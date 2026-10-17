@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Publish Everywhere • CrowRules Podcasting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="../config.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#06070c;--panel:#10121d;--line:#2a2b40;--cyan:#61e8ff;--purple:#a78bfa;--muted:#a6a4b9;--text:#f6f5ff;--green:#70f0b4;--gold:#ffd36b;--red:#ff8094}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 8% 0,#12303a 0,transparent 30%),radial-gradient(circle at 92% 2%,#24183b 0,transparent 32%),var(--bg);color:var(--text);font:14px Montserrat,Arial,sans-serif}a{color:var(--cyan)}button,input,select,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:1200px;margin:auto;padding:24px}.nav,.row,.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.nav{justify-content:space-between;border-bottom:1px solid var(--line);padding:12px 0 20px}.brand{font:800 14px Orbitron;letter-spacing:.04em}.brand span{color:var(--cyan)}.eyebrow{font:700 10px Orbitron;letter-spacing:.18em;color:var(--cyan)}h1{font:800 clamp(28px,5vw,48px) Orbitron;margin:12px 0}h2{font:700 16px Orbitron;margin:0 0 10px}p{line-height:1.65;color:#c4c2d2}.muted,small{color:var(--muted)}.panel{background:#10121deF;border:1px solid var(--line);border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 18px 50px #0004}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:7px;margin:10px 0}.field label{font-size:11px;font-weight:800;color:#d5d2e5}.field input,.field select,.field textarea{width:100%;background:#080a12;border:1px solid #34354c;color:var(--text);border-radius:9px;padding:12px}.field textarea{min-height:130px;resize:vertical}.btn{border:1px solid #45435e;border-radius:9px;background:#191a29;color:#fff;padding:10px 14px;font-weight:800;font-size:11px}.btn.primary{background:linear-gradient(120deg,#12404b,#30224f);border-color:#3c8395}.btn:disabled{opacity:.5;cursor:not-allowed}.platforms{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.platform{border:1px solid var(--line);background:#0a0c14;border-radius:11px;padding:12px;display:flex;gap:9px;align-items:center;font-size:12px}.platform input{accent-color:var(--cyan)}.status{display:inline-block;border:1px solid #45435e;border-radius:99px;padding:4px 8px;font-size:10px;color:var(--gold)}.post{border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;background:#0b0d16}.posthead{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.post textarea{width:100%;margin-top:12px;min-height:100px;background:#070911;border:1px solid #34354c;color:#fff;padding:12px;border-radius:8px}.alert{padding:12px;border:1px solid #715c29;background:#241e12;border-radius:10px;color:#ffe2a1;font-size:12px;line-height:1.6}.success{color:var(--green)}.hidden{display:none!important}.empty{padding:20px;text-align:center;color:var(--muted)}@media(max-width:760px){.wrap{padding:15px}.grid{grid-template-columns:1fr}.platforms{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body><main class="wrap">
+<nav class="nav"><div class="brand">CROWRULES <span>·</span> PUBLISH EVERYWHERE</div><div class="actions"><a href="../creator.html">Creator Dashboard</a><a href="../studio.html">Studio</a></div></nav>
+<header style="padding:28px 0 8px"><div class="eyebrow">CREATOR DISTRIBUTION CENTER</div><h1>One episode.<br><span style="color:var(--cyan)">Everywhere.</span></h1><p>Prepare platform-specific episode posts, preview every caption, and approve drafts before publication. External social accounts are not connected until a verified authorization flow is implemented.</p></header>
+<div id="notice" class="alert">Sign in to load your shows and saved distribution drafts.</div>
+<section class="panel"><h2>01 · Select an episode</h2><div class="grid"><div class="field"><label for="show">YOUR PODCAST</label><select id="show"><option value="">Loading your shows…</option></select></div><div class="field"><label for="episode">EPISODE</label><select id="episode"><option value="">Select a podcast first</option></select></div></div><div id="episodeInfo" class="muted"></div></section>
+<section class="panel"><h2>02 · Choose destinations</h2><p class="muted">Select channels for which you want tailored draft copy. CrowRules publishing and social network APIs require separate integrations.</p><div id="platforms" class="platforms"></div><div class="field"><label for="baseCaption">MESSAGE / CALL TO ACTION (OPTIONAL)</label><textarea id="baseCaption" placeholder="What should listeners know about this episode?"></textarea></div><div class="actions"><button class="btn primary" id="generate">Generate preview drafts</button><button class="btn" id="refresh">Refresh saved drafts</button></div></section>
+<section class="panel"><div class="row" style="justify-content:space-between"><h2>03 · Preview and approve</h2><span id="draftCount" class="status">0 drafts</span></div><div id="drafts" class="empty">Choose an episode and generate draft captions.</div><div class="alert" style="margin-top:14px">Safety status: approving a draft records your approval only. Until a platform's official API connection and server-side publisher are configured, posts remain marked for manual publishing; this page will not pretend they were sent.</div></section>
+<section class="panel"><h2>04 · Connection status</h2><p class="muted">Connections are per creator and podcast. No tokens or passwords are collected by this page.</p><div id="connections" class="platforms"></div></section>
+</main>
+<script>
+(() => {
+ const cfg=window.CROW_CONFIG||{};
+ const client=window.supabase?.createClient(cfg.supabaseUrl,cfg.supabaseKey);
+ const platformList=[
+  {id:'facebook',name:'Facebook',hint:'Page post / episode link'},
+  {id:'instagram',name:'Instagram',hint:'Caption; media publishing needs eligible account'},
+  {id:'tiktok',name:'TikTok',hint:'Caption; direct posting needs app approval'},
+  {id:'youtube',name:'YouTube',hint:'Video upload required for a full episode post'},
+  {id:'x',name:'X',hint:'Post with episode link'},
+  {id:'threads',name:'Threads',hint:'Text and supported media'},
+  {id:'crowrules',name:'CrowRules',hint:'Creator page / episode link'}
+ ];
+ const $=id=>document.getElementById(id);
+ const state={user:null,shows:[],episodes:[],creatorIds:new Set(),selectedEpisode:null,drafts:[]};
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const say=(msg,good=false)=>{$('notice').textContent=msg;$('notice').className=good?'alert success':'alert'};
+ const titleCase=s=>s==='x'?'X':s[0].toUpperCase()+s.slice(1);
+ function renderPlatforms(){ $('platforms').innerHTML=platformList.map(p=>'<label class="platform"><input type="checkbox" value="'+p.id+'" checked><span><b>'+p.name+'</b><br><small>'+p.hint+'</small></span></label>').join('');$('connections').innerHTML=platformList.map(p=>'<div class="platform"><span><b>'+p.name+'</b><br><small>Not connected · setup required</small></span></div>').join('');}
+ async function init(){
+  if(!client){say('Supabase configuration did not load. Check config.js.');return}
+  const {data:{session},error}=await client.auth.getSession();
+  if(error||!session){say('Please sign in to CrowRules Podcasting, then reopen this page.');$('show').innerHTML='<option value="">Sign in required</option>';return}
+  state.user=session.user;
+  const {data:member,error:meErr}=await client.from('members').select('id').eq('user_id',session.user.id).maybeSingle();
+  if(meErr||!member){say('Could not verify your CrowRules member profile. '+(meErr?.message||'A member profile is required.'));return}
+  const {data:creators,error:cErr}=await client.from('creators').select('id').eq('member_id',member.id);
+  if(cErr){say('Unable to load creator profile: '+cErr.message);return}
+  const ids=(creators||[]).map(c=>c.id);state.creatorIds=new Set(ids);
+  if(!ids.length){say('No creator profile is linked to this member account yet.');$('show').innerHTML='<option value="">No creator profile</option>';return}
+  const {data:shows,error:sErr}=await client.from('podcasts').select('id,title,description,artwork_url,website_url,slug,creator_id').in('creator_id',ids).order('title');
+  if(sErr){say('Unable to load your podcasts: '+sErr.message);return}
+  state.shows=shows||[];
+  $('show').innerHTML=state.shows.length?state.shows.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.title)+'</option>').join(''):'<option value="">No podcasts found</option>';
+  if(state.shows.length){await loadEpisodes();await loadDrafts();say('Signed in. '+state.shows.length+' podcast(s) available. No social accounts are connected.',true)}else say('No podcasts found for your creator profile.');
+ }
+ async function loadEpisodes(){
+  const show=state.shows.find(s=>s.id===$('show').value);if(!show)return;
+  const {data,error}=await client.from('podcast_episodes').select('id,podcast_id,title,description,audio_url,video_url,thumbnail_url,artwork_url,status,is_published,published_at,slug').eq('podcast_id',show.id).order('created_at',{ascending:false});
+  if(error){say('Unable to load episodes: '+error.message);return}
+  state.episodes=data||[];
+  $('episode').innerHTML=state.episodes.length?state.episodes.map(e=>'<option value="'+esc(e.id)+'">'+esc(e.title||'Untitled episode')+'</option>').join(''):'<option value="">No episodes found</option>';
+  showEpisodeInfo();
+ }
+ function showEpisodeInfo(){const ep=state.episodes.find(e=>e.id===$('episode').value);state.selectedEpisode=ep||null;$('episodeInfo').textContent=ep?((ep.description||'No episode description saved.')+' · '+(ep.audio_url?'Audio available':'No audio URL saved')+' · '+(ep.is_published?'Published on CrowRules':'Not marked published on CrowRules')):'Select an episode to preview distribution.'}
+ function destinations(){return [...$('platforms').querySelectorAll('input:checked')].map(i=>i.value)}
+ function episodeUrl(show,ep){return show.website_url||('https://crowrulesentertainment-oss.github.io/podcasting/show.html?podcast_id='+encodeURIComponent(show.id)+'&episode_id='+encodeURIComponent(ep.id))}
+ function makeCaption(platform,show,ep,base){
+  const url=episodeUrl(show,ep),desc=(base||ep.description||'A new episode from '+show.title+'.').trim();
+  const tags='#CrowRules #Podcast #IndependentPodcast';
+  const captions={
+   facebook:'🎙️ New episode: '+ep.title+'\n\n'+desc+'\n\nListen here: '+url+'\n\n'+tags,
+   instagram:'🎙️ '+ep.title+'\n\n'+desc+'\n\nFind the episode through the link in our profile.\n\n'+tags,
+   tiktok:'🎙️ New episode: '+ep.title+' — '+desc+' Listen via the link in our profile. '+tags,
+   youtube:ep.title+' | '+show.title+'\n\n'+desc+'\n\nListen / learn more: '+url+'\n\nSubscribe for more independent shows.\n\n'+tags,
+   x:'🎙️ New episode: '+ep.title+' — '+desc+' '+url+' #Podcast #CrowRules',
+   threads:'🎙️ New episode: '+ep.title+'\n\n'+desc+'\n\nListen: '+url+'\n\n'+tags,
+   crowrules:'🎙️ Now featuring: '+ep.title+'\n\n'+desc+'\n\nOpen episode: '+url+'\n\n'+tags
+  };
+  return captions[platform]||desc+' '+url;
+ }
+ async function generate(){
+  const show=state.shows.find(s=>s.id===$('show').value),ep=state.episodes.find(e=>e.id===$('episode').value),plats=destinations();
+  if(!show||!ep||!plats.length){say('Choose a podcast, an episode, and at least one destination.');return}
+  if(!ep.is_published&&!ep.published_at){say('This episode is not marked published. You can prepare draft copy, but confirm its public availability before approving.')}
+  $('drafts').innerHTML='<div class="empty">Saving preview drafts…</div>';
+  const base=$('baseCaption').value;
+  const rows=plats.map(platform=>({user_id:state.user.id,podcast_id:show.id,episode_id:ep.id,platform,caption:makeCaption(platform,show,ep,base),status:'draft'}));
+  const {data,error}=await client.from('podcast_distribution_posts').upsert(rows,{onConflict:'user_id,episode_id,platform'}).select();
+  if(error){say('Could not save drafts: '+error.message);$('drafts').innerHTML='';return}
+  state.drafts=data||[];renderDrafts();say('Drafts saved. Review every caption before approving.',true);
+ }
+ async function loadDrafts(){
+  const show=$('show').value,ep=$('episode').value;if(!show||!ep)return;
+  const {data,error}=await client.from('podcast_distribution_posts').select('*').eq('podcast_id',show).eq('episode_id',ep).order('created_at');
+  if(error){say('Could not load saved drafts: '+error.message);return}
+  state.drafts=data||[];renderDrafts();
+ }
+ function renderDrafts(){
+  $('draftCount').textContent=state.drafts.length+' draft(s)';
+  if(!state.drafts.length){$('drafts').innerHTML='<div class="empty">No saved drafts for this episode yet.</div>';return}
+  $('drafts').innerHTML=state.drafts.map(d=>'<article class="post" data-id="'+esc(d.id)+'"><div class="posthead"><div><b>'+esc(titleCase(d.platform))+'</b> <span class="status">'+esc(d.status.replace('_',' '))+'</span><br><small>'+esc(platformList.find(p=>p.id===d.platform)?.hint||'Platform post')+'</small></div><div class="actions"><button class="btn" data-action="save" data-id="'+esc(d.id)+'">Save caption</button><button class="btn primary" data-action="approve" data-id="'+esc(d.id)+'" '+(['published','publishing'].includes(d.status)?'disabled':'')+'>Approve draft</button><button class="btn" data-action="manual" data-id="'+esc(d.id)+'">Manual publish checklist</button></div></div><textarea aria-label="'+esc(d.platform)+' caption" data-caption="'+esc(d.id)+'">'+esc(d.caption)+'</textarea><small>External publication: '+(d.external_post_url?'<a target="_blank" rel="noopener" href="'+esc(d.external_post_url)+'">View post</a>':'not verified')+'</small></article>').join('');
+ }
+ async function updateDraft(id,patch){const {data,error}=await client.from('podcast_distribution_posts').update({...patch,updated_at:new Date().toISOString()}).eq('id',id).select().maybeSingle();if(error){say('Update failed: '+error.message);return null}const i=state.drafts.findIndex(d=>d.id===id);if(i>=0)state.drafts[i]=data;renderDrafts();return data}
+ $('show').addEventListener('change',async()=>{await loadEpisodes();await loadDrafts()});
+ $('episode').addEventListener('change',()=>{showEpisodeInfo();loadDrafts()});
+ $('generate').addEventListener('click',generate);
+ $('refresh').addEventListener('click',loadDrafts);
+ $('drafts').addEventListener('click',async ev=>{
+  const b=ev.target.closest('button[data-action]');if(!b)return;const d=state.drafts.find(x=>x.id===b.dataset.id);if(!d)return;
+  if(b.dataset.action==='save'){const ta=$('drafts').querySelector('[data-caption="'+d.id+'"]');const out=await updateDraft(d.id,{caption:ta.value,status:d.status==='draft'?'draft':d.status});if(out)say('Caption saved.',true)}
+  if(b.dataset.action==='approve'){const ta=$('drafts').querySelector('[data-caption="'+d.id+'"]');const out=await updateDraft(d.id,{caption:ta.value,status:'manual_required',approved_at:new Date().toISOString(),last_error:'Approved in CrowRules. No direct publishing integration is configured; publish manually using the platform checklist.'});if(out)say(titleCase(d.platform)+' draft approved and marked for manual publishing. No post was sent.',true)}
+  if(b.dataset.action==='manual'){const links={facebook:'https://www.facebook.com/',instagram:'https://www.instagram.com/',tiktok:'https://www.tiktok.com/',youtube:'https://studio.youtube.com/',x:'https://x.com/',threads:'https://www.threads.net/',crowrules:'../home.html'};const w=window.open(links[d.platform],'_blank','noopener');say('Manual publishing checklist: confirm episode link and media, review caption, publish in '+titleCase(d.platform)+', then update external post URL in a future release. This dashboard did not publish it.');}
+ });
+ renderPlatforms();init();
+})();
+</script></body></html>
