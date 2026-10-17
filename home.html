@@ -193,6 +193,30 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 @media(prefers-reduced-motion:reduce){.home-dynamic-grid{scroll-behavior:auto}.home-shelf-arrows button{transition:none}}
 
 
+
+/* Official CrowRules Entertainment YouTube feed */
+.home-youtube{margin:24px 0;padding:clamp(16px,3vw,26px);border:1px solid rgba(103,232,249,.2);border-radius:22px;background:radial-gradient(ellipse at 0 0,rgba(103,232,249,.08),transparent 46%),linear-gradient(135deg,rgba(7,15,27,.96),rgba(17,12,32,.92))}
+.home-youtube-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;margin-bottom:18px}
+.home-youtube-head h2{font:800 clamp(18px,2.8vw,27px) Orbitron;margin:8px 0}
+.home-youtube-head p{max-width:650px;color:var(--muted);font-size:12px;line-height:1.7;margin:0}
+.home-youtube-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.home-youtube-card{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:15px;background:rgba(4,9,18,.8);transition:transform .2s,border-color .2s}
+.home-youtube-card:hover{transform:translateY(-3px);border-color:rgba(103,232,249,.5)}
+.home-youtube-thumb{display:block;position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,rgba(103,232,249,.12),rgba(167,139,250,.17));overflow:hidden}
+.home-youtube-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.home-youtube-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:48px;height:34px;border-radius:10px;background:#f03;color:white;box-shadow:0 5px 22px #0008}
+.home-youtube-copy{padding:14px}
+.home-youtube-copy h3{font:800 12px/1.6 Montserrat;margin:0 0 8px}
+.home-youtube-copy h3 a{color:#eef8ff;text-decoration:none}
+.home-youtube-copy h3 a:hover{color:var(--cyan)}
+.home-youtube-date{font-size:10px;color:var(--muted)}
+.home-youtube-state{grid-column:1/-1;margin:0;padding:20px;border:1px dashed rgba(145,160,181,.25);border-radius:12px;color:var(--muted);font-size:12px;line-height:1.7}
+.home-youtube-state a,.home-youtube-note a{color:var(--cyan);font-weight:800}
+.home-youtube-note{margin:13px 0 0;color:#7f91a9;font-size:10px;line-height:1.7}
+@media(max-width:760px){.home-youtube-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.home-youtube-grid{grid-template-columns:1fr}.home-youtube-head .btn{width:100%;text-align:center}}
+@media(prefers-reduced-motion:reduce){.home-youtube-card{transition:none}.home-youtube-card:hover{transform:none}}
+
 </style>
 
 <link rel="stylesheet" href="css/sitewide-refinements.css?v=20261012">
@@ -242,6 +266,16 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
         <div class="home-orbit"></div>
         <img id="heroLogo" class="home-logo" src="" alt="">
       </div>
+    </section>
+
+
+    <section class="home-youtube" id="crowrules-youtube" aria-labelledby="homeYouTubeTitle">
+      <div class="home-youtube-head">
+        <div><div class="home-kicker">CROWRULES ENTERTAINMENT · VIDEO</div><h2 id="homeYouTubeTitle">LATEST FROM YOUTUBE</h2><p>Watch recent videos from the official CrowRules Entertainment channel without leaving the Podcasting home page.</p></div>
+        <a class="btn" href="https://www.youtube.com/@CrowRulesEntertainment" target="_blank" rel="noopener noreferrer">OPEN YOUTUBE CHANNEL ↗</a>
+      </div>
+      <div class="home-youtube-grid" id="homeYouTubeGrid" aria-live="polite"><p class="home-youtube-state">Loading the latest CrowRules videos…</p></div>
+      <p class="home-youtube-note" id="homeYouTubeStatus" role="status">Public channel feed is checked when this page loads.</p>
     </section>
 
     <div id="experienceAccessMessage" class="experience-access-message" role="alert" aria-live="assertive"><div id="experienceAccessText"></div><div id="experienceAccessActions" class="access-actions"></div></div>
@@ -943,6 +977,39 @@ document.addEventListener("click",event=>{
  const distance=firstCard?firstCard.getBoundingClientRect().width+14:Math.max(240,shelf.clientWidth*.8);
  shelf.scrollBy({left:Number(button.dataset.shelfScroll)*distance*2,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
 });
+})();
+</script>
+
+
+<script>
+/* Latest public uploads from the official CrowRules Entertainment YouTube channel. */
+(()=>{"use strict";
+ const grid=document.getElementById("homeYouTubeGrid");
+ const status=document.getElementById("homeYouTubeStatus");
+ if(!grid)return;
+ const channel="https://www.youtube.com/@CrowRulesEntertainment";
+ const feed="https://rsshub.app/youtube/handle/CrowRulesEntertainment";
+ const safe=value=>String(value||"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+ const fallback=()=>{
+   grid.innerHTML='<p class="home-youtube-state">The automatic video feed is temporarily unavailable. You can still watch the latest uploads on the <a href="'+channel+'" target="_blank" rel="noopener noreferrer">official CrowRules Entertainment YouTube channel</a>.</p>';
+   if(status)status.textContent="Could not refresh the public feed. The channel link remains available.";
+ };
+ fetch("https://api.rss2json.com/v1/api.json?rss_url="+encodeURIComponent(feed),{headers:{"Accept":"application/json"}})
+ .then(response=>{if(!response.ok)throw new Error("Feed request failed");return response.json()})
+ .then(data=>{
+   const items=data&&data.status==="ok"&&Array.isArray(data.items)?data.items.slice(0,6):[];
+   if(!items.length)throw new Error("No feed items");
+   grid.innerHTML=items.map(item=>{
+     const link=String(item.link||"");
+     const match=link.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/);
+     const id=match?match[1]:"";
+     const url=id?"https://www.youtube.com/watch?v="+id:channel;
+     const title=safe(item.title||"CrowRules Entertainment video");
+     const date=item.pubDate&&!Number.isNaN(new Date(item.pubDate).getTime())?new Date(item.pubDate).toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"}):"Recent upload";
+     return '<article class="home-youtube-card"><a class="home-youtube-thumb" href="'+url+'" target="_blank" rel="noopener noreferrer" aria-label="Watch '+title+'">'+(id?'<img loading="lazy" src="https://i.ytimg.com/vi/'+id+'/hqdefault.jpg" alt="">':"")+'<span class="home-youtube-play" aria-hidden="true">▶</span></a><div class="home-youtube-copy"><h3><a href="'+url+'" target="_blank" rel="noopener noreferrer">'+title+'</a></h3><div class="home-youtube-date">'+safe(date)+'</div></div></article>';
+   }).join("");
+   if(status)status.textContent="Showing up to six recent public uploads. Feed availability depends on the external RSS service.";
+ }).catch(fallback);
 })();
 </script>
 
