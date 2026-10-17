@@ -94,7 +94,7 @@
   try{
    const payload={podcast_id:show.id,title:$('title').value.trim(),description:$('description').value.trim(),tags:$('tags').value.split(',').map(s=>s.trim()).filter(Boolean),filename:file.name,mime_type:file.type,file_size:file.size};
    const {data:session,error}=await client.functions.invoke('youtube-upload-session',{body:payload});
-   if(error)throw error;if(session?.error)throw new Error(session.error);if(!session?.upload_url)throw new Error('The server did not return an upload session.');
+   if(error)throw error;if(session?.error)throw new Error(session.error);if(!session?.upload_session)throw new Error('The server did not return a signed upload session.');
    $('progressText').textContent='Uploading '+file.name+' through CrowRules secure proxy…';
    const chunkSize=8*1024*1024;
    let result=null;
@@ -107,7 +107,7 @@
       'Authorization':'Bearer '+(await client.auth.getSession()).data.session.access_token,
       'apikey':cfg.supabaseKey,
       'Content-Type':'application/octet-stream',
-      'x-upload-session':session.upload_url,
+      'x-upload-session':session.upload_session,
       'x-upload-total':String(file.size),
       'x-upload-mime':file.type,
       'Content-Range':'bytes '+start+'-'+end+'/'+file.size
@@ -122,7 +122,7 @@
    }
    if(!result?.complete)throw new Error('All chunks were sent, but YouTube did not confirm a completed video. Check YouTube Studio before retrying.');
    $('progress').value=100;
-   const videoId=result.id;
+   const videoId=result.video_id;
    $('progressText').textContent='Upload accepted by YouTube. Video processing may continue in YouTube Studio.';
    $('result').innerHTML='<div class="alert success"><strong>Private upload completed.</strong><br>Visibility was set to Private before upload. '+(videoId?'Video ID: '+esc(videoId)+'<br><a href="https://studio.youtube.com/video/'+encodeURIComponent(videoId)+'/edit" target="_blank" rel="noopener">Open in YouTube Studio</a>':'YouTube accepted the upload; video ID was not returned.')+'</div>';
    say('YouTube accepted the video upload. It remains private; review it in YouTube Studio.','success');
