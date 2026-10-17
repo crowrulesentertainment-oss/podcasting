@@ -241,21 +241,23 @@
    for(let start=0;start<file.size;start+=chunkSize){
     const end=Math.min(start+chunkSize,file.size)-1;
     const chunk=file.slice(start,end+1);
-    const response=await fetch(cfg.supabaseUrl+'/functions/v1/youtube-upload-proxy',{
-     method:'POST',
-     headers:{
-      'Authorization':'Bearer '+(await client.auth.getSession()).data.session.access_token,
-      'apikey':cfg.supabaseKey,
-      'Content-Type':'application/octet-stream',
-      'x-upload-session':session.upload_session,
-      'x-upload-total':String(file.size),
-      'x-upload-mime':file.type,
-      'Content-Range':'bytes '+start+'-'+end+'/'+file.size
-     },
-     body:chunk
-    });
-    let part={};try{part=await response.json()}catch{}
-    if(!response.ok||part.error)throw new Error(part.error||('Upload proxy failed (HTTP '+response.status+').'));
+    const authToken=(await client.auth.getSession()).data.session.access_token;
+    let response,part={};
+    try {
+     response=await fetch(cfg.supabaseUrl+'/functions/v1/youtube-upload-proxy',{method:'POST',headers:{'Authorization':'Bearer '+authToken,'apikey':cfg.supabaseKey,'Content-Type':'application/octet-stream','x-upload-session':session.upload_session,'x-upload-total':String(file.size),'x-upload-mime':file.type,'Content-Range':'bytes '+start+'-'+end+'/'+file.size},body:chunk});
+     try{part=await response.json()}catch{}
+    } catch(networkError) {
+     $('progressText').textContent='Connection interrupted. Checking YouTube upload progress…';
+     const pr=await fetch(cfg.supabaseUrl+'/functions/v1/youtube-upload-proxy',{method:'POST',headers:{'Authorization':'Bearer '+authToken,'apikey':cfg.supabaseKey,'Content-Type':'application/octet-stream','x-upload-session':session.upload_session,'x-upload-status-check':'true','Content-Range':'bytes */'+file.size},body:''});
+     const probe=await pr.json().catch(()=>({}));
+     if(pr.ok&&probe.complete&&probe.video_id){result=probe;break}
+     if(!pr.ok||!Number.isFinite(probe.next_offset))throw new Error('Connection interrupted and YouTube could not confirm progress. Check Studio before retrying.');
+     const offset=Math.max(0,Math.min(file.size,probe.next_offset));
+     if(offset>=end+1){$('progressText').textContent='Recovered confirmed progress at '+bytes(offset)+'; continuing…';start=offset-chunkSize;continue}
+     if(offset===start){$('progressText').textContent='Retrying the unconfirmed chunk…';start=start-chunkSize;continue}
+     throw new Error('YouTube reports a partial chunk. This attempt was stopped to protect the video; check Studio before retrying.');
+    }
+    if(!response.ok||part.error)throw new Error(part.error||('Upload proxy failed (HTTP '+response.status+'). Check Studio before retrying.'));
     $('progress').value=Math.round(((end+1)/file.size)*100);
     $('progressText').textContent='Uploading '+file.name+' · '+$('progress').value+'% ('+bytes(end+1)+' / '+bytes(file.size)+')';
     await saveHistory({status:'uploading',progress_percent:$('progress').value,error_message:null});
