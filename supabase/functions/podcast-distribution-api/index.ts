@@ -21,7 +21,7 @@ Deno.serve(async(req:Request)=>{
   const platform=String(body.platform||"");
   if(!platforms.includes(platform)||platform==="crowrules") return reply(400,{error:"Unsupported external platform"});
   const show=String(body.podcast_id||"");
-  const {data:account,error:accountError}=await db.from("podcast_distribution_accounts").upsert({user_id:user.id,podcast_id:show,platform,connection_status:"needs_review",connection_method:"oauth_pending",updated_at:new Date().toISOString()},{onConflict:"user_id,podcast_id,platform"}).select("id").single();
+  const {data:account,error:accountError}=await db.from("podcast_distribution_accounts").upsert({user_id:user.id,podcast_id:show,platform,connection_status:"not_connected",connection_method:"manual",updated_at:new Date().toISOString()},{onConflict:"user_id,podcast_id,platform"}).select("id").single();
   if(accountError||!account) return reply(400,{error:"Could not create connection record. Verify creator ownership and podcast ID."});
   return reply(501,{status:"not_configured",platform,account_id:account.id,message:"OAuth is not enabled until the provider client ID, secret, redirect URI, scopes, and approved app configuration are set as Supabase Edge Function secrets. No credentials were collected and no account is connected."});
  }
