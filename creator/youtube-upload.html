@@ -7,7 +7,7 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="../config.js"></script>
 <style>
 :root{color-scheme:dark;--bg:#06070c;--panel:#10121d;--line:#2a2b40;--cyan:#61e8ff;--purple:#a78bfa;--muted:#a6a4b9;--text:#f6f5ff;--green:#70f0b4;--gold:#ffd36b;--red:#ff8094}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 8% 0,#12303a 0,transparent 30%),radial-gradient(circle at 92% 2%,#24183b 0,transparent 32%),var(--bg);color:var(--text);font:14px Montserrat,Arial,sans-serif}a{color:var(--cyan)}button,input,select,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:900px;margin:auto;padding:24px}.nav,.actions,.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.nav{justify-content:space-between;border-bottom:1px solid var(--line);padding:12px 0 20px}.brand{font:800 14px Orbitron;letter-spacing:.04em}.brand span{color:var(--cyan)}.eyebrow{font:700 10px Orbitron;letter-spacing:.18em;color:var(--cyan)}h1{font:800 clamp(27px,5vw,44px) Orbitron;margin:12px 0}h2{font:700 16px Orbitron;margin:0 0 10px}p{line-height:1.65;color:#c4c2d2}.muted,small{color:var(--muted)}.panel{background:#10121deF;border:1px solid var(--line);border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 18px 50px #0004}.field{display:grid;gap:7px;margin:13px 0}.field label{font-size:11px;font-weight:800;color:#d5d2e5}.field input,.field select,.field textarea{width:100%;background:#080a12;border:1px solid #34354c;color:var(--text);border-radius:9px;padding:12px}.field textarea{min-height:125px;resize:vertical}.btn{border:1px solid #45435e;border-radius:9px;background:#191a29;color:#fff;padding:11px 14px;font-weight:800;font-size:11px}.btn.primary{background:linear-gradient(120deg,#12404b,#30224f);border-color:#3c8395}.btn:disabled{opacity:.5;cursor:not-allowed}.alert{padding:12px;border:1px solid #715c29;background:#241e12;border-radius:10px;color:#ffe2a1;font-size:12px;line-height:1.6}.success{color:var(--green);border-color:#286c55;background:#10251f}.error{color:#ffb0bc;border-color:#7a3545;background:#2a1018}.hidden{display:none!important}.check{display:flex;align-items:flex-start;gap:10px;line-height:1.6;margin:14px 0}.check input{margin-top:4px;accent-color:var(--cyan)}progress{width:100%;height:13px;accent-color:var(--cyan)}.meta{display:grid;grid-template-columns:1fr 1fr;gap:12px}.private{display:inline-block;color:var(--green);border:1px solid #286c55;border-radius:99px;padding:5px 9px;font-size:10px;font-weight:800}.recovery-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}.summary-card{display:grid;gap:9px;padding:14px;border:1px solid #286c55;background:#10251f;border-radius:12px;min-width:0}.summary-card strong{font:800 28px Orbitron;color:var(--green)}.summary-label{font:700 9px Orbitron;letter-spacing:.07em;color:#c4c2d2;line-height:1.5}.summary-card.review{border-color:#715c29;background:#241e12}.summary-card.review strong{color:var(--gold)}@media(max-width:650px){.recovery-summary{grid-template-columns:1fr}.summary-card{grid-template-columns:1fr auto;align-items:center}.summary-card strong{font-size:24px}}@media(max-width:650px){.wrap{padding:15px}.meta{grid-template-columns:1fr}}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 8% 0,#12303a 0,transparent 30%),radial-gradient(circle at 92% 2%,#24183b 0,transparent 32%),var(--bg);color:var(--text);font:14px Montserrat,Arial,sans-serif}a{color:var(--cyan)}button,input,select,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:900px;margin:auto;padding:24px}.nav,.actions,.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.nav{justify-content:space-between;border-bottom:1px solid var(--line);padding:12px 0 20px}.brand{font:800 14px Orbitron;letter-spacing:.04em}.brand span{color:var(--cyan)}.eyebrow{font:700 10px Orbitron;letter-spacing:.18em;color:var(--cyan)}h1{font:800 clamp(27px,5vw,44px) Orbitron;margin:12px 0}h2{font:700 16px Orbitron;margin:0 0 10px}p{line-height:1.65;color:#c4c2d2}.muted,small{color:var(--muted)}.panel{background:#10121deF;border:1px solid var(--line);border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 18px 50px #0004}.field{display:grid;gap:7px;margin:13px 0}.field label{font-size:11px;font-weight:800;color:#d5d2e5}.field input,.field select,.field textarea{width:100%;background:#080a12;border:1px solid #34354c;color:var(--text);border-radius:9px;padding:12px}.field textarea{min-height:125px;resize:vertical}.btn{border:1px solid #45435e;border-radius:9px;background:#191a29;color:#fff;padding:11px 14px;font-weight:800;font-size:11px}.btn.primary{background:linear-gradient(120deg,#12404b,#30224f);border-color:#3c8395}.btn:disabled{opacity:.5;cursor:not-allowed}.alert{padding:12px;border:1px solid #715c29;background:#241e12;border-radius:10px;color:#ffe2a1;font-size:12px;line-height:1.6}.success{color:var(--green);border-color:#286c55;background:#10251f}.error{color:#ffb0bc;border-color:#7a3545;background:#2a1018}.hidden{display:none!important}.check{display:flex;align-items:flex-start;gap:10px;line-height:1.6;margin:14px 0}.check input{margin-top:4px;accent-color:var(--cyan)}progress{width:100%;height:13px;accent-color:var(--cyan)}.meta{display:grid;grid-template-columns:1fr 1fr;gap:12px}.private{display:inline-block;color:var(--green);border:1px solid #286c55;border-radius:99px;padding:5px 9px;font-size:10px;font-weight:800}.history-filters{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 10px}.history-filters .btn{display:inline-flex;align-items:center;gap:8px}.history-filters .btn span{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:99px;background:#292a3b;color:#d5d2e5;font-size:10px}.history-filters .btn.active{border-color:var(--cyan);background:#10303a;color:var(--cyan)}.history-filters .btn.active span{background:#1b4c59;color:#fff}.recovery-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}.summary-card{display:grid;gap:9px;padding:14px;border:1px solid #286c55;background:#10251f;border-radius:12px;min-width:0}.summary-card strong{font:800 28px Orbitron;color:var(--green)}.summary-label{font:700 9px Orbitron;letter-spacing:.07em;color:#c4c2d2;line-height:1.5}.summary-card.review{border-color:#715c29;background:#241e12}.summary-card.review strong{color:var(--gold)}@media(max-width:650px){.recovery-summary{grid-template-columns:1fr}.summary-card{grid-template-columns:1fr auto;align-items:center}.summary-card strong{font-size:24px}}@media(max-width:650px){.wrap{padding:15px}.meta{grid-template-columns:1fr}}
 </style>
 </head>
 <body><main class="wrap">
@@ -29,14 +29,20 @@
 <div class="actions"><button class="btn primary" id="upload" disabled>Start private video upload</button><button class="btn" id="refreshToken" type="button">Refresh YouTube token</button></div>
 </section>
 <section class="panel"><h2>03 · Upload progress</h2><progress id="progress" max="100" value="0"></progress><p id="progressText" class="muted">No upload started.</p><div id="result"></div><div class="alert">Safety note: this page does not make the video public, set a schedule, or upload automatically. A completed upload can still need YouTube processing before it is playable.</div></section>
-<section class="panel"><div class="actions" style="justify-content:space-between"><h2>04 · Upload history</h2><button class="btn" id="reloadHistory" type="button">Refresh history</button></div><p class="muted">Your latest 50 uploads and attempts. Completed means YouTube accepted the upload, not necessarily that processing finished. Check YouTube status for processing and actual privacy. After processing succeeds, open Studio and manually confirm picture and audio before marking playback verified. Uncertain transfers are flagged so you can check Studio before retrying.</p><div id="recoverySummary" class="recovery-summary" aria-live="polite"><div class="summary-card"><span class="summary-label">RESUMED SUCCESSFULLY</span><strong id="recoveryResumed">—</strong></div><div class="summary-card"><span class="summary-label">ALREADY COMPLETED</span><strong id="recoveryCompleted">—</strong></div><div class="summary-card review"><span class="summary-label">NEEDS REVIEW</span><strong id="recoveryNeedsReview">—</strong></div></div><p class="muted" style="font-size:11px;margin:8px 0">Recovery totals cover the latest 50 upload-history records shown below.</p><div id="historyNotice" class="muted">Loading upload history…</div><div id="historyList"></div></section>
+<section class="panel"><div class="actions" style="justify-content:space-between"><h2>04 · Upload history</h2><button class="btn" id="reloadHistory" type="button">Refresh history</button></div><p class="muted">Your latest 50 uploads and attempts. Completed means YouTube accepted the upload, not necessarily that processing finished. Check YouTube status for processing and actual privacy. After processing succeeds, open Studio and manually confirm picture and audio before marking playback verified. Uncertain transfers are flagged so you can check Studio before retrying.</p><div class="history-filters" role="group" aria-label="Filter upload history">
+<button class="btn active" type="button" data-history-filter="all" aria-pressed="true">All uploads <span id="filterCountAll">0</span></button>
+<button class="btn" type="button" data-history-filter="needs_review" aria-pressed="false">Needs review <span id="filterCountReview">0</span></button>
+<button class="btn" type="button" data-history-filter="recovered" aria-pressed="false">Recovered <span id="filterCountRecovered">0</span></button>
+<button class="btn" type="button" data-history-filter="ready_private" aria-pressed="false">Ready · Private <span id="filterCountReady">0</span></button>
+</div>
+<div id="historyFilterNotice" class="muted" style="font-size:11px;margin:0 0 8px" aria-live="polite">Showing all upload attempts.</div><div id="recoverySummary" class="recovery-summary" aria-live="polite"><div class="summary-card"><span class="summary-label">RESUMED SUCCESSFULLY</span><strong id="recoveryResumed">—</strong></div><div class="summary-card"><span class="summary-label">ALREADY COMPLETED</span><strong id="recoveryCompleted">—</strong></div><div class="summary-card review"><span class="summary-label">NEEDS REVIEW</span><strong id="recoveryNeedsReview">—</strong></div></div><p class="muted" style="font-size:11px;margin:8px 0">Recovery totals cover the latest 50 upload-history records shown below.</p><div id="historyNotice" class="muted">Loading upload history…</div><div id="historyList"></div></section>
 </main>
 <script>
 (() => {
  const cfg=window.CROW_CONFIG||{};
  const client=window.supabase?.createClient(cfg.supabaseUrl,cfg.supabaseKey);
  const $=id=>document.getElementById(id);
- const state={user:null,shows:[],episodes:[],busy:false,historyId:null};
+ const state={user:null,shows:[],episodes:[],busy:false,historyId:null,historyRows:[],historyFilter:'all'};
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function say(message,type='alert'){$('notice').className='alert '+type;$('notice').textContent=message}
  function bytes(n){if(!Number.isFinite(n)||n<0)return '';const units=['B','KB','MB','GB','TB'];let i=0;while(n>=1024&&i<units.length-1){n/=1024;i++}return n.toFixed(i?1:0)+' '+units[i]}
@@ -177,7 +183,35 @@
    await loadHistory();say('Recovered upload completed. Check processing and picture/audio in YouTube Studio.','success');
   }finally{state.busy=false;validate()}
  }
- function renderRecoverySummary(rows){
+ function isReadyPrivate(row){
+  return row.status==='completed'&&!!row.video_id&&row.youtube_processing_status==='succeeded'&&row.youtube_privacy_status==='private'&&['uploaded','processed'].includes(row.youtube_upload_status);
+ }
+ function needsRecoveryReview(row){
+  return row.recovery_outcome==='needs_review'||row.status==='unknown'||(row.status==='completed'&&!!row.youtube_privacy_status&&row.youtube_privacy_status!=='private')||row.youtube_processing_status==='failed'||row.youtube_processing_status==='terminated'||row.youtube_upload_status==='failed'||row.youtube_upload_status==='rejected';
+ }
+ function matchesHistoryFilter(row,filter){
+  if(filter==='needs_review')return needsRecoveryReview(row);
+  if(filter==='recovered')return row.recovery_outcome==='resumed_successfully'||row.recovery_outcome==='already_completed';
+  if(filter==='ready_private')return isReadyPrivate(row);
+  return true;
+ }
+ function renderHistoryFilterCounts(rows){
+  const counts={all:rows.length,needs_review:0,recovered:0,ready_private:0};
+  rows.forEach(row=>{if(needsRecoveryReview(row))counts.needs_review++;if(matchesHistoryFilter(row,'recovered'))counts.recovered++;if(isReadyPrivate(row))counts.ready_private++});
+  $('filterCountAll').textContent=String(counts.all);
+  $('filterCountReview').textContent=String(counts.needs_review);
+  $('filterCountRecovered').textContent=String(counts.recovered);
+  $('filterCountReady').textContent=String(counts.ready_private);
+  document.querySelectorAll('[data-history-filter]').forEach(button=>{const active=button.dataset.historyFilter===state.historyFilter;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});
+ }
+ function renderHistoryRows(){
+  const rows=state.historyRows.filter(row=>matchesHistoryFilter(row,state.historyFilter));
+  $('historyFilterNotice').textContent='Showing '+rows.length+' of '+state.historyRows.length+' upload attempts'+(state.historyFilter==='all'?'.':'. Filter: '+({needs_review:'Needs review',recovered:'Recovered',ready_private:'Ready · Private'}[state.historyFilter]||'All uploads')+'.');
+  if(!rows.length){
+   $('historyList').innerHTML='<div class="alert">No upload attempts match this filter.</div>';
+   return;
+  }
+  $('historyList').innerHTML=rows.map(row=>{
   const totals={resumed_successfully:0,already_completed:0,needs_review:0};
   (rows||[]).forEach(row=>{if(Object.prototype.hasOwnProperty.call(totals,row.recovery_outcome))totals[row.recovery_outcome]++});
   $('recoveryResumed').textContent=String(totals.resumed_successfully);
@@ -190,8 +224,12 @@
   const {data,error}=await client.from('youtube_upload_history').select('id,podcast_id,episode_id,title,visibility,status,video_id,studio_url,filename,file_size,progress_percent,error_message,upload_session_expires_at,created_at,completed_at,youtube_processing_status,youtube_privacy_status,youtube_upload_status,status_checked_at,processing_failure_reason,recovery_status,recovery_reviewed_at,recovery_note,recovery_outcome,recovery_outcome_at,file_sha256,playback_verification_status,playback_verified_at,playback_verification_note,podcasts(title)').order('created_at',{ascending:false}).limit(50);
   if(error){renderRecoverySummary([]);$('historyNotice').textContent='Upload history is not available: '+error.message;$('historyList').innerHTML='';return}
   renderRecoverySummary(data||[]);if(!data?.length){$('historyNotice').textContent='No upload attempts saved yet. Your next upload will appear here.';$('historyList').innerHTML='';return}
+  state.historyRows=data||[];
   $('historyNotice').textContent=data.length+' recent upload attempt'+(data.length===1?'':'s')+'.';
-  $('historyList').innerHTML=data.map(row=>{
+  renderHistoryFilterCounts(state.historyRows);
+  renderHistoryRows();
+ }
+ async function fingerprintFile(file){
    const label=statusLabel(row); const statusClass=label.startsWith('Ready')?'success':(label.includes('failed')||label.startsWith('Needs review'))?'error':label==='Processing'?'':'success';
    const studio=row.video_id?' <a href="https://studio.youtube.com/video/'+encodeURIComponent(row.video_id)+'/edit" target="_blank" rel="noopener">Open in YouTube Studio ↗</a>':'';
    const video=row.video_id?'<div class="muted">Video ID: <code>'+esc(row.video_id)+'</code></div>':'';
@@ -251,6 +289,14 @@
  }
  $('show').addEventListener('change',async()=>{await loadEpisodes();validate()});
  $('reloadHistory').addEventListener('click',loadHistory);
+ $('historyFiltersDummy')?.addEventListener?.('click',()=>{});
+ document.querySelector('.history-filters').addEventListener('click',event=>{
+  const button=event.target.closest('[data-history-filter]');
+  if(!button)return;
+  state.historyFilter=button.dataset.historyFilter;
+  renderHistoryFilterCounts(state.historyRows);
+  renderHistoryRows();
+ });
  $('historyList').addEventListener('click',async event=>{
   const resume=event.target.closest('[data-resume-upload]');
   if(resume){
