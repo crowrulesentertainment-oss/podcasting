@@ -65,7 +65,13 @@ function renderTracks(){
   const meter=document.createElement('div');meter.className='level-meter';meter.setAttribute('role','meter');meter.setAttribute('aria-label',t.name+' input level');meter.setAttribute('aria-valuemin','0');meter.setAttribute('aria-valuemax','100');meter.setAttribute('aria-valuenow','0');
   const fill=document.createElement('div');fill.className='level-meter-fill';fill.id='meter-'+t.id;meter.append(fill);
   const db=document.createElement('span');db.className='level-db';db.id='db-'+t.id;db.textContent='— dB';
-  meterWrap.append(meter,db);info.append(name,sub,meterWrap);
+  meterWrap.append(meter,db);
+  const volumeRow=document.createElement('div');volumeRow.style.cssText='display:grid;grid-template-columns:auto minmax(90px,1fr) auto;align-items:center;gap:10px;margin-top:9px;max-width:440px';
+  const volumeLabel=document.createElement('label');volumeLabel.textContent='Mix volume';volumeLabel.style.cssText='font-size:12px;color:var(--muted)';
+  const volume=document.createElement('input');volume.type='range';volume.min='0';volume.max='200';volume.step='5';volume.value=String(Math.round((t.mixGain??1)*100));volume.setAttribute('aria-label','Mix volume for '+t.name);volume.disabled=state.busy;
+  const volumeValue=document.createElement('output');volumeValue.textContent=volume.value+'%';volumeValue.style.cssText='font-size:12px;min-width:42px;text-align:right;color:var(--cyan)';
+  volume.addEventListener('input',()=>{const gain=Number(volume.value)/100;t.mixGain=gain;if(t.gainNode)t.gainNode.gain.setTargetAtTime(gain,t.gainNode.context.currentTime,.015);volumeValue.textContent=volume.value+'%';});
+  volumeRow.append(volumeLabel,volume,volumeValue);info.append(name,sub,meterWrap,volumeRow);
   const sel=document.createElement('select');sel.setAttribute('aria-label','Microphone for '+t.name);
   state.devices.forEach((d,n)=>{const o=document.createElement('option');o.value=d.deviceId;o.textContent=d.label||'Microphone '+(n+1);sel.append(o);});
   sel.value=t.deviceId;sel.disabled=state.busy;sel.addEventListener('change',()=>{t.deviceId=sel.value;});
