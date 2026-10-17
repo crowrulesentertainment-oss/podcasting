@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YouTube Private Upload · CrowRules Podcasting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="../config.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#06070c;--panel:#10121d;--line:#2a2b40;--cyan:#61e8ff;--purple:#a78bfa;--muted:#a6a4b9;--text:#f6f5ff;--green:#70f0b4;--gold:#ffd36b;--red:#ff8094}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 8% 0,#12303a 0,transparent 30%),radial-gradient(circle at 92% 2%,#24183b 0,transparent 32%),var(--bg);color:var(--text);font:14px Montserrat,Arial,sans-serif}a{color:var(--cyan)}button,input,select,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:900px;margin:auto;padding:24px}.nav,.actions,.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.nav{justify-content:space-between;border-bottom:1px solid var(--line);padding:12px 0 20px}.brand{font:800 14px Orbitron;letter-spacing:.04em}.brand span{color:var(--cyan)}.eyebrow{font:700 10px Orbitron;letter-spacing:.18em;color:var(--cyan)}h1{font:800 clamp(27px,5vw,44px) Orbitron;margin:12px 0}h2{font:700 16px Orbitron;margin:0 0 10px}p{line-height:1.65;color:#c4c2d2}.muted,small{color:var(--muted)}.panel{background:#10121deF;border:1px solid var(--line);border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 18px 50px #0004}.field{display:grid;gap:7px;margin:13px 0}.field label{font-size:11px;font-weight:800;color:#d5d2e5}.field input,.field select,.field textarea{width:100%;background:#080a12;border:1px solid #34354c;color:var(--text);border-radius:9px;padding:12px}.field textarea{min-height:125px;resize:vertical}.btn{border:1px solid #45435e;border-radius:9px;background:#191a29;color:#fff;padding:11px 14px;font-weight:800;font-size:11px}.btn.primary{background:linear-gradient(120deg,#12404b,#30224f);border-color:#3c8395}.btn:disabled{opacity:.5;cursor:not-allowed}.alert{padding:12px;border:1px solid #715c29;background:#241e12;border-radius:10px;color:#ffe2a1;font-size:12px;line-height:1.6}.success{color:var(--green);border-color:#286c55;background:#10251f}.error{color:#ffb0bc;border-color:#7a3545;background:#2a1018}.hidden{display:none!important}.check{display:flex;align-items:flex-start;gap:10px;line-height:1.6;margin:14px 0}.check input{margin-top:4px;accent-color:var(--cyan)}progress{width:100%;height:13px;accent-color:var(--cyan)}.meta{display:grid;grid-template-columns:1fr 1fr;gap:12px}.private{display:inline-block;color:var(--green);border:1px solid #286c55;border-radius:99px;padding:5px 9px;font-size:10px;font-weight:800}@media(max-width:650px){.wrap{padding:15px}.meta{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main class="wrap">
+<nav class="nav"><div class="brand">CROWRULES <span>·</span> YOUTUBE UPLOAD</div><div class="actions"><a href="distribution.html">← Distribution Center</a><a href="../creator.html">Creator Dashboard</a></div></nav>
+<header style="padding:26px 0 8px"><div class="eyebrow">CONTROLLED PUBLISHING WORKFLOW</div><h1>Upload to <span style="color:var(--cyan)">YouTube.</span></h1><p>Prepare an episode video, review its metadata, then confirm the upload. This workflow starts a resumable upload and sends the selected file to YouTube. <strong>Visibility is locked to Private</strong>; public publishing is not part of this test.</p></header>
+<div id="notice" class="alert">Sign in to CrowRules Podcasting to prepare a private upload.</div>
+<section class="panel"><h2>01 · Episode and video</h2>
+<div class="field"><label for="show">YOUR PODCAST</label><select id="show"><option value="">Loading your podcasts…</option></select></div>
+<div class="field"><label for="episode">EPISODE (OPTIONAL METADATA PRE-FILL)</label><select id="episode"><option value="">Choose a podcast first</option></select></div>
+<div class="field"><label for="file">VIDEO FILE</label><input id="file" type="file" accept="video/*"><small>Choose a video file you have permission to upload. Large files may take time; keep this tab open while uploading.</small></div>
+<div id="fileInfo" class="muted">No file selected.</div>
+</section>
+<section class="panel"><h2>02 · YouTube details</h2>
+<div class="field"><label for="title">VIDEO TITLE (REQUIRED · UP TO 100 CHARACTERS)</label><input id="title" maxlength="100" placeholder="Episode title"></div>
+<div class="field"><label for="description">DESCRIPTION (UP TO 5,000 CHARACTERS)</label><textarea id="description" maxlength="5000" placeholder="Describe this episode for viewers…"></textarea></div>
+<div class="field"><label for="tags">TAGS (OPTIONAL · COMMA-SEPARATED)</label><input id="tags" maxlength="500" value="CrowRules, podcast, independent podcast"></div>
+<div class="meta"><div><small>Visibility</small><p><span class="private">PRIVATE — LOCKED</span></p></div><div><small>Upload behavior</small><p>Manual start only · no automatic publish</p></div></div>
+<label class="check"><input type="checkbox" id="confirm"><span>I confirm that I own this video or have permission to upload it, and I understand it will be sent to the connected YouTube channel as a <strong>private</strong> video.</span></label>
+<div class="actions"><button class="btn primary" id="upload" disabled>Start private video upload</button><button class="btn" id="refreshToken" type="button">Refresh YouTube token</button></div>
+</section>
+<section class="panel"><h2>03 · Upload progress</h2><progress id="progress" max="100" value="0"></progress><p id="progressText" class="muted">No upload started.</p><div id="result"></div><div class="alert">Safety note: this page does not make the video public, set a schedule, or upload automatically. A completed upload can still need YouTube processing before it is playable.</div></section>
+</main>
+<script>
+(() => {
+ const cfg=window.CROW_CONFIG||{};
+ const client=window.supabase?.createClient(cfg.supabaseUrl,cfg.supabaseKey);
+ const $=id=>document.getElementById(id);
+ const state={user:null,shows:[],episodes:[],busy:false};
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function say(message,type='alert'){$('notice').className='alert '+type;$('notice').textContent=message}
+ function bytes(n){if(!Number.isFinite(n)||n<0)return '';const units=['B','KB','MB','GB','TB'];let i=0;while(n>=1024&&i<units.length-1){n/=1024;i++}return n.toFixed(i?1:0)+' '+units[i]}
+ function selectedShow(){return state.shows.find(s=>s.id===$('show').value)}
+ function selectedEpisode(){return state.episodes.find(e=>e.id===$('episode').value)}
+ async function loadEpisodes(){
+  const show=selectedShow();state.episodes=[];
+  if(!show){$('episode').innerHTML='<option value="">Choose a podcast first</option>';return}
+  const {data,error}=await client.from('podcast_episodes').select('id,title,description,video_url,thumbnail_url').eq('podcast_id',show.id).order('created_at',{ascending:false});
+  if(error){say('Could not load episodes: '+error.message,'error');return}
+  state.episodes=data||[];
+  $('episode').innerHTML='<option value="">Custom upload (no episode selected)</option>'+state.episodes.map(e=>'<option value="'+esc(e.id)+'">'+esc(e.title||'Untitled episode')+'</option>').join('');
+ }
+ async function init(){
+  if(!client){say('Supabase configuration did not load. Check config.js.','error');return}
+  const {data:{session},error}=await client.auth.getSession();
+  if(error||!session){say('Please sign in, then reopen this upload page.','error');$('show').innerHTML='<option value="">Sign in required</option>';return}
+  state.user=session.user;
+  const {data:member,error:meErr}=await client.from('members').select('id').eq('user_id',session.user.id).maybeSingle();
+  if(meErr||!member){say('Could not verify your CrowRules member profile. '+(meErr?.message||''),'error');return}
+  const {data:creators,error:cErr}=await client.from('creators').select('id').eq('member_id',member.id);
+  if(cErr){say('Unable to load creator profile: '+cErr.message,'error');return}
+  const ids=(creators||[]).map(c=>c.id);
+  if(!ids.length){say('No creator profile is linked to this account.','error');return}
+  const {data:shows,error:sErr}=await client.from('podcasts').select('id,title,creator_id').in('creator_id',ids).order('title');
+  if(sErr){say('Unable to load podcasts: '+sErr.message,'error');return}
+  state.shows=shows||[];
+  $('show').innerHTML=state.shows.length?state.shows.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.title)+'</option>').join(''):'<option value="">No podcasts found</option>';
+  await loadEpisodes();
+  say('Signed in. Select your podcast, video file, and details. Upload remains manual and private.','success');
+ }
+ function prefill(){
+  const ep=selectedEpisode();
+  if(ep){$('title').value=(ep.title||'').slice(0,100);$('description').value=(ep.description||'').slice(0,5000)}
+ }
+ function validate(){
+  const file=$('file').files?.[0];
+  $('upload').disabled=state.busy||!state.user||!selectedShow()||!file||!file.type.startsWith('video/')||!$('title').value.trim()||!$('confirm').checked;
+ }
+ $('show').addEventListener('change',async()=>{await loadEpisodes();validate()});
+ $('episode').addEventListener('change',prefill);
+ $('file').addEventListener('change',()=>{const f=$('file').files?.[0];$('fileInfo').textContent=f?f.name+' · '+bytes(f.size)+' · '+(f.type||'unknown MIME type'):'No file selected.';validate()});
+ ['title','description','tags','confirm'].forEach(id=>$(id).addEventListener('input',validate));
+ $('refreshToken').addEventListener('click',async()=>{
+  const show=selectedShow();if(!show){say('Select a podcast first.');return}
+  $('refreshToken').disabled=true;
+  try{const {data,error}=await client.functions.invoke('youtube-oauth',{body:{action:'refresh',podcast_id:show.id}});if(error)throw error;if(data?.error)throw new Error(data.error);say(data.message||'YouTube token refreshed and channel verified. No upload was attempted.','success')}
+  catch(e){say('Token refresh failed: '+(e.message||'Unknown error'),'error')}
+  finally{$('refreshToken').disabled=false}
+ });
+ $('upload').addEventListener('click',async()=>{
+  const show=selectedShow(),file=$('file').files?.[0];
+  if(!show||!file||!$('confirm').checked){validate();return}
+  if(!confirm('Upload "'+file.name+'" to '+show.title+' as a PRIVATE YouTube video? The selected video file will be sent to YouTube.'))return;
+  state.busy=true;validate();$('result').innerHTML='';$('progress').value=0;$('progressText').textContent='Preparing secure upload session…';say('Preparing upload. No video is public; privacy is locked to Private.');
+  try{
+   const payload={podcast_id:show.id,title:$('title').value.trim(),description:$('description').value.trim(),tags:$('tags').value.split(',').map(s=>s.trim()).filter(Boolean),filename:file.name,mime_type:file.type,file_size:file.size};
+   const {data:session,error}=await client.functions.invoke('youtube-upload-session',{body:payload});
+   if(error)throw error;if(session?.error)throw new Error(session.error);if(!session?.upload_url)throw new Error('The server did not return an upload session.');
+   $('progressText').textContent='Uploading '+file.name+' to YouTube…';
+   const response=await fetch(session.upload_url,{method:'PUT',headers:{'Content-Type':file.type,'Content-Length':String(file.size)},body:file});
+   const text=await response.text();let result={};try{result=JSON.parse(text)}catch{}
+   if(!response.ok)throw new Error('YouTube upload failed (HTTP '+response.status+'). '+(result.error?.message||text.slice(0,350)||'Try again; no success was reported.'));
+   $('progress').value=100;
+   const videoId=result.id;
+   $('progressText').textContent='Upload accepted by YouTube. Video processing may continue in YouTube Studio.';
+   $('result').innerHTML='<div class="alert success"><strong>Private upload completed.</strong><br>Visibility was set to Private before upload. '+(videoId?'Video ID: '+esc(videoId)+'<br><a href="https://studio.youtube.com/video/'+encodeURIComponent(videoId)+'/edit" target="_blank" rel="noopener">Open in YouTube Studio</a>':'YouTube accepted the upload; video ID was not returned.')+'</div>';
+   say('YouTube accepted the video upload. It remains private; review it in YouTube Studio.','success');
+  }catch(e){
+   $('progressText').textContent='Upload did not complete.';
+   $('result').innerHTML='<div class="alert error">'+esc(e.message||'Upload failed.')+'</div>';
+   say('Upload failed or could not be confirmed. Check the message below before retrying.','error');
+  }finally{state.busy=false;validate()}
+ });
+ init();
+})();
+</script>
+</body></html>
