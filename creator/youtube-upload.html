@@ -32,10 +32,10 @@
 <section class="panel"><div class="actions" style="justify-content:space-between"><h2>04 · Upload history</h2><button class="btn" id="reloadHistory" type="button">Refresh history</button></div><p class="muted">Your latest 50 uploads and attempts. Completed means YouTube accepted the upload, not necessarily that processing finished. Check YouTube status for processing and actual privacy. After processing succeeds, open Studio and manually confirm picture and audio before marking playback verified. Uncertain transfers are flagged so you can check Studio before retrying.</p><div class="history-search">
 <label for="historySearch">Search upload history</label>
 <div class="history-search-control"><input id="historySearch" type="search" autocomplete="off" placeholder="Search title, filename, or YouTube video ID…" aria-describedby="historySearchHelp"><button class="btn" type="button" id="clearHistorySearch" aria-label="Clear upload history search">Clear</button></div>
-<div class="history-export-actions"><button class="btn" type="button" id="exportHistoryCsv"><span aria-hidden="true">↓</span> Export visible results CSV</button><span class="muted" id="historyExportHelp">Exports the rows matching your search and filter.</span></div>
+<div class="history-export-actions"><button class="btn" type="button" id="exportHistoryCsv"><span aria-hidden="true">↓</span> Export all matching results CSV</button><span class="muted" id="historyExportHelp">Exports the rows matching your search and filter.</span></div>
 <div class="history-date-filters" aria-label="Filter upload history by date"><div class="history-date-field"><label for="historyStartDate">From date</label><input id="historyStartDate" type="date"></div><div class="history-date-field"><label for="historyEndDate">To date</label><input id="historyEndDate" type="date"></div><button class="btn" type="button" id="clearHistoryDates">Clear dates</button></div>
 <div id="historyDateHelp" class="muted" style="font-size:11px;margin:0 0 10px" aria-live="polite">Dates use each upload attempt's creation date. Leave either field blank for an open-ended range.</div>
-<div class="history-export-actions"><button class="btn" type="button" id="exportHistoryCsv"><span aria-hidden="true">↓</span> Export visible results CSV</button><span class="muted" id="historyExportHelp">Exports the rows matching your dates, search, and filter.</span></div>
+<div class="history-export-actions"><button class="btn" type="button" id="exportHistoryCsv"><span aria-hidden="true">↓</span> Export visible results CSV</button><span class="muted" id="historyExportHelp">Exports all rows matching your dates, search, and filter.</span></div>
 <div id="historySearchHelp" class="muted" style="font-size:11px;margin-top:5px">Searches the latest 50 upload attempts and works together with the filters below.</div>
 </div>
 <div class="history-filters" role="group" aria-label="Filter upload history">
@@ -252,23 +252,27 @@
  }
  async function exportHistoryCsv(){
   if(!state.historyTotal){$('historyExportHelp').textContent='No matching upload history to export.';return}
-  const button=$('exportHistoryCsv');button.disabled=true;$('historyExportHelp').textContent='Preparing complete export of '+state.historyTotal+' matching records…';
+  const button=$('exportHistoryCsv');button.disabled=true;
+  const headers=['Created at','Completed at','Title','Podcast','Filename','File size (bytes)','Upload status','Progress (%)','YouTube video ID','YouTube Studio URL','Requested privacy','Actual YouTube privacy','YouTube processing status','YouTube upload status','Recovery status','Recovery outcome','Recovery outcome at','Playback verification','Playback verified at','Playback verification note','Error message'];
+  const csvLines=[headers.map(csvCell).join(',')],chunkSize=500;
+  $('historyExportHelp').textContent='Preparing complete export of '+state.historyTotal+' matching records…';
   try{
-   const allRows=[];const chunkSize=500;
+   let exported=0;
    for(let from=0;from<state.historyTotal;from+=chunkSize){
-    const result=await buildHistoryQuery({from,to:Math.min(from+chunkSize-1,state.historyTotal-1)}); 
+    const result=await buildHistoryQuery({from,to:Math.min(from+chunkSize-1,state.historyTotal-1)});
     if(result.error)throw result.error;
-    allRows.push(...(result.data||[]));
-    $('historyExportHelp').textContent='Preparing CSV… '+allRows.length+' of '+state.historyTotal;
+    const batch=result.data||[];
+    if(!batch.length)break;
+    for(const row of batch)csvLines.push([
+     row.created_at,row.completed_at,row.title,row.podcasts?.title,row.filename,row.file_size,row.status,row.progress_percent,row.video_id,row.video_id?'https://studio.youtube.com/video/'+row.video_id+'/edit':'',row.visibility,row.youtube_privacy_status,row.youtube_processing_status,row.youtube_upload_status,row.recovery_status,row.recovery_outcome,row.recovery_outcome_at,row.playback_verification_status,row.playback_verified_at,row.playback_verification_note,row.error_message
+    ].map(csvCell).join(','));
+    exported+=batch.length;
+    $('historyExportHelp').textContent='Preparing CSV… '+exported+' of '+state.historyTotal;
    }
-   if(!allRows.length){$('historyExportHelp').textContent='No matching rows to export.';return}
-   const headers=['Created at','Completed at','Title','Podcast','Filename','File size (bytes)','Upload status','Progress (%)','YouTube video ID','YouTube Studio URL','Requested privacy','Actual YouTube privacy','YouTube processing status','YouTube upload status','Recovery status','Recovery outcome','Recovery outcome at','Playback verification','Playback verified at','Playback verification note','Error message'];
-   const lines=[headers,...allRows.map(row=>[
-    row.created_at,row.completed_at,row.title,row.podcasts?.title,row.filename,row.file_size,row.status,row.progress_percent,row.video_id,row.video_id?'https://studio.youtube.com/video/'+row.video_id+'/edit':'',row.visibility,row.youtube_privacy_status,row.youtube_processing_status,row.youtube_upload_status,row.recovery_status,row.recovery_outcome,row.recovery_outcome_at,row.playback_verification_status,row.playback_verified_at,row.playback_verification_note,row.error_message
-   ])].map(line=>line.map(csvCell).join(',')).join('\r\n');
-   const blob=new Blob(['\uFEFF',lines],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),link=document.createElement('a');
+   if(!exported){$('historyExportHelp').textContent='No matching rows to export.';return}
+   const blob=new Blob(['\uFEFF',csvLines.join('\r\n')],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),link=document.createElement('a');
    link.href=url;link.download='crowrules-youtube-upload-history-'+new Date().toISOString().slice(0,10)+'.csv';link.style.display='none';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-   $('historyExportHelp').textContent='Exported '+allRows.length+' upload record'+(allRows.length===1?'':'s')+'.';
+   $('historyExportHelp').textContent='Exported '+exported+' upload record'+(exported===1?'':'s')+'.';
   }catch(error){$('historyExportHelp').textContent='CSV export failed: '+(error.message||'Could not load all matching records.')}
   finally{button.disabled=false}
  }
@@ -384,7 +388,7 @@
  $('historyStartDate').addEventListener('change',()=>{
   const start=$('historyStartDate').value,end=$('historyEndDate').value;
   if(start&&end&&start>end){$('historyEndDate').setCustomValidity('End date must be on or after start date.');$('historyEndDate').reportValidity();$('historyEndDate').setCustomValidity('');return}
-  $('historyEndDate').setCustomValidity('');$('historyExportHelp').textContent='Exports all records matching your dates, search, and filter.';reloadHistoryFromFirstPage();
+  $('historyEndDate').setCustomValidity('');$('historyExportHelp').textContent='Exports all rows matching your dates, search, and filter.';reloadHistoryFromFirstPage();
  });
  $('historyEndDate').addEventListener('change',()=>{
   const start=$('historyStartDate').value,end=$('historyEndDate').value;
