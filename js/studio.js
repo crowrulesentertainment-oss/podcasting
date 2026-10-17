@@ -5,7 +5,7 @@ const supabaseUrl = cfg.supabaseUrl;
 const supabaseKey = cfg.supabaseKey;
 const BUCKET = 'studio-recordings';
 const $ = id => document.getElementById(id);
-const state = { client:null, user:null, devices:[], tracks:[], master:null, openingFile:null, endingFile:null, openingBuffer:null, endingBuffer:null, openingSource:null, endingSource:null, audioContext:null, destination:null, startedAt:0, elapsedBeforePause:0, timerInterval:null, raf:null, saved:[], busy:false };
+const state = { client:null, user:null, devices:[], tracks:[], master:null, openingFile:null, endingFile:null, openingBuffer:null, endingBuffer:null, openingSource:null, endingSource:null, openingGain:0.7, endingGain:0.7, previewSource:null, audioContext:null, destination:null, startedAt:0, elapsedBeforePause:0, timerInterval:null, raf:null, saved:[], busy:false };
 const say = (message, error=false) => { const el=$('status'); el.textContent=message; el.classList.toggle('error',!!error); };
 const fmt = seconds => { seconds=Math.max(0,Math.floor(seconds)); return [Math.floor(seconds/3600),Math.floor(seconds%3600/60),seconds%60].map(n=>String(n).padStart(2,'0')).join(':'); };
 const slug = s => (s||'episode').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,70)||'episode';
@@ -100,11 +100,51 @@ async function decodeOptionalTrack(file){
  const bytes=await file.arrayBuffer();
  return await state.audioContext.decodeAudioData(bytes.slice(0));
 }
-function playBuffer(buffer){
+function playBuffer(buffer,role='opening',preview=false){
  if(!buffer||!state.audioContext||!state.destination)return null;
- const source=state.audioContext.createBufferSource();
- source.buffer=buffer;source.connect(state.destination);source.start();
+ if(preview&&state.previewSource){try{state.previewSource.stop();}catch{}state.previewSource=null;}
+ const source=state.audioContext.createBufferSource();const gain=state.audioContext.createGain();
+ source.buffer=buffer;gain.gain.value=role==='ending'?state.endingGain:state.openingGain;
+ source.connect(gain);gain.connect(state.destination);source.start();
+ if(preview){state.previewSource=source;source.onended=()=>{if(state.previewSource===source)state.previewSource=null;};}
  return source;
+}
+async function previewBed(role){
+ if(state.busy||state.tracks.some(t=>t.recorder&&t.recorder.state!=='inactive')){say('Stop recording before previewing the music tracks.',true);return;}
+ try{
+  if(!state.user)throw new Error('Sign in before previewing private saved tracks.');
+  state.busy=true;$('previewOpening').disabled=true;$('previewEnding').disabled=true;
+  await setupBedTracks();state.audioContext=new (window.AudioContext||window.webkitAudioContext)();state.destination=state.audioContext.createMediaStreamDestination();
+  const file=role==='ending'?state.endingFile:state.openingFile;const buffer=await decodeOptionalTrack(file);
+  if(!buffer)throw new Error('Choose an uploaded or saved '+role+' track first.');
+  if(state.audioContext.state==='suspended')await state.audioContext.resume();
+  const source=state.audioContext.createBufferSource();const gain=state.audioContext.createGain();source.buffer=buffer;gain.gain.value=role==='ending'?state.endingGain:state.openingGain;source.connect(gain);gain.connect(state.audioContext.destination);source.start();
+  source.onended=()=>{if(state.audioContext&&state.audioContext.state!=='closed')state.audioContext.close().catch(()=>{});state.audioContext=null;state.destination=null;state.previewSource=null;};
+  state.previewSource=source;say('Previewing '+role+' music at '+Math.round((role==='ending'?state.endingGain:state.openingGain)*100)+'% volume.');
+ }catch(e){say('Could not preview music: '+(e.message||e),true);if(state.audioContext&&state.audioContext.state!=='closed')await state.audioContext.close().catch(()=>{});state.audioContext=null;state.destination=null;}
+ finally{state.busy=false;$('previewOpening').disabled=false;$('previewEnding').disabled=false;}
+}
+async function runSoundCheck(){
+ if(state.busy||!state.user)return;
+ if(!state.tracks.length){say('Add at least one microphone track before running the sound check.',true);return;}
+ state.busy=true;$('soundCheckBtn').disabled=true;$('startBtn').disabled=true;
+ const results=[];
+ try{
+  for(const t of state.tracks){
+   $('soundCheckResult').textContent='Checking '+t.name+'… Please speak normally for about two seconds.';
+   const stream=await navigator.mediaDevices.getUserMedia({audio:{deviceId:{exact:t.deviceId},echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+   const context=new (window.AudioContext||window.webkitAudioContext)();const source=context.createMediaStreamSource(stream);const analyser=context.createAnalyser();analyser.fftSize=2048;source.connect(analyser);
+   const samples=new Uint8Array(analyser.fftSize);let sumSquares=0,count=0,peak=0;
+   const started=Date.now();
+   try{while(Date.now()-started<2200){analyser.getByteTimeDomainData(samples);for(let i=0;i<samples.length;i++){const n=(samples[i]-128)/128;sumSquares+=n*n;peak=Math.max(peak,Math.abs(n));count++;}await new Promise(resolve=>setTimeout(resolve,100));}}
+   finally{stream.getTracks().forEach(track=>track.stop());source.disconnect();await context.close().catch(()=>{});}
+   const rms=count?Math.sqrt(sumSquares/count):0;const db=rms>0?20*Math.log10(rms):-Infinity;
+   results.push({name:t.name,db,peak});
+  }
+  $('soundCheckResult').textContent=results.map(x=>x.name+': '+(Number.isFinite(x.db)?x.db.toFixed(1)+' dB RMS':'no signal')+(x.peak>.96?' · possible clipping':x.db<-45?' · very quiet':' · signal detected')).join(' | ');
+  say('Sound check complete. Speak at your normal recording distance and adjust your microphone or track mix as needed.');
+ }catch(e){$('soundCheckResult').textContent='Sound check could not finish: '+(e.message||e);say('Sound check failed: '+(e.message||e),true);}
+ finally{state.busy=false;$('soundCheckBtn').disabled=false;$('startBtn').disabled=false;}
 }
 function addTrack(){
  if(state.busy)return;
@@ -138,7 +178,7 @@ async function startRecording(){
   state.master.recorder.ondataavailable=e=>{if(e.data?.size)state.master.chunks.push(e.data);};
   state.master.recorder.onstop=()=>{state.master.blob=new Blob(state.master.chunks,{type:state.master.recorder.mimeType||'audio/webm'});};
   state.tracks.forEach(t=>{t.recorder.start(1000);t.status='Recording';});state.master.recorder.start(1000);
-  if(state.openingBuffer)playBuffer(state.openingBuffer);
+  if(state.openingBuffer)playBuffer(state.openingBuffer,'opening');
   state.startedAt=Date.now();state.elapsedBeforePause=0;state.timerInterval=setInterval(()=>{$('timer').textContent=fmt(state.elapsedBeforePause+(state.startedAt?((Date.now()-state.startedAt)/1000):0));},250);
   $('pauseBtn').disabled=false;$('stopBtn').disabled=false;$('pauseBtn').textContent='Ⅱ Pause';say('Recording. Keep this browser tab open. All tracks are captured separately plus the master mix.');
  }catch(e){cleanupStreams();say('Could not start every track: '+(e.message||e)+'. Check device permissions and try again.',true);}
@@ -158,7 +198,7 @@ async function stopRecording(){
   [...state.tracks.map(t=>t.recorder),state.master?.recorder].filter(Boolean).forEach(r=>{if(r.state==='paused')r.resume();});
   if(!state.startedAt)state.startedAt=Date.now();
   say('Playing ending track into the master mix…');
-  try{if(state.audioContext.state==='suspended')await state.audioContext.resume();playBuffer(state.endingBuffer);await new Promise(resolve=>setTimeout(resolve,state.endingBuffer.duration*1000+150));}catch(e){say('Ending track could not finish: '+(e.message||e)+'. Stopping recording now.',true);}
+  try{if(state.audioContext.state==='suspended')await state.audioContext.resume();playBuffer(state.endingBuffer,'ending');await new Promise(resolve=>setTimeout(resolve,state.endingBuffer.duration*1000+150));}catch(e){say('Ending track could not finish: '+(e.message||e)+'. Stopping recording now.',true);}
  }
  clearInterval(state.timerInterval);if(state.startedAt)state.elapsedBeforePause+=(Date.now()-state.startedAt)/1000;state.startedAt=0;$('timer').textContent=fmt(state.elapsedBeforePause);
  await Promise.all(recs.map(r=>new Promise(resolve=>{if(r.state==='inactive')return resolve();r.addEventListener('stop',resolve,{once:true});try{r.stop();}catch{resolve();}})));
@@ -270,7 +310,7 @@ async function createDraft(row,button,chosenPodcast){
 }
 $('openingFile').addEventListener('change',()=>{if($('openingFile').files.length)$('openingSavedTrack').value='';});$('endingFile').addEventListener('change',()=>{if($('endingFile').files.length)$('endingSavedTrack').value='';});
 $('openingSavedTrack').addEventListener('change',()=>{if($('openingSavedTrack').value)$('openingFile').value='';});$('endingSavedTrack').addEventListener('change',()=>{if($('endingSavedTrack').value)$('endingFile').value='';});
-$('refreshDevices').addEventListener('click',refreshDevices);$('addTrack').addEventListener('click',addTrack);$('startBtn').addEventListener('click',startRecording);$('pauseBtn').addEventListener('click',pauseRecording);$('stopBtn').addEventListener('click',stopRecording);
+$('openingVolume').addEventListener('input',()=>{state.openingGain=Number($('openingVolume').value)/100;$('openingVolumeValue').textContent=$('openingVolume').value+'%';});$('endingVolume').addEventListener('input',()=>{state.endingGain=Number($('endingVolume').value)/100;$('endingVolumeValue').textContent=$('endingVolume').value+'%';});$('previewOpening').addEventListener('click',()=>previewBed('opening'));$('previewEnding').addEventListener('click',()=>previewBed('ending'));$('soundCheckBtn').addEventListener('click',runSoundCheck);$('refreshDevices').addEventListener('click',refreshDevices);$('addTrack').addEventListener('click',addTrack);$('startBtn').addEventListener('click',startRecording);$('pauseBtn').addEventListener('click',pauseRecording);$('stopBtn').addEventListener('click',stopRecording);
 window.addEventListener('beforeunload',e=>{const recording=state.tracks.some(t=>t.recorder&&t.recorder.state!=='inactive')||(state.master?.recorder&&state.master.recorder.state!=='inactive');const unsaved=state.tracks.some(t=>t.blob?.size)||!!state.master?.blob?.size;if(recording||unsaved||state.busy){e.preventDefault();e.returnValue=recording?'Recording in progress':state.busy?'Audio upload in progress':'Your recorded audio has not been saved yet';}});
 drawWave();init();
 })();
