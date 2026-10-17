@@ -233,6 +233,7 @@
    if(data?.authorization_url){window.location.assign(data.authorization_url);return}
    if(data?.status==='connected'){await loadConnections();say(data.message||'CrowRules profile connected.',true);return}
    say(data?.message||'This provider needs its official OAuth app credentials and callback setup before it can connect. No external account was connected.',false);
+   button.disabled=false;button.textContent='Connect '+titleCase(platform);
   }catch(err){say('Could not start '+titleCase(platform)+' connection: '+(err.message||'Please retry.'));button.disabled=false;button.textContent='Connect '+titleCase(platform)}
  });
  renderPlatforms();init();
