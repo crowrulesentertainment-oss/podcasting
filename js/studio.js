@@ -202,7 +202,7 @@ async function stopRecording(){
  }
  clearInterval(state.timerInterval);if(state.startedAt)state.elapsedBeforePause+=(Date.now()-state.startedAt)/1000;state.startedAt=0;$('timer').textContent=fmt(state.elapsedBeforePause);
  await Promise.all(recs.map(r=>new Promise(resolve=>{if(r.state==='inactive')return resolve();r.addEventListener('stop',resolve,{once:true});try{r.stop();}catch{resolve();}})));
- if(state.resumeMasterBlob&&state.master?.blob?.size){try{say('Combining this take with the previously saved master…');state.master.blob=await mergeAudioBlobs(state.resumeMasterBlob,state.master.blob);state.master.durationSeconds=Math.round(state.resumeRow?.duration_seconds||0)+Math.round(Math.max(0,state.elapsedBeforePause-(state.resumeRow?.duration_seconds||0)));}catch(e){say('Could not combine the previous master automatically: '+(e.message||e)+'. This new take can still be saved separately.',true);state.resumeRow=null;state.resumeMasterBlob=null;}}
+ if(state.resumeMasterBlob&&state.master?.blob?.size){try{say('Combining this take with the previously saved master…');state.master.blob=await mergeAudioBlobs(state.resumeMasterBlob,state.master.blob);state.master.durationSeconds=Math.round(state.resumeRow?.duration_seconds||0)+Math.round(Math.max(0,state.elapsedBeforePause-(state.resumeRow?.duration_seconds||0)));}catch(e){say('Could not combine the previous master automatically: '+(e.message||e)+'. This new take can still be saved separately.',true);state.elapsedBeforePause=Math.max(0,state.elapsedBeforePause-Number(state.resumeRow?.duration_seconds||0));state.resumeRow=null;state.resumeMasterBlob=null;}}
  state.tracks.forEach(t=>t.stream?.getTracks().forEach(x=>x.stop()));state.master?.stream?.getTracks().forEach(x=>x.stop());
  if(state.audioContext&&state.audioContext.state!=='closed')await state.audioContext.close().catch(()=>{});state.audioContext=null;
  $('pauseBtn').disabled=true;$('stopBtn').disabled=true;$('startBtn').disabled=false;$('pauseBtn').textContent='Ⅱ Pause';
@@ -237,7 +237,7 @@ async function applyMasterEdit(button,player,startInput,endInput,fadeInInput,fad
   const clipDuration=end-start;const length=Math.max(1,Math.floor(clipDuration*decoded.sampleRate));const offline=new OfflineAudioContext(decoded.numberOfChannels,length,decoded.sampleRate);const source=offline.createBufferSource();source.buffer=decoded;const gain=offline.createGain();const fadeIn=Math.min(clipDuration,Math.max(0,Number(fadeInInput.value)||0));const fadeOut=Math.min(clipDuration-fadeIn,Math.max(0,Number(fadeOutInput.value)||0));const fadeOutStart=clipDuration-fadeOut;
   gain.gain.setValueAtTime(fadeIn>0?0:1,0);if(fadeIn>0)gain.gain.linearRampToValueAtTime(1,fadeIn);if(fadeOut>0){gain.gain.setValueAtTime(1,fadeOutStart);gain.gain.linearRampToValueAtTime(0,clipDuration);}
   source.connect(gain);gain.connect(offline.destination);source.start(0,start,clipDuration);const rendered=await offline.startRendering();const edited=encodeWav(rendered);
-  state.master.originalBlob=state.master.originalBlob||state.master.blob;state.master.originalDurationSeconds=state.master.originalDurationSeconds||duration;state.master.blob=edited;state.master.durationSeconds=clipDuration;const originalButton=button.parentElement?.querySelector('[data-original-download]');if(originalButton)originalButton.disabled=false;const restoreButton=button.parentElement?.querySelector('[data-restore-master]');if(restoreButton)restoreButton.disabled=false;
+  state.master.originalBlob=state.master.originalBlob||state.master.blob;state.master.originalDurationSeconds=state.master.originalDurationSeconds||duration;state.master.blob=edited;state.master.durationSeconds=clipDuration;const originalButton=button.closest('.saved')?.querySelector('[data-original-download]');if(originalButton)originalButton.disabled=false;const restoreButton=button.closest('.saved')?.querySelector('[data-restore-master]');if(restoreButton)restoreButton.disabled=false;
   player.src=URL.createObjectURL(edited);player.load();notice.textContent='Edited master ready · '+fmt(clipDuration)+' · '+bytesLabel(edited.size)+' WAV. Original master is retained in memory; separate microphone tracks are unchanged.';
   say('Master edit applied. Preview the edited mix before saving.');
  }catch(e){notice.textContent='Could not edit master: '+(e.message||e);say('Master edit failed: '+(e.message||e),true);}
@@ -354,7 +354,7 @@ async function continueSavedSession(row,button){
  try{
   say('Loading your private saved master…');
   const {data,error}=await state.client.storage.from(BUCKET).download(master.path);if(error)throw error;
-  state.resumeRow=row;state.resumeMasterBlob=data;
+  state.resumeRow=row;state.resumeMasterBlob=data;state.tracks=[];state.master=null;renderTracks();
   $('sessionTitle').value=row.title||'';if(row.podcast_id)$('podcastSelect').value=row.podcast_id;
   state.elapsedBeforePause=Number(row.duration_seconds||0);$('timer').textContent=fmt(state.elapsedBeforePause);
   $('openingFile').value='';$('endingFile').value='';state.openingFile=null;state.endingFile=null;
