@@ -26,7 +26,10 @@ async function decryptToken(ciphertext: string) {
   return new TextDecoder().decode(plain);
 }
 
-Deno.serve(async (req: Request) => {
+
+function toB64Url(bytes: Uint8Array) { let binary = ""; for (const byte of bytes) binary += String.fromCharCode(byte); return btoa(binary).split("+").join("-").split("/").join("_").replace(/=+$/g, ""); }
+async function signUploadSession(payload: Record<string, unknown>) { const secret = fromHex(Deno.env.get("DISTRIBUTION_TOKEN_ENCRYPTION_KEY") || ""); const key = await crypto.subtle.importKey("raw", secret, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]); const encoded = toB64Url(new TextEncoder().encode(JSON.stringify(payload))); const signature = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(encoded))); return encoded + "." + toB64Url(signature); }
+\nDeno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers });
   if (req.method !== "POST") return json(405, { error: "POST required." });
 
@@ -120,12 +123,7 @@ Deno.serve(async (req: Request) => {
   const uploadUrl = session.headers.get("Location");
   if (!uploadUrl || !uploadUrl.startsWith("https://")) return json(502, { error: "YouTube did not return a secure resumable upload URL." });
 
-  return json(200, {
-    ok: true,
-    upload_url: uploadUrl,
-    privacy_status: "private",
-    podcast_title: podcast.title,
-    filename,
-    message: "Upload session created. No video bytes have been uploaded yet. The video will remain private.",
-  });
+  const uploadSession = { url: uploadUrl, user_id: user.id, podcast_id: podcastId, file_size: fileSize, mime_type: mimeType, expires_at: Date.now() + 60 * 60 * 1000, filename };
+  const uploadToken = await signUploadSession(uploadSession);
+  return json(200, { ok: true, upload_session: uploadToken, privacy_status: "private", podcast_title: podcast.title, filename, chunk_size: 8 * 1024 * 1024, message: "Upload session created. No video bytes have been uploaded yet. The video will remain private." });
 });
