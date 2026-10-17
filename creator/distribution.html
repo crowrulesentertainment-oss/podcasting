@@ -44,7 +44,7 @@
   $('connections').innerHTML=platformList.map(p=>{
    const a=byPlatform.get(p.id), connected=a?.connection_status==='connected';
    const detail=connected?'Connected'+(a.account_label?' · '+a.account_label:''):'Not connected · setup required';
-   const connectButton=p.id==='youtube'&&!connected?'<button class="btn primary" data-connect-youtube>Connect YouTube</button>':'';
+   const connectButton=p.id==='youtube'&&!connected?'<button class="btn primary" data-connect-youtube>Connect YouTube</button>':(p.id==='youtube'&&connected?'<button class="btn" data-test-youtube-refresh>Test token refresh</button>':'');
    const profile=connected&&a.profile_url?'<br><a href="'+esc(a.profile_url)+'" target="_blank" rel="noopener">Open channel</a>':'';
    return '<div class="platform"><span><b>'+p.name+'</b><br><small>'+esc(detail)+'</small>'+profile+'</span>'+connectButton+'</div>';
   }).join('');
@@ -153,6 +153,19 @@
   if(b.dataset.action==='manual'){const links={facebook:'https://www.facebook.com/',instagram:'https://www.instagram.com/',tiktok:'https://www.tiktok.com/',youtube:'https://studio.youtube.com/',x:'https://x.com/',threads:'https://www.threads.net/',crowrules:'../home.html'};const w=window.open(links[d.platform],'_blank','noopener');say('Manual publishing checklist: confirm episode link and media, review caption, publish in '+titleCase(d.platform)+', then update external post URL in a future release. This dashboard did not publish it.');}
  });
  $('connections').addEventListener('click',async ev=>{
+  const refreshButton=ev.target.closest('[data-test-youtube-refresh]');
+  if(refreshButton){
+   const podcastId=$('show').value;if(!podcastId){say('Select a podcast before testing YouTube.');return}
+   refreshButton.disabled=true;refreshButton.textContent='Refreshing securely…';
+   try{
+    const {data,error}=await client.functions.invoke('youtube-oauth',{body:{action:'refresh',podcast_id:podcastId}});
+    if(error)throw error;
+    if(data?.error)throw new Error(data.error);
+    await loadConnections();
+    say((data.message||'YouTube token refresh succeeded.')+' Channel: '+(data.channel||'verified')+'.',true);
+   }catch(err){say('YouTube token refresh test failed: '+(err.message||'Please reconnect and retry.'));refreshButton.disabled=false;refreshButton.textContent='Test token refresh'}
+   return;
+  }
   const button=ev.target.closest('[data-connect-youtube]');if(!button)return;
   const podcastId=$('show').value;if(!podcastId){say('Select a podcast before connecting YouTube.');return}
   button.disabled=true;button.textContent='Starting secure connection…';
