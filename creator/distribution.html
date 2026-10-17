@@ -14,7 +14,8 @@
 <nav class="nav"><div class="brand">CROWRULES <span>·</span> PUBLISH EVERYWHERE</div><div class="actions"><a href="../creator.html">Creator Dashboard</a><a href="../studio.html">Studio</a><a href="youtube-upload.html">Video Upload</a><a href="#podcastPlatforms">Podcast Platforms</a></div></nav>
 <header style="padding:28px 0 8px"><div class="eyebrow">CREATOR DISTRIBUTION CENTER</div><h1>One episode.<br><span style="color:var(--cyan)">Everywhere.</span></h1><p>Manage YouTube episode promotion and podcast-directory distribution in one place. Preview and approve YouTube copy, then track podcast RSS feed submissions to podcast platforms. No other social networks are included.</p></header>
 <div id="notice" class="alert">Sign in to load your shows and saved distribution drafts.</div>
-<section class="panel"><h2>01 · Select an episode</h2><div class="grid"><div class="field"><label for="show">YOUR PODCAST</label><select id="show"><option value="">Loading your shows…</option></select></div><div class="field"><label for="episode">EPISODE</label><select id="episode"><option value="">Select a podcast first</option></select></div></div><div id="episodeInfo" class="muted"></div></section>
+<section class="panel"><h2>01 · Select an episode</h2><div class="grid"><div class="field"><label for="show">YOUR PODCAST</label><select id="show"><option value="">Loading your shows…</option></select></div><div class="field"><label for="episode">EPISODE</label><select id="episode"><option value="">Select a podcast first</option></select></div></div><div id="episodeInfo" class="muted"></div>
+<div class="post" id="youtubePreflight" style="margin-top:14px"><div class="posthead"><b>YouTube publishing preflight</b><span class="status">Select an episode</span></div><div id="youtubePreflightChecks" class="grid"><div class="empty">Select an episode to check its saved metadata and upload history.</div></div><div class="actions" style="margin-top:12px"><a class="btn primary" id="openYouTubeUploader" href="youtube-upload.html">Review in YouTube uploader ↗</a><button class="btn" id="refreshYouTubePreflight" type="button">Refresh status</button></div><p class="muted" style="font-size:11px">This preflight checks CrowRules metadata and recorded upload history. It does not verify live YouTube processing or publish anything. Confirm the final status in YouTube Studio.</p></div></section>
 <section class="panel"><h2>02 · YouTube promotion</h2><p class="muted">Create a YouTube-specific title and description preview. Actual video uploads are handled by the secure YouTube upload workflow.</p><div id="platforms" class="platforms"></div><div class="field"><label for="baseCaption">MESSAGE / CALL TO ACTION (OPTIONAL)</label><textarea id="baseCaption" placeholder="What should listeners know about this episode?"></textarea></div><div class="actions"><button class="btn primary" id="generate">Generate preview drafts</button><button class="btn" id="refresh">Refresh saved drafts</button></div></section>
 <section class="panel"><div class="row" style="justify-content:space-between"><h2>03 · Preview and approve YouTube copy</h2><span id="draftCount" class="status">0 drafts</span></div><div class="field"><label for="scheduleAt">SCHEDULE APPROVED POSTS (OPTIONAL)</label><input id="scheduleAt" type="datetime-local"><small>Leave blank to queue for the next worker run.</small></div><div id="drafts" class="empty">Choose an episode and generate draft captions.</div><div class="alert" style="margin-top:14px">Safety status: approving a draft records your approval only. Until a platform's official API connection and server-side publisher are configured, posts remain marked for manual publishing; this page will not pretend they were sent.</div></section>
 <section class="panel"><h2>04 · YouTube connection</h2><p class="muted">Your YouTube authorization is managed securely through the server-side OAuth flow. This page never collects tokens or passwords.</p><div id="connections" class="platforms"></div></section><section class="panel" id="podcastPlatforms"><h2>05 · Podcast platform distribution</h2>
@@ -141,7 +142,40 @@
   $('episode').innerHTML=state.episodes.length?state.episodes.map(e=>'<option value="'+esc(e.id)+'">'+esc(e.title||'Untitled episode')+'</option>').join(''):'<option value="">No episodes found</option>';
   showEpisodeInfo();
  }
- function showEpisodeInfo(){const ep=state.episodes.find(e=>e.id===$('episode').value);state.selectedEpisode=ep||null;$('episodeInfo').textContent=ep?((ep.description||'No episode description saved.')+' · '+(ep.audio_url?'Audio available':'No audio URL saved')+' · '+(ep.is_published?'Published on CrowRules':'Not marked published on CrowRules')):'Select an episode to preview distribution.'}
+ function showEpisodeInfo(){const ep=state.episodes.find(e=>e.id===$('episode').value);state.selectedEpisode=ep||null;$('episodeInfo').textContent=ep?((ep.description||'No episode description saved.')+' · '+(ep.audio_url?'Audio available':'No audio URL saved')+' · '+(ep.is_published?'Published on CrowRules':'Not marked published on CrowRules')):'Select an episode to preview distribution.';renderYouTubePreflight()}
+ async function renderYouTubePreflight(){
+  const show=state.shows.find(s=>s.id===$('show').value),ep=state.episodes.find(e=>e.id===$('episode').value);
+  const link=$('openYouTubeUploader');
+  if(!show||!ep){$('youtubePreflightChecks').innerHTML='<div class="empty">Select a podcast and episode first.</div>';$('youtubePreflight').querySelector('.status').textContent='Select an episode';link.href='youtube-upload.html';return}
+  link.href='youtube-upload.html?podcast_id='+encodeURIComponent(show.id)+'&episode_id='+encodeURIComponent(ep.id)+'&fromDistribution=1';
+  const checks=[
+   {label:'Episode title',ok:!!String(ep.title||'').trim(),detail:'Add an episode title before upload.'},
+   {label:'Description',ok:!!String(ep.description||'').trim(),detail:'Add a description to prefill YouTube details.'},
+   {label:'Saved video URL',ok:!!String(ep.video_url||'').trim(),detail:'No video URL is saved on this episode. The uploader still requires a local video file.'},
+   {label:'Episode audio',ok:!!String(ep.audio_url||'').trim(),detail:'No audio URL is saved. Confirm the episode media is ready.'}
+  ];
+  let uploadText='No matching upload history found.';
+  let uploadOk=false,studioUrl='';
+  try{
+   const {data,error}=await client.from('youtube_upload_history').select('id,status,video_id,studio_url,youtube_processing_status,youtube_privacy_status,youtube_upload_status,created_at').eq('podcast_id',show.id).eq('episode_id',ep.id).order('created_at',{ascending:false}).limit(1).maybeSingle();
+   if(error)throw error;
+   if(data){
+    const completed=data.status==='completed'&&!!data.video_id;
+    const processing=data.youtube_processing_status||'not checked';
+    const privacy=data.youtube_privacy_status||'not checked';
+    uploadOk=completed&&processing==='succeeded'&&privacy==='private'&&['uploaded','processed'].includes(data.youtube_upload_status);
+    uploadText='Latest attempt: '+(data.status||'unknown')+' · YouTube processing: '+processing+' · visibility: '+privacy;
+    studioUrl=data.studio_url||(data.video_id?'https://studio.youtube.com/video/'+encodeURIComponent(data.video_id)+'/edit':'');
+    if(data.status==='unknown')uploadText='Previous upload outcome is uncertain. Check Studio before retrying.';
+    else if(completed&&!uploadOk)uploadText='Upload accepted, but processing or visibility still needs verification.';
+    else if(uploadOk)uploadText='Upload accepted; YouTube reports processed and private. Review in Studio before making public.';
+   }
+  }catch(err){uploadText='Upload history could not be checked: '+(err.message||'database error');}
+  checks.push({label:'YouTube upload history',ok:uploadOk,detail:uploadText});
+  const passed=checks.filter(x=>x.ok).length;
+  $('youtubePreflight').querySelector('.status').textContent=passed+'/'+checks.length+' checks';
+  $('youtubePreflightChecks').innerHTML=checks.map(x=>'<div class="post" style="margin:0"><b class="'+(x.ok?'success':'')+'">'+(x.ok?'✓':'!')+' '+esc(x.label)+'</b><p style="margin-bottom:0">'+esc(x.ok?'Verified in saved CrowRules data.':x.detail)+'</p></div>').join('')+(studioUrl?'<div class="post" style="grid-column:1/-1;margin:0"><a href="'+esc(studioUrl)+'" target="_blank" rel="noopener">Check this upload in YouTube Studio ↗</a></div>':'');
+ }
  function destinations(){return [...$('platforms').querySelectorAll('input:checked')].map(i=>i.value)}
  function episodeUrl(show,ep){return show.website_url||('https://crowrulesentertainment-oss.github.io/podcasting/show.html?podcast_id='+encodeURIComponent(show.id)+'&episode_id='+encodeURIComponent(ep.id))}
  function makeCaption(platform,show,ep,base){
@@ -192,6 +226,7 @@
  $('episode').addEventListener('change',()=>{showEpisodeInfo();loadDrafts()});
  $('generate').addEventListener('click',generate);
  $('refresh').addEventListener('click',loadDrafts);
+ $('refreshYouTubePreflight').addEventListener('click',renderYouTubePreflight);
  $('drafts').addEventListener('click',async ev=>{
   const b=ev.target.closest('button[data-action]');if(!b)return;const d=state.drafts.find(x=>x.id===b.dataset.id);if(!d)return;
   if(b.dataset.action==='save'){const ta=$('drafts').querySelector('[data-caption="'+d.id+'"]');const out=await updateDraft(d.id,{caption:ta.value,status:d.status==='draft'?'draft':d.status});if(out)say('Caption saved.',true)}
