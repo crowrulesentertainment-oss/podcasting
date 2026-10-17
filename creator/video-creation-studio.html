@@ -146,7 +146,7 @@ async function saveVideoAsEpisodeDraft(){
   if(saved.error){try{await S.storage.from('podcasting').remove([path])}catch(cleanupError){console.warn('Video cleanup after draft failure failed',cleanupError)}throw saved.error}
   notice('Video uploaded and saved as a draft for '+(podcast.title||'your podcast')+'. Continue in Episode Manager to review metadata, add audio/artwork, and manage publishing.','success');
   button.textContent='Draft saved ✓';
-  const link=document.createElement('a');link.className='btn';link.href='episodes.html?podcast_id='+encodeURIComponent(podcastId);link.textContent='Open episode manager →';$('notice').appendChild(document.createTextNode(' '));$('notice').appendChild(link);
+  const link=document.createElement('a');link.className='btn';link.href='episodes.html?podcast_id='+encodeURIComponent(podcastId);link.textContent='Open episode manager →';$('notice').appendChild(document.createTextNode(' '));$('notice').appendChild(link);const uploadLink=document.createElement('a');uploadLink.className='btn primary';uploadLink.href='youtube-upload.html?podcast_id='+encodeURIComponent(podcastId)+'&episode_id='+encodeURIComponent(episodeId)+'&fromEpisode=1';uploadLink.textContent='Review in YouTube uploader →';$('notice').appendChild(document.createTextNode(' '));$('notice').appendChild(uploadLink);
  }catch(err){console.error('[CrowRules] save video draft failed',err);notice(err.message||'Could not save the video draft. Your exported download is preserved.','error');button.disabled=false;button.textContent=old}
 }
 $('saveVideoDraft').addEventListener('click',()=>saveVideoAsEpisodeDraft().catch(err=>notice(err.message||'Could not save draft.','error')));
