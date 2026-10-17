@@ -136,7 +136,7 @@
  }
  async function loadEpisodes(){
   const show=state.shows.find(s=>s.id===$('show').value);if(!show)return;
-  const {data,error}=await client.from('podcast_episodes').select('id,podcast_id,title,description,audio_url,video_url,thumbnail_url,artwork_url,status,is_published,published_at,slug').eq('podcast_id',show.id).order('created_at',{ascending:false});
+  const {data,error}=await client.from('podcast_episodes').select('id,podcast_id,title,description,audio_url,video_url,thumbnail_url,artwork_url,status,is_published,published_at,slug,youtube_video_id,youtube_processing_status,youtube_privacy_status,youtube_upload_status,youtube_status_checked_at,youtube_promotion_approved_at,youtube_promotion_approved_by').eq('podcast_id',show.id).order('created_at',{ascending:false});
   if(error){say('Unable to load episodes: '+error.message);return}
   state.episodes=data||[];
   $('episode').innerHTML=state.episodes.length?state.episodes.map(e=>'<option value="'+esc(e.id)+'">'+esc(e.title||'Untitled episode')+'</option>').join(''):'<option value="">No episodes found</option>';
@@ -157,24 +157,27 @@
   let uploadText='No matching upload history found.';
   let uploadOk=false,studioUrl='';
   try{
-   const {data,error}=await client.from('youtube_upload_history').select('id,status,video_id,studio_url,youtube_processing_status,youtube_privacy_status,youtube_upload_status,created_at').eq('podcast_id',show.id).eq('episode_id',ep.id).order('created_at',{ascending:false}).limit(1).maybeSingle();
+   const {data,error}=await client.from('youtube_upload_history').select('id,status,video_id,studio_url,youtube_processing_status,youtube_privacy_status,youtube_upload_status,status_checked_at,playback_verification_status,created_at').eq('podcast_id',show.id).eq('episode_id',ep.id).order('created_at',{ascending:false}).limit(1).maybeSingle();
    if(error)throw error;
    if(data){
     const completed=data.status==='completed'&&!!data.video_id;
     const processing=data.youtube_processing_status||'not checked';
     const privacy=data.youtube_privacy_status||'not checked';
-    uploadOk=completed&&processing==='succeeded'&&privacy==='private'&&['uploaded','processed'].includes(data.youtube_upload_status);
+    uploadOk=completed&&processing==='succeeded'&&['private','unlisted','public'].includes(privacy)&&['uploaded','processed'].includes(data.youtube_upload_status);
     uploadText='Latest attempt: '+(data.status||'unknown')+' · YouTube processing: '+processing+' · visibility: '+privacy;
     studioUrl=data.studio_url||(data.video_id?'https://studio.youtube.com/video/'+encodeURIComponent(data.video_id)+'/edit':'');
     if(data.status==='unknown')uploadText='Previous upload outcome is uncertain. Check Studio before retrying.';
     else if(completed&&!uploadOk)uploadText='Upload accepted, but processing or visibility still needs verification.';
-    else if(uploadOk)uploadText='Upload accepted; YouTube reports processed and private. Review in Studio before making public.';
+    else if(uploadOk)uploadText='YouTube confirms processing succeeded and actual visibility is '+privacy+'. Open Studio and manually check picture and audio before approving promotion.';
    }
   }catch(err){uploadText='Upload history could not be checked: '+(err.message||'database error');}
-  checks.push({label:'YouTube upload history',ok:uploadOk,detail:uploadText});
+  checks.push({label:'YouTube processing and visibility',ok:uploadOk,detail:uploadText});
+  const approved=!!ep.youtube_promotion_approved_at&&!!ep.youtube_video_id;
+  checks.push({label:'Promotion approval',ok:approved,detail:approved?'Promotion approval saved '+new Date(ep.youtube_promotion_approved_at).toLocaleString()+'. Video association is saved to this episode.':'Not approved yet. In the YouTube uploader, check live status, open Studio, manually verify picture and audio, then approve promotion.'});
   const passed=checks.filter(x=>x.ok).length;
   $('youtubePreflight').querySelector('.status').textContent=passed+'/'+checks.length+' checks';
-  $('youtubePreflightChecks').innerHTML=checks.map(x=>'<div class="post" style="margin:0"><b class="'+(x.ok?'success':'')+'">'+(x.ok?'✓':'!')+' '+esc(x.label)+'</b><p style="margin-bottom:0">'+esc(x.ok?'Verified in saved CrowRules data.':x.detail)+'</p></div>').join('')+(studioUrl?'<div class="post" style="grid-column:1/-1;margin:0"><a href="'+esc(studioUrl)+'" target="_blank" rel="noopener">Check this upload in YouTube Studio ↗</a></div>':'');
+  $('youtubePreflightChecks').innerHTML=checks.map(x=>'<div class="post" style="margin:0"><b class="'+(x.ok?'success':'')+'">'+(x.ok?'✓':'!')+' '+esc(x.label)+'</b><p style="margin-bottom:0">'+esc(x.ok?'Verified in saved CrowRules data.':x.detail)+'</p></div>').join('')+(studioUrl?'<div class="post" style="grid-column:1/-1;margin:0"><a href="'+esc(studioUrl)+'" target="_blank" rel="noopener">Check this upload in YouTube Studio ↗</a> · <a href="'+esc('https://www.youtube.com/watch?v='+(ep.youtube_video_id||''))+'" target="_blank" rel="noopener">Open YouTube video ↗</a></div>':'');
+ }
  }
  function destinations(){return [...$('platforms').querySelectorAll('input:checked')].map(i=>i.value)}
  function episodeUrl(show,ep){return show.website_url||('https://crowrulesentertainment-oss.github.io/podcasting/show.html?podcast_id='+encodeURIComponent(show.id)+'&episode_id='+encodeURIComponent(ep.id))}
@@ -226,7 +229,24 @@
  $('episode').addEventListener('change',()=>{showEpisodeInfo();loadDrafts()});
  $('generate').addEventListener('click',generate);
  $('refresh').addEventListener('click',loadDrafts);
- $('refreshYouTubePreflight').addEventListener('click',renderYouTubePreflight);
+ $('refreshYouTubePreflight').addEventListener('click',async()=>{
+  const show=state.shows.find(s=>s.id===$('show').value),ep=state.episodes.find(e=>e.id===$('episode').value);
+  if(!show||!ep){say('Select an episode first.');return}
+  const b=$('refreshYouTubePreflight');b.disabled=true;b.textContent='Checking YouTube…';
+  try{
+   const {data:history,error:historyError}=await client.from('youtube_upload_history').select('id').eq('podcast_id',show.id).eq('episode_id',ep.id).eq('status','completed').not('video_id','is',null).order('created_at',{ascending:false}).limit(1).maybeSingle();
+   if(historyError)throw historyError;
+   if(!history){say('No completed YouTube upload with a confirmed video ID exists for this episode yet.');return}
+   const {data,error}=await client.functions.invoke('youtube-video-status',{body:{history_id:history.id}});
+   if(error)throw error;if(data?.error)throw new Error(data.error);
+   const {data:updated,error:episodeError}=await client.from('podcast_episodes').select('id,video_url,youtube_video_id,youtube_processing_status,youtube_privacy_status,youtube_upload_status,youtube_status_checked_at,youtube_promotion_approved_at,youtube_promotion_approved_by').eq('id',ep.id).maybeSingle();
+   if(episodeError)throw episodeError;
+   if(updated)Object.assign(ep,updated);
+   await renderYouTubePreflight();
+   say((data.message||'YouTube status checked.')+' Supabase episode status refreshed. No external post was published.',true);
+  }catch(err){say('YouTube status check failed: '+(err.message||'Try again or verify in YouTube Studio.'))}
+  finally{b.disabled=false;b.textContent='Refresh status'}
+ });
  $('drafts').addEventListener('click',async ev=>{
   const b=ev.target.closest('button[data-action]');if(!b)return;const d=state.drafts.find(x=>x.id===b.dataset.id);if(!d)return;
   if(b.dataset.action==='save'){const ta=$('drafts').querySelector('[data-caption="'+d.id+'"]');const out=await updateDraft(d.id,{caption:ta.value,status:d.status==='draft'?'draft':d.status});if(out)say('Caption saved.',true)}
