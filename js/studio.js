@@ -48,13 +48,31 @@ function drawWave(){
  const canvas=$('waveform'),ctx=canvas.getContext('2d');
  const resize=()=>{const dpr=window.devicePixelRatio||1;canvas.width=canvas.clientWidth*dpr;canvas.height=canvas.clientHeight*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);};
  resize();window.addEventListener('resize',resize);
- const draw=()=>{const w=canvas.clientWidth,h=canvas.clientHeight;ctx.clearRect(0,0,w,h);ctx.strokeStyle='rgba(57,231,255,.16)';ctx.beginPath();ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);ctx.stroke();let active=state.tracks.filter(t=>t.analyser&&t.recorder&&t.recorder.state==='recording');if(!active.length&&state.master?.analyser&&state.master.recorder?.state==='recording')active=[state.master];active.forEach((t,idx)=>{const a=t.analyser;const data=new Uint8Array(a.fftSize);a.getByteTimeDomainData(data);ctx.beginPath();ctx.lineWidth=1.5;ctx.strokeStyle=idx%2?'#9b6cff':'#39e7ff';data.forEach((v,i)=>{const x=i/(data.length-1)*w;const y=(v/255)*h;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.stroke();});state.raf=requestAnimationFrame(draw);};
+ const draw=()=>{const w=canvas.clientWidth,h=canvas.clientHeight;ctx.clearRect(0,0,w,h);ctx.strokeStyle='rgba(57,231,255,.16)';ctx.beginPath();ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);ctx.stroke();let active=state.tracks.filter(t=>t.analyser&&t.recorder&&t.recorder.state==='recording');state.tracks.forEach(t=>{if(!t.analyser)return;const samples=new Uint8Array(t.analyser.fftSize);t.analyser.getByteTimeDomainData(samples);let sum=0,peak=0;samples.forEach(v=>{const n=(v-128)/128;sum+=n*n;peak=Math.max(peak,Math.abs(n));});const rms=Math.sqrt(sum/samples.length);const pct=Math.min(100,Math.round(rms*180));const fill=$('meter-'+t.id),db=$('db-'+t.id);if(fill){fill.style.width=pct+'%';fill.style.background=peak>.96?'#ff4f81':'linear-gradient(90deg,var(--cyan),var(--green) 75%,#ff4f81)';fill.parentElement.setAttribute('aria-valuenow',String(pct));}if(db)db.textContent=peak>.96?'CLIP':(rms>0?Math.round(20*Math.log10(rms))+' dB':'−∞ dB');});if(!active.length&&state.master?.analyser&&state.master.recorder?.state==='recording')active=[state.master];active.forEach((t,idx)=>{const a=t.analyser;const data=new Uint8Array(a.fftSize);a.getByteTimeDomainData(data);ctx.beginPath();ctx.lineWidth=1.5;ctx.strokeStyle=idx%2?'#9b6cff':'#39e7ff';data.forEach((v,i)=>{const x=i/(data.length-1)*w;const y=(v/255)*h;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.stroke();});state.raf=requestAnimationFrame(draw);};
  draw();
 }
 function renderTracks(){
  const root=$('tracks');root.innerHTML='';$('trackCount').textContent=state.tracks.length+' track'+(state.tracks.length===1?'':'s');
  if(!state.tracks.length){root.innerHTML='<div class="message">No tracks added yet. Select a microphone above and choose “Add microphone track”.</div>';return;}
- state.tracks.forEach((t,i)=>{const row=document.createElement('div');row.className='track';const info=document.createElement('div');const name=document.createElement('b');name.textContent=t.name;const sub=document.createElement('small');sub.textContent=t.status||'Ready';info.append(name,sub);const sel=document.createElement('select');sel.setAttribute('aria-label','Microphone for '+t.name);state.devices.forEach((d,n)=>{const o=document.createElement('option');o.value=d.deviceId;o.textContent=d.label||'Microphone '+(n+1);sel.append(o);});sel.value=t.deviceId;sel.disabled=state.busy;sel.addEventListener('change',()=>{t.deviceId=sel.value;});const remove=document.createElement('button');remove.className='btn';remove.textContent='Remove';remove.disabled=state.busy;remove.addEventListener('click',()=>{t.stream?.getTracks().forEach(x=>x.stop());state.tracks=state.tracks.filter(x=>x!==t);renderTracks();});row.append(info,sel,remove);root.append(row);});
+ state.tracks.forEach((t,i)=>{
+  const row=document.createElement('div');row.className='track';
+  const info=document.createElement('div');
+  const name=document.createElement('input');name.className='track-name';name.value=t.name;name.maxLength=60;name.setAttribute('aria-label','Track name');name.disabled=state.busy;
+  name.addEventListener('input',()=>{t.name=name.value.trim()||('Track '+(i+1));});
+  name.addEventListener('change',()=>{t.name=name.value.trim()||('Track '+(i+1));name.value=t.name;});
+  const sub=document.createElement('div');sub.className='track-status';sub.textContent=t.status||'Ready';
+  const meterWrap=document.createElement('div');meterWrap.className='meter-wrap';
+  const meter=document.createElement('div');meter.className='level-meter';meter.setAttribute('role','meter');meter.setAttribute('aria-label',t.name+' input level');meter.setAttribute('aria-valuemin','0');meter.setAttribute('aria-valuemax','100');meter.setAttribute('aria-valuenow','0');
+  const fill=document.createElement('div');fill.className='level-meter-fill';fill.id='meter-'+t.id;meter.append(fill);
+  const db=document.createElement('span');db.className='level-db';db.id='db-'+t.id;db.textContent='— dB';
+  meterWrap.append(meter,db);info.append(name,sub,meterWrap);
+  const sel=document.createElement('select');sel.setAttribute('aria-label','Microphone for '+t.name);
+  state.devices.forEach((d,n)=>{const o=document.createElement('option');o.value=d.deviceId;o.textContent=d.label||'Microphone '+(n+1);sel.append(o);});
+  sel.value=t.deviceId;sel.disabled=state.busy;sel.addEventListener('change',()=>{t.deviceId=sel.value;});
+  const remove=document.createElement('button');remove.className='btn';remove.textContent='Remove';remove.disabled=state.busy;
+  remove.addEventListener('click',()=>{t.stream?.getTracks().forEach(x=>x.stop());state.tracks=state.tracks.filter(x=>x!==t);renderTracks();});
+  row.append(info,sel,remove);root.append(row);
+ });
 }
 async function setupBedTracks(){
  state.openingFile=$('openingFile').files?.[0]||null;
