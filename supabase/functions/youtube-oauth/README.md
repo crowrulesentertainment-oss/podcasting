@@ -37,10 +37,14 @@ Requested scopes: `openid`, `email`, `youtube.readonly`, and `youtube.upload`. G
 - AES-GCM encryption of access and refresh tokens before the private token vault receives them.
 - Account status changes to `connected` only after Google returns a valid YouTube channel and the encrypted tokens are stored.
 - Distribution page displays connection status and channel link.
+- Authenticated `refresh` action checks podcast ownership, decrypts the refresh token only inside the Edge Function, exchanges it with Google, encrypts and saves the new access token, then verifies the channel with YouTube Data API.
+- If Google returns `invalid_grant`, the account status is set to `expired` and the creator is told to reconnect.
+- The distribution page's **Test token refresh** control performs a token-refresh and channel-verification check only; it does not upload or publish anything.
+- Refresh-token lookup and updates use service-role-only RPCs. Raw tokens are never returned to the browser.
 
 ## Current limitations
 
-- This connection does **not** enable automatic video upload or post publishing by itself. The YouTube publishing adapter, token decryption/refresh lifecycle, revocation/disconnect controls, and end-to-end upload tests remain separate work.
+- This connection does **not** enable automatic video upload or post publishing by itself. The YouTube publishing adapter, revocation/disconnect controls, and end-to-end upload tests remain separate work.
 - If Google does not issue a refresh token, the account may need to reconnect when the access token expires.
 - Do not change the encryption key after tokens have been stored unless a migration/re-encryption plan is in place; existing ciphertext would no longer be decryptable.
 - OAuth secrets are deliberately not stored in the repository.
