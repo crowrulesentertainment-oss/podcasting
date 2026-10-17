@@ -41,7 +41,7 @@
  function say(message,type='alert'){$('notice').className='alert '+type;$('notice').textContent=message}
  function bytes(n){if(!Number.isFinite(n)||n<0)return '';const units=['B','KB','MB','GB','TB'];let i=0;while(n>=1024&&i<units.length-1){n/=1024;i++}return n.toFixed(i?1:0)+' '+units[i]}
  function mimeType(file){return String(file?.type||'').split(';')[0].trim().toLowerCase()}
- async function functionErrorMessage(error){try{const context=error?.context;if(context?.clone){const body=await context.clone().json();if(body?.error||body?.message)return body.error||body.message}}catch{}return error?.message||'The upload service returned an error.'}\n
+ async function functionErrorMessage(error){try{const context=error?.context;if(context?.clone){const body=await context.clone().json();if(body?.error||body?.message)return body.error||body.message}}catch{}return error?.message||'The upload service returned an error.'}
  async function restoreStudioHandoff(){
   if(new URLSearchParams(location.search).get('fromStudio')!=='1')return;
   let db;
