@@ -232,7 +232,7 @@
    if(historyError)throw new Error('Could not save upload history, so the upload was not started: '+historyError.message);
    state.historyId=history.id;await loadHistory();
    const payload={podcast_id:show.id,title:$('title').value.trim(),description:$('description').value.trim(),tags:$('tags').value.split(',').map(s=>s.trim()).filter(Boolean),filename:file.name,mime_type:file.type,file_size:file.size};
-   const {data:session,error}=await client.functions.invoke('youtube-upload-session',{body:payload});
+   const {data:session,error}=await client.functions.invoke('youtube-upload-session',{body:{...payload,history_id:state.historyId}});
    if(error)throw error;if(session?.error)throw new Error(session.error);if(!session?.upload_session)throw new Error('The server did not return a signed upload session.');
    await saveHistory({status:'uploading',progress_percent:0});
    $('progressText').textContent='Uploading '+file.name+' through CrowRules secure proxy…';
