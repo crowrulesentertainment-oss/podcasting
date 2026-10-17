@@ -40,6 +40,26 @@
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function say(message,type='alert'){$('notice').className='alert '+type;$('notice').textContent=message}
  function bytes(n){if(!Number.isFinite(n)||n<0)return '';const units=['B','KB','MB','GB','TB'];let i=0;while(n>=1024&&i<units.length-1){n/=1024;i++}return n.toFixed(i?1:0)+' '+units[i]}
+
+ async function restoreStudioHandoff(){
+  if(new URLSearchParams(location.search).get('fromStudio')!=='1')return;
+  let db;
+  try{
+   if(!('indexedDB'in window))throw new Error('This browser does not support the secure video handoff. Download the recording and select it manually.');
+   db=await new Promise((resolve,reject)=>{const req=indexedDB.open('crowrules-video-handoff',1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('handoff'))req.result.createObjectStore('handoff')};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error('Could not open video handoff storage.'))});
+   const item=await new Promise((resolve,reject)=>{const tx=db.transaction('handoff','readonly'),req=tx.objectStore('handoff').get('latest');req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error||new Error('Could not retrieve the staged video.'))});
+   if(!item?.blob)throw new Error('No staged video was found. Return to Video Studio and use “Send latest video to uploader,” or select your downloaded file manually.');
+   const file=new File([item.blob],item.filename||'crowrules-video.webm',{type:item.mimeType||item.blob.type||'video/webm',lastModified:Date.now()});
+   const transfer=new DataTransfer();transfer.items.add(file);$('file').files=transfer.files;
+   if(!$('title').value.trim())$('title').value=String(item.title||file.name.replace(/\\.[^.]+$/,'')).slice(0,100);
+   $('fileInfo').textContent=file.name+' · '+bytes(file.size)+' · '+(file.type||'unknown MIME type')+' · Sent from Video Studio';
+   $('result').innerHTML='<div class="alert success">Video received from CrowRules Video Studio. Choose your podcast, review the title and details, confirm the private upload, then click Start private video upload. Nothing has been uploaded yet.</div>';
+   $('progressText').textContent='Video received from Video Studio. Ready for your review.';
+   await new Promise((resolve,reject)=>{const tx=db.transaction('handoff','readwrite');tx.objectStore('handoff').delete('latest');tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('Could not clear temporary handoff data.'))});
+   validate();
+  }catch(err){$('result').innerHTML='<div class="alert error">'+esc(err.message||'Could not receive video from Video Studio.')+'</div>'}
+  finally{if(db)db.close();history.replaceState({},'',location.pathname)}
+ }
  function selectedShow(){return state.shows.find(s=>s.id===$('show').value)}
  function selectedEpisode(){return state.episodes.find(e=>e.id===$('episode').value)}
  async function loadEpisodes(){
@@ -361,6 +381,7 @@
    say('Upload failed or could not be confirmed. Check the message below before retrying.','error');
   }finally{state.busy=false;validate()}
  });
+ restoreStudioHandoff();
  init();
 })();
 </script>
