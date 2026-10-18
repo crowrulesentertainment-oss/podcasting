@@ -448,6 +448,11 @@ async function loadLive(){
       const dateB=new Date(b.published_at||b.release_date||b.created_at||0).getTime()||0;
       return dateB-dateA;
     })[0]||null;
+    const scheduleNote=$("#backDeckScheduleNote");
+    if(scheduleNote){
+      const statusText=sessions.length?"A public Back Deck Live session is marked live now.":replay?"Back Deck Live is off air. The latest published replay is ready below.":"Back Deck Live is currently off air; no published playable replay was found.";
+      scheduleNote.innerHTML='<strong>BACK DECK LIVE SCHEDULE</strong><p>'+esc(statusText)+'</p><p>'+upcoming.length+' upcoming episode'+(upcoming.length===1?"":"s")+' found. Broadcast times are displayed in your local time zone.</p><a class="lbtn" href="'+("show.html?id="+encodeURIComponent(BACK_DECK_PODCAST_ID)+"#episodes")+'">OPEN SHOW &amp; EPISODES →</a>';
+    }
     const showUrl="show.html?id="+encodeURIComponent(BACK_DECK_PODCAST_ID)+"#episodes";
     const mediaMarkup=(row,title)=>{
       if(row.video_url&&youtubeId(row.video_url))return videoFrame(row.video_url,title);
@@ -487,6 +492,7 @@ async function loadLive(){
     video.innerHTML='<div class="note-state" style="padding:20px">The Back Deck Live feed could not be loaded right now.</div>';
     box.innerHTML='<div class="live-badge"><i></i> BACK DECK LIVE</div><h3>FEED TEMPORARILY UNAVAILABLE</h3><p>Please refresh to try again.</p>';
     upcomingBox.innerHTML='<div class="note-state" style="margin-top:16px">The upcoming schedule could not be loaded.</div>';
+    const scheduleNote=$("#backDeckScheduleNote");if(scheduleNote)scheduleNote.innerHTML='<strong>BACK DECK LIVE SCHEDULE</strong><p>Schedule data is temporarily unavailable. Refresh the page to try again.</p><p>Broadcast times are displayed in your local time zone.</p>';
   }
   if(!liveChannel){
     liveChannel=S.channel("listener-back-deck-live-"+BACK_DECK_PODCAST_ID).on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_sessions",filter:"podcast_id=eq."+BACK_DECK_PODCAST_ID},()=>loadLive()).on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes",filter:"podcast_id=eq."+BACK_DECK_PODCAST_ID},()=>loadLive()).subscribe();
