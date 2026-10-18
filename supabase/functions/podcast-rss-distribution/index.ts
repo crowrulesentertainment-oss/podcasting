@@ -143,7 +143,8 @@ Deno.serve(async (req: Request) => {
       return reply(200, { ok: true, report, integrations, distribution_mode: "hybrid", automatic_provider_count: podcastIndexConfigured ? 1 : 0, manual_fallback_count: Object.keys(manualProviders).length });
     }
 
-    if (action === "submit_podcast_index") {
+    if (action === "submit_podcast_index" || action === "submit_available") {
+      const automaticRequested = action === "submit_available";
       const report = await preflight();
       if (!report.ready) {
         await event("podcast_index", "submission_failed", "warning", "Submission blocked by RSS preflight.", { feed_url: report.feed_url, checks: report.checks });
@@ -152,6 +153,15 @@ Deno.serve(async (req: Request) => {
       const key = Deno.env.get("PODCAST_INDEX_API_KEY");
       const secret = Deno.env.get("PODCAST_INDEX_API_SECRET");
       if (!key || !secret) {
+        if (automaticRequested) {
+          const message = "No automatic directory provider is configured yet. No submission was sent. Add Podcast Index write API credentials in Supabase; other directories still require owner-led submission or an approved distribution partner.";
+          await event("distribution", "automatic_submission_skipped", "warning", message, { feed_url: report.feed_url, configured_provider_count: 0 });
+          return reply(200, {
+            ok: true, automatic_provider_count: 0, submitted: [], provider_confirmed: false,
+            manual_required: ["spotify","apple_podcasts","amazon_music","youtube_music","iheart","tunein","pocket_casts","castbox","overcast","goodpods","podcast_addict","podchaser","listen_notes","player_fm","deezer","radio_public"],
+            integration_configured: false, report, message
+          });
+        }
         await event("podcast_index", "submission_failed", "warning", "Podcast Index write API credentials are not configured.");
         return reply(409, { error: "Podcast Index API is not configured. Add PODCAST_INDEX_API_KEY and PODCAST_INDEX_API_SECRET as Supabase Edge Function secrets. No submission was sent.", integration_configured: false, report });
       }
@@ -179,7 +189,7 @@ Deno.serve(async (req: Request) => {
       }, { onConflict: "podcast_id,platform" });
       if (se) throw se;
       await event("podcast_index", "submission_confirmed", "success", message, { feed_url: report.feed_url, provider_feed_id: feedId || null });
-      return reply(200, { ok: true, provider_confirmed: true, platform: "podcast_index", feed_id: feedId || null, listing_url: listingUrl, message });
+      return reply(200, { ok: true, provider_confirmed: true, platform: "podcast_index", feed_id: feedId || null, listing_url: listingUrl, automatic_provider_count: 1, submitted: [{ platform: "podcast_index", provider_confirmed: true, listing_url: listingUrl }], manual_required: ["spotify","apple_podcasts","amazon_music","youtube_music","iheart","tunein","pocket_casts","castbox","overcast","goodpods","podcast_addict","podchaser","listen_notes","player_fm","deezer","radio_public"], message });
     }
 
     if (action === "record_manual") {
