@@ -858,7 +858,7 @@ async function load(force=false){
  // Prevent Realtime and visibility events from repeatedly rescanning full event history.
  // The manual refresh button can still request an immediate refresh.
  if(!force&&Date.now()-lastDiscoveryLoadAt<300000)return;
- if(busy){loadQueued=true;return}busy=true;
+ if(busy){loadQueued=true;return}busy=true;lastDiscoveryLoadAt=Date.now();
  const button=$("homeDynamicRefresh");if(button){button.disabled=true;button.textContent="REFRESHING…"}
  text("homeDynamicStatus","Reading catalog, canonical plays and listening sessions…");
  try{
@@ -938,7 +938,6 @@ async function load(force=false){
   }
   const issues=[showsResult.status!=="fulfilled",episodesResult.status!=="fulfilled",!catalogCoverage.showsComplete,!catalogCoverage.episodesComplete,!!eventsError,!!sessionsError].filter(Boolean).length;
   text("homeDynamicStatus",(issues?"PARTIAL ANALYTICS · ":"DATABASE UPDATED · ")+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+". Play events follow the rankings deduplication rule; duration and completions come from podcast_listens, as in admin analytics.");
-  lastDiscoveryLoadAt=Date.now();
  }catch(e){
   text("homeDynamicStatus","DISCOVERY UNAVAILABLE · "+(e?.message||"Could not connect to the database."));
   empty("homeFeaturedShows","The published catalog could not be reached.");empty("homeNewEpisodes","The published episode catalog could not be reached.");empty("homeRecommendedShows","Recommendations are unavailable until the database connection works.");
