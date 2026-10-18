@@ -956,7 +956,7 @@ if(L?.createClient&&C.supabaseUrl&&C.supabaseKey){
   if(!db)db=L.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   window.addEventListener("crowrules:home-catalog-change",scheduleDiscoveryRefresh);
 window.addEventListener("crowrules:home-realtime-state",event=>{discoveryRealtimeState=event.detail?.status||"CONNECTING";if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(discoveryRealtimeState))text("homeDynamicStatus","Realtime connection interrupted; the 60-second fallback remains active")});
- }catch(error){discoveryRealtimeState="CHANNEL_ERROR";text("homeDynamicStatus","Realtime setup failed; the 60-second fallback remains active")}
+ }catch(error){discoveryRealtimeState="CHANNEL_ERROR";text("homeDynamicStatus","Realtime setup failed; the five-minute fallback remains active")}
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)scheduleDiscoveryRefresh()});
 // Refresh the full catalog and historical analytics no more than once every five minutes.
