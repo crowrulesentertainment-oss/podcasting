@@ -447,7 +447,9 @@ async function loadLive(){
       // missing times, and placeholder/TBD values are not treated as live schedules.
       const timestamp=x.scheduled_at?new Date(x.scheduled_at).getTime():NaN;
       const status=String(x.status||"").toLowerCase();
-      return Number.isFinite(timestamp)&&timestamp>now&&x.is_active!==false&&!["published","archived","draft"].includes(status);
+      // Scheduled episodes are often saved as drafts until broadcast time.
+      // Keep future scheduled records visible unless explicitly cancelled/archived/inactive.
+      return Number.isFinite(timestamp)&&timestamp>now&&x.is_active!==false&&!["cancelled","canceled","archived","deleted"].includes(status);
     }).sort((a,b)=>new Date(a.scheduled_at)-new Date(b.scheduled_at)).slice(0,10);
     const episodeDate=x=>new Date(x.published_at||x.release_date||x.scheduled_at||x.created_at||0).getTime()||0;
     // Prefer an episode explicitly associated with a live broadcast, then fall back
@@ -501,12 +503,15 @@ async function loadLive(){
       box.innerHTML='<div class="live-badge"><i></i> OFF AIR · REPLAY</div><h3>'+(replay?"WATCH THE LAST LIVE":"BACK DECK LIVE IS OFF AIR")+'</h3><p>'+(replay?esc(replay.title||"Latest published episode")+" is ready to replay.":"A replay will appear here when an episode is published.")+'</p>';
     }
     if(upcoming.length){
-      upcomingBox.innerHTML='<div class="live-badge" style="margin-top:14px"><i></i> UPCOMING LIVE SHOWS</div>'+upcoming.map(x=>{
+      upcomingBox.innerHTML='<div class="live-badge" style="margin-top:14px"><i></i> UPCOMING SCHEDULED EPISODES</div>'+upcoming.map(x=>{
         const mediaUrl=String(x.video_url||x.audio_url||"").trim();
-        const safeMediaUrl=/^https?:\/\//i.test(mediaUrl)?mediaUrl:"";
-        const episodePage=safeMediaUrl||showUrl;
-        const broadcastTime=x.scheduled_at;
-        return '<article class="live-session-card"><div class="live-session-copy"><h4><a href="'+esc(episodePage)+'"'+(safeMediaUrl?' target="_blank" rel="noopener noreferrer"':"")+'>'+esc(x.title||"Back Deck Live")+'</a></h4><p>'+esc(localDate(broadcastTime))+'</p></div></article>';
+        const safeMediaUrl=/^https?:\\/\\//i.test(mediaUrl)?mediaUrl:"";
+        const title=String(x.title||"Back Deck Live episode");
+        const description=String(x.description||x.show_notes||"").trim();
+        const status=String(x.status||"Scheduled").replace(/[_-]+/g," ").replace(/\\b\\w/g,ch=>ch.toUpperCase());
+        const episodeNo=x.episode_number!=null?"Episode "+x.episode_number:"Scheduled episode";
+        const link=safeMediaUrl?'<a class="lbtn" href="'+esc(safeMediaUrl)+'" target="_blank" rel="noopener noreferrer">OPEN MEDIA ↗</a>':'<a class="lbtn" href="'+showUrl+'">SHOW EPISODES ↗</a>';
+        return '<article class="live-session-card"><div class="live-session-copy"><div class="live-now">'+esc(episodeNo)+' · '+esc(status)+'</div><h4>'+esc(title)+'</h4><p><strong>Scheduled:</strong> '+esc(localDate(x.scheduled_at))+'</p>'+(description?'<p>'+esc(description)+'</p>':'')+'</div>'+link+'</article>';
       }).join("");
     }else{
       upcomingBox.innerHTML='<div class="live-badge" style="margin-top:14px"><i></i> UPCOMING LIVE SHOWS</div><div class="note-state" style="margin-top:16px">No upcoming Back Deck Live episodes are currently scheduled.</div><p><a class="lbtn" href="index.html#discover">OPEN LISTENER HUB →</a></p>';
