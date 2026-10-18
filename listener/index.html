@@ -448,7 +448,7 @@ async function loadLive(){
     }
     if(upcoming.length){
       upcomingBox.innerHTML='<div class="live-badge" style="margin-top:14px"><i></i> UPCOMING BACK DECK LIVE</div>'+upcoming.map(x=>{
-        const link="episode.html?id="+encodeURIComponent(x.id);
+        const link="show.html?id="+encodeURIComponent(BACK_DECK_PODCAST_ID);
         return '<article class="live-session-card"><div class="live-session-copy"><span class="live-now" style="color:#48e7ff">UPCOMING · '+esc(localDate(x.scheduled_at))+'</span><h4>'+esc(x.title||"Back Deck Live")+'</h4><p>'+esc(x.description||"Upcoming Back Deck Live episode.")+'</p></div><a class="lbtn" href="'+link+'">EPISODE DETAILS →</a></article>';
       }).join("");
     }else{
