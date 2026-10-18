@@ -114,13 +114,33 @@ Deno.serve(async (req: Request) => {
     if (action === "preflight") {
       const report = await preflight();
       await event("rss", "preflight", report.ready ? "success" : "warning", report.ready ? "RSS preflight passed." : "RSS preflight found issues.", { feed_url: report.feed_url, checks: report.checks });
-      return reply(200, { ok: true, report, integrations: {
-        podcast_index: { configured: Boolean(Deno.env.get("PODCAST_INDEX_API_KEY") && Deno.env.get("PODCAST_INDEX_API_SECRET")), supported: true },
-        apple_podcasts: { mode: "manual", url: "https://podcastsconnect.apple.com/my-podcasts/new-feed?submitfeed=" + encodeURIComponent(report.feed_url) },
-        spotify: { mode: "manual", url: "https://creators.spotify.com/" },
-        youtube_music: { mode: "manual", url: "https://studio.youtube.com/" },
-        amazon_music: { mode: "manual", url: "https://podcasters.amazon.com/" },
-      } });
+      const podcastIndexConfigured = Boolean(Deno.env.get("PODCAST_INDEX_API_KEY") && Deno.env.get("PODCAST_INDEX_API_SECRET"));
+      // Only Podcast Index exposes a documented direct-add API in this implementation.
+      // Other directories require account-owner portal submission/claim or RSS discovery;
+      // do not treat a public RSS feed as proof of submission.
+      const manualProviders = {
+        spotify: { mode: "manual", automated: false, portal_url: "https://creators.spotify.com/", reason: "Submit or claim the show with the platform account owner." },
+        apple_podcasts: { mode: "manual", automated: false, portal_url: "https://podcastsconnect.apple.com/my-podcasts/new-feed?submitfeed=" + encodeURIComponent(report.feed_url), reason: "Apple Podcasts Connect requires account-owner review and publication." },
+        amazon_music: { mode: "manual", automated: false, portal_url: "https://podcasters.amazon.com/", reason: "Submit the RSS feed through the publisher portal." },
+        youtube_music: { mode: "manual", automated: false, portal_url: "https://studio.youtube.com/", reason: "Use the authorized YouTube Studio podcast/RSS workflow; no directory-submission API is configured." },
+        iheart: { mode: "manual", automated: false, portal_url: "https://podcasters.iheart.com/add-podcast/", reason: "Use the publisher submission workflow." },
+        tunein: { mode: "manual", automated: false, portal_url: "https://tunein.com/", reason: "No authorized direct-submission adapter is configured." },
+        pocket_casts: { mode: "manual", automated: false, portal_url: "https://support.pocketcasts.com/knowledge-base/submitting-podcasts/", reason: "Use the supported feed submission workflow." },
+        castbox: { mode: "manual", automated: false, portal_url: "https://castbox.fm/submit", reason: "Submit or claim the feed in the directory." },
+        overcast: { mode: "manual", automated: false, portal_url: "https://overcast.fm/", reason: "Public-feed discovery; no direct-submission API is configured." },
+        goodpods: { mode: "manual", automated: false, portal_url: "https://goodpods.com/", reason: "Use the creator submission or claim workflow." },
+        podcast_addict: { mode: "manual", automated: false, portal_url: "https://podcastaddict.com/submit", reason: "Submit the public feed." },
+        podchaser: { mode: "manual", automated: false, portal_url: "https://www.podchaser.com/", reason: "Use the show claim workflow." },
+        listen_notes: { mode: "manual", automated: false, portal_url: "https://www.listennotes.com/", reason: "No authorized direct-submission adapter is configured." },
+        player_fm: { mode: "manual", automated: false, portal_url: "https://player.fm/", reason: "Public-feed discovery; no direct-submission API is configured." },
+        deezer: { mode: "manual", automated: false, portal_url: "https://www.deezer.com/", reason: "Use the current publisher workflow." },
+        radio_public: { mode: "manual", automated: false, portal_url: "https://radiopublic.com/", reason: "No authorized direct-submission adapter is configured." },
+      };
+      const integrations = {
+        podcast_index: { mode: "api", supported: true, automated: podcastIndexConfigured, configured: podcastIndexConfigured, portal_url: "https://podcastindex.org/add", reason: podcastIndexConfigured ? "Write-enabled API credentials detected; explicit creator action is still required." : "Requires write-enabled Podcast Index API key and secret in Supabase Edge Function secrets." },
+        ...manualProviders,
+      };
+      return reply(200, { ok: true, report, integrations, distribution_mode: "hybrid", automatic_provider_count: podcastIndexConfigured ? 1 : 0, manual_fallback_count: Object.keys(manualProviders).length });
     }
 
     if (action === "submit_podcast_index") {
