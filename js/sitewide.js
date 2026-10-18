@@ -13,11 +13,15 @@
  const repairBrandLogos=()=>{
   const logo=window.CROW_CONFIG?.logoUrl;
   if(!logo)return;
-  document.querySelectorAll('img#homeLogo,img#heroLogo,img#podcastLogo,.home-brand img,.brand img,.home-logo').forEach(img=>{
+  document.querySelectorAll('img#homeLogo,img#heroLogo,img#podcastLogo,.home-brand img,.brand img,.home-logo,img[src*="podcastinglogo.png"],img[src*="/storage/v1/object/"]').forEach(img=>{
    const alt=(img.getAttribute('alt')||'').toLowerCase();
-   if(img.id==='homeLogo'||img.id==='heroLogo'||img.id==='podcastLogo'||alt.includes('crowrules')||alt.includes('podcasting logo')){
-    if(!img.getAttribute('src')||img.getAttribute('src')==='about:blank')img.src=logo;
-    img.addEventListener('error',()=>{if(!img.dataset.crowLogoRetry){img.dataset.crowLogoRetry='1';img.src=logo}}, {once:true});
+   const classes=typeof img.className==='string'?img.className.toLowerCase():'';
+   const isBrandLogo=img.id==='homeLogo'||img.id==='heroLogo'||img.id==='podcastLogo'||alt.includes('crowrules')||alt.includes('podcasting logo')||classes.includes('brand-logo')||classes.includes('home-logo')||classes.includes('podcast-logo')||img.closest('.brand,.home-brand,.home-logo');
+   const isOldHostedLogo=/podcastinglogo\.png|\/storage\/v1\/object\/(public|sign)\/images\/(logo|podcastinglogo)\.png/i.test(img.getAttribute('src')||'');
+   if(isBrandLogo||isOldHostedLogo){
+    // Use the repository asset even when a page already supplied a Supabase URL.
+    if(img.src!==logo)img.src=logo;
+    img.addEventListener('error',()=>{if(!img.dataset.crowLogoRetry&&img.src!==logo){img.dataset.crowLogoRetry='1';img.src=logo}}, {once:true});
    }
   });
  };
@@ -83,14 +87,14 @@
   }
  };
  function ensureFavicon(){
-  const href='https://crowrulesentertainment-oss.github.io/podcasting/test.jpg?v=1';
+  const href='https://crowrulesentertainment-oss.github.io/podcasting/images/logo.png';
   let icon=document.querySelector('link[rel~="icon"]');
   if(!icon){icon=document.createElement('link');icon.rel='icon';document.head.appendChild(icon);}
-  icon.type='image/jpeg';
+  icon.type='image/png';
   icon.href=href;
   let shortcut=document.querySelector('link[rel="shortcut icon"]');
   if(!shortcut){shortcut=document.createElement('link');shortcut.rel='shortcut icon';document.head.appendChild(shortcut);}
-  shortcut.type='image/jpeg';
+  shortcut.type='image/png';
   shortcut.href=href;
  }
  const start=()=>{ensureFavicon();safeExternalLinks();improveImages();normalizeForms();repairBrandLogos();ensureDonateLink();document.documentElement.dataset.crowSitewide='ready';ensurePodcastingSystems()};
