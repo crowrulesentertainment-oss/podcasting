@@ -97,7 +97,7 @@
   shortcut.type='image/png';
   shortcut.href=href;
  }
- const start=()=>{ensureFavicon();safeExternalLinks();improveImages();normalizeForms();repairBrandLogos();ensureDonateLink();document.documentElement.dataset.crowSitewide='ready';ensurePodcastingSystems()};
+ const start=()=>{ensureFavicon();safeExternalLinks();improveImages();normalizeForms();repairBrandLogos();if(!api._logoObserver&&typeof MutationObserver==='function'){api._logoObserver=new MutationObserver(()=>repairBrandLogos());api._logoObserver.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['src','alt','class','id']})}ensureDonateLink();document.documentElement.dataset.crowSitewide='ready';ensurePodcastingSystems()};
  // Ensure every Podcasting page has the shared Supabase config, CrowPoints balance,
  // and audio player, including lightweight landing pages that do not declare them.
  async function ensurePodcastingSystems(){
