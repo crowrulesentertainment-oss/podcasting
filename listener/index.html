@@ -438,10 +438,14 @@ async function loadLive(){
     const now=Date.now();
     const isPublished=x=>x.is_published===true||String(x.status||"").toLowerCase()==="published";
     const playable=x=>!!(x.video_url||x.audio_url);
+    // Upcoming broadcasts come from podcast_episodes. Treat a future scheduled_at
+    // as the strongest signal, even if the creator's status value is not exactly
+    // "scheduled"; otherwise a saved future episode can silently disappear.
     const upcoming=allEpisodes.filter(x=>{
       const when=x.scheduled_at||x.release_date;
       const timestamp=when?new Date(when).getTime():NaN;
-      return Number.isFinite(timestamp)&&timestamp>now&&String(x.status||"").toLowerCase()==="scheduled"&&x.is_active!==false;
+      const status=String(x.status||"").toLowerCase();
+      return Number.isFinite(timestamp)&&timestamp>now&&x.is_active!==false&&!["published","archived","draft"].includes(status);
     }).sort((a,b)=>new Date(a.scheduled_at||a.release_date)-new Date(b.scheduled_at||b.release_date)).slice(0,10);
     const replay=allEpisodes.filter(x=>isPublished(x)&&playable(x)).sort((a,b)=>{
       const dateA=new Date(a.published_at||a.release_date||a.created_at||0).getTime()||0;
