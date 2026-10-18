@@ -89,7 +89,7 @@ Deno.serve(async (req: Request) => {
       check("feed_title", "Feed title", /<title\b[^>]*>[\s\S]*?\S/i.test(channel), "Add a non-empty channel title.");
       check("feed_description", "Feed description", /<description\b[^>]*>[\s\S]*?\S/i.test(channel), "Add a non-empty channel description.");
       check("episodes", "Published episodes", items.length > 0, "Publish at least one episode.");
-      check("enclosures", "Audio enclosure metadata", enclosures.length === items.length && enclosures.length > 0 && enclosures.every((e) => e.url && e.length && e.type), "Every public episode needs enclosure URL, byte length, and MIME type.");
+      check("enclosures", "Audio enclosure metadata", enclosures.length === items.length && enclosures.length > 0 && enclosures.every((e) => https(e.url) && Number(e.length) > 0 && /^audio\//i.test(e.type)), "Every public episode needs enclosure URL, byte length, and MIME type.");
       check("guid", "Stable episode GUIDs", items.length > 0 && items.every((i) => /<guid\b[^>]*>[\s\S]*?\S/i.test(i)), "Every episode needs a stable GUID.");
       check("pubdate", "Episode publication dates", items.length > 0 && items.every((i) => /<pubDate\b[^>]*>[\s\S]*?\S/i.test(i)), "Add a valid pubDate to every episode.", true);
       if (https(p.artwork_url)) {
@@ -102,7 +102,7 @@ Deno.serve(async (req: Request) => {
         if (!https(e.url)) return false;
         try {
           const r = await fetch(e.url, { method: "HEAD", redirect: "follow", signal: AbortSignal.timeout(8000) });
-          return r.ok && (typeOf(r).startsWith("audio/") || /\.(mp3|m4a|aac|ogg|opus|wav)(\?|$)/i.test(e.url));
+          const ct = typeOf(r); const audioExtension = /\.(mp3|m4a|aac|ogg|opus|wav)(\?|$)/i.test(e.url); return r.ok && (ct.startsWith("audio/") || (ct.startsWith("application/octet-stream") && audioExtension));
         } catch { return false; }
       }));
       check("audio_reachable", "Audio URL accessibility", enclosures.length > 0 && audio.length === Math.min(enclosures.length, 8) && audio.every(Boolean),
