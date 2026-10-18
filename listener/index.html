@@ -208,7 +208,7 @@ a{text-decoration:none;color:inherit}
         <div id="backDeckUpcoming" class="live-session-list" aria-live="polite"></div>
       </div>
       <div class="panel listener-note">
-        <div class="note-state" id="backDeckScheduleNote" aria-live="polite"><strong>BACK DECK LIVE SCHEDULE</strong><p>Connecting to the Back Deck Live show and checking its live status, latest replay, and upcoming episodes…</p><p class="muted">Broadcast times are displayed in your local time zone.</p><a class="lbtn" href="show.html#episodes">OPEN SHOW &amp; EPISODES →</a></div>
+        <div class="note-state" id="backDeckScheduleNote" aria-live="polite"><strong>BACK DECK LIVE SCHEDULE</strong><p>Connecting to the Back Deck Live show and checking its live status, latest replay, and upcoming episodes…</p><p class="muted">Broadcast times are displayed in your local time zone.</p><a class="lbtn" href="show.html?id=ab335e1a-56db-47de-98a1-73bd67c2a1c8#episodes">OPEN SHOW &amp; EPISODES →</a></div>
       </div>
     </div>
   </section>
@@ -505,10 +505,10 @@ async function loadLive(){
     if(upcoming.length){
       upcomingBox.innerHTML='<div class="live-badge" style="margin-top:14px"><i></i> UPCOMING SCHEDULED EPISODES</div>'+upcoming.map(x=>{
         const mediaUrl=String(x.video_url||x.audio_url||"").trim();
-        const safeMediaUrl=/^https?:\\/\\//i.test(mediaUrl)?mediaUrl:"";
+        const safeMediaUrl=/^https?:\/\//i.test(mediaUrl)?mediaUrl:"";
         const title=String(x.title||"Back Deck Live episode");
         const description=String(x.description||x.show_notes||"").trim();
-        const status=String(x.status||"Scheduled").replace(/[_-]+/g," ").replace(/\\b\\w/g,ch=>ch.toUpperCase());
+        const status=String(x.status||"Scheduled").replace(/[_-]+/g," ").replace(/\b\w/g,ch=>ch.toUpperCase());
         const episodeNo=x.episode_number!=null?"Episode "+x.episode_number:"Scheduled episode";
         const link=safeMediaUrl?'<a class="lbtn" href="'+esc(safeMediaUrl)+'" target="_blank" rel="noopener noreferrer">OPEN MEDIA ↗</a>':'<a class="lbtn" href="'+showUrl+'">SHOW EPISODES ↗</a>';
         return '<article class="live-session-card"><div class="live-session-copy"><div class="live-now">'+esc(episodeNo)+' · '+esc(status)+'</div><h4>'+esc(title)+'</h4><p><strong>Scheduled:</strong> '+esc(localDate(x.scheduled_at))+'</p>'+(description?'<p>'+esc(description)+'</p>':'')+'</div>'+link+'</article>';
