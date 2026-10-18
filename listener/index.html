@@ -189,7 +189,7 @@ a{text-decoration:none;color:inherit}
 
   <section class="listener-shell section">
     <div class="section-head">
-      <div><h2>🔴 LIVE NOW</h2><p>Upcoming live broadcasts from Back Deck Live.</p></div>
+      <div><h2 id="backDeckSectionHeading">BACK DECK LIVE</h2><p id="backDeckSectionSubheading">Checking live status, last live replay, and upcoming broadcasts from Supabase.</p></div>
       <a class="lbtn" href="show.html?id=ab335e1a-56db-47de-98a1-73bd67c2a1c8#episodes">BACK DECK LIVE PAGE ↗</a>
     </div>
     <article class="back-deck-feature" aria-label="Back Deck Live broadcast">
@@ -448,15 +448,30 @@ async function loadLive(){
       const status=String(x.status||"").toLowerCase();
       return Number.isFinite(timestamp)&&timestamp>now&&x.is_active!==false&&!["published","archived","draft"].includes(status);
     }).sort((a,b)=>new Date(a.scheduled_at||a.release_date)-new Date(b.scheduled_at||b.release_date)).slice(0,10);
-    const replay=allEpisodes.filter(x=>isPublished(x)&&playable(x)).sort((a,b)=>{
-      const dateA=new Date(a.published_at||a.release_date||a.created_at||0).getTime()||0;
-      const dateB=new Date(b.published_at||b.release_date||b.created_at||0).getTime()||0;
-      return dateB-dateA;
-    })[0]||null;
+    const episodeDate=x=>new Date(x.published_at||x.release_date||x.scheduled_at||x.created_at||0).getTime()||0;
+    // Prefer an episode explicitly associated with a live broadcast, then fall back
+    // to the newest published playable episode so older records without a replay marker
+    // still have a fallback when no explicit live replay can be identified.
+    const isLiveReplay=x=>{
+      const clues=[x.episode_type,x.type,x.content_type,x.broadcast_type,x.source_type,x.title,x.description]
+        .filter(Boolean).join(" ").toLowerCase();
+      return /live|livestream|live stream|broadcast replay|live replay/.test(clues)
+        ||!!(x.live_session_id||x.podcast_live_session_id||x.source_live_session_id||x.is_live_replay===true);
+    };
+    const publishedPlayable=allEpisodes.filter(x=>isPublished(x)&&playable(x));
+    const liveReplayCandidates=publishedPlayable.filter(isLiveReplay).sort((a,b)=>episodeDate(b)-episodeDate(a));
+    const replay=liveReplayCandidates[0]||publishedPlayable.sort((a,b)=>episodeDate(b)-episodeDate(a))[0]||null;
     const scheduleNote=$("#backDeckScheduleNote");
+    const sectionHeading=$("#backDeckSectionHeading");
+    const sectionSubheading=$("#backDeckSectionSubheading");
+    if(sectionHeading)sectionHeading.textContent=sessions.length?"🔴 LIVE NOW":replay?"LATEST LIVE REPLAY":"BACK DECK LIVE · OFF AIR";
+    if(sectionSubheading)sectionSubheading.textContent=sessions.length
+      ?"Back Deck Live is broadcasting now. Upcoming broadcasts are listed below."
+      :replay?"The live broadcast has ended. Watch or listen to the latest available replay and check upcoming broadcasts below."
+      :"No active broadcast or playable replay is available. Upcoming broadcasts are listed below.";
     if(scheduleNote){
-      const statusText=sessions.length?"A public Back Deck Live session is marked live now.":replay?"Back Deck Live is off air. The latest published replay is ready below.":"Back Deck Live is currently off air; no published playable replay was found.";
-      scheduleNote.innerHTML='<strong>BACK DECK LIVE SCHEDULE</strong><p>'+esc(statusText)+'</p><p>'+upcoming.length+' upcoming episode'+(upcoming.length===1?"":"s")+' found. Broadcast times are displayed in your local time zone.</p><a class="lbtn" href="'+("show.html?id="+encodeURIComponent(BACK_DECK_PODCAST_ID)+"#episodes")+'">OPEN SHOW &amp; EPISODES →</a>';
+      const statusText=sessions.length?"A public Back Deck Live session is marked live now.":replay?"Back Deck Live is off air. The latest available live replay is ready below.":"Back Deck Live is currently off air; no published playable replay was found.";
+      scheduleNote.innerHTML='<strong>BACK DECK LIVE SCHEDULE</strong><p>'+esc(statusText)+'</p><p>'+upcoming.length+' upcoming episode'+(upcoming.length===1?"":"s")+' found in podcast_episodes. Broadcast times are displayed in your local time zone.</p><a class="lbtn" href="'+("show.html?id="+encodeURIComponent(BACK_DECK_PODCAST_ID)+"#episodes")+'">OPEN SHOW &amp; EPISODES →</a>';
     }
     const showUrl="show.html?id="+encodeURIComponent(BACK_DECK_PODCAST_ID)+"#episodes";
     const mediaMarkup=(row,title)=>{
@@ -487,7 +502,8 @@ async function loadLive(){
     if(upcoming.length){
       upcomingBox.innerHTML='<div class="live-badge" style="margin-top:14px"><i></i> UPCOMING LIVE SHOWS <a class="lbtn" style="margin-left:auto" href="'+showUrl+'">BACK DECK LIVE PAGE ↗</a></div>'+upcoming.map(x=>{
         const episodePage=showUrl;
-        return '<article class="live-session-card"><div class="live-session-copy"><a class="live-now" style="color:#48e7ff" href="'+episodePage+'">UPCOMING</a><h4><a href="'+episodePage+'">'+esc(x.title||"Back Deck Live")+'</a></h4><p>'+esc(localDate(x.scheduled_at||x.release_date))+'</p></div></article>';
+        const broadcastTime=x.scheduled_at||x.release_date;
+        return '<article class="live-session-card"><div class="live-session-copy"><span class="live-now" style="color:#48e7ff">UPCOMING</span><h4><a href="'+episodePage+'">'+esc(x.title||"Back Deck Live")+'</a></h4><p>'+esc(localDate(broadcastTime))+'</p></div></article>';
       }).join("")+'<p style="margin-top:10px"><a class="lbtn" href="index.html#discover">OPEN LISTENER HUB →</a></p>';
     }else{
       upcomingBox.innerHTML='<div class="live-badge" style="margin-top:14px"><i></i> UPCOMING LIVE SHOWS</div><div class="note-state" style="margin-top:16px">No upcoming Back Deck Live episodes are currently scheduled.</div><p><a class="lbtn" href="index.html#discover">OPEN LISTENER HUB →</a></p>';
