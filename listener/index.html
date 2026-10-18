@@ -172,18 +172,18 @@ a{text-decoration:none;color:inherit}
 
   <section class="listener-shell section" id="creators-by-state">
     <div class="section-head">
-      <div><h2>CREATORS BY STATE</h2><p>Find the voices and independent podcasters building their corner of the CrowRules network.</p></div>
+      <div><h2>OUR COMMUNITY, WORLDWIDE</h2><p>Discover public listeners and discoverable creators wherever they call home.</p></div>
       <a class="lbtn" href="creators.html">ALL CREATORS ↗</a>
     </div>
     <div class="state-directory">
-      <div class="kicker">EXPLORE THE CREATOR MAP</div>
-      <p style="color:#9aa7c1;font-size:12px;line-height:1.7;margin:0">Browse creator profiles by their listed U.S. state. Locations appear only when creators have shared state information on their public profiles.</p>
+      <div class="kicker">EXPLORE THE COMMUNITY MAP</div>
+      <p style="color:#9aa7c1;font-size:12px;line-height:1.7;margin:0">The map refreshes automatically as public profiles and discoverable creator locations are added or updated. Locations are approximate and never show street addresses.</p>
       <div class="state-tools">
-        <input class="state-search" id="stateCreatorSearch" type="search" maxlength="100" placeholder="Search a state or creator…" aria-label="Search creators by state or name">
-        <select class="state-select" id="stateCreatorSort" aria-label="Sort states"><option value="count">Most creators</option><option value="name">State name A–Z</option></select>
+        <input class="state-search" id="stateCreatorSearch" type="search" maxlength="100" placeholder="Search a name or location…" aria-label="Search community members by name or location">
+        <select class="state-select" id="stateCreatorSort" aria-label="Sort locations"><option value="count">Most members</option><option value="name">Location A–Z</option></select>
       </div>
-      <div class="creator-map-wrap"><div id="creatorStateMap" role="application" aria-label="Map showing the number of public CrowRules creators by U.S. state"></div><div class="creator-map-legend"><span><strong>NUMBERED MARKERS</strong> show public creators in each state</span><span>Markers use state-level locations, not exact addresses.</span></div></div>
-      <div class="state-grid" id="stateCreatorGrid" aria-live="polite"><div class="state-empty">Creator locations will appear here when available.</div></div>
+      <div class="creator-map-wrap"><div id="creatorStateMap" role="application" aria-label="Worldwide map showing approximate locations of public CrowRules community members"></div><div class="creator-map-legend"><span><strong>NUMBERED MARKERS</strong> show public members at each approximate location</span><span id="communityMapStatus">Loading public community locations…</span></div></div>
+      <div class="state-grid" id="stateCreatorGrid" aria-live="polite"><div class="state-empty">Loading public community locations…</div></div>
     </div>
   </section>
 
@@ -259,120 +259,149 @@ $("#brandLogo").src=logo;
 
 
 const US_STATES={AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming",DC:"District of Columbia"};
+const STATE_MAP_CENTERS={Alabama:[32.8,-86.8],Alaska:[64.2,-152.4],Arizona:[34.3,-111.7],Arkansas:[34.8,-92.2],California:[37.2,-119.7],Colorado:[39,-105.5],Connecticut:[41.6,-72.7],Delaware:[39,-75.5],Florida:[28.1,-82],Georgia:[32.7,-83.4],Hawaii:[20.8,-156.3],Idaho:[44.2,-114.5],Illinois:[40,-89.2],Indiana:[40,-86.1],Iowa:[42.1,-93.5],Kansas:[38.5,-98],Kentucky:[37.5,-85.3],Louisiana:[31,-92],Maine:[45.3,-69],Maryland:[39,-76.7],Massachusetts:[42.3,-71.8],Michigan:[44.3,-85.5],Minnesota:[46,-94.5],Mississippi:[32.7,-89.7],Missouri:[38.5,-92.5],Montana:[46.8,-110.5],Nebraska:[41.5,-99.8],Nevada:[39.3,-116.6], "New Hampshire":[43.8,-71.6],"New Jersey":[40.1,-74.5],"New Mexico":[34.4,-106.1],"New York":[42.9,-75.5],"North Carolina":[35.5,-79.4],"North Dakota":[47.5,-100.5],Ohio:[40.4,-82.8],Oklahoma:[35.6,-97.5],Oregon:[44,-120.5],Pennsylvania:[41,-77.8],"Rhode Island":[41.7,-71.6],"South Carolina":[33.8,-80.9],"South Dakota":[44.5,-100],"Tennessee":[35.8,-86.3],Texas:[31.2,-99.3],Utah:[39.3,-111.7],Vermont:[44,-72.7],Virginia:[37.5,-79],"Washington":[47.4,-120.7],"West Virginia":[38.6,-80.6],Wisconsin:[44.5,-89.6],Wyoming:[43,-107.5],"District of Columbia":[38.9,-77]};
+const CITY_CENTERS={
+"tacoma":[47.2529,-122.4443],"seattle":[47.6062,-122.3321],"portland":[45.5152,-122.6784],"los angeles":[34.0522,-118.2437],"san francisco":[37.7749,-122.4194],"new york":[40.7128,-74.006],"chicago":[41.8781,-87.6298],"brisbane":[-27.4698,153.0251],"sydney":[-33.8688,151.2093],"melbourne":[-37.8136,144.9631],"perth":[-31.9505,115.8605],"adelaide":[-34.9285,138.6007],"canberra":[-35.2809,149.1300],"darwin":[-12.4634,130.8456],"hobart":[-42.8821,147.3272],"gold coast":[-28.0167,153.4],"newcastle":[-32.9283,151.7817],"townsville":[-19.2589,146.8169],"auckland":[-36.8509,174.7645],"london":[51.5072,-0.1276],"toronto":[43.6532,-79.3832],"vancouver":[49.2827,-123.1207],"dublin":[53.3498,-6.2603],"singapore":[1.3521,103.8198],"sydney nsw":[-33.8688,151.2093],"brisbane queensland":[-27.4698,153.0251]
+};
+const COUNTRY_CENTERS={
+"australia":[-25.2744,133.7751],"united states":[39.8283,-98.5795],"usa":[39.8283,-98.5795],"united kingdom":[55.3781,-3.436],"uk":[55.3781,-3.436],"canada":[56.1304,-106.3468],"new zealand":[-40.9006,174.886],"ireland":[53.1424,-7.6921],"india":[20.5937,78.9629],"philippines":[12.8797,121.774],"germany":[51.1657,10.4515],"france":[46.2276,2.2137],"brazil":[-14.235,-51.9253],"mexico":[23.6345,-102.5528],"south africa":[-30.5595,22.9375],"japan":[36.2048,138.2529],"singapore":[1.3521,103.8198]
+};
 let stateCreators=[];
-const STATE_MAP_CENTERS={
-Alabama:[32.8,-86.8],Alaska:[64.2,-152.4],Arizona:[34.3,-111.7],Arkansas:[34.8,-92.2],California:[37.2,-119.7],Colorado:[39,-105.5],Connecticut:[41.6,-72.7],Delaware:[39,-75.5],Florida:[28.1,-82],Georgia:[32.7,-83.4],Hawaii:[20.8,-156.3],Idaho:[44.2,-114.5],Illinois:[40,-89.2],Indiana:[40,-86.1],Iowa:[42.1,-93.5],Kansas:[38.5,-98],Kentucky:[37.5,-85.3],Louisiana:[31,-92],Maine:[45.3,-69],Maryland:[39,-76.7],Massachusetts:[42.3,-71.8],Michigan:[44.3,-85.5],Minnesota:[46,-94.5],Mississippi:[32.7,-89.7],Missouri:[38.5,-92.5],Montana:[46.8,-110.5],Nebraska:[41.5,-99.8],Nevada:[39.3,-116.6], "New Hampshire":[43.8,-71.6],"New Jersey":[40.1,-74.5],"New Mexico":[34.4,-106.1],"New York":[42.9,-75.5],"North Carolina":[35.5,-79.4],"North Dakota":[47.5,-100.5],Ohio:[40.4,-82.8],Oklahoma:[35.6,-97.5],Oregon:[44,-120.5],Pennsylvania:[41,-77.8],"Rhode Island":[41.7,-71.6],"South Carolina":[33.8,-80.9],"South Dakota":[44.5,-100],"Tennessee":[35.8,-86.3],Texas:[31.2,-99.3],Utah:[39.3,-111.7],Vermont:[44,-72.7],Virginia:[37.5,-79],"Washington":[47.4,-120.7],"West Virginia":[38.6,-80.6],Wisconsin:[44.5,-89.6],Wyoming:[43,-107.5],"District of Columbia":[38.9,-77]};
 let creatorStateMap=null;
 let creatorStateMarkers=[];
+let communityRefreshTimer=null;
 function ensureCreatorStateMap(){
-  const el=$("#creatorStateMap");if(!el||!window.L)return null;
-  if(!creatorStateMap){
-    creatorStateMap=L.map(el,{scrollWheelZoom:false}).setView([39,-98],3.4);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',maxZoom:10}).addTo(creatorStateMap);
-    creatorStateMap.on("focus",()=>creatorStateMap.scrollWheelZoom.enable());
-    creatorStateMap.on("blur",()=>creatorStateMap.scrollWheelZoom.disable());
-  }
-  return creatorStateMap;
+ const el=$("#creatorStateMap");if(!el||!window.L)return null;
+ if(!creatorStateMap){
+  creatorStateMap=L.map(el,{scrollWheelZoom:false,worldCopyJump:true}).setView([12,10],2);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',maxZoom:12}).addTo(creatorStateMap);
+  creatorStateMap.on("focus",()=>creatorStateMap.scrollWheelZoom.enable());
+  creatorStateMap.on("blur",()=>creatorStateMap.scrollWheelZoom.disable());
+ }
+ return creatorStateMap;
 }
-function renderStateMap(states){
-  const map=ensureCreatorStateMap();if(!map)return;
-  creatorStateMarkers.forEach(marker=>marker.remove());creatorStateMarkers=[];
-  states.forEach(([state,people])=>{
-    const center=STATE_MAP_CENTERS[state];if(!center)return;
-    const icon=L.divIcon({className:"",html:'<span class="creator-map-marker">'+people.length+'</span>',iconSize:[34,34],iconAnchor:[17,17]});
-    const names=people.slice(0,8).map(p=>esc(p.name)).join("<br>");
-    const extra=people.length>8?'<br><span>+'+(people.length-8)+' more</span>':"";
-    const marker=L.marker(center,{icon,title:state+": "+people.length+" public creators"}).addTo(map);
-    marker.bindPopup('<strong>'+esc(state)+'</strong><br>'+people.length+' public '+(people.length===1?'creator':'creators')+(names?'<hr style="border-color:rgba(72,231,255,.2)">'+names+extra:""));
-    creatorStateMarkers.push(marker);
-  });
-  if(creatorStateMarkers.length>1){
-    const group=L.featureGroup(creatorStateMarkers);
-    map.fitBounds(group.getBounds().pad(.18),{maxZoom:5});
-  }else if(creatorStateMarkers.length===1){
-    map.setView(creatorStateMarkers[0].getLatLng(),5);
-  }else map.setView([39,-98],3.4);
-  setTimeout(()=>map.invalidateSize(),80);
+function norm(s){return String(s||"").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase().replace(/[.]/g,"").replace(/\s+/g," ");}
+function locationFor(p){
+ const raw=String(p.location||p.city_state||p.region||p.country||"").trim();
+ if(!raw)return null;
+ const parts=raw.split(",").map(x=>x.trim()).filter(Boolean);
+ const lower=norm(raw);
+ const directCity=Object.keys(CITY_CENTERS).find(k=>lower===k||lower.startsWith(k+",")||lower.startsWith(k+" "));
+ if(directCity){
+  const pretty=parts.length>1?parts.join(", "):parts[0].replace(/\b\w/g,x=>x.toUpperCase());
+  return {key:"city:"+directCity,label:pretty,coords:CITY_CENTERS[directCity]};
+ }
+ const country=parts.length?norm(parts[parts.length-1]):lower;
+ const knownCountry=Object.keys(COUNTRY_CENTERS).find(k=>country===k);
+ if(knownCountry){
+  const stateName=parts.length>1?parts[parts.length-2]:"";
+  const maybeCity=norm(parts[0]);
+  if(CITY_CENTERS[maybeCity])return {key:"city:"+maybeCity,label:parts.join(", "),coords:CITY_CENTERS[maybeCity]};
+  const state=Object.values(US_STATES).find(v=>norm(v)===norm(stateName))||US_STATES[String(stateName).toUpperCase()];
+  if(state)return {key:"state:"+state,label:state+", "+(knownCountry==="usa"?"United States":knownCountry==="united states"?"United States":parts[parts.length-1]),coords:STATE_MAP_CENTERS[state]};
+  return {key:"country:"+knownCountry,label:parts.length>1?parts.join(", "):parts[0],coords:COUNTRY_CENTERS[knownCountry]};
+ }
+ const state=Object.values(US_STATES).find(v=>norm(v)===lower)||US_STATES[raw.toUpperCase()];
+ if(state)return {key:"state:"+state,label:state+", United States",coords:STATE_MAP_CENTERS[state]};
+ const city=norm(parts[0]);
+ if(CITY_CENTERS[city])return {key:"city:"+city,label:raw,coords:CITY_CENTERS[city]};
+ const possibleCountry=Object.keys(COUNTRY_CENTERS).find(k=>lower===k);
+ if(possibleCountry)return {key:"country:"+possibleCountry,label:raw,coords:COUNTRY_CENTERS[possibleCountry]};
+ return {key:"location:"+lower,label:raw,coords:null};
 }
-function normalizedState(p){
-  const direct=String(p.state||p.location_state||p.region_state||p.us_state||"").trim();
-  const location=String(p.location||p.city_state||p.region||"").trim();
-  const candidates=[direct, ...location.split(",").map(x=>x.trim()).reverse(), location];
-  for(const rawValue of candidates){
-    const raw=String(rawValue||"").trim().replace(/[.]/g,"");
-    if(!raw)continue;
-    const upper=raw.toUpperCase();
-    if(US_STATES[upper])return US_STATES[upper];
-    const full=Object.values(US_STATES).find(v=>v.toLowerCase()===raw.toLowerCase());
-    if(full)return full;
-    const trailing=raw.match(/(?:^|\s)([A-Z]{2})$/);
-    if(trailing&&US_STATES[trailing[1]])return US_STATES[trailing[1]];
-  }
-  return "";
+function getIdentity(p){
+ return String(p.user_id||p.member_id||p.id||p.username||p.display_name||p.name||"").toLowerCase();
+}
+function getName(p){return String(p.display_name||p.creator_name||p.name||p.username||"Community member").trim();}
+function renderStateMap(groups){
+ const map=ensureCreatorStateMap();if(!map)return;
+ creatorStateMarkers.forEach(m=>m.remove());creatorStateMarkers=[];
+ groups.forEach(([key,people])=>{
+  const loc=people[0].mappedLocation;if(!loc?.coords)return;
+  const icon=L.divIcon({className:"",html:'<span class="creator-map-marker">'+people.length+'</span>',iconSize:[34,34],iconAnchor:[17,17]});
+  const names=people.slice(0,12).map(p=>esc(p.name)+(p.handle?' · '+esc(p.handle):'')).join("<br>");
+  const extra=people.length>12?'<br><span>+'+(people.length-12)+' more</span>':"";
+  const marker=L.marker(loc.coords,{icon,title:loc.label+": "+people.length+" public members"}).addTo(map);
+  marker.bindPopup('<strong>'+esc(loc.label)+'</strong><br>'+people.length+' public '+(people.length===1?'member':'members')+'<hr style="border-color:rgba(72,231,255,.2)">'+names+extra);
+  creatorStateMarkers.push(marker);
+ });
+ if(creatorStateMarkers.length>1)map.fitBounds(L.featureGroup(creatorStateMarkers).getBounds().pad(.18),{maxZoom:5});
+ else if(creatorStateMarkers.length===1)map.setView(creatorStateMarkers[0].getLatLng(),4);
+ else map.setView([12,10],2);
+ setTimeout(()=>map.invalidateSize(),80);
 }
 function renderCreatorsByState(){
-  const grid=$("#stateCreatorGrid");if(!grid)return;
-  const term=($("#stateCreatorSearch")?.value||"").trim().toLowerCase();
-  const sort=$("#stateCreatorSort")?.value||"count";
-  const grouped=new Map();
-  stateCreators.forEach(p=>{
-    const state=normalizedState(p);if(!state)return;
-    const name=p.display_name||p.creator_name||p.name||p.username||"CrowRules Creator";
-    const handle=p.username?"@"+String(p.username).replace(/^@/,""):"";
-    if(term&&!state.toLowerCase().includes(term)&&!(name+" "+handle).toLowerCase().includes(term))return;
-    if(!grouped.has(state))grouped.set(state,[]);
-    if(!grouped.get(state).some(x=>String(x.id||x.member_id||x.user_id||x.username||x.display_name)===String(p.id||p.member_id||p.user_id||p.username||p.display_name)))grouped.get(state).push({name,handle});
-  });
-  const states=[...grouped.entries()].sort((a,b)=>sort==="name"?a[0].localeCompare(b[0]):b[1].length-a[1].length||a[0].localeCompare(b[0]));
-  grid.replaceChildren();
-  renderStateMap(states);
-  if(!states.length){const empty=document.createElement("div");empty.className="state-empty";empty.textContent=stateCreators.length?"No public creator locations match that search yet. Try a state name or creator.":"No state locations are available yet. As creators add a state to their public profile, they will appear here.";grid.appendChild(empty);return;}
-  states.forEach(([state,people])=>{
-    const card=document.createElement("article");card.className="state-card";
-    const title=document.createElement("h3");title.textContent=state;
-    const count=document.createElement("div");count.className="state-count";count.textContent=people.length;
-    const caption=document.createElement("div");caption.className="state-caption";caption.textContent=people.length===1?"public creator":"public creators";
-    const list=document.createElement("div");list.className="state-creator-list";
-    people.slice(0,4).forEach(p=>{const a=document.createElement("a");a.className="state-creator";a.href="creators.html";a.textContent=p.name+(p.handle?" · "+p.handle:"");list.appendChild(a)});
-    if(people.length>4){const more=document.createElement("a");more.className="state-creator";more.href="creators.html";more.textContent="+"+(people.length-4)+" more creators →";list.appendChild(more)}
-    card.append(title,count,caption,list);grid.appendChild(card);
-  });
+ const grid=$("#stateCreatorGrid");if(!grid)return;
+ const term=norm($("#stateCreatorSearch")?.value||"");
+ const sort=$("#stateCreatorSort")?.value||"count";
+ const grouped=new Map();
+ stateCreators.forEach(p=>{
+  const loc=p.mappedLocation;if(!loc)return;
+  if(term&&!norm(loc.label+" "+p.name+" "+p.handle).includes(term))return;
+  if(!grouped.has(loc.key))grouped.set(loc.key,[]);
+  grouped.get(loc.key).push(p);
+ });
+ const groups=[...grouped.entries()].sort((a,b)=>sort==="name"?a[1][0].mappedLocation.label.localeCompare(b[1][0].mappedLocation.label):b[1].length-a[1].length||a[1][0].mappedLocation.label.localeCompare(b[1][0].mappedLocation.label));
+ renderStateMap(groups);
+ grid.replaceChildren();
+ if(!groups.length){
+  const empty=document.createElement("div");empty.className="state-empty";
+  empty.textContent=stateCreators.length?"No public member locations match that search. Try another name or location.":"No public locations are available yet. Members appear automatically when they have a public profile and a location.";
+  grid.appendChild(empty);return;
+ }
+ groups.forEach(([key,people])=>{
+  const card=document.createElement("article");card.className="state-card";
+  const title=document.createElement("h3");title.textContent=people[0].mappedLocation.label;
+  const count=document.createElement("div");count.className="state-count";count.textContent=people.length;
+  const caption=document.createElement("div");caption.className="state-caption";caption.textContent=people.length===1?"public member":"public members";
+  const list=document.createElement("div");list.className="state-creator-list";
+  people.slice(0,5).forEach(p=>{const a=document.createElement("a");a.className="state-creator";a.href="creators.html";a.textContent=p.name+(p.handle?" · "+p.handle:"");list.appendChild(a)});
+  if(people.length>5){const more=document.createElement("div");more.className="state-creator";more.textContent="+"+(people.length-5)+" more members";list.appendChild(more)}
+  card.append(title,count,caption,list);grid.appendChild(card);
+ });
+ const status=$("#communityMapStatus");if(status)status.textContent="Updated "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+" · refreshes automatically";
 }
 async function loadCreatorsByState(){
-  const grid=$("#stateCreatorGrid");if(!grid||!S)return;
-  try{
-    const [memberResult, profileResult, creatorResult]=await Promise.all([
-      S.from("podcast_member_profiles").select("*").eq("is_public",true).limit(300),
-      S.from("creator_profiles").select("*").eq("is_discoverable",true).limit(300),
-      S.from("creators").select("*").eq("is_active",true).limit(300)
-    ]);
-    if(memberResult.error)throw memberResult.error;
-    stateCreators=memberResult.data||[];
-    // Creator Studio profiles store location as a free-text field, e.g. "Tacoma, Washington".
-    if(!profileResult.error)(profileResult.data||[]).forEach(p=>{
-      if(normalizedState(p))stateCreators.push(p);
-    });
-    if(!creatorResult.error)(creatorResult.data||[]).forEach(p=>{
-      if(normalizedState(p))stateCreators.push(p);
-    });
-    // Merge duplicate public profiles by identity/name so one person is not counted twice.
-    const unique=new Map();
-    stateCreators.forEach(p=>{
-      const state=normalizedState(p);if(!state)return;
-      const name=String(p.display_name||p.creator_name||p.name||p.username||"CrowRules Creator").trim();
-      const canonicalName=name.toLowerCase().replace(/\s+(ii|2nd)$/i,"").replace(/\s+/g," ").trim();
-      const key=canonicalName+"|"+state;
-      if(!unique.has(key))unique.set(key,p);
-    });
-    stateCreators=[...unique.values()];
-    renderCreatorsByState();
-  }catch(err){
-    console.warn("[CrowRules listener] Creator state directory unavailable",err);
-    grid.innerHTML='<div class="state-empty">Creator locations could not be loaded right now. Public profile access or location fields may not be configured yet. The rest of the listener experience is still available.</div>';
-  }
+ const grid=$("#stateCreatorGrid");if(!grid)return;
+ if(!S){grid.innerHTML='<div class="state-empty">Community locations are unavailable until Supabase is connected.</div>';return;}
+ try{
+  const [memberResult,profileResult]=await Promise.all([
+   S.from("podcast_member_profiles").select("user_id,display_name,username,location,is_public,network_public").eq("is_public",true).limit(1000),
+   S.from("creator_profiles").select("id,user_id,member_id,display_name,username,location,is_discoverable").eq("is_discoverable",true).limit(1000)
+  ]);
+  if(memberResult.error)throw memberResult.error;
+  const rows=[];
+  (memberResult.data||[]).forEach(p=>{if(p.is_public&&p.location)rows.push({...p,source:"listener"})});
+  if(!profileResult.error)(profileResult.data||[]).forEach(p=>{if(p.is_discoverable&&p.location)rows.push({...p,source:"creator"})});
+  const merged=new Map();
+  rows.forEach(p=>{
+   const identity=getIdentity(p)||norm(getName(p));
+   const key=identity;
+   const candidate={...p,name:getName(p),handle:p.username?"@"+String(p.username).replace(/^@/,""):"",mappedLocation:locationFor(p)};
+   if(!candidate.mappedLocation)return;
+   const existing=merged.get(key);
+   if(!existing){merged.set(key,candidate);return;}
+   // Prefer the more specific location, and keep the discoverable creator identity if either record has it.
+   const score=x=>{const loc=String(x.location||"");return (loc.includes(",")?2:1)+(x.source==="creator"?0.25:0)};
+   if(score(candidate)>score(existing))merged.set(key,{...existing,...candidate,name:existing.name||candidate.name,source:existing.source==="creator"||candidate.source==="creator"?"creator":existing.source});
+   else if(candidate.source==="creator")existing.source="creator";
+  });
+  stateCreators=[...merged.values()].sort((a,b)=>a.name.localeCompare(b.name));
+  renderCreatorsByState();
+ }catch(err){
+  console.warn("[CrowRules listener] Worldwide community map unavailable",err);
+  if(!stateCreators.length)grid.innerHTML='<div class="state-empty">Public community locations could not be loaded. Check profile-table access and try refreshing the page.</div>';
+ }
 }
 $("#stateCreatorSearch")?.addEventListener("input",renderCreatorsByState);
 $("#stateCreatorSort")?.addEventListener("change",renderCreatorsByState);
+function startCommunityAutoRefresh(){
+ loadCreatorsByState();
+ if(communityRefreshTimer)clearInterval(communityRefreshTimer);
+ communityRefreshTimer=setInterval(()=>{if(document.visibilityState==="visible")loadCreatorsByState()},60000);
+ document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadCreatorsByState()});
+}
+startCommunityAutoRefresh();
 
 async function auth(){
   if(!S)return;
