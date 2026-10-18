@@ -39,7 +39,7 @@
 <section class="panel" id="podcastPlatforms">
 <div class="step">05 / PODCAST RSS DISTRIBUTION</div><div class="panelhead"><h2>Podcast directories</h2><span class="pill" id="rssReadinessPill">Select a podcast</span></div><p class="small">Directories usually ingest your public RSS feed after you submit or claim the show. CrowRules records your progress here; it does not claim to submit a feed or guarantee a listing automatically.</p>
 <div class="field"><label for="rssFeedUrl">PUBLIC RSS FEED FOR THIS PODCAST</label><div class="rss-url"><input id="rssFeedUrl" type="url" readonly placeholder="Select a podcast to load its feed"><button class="btn" id="copyRssFeed" type="button">Copy feed URL</button><a class="btn" id="openRssFeed" href="#" target="_blank" rel="noopener">Open feed ↗</a></div><small class="small">Only submit a feed once show metadata, artwork, and at least one public episode with a working audio URL are ready.</small></div>
-<div id="feedReadiness" class="grid"><div class="empty">Select a podcast to run readiness checks.</div></div><div class="panelhead" style="margin-top:22px"><h2>Directory submission tracker</h2><span class="small">Status saved per podcast</span></div>
+<div id="feedReadiness" class="grid"><div class="empty">Select a podcast to run readiness checks.</div></div><div class="panelhead" style="margin-top:22px"><h2>Directory submission tracker</h2><div class="actions"><button class="btn" id="copyAllSubmissionPack" type="button">Copy RSS submission pack</button><button class="btn primary" id="openAllDirectories" type="button">Open all submission portals ↗</button><span class="small">Status saved per podcast</span></div></div><div class="notice">Bulk helper: copies your public RSS URL and opens each directory submission page in separate tabs. You still submit/claim the feed and accept each platform’s terms on its own site. Browser pop-up blocking may require allowing pop-ups for this page.</div>
 <div id="directoryCards" class="directory-grid"><div class="empty">Select a podcast to load directory status.</div></div><div class="notice">A “Listed” status is your tracking record, not automated verification. Add the public listing URL after confirming the show is live on the provider.</div>
 </section>
 <section class="panel"><div class="step">06 / AUDIT TRAIL</div><div class="panelhead"><h2>Distribution activity</h2><button class="btn" id="refreshLogs" type="button" disabled>Refresh activity</button></div><p class="small">Saved approvals, queue changes, and recorded delivery attempts for this episode.</p><div id="deliveryLogs"><div class="empty">Select an episode to load distribution activity.</div></div></section>
@@ -51,16 +51,23 @@ const cfg=window.CROW_CONFIG||{},client=window.supabase?.createClient(cfg.supaba
 const state={user:null,shows:[],episodes:[],drafts:[],directoryStatuses:[],accounts:[],history:null,creatorIds:[]};
 const requestedParams=new URLSearchParams(location.search);let requestedPodcastId=requestedParams.get("podcast_id")||"";let requestedEpisodeId=requestedParams.get("episode_id")||"";
 const directories=[
-{id:'spotify',name:'Spotify for Creators',url:'https://creators.spotify.com/',hint:'Claim or submit your show using its RSS feed.'},
-{id:'apple_podcasts',name:'Apple Podcasts',url:'https://podcastsconnect.apple.com/',hint:'Validate and submit your RSS feed in Apple Podcasts Connect.'},
-{id:'amazon_music',name:'Amazon Music',url:'https://podcasters.amazon.com/',hint:'Submit your public podcast RSS feed.'},
-{id:'youtube_music',name:'YouTube Music',url:'https://studio.youtube.com/',hint:'Manage podcast availability through YouTube Studio.'},
-{id:'iheart',name:'iHeartRadio',url:'https://www.iheart.com/content/submit-your-podcast/',hint:'Submit your show for directory review.'},
-{id:'tunein',name:'TuneIn',url:'https://tunein.com/',hint:'Review current podcast submission requirements.'},
+{id:'spotify',name:'Spotify for Creators',url:'https://creators.spotify.com/',hint:'Submit or claim your show with its public RSS feed.'},
+{id:'apple_podcasts',name:'Apple Podcasts',url:'https://podcastsconnect.apple.com/',hint:'Add a show with an RSS feed in Apple Podcasts Connect.'},
+{id:'amazon_music',name:'Amazon Music / Audible',url:'https://podcasters.amazon.com/',hint:'Submit your public RSS feed for review.'},
+{id:'youtube_music',name:'YouTube Music / YouTube',url:'https://studio.youtube.com/channel/UC/',hint:'Use YouTube Studio podcast creation or RSS ingestion where available.'},
+{id:'iheart',name:'iHeartRadio',url:'https://podcasters.iheart.com/add-podcast/',hint:'Enter your podcast RSS feed in the iHeart podcaster portal.'},
+{id:'tunein',name:'TuneIn',url:'https://tunein.com/',hint:'Review TuneIn podcast directory submission options.'},
 {id:'podcast_index',name:'Podcast Index',url:'https://podcastindex.org/add',hint:'Add your public feed to the open directory.'},
-{id:'pocket_casts',name:'Pocket Casts',url:'https://pocketcasts.com/submit/',hint:'Submit your RSS feed for directory inclusion.'},
-{id:'castbox',name:'Castbox',url:'https://castbox.fm/',hint:'Search for your show or review creator tools.'},
-{id:'overcast',name:'Overcast',url:'https://overcast.fm/',hint:'Public RSS availability is the main requirement.'}];
+{id:'pocket_casts',name:'Pocket Casts',url:'https://support.pocketcasts.com/knowledge-base/submitting-podcasts/',hint:'Submit the RSS URL using the app or submission form.'},
+{id:'castbox',name:'Castbox',url:'https://castbox.fm/submit',hint:'Submit or claim your show using the RSS feed.'},
+{id:'overcast',name:'Overcast',url:'https://overcast.fm/',hint:'Public RSS discovery and directory listing.'},
+{id:'goodpods',name:'Goodpods',url:'https://goodpods.com/',hint:'Search for your show or use creator submission options.'},
+{id:'podcast_addict',name:'Podcast Addict',url:'https://podcastaddict.com/submit',hint:'Submit the public feed for directory inclusion.'},
+{id:'podchaser',name:'Podchaser',url:'https://www.podchaser.com/',hint:'Claim or add your show in the podcast database.'},
+{id:'listen_notes',name:'Listen Notes',url:'https://www.listennotes.com/',hint:'Search for your show or review podcast submission options.'},
+{id:'player_fm',name:'Player FM',url:'https://player.fm/',hint:'Check public-feed discovery and submission options.'},
+{id:'deezer',name:'Deezer',url:'https://www.deezer.com/',hint:'Check podcast availability and publisher submission options.'},
+{id:'radio_public',name:'RadioPublic',url:'https://radiopublic.com/',hint:'Check current directory availability and submission options.'}];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const say=(m,t='')=>{$('notice').textContent=m;$('notice').className='notice'+(t?' '+t:'');};
 const nice=v=>String(v||'').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
@@ -110,6 +117,9 @@ async function changeShow(){await loadEpisodes();await loadConnections();await l
 async function changeEpisode(){renderEpisodeSummary();await loadVideoHistory();await loadDrafts();}
 $('show').addEventListener('change',changeShow);$('episode').addEventListener('change',changeEpisode);$('generateDraft').addEventListener('click',generateDraft);$('refreshDrafts').addEventListener('click',loadDrafts);$('refreshVideoStatus').addEventListener('click',refreshVideoStatus);$('reload').addEventListener('click',async()=>{const b=$('reload');b.disabled=true;try{await loadWorkspace();}finally{b.disabled=false;}});$('refreshLogs').addEventListener('click',loadDeliveryLogs);$('drafts').addEventListener('click',draftAction);
 $('copyRssFeed').addEventListener('click',async()=>{const v=$('rssFeedUrl').value;if(!v){say('Select a podcast first.');return;}try{await navigator.clipboard.writeText(v);say('RSS feed URL copied.','success');}catch{$('rssFeedUrl').focus();$('rssFeedUrl').select();say('Select and copy the RSS feed URL manually.');}});
+function getSubmissionFeed(){const v=$('rssFeedUrl').value.trim();if(!v)throw new Error('Select a podcast first.');try{const u=new URL(v);if(u.protocol!=='https:')throw new Error('The RSS feed must use public HTTPS before submitting.');}catch(e){throw new Error(e.message||'The RSS feed URL is invalid.');}return v;}
+$('copyAllSubmissionPack').addEventListener('click',async()=>{try{const {show}=selected(),feed=getSubmissionFeed();const pack='CROWRULES PODCAST RSS SUBMISSION PACK\\nPodcast: '+(show?.title||'Selected podcast')+'\\nRSS Feed: '+feed+'\\n\\nSubmit or claim the show at each directory portal. A copied feed is not a completed submission.';await navigator.clipboard.writeText(pack);say('Submission pack copied. Open each directory and paste the RSS URL into its submission form.','success');}catch(e){say(e.message||'Could not prepare submission pack.','error');}});
+$('openAllDirectories').addEventListener('click',()=>{try{getSubmissionFeed();const opened=[];directories.forEach((p,i)=>{const w=window.open(p.url,'_blank','noopener');if(w)opened.push(p.name);});say('Opened '+opened.length+' of '+directories.length+' directory portals. Paste the copied RSS feed and complete each provider’s own submission. '+(opened.length<directories.length?'Your browser blocked some tabs; open remaining portals individually below.':''),opened.length?'success':'error');}catch(e){say(e.message||'Could not open submission portals.','error');}});
 $('directoryCards').addEventListener('click',async ev=>{const b=ev.target.closest('[data-save-directory]');if(!b)return;const label=b.textContent;b.disabled=true;b.textContent='Saving…';try{await saveDirectory(b.dataset.saveDirectory);}catch(err){say(err.message||'Could not save directory status.','error');}finally{b.disabled=false;b.textContent=label;}});
 $('youtubeConnection').addEventListener('click',async ev=>{const b=ev.target.closest('#connectYouTube,#refreshYouTubeToken');if(!b)return;b.disabled=true;const action=b.id==='connectYouTube'?'start':'refresh';try{await connectYouTube(action);}finally{b.disabled=false;}});
 (async()=>{await loadWorkspace();})();
