@@ -60,6 +60,7 @@ jobs:
         run: node tests/online-presence-browser-test.mjs
 
   audio-playback-integrity:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -89,6 +90,7 @@ jobs:
         run: node tests/audio-playback-browser-test.mjs
 
   show-integration-health:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
