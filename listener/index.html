@@ -443,11 +443,12 @@ async function loadLive(){
     // as the strongest signal, even if the creator's status value is not exactly
     // "scheduled"; otherwise a saved future episode can silently disappear.
     const upcoming=allEpisodes.filter(x=>{
-      const when=x.scheduled_at||x.release_date;
-      const timestamp=when?new Date(when).getTime():NaN;
+      // Only show entries with a real future scheduled_at timestamp; release dates,
+      // missing times, and placeholder/TBD values are not treated as live schedules.
+      const timestamp=x.scheduled_at?new Date(x.scheduled_at).getTime():NaN;
       const status=String(x.status||"").toLowerCase();
       return Number.isFinite(timestamp)&&timestamp>now&&x.is_active!==false&&!["published","archived","draft"].includes(status);
-    }).sort((a,b)=>new Date(a.scheduled_at||a.release_date)-new Date(b.scheduled_at||b.release_date)).slice(0,10);
+    }).sort((a,b)=>new Date(a.scheduled_at)-new Date(b.scheduled_at)).slice(0,10);
     const episodeDate=x=>new Date(x.published_at||x.release_date||x.scheduled_at||x.created_at||0).getTime()||0;
     // Prefer an episode explicitly associated with a live broadcast, then fall back
     // to the newest published playable episode so older records without a replay marker
@@ -500,11 +501,13 @@ async function loadLive(){
       box.innerHTML='<div class="live-badge"><i></i> OFF AIR · REPLAY</div><h3>'+(replay?"WATCH THE LAST LIVE":"BACK DECK LIVE IS OFF AIR")+'</h3><p>'+(replay?esc(replay.title||"Latest published episode")+" is ready to replay.":"A replay will appear here when an episode is published.")+'</p>';
     }
     if(upcoming.length){
-      upcomingBox.innerHTML='<div class="live-badge" style="margin-top:14px"><i></i> UPCOMING LIVE SHOWS <a class="lbtn" style="margin-left:auto" href="'+showUrl+'">BACK DECK LIVE PAGE ↗</a></div>'+upcoming.map(x=>{
-        const episodePage=showUrl;
-        const broadcastTime=x.scheduled_at||x.release_date;
-        return '<article class="live-session-card"><div class="live-session-copy"><span class="live-now" style="color:#48e7ff">UPCOMING</span><h4><a href="'+episodePage+'">'+esc(x.title||"Back Deck Live")+'</a></h4><p>'+esc(localDate(broadcastTime))+'</p></div></article>';
-      }).join("")+'<p style="margin-top:10px"><a class="lbtn" href="index.html#discover">OPEN LISTENER HUB →</a></p>';
+      upcomingBox.innerHTML='<div class="live-badge" style="margin-top:14px"><i></i> UPCOMING LIVE SHOWS</div>'+upcoming.map(x=>{
+        const mediaUrl=String(x.video_url||x.audio_url||"").trim();
+        const safeMediaUrl=/^https?:\/\//i.test(mediaUrl)?mediaUrl:"";
+        const episodePage=safeMediaUrl||showUrl;
+        const broadcastTime=x.scheduled_at;
+        return '<article class="live-session-card"><div class="live-session-copy"><h4><a href="'+esc(episodePage)+'"'+(safeMediaUrl?' target="_blank" rel="noopener noreferrer"':"")+'>'+esc(x.title||"Back Deck Live")+'</a></h4><p>'+esc(localDate(broadcastTime))+'</p></div></article>';
+      }).join("");
     }else{
       upcomingBox.innerHTML='<div class="live-badge" style="margin-top:14px"><i></i> UPCOMING LIVE SHOWS</div><div class="note-state" style="margin-top:16px">No upcoming Back Deck Live episodes are currently scheduled.</div><p><a class="lbtn" href="index.html#discover">OPEN LISTENER HUB →</a></p>';
     }
