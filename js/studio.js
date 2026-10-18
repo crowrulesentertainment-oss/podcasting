@@ -357,8 +357,8 @@ async function loadSaved(){
   if(backup.childElementCount)card.append(backup);
   const master=(row.tracks||[]).find(t=>t.role==='master');if(master){const play=document.createElement('button');play.className='btn';play.textContent='▶ Preview master mix';play.addEventListener('click',async()=>{try{const {data,error}=await state.client.storage.from(BUCKET).createSignedUrl(master.path,300);if(error)throw error;const audio=document.createElement('audio');audio.controls=true;audio.src=data.signedUrl;audio.style.width='100%';play.replaceWith(audio);}catch(e){say('Could not create private preview: '+e.message,true);}});card.append(play);}
   const resume=document.createElement('button');resume.className='btn';resume.style.marginLeft='6px';resume.textContent='Continue session';resume.addEventListener('click',()=>continueSavedSession(row,resume));card.append(resume);
-  if(row.podcast_id){const draft=document.createElement('button');draft.className='btn primary';draft.style.marginLeft='6px';draft.textContent='Create episode draft';draft.addEventListener('click',()=>createDraft(row,draft));card.append(draft);}
-  else {const note=document.createElement('p');note.textContent='Select a podcast above and save a new session to link it, or choose a podcast in the draft form below.';card.append(note);const choose=document.createElement('select');choose.style.cssText='width:100%;margin:6px 0;background:#090a13;color:white;border:1px solid #ffffff22;padding:10px;border-radius:8px';choose.innerHTML=$('podcastSelect').innerHTML;card.append(choose);const draft=document.createElement('button');draft.className='btn primary';draft.textContent='Create episode draft';draft.addEventListener('click',()=>createDraft(row,draft,choose.value));card.append(draft);}
+  const choose=document.createElement('select');choose.setAttribute('aria-label','Podcast for new episode');choose.style.cssText='width:100%;margin:8px 0;background:#090a13;color:white;border:1px solid #ffffff22;padding:10px;border-radius:8px';choose.innerHTML=$('podcastSelect').innerHTML;if(row.podcast_id&&[...choose.options].some(o=>o.value===row.podcast_id))choose.value=row.podcast_id;card.append(choose);
+  const draft=document.createElement('button');draft.className='btn primary';draft.textContent='＋ Add as new episode draft';draft.addEventListener('click',()=>createDraft(row,draft,choose.value));card.append(draft);
   root.append(card);
  });
 }
@@ -380,21 +380,36 @@ async function continueSavedSession(row,button){
  finally{button.disabled=false;}
 }
 async function createDraft(row,button,chosenPodcast){
- const podcastId=chosenPodcast||row.podcast_id||$('podcastSelect').value;if(!podcastId){say('Choose one of your podcasts before creating an episode draft.',true);return;}
- const {data:show,error:showErr}=await state.client.from('podcasts').select('id,title,creator_id').eq('id',podcastId).maybeSingle();if(showErr)throw showErr;if(!show){say('Podcast not found or not accessible.',true);return;}
- const {data:member,error:me}=await state.client.from('members').select('id').eq('user_id',state.user.id).maybeSingle();if(me)throw me;
- const {data:creator,error:ce}=await state.client.from('creators').select('id').eq('member_id',member?.id||'00000000-0000-0000-0000-000000000000');if(ce)throw ce;
- if(!(creator||[]).some(c=>c.id===show.creator_id)){say('You can only create episode drafts for podcasts linked to your creator account.',true);return;}
- const master=(row.tracks||[]).find(t=>t.role==='master');if(!master){say('This recording has no master mix track.',true);return;}
- button.disabled=true;
+ const podcastId=chosenPodcast||row.podcast_id||$('podcastSelect').value;
+ if(!podcastId){say('Choose one of your podcasts before creating an episode draft.',true);return;}
+ if(button.disabled)return;
+ button.disabled=true;const oldLabel=button.textContent;button.textContent='Preparing episode…';
+ let publishedPath=null;
  try{
+  const {data:show,error:showErr}=await state.client.from('podcasts').select('id,title,creator_id').eq('id',podcastId).maybeSingle();if(showErr)throw showErr;if(!show)throw new Error('Podcast not found or not accessible.');
+  const {data:member,error:me}=await state.client.from('members').select('id').eq('user_id',state.user.id).maybeSingle();if(me)throw me;
+  const {data:creator,error:ce}=await state.client.from('creators').select('id').eq('member_id',member?.id||'00000000-0000-0000-0000-000000000000');if(ce)throw ce;
+  if(!(creator||[]).some(c=>c.id===show.creator_id))throw new Error('You can only create episode drafts for podcasts linked to your creator account.');
+  const master=(row.tracks||[]).find(t=>t.role==='master');if(!master)throw new Error('This recording has no master mix track.');
+  say('Preparing audio for '+show.title+'…');
+  const {data:blob,error:downloadError}=await state.client.storage.from(BUCKET).download(master.path);if(downloadError)throw downloadError;
+  const ext=(master.path.split('.').pop()||'webm').replace(/[^a-z0-9]/gi,'').slice(0,8)||'webm';
+  const publicPath='podcasts/'+state.user.id+'/'+podcastId+'/episodes/studio-'+row.id+'-'+crypto.randomUUID()+'/audio.'+ext;
+  const {error:uploadError}=await state.client.storage.from('podcasting').upload(publicPath,blob,{upsert:false,contentType:master.mime_type||blob.type||'audio/webm',cacheControl:'3600'});if(uploadError)throw uploadError;
+  publishedPath=publicPath;
+  const audioUrl=state.client.storage.from('podcasting').getPublicUrl(publicPath).data.publicUrl;
   const {data:episodes,error:countErr}=await state.client.from('podcast_episodes').select('episode_number').eq('podcast_id',podcastId).order('episode_number',{ascending:false}).limit(1);if(countErr)throw countErr;
-  const next=(episodes?.[0]?.episode_number||0)+1;const episodeSlug=slug(row.title)+'-'+row.id.slice(0,8);
-  const {data:episode,error}=await state.client.from('podcast_episodes').insert({podcast_id:podcastId,title:row.title,slug:episodeSlug,description:'Recorded in CrowRules Studio. Audio is private until the episode is reviewed and published.',episode_number:next,duration_seconds:master.duration_seconds||row.duration_seconds,audio_url:master.path,status:'draft',is_published:false,is_active:true,access_level:'free'}).select('id').single();if(error)throw error;
-  const {error:updateErr}=await state.client.from('studio_recordings').update({status:'draft_created',podcast_id:podcastId}).eq('id',row.id);if(updateErr)throw updateErr;
-  say('Episode draft created for '+show.title+'. The recording remains private; publishing must preserve authenticated access to the private audio or copy it to your approved delivery bucket.');
+  const next=(episodes?.[0]?.episode_number||0)+1;const episodeSlug=slug(row.title)+'-'+row.id.slice(0,8)+'-'+Date.now().toString(36);
+  const {data:episode,error}=await state.client.from('podcast_episodes').insert({podcast_id:podcastId,title:row.title,slug:episodeSlug,description:'Recorded in CrowRules Studio. Review this draft before publishing.',episode_number:next,duration_seconds:master.duration_seconds||row.duration_seconds,audio_url:audioUrl,status:'draft',is_published:false,is_active:true,access_level:'free'}).select('id').single();if(error)throw error;
+  const {error:updateErr}=await state.client.from('studio_recordings').update({status:'draft_created',podcast_id:podcastId}).eq('id',row.id).eq('owner_user_id',state.user.id);if(updateErr)throw updateErr;
+  publishedPath=null;
+  say('New episode draft added to '+show.title+'. The audio was copied to the podcasting delivery bucket; review the episode before publishing.');
   await loadSaved();
- }catch(e){say('Could not create episode draft: '+(e.message||String(e)),true);button.disabled=false;}
+ }catch(e){
+  if(publishedPath){const {error:cleanupError}=await state.client.storage.from('podcasting').remove([publishedPath]);if(cleanupError)console.warn('Audio cleanup may need attention:',cleanupError);}
+  say('Could not create episode draft: '+(e.message||String(e)),true);
+  button.disabled=false;button.textContent=oldLabel;
+ }
 }
 $('openingFile').addEventListener('change',()=>{if($('openingFile').files.length)$('openingSavedTrack').value='';});$('endingFile').addEventListener('change',()=>{if($('endingFile').files.length)$('endingSavedTrack').value='';});
 $('openingSavedTrack').addEventListener('change',()=>{if($('openingSavedTrack').value)$('openingFile').value='';});$('endingSavedTrack').addEventListener('change',()=>{if($('endingSavedTrack').value)$('endingFile').value='';});
