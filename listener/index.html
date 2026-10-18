@@ -189,7 +189,8 @@ a{text-decoration:none;color:inherit}
 
   <section class="listener-shell section">
     <div class="section-head">
-      <div><h2>LIVE RIGHT NOW</h2><p>Realtime broadcast activity from the Podcasting network.</p></div>
+      <div><h2>🔴 LIVE NOW</h2><p>Upcoming live broadcasts from Back Deck Live.</p></div>
+      <a class="lbtn" href="show.html?id=ab335e1a-56db-47de-98a1-73bd67c2a1c8#episodes">BACK DECK LIVE PAGE ↗</a>
     </div>
     <article class="back-deck-feature" aria-label="Back Deck Live broadcast">
       <div class="back-deck-copy" id="backDeckLiveCopy">
@@ -484,11 +485,12 @@ async function loadLive(){
       box.innerHTML='<div class="live-badge"><i></i> OFF AIR · REPLAY</div><h3>'+(replay?"WATCH THE LAST LIVE":"BACK DECK LIVE IS OFF AIR")+'</h3><p>'+(replay?esc(replay.title||"Latest published episode")+" is ready to replay.":"A replay will appear here when an episode is published.")+'</p>';
     }
     if(upcoming.length){
-      upcomingBox.innerHTML='<div class="live-badge" style="margin-top:14px"><i></i> UPCOMING BACK DECK LIVE</div>'+upcoming.map(x=>{
-        return '<article class="live-session-card"><div class="live-session-copy"><span class="live-now" style="color:#48e7ff">UPCOMING · '+esc(localDate(x.scheduled_at||x.release_date))+'</span><h4>'+esc(x.title||"Back Deck Live")+'</h4><p>'+esc(x.description||"Upcoming Back Deck Live episode.")+'</p></div><a class="lbtn" href="'+showUrl+'">EPISODE DETAILS →</a></article>';
-      }).join("");
+      upcomingBox.innerHTML='<div class="live-badge" style="margin-top:14px"><i></i> UPCOMING LIVE SHOWS <a class="lbtn" style="margin-left:auto" href="'+showUrl+'">BACK DECK LIVE PAGE ↗</a></div>'+upcoming.map(x=>{
+        const episodePage=showUrl;
+        return '<article class="live-session-card"><div class="live-session-copy"><a class="live-now" style="color:#48e7ff" href="'+episodePage+'">UPCOMING</a><h4><a href="'+episodePage+'">'+esc(x.title||"Back Deck Live")+'</a></h4><p>'+esc(localDate(x.scheduled_at||x.release_date))+'</p></div></article>';
+      }).join("")+'<p style="margin-top:10px"><a class="lbtn" href="index.html#discover">OPEN LISTENER HUB →</a></p>';
     }else{
-      upcomingBox.innerHTML='<div class="note-state" style="margin-top:16px">No upcoming Back Deck Live episodes are currently scheduled.</div>';
+      upcomingBox.innerHTML='<div class="live-badge" style="margin-top:14px"><i></i> UPCOMING LIVE SHOWS</div><div class="note-state" style="margin-top:16px">No upcoming Back Deck Live episodes are currently scheduled.</div><p><a class="lbtn" href="index.html#discover">OPEN LISTENER HUB →</a></p>';
     }
   }catch(err){
     console.warn("[CrowRules listener] Back Deck Live feed unavailable",err);
