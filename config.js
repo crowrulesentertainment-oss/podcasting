@@ -4,6 +4,6 @@
 window.CROW_CONFIG = Object.assign({}, window.CROW_CONFIG || {}, {
   supabaseUrl: "https://cevylpnoexugwgygvtgu.supabase.co",
   supabaseKey: "sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-",
-  logoUrl: "images/logo.png",
+  logoUrl: "https://crowrulesentertainment-oss.github.io/podcasting/images/logo.png",
   launchAt: "2027-01-01T08:00:00Z"
 });
