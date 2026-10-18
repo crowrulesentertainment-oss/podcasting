@@ -417,56 +417,76 @@ async function loadLive(){
     box.querySelector("h3").textContent="PODCAST DATA UNAVAILABLE";return;
   }
   try{
-    // Resolve the actual show from the podcast catalog by title.
-    const showResult=await S.from("podcasts").select("id,title").ilike("title","%Back Deck Live%").limit(20);
+    // Resolve the exact show first; do not accidentally use a similarly named show.
+    const showResult=await S.from("podcasts").select("id,title").ilike("title","%Back Deck Live%").limit(30);
     if(showResult.error)throw showResult.error;
-    const backDeckShow=(showResult.data||[]).find(p=>String(p.title||"").trim().toLowerCase()==="back deck live")||(showResult.data||[])[0];
+    const shows=showResult.data||[];
+    const backDeckShow=shows.find(p=>String(p.title||"").trim().toLowerCase()==="back deck live")||shows.find(p=>/back deck live/i.test(String(p.title||"")));
     if(!backDeckShow)throw new Error('Could not find "Back Deck Live" in the podcasts catalog.');
     BACK_DECK_PODCAST_ID=backDeckShow.id;
+
+    // Select * to avoid breaking the entire live panel when optional stream columns differ by deployment.
     const [liveResult,episodesResult]=await Promise.all([
-      S.from("podcast_live_sessions").select("id,title,description,podcast_id,started_at,status,visibility,video_url,stream_url,youtube_url").eq("status","live").eq("visibility","public").eq("podcast_id",BACK_DECK_PODCAST_ID).order("started_at",{ascending:false,nullsFirst:false}).limit(5),
-      S.from("podcast_episodes").select("id,podcast_id,title,description,status,scheduled_at,release_date,published_at,video_url,audio_url,thumbnail_url,created_at,is_active,is_published").eq("podcast_id",BACK_DECK_PODCAST_ID).order("scheduled_at",{ascending:true,nullsFirst:false}).limit(100)
+      S.from("podcast_live_sessions").select("*").eq("podcast_id",BACK_DECK_PODCAST_ID).eq("status","live").order("started_at",{ascending:false,nullsFirst:false}).limit(10),
+      S.from("podcast_episodes").select("*").eq("podcast_id",BACK_DECK_PODCAST_ID).order("scheduled_at",{ascending:true,nullsFirst:false}).limit(200)
     ]);
-    const upcomingResult={data:episodesResult.data||[],error:episodesResult.error};
-    const replayResult={data:episodesResult.data||[],error:episodesResult.error};
-    if(liveResult.error)throw liveResult.error;
-    if(upcomingResult.error)console.warn("[CrowRules listener] Upcoming Back Deck Live episodes unavailable",upcomingResult.error);
-    if(replayResult.error)console.warn("[CrowRules listener] Back Deck Live replay query unavailable",replayResult.error);
-    const sessions=liveResult.data||[];
+    // A live-session table/policy error must not prevent the replay and schedule from rendering.
+    if(liveResult.error)console.warn("[CrowRules listener] Live-session lookup unavailable; showing replay/schedule instead.",liveResult.error);
+    if(episodesResult.error)throw episodesResult.error;
+    const sessions=(liveResult.data||[]).filter(x=>!x.visibility||String(x.visibility).toLowerCase()==="public");
+    const allEpisodes=episodesResult.data||[];
     const now=Date.now();
-    const allEpisodes=upcomingResult.data||[];
-    const upcoming=allEpisodes.filter(x=>x.scheduled_at&&new Date(x.scheduled_at).getTime()>now&&["scheduled","upcoming","live"].includes(String(x.status||"").toLowerCase())&&x.is_active!==false).sort((a,b)=>new Date(a.scheduled_at)-new Date(b.scheduled_at)).slice(0,10);
-    const replay=(replayResult.data||[]).filter(x=>(x.is_published===true||String(x.status||"").toLowerCase()==="published")&&x.video_url&&youtubeId(x.video_url)).sort((a,b)=>new Date(b.published_at||b.created_at||0)-new Date(a.published_at||a.created_at||0))[0]||(replayResult.data||[]).filter(x=>(x.is_published===true||String(x.status||"").toLowerCase()==="published")).sort((a,b)=>new Date(b.published_at||b.created_at||0)-new Date(a.published_at||a.created_at||0))[0];
+    const isPublished=x=>x.is_published===true||String(x.status||"").toLowerCase()==="published";
+    const playable=x=>!!(x.video_url||x.audio_url);
+    const upcoming=allEpisodes.filter(x=>{
+      const when=x.scheduled_at||x.release_date;
+      const timestamp=when?new Date(when).getTime():NaN;
+      return Number.isFinite(timestamp)&&timestamp>now&&String(x.status||"").toLowerCase()==="scheduled"&&x.is_active!==false;
+    }).sort((a,b)=>new Date(a.scheduled_at||a.release_date)-new Date(b.scheduled_at||b.release_date)).slice(0,10);
+    const replay=allEpisodes.filter(x=>isPublished(x)&&playable(x)).sort((a,b)=>{
+      const dateA=new Date(a.published_at||a.release_date||a.created_at||0).getTime()||0;
+      const dateB=new Date(b.published_at||b.release_date||b.created_at||0).getTime()||0;
+      return dateB-dateA;
+    })[0]||null;
+    const showUrl="show.html?id="+encodeURIComponent(BACK_DECK_PODCAST_ID)+"#episodes";
+    const mediaMarkup=(row,title)=>{
+      if(row.video_url&&youtubeId(row.video_url))return videoFrame(row.video_url,title);
+      if(row.audio_url)return '<div class="audio-replay"><p>'+esc(title)+'</p><audio controls preload="metadata" style="width:100%"><source src="'+esc(row.audio_url)+'">Your browser does not support audio playback.</audio></div>';
+      if(row.video_url)return '<p><a class="lbtn primary" href="'+esc(row.video_url)+'" target="_blank" rel="noopener noreferrer">OPEN BROADCAST ↗</a></p>';
+      return '<div class="note-state" style="padding:20px">No playable media link is available for this broadcast.</div>';
+    };
     if(sessions.length){
-      const current=sessions[0],sessionUrl="live.html?id="+encodeURIComponent(current.id)+"&podcast="+encodeURIComponent(BACK_DECK_PODCAST_ID);
-      copy.innerHTML='<div class="live-badge"><i></i> ● LIVE NOW</div><h3>'+esc(current.title||"Back Deck Live")+'</h3><p>'+esc(current.description||"Back Deck Live is broadcasting now. Tune in below.")+'</p><a class="lbtn primary" href="'+sessionUrl+'">OPEN LIVE SESSION →</a>';
-      const liveVideo=String(current.video_url||current.stream_url||current.youtube_url||"");
-      video.innerHTML=videoFrame(liveVideo,current.title||"Back Deck Live — live broadcast");
-      box.innerHTML='<div class="live-badge"><i></i> ● ON AIR</div><h3>BACK DECK LIVE IS LIVE</h3><p>The active public Back Deck Live session is available now. Use the live session link to join the broadcast.</p><a class="lbtn primary" href="'+sessionUrl+'">JOIN THE LIVE SESSION →</a>';
+      const current=sessions[0];
+      const sessionUrl="live.html?id="+encodeURIComponent(current.id)+"&podcast="+encodeURIComponent(BACK_DECK_PODCAST_ID);
+      const liveUrl=String(current.video_url||current.stream_url||current.youtube_url||current.youtube_live_url||current.broadcast_url||"");
+      copy.innerHTML='<div class="live-badge"><i></i> ● LIVE NOW</div><h3>'+esc(current.title||"Back Deck Live")+'</h3><p>'+esc(current.description||"Back Deck Live is broadcasting now. Join the active public session.")+'</p><a class="lbtn primary" href="'+sessionUrl+'">OPEN LIVE SESSION →</a>';
+      video.innerHTML=liveUrl?mediaMarkup({video_url:liveUrl,audio_url:current.audio_url},current.title||"Back Deck Live — live broadcast"):'<div class="note-state" style="padding:20px">The broadcast is marked live. Open the live session to connect to the stream.</div><p><a class="lbtn primary" href="'+sessionUrl+'">JOIN LIVE SESSION →</a></p>';
+      box.innerHTML='<div class="live-badge"><i></i> ● ON AIR</div><h3>BACK DECK LIVE IS LIVE</h3><p>The active public session is available now.</p><a class="lbtn primary" href="'+sessionUrl+'">JOIN THE LIVE SESSION →</a>';
     }else{
       if(replay){
         const replayTitle=replay.title||"Latest Back Deck Live replay";
-        copy.innerHTML='<div class="live-badge"><i></i> LATEST REPLAY</div><h3>'+esc(replayTitle)+'</h3><p>'+esc(replay.description||"The latest published Back Deck Live episode is ready to replay.")+'</p><a class="lbtn primary" href="'+(youtubeId(replay.video_url)?"https://www.youtube.com/watch?v="+youtubeId(replay.video_url):"show.html?id="+BACK_DECK_PODCAST_ID)+'" target="_blank" rel="noopener noreferrer">WATCH REPLAY ON YOUTUBE ↗</a>';
-        video.innerHTML=videoFrame(replay.video_url,replayTitle);
+        const isVideo=!!(replay.video_url&&youtubeId(replay.video_url));
+        copy.innerHTML='<div class="live-badge"><i></i> LATEST REPLAY</div><h3>'+esc(replayTitle)+'</h3><p>'+esc(replay.description||"The latest published Back Deck Live episode is ready to play.")+'</p><a class="lbtn primary" href="'+(isVideo?"https://www.youtube.com/watch?v="+youtubeId(replay.video_url):showUrl)+'"'+(isVideo?' target="_blank" rel="noopener noreferrer"':"")+'>'+(isVideo?"WATCH REPLAY ON YOUTUBE ↗":"OPEN EPISODE ↗")+'</a>';
+        video.innerHTML=mediaMarkup(replay,replayTitle);
       }else{
-        copy.innerHTML='<div class="live-badge"><i></i> OFF AIR</div><h3>BACK DECK LIVE</h3><p>No published replay with a video link was found yet. Check the upcoming schedule below.</p>';
-        video.innerHTML='<div class="note-state" style="padding:20px">The replay will appear here when a published Back Deck Live episode has a YouTube video URL.</div>';
+        copy.innerHTML='<div class="live-badge"><i></i> OFF AIR</div><h3>BACK DECK LIVE</h3><p>No published episode with playable audio or video was found yet. Check the upcoming schedule below.</p>';
+        video.innerHTML='<div class="note-state" style="padding:20px">The latest replay will appear here automatically when a playable episode is published.</div>';
       }
-      box.innerHTML='<div class="live-badge"><i></i> OFF AIR · REPLAY READY</div><h3>WATCH THE LAST LIVE</h3><p>'+(replay?esc(replay.title||"Latest published episode"):"No replay is available yet")+'. '+(replay?"The latest published Back Deck Live episode is shown above.":"A replay will appear automatically after an episode is published.")+'</p>';
+      box.innerHTML='<div class="live-badge"><i></i> OFF AIR · REPLAY</div><h3>'+(replay?"WATCH THE LAST LIVE":"BACK DECK LIVE IS OFF AIR")+'</h3><p>'+(replay?esc(replay.title||"Latest published episode")+" is ready to replay.":"A replay will appear here when an episode is published.")+'</p>';
     }
     if(upcoming.length){
       upcomingBox.innerHTML='<div class="live-badge" style="margin-top:14px"><i></i> UPCOMING BACK DECK LIVE</div>'+upcoming.map(x=>{
-        const link="show.html?id="+encodeURIComponent(BACK_DECK_PODCAST_ID)+"#episodes";
-        return '<article class="live-session-card"><div class="live-session-copy"><span class="live-now" style="color:#48e7ff">UPCOMING · '+esc(localDate(x.scheduled_at))+'</span><h4>'+esc(x.title||"Back Deck Live")+'</h4><p>'+esc(x.description||"Upcoming Back Deck Live episode.")+'</p></div><a class="lbtn" href="'+link+'">EPISODE DETAILS →</a></article>';
+        return '<article class="live-session-card"><div class="live-session-copy"><span class="live-now" style="color:#48e7ff">UPCOMING · '+esc(localDate(x.scheduled_at||x.release_date))+'</span><h4>'+esc(x.title||"Back Deck Live")+'</h4><p>'+esc(x.description||"Upcoming Back Deck Live episode.")+'</p></div><a class="lbtn" href="'+showUrl+'">EPISODE DETAILS →</a></article>';
       }).join("");
     }else{
       upcomingBox.innerHTML='<div class="note-state" style="margin-top:16px">No upcoming Back Deck Live episodes are currently scheduled.</div>';
     }
   }catch(err){
     console.warn("[CrowRules listener] Back Deck Live feed unavailable",err);
-    copy.innerHTML='<div class="live-badge"><i></i> BACK DECK LIVE</div><h3>FEED TEMPORARILY UNAVAILABLE</h3><p>Could not load the Back Deck Live broadcast, replay or schedule. Please refresh to try again.</p>';
+    copy.innerHTML='<div class="live-badge"><i></i> BACK DECK LIVE</div><h3>FEED TEMPORARILY UNAVAILABLE</h3><p>Could not load Back Deck Live from the podcast catalog. Please refresh to try again.</p>';
     video.innerHTML='<div class="note-state" style="padding:20px">The Back Deck Live feed could not be loaded right now.</div>';
     box.innerHTML='<div class="live-badge"><i></i> BACK DECK LIVE</div><h3>FEED TEMPORARILY UNAVAILABLE</h3><p>Please refresh to try again.</p>';
+    upcomingBox.innerHTML='<div class="note-state" style="margin-top:16px">The upcoming schedule could not be loaded.</div>';
   }
   if(!liveChannel){
     liveChannel=S.channel("listener-back-deck-live-"+BACK_DECK_PODCAST_ID).on("postgres_changes",{event:"*",schema:"public",table:"podcast_live_sessions",filter:"podcast_id=eq."+BACK_DECK_PODCAST_ID},()=>loadLive()).on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes",filter:"podcast_id=eq."+BACK_DECK_PODCAST_ID},()=>loadLive()).subscribe();
