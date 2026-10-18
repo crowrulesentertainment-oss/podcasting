@@ -772,7 +772,7 @@ const fmt=n=>Math.max(0,Number(n)||0).toLocaleString();
 const safe=v=>String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 let discoveryRealtimeState=window.CROW_HOME_REALTIME_STATE||"CONNECTING";
 const text=(id,v)=>{const el=$(id);if(!el)return;el.textContent=id==="homeDynamicStatus"?v+" · "+(discoveryRealtimeState==="SUBSCRIBED"?"REALTIME LIVE":(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(discoveryRealtimeState)?"REALTIME RECONNECTING · FALLBACK ACTIVE":"REALTIME CONNECTING")):v};
-let db=window.CROW_HOME_SUPABASE||null,busy=false,loadQueued=false,discoveryRefreshTimer=null,historyIds=[];const catalogCoverage={showsComplete:false,episodesComplete:false};
+let db=window.CROW_HOME_SUPABASE||null,busy=false,loadQueued=false,discoveryRefreshTimer=null,historyIds=[],lastDiscoveryLoadAt=0;const catalogCoverage={showsComplete:false,episodesComplete:false};
 function empty(id,msg){const el=$(id);if(el)el.innerHTML='<div class="home-dynamic-empty">'+safe(msg)+'</div>'}
 function showHref(id){return "listener/show.html?id="+encodeURIComponent(id)}
 function card({title,description,art,fallbackArt,meta,href,number}) {
@@ -854,7 +854,10 @@ async function loadHistory(user){
   if(!r.error)historyIds=[...new Set((r.data||[]).map(x=>String(x.podcast_id)).filter(Boolean))];
  }catch(_){}
 }
-async function load(){
+async function load(force=false){
+ // Prevent Realtime and visibility events from repeatedly rescanning full event history.
+ // The manual refresh button can still request an immediate refresh.
+ if(!force&&Date.now()-lastDiscoveryLoadAt<300000)return;
  if(busy){loadQueued=true;return}busy=true;
  const button=$("homeDynamicRefresh");if(button){button.disabled=true;button.textContent="REFRESHING…"}
  text("homeDynamicStatus","Reading catalog, canonical plays and listening sessions…");
@@ -935,6 +938,7 @@ async function load(){
   }
   const issues=[showsResult.status!=="fulfilled",episodesResult.status!=="fulfilled",!catalogCoverage.showsComplete,!catalogCoverage.episodesComplete,!!eventsError,!!sessionsError].filter(Boolean).length;
   text("homeDynamicStatus",(issues?"PARTIAL ANALYTICS · ":"DATABASE UPDATED · ")+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+". Play events follow the rankings deduplication rule; duration and completions come from podcast_listens, as in admin analytics.");
+  lastDiscoveryLoadAt=Date.now();
  }catch(e){
   text("homeDynamicStatus","DISCOVERY UNAVAILABLE · "+(e?.message||"Could not connect to the database."));
   empty("homeFeaturedShows","The published catalog could not be reached.");empty("homeNewEpisodes","The published episode catalog could not be reached.");empty("homeRecommendedShows","Recommendations are unavailable until the database connection works.");
@@ -946,7 +950,7 @@ function scheduleDiscoveryRefresh(){
  if(discoveryRefreshTimer)clearTimeout(discoveryRefreshTimer);
  discoveryRefreshTimer=setTimeout(()=>{discoveryRefreshTimer=null;load()},500);
 }
-$("homeDynamicRefresh")?.addEventListener("click",load);
+$("homeDynamicRefresh")?.addEventListener("click",()=>load(true));
 load();
 if(L?.createClient&&C.supabaseUrl&&C.supabaseKey){
  try{
@@ -956,7 +960,8 @@ window.addEventListener("crowrules:home-realtime-state",event=>{discoveryRealtim
  }catch(error){discoveryRealtimeState="CHANNEL_ERROR";text("homeDynamicStatus","Realtime setup failed; the 60-second fallback remains active")}
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)scheduleDiscoveryRefresh()});
-const discoveryPollTimer=setInterval(()=>{if(!document.hidden)load()},60000);
+// Refresh the full catalog and historical analytics no more than once every five minutes.
+const discoveryPollTimer=setInterval(()=>{if(!document.hidden)load()},300000);
 window.addEventListener("pagehide",()=>{if(discoveryRefreshTimer)clearTimeout(discoveryRefreshTimer);clearInterval(discoveryPollTimer)},{once:true});
 })();
 </script>
