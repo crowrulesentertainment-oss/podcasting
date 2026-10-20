@@ -158,7 +158,7 @@ function recorderFor(stream,trackName){
  const mime=types.find(t=>MediaRecorder.isTypeSupported(t))||'';
  return new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
 }
-async function quickRecord(){
+async async function quickRecord(){
  if(state.busy||!state.user){say('Sign in to CrowRules Podcasting before recording.',true);return;}
  try{
   if(!state.devices.length)await refreshDevices();
@@ -259,7 +259,8 @@ function downloadBlob(blob, filename){
  setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
 function showPreview(){
- const root=$('savedList');const preview=document.createElement('div');preview.className='saved';
+ const reviewPanel=$('reviewPanel');if(reviewPanel)reviewPanel.scrollIntoView({behavior:'smooth',block:'start'});
+ const root=$('currentTakeHelp');if(!root)return;const preview=document.createElement('div');preview.className='saved';
  const title=document.createElement('strong');title.textContent='Current take · not saved yet';preview.append(title);
  const meta=document.createElement('p');const captured=[...state.tracks.filter(t=>t.blob?.size),...(state.master?.blob?.size?[state.master]:[])];const totalBytes=captured.reduce((sum,t)=>sum+(t.blob?.size||0),0);meta.textContent=fmt(state.elapsedBeforePause)+' · '+captured.length+' audio files · '+bytesLabel(totalBytes)+' total';preview.append(meta);
  const master=state.master?.blob;
@@ -282,13 +283,13 @@ function showPreview(){
   const label=document.createElement('strong');label.textContent=(track.name||('Microphone track '+(index+1)))+' · '+bytesLabel(track.blob.size);item.append(label);
   const format=document.createElement('p');format.className='hint';format.textContent='Format: '+(track.blob.type||'Browser default audio format');item.append(format);
   const audio=document.createElement('audio');audio.controls=true;audio.preload='metadata';audio.src=URL.createObjectURL(track.blob);audio.style.width='100%';audio.setAttribute('aria-label','Preview '+(track.name||('track '+(index+1))));item.append(audio);
-  const link=document.createElement('button');link.className='btn';link.textContent='↓ Download track';link.addEventListener('click',()=>downloadBlob(track.blob,safeName($('sessionTitle').value||'recording')+'-'+safeName(track.name||('track-'+(index+1)))+'.webm'));item.append(link);
+  const link=document.createElement('button');link.className='btn';link.textContent='↓ Download track';link.addEventListener('click',()=>{const mime=(track.blob.type||'audio/webm').toLowerCase();const ext=mime.includes('wav')?'wav':mime.includes('mp4')?'m4a':mime.includes('ogg')?'ogg':mime.includes('mpeg')?'mp3':'webm';downloadBlob(track.blob,safeName($('sessionTitle').value||'recording')+'-'+safeName(track.name||('track-'+(index+1)))+'.'+ext);});item.append(link);
   trackReview.append(item);
  });
  if(trackReview.childElementCount)preview.append(trackReview);
  const downloadAll=document.createElement('button');downloadAll.className='btn';downloadAll.textContent='↓ Download all captured files';downloadAll.style.marginTop='10px';downloadAll.addEventListener('click',async()=>{const files=[...state.tracks.filter(t=>t.blob?.size).map((t,i)=>({blob:t.blob,name:safeName(t.name||('track-'+(i+1)))})),...(state.master?.blob?.size?[{blob:state.master.blob,name:'master-mix'}]:[])];if(!files.length){say('There are no captured audio files to download.',true);return;}downloadAll.disabled=true;try{for(let i=0;i<files.length;i++){const f=files[i];const mime=(f.blob.type||'audio/webm').toLowerCase();const ext=mime.includes('wav')?'wav':mime.includes('mp4')?'m4a':mime.includes('ogg')?'ogg':mime.includes('mpeg')?'mp3':'webm';downloadBlob(f.blob,safeName($('sessionTitle').value||'recording')+'-'+f.name+'.'+ext);say('Download '+(i+1)+' of '+files.length+': '+f.name);await new Promise(resolve=>setTimeout(resolve,350));}say('Download requests sent for '+files.length+' files. Check your browser downloads; some browsers may ask permission for multiple downloads.');}finally{downloadAll.disabled=false;}});preview.append(downloadAll);
  const save=document.createElement('button');save.className='btn primary';save.textContent='Save private recording';save.style.marginTop='10px';save.addEventListener('click',()=>saveRecording(save));preview.append(save);
- root.prepend(preview);
+ root.replaceChildren(preview);
 }
 async function saveRecording(button){
  if(state.busy)return;const all=[...state.tracks.filter(t=>t.blob?.size),...(state.master?.blob?.size?[state.master]:[])];
