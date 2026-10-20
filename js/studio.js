@@ -429,5 +429,11 @@ $('openingFile').addEventListener('change',()=>{if($('openingFile').files.length
 $('openingSavedTrack').addEventListener('change',()=>{if($('openingSavedTrack').value)$('openingFile').value='';});$('endingSavedTrack').addEventListener('change',()=>{if($('endingSavedTrack').value)$('endingFile').value='';});
 $('openingVolume').addEventListener('input',()=>{state.openingGain=Number($('openingVolume').value)/100;$('openingVolumeValue').textContent=$('openingVolume').value+'%';});$('endingVolume').addEventListener('input',()=>{state.endingGain=Number($('endingVolume').value)/100;$('endingVolumeValue').textContent=$('endingVolume').value+'%';});$('previewOpening').addEventListener('click',()=>previewBed('opening'));$('previewEnding').addEventListener('click',()=>previewBed('ending'));$('soundCheckBtn').addEventListener('click',runSoundCheck);$('refreshDevices').addEventListener('click',refreshDevices);$('addTrack').addEventListener('click',addTrack);$('startBtn').addEventListener('click',startRecording);$('pauseBtn').addEventListener('click',pauseRecording);$('stopBtn').addEventListener('click',stopRecording);
 window.addEventListener('beforeunload',e=>{const recording=state.tracks.some(t=>t.recorder&&t.recorder.state!=='inactive')||(state.master?.recorder&&state.master.recorder.state!=='inactive');const unsaved=state.tracks.some(t=>t.blob?.size)||!!state.master?.blob?.size;if(recording||unsaved||state.busy){e.preventDefault();e.returnValue=recording?'Recording in progress':state.busy?'Audio upload in progress':'Your recorded audio has not been saved yet';}});
+
+window.CrowRulesStudioV2 = {
+ getCurrentTracks: () => [...state.tracks.filter(t=>t.blob?.size).map((t,i)=>({id:'track-'+i+'-'+safeName(t.name||'mic'),name:t.name||('Microphone '+(i+1)),blob:t.blob,role:'track'})), ...(state.master?.blob?.size?[{id:'master-mix',name:'Master mix',blob:state.master.blob,role:'master'}]:[])],
+ getTitle: () => $('sessionTitle')?.value || 'CrowRules recording'
+};
+
 drawWave();init();
 })();
