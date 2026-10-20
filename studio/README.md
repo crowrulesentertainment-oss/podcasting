@@ -22,10 +22,10 @@ Then open http://localhost:8000 in a current browser. Or deploy these static fil
 
 ## Limitations
 - Audio format depends on browser MediaRecorder support.
-- Project metadata is stored in localStorage on this browser.
+- Project metadata is saved locally by default and can also sync to Supabase after signing in.
 - Recordings are held in memory until downloaded; download before refreshing or closing the page.
-- Supabase, authentication, cloud storage, remote guest sessions, a true multitrack editor, AI processing, and automatic podcast-host publishing are not connected.
-- Intro and ending songs can be combined with a completed voice take into a single WAV file. This is a simple sequential mix, not a full multitrack editor; music does not duck under speech and there are no fades or trimming controls yet. Audio is processed locally in the browser.
+- Supabase Auth, cloud project metadata, private cloud audio storage, and a ready-for-show export queue are connected. Remote guest sessions, a true multitrack editor, AI processing, and automatic public podcast-host/RSS publishing are not included.
+- Intro and ending songs can be combined with a completed voice take into a single WAV file. Separate intro/outro fades are supported. This is a simple sequential mix, not a full multitrack editor; music does not duck under speech and there are no timeline trimming controls. Audio mixing happens locally in the browser.
 
 ## Recommended next steps
 1. Connect Supabase Auth and per-user project metadata.
@@ -35,4 +35,29 @@ Then open http://localhost:8000 in a current browser. Or deploy these static fil
 5. Connect finished projects to CrowRules Podcasting's episode publishing workflow.
 
 ## Privacy
-Microphone capture starts only after the user clicks a recording or microphone-check control and grants permission. This prototype does not upload audio to a server.
+Microphone capture starts only after the user clicks a recording or microphone-check control and grants permission. Audio is not uploaded unless you explicitly choose Send to my show or Both and are signed in. Cloud audio is stored in a private bucket with owner-scoped policies.
+
+
+## Latest upgrade: music fades
+
+The intro and ending music panels now include separate fade-in and fade-out controls (0–10 seconds). The mix renderer applies those fades to the exported WAV while keeping the original uploaded music and voice take unchanged. The current layout remains sequential: intro → voice recording → ending music.
+
+
+## Supabase cloud connection
+
+This version is configured for the CrowRules Entertainment Supabase project. `supabase-config.js` contains the project URL and a public publishable key; publishable keys are intended for browser use. Never place a `service_role` or secret key in front-end files.
+
+### Cloud features
+- Create an account or sign in with email/password from the Studio page. If email confirmation is enabled in Supabase Auth, confirm your email before signing in.
+- Save project metadata to `crowrules_studio_projects`.
+- Choose **Send to my show** to upload the finished WAV to the private `crowrules-podcast-studio` Storage bucket and create a `crowrules_studio_exports` draft. Choose **Both** to upload it and download a local copy.
+- Recent cloud exports show in the Studio page; the app creates short-lived signed download links for your private files.
+
+### Important publishing distinction
+Sending an episode to the show workspace saves it as `ready_for_show`; it does not publish to a public RSS feed or modify `podcast_episodes`. Public publishing should be a separate, authenticated workflow that validates the selected show and publishing permissions.
+
+### Database setup
+The studio tables, private storage bucket, and owner-only row/storage policies were applied to the connected CrowRules Supabase project. `supabase-setup.sql` is included as a reference/recovery script. Do not run it blindly in another project without reviewing it first.
+
+### Run locally
+Serve this folder over `http://localhost` or HTTPS; do not rely on opening `index.html` directly from `file://`.
