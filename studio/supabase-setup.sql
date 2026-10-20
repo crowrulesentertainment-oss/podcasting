@@ -55,3 +55,8 @@ create index if not exists crowrules_studio_exports_episode_idx on public.crowru
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types) values('crowrules-podcast-published','crowrules-podcast-published',true,524288000,array['audio/wav','audio/x-wav','audio/mpeg','audio/mp4','audio/ogg','audio/webm']) on conflict(id) do update set public=true,file_size_limit=524288000,allowed_mime_types=array['audio/wav','audio/x-wav','audio/mpeg','audio/mp4','audio/ogg','audio/webm'];
 drop policy if exists "studio published audio owner insert" on storage.objects; create policy "studio published audio owner insert" on storage.objects for insert to authenticated with check(bucket_id='crowrules-podcast-published' and (storage.foldername(name))[1]=(select auth.uid())::text);
 drop policy if exists "studio published audio owner delete" on storage.objects; create policy "studio published audio owner delete" on storage.objects for delete to authenticated using(bucket_id='crowrules-podcast-published' and (storage.foldername(name))[1]=(select auth.uid())::text);
+
+
+-- Durable project resume/finalize support (applied to the live project).
+alter table public.crowrules_studio_projects add column if not exists audio_path text, add column if not exists storage_bucket text not null default 'crowrules-podcast-studio', add column if not exists project_status text not null default 'draft' check (project_status in ('draft','finalized','published')), add column if not exists mix_duration_seconds integer check (mix_duration_seconds is null or mix_duration_seconds >= 0);
+create index if not exists crowrules_studio_projects_status_updated_idx on public.crowrules_studio_projects(owner_id, project_status, updated_at desc);

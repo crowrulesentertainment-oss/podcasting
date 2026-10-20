@@ -49,12 +49,12 @@ This version is configured for the CrowRules Entertainment Supabase project. `su
 
 ### Cloud features
 - Sign in with email/password directly from the Studio header. The Studio checks the Supabase session, then verifies the matching `members` row and linked `creators` profile before loading available shows. If email confirmation is enabled, confirm your email before signing in.
-- Save project metadata to `crowrules_studio_projects`.
+- Save project metadata and finalized mix references to `crowrules_studio_projects`; private WAV mixes are stored in `crowrules-podcast-studio` and can be resumed by reopening a project.
 - Choose **Send to my show** to upload the finished WAV to the private `crowrules-podcast-studio` Storage bucket and create a `crowrules_studio_exports` draft. Choose **Both** to upload it and download a local copy.
 - Recent cloud exports show in the Studio page; the app creates short-lived signed download links for your private files.
 
 ### Important publishing distinction
-Sending an episode to the show workspace saves it as `ready_for_show`; it does not publish to a public RSS feed or modify `podcast_episodes`. Public publishing should be a separate, authenticated workflow that validates the selected show and publishing permissions.
+Saving a draft stores a private export. Publishing uploads audio to the public `crowrules-podcast-published` bucket and inserts a published row in `podcast_episodes` for the selected published show. This does not itself guarantee RSS feed refresh unless the existing CrowRules site/feed reads that episode table.
 
 ### Database setup
 The studio tables, private storage bucket, and owner-only row/storage policies were applied to the connected CrowRules Supabase project. `supabase-setup.sql` is included as a reference/recovery script. Do not run it blindly in another project without reviewing it first.
@@ -71,3 +71,15 @@ Serve this folder over `http://localhost` or HTTPS; do not rely on opening `inde
 - **Publish episode to selected show** (or **Publish + download**) uploads a WAV to the public `crowrules-podcast-published` bucket and inserts a published row in `podcast_episodes` with that selected `podcast_id` and public `audio_url`. The parent show must already be published.
 - Sign in through the main CrowRules Podcasting account page first; the Studio reuses the Supabase browser session. Never put a service-role key in front-end files.
 - The public audio URL is internet-accessible once published. Only publish audio and music you have the rights to distribute.
+
+
+### Project lifecycle
+- **Save project** saves the title, show, and notes to Supabase. If a finished mix exists, it also stores the WAV privately and updates the project audio pointer.
+- **Resume project** loads metadata and downloads the saved WAV from private storage into the studio player.
+- **Finalize & save audio** requires a finished mix and marks the project `finalized`.
+- **Publish** requires a published show and inserts the episode metadata and public audio URL into Supabase.
+- Sign-in uses Supabase Auth; only the publishable browser key is included. RLS must remain enabled and no service-role key should ever be shipped to the browser.
+
+
+### Audio size note
+The finished WAV export is encoded as mono 16 kHz PCM to reduce storage/upload size for spoken-word podcasting. This is optimized for speech and is not intended as a high-fidelity music master. The private bucket and the project-wide Supabase Storage size limit still apply.
