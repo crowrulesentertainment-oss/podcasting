@@ -3,7 +3,7 @@
 A multi-page HTML/CSS/JavaScript starter for a dark, gold-accented podcast recording studio.
 
 ## Included pages
-- `index.html` — real microphone capture, timer, live input meter, waveform visualization, pause/resume, playback, and audio download. Add intro and/or ending songs, adjust their volume, and build a combined WAV episode in intro → voice → ending order.
+- `index.html` — real microphone capture, timer, live input meter, waveform visualization, pause/resume, playback, and audio download. Add intro and/or ending songs, adjust their volume, and build a combined WAV episode in intro → voice → ending order. The header checks the existing Supabase session and provides a sign-in/sign-out panel.
 - `projects.html` — Supabase-backed private saved-project library with Open in Studio links.
 - `soundboard.html` — preview an audio file locally and organize cue categories.
 - `export.html` — publishing checklist and copyable episode metadata.
@@ -48,7 +48,7 @@ The intro and ending music panels now include separate fade-in and fade-out cont
 This version is configured for the CrowRules Entertainment Supabase project. `supabase-config.js` contains the project URL and a public publishable key; publishable keys are intended for browser use. Never place a `service_role` or secret key in front-end files.
 
 ### Cloud features
-- Create an account or sign in with email/password from the Studio page. If email confirmation is enabled in Supabase Auth, confirm your email before signing in.
+- Sign in with email/password directly from the Studio header. The Studio checks the Supabase session, then verifies the matching `members` row and linked `creators` profile before loading available shows. If email confirmation is enabled, confirm your email before signing in.
 - Save project metadata to `crowrules_studio_projects`.
 - Choose **Send to my show** to upload the finished WAV to the private `crowrules-podcast-studio` Storage bucket and create a `crowrules_studio_exports` draft. Choose **Both** to upload it and download a local copy.
 - Recent cloud exports show in the Studio page; the app creates short-lived signed download links for your private files.

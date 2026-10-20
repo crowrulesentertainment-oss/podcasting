@@ -6,13 +6,26 @@
   let client=null,session=null,currentUser=null,currentProjectId=null,shows=[],projects=[];
   const say=(message,error=false)=>{for(const id of ['cloudMessage','deliveryStatus','saveStatus']){const el=$(id);if(el&&id!=='saveStatus'){el.textContent=message;el.classList.toggle('error',error)}}};
   const setStatus=label=>{const el=$('cloudStatus');if(el)el.textContent=label};
+  function setAccountUI(state,message=''){
+    const caption=$('accountCaption'),heading=$('accountHeading'),memberState=$('memberState'),accountMessage=$('accountMessage'),toggle=$('accountToggle'),form=$('studioSignInForm'),actions=$('signedInActions');
+    if(memberState)memberState.textContent=state;
+    if(accountMessage&&message)accountMessage.textContent=message;
+    const signedIn=!!currentUser;
+    if(caption)caption.textContent=signedIn?`Signed in as ${currentUser.email||'your account'}${state==='MEMBER VERIFIED'?' · CrowRules member verified':' · member profile needs attention'}`:'Not signed in · sign in to load your shows and cloud projects.';
+    if(heading)heading.textContent=signedIn?'Your CrowRules account':'Sign in to CrowRules';
+    if(toggle){toggle.textContent=signedIn?'Account options':'Sign in';toggle.hidden=false}
+    if(form)form.hidden=signedIn;
+    if(actions)actions.hidden=!signedIn;
+    if(signedIn&&$('accountPanel'))$('accountPanel').hidden=true;
+  }
+  function showAuthPanel(){const panel=$('accountPanel');if(panel){panel.hidden=false;if(!currentUser)$('signInEmail')?.focus()}}
   const selectedShow=()=>shows.find(s=>s.id===($('show')?.value||''))||null;
   const showName=()=>selectedShow()?.title||'';
   const slugify=s=>(s||'episode').normalize('NFKD').replace(/[^\w-]+/g,'-').replace(/^-|-$/g,'').slice(0,65)||'episode';
   function localProject(){return{title:$('title')?.value.trim()||'Untitled Podcast Session',show:showName(),showId:$('show')?.value||'',notes:$('notes')?.value.trim()||'',updatedAt:new Date().toISOString()}}
   function renderShowOptions(preferredId=''){
     const el=$('show');if(!el)return;const old=preferredId||el.value;el.replaceChildren();
-    const first=new Option(shows.length?'Choose a show…':'No shows found', '');el.add(first);
+    const first=new Option(!currentUser?'Sign in to load your shows…':shows.length?'Choose a show…':'No shows found', '');el.add(first);
     shows.forEach(s=>el.add(new Option(s.title+(s.status==='draft'?' · Draft show':''),s.id)));
     if(old&&shows.some(s=>s.id===old))el.value=old;
     const help=$('showHelp');if(help)help.textContent=shows.length?`${shows.length} show${shows.length===1?'':'s'} connected to your account. Published episodes go directly to the selected show.`:'No shows are linked to this account. Check that your CrowRules Podcasting creator profile is connected.';
@@ -20,14 +33,14 @@
   async function loadShows(preferredId=''){
     if(!client||!currentUser)return;
     const {data:member,error:memberError}=await client.from('members').select('id').eq('user_id',currentUser.id).maybeSingle();
-    if(memberError)throw Error('Could not find your CrowRules member profile: '+memberError.message);
-    if(!member){shows=[];renderShowOptions();return}
+    if(memberError){setAccountUI('MEMBER CHECK FAILED',memberError.message);throw Error('Could not find your CrowRules member profile: '+memberError.message)}
+    if(!member){shows=[];renderShowOptions();setStatus('NO MEMBER PROFILE');setAccountUI('NO MEMBER PROFILE','You are authenticated, but no row in the members table matches this login. Sign in with the account linked to your CrowRules member profile, or ask an administrator to connect it.');return}
     const {data:creator,error:creatorError}=await client.from('creators').select('id').eq('member_id',member.id).maybeSingle();
     if(creatorError)throw Error('Could not load your creator profile: '+creatorError.message);
-    if(!creator){shows=[];renderShowOptions();return}
+    if(!creator){shows=[];renderShowOptions();setStatus('MEMBER · NO CREATOR');setAccountUI('MEMBER VERIFIED','Your CrowRules member profile is verified, but it does not have a creator profile linked yet.');return}
     const {data,error}=await client.from('podcasts').select('id,title,slug,status,creator_id').eq('creator_id',creator.id).order('title');
     if(error)throw Error('Could not load your shows: '+error.message);
-    shows=data||[];renderShowOptions(preferredId);
+    shows=data||[];renderShowOptions(preferredId);setStatus('MEMBER VERIFIED');setAccountUI('MEMBER VERIFIED',`Member verified. ${shows.length} podcast show${shows.length===1?'':'s'} available for this account.`);
   }
   function projectPayload(){const p=localProject();return{title:p.title,show_name:p.show,notes:p.notes,podcast_id:p.showId||null,updated_at:new Date().toISOString()}}
   async function loadProjects(preferredId=''){
@@ -83,17 +96,42 @@
     try{if(mode==='send'){await uploadToShow();status.textContent=`Saved as a private draft for ${showName()}. It is not public yet.`}else{const {episode,show}=await publishToShow();status.textContent=`Published “${episode.title}” to ${show.title}. The episode record and public audio URL are saved in Supabase.`;if(mode==='both')window.CrowRulesStudioMix.download()}}
     catch(e){status.textContent=e.message||'Could not deliver episode.';say(status.textContent,true)}finally{button.disabled=false;button.textContent='Continue'}
   }
+  async function refreshAccount(preferredId=''){
+    if(!currentUser){
+      shows=[];projects=[];setStatus('SIGNED OUT');setAccountUI('SIGNED OUT','Sign in with the same account you use on the main CrowRules Podcasting website. Supabase will verify your member profile before loading shows.');
+      renderShowOptions();
+      const picker=$('savedProjectSelect');if(picker)picker.replaceChildren(new Option('Sign in to load projects',''));
+      return;
+    }
+    setStatus('CHECKING MEMBER');setAccountUI('CHECKING MEMBER','Checking your login against the CrowRules members and creators records…');
+    try{
+      await loadShows(preferredId);
+      const requestedProject=new URLSearchParams(window.location.search).get('project');
+      await loadProjects(requestedProject||'');await loadExports();
+      const savedId=requestedProject||localStorage.getItem('crowrulesStudioCloudProjectId');
+      if(savedId){const p=projects.find(x=>x.id===savedId);if(p)applyProject(p)}
+      else{const local=JSON.parse(localStorage.getItem('crowrulesStudioProject')||'null');if(local){if(local.showId&&shows.some(s=>s.id===local.showId)&&$('show'))$('show').value=local.showId;if($('title'))$('title').value=local.title||$('title').value;if($('notes'))$('notes').value=local.notes||''}}
+    }catch(e){setStatus('MEMBER CHECK ERROR');setAccountUI('MEMBER CHECK ERROR',e.message||'Could not verify this member session.');say(e.message,true)}
+  }
   async function init(){
-    if(!cfg||!window.supabase?.createClient){setStatus('NOT LOADED');say('Supabase client could not load. Check your connection.',true);return}
-    client=window.supabase.createClient(cfg.url,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-    const {data,error}=await client.auth.getSession();if(error){setStatus('ERROR');say(error.message,true);return}session=data.session;currentUser=session?.user||null;
-    if(!currentUser){setStatus('SIGNED OUT');if($('show')){$('show').replaceChildren(new Option('Sign in to load your shows',''))}say('Sign in through the main CrowRules Podcasting account page first. The studio reuses that Supabase session.',true);return}
-    setStatus('SIGNED IN');try{await loadShows();const requestedProject=new URLSearchParams(window.location.search).get('project');await loadProjects(requestedProject||'');await loadExports();const savedId=localStorage.getItem('crowrulesStudioCloudProjectId');const chosenId=requestedProject||savedId;if(chosenId){const p=projects.find(x=>x.id===chosenId);if(p)applyProject(p)}else{const local=JSON.parse(localStorage.getItem('crowrulesStudioProject')||'null');if(local){if(local.showId&&shows.some(s=>s.id===local.showId))$('show').value=local.showId;$('title').value=local.title||$('title').value;$('notes').value=local.notes||''}}}catch(e){say(e.message,true)}
+    const toggle=$('accountToggle'),panel=$('accountPanel'),form=$('studioSignInForm');
+    toggle?.addEventListener('click',()=>{if(currentUser){showAuthPanel();const actions=$('signedInActions');if(actions)actions.hidden=false;const f=$('studioSignInForm');if(f)f.hidden=true}else if(panel?.hidden)showAuthPanel();else if(panel)panel.hidden=true});
+    $('accountCancel')?.addEventListener('click',()=>{if(panel)panel.hidden=true});
+    $('signOutButton')?.addEventListener('click',async()=>{if(!client)return;const b=$('signOutButton');if(b)b.disabled=true;try{const {error}=await client.auth.signOut();if(error)throw error;if(panel)panel.hidden=true;setAccountUI('SIGNED OUT','You have signed out. Sign in again to access your member shows and cloud projects.')}catch(e){setAccountUI('SIGN OUT FAILED',e.message);say(e.message,true)}finally{if(b)b.disabled=false}});
+    form?.addEventListener('submit',async e=>{e.preventDefault();if(!client){const n=$('authNotice');if(n)n.textContent='Supabase is not connected yet.';return}const email=$('signInEmail')?.value.trim(),password=$('signInPassword')?.value;const button=$('signInSubmit'),notice=$('authNotice');if(button){button.disabled=true;button.textContent='Signing in…'}if(notice){notice.textContent='Verifying credentials with Supabase Auth…';notice.classList.remove('error')}
+      try{const {data,error}=await client.auth.signInWithPassword({email,password});if(error)throw error;session=data.session;currentUser=data.user||data.session?.user||null;if(notice)notice.textContent='Signed in. Checking your CrowRules member profile…';if(panel)panel.hidden=true;await refreshAccount()}
+      catch(err){if(notice){notice.textContent=err.message||'Sign-in failed.';notice.classList.add('error')}setStatus('SIGN IN FAILED');setAccountUI('SIGN IN FAILED',err.message||'Sign-in failed. Check your email and password.');if(panel)panel.hidden=false}
+      finally{if(button){button.disabled=false;button.textContent='Sign in securely'}}
+    });
     $('show')?.addEventListener('change',()=>{try{localStorage.setItem('crowrulesStudioProject',JSON.stringify(localProject()))}catch(_){} });
     $('savedProjectSelect')?.addEventListener('change',()=>{const p=projects.find(x=>x.id===$('savedProjectSelect').value);if(p)applyProject(p)});
     $('deliverMix')?.addEventListener('click',()=>deliver());
-    $('save')?.addEventListener('click',async()=>{try{const id=await saveProject();say('Project saved to Supabase.',false);return id}catch(e){const st=$('saveStatus');if(st)st.textContent=e.message;say(e.message,true)}});
-    client.auth.onAuthStateChange((_event,newSession)=>{session=newSession;currentUser=newSession?.user||null;if(currentUser){setStatus('SIGNED IN');loadShows().then(()=>loadProjects()).catch(e=>say(e.message,true))}else{setStatus('SIGNED OUT');shows=[];renderShowOptions()}});
+    $('save')?.addEventListener('click',async()=>{try{await saveProject();say('Project saved to Supabase.',false)}catch(e){const st=$('saveStatus');if(st)st.textContent=e.message;say(e.message,true)}});
+    if(!cfg||!window.supabase?.createClient){setStatus('SUPABASE NOT LOADED');setAccountUI('CONNECTION ERROR','Supabase client could not load. Check your internet connection and configuration.');return}
+    client=window.supabase.createClient(cfg.url,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    const {data,error}=await client.auth.getSession();if(error){setStatus('SESSION ERROR');setAccountUI('SESSION ERROR',error.message);return}session=data.session;currentUser=session?.user||null;
+    await refreshAccount();
+    client.auth.onAuthStateChange((_event,newSession)=>{session=newSession;currentUser=newSession?.user||null;if(!currentUser){currentProjectId=null;refreshAccount().catch(e=>say(e.message,true))}else{setAccountUI('CHECKING MEMBER','Login detected. Verifying your CrowRules member profile…');refreshAccount().catch(e=>say(e.message,true))}});
   }
   init().catch(e=>{setStatus('ERROR');say(e.message,true)});
   window.CrowRulesCloud={saveProject,uploadToShow,publishToShow,loadProjects,loadShows};
