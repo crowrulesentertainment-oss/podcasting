@@ -41,8 +41,8 @@
 <div class="actions"><button class="btn" id="refreshDevices">Refresh devices</button><button class="btn primary" id="addTrack">＋ Add microphone track</button><button class="btn" id="soundCheckBtn">♫ Run sound check</button></div><div class="hint" id="soundCheckResult" role="status" aria-live="polite" style="margin:8px 0 14px">Run a quick microphone check before recording. Headphones are recommended to prevent feedback.</div>
 <div style="margin:22px 0 12px;display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="small-label">Separate audio tracks</span><span class="pill" id="trackCount">0 tracks</span></div>
 <div class="tracks" id="tracks"><div class="message">Allow microphone access, then add one or more microphone tracks. Each track is recorded separately and a master mix is captured as well.</div></div>
-<div class="actions"><button class="btn primary" id="startBtn">● Start recording</button><button class="btn" id="pauseBtn" disabled>Ⅱ Pause</button><button class="btn danger" id="stopBtn" disabled>■ Stop</button></div>
-<div class="timer" id="timer">00:00:00</div><canvas class="wave" id="waveform" aria-label="Live audio waveform"></canvas>
+<div class="actions"><button class="btn primary" id="quickRecordBtn" title="Use the selected microphone and start recording">⚡ Quick record</button><button class="btn primary" id="startBtn">● Start recording</button><button class="btn" id="pauseBtn" disabled>Ⅱ Pause</button><button class="btn danger" id="stopBtn" disabled>■ Stop</button></div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div class="timer" id="timer">00:00:00</div><span class="pill" id="recordingState"><span class="dot"></span> Ready to record</span></div><canvas class="wave" id="waveform" aria-label="Live audio waveform"></canvas>
 <div id="status" class="message" role="status" aria-live="polite">Sign in with your CrowRules account to begin. Recording files are private by default.</div>
 </section>
 <aside class="panel">
