@@ -79,12 +79,14 @@
 </div>
 <div class="actions" style="margin-top:0">
 <button class="btn primary" id="projectSaveLocal" type="button">▣ Save project</button>
+<button class="btn" id="projectCheckpoint" type="button">◷ Save version checkpoint</button>
 <button class="btn" id="projectNew" type="button">＋ New project</button>
 <button class="btn" id="projectRefreshList" type="button">↻ Refresh projects</button>
 <button class="btn" id="projectExport" type="button">↓ Export project backup</button>
 <label class="btn" for="projectImportFile" style="cursor:pointer">↑ Import project backup</label><input id="projectImportFile" type="file" accept=".json,application/json" hidden>
 </div>
 <div id="projectSaveState" class="message" role="status" aria-live="polite" style="margin-top:12px">Projects are stored in this browser until you export a backup or save a cloud version. Local projects do not automatically sync between devices.</div>
+<div class="kicker" style="margin-top:18px">Version history</div><div id="projectVersionList" class="saved-list" style="margin-top:8px"><div class="message">Save a version checkpoint to start your history.</div></div>
 <div id="localProjectList" class="saved-list" style="margin-top:12px"><div class="message">Loading your local projects…</div></div>
 </section>
 <section class="panel" id="timelineEditorPanel" style="margin:0 0 18px">
@@ -108,6 +110,14 @@
 </div>
 <div class="actions"><button class="btn primary" id="timelineApplyClip" type="button" disabled>Apply clip settings</button><button class="btn" id="timelineReloadTake" type="button">Load current take</button><button class="btn" id="timelineRecover" type="button">Check autosave recovery</button><button class="btn" id="timelineCloudSave" type="button">☁ Save cloud version</button><button class="btn" id="timelineCloudVersions" type="button">Browse cloud versions</button></div><div id="timelineCloudVersionList" class="message" style="margin-top:10px">Cloud versions require a signed-in CrowRules account and configured Supabase Storage.</div>
 <p class="hint" style="margin-top:10px">Editing note: splitting and trimming changes the arrangement, not your original audio files. Local autosave is tied to this browser and device; use the existing private-save feature for an account-backed copy.</p>
+</section>
+<section class="panel" id="finalizationPanel" style="margin:0 0 18px;border-color:#7ff0bd55;background:linear-gradient(145deg,#10231f,#101522)">
+<div class="panel-head"><div><div class="kicker">Release desk · final checkpoint</div><h2>Finalize your production</h2><p>Review the arrangement, confirm your project is saved, then choose the output you actually need. Saving a draft does not publish it.</p></div><span class="number">FINALIZE</span></div>
+<div class="grid2">
+<div class="music-card"><h3>Before export</h3><div class="checklist"><label><input type="checkbox" id="finalCheckListen"> I listened to the complete edited arrangement</label><label><input type="checkbox" id="finalCheckLevels"> I checked levels, fades and clip positions</label><label><input type="checkbox" id="finalCheckTitle"> The project title and notes are correct</label><label><input type="checkbox" id="finalCheckBackup"> I saved a draft or backup copy</label></div></div>
+<div class="music-card"><h3>Choose your next step</h3><p class="hint">Preview and export use the edited timeline. “Save private recording” stores captured source tracks in your account; “Save cloud version” stores an editable project checkpoint.</p><div class="actions"><button class="btn primary" id="finalPreviewBtn" type="button">▶ Preview edited mix</button><button class="btn" id="finalExportBtn" type="button">↓ Download final WAV</button><button class="btn" id="finalSaveDraftBtn" type="button">▣ Save draft now</button><button class="btn" id="finalCloudSaveBtn" type="button">☁ Save cloud version</button><button class="btn" id="finalPrivateSaveBtn" type="button">↑ Save captured audio privately</button></div></div>
+</div>
+<div id="finalizationStatus" class="message" role="status" aria-live="polite" style="margin-top:12px">Nothing is published automatically. Check your project, then preview, save, or export when ready.</div>
 </section>
 <section class="panel" id="reviewPanel">
 <div class="panel-head"><div><div class="kicker">Post-take tools</div><h2>Review & export</h2><p>Your current take appears here after you stop. Listen before saving or downloading.</p></div><span class="number">03 / REVIEW</span></div>
