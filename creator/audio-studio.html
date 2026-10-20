@@ -71,6 +71,22 @@
 <div id="status" class="message" role="status" aria-live="polite" style="margin-top:13px">Sign in with your CrowRules account to begin. Recordings are private by default.</div>
 </section>
 
+<section class="panel" id="projectWorkspacePanel" style="margin:0 0 18px;border-color:#58e6ff55;background:linear-gradient(145deg,#101d2b,#101321)">
+<div class="panel-head"><div><div class="kicker">Your creative workspace</div><h2>Projects — save now, finish later</h2><p>Keep work in progress separate from publishing. Save named local projects, reopen them on this browser, make a fresh project, or export a portable project backup before you leave.</p></div><span class="number">WORK IN PROGRESS</span></div>
+<div class="grid2">
+<div class="field"><label for="projectNameInput">Project name</label><input id="projectNameInput" maxlength="120" value="Untitled project" placeholder="Episode, interview, voiceover…"></div>
+<div class="field"><label for="projectNotesInput">Working notes (optional)</label><input id="projectNotesInput" maxlength="500" placeholder="Ideas, pickup lines, edits still needed…"></div>
+</div>
+<div class="actions" style="margin-top:0">
+<button class="btn primary" id="projectSaveLocal" type="button">▣ Save project</button>
+<button class="btn" id="projectNew" type="button">＋ New project</button>
+<button class="btn" id="projectRefreshList" type="button">↻ Refresh projects</button>
+<button class="btn" id="projectExport" type="button">↓ Export project backup</button>
+<label class="btn" for="projectImportFile" style="cursor:pointer">↑ Import project backup</label><input id="projectImportFile" type="file" accept=".json,application/json" hidden>
+</div>
+<div id="projectSaveState" class="message" role="status" aria-live="polite" style="margin-top:12px">Projects are stored in this browser until you export a backup or save a cloud version. Local projects do not automatically sync between devices.</div>
+<div id="localProjectList" class="saved-list" style="margin-top:12px"><div class="message">Loading your local projects…</div></div>
+</section>
 <section class="panel" id="timelineEditorPanel" style="margin:0 0 18px">
 <div class="panel-head"><div><div class="kicker">Studio V2 · edit desk</div><h2>Multitrack timeline</h2><p>Drag clips to arrange them, snap to a timing grid, split and trim, add fades/crossfades, and save versioned projects to the cloud. Original takes remain unchanged.</p></div><span class="number">V2 / EDIT</span></div>
 <div class="timeline-toolbar" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
