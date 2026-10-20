@@ -12,13 +12,17 @@ const slug = s => (s||'episode').toLowerCase().normalize('NFKD').replace(/[^a-z0
 const safeName = s => (s||'track').replace(/[^a-z0-9_-]+/gi,'-').slice(0,40)||'track';
 function client(){ if(!supabaseUrl||!supabaseKey||!window.supabase){throw new Error('Supabase browser configuration was not found in config.js.');} return window.supabase.createClient(supabaseUrl,supabaseKey); }
 async function init(){
+ const auth=$('authState');let watchdog=setTimeout(()=>{if(auth&&auth.textContent==='Checking account…'){auth.textContent='Account check timed out';say('The sign-in check is taking too long. Check your connection and Supabase config, then reload. Your browser-local draft tools may still be available.',true);}},9000);
  try {
   state.client=client();
-  const {data:{session},error}=await state.client.auth.getSession(); if(error) throw error;
-  if(!session){$('authState').textContent='Not signed in';say('Please sign in to CrowRules Podcasting, then reopen Studio.');$('savedList').innerHTML='<div class="message">Sign-in required. <a href="creator.html" style="color:var(--cyan)">Return to creator dashboard →</a></div>';return;}
+  const authResult=await Promise.race([state.client.auth.getSession(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Account check timed out. Verify config.js and Supabase availability, then reload.')),8500))]);
+  const {data:{session},error}=authResult;if(error)throw error;
+  if(!session){$('authState').textContent='Not signed in';say('You are not signed in. Sign in through the creator dashboard, then return to Audio Studio.');$('savedList').innerHTML='<div class="message">Sign-in required. <a href="../creator.html" style="color:var(--cyan)">Sign in / return to creator dashboard →</a></div>';return;}
   state.user=session.user; $('authState').textContent='Signed in · '+(session.user.email||'Creator account');
+  state.client.auth.onAuthStateChange((event,nextSession)=>{if(nextSession?.user){state.user=nextSession.user;if(auth)auth.textContent='Signed in · '+(nextSession.user.email||'Creator account')}else{state.user=null;if(auth)auth.textContent='Not signed in';$('savedList').innerHTML='<div class="message">Your session ended. Sign in again to access private recordings.</div>'}});
   await loadPodcasts(); await loadSaved(); await refreshDevices();
- } catch(e){say(e.message||String(e),true);}
+ } catch(e){if(auth)auth.textContent='Account unavailable';say(e.message||String(e),true);if($('savedList'))$('savedList').innerHTML='<div class="message">Could not verify your account. Check your connection and Supabase configuration, then reload. <a href="../creator.html" style="color:var(--cyan)">Return to creator dashboard →</a></div>';}
+ finally{clearTimeout(watchdog)}
 }
 async function loadPodcasts(){
  const {data:member,error:me}=await state.client.from('members').select('id').eq('user_id',state.user.id).maybeSingle();
