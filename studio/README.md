@@ -4,7 +4,7 @@ A multi-page HTML/CSS/JavaScript starter for a dark, gold-accented podcast recor
 
 ## Included pages
 - `index.html` — real microphone capture, timer, live input meter, waveform visualization, pause/resume, playback, and audio download. Add intro and/or ending songs, adjust their volume, and build a combined WAV episode in intro → voice → ending order.
-- `projects.html` — view locally saved project details.
+- `projects.html` — Supabase-backed private saved-project library with Open in Studio links.
 - `soundboard.html` — preview an audio file locally and organize cue categories.
 - `export.html` — publishing checklist and copyable episode metadata.
 - `settings.html` — browser capability checks and privacy notes.
@@ -22,9 +22,9 @@ Then open http://localhost:8000 in a current browser. Or deploy these static fil
 
 ## Limitations
 - Audio format depends on browser MediaRecorder support.
-- Project metadata is saved locally by default and can also sync to Supabase after signing in.
+- Project metadata is saved locally and in Supabase after signing in; show selection is based on the signed-in creator profile.
 - Recordings are held in memory until downloaded; download before refreshing or closing the page.
-- Supabase Auth, cloud project metadata, private cloud audio storage, and a ready-for-show export queue are connected. Remote guest sessions, a true multitrack editor, AI processing, and automatic public podcast-host/RSS publishing are not included.
+- Supabase Auth session reuse, owner-scoped cloud project metadata, private draft audio storage, and publishing directly to the selected CrowRules podcast are connected. Publishing inserts a real `podcast_episodes` row and uploads public audio. External podcast-directory distribution is separate.
 - Intro and ending songs can be combined with a completed voice take into a single WAV file. Separate intro/outro fades are supported. This is a simple sequential mix, not a full multitrack editor; music does not duck under speech and there are no timeline trimming controls. Audio mixing happens locally in the browser.
 
 ## Recommended next steps
@@ -61,3 +61,13 @@ The studio tables, private storage bucket, and owner-only row/storage policies w
 
 ### Run locally
 Serve this folder over `http://localhost` or HTTPS; do not rely on opening `index.html` directly from `file://`.
+
+
+## Show selection, saved projects, and publishing upgrade
+
+- The Studio show dropdown is loaded from the signed-in user's `members` → `creators` → `podcasts` relationship; it does not let a user choose another creator's show.
+- Save Project writes to `crowrules_studio_projects`; the saved-project dropdown restores title, show, and notes. The Projects page lists cloud-saved sessions and links back to the selected project.
+- **Save draft to selected show** uploads to the private `crowrules-podcast-studio` bucket and creates a `ready_for_show` export.
+- **Publish episode to selected show** (or **Publish + download**) uploads a WAV to the public `crowrules-podcast-published` bucket and inserts a published row in `podcast_episodes` with that selected `podcast_id` and public `audio_url`. The parent show must already be published.
+- Sign in through the main CrowRules Podcasting account page first; the Studio reuses the Supabase browser session. Never put a service-role key in front-end files.
+- The public audio URL is internet-accessible once published. Only publish audio and music you have the rights to distribute.
