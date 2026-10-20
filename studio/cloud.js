@@ -124,6 +124,7 @@
       finally{if(button){button.disabled=false;button.textContent='Sign in securely'}}
     });
     $('show')?.addEventListener('change',()=>{try{localStorage.setItem('crowrulesStudioProject',JSON.stringify(localProject()))}catch(_){} });
+    $('refreshShows')?.addEventListener('click',async()=>{const b=$('refreshShows');if(b){b.disabled=true;b.textContent='↻ Loading shows…'}try{await refreshAccount($('show')?.value||'');if($('showHelp')&&!shows.length&&currentUser)$('showHelp').textContent='Supabase returned no shows for this member. Confirm this login is linked to a creator profile and that the shows use that creator ID.'}catch(e){setStatus('SHOW LOAD FAILED');setAccountUI('SHOW LOAD FAILED',e.message||'Could not load shows from Supabase.');say(e.message,true)}finally{if(b){b.disabled=false;b.textContent='↻ Refresh shows from Supabase'}}});
     $('savedProjectSelect')?.addEventListener('change',()=>{const p=projects.find(x=>x.id===$('savedProjectSelect').value);if(p)applyProject(p)});
     $('deliverMix')?.addEventListener('click',()=>deliver());
     $('save')?.addEventListener('click',async()=>{try{await saveProject();say('Project saved to Supabase.',false)}catch(e){const st=$('saveStatus');if(st)st.textContent=e.message;say(e.message,true)}});
