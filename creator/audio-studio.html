@@ -70,6 +70,29 @@
 </div>
 <div id="status" class="message" role="status" aria-live="polite" style="margin-top:13px">Sign in with your CrowRules account to begin. Recordings are private by default.</div>
 </section>
+
+<section class="panel" id="timelineEditorPanel" style="margin:0 0 18px">
+<div class="panel-head"><div><div class="kicker">Studio V2 · edit desk</div><h2>Multitrack timeline</h2><p>Arrange captured audio, split and trim clips, undo edits, and export an edited WAV master. Original takes remain unchanged.</p></div><span class="number">V2 / EDIT</span></div>
+<div class="timeline-toolbar" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+<button class="btn" id="timelineUndo" type="button" disabled>↶ Undo</button><button class="btn" id="timelineRedo" type="button" disabled>↷ Redo</button><button class="btn" id="timelineSplit" type="button" disabled>✂ Split at playhead</button><button class="btn danger" id="timelineDelete" type="button" disabled>Remove selected clip</button><button class="btn" id="timelineExport" type="button" disabled>↓ Export edited WAV</button>
+</div>
+<div class="timeline-transport" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+<button class="btn primary" id="timelinePlay" type="button" disabled>▶ Play arrangement</button><button class="btn" id="timelineStop" type="button" disabled>■ Stop</button>
+<label class="hint" for="timelinePlayhead">Playhead <output id="timelinePlayheadLabel">0.00s</output></label><input id="timelinePlayhead" type="range" min="0" max="100" step=".01" value="0" style="flex:1;min-width:130px;accent-color:var(--cyan)">
+<label class="hint" for="timelineZoom">Zoom</label><input id="timelineZoom" type="range" min="1" max="5" step=".25" value="1" style="width:100px;accent-color:var(--cyan)">
+</div>
+<div id="timelineStatus" class="message" role="status" aria-live="polite">Record a take, then load its tracks into the editor. Autosave uses this browser's local storage database.</div>
+<div id="timelineRuler" style="display:flex;justify-content:space-between;color:var(--muted);font-size:10px;margin:12px 0 6px"><span>0:00</span><span>Timeline</span><span>End</span></div>
+<div id="timelineLanes" style="display:grid;gap:10px;overflow-x:auto"></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px">
+<label class="field"><span>Selected clip · timeline start (sec)</span><input id="timelineClipStart" type="number" min="0" step=".1" value="0" disabled></label>
+<label class="field"><span>Selected clip · source in (sec)</span><input id="timelineClipIn" type="number" min="0" step=".1" value="0" disabled></label>
+<label class="field"><span>Selected clip · source out (sec)</span><input id="timelineClipOut" type="number" min="0" step=".1" value="0" disabled></label>
+<label class="field"><span>Selected clip · gain (%)</span><input id="timelineClipGain" type="number" min="0" max="200" step="5" value="100" disabled></label>
+</div>
+<div class="actions"><button class="btn primary" id="timelineApplyClip" type="button" disabled>Apply clip settings</button><button class="btn" id="timelineReloadTake" type="button">Load current take</button><button class="btn" id="timelineRecover" type="button">Check autosave recovery</button></div>
+<p class="hint" style="margin-top:10px">Editing note: splitting and trimming changes the arrangement, not your original audio files. Local autosave is tied to this browser and device; use the existing private-save feature for an account-backed copy.</p>
+</section>
 <section class="panel" id="reviewPanel">
 <div class="panel-head"><div><div class="kicker">Post-take tools</div><h2>Review & export</h2><p>Your current take appears here after you stop. Listen before saving or downloading.</p></div><span class="number">03 / REVIEW</span></div>
 <div class="notice">Best practice: download a backup of your master mix before leaving the page. Browser recording formats vary by device. Keep this tab open while recording or saving.</div>
@@ -105,5 +128,6 @@
 <footer class="foot"><span>CrowRules Podcasting · Creator Audio Studio</span><span>Record privately. Review carefully. Publish when ready.</span></footer>
 </main>
 <script defer src="../js/studio.js"></script>
+<script defer src="../js/studio-timeline.js"></script>
 </body>
 </html>
