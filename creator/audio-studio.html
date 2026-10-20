@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#080a12">
-<meta name="description" content="Record, review, edit, download and privately save your CrowRules Podcasting audio sessions.">
-<title>CrowRules Audio Studio — Podcasting</title>
+<meta name="description" content="CrowRules Audio Studio V5.0: record, save, edit and download podcast audio with a simple guided workflow.">
+<title>CrowRules Audio Studio V5.0 — Podcasting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -14,6 +14,19 @@
 <style>
 :root{color-scheme:dark;--bg:#080a12;--surface:#101522;--surface2:#141b2b;--line:#293247;--text:#f3f6ff;--muted:#9aa6bf;--cyan:#58e6ff;--violet:#a38bff;--pink:#ff7aa8;--green:#7ff0bd;--amber:#ffd27d;--radius:18px}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;color:var(--text);font:15px/1.55 "DM Sans",system-ui,sans-serif;background:radial-gradient(ellipse at 12% -8%,#15364a 0,transparent 38%),radial-gradient(ellipse at 100% 5%,#30204a 0,transparent 32%),var(--bg)}a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}.shell{width:min(1320px,94vw);margin:auto}.topbar{position:sticky;top:0;z-index:20;background:#080a12e8;border-bottom:1px solid #ffffff14;backdrop-filter:blur(18px)}.nav{min-height:72px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.brand{font:700 14px "Space Grotesk";letter-spacing:.13em;margin-right:auto}.brand b{color:var(--cyan)}.navlink{font-size:12px;color:#c6cde0;font-weight:700;padding:9px 10px;border-radius:9px}.navlink:hover{background:#ffffff0a}.hero{padding:38px 0 24px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end}.kicker{font:700 10px "Space Grotesk";letter-spacing:.2em;text-transform:uppercase;color:var(--cyan)}h1,h2,h3,p{margin-top:0}h1{font:700 clamp(34px,5vw,62px)/1.03 "Space Grotesk";letter-spacing:-.045em;margin:10px 0 12px}h1 span{color:var(--cyan)}.hero p{max-width:730px;color:var(--muted);margin-bottom:18px}.hero-side{display:flex;flex-direction:column;align-items:flex-end;gap:9px}.status-pill,.chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 11px;font-size:11px;color:var(--muted);background:#ffffff04}.dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;flex:0 0 auto}.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:4px 0 22px}.step{border:1px solid var(--line);border-radius:14px;padding:13px 15px;background:linear-gradient(135deg,#ffffff07,#ffffff02)}.step strong{display:block;font-size:12px}.step span{display:block;color:var(--muted);font-size:11px;margin-top:4px}.step em{font:700 10px "Space Grotesk";color:var(--cyan);font-style:normal;margin-right:7px}.workspace{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr);gap:16px;align-items:start;padding-bottom:34px}.stack{display:grid;gap:16px;min-width:0}.panel{min-width:0;background:linear-gradient(160deg,#121827f2,#0f1420f5);border:1px solid var(--line);border-radius:var(--radius);padding:clamp(16px,2.2vw,25px);box-shadow:0 18px 60px #0002}.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:17px}.panel-head h2{font:700 16px "Space Grotesk";margin:4px 0}.panel-head p{font-size:12px;color:var(--muted);margin:5px 0 0;max-width:650px}.number{font:700 10px "Space Grotesk";color:var(--cyan);border:1px solid #58e6ff35;border-radius:8px;padding:7px 9px;white-space:nowrap}.field{display:grid;gap:7px;min-width:0;margin-bottom:14px}.field label,.label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--muted)}.field input:not([type=range]):not([type=checkbox]),.field select,.field textarea,.track select,.track input:not([type=range]){width:100%;min-width:0;background:#090e18;color:var(--text);border:1px solid #30394d;border-radius:10px;padding:12px;font-size:13px}.field input::placeholder{color:#657089}.field input[type=file]{font-size:11px;padding:9px}.field input[type=range]{width:100%;accent-color:var(--cyan)}.field textarea{resize:vertical}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.music-card{padding:14px;border:1px solid var(--line);border-radius:14px;background:#ffffff03;min-width:0}.music-card h3{font:700 12px "Space Grotesk";margin:0 0 12px}.music-card .field{margin-bottom:10px}.volume-row{display:flex;align-items:center;gap:10px}.volume-row input{flex:1;min-width:0}.volume-row output{font-size:11px;color:var(--cyan);min-width:36px;text-align:right}.btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;border:1px solid #39445c;border-radius:10px;padding:11px 14px;background:#ffffff07;color:var(--text);font-size:11px;font-weight:800;letter-spacing:.025em;cursor:pointer;transition:transform .15s,border-color .15s,background .15s;min-height:40px}.btn:hover:not(:disabled){transform:translateY(-1px);border-color:#667b9e;background:#ffffff0d}.btn:disabled{opacity:.42;cursor:not-allowed}.primary{background:linear-gradient(105deg,#58e6ff20,#a38bff26);border-color:#58e6ff65}.record{background:linear-gradient(105deg,#ff648d25,#ff648d0b);border-color:#ff7aa879}.danger{color:#ffb6c8;border-color:#ff7aa855}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.hint{font-size:11px;color:var(--muted);line-height:1.65}.subtle{color:var(--muted)}.divider{height:1px;background:var(--line);margin:19px 0}.tracks{display:grid;gap:10px}.track{border:1px solid var(--line);border-radius:13px;padding:13px;background:#ffffff03;min-width:0}.track-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}.track b{font-size:12px}.track-name{width:100%;background:#090e18;color:var(--text);border:1px solid #30394d;border-radius:8px;padding:9px;font-size:12px;min-width:0}.track small,.track-status{display:block;color:var(--muted);font-size:10px;margin-top:5px}.meter-wrap{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-top:10px}.level-meter{height:7px;border-radius:99px;background:#ffffff12;overflow:hidden}.level-meter-fill{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--green) 75%,#ff4f81);transition:width .08s linear}.level-db{font:700 9px "Space Grotesk";color:var(--muted);min-width:42px;text-align:right}.transport{padding:17px;border:1px solid #58e6ff38;background:linear-gradient(140deg,#58e6ff0b,#a38bff0b);border-radius:15px;margin-top:16px}.transport-top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.timer{font:700 clamp(29px,4vw,43px)/1 "Space Grotesk";letter-spacing:.045em;font-variant-numeric:tabular-nums;margin:12px 0}.wave{display:block;width:100%;height:88px;border:1px solid var(--line);border-radius:12px;background:#080c15;margin:13px 0 0}.message{font-size:12px;line-height:1.6;color:#c0c9dc;padding:12px 14px;border-radius:11px;background:#ffffff05;border:1px solid #ffffff0a;white-space:pre-wrap}.message.error{color:#ffb6c8;border-color:#ff668044;background:#ff66800a}.saved-list{display:grid;gap:11px}.saved{border:1px solid var(--line);border-radius:13px;padding:14px;min-width:0;background:#ffffff03}.saved strong{font-size:12px}.saved p{font-size:11px;color:var(--muted);line-height:1.6;margin:6px 0}.saved audio{width:100%;height:38px;margin-top:8px}.saved .btn{margin-top:7px}.checklist{display:grid;gap:10px}.checklist label{display:flex;align-items:flex-start;gap:9px;font-size:11px;color:#c0c9dc}.checklist input{accent-color:var(--cyan);margin-top:3px}.notice{border:1px solid #ffd27d35;background:#ffd27d08;border-radius:12px;padding:12px 14px;color:#d6c8a9;font-size:11px;line-height:1.65}.foot{border-top:1px solid var(--line);padding:22px 0 34px;color:var(--muted);font-size:10px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.mobile-actions{display:none}
+/* V5.0: simple-first progressive disclosure */
+.v5-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px 16px;border:1px solid #58e6ff35;background:linear-gradient(110deg,#102633,#151326);border-radius:16px;margin:0 0 16px}
+.v5-banner strong{font:700 13px "Space Grotesk";display:block}.v5-banner p{font-size:12px;color:var(--muted);margin:3px 0 0}.v5-actions{display:flex;gap:8px;flex-wrap:wrap}
+details.v5-fold{border:1px solid var(--line);border-radius:16px;background:#0d121e;margin:0 0 12px;overflow:hidden}
+details.v5-fold>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;font:700 14px "Space Grotesk"}
+details.v5-fold>summary::-webkit-details-marker{display:none}
+details.v5-fold>summary:after{content:"＋";color:var(--cyan);font-size:18px}
+details.v5-fold[open]>summary:after{content:"−"}
+details.v5-fold[open]>summary{border-bottom:1px solid var(--line)}
+details.v5-fold>.fold-content{padding:14px}
+.v5-badge{font:700 9px "Space Grotesk";letter-spacing:.12em;color:var(--cyan);border:1px solid #58e6ff35;border-radius:7px;padding:5px 7px;white-space:nowrap}
+#studioInstructionsPanel .grid2{gap:10px}#studioInstructionsPanel .music-card{padding:12px}#studioInstructionsPanel .music-card h3{margin-bottom:6px}#studioInstructionsPanel .hint{margin-bottom:0}
+.btn{transition:transform .15s ease,border-color .15s ease}.btn:hover{transform:translateY(-1px)}
 @media(max-width:950px){.workspace{grid-template-columns:minmax(0,1fr)}.hero{grid-template-columns:1fr}.hero-side{align-items:flex-start;flex-direction:row;flex-wrap:wrap}.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:580px){.shell{width:min(100% - 24px,1320px)}.nav{padding:10px 0;gap:6px}.brand{width:100%;padding:5px 0}.navlink{padding:8px 6px;font-size:10px}.hero{padding:28px 0 19px}.steps{gap:7px}.step{padding:11px}.step span{font-size:10px}.grid2{grid-template-columns:1fr}.panel{padding:15px;border-radius:15px}.panel-head{margin-bottom:13px}.actions .btn{flex:1 1 auto}.transport .actions .btn{flex:1 1 42%}.track-top{grid-template-columns:1fr}.hero-side .status-pill{max-width:100%}.wave{height:75px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
@@ -31,6 +44,10 @@
 <div><div class="kicker">Creator tools / recording room</div><h1>Make something<br><span>worth hearing.</span></h1><p>A streamlined recording room for podcasts, voiceovers, interviews and show segments. Capture separate microphone tracks and a master mix, review your take, download backups and save private sessions to your CrowRules account.</p></div>
 <div class="hero-side"><span class="status-pill"><span class="dot"></span><span id="authState">Checking account…</span></span><span class="chip">MULTITRACK · PRIVATE BY DEFAULT</span></div>
 </section>
+<div class="v5-banner" aria-label="V5 simple workflow">
+<div><span class="v5-badge">AUDIO STUDIO V5.0</span><strong style="margin-top:7px">Record. Save. Finish. That's it.</strong><p>Start with one microphone. The advanced tools stay tucked away until you need them.</p></div>
+<div class="v5-actions"><a class="btn primary" href="#sessionPanel">Start recording</a><a class="btn" href="#reviewPanel">Review a take</a><a class="btn" href="#projectWorkspacePanel">My projects</a></div>
+</div>
 <section class="steps" aria-label="Recording workflow">
 <div class="step"><strong><em>01</em> Prepare</strong><span>Name the session and choose your mic.</span></div>
 <div class="step"><strong><em>02</em> Record</strong><span>Quick start, pause, resume and stop.</span></div>
@@ -167,6 +184,29 @@
 </div>
 <footer class="foot"><span>CrowRules Podcasting · Creator Audio Studio</span><span>Record privately. Review carefully. Publish when ready.</span></footer>
 </main>
+<script>
+/* Audio Studio V5.0: progressive disclosure, preserving existing control IDs. */
+document.addEventListener('DOMContentLoaded',()=>{
+ const folds=[
+  ['projectWorkspacePanel','My projects & cloud library','Save drafts, open projects on this device or from your private cloud, and manage versions.'],
+  ['studioInstructionsPanel','Studio instructions','Step-by-step help for recording, editing, saving, exporting and troubleshooting.'],
+  ['timelineEditorPanel','Advanced editing timeline','Arrange clips, trim, split, fade and fine-tune audio when you need more control.'],
+  ['finalizationPanel','Finish & download','Review your final mix, save a checkpoint and export the edited WAV.'],
+  ['reviewPanel','Review your recording','Listen to the captured take, then save or download it.']
+ ];
+ for(const [id,label,desc] of folds){
+  const section=document.getElementById(id);if(!section||section.dataset.v5Folded)return;
+  const d=document.createElement('details');d.className='v5-fold';d.dataset.section=id;
+  if(id==='reviewPanel')d.open=true;
+  const summary=document.createElement('summary');summary.textContent=label;
+  const content=document.createElement('div');content.className='fold-content';
+  const note=document.createElement('p');note.className='hint';note.textContent=desc;content.append(note);
+  section.parentNode.insertBefore(d,section);d.append(summary,content,section);section.dataset.v5Folded='true';
+ }
+ const title=document.querySelector('#sessionPanel .panel-head h2');if(title)title.textContent='Start a recording';
+ document.querySelectorAll('a[href="#projectWorkspacePanel"],a[href="#reviewPanel"]').forEach(a=>a.addEventListener('click',()=>{const d=document.querySelector('details[data-section="'+a.getAttribute('href').slice(1)+'"]');if(d)d.open=true;}));
+});
+</script>
 <script defer src="../js/studio.js"></script>
 <script defer src="../js/studio-timeline.js"></script>
 </body>
