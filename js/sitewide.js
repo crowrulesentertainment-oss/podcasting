@@ -97,7 +97,19 @@
   shortcut.type='image/png';
   shortcut.href=href;
  }
- const start=()=>{ensureFavicon();safeExternalLinks();improveImages();normalizeForms();repairBrandLogos();if(!api._logoObserver&&typeof MutationObserver==='function'){api._logoObserver=new MutationObserver(()=>repairBrandLogos());api._logoObserver.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['src','alt','class','id']})}ensureDonateLink();document.documentElement.dataset.crowSitewide='ready';ensurePodcastingSystems()};
+ const normalizeEpisodeNavigation=()=>{
+  // Sitewide navigation should open the general episode manager, not silently pin
+  // visitors to one show from an old/stale podcast_id query parameter.
+  document.querySelectorAll('nav a[href],header a[href],.links a[href],.nav-links a[href]').forEach(a=>{
+   try{
+    const target=new URL(a.getAttribute('href'),window.location.href);
+    if(!/\/episodes\.html$/i.test(target.pathname)||!target.searchParams.has('podcast_id'))return;
+    target.searchParams.delete('podcast_id');
+    a.setAttribute('href',target.pathname+target.search+target.hash);
+   }catch(_){}
+  });
+ };
+ const start=()=>{normalizeEpisodeNavigation();ensureFavicon();safeExternalLinks();improveImages();normalizeForms();repairBrandLogos();if(!api._logoObserver&&typeof MutationObserver==='function'){api._logoObserver=new MutationObserver(()=>repairBrandLogos());api._logoObserver.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['src','alt','class','id']})}ensureDonateLink();document.documentElement.dataset.crowSitewide='ready';ensurePodcastingSystems()};
  // Ensure every Podcasting page has the shared Supabase config, CrowPoints balance,
  // and audio player, including lightweight landing pages that do not declare them.
  async function ensurePodcastingSystems(){
