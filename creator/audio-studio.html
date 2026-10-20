@@ -72,9 +72,9 @@
 </section>
 
 <section class="panel" id="timelineEditorPanel" style="margin:0 0 18px">
-<div class="panel-head"><div><div class="kicker">Studio V2 · edit desk</div><h2>Multitrack timeline</h2><p>Arrange captured audio, split and trim clips, undo edits, and export an edited WAV master. Original takes remain unchanged.</p></div><span class="number">V2 / EDIT</span></div>
+<div class="panel-head"><div><div class="kicker">Studio V2 · edit desk</div><h2>Multitrack timeline</h2><p>Drag clips to arrange them, snap to a timing grid, split and trim, add fades/crossfades, and save versioned projects to the cloud. Original takes remain unchanged.</p></div><span class="number">V2 / EDIT</span></div>
 <div class="timeline-toolbar" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
-<button class="btn" id="timelineUndo" type="button" disabled>↶ Undo</button><button class="btn" id="timelineRedo" type="button" disabled>↷ Redo</button><button class="btn" id="timelineSplit" type="button" disabled>✂ Split at playhead</button><button class="btn danger" id="timelineDelete" type="button" disabled>Remove selected clip</button><button class="btn" id="timelineExport" type="button" disabled>↓ Export edited WAV</button>
+<button class="btn" id="timelineUndo" type="button" disabled>↶ Undo</button><button class="btn" id="timelineRedo" type="button" disabled>↷ Redo</button><button class="btn" id="timelineSplit" type="button" disabled>✂ Split at playhead</button><button class="btn danger" id="timelineDelete" type="button" disabled>Remove selected clip</button><button class="btn" id="timelineExport" type="button" disabled>↓ Export edited WAV</button><label class="hint"><input id="timelineSnap" type="checkbox" checked> Snap</label><label class="hint">Grid <select id="timelineSnapGrid"><option value="0.1">0.1s</option><option value="0.25" selected>0.25s</option><option value="0.5">0.5s</option><option value="1">1s</option></select></label>
 </div>
 <div class="timeline-transport" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
 <button class="btn primary" id="timelinePlay" type="button" disabled>▶ Play arrangement</button><button class="btn" id="timelineStop" type="button" disabled>■ Stop</button>
@@ -88,9 +88,9 @@
 <label class="field"><span>Selected clip · timeline start (sec)</span><input id="timelineClipStart" type="number" min="0" step=".1" value="0" disabled></label>
 <label class="field"><span>Selected clip · source in (sec)</span><input id="timelineClipIn" type="number" min="0" step=".1" value="0" disabled></label>
 <label class="field"><span>Selected clip · source out (sec)</span><input id="timelineClipOut" type="number" min="0" step=".1" value="0" disabled></label>
-<label class="field"><span>Selected clip · gain (%)</span><input id="timelineClipGain" type="number" min="0" max="200" step="5" value="100" disabled></label>
+<label class="field"><span>Selected clip · gain (%)</span><input id="timelineClipGain" type="number" min="0" max="200" step="5" value="100" disabled></label><label class="field"><span>Fade in (sec)</span><input id="timelineFadeIn" type="number" min="0" step=".05" value="0" disabled></label><label class="field"><span>Fade out (sec)</span><input id="timelineFadeOut" type="number" min="0" step=".05" value="0" disabled></label>
 </div>
-<div class="actions"><button class="btn primary" id="timelineApplyClip" type="button" disabled>Apply clip settings</button><button class="btn" id="timelineReloadTake" type="button">Load current take</button><button class="btn" id="timelineRecover" type="button">Check autosave recovery</button></div>
+<div class="actions"><button class="btn primary" id="timelineApplyClip" type="button" disabled>Apply clip settings</button><button class="btn" id="timelineReloadTake" type="button">Load current take</button><button class="btn" id="timelineRecover" type="button">Check autosave recovery</button><button class="btn" id="timelineCloudSave" type="button">☁ Save cloud version</button><button class="btn" id="timelineCloudVersions" type="button">Browse cloud versions</button></div><div id="timelineCloudVersionList" class="message" style="margin-top:10px">Cloud versions require a signed-in CrowRules account and configured Supabase Storage.</div>
 <p class="hint" style="margin-top:10px">Editing note: splitting and trimming changes the arrangement, not your original audio files. Local autosave is tied to this browser and device; use the existing private-save feature for an account-backed copy.</p>
 </section>
 <section class="panel" id="reviewPanel">
