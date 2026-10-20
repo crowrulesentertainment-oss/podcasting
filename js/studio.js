@@ -162,7 +162,7 @@ function recorderFor(stream,trackName){
  const mime=types.find(t=>MediaRecorder.isTypeSupported(t))||'';
  return new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
 }
-async async function quickRecord(){
+async function quickRecord(){
  if(state.busy||!state.user){say('Sign in to CrowRules Podcasting before recording.',true);return;}
  try{
   if(!state.devices.length)await refreshDevices();
