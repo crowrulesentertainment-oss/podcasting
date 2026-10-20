@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#080a12">
-<meta name="description" content="CrowRules Audio Studio V5.0: record, save, edit and download podcast audio with a simple guided workflow.">
-<title>CrowRules Audio Studio V5.0 — Podcasting</title>
+<meta name="description" content="CrowRules Audio Studio V6.0: record, save, review, download and manage podcast recordings in a simple studio.">
+<title>CrowRules Audio Studio V6.0 — Podcasting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -30,6 +30,20 @@ details.v5-fold>.fold-content{padding:14px}
 @media(max-width:950px){.workspace{grid-template-columns:minmax(0,1fr)}.hero{grid-template-columns:1fr}.hero-side{align-items:flex-start;flex-direction:row;flex-wrap:wrap}.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:580px){.shell{width:min(100% - 24px,1320px)}.nav{padding:10px 0;gap:6px}.brand{width:100%;padding:5px 0}.navlink{padding:8px 6px;font-size:10px}.hero{padding:28px 0 19px}.steps{gap:7px}.step{padding:11px}.step span{font-size:10px}.grid2{grid-template-columns:1fr}.panel{padding:15px;border-radius:15px}.panel-head{margin-bottom:13px}.actions .btn{flex:1 1 auto}.transport .actions .btn{flex:1 1 42%}.track-top{grid-template-columns:1fr}.hero-side .status-pill{max-width:100%}.wave{height:75px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+:root{color-scheme:light;--bg:#f3f0e8;--surface:#fffdf8;--surface2:#f7f2e8;--line:#ddd6c8;--text:#202b27;--muted:#68756d;--cyan:#216b56;--violet:#a65c3a;--pink:#b84444;--green:#24744e;--amber:#98631e;--radius:22px}
+body{background:linear-gradient(145deg,#f8f5ed 0%,#e9eee6 56%,#f5e9dd 100%);color:var(--text)}.topbar{background:#f8f5edee;border-bottom:1px solid #d9d1c3;backdrop-filter:blur(16px)}.brand b{color:#b45e3c}.navlink{color:#46574e}.navlink:hover{background:#e8e4d9}
+.hero{padding:34px 0 18px}.kicker{color:#a95736}h1{color:#24352d}h1 span{color:#b45e3c}.hero p{color:#657269}.status-pill,.chip{background:#fffdf8;border-color:#d8d1c4;color:#526258}.dot{background:#36845b}
+.v5-banner{background:linear-gradient(115deg,#244d3e,#17372d);border:1px solid #2d604c;border-radius:24px;color:#fff;padding:22px 24px;display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:18px;box-shadow:0 16px 36px #203e2a18}.v5-banner p{color:#d8e8db;margin:6px 0 0}.v5-badge{color:#f6c7a7;border-color:#f6c7a755}.v5-banner .btn{border-color:#ffffff40;color:white;background:#ffffff10}.v5-banner .btn.primary{background:#e8a27b;border-color:#e8a27b;color:#2a281f}
+.steps{gap:12px}.step{background:#fffdf8;border:1px solid #ded7ca;border-radius:16px;box-shadow:0 5px 16px #293c2b08}.step em{color:#b45e3c}.step span{color:#6b776f}.workspace{grid-template-columns:minmax(0,1.45fr) minmax(290px,.75fr);gap:18px}
+.panel{background:#fffdf9;border:1px solid #ddd6c8;border-radius:22px;box-shadow:0 10px 28px #293c2b0b}.panel-head h2{color:#263a30}.panel-head p,.hint{color:#68756d}.number{color:#a95736;border-color:#d9a58f;background:#fbf0e9}.field label,.label{color:#68756d}
+.field input:not([type=range]):not([type=checkbox]),.field select,.field textarea,.track select,.track input:not([type=range]),#savedList select{background:#f8f6ef;color:#24332b;border-color:#d7d1c5}.field input::placeholder{color:#879188}.field input[type=range]{accent-color:#b45e3c}.music-card{background:#f8f6ef;border-color:#e0d9cd}.music-card h3{color:#34463a}.divider{border-color:#e5ded2}
+.btn{background:#f8f6ef;border-color:#d4cdbf;color:#35453a;border-radius:12px}.btn:hover{border-color:#b45e3c}.btn.primary{background:#b45e3c;border-color:#b45e3c;color:white}.btn.danger{background:#fff0ed;border-color:#e3b8ae;color:#a3362b}.btn.record{background:#a83f36;border-color:#a83f36;color:#fff}
+.transport{background:#f4f0e6;border:1px solid #ded5c6;border-radius:18px;padding:18px}.timer{color:#25382e}.wave{background:#e6ece4;border:1px solid #d4dfd4;border-radius:12px}.message,.notice{background:#f6f3ea;border-color:#e1d9ca;color:#56665a}.saved{background:#f8f6ef;border-color:#ddd5c8}.saved p{color:#69756d}.foot{color:#788379;border-color:#ddd6c8}
+.v5-fold{border:1px solid #ddd6c8;border-radius:18px;background:#fffdf8;overflow:hidden}.v5-fold>summary{background:#f5f1e8;color:#33473a}.v5-fold[open]>summary{border-bottom:1px solid #e4ddd0}.v5-fold>.fold-content{padding:12px}.checklist label{color:#536358}
+#sessionPanel{grid-column:1/-1;padding:clamp(20px,3vw,34px)}#sessionPanel .panel-head h2{font-size:22px}.workspace>.stack{display:contents}.workspace>aside.stack{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:16px}.workspace>aside.stack>section:last-child{grid-column:1/-1}
+#sessionPanel .grid2{gap:12px}.optional-music{margin:0 0 18px;border:1px solid #ded7ca;border-radius:16px;background:#f8f6ef;overflow:hidden}.optional-music>summary{cursor:pointer;padding:14px 16px;font-weight:800;color:#34483b;list-style:none}.optional-music>summary::-webkit-details-marker{display:none}.optional-music>summary:after{content:'＋';float:right;color:#b45e3c}.optional-music[open]>summary:after{content:'−'}.optional-music>.optional-content{padding:0 14px 14px}.saved-delete{background:#fff0ed!important;border-color:#e4b9b0!important;color:#a3362b!important}
+@media(max-width:950px){.workspace{grid-template-columns:1fr}.workspace>aside.stack{grid-template-columns:1fr 1fr}#sessionPanel{grid-column:1}.v5-banner{align-items:flex-start;flex-direction:column}.hero{grid-template-columns:1fr}}
+@media(max-width:600px){.workspace>aside.stack{grid-template-columns:1fr}.workspace>aside.stack>section:last-child{grid-column:auto}.v5-banner{padding:18px}.v5-actions{display:flex;flex-wrap:wrap}.steps{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{padding:16px}}
 </style>
 </head>
 <body>
@@ -45,7 +59,7 @@ details.v5-fold>.fold-content{padding:14px}
 <div class="hero-side"><span class="status-pill"><span class="dot"></span><span id="authState">Checking account…</span></span><span class="chip">MULTITRACK · PRIVATE BY DEFAULT</span></div>
 </section>
 <div class="v5-banner" aria-label="V5 simple workflow">
-<div><span class="v5-badge">AUDIO STUDIO V5.0</span><strong style="margin-top:7px">Record. Save. Finish. That's it.</strong><p>Start with one microphone. The advanced tools stay tucked away until you need them.</p></div>
+<div><span class="v5-badge">AUDIO STUDIO V6.0</span><strong style="margin-top:7px">Record. Save. Finish. That's it.</strong><p>Start with one microphone. The advanced tools stay tucked away until you need them.</p></div>
 <div class="v5-actions"><a class="btn primary" href="#sessionPanel">Start recording</a><a class="btn" href="#reviewPanel">Review a take</a><a class="btn" href="#projectWorkspacePanel">My projects</a></div>
 </div>
 <section class="steps" aria-label="Recording workflow">
@@ -185,7 +199,7 @@ details.v5-fold>.fold-content{padding:14px}
 <footer class="foot"><span>CrowRules Podcasting · Creator Audio Studio</span><span>Record privately. Review carefully. Publish when ready.</span></footer>
 </main>
 <script>
-/* Audio Studio V5.0: progressive disclosure, preserving existing control IDs. */
+/* Audio Studio V6.0: new studio theme, simple-first layout, preserving audio control IDs. */
 document.addEventListener('DOMContentLoaded',()=>{
  const folds=[
   ['projectWorkspacePanel','My projects & cloud library','Save drafts, open projects on this device or from your private cloud, and manage versions.'],
@@ -203,6 +217,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   const note=document.createElement('p');note.className='hint';note.textContent=desc;content.append(note);
   section.parentNode.insertBefore(d,section);d.append(summary,content,section);section.dataset.v5Folded='true';
  }
+ const music=document.querySelector('#sessionPanel .grid2');
+ if(music&&!music.closest('.optional-music')){const fold=document.createElement('details');fold.className='optional-music';const summary=document.createElement('summary');summary.textContent='Optional: add intro or outro music';const content=document.createElement('div');content.className='optional-content';music.parentNode.insertBefore(fold,music);fold.append(summary,content,music);}
+ const banner=document.querySelector('.v5-banner strong');if(banner)banner.textContent='Press record. Tell your story. Save your take.';
  const title=document.querySelector('#sessionPanel .panel-head h2');if(title)title.textContent='Start a recording';
  document.querySelectorAll('a[href="#projectWorkspacePanel"],a[href="#reviewPanel"]').forEach(a=>a.addEventListener('click',()=>{const d=document.querySelector('details[data-section="'+a.getAttribute('href').slice(1)+'"]');if(d)d.open=true;}));
 });
