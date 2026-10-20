@@ -158,6 +158,15 @@ function recorderFor(stream,trackName){
  const mime=types.find(t=>MediaRecorder.isTypeSupported(t))||'';
  return new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
 }
+async function quickRecord(){
+ if(state.busy||!state.user){say('Sign in to CrowRules Podcasting before recording.',true);return;}
+ try{
+  if(!state.devices.length)await refreshDevices();
+  if(!$('inputSelect').value){say('Choose a microphone, then press Quick record again.',true);return;}
+  if(!state.tracks.length)addTrack();
+  await startRecording();
+ }catch(e){say('Quick record could not start: '+(e.message||e),true);}
+}
 async function startRecording(){
  if(state.busy||!state.user)return;
  if(!state.tracks.length){say('Add at least one microphone track before recording.',true);return;}
@@ -179,15 +188,15 @@ async function startRecording(){
   state.master.recorder.onstop=()=>{state.master.blob=new Blob(state.master.chunks,{type:state.master.recorder.mimeType||'audio/webm'});};
   state.tracks.forEach(t=>{t.recorder.start(1000);t.status='Recording';});state.master.recorder.start(1000);
   if(state.openingBuffer)playBuffer(state.openingBuffer,'opening');
-  state.startedAt=Date.now();state.elapsedBeforePause=Number(state.resumeRow?.duration_seconds||0);$('timer').textContent=fmt(state.elapsedBeforePause);state.timerInterval=setInterval(()=>{$('timer').textContent=fmt(state.elapsedBeforePause+(state.startedAt?((Date.now()-state.startedAt)/1000):0));},250);
+  state.startedAt=Date.now();state.elapsedBeforePause=Number(state.resumeRow?.duration_seconds||0);$('timer').textContent=fmt(state.elapsedBeforePause);const badge=$('recordingState');if(badge)badge.innerHTML='<span class="dot" style="background:#ff4f81"></span> Recording in progress';state.timerInterval=setInterval(()=>{$('timer').textContent=fmt(state.elapsedBeforePause+(state.startedAt?((Date.now()-state.startedAt)/1000):0));},250);
   $('pauseBtn').disabled=false;$('stopBtn').disabled=false;$('pauseBtn').textContent='Ⅱ Pause';say('Recording. Keep this browser tab open. All tracks are captured separately plus the master mix.');
  }catch(e){cleanupStreams();say('Could not start every track: '+(e.message||e)+'. Check device permissions and try again.',true);}
  finally{state.busy=false;renderTracks();$('startBtn').disabled=false;}
 }
 function pauseRecording(){
  const recs=[...state.tracks.map(t=>t.recorder),state.master?.recorder].filter(Boolean);
- if(recs.some(r=>r.state==='recording')){recs.forEach(r=>{if(r.state==='recording')r.pause();});state.elapsedBeforePause+=(Date.now()-state.startedAt)/1000;state.startedAt=0;clearInterval(state.timerInterval);$('pauseBtn').textContent='▶ Resume';say('Recording paused.');}
- else if(recs.some(r=>r.state==='paused')){recs.forEach(r=>{if(r.state==='paused')r.resume();});state.startedAt=Date.now();state.timerInterval=setInterval(()=>{$('timer').textContent=fmt(state.elapsedBeforePause+(Date.now()-state.startedAt)/1000);},250);$('pauseBtn').textContent='Ⅱ Pause';say('Recording resumed.');}
+ if(recs.some(r=>r.state==='recording')){recs.forEach(r=>{if(r.state==='recording')r.pause();});state.elapsedBeforePause+=(Date.now()-state.startedAt)/1000;state.startedAt=0;clearInterval(state.timerInterval);$('pauseBtn').textContent='▶ Resume';const badge=$('recordingState');if(badge)badge.innerHTML='<span class="dot" style="background:#ffc857"></span> Paused · resume when ready';say('Recording paused.');}
+ else if(recs.some(r=>r.state==='paused')){recs.forEach(r=>{if(r.state==='paused')r.resume();});state.startedAt=Date.now();state.timerInterval=setInterval(()=>{$('timer').textContent=fmt(state.elapsedBeforePause+(Date.now()-state.startedAt)/1000);},250);$('pauseBtn').textContent='Ⅱ Pause';const badge=$('recordingState');if(badge)badge.innerHTML='<span class="dot" style="background:#ff4f81"></span> Recording in progress';say('Recording resumed.');}
 }
 function cleanupStreams(){state.tracks.forEach(t=>t.stream?.getTracks().forEach(x=>x.stop()));state.master?.stream?.getTracks().forEach(x=>x.stop());if(state.audioContext&&state.audioContext.state!=='closed')state.audioContext.close().catch(()=>{});state.audioContext=null;}
 async function stopRecording(){
@@ -205,7 +214,7 @@ async function stopRecording(){
  if(state.resumeMasterBlob&&state.master?.blob?.size){try{say('Combining this take with the previously saved master…');state.master.blob=await mergeAudioBlobs(state.resumeMasterBlob,state.master.blob);state.master.durationSeconds=Math.round(state.resumeRow?.duration_seconds||0)+Math.round(Math.max(0,state.elapsedBeforePause-(state.resumeRow?.duration_seconds||0)));}catch(e){say('Could not combine the previous master automatically: '+(e.message||e)+'. This new take can still be saved separately.',true);state.elapsedBeforePause=Math.max(0,state.elapsedBeforePause-Number(state.resumeRow?.duration_seconds||0));state.resumeRow=null;state.resumeMasterBlob=null;}}
  state.tracks.forEach(t=>t.stream?.getTracks().forEach(x=>x.stop()));state.master?.stream?.getTracks().forEach(x=>x.stop());
  if(state.audioContext&&state.audioContext.state!=='closed')await state.audioContext.close().catch(()=>{});state.audioContext=null;
- $('pauseBtn').disabled=true;$('stopBtn').disabled=true;$('startBtn').disabled=false;$('pauseBtn').textContent='Ⅱ Pause';
+ $('pauseBtn').disabled=true;$('stopBtn').disabled=true;$('startBtn').disabled=false;$('pauseBtn').textContent='Ⅱ Pause';const badge=$('recordingState');if(badge)badge.innerHTML='<span class="dot"></span> Take captured · review below';
  state.tracks.forEach(t=>{t.status='Captured · '+((t.blob?.size||0)/1024/1024).toFixed(1)+' MB';});renderTracks();
  say('Recording stopped. Save session to upload the separate tracks and master mix privately.');
  showPreview();
@@ -411,6 +420,9 @@ async function createDraft(row,button,chosenPodcast){
   button.disabled=false;button.textContent=oldLabel;
  }
 }
+$('quickRecordBtn')?.addEventListener('click',quickRecord);
+$('fillTitleBtn')?.addEventListener('click',()=>{const input=$('sessionTitle');if(!input.value.trim()||input.value.trim()==='Untitled recording'){const d=new Date();input.value='CrowRules recording — '+d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'})+' '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});}input.focus();});
+$('scrollToRecordBtn')?.addEventListener('click',()=>$('startBtn').scrollIntoView({behavior:'smooth',block:'center'}));
 $('openingFile').addEventListener('change',()=>{if($('openingFile').files.length)$('openingSavedTrack').value='';});$('endingFile').addEventListener('change',()=>{if($('endingFile').files.length)$('endingSavedTrack').value='';});
 $('openingSavedTrack').addEventListener('change',()=>{if($('openingSavedTrack').value)$('openingFile').value='';});$('endingSavedTrack').addEventListener('change',()=>{if($('endingSavedTrack').value)$('endingFile').value='';});
 $('openingVolume').addEventListener('input',()=>{state.openingGain=Number($('openingVolume').value)/100;$('openingVolumeValue').textContent=$('openingVolume').value+'%';});$('endingVolume').addEventListener('input',()=>{state.endingGain=Number($('endingVolume').value)/100;$('endingVolumeValue').textContent=$('endingVolume').value+'%';});$('previewOpening').addEventListener('click',()=>previewBed('opening'));$('previewEnding').addEventListener('click',()=>previewBed('ending'));$('soundCheckBtn').addEventListener('click',runSoundCheck);$('refreshDevices').addEventListener('click',refreshDevices);$('addTrack').addEventListener('click',addTrack);$('startBtn').addEventListener('click',startRecording);$('pauseBtn').addEventListener('click',pauseRecording);$('stopBtn').addEventListener('click',stopRecording);
