@@ -19,7 +19,44 @@ if(!window.CrowRulesThemeSystem&&!document.querySelector('script[src*="/js/theme
  (document.head||document.documentElement).appendChild(themeScript);
 }
 const MOBILE_QUERY="(max-width:950px)";
+
+function ensureThemeHero(){
+ const KEY='crowrules-global-theme-v1',STUDIO_KEY='crowrules-theme-studio-v5';
+ const defaults={id:'cyberwave',name:'Cyberwave',c1:'#00e5ff',c2:'#9c5cff',image:'',cat:'Originals',mood:'Cinematic'};
+ const readTheme=()=>{try{const raw=JSON.parse(localStorage.getItem(KEY)||'null');return raw&&typeof raw.name==='string'?{...defaults,...raw}:defaults}catch(_){return defaults}};
+ let hero=document.querySelector('[data-cr-theme-hero]');
+ if(!hero){
+  hero=document.createElement('section');hero.dataset.crThemeHero='true';hero.className='cr-theme-hero';hero.setAttribute('aria-label','Current visual theme');
+  hero.innerHTML='<div class="cr-theme-hero-art" aria-hidden="true"></div><div class="cr-theme-hero-content"><span class="cr-theme-hero-kicker">CROWRULES PODCASTING · THEME WORLD</span><h2 data-cr-theme-name>Cyberwave</h2><p data-cr-theme-copy>Your stories. Your atmosphere. One universe.</p><div class="cr-theme-hero-meta"><span data-cr-theme-category>ORIGINALS</span><span data-cr-theme-mood>CINEMATIC</span></div></div><a class="cr-theme-hero-cta" data-cr-theme-link href="theme-studio.html">Explore Theme Studio <span aria-hidden="true">↗</span></a>';
+  const header=document.querySelector('body > header,body > .topbar,body > .top,body > nav,body > .site-header');
+  const main=document.querySelector('body > main,body > #app,body > .shell,body > .page,body > .container,body > .content');
+  if(header&&header.parentNode)header.parentNode.insertBefore(hero,header.nextSibling);
+  else if(main&&main.parentNode)main.parentNode.insertBefore(hero,main);
+  else document.body.prepend(hero);
+ }
+ const studioUrl=new URL('../theme-studio.html',document.currentScript?.src||'https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js').href;
+ const paint=()=>{
+  let t=readTheme();
+  try{const state=JSON.parse(localStorage.getItem(STUDIO_KEY)||'null');if(state?.selectedTheme&&typeof state.selectedTheme.name==='string')t={...t,...state.selectedTheme};}catch(_){}
+  const title=hero.querySelector('[data-cr-theme-name]'),cat=hero.querySelector('[data-cr-theme-category]'),mood=hero.querySelector('[data-cr-theme-mood]'),copy=hero.querySelector('[data-cr-theme-copy]'),art=hero.querySelector('.cr-theme-hero-art'),link=hero.querySelector('[data-cr-theme-link]');
+  if(title)title.textContent=t.name||'Cyberwave';
+  if(cat)cat.textContent=String(t.cat||'ORIGINALS').toUpperCase();
+  if(mood)mood.textContent=String(t.mood||'CINEMATIC').toUpperCase();
+  if(copy)copy.textContent=(t.name||'Cyberwave')+' theme is active across your CrowRules experience.';
+  hero.style.setProperty('--cr-hero-a',/^#[0-9a-f]{6}$/i.test(t.c1||'')?t.c1:'#00e5ff');
+  hero.style.setProperty('--cr-hero-b',/^#[0-9a-f]{6}$/i.test(t.c2||'')?t.c2:'#9c5cff');
+  if(art){const image=typeof t.image==='string'&&/^https?:\/\//i.test(t.image)?t.image:'';art.style.backgroundImage=image?'linear-gradient(90deg,rgba(5,7,14,.9),rgba(5,7,14,.42)),url("'+image.replace(/["\\\\]/g,'')+'")':'radial-gradient(ellipse at 75% 18%, '+(t.c2||'#9c5cff')+'66, transparent 35%),radial-gradient(ellipse at 58% 100%, '+(t.c1||'#00e5ff')+'55, transparent 45%),linear-gradient(120deg,#080b16,#111027 58%,#080b16)';}
+  if(link)link.href=studioUrl;
+ };
+ paint();
+ window.addEventListener('storage',event=>{if(!event.key||event.key===KEY||event.key===STUDIO_KEY)paint()});
+ window.addEventListener('crowrules-theme-state-loaded',paint);
+ window.addEventListener('crowrules-theme-local-state',paint);
+ window.addEventListener('crowrules:theme-changed',paint);
+}
+
 function enhance(){
+ ensureThemeHero();
  /* Keep Awards discoverable throughout the podcasting site. Resolve from this shared script so nested pages get the correct root URL. */
  const awardsUrl=new URL('../awards.html',document.currentScript?.src||'https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js').href;
  const studioUrl=new URL('../theme-studio.html',document.currentScript?.src||'https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js').href;
