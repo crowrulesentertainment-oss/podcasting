@@ -3,6 +3,13 @@
  */
 (()=>{"use strict";
 if(window.__CROW_SITE_NAV__)return;window.__CROW_SITE_NAV__=true;
+/* Shared visual redesign: inject from the canonical repository root so nested pages resolve correctly. */
+if(!document.querySelector('link[data-cr-sitewide-upgrade]')){
+ const visual=document.createElement('link');
+ visual.rel='stylesheet';visual.dataset.crSitewideUpgrade='true';
+ visual.href='https://crowrulesentertainment-oss.github.io/podcasting/css/sitewide-upgrade.css?v=20261023-layout';
+ (document.head||document.documentElement).appendChild(visual);
+}
 /* Bootstrap the shared theme engine on pages that only include navigation/sitewide helpers. */
 if(!window.CrowRulesThemeSystem&&!document.querySelector('script[src*="/js/theme-system.js"]')){
  const themeScript=document.createElement('script');
