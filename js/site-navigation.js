@@ -3,6 +3,14 @@
  */
 (()=>{"use strict";
 if(window.__CROW_SITE_NAV__)return;window.__CROW_SITE_NAV__=true;
+/* Bootstrap the shared theme engine on pages that only include navigation/sitewide helpers. */
+if(!window.CrowRulesThemeSystem&&!document.querySelector('script[src*="/js/theme-system.js"]')){
+ const themeScript=document.createElement('script');
+ themeScript.src='https://crowrulesentertainment-oss.github.io/podcasting/js/theme-system.js?v=20261023-sitewide-sync';
+ themeScript.async=true;
+ themeScript.onerror=()=>console.warn('[CrowRules] Shared theme synchronization could not be loaded.');
+ (document.head||document.documentElement).appendChild(themeScript);
+}
 const MOBILE_QUERY="(max-width:950px)";
 function enhance(){
  /* Keep Awards discoverable throughout the podcasting site. Resolve from this shared script so nested pages get the correct root URL. */
