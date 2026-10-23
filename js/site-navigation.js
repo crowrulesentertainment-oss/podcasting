@@ -7,7 +7,7 @@ if(window.__CROW_SITE_NAV__)return;window.__CROW_SITE_NAV__=true;
 if(!document.querySelector('link[data-cr-sitewide-upgrade]')){
  const visual=document.createElement('link');
  visual.rel='stylesheet';visual.dataset.crSitewideUpgrade='true';
- visual.href='https://crowrulesentertainment-oss.github.io/podcasting/css/sitewide-upgrade.css?v=20261023-layout';
+ visual.href='https://crowrulesentertainment-oss.github.io/podcasting/css/sitewide-upgrade.css?v=20261023-theme-hero-v2';
  (document.head||document.documentElement).appendChild(visual);
 }
 /* Bootstrap the shared theme engine on pages that only include navigation/sitewide helpers. */
