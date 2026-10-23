@@ -57,6 +57,7 @@ function chooseShow(id){
  if(desc)desc.textContent=clean(s.description,1200)||'Published CrowRules Podcasting show.';
  if(kicker)kicker.textContent=s.is_live?'LIVE SHOW':'PUBLISHED SHOW';
  if(chatName)chatName.textContent='Discussion: '+s.title;
+ const prompt=$('#mediaPrompt');if(prompt)prompt.textContent='What questions, experiences, or perspectives would you bring to a conversation about '+s.title+'?';
  if(player){
   player.replaceChildren();
   const media=safeUrl(s.trailer_url);
