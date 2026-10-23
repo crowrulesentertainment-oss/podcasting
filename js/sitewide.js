@@ -124,6 +124,10 @@
   try{
    if(!window.supabase||typeof window.supabase.createClient!=='function')
     await load('https://unpkg.com/@supabase/supabase-js@2');
+   // Apply the shared theme and signed-in account detector on every page using sitewide.js.
+   if(!window.CrowRulesThemeSystem){
+    await load(new URL('js/theme-system.js?crowrules-theme-sync=20261023',root).href);
+   }
    if(!window.CROW_CONFIG?.supabaseUrl||!window.CROW_CONFIG?.supabaseKey||!window.CROW_CONFIG?.logoUrl)
     await load(new URL('config.js?crowrules-config=20261012',root).href);
    repairBrandLogos();
