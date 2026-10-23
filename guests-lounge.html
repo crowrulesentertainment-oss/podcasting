@@ -342,10 +342,10 @@ body {background:var(--gl-bg)}
             <textarea id="guestNeeds" name="needs" maxlength="1500" placeholder="Optional. Share only what is necessary to plan the appearance."></textarea>
           </div>
 
-          <label class="gl-check"><input type="checkbox" id="guestConsent" required><span>I understand this is a local prototype and this form will not contact a host or send my information to CrowRules.</span></label>
+          <label class="gl-check"><input type="checkbox" id="guestConsent" required><span>I understand my application will be stored securely for CrowRules hosts to review, and my contact details will not be shown publicly.</span></label>
           <label class="gl-check"><input type="checkbox" id="guestPublic"><span>I would like to be considered for a future public guest profile if that feature becomes available. This is not permission to publish my information now.</span></label>
 
-          <button class="gl-btn primary" type="submit">Preview guest application ↗</button>
+          <button class="gl-btn primary" type="submit">Submit guest application ↗</button>
           <button class="gl-btn ghost" type="reset">Clear form</button>
         </form>
         <div id="applicationResult" class="gl-notice gl-hidden" role="status" aria-live="polite"></div>
@@ -392,14 +392,14 @@ body {background:var(--gl-bg)}
         <div class="gl-divider"></div>
         <h3>What should we talk about?</h3>
         <p id="mediaPrompt">How do you turn an idea into something real when you're starting with limited resources?</p>
-        <button class="gl-btn" id="usePrompt">Add this to my ideas</button>
+        <button class="gl-btn" id="usePrompt">Suggest this episode topic</button>
       </article>
 
       <aside class="gl-card gl-chat" aria-label="Episode discussion chat">
         <div class="gl-chat-head">
           <div class="gl-row" style="justify-content:space-between">
             <div><div class="gl-kicker">Episode discussion</div><h3 style="margin-bottom:4px">The Conversation Room</h3></div>
-            <span class="gl-pill">Demo chat</span>
+            <span class="gl-pill">Shared lounge chat</span>
           </div>
           <p class="gl-muted" id="chatShowName">Discussion: Back Deck Live</p>
         </div>
@@ -434,7 +434,7 @@ body {background:var(--gl-bg)}
     <div class="gl-card gl-chat">
       <div class="gl-chat-head">
         <div class="gl-row" style="justify-content:space-between">
-          <h3>Community Hangout</h3><span class="gl-pill">Browser demo</span>
+          <h3>Community Hangout</h3><span class="gl-pill">Community chat</span>
         </div>
         <p class="gl-muted">Introduce yourself using a nickname. Keep personal contact details private.</p>
       </div>
@@ -446,7 +446,7 @@ body {background:var(--gl-bg)}
           <div class="gl-field"><label for="chatNickname">Display name</label><input id="chatNickname" maxlength="40" required placeholder="Choose a nickname"></div>
           <div class="gl-field"><label for="loungeMessage">Your message</label><input id="loungeMessage" maxlength="500" required placeholder="Start a conversation"></div>
         </div>
-        <button class="gl-btn primary" type="submit">Post to demo chat ↗</button>
+        <button class="gl-btn primary" type="submit">Post message ↗</button>
       </form>
       <p class="gl-count">Messages are public to visitors and may be moderated. Do not post private contact information.</p>
     </div>
