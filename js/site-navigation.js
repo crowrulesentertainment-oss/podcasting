@@ -5,6 +5,12 @@
 if(window.__CROW_SITE_NAV__)return;window.__CROW_SITE_NAV__=true;
 const MOBILE_QUERY="(max-width:950px)";
 function enhance(){
+ /* Keep Awards discoverable throughout the podcasting site. Resolve from this shared script so nested pages get the correct root URL. */
+ const awardsUrl=new URL('../awards.html',document.currentScript?.src||'https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js').href;
+ document.querySelectorAll('header nav,header .links,header .nav-links,header .listener-links,nav[aria-label*=navigation]').forEach(menu=>{
+  if(menu.querySelector('a[href*="awards.html"]'))return;
+  const a=document.createElement('a');a.href=awardsUrl;a.textContent='Awards';a.setAttribute('data-cr-awards-link','true');menu.appendChild(a);
+ });
  document.querySelectorAll("header .nav,header .listener-nav,.topbar .nav,.top .nav,nav .nav,.nav").forEach((nav,index)=>{
   if(nav.dataset.crNavReady==="true")return;
   const links=nav.querySelector(".links,.nav-links,.listener-links,[aria-label*=navigation]");
