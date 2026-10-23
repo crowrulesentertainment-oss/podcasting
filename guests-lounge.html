@@ -946,8 +946,7 @@ body {background:var(--gl-bg)}
     if (!title || !description) return;
 
     const idea = { title, description, category, createdAt: new Date().toISOString() };
-    const ideas = read(STORAGE.ideas, []);
-    ideas.unshift(idea);
+    const ideas = read(STORAGE.ideas, []);    ideas.unshift(idea);
 
     if (!write(STORAGE.ideas, ideas)) return;
     addIdeaCard(idea);
@@ -998,3 +997,125 @@ body {background:var(--gl-bg)}
   }
 
   function renderStoredChat() {
+    const messages = read(STORAGE.chat, []);
+    messages.slice(-30).forEach(message => {
+      if (message.room === "lounge") {
+        addChatMessage($("#loungeChat"), message.name, message.text, true);
+      } else if (message.room === "episode") {
+        addChatMessage($("#episodeChat"), message.name, message.text, true);
+      }
+    });
+  }
+
+  function saveChat(room, name, message) {
+    const messages = read(STORAGE.chat, []);
+    messages.push({ room, name, text: message, time: new Date().toISOString() });
+    write(STORAGE.chat, messages.slice(-100));
+  }
+
+  $("#episodeChatForm").addEventListener("submit", event => {
+    event.preventDefault();
+    const input = $("#episodeMessage");
+    const message = input.value.trim();
+    if (!message) return;
+    addChatMessage($("#episodeChat"), "YOU · " + currentShow, message, true);
+    saveChat("episode", "YOU · " + currentShow, message);
+    input.value = "";
+  });
+
+  $("#loungeChatForm").addEventListener("submit", event => {
+    event.preventDefault();
+    const name = $("#chatNickname").value.trim();
+    const input = $("#loungeMessage");
+    const message = input.value.trim();
+    if (!name || !message) return;
+    addChatMessage($("#loungeChat"), name, message, true);
+    saveChat("lounge", name, message);
+    input.value = "";
+  });
+
+  // Green room checklist and notes.
+  const checklist = $("#greenChecklist");
+  const savedChecks = read(STORAGE.checklist, []);
+  $$('input[type="checkbox"]', checklist).forEach((checkbox, index) => {
+    checkbox.checked = Boolean(savedChecks[index]);
+    checkbox.addEventListener("change", saveChecklist);
+  });
+
+  function saveChecklist() {
+    const checks = $$('input[type="checkbox"]', checklist).map(input => input.checked);
+    write(STORAGE.checklist, checks);
+    $("#checkProgress").textContent =
+      checks.filter(Boolean).length + " of " + checks.length + " completed";
+  }
+
+  $("#resetChecklist").addEventListener("click", () => {
+    $$('input[type="checkbox"]', checklist).forEach(input => input.checked = false);
+    saveChecklist();
+  });
+  saveChecklist();
+
+  $("#greenNotes").value = read(STORAGE.notes, "");
+  $("#saveNotes").addEventListener("click", () => {
+    if (write(STORAGE.notes, $("#greenNotes").value)) {
+      toast("Notes saved locally in this browser.");
+    }
+  });
+
+  $("#downloadNotes").addEventListener("click", () => {
+    const text = $("#greenNotes").value;
+    if (!text.trim()) {
+      toast("Write some notes before exporting.");
+      return;
+    }
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "crowrules-guest-notes.txt";
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  $("#copyTopics").addEventListener("click", async () => {
+    const topics = getSavedTopics();
+    if (!topics.length) {
+      toast("Save a topic before copying your list.");
+      return;
+    }
+    const text = topics.map((topic, index) => (index + 1) + ". " + topic).join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("Saved topics copied.");
+    } catch {
+      toast("Clipboard access is unavailable. You can still select the topic list and copy it manually.");
+    }
+  });
+
+  // Keep the shared player honest: do not simulate playback without an audio source.
+  const globalPlay = $("#playToggle");
+  if (globalPlay) {
+    globalPlay.addEventListener("click", () => {
+      toast("The global player needs a real audio URL before playback can start.");
+      $("#playerStatus").textContent = "Demo preview · no audio source configured";
+      globalPlay.dataset.on = "0";
+      globalPlay.textContent = "▶";
+    });
+  }
+
+  $("#glSpeed").addEventListener("change", () => {
+    const audio = $("audio", $("#mediaPlayer"));
+    const video = $("video", $("#mediaPlayer"));
+    const player = audio || video;
+    if (player) player.playbackRate = Number($("#glSpeed").value);
+  });
+
+  // Restore saved content.
+  read(STORAGE.ideas, []).slice(0, 30).reverse().forEach(addIdeaCard);
+  renderSavedTopics();
+  renderStoredChat();
+  renderMedia(currentShow);
+})();
+</script>
+</body>
+</html>
