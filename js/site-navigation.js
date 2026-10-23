@@ -64,6 +64,9 @@ function enhance(){
  document.querySelectorAll('nav .links,nav .nav-links,nav .listener-links,header .nav .links,header .nav-links').forEach(menu=>menus.add(menu));
  menus.forEach(menu=>{
   if(!menu||!menu.querySelectorAll)return;
+  if(!menu.querySelector('a[href*="guests-lounge.html"]')){
+   const a=document.createElement('a');a.href=new URL('../guests-lounge.html',document.currentScript?.src||'https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js').href;a.textContent='Guests Lounge';a.setAttribute('data-cr-guests-lounge-link','true');a.classList.add('cr-global-nav-link');menu.appendChild(a);
+  }
   if(!menu.querySelector('a[href*="awards.html"]')){
    const a=document.createElement('a');a.href=awardsUrl;a.textContent='Awards';a.setAttribute('data-cr-awards-link','true');a.classList.add('cr-global-nav-link');if(menu.classList.contains('home-actions'))a.classList.add('cr-awards-home-link');menu.appendChild(a);
   }
