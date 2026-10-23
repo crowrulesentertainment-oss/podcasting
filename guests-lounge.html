@@ -217,7 +217,7 @@ body {background:var(--gl-bg)}
   <!-- STATUS -->
   <section class="gl-section">
     <div class="gl-grid gl-three">
-      <div class="gl-stat"><strong>03</strong><span>Featured show pathways</span></div>
+      <div class="gl-stat"><strong id="glShowCount">—</strong><span>Published shows in Supabase</span></div>
       <div class="gl-stat"><strong>YOUR VOICE</strong><span>Ideas and guest pitches welcome</span></div>
       <div class="gl-stat"><strong id="glConnectionValue">CONNECTING</strong><span>Supabase database connection</span></div>
     </div>
@@ -230,35 +230,14 @@ body {background:var(--gl-bg)}
   <section class="gl-section" id="shows">
     <div class="gl-heading">
       <div><div class="gl-kicker">Find your people</div><h2>Find your conversation</h2>
-      <p>Every show offers a different perspective. Discover a fit for your story.</p></div>
+      <p>This list is generated from Supabase. Draft and unpublished shows are not shown.</p></div>
       <a class="gl-btn" href="show.html">Explore all shows ↗</a>
     </div>
 
-    <div class="gl-grid gl-three">
-      <article class="gl-card">
-        <div class="gl-art"><span>REAL STORIES · BUILDING IN PUBLIC</span><strong>BACK DECK LIVE</strong></div>
-        <div class="gl-chips" style="margin-top:13px"><span class="gl-tag">Creator stories</span><span class="gl-tag">Behind the scenes</span></div>
-        <h3>Building something from nothing</h3>
-        <p>Independent creators, small-business builders, personal journeys, lessons learned, and the realities of starting from scratch.</p>
-        <button class="gl-btn primary gl-pick-show" data-show="Back Deck Live">Request this show ↗</button>
-      </article>
-
-      <article class="gl-card">
-        <div class="gl-art tacoma"><span>TACOMA · PACIFIC NORTHWEST</span><strong>TACOMA NIGHTS</strong></div>
-        <div class="gl-chips" style="margin-top:13px"><span class="gl-tag">Community</span><span class="gl-tag">Local stories</span></div>
-        <h3>Life around the PNW</h3>
-        <p>Local voices, life experiences, community projects, regional happenings, creative work, and the stories behind the headlines.</p>
-        <button class="gl-btn primary gl-pick-show" data-show="Tacoma Nights">Request this show ↗</button>
-      </article>
-
-      <article class="gl-card">
-        <div class="gl-art birds"><span>UNFILTERED · CULTURE · CONVERSATION</span><strong>BIRD BRAINS</strong></div>
-        <div class="gl-chips" style="margin-top:13px"><span class="gl-tag">Opinions</span><span class="gl-tag">Pop culture</span></div>
-        <h3>Say what you really think</h3>
-        <p>Bring your perspective, surprising opinions, entertainment topics, friendly debates, and stories that get people talking.</p>
-        <button class="gl-btn primary gl-pick-show" data-show="Bird Brains">Request this show ↗</button>
-      </article>
+    <div class="gl-grid gl-three" id="glShowCatalog" aria-live="polite">
+      <div class="gl-card gl-empty">Loading published CrowRules Podcasting shows from Supabase…</div>
     </div>
+    <p class="gl-muted" id="glShowCatalogStatus" role="status">Only published shows in the CrowRules Podcasting database will appear here.</p>
   </section>
 
   <!-- GUEST APPLICATION -->
@@ -300,12 +279,7 @@ body {background:var(--gl-bg)}
 
           <div class="gl-field">
             <label for="guestShow">Preferred show *</label>
-            <select id="guestShow" name="show" required>
-              <option value="Back Deck Live">Back Deck Live</option>
-              <option value="Tacoma Nights">Tacoma Nights</option>
-              <option value="Bird Brains">Bird Brains</option>
-              <option value="Open to suggestions">Open to suggestions</option>
-            </select>
+            <select id="guestShow" name="show" required><option value="">Loading published shows…</option><option value="Open to suggestions">Open to suggestions</option></select>
           </div>
 
           <div class="gl-field">
@@ -361,17 +335,15 @@ body {background:var(--gl-bg)}
       <p>Choose a show, open its playback area, and discuss the episode alongside other fans.</p></div>
     </div>
 
-    <div class="gl-tabs" role="group" aria-label="Choose a show to discuss">
-      <button class="gl-btn gl-media-tab" data-media="Back Deck Live" aria-pressed="true">Back Deck Live</button>
-      <button class="gl-btn gl-media-tab" data-media="Tacoma Nights" aria-pressed="false">Tacoma Nights</button>
-      <button class="gl-btn gl-media-tab" data-media="Bird Brains" aria-pressed="false">Bird Brains</button>
+    <div class="gl-tabs" id="glMediaTabs" role="group" aria-label="Choose a published show to discuss">
+      <span class="gl-empty">Loading available shows…</span>
     </div>
 
     <div class="gl-room">
       <article class="gl-card">
         <div class="gl-kicker" id="mediaKicker">FEATURED SHOW</div>
-        <h3 id="mediaTitle">Back Deck Live — Building CrowRules</h3>
-        <p id="mediaDescription">A conversation about building an independent entertainment company from the ground up.</p>
+        <h3 id="mediaTitle">Loading published show…</h3>
+        <p id="mediaDescription">Show details will load directly from the CrowRules Podcasting database.</p>
 
         <div class="gl-player" id="mediaPlayer">
           <div class="gl-video-placeholder">
@@ -401,7 +373,7 @@ body {background:var(--gl-bg)}
             <div><div class="gl-kicker">Episode discussion</div><h3 style="margin-bottom:4px">The Conversation Room</h3></div>
             <span class="gl-pill">Shared lounge chat</span>
           </div>
-          <p class="gl-muted" id="chatShowName">Discussion: Back Deck Live</p>
+          <p class="gl-muted" id="chatShowName">Choose a published show to open its discussion.</p>
         </div>
 
         <div class="gl-chat-log" id="episodeChat" role="log" aria-live="polite" aria-relevant="additions">
@@ -467,47 +439,7 @@ body {background:var(--gl-bg)}
     </div>
 
     <div class="gl-grid gl-two" id="topicGrid">
-      <article class="gl-card gl-topic" data-category="creators">
-        <div class="gl-topic-top"><span class="gl-tag">CREATORS</span><button class="gl-btn gl-vote" data-vote="0">♡ <span>0</span></button></div>
-        <h3>Building from the ground up</h3>
-        <p>What does it really take to start a creative project without a big budget, a team, or industry connections?</p>
-        <button class="gl-btn gl-save-topic" data-title="Building from the ground up">Save topic</button>
-      </article>
-
-      <article class="gl-card gl-topic" data-category="community">
-        <div class="gl-topic-top"><span class="gl-tag">COMMUNITY</span><button class="gl-btn gl-vote" data-vote="0">♡ <span>0</span></button></div>
-        <h3>Stories from the Pacific Northwest</h3>
-        <p>Which local stories, people, community efforts, and creative projects deserve more attention?</p>
-        <button class="gl-btn gl-save-topic" data-title="Stories from the Pacific Northwest">Save topic</button>
-      </article>
-
-      <article class="gl-card gl-topic" data-category="creators">
-        <div class="gl-topic-top"><span class="gl-tag">CREATORS</span><button class="gl-btn gl-vote" data-vote="0">♡ <span>0</span></button></div>
-        <h3>The lessons nobody tells you</h3>
-        <p>Talk about setbacks, mistakes, unexpected wins, and what you would do differently if you started again.</p>
-        <button class="gl-btn gl-save-topic" data-title="The lessons nobody tells you">Save topic</button>
-      </article>
-
-      <article class="gl-card gl-topic" data-category="culture">
-        <div class="gl-topic-top"><span class="gl-tag">CULTURE & OPINIONS</span><button class="gl-btn gl-vote" data-vote="0">♡ <span>0</span></button></div>
-        <h3>Unpopular opinions, respectfully</h3>
-        <p>Which entertainment, technology, or cultural opinions deserve a thoughtful debate instead of a shouting match?</p>
-        <button class="gl-btn gl-save-topic" data-title="Unpopular opinions, respectfully">Save topic</button>
-      </article>
-
-      <article class="gl-card gl-topic" data-category="community">
-        <div class="gl-topic-top"><span class="gl-tag">COMMUNITY</span><button class="gl-btn gl-vote" data-vote="0">♡ <span>0</span></button></div>
-        <h3>Life, change and starting over</h3>
-        <p>How do people rebuild, find direction, develop new skills, and discover their next chapter?</p>
-        <button class="gl-btn gl-save-topic" data-title="Life, change and starting over">Save topic</button>
-      </article>
-
-      <article class="gl-card gl-topic" data-category="culture">
-        <div class="gl-topic-top"><span class="gl-tag">CULTURE & OPINIONS</span><button class="gl-btn gl-vote" data-vote="0">♡ <span>0</span></button></div>
-        <h3>What should podcasts become?</h3>
-        <p>Explore interactive listening, community-driven shows, video podcasts, new voices, and the future of independent media.</p>
-        <button class="gl-btn gl-save-topic" data-title="What should podcasts become">Save topic</button>
-      </article>
+      <div class="gl-card gl-empty">Loading community-submitted episode ideas from Supabase…</div>
     </div>
 
     <div class="gl-card gl-board-form">
