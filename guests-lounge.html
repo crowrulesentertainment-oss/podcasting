@@ -532,24 +532,7 @@ body {background:var(--gl-bg)}
   </div>
 </footer>
 
-<!-- Retain the site's existing global player. -->
-<div class="track">
-  <div class="wrap player">
-    <div class="trackname">
-      <strong>Back Deck Live — Building CrowRules</strong>
-      <small id="playerStatus">Ready to play · demo preview</small>
-    </div>
-    <div class="controls">
-      <button class="play" id="playToggle" data-on="0" aria-label="Play or pause">▶</button>
-    </div>
-    <div class="player-right">
-      <select id="glSpeed" aria-label="Playback speed">
-        <option value="1">1× speed</option><option value="1.25">1.25×</option>
-        <option value="1.5">1.5×</option><option value="2">2×</option>
-      </select>
-    </div>
-  </div>
-</div>
+<!-- The shared global audio player is injected by js/sitewide.js. -->
 
 <div class="gl-toast" id="glToast" role="status" aria-live="polite"></div>
 
@@ -766,50 +749,6 @@ body {background:var(--gl-bg)}
       toast("Clipboard access is unavailable. You can still select the topic list and copy it manually.");
     }
   });
-
-  // This page's compact controls are a remote for the real shared player.
-  // Playback always uses a published audio URL selected elsewhere in CrowRules Podcasting.
-  const remotePlay = $("#playToggle");
-  const remoteStatus = $("#playerStatus");
-  const remoteSpeed = $("#glSpeed");
-  function syncRemotePlayer(event) {
-    const api = window.CrowRulesAudioPlayer;
-    const state = event?.detail || (api && api.getState ? api.getState() : null);
-    if (!state) {
-      if (remoteStatus) remoteStatus.textContent = "Open a published episode to begin listening";
-      return;
-    }
-    if (remoteStatus) remoteStatus.textContent = state.title
-      ? state.title + (state.paused ? " · Paused" : " · Playing")
-      : "Choose a published episode to begin listening";
-    if (remotePlay) {
-      remotePlay.textContent = state.paused ? "▶" : "Ⅱ";
-      remotePlay.setAttribute("aria-label", state.paused ? "Play current episode" : "Pause current episode");
-      remotePlay.dataset.on = state.paused ? "0" : "1";
-    }
-    if (remoteSpeed && state.rate) remoteSpeed.value = String(state.rate);
-  }
-  if (remotePlay) remotePlay.addEventListener("click", () => {
-    const api = window.CrowRulesAudioPlayer;
-    if (!api || !api.getState) {
-      toast("The shared audio player is still loading. Try again in a moment.");
-      return;
-    }
-    const state = api.getState();
-    if (!state.src && !state.queue?.length) {
-      toast("Choose an episode with published audio from Shows & Episodes first.");
-      location.href = "show.html";
-      return;
-    }
-    api.toggle();
-    window.setTimeout(() => syncRemotePlayer(), 0);
-  });
-  if (remoteSpeed) remoteSpeed.addEventListener("change", () => {
-    const api = window.CrowRulesAudioPlayer;
-    if (api?.setRate) api.setRate(Number(remoteSpeed.value));
-  });
-  window.addEventListener("crowrules:audio-player-state", syncRemotePlayer);
-  syncRemotePlayer();
 
   // Restore saved content.
   read(STORAGE.ideas, []).slice(0, 30).reverse().forEach(addIdeaCard);
