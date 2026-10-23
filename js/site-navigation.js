@@ -60,19 +60,32 @@ function enhance(){
  /* Keep Awards discoverable throughout the podcasting site. Resolve from this shared script so nested pages get the correct root URL. */
  const awardsUrl=new URL('../awards.html',document.currentScript?.src||'https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js').href;
  const studioUrl=new URL('../theme-studio.html',document.currentScript?.src||'https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js').href;
- const menus=new Set(document.querySelectorAll('header nav,header .links,header .nav-links,header .listener-links,nav[aria-label*=navigation],.home-top .home-actions,.home-actions,.top-actions,.header-actions,.main-nav,.primary-nav'));
- document.querySelectorAll('nav .links,nav .nav-links,nav .listener-links,header .nav .links,header .nav-links').forEach(menu=>menus.add(menu));
+ const rootUrl=new URL('../',document.currentScript?.src||'https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js');
+ const globalLinks=[
+  {label:'Home',file:'home.html',key:'home'},
+  {label:'Shows & Episodes',file:'show.html',key:'shows'},
+  {label:'Episodes',file:'episodes.html',key:'episodes'},
+  {label:'Guests Lounge',file:'guests-lounge.html',key:'guests'},
+  {label:'Creator Studio',file:'studio.html',key:'studio'},
+  {label:'Community',file:'community.html',key:'community'},
+  {label:'Awards',file:'awards.html',key:'awards'},
+  {label:'Holiday Central',file:'holiday-central.html',key:'holiday'},
+  {label:'Theme Studio',file:'theme-studio.html',key:'themes'}
+ ];
+ const menus=new Set(document.querySelectorAll('header nav,header .links,header .nav-links,header .listener-links,nav[aria-label*=navigation],.home-top .home-actions,.home-actions,.top-actions,.header-actions,.main-nav,.primary-nav,nav .links,nav .nav-links,nav .listener-links,header .nav .links,header .nav-links'));
  menus.forEach(menu=>{
   if(!menu||!menu.querySelectorAll)return;
-  if(!menu.querySelector('a[href*="guests-lounge.html"]')){
-   const a=document.createElement('a');a.href=new URL('../guests-lounge.html',document.currentScript?.src||'https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js').href;a.textContent='Guests Lounge';a.setAttribute('data-cr-guests-lounge-link','true');a.classList.add('cr-global-nav-link');menu.appendChild(a);
-  }
-  if(!menu.querySelector('a[href*="awards.html"]')){
-   const a=document.createElement('a');a.href=awardsUrl;a.textContent='Awards';a.setAttribute('data-cr-awards-link','true');a.classList.add('cr-global-nav-link');if(menu.classList.contains('home-actions'))a.classList.add('cr-awards-home-link');menu.appendChild(a);
-  }
-  if(!menu.querySelector('a[href*="theme-studio.html"]')){
-   const a=document.createElement('a');a.href=studioUrl;a.textContent='Theme Studio';a.setAttribute('data-cr-theme-studio-link','true');a.classList.add('cr-global-nav-link');menu.appendChild(a);
-  }
+  if(menu.matches('.home-actions,.top-actions,.header-actions'))menu.dataset.crNavActions='true';
+  globalLinks.forEach(item=>{
+   const url=new URL(item.file,rootUrl).href;
+   const exists=Array.from(menu.querySelectorAll('a[href]')).some(a=>{try{return new URL(a.href,location.href).pathname.replace(/\\/$/,'')===new URL(url).pathname.replace(/\\/$/,'')}catch(_){return false}});
+   if(exists)return;
+   const a=document.createElement('a');a.href=url;a.textContent=item.label;a.dataset.crGlobalNav=item.key;a.classList.add('cr-global-nav-link');
+   if(item.key==='awards')a.dataset.crAwardsLink='true';
+   if(item.key==='themes')a.dataset.crThemeStudioLink='true';
+   if(item.key==='guests')a.dataset.crGuestsLoungeLink='true';
+   menu.appendChild(a);
+  });
  });
  document.querySelectorAll("header .nav,header .listener-nav,.topbar .nav,.top .nav,nav .nav,.nav").forEach((nav,index)=>{
   if(nav.dataset.crNavReady==="true")return;
@@ -102,10 +115,21 @@ function enhance(){
 }
 const css=document.createElement("style");
 css.textContent=`
-.cr-nav-toggle{display:none;flex:0 0 auto;white-space:nowrap}
+.cr-nav-toggle{display:none;flex:0 0 auto;white-space:nowrap;min-height:42px;padding:10px 15px;border:1px solid rgba(103,232,249,.42);border-radius:12px;background:linear-gradient(120deg,rgba(8,145,178,.18),rgba(109,40,217,.2));color:#eafaff;font-weight:850;letter-spacing:.09em;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.cr-nav-toggle:focus-visible,.cr-global-nav-link:focus-visible{outline:2px solid #67e8f9;outline-offset:3px}
+.cr-global-nav-link{white-space:nowrap}
+header .nav .links,header .listener-nav .listener-links{align-items:center}
+header .nav .links a[aria-current="page"],header .nav .links a.cr-nav-current{position:relative;color:#eafaff!important;background:linear-gradient(120deg,rgba(103,232,249,.13),rgba(167,139,250,.12));border-color:rgba(103,232,249,.38)!important}
+header .nav .links a[aria-current="page"]:after,header .nav .links a.cr-nav-current:after{content:"";position:absolute;left:14px;right:14px;bottom:3px;height:2px;border-radius:2px;background:linear-gradient(90deg,#67e8f9,#a78bfa)}
+
 .links a[aria-current="page"],.links a.cr-nav-current{color:#e7fcff!important;background:rgba(103,232,249,.11);box-shadow:inset 0 0 0 1px rgba(103,232,249,.2)}
 .cr-awards-home-link{border-color:rgba(167,139,250,.42)!important;background:linear-gradient(110deg,rgba(103,232,249,.08),rgba(167,139,250,.13))!important}\n.cr-global-nav-link{white-space:nowrap}\n[data-cr-awards-link]{--cr-link-accent:#c4b5fd}\n[data-cr-theme-studio-link]{--cr-link-accent:#67e8f9}\n.cr-global-nav-link:hover{color:var(--cr-link-accent,#67e8f9)!important}\n@media(max-width:950px){
- .topbar .nav,header .nav,.top .nav,nav .nav,header .listener-nav{position:relative;flex-wrap:wrap;gap:8px;padding-top:8px;padding-bottom:8px}
+ .topbar .nav,header .nav,.top .nav,nav .nav,header .listener-nav{position:relative;display:flex;flex-wrap:wrap;gap:10px;padding:10px 0}
+ header .nav .brand{min-width:0;max-width:calc(100% - 95px)}
+ header .nav .brand small{display:block;line-height:1.35}
+ header .nav .links.cr-nav-open{padding:12px;margin-top:4px;border:1px solid rgba(103,232,249,.2);border-radius:16px;background:rgba(5,9,21,.97);box-shadow:0 22px 48px rgba(0,0,0,.4);backdrop-filter:blur(18px)}
+ .cr-nav-open a{border-radius:10px!important;border:1px solid transparent!important;background:rgba(255,255,255,.025)!important}
+ .cr-nav-open a:hover,.cr-nav-open a:focus-visible{background:rgba(103,232,249,.09)!important;border-color:rgba(103,232,249,.25)!important}
  .cr-nav-toggle{display:inline-flex!important;align-items:center;gap:7px;margin-left:auto;padding:10px 12px}
  header .listener-nav{flex-wrap:wrap}
  .topbar .nav .links,header .nav .links,.top .nav .links,nav .nav .links,header .listener-nav .listener-links{display:none;order:10;flex:0 0 100%;width:100%;max-width:100%;justify-content:flex-start;align-items:stretch;flex-direction:column;flex-wrap:nowrap;gap:4px;padding:8px 0 4px}
