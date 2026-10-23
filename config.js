@@ -14,7 +14,7 @@ window.CROW_CONFIG = Object.assign({}, window.CROW_CONFIG || {}, {
 (function () {
   "use strict";
   var script = document.createElement("script");
-  script.src = "https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js";
+  script.src = "https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js?v=20261023-guests-lounge";
   script.defer = true;
   script.onerror = function () {
     console.warn("[CrowRules] Shared navigation enhancement could not be loaded.");
