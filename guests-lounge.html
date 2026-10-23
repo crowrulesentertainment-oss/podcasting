@@ -1,0 +1,1000 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="CrowRules Podcasting Guests Lounge — guest applications, episode ideas, watch parties, listening rooms and community conversation.">
+<title>Guests Lounge | CrowRules Podcasting</title>
+<link rel="stylesheet" href="css/podcasting.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script defer src="js/sitewide.js"></script>
+<script defer src="js/guests-lounge-backend.js?v=20261023-1"></script>
+<style>
+/* GUESTS LOUNGE — PAGE-SPECIFIC EXPERIENCE */
+:root {
+  --gl-cyan:#62efff;
+  --gl-purple:#a68aff;
+  --gl-bg:#080b14;
+  --gl-panel:rgba(19,24,41,.91);
+  --gl-border:rgba(129,154,204,.2);
+  --gl-muted:#aab4cc;
+}
+body {background:var(--gl-bg)}
+.gl-page {padding-bottom:70px}
+.gl-page section {scroll-margin-top:100px}
+.gl-hero {
+  position:relative;overflow:hidden;isolation:isolate;
+  min-height:370px;padding:65px 34px;
+  border:1px solid var(--gl-border);border-radius:24px;
+  background:
+    radial-gradient(ellipse at 85% 15%,rgba(108,79,255,.28),transparent 42%),
+    radial-gradient(ellipse at 15% 90%,rgba(28,208,255,.15),transparent 40%),
+    linear-gradient(135deg,#101a30,#090b15 70%);
+}
+.gl-hero:after {
+  content:"";position:absolute;inset:0;z-index:-1;opacity:.3;
+  background-image:linear-gradient(rgba(100,220,255,.07) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(100,220,255,.07) 1px,transparent 1px);
+  background-size:36px 36px;
+  mask-image:linear-gradient(to right,black,transparent);
+}
+.gl-hero h1 {font-size:clamp(2.6rem,6vw,5.2rem);line-height:1.02;margin:15px 0}
+.gl-hero h1 span {
+  display:block;background:linear-gradient(90deg,var(--gl-cyan),#c3a3ff);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.gl-hero p {max-width:680px;color:#c0c9de;line-height:1.8}
+.gl-kicker {font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gl-cyan)}
+.gl-actions,.gl-chips,.gl-row {display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.gl-actions {margin-top:24px}
+.gl-btn {
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 16px;border-radius:10px;border:1px solid var(--gl-border);
+  color:#f4f7ff;background:#182239;text-decoration:none;cursor:pointer;
+  font:inherit;font-size:.88rem;transition:.2s;
+}
+.gl-btn:hover {border-color:var(--gl-cyan);transform:translateY(-1px)}
+.gl-btn.primary {background:linear-gradient(110deg,#087f9e,#6148b8);border-color:transparent}
+.gl-btn.ghost {background:transparent}
+.gl-btn:disabled {opacity:.45;cursor:not-allowed;transform:none}
+.gl-pill,.gl-tag {
+  display:inline-block;border:1px solid var(--gl-border);border-radius:999px;
+  padding:6px 10px;font-size:.72rem;color:#c7d4f2;
+}
+.gl-pill.live {color:#ff9cb0;border-color:#79394f}
+.gl-dot {display:inline-block;width:7px;height:7px;background:#60efc4;border-radius:50%;margin-right:6px}
+.gl-section {margin-top:42px}
+.gl-heading {display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:18px}
+.gl-heading h2 {margin:7px 0;font-size:clamp(1.45rem,3vw,2rem)}
+.gl-heading p,.gl-muted {color:var(--gl-muted);font-size:.9rem;line-height:1.7}
+.gl-grid {display:grid;gap:16px}
+.gl-two {grid-template-columns:repeat(2,minmax(0,1fr))}
+.gl-three {grid-template-columns:repeat(3,minmax(0,1fr))}
+.gl-card {
+  min-width:0;padding:22px;border-radius:17px;border:1px solid var(--gl-border);
+  background:var(--gl-panel);box-shadow:0 12px 36px #00000012;
+}
+.gl-card h3 {margin:10px 0}
+.gl-card p {color:var(--gl-muted);font-size:.9rem;line-height:1.7}
+.gl-art {
+  min-height:150px;border-radius:12px;padding:18px;display:flex;flex-direction:column;
+  justify-content:end;overflow:hidden;position:relative;
+  background:radial-gradient(ellipse at 80% 20%,#5844a7,transparent 45%),
+    linear-gradient(135deg,#163d58,#111326 75%);
+}
+.gl-art:after {content:"";position:absolute;inset:0;background:linear-gradient(transparent,rgba(5,8,18,.7))}
+.gl-art strong,.gl-art span {position:relative;z-index:1}
+.gl-art strong {font-size:1.25rem;letter-spacing:.04em}
+.gl-art span {font-size:.73rem;letter-spacing:.13em;color:#d5eaff}
+.gl-art.tacoma {background:radial-gradient(ellipse at 70% 20%,#287d98,transparent 40%),linear-gradient(140deg,#152c43,#151027)}
+.gl-art.birds {background:radial-gradient(ellipse at 70% 10%,#754eb1,transparent 40%),linear-gradient(135deg,#202139,#0b0d18)}
+.gl-art.community {background:radial-gradient(ellipse at 75% 15%,#347d6c,transparent 45%),linear-gradient(135deg,#122e31,#101321)}
+.gl-form {display:grid;gap:15px}
+.gl-field {display:grid;gap:7px}
+.gl-field label {font-size:.82rem;color:#dbe5fb}
+.gl-field input,.gl-field select,.gl-field textarea,.gl-input {
+  width:100%;min-width:0;border:1px solid #303c58;background:#0c1120;color:#f4f6ff;
+  border-radius:9px;padding:12px;font:inherit;font-size:.9rem;
+}
+.gl-field textarea {min-height:115px;resize:vertical}
+.gl-field input:focus,.gl-field select:focus,.gl-field textarea:focus {
+  outline:2px solid #52d9f777;border-color:var(--gl-cyan)
+}
+.gl-check {display:flex;align-items:flex-start;gap:9px;font-size:.83rem;color:#c5cfe4;line-height:1.5}
+.gl-check input {margin-top:4px}
+.gl-notice {font-size:.79rem;color:#aab8d3;line-height:1.65;padding:12px;border-left:2px solid var(--gl-purple);background:#17172a}
+.gl-tabs {display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.gl-tabs button[aria-pressed="true"] {border-color:var(--gl-cyan);background:#163040}
+.gl-player {
+  background:#05070c;border:1px solid var(--gl-border);border-radius:12px;
+  overflow:hidden;min-width:0;
+}
+.gl-video {width:100%;aspect-ratio:16/9;background:#080b14;display:block;border:0}
+.gl-video-placeholder {
+  aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:22px;color:#bdc8e0;
+  background:radial-gradient(ellipse at center,#23204a,#080b14 70%);
+}
+.gl-audio {width:100%;margin:12px 0}
+.gl-room {display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.8fr);gap:16px}
+.gl-chat {display:flex;flex-direction:column;min-height:420px}
+.gl-chat-head {padding-bottom:14px;border-bottom:1px solid var(--gl-border)}
+.gl-chat-log {display:flex;flex:1;flex-direction:column;gap:12px;padding:15px 0;max-height:330px;overflow:auto}
+.gl-msg {padding:10px 12px;background:#111a2c;border-radius:10px;font-size:.85rem;line-height:1.55;overflow-wrap:anywhere}
+.gl-msg strong {color:var(--gl-cyan);display:block;font-size:.75rem;margin-bottom:4px}
+.gl-msg.mine {border:1px solid #3b3970}
+.gl-chat-compose {display:flex;gap:8px;align-items:center}
+.gl-chat-compose input {flex:1;min-width:0}
+.gl-topic {display:flex;flex-direction:column;gap:12px}
+.gl-topic + .gl-topic {margin-top:16px}
+.gl-topic-top {display:flex;justify-content:space-between;gap:10px}
+.gl-vote {white-space:nowrap;align-self:start}
+.gl-topic p {margin:8px 0}
+.gl-board-form {margin-top:18px;padding-top:18px;border-top:1px solid var(--gl-border)}
+.gl-checklist {display:grid;gap:12px;margin:16px 0}
+.gl-checkitem {padding:12px;border:1px solid var(--gl-border);border-radius:10px}
+.gl-checkitem label {display:flex;gap:10px;align-items:center;font-size:.88rem}
+.gl-stat {padding:18px;border:1px solid var(--gl-border);border-radius:14px;background:#0f1423}
+.gl-stat strong {display:block;font-size:1.6rem;color:var(--gl-cyan)}
+.gl-stat span {font-size:.78rem;color:var(--gl-muted)}
+.gl-empty {padding:18px;color:var(--gl-muted);text-align:center;font-size:.85rem}
+.gl-divider {height:1px;background:var(--gl-border);margin:18px 0}
+.gl-toast {
+  position:fixed;right:20px;bottom:90px;z-index:1000;max-width:min(370px,calc(100vw - 40px));
+  padding:14px 17px;background:#17233a;color:white;border:1px solid #52698e;
+  border-radius:12px;box-shadow:0 10px 40px #0009;display:none
+}
+.gl-toast.show {display:block;animation:gl-in .2s ease-out}
+@keyframes gl-in {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.gl-hidden {display:none!important}
+.gl-count {font-size:.75rem;color:var(--gl-muted)}
+.gl-footer-note {margin-top:28px;font-size:.8rem;line-height:1.7;color:var(--gl-muted)}
+@media(max-width:900px) {
+ .gl-three {grid-template-columns:repeat(2,minmax(0,1fr))}
+ .gl-room {grid-template-columns:1fr}
+}
+@media(max-width:620px) {
+ .gl-hero {padding:35px 20px;min-height:auto}
+ .gl-two,.gl-three {grid-template-columns:1fr}
+ .gl-card {padding:17px}
+ .gl-heading {align-items:start;flex-direction:column}
+ .gl-chat {min-height:350px}
+}
+@media(prefers-reduced-motion:reduce) {
+ *,*:before,*:after {scroll-behavior:auto!important;animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="topline"></div>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="home.html">
+      <span class="mark">CR</span>
+      <span>CROWRULES<small>PODCASTING · ONE COMPANY. ONE UNIVERSE.</small></span>
+    </a>
+    <nav aria-label="Main navigation">
+      <a href="home.html">Home</a>
+      <a href="show.html">Shows</a>
+      <a href="guests-lounge.html" aria-current="page">Guests Lounge</a>
+      <a href="studio.html">Creator Studio</a>
+      <a href="holiday-central.html">Holiday Central</a>
+      <a href="community.html">Community</a>
+      <a href="awards.html">Awards</a>
+      <a href="theme-studio.html">Theme Studio</a>
+    </nav>
+    <a class="btn small" href="theme-studio.html">Change World ↗</a>
+  </div>
+</header>
+
+<main class="wrap gl-page">
+
+  <!-- HERO -->
+  <section class="gl-hero">
+    <div class="gl-kicker">The conversation starts here</div>
+    <h1>Welcome to the <span>Guests Lounge.</span></h1>
+    <p>
+      Pitch your story. Discover the shows. Meet other listeners and creators.
+      Join conversations, watch episodes together, and help shape what CrowRules
+      talks about next.
+    </p>
+    <div class="gl-actions">
+      <a class="gl-btn primary" href="#guest-request">Request to be a guest ↗</a>
+      <a class="gl-btn" href="#watch-listen">Watch & listen</a>
+      <a class="gl-btn ghost" href="#idea-board">Pitch an idea</a>
+    </div>
+    <div class="gl-chips" style="margin-top:24px">
+      <span class="gl-pill">Guest applications</span>
+      <span class="gl-pill">Episode planning</span>
+      <span class="gl-pill">Watch parties</span>
+      <span class="gl-pill">Community discussion</span>
+    </div>
+  </section>
+
+  <!-- STATUS -->
+  <section class="gl-section">
+    <div class="gl-grid gl-three">
+      <div class="gl-stat"><strong>03</strong><span>Featured show pathways</span></div>
+      <div class="gl-stat"><strong>YOUR VOICE</strong><span>Ideas and guest pitches welcome</span></div>
+      <div class="gl-stat"><strong>OPEN LOUNGE</strong><span>Explore the prototype anytime</span></div>
+    </div>
+    <p class="gl-notice" style="margin-top:14px">
+      Connected features: guest applications are submitted privately for host review; episode ideas and lounge messages are shared with the community. Broadcast playback still requires real episode media URLs.
+    </p>
+  </section>
+
+  <!-- SHOW DISCOVERY -->
+  <section class="gl-section" id="shows">
+    <div class="gl-heading">
+      <div><div class="gl-kicker">Find your people</div><h2>Find your conversation</h2>
+      <p>Every show offers a different perspective. Discover a fit for your story.</p></div>
+      <a class="gl-btn" href="show.html">Explore all shows ↗</a>
+    </div>
+
+    <div class="gl-grid gl-three">
+      <article class="gl-card">
+        <div class="gl-art"><span>REAL STORIES · BUILDING IN PUBLIC</span><strong>BACK DECK LIVE</strong></div>
+        <div class="gl-chips" style="margin-top:13px"><span class="gl-tag">Creator stories</span><span class="gl-tag">Behind the scenes</span></div>
+        <h3>Building something from nothing</h3>
+        <p>Independent creators, small-business builders, personal journeys, lessons learned, and the realities of starting from scratch.</p>
+        <button class="gl-btn primary gl-pick-show" data-show="Back Deck Live">Request this show ↗</button>
+      </article>
+
+      <article class="gl-card">
+        <div class="gl-art tacoma"><span>TACOMA · PACIFIC NORTHWEST</span><strong>TACOMA NIGHTS</strong></div>
+        <div class="gl-chips" style="margin-top:13px"><span class="gl-tag">Community</span><span class="gl-tag">Local stories</span></div>
+        <h3>Life around the PNW</h3>
+        <p>Local voices, life experiences, community projects, regional happenings, creative work, and the stories behind the headlines.</p>
+        <button class="gl-btn primary gl-pick-show" data-show="Tacoma Nights">Request this show ↗</button>
+      </article>
+
+      <article class="gl-card">
+        <div class="gl-art birds"><span>UNFILTERED · CULTURE · CONVERSATION</span><strong>BIRD BRAINS</strong></div>
+        <div class="gl-chips" style="margin-top:13px"><span class="gl-tag">Opinions</span><span class="gl-tag">Pop culture</span></div>
+        <h3>Say what you really think</h3>
+        <p>Bring your perspective, surprising opinions, entertainment topics, friendly debates, and stories that get people talking.</p>
+        <button class="gl-btn primary gl-pick-show" data-show="Bird Brains">Request this show ↗</button>
+      </article>
+    </div>
+  </section>
+
+  <!-- GUEST APPLICATION -->
+  <section class="gl-section" id="guest-request">
+    <div class="gl-heading">
+      <div><div class="gl-kicker">Your story deserves a conversation</div>
+      <h2>Guest request & appearance application</h2>
+      <p>Tell the hosts who you are, what you want to discuss, and which show fits best.</p></div>
+    </div>
+
+    <div class="gl-grid gl-two">
+      <div class="gl-card">
+        <h3>What happens after you apply?</h3>
+        <div class="gl-checklist">
+          <div class="gl-checkitem"><label><span>01</span><span><strong>Share your idea</strong><br><span class="gl-muted">Tell us what makes your story worth discussing.</span></span></label></div>
+          <div class="gl-checkitem"><label><span>02</span><span><strong>Host review</strong><br><span class="gl-muted">A future connected system can route your request to the right show host.</span></span></label></div>
+          <div class="gl-checkitem"><label><span>03</span><span><strong>Plan the appearance</strong><br><span class="gl-muted">Discuss the format, schedule, preparation, and recording arrangements.</span></span></label></div>
+          <div class="gl-checkitem"><label><span>04</span><span><strong>Get ready for the conversation</strong><br><span class="gl-muted">Use the green room checklist and prepare your links and talking points.</span></span></label></div>
+        </div>
+        <div class="gl-notice">Submitting does not reserve an appearance or guarantee an invitation. Your contact details are private to the host review workflow. Do not include passwords or highly sensitive personal information.</div>
+      </div>
+
+      <div class="gl-card">
+        <form id="guestForm" class="gl-form">
+          <div class="gl-field">
+            <label for="guestName">Name or creator name *</label>
+            <input id="guestName" name="name" required maxlength="100" autocomplete="name" placeholder="How should we introduce you?">
+          </div>
+
+          <div class="gl-field">
+            <label for="guestEmail">Contact email *</label>
+            <input id="guestEmail" name="email" type="email" required maxlength="200" autocomplete="email" placeholder="you@example.com">
+          </div>
+
+          <div class="gl-field">
+            <label for="guestHandle">Creator name, website or social link</label>
+            <input id="guestHandle" name="links" maxlength="500" placeholder="Optional public profile or website">
+          </div>
+
+          <div class="gl-field">
+            <label for="guestShow">Preferred show *</label>
+            <select id="guestShow" name="show" required>
+              <option value="Back Deck Live">Back Deck Live</option>
+              <option value="Tacoma Nights">Tacoma Nights</option>
+              <option value="Bird Brains">Bird Brains</option>
+              <option value="Open to suggestions">Open to suggestions</option>
+            </select>
+          </div>
+
+          <div class="gl-field">
+            <label for="guestType">Appearance type</label>
+            <select id="guestType" name="appearance">
+              <option>Live conversation</option>
+              <option>Recorded interview</option>
+              <option>Video appearance</option>
+              <option>Audio-only appearance</option>
+              <option>Panel discussion</option>
+              <option>Recurring guest</option>
+              <option>Not sure yet</option>
+            </select>
+          </div>
+
+          <div class="gl-field">
+            <label for="guestAvailability">General availability</label>
+            <input id="guestAvailability" name="availability" maxlength="200" placeholder="Days, time zone, preferred times">
+          </div>
+
+          <div class="gl-field">
+            <label for="guestTopic">Your story and proposed topics *</label>
+            <textarea id="guestTopic" name="topics" required maxlength="5000" placeholder="What have you experienced, built, learned, or discovered? What would you like the host to ask you?"></textarea>
+            <span class="gl-count" id="topicCount">0 / 5000</span>
+          </div>
+
+          <div class="gl-field">
+            <label for="guestQuestions">Questions you would love to discuss</label>
+            <textarea id="guestQuestions" name="questions" maxlength="3000" placeholder="List questions, themes, or talking points for the episode."></textarea>
+          </div>
+
+          <div class="gl-field">
+            <label for="guestNeeds">Accessibility, technical or other arrangements</label>
+            <textarea id="guestNeeds" name="needs" maxlength="1500" placeholder="Optional. Share only what is necessary to plan the appearance."></textarea>
+          </div>
+
+          <label class="gl-check"><input type="checkbox" id="guestConsent" required><span>I understand this is a local prototype and this form will not contact a host or send my information to CrowRules.</span></label>
+          <label class="gl-check"><input type="checkbox" id="guestPublic"><span>I would like to be considered for a future public guest profile if that feature becomes available. This is not permission to publish my information now.</span></label>
+
+          <button class="gl-btn primary" type="submit">Preview guest application ↗</button>
+          <button class="gl-btn ghost" type="reset">Clear form</button>
+        </form>
+        <div id="applicationResult" class="gl-notice gl-hidden" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WATCH AND LISTEN -->
+  <section class="gl-section" id="watch-listen">
+    <div class="gl-heading">
+      <div><div class="gl-kicker">Watch together. Listen together.</div>
+      <h2>The listening & watch lounge</h2>
+      <p>Choose a show, open its playback area, and discuss the episode alongside other fans.</p></div>
+    </div>
+
+    <div class="gl-tabs" role="group" aria-label="Choose a show to discuss">
+      <button class="gl-btn gl-media-tab" data-media="Back Deck Live" aria-pressed="true">Back Deck Live</button>
+      <button class="gl-btn gl-media-tab" data-media="Tacoma Nights" aria-pressed="false">Tacoma Nights</button>
+      <button class="gl-btn gl-media-tab" data-media="Bird Brains" aria-pressed="false">Bird Brains</button>
+    </div>
+
+    <div class="gl-room">
+      <article class="gl-card">
+        <div class="gl-kicker" id="mediaKicker">FEATURED SHOW</div>
+        <h3 id="mediaTitle">Back Deck Live — Building CrowRules</h3>
+        <p id="mediaDescription">A conversation about building an independent entertainment company from the ground up.</p>
+
+        <div class="gl-player" id="mediaPlayer">
+          <div class="gl-video-placeholder">
+            <div>
+              <div style="font-size:2rem">▶</div>
+              <strong>Episode playback area</strong>
+              <p>Connect an actual episode video or audio URL to enable playback.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="gl-row" style="margin-top:13px">
+          <button class="gl-btn primary" id="watchBtn">Watch episode</button>
+          <button class="gl-btn" id="listenBtn">Listen to episode</button>
+        </div>
+        <p class="gl-muted" id="mediaStatus" aria-live="polite">No episode source connected.</p>
+
+        <div class="gl-divider"></div>
+        <h3>What should we talk about?</h3>
+        <p id="mediaPrompt">How do you turn an idea into something real when you're starting with limited resources?</p>
+        <button class="gl-btn" id="usePrompt">Add this to my ideas</button>
+      </article>
+
+      <aside class="gl-card gl-chat" aria-label="Episode discussion chat">
+        <div class="gl-chat-head">
+          <div class="gl-row" style="justify-content:space-between">
+            <div><div class="gl-kicker">Episode discussion</div><h3 style="margin-bottom:4px">The Conversation Room</h3></div>
+            <span class="gl-pill">Demo chat</span>
+          </div>
+          <p class="gl-muted" id="chatShowName">Discussion: Back Deck Live</p>
+        </div>
+
+        <div class="gl-chat-log" id="episodeChat" role="log" aria-live="polite" aria-relevant="additions">
+          <div class="gl-msg"><strong>LOUNGE GUIDE</strong>Welcome! What stood out to you about this show's topic?</div>
+          <div class="gl-msg"><strong>DISCUSSION PROMPT</strong>What is one thing you would ask an independent creator?</div>
+        </div>
+
+        <form class="gl-chat-compose" id="episodeChatForm">
+          <label class="gl-hidden" for="episodeMessage">Write a message</label>
+          <input class="gl-input" id="episodeMessage" maxlength="500" required placeholder="Share your thoughts…">
+          <button class="gl-btn primary" type="submit">Send</button>
+        </form>
+        <p class="gl-count">Community messages are shared with other visitors. Keep contact details and private information out of chat.</p>
+      </aside>
+    </div>
+
+    <div class="gl-notice" style="margin-top:16px">
+      Future live mode: connect Supabase Realtime for shared chat, an actual episode catalog for playback,
+      and a broadcast or video provider for live audio/video. Coordinated playback, user accounts,
+      moderation, and real viewer counts require additional implementation.
+    </div>
+  </section>
+
+  <!-- LOUNGE CHAT -->
+  <section class="gl-section" id="community-chat">
+    <div class="gl-heading">
+      <div><div class="gl-kicker">Meet the community</div><h2>Guests Lounge social chat</h2>
+      <p>A separate conversation space for show recommendations, introductions, and general discussion.</p></div>
+    </div>
+    <div class="gl-card gl-chat">
+      <div class="gl-chat-head">
+        <div class="gl-row" style="justify-content:space-between">
+          <h3>Community Hangout</h3><span class="gl-pill">Browser demo</span>
+        </div>
+        <p class="gl-muted">Introduce yourself using a nickname. Keep personal contact details private.</p>
+      </div>
+      <div class="gl-chat-log" id="loungeChat" role="log" aria-live="polite" aria-relevant="additions">
+        <div class="gl-msg"><strong>LOUNGE GUIDE</strong>Welcome to the CrowRules community. Which show are you checking out?</div>
+      </div>
+      <form class="gl-form" id="loungeChatForm">
+        <div class="gl-grid gl-two">
+          <div class="gl-field"><label for="chatNickname">Display name</label><input id="chatNickname" maxlength="40" required placeholder="Choose a nickname"></div>
+          <div class="gl-field"><label for="loungeMessage">Your message</label><input id="loungeMessage" maxlength="500" required placeholder="Start a conversation"></div>
+        </div>
+        <button class="gl-btn primary" type="submit">Post to demo chat ↗</button>
+      </form>
+      <p class="gl-count">Messages are public to visitors and may be moderated. Do not post private contact information.</p>
+    </div>
+  </section>
+
+  <!-- IDEAS AND TOPICS -->
+  <section class="gl-section" id="idea-board">
+    <div class="gl-heading">
+      <div><div class="gl-kicker">Help shape the next episode</div><h2>Ideas, topics & discussion board</h2>
+      <p>Suggest a future episode, discover prompts, and save conversation starters.</p></div>
+    </div>
+
+    <div class="gl-tabs" role="group" aria-label="Filter discussion topics">
+      <button class="gl-btn gl-topic-filter" data-filter="all" aria-pressed="true">All ideas</button>
+      <button class="gl-btn gl-topic-filter" data-filter="creators" aria-pressed="false">Creators</button>
+      <button class="gl-btn gl-topic-filter" data-filter="community" aria-pressed="false">Community</button>
+      <button class="gl-btn gl-topic-filter" data-filter="culture" aria-pressed="false">Culture & opinions</button>
+    </div>
+
+    <div class="gl-grid gl-two" id="topicGrid">
+      <article class="gl-card gl-topic" data-category="creators">
+        <div class="gl-topic-top"><span class="gl-tag">CREATORS</span><button class="gl-btn gl-vote" data-vote="0">♡ <span>0</span></button></div>
+        <h3>Building from the ground up</h3>
+        <p>What does it really take to start a creative project without a big budget, a team, or industry connections?</p>
+        <button class="gl-btn gl-save-topic" data-title="Building from the ground up">Save topic</button>
+      </article>
+
+      <article class="gl-card gl-topic" data-category="community">
+        <div class="gl-topic-top"><span class="gl-tag">COMMUNITY</span><button class="gl-btn gl-vote" data-vote="0">♡ <span>0</span></button></div>
+        <h3>Stories from the Pacific Northwest</h3>
+        <p>Which local stories, people, community efforts, and creative projects deserve more attention?</p>
+        <button class="gl-btn gl-save-topic" data-title="Stories from the Pacific Northwest">Save topic</button>
+      </article>
+
+      <article class="gl-card gl-topic" data-category="creators">
+        <div class="gl-topic-top"><span class="gl-tag">CREATORS</span><button class="gl-btn gl-vote" data-vote="0">♡ <span>0</span></button></div>
+        <h3>The lessons nobody tells you</h3>
+        <p>Talk about setbacks, mistakes, unexpected wins, and what you would do differently if you started again.</p>
+        <button class="gl-btn gl-save-topic" data-title="The lessons nobody tells you">Save topic</button>
+      </article>
+
+      <article class="gl-card gl-topic" data-category="culture">
+        <div class="gl-topic-top"><span class="gl-tag">CULTURE & OPINIONS</span><button class="gl-btn gl-vote" data-vote="0">♡ <span>0</span></button></div>
+        <h3>Unpopular opinions, respectfully</h3>
+        <p>Which entertainment, technology, or cultural opinions deserve a thoughtful debate instead of a shouting match?</p>
+        <button class="gl-btn gl-save-topic" data-title="Unpopular opinions, respectfully">Save topic</button>
+      </article>
+
+      <article class="gl-card gl-topic" data-category="community">
+        <div class="gl-topic-top"><span class="gl-tag">COMMUNITY</span><button class="gl-btn gl-vote" data-vote="0">♡ <span>0</span></button></div>
+        <h3>Life, change and starting over</h3>
+        <p>How do people rebuild, find direction, develop new skills, and discover their next chapter?</p>
+        <button class="gl-btn gl-save-topic" data-title="Life, change and starting over">Save topic</button>
+      </article>
+
+      <article class="gl-card gl-topic" data-category="culture">
+        <div class="gl-topic-top"><span class="gl-tag">CULTURE & OPINIONS</span><button class="gl-btn gl-vote" data-vote="0">♡ <span>0</span></button></div>
+        <h3>What should podcasts become?</h3>
+        <p>Explore interactive listening, community-driven shows, video podcasts, new voices, and the future of independent media.</p>
+        <button class="gl-btn gl-save-topic" data-title="What should podcasts become">Save topic</button>
+      </article>
+    </div>
+
+    <div class="gl-card gl-board-form">
+      <div class="gl-kicker">Your turn</div><h3>Pitch a new episode idea</h3>
+      <form id="ideaForm" class="gl-form">
+        <div class="gl-grid gl-two">
+          <div class="gl-field"><label for="ideaTitle">Idea title *</label><input id="ideaTitle" required maxlength="120" placeholder="Give your idea a headline"></div>
+          <div class="gl-field"><label for="ideaCategory">Category</label><select id="ideaCategory"><option value="creators">Creators & business</option><option value="community">Community & life</option><option value="culture">Culture & opinions</option></select></div>
+        </div>
+        <div class="gl-field"><label for="ideaDescription">What should the episode explore? *</label><textarea id="ideaDescription" required maxlength="1500" placeholder="Describe the conversation, questions, or people who should be involved."></textarea></div>
+        <button class="gl-btn primary" type="submit">Submit idea to CrowRules ↗</button>
+      </form>
+      <p class="gl-muted">Submitted ideas are stored for CrowRules review. Please do not include confidential information.</p>
+    </div>
+
+    <div class="gl-card" style="margin-top:16px">
+      <h3>My saved topics</h3>
+      <div id="savedTopics" class="gl-muted">Save a topic to build your own conversation list.</div>
+      <button class="gl-btn" id="copyTopics" style="margin-top:12px">Copy saved topics</button>
+    </div>
+  </section>
+
+  <!-- PREPARATION -->
+  <section class="gl-section" id="green-room">
+    <div class="gl-heading">
+      <div><div class="gl-kicker">Get ready for the mic</div><h2>The virtual green room</h2>
+      <p>Prepare your setup, outline your story, and collect everything you want to share.</p></div>
+    </div>
+
+    <div class="gl-grid gl-two">
+      <div class="gl-card">
+        <h3>Pre-show checklist</h3>
+        <div class="gl-checklist" id="greenChecklist">
+          <div class="gl-checkitem"><label><input type="checkbox"><span>Test microphone and headphones.</span></label></div>
+          <div class="gl-checkitem"><label><input type="checkbox"><span>Check internet connection and device power.</span></label></div>
+          <div class="gl-checkitem"><label><input type="checkbox"><span>Find a quiet space with suitable lighting if on video.</span></label></div>
+          <div class="gl-checkitem"><label><input type="checkbox"><span>Prepare three main talking points.</span></label></div>
+          <div class="gl-checkitem"><label><input type="checkbox"><span>Gather any links you want to share.</span></label></div>
+          <div class="gl-checkitem"><label><input type="checkbox"><span>Confirm the show's recording, privacy, and publishing arrangements with the host.</span></label></div>
+        </div>
+        <div class="gl-row"><span id="checkProgress" class="gl-muted">0 of 6 completed</span><button class="gl-btn" id="resetChecklist">Reset checklist</button></div>
+      </div>
+
+      <div class="gl-card">
+        <h3>My conversation notes</h3>
+        <p>Keep an outline of the points you want to remember during an appearance.</p>
+        <div class="gl-field"><label for="greenNotes">Talking points and reminders</label><textarea id="greenNotes" style="min-height:210px" placeholder="1. How my story began…&#10;2. The biggest challenge…&#10;3. What I learned…&#10;4. Where people can find my work…"></textarea></div>
+        <div class="gl-row" style="margin-top:10px">
+          <button class="gl-btn primary" id="saveNotes">Save notes locally</button>
+          <button class="gl-btn" id="downloadNotes">Export notes</button>
+        </div>
+        <p class="gl-count">Avoid storing passwords, private contact details, or sensitive information in these notes.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FUTURE FEATURES -->
+  <section class="gl-section">
+    <div class="gl-heading">
+      <div><div class="gl-kicker">The lounge can grow</div><h2>More ways to be part of the show</h2></div>
+    </div>
+    <div class="gl-grid gl-three">
+      <article class="gl-card"><div class="gl-kicker">01 · HOSTS</div><h3>Host invitation inbox</h3><p>Hosts review guest requests, request additional information, suggest a show, and coordinate appearances.</p></article>
+      <article class="gl-card"><div class="gl-kicker">02 · MEMBERS</div><h3>Guest profiles</h3><p>Opt-in public profiles with creator biographies, approved links, areas of expertise, and past appearances.</p></article>
+      <article class="gl-card"><div class="gl-kicker">03 · LIVE</div><h3>Watch parties</h3><p>Shared episode rooms, synchronized playback, live reactions, timestamped questions, and host-led Q&amp;A.</p></article>
+      <article class="gl-card"><div class="gl-kicker">04 · COMMUNITY</div><h3>Topic submissions</h3><p>Moderated suggestions, voting, status updates, and a record of ideas selected for future episodes.</p></article>
+      <article class="gl-card"><div class="gl-kicker">05 · PRODUCTION</div><h3>Guest preparation room</h3><p>Appointment details, recording instructions, release forms, approved talking points, and reminders.</p></article>
+      <article class="gl-card"><div class="gl-kicker">06 · CONNECTION</div><h3>Creator networking</h3><p>Optional collaboration requests to help guests connect with podcasters, community voices, and independent creators.</p></article>
+    </div>
+  </section>
+
+  <div class="gl-footer-note">
+    <strong>CrowRules Podcasting · Built from the ground up.</strong><br>
+    Planned launch: January 1, 2027 · Prototype testing open.<br>
+    Guest applications and topic submissions are stored in Supabase with row-level security. Chat updates depend on Supabase Realtime availability. Live broadcast and booking confirmation still require separate services.
+  </div>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div><strong style="font-family:Orbitron">CROWRULES PODCASTING</strong>
+      <p>Built from the ground up.<br>One company. One universe.</p>
+    </div>
+    <div class="footlinks">
+      <a href="show.html">Shows</a><a href="guests-lounge.html">Guests Lounge</a>
+      <a href="studio.html">Creator Studio</a><a href="community.html">Community</a>
+      <a href="theme-studio.html">Themes</a>
+    </div>
+    <p style="font-size:11px">Prototype · Live services not connected</p>
+  </div>
+</footer>
+
+<!-- Retain the site's existing global player. -->
+<div class="track">
+  <div class="wrap player">
+    <div class="trackname">
+      <strong>Back Deck Live — Building CrowRules</strong>
+      <small id="playerStatus">Ready to play · demo preview</small>
+    </div>
+    <div class="controls">
+      <button class="play" id="playToggle" data-on="0" aria-label="Play or pause">▶</button>
+    </div>
+    <div class="player-right">
+      <select id="glSpeed" aria-label="Playback speed">
+        <option value="1">1× speed</option><option value="1.25">1.25×</option>
+        <option value="1.5">1.5×</option><option value="2">2×</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="gl-toast" id="glToast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+
+  const STORAGE = {
+    topics: "cr_gl_saved_topics_v2",
+    ideas: "cr_gl_ideas_v2",
+    notes: "cr_gl_notes_v2",
+    checklist: "cr_gl_checklist_v2",
+    chat: "cr_gl_chat_v2"
+  };
+
+  // Optional real media sources. Keep null until actual public episode URLs
+  // have been configured. Never fabricate production playback URLs.
+  const MEDIA = {
+    "Back Deck Live": {
+      title: "Back Deck Live — Building CrowRules",
+      description: "Building an independent entertainment company from the ground up.",
+      prompt: "How do you turn an idea into something real when you're starting with limited resources?",
+      videoUrl: null,
+      audioUrl: null
+    },
+    "Tacoma Nights": {
+      title: "Tacoma Nights — Life Around the PNW",
+      description: "Local experiences, community stories, creative projects and life in the Pacific Northwest.",
+      prompt: "Which local story deserves a bigger audience, and why?",
+      videoUrl: null,
+      audioUrl: null
+    },
+    "Bird Brains": {
+      title: "Bird Brains — Culture & Conversation",
+      description: "Opinions, entertainment, unusual perspectives and conversations that get people talking.",
+      prompt: "What popular opinion would you challenge, and what is your reasoning?",
+      videoUrl: null,
+      audioUrl: null
+    }
+  };
+
+  let currentShow = "Back Deck Live";
+  let mediaMode = "video";
+  let toastTimer;
+
+  function toast(message) {
+    const node = $("#glToast");
+    node.textContent = message;
+    node.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => node.classList.remove("show"), 3500);
+  }
+
+  function read(key, fallback) {
+    try {
+      const value = localStorage.getItem(key);
+      return value === null ? fallback : JSON.parse(value);
+    } catch {
+      return fallback;
+    }
+  }
+
+  function write(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch {
+      toast("Browser storage is unavailable or full. Your changes may not persist.");
+      return false;
+    }
+  }
+
+  function safeText(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;",
+      '"': "&quot;", "'": "&#39;"
+    })[char]);
+  }
+
+  function validMediaUrl(url) {
+    try {
+      const parsed = new URL(url, location.href);
+      return ["https:", "http:"].includes(parsed.protocol);
+    } catch {
+      return false;
+    }
+  }
+
+  function goToApplication(show) {
+    $("#guestShow").value = show;
+    $("#guest-request").scrollIntoView({ behavior: "smooth", block: "start" });
+    $("#guestName").focus({ preventScroll: true });
+  }
+
+  $$(".gl-pick-show").forEach(button => {
+    button.addEventListener("click", () => goToApplication(button.dataset.show));
+  });
+
+  // Guest application: intentionally preview-only, never a false submission.
+  const guestForm = $("#guestForm");
+  const topicInput = $("#guestTopic");
+  topicInput.addEventListener("input", () => {
+    $("#topicCount").textContent = topicInput.value.length + " / 5000";
+  });
+
+  guestForm.addEventListener("reset", () => {
+    setTimeout(() => {
+      $("#applicationResult").classList.add("gl-hidden");
+      $("#topicCount").textContent = "0 / 5000";
+    }, 0);
+  });
+
+  guestForm.addEventListener("submit", event => {
+    event.preventDefault();
+    if (!guestForm.reportValidity()) return;
+
+    const data = Object.fromEntries(new FormData(guestForm).entries());
+    const result = $("#applicationResult");
+    result.replaceChildren();
+
+    const heading = document.createElement("strong");
+    heading.textContent = "Application preview prepared";
+    const summary = document.createElement("p");
+    summary.textContent =
+      "Show: " + data.show +
+      " · Appearance: " + data.appearance +
+      ". Your information has not been sent to a host or saved as a server application.";
+
+    const details = document.createElement("p");
+    details.textContent = "Applicant: " + data.name +
+      ". This preview is shown only in the current page.";
+
+    const closeNote = document.createElement("p");
+    closeNote.textContent =
+      "To accept real applications, connect an authenticated submission endpoint, " +
+      "define access permissions and retention rules, and add a secure host review workflow.";
+
+    result.append(heading, summary, details, closeNote);
+    result.classList.remove("gl-hidden");
+    result.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
+
+  // Show switching.
+  function renderMedia(show) {
+    currentShow = show;
+    const item = MEDIA[show];
+    $("#mediaTitle").textContent = item.title;
+    $("#mediaDescription").textContent = item.description;
+    $("#mediaPrompt").textContent = item.prompt;
+    $("#chatShowName").textContent = "Discussion: " + show;
+
+    $$(".gl-media-tab").forEach(button => {
+      button.setAttribute("aria-pressed", String(button.dataset.media === show));
+    });
+
+    const player = $("#mediaPlayer");
+    player.replaceChildren();
+
+    const source = mediaMode === "video" ? item.videoUrl : item.audioUrl;
+    const canPlay = source && validMediaUrl(source);
+
+    if (canPlay && mediaMode === "video") {
+      const video = document.createElement("video");
+      video.className = "gl-video";
+      video.controls = true;
+      video.preload = "metadata";
+      video.src = source;
+      video.setAttribute("aria-label", item.title);
+      player.append(video);
+      $("#mediaStatus").textContent = "Episode source configured.";
+    } else if (canPlay && mediaMode === "audio") {
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "16px";
+      const audio = document.createElement("audio");
+      audio.controls = true;
+      audio.preload = "metadata";
+      audio.src = source;
+      audio.className = "gl-audio";
+      audio.setAttribute("aria-label", item.title);
+      wrapper.append(audio);
+      player.append(wrapper);
+      $("#mediaStatus").textContent = "Audio source configured.";
+    } else {
+      const placeholder = document.createElement("div");
+      placeholder.className = "gl-video-placeholder";
+      const message = document.createElement("div");
+      const symbol = document.createElement("div");
+      symbol.style.fontSize = "2rem";
+      symbol.textContent = mediaMode === "video" ? "▶" : "♫";
+      const title = document.createElement("strong");
+      title.textContent = mediaMode === "video" ? "Video source not connected" : "Audio source not connected";
+      const text = document.createElement("p");
+      text.textContent = "Add the real " + mediaMode + " URL to the page's MEDIA configuration to enable playback.";
+      message.append(symbol, title, text);
+      placeholder.append(message);
+      player.append(placeholder);
+      $("#mediaStatus").textContent = "Demo mode · no playable episode URL configured.";
+    }
+
+    $("#playerStatus").textContent = "Selected show: " + show + " · " +
+      (canPlay ? "source configured" : "demo preview");
+
+    if ($("#playToggle")) {
+      $("#playToggle").dataset.on = "0";
+      $("#playToggle").textContent = "▶";
+    }
+  }
+
+  $$(".gl-media-tab").forEach(button => {
+    button.addEventListener("click", () => {
+      mediaMode = "video";
+      renderMedia(button.dataset.media);
+    });
+  });
+
+  $("#watchBtn").addEventListener("click", () => {
+    mediaMode = "video";
+    renderMedia(currentShow);
+    $("#mediaPlayer").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (!MEDIA[currentShow].videoUrl) toast("Video preview selected. Add an actual episode video URL to play.");
+  });
+
+  $("#listenBtn").addEventListener("click", () => {
+    mediaMode = "audio";
+    renderMedia(currentShow);
+    $("#mediaPlayer").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (!MEDIA[currentShow].audioUrl) toast("Audio preview selected. Add an actual episode audio URL to play.");
+  });
+
+  // Add the selected episode prompt to saved topics.
+  function getSavedTopics() {
+    return read(STORAGE.topics, []);
+  }
+
+  function renderSavedTopics() {
+    const node = $("#savedTopics");
+    const topics = getSavedTopics();
+    node.replaceChildren();
+
+    if (!topics.length) {
+      node.textContent = "Save a topic to build your own conversation list.";
+      return;
+    }
+
+    topics.forEach((topic, index) => {
+      const row = document.createElement("div");
+      row.className = "gl-row";
+      row.style.justifyContent = "space-between";
+      row.style.padding = "9px 0";
+
+      const text = document.createElement("span");
+      text.textContent = topic;
+
+      const remove = document.createElement("button");
+      remove.className = "gl-btn";
+      remove.textContent = "Remove";
+      remove.type = "button";
+      remove.addEventListener("click", () => {
+        const next = getSavedTopics();
+        next.splice(index, 1);
+        write(STORAGE.topics, next);
+        renderSavedTopics();
+      });
+
+      row.append(text, remove);
+      node.append(row);
+    });
+  }
+
+  function saveTopic(title) {
+    const topics = getSavedTopics();
+    if (topics.includes(title)) {
+      toast("That topic is already saved.");
+      return;
+    }
+    topics.push(title);
+    write(STORAGE.topics, topics);
+    renderSavedTopics();
+    toast("Topic saved in this browser.");
+  }
+
+  $("#usePrompt").addEventListener("click", () => saveTopic(
+    currentShow + ": " + MEDIA[currentShow].prompt
+  ));
+
+  $$(".gl-save-topic").forEach(button => {
+    button.addEventListener("click", () => saveTopic(button.dataset.title));
+  });
+
+  // Topic filters.
+  $$(".gl-topic-filter").forEach(button => {
+    button.addEventListener("click", () => {
+      const filter = button.dataset.filter;
+      $$(".gl-topic-filter").forEach(b =>
+        b.setAttribute("aria-pressed", String(b === button))
+      );
+      $$("#topicGrid > .gl-topic").forEach(card => {
+        card.classList.toggle("gl-hidden",
+          filter !== "all" && card.dataset.category !== filter);
+      });
+    });
+  });
+
+  // Local-only demo voting.
+  $$(".gl-vote").forEach(button => {
+    button.addEventListener("click", () => {
+      const count = $("span", button);
+      const liked = button.dataset.liked === "true";
+      const next = Math.max(0, Number(count.textContent) + (liked ? -1 : 1));
+      count.textContent = next;
+      button.dataset.liked = String(!liked);
+      button.setAttribute("aria-pressed", String(!liked));
+      button.firstChild.textContent = liked ? "♡ " : "♥ ";
+    });
+  });
+
+  // New idea entries are rendered with DOM APIs rather than injecting HTML.
+  $("#ideaForm").addEventListener("submit", event => {
+    event.preventDefault();
+    const title = $("#ideaTitle").value.trim();
+    const description = $("#ideaDescription").value.trim();
+    const category = $("#ideaCategory").value;
+    if (!title || !description) return;
+
+    const idea = { title, description, category, createdAt: new Date().toISOString() };
+    const ideas = read(STORAGE.ideas, []);
+    ideas.unshift(idea);
+
+    if (!write(STORAGE.ideas, ideas)) return;
+    addIdeaCard(idea);
+    $("#ideaForm").reset();
+    toast("Idea added to your local idea board.");
+  });
+
+  function addIdeaCard(idea) {
+    const card = document.createElement("article");
+    card.className = "gl-card gl-topic";
+    card.dataset.category = idea.category;
+
+    const top = document.createElement("div");
+    top.className = "gl-topic-top";
+    const tag = document.createElement("span");
+    tag.className = "gl-tag";
+    tag.textContent = idea.category.toUpperCase();
+    const badge = document.createElement("span");
+    badge.className = "gl-tag";
+    badge.textContent = "COMMUNITY IDEA";
+    top.append(tag, badge);
+
+    const heading = document.createElement("h3");
+    heading.textContent = idea.title;
+    const description = document.createElement("p");
+    description.textContent = idea.description;
+    const save = document.createElement("button");
+    save.className = "gl-btn gl-save-topic";
+    save.type = "button";
+    save.textContent = "Save topic";
+    save.addEventListener("click", () => saveTopic(idea.title));
+
+    card.append(top, heading, description, save);
+    $("#topicGrid").prepend(card);
+  }
+
+  // Demo chat: safe text rendering, length limits and local storage only.
+  function addChatMessage(log, name, message, mine = false) {
+    const item = document.createElement("div");
+    item.className = "gl-msg" + (mine ? " mine" : "");
+    const author = document.createElement("strong");
+    author.textContent = name;
+    const body = document.createElement("span");
+    body.textContent = message;
+    item.append(author, body);
+    log.append(item);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function renderStoredChat() {
