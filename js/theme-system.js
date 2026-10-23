@@ -1,39 +1,33 @@
-/* CrowRules Podcasting — shared Theme Studio bridge.
- * Reads only a public theme preference from this browser; does not touch Supabase data or auth.
+/* CrowRules Podcasting — shared theme application + Supabase cross-device sync.
+ * Only the signed-in owner's row is readable/writable (enforced by RLS).
+ * Never place a service-role or secret key in this public client.
  */
 (()=>{'use strict';
 if(window.CrowRulesThemeSystem)return;
-const KEY='crowrules-global-theme-v1';
-const DEFAULTS={id:'cyberwave',name:'Cyberwave',c1:'#00e5ff',c2:'#9c5cff',image:'',cat:'Originals'};
+const KEY='crowrules-global-theme-v1',STUDIO_KEY='crowrules-theme-studio-v5';
+const DEFAULTS={id:'cyberwave',name:'Cyberwave',c1:'#00e5ff',c2:'#9c5cff',image:'',cat:'Originals',mood:'Cinematic'};
 const validHex=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v);
-function read(){try{const t=JSON.parse(localStorage.getItem(KEY)||'null');if(t&&validHex(t.c1)&&validHex(t.c2))return {...DEFAULTS,...t};}catch{}return DEFAULTS}
-function css(){
- if(document.getElementById('cr-global-theme-css'))return;
- const s=document.createElement('style');s.id='cr-global-theme-css';
- s.textContent=`
- :root{--cr-theme-a:var(--cyan,var(--cr-cyan,#67e8f9));--cr-theme-b:var(--purple,var(--cr-purple,#a78bfa))}
- body.cr-theme-enabled{isolation:isolate;--cyan:var(--cr-theme-a);--purple:var(--cr-theme-b);--cr-cyan:var(--cr-theme-a);--cr-purple:var(--cr-theme-b)}
- .cr-theme-backdrop{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.25;background-position:center;background-size:cover;background-repeat:no-repeat;transition:opacity .25s ease}
- body.cr-theme-enabled .btn.primary,body.cr-theme-enabled button.primary{border-color:transparent}
- body.cr-theme-enabled .cr-theme-indicator{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid color-mix(in srgb,var(--cr-theme-a) 40%,transparent);border-radius:999px;color:var(--cr-theme-a);font-size:10px}
- @media(prefers-reduced-motion:reduce){.cr-theme-backdrop{transition:none}}
- `;
- document.head.appendChild(s)
-}
-function apply(t=read()){
- css();document.documentElement.style.setProperty('--cr-theme-a',t.c1);document.documentElement.style.setProperty('--cr-theme-b',t.c2);
- document.documentElement.style.setProperty('--cyan',t.c1);document.documentElement.style.setProperty('--purple',t.c2);document.documentElement.style.setProperty('--cr-cyan',t.c1);document.documentElement.style.setProperty('--cr-purple',t.c2);
- document.body.classList.add('cr-theme-enabled');
- let back=document.querySelector('.cr-theme-backdrop');if(!back){back=document.createElement('div');back.className='cr-theme-backdrop';back.setAttribute('aria-hidden','true');document.body.prepend(back)}
- const image=typeof t.image==='string'&&/^https?:\/\//i.test(t.image)?t.image:'';
- back.style.backgroundImage=image?'linear-gradient(180deg,rgba(5,7,13,.80),rgba(5,7,13,.91)),url("'+image.replace(/["\\]/g,'')+'")':'radial-gradient(ellipse at 12% 0%, '+t.c1+'24, transparent 38%),radial-gradient(ellipse at 90% 10%, '+t.c2+'24, transparent 40%)';
- back.style.opacity=image?'.20':'.6';
- document.documentElement.dataset.crowrulesTheme=t.id||'cyberwave';
- document.documentElement.style.colorScheme='dark';
-}
+let db=null,userId=null,channel=null,lastCloudState=null,saveQueue=Promise.resolve(),authListener=false;
+const emit=(name,detail)=>window.dispatchEvent(new CustomEvent(name,{detail}));
+function read(){try{const t=JSON.parse(localStorage.getItem(KEY)||'null');if(t&&validHex(t.c1)&&validHex(t.c2))return {...DEFAULTS,...t}}catch{}return DEFAULTS}
+function css(){if(document.getElementById('cr-global-theme-css'))return;const s=document.createElement('style');s.id='cr-global-theme-css';s.textContent=`
+body.cr-theme-enabled{isolation:isolate;--cyan:var(--cr-theme-a);--purple:var(--cr-theme-b);--cr-cyan:var(--cr-theme-a);--cr-purple:var(--cr-theme-b)}
+.cr-theme-backdrop{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.25;background-position:center;background-size:cover;background-repeat:no-repeat;transition:opacity .25s ease}
+@media(prefers-reduced-motion:reduce){.cr-theme-backdrop{transition:none}}
+`;document.head.appendChild(s)}
+function apply(t=read()){if(!t||!validHex(t.c1)||!validHex(t.c2))t=DEFAULTS;css();document.documentElement.style.setProperty('--cr-theme-a',t.c1);document.documentElement.style.setProperty('--cr-theme-b',t.c2);document.documentElement.style.setProperty('--cyan',t.c1);document.documentElement.style.setProperty('--purple',t.c2);document.documentElement.style.setProperty('--cr-cyan',t.c1);document.documentElement.style.setProperty('--cr-purple',t.c2);document.body.classList.add('cr-theme-enabled');let back=document.querySelector('.cr-theme-backdrop');if(!back){back=document.createElement('div');back.className='cr-theme-backdrop';back.setAttribute('aria-hidden','true');document.body.prepend(back)}const image=typeof t.image==='string'&&/^https?:\/\//i.test(t.image)?t.image:'';back.style.backgroundImage=image?'linear-gradient(180deg,rgba(5,7,13,.80),rgba(5,7,13,.91)),url("'+image.replace(/["\\\\]/g,'')+'")':'radial-gradient(ellipse at 12% 0%, '+t.c1+'24, transparent 38%),radial-gradient(ellipse at 90% 10%, '+t.c2+'24, transparent 40%)';back.style.opacity=image?'.20':'.6';document.documentElement.dataset.crowrulesTheme=t.id||'cyberwave';document.documentElement.style.colorScheme='dark'}
+function status(state,message){emit('crowrules-theme-sync-status',{state,message})}
 function addStudioLink(){document.querySelectorAll('.links,.nav-links,.listener-links').forEach(nav=>{if(nav.querySelector('a[href*="theme-studio.html"]'))return;const a=document.createElement('a');a.href=location.pathname.includes('/listener/')||location.pathname.includes('/creator/')||location.pathname.includes('/studio/')||location.pathname.includes('/admin/')?'../theme-studio.html':'theme-studio.html';a.textContent='Theme Studio';a.setAttribute('aria-label','Open CrowRules Theme Studio');nav.appendChild(a)})}
-const api={key:KEY,read,apply,save(t){if(!t||!validHex(t.c1)||!validHex(t.c2))return;try{localStorage.setItem(KEY,JSON.stringify({...DEFAULTS,...t}));apply(t)}catch{apply(t)}}};
+function loadScript(src){return new Promise((resolve,reject)=>{if(src.includes('supabase-js')&&window.supabase?.createClient){resolve();return}if(src.endsWith('/config.js')&&window.CROW_CONFIG?.supabaseUrl&&window.CROW_CONFIG?.supabaseKey){resolve();return}const s=document.createElement('script');s.src=src;s.async=true;s.onload=resolve;s.onerror=()=>reject(new Error('Could not load '+src));document.head.appendChild(s)})}
+async function getClient(){if(!window.supabase?.createClient)await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');if(!window.CROW_CONFIG?.supabaseUrl||!window.CROW_CONFIG?.supabaseKey)await loadScript('https://crowrulesentertainment-oss.github.io/podcasting/config.js');const c=window.CROW_CONFIG||{};if(!c.supabaseUrl||!c.supabaseKey||!window.supabase?.createClient)throw Error('Supabase public client configuration is unavailable.');if(!db)db=window.supabase.createClient(c.supabaseUrl,c.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce'}});return db}
+function normalizeState(raw){if(!raw||typeof raw!=='object'||Array.isArray(raw))return null;const out={selected:typeof raw.selected==='string'?raw.selected:'cyberwave',favorites:Array.isArray(raw.favorites)?raw.favorites.filter(x=>typeof x==='string').slice(0,500):[],custom:Array.isArray(raw.custom)?raw.custom.filter(t=>t&&typeof t.id==='string'&&typeof t.name==='string'&&validHex(t.c1)&&validHex(t.c2)&&t.id.length<100&&t.name.length<160).slice(0,100):[],reduceMotion:!!raw.reduceMotion,contrast:!!raw.contrast};if(raw.selectedTheme&&validHex(raw.selectedTheme.c1)&&validHex(raw.selectedTheme.c2))out.selectedTheme={...DEFAULTS,...raw.selectedTheme};return out}
+function applyCloudState(raw){const state=normalizeState(raw);if(!state)return;lastCloudState=JSON.stringify(state);try{localStorage.setItem(STUDIO_KEY,JSON.stringify(state))}catch{}if(state.selectedTheme){try{localStorage.setItem(KEY,JSON.stringify({...DEFAULTS,...state.selectedTheme}))}catch{}apply(state.selectedTheme)}emit('crowrules-theme-state-loaded',{state,source:'supabase'})}
+async function saveStudioState(state,selectedTheme){const clean=normalizeState({...state,selectedTheme:selectedTheme||state?.selectedTheme||read()});if(!clean)return;try{localStorage.setItem(STUDIO_KEY,JSON.stringify(clean))}catch{}if(clean.selectedTheme){try{localStorage.setItem(KEY,JSON.stringify({...DEFAULTS,...clean.selectedTheme}))}catch{}apply(clean.selectedTheme)}if(!db||!userId){status('local','Saved on this device. Sign in to synchronize themes across devices.');return}saveQueue=saveQueue.then(async()=>{const {error}=await db.from('crowrules_theme_preferences').upsert({user_id:userId,theme_state:clean,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)throw error;lastCloudState=JSON.stringify(clean);status('synced','Theme preferences saved to Supabase and synchronized across devices.')}).catch(err=>{console.warn('[CrowRules themes] Cloud save failed:',err?.message||err);status('error','Saved locally; Supabase sync needs attention. Check that you are signed in.')});return saveQueue}
+async function startRealtime(id){if(channel){try{await db.removeChannel(channel)}catch{}channel=null}channel=db.channel('crowrules-theme-preferences-'+id).on('postgres_changes',{event:'*',schema:'public',table:'crowrules_theme_preferences',filter:'user_id=eq.'+id},payload=>{if(payload.new?.theme_state){const next=normalizeState(payload.new.theme_state),serialized=next?JSON.stringify(next):'';if(serialized&&serialized!==lastCloudState)applyCloudState(next)}}).subscribe(s=>{if(s==='SUBSCRIBED')status('synced','Connected to Supabase. Theme changes synchronize across signed-in devices.')})}
+async function syncCurrentUser(){const client=await getClient();const {data:{user},error:userError}=await client.auth.getUser();if(userError)throw userError;if(!user){userId=null;if(channel){await client.removeChannel(channel);channel=null}status('signed-out','Saved on this device. Sign in to synchronize themes across devices.');return}userId=user.id;const {data:row,error}=await client.from('crowrules_theme_preferences').select('theme_state,updated_at').eq('user_id',userId).maybeSingle();if(error)throw error;if(row?.theme_state)applyCloudState(row.theme_state);else{let local={};try{local=JSON.parse(localStorage.getItem(STUDIO_KEY)||'{}')}catch{}const current=read();await saveStudioState({...local,selected:local.selected||current.id},local.selectedTheme||current)}await startRealtime(userId);status('synced','Connected to Supabase. Theme preferences synchronize across signed-in devices.');if(!authListener){authListener=true;client.auth.onAuthStateChange(event=>{if(event==='SIGNED_IN'||event==='SIGNED_OUT'||event==='USER_UPDATED')setTimeout(()=>syncCurrentUser().catch(e=>{console.warn('[CrowRules themes] Auth sync:',e?.message||e);status('error','Theme cloud sync is unavailable right now.')}),0)})}}
+const api={key:KEY,read,apply,save(t){if(!t||!validHex(t.c1)||!validHex(t.c2))return;try{localStorage.setItem(KEY,JSON.stringify({...DEFAULTS,...t}));apply(t)}catch{apply(t)}},saveStudioState,refresh:()=>syncCurrentUser()};
 window.CrowRulesThemeSystem=api;
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply();addStudioLink()},{once:true});else{apply();addStudioLink()}
+function boot(){apply();addStudioLink();syncCurrentUser().catch(e=>{console.warn('[CrowRules themes] Sync unavailable:',e?.message||e);status('error','Saved locally; Supabase theme sync is currently unavailable.')})}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 window.addEventListener('storage',e=>{if(e.key===KEY)apply(read())});
 })();
