@@ -37,4 +37,4 @@ window.addEventListener(SYNC_EVENT,e=>{const state=normalizeState(e.detail?.stat
 window.addEventListener('focus',()=>syncCurrentUser().catch(()=>{}));
 })();
 /* Ensure the shared Awards/site navigation also reaches pages that load themes directly. */
-(()=>{'use strict';if(window.__CROW_SITE_NAV__||document.querySelector('script[src*="/js/site-navigation.js"]'))return;const s=document.createElement('script');s.src='https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js?v=20261023';s.defer=true;s.onerror=()=>console.warn('[CrowRules] Shared navigation helper could not be loaded.');document.head.appendChild(s)})();
+(()=>{'use strict';if(window.__CROW_SITE_NAV__||document.querySelector('script[src*="/js/site-navigation.js"]'))return;const s=document.createElement('script');s.src='https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js?v=20261023-awards-themes';s.defer=true;s.onerror=()=>console.warn('[CrowRules] Shared navigation helper could not be loaded.');document.head.appendChild(s)})();
