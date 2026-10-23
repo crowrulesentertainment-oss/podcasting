@@ -217,6 +217,32 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 @media(max-width:480px){.home-youtube-grid{grid-template-columns:1fr}.home-youtube-head .btn{width:100%;text-align:center}}
 @media(prefers-reduced-motion:reduce){.home-youtube-card{transition:none}.home-youtube-card:hover{transform:none}}
 
+
+/* Cinematic Theme Studio showcase */
+.home-theme-worlds{position:relative;margin:30px 0;padding:clamp(18px,3.5vw,34px);overflow:hidden;border:1px solid rgba(167,139,250,.28);border-radius:24px;background:radial-gradient(ellipse at 10% 0,rgba(103,232,249,.12),transparent 38%),radial-gradient(ellipse at 95% 100%,rgba(167,139,250,.13),transparent 42%),linear-gradient(135deg,#080c19f5,#110d24f5)}
+.home-theme-worlds:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.22;background-image:linear-gradient(110deg,transparent 0 48%,rgba(255,255,255,.05) 49%,transparent 50%),linear-gradient(0deg,transparent 0 96%,rgba(255,255,255,.04) 97%);background-size:180px 180px}
+.home-theme-head{position:relative;display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;margin-bottom:20px}
+.home-theme-head h2{font:900 clamp(22px,3.6vw,38px)/1.1 Orbitron;margin:8px 0 10px;letter-spacing:-.035em}
+.home-theme-head p{max-width:700px;margin:0;color:#aeb8cc;font-size:12px;line-height:1.8}
+.home-theme-head .home-theme-head-actions{display:flex;gap:9px;flex-wrap:wrap}
+.home-theme-grid{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.home-theme-card{position:relative;display:flex;min-width:0;min-height:230px;overflow:hidden;flex-direction:column;justify-content:flex-end;isolation:isolate;padding:15px;border:1px solid rgba(255,255,255,.15);border-radius:15px;color:#fff;background:#101425;box-shadow:0 12px 35px #0004;transition:transform .25s,border-color .25s,box-shadow .25s}
+.home-theme-card:before{content:"";position:absolute;inset:0;z-index:-2;background-image:var(--theme-image);background-position:center;background-size:cover;transition:transform .65s cubic-bezier(.2,.7,.2,1),filter .3s;filter:saturate(1.1)}
+.home-theme-card:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(4,6,16,.03) 5%,rgba(4,6,16,.12) 30%,rgba(4,6,16,.88) 78%,#050711 100%),linear-gradient(120deg,rgba(103,232,249,.08),transparent 55%)}
+.home-theme-card:hover,.home-theme-card:focus-visible{transform:translateY(-5px);border-color:rgba(103,232,249,.7);box-shadow:0 20px 48px #0008,0 0 24px rgba(103,232,249,.1)}
+.home-theme-card:hover:before,.home-theme-card:focus-visible:before{transform:scale(1.08);filter:saturate(1.25)}
+.home-theme-card .theme-index{position:absolute;top:12px;left:12px;padding:6px 8px;border:1px solid #ffffff35;border-radius:99px;background:#080a16a8;backdrop-filter:blur(10px);font:800 8px Orbitron;letter-spacing:.1em;color:#e8faff}
+.home-theme-card .theme-glow{position:absolute;top:13px;right:13px;width:8px;height:8px;border-radius:50%;background:var(--theme-accent,#67e8f9);box-shadow:0 0 16px var(--theme-accent,#67e8f9)}
+.home-theme-card h3{font:800 12px/1.45 Orbitron;letter-spacing:.035em;margin:0 0 7px;text-wrap:balance}
+.home-theme-card p{margin:0;color:#d1d7e7;font-size:10px;line-height:1.65}
+.home-theme-card .theme-open{display:inline-flex;align-items:center;gap:7px;margin-top:13px;color:var(--theme-accent,#67e8f9);font:800 9px Orbitron;letter-spacing:.06em}
+.home-theme-foot{position:relative;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-top:17px;padding-top:16px;border-top:1px solid #ffffff16;color:#8795ad;font-size:10px;line-height:1.7}
+.home-theme-foot strong{color:#dffaff}
+@media(max-width:1100px){.home-theme-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.home-theme-card{min-height:220px}}
+@media(max-width:650px){.home-theme-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.home-theme-card{min-height:205px;padding:12px}.home-theme-card h3{font-size:10px}.home-theme-card p{font-size:9px}.home-theme-head{align-items:flex-start}}
+@media(max-width:390px){.home-theme-grid{grid-template-columns:1fr}.home-theme-card{min-height:205px}.home-theme-card h3{font-size:12px}.home-theme-card p{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.home-theme-card,.home-theme-card:before{transition:none}.home-theme-card:hover,.home-theme-card:focus-visible{transform:none}}
+
 </style>
 
 <link rel="stylesheet" href="css/sitewide-refinements.css?v=20261012">
@@ -331,6 +357,23 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
         <a class="home-kit-button" href="https://crowrules-entertainment.kit.com/profile" target="_blank" rel="noopener noreferrer">VISIT THE CROWRULES PROFILE ↗</a>
         <span class="home-kit-note">Opens the official CrowRules profile in a new tab.</span>
       </div>
+    </section>
+
+
+    <section class="home-theme-worlds" id="home-theme-worlds" aria-labelledby="homeThemeWorldsTitle">
+      <div class="home-theme-head">
+        <div><div class="home-kicker">CHANGE THE ATMOSPHERE</div><h2 id="homeThemeWorldsTitle">ONE UNIVERSE. MANY WORLDS.</h2><p>Give CrowRules Podcasting a new look. Explore cinematic environments, seasonal celebrations, live-event energy, and atmospheric color worlds in Theme Studio. Your selected theme can carry across supported CrowRules pages.</p></div>
+        <div class="home-theme-head-actions"><a class="btn primary" href="theme-studio.html">OPEN THEME STUDIO ↗</a><a class="btn" href="awards.html">EXPLORE THE AWARDS ↗</a></div>
+      </div>
+      <div class="home-theme-grid">
+        <a class="home-theme-card" href="theme-studio.html" style="--theme-image:url('https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=85');--theme-accent:#70f5ff"><span class="theme-index">01 / COSMIC</span><span class="theme-glow"></span><h3>CYBERWAVE UNIVERSE</h3><p>Neon horizons, deep space, and the signature cyan-violet CrowRules glow.</p><span class="theme-open">EXPLORE ORIGINALS ↗</span></a>
+        <a class="home-theme-card" href="theme-studio.html" style="--theme-image:url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=900&q=85');--theme-accent:#b9d9ff"><span class="theme-index">02 / NATURE</span><span class="theme-glow"></span><h3>AURORA & DREAMSCAPES</h3><p>Dreamlike skies, mountain reflections, and atmospheric immersive worlds.</p><span class="theme-open">FIND YOUR CALM ↗</span></a>
+        <a class="home-theme-card" href="theme-studio.html" style="--theme-image:url('https://images.unsplash.com/photo-1509557965875-b88c97052f0e?auto=format&fit=crop&w=900&q=85');--theme-accent:#ff9a68"><span class="theme-index">03 / HALLOWEEN</span><span class="theme-glow"></span><h3>HAUNTED AFTER DARK</h3><p>Autumn shadows, eerie glow, and a cinematic Halloween atmosphere.</p><span class="theme-open">ENTER THE NIGHT ↗</span></a>
+        <a class="home-theme-card" href="theme-studio.html" style="--theme-image:url('https://images.unsplash.com/photo-1512389142860-9c449e58a543?auto=format&fit=crop&w=900&q=85');--theme-accent:#a7f3d0"><span class="theme-index">04 / HOLIDAYS</span><span class="theme-glow"></span><h3>WINTER MAGIC</h3><p>Glowing seasonal lights, frosted nights, and festive winter warmth.</p><span class="theme-open">DISCOVER SEASONAL ↗</span></a>
+        <a class="home-theme-card" href="theme-studio.html" style="--theme-image:url('https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=900&q=85');--theme-accent:#ffd98a"><span class="theme-index">05 / LIVE EVENTS</span><span class="theme-glow"></span><h3>LIVE SHOW ENERGY</h3><p>Concert lights, crowd-scale atmosphere, and bold stage production.</p><span class="theme-open">TURN IT UP ↗</span></a>
+        <a class="home-theme-card" href="theme-studio.html" style="--theme-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=85');--theme-accent:#d8b4fe"><span class="theme-index">06 / CINEMATIC</span><span class="theme-glow"></span><h3>AWARDS NIGHT</h3><p>Spotlight glamour, dramatic lighting, and a celebration-worthy finish.</p><span class="theme-open">EXPLORE THEME WORLDS ↗</span></a>
+      </div>
+      <div class="home-theme-foot"><span><strong>40+ theme directions</strong> to explore, customize, and make your own.</span><span>Preferences can sync across signed-in devices where theme sync is available.</span><a href="theme-studio.html">BROWSE ALL THEMES →</a></div>
     </section>
 
     <section id="experiences" class="home-choice" aria-label="Choose your experience">
