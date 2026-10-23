@@ -73,7 +73,7 @@ function chooseShow(id){
    if(status)status.textContent=media?'Preview URL is available, but direct playback is not supported for this link.':'No episode source connected.';
   }
  }
- const showUrl='show.html?show='+encodeURIComponent(s.slug||s.id);
+ const showUrl=safeUrl(s.website_url)||'show.html';
  ['watchBtn','listenBtn'].forEach(id=>{const button=$('#'+id);if(button){button.disabled=false;button.onclick=()=>{location.href=showUrl;};button.textContent=id==='watchBtn'?'Open show ↗':'Open show page ↗';}});
  loadEpisodeMessages().catch(err=>console.warn('[Guests Lounge] Could not load show discussion',err));
 }
