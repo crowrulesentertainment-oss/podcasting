@@ -31,8 +31,9 @@ function apply(t=read()){
  document.documentElement.dataset.crowrulesTheme=t.id||'cyberwave';
  document.documentElement.style.colorScheme='dark';
 }
+function addStudioLink(){document.querySelectorAll('.links,.nav-links,.listener-links').forEach(nav=>{if(nav.querySelector('a[href*="theme-studio.html"]'))return;const a=document.createElement('a');a.href=location.pathname.includes('/listener/')||location.pathname.includes('/creator/')||location.pathname.includes('/studio/')||location.pathname.includes('/admin/')?'../theme-studio.html':'theme-studio.html';a.textContent='Theme Studio';a.setAttribute('aria-label','Open CrowRules Theme Studio');nav.appendChild(a)})}
 const api={key:KEY,read,apply,save(t){if(!t||!validHex(t.c1)||!validHex(t.c2))return;try{localStorage.setItem(KEY,JSON.stringify({...DEFAULTS,...t}));apply(t)}catch{apply(t)}}};
 window.CrowRulesThemeSystem=api;
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>apply(),{once:true});else apply();
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply();addStudioLink()},{once:true});else{apply();addStudioLink()}
 window.addEventListener('storage',e=>{if(e.key===KEY)apply(read())});
 })();
