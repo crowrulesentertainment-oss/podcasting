@@ -7,9 +7,9 @@ const MOBILE_QUERY="(max-width:950px)";
 function enhance(){
  /* Keep Awards discoverable throughout the podcasting site. Resolve from this shared script so nested pages get the correct root URL. */
  const awardsUrl=new URL('../awards.html',document.currentScript?.src||'https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js').href;
- document.querySelectorAll('header nav,header .links,header .nav-links,header .listener-links,nav[aria-label*=navigation]').forEach(menu=>{
+ document.querySelectorAll('header nav,header .links,header .nav-links,header .listener-links,nav[aria-label*=navigation],.home-top .home-actions,.home-actions,.top-actions,.header-actions').forEach(menu=>{
   if(menu.querySelector('a[href*="awards.html"]'))return;
-  const a=document.createElement('a');a.href=awardsUrl;a.textContent='Awards';a.setAttribute('data-cr-awards-link','true');menu.appendChild(a);
+  const a=document.createElement('a');a.href=awardsUrl;a.textContent='Awards';a.setAttribute('data-cr-awards-link','true');if(menu.classList.contains('home-actions'))a.classList.add('cr-awards-home-link');menu.appendChild(a);
  });
  document.querySelectorAll("header .nav,header .listener-nav,.topbar .nav,.top .nav,nav .nav,.nav").forEach((nav,index)=>{
   if(nav.dataset.crNavReady==="true")return;
@@ -41,7 +41,7 @@ const css=document.createElement("style");
 css.textContent=`
 .cr-nav-toggle{display:none;flex:0 0 auto;white-space:nowrap}
 .links a[aria-current="page"],.links a.cr-nav-current{color:#e7fcff!important;background:rgba(103,232,249,.11);box-shadow:inset 0 0 0 1px rgba(103,232,249,.2)}
-@media(max-width:950px){
+.cr-awards-home-link{border-color:rgba(167,139,250,.42)!important;background:linear-gradient(110deg,rgba(103,232,249,.08),rgba(167,139,250,.13))!important}\n@media(max-width:950px){
  .topbar .nav,header .nav,.top .nav,nav .nav,header .listener-nav{position:relative;flex-wrap:wrap;gap:8px;padding-top:8px;padding-bottom:8px}
  .cr-nav-toggle{display:inline-flex!important;align-items:center;gap:7px;margin-left:auto;padding:10px 12px}
  header .listener-nav{flex-wrap:wrap}
