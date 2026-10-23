@@ -150,10 +150,8 @@
       approve.addEventListener('click',async()=>{
         approve.disabled=true;
         try{
-          const {error:insertError}=await db.from('crowrules_award_nominees').insert({season_id:season.id,nomination_id:item.id,category:item.category,nominee:item.nominee,public_url:item.public_url,description:item.reason,published:true});
-          if(insertError)throw insertError;
-          const {error:updateError}=await db.from('crowrules_award_nominations').update({status:'approved',updated_at:new Date().toISOString()}).eq('id',item.id);
-          if(updateError)throw updateError;
+          const {error:publishError}=await db.rpc('crowrules_admin_publish_award_nomination',{p_nomination_id:item.id});
+          if(publishError)throw publishError;
           announce('Nominee approved and added to the live ballot.');await refreshAdminPanel();await refreshBallot();await refreshMyNominations();
         }catch(e){announce(e?.code==='23505'?'This nominee is already published in that category.':(e?.message||'Could not publish nominee.'));}
         finally{approve.disabled=false;}
