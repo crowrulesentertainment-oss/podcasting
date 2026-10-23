@@ -14,7 +14,6 @@ function css(){
  :root{--cr-theme-a:var(--cyan,var(--cr-cyan,#67e8f9));--cr-theme-b:var(--purple,var(--cr-purple,#a78bfa))}
  body.cr-theme-enabled{--cyan:var(--cr-theme-a);--purple:var(--cr-theme-b);--cr-cyan:var(--cr-theme-a);--cr-purple:var(--cr-theme-b)}
  .cr-theme-backdrop{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.25;background-position:center;background-size:cover;background-repeat:no-repeat;transition:opacity .25s ease}
- body.cr-theme-enabled>.cr-theme-backdrop~*{position:relative;z-index:1}
  body.cr-theme-enabled .btn.primary,body.cr-theme-enabled button.primary{border-color:transparent}
  body.cr-theme-enabled .cr-theme-indicator{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid color-mix(in srgb,var(--cr-theme-a) 40%,transparent);border-radius:999px;color:var(--cr-theme-a);font-size:10px}
  @media(prefers-reduced-motion:reduce){.cr-theme-backdrop{transition:none}}
