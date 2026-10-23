@@ -151,4 +151,4 @@
  window.CrowSitewide.announce=announce;
 })();
 /* Load the shared responsive navigation on pages using sitewide helpers too. */
-(()=>{'use strict';if(window.__CROW_SITE_NAV_LOADER__)return;window.__CROW_SITE_NAV_LOADER__=true;const script=document.createElement('script');script.src='https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js?v=20261023-awards-themes';script.defer=true;script.onerror=()=>console.warn('[CrowRules] Shared navigation enhancement could not be loaded.');document.head.appendChild(script)})();
+(()=>{'use strict';if(window.__CROW_SITE_NAV_LOADER__)return;window.__CROW_SITE_NAV_LOADER__=true;const script=document.createElement('script');script.src='https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js?v=20261023-theme-hero-v2';script.defer=true;script.onerror=()=>console.warn('[CrowRules] Shared navigation enhancement could not be loaded.');document.head.appendChild(script)})();
