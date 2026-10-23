@@ -64,12 +64,10 @@ function enhance(){
  const globalLinks=[
   {label:'Home',file:'home.html',key:'home'},
   {label:'Shows & Episodes',file:'show.html',key:'shows'},
-  {label:'Episodes',file:'episodes.html',key:'episodes'},
   {label:'Guests Lounge',file:'guests-lounge.html',key:'guests'},
   {label:'Creator Studio',file:'studio.html',key:'studio'},
-  {label:'Community',file:'community.html',key:'community'},
+  {label:'Community',file:'listener/community.html',key:'community'},
   {label:'Awards',file:'awards.html',key:'awards'},
-  {label:'Holiday Central',file:'holiday-central.html',key:'holiday'},
   {label:'Theme Studio',file:'theme-studio.html',key:'themes'}
  ];
  const menus=new Set(document.querySelectorAll('header nav,header .links,header .nav-links,header .listener-links,nav[aria-label*=navigation],.home-top .home-actions,.home-actions,.top-actions,.header-actions,.main-nav,.primary-nav,nav .links,nav .nav-links,nav .listener-links,header .nav .links,header .nav-links'));
