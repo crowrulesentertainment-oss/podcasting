@@ -25,8 +25,8 @@ body{margin:0;min-height:100vh;background:#050712;color:#fff;font-family:Montser
 <script>
 (async function(){
 const cfg=window.CROW_CONFIG||{};
-const S=window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey
- ? window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}):null;
+const S=window.CrowRulesSupabase||(window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey
+ ? window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}):null);
 const p=new URLSearchParams(location.search);
 const redirect=p.get("redirect")||"home.html";
 document.getElementById("signupLink").href="signup.html?redirect="+encodeURIComponent(redirect);
