@@ -93,7 +93,7 @@
       setState("error", "CHAT UNAVAILABLE"); showEmpty("Supabase configuration was not found. Chat cannot connect."); input.disabled = true; send.disabled = true; return;
     }
     try {
-      client = window.supabase.createClient(C.supabaseUrl, C.supabaseKey, {
+      client = window.CrowRulesSupabase || window.supabase.createClient(C.supabaseUrl, C.supabaseKey, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce" }
       });
       await refreshAuth();
