@@ -30,7 +30,7 @@
  document.addEventListener('error',e=>{const el=e.target;if(el&&el.tagName==='IMG'&&!el.dataset.crowFallback){el.dataset.crowFallback='1';el.style.background='#111827';el.style.objectFit='contain';el.setAttribute('aria-label',el.alt||'Image unavailable');const alt=(el.alt||'').toLowerCase();if(window.CROW_CONFIG?.logoUrl&&(el.id==='homeLogo'||el.id==='heroLogo'||el.id==='podcastLogo'||alt.includes('crowrules')||alt.includes('podcasting logo'))&&el.src!==window.CROW_CONFIG.logoUrl){el.dataset.crowLogoRetry='1';el.src=window.CROW_CONFIG.logoUrl}}},true);
  const ensureDonateLink=()=>{
   const path=window.location.pathname.toLowerCase();
-  if(path.endsWith('/donate.html')||path.endsWith('/admin.html'))return;
+  if(path.endsWith('/donate.html')||path.endsWith('/admin.html')||path.endsWith('/donation-success.html')||path.endsWith('/donation-cancel.html'))return;
   const ownScript=Array.from(document.scripts).find(s=>/\/js\/sitewide\.js(?:\?|$)/.test(s.src));
   // Resolve the site root from this shared script so nested pages link correctly.
   const root=ownScript?new URL('../',ownScript.src):new URL('./',window.location.href);
