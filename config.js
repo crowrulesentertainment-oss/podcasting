@@ -24,7 +24,11 @@ window.CROW_CONFIG = Object.assign({}, window.CROW_CONFIG || {}, {
     return window.CrowRulesSupabase || null;
   }
   initSharedClient();
-  window.CrowRulesSupabaseReady = window.CrowRulesSupabaseReady || Promise.resolve(null);
+  if (!window.CrowRulesSupabaseReady) {
+    window.CrowRulesSupabaseReady = window.CrowRulesSupabase
+      ? Promise.resolve(window.CrowRulesSupabase)
+      : new Promise(resolve => window.addEventListener("crowrules:supabase-ready", () => resolve(window.CrowRulesSupabase), { once: true }));
+  }
   window.addEventListener("load", initSharedClient, { once: true });
 })();
 
