@@ -1,6 +1,6 @@
 (()=>{
 "use strict";
-const C=window.CROW_CONFIG||{},L=window.supabase,db=L?.createClient&&C.supabaseUrl&&C.supabaseKey?L.createClient(C.supabaseUrl,C.supabaseKey):null,app=document.getElementById("app"),params=new URLSearchParams(location.search),id=params.get("id")||params.get("podcast_id")||params.get("podcast")||params.get("show_id")||params.get("show")||params.get("slug")||params.get("podcast_slug");
+const C=window.CROW_CONFIG||{},L=window.supabase,db=window.CrowRulesSupabase||(L?.createClient&&C.supabaseUrl&&C.supabaseKey?L.createClient(C.supabaseUrl,C.supabaseKey):null),app=document.getElementById("app"),params=new URLSearchParams(location.search),id=params.get("id")||params.get("podcast_id")||params.get("podcast")||params.get("show_id")||params.get("show")||params.get("slug")||params.get("podcast_slug");
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),logo=()=>C.logoUrl||"";
 const wait=(p,n,ms=8000)=>{let t;return Promise.race([p,new Promise((_,r)=>{t=setTimeout(()=>r(Error(n+" timed out")),ms)})]).finally(()=>clearTimeout(t))};
 let show=null,showId=null,episodes=[],liveSessions=[],user=null,following=false,followReady=false,active=null,plans=[],subscription=null,planError=false,subscriberCount=0,subscriberCounts={},subscriberCountError=false,realtimeChannel=null,liveChannel=null;
