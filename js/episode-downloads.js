@@ -1,7 +1,7 @@
 (()=>{"use strict";
 const C=window.CROW_CONFIG||{},S=window.supabase,app=document.getElementById("app");
 if(!S?.createClient||!C.supabaseUrl||!C.supabaseKey||!app)return;
-const db=S.createClient(C.supabaseUrl,C.supabaseKey),params=new URLSearchParams(location.search);
+const db=window.CrowRulesSupabase||S.createClient(C.supabaseUrl,C.supabaseKey),params=new URLSearchParams(location.search);
 const showId=params.get("id")||params.get("podcast_id")||params.get("podcast")||params.get("show_id")||params.get("show")||params.get("slug")||params.get("podcast_slug");
 if(!showId)return;
 const safeName=s=>String(s||"episode").normalize("NFKD").replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"-").slice(0,90)||"episode";
