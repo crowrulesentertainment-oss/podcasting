@@ -90,7 +90,7 @@ document.querySelectorAll('input[name="role"]').forEach(el=>el.addEventListener(
 let S=null;
 try{
  if(window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey){
-  S=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
+  S=window.CrowRulesSupabase||window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
  }
 }catch(error){setStatus("Account service could not initialize. Refresh and try again.","error")}
 if(!S){setStatus("Account service is unavailable. Please refresh and try again.","error");submit.disabled=true;providerButtons.forEach(b=>b.disabled=true);return}

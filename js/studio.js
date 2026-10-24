@@ -10,7 +10,7 @@ const say = (message, error=false) => { const el=$('status'); el.textContent=mes
 const fmt = seconds => { seconds=Math.max(0,Math.floor(seconds)); return [Math.floor(seconds/3600),Math.floor(seconds%3600/60),seconds%60].map(n=>String(n).padStart(2,'0')).join(':'); };
 const slug = s => (s||'episode').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,70)||'episode';
 const safeName = s => (s||'track').replace(/[^a-z0-9_-]+/gi,'-').slice(0,40)||'track';
-function client(){ if(!supabaseUrl||!supabaseKey||!window.supabase){throw new Error('Supabase browser configuration was not found in config.js.');} return window.supabase.createClient(supabaseUrl,supabaseKey); }
+function client(){ if(!supabaseUrl||!supabaseKey||!window.supabase){throw new Error('Supabase browser configuration was not found in config.js.');} return window.CrowRulesSupabase||window.supabase.createClient(supabaseUrl,supabaseKey); }
 async function init(){
  const auth=$('authState');let watchdog=setTimeout(()=>{if(auth&&auth.textContent==='Checking account…'){auth.textContent='Account check timed out';say('The sign-in check is taking too long. Check your connection and Supabase config, then reload. Your browser-local draft tools may still be available.',true);}},9000);
  try {

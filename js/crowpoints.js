@@ -63,7 +63,7 @@
     const cfg = window.CROW_CONFIG || {};
     const sdk = window.supabase;
     if (!cfg.supabaseUrl || !cfg.supabaseKey || !sdk || typeof sdk.createClient !== 'function') return null;
-    try { state.client = sdk.createClient(cfg.supabaseUrl, cfg.supabaseKey); return state.client; } catch (_) { return null; }
+    try { state.client = window.CrowRulesSupabase || sdk.createClient(cfg.supabaseUrl, cfg.supabaseKey); return state.client; } catch (_) { return null; }
   }
   async function refresh() {
     const client = getClient();

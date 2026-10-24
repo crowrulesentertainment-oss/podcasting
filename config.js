@@ -8,6 +8,30 @@ window.CROW_CONFIG = Object.assign({}, window.CROW_CONFIG || {}, {
   launchAt: "2027-01-01T08:00:00Z"
 });
 
+// Initialize one shared Supabase client when the SDK has already been loaded.
+// sitewide.js completes initialization on pages that load the SDK asynchronously.
+(function () {
+  "use strict";
+  function initSharedClient() {
+    const cfg = window.CROW_CONFIG || {};
+    if (!window.CrowRulesSupabase && window.supabase?.createClient && cfg.supabaseUrl && cfg.supabaseKey) {
+      window.CrowRulesSupabase = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce" },
+        realtime: { params: { eventsPerSecond: 10 } }
+      });
+    }
+    if (window.CrowRulesSupabase) window.dispatchEvent(new Event("crowrules:supabase-ready"));
+    return window.CrowRulesSupabase || null;
+  }
+  initSharedClient();
+  if (!window.CrowRulesSupabaseReady) {
+    window.CrowRulesSupabaseReady = window.CrowRulesSupabase
+      ? Promise.resolve(window.CrowRulesSupabase)
+      : new Promise(resolve => window.addEventListener("crowrules:supabase-ready", () => resolve(window.CrowRulesSupabase), { once: true }));
+  }
+  window.addEventListener("load", initSharedClient, { once: true });
+})();
+
 /* Shared navigation is loaded on every page that includes config.js.
  * The script enhances existing menus and leaves page-specific links intact.
  */

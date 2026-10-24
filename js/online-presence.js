@@ -37,7 +37,7 @@ async function start(){
   var path=(location.pathname||"/").toLowerCase();
   var isLaunch=path.indexOf("/pre-launch")!==-1||path.endsWith("/launch.html")||path==="/launch.html";
   var page=path.slice(-160);
-  var client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{
+  var client=window.CrowRulesSupabase||window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{
     auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
   });
   var key=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():String(Date.now())+"-"+Math.random().toString(36).slice(2);

@@ -30,7 +30,7 @@
  document.addEventListener('error',e=>{const el=e.target;if(el&&el.tagName==='IMG'&&!el.dataset.crowFallback){el.dataset.crowFallback='1';el.style.background='#111827';el.style.objectFit='contain';el.setAttribute('aria-label',el.alt||'Image unavailable');const alt=(el.alt||'').toLowerCase();if(window.CROW_CONFIG?.logoUrl&&(el.id==='homeLogo'||el.id==='heroLogo'||el.id==='podcastLogo'||alt.includes('crowrules')||alt.includes('podcasting logo'))&&el.src!==window.CROW_CONFIG.logoUrl){el.dataset.crowLogoRetry='1';el.src=window.CROW_CONFIG.logoUrl}}},true);
  const ensureDonateLink=()=>{
   const path=window.location.pathname.toLowerCase();
-  if(path.endsWith('/donate.html')||path.endsWith('/admin.html'))return;
+  if(path.endsWith('/donate.html')||path.endsWith('/admin.html')||path.endsWith('/donation-success.html')||path.endsWith('/donation-cancel.html'))return;
   const ownScript=Array.from(document.scripts).find(s=>/\/js\/sitewide\.js(?:\?|$)/.test(s.src));
   // Resolve the site root from this shared script so nested pages link correctly.
   const root=ownScript?new URL('../',ownScript.src):new URL('./',window.location.href);
@@ -122,16 +122,25 @@
    document.head.appendChild(script);
   });
   try{
+   // Load public configuration before initializing the SDK/client.
+   if(!window.CROW_CONFIG?.supabaseUrl||!window.CROW_CONFIG?.supabaseKey||!window.CROW_CONFIG?.logoUrl)
+    await load(new URL('config.js?crowrules-config=20261023',root).href);
    if(!window.supabase||typeof window.supabase.createClient!=='function')
-    await load('https://unpkg.com/@supabase/supabase-js@2');
-   // Apply the shared theme and signed-in account detector on every page using sitewide.js.
+    await load('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
+   // Reuse one authenticated browser client across compatible page modules.
+   if(!window.CrowRulesSupabase && window.supabase?.createClient && window.CROW_CONFIG?.supabaseUrl && window.CROW_CONFIG?.supabaseKey){
+    window.CrowRulesSupabase=window.supabase.createClient(window.CROW_CONFIG.supabaseUrl,window.CROW_CONFIG.supabaseKey,{
+     auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce'},
+     realtime:{params:{eventsPerSecond:10}}
+    });
+   }
+   if(window.CrowRulesSupabase)window.dispatchEvent(new Event('crowrules:supabase-ready'));
+   repairBrandLogos();
+   window.dispatchEvent(new Event('crowrules:config-ready'));
+   // Load theme only after config and the shared client are ready.
    if(!window.CrowRulesThemeSystem){
     await load(new URL('js/theme-system.js?crowrules-theme-sync=20261023',root).href);
    }
-   if(!window.CROW_CONFIG?.supabaseUrl||!window.CROW_CONFIG?.supabaseKey||!window.CROW_CONFIG?.logoUrl)
-    await load(new URL('config.js?crowrules-config=20261012',root).href);
-   repairBrandLogos();
-   window.dispatchEvent(new Event('crowrules:config-ready'));
    if(!window.CrowPoints?.__loaded)
     await load(new URL('js/crowpoints.js?crowrules-sitewide=20261012-reliability',root).href);
    // Keep admin and donation checkout/confirmation pages focused: no floating audio player.

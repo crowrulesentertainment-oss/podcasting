@@ -225,7 +225,7 @@
       return;
     }
     try{
-      client=window.supabase.createClient(supabaseUrl,supabaseKey);
+      client=window.CrowRulesSupabase||window.supabase.createClient(supabaseUrl,supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}});
       const {data:{user}}=await client.auth.getUser();
       setAuth(user);
       if(user) await loadWorkspace(user);

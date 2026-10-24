@@ -24,7 +24,7 @@ async function db(){
  const cfg=window.CROW_CONFIG;
  if(!window.supabase?.createClient)throw Error('Supabase JavaScript library did not load.');
  if(!cfg?.supabaseUrl||!cfg?.supabaseKey)throw Error('Supabase public configuration is missing.');
- client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},realtime:{params:{eventsPerSecond:5}}});
+ client=window.CrowRulesSupabase||window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"},realtime:{params:{eventsPerSecond:10}}});
  return client;
 }
 function addMsg(log,m){
