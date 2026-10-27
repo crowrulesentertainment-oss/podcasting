@@ -243,6 +243,112 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 @media(max-width:390px){.home-theme-grid{grid-template-columns:1fr}.home-theme-card{min-height:205px}.home-theme-card h3{font-size:12px}.home-theme-card p{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.home-theme-card,.home-theme-card:before{transition:none}.home-theme-card:hover,.home-theme-card:focus-visible{transform:none}}
 
+ 
+.home-youtube-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.home-youtube-card {
+  overflow: hidden;
+  background: #111;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 14px;
+  transition: transform .2s ease, border-color .2s ease;
+}
+
+.home-youtube-card:hover {
+  transform: translateY(-4px);
+  border-color: #e63946;
+}
+
+.home-youtube-thumb {
+  display: block;
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #080808;
+  overflow: hidden;
+}
+
+.home-youtube-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.home-youtube-play {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #e63946;
+  color: white;
+}
+
+.home-youtube-card-body {
+  padding: 1rem;
+}
+
+.home-youtube-card-body h3 {
+  font-size: 1rem;
+  line-height: 1.4;
+  margin: 0 0 .65rem;
+}
+
+.home-youtube-card-body h3 a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.home-youtube-date,
+.home-youtube-note {
+  color: #aaa;
+  font-size: .85rem;
+}
+
+.home-youtube-watch {
+  display: inline-block;
+  margin-top: .5rem;
+  color: #ff5b65;
+  font-size: .8rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.home-youtube-state {
+  grid-column: 1 / -1;
+  padding: 1.5rem;
+  color: #ccc;
+  background: #111;
+  border-radius: 12px;
+}
+
+@media (max-width: 800px) {
+  .home-youtube-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .home-youtube-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-youtube-head {
+    gap: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+
 </style>
 
 <link rel="stylesheet" href="css/sitewide-refinements.css?v=20261012">
@@ -297,14 +403,229 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
     </section>
 
 
-    <section class="home-youtube" id="crowrules-youtube" aria-labelledby="homeYouTubeTitle">
-      <div class="home-youtube-head">
-        <div><div class="home-kicker">CROWRULES ENTERTAINMENT · VIDEO</div><h2 id="homeYouTubeTitle">LATEST FROM YOUTUBE</h2><p>Watch recent videos from the official CrowRules Entertainment channel without leaving the Podcasting home page.</p></div>
-        <a class="btn" href="https://www.youtube.com/@CrowRulesEntertainment" target="_blank" rel="noopener noreferrer">OPEN YOUTUBE CHANNEL ↗</a>
-      </div>
-      <div class="home-youtube-grid" id="homeYouTubeGrid" aria-live="polite"><p class="home-youtube-state">Loading the latest CrowRules videos…</p></div>
-      <p class="home-youtube-note" id="homeYouTubeStatus" role="status">Public channel feed is checked when this page loads.</p>
-    </section>
+    
+<section class="home-youtube" id="crowrules-youtube" aria-labelledby="homeYouTubeTitle">
+  <div class="home-youtube-head">
+    <div>
+      <div class="home-kicker">CROWRULES ENTERTAINMENT · VIDEO</div>
+      <h2 id="homeYouTubeTitle">LATEST FROM YOUTUBE</h2>
+      <p>Watch the latest videos from CrowRules Entertainment right here on CrowRules Podcasting.</p>
+    </div>
+
+    <a class="btn"
+       href="https://www.youtube.com/channel/UC03D_GFGP1NqtnXwt1uXusA"
+       target="_blank"
+       rel="noopener noreferrer">
+      OPEN YOUTUBE CHANNEL ↗
+    </a>
+  </div>
+
+  <div class="home-youtube-grid" id="homeYouTubeGrid" aria-live="polite">
+    <p class="home-youtube-state">Loading the latest CrowRules videos…</p>
+  </div>
+
+  <p class="home-youtube-note" id="homeYouTubeStatus" role="status">
+    Connecting to the public CrowRules Entertainment video feed…
+  </p>
+</section>
+
+   
+(() => {
+  "use strict";
+
+  const CHANNEL_ID = "UC03D_GFGP1NqtnXwt1uXusA";
+  const CHANNEL_URL =
+    `https://www.youtube.com/channel/${CHANNEL_ID}`;
+  const RSS_URL =
+    `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
+
+  const grid = document.getElementById("homeYouTubeGrid");
+  const status = document.getElementById("homeYouTubeStatus");
+
+  if (!grid || !status) return;
+
+  const escapeHTML = (value) =>
+    String(value ?? "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[char]);
+
+  function renderVideos(videos) {
+    if (!Array.isArray(videos) || videos.length === 0) {
+      throw new Error("No public videos were returned.");
+    }
+
+    grid.innerHTML = videos.slice(0, 6).map((video) => {
+      const id = video.id;
+      const title = video.title || "CrowRules video";
+      const published = video.published
+        ? new Date(video.published)
+        : null;
+
+      const dateLabel =
+        published && !Number.isNaN(published.getTime())
+          ? published.toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "short",
+              day: "numeric"
+            })
+          : "Latest upload";
+
+      const safeId = escapeHTML(id);
+      const safeTitle = escapeHTML(title);
+
+      return `
+        <article class="home-youtube-card">
+          <a class="home-youtube-thumb"
+             href="https://www.youtube.com/watch?v=${safeId}"
+             target="_blank"
+             rel="noopener noreferrer"
+             aria-label="Watch ${safeTitle} on YouTube">
+            <img
+              src="https://i.ytimg.com/vi/${safeId}/hqdefault.jpg"
+              alt=""
+              loading="lazy"
+              onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${safeId}/mqdefault.jpg';">
+            <span class="home-youtube-play" aria-hidden="true">▶</span>
+          </a>
+          <div class="home-youtube-card-body">
+            <h3>
+              <a href="https://www.youtube.com/watch?v=${safeId}"
+                 target="_blank"
+                 rel="noopener noreferrer">${safeTitle}</a>
+            </h3>
+            <p class="home-youtube-date">${escapeHTML(dateLabel)}</p>
+            <a class="home-youtube-watch"
+               href="https://www.youtube.com/watch?v=${safeId}"
+               target="_blank"
+               rel="noopener noreferrer">WATCH VIDEO ↗</a>
+          </div>
+        </article>
+      `;
+    }).join("");
+
+    status.textContent =
+      `Showing ${Math.min(videos.length, 6)} recent public uploads from CrowRules Entertainment.`;
+  }
+
+  function parseFeed(xmlText) {
+    const xml = new DOMParser().parseFromString(
+      xmlText,
+      "application/xml"
+    );
+
+    if (xml.querySelector("parsererror")) {
+      throw new Error("The video feed could not be parsed.");
+    }
+
+    return Array.from(xml.querySelectorAll("entry"))
+      .map((entry) => {
+        const videoId =
+          entry.getElementsByTagNameNS("*", "videoId")[0]?.textContent;
+
+        return {
+          id: videoId,
+          title:
+            entry.getElementsByTagNameNS("*", "title")[0]?.textContent ||
+            "CrowRules video",
+          published:
+            entry.getElementsByTagNameNS("*", "published")[0]?.textContent
+        };
+      })
+      .filter((video) => video.id);
+  }
+
+  async function loadVideos() {
+    grid.innerHTML =
+      '<p class="home-youtube-state">Loading recent videos…</p>';
+
+    status.textContent = "Connecting to YouTube…";
+
+    // First try YouTube's official public RSS feed.
+    try {
+      const response = await fetch(RSS_URL, {
+        headers: { Accept: "application/atom+xml, application/xml, text/xml" }
+      });
+
+      if (!response.ok) {
+        throw new Error(`YouTube feed returned ${response.status}`);
+      }
+
+      const videos = parseFeed(await response.text());
+      if (videos.length) {
+        renderVideos(videos);
+        return;
+      }
+
+      throw new Error("The feed contains no public uploads.");
+    } catch (primaryError) {
+      // Fallback: use a public RSS-to-JSON service.
+      try {
+        const fallbackURL =
+          "https://api.rss2json.com/v1/api.json?rss_url=" +
+          encodeURIComponent(RSS_URL);
+
+        const response = await fetch(fallbackURL);
+
+        if (!response.ok) {
+          throw new Error("The backup feed service is unavailable.");
+        }
+
+        const data = await response.json();
+
+        if (data.status !== "ok" || !Array.isArray(data.items)) {
+          throw new Error(data.message || "Unable to read the backup feed.");
+        }
+
+        const videos = data.items.map((item) => {
+          const url = item.link || "";
+          const id =
+            url.match(/[?&]v=([a-zA-Z0-9_-]{11})/)?.[1] ||
+            item.guid?.match(/yt:video:([a-zA-Z0-9_-]{11})/)?.[1];
+
+          return {
+            id,
+            title: item.title || "CrowRules video",
+            published: item.pubDate
+          };
+        }).filter((video) => video.id);
+
+        if (!videos.length) {
+          throw new Error("No public videos were found.");
+        }
+
+        renderVideos(videos);
+      } catch (fallbackError) {
+        console.error("CrowRules YouTube feed error:", {
+          primaryError,
+          fallbackError
+        });
+
+        grid.innerHTML = `
+          <div class="home-youtube-state">
+            <h3>Videos are temporarily unavailable</h3>
+            <p>We couldn't load the latest uploads automatically.
+               You can still visit our official channel.</p>
+            <a class="btn"
+               href="${CHANNEL_URL}"
+               target="_blank"
+               rel="noopener noreferrer">WATCH ON YOUTUBE ↗</a>
+          </div>
+        `;
+
+        status.textContent =
+          "The video feed could not be loaded. Please try again later.";
+      }
+    }
+  }
+
+  loadVideos();
+})();
+
+
 
     <div id="experienceAccessMessage" class="experience-access-message" role="alert" aria-live="assertive"><div id="experienceAccessText"></div><div id="experienceAccessActions" class="access-actions"></div></div>
 
