@@ -244,44 +244,31 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 @media(prefers-reduced-motion:reduce){.home-theme-card,.home-theme-card:before{transition:none}.home-theme-card:hover,.home-theme-card:focus-visible{transform:none}}
 
  
+.home-youtube-player {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-top: 1.5rem;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 16px;
+  background: #080808;
+}
 
-<section class="home-youtube" id="crowrules-youtube"
-         aria-labelledby="homeYouTubeTitle">
+.home-youtube-player iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
 
-  <div class="home-youtube-head">
-    <div>
-      <div class="home-kicker">CROWRULES ENTERTAINMENT · VIDEO</div>
-      <h2 id="homeYouTubeTitle">LATEST FROM YOUTUBE</h2>
-      <p>
-        Watch the latest videos from CrowRules Entertainment
-        right here on CrowRules Podcasting.
-      </p>
-    </div>
+.home-youtube-note {
+  margin-top: .85rem;
+  color: #aaa;
+  font-size: .875rem;
+}
 
-    <a class="btn"
-       href="https://www.youtube.com/channel/UC03D_GFGP1NqtnXwt1uXusA"
-       target="_blank"
-       rel="noopener noreferrer">
-      OPEN YOUTUBE CHANNEL ↗
-    </a>
-  </div>
-
-  <div class="home-youtube-player">
-    <iframe
-      src="https://www.youtube-nocookie.com/embed/videoseries?list=UU03D_GFGP1NqtnXwt1uXusA"
-      title="Latest CrowRules Entertainment YouTube videos"
-      loading="lazy"
-      referrerpolicy="strict-origin-when-cross-origin"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      allowfullscreen>
-    </iframe>
-  </div>
-
-  <p class="home-youtube-note">
-    Browse and play videos from the CrowRules Entertainment uploads playlist.
-  </p>
-
-</section>
 
 </style>
 
