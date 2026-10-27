@@ -244,110 +244,44 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 @media(prefers-reduced-motion:reduce){.home-theme-card,.home-theme-card:before{transition:none}.home-theme-card:hover,.home-theme-card:focus-visible{transform:none}}
 
  
-.home-youtube-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.25rem;
-  margin-top: 1.5rem;
-}
 
-.home-youtube-card {
-  overflow: hidden;
-  background: #111;
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 14px;
-  transition: transform .2s ease, border-color .2s ease;
-}
+<section class="home-youtube" id="crowrules-youtube"
+         aria-labelledby="homeYouTubeTitle">
 
-.home-youtube-card:hover {
-  transform: translateY(-4px);
-  border-color: #e63946;
-}
+  <div class="home-youtube-head">
+    <div>
+      <div class="home-kicker">CROWRULES ENTERTAINMENT · VIDEO</div>
+      <h2 id="homeYouTubeTitle">LATEST FROM YOUTUBE</h2>
+      <p>
+        Watch the latest videos from CrowRules Entertainment
+        right here on CrowRules Podcasting.
+      </p>
+    </div>
 
-.home-youtube-thumb {
-  display: block;
-  position: relative;
-  aspect-ratio: 16 / 9;
-  background: #080808;
-  overflow: hidden;
-}
+    <a class="btn"
+       href="https://www.youtube.com/channel/UC03D_GFGP1NqtnXwt1uXusA"
+       target="_blank"
+       rel="noopener noreferrer">
+      OPEN YOUTUBE CHANNEL ↗
+    </a>
+  </div>
 
-.home-youtube-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
+  <div class="home-youtube-player">
+    <iframe
+      src="https://www.youtube-nocookie.com/embed/videoseries?list=UU03D_GFGP1NqtnXwt1uXusA"
+      title="Latest CrowRules Entertainment YouTube videos"
+      loading="lazy"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen>
+    </iframe>
+  </div>
 
-.home-youtube-play {
-  position: absolute;
-  inset: 50% auto auto 50%;
-  transform: translate(-50%, -50%);
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: #e63946;
-  color: white;
-}
+  <p class="home-youtube-note">
+    Browse and play videos from the CrowRules Entertainment uploads playlist.
+  </p>
 
-.home-youtube-card-body {
-  padding: 1rem;
-}
-
-.home-youtube-card-body h3 {
-  font-size: 1rem;
-  line-height: 1.4;
-  margin: 0 0 .65rem;
-}
-
-.home-youtube-card-body h3 a {
-  color: #fff;
-  text-decoration: none;
-}
-
-.home-youtube-date,
-.home-youtube-note {
-  color: #aaa;
-  font-size: .85rem;
-}
-
-.home-youtube-watch {
-  display: inline-block;
-  margin-top: .5rem;
-  color: #ff5b65;
-  font-size: .8rem;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.home-youtube-state {
-  grid-column: 1 / -1;
-  padding: 1.5rem;
-  color: #ccc;
-  background: #111;
-  border-radius: 12px;
-}
-
-@media (max-width: 800px) {
-  .home-youtube-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 520px) {
-  .home-youtube-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .home-youtube-head {
-    gap: 1rem;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
+</section>
 
 </style>
 
@@ -404,12 +338,18 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 
 
     
-<section class="home-youtube" id="crowrules-youtube" aria-labelledby="homeYouTubeTitle">
+
+<section class="home-youtube" id="crowrules-youtube"
+         aria-labelledby="homeYouTubeTitle">
+
   <div class="home-youtube-head">
     <div>
       <div class="home-kicker">CROWRULES ENTERTAINMENT · VIDEO</div>
       <h2 id="homeYouTubeTitle">LATEST FROM YOUTUBE</h2>
-      <p>Watch the latest videos from CrowRules Entertainment right here on CrowRules Podcasting.</p>
+      <p>
+        Watch the latest videos from CrowRules Entertainment
+        right here on CrowRules Podcasting.
+      </p>
     </div>
 
     <a class="btn"
@@ -420,14 +360,23 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
     </a>
   </div>
 
-  <div class="home-youtube-grid" id="homeYouTubeGrid" aria-live="polite">
-    <p class="home-youtube-state">Loading the latest CrowRules videos…</p>
+  <div class="home-youtube-player">
+    <iframe
+      src="https://www.youtube-nocookie.com/embed/videoseries?list=UU03D_GFGP1NqtnXwt1uXusA"
+      title="Latest CrowRules Entertainment YouTube videos"
+      loading="lazy"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen>
+    </iframe>
   </div>
 
-  <p class="home-youtube-note" id="homeYouTubeStatus" role="status">
-    Connecting to the public CrowRules Entertainment video feed…
+  <p class="home-youtube-note">
+    Browse and play videos from the CrowRules Entertainment uploads playlist.
   </p>
+
 </section>
+
 
     <div id="experienceAccessMessage" class="experience-access-message" role="alert" aria-live="assertive"><div id="experienceAccessText"></div><div id="experienceAccessActions" class="access-actions"></div></div>
 
