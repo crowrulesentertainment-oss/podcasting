@@ -429,204 +429,6 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
   </p>
 </section>
 
-   
-(() => {
-  "use strict";
-
-  const CHANNEL_ID = "UC03D_GFGP1NqtnXwt1uXusA";
-  const CHANNEL_URL =
-    `https://www.youtube.com/channel/${CHANNEL_ID}`;
-  const RSS_URL =
-    `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
-
-  const grid = document.getElementById("homeYouTubeGrid");
-  const status = document.getElementById("homeYouTubeStatus");
-
-  if (!grid || !status) return;
-
-  const escapeHTML = (value) =>
-    String(value ?? "").replace(/[&<>"']/g, (char) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[char]);
-
-  function renderVideos(videos) {
-    if (!Array.isArray(videos) || videos.length === 0) {
-      throw new Error("No public videos were returned.");
-    }
-
-    grid.innerHTML = videos.slice(0, 6).map((video) => {
-      const id = video.id;
-      const title = video.title || "CrowRules video";
-      const published = video.published
-        ? new Date(video.published)
-        : null;
-
-      const dateLabel =
-        published && !Number.isNaN(published.getTime())
-          ? published.toLocaleDateString(undefined, {
-              year: "numeric",
-              month: "short",
-              day: "numeric"
-            })
-          : "Latest upload";
-
-      const safeId = escapeHTML(id);
-      const safeTitle = escapeHTML(title);
-
-      return `
-        <article class="home-youtube-card">
-          <a class="home-youtube-thumb"
-             href="https://www.youtube.com/watch?v=${safeId}"
-             target="_blank"
-             rel="noopener noreferrer"
-             aria-label="Watch ${safeTitle} on YouTube">
-            <img
-              src="https://i.ytimg.com/vi/${safeId}/hqdefault.jpg"
-              alt=""
-              loading="lazy"
-              onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${safeId}/mqdefault.jpg';">
-            <span class="home-youtube-play" aria-hidden="true">▶</span>
-          </a>
-          <div class="home-youtube-card-body">
-            <h3>
-              <a href="https://www.youtube.com/watch?v=${safeId}"
-                 target="_blank"
-                 rel="noopener noreferrer">${safeTitle}</a>
-            </h3>
-            <p class="home-youtube-date">${escapeHTML(dateLabel)}</p>
-            <a class="home-youtube-watch"
-               href="https://www.youtube.com/watch?v=${safeId}"
-               target="_blank"
-               rel="noopener noreferrer">WATCH VIDEO ↗</a>
-          </div>
-        </article>
-      `;
-    }).join("");
-
-    status.textContent =
-      `Showing ${Math.min(videos.length, 6)} recent public uploads from CrowRules Entertainment.`;
-  }
-
-  function parseFeed(xmlText) {
-    const xml = new DOMParser().parseFromString(
-      xmlText,
-      "application/xml"
-    );
-
-    if (xml.querySelector("parsererror")) {
-      throw new Error("The video feed could not be parsed.");
-    }
-
-    return Array.from(xml.querySelectorAll("entry"))
-      .map((entry) => {
-        const videoId =
-          entry.getElementsByTagNameNS("*", "videoId")[0]?.textContent;
-
-        return {
-          id: videoId,
-          title:
-            entry.getElementsByTagNameNS("*", "title")[0]?.textContent ||
-            "CrowRules video",
-          published:
-            entry.getElementsByTagNameNS("*", "published")[0]?.textContent
-        };
-      })
-      .filter((video) => video.id);
-  }
-
-  async function loadVideos() {
-    grid.innerHTML =
-      '<p class="home-youtube-state">Loading recent videos…</p>';
-
-    status.textContent = "Connecting to YouTube…";
-
-    // First try YouTube's official public RSS feed.
-    try {
-      const response = await fetch(RSS_URL, {
-        headers: { Accept: "application/atom+xml, application/xml, text/xml" }
-      });
-
-      if (!response.ok) {
-        throw new Error(`YouTube feed returned ${response.status}`);
-      }
-
-      const videos = parseFeed(await response.text());
-      if (videos.length) {
-        renderVideos(videos);
-        return;
-      }
-
-      throw new Error("The feed contains no public uploads.");
-    } catch (primaryError) {
-      // Fallback: use a public RSS-to-JSON service.
-      try {
-        const fallbackURL =
-          "https://api.rss2json.com/v1/api.json?rss_url=" +
-          encodeURIComponent(RSS_URL);
-
-        const response = await fetch(fallbackURL);
-
-        if (!response.ok) {
-          throw new Error("The backup feed service is unavailable.");
-        }
-
-        const data = await response.json();
-
-        if (data.status !== "ok" || !Array.isArray(data.items)) {
-          throw new Error(data.message || "Unable to read the backup feed.");
-        }
-
-        const videos = data.items.map((item) => {
-          const url = item.link || "";
-          const id =
-            url.match(/[?&]v=([a-zA-Z0-9_-]{11})/)?.[1] ||
-            item.guid?.match(/yt:video:([a-zA-Z0-9_-]{11})/)?.[1];
-
-          return {
-            id,
-            title: item.title || "CrowRules video",
-            published: item.pubDate
-          };
-        }).filter((video) => video.id);
-
-        if (!videos.length) {
-          throw new Error("No public videos were found.");
-        }
-
-        renderVideos(videos);
-      } catch (fallbackError) {
-        console.error("CrowRules YouTube feed error:", {
-          primaryError,
-          fallbackError
-        });
-
-        grid.innerHTML = `
-          <div class="home-youtube-state">
-            <h3>Videos are temporarily unavailable</h3>
-            <p>We couldn't load the latest uploads automatically.
-               You can still visit our official channel.</p>
-            <a class="btn"
-               href="${CHANNEL_URL}"
-               target="_blank"
-               rel="noopener noreferrer">WATCH ON YOUTUBE ↗</a>
-          </div>
-        `;
-
-        status.textContent =
-          "The video feed could not be loaded. Please try again later.";
-      }
-    }
-  }
-
-  loadVideos();
-})();
-
-
-
     <div id="experienceAccessMessage" class="experience-access-message" role="alert" aria-live="assertive"><div id="experienceAccessText"></div><div id="experienceAccessActions" class="access-actions"></div></div>
 
 
@@ -1377,6 +1179,201 @@ document.addEventListener("click",event=>{
    if(status)status.textContent="Showing up to six recent public uploads. Feed availability depends on the external RSS service.";
  }).catch(fallback);
 })();
+(() => {
+  "use strict";
+
+  const CHANNEL_ID = "UC03D_GFGP1NqtnXwt1uXusA";
+  const CHANNEL_URL =
+    `https://www.youtube.com/channel/${CHANNEL_ID}`;
+  const RSS_URL =
+    `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
+
+  const grid = document.getElementById("homeYouTubeGrid");
+  const status = document.getElementById("homeYouTubeStatus");
+
+  if (!grid || !status) return;
+
+  const escapeHTML = (value) =>
+    String(value ?? "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[char]);
+
+  function renderVideos(videos) {
+    if (!Array.isArray(videos) || videos.length === 0) {
+      throw new Error("No public videos were returned.");
+    }
+
+    grid.innerHTML = videos.slice(0, 6).map((video) => {
+      const id = video.id;
+      const title = video.title || "CrowRules video";
+      const published = video.published
+        ? new Date(video.published)
+        : null;
+
+      const dateLabel =
+        published && !Number.isNaN(published.getTime())
+          ? published.toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "short",
+              day: "numeric"
+            })
+          : "Latest upload";
+
+      const safeId = escapeHTML(id);
+      const safeTitle = escapeHTML(title);
+
+      return `
+        <article class="home-youtube-card">
+          <a class="home-youtube-thumb"
+             href="https://www.youtube.com/watch?v=${safeId}"
+             target="_blank"
+             rel="noopener noreferrer"
+             aria-label="Watch ${safeTitle} on YouTube">
+            <img
+              src="https://i.ytimg.com/vi/${safeId}/hqdefault.jpg"
+              alt=""
+              loading="lazy"
+              onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${safeId}/mqdefault.jpg';">
+            <span class="home-youtube-play" aria-hidden="true">▶</span>
+          </a>
+          <div class="home-youtube-card-body">
+            <h3>
+              <a href="https://www.youtube.com/watch?v=${safeId}"
+                 target="_blank"
+                 rel="noopener noreferrer">${safeTitle}</a>
+            </h3>
+            <p class="home-youtube-date">${escapeHTML(dateLabel)}</p>
+            <a class="home-youtube-watch"
+               href="https://www.youtube.com/watch?v=${safeId}"
+               target="_blank"
+               rel="noopener noreferrer">WATCH VIDEO ↗</a>
+          </div>
+        </article>
+      `;
+    }).join("");
+
+    status.textContent =
+      `Showing ${Math.min(videos.length, 6)} recent public uploads from CrowRules Entertainment.`;
+  }
+
+  function parseFeed(xmlText) {
+    const xml = new DOMParser().parseFromString(
+      xmlText,
+      "application/xml"
+    );
+
+    if (xml.querySelector("parsererror")) {
+      throw new Error("The video feed could not be parsed.");
+    }
+
+    return Array.from(xml.querySelectorAll("entry"))
+      .map((entry) => {
+        const videoId =
+          entry.getElementsByTagNameNS("*", "videoId")[0]?.textContent;
+
+        return {
+          id: videoId,
+          title:
+            entry.getElementsByTagNameNS("*", "title")[0]?.textContent ||
+            "CrowRules video",
+          published:
+            entry.getElementsByTagNameNS("*", "published")[0]?.textContent
+        };
+      })
+      .filter((video) => video.id);
+  }
+
+  async function loadVideos() {
+    grid.innerHTML =
+      '<p class="home-youtube-state">Loading recent videos…</p>';
+
+    status.textContent = "Connecting to YouTube…";
+
+    // First try YouTube's official public RSS feed.
+    try {
+      const response = await fetch(RSS_URL, {
+        headers: { Accept: "application/atom+xml, application/xml, text/xml" }
+      });
+
+      if (!response.ok) {
+        throw new Error(`YouTube feed returned ${response.status}`);
+      }
+
+      const videos = parseFeed(await response.text());
+      if (videos.length) {
+        renderVideos(videos);
+        return;
+      }
+
+      throw new Error("The feed contains no public uploads.");
+    } catch (primaryError) {
+      // Fallback: use a public RSS-to-JSON service.
+      try {
+        const fallbackURL =
+          "https://api.rss2json.com/v1/api.json?rss_url=" +
+          encodeURIComponent(RSS_URL);
+
+        const response = await fetch(fallbackURL);
+
+        if (!response.ok) {
+          throw new Error("The backup feed service is unavailable.");
+        }
+
+        const data = await response.json();
+
+        if (data.status !== "ok" || !Array.isArray(data.items)) {
+          throw new Error(data.message || "Unable to read the backup feed.");
+        }
+
+        const videos = data.items.map((item) => {
+          const url = item.link || "";
+          const id =
+            url.match(/[?&]v=([a-zA-Z0-9_-]{11})/)?.[1] ||
+            item.guid?.match(/yt:video:([a-zA-Z0-9_-]{11})/)?.[1];
+
+          return {
+            id,
+            title: item.title || "CrowRules video",
+            published: item.pubDate
+          };
+        }).filter((video) => video.id);
+
+        if (!videos.length) {
+          throw new Error("No public videos were found.");
+        }
+
+        renderVideos(videos);
+      } catch (fallbackError) {
+        console.error("CrowRules YouTube feed error:", {
+          primaryError,
+          fallbackError
+        });
+
+        grid.innerHTML = `
+          <div class="home-youtube-state">
+            <h3>Videos are temporarily unavailable</h3>
+            <p>We couldn't load the latest uploads automatically.
+               You can still visit our official channel.</p>
+            <a class="btn"
+               href="${CHANNEL_URL}"
+               target="_blank"
+               rel="noopener noreferrer">WATCH ON YOUTUBE ↗</a>
+          </div>
+        `;
+
+        status.textContent =
+          "The video feed could not be loaded. Please try again later.";
+      }
+    }
+  }
+
+  loadVideos();
+})();
+ 
 </script>
 
 </body>
