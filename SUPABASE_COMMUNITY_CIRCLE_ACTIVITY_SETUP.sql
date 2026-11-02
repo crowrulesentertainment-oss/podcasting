@@ -53,3 +53,29 @@ drop trigger if exists podcast_circle_activity_event on public.podcast_community
 create trigger podcast_circle_activity_event after insert or update on public.podcast_community_circle_events for each row execute function private.record_podcast_circle_activity();
 drop trigger if exists podcast_circle_activity_member on public.podcast_community_circle_members;
 create trigger podcast_circle_activity_member after insert on public.podcast_community_circle_members for each row execute function private.record_podcast_circle_activity();
+
+
+-- Optional initial history seed: last 90 days, capped per source to keep the feed lightweight.
+with recent_posts as (
+ select p.circle_id,p.author_id actor_id,'discussion_created'::text activity_type,p.id target_id,'Started a new discussion'::text summary,p.created_at,jsonb_build_object('circle_name',c.name) metadata
+ from public.podcast_community_circle_posts p join public.podcast_community_circles c on c.id=p.circle_id
+ where p.created_at>now()-interval '90 days' order by p.created_at desc limit 200
+), recent_replies as (
+ select r.circle_id,r.author_id,'reply_created'::text,r.post_id,'Added a reply to a discussion'::text,r.created_at,jsonb_build_object('circle_name',c.name)
+ from public.podcast_community_circle_replies r join public.podcast_community_circles c on c.id=r.circle_id
+ where r.created_at>now()-interval '90 days' order by r.created_at desc limit 200
+), recent_events as (
+ select e.circle_id,e.creator_id,case when e.status='cancelled' then 'event_cancelled' else 'event_created' end::text,e.id,'Scheduled a community event'::text,e.created_at,jsonb_build_object('circle_name',c.name,'event_title',e.title,'starts_at',e.starts_at)
+ from public.podcast_community_circle_events e join public.podcast_community_circles c on c.id=e.circle_id
+ where e.created_at>now()-interval '90 days' order by e.created_at desc limit 100
+), recent_members as (
+ select m.circle_id,m.member_id,'member_joined'::text,m.circle_id,'Joined this community circle'::text,m.joined_at,jsonb_build_object('circle_name',c.name)
+ from public.podcast_community_circle_members m join public.podcast_community_circles c on c.id=m.circle_id
+ where m.joined_at>now()-interval '90 days' order by m.joined_at desc limit 100
+), combined as (
+ select * from recent_posts union all select * from recent_replies union all select * from recent_events union all select * from recent_members
+)
+insert into public.podcast_community_circle_activity(circle_id,actor_id,activity_type,target_id,summary,created_at,metadata)
+select x.circle_id,x.actor_id,x.activity_type,x.target_id,x.summary,x.created_at,x.metadata
+from combined x
+where not exists(select 1 from public.podcast_community_circle_activity a where a.circle_id=x.circle_id and a.activity_type=x.activity_type and a.target_id=x.target_id and a.actor_id is not distinct from x.actor_id and a.created_at=x.created_at);
