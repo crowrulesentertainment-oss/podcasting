@@ -28,17 +28,17 @@ create policy circle_events_select_members on public.podcast_community_circle_ev
 );
 drop policy if exists circle_events_insert_moderators on public.podcast_community_circle_events;
 create policy circle_events_insert_moderators on public.podcast_community_circle_events for insert to authenticated with check(
- creator_id=(select auth.uid()) and exists(select 1 from public.podcast_community_circle_members m where m.circle_id=circle_id and m.member_id=(select auth.uid()) and m.role in ('owner','moderator'))
+ creator_id=(select auth.uid()) and exists(select 1 from public.podcast_community_circle_members m where m.circle_id=podcast_community_circle_events.circle_id and m.member_id=(select auth.uid()) and m.role in ('owner','moderator'))
 );
 drop policy if exists circle_events_update_moderators on public.podcast_community_circle_events;
 create policy circle_events_update_moderators on public.podcast_community_circle_events for update to authenticated using(
- exists(select 1 from public.podcast_community_circle_members m where m.circle_id=circle_id and m.member_id=(select auth.uid()) and m.role in ('owner','moderator'))
+ exists(select 1 from public.podcast_community_circle_members m where m.circle_id=podcast_community_circle_events.circle_id and m.member_id=(select auth.uid()) and m.role in ('owner','moderator'))
 ) with check(
- exists(select 1 from public.podcast_community_circle_members m where m.circle_id=circle_id and m.member_id=(select auth.uid()) and m.role in ('owner','moderator'))
+ exists(select 1 from public.podcast_community_circle_members m where m.circle_id=podcast_community_circle_events.circle_id and m.member_id=(select auth.uid()) and m.role in ('owner','moderator'))
 );
 drop policy if exists circle_events_delete_owners on public.podcast_community_circle_events;
 create policy circle_events_delete_owners on public.podcast_community_circle_events for delete to authenticated using(
- exists(select 1 from public.podcast_community_circle_members m where m.circle_id=circle_id and m.member_id=(select auth.uid()) and m.role='owner')
+ exists(select 1 from public.podcast_community_circle_members m where m.circle_id=podcast_community_circle_events.circle_id and m.member_id=(select auth.uid()) and m.role='owner')
 );
 create table if not exists public.podcast_community_circle_event_rsvps(
  event_id uuid not null references public.podcast_community_circle_events(id) on delete cascade,
