@@ -57,7 +57,7 @@ grant select,insert,update,delete on public.podcast_community_circle_invites to 
 drop policy if exists "Circle owners manage invitations" on public.podcast_community_circle_invites;
 create policy "Circle owners manage invitations" on public.podcast_community_circle_invites for select to authenticated using(inviter_id=(select auth.uid()) or invitee_id=(select auth.uid()) or public.crowrules_is_admin() or exists(select 1 from public.podcast_community_circles c where c.id=circle_id and c.owner_id=(select auth.uid())));
 drop policy if exists "Owners can invite members" on public.podcast_community_circle_invites;
-create policy "Owners can invite members" on public.podcast_community_circle_invites for insert to authenticated with check(inviter_id=(select auth.uid()) and invitee_id<>(select auth.uid()) and exists(select 1 from public.podcast_community_circles c where c.id=circle_id and c.owner_id=(select auth.uid())));
+create policy "Owners and podcast admins can invite members" on public.podcast_community_circle_invites for insert to authenticated with check(inviter_id=(select auth.uid()) and invitee_id<>(select auth.uid()) and (public.crowrules_is_admin() or exists(select 1 from public.podcast_community_circles c where c.id=circle_id and c.owner_id=(select auth.uid()))));
 drop policy if exists "Invitees can respond" on public.podcast_community_circle_invites;
 create policy "Invitees can respond" on public.podcast_community_circle_invites for update to authenticated using(invitee_id=(select auth.uid()) and status='pending') with check(invitee_id=(select auth.uid()) and status in ('accepted','declined'));
 drop policy if exists "Owners can cancel invitations" on public.podcast_community_circle_invites;
