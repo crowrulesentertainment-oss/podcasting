@@ -275,6 +275,10 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 <link rel="stylesheet" href="css/sitewide-refinements.css?v=20261012">
 <script src="js/sitewide.js?crowrules-sitewide=20261012-reliability" defer></script>
  <script src="js/theme-system.js?v=20261022" defer></script>
+
+<style>
+.home-continue-card .home-dynamic-art{aspect-ratio:1.35}.home-continue-card .home-dynamic-art img{width:100%;height:100%;object-fit:cover}.home-continue-progress{height:4px;margin:3px 0 5px;overflow:hidden;border-radius:99px;background:rgba(255,255,255,.12)}.home-continue-progress span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#67e8f9,#a78bfa)}.home-continue-play{width:100%;margin-top:7px;padding:10px;border:1px solid rgba(103,232,249,.38);border-radius:9px;background:linear-gradient(100deg,rgba(103,232,249,.13),rgba(167,139,250,.15));color:#e8fbff;font:800 9px Orbitron;cursor:pointer}.home-continue-play:hover{border-color:rgba(103,232,249,.8)}
+</style>
 </head>
 <body>
 <div class="home-shell">
@@ -385,6 +389,15 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
       <div class="home-discovery-foot"><span>Built for listeners and creators, with one connected CrowRules identity.</span><span><a href="launch.html">Launch information</a> · <a href="pre-launch/index.html">Pre-launch hub</a></span></div>
     </section>
 
+
+    <section class="home-dynamic" id="home-continue-listening" aria-labelledby="homeContinueTitle" hidden>
+      <div class="home-dynamic-head">
+        <div><div class="home-kicker">PICK UP WHERE YOU LEFT OFF</div><h2 id="homeContinueTitle">CONTINUE LISTENING</h2><p>Your personal listening history, synced to your CrowRules account. Resume an episode right where you stopped.</p></div>
+        <div class="home-dynamic-controls"><button type="button" id="homeContinueRefresh">REFRESH HISTORY ↻</button><a class="btn" href="listener/profile.html">LISTENING HISTORY →</a></div>
+      </div>
+      <div class="home-dynamic-grid" id="homeContinueGrid" aria-live="polite"><div class="home-dynamic-empty">Checking your listening history…</div></div>
+      <p class="home-dynamic-foot" id="homeContinueStatus" role="status" aria-live="polite">Your history is private to your signed-in account.</p>
+    </section>
 
     <section class="home-dynamic" id="home-dynamic-discovery" aria-labelledby="homeDynamicTitle">
       <div class="home-dynamic-head">
@@ -1310,6 +1323,68 @@ document.addEventListener("click",event=>{
   loadVideos();
 })();
  
+</script>
+
+
+<script>
+/* Personalized Continue Listening shelf. Reads only the signed-in member's own history. */
+(()=>{"use strict";
+const C=window.CROW_CONFIG||{},$=id=>document.getElementById(id),section=$("home-continue-listening"),grid=$("homeContinueGrid"),status=$("homeContinueStatus"),refresh=$("homeContinueRefresh");
+if(!section||!grid)return;
+const safe=v=>String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+const fmtTime=value=>{const n=Math.max(0,Math.floor(Number(value)||0));return Math.floor(n/60)+":"+String(n%60).padStart(2,"0")};
+const empty=message=>{grid.innerHTML='<div class="home-dynamic-empty">'+safe(message)+'</div>'};
+let db=null,busy=false;
+function card(row,episode,show){
+ const title=episode.title||"Untitled episode",showTitle=show?.title||"Podcast episode",art=episode.artwork_url||show?.artwork_url||"",duration=Math.max(0,Number(episode.duration_seconds)||0),position=Math.max(0,Number(row.play_position_seconds)||0),pct=duration?Math.min(100,position/duration*100):0;
+ const image=art?'<img loading="lazy" decoding="async" src="'+safe(art)+'" alt="">':'<span aria-hidden="true">CR</span>';
+ const when=row.last_played_at?new Date(row.last_played_at).toLocaleDateString(undefined,{month:"short",day:"numeric"}):"Recently played";
+ const progress=duration?'<div class="home-continue-progress" aria-label="'+Math.round(pct)+' percent played"><span style="width:'+pct+'%"></span></div>':'';
+ const resume=position>0?position:0;
+ return '<article class="home-dynamic-card home-continue-card"><div class="home-dynamic-art">'+image+'</div><div class="home-dynamic-copy"><h4>'+safe(title)+'</h4><p>'+safe(showTitle)+'</p><div class="home-dynamic-meta">'+safe(when)+' · '+fmtTime(position)+(duration?' / '+fmtTime(duration):'')+'</div>'+progress+'<button type="button" class="home-continue-play" data-episode="'+safe(episode.id)+'" data-position="'+resume+'">▶ '+(resume>0?"RESUME":"PLAY EPISODE")+'</button><a class="home-dynamic-open" href="listener/show.html?id='+encodeURIComponent(episode.podcast_id||"")+'">OPEN SHOW ↗</a></div></article>';
+}
+async function load(){
+ if(busy)return;busy=true;if(refresh){refresh.disabled=true;refresh.textContent="LOADING…"}
+ try{
+  if(!window.supabase?.createClient||!C.supabaseUrl||!C.supabaseKey)throw Error("Account service is unavailable.");
+  db=window.CROW_HOME_SUPABASE||db||window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  const auth=await db.auth.getSession(),user=auth.data?.session?.user;
+  section.hidden=false;
+  if(!user){empty('Sign in to see your personal listening history and resume episodes across devices.');status.textContent="Your listening history appears here after you sign in and play an episode.";return}
+  const history=await db.from("podcast_user_recently_played").select("episode_id,last_played_at,play_position_seconds").eq("user_id",user.id).order("last_played_at",{ascending:false}).limit(12);
+  if(history.error)throw history.error;
+  const rows=history.data||[];
+  if(!rows.length){empty("Your Continue Listening shelf will appear after you play an episode while signed in.");status.textContent="No listening history yet. Explore the catalog and your first episode will show up here.";return}
+  const ids=[...new Set(rows.map(x=>x.episode_id).filter(Boolean))];
+  const episodesResult=await db.from("podcast_episodes").select("id,title,audio_url,duration_seconds,podcast_id,artwork_url").in("id",ids);
+  if(episodesResult.error)throw episodesResult.error;
+  const episodes=new Map((episodesResult.data||[]).map(x=>[String(x.id),x]));
+  const showIds=[...new Set([...episodes.values()].map(x=>x.podcast_id).filter(Boolean))];let shows=new Map();
+  if(showIds.length){const sr=await db.from("podcasts").select("id,title,artwork_url").in("id",showIds);if(!sr.error)shows=new Map((sr.data||[]).map(x=>[String(x.id),x]));}
+  const valid=rows.filter(x=>episodes.has(String(x.episode_id))&&episodes.get(String(x.episode_id)).audio_url);
+  if(!valid.length){empty("Your saved episodes are not currently available to play. Browse the catalog for more episodes.");status.textContent="History loaded, but no playable episode records were returned.";return}
+  grid.innerHTML=valid.map(row=>{const ep=episodes.get(String(row.episode_id));return card(row,ep,shows.get(String(ep.podcast_id)))}).join("");
+  status.textContent=valid.length+" recent episode"+(valid.length===1?"":"s")+" · synced to your CrowRules account. Only you can see this shelf.";
+ }catch(e){section.hidden=false;empty("We couldn't load Continue Listening right now. Try refreshing, or open your full listening history.");status.textContent="Listening history unavailable: "+(e?.message||"database request failed");}
+ finally{busy=false;if(refresh){refresh.disabled=false;refresh.textContent="REFRESH HISTORY ↻"}}
+}
+refresh?.addEventListener("click",load);
+grid.addEventListener("click",async event=>{
+ const button=event.target.closest("[data-episode]");if(!button)return;
+ try{
+  const id=button.dataset.episode,position=Math.max(0,Number(button.dataset.position)||0);
+  const auth=await db.auth.getSession(),user=auth.data?.session?.user;if(!user)throw Error("Please sign in again to resume listening.");
+  const result=await db.from("podcast_episodes").select("id,title,audio_url,duration_seconds,podcast_id,artwork_url").eq("id",id).maybeSingle();if(result.error)throw result.error;if(!result.data?.audio_url)throw Error("This episode does not have a playable audio file.");
+  const ep=result.data;const sr=ep.podcast_id?await db.from("podcasts").select("title,artwork_url").eq("id",ep.podcast_id).maybeSingle():{data:null};
+  if(!window.CrowRulesAudioPlayer?.play)throw Error("The audio player is still loading. Please try again.");
+  await window.CrowRulesAudioPlayer.play({url:ep.audio_url,title:ep.title||"Untitled episode",artist:sr.data?.title||"CrowRules Podcasting",artwork:ep.artwork_url||sr.data?.artwork_url||"",episodeId:ep.id,podcastId:ep.podcast_id},{positionSeconds:position,autoplay:true});
+  button.textContent="PLAYING…";
+ }catch(e){status.textContent=e?.message||"Could not resume this episode."}
+});
+load();
+window.addEventListener("crowrules:home-catalog-change",()=>{if(!document.hidden)load()});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)load()});
+})();
 </script>
 
 </body>
