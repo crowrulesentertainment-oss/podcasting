@@ -67,6 +67,7 @@ function enhance(){
   {label:'Shows & Episodes',file:'show.html',key:'shows'},
   {label:'Guests Lounge',file:'guests-lounge.html',key:'guests'},
   {label:'Creator Studio',file:'studio.html',key:'studio'},
+  {label:'Production Studio',file:'creator-production-studio.html',key:'production-studio'},
   {label:'Apply as Creator',file:'creator/apply.html',key:'apply'},
   {label:'Rankings',file:'listener/rankings.html',key:'rankings'},
   {label:'Community',file:'listener/community.html',key:'community'},
