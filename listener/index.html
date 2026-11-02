@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/podcasting.css">
 <link rel="stylesheet" href="../css/listener-cyberpunk.css?v=neon-district-v1">
-<link rel="stylesheet" href="../css/personalized-discovery-home.css?v=20261102">
+<link rel="stylesheet" href="../css/personalized-discovery-home.css?v=20261102-instantsearch1">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="../config.js"></script>
@@ -176,6 +176,7 @@ a{text-decoration:none;color:inherit}
     <section class="pdh-section" id="pdhHero" data-pdh-section="hero" hidden>
       <div class="pdh-hero"><div class="pdh-hero-copy"><div class="pdh-kicker" id="pdhHeroTag">CROWRULES SPOTLIGHT</div><h2 id="pdhHeroTitle">Discover your next favorite show.</h2><p id="pdhHeroCopy">Independent voices. Original conversations. One listening universe.</p><div class="pdh-actions"><a class="pdh-action primary" id="pdhHeroLink" href="discover.html">EXPLORE SHOW →</a><a class="pdh-action" href="../discover.html">BROWSE ALL SHOWS</a></div></div></div>
     </section>
+    <section class="pdh-search" aria-label="Search podcasts and episodes"><div class="pdh-search-heading"><div><div class="pdh-kicker">FIND YOUR NEXT LISTEN</div><h2>Search the Network</h2><p>Search published shows and episodes, or explore by category.</p></div><span class="pdh-search-count" id="pdhSearchCount" aria-live="polite">READY</span></div><div class="pdh-search-controls"><label class="pdh-search-input-wrap"><span class="sr-only">Search shows and episodes</span><input id="pdhSearchInput" type="search" maxlength="100" autocomplete="off" placeholder="Search titles, creators, topics and descriptions…"></label><label class="sr-only" for="pdhCategoryFilter">Filter by category</label><select id="pdhCategoryFilter"><option value="">ALL CATEGORIES</option></select><button type="button" id="pdhSearchClear" class="pdh-search-clear">CLEAR</button></div><div id="pdhSearchResults" class="pdh-search-results" hidden></div></section>
     <div class="pdh-status" id="pdhStatus" role="status" aria-live="polite">Loading the CrowRules discovery feed…</div>
     <section class="pdh-section" data-pdh-section="trending"><div class="pdh-head"><div><div class="pdh-kicker">WHAT'S MOVING</div><h2 id="pdhTrendingTitle">Trending Now</h2><p id="pdhTrendingCopy">Shows gaining momentum across the published network.</p></div><a class="lbtn" href="rankings.html">VIEW CHARTS →</a></div><div class="pdh-cards" id="pdhTrending"><div class="pdh-empty">Loading trending shows…</div></div></section>
     <section class="pdh-section" data-pdh-section="new_releases"><div class="pdh-head"><div><div class="pdh-kicker">FRESH FROM THE STUDIO</div><h2 id="pdhNewTitle">New Releases</h2><p id="pdhNewCopy">Recently published episodes ready to explore.</p></div></div><div class="pdh-cards" id="pdhNew"><div class="pdh-empty">Loading new releases…</div></div></section>
