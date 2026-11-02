@@ -152,3 +152,8 @@ The current project already contains podcast, episode, category, profile, playli
 - The Discovery & Editorial Control Room includes a timed announcement manager with enable/disable, campaign label, headline, message, optional HTTPS/same-site CTA, optional start/end dates, and listener dismissal.
 - Announcement settings are stored in the existing draft/published JSON configuration and use the existing preview, publish, revision comparison and restore workflow. No database migration is required.
 - The public Listen homepage displays only enabled, published announcements inside their configured time window. Dismissal is stored locally in the visitor's browser and is scoped to the campaign headline and schedule.
+
+
+## Listener instant search and category filters
+- The public Listen homepage includes an instant search for published shows and episodes, with category filtering, clear/reset controls, and separate show/episode result groups.
+- Search operates entirely against the discovery catalogue already loaded for the homepage. It introduces no new database objects, polling, or additional Supabase requests.
