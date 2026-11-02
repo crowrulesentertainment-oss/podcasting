@@ -69,7 +69,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 40px;color:#64748b;font-s
  <div class="panel listening-calendar-panel"><div class="calendar-heading"><div><div class="eyebrow">LISTENING CONSISTENCY</div><h3>Personal Listening Calendar</h3><p class="muted">Days with recorded listening activity.</p></div><div class="calendar-streak"><b id="listeningStreak">—</b><span>DAY STREAK</span></div></div><div class="calendar-toolbar"><button type="button" id="calendarPrev" aria-label="Previous month">←</button><strong id="calendarMonth">Loading month…</strong><button type="button" id="calendarNext" aria-label="Next month">→</button></div><div class="calendar-grid" id="listeningCalendar" role="grid" aria-label="Listening activity calendar"><div class="empty">Loading calendar…</div></div><div class="calendar-legend"><span><i></i> Listening activity</span><small id="calendarCoverage">Based on your latest recorded activity</small></div><div class="monthly-recap" aria-live="polite"><div class="eyebrow">MONTHLY RECAP</div><h4 id="monthlyRecapTitle">This month at a glance</h4><div class="recap-grid"><div><b id="recapEvents">—</b><span>ACTIVITY EVENTS</span></div><div><b id="recapDays">—</b><span>ACTIVE DAYS</span></div><div><b id="recapEpisodes">—</b><span>EPISODES PLAYED</span></div><div><b id="recapTopShow">—</b><span>TOP SHOW</span></div></div><p id="recapNote" class="muted">Based on recorded activity in this calendar month.</p></div></div><section class="panel annual-report" aria-live="polite">
  <div class="annual-head"><div><div class="eyebrow">YOUR YEAR IN SOUND</div><h3 id="annualTitle">2026 Listening Year in Review</h3><p class="muted">A personal snapshot of your listening highlights and milestones.</p></div><div class="annual-year-controls"><button type="button" id="annualPrev" aria-label="Previous year">←</button><strong id="annualYear">2026</strong><button type="button" id="annualNext" aria-label="Next year">→</button></div></div>
  <div class="recap-grid annual-stats"><div><b id="annualEvents">—</b><span>ACTIVITY EVENTS</span></div><div><b id="annualDays">—</b><span>LISTENING DAYS</span></div><div><b id="annualEpisodes">—</b><span>EPISODES PLAYED</span></div><div><b id="annualShows">—</b><span>SHOWS EXPLORED</span></div></div>
- <div class="annual-lists"><div><h4>TOP SHOWS</h4><ol id="annualTopShows"><li>Loading your highlights…</li></ol></div><div><h4>LISTENING MILESTONES</h4><ul id="annualMilestones"><li>Your milestones will appear here.</li></ul></div></div>
+ <div class="annual-lists"><div><h4>TOP SHOWS</h4><ol id="annualTopShows"><li>Loading your highlights…</li></ol></div><div><h4>FAVORITE CATEGORIES</h4><ol id="annualTopCategories"><li>Category highlights will appear here.</li></ol><h4>LISTENING MILESTONES</h4><ul id="annualMilestones"><li>Your milestones will appear here.</li></ul></div></div>
  <p id="annualCoverage" class="muted annual-note">Based on recorded listening activity available to this dashboard.</p>
  </section>
  <div class="statgrid journey-stats">
@@ -335,9 +335,11 @@ function renderAnnualReport(){
  $("#annualTitle").textContent=year+" Listening Year in Review";$("#annualYear").textContent=String(year);
  $("#annualEvents").textContent=rows.length.toLocaleString();$("#annualDays").textContent=days.size.toLocaleString();$("#annualEpisodes").textContent=episodes.size.toLocaleString();$("#annualShows").textContent=shows.size.toLocaleString();
  $("#annualTopShows").innerHTML=ranked.length?ranked.slice(0,5).map(([id,count])=>'<li><b>'+esc(listeningShowNames.get(id)||"Podcast show")+'</b> — '+count+' recorded events</li>').join(""):'<li>No show activity recorded for this year.</li>';
+ const categories=new Map();ranked.forEach(([id,count])=>{const category=showCategoryMap.get(id);if(category)categories.set(category,(categories.get(category)||0)+count)});
+ $("#annualTopCategories").innerHTML=categories.size?[...categories.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5).map(([name,count])=>'<li><b>'+esc(name)+'</b> — '+count+' events</li>').join(""):'<li>Category information is not available for the shows in this activity snapshot.</li>';
  const milestones=[];if(rows.length)milestones.push(rows.length.toLocaleString()+" recorded listening events");if(days.size)milestones.push("Listened on "+days.size+" different days");if(episodes.size)milestones.push("Played "+episodes.size+" unique episodes");if(shows.size)milestones.push("Explored "+shows.size+" different shows");const longest=Math.max(0,...[...days].map(k=>{const d=new Date(k+"T12:00:00");return d.getDay()}));if(rows.length)milestones.push("Your top show: "+(listeningShowNames.get(ranked[0][0])||"Podcast show"));
  $("#annualMilestones").innerHTML=milestones.length?milestones.map(x=>'<li>'+esc(x)+'</li>').join(""):'<li>Your listening milestones will appear as you listen while signed in.</li>';
- $("#annualCoverage").textContent="This report uses the latest "+listeningCalendarEvents.length+" recorded activity events available to your dashboard. It is a snapshot, not a complete lifetime archive; category-level history is not currently recorded in this activity feed.";
+ $("#annualCoverage").textContent="This report uses the latest "+listeningCalendarEvents.length+" recorded activity events available to your dashboard. It is a snapshot, not a complete lifetime archive; categories are summarized from the category labels on the shows represented in this activity snapshot.";
  $("#annualPrev").disabled=year<=2020;$("#annualNext").disabled=year>=new Date().getFullYear();
 }
 $("#annualPrev")?.addEventListener("click",()=>{annualReportYear=Math.max(2020,annualReportYear-1);renderAnnualReport()});
@@ -400,10 +402,11 @@ async function loadListeningInsights(uid){
  const showIds=[...new Set(events.map(x=>x.podcast_id).filter(Boolean))];
  const episodeIds=[...new Set(completed.map(x=>x.episode_id).filter(Boolean))].slice(0,12);
  const [showsResult,episodesResult]=await Promise.all([
-  showIds.length?S.from("podcasts").select("id,title").in("id",showIds.slice(0,100)):{data:[]},
+  showIds.length?S.from("podcasts").select("id,title,category").in("id",showIds.slice(0,100)):{data:[]},
   episodeIds.length?S.from("podcast_episodes").select("id,title,podcast_id,artwork_url,thumbnail_url,published_at").in("id",episodeIds):{data:[]}
  ]);
  const showMap=new Map((showsResult.data||[]).map(x=>[x.id,x.title]));
+ const showCategoryMap=new Map((showsResult.data||[]).map(x=>[x.id,String(x.category||"").trim()]));
  listeningShowNames=showMap;renderMonthlyRecap();renderAnnualReport();
  const episodeMap=new Map((episodesResult.data||[]).map(x=>[x.id,x]));
  const explored=new Set(events.map(x=>x.podcast_id).filter(Boolean));
