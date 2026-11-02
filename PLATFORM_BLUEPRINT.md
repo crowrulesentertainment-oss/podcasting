@@ -147,3 +147,8 @@ The current project already contains podcast, episode, category, profile, playli
 - Values are stored in the existing draft/published homepage config and flow through preview, publishing, revision comparison, and restore. No schema change is required.
 - The public homepage clamps values to the supported 2–12 range and retains existing defaults when older configurations do not contain these fields.
 \n\n## Homepage visual appearance editor\n- Administrators can select Cinematic, Compact or Artwork-forward card styles; Landscape, Poster or Square artwork ratios; Compact, Standard or Spacious section spacing; and Transparent, Subtle Panel or Dark Cinematic section backgrounds.\n- Appearance values are stored in the existing draft/published homepage JSON configuration. They apply in private preview and on the public homepage after publishing, and are included in revision comparison and restoration. No database migration is required.\n- Legacy configurations retain the Cinematic card style, Landscape artwork, Standard spacing and Transparent section background defaults.\n
+
+## Homepage announcements and campaign scheduling
+- The Discovery & Editorial Control Room includes a timed announcement manager with enable/disable, campaign label, headline, message, optional HTTPS/same-site CTA, optional start/end dates, and listener dismissal.
+- Announcement settings are stored in the existing draft/published JSON configuration and use the existing preview, publish, revision comparison and restore workflow. No database migration is required.
+- The public Listen homepage displays only enabled, published announcements inside their configured time window. Dismissal is stored locally in the visitor's browser and is scoped to the campaign headline and schedule.
