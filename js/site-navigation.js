@@ -63,9 +63,12 @@ function enhance(){
  const rootUrl=new URL('../',document.currentScript?.src||'https://crowrulesentertainment-oss.github.io/podcasting/js/site-navigation.js');
  const globalLinks=[
   {label:'Home',file:'home.html',key:'home'},
+  {label:'Discover',file:'discover.html',key:'discover'},
   {label:'Shows & Episodes',file:'show.html',key:'shows'},
   {label:'Guests Lounge',file:'guests-lounge.html',key:'guests'},
   {label:'Creator Studio',file:'studio.html',key:'studio'},
+  {label:'Apply as Creator',file:'creator/apply.html',key:'apply'},
+  {label:'Rankings',file:'listener/rankings.html',key:'rankings'},
   {label:'Community',file:'listener/community.html',key:'community'},
   {label:'Awards',file:'awards.html',key:'awards'},
   {label:'Theme Studio',file:'theme-studio.html',key:'themes'}
