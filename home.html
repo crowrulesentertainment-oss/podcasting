@@ -270,6 +270,21 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
 }
 
 
+
+/* Recommendation feedback controls */
+.home-rec-feedback{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 12px;padding:10px 12px;border:1px solid rgba(103,232,249,.13);border-radius:10px;background:rgba(3,9,18,.48);color:#91a4bd;font-size:10px;line-height:1.6}
+.home-rec-feedback button,.home-rec-actions button{border:1px solid rgba(103,232,249,.25);border-radius:8px;background:rgba(103,232,249,.07);color:#dffcff;padding:8px 10px;font:800 9px Orbitron;cursor:pointer}
+.home-rec-feedback button:disabled{opacity:.45;cursor:not-allowed}
+.home-rec-card{gap:0}
+.home-rec-card-link{display:flex;flex-direction:column;flex:1;min-width:0;color:inherit;text-decoration:none}
+.home-rec-card-link .home-dynamic-open{display:block}
+.home-rec-why{margin:0 12px 10px;color:#aebdd0;font-size:10px;line-height:1.6}
+.home-rec-why summary{color:#9feaf3;font-weight:800;cursor:pointer;outline-offset:3px}
+.home-rec-why p{margin:7px 0 0}
+.home-rec-actions{display:flex;gap:7px;align-items:center;padding:0 12px 12px}
+.home-rec-actions button{font-size:8px;padding:7px 9px}
+.home-rec-actions .home-rec-dismiss{border-color:rgba(251,113,133,.25);background:rgba(251,113,133,.06);color:#fecdd3}
+
 </style>
 
 <link rel="stylesheet" href="css/sitewide-refinements.css?v=20261012">
@@ -415,7 +430,7 @@ a[aria-disabled="true"]{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
       <div class="home-data-panel home-reconcile-panel"><h3>PLAY-COUNT RECONCILIATION · LIVE READ-ONLY CHECK</h3><div id="homeReconciliation"><div class="home-data-empty">Comparing stored episode and show counters against canonical play events…</div></div></div>
       <section class="home-dynamic-section" aria-labelledby="homeFeaturedTitle"><div class="home-dynamic-title"><h3 id="homeFeaturedTitle">✦ FEATURED & POPULAR SHOWS</h3><div class="home-shelf-actions"><a href="listener/rankings.html">OPEN RANKINGS →</a><div class="home-shelf-arrows" aria-label="Scroll featured shows"><button type="button" data-shelf-scroll="-1" data-shelf-target="homeFeaturedShows" aria-label="Scroll featured shows left">‹</button><button type="button" data-shelf-scroll="1" data-shelf-target="homeFeaturedShows" aria-label="Scroll featured shows right">›</button></div></div></div><div class="home-dynamic-grid" id="homeFeaturedShows"><div class="home-dynamic-empty">Connecting to the published podcast catalog…</div></div></section>
       <section class="home-dynamic-section" aria-labelledby="homeNewTitle"><div class="home-dynamic-title"><h3 id="homeNewTitle">◷ NEW EPISODES</h3><div class="home-shelf-actions"><a href="listener/index.html#discover">ALL EPISODES →</a><div class="home-shelf-arrows" aria-label="Scroll new episodes"><button type="button" data-shelf-scroll="-1" data-shelf-target="homeNewEpisodes" aria-label="Scroll new episodes left">‹</button><button type="button" data-shelf-scroll="1" data-shelf-target="homeNewEpisodes" aria-label="Scroll new episodes right">›</button></div></div></div><div class="home-dynamic-grid" id="homeNewEpisodes"><div class="home-dynamic-empty">Loading recently published episodes…</div></div></section>
-      <section class="home-dynamic-section" aria-labelledby="homeRecommendedTitle"><div class="home-dynamic-title"><h3 id="homeRecommendedTitle">✧ PICKED FOR YOU</h3><div class="home-shelf-actions"><a href="listener/profile.html">YOUR LISTENER PROFILE →</a><div class="home-shelf-arrows" aria-label="Scroll recommended shows"><button type="button" data-shelf-scroll="-1" data-shelf-target="homeRecommendedShows" aria-label="Scroll recommended shows left">‹</button><button type="button" data-shelf-scroll="1" data-shelf-target="homeRecommendedShows" aria-label="Scroll recommended shows right">›</button></div></div></div><div class="home-dynamic-grid" id="homeRecommendedShows"><div class="home-dynamic-empty">Checking whether listening history is available…</div></div></section>
+      <section class="home-dynamic-section" aria-labelledby="homeRecommendedTitle"><div class="home-dynamic-title"><h3 id="homeRecommendedTitle">✧ PICKED FOR YOU</h3><div class="home-shelf-actions"><a href="listener/profile.html">YOUR LISTENER PROFILE →</a><div class="home-shelf-arrows" aria-label="Scroll recommended shows"><button type="button" data-shelf-scroll="-1" data-shelf-target="homeRecommendedShows" aria-label="Scroll recommended shows left">‹</button><button type="button" data-shelf-scroll="1" data-shelf-target="homeRecommendedShows" aria-label="Scroll recommended shows right">›</button></div></div></div><div class="home-rec-feedback"><span id="homeRecFeedbackNote">Recommendations adapt as you explore. Your feedback is saved on this device.</span><button type="button" id="homeRecUndo" disabled>UNDO LAST HIDE ↶</button></div><div class="home-dynamic-grid" id="homeRecommendedShows"><div class="home-dynamic-empty">Checking whether listening history is available…</div></div></section>
       <p class="home-dynamic-foot" id="homeDynamicStatus" role="status" aria-live="polite">Waiting for database connection. Counts only display when the corresponding Supabase query succeeds.</p>
     </section>
 
@@ -962,6 +977,33 @@ async function exactCount(table,filters=[]){
  for(const [method,...args] of filters)q=q[method](...args);
  const r=await q;if(r.error)throw r.error;return Number(r.count)||0;
 }
+let recommendationFeedback=[],recommendationStorageKey="cr_podcast_recommendation_feedback_v1:guest",lastDismissedRecommendation=null;
+function loadRecommendationFeedback(user){
+ recommendationStorageKey="cr_podcast_recommendation_feedback_v1:"+(user?.id||"guest");
+ try{const parsed=JSON.parse(localStorage.getItem(recommendationStorageKey)||"[]");recommendationFeedback=Array.isArray(parsed)?parsed.filter(x=>x&&x.id).slice(0,100):[]}catch(_){recommendationFeedback=[]}
+ lastDismissedRecommendation=null;updateRecommendationFeedbackUI();
+}
+function saveRecommendationFeedback(){
+ try{localStorage.setItem(recommendationStorageKey,JSON.stringify(recommendationFeedback.slice(0,100)))}catch(error){console.debug("Recommendation feedback could not be saved on this device",error)}
+ updateRecommendationFeedbackUI();
+}
+function updateRecommendationFeedbackUI(){
+ const undo=$("homeRecUndo"),note=$("homeRecFeedbackNote");
+ if(undo)undo.disabled=!lastDismissedRecommendation;
+ if(note)note.textContent=recommendationStorageKey.endsWith(":guest")?"Recommendations adapt as you explore. Guest feedback stays on this device.":"Your recommendation feedback is private to this signed-in account on this device.";
+}
+function renderRecommendations(picks,signals,user){
+ const recEl=$("homeRecommendedShows");if(!recEl)return;
+ if(!picks.length){empty("homeRecommendedShows",recommendationFeedback.length?"You've hidden the current suggestions. Undo your last hide or check back as new shows arrive.":"You've explored all currently published shows. Check back as new podcasts arrive.");return}
+ recEl.innerHTML=picks.map((show,i)=>{
+  const category=String(show.category||"Podcast").trim(),matched=signals.categoryWeights.has(category);
+  const reason=signals.personalized?(matched?"Matches "+category+" shows in your listening history or favorites.":"A popular discovery from the published catalog."):(user?"A popular discovery while we learn your listening preferences.":"Popular with CrowRules listeners.");
+  const score=(signals.categoryWeights.get(category)||0),dismissedInCategory=recommendationFeedback.filter(x=>x.category===category).length;
+  const why="This show was selected using "+(matched?"your recent listening and favorite-show categories":"catalog popularity")+". "+(dismissedInCategory?dismissedInCategory+" show"+(dismissedInCategory===1?" has":"s have")+" been hidden in this category, so similar suggestions are being reduced.":"");
+  const art=show.artwork_url?'<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="'+safe(show.artwork_url)+'" alt="">':'<span aria-hidden="true">'+String(i+1).padStart(2,"0")+'</span>';
+  return '<article class="home-dynamic-card home-rec-card"><a class="home-rec-card-link" href="'+safe(showHref(show.id))+'"><div class="home-dynamic-art">'+art+'</div><div class="home-dynamic-copy"><h4>'+safe(show.title||"Untitled show")+'</h4>'+(show.description?'<p>'+safe(show.description)+'</p>':'')+'<div class="home-dynamic-meta">'+safe(reason)+' · '+fmt(show.total_plays)+' plays</div><span class="home-dynamic-open">EXPLORE ↗</span></div></a><details class="home-rec-why"><summary>WHY THIS WAS RECOMMENDED</summary><p>'+safe(why)+'</p></details><div class="home-rec-actions"><button type="button" class="home-rec-dismiss" data-rec-dismiss="'+safe(show.id)+'" data-rec-category="'+safe(category)+'" data-rec-title="'+safe(show.title||"Untitled show")+'">NOT INTERESTED</button></div></article>';
+ }).join("");
+}
 async function loadRecommendationSignals(user){
  const signals={playedShows:new Set(),favoriteShows:new Set(),categoryWeights:new Map(),personalized:false,seedCategory:""};
  if(!user)return signals;
@@ -990,6 +1032,22 @@ async function loadRecommendationSignals(user){
  return signals;
 }
 
+const recEl=$("homeRecommendedShows");
+recEl?.addEventListener("click",event=>{
+ const button=event.target.closest("[data-rec-dismiss]");if(!button)return;
+ const id=String(button.dataset.recDismiss||"");if(!id)return;
+ lastDismissedRecommendation={id,category:button.dataset.recCategory||"",title:button.dataset.recTitle||"Podcast"};
+ recommendationFeedback=[{...lastDismissedRecommendation,hiddenAt:new Date().toISOString()},...recommendationFeedback.filter(x=>String(x.id)!==id)].slice(0,100);
+ saveRecommendationFeedback();
+ const card=button.closest(".home-rec-card");card?.remove();
+ if(recEl&&!recEl.querySelector(".home-rec-card"))empty("homeRecommendedShows","That suggestion has been hidden. Refresh discovery to see updated recommendations.");
+ const feedback=$("homeDynamicStatus");if(feedback)feedback.textContent="Recommendation hidden. Similar shows will be ranked lower on this device.";
+});
+$("homeRecUndo")?.addEventListener("click",()=>{
+ if(!lastDismissedRecommendation)return;
+ recommendationFeedback=recommendationFeedback.filter(x=>String(x.id)!==String(lastDismissedRecommendation.id));
+ lastDismissedRecommendation=null;saveRecommendationFeedback();load();
+});
 async function load(){
  if(busy){loadQueued=true;return}busy=true;
  const button=$("homeDynamicRefresh");if(button){button.disabled=true;button.textContent="REFRESHING…"}
@@ -1010,26 +1068,23 @@ async function load(){
   let user=null;try{const auth=await db.auth.getSession();user=auth.data?.session?.user||null}catch(_){}
   showsCache=shows;
   const signals=await loadRecommendationSignals(user);
+  loadRecommendationFeedback(user);
   const popularity=(a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0);
+  const hiddenIds=new Set(recommendationFeedback.map(x=>String(x.id)));
+  const categoryPenalty=new Map();
+  recommendationFeedback.forEach(x=>{if(x.category)categoryPenalty.set(x.category,(categoryPenalty.get(x.category)||0)+1)});
   let picks=[];
+  const eligible=shows.filter(show=>!signals.playedShows.has(String(show.id))&&!signals.favoriteShows.has(String(show.id))&&!hiddenIds.has(String(show.id)));
   if(signals.personalized){
    const weights=signals.categoryWeights;
-   picks=shows.filter(show=>!signals.playedShows.has(String(show.id))&&!signals.favoriteShows.has(String(show.id)))
-    .map(show=>({show,score:(weights.get(String(show.category||"").trim())||0)*10+Math.log1p(Number(show.total_plays)||0)}))
+   picks=eligible.map(show=>{const category=String(show.category||"").trim(),base=(weights.get(category)||0)*10+Math.log1p(Number(show.total_plays)||0),penalty=(categoryPenalty.get(category)||0)*14;return {show,score:base-penalty}})
     .filter(x=>x.score>0).sort((a,b)=>b.score-a.score||popularity(a.show,b.show)).map(x=>x.show).slice(0,4);
-   // Fill remaining slots with popular discoveries, never repeating a show already played or favorited.
-   if(picks.length<4){const chosen=new Set(picks.map(x=>String(x.id)));shows.filter(x=>!signals.playedShows.has(String(x.id))&&!signals.favoriteShows.has(String(x.id))&&!chosen.has(String(x.id))).sort(popularity).slice(0,4-picks.length).forEach(x=>picks.push(x))}
+   if(picks.length<4){const chosen=new Set(picks.map(x=>String(x.id)));eligible.filter(x=>!chosen.has(String(x.id))).sort((a,b)=>{const pa=categoryPenalty.get(String(a.category||"").trim())||0,pb=categoryPenalty.get(String(b.category||"").trim())||0;return pa-pb||popularity(a,b)}).slice(0,4-picks.length).forEach(x=>picks.push(x))}
   }else{
-   picks=shows.filter(x=>!signals.playedShows.has(String(x.id))&&!signals.favoriteShows.has(String(x.id))).sort(popularity).slice(0,4);
+   picks=eligible.sort((a,b)=>{const pa=categoryPenalty.get(String(a.category||"").trim())||0,pb=categoryPenalty.get(String(b.category||"").trim())||0;return pa-pb||popularity(a,b)}).slice(0,4);
   }
-  const recEl=$("homeRecommendedShows");
-  if(picks.length){
-   recEl.innerHTML=picks.map((show,i)=>{
-    const category=String(show.category||"Podcast").trim(),matched=signals.categoryWeights.has(category);
-    const reason=signals.personalized?(matched?"Because you listen to "+category:"Popular discovery"):(user?"Popular discovery":"Popular with listeners");
-    return card({title:show.title,description:show.description,art:show.artwork_url,meta:reason+" · "+fmt(show.total_plays)+" plays",href:showHref(show.id),number:String(i+1).padStart(2,"0")});
-   }).join("");
-  }else empty("homeRecommendedShows",user?"You've explored all currently published shows. Check back as new podcasts arrive.":"No published shows are available yet.");
+  renderRecommendations(picks,signals,user);
+
 
   // Align play counts with the rankings/admin source: podcast_play_events, event_type=play,
   // with the same session_key de-duplication rule as rankings. Read-only; never writes analytics.
