@@ -44,7 +44,7 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const when=v=>{const d=new Date(v);if(!Number.isFinite(d.getTime()))return 'Recently';const delta=Math.max(0,Date.now()-d.getTime());if(delta<60000)return 'Just now';if(delta<3600000)return Math.floor(delta/60000)+'m ago';if(delta<86400000)return Math.floor(delta/3600000)+'h ago';if(delta<604800000)return Math.floor(delta/86400000)+'d ago';return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:d.getFullYear()!==new Date().getFullYear()?'numeric':undefined});};
 function toast(msg){$('toast').textContent=msg;$('toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),3200);}
 function icon(n){const t=String(n||'').toLowerCase();if(t.includes('new_episode')||t.includes('upcoming_release'))return '♫';if(t.includes('announcement'))return '✦';if(t.includes('like'))return '♥';if(t.includes('comment'))return '▤';if(t.includes('friend'))return '♧';if(t.includes('follow'))return '＋';if(t.includes('episode')||t.includes('podcast'))return '♫';if(t.includes('direct_message'))return '✉';if(t.includes('circle_invitation'))return '♧';if(t.includes('circle_'))return '◉';if(t.includes('point')||t.includes('reward'))return '✦';return '✧';}
-function isSocial(n){return /social_|follow|friend|comment|like/i.test(String(n.type||''));}
+function isSocial(n){return /social_|follow|friend|comment|like|community_reply|community_answer/i.test(String(n.type||''));}
 function isMessaging(n){return /direct_message/i.test(String(n.type||''));}
 function isCircle(n){return /circle_/i.test(String(n.type||''));}
 function isEpisode(n){return /new_episode|upcoming_release/i.test(String(n.type||''));}
