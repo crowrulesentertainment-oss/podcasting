@@ -28,10 +28,7 @@ drop policy if exists circle_collaborations_insert_members on public.podcast_com
 create policy circle_collaborations_insert_members on public.podcast_community_circle_collaborations for insert to authenticated
 with check(author_id=(select auth.uid()) and status='submitted' and creator_response='' and responded_by is null
  and exists(select 1 from public.podcast_community_circle_members m where m.circle_id=podcast_community_circle_collaborations.circle_id and m.member_id=(select auth.uid())));
-drop policy if exists circle_collaborations_author_update on public.podcast_community_circle_collaborations;
-create policy circle_collaborations_author_update on public.podcast_community_circle_collaborations for update to authenticated
-using(author_id=(select auth.uid()) and status='submitted')
-with check(author_id=(select auth.uid()) and status='submitted' and creator_response='' and responded_by is null);
+-- Authors can withdraw while submitted; direct edits are intentionally disabled.
 drop policy if exists circle_collaborations_moderator_update on public.podcast_community_circle_collaborations;
 create policy circle_collaborations_moderator_update on public.podcast_community_circle_collaborations for update to authenticated
 using(exists(select 1 from public.podcast_community_circle_members m where m.circle_id=podcast_community_circle_collaborations.circle_id and m.member_id=(select auth.uid()) and m.role in ('owner','moderator')))
