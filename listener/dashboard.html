@@ -146,6 +146,9 @@ async function loadPersonalRecommendations(uid){
   const categoryScore=new Map(),addCategory=(name,weight)=>{const key=String(name||"").trim().toLowerCase();if(key)categoryScore.set(key,(categoryScore.get(key)||0)+weight)};
   followed.forEach(id=>{const p=showById.get(id);if(p){addCategory(p.category,5);addCategory(categoryMap.get(p.category_id),4)}});
   const episodeById=new Map(episodes.map(x=>[x.id,x]));
+  const missingSavedIds=[...saved].filter(id=>!episodeById.has(id));
+  if(missingSavedIds.length){const savedDetails=await S.from("podcast_episodes").select("id,podcast_id").in("id",missingSavedIds.slice(0,200));if(!savedDetails.error)(savedDetails.data||[]).forEach(x=>episodeById.set(x.id,x))}
+
   saved.forEach(id=>{const ep=episodeById.get(id),p=ep&&showById.get(ep.podcast_id);if(p){addCategory(p.category,4);addCategory(categoryMap.get(p.category_id),3)}});
   playedRows.forEach((x,i)=>{const p=showById.get(x.podcast_id);if(p){const w=Math.max(1,4-Math.floor(i/12));addCategory(p.category,w);addCategory(categoryMap.get(p.category_id),Math.max(1,w-1))}});
   const getCategory=p=>String(p.category||categoryMap.get(p.category_id)||"").trim();
