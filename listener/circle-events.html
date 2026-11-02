@@ -34,7 +34,7 @@ main{padding:38px 0 80px}.hero{display:flex;justify-content:space-between;align-
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const cfg=window.CROW_CONFIG||{};let db=null,user=null,circles=[],events=[],rsvps=new Map(),editing=null;
+const cfg=window.CROW_CONFIG||{};let db=null,user=null,circles=[],events=[],rsvps=new Map(),rsvpNames={},editing=null;
 const typeNames={meetup:'COMMUNITY MEETUP',listening_party:'LISTENING PARTY',ama:'CREATOR Q&A / AMA',livestream:'LIVESTREAM',other:'COMMUNITY EVENT'};
 function setStatus(id,msg,bad=false){const el=$(id);el.textContent=msg;el.className='status'+(bad?' bad':' good');}
 function dt(v){try{return new Date(v).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'})}catch(_){return v||''}}
@@ -53,7 +53,7 @@ async function loadEvents(){
  $('events').innerHTML='<div class="empty">Loading community events…</div>';
  const r=await db.from('podcast_community_circle_events').select('id,circle_id,creator_id,title,description,event_type,starts_at,ends_at,location_type,location_text,meeting_url,episode_url,status,created_at,updated_at').order('starts_at',{ascending:true}).limit(250);
  if(r.error)throw r.error;events=r.data||[];
- rsvps.clear();if(events.length){const rr=await db.from('podcast_community_circle_event_rsvps').select('event_id,user_id,response').in('event_id',events.map(e=>e.id));if(!rr.error)(rr.data||[]).forEach(x=>{if(!rsvps.has(x.event_id))rsvps.set(x.event_id,[]);rsvps.get(x.event_id).push(x);});}
+ rsvps.clear();rsvpNames={};if(events.length){const rr=await db.from('podcast_community_circle_event_rsvps').select('event_id,user_id,response').in('event_id',events.map(e=>e.id));if(!rr.error){const rows=rr.data||[],ids=[...new Set(rows.map(x=>x.user_id))];rows.forEach(x=>{if(!rsvps.has(x.event_id))rsvps.set(x.event_id,[]);rsvps.get(x.event_id).push(x);});if(ids.length){const pr=await db.from('podcast_member_profiles').select('user_id,display_name,username').in('user_id',ids);if(!pr.error)(pr.data||[]).forEach(p=>rsvpNames[p.user_id]=p.display_name||p.username||'Member');}}}
  render();
 }
 function render(){
@@ -70,7 +70,7 @@ function render(){
  $('events').innerHTML=rows.length?rows.map(e=>{
   const circle=circles.find(c=>c.id===e.circle_id),list=rsvps.get(e.id)||[],mine=list.find(x=>x.user_id===user.id),going=list.filter(x=>x.response==='going').length,interested=list.filter(x=>x.response==='interested').length;
   const meeting=safeUrl(e.meeting_url),episode=safeUrl(e.episode_url),ended=new Date(e.starts_at).getTime()<now;
-  const can=canManage(e.circle_id),isCreator=e.creator_id===user.id;
+  const can=canManage(e.circle_id),isCreator=e.creator_id===user.id;const roster=can?['going','interested','declined'].map(k=>{const people=list.filter(x=>x.response===k).map(x=>esc(rsvpNames[x.user_id]||'Member'));return people.length?'<div><strong>'+k.toUpperCase()+' ('+people.length+')</strong>: '+people.join(', ')+'</div>':'';}).join(''):'';
   return '<article class="panel event" id="event-'+esc(e.id)+'"><div class="meta"><span class="tag">'+esc(typeNames[e.event_type]||'COMMUNITY EVENT')+'</span><span class="tag">'+esc(e.location_type.replace('_',' ').toUpperCase())+'</span>'+(e.status==='cancelled'?'<span class="tag" style="color:var(--bad)">CANCELLED</span>':'')+(ended&&e.status==='scheduled'?'<span class="tag">PAST EVENT</span>':'')+'</div><h2>'+esc(e.title)+'</h2><div class="muted" style="font-size:10px;font-weight:800">'+esc(circle?.name||'Community Circle')+'</div><p>'+esc(e.description||'Join your community for this event.')+'</p><div class="detail"><strong>'+esc(dt(e.starts_at))+'</strong>'+(e.ends_at?' – '+esc(dt(e.ends_at)):'')+'<br>'+esc(e.location_text|| (e.location_type==='online'?'Online meeting':'Details from the host'))+'<br>'+going+' going · '+interested+' interested</div><div class="actions">'+(meeting?'<a class="btn secondary" href="'+esc(meeting)+'" target="_blank" rel="noopener">OPEN MEETING ↗</a>':'')+(episode?'<a class="btn secondary" href="'+esc(episode)+'" target="_blank" rel="noopener">PODCAST EPISODE ↗</a>':'')+'</div>'+(e.status==='scheduled'&&!ended?'<div class="rsvpbar"><button class="btn secondary" data-rsvp="'+esc(e.id)+'" data-response="going" aria-pressed="'+(mine?.response==='going')+'">GOING</button><button class="btn secondary" data-rsvp="'+esc(e.id)+'" data-response="interested" aria-pressed="'+(mine?.response==='interested')+'">INTERESTED</button><button class="btn secondary" data-rsvp="'+esc(e.id)+'" data-response="declined" aria-pressed="'+(mine?.response==='declined')+'">CAN’T ATTEND</button></div>':'')+(can||isCreator?'<div class="actions">'+(e.status==='scheduled'?'<button class="btn secondary" data-edit="'+esc(e.id)+'">EDIT EVENT</button><button class="btn danger" data-cancel="'+esc(e.id)+'">CANCEL EVENT</button>':'')+'</div>':'')+'</article>';
  }).join(''):'<div class="empty">No events match this view yet. Join a circle or check back when your communities schedule something.</div>';
  const id=new URLSearchParams(location.search).get('event');if(id)requestAnimationFrame(()=>document.getElementById('event-'+id)?.scrollIntoView({behavior:'smooth',block:'center'}));
