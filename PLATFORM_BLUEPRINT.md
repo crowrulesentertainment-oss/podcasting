@@ -127,3 +127,10 @@ The current project already contains podcast, episode, category, profile, playli
 - The public Listen homepage reads only `published_config`; draft content is previewed in an embedded same-origin admin preview and is not exposed to anonymous visitors.
 - Publishing records an immutable snapshot in `podcast_discovery_home_revisions`; the database retains the latest 20 published versions.
 - Schema setup: `SUPABASE_DISCOVERY_PUBLISHING_SETUP.sql`.
+
+
+### Homepage revision recovery
+
+- Administrators can inspect archived published configurations, compare an archived snapshot against the current live configuration, and preview a snapshot in the private homepage preview.
+- Restoring a snapshot republishes that configuration through the existing admin-only settings update path. The database revision trigger captures the outgoing live configuration before the restored version becomes current.
+- Revision history remains bounded to the latest 20 published configurations.
