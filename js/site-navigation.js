@@ -74,6 +74,7 @@ function enhance(){
   {label:'Circle Events',file:'listener/circle-events.html',key:'circle-events'},
   {label:'Circle Activity',file:'listener/circle-activity.html',key:'circle-activity'},
   {label:'Circle Recognition',file:'listener/circle-recognition.html',key:'circle-recognition'},
+  {label:'Circle Trust & Reputation',file:'listener/circle-trust.html',key:'circle-trust'},
   {label:'Circle Management',file:'listener/circle-management.html',key:'circle-management'},
   {label:'Awards',file:'awards.html',key:'awards'},
   {label:'Theme Studio',file:'theme-studio.html',key:'themes'}
