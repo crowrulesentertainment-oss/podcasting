@@ -60,7 +60,7 @@ create policy circle_event_rsvps_insert_self on public.podcast_community_circle_
 );
 drop policy if exists circle_event_rsvps_update_self on public.podcast_community_circle_event_rsvps;
 create policy circle_event_rsvps_update_self on public.podcast_community_circle_event_rsvps for update to authenticated using(user_id=(select auth.uid())) with check(
- user_id=(select auth.uid()) and exists(select 1 from public.podcast_community_circle_events e join public.podcast_community_circle_members m on m.circle_id=e.circle_id where e.id=event_id and m.member_id=(select auth.uid()))
+ user_id=(select auth.uid()) and exists(select 1 from public.podcast_community_circle_events e join public.podcast_community_circle_members m on m.circle_id=e.circle_id where e.id=event_id and e.status='scheduled' and m.member_id=(select auth.uid()))
 );
 drop policy if exists circle_event_rsvps_delete_self on public.podcast_community_circle_event_rsvps;
 create policy circle_event_rsvps_delete_self on public.podcast_community_circle_event_rsvps for delete to authenticated using(user_id=(select auth.uid()));
