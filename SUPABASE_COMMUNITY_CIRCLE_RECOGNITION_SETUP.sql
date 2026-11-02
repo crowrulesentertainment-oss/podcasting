@@ -23,11 +23,11 @@ create policy circle_recognition_select_members on public.podcast_community_circ
 using(exists(select 1 from public.podcast_community_circle_members m where m.circle_id=podcast_community_circle_recognitions.circle_id and m.member_id=(select auth.uid())));
 drop policy if exists circle_recognition_insert_appreciation on public.podcast_community_circle_recognitions;
 create policy circle_recognition_insert_appreciation on public.podcast_community_circle_recognitions for insert to authenticated
-with check (giver_id=(select auth.uid()) and recognition_type='appreciation'
+with check (giver_id=(select auth.uid()) and recognition_type='appreciation' and period_start=date_trunc('month',now())::date
  and exists(select 1 from public.podcast_community_circle_members g where g.circle_id=podcast_community_circle_recognitions.circle_id and g.member_id=(select auth.uid()))
  and exists(select 1 from public.podcast_community_circle_members r where r.circle_id=podcast_community_circle_recognitions.circle_id and r.member_id=podcast_community_circle_recognitions.recipient_id));
 drop policy if exists circle_recognition_insert_month_award on public.podcast_community_circle_recognitions;
 create policy circle_recognition_insert_month_award on public.podcast_community_circle_recognitions for insert to authenticated
-with check (giver_id=(select auth.uid()) and recognition_type='member_of_month'
+with check (giver_id=(select auth.uid()) and recognition_type='member_of_month' and period_start=date_trunc('month',now())::date
  and exists(select 1 from public.podcast_community_circle_members g where g.circle_id=podcast_community_circle_recognitions.circle_id and g.member_id=(select auth.uid()) and g.role in ('owner','moderator'))
  and exists(select 1 from public.podcast_community_circle_members r where r.circle_id=podcast_community_circle_recognitions.circle_id and r.member_id=podcast_community_circle_recognitions.recipient_id));
