@@ -11,6 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/podcasting.css">
 <link rel="stylesheet" href="../css/listener-cyberpunk.css?v=neon-district-v1">
+<link rel="stylesheet" href="../css/personalized-discovery-home.css?v=20261102">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="../config.js"></script>
@@ -171,6 +172,19 @@ a{text-decoration:none;color:inherit}
   </section>
 
 
+  <section class="listener-shell pdh-wrap" id="pdhDiscovery" aria-label="Personalized podcast discovery">
+    <section class="pdh-section" id="pdhHero" hidden>
+      <div class="pdh-hero"><div class="pdh-hero-copy"><div class="pdh-kicker" id="pdhHeroTag">CROWRULES SPOTLIGHT</div><h2 id="pdhHeroTitle">Discover your next favorite show.</h2><p id="pdhHeroCopy">Independent voices. Original conversations. One listening universe.</p><div class="pdh-actions"><a class="pdh-action primary" id="pdhHeroLink" href="discover.html">EXPLORE SHOW →</a><a class="pdh-action" href="../discover.html">BROWSE ALL SHOWS</a></div></div></div>
+    </section>
+    <div class="pdh-status" id="pdhStatus" role="status" aria-live="polite">Loading the CrowRules discovery feed…</div>
+    <section class="pdh-section"><div class="pdh-head"><div><div class="pdh-kicker">WHAT'S MOVING</div><h2>Trending Now</h2><p>Shows gaining momentum across the published network.</p></div><a class="lbtn" href="rankings.html">VIEW CHARTS →</a></div><div class="pdh-cards" id="pdhTrending"><div class="pdh-empty">Loading trending shows…</div></div></section>
+    <section class="pdh-section"><div class="pdh-head"><div><div class="pdh-kicker">FRESH FROM THE STUDIO</div><h2>New Releases</h2><p>Recently published episodes ready to explore.</p></div></div><div class="pdh-cards" id="pdhNew"><div class="pdh-empty">Loading new releases…</div></div></section>
+    <section class="pdh-section" id="pdhBecause" hidden><div class="pdh-head"><div><div class="pdh-kicker">YOUR LISTENING UNIVERSE</div><h2>Because You Follow</h2><p>New voices selected from the interests behind your followed shows.</p><div class="pdh-status" id="pdhBecauseStatus"></div></div><a class="lbtn" href="dashboard.html">MY SHOWS →</a></div><div class="pdh-cards" id="pdhBecauseCards"></div></section>
+    <section class="pdh-section" id="pdhContinue" hidden><div class="pdh-head"><div><div class="pdh-kicker">PICK UP WHERE YOU LEFT OFF</div><h2>Continue Listening</h2><p>Your unfinished episodes, available when you sign in.</p><div class="pdh-status" id="pdhContinueStatus"></div></div><a class="lbtn" href="dashboard.html">MY LISTENING →</a></div><div class="pdh-cards" id="pdhContinueCards"></div></section>
+    <section class="pdh-section"><div class="pdh-head"><div><div class="pdh-kicker">HANDPICKED DISCOVERY</div><h2>CrowRules Spotlight</h2><p>Featured shows and categories selected for the network.</p></div></div><div class="pdh-cards" id="pdhSpotlight"><div class="pdh-empty">Loading editorial picks…</div></div></section>
+    <section class="pdh-section"><div class="pdh-head"><div><div class="pdh-kicker">EXPLORE BY INTEREST</div><h2>Curated Collections</h2><p>Explore the network through its active categories.</p></div></div><div class="pdh-collection-grid" id="pdhCollections"><div class="pdh-empty">Loading collections…</div></div></section>
+  </section>
+
   <section class="listener-shell section" id="creators-by-state">
     <div class="section-head">
       <div><h2>OUR COMMUNITY, WORLDWIDE</h2><p>Discover public listeners and discoverable creators wherever they call home.</p></div>
@@ -253,6 +267,7 @@ a{text-decoration:none;color:inherit}
 (()=>{"use strict";
 const C=window.CROW_CONFIG||{};
 const S=window.supabase?.createClient&&C.supabaseUrl?window.supabase.createClient(C.supabaseUrl,C.supabaseKey||""):null;
+window.CrowRulesSupabase=S;
 const $=s=>document.querySelector(s);
 const esc=x=>String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const logo=C.logoUrl||"../images/podcastinglogo.png";
@@ -566,5 +581,6 @@ auth();loadShows();loadLive();loadCreatorsByState();
 
 <script src="../js/crowpoints.js" defer></script>
 <script src="../js/global-audio-player.js"></script>
+<script src="../js/personalized-discovery-home.js?v=20261102"></script>
 </body>
 </html>
