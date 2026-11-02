@@ -27,8 +27,7 @@ drop policy if exists "production projects creator insert" on public.podcast_pro
 drop policy if exists "production projects creator update" on public.podcast_production_projects;
 drop policy if exists "production projects creator delete" on public.podcast_production_projects;
 drop policy if exists "production projects admin all" on public.podcast_production_projects;
-create policy "production projects creator read" on public.podcast_production_projects for select to authenticated using (private.can_manage_podcast(podcast_id) or (created_by=(select auth.uid()) and private.can_manage_podcast(podcast_id)));
-create policy "production projects creator insert" on public.podcast_production_projects for insert to authenticated with check (created_by=(select auth.uid()) and private.can_manage_podcast(podcast_id));
-create policy "production projects creator update" on public.podcast_production_projects for update to authenticated using (private.can_manage_podcast(podcast_id)) with check (private.can_manage_podcast(podcast_id));
-create policy "production projects creator delete" on public.podcast_production_projects for delete to authenticated using (private.can_manage_podcast(podcast_id));
-create policy "production projects admin all" on public.podcast_production_projects for all to authenticated using (crowrules_is_admin()) with check (crowrules_is_admin());
+create policy "production projects creator read" on public.podcast_production_projects for select to authenticated using (crowrules_is_admin() or private.can_manage_podcast(podcast_id));
+create policy "production projects creator insert" on public.podcast_production_projects for insert to authenticated with check (crowrules_is_admin() or (created_by=(select auth.uid()) and private.can_manage_podcast(podcast_id)));
+create policy "production projects creator update" on public.podcast_production_projects for update to authenticated using (crowrules_is_admin() or private.can_manage_podcast(podcast_id)) with check (crowrules_is_admin() or private.can_manage_podcast(podcast_id));
+create policy "production projects creator delete" on public.podcast_production_projects for delete to authenticated using (crowrules_is_admin() or private.can_manage_podcast(podcast_id));
