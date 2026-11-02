@@ -25,9 +25,11 @@
 <main class="shell">
 <section class="hero"><div class="eyebrow">YOUR COMMUNITY, IN REAL TIME</div><h1>Notifications</h1><p>Keep up with your CrowRules community. Follow private messages, circle invitations, new discussions, replies and moderation updates from one activity feed.</p><div class="status" id="status" role="status">Connecting to your account…</div></section>
 <section class="card" aria-label="Notifications">
-<div class="toolbar"><h2>ACTIVITY <span class="count" id="unreadCount">0</span></h2><div class="filters"><button class="btn active" data-filter="all">All</button><button class="btn" data-filter="unread">Unread</button><button class="btn" data-filter="social">Social</button><button class="btn" data-filter="messages">Messages</button><button class="btn" data-filter="circles">Circles</button><button class="btn" id="markAll">Mark all read</button></div></div>
+<div class="toolbar"><h2>ACTIVITY <span class="count" id="unreadCount">0</span></h2><div class="filters"><button class="btn active" data-filter="all">All</button><button class="btn" data-filter="unread">Unread</button><button class="btn" data-filter="social">Social</button><button class="btn" data-filter="messages">Messages</button><button class="btn" data-filter="circles">Circles</button><button class="btn" data-filter="episodes">Episodes</button><button class="btn" data-filter="announcements">Show news</button><button class="btn" id="markAll">Mark all read</button></div></div>
 <div class="list" id="list"><div class="empty">Loading your notifications…</div></div>
 </section>
+<section class="card" aria-label="Upcoming podcast releases"><div class="toolbar"><h2>UPCOMING RELEASES</h2><span class="status" id="releaseStatus">Checking the release calendar…</span></div><div class="list" id="releaseList"><div class="empty">Loading upcoming releases…</div></div></section>
+<section class="card prefs" aria-label="Podcast notification preferences"><h2>PODCAST RELEASE & CREATOR ALERTS</h2><p>Choose which updates you receive from shows you follow or have saved as favorites. These controls apply to future in-app notifications.</p><label class="pref-row"><span><strong>New episode alerts</strong><small>When a followed or favorited show publishes a new episode or posts an upcoming release.</small></span><input id="episodeAlerts" type="checkbox" checked></label><label class="pref-row"><span><strong>Creator announcements</strong><small>Special episodes, show news, events and updates from your followed or favorited shows.</small></span><input id="creatorAnnouncementAlerts" type="checkbox" checked></label><div class="prefs-actions"><button class="btn primary" id="savePodcastPrefs" type="button">Save podcast preferences</button><span id="podcastPrefsStatus" class="prefs-status" role="status">Sign in to manage these settings.</span></div><p style="margin:14px 0 0">Email delivery is not enabled yet. These settings currently control in-app notifications.</p></section>
 <section class="card prefs" aria-label="Community circle notification preferences"><h2>COMMUNITY CIRCLE ALERT PREFERENCES</h2><p>Control which Community Circles events appear in your activity feed. These settings apply to future activity.</p><label class="pref-row"><span><strong>Circle invitations</strong><small>When a circle owner invites you to join a community.</small></span><input id="circleInviteAlerts" type="checkbox" checked></label><label class="pref-row"><span><strong>New discussions</strong><small>When another member starts a discussion in a circle you joined.</small></span><input id="circleDiscussionAlerts" type="checkbox" checked></label><label class="pref-row"><span><strong>Replies to your discussions</strong><small>When another member replies to a discussion you started.</small></span><input id="circleReplyAlerts" type="checkbox" checked></label><label class="pref-row"><span><strong>Circle moderation updates</strong><small>When a moderator is assigned or a member is removed from a circle you own.</small></span><input id="circleModerationAlerts" type="checkbox" checked></label><div class="prefs-actions"><button class="btn primary" id="saveCirclePrefs" type="button">Save circle preferences</button><span id="circlePrefsStatus" class="prefs-status" role="status">Sign in to manage these settings.</span></div></section>
 <section class="card prefs" aria-label="Messaging notification preferences"><h2>MESSAGING ALERT PREFERENCES</h2><p>Choose which private-message events create notifications in your CrowRules inbox. Changes apply to future activity.</p><label class="pref-row"><span><strong>New private messages</strong><small>Alert me when an accepted conversation receives a new message.</small></span><input id="messageAlerts" type="checkbox" checked></label><label class="pref-row"><span><strong>Message requests &amp; responses</strong><small>Alert me when someone requests to message me, or responds to a request I sent.</small></span><input id="requestAlerts" type="checkbox" checked></label><div class="prefs-actions"><button class="btn primary" id="savePrefs" type="button">Save preferences</button><span id="prefsStatus" class="prefs-status" role="status">Sign in to manage these settings.</span></div></section>
 <div class="footer">CROWRULES PODCASTING · ONE ACCOUNT. ONE UNIVERSE.</div>
@@ -41,11 +43,11 @@ let db=null,user=null,rows=[],filter='all',channel=null,toastTimer=null;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const when=v=>{const d=new Date(v);if(!Number.isFinite(d.getTime()))return 'Recently';const delta=Math.max(0,Date.now()-d.getTime());if(delta<60000)return 'Just now';if(delta<3600000)return Math.floor(delta/60000)+'m ago';if(delta<86400000)return Math.floor(delta/3600000)+'h ago';if(delta<604800000)return Math.floor(delta/86400000)+'d ago';return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:d.getFullYear()!==new Date().getFullYear()?'numeric':undefined});};
 function toast(msg){$('toast').textContent=msg;$('toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),3200);}
-function icon(n){const t=String(n||'').toLowerCase();if(t.includes('like'))return '♥';if(t.includes('comment'))return '▤';if(t.includes('friend'))return '♧';if(t.includes('follow'))return '＋';if(t.includes('episode')||t.includes('podcast'))return '♫';if(t.includes('direct_message'))return '✉';if(t.includes('circle_invitation'))return '♧';if(t.includes('circle_'))return '◉';if(t.includes('point')||t.includes('reward'))return '✦';return '✧';}
+function icon(n){const t=String(n||'').toLowerCase();if(t.includes('new_episode')||t.includes('upcoming_release'))return '♫';if(t.includes('announcement'))return '✦';if(t.includes('like'))return '♥';if(t.includes('comment'))return '▤';if(t.includes('friend'))return '♧';if(t.includes('follow'))return '＋';if(t.includes('episode')||t.includes('podcast'))return '♫';if(t.includes('direct_message'))return '✉';if(t.includes('circle_invitation'))return '♧';if(t.includes('circle_'))return '◉';if(t.includes('point')||t.includes('reward'))return '✦';return '✧';}
 function isSocial(n){return /social_|follow|friend|comment|like/i.test(String(n.type||''));}
 function isMessaging(n){return /direct_message/i.test(String(n.type||''));}
-function isCircle(n){return /circle_/i.test(String(n.type||''));}
-function visible(){return rows.filter(n=>filter==='unread'?!n.is_read:filter==='social'?isSocial(n):filter==='messages'?isMessaging(n):filter==='circles'?isCircle(n):true);}
+function isCircle(n){return /circle_/i.test(String(n.type||''));}\nfunction isEpisode(n){return /new_episode|upcoming_release/i.test(String(n.type||''));}\nfunction isAnnouncement(n){return /creator_announcement/i.test(String(n.type||''));}
+function visible(){return rows.filter(n=>filter==='unread'?!n.is_read:filter==='social'?isSocial(n):filter==='messages'?isMessaging(n):filter==='circles'?isCircle(n):filter==='episodes'?isEpisode(n):filter==='announcements'?isAnnouncement(n):true);}
 function render(){
 const unread=rows.filter(n=>!n.is_read).length;$('unreadCount').textContent=unread>99?'99+':String(unread);
 $('markAll').disabled=!unread;
@@ -60,6 +62,45 @@ $('status').textContent='Updating your activity…';
 const r=await db.from('crowrules_notifications').select('id,user_id,actor_user_id,type,title,body,division,action_url,metadata,is_read,created_at,read_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(100);
 if(r.error){console.error('Notifications query failed:',r.error);$('status').textContent='Notifications could not load. Check your account permissions and try again.';$('list').innerHTML='<div class="empty"><strong>COULD NOT LOAD ACTIVITY</strong>'+esc(r.error.message)+'</div>';return;}
 rows=r.data||[];render();$('status').textContent=rows.length?'Showing your '+rows.length+' most recent notifications. Updates arrive automatically.':'You’re connected. New activity will show up here automatically.';
+}
+async function loadPodcastPreferences(){
+ if(!user){$('podcastPrefsStatus').textContent='Sign in to manage these settings.';return;}
+ const r=await db.from('podcast_listener_notification_preferences').select('episode_alerts,creator_announcement_alerts').eq('user_id',user.id).maybeSingle();
+ if(r.error){$('podcastPrefsStatus').textContent='Podcast preferences unavailable: '+r.error.message;return;}
+ $('episodeAlerts').checked=r.data?.episode_alerts!==false;
+ $('creatorAnnouncementAlerts').checked=r.data?.creator_announcement_alerts!==false;
+ $('podcastPrefsStatus').textContent='Your podcast alert settings are loaded.';
+}
+async function savePodcastPreferences(){
+ if(!user){toast('Sign in to save podcast alert preferences.');return;}
+ const b=$('savePodcastPrefs');b.disabled=true;
+ try{
+  const payload={user_id:user.id,episode_alerts:$('episodeAlerts').checked,creator_announcement_alerts:$('creatorAnnouncementAlerts').checked,updated_at:new Date().toISOString()};
+  const r=await db.from('podcast_listener_notification_preferences').upsert(payload,{onConflict:'user_id'});
+  if(r.error)throw r.error;
+  $('podcastPrefsStatus').textContent='Saved just now.';toast('Podcast notification preferences saved.');
+ }catch(e){$('podcastPrefsStatus').textContent='Could not save: '+e.message;toast('Could not save podcast preferences.');}
+ finally{b.disabled=false;}
+}
+function safeLocalAction(raw){
+ if(!raw)return '';
+ try{const u=new URL(raw,window.location.href);return u.origin===window.location.origin?u.href:'';}catch(_e){return '';}
+}
+async function loadReleaseCalendar(){
+ const box=$('releaseList');if(!box)return;
+ const r=await db.from('podcast_release_schedule').select('id,podcast_id,title,summary,scheduled_for,action_url').eq('is_public',true).eq('status','scheduled').gt('scheduled_for',new Date().toISOString()).order('scheduled_for',{ascending:true}).limit(12);
+ if(r.error){box.innerHTML='<div class="empty">The release calendar is temporarily unavailable.</div>';$('releaseStatus').textContent='Calendar unavailable';return;}
+ const releases=r.data||[];
+ if(!releases.length){box.innerHTML='<div class="empty"><strong>NO UPCOMING RELEASES POSTED</strong>When creators schedule new releases, they will appear here.</div>';$('releaseStatus').textContent='Calendar is up to date';return;}
+ const ids=[...new Set(releases.map(x=>x.podcast_id).filter(Boolean))];
+ const pr=ids.length?await db.from('podcasts').select('id,title').in('id',ids):{data:[],error:null};
+ const names=new Map((pr.data||[]).map(x=>[x.id,x.title]));
+ box.innerHTML=releases.map(x=>{
+  const d=new Date(x.scheduled_for),date=Number.isFinite(d.getTime())?d.toLocaleString(undefined,{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'Scheduled release';
+  const href=safeLocalAction(x.action_url);
+  return '<article class="item"><div class="icon" aria-hidden="true">◷</div><div class="content"><div class="title">'+esc(x.title)+'</div><div class="body">'+esc(x.summary||'A new release is on the way.')+'</div><div class="meta"><span>'+esc(names.get(x.podcast_id)||'CrowRules Podcast')+'</span><span>'+esc(date)+'</span></div></div><div class="item-actions">'+(href?'<a class="btn open" href="'+esc(href)+'">Show</a>':'')+'</div></article>';
+ }).join('');
+ $('releaseStatus').textContent=releases.length+' upcoming release'+(releases.length===1?'':'s');
 }
 async function loadCirclePreferences(){
 if(!user){$('circlePrefsStatus').textContent='Sign in to manage these settings.';return;}
@@ -111,11 +152,11 @@ channel=db.channel('crowrules-notifications-'+user.id).on('postgres_changes',{ev
 }
 document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.filter;render();}));
 $('markAll').addEventListener('click',markAll);
-$('savePrefs').addEventListener('click',savePreferences);
+$('savePrefs').addEventListener('click',savePreferences);\n$('savePodcastPrefs').addEventListener('click',savePodcastPreferences);
 $('saveCirclePrefs').addEventListener('click',saveCirclePreferences);
 $('list').addEventListener('click',e=>{const r=e.target.closest('[data-read]');if(r){markRead(r.dataset.read);return;}const o=e.target.closest('[data-open]');if(o)openAction(o.dataset.open);});
 (async()=>{
-try{const cfg=window.CROW_CONFIG||{};if(!window.supabase||!cfg.supabaseUrl||!cfg.supabaseKey)throw new Error('CrowRules configuration is unavailable.');db=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);const s=await db.auth.getSession();user=s.data?.session?.user||null;await load();await loadPreferences();await loadCirclePreferences();realtime();db.auth.onAuthStateChange((_event,session)=>{user=session?.user||null;load().then(()=>loadPreferences()).then(()=>loadCirclePreferences()).then(realtime);});}
+try{const cfg=window.CROW_CONFIG||{};if(!window.supabase||!cfg.supabaseUrl||!cfg.supabaseKey)throw new Error('CrowRules configuration is unavailable.');db=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);const s=await db.auth.getSession();user=s.data?.session?.user||null;await load();await loadPreferences();await loadCirclePreferences();await loadPodcastPreferences();await loadReleaseCalendar();realtime();db.auth.onAuthStateChange((_event,session)=>{user=session?.user||null;load().then(()=>loadPreferences()).then(()=>loadCirclePreferences()).then(()=>loadPodcastPreferences()).then(loadReleaseCalendar).then(realtime);});}
 catch(e){console.error('Notifications initialization failed:',e);$('status').textContent='Could not connect to CrowRules services.';$('list').innerHTML='<div class="empty"><strong>CONNECTION UNAVAILABLE</strong>'+esc(e.message||'Please refresh and try again.')+'</div>';}
 })();
 })();
