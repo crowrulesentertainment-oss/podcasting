@@ -73,6 +73,7 @@ Release model: Staged releases with a full-network architecture.
 - Persistent audio/video player
 - Resume playback and queue
 - Comments, follows and notification preferences
+- Personalized listener recommendations on the dashboard: published shows and playable episodes ranked from followed shows, saved episodes, listening events, category affinity, featured status and popularity. Recommendations use existing tables and require no new schema.
 
 ### Stage 3 — Creator onboarding and studio
 - Application review workflow
