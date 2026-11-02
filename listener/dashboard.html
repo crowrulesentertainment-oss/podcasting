@@ -330,7 +330,7 @@ function renderListeningCalendar(){
  for(let day=1;day<=days;day++){const date=new Date(year,month,day),key=localDayKey(date),count=activity.get(key)||0,classes=["calendar-day",count?"has-listened":"",key===today?"today":""].filter(Boolean).join(" ");html+='<div class="'+classes+'" role="gridcell" aria-label="'+esc(date.toLocaleDateString())+(count?", "+count+" recorded events":" , no recorded activity")+'"><span>'+day+'</span>'+(count?'<small>'+count+' '+(count===1?"LISTEN":"EVENTS")+'</small>':'')+'</div>'}
  grid.innerHTML=html;
  const current=new Date(new Date().getFullYear(),new Date().getMonth(),1);
- prev.disabled=first<=new Date(Math.min(...listeningCalendarEvents.map(e=>new Date(e.created_at).getTime()).filter(Number.isFinite),Date.now()));
+ prev.disabled=false;
  next.disabled=first>=current;
  $("#calendarCoverage").textContent="Calendar uses your latest "+listeningCalendarEvents.length+" recorded activity events.";
 }
