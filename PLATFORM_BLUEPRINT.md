@@ -83,6 +83,7 @@ Release model: Staged releases with a full-network architecture.
 
 ### Stage 4 — Community and discovery
 - Guest Lounge, creator directory, community spaces
+- Public Listen homepage discovery feed: Trending Now, New Releases, Because You Follow, Continue Listening, CrowRules Spotlight and active-category collections. Personal rows are user-scoped and hidden for signed-out visitors; public rows use published-only catalogue queries.
 - Editorial features, recommendations and curated collections
 
 ### Stage 5 — Awards, rankings and live
