@@ -68,6 +68,7 @@ Release model: Staged releases with a full-network architecture.
 - Keep the existing pre-launch page and January 1, 2027 target intact
 
 ### Stage 2 — Listener experience
+**Initial implementation committed:** the authenticated listener dashboard now includes Continue Listening, saved episodes (My List), followed shows (My Shows), private playlist creation, adding saved episodes to playlists, playlist detail playback/removal, and the shared global audio player. These features reuse existing tables and owner-scoped RLS policies. Remaining Stage 2 work: richer recommendation personalization, queue management, playback preferences, cross-device progress reconciliation and listener notifications.
 - Profile, library, saved shows, playlists and listening history
 - Persistent audio/video player
 - Resume playback and queue
