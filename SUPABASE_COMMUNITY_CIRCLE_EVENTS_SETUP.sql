@@ -87,3 +87,34 @@ end; $$;
 revoke all on function private.notify_podcast_circle_event() from public,anon,authenticated;
 drop trigger if exists podcast_circle_event_notify on public.podcast_community_circle_events;
 create trigger podcast_circle_event_notify after insert or update on public.podcast_community_circle_events for each row execute function private.notify_podcast_circle_event();
+
+
+-- 24-hour and 1-hour reminders for members who RSVP Going or Interested.
+-- A single 15-minute cron job checks two narrow windows, preventing repeated reminders.
+create or replace function private.notify_podcast_circle_event_reminders()
+returns void language plpgsql security definer set search_path=''
+as $$
+declare item record; reminder_kind text; reminder_title text; reminder_body text;
+begin
+ for item in
+  select e.id,e.circle_id,e.creator_id,e.title,e.starts_at,r.user_id
+  from public.podcast_community_circle_events e
+  join public.podcast_community_circle_event_rsvps r on r.event_id=e.id and r.response in ('going','interested')
+  where e.status='scheduled' and (
+   (e.starts_at>now()+interval '23 hours 45 minutes' and e.starts_at<=now()+interval '24 hours') or
+   (e.starts_at>now()+interval '45 minutes' and e.starts_at<=now()+interval '1 hour')
+  )
+ loop
+  if item.starts_at>now()+interval '23 hours' then
+   reminder_kind:='24h';reminder_title:='Tomorrow: community event';reminder_body:=item.title||' starts in about 24 hours.';
+  else
+   reminder_kind:='1h';reminder_title:='Starting soon: community event';reminder_body:=item.title||' starts in about an hour.';
+  end if;
+  insert into public.crowrules_notifications(user_id,actor_user_id,type,title,body,division,action_url,metadata,priority,dedupe_key)
+  values(item.user_id,item.creator_id,'circle_event_reminder',reminder_title,reminder_body,'Podcasting','/podcasting/listener/circle-events.html?event='||item.id::text,jsonb_build_object('circle_id',item.circle_id,'event_id',item.id,'reminder',reminder_kind),70,'podcast-circle-event-reminder:'||item.id::text||':'||reminder_kind||':'||item.user_id::text)
+  on conflict do nothing;
+ end loop;
+end; $$;
+revoke all on function private.notify_podcast_circle_event_reminders() from public,anon,authenticated;
+select cron.unschedule(jobid) from cron.job where jobname='podcast-community-circle-event-reminders';
+select cron.schedule('podcast-community-circle-event-reminders','*/15 * * * *','select private.notify_podcast_circle_event_reminders();');
