@@ -84,7 +84,7 @@ Release model: Staged releases with a full-network architecture.
 ### Stage 4 — Community and discovery
 - Guest Lounge, creator directory, community spaces
 - Public Listen homepage discovery feed: Trending Now, New Releases, Because You Follow, Continue Listening, CrowRules Spotlight and active-category collections. Personal rows are user-scoped and hidden for signed-out visitors; public rows use published-only catalogue queries.
-- Editorial features, recommendations and curated collections
+- Discovery & Editorial Control Room: admin-managed spotlight hero copy/image/show, trending and new-release labels/descriptions, featured show flags, active/featured category collections, category descriptions/artwork/order and public homepage section ordering. Admin access is verified against database member roles and reinforced by Supabase RLS using the existing `crowrules_is_admin()` authority function.
 
 ### Stage 5 — Awards, rankings and live
 - Transparent chart methodology and historical snapshots
