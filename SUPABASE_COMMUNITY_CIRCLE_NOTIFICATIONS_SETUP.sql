@@ -29,7 +29,7 @@ begin
  select c.name into circle_label from public.podcast_community_circles c where c.id=new.circle_id;
  select coalesce(nullif(mp.display_name,''),nullif(mp.username,''),'A circle owner') into inviter_label from public.podcast_member_profiles mp where mp.user_id=new.inviter_id;
  insert into public.crowrules_notifications(user_id,actor_user_id,type,title,body,division,action_url,metadata,priority,dedupe_key)
- values(new.invitee_id,new.inviter_id,'circle_invitation','Community circle invitation',coalesce(inviter_label,'A circle owner')||' invited you to '||coalesce(circle_label,'a Community Circle')||'.','Podcasting','/podcasting/listener/circle-management.html',jsonb_build_object('circle_id',new.circle_id,'invitation_id',new.id),75,'podcast-circle-invite:'||new.id::text) on conflict do nothing;
+ values(new.invitee_id,new.inviter_id,'circle_invitation','Community circle invitation',coalesce(inviter_label,'A circle owner')||' invited you to '||coalesce(circle_label,'a Community Circle')||'.','Podcasting','/podcasting/listener/circle-management.html?invite='||new.id::text,jsonb_build_object('circle_id',new.circle_id,'invitation_id',new.id),75,'podcast-circle-invite:'||new.id::text) on conflict do nothing;
  return new;
 end; $$;
 revoke all on function private.notify_podcast_circle_invitation() from public,anon,authenticated;
@@ -97,7 +97,7 @@ begin
  if enabled then
   select coalesce(nullif(mp.display_name,''),nullif(mp.username,''),'A member') into member_label from public.podcast_member_profiles mp where mp.user_id=target_id;
   insert into public.crowrules_notifications(user_id,actor_user_id,type,title,body,division,action_url,metadata,priority,dedupe_key)
-  values(owner_id,auth.uid(),'circle_moderation',headline,coalesce(member_label,'A member')||detail||' ('||coalesce(circle_label,'Community Circle')||').','Podcasting','/podcasting/listener/circle-management.html',jsonb_build_object('circle_id',circle,'member_id',target_id,'event',tg_op),65,'podcast-circle-moderation:'||circle::text||':'||target_id::text||':'||tg_op||':'||role_label) on conflict do nothing;
+  values(owner_id,auth.uid(),'circle_moderation',headline,coalesce(member_label,'A member')||detail||' ('||coalesce(circle_label,'Community Circle')||').','Podcasting','/podcasting/listener/circle-management.html?circle='||circle::text,jsonb_build_object('circle_id',circle,'member_id',target_id,'event',tg_op),65,'podcast-circle-moderation:'||circle::text||':'||target_id::text||':'||tg_op||':'||role_label) on conflict do nothing;
  end if;
  if tg_op='DELETE' then return old; else return new; end if;
 end; $$;
