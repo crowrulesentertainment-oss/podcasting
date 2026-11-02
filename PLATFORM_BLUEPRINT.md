@@ -159,19 +159,7 @@ The current project already contains podcast, episode, category, profile, playli
 - Search operates entirely against the discovery catalogue already loaded for the homepage. It introduces no new database objects, polling, or additional Supabase requests.
 
 
-## Advanced listener search filters
-- Instant search now supports SHOWS ONLY / EPISODES ONLY / SHOWS & EPISODES, category filtering, and BEST MATCH / NEWEST / MOST PLAYED sorting.
-- Best-match ordering scores title matches above description/category matches, then uses publication date as a tie-breaker. Newest and most-played modes use fields already included in the existing bounded discovery query.
-- All filtering and sorting run locally against the already-loaded catalogue; no additional Supabase requests or schema changes.
-
-
-## Progressive listener search results
-- Search returns every match in the already-loaded, bounded discovery catalogue (up to 40 shows and 50 playable episodes) rather than silently limiting each group to the first 12.
-- Results are initially displayed in batches of 12 per content type. SHOW MORE reveals additional matches without another database request; show and episode groups expand independently.
-- Match totals show the full number of local results, and group headings show visible versus total results. Changing a search filter resets both groups to their first batch.
-
-
 ## Listener quick discovery and trending topics
-- Search includes one-click presets for Latest Episodes, Most Played, and Featured Shows.
-- Trending Topics are derived from category activity across the currently loaded published shows and playable episodes, ranked by combined catalogue count. Selecting a topic applies the category filter immediately.
-- Quick picks and topic chips update the existing local search results and progressive Show More controls. No new database tables or queries are introduced.
+- Quick picks: Latest Episodes, Most Played, and Featured Shows.
+- Trending Topics are derived from category counts among the currently loaded published shows and playable episodes, ranked by combined activity count.
+- Topic chips and quick picks update local search results, including the existing progressive Show More behavior. No new database queries or schema changes.
