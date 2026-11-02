@@ -227,7 +227,6 @@ async function loadPersonalRecommendations(uid){
    if(latestSeed){
     const seed=showById.get(latestSeed.podcast_id),seedCategory=getCategory(seed).toLowerCase();
     const related=shows.filter(p=>p.id!==seed.id&&getCategory(p).toLowerCase()===seedCategory).slice(0,3);
-    const cards=[{p:seed,label:"YOUR RECENT LISTEN"},{...related.slice(0,2).map(p=>({p,label:"SIMILAR CATEGORY"}))}].flat().filter(Boolean);
     becauseBox.innerHTML='<article class="because-card"><img loading="lazy" src="'+esc(seed.artwork_url||logo())+'" alt=""><span><strong>'+esc(seed.title)+'</strong><small>Start here · your most recent show in this listening snapshot</small></span></article>'+related.slice(0,2).map(p=>'<a class="because-card" href="show.html?id='+encodeURIComponent(p.id)+'"><img loading="lazy" src="'+esc(p.artwork_url||logo())+'" alt=""><span><strong>'+esc(p.title)+'</strong><small>Because you listened to '+esc(seed.title)+' · '+esc(getCategory(p)||"Related discovery")+'</small></span></a>').join("");
    }else{
     becauseBox.innerHTML='<div class="empty">Play a show while signed in and we’ll use it as a starting point for related discoveries.</div>';
@@ -507,9 +506,11 @@ async function loadFavoriteShows(uid){
 }
 async function loadListeningInsights(uid){
  const completedBox=$("#completedList"),activityBox=$("#activityFeed");
- const [progressResult,eventsResult]=await Promise.all([
+ const weekCutoff=new Date(Date.now()-7*86400000).toISOString();
+ const [progressResult,eventsResult,weekListenResult]=await Promise.all([
   S.rpc("get_my_podcast_playback_state"),
-  S.from("podcast_play_events").select("episode_id,podcast_id,episode_title,created_at,event_type").eq("user_id",uid).order("created_at",{ascending:false}).limit(200)
+  S.from("podcast_play_events").select("episode_id,podcast_id,episode_title,created_at,event_type").eq("user_id",uid).order("created_at",{ascending:false}).limit(200),
+  S.from("podcast_listens").select("seconds_listened,created_at").eq("user_id",uid).gte("created_at",weekCutoff).order("created_at",{ascending:false}).limit(500)
  ]);
  if(progressResult.error)throw new Error("Completed episode summary unavailable: "+progressResult.error.message);
  const progress=Array.isArray(progressResult.data)?progressResult.data:[];
