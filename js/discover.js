@@ -7,7 +7,7 @@ let client=window.CrowRulesSupabase||null;
 if(!client&&window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey)client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"},global:{headers:{"x-application-name":"crowrules-podcasting-discover"}}});
 function card(s){
  const title=esc(s.title||"Untitled podcast"),art=esc(s.artwork_url||fallback),category=esc(s.category||"Podcast"),description=esc(s.description||"Discover this show on CrowRules Podcasting."),creator=esc(s.author_name||"CrowRules Creator");
- return '<article class="dn-show-card"><div class="dn-show-art"><img loading="lazy" src="'+art+'" alt="">'+(s.is_featured?'<span class="dn-featured">FEATURED</span>':"")+'</div><div class="dn-show-copy"><h3>'+title+'</h3><p>'+description+'</p><div class="dn-show-meta"><span>'+category+'</span><span>'+creator+'</span></div><a class="dn-show-open" href="listener/index.html">EXPLORE SHOW →</a></div></article>';
+ return '<article class="dn-show-card"><div class="dn-show-art"><img loading="lazy" src="'+art+'" alt="">'+(s.is_featured?'<span class="dn-featured">FEATURED</span>':"")+'</div><div class="dn-show-copy"><h3>'+title+'</h3><p>'+description+'</p><div class="dn-show-meta"><span>'+category+'</span><span>'+creator+'</span></div><a class="dn-show-open" href="listener/show.html?id=' + encodeURIComponent(s.id) + '">OPEN SHOW →</a></div></article>';
 }
 function render(){
  const q=search.value.trim().toLowerCase(),cat=filter.value;
