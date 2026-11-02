@@ -157,3 +157,9 @@ The current project already contains podcast, episode, category, profile, playli
 ## Listener instant search and category filters
 - The public Listen homepage includes an instant search for published shows and episodes, with category filtering, clear/reset controls, and separate show/episode result groups.
 - Search operates entirely against the discovery catalogue already loaded for the homepage. It introduces no new database objects, polling, or additional Supabase requests.
+
+
+## Advanced listener search filters
+- Instant search now supports SHOWS ONLY / EPISODES ONLY / SHOWS & EPISODES, category filtering, and BEST MATCH / NEWEST / MOST PLAYED sorting.
+- Best-match ordering scores title matches above description/category matches, then uses publication date as a tie-breaker. Newest and most-played modes use fields already included in the existing bounded discovery query.
+- All filtering and sorting run locally against the already-loaded catalogue; no additional Supabase requests or schema changes.
