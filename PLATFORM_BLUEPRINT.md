@@ -163,3 +163,9 @@ The current project already contains podcast, episode, category, profile, playli
 - Instant search now supports SHOWS ONLY / EPISODES ONLY / SHOWS & EPISODES, category filtering, and BEST MATCH / NEWEST / MOST PLAYED sorting.
 - Best-match ordering scores title matches above description/category matches, then uses publication date as a tie-breaker. Newest and most-played modes use fields already included in the existing bounded discovery query.
 - All filtering and sorting run locally against the already-loaded catalogue; no additional Supabase requests or schema changes.
+
+
+## Progressive listener search results
+- Search returns every match in the already-loaded, bounded discovery catalogue (up to 40 shows and 50 playable episodes) rather than silently limiting each group to the first 12.
+- Results are initially displayed in batches of 12 per content type. SHOW MORE reveals additional matches without another database request; show and episode groups expand independently.
+- Match totals show the full number of local results, and group headings show visible versus total results. Changing a search filter resets both groups to their first batch.
