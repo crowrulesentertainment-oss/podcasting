@@ -1,0 +1,39 @@
+/* Personalized Listen homepage — CrowRules cinematic streaming UI */
+.pdh-wrap{display:grid;gap:34px;margin:12px auto 58px}
+.pdh-row{display:grid;gap:14px}
+.pdh-head{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:15px}
+.pdh-kicker{font:800 9px Orbitron,sans-serif;letter-spacing:.2em;color:#ff5964;text-transform:uppercase}
+.pdh-head h2{font:800 clamp(21px,3.5vw,31px) Orbitron,sans-serif;margin:8px 0 5px;letter-spacing:-.035em}
+.pdh-head p{font-size:11px;line-height:1.6;color:#8e9ab3;margin:0}
+.pdh-status{font-size:10px;color:#8793aa;min-height:14px}
+.pdh-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.pdh-card{min-width:0;overflow:hidden;border:1px solid rgba(255,255,255,.09);border-radius:13px;background:linear-gradient(150deg,rgba(19,25,43,.94),rgba(8,12,25,.96));transition:transform .22s,border-color .22s,box-shadow .22s}
+.pdh-card:hover{transform:translateY(-4px);border-color:rgba(255,70,83,.55);box-shadow:0 18px 40px #0007}
+.pdh-art{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#101629}
+.pdh-card-copy{padding:13px}
+.pdh-tag{font:800 8px Orbitron,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#ff6972}
+.pdh-card h3{font:800 12px/1.5 Orbitron,sans-serif;margin:7px 0}
+.pdh-card p{font-size:10px;line-height:1.65;color:#9aa6bf;margin:0 0 11px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;min-height:48px}
+.pdh-meta{font-size:8px;letter-spacing:.1em;color:#77849d;text-transform:uppercase}
+.pdh-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.pdh-action{display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 10px;border-radius:7px;border:1px solid rgba(255,255,255,.16);font:800 8px Orbitron,sans-serif;letter-spacing:.08em;background:rgba(255,255,255,.035);color:#edf4ff;cursor:pointer}
+.pdh-action.primary{border-color:#e50914;background:#e50914}
+.pdh-action:disabled{opacity:.55;cursor:wait}
+.pdh-hero{position:relative;isolation:isolate;min-height:285px;padding:clamp(22px,4vw,42px);display:flex;align-items:end;overflow:hidden;border-radius:19px;border:1px solid rgba(255,255,255,.13);background:#0a0d17}
+.pdh-hero:before{content:"";position:absolute;inset:0;z-index:-2;background-image:linear-gradient(90deg,rgba(5,7,13,.98),rgba(5,7,13,.78) 47%,rgba(5,7,13,.12)),linear-gradient(0deg,rgba(5,7,13,.85),transparent 70%),var(--pdh-hero-image);background-position:center;background-size:cover;transform:scale(1.02)}
+.pdh-hero:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(115deg,transparent 50%,rgba(229,9,20,.1))}
+.pdh-hero-copy{max-width:660px}
+.pdh-hero h2{font:900 clamp(27px,5vw,52px)/1.08 Orbitron,sans-serif;margin:10px 0 12px;letter-spacing:-.045em}
+.pdh-hero p{max-width:560px;color:#d0d6e3;font-size:12px;line-height:1.8;margin:0}
+.pdh-hero .pdh-actions{margin-top:18px}
+.pdh-collection-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.pdh-collection{position:relative;min-height:125px;display:flex;flex-direction:column;justify-content:end;padding:17px;border:1px solid rgba(255,255,255,.12);border-radius:13px;overflow:hidden;background:radial-gradient(circle at 85% 10%,rgba(229,9,20,.28),transparent 45%),linear-gradient(135deg,#202033,#0b1020);transition:transform .2s,border-color .2s}
+.pdh-collection:hover{transform:translateY(-3px);border-color:#e5091488}
+.pdh-collection:after{content:"";position:absolute;width:125px;height:125px;border:1px solid rgba(255,255,255,.12);border-radius:50%;right:-30px;top:-35px;box-shadow:0 0 0 17px rgba(255,255,255,.025),0 0 0 34px rgba(255,255,255,.018)}
+.pdh-collection strong{position:relative;z-index:1;font:800 13px Orbitron,sans-serif}
+.pdh-collection small{position:relative;z-index:1;margin-top:7px;color:#9ca9c0;font-size:9px}
+.pdh-empty{padding:20px;border:1px dashed rgba(255,255,255,.16);border-radius:12px;color:#8793aa;font-size:11px;line-height:1.7}
+.pdh-section[hidden]{display:none!important}
+@media(max-width:900px){.pdh-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.pdh-wrap{gap:25px}.pdh-head{align-items:start;flex-direction:column}.pdh-cards{grid-template-columns:1fr 1fr;gap:9px}.pdh-card-copy{padding:10px}.pdh-card p{font-size:9px;min-height:58px}.pdh-collection-grid{grid-template-columns:1fr}.pdh-hero{min-height:250px}}
+@media(prefers-reduced-motion:reduce){.pdh-card,.pdh-collection{transition:none}}
