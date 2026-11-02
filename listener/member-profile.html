@@ -117,8 +117,8 @@ async function respondRequest(status,b){b.disabled=true;try{const r=await db.fro
 async function acceptRequest(e){respondRequest('accepted',e.currentTarget)}
 async function loadStats(){
  const self=!!(viewer&&viewer.id===target.user_id);
- const canShowFollowers=self||target.followers_public!==false;
- const canShowFollowing=self||target.following_public!==false;
+ const canShowFollowers=self||(target.network_public!==false&&target.followers_public!==false);
+ const canShowFollowing=self||(target.network_public!==false&&target.following_public!==false);
  const tasks=[];
  if(canShowFollowers)tasks.push(db.from('podcast_member_follows').select('follower_user_id',{count:'exact',head:true}).eq('followed_user_id',target.user_id));
  if(canShowFollowing)tasks.push(db.from('podcast_member_follows').select('followed_user_id',{count:'exact',head:true}).eq('follower_user_id',target.user_id));
