@@ -488,7 +488,9 @@ function renderListeningAchievements(events,completed){
 function renderWeeklySnapshot(events,listenRows){
  const now=new Date(),cutoff=new Date(now.getTime()-7*86400000),rows=events.filter(e=>{const d=new Date(e.created_at);return e.created_at&&Number.isFinite(d.getTime())&&d>=cutoff&&d<=now});
  const plays=rows.filter(e=>e.event_type==="play"),episodes=new Set(plays.map(e=>e.episode_id).filter(Boolean)),shows=new Set(plays.map(e=>e.podcast_id).filter(Boolean)),days=new Set(plays.map(e=>localDayKey(e.created_at)).filter(Boolean));
- const seconds=(listenRows||[]).reduce((sum,row)=>sum+Math.max(0,Number(row.seconds_listened)||0),0);\n $("#weekMinutes").textContent=Math.floor(seconds/60).toLocaleString();\n $("#weekPlays").textContent=plays.length.toLocaleString();$("#weekEpisodes").textContent=episodes.size.toLocaleString();$("#weekShows").textContent=shows.size.toLocaleString();$("#weekDays").textContent=days.size.toLocaleString();
+ const seconds=(listenRows||[]).reduce((sum,row)=>sum+Math.max(0,Number(row.seconds_listened)||0),0);
+ $("#weekMinutes").textContent=Math.floor(seconds/60).toLocaleString();
+ $("#weekPlays").textContent=plays.length.toLocaleString();$("#weekEpisodes").textContent=episodes.size.toLocaleString();$("#weekShows").textContent=shows.size.toLocaleString();$("#weekDays").textContent=days.size.toLocaleString();
  $("#weekCoverage").textContent="Rolling seven-day snapshot. Minutes use recorded listening sessions; plays and discovery counts use the latest "+events.length+" activity events available to this dashboard and may undercount older activity.";
 }
 async function loadFavoriteShows(uid){
