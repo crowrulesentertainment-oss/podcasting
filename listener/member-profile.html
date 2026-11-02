@@ -38,6 +38,11 @@
  .avatar{width:72px;height:72px}
  .nameblock{flex-basis:130px}
 }
+
+.challenge-milestone{display:flex;align-items:center;gap:13px;padding:13px;border:1px solid rgba(109,231,255,.17);border-radius:13px;background:linear-gradient(120deg,rgba(109,231,255,.045),rgba(169,139,255,.06));min-width:0}
+.challenge-milestone-icon{display:grid;place-items:center;width:43px;height:43px;flex:none;border-radius:12px;border:1px solid rgba(109,231,255,.25);background:rgba(109,231,255,.08);font-size:21px}
+.challenge-milestone-copy{min-width:0;flex:1}.challenge-milestone-copy strong{display:block;font:700 10px Orbitron,sans-serif;line-height:1.6;overflow-wrap:anywhere}.challenge-milestone-copy small{display:block;margin-top:5px;color:var(--muted);font-size:9px;line-height:1.5}.challenge-milestone-date{color:var(--good)!important}
+.stat-hidden{color:var(--muted)!important;font:600 11px Montserrat!important;letter-spacing:.04em}
 </style>
 
 <link rel="stylesheet" href="../css/sitewide-refinements.css">
@@ -47,7 +52,7 @@
 <body>
 <header class="top"><div class="shell nav"><a class="brand" href="../home.html">CROWRULES / PODCASTING</a><a href="profile.html">MY PROFILE & COMMUNITY</a></div></header>
 <main class="shell"><section class="hero"><div class="eyebrow">ONE ACCOUNT. ONE UNIVERSE.</div><h1>MEMBER PROFILE</h1><p>Discover listeners and creators, follow their journey, and send a friend request to connect.</p></section>
-<section class="card" id="profileCard" aria-live="polite"><div class="empty">Loading member profile…</div></section><div id="status" class="status" role="status" aria-live="polite"></div><div class="public-sections" id="publicSections" hidden><section class="card public-section"><h2>ABOUT THIS MEMBER</h2><p class="section-note">The details this member has chosen to share with the community.</p><div id="publicAbout" class="about-list"><div class="activity-empty">Loading profile details…</div></div></section><section class="card public-section"><h2>PHOTO ALBUMS & MEDIA</h2><p class="section-note">Photos and videos shared in posts visible to you. Featured items appear first.</p><div id="publicPhotos" class="photo-grid"></div></section><section class="card public-section" style="grid-column:1/-1"><h2>COMMUNITY POSTS</h2><p class="section-note">Recent updates shared by this member.</p><div id="publicPosts" class="public-posts"><div class="activity-empty">Loading community posts…</div></div></section></div></main>
+<section class="card" id="profileCard" aria-live="polite"><div class="empty">Loading member profile…</div></section><div id="status" class="status" role="status" aria-live="polite"></div><div class="public-sections" id="publicSections" hidden><section class="card public-section"><h2>ABOUT THIS MEMBER</h2><p class="section-note">The details this member has chosen to share with the community.</p><div id="publicAbout" class="about-list"><div class="activity-empty">Loading profile details…</div></div></section><section class="card public-section"><h2>PHOTO ALBUMS & MEDIA</h2><p class="section-note">Photos and videos shared in posts visible to you. Featured items appear first.</p><div id="publicPhotos" class="photo-grid"></div></section><section class="card public-section" id="challengeMilestoneSection" style="grid-column:1/-1"><h2>CHALLENGE MILESTONES</h2><p class="section-note">Completed community challenges shared on this member's public activity profile.</p><div id="publicChallengeMilestones" class="public-posts"><div class="activity-empty">Loading challenge milestones…</div></div></section><section class="card public-section" style="grid-column:1/-1"><h2>COMMUNITY POSTS</h2><p class="section-note">Recent updates shared by this member.</p><div id="publicPosts" class="public-posts"><div class="activity-empty">Loading community posts…</div></div></section></div></main>
 <footer class="shell">CROWRULES PODCASTING · ONE COMPANY. ONE UNIVERSE.</footer><div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
 <script>
 (function(){
@@ -110,7 +115,45 @@ async function toggleFollow(e){const b=e.currentTarget;b.disabled=true;try{if(fo
 async function sendFriendRequest(e){const b=e.currentTarget;b.disabled=true;try{const r=await db.rpc('podcasting_send_friend_request',{p_target_user_id:target.user_id});if(r.error)throw r.error;const result=r.data||{};if(result.status==='request_received'){toast(result.message||'This member has already sent you a request. Open your requests to respond.')}else if(result.status==='friends'){toast(result.message||'You are already friends.')}else if(result.status==='request_sent'){toast(result.message||'Friend request sent.')}else{throw new Error(result.message||'Unexpected response while sending friend request.')}await refreshConnections()}catch(err){console.error(err);toast('Could not send friend request: '+(err.message||'Please try again.'),'bad')}finally{b.disabled=false}}
 async function respondRequest(status,b){b.disabled=true;try{const r=await db.from('friendships').update({status}).eq('id',friendship.id).eq('addressee_id',viewer.id).eq('status','pending').select('id').maybeSingle();if(r.error)throw r.error;if(!r.data)throw new Error('This request has already been handled.');toast(status==='accepted'?'Friend request accepted.':'Friend request declined.');await refreshConnections()}catch(err){console.error(err);toast('Could not update request: '+(err.message||'Please try again.'),'bad');b.disabled=false}}
 async function acceptRequest(e){respondRequest('accepted',e.currentTarget)}
-async function loadStats(){const [a,b]=await Promise.all([db.from('podcast_member_follows').select('follower_user_id',{count:'exact',head:true}).eq('followed_user_id',target.user_id),db.from('podcast_member_follows').select('followed_user_id',{count:'exact',head:true}).eq('follower_user_id',target.user_id)]);$('followers').textContent=a.error?'—':Number(a.count||0).toLocaleString();$('following').textContent=b.error?'—':Number(b.count||0).toLocaleString()}
+async function loadStats(){
+ const self=!!(viewer&&viewer.id===target.user_id);
+ const canShowFollowers=self||target.followers_public!==false;
+ const canShowFollowing=self||target.following_public!==false;
+ const tasks=[];
+ if(canShowFollowers)tasks.push(db.from('podcast_member_follows').select('follower_user_id',{count:'exact',head:true}).eq('followed_user_id',target.user_id));
+ if(canShowFollowing)tasks.push(db.from('podcast_member_follows').select('followed_user_id',{count:'exact',head:true}).eq('follower_user_id',target.user_id));
+ const results=await Promise.all(tasks);let i=0;
+ const followers=$('followers'),following=$('following');
+ if(!canShowFollowers){followers.textContent='Hidden';followers.classList.add('stat-hidden')}else{const a=results[i++];followers.textContent=a.error?'—':Number(a.count||0).toLocaleString();followers.classList.remove('stat-hidden')}
+ if(!canShowFollowing){following.textContent='Hidden';following.classList.add('stat-hidden')}else{const b=results[i++];following.textContent=b.error?'—':Number(b.count||0).toLocaleString();following.classList.remove('stat-hidden')}
+}
+async function loadPublicChallengeMilestones(){
+ const section=$('challengeMilestoneSection'),box=$('publicChallengeMilestones');if(!section||!box||!target)return;
+ const self=!!(viewer&&viewer.id===target.user_id);
+ if(!self&&(target.is_public===false||target.activity_public===false)){section.hidden=true;return}
+ section.hidden=false;box.replaceChildren();
+ try{
+  const r=await db.from('podcast_challenge_completions').select('challenge_id,completed_at,period_key').eq('user_id',target.user_id).order('completed_at',{ascending:false}).limit(8);
+  if(r.error)throw r.error;
+  const rows=r.data||[];
+  if(!rows.length){const empty=document.createElement('div');empty.className='activity-empty';empty.textContent='No completed challenge milestones to display yet.';box.appendChild(empty);return}
+  const titles={
+   'season-thanksgiving-2026':'Thanksgiving Listening Table',
+   'season-christmas-2026':'Christmas Story Season',
+   'season-newyear-2027':'New Year, New Voices',
+   'season-launch-2027':'CrowRules 2027 Launch Mission'
+  };
+  rows.forEach(row=>{
+   const item=document.createElement('article');item.className='challenge-milestone';
+   const icon=document.createElement('div');icon.className='challenge-milestone-icon';icon.textContent='🏅';
+   const copy=document.createElement('div');copy.className='challenge-milestone-copy';
+   const title=document.createElement('strong');title.textContent=titles[row.challenge_id]||'Community challenge completed';
+   const detail=document.createElement('small');detail.textContent='CHALLENGE MILESTONE · '+(row.period_key==='lifetime'?'Lifetime challenge':String(row.period_key||'Completed'));
+   const date=document.createElement('small');date.className='challenge-milestone-date';date.textContent='COMPLETED '+(row.completed_at?new Date(row.completed_at).toLocaleDateString():'');
+   copy.append(title,detail,date);item.append(icon,copy);box.appendChild(item);
+  });
+ }catch(e){console.warn('Public challenge milestones unavailable:',e);const empty=document.createElement('div');empty.className='activity-empty';empty.textContent='Challenge milestones are temporarily unavailable.';box.appendChild(empty)}
+}
 function renderPublicAbout(){
  const box=$('publicAbout');if(!box)return;box.replaceChildren();
  const items=[
@@ -212,14 +255,14 @@ if(!C.supabaseUrl||!C.supabaseKey||!window.supabase?.createClient){$('profileCar
 const id=new URLSearchParams(location.search).get('user')||new URLSearchParams(location.search).get('id');if(!id){$('profileCard').innerHTML='<div class="empty">No member was selected. Open a profile from the community network.</div>';return}
 db=window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce'}});
 const au=await db.auth.getUser();viewer=au.data&&au.data.user||null;
-const p=await db.from('podcast_member_profiles').select('user_id,display_name,username,bio,tagline,avatar_url,cover_url,is_public,activity_public,location,website_url,interests,favorite_music,favorite_movies,favorite_games,mood,created_at').eq('user_id',id).maybeSingle();
+const p=await db.from('podcast_member_profiles').select('user_id,display_name,username,bio,tagline,avatar_url,cover_url,is_public,activity_public,network_public,followers_public,following_public,location,website_url,interests,favorite_music,favorite_movies,favorite_games,mood,created_at').eq('user_id',id).maybeSingle();
 if(p.error)console.warn('Profile lookup:',p.error.message);
 if(p.data){if(p.data.is_public!==false||(viewer&&viewer.id===id))target=p.data;else{$('profileCard').innerHTML='<div class="empty">This member has chosen to keep their profile private.</div>';return;}}
 if(!target){const m=await db.from('members').select('user_id,display_name,username,bio,avatar_url,role,created_at').eq('user_id',id).maybeSingle();if(m.error)console.warn('Member fallback:',m.error.message);target=m.data?Object.assign({},m.data,{is_public:true}):null}
 if(!target){$('profileCard').innerHTML='<div class="empty">This profile is unavailable, private, or no longer exists.</div>';return}
 if(viewer&&viewer.id!==target.user_id){await refreshConnections()}else render();
 renderPublicAbout();
-await Promise.all([loadStats(),loadPublicPosts()]);setupMemberRealtime();
+await Promise.all([loadStats(),loadPublicPosts(),loadPublicChallengeMilestones()]);setupMemberRealtime();
 }
 init().catch(e=>{console.error('Member profile failed:',e);$('profileCard').innerHTML='<div class="empty">Could not load this profile. '+esc(e.message||'Please refresh and try again.')+'</div>'});
 })();
