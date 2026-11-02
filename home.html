@@ -889,7 +889,7 @@ const fmt=n=>Math.max(0,Number(n)||0).toLocaleString();
 const safe=v=>String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 let discoveryRealtimeState=window.CROW_HOME_REALTIME_STATE||"CONNECTING";
 const text=(id,v)=>{const el=$(id);if(!el)return;el.textContent=id==="homeDynamicStatus"?v+" · "+(discoveryRealtimeState==="SUBSCRIBED"?"REALTIME LIVE":(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(discoveryRealtimeState)?"REALTIME RECONNECTING · FALLBACK ACTIVE":"REALTIME CONNECTING")):v};
-let db=window.CROW_HOME_SUPABASE||null,busy=false,loadQueued=false,discoveryRefreshTimer=null,historyIds=[];const catalogCoverage={showsComplete:false,episodesComplete:false};
+let db=window.CROW_HOME_SUPABASE||null,busy=false,loadQueued=false,discoveryRefreshTimer=null,historyIds=[];const catalogCoverage={showsComplete:false,episodesComplete:false};let showsCache=[];
 function empty(id,msg){const el=$(id);if(el)el.innerHTML='<div class="home-dynamic-empty">'+safe(msg)+'</div>'}
 function showHref(id){return "listener/show.html?id="+encodeURIComponent(id)}
 function card({title,description,art,fallbackArt,meta,href,number}) {
@@ -962,15 +962,34 @@ async function exactCount(table,filters=[]){
  for(const [method,...args] of filters)q=q[method](...args);
  const r=await q;if(r.error)throw r.error;return Number(r.count)||0;
 }
-async function loadHistory(user){
- historyIds=[];
- if(!user)return;
- // Uses the same event table and user_id used by the player. RLS may limit results to the signed-in user.
+async function loadRecommendationSignals(user){
+ const signals={playedShows:new Set(),favoriteShows:new Set(),categoryWeights:new Map(),personalized:false,seedCategory:""};
+ if(!user)return signals;
+ // Both sources are owner-scoped by RLS and explicitly filtered to the current user.
  try{
-  const r=await db.from("podcast_play_events").select("podcast_id,created_at").eq("user_id",user.id).not("podcast_id","is",null).order("created_at",{ascending:false}).limit(100);
-  if(!r.error)historyIds=[...new Set((r.data||[]).map(x=>String(x.podcast_id)).filter(Boolean))];
- }catch(_){}
+  const [history,favorites]=await Promise.all([
+   db.from("podcast_user_recently_played").select("episode_id,last_played_at").eq("user_id",user.id).order("last_played_at",{ascending:false}).limit(40),
+   db.from("podcast_member_favorites").select("podcast_id").eq("user_id",user.id).limit(100)
+  ]);
+  const episodeIds=[...new Set((history.data||[]).map(x=>x.episode_id).filter(Boolean))];
+  const favoriteIds=(favorites.data||[]).map(x=>String(x.podcast_id)).filter(Boolean);
+  favoriteIds.forEach(id=>signals.favoriteShows.add(id));
+  if(episodeIds.length){
+   const er=await db.from("podcast_episodes").select("podcast_id").in("id",episodeIds);
+   (er.data||[]).forEach(x=>{if(x.podcast_id)signals.playedShows.add(String(x.podcast_id))});
+  }
+  const seeds=new Set([...signals.favoriteShows,...signals.playedShows]);
+  const seedShows=showsCache.filter(x=>seeds.has(String(x.id)));
+  seedShows.forEach(show=>{
+   const category=String(show.category||"").trim();
+   if(category)signals.categoryWeights.set(category,(signals.categoryWeights.get(category)||0)+ (signals.favoriteShows.has(String(show.id))?3:1));
+  });
+  signals.personalized=signals.categoryWeights.size>0;
+  signals.seedCategory=[...signals.categoryWeights.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0]||"";
+ }catch(error){console.debug("Personalized recommendations could not read member signals",error)}
+ return signals;
 }
+
 async function load(){
  if(busy){loadQueued=true;return}busy=true;
  const button=$("homeDynamicRefresh");if(button){button.disabled=true;button.textContent="REFRESHING…"}
@@ -989,11 +1008,28 @@ async function load(){
   if(episodesResult.status==="fulfilled")renderEpisodes(episodes,showMap);
   else empty("homeNewEpisodes","Episodes could not be loaded. Verify podcast_episodes publication fields and public SELECT policy.");
   let user=null;try{const auth=await db.auth.getSession();user=auth.data?.session?.user||null}catch(_){}
-  await loadHistory(user);
-  let picks=[];if(historyIds.length)picks=shows.filter(x=>!historyIds.includes(String(x.id))).sort((a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0)).slice(0,4);
-  if(!picks.length)picks=shows.slice().sort((a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0)).slice(0,4);
-  if(picks.length)renderShows("homeRecommendedShows",picks,"No recommendations available yet.");
-  else empty("homeRecommendedShows",user?"Recommendations will appear when published shows are available.":"Sign in and listen to shows to unlock history-informed picks. Popular published shows are shown here until then.");
+  showsCache=shows;
+  const signals=await loadRecommendationSignals(user);
+  const popularity=(a,b)=>(Number(b.total_plays)||0)-(Number(a.total_plays)||0);
+  let picks=[];
+  if(signals.personalized){
+   const weights=signals.categoryWeights;
+   picks=shows.filter(show=>!signals.playedShows.has(String(show.id))&&!signals.favoriteShows.has(String(show.id)))
+    .map(show=>({show,score:(weights.get(String(show.category||"").trim())||0)*10+Math.log1p(Number(show.total_plays)||0)}))
+    .filter(x=>x.score>0).sort((a,b)=>b.score-a.score||popularity(a.show,b.show)).map(x=>x.show).slice(0,4);
+   // Fill remaining slots with popular discoveries, never repeating a show already played or favorited.
+   if(picks.length<4){const chosen=new Set(picks.map(x=>String(x.id)));shows.filter(x=>!signals.playedShows.has(String(x.id))&&!signals.favoriteShows.has(String(x.id))&&!chosen.has(String(x.id))).sort(popularity).slice(0,4-picks.length).forEach(x=>picks.push(x))}
+  }else{
+   picks=shows.filter(x=>!signals.playedShows.has(String(x.id))&&!signals.favoriteShows.has(String(x.id))).sort(popularity).slice(0,4);
+  }
+  const recEl=$("homeRecommendedShows");
+  if(picks.length){
+   recEl.innerHTML=picks.map((show,i)=>{
+    const category=String(show.category||"Podcast").trim(),matched=signals.categoryWeights.has(category);
+    const reason=signals.personalized?(matched?"Because you listen to "+category:"Popular discovery"):(user?"Popular discovery":"Popular with listeners");
+    return card({title:show.title,description:show.description,art:show.artwork_url,meta:reason+" · "+fmt(show.total_plays)+" plays",href:showHref(show.id),number:String(i+1).padStart(2,"0")});
+   }).join("");
+  }else empty("homeRecommendedShows",user?"You've explored all currently published shows. Check back as new podcasts arrive.":"No published shows are available yet.");
 
   // Align play counts with the rankings/admin source: podcast_play_events, event_type=play,
   // with the same session_key de-duplication rule as rankings. Read-only; never writes analytics.
