@@ -51,6 +51,9 @@ footer{border-top:1px solid var(--line);padding:28px 0 40px;color:#64748b;font-s
 .achievement-progress{height:5px;background:#172033;border-radius:99px;overflow:hidden;margin-top:8px}.achievement-progress i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));width:var(--p,0%)}
 .achievement-count{font-size:9px;color:var(--muted);margin-top:5px}
 @media(max-width:600px){.achievement-grid{grid-template-columns:1fr}.achievement-panel{padding:16px}}
+
+.goals-panel{margin:18px 0;padding:22px;border:1px solid rgba(34,211,238,.22);background:linear-gradient(135deg,rgba(34,211,238,.065),rgba(167,139,250,.055)),var(--panel)}
+.goal-settings{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-top:16px}.goal-field{display:grid;gap:7px;min-width:150px;flex:1}.goal-field label{font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--muted)}.goal-field input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#090f1c;color:#fff;font:700 13px Orbitron}.goal-progress-list{display:grid;gap:14px;margin-top:18px}.goal-progress-item{padding:14px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.025)}.goal-progress-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.goal-progress-head strong{font:700 11px Orbitron}.goal-progress-head b{font:700 12px Orbitron;color:var(--cyan)}.goal-progress-item p{font-size:10px;color:var(--muted);margin:6px 0 0}.goal-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}.goal-status{font-size:10px;color:var(--muted)}@media(max-width:600px){.goals-panel{padding:16px}.goal-settings{align-items:stretch}.goal-field{min-width:calc(50% - 8px)}}
 </style>
 
 <link rel="stylesheet" href="../css/sitewide-refinements.css?v=20261012">
@@ -83,6 +86,11 @@ footer{border-top:1px solid var(--line);padding:28px 0 40px;color:#64748b;font-s
  <div class="recap-grid annual-stats"><div><b id="annualEvents">—</b><span>ACTIVITY EVENTS</span></div><div><b id="annualDays">—</b><span>LISTENING DAYS</span></div><div><b id="annualEpisodes">—</b><span>EPISODES PLAYED</span></div><div><b id="annualShows">—</b><span>SHOWS EXPLORED</span></div></div>
  <div class="annual-lists"><div><h4>TOP SHOWS</h4><ol id="annualTopShows"><li>Loading your highlights…</li></ol></div><div><h4>FAVORITE CATEGORIES</h4><ol id="annualTopCategories"><li>Category highlights will appear here.</li></ol><h4>LISTENING MILESTONES</h4><ul id="annualMilestones"><li>Your milestones will appear here.</li></ul></div></div>
  <p id="annualCoverage" class="muted annual-note">Based on recorded listening activity available to this dashboard.</p>
+ </section>
+ <section class="panel goals-panel" aria-live="polite">
+  <div class="sectionhead"><div><div class="eyebrow">YOUR PERSONAL CHALLENGE</div><h2>Listening Goals</h2><p class="muted">Set a pace that feels right. Your goals are private to your account.</p></div><span class="eyebrow">YOUR TARGETS</span></div>
+  <div class="goal-settings"><div class="goal-field"><label for="weeklyGoalTarget">LISTENING DAYS / WEEK</label><input id="weeklyGoalTarget" type="number" min="1" max="7" step="1" value="3"></div><div class="goal-field"><label for="monthlyGoalTarget">COMPLETED EPISODES / MONTH</label><input id="monthlyGoalTarget" type="number" min="1" max="100" step="1" value="12"></div><button class="btn primary" type="button" id="saveListeningGoals">SAVE GOALS</button></div>
+  <div class="goal-progress-list" id="listeningGoalProgress"><div class="empty">Your goal progress will appear as your listening data loads.</div></div><div class="goal-actions"><span class="goal-status" id="listeningGoalStatus" role="status" aria-live="polite">Default targets: 3 listening days and 12 completed episodes.</span></div><p class="muted annual-note" id="listeningGoalCoverage">Weekly and monthly progress is calculated from recorded listening activity and completed playback records.</p>
  </section>
  <section class="panel achievement-panel" aria-live="polite">
   <div class="sectionhead"><div><div class="eyebrow">PERSONAL MILESTONES</div><h2>Listening Achievements</h2><p class="muted">Small milestones that celebrate your listening journey.</p></div><span class="eyebrow" id="achievementSummary">0 / 4 UNLOCKED</span></div>
@@ -214,6 +222,7 @@ async function init(){
  if(sessionError){$("#status").textContent="Could not verify your sign-in: "+sessionError.message;["minutes","follows","comments"].forEach(metricUnavailable);return}
  if(!session){location.href="../login.html";return}
  const u=session.user,meta=u.user_metadata||{};
+ const savedGoals=meta.crowrules_listening_goals||{};listeningGoalSettings={weeklyDays:validGoal(savedGoals.weeklyDays,1,7,3),monthlyEpisodes:validGoal(savedGoals.monthlyEpisodes,1,100,12)};$("#weeklyGoalTarget").value=listeningGoalSettings.weeklyDays;$("#monthlyGoalTarget").value=listeningGoalSettings.monthlyEpisodes;
  $("#welcome").textContent=meta.full_name||meta.name||u.email?.split("@")[0]||"CrowRules Listener";
  $("#email").textContent=u.email||"Signed in";
  $("#account").textContent="MY ACCOUNT";$("#account").href="profile.html";
@@ -404,6 +413,23 @@ function calculateListeningStreak(){
 }
 $("#calendarPrev")?.addEventListener("click",()=>{listeningCalendarMonth=new Date(listeningCalendarMonth.getFullYear(),listeningCalendarMonth.getMonth()-1,1);renderListeningCalendar()});
 $("#calendarNext")?.addEventListener("click",()=>{listeningCalendarMonth=new Date(listeningCalendarMonth.getFullYear(),listeningCalendarMonth.getMonth()+1,1);renderListeningCalendar()});
+let listeningGoalSettings={weeklyDays:3,monthlyEpisodes:12},listeningGoalCompleted=[];
+function validGoal(value,min,max,fallback){const n=Number(value);return Number.isInteger(n)?Math.max(min,Math.min(max,n)):fallback}
+function renderListeningGoals(events,completed){
+ const now=new Date(),weekStart=new Date(now);weekStart.setHours(0,0,0,0);weekStart.setDate(weekStart.getDate()-((weekStart.getDay()+6)%7));
+ const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+ const days=new Set(events.filter(e=>{const d=new Date(e.created_at);return e.created_at&&Number.isFinite(d.getTime())&&d>=weekStart&&d<=now}).map(e=>localDayKey(e.created_at)).filter(Boolean));
+ const monthDone=completed.filter(x=>{const stamp=x.last_played_at||x.updated_at||x.completed_at;const d=new Date(stamp||0);return Number.isFinite(d.getTime())&&d>=monthStart&&d<=now}).length;
+ const rows=[{title:"Weekly listening rhythm",detail:"Unique days with recorded listening activity since Monday.",value:days.size,target:listeningGoalSettings.weeklyDays,unit:"days"},{title:"Monthly episode challenge",detail:"Episodes marked complete this calendar month.",value:monthDone,target:listeningGoalSettings.monthlyEpisodes,unit:"episodes"}];
+ $("#listeningGoalProgress").innerHTML=rows.map(x=>{const pct=Math.min(100,Math.round(x.value/x.target*100));return '<article class="goal-progress-item"><div class="goal-progress-head"><strong>'+x.title+'</strong><b>'+x.value+' / '+x.target+'</b></div><div class="progress" role="progressbar" aria-label="'+x.title+'" aria-valuemin="0" aria-valuemax="'+x.target+'" aria-valuenow="'+Math.min(x.value,x.target)+'" style="--p:'+pct+'%"><i></i></div><p>'+x.detail+' '+(x.value>=x.target?"Goal reached — great work!":Math.max(0,x.target-x.value)+" more "+x.unit+" to reach your target.")+'</p></article>'}).join("");
+}
+async function saveListeningGoals(){
+ const weekly=validGoal($("#weeklyGoalTarget").value,1,7,3),monthly=validGoal($("#monthlyGoalTarget").value,1,100,12);
+ $("#weeklyGoalTarget").value=weekly;$("#monthlyGoalTarget").value=monthly;const button=$("#saveListeningGoals");button.disabled=true;$("#listeningGoalStatus").textContent="Saving your private goals…";
+ try{const {data,error}=await S.auth.updateUser({data:{crowrules_listening_goals:{weeklyDays:weekly,monthlyEpisodes:monthly}}});if(error)throw error;listeningGoalSettings={weeklyDays:weekly,monthlyEpisodes:monthly};renderListeningGoals(listeningCalendarEvents,listeningGoalCompleted);$("#listeningGoalStatus").textContent="Your goals are saved to your account."}
+ catch(e){$("#listeningGoalStatus").textContent="Could not save goals: "+(e?.message||"Please try again.")}finally{button.disabled=false}
+}
+$("#saveListeningGoals")?.addEventListener("click",saveListeningGoals);
 function renderListeningAchievements(events,completed){
  const played=events.filter(e=>e.event_type==="play");
  const days=new Set(events.map(e=>localDayKey(e.created_at)).filter(Boolean));
@@ -433,6 +459,7 @@ async function loadListeningInsights(uid){
  const progress=Array.isArray(progressResult.data)?progressResult.data:[];
  const completed=progress.filter(x=>x.completed===true);
  setMetric("completedEpisodes",completed.length.toLocaleString());
+ listeningGoalCompleted=completed.slice();
  renderListeningAchievements(eventsResult.error?[]:(eventsResult.data||[]),completed);
  const events=eventsResult.error?[]:(eventsResult.data||[]);
  listeningCalendarEvents=events.slice();calculateListeningStreak();renderListeningCalendar();
