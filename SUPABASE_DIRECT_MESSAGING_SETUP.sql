@@ -160,3 +160,80 @@ grant select,insert on public.podcast_direct_messages to authenticated;
 grant update(read_at) on public.podcast_direct_messages to authenticated;
 grant select,insert on public.podcast_direct_reports to authenticated;
 grant update(status) on public.podcast_direct_reports to authenticated;
+
+ 
+-- Messaging notification preferences and automatic notification-center events.
+create table if not exists public.podcast_direct_message_preferences (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  message_alerts boolean not null default true,
+  request_alerts boolean not null default true,
+  updated_at timestamptz not null default now()
+);
+alter table public.podcast_direct_message_preferences enable row level security;
+drop policy if exists "Members can read their own direct message preferences" on public.podcast_direct_message_preferences;
+create policy "Members can read their own direct message preferences" on public.podcast_direct_message_preferences for select to authenticated using (user_id=(select auth.uid()));
+drop policy if exists "Members can create their own direct message preferences" on public.podcast_direct_message_preferences;
+create policy "Members can create their own direct message preferences" on public.podcast_direct_message_preferences for insert to authenticated with check (user_id=(select auth.uid()));
+drop policy if exists "Members can update their own direct message preferences" on public.podcast_direct_message_preferences;
+create policy "Members can update their own direct message preferences" on public.podcast_direct_message_preferences for update to authenticated using (user_id=(select auth.uid())) with check (user_id=(select auth.uid()));
+revoke all on public.podcast_direct_message_preferences from anon,public;
+grant select,insert,update on public.podcast_direct_message_preferences to authenticated;
+
+create or replace function private.notify_podcast_direct_message()
+returns trigger language plpgsql security definer set search_path = ''
+as $$
+declare c record; recipient uuid; enabled boolean := true; sender_label text := 'A CrowRules member';
+begin
+  select participant_low,participant_high,status into c from public.podcast_direct_conversations where id=new.conversation_id;
+  if not found then return new; end if;
+  recipient := case when new.sender_id=c.participant_low then c.participant_high else c.participant_low end;
+  if c.status='pending' then
+    select coalesce(p.request_alerts,true) into enabled from public.podcast_direct_message_preferences p where p.user_id=recipient;
+  else
+    select coalesce(p.message_alerts,true) into enabled from public.podcast_direct_message_preferences p where p.user_id=recipient;
+  end if;
+  if not found then enabled := true; end if;
+  if not enabled then return new; end if;
+  select coalesce(nullif(mp.display_name,''),nullif(mp.username,''),'A CrowRules member') into sender_label from public.podcast_member_profiles mp where mp.user_id=new.sender_id;
+  sender_label := coalesce(sender_label,'A CrowRules member');
+  insert into public.crowrules_notifications (user_id,actor_user_id,type,title,body,division,action_url,metadata,priority,dedupe_key)
+  values (recipient,new.sender_id,case when c.status='pending' then 'direct_message_request' else 'direct_message' end,
+    case when c.status='pending' then 'New message request' else 'New private message' end,
+    sender_label || case when c.status='pending' then ' sent you a message request.' else ' sent you a message.' end,
+    'Podcasting','/podcasting/listener/messages.html?conversation='||new.conversation_id::text,
+    jsonb_build_object('conversation_id',new.conversation_id,'message_id',new.id),
+    case when c.status='pending' then 75 else 60 end,'podcast-direct-message:'||new.id::text)
+  on conflict do nothing;
+  return new;
+end;
+$$;
+revoke all on function private.notify_podcast_direct_message() from public,anon,authenticated;
+drop trigger if exists podcast_direct_message_notify on public.podcast_direct_messages;
+create trigger podcast_direct_message_notify after insert on public.podcast_direct_messages for each row execute function private.notify_podcast_direct_message();
+
+create or replace function private.notify_podcast_direct_request_status()
+returns trigger language plpgsql security definer set search_path = ''
+as $$
+declare enabled boolean := true; recipient uuid; headline text;
+begin
+  if old.status is distinct from new.status and old.status='pending' and new.status in ('accepted','declined') then
+    recipient := new.initiated_by;
+    select coalesce(p.request_alerts,true) into enabled from public.podcast_direct_message_preferences p where p.user_id=recipient;
+    if not found then enabled := true; end if;
+    if enabled then
+      headline := case when new.status='accepted' then 'Message request accepted' else 'Message request declined' end;
+      insert into public.crowrules_notifications (user_id,actor_user_id,type,title,body,division,action_url,metadata,priority,dedupe_key)
+      values (recipient,auth.uid(),'direct_message_request_status',headline,
+        case when new.status='accepted' then 'Your message request was accepted. You can continue the conversation.' else 'Your message request was declined.' end,
+        'Podcasting','/podcasting/listener/messages.html?conversation='||new.id::text,
+        jsonb_build_object('conversation_id',new.id,'status',new.status),55,
+        'podcast-direct-request-status:'||new.id::text||':'||new.status)
+      on conflict do nothing;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+revoke all on function private.notify_podcast_direct_request_status() from public,anon,authenticated;
+drop trigger if exists podcast_direct_request_status_notify on public.podcast_direct_conversations;
+create trigger podcast_direct_request_status_notify after update of status on public.podcast_direct_conversations for each row execute function private.notify_podcast_direct_request_status();
