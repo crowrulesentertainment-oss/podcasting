@@ -140,3 +140,9 @@ The current project already contains podcast, episode, category, profile, playli
 - Discovery & Editorial Control Room includes per-section Show toggles alongside the visual drag-and-drop ordering controls.
 - Visibility is stored in `section_visibility` within the existing draft/published editorial configuration; it uses the existing draft preview, publish, revision, compare, and restore workflow without a schema change.
 - The public Listen homepage applies visibility after rendering the spotlight and personal sections, so a disabled section remains hidden consistently for signed-in and signed-out visitors.
+
+
+## Homepage content density controls
+- Admins can set visible card counts for Trending, New Releases, Editorial Showcase, and Curated Collections (2–12 each).
+- Values are stored in the existing draft/published homepage config and flow through preview, publishing, revision comparison, and restore. No schema change is required.
+- The public homepage clamps values to the supported 2–12 range and retains existing defaults when older configurations do not contain these fields.
