@@ -24,6 +24,20 @@ footer{border-top:1px solid var(--line);padding:28px 0 40px;color:#64748b;font-s
 @media(max-width:900px){.hero,.two{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}.links a:nth-child(n+4){display:none}}
 @media(max-width:600px){.wrap{width:min(100% - 20px,1180px)}.navin{min-height:64px}.brand span{display:none}.links a{padding:8px;font-size:9px}.account{font-size:9px;padding:8px}.hero h1{font-size:44px}.grid{grid-template-columns:1fr}.statgrid{grid-template-columns:1fr 1fr 1fr}.panel{padding:18px}.row img{width:52px;height:52px}footer .wrap{display:block}.section{margin-top:32px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+
+.playlist-form{display:grid;grid-template-columns:1fr 1.2fr auto;gap:10px;margin:0 0 12px}
+.playlist-form input{min-width:0;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:#090f1c;color:#fff;font:12px Montserrat}
+.playlist-form input:focus{outline:2px solid rgba(34,211,238,.45);outline-offset:1px}
+.saved-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
+.saved-actions button{padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.04);color:#eaf6ff;font-size:9px;font-weight:800;cursor:pointer}
+.saved-actions button:hover{border-color:var(--cyan)}
+.follow-card,.playlist-card{padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.025);min-width:0}
+.follow-card img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:11px;background:#111827}
+.follow-card h3,.playlist-card h3{font:700 14px Orbitron;margin:12px 0 6px}
+.playlist-card p,.follow-card p{color:var(--muted);font-size:11px;line-height:1.6}
+.playlist-card .meta{display:block;margin:10px 0}
+@media(max-width:900px){.playlist-form{grid-template-columns:1fr 1fr}.playlist-form button{grid-column:1/-1}}
+@media(max-width:600px){.playlist-form{grid-template-columns:1fr}.playlist-form button{grid-column:auto}.saved-actions{width:100%;margin-left:0}.row{flex-wrap:wrap}}
 </style>
 
 <link rel="stylesheet" href="../css/sitewide-refinements.css?v=20261012">
@@ -50,6 +64,10 @@ footer{border-top:1px solid var(--line);padding:28px 0 40px;color:#64748b;font-s
 
 <section class="section"><div class="sectionhead"><h2>Continue Listening</h2><a href="index.html">DISCOVER MORE →</a></div><div id="history" class="list"><div class="empty">Loading your listening history…</div></div></section>
 
+<section class="section" id="saved-section"><div class="sectionhead"><h2>My List</h2><a href="index.html#discover">FIND MORE EPISODES →</a></div><div id="savedEpisodes" class="list"><div class="empty">Loading your saved episodes…</div></div></section>
+<section class="section" id="followed-section"><div class="sectionhead"><h2>My Shows</h2><a href="index.html#discover">DISCOVER SHOWS →</a></div><div id="followedShows" class="grid"><div class="empty">Loading your followed shows…</div></div></section>
+<section class="section" id="playlists-section"><div class="sectionhead"><div><h2>Your Playlists</h2><p class="muted">Build collections for every mood, moment and listening session.</p></div></div><form id="playlistForm" class="playlist-form"><input id="playlistName" maxlength="80" required placeholder="Name your new playlist" aria-label="New playlist name"><input id="playlistDescription" maxlength="240" placeholder="Description (optional)" aria-label="Playlist description"><button class="btn primary" type="submit">＋ CREATE PLAYLIST</button></form><div id="playlistStatus" class="muted" role="status" aria-live="polite"></div><div id="playlists" class="grid"><div class="empty">Loading your playlists…</div></div></section>
+
 <section class="section"><div class="sectionhead"><h2>Your Listener Toolkit</h2><span class="eyebrow">BUILT FOR LISTENERS</span></div><div class="two">
 <div class="panel feature"><div class="icon">▶</div><div><h3>Keep Your Place</h3><p class="muted">Your listening activity is designed to make returning to an episode simple instead of starting over.</p></div></div>
 <div class="panel feature"><div class="icon">♡</div><div><h3>Follow the Shows You Love</h3><p class="muted">Build a personal network of favorite podcasts and stay close to the creators you want to hear from.</p></div></div>
@@ -74,6 +92,47 @@ $("#logo").src=logo(); $("#avatar").src=logo();
 
 function setMetric(id,value){const el=$("#"+id);if(el)el.textContent=value}
 function metricUnavailable(id){setMetric(id,"—")}
+
+async function loadSavedEpisodes(uid){
+ const box=$("#savedEpisodes");box.innerHTML='<div class="empty">Loading your saved episodes…</div>';
+ const saved=await S.from("podcast_saved_episodes").select("id,episode_id,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(40);
+ if(saved.error){box.innerHTML='<div class="empty">Your saved list is temporarily unavailable.</div>';throw saved.error}
+ if(!saved.data?.length){box.innerHTML='<div class="empty">Your list is waiting. Save an episode from a show page and it will appear here.</div>';return}
+ const ids=saved.data.map(x=>x.episode_id);
+ const eps=await S.from("podcast_episodes").select("id,title,description,thumbnail_url,artwork_url,audio_url,video_url,duration_seconds,podcast_id").in("id",ids);
+ if(eps.error){box.innerHTML='<div class="empty">Saved episodes are available, but episode details could not be loaded.</div>';throw eps.error}
+ const map=new Map((eps.data||[]).map(x=>[x.id,x]));
+ const podIds=[...new Set((eps.data||[]).map(x=>x.podcast_id).filter(Boolean))];
+ const pods=podIds.length?await S.from("podcasts").select("id,title,artwork_url").in("id",podIds):{data:[]};
+ const pmap=new Map((pods.data||[]).map(x=>[x.id,x]));
+ const rows=saved.filter(x=>map.has(x.episode_id));
+ box.innerHTML=rows.length?rows.map(x=>{const ep=map.get(x.episode_id),pod=pmap.get(ep.podcast_id)||{},art=ep.thumbnail_url||ep.artwork_url||pod.artwork_url||logo();return '<article class="row"><img src="'+esc(art)+'" alt=""><span class="rowmain"><b>'+esc(ep.title)+'</b><small>'+esc(pod.title||"CrowRules Podcasting")+' · Saved '+new Date(x.created_at).toLocaleDateString()+'</small></span><span class="saved-actions">'+(ep.audio_url?'<button type="button" data-play-saved="'+esc(ep.id)+'">▶ PLAY</button>':'')+'<a class="btn" href="show.html?episode='+encodeURIComponent(ep.id)+'">OPEN</a><button type="button" data-remove-saved="'+esc(x.id)+'">REMOVE</button></span></article>'}).join(""):'<div class="empty">No saved episodes are currently available.</div>';
+ box.querySelectorAll("[data-play-saved]").forEach(b=>b.addEventListener("click",()=>{const ep=map.get(b.dataset.playSaved),pod=pmap.get(ep?.podcast_id)||{};const player=window.CROWRulesAudioPlayer;if(!ep?.audio_url||!player?.play){$("#status").textContent="The audio player is not ready or this episode has no audio.";return}player.play({url:ep.audio_url,title:ep.title,artist:pod.title||"CrowRules Podcasting",artwork:ep.thumbnail_url||ep.artwork_url||pod.artwork_url||logo(),episodeId:ep.id,podcastId:ep.podcast_id},{autoplay:true})}));
+ box.querySelectorAll("[data-remove-saved]").forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;const {error}=await S.from("podcast_saved_episodes").delete().eq("id",b.dataset.removeSaved).eq("user_id",uid);if(error){b.disabled=false;$("#status").textContent="Could not remove this saved episode.";return}loadSavedEpisodes(uid)}));
+}
+async function loadFollowedShows(uid){
+ const box=$("#followedShows");box.innerHTML='<div class="empty">Loading your followed shows…</div>';
+ const follows=await S.from("podcast_follows").select("podcast_id,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(40);
+ if(follows.error){box.innerHTML='<div class="empty">Your followed shows are temporarily unavailable.</div>';throw follows.error}
+ if(!follows.data?.length){box.innerHTML='<div class="empty">Follow a podcast from its show page to build your personal network here.</div>';return}
+ const ids=follows.data.map(x=>x.podcast_id),r=await S.from("podcasts").select("id,title,slug,description,artwork_url,category").in("id",ids);
+ if(r.error){box.innerHTML='<div class="empty">Followed shows could not be loaded.</div>';throw r.error}
+ const map=new Map((r.data||[]).map(x=>[x.id,x]));
+ const rows=follows.data.filter(x=>map.has(x.podcast_id));
+ box.innerHTML=rows.length?rows.map(x=>{const p=map.get(x.podcast_id);return '<article class="follow-card"><img loading="lazy" src="'+esc(p.artwork_url||logo())+'" alt=""><h3>'+esc(p.title)+'</h3><p>'+esc(p.description||"Followed show")+'</p><span class="meta">'+esc(p.category||"PODCAST")+'</span><div class="actions"><a class="btn primary" href="show.html?id='+encodeURIComponent(p.id)+'">OPEN SHOW →</a><button class="btn" type="button" data-unfollow="'+esc(p.id)+'">UNFOLLOW</button></div></article>'}).join(""):'<div class="empty">Your followed shows are not currently published.</div>';
+ box.querySelectorAll("[data-unfollow]").forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;const {error}=await S.from("podcast_follows").delete().eq("user_id",uid).eq("podcast_id",b.dataset.unfollow);if(error){b.disabled=false;$("#status").textContent="Could not unfollow this show.";return}loadFollowedShows(uid);loadFollows(uid)}));
+}
+async function loadPlaylists(uid){
+ const box=$("#playlists");box.innerHTML='<div class="empty">Loading your playlists…</div>';
+ const r=await S.from("podcast_playlists").select("id,name,description,is_public,created_at").eq("user_id",uid).order("updated_at",{ascending:false}).limit(40);
+ if(r.error){box.innerHTML='<div class="empty">Your playlists are temporarily unavailable.</div>';throw r.error}
+ if(!r.data?.length){box.innerHTML='<div class="empty">Create your first playlist to organize the episodes you want to hear.</div>';return}
+ const ids=r.data.map(x=>x.id),items=await S.from("podcast_playlist_items").select("playlist_id,episode_id").in("playlist_id",ids);
+ const counts={};(items.data||[]).forEach(x=>counts[x.playlist_id]=(counts[x.playlist_id]||0)+1);
+ box.innerHTML=r.data.map(p=>'<article class="playlist-card"><div class="eyebrow">LISTENING COLLECTION</div><h3>'+esc(p.name)+'</h3><p>'+esc(p.description||"Your personal episode collection.")+'</p><span class="meta">'+(counts[p.id]||0)+' EPISODES · '+(p.is_public?"PUBLIC":"PRIVATE")+'</span><div class="actions"><a class="btn primary" href="playlist.html?id='+encodeURIComponent(p.id)+'">OPEN PLAYLIST →</a></div></article>').join("");
+}
+$("#playlistForm").addEventListener("submit",async e=>{e.preventDefault();const name=$("#playlistName").value.trim(),description=$("#playlistDescription").value.trim();if(!name)return;const {data:{session}}=await S.auth.getSession();if(!session)return;const button=e.submitter;button.disabled=true;$("#playlistStatus").textContent="Creating playlist…";const {error}=await S.from("podcast_playlists").insert({user_id:session.user.id,name,description:description||null,is_public:false});button.disabled=false;if(error){$("#playlistStatus").textContent="Could not create playlist: "+error.message;return}$("#playlistForm").reset();$("#playlistStatus").textContent="Playlist created. It is private by default.";loadPlaylists(session.user.id)});
+
 async function init(){
  if(!S){$("#status").textContent="Supabase configuration is unavailable.";["minutes","follows","comments"].forEach(metricUnavailable);return}
  const {data:{session},error:sessionError}=await S.auth.getSession();
@@ -86,8 +145,8 @@ async function init(){
  if(meta.avatar_url||meta.picture)$("#avatar").src=meta.avatar_url||meta.picture;
  $("#status").textContent="Loading verified activity from your account…";
  ["minutes","follows","comments"].forEach(id=>setMetric(id,"…"));
- const results=await Promise.allSettled([loadHistory(u.id),loadListeningMinutes(u.id),loadFollows(u.id),loadComments(u.id),loadLive()]);
- const labels=["Listening history","listening minutes","follows","comments","live status"];
+ const results=await Promise.allSettled([loadHistory(u.id),loadListeningMinutes(u.id),loadFollows(u.id),loadComments(u.id),loadLive(),loadSavedEpisodes(u.id),loadFollowedShows(u.id),loadPlaylists(u.id)]);
+ const labels=["Listening history","listening minutes","follows","comments","live status","saved episodes","followed shows","playlists"];
  const failed=results.map((r,i)=>r.status==="rejected"?labels[i]+": "+(r.reason?.message||String(r.reason)):null).filter(Boolean);
  $("#status").textContent=failed.length?"Some account data could not be verified. Unavailable metrics are marked —.":"Your listener dashboard is up to date.";
  $("#status").title=failed.join("\n");
