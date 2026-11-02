@@ -59,7 +59,7 @@ async function loadEvents(){
 function render(){
  const term=$('search').value.trim().toLowerCase(),filter=$('filter').value,now=Date.now();
  const rows=events.filter(e=>{
-  const circle=circles.find(c=>c.id===e.circle_id),text=(e.title+' '+e.description+' '+(circle?.name||'')).toLowerCase();
+  const circle=circles.find(c=>c.id===e.circle_id);if(!circle)return false;const text=(e.title+' '+e.description+' '+circle.name).toLowerCase();
   if(term&&!text.includes(term))return false;
   if(filter==='upcoming'&&(e.status!=='scheduled'||new Date(e.starts_at).getTime()<now))return false;
   if(filter==='all'&&e.status!=='scheduled')return false;
