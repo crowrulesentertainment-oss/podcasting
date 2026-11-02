@@ -134,3 +134,9 @@ The current project already contains podcast, episode, category, profile, playli
 - Administrators can inspect archived published configurations, compare an archived snapshot against the current live configuration, and preview a snapshot in the private homepage preview.
 - Restoring a snapshot republishes that configuration through the existing admin-only settings update path. The database revision trigger captures the outgoing live configuration before the restored version becomes current.
 - Revision history remains bounded to the latest 20 published configurations.
+
+
+## Homepage section visibility controls
+- Discovery & Editorial Control Room includes per-section Show toggles alongside the visual drag-and-drop ordering controls.
+- Visibility is stored in `section_visibility` within the existing draft/published editorial configuration; it uses the existing draft preview, publish, revision, compare, and restore workflow without a schema change.
+- The public Listen homepage applies visibility after rendering the spotlight and personal sections, so a disabled section remains hidden consistently for signed-in and signed-out visitors.
