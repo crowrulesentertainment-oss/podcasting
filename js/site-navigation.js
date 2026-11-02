@@ -70,6 +70,7 @@ function enhance(){
   {label:'Apply as Creator',file:'creator/apply.html',key:'apply'},
   {label:'Rankings',file:'listener/rankings.html',key:'rankings'},
   {label:'Community',file:'listener/community.html',key:'community'},
+  {label:'Community Circles',file:'listener/circles.html',key:'circles'},
   {label:'Awards',file:'awards.html',key:'awards'},
   {label:'Theme Studio',file:'theme-studio.html',key:'themes'}
  ];
