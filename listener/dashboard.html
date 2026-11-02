@@ -54,6 +54,28 @@ footer{border-top:1px solid var(--line);padding:28px 0 40px;color:#64748b;font-s
 
 .goals-panel{margin:18px 0;padding:22px;border:1px solid rgba(34,211,238,.22);background:linear-gradient(135deg,rgba(34,211,238,.065),rgba(167,139,250,.055)),var(--panel)}
 .goal-settings{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-top:16px}.goal-field{display:grid;gap:7px;min-width:150px;flex:1}.goal-field label{font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--muted)}.goal-field input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#090f1c;color:#fff;font:700 13px Orbitron}.goal-progress-list{display:grid;gap:14px;margin-top:18px}.goal-progress-item{padding:14px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.025)}.goal-progress-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.goal-progress-head strong{font:700 11px Orbitron}.goal-progress-head b{font:700 12px Orbitron;color:var(--cyan)}.goal-progress-item p{font-size:10px;color:var(--muted);margin:6px 0 0}.goal-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}.goal-status{font-size:10px;color:var(--muted)}@media(max-width:600px){.goals-panel{padding:16px}.goal-settings{align-items:stretch}.goal-field{min-width:calc(50% - 8px)}}
+
+.weekly-snapshot{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+.weekly-tile{padding:15px;border:1px solid rgba(34,211,238,.2);border-radius:14px;background:linear-gradient(145deg,rgba(34,211,238,.06),rgba(167,139,250,.045))}
+.weekly-tile b{display:block;font:700 23px Orbitron;color:#e6fbff}
+.weekly-tile span{display:block;margin-top:6px;color:var(--muted);font-size:9px;letter-spacing:.09em}
+.weekly-note{margin:0 0 14px;color:var(--muted);font-size:10px;line-height:1.6}
+.personal-shelf{margin-top:18px}
+.personal-shelf .sectionhead{margin-bottom:12px}
+.favorite-show-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.favorite-show-card{min-width:0;padding:12px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025)}
+.favorite-show-card img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;background:#111827}
+.favorite-show-card strong{display:block;margin:10px 0 5px;font:700 11px Orbitron;line-height:1.5;overflow-wrap:anywhere}
+.favorite-show-card small{display:block;color:var(--muted);font-size:9px;line-height:1.5}
+.because-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.because-card{display:flex;gap:12px;align-items:center;padding:13px;border:1px solid rgba(34,211,238,.18);border-radius:14px;background:rgba(34,211,238,.035);min-width:0}
+.because-card img{width:56px;height:56px;object-fit:cover;border-radius:10px;flex:0 0 56px}
+.because-card strong{display:block;font-size:11px;line-height:1.5}
+.because-card small{display:block;margin-top:5px;color:var(--muted);font-size:9px;line-height:1.5}
+.privacy-shortcut{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media(max-width:800px){.weekly-snapshot{grid-template-columns:repeat(2,minmax(0,1fr))}.favorite-show-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.because-list{grid-template-columns:1fr}}
+@media(max-width:480px){.weekly-tile{padding:12px}.weekly-tile b{font-size:20px}}
+
 </style>
 
 <link rel="stylesheet" href="../css/sitewide-refinements.css?v=20261012">
@@ -81,6 +103,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 40px;color:#64748b;font-s
 <section class="section"><div class="sectionhead"><h2>Continue Listening</h2><a href="index.html">DISCOVER MORE →</a></div><div id="history" class="list"><div class="empty">Loading your listening history…</div></div></section>
 <section class="section" id="listening-insights">
  <div class="sectionhead"><div><h2>Your Listening Journey</h2><p class="muted">A private snapshot of your progress and recent activity.</p></div><span class="eyebrow">YOUR STATS</span></div>
+ <div class="panel" style="margin-bottom:16px"><div class="sectionhead"><div><div class="eyebrow">YOUR LISTENING WEEK</div><h3 style="font:700 17px Orbitron;margin:8px 0">The last seven days</h3><p class="muted">A quick look at your recent listening rhythm.</p></div><span class="eyebrow">ROLLING 7 DAYS</span></div><div class="weekly-snapshot"><div class="weekly-tile"><b id="weekPlays">—</b><span>PLAY EVENTS</span></div><div class="weekly-tile"><b id="weekEpisodes">—</b><span>UNIQUE EPISODES</span></div><div class="weekly-tile"><b id="weekShows">—</b><span>SHOWS EXPLORED</span></div><div class="weekly-tile"><b id="weekDays">—</b><span>ACTIVE DAYS</span></div></div><p class="weekly-note" id="weekCoverage">Calculated from your latest recorded listening activity available to this dashboard.</p></div>
  <div class="panel listening-calendar-panel"><div class="calendar-heading"><div><div class="eyebrow">LISTENING CONSISTENCY</div><h3>Personal Listening Calendar</h3><p class="muted">Days with recorded listening activity.</p></div><div class="calendar-streak"><b id="listeningStreak">—</b><span>DAY STREAK</span></div></div><div class="calendar-toolbar"><button type="button" id="calendarPrev" aria-label="Previous month">←</button><strong id="calendarMonth">Loading month…</strong><button type="button" id="calendarNext" aria-label="Next month">→</button></div><div class="calendar-grid" id="listeningCalendar" role="grid" aria-label="Listening activity calendar"><div class="empty">Loading calendar…</div></div><div class="calendar-legend"><span><i></i> Listening activity</span><small id="calendarCoverage">Based on your latest recorded activity</small></div><div class="monthly-recap" aria-live="polite"><div class="eyebrow">MONTHLY RECAP</div><h4 id="monthlyRecapTitle">This month at a glance</h4><div class="recap-grid"><div><b id="recapEvents">—</b><span>ACTIVITY EVENTS</span></div><div><b id="recapDays">—</b><span>ACTIVE DAYS</span></div><div><b id="recapEpisodes">—</b><span>EPISODES PLAYED</span></div><div><b id="recapTopShow">—</b><span>TOP SHOW</span></div></div><p id="recapNote" class="muted">Based on recorded activity in this calendar month.</p></div></div><section class="panel annual-report" aria-live="polite">
  <div class="annual-head"><div><div class="eyebrow">YOUR YEAR IN SOUND</div><h3 id="annualTitle">2026 Listening Year in Review</h3><p class="muted">A personal snapshot of your listening highlights and milestones.</p></div><div class="annual-year-controls"><button type="button" id="annualPrev" aria-label="Previous year">←</button><strong id="annualYear">2026</strong><button type="button" id="annualNext" aria-label="Next year">→</button></div></div>
  <div class="recap-grid annual-stats"><div><b id="annualEvents">—</b><span>ACTIVITY EVENTS</span></div><div><b id="annualDays">—</b><span>LISTENING DAYS</span></div><div><b id="annualEpisodes">—</b><span>EPISODES PLAYED</span></div><div><b id="annualShows">—</b><span>SHOWS EXPLORED</span></div></div>
@@ -110,7 +133,8 @@ footer{border-top:1px solid var(--line);padding:28px 0 40px;color:#64748b;font-s
 </section>
 
 <section class="section" id="saved-section"><div class="sectionhead"><h2>My List</h2><a href="index.html#discover">FIND MORE EPISODES →</a></div><div id="savedEpisodes" class="list"><div class="empty">Loading your saved episodes…</div></div></section>
-<section class="section" id="recommendations-section"><div class="sectionhead"><div><h2>Picked for You</h2><p class="muted">Recommendations shaped by the shows you follow, episodes you save, and what you listen to.</p></div><span class="eyebrow">YOUR DISCOVERY MIX</span></div><div id="recommendationStatus" class="notice" role="status" aria-live="polite">Building your personal recommendations…</div><div class="recommendation-block"><div class="sectionhead"><h3>Shows You May Love</h3><a href="index.html">EXPLORE ALL SHOWS →</a></div><div id="recommendedShows" class="grid"><div class="empty">Finding shows for you…</div></div></div><div class="recommendation-block"><div class="sectionhead"><h3>Episodes to Try Next</h3><a href="index.html#discover">MORE EPISODES →</a></div><div id="recommendedEpisodes" class="grid"><div class="empty">Finding your next listen…</div></div></div></section>
+<section class="section" id="recommendations-section"><div class="sectionhead"><div><h2>Picked for You</h2><p class="muted">Recommendations shaped by the shows you follow, episodes you save, and what you listen to.</p></div><span class="eyebrow">YOUR DISCOVERY MIX</span></div><div id="recommendationStatus" class="notice" role="status" aria-live="polite">Building your personal recommendations…</div><div class="personal-shelf"><div class="sectionhead"><div><h3 style="font:700 17px Orbitron;margin:0">Because You Listened To…</h3><p class="muted">Discover other voices connected to a show in your recent listening history.</p></div></div><div id="becauseYouListened" class="because-list"><div class="empty">Finding a starting point from your listening history…</div></div></div><div class="recommendation-block"><div class="sectionhead"><h3>Shows You May Love</h3><a href="index.html">EXPLORE ALL SHOWS →</a></div><div id="recommendedShows" class="grid"><div class="empty">Finding shows for you…</div></div></div><div class="recommendation-block"><div class="sectionhead"><h3>Episodes to Try Next</h3><a href="index.html#discover">MORE EPISODES →</a></div><div id="recommendedEpisodes" class="grid"><div class="empty">Finding your next listen…</div></div></div></section>
+<section class="section" id="favorite-shows-section"><div class="sectionhead"><div><h2>Favorite Shows</h2><p class="muted">Your personal shortlist of podcasts you have saved as favorites.</p></div><a href="profile.html">MANAGE FAVORITES →</a></div><div id="favoriteShows" class="favorite-show-grid"><div class="empty">Loading your favorite shows…</div></div></section>
 <section class="section" id="followed-section"><div class="sectionhead"><h2>My Shows</h2><a href="index.html#discover">DISCOVER SHOWS →</a></div><div id="followedShows" class="grid"><div class="empty">Loading your followed shows…</div></div></section>
 <section class="section" id="playlists-section"><div class="sectionhead"><div><h2>Your Playlists</h2><p class="muted">Build collections for every mood, moment and listening session.</p></div></div><form id="playlistForm" class="playlist-form"><input id="playlistName" maxlength="80" required placeholder="Name your new playlist" aria-label="New playlist name"><input id="playlistDescription" maxlength="240" placeholder="Description (optional)" aria-label="Playlist description"><button class="btn primary" type="submit">＋ CREATE PLAYLIST</button></form><div id="playlistStatus" class="muted" role="status" aria-live="polite"></div><div id="playlists" class="grid"><div class="empty">Loading your playlists…</div></div></section>
 
@@ -121,6 +145,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 40px;color:#64748b;font-s
 <div class="panel feature"><div class="icon">★</div><div><h3>Climb the Rankings</h3><p class="muted">Listening, engagement and community participation can become part of your CrowRules journey.</p></div></div>
 </div></section>
 
+<section class="section"><div class="panel privacy-shortcut"><div><div class="eyebrow">YOUR ACCOUNT • YOUR CHOICE</div><h2 style="font:700 18px Orbitron;margin:8px 0">Listening Privacy</h2><p class="muted">Your listening dashboard is private. Control whether your public member profile displays activity, favorites and network details.</p></div><a class="btn primary" href="profile.html">OPEN PROFILE & PRIVACY SETTINGS →</a></div></section>
 <section class="section two">
 <div class="panel"><div class="sectionhead"><h2>Live Right Now</h2><span class="eyebrow">REALTIME</span></div><div id="live" class="notice"><span class="dot"></span>Checking the live network…</div></div>
 <div class="panel"><div class="sectionhead"><h2>One Account. One Universe.</h2></div><p class="muted">Your CrowRules identity is designed to move with you between listener and creator experiences.</p><div class="actions"><a class="btn primary" href="profile.html">OPEN PROFILE</a><a class="btn" href="../home.html">PODCASTING HOME</a></div></div>
@@ -196,6 +221,18 @@ async function loadPersonalRecommendations(uid){
   saved.forEach(id=>{const ep=episodeById.get(id),p=ep&&showById.get(ep.podcast_id);if(p){addCategory(p.category,4);addCategory(categoryMap.get(p.category_id),3)}});
   playedRows.forEach((x,i)=>{const p=showById.get(x.podcast_id);if(p){const w=Math.max(1,4-Math.floor(i/12));addCategory(p.category,w);addCategory(categoryMap.get(p.category_id),Math.max(1,w-1))}});
   const getCategory=p=>String(p.category||categoryMap.get(p.category_id)||"").trim();
+  const becauseBox=$("#becauseYouListened");
+  const latestSeed=playedRows.find(x=>x.podcast_id&&showById.has(x.podcast_id));
+  if(becauseBox){
+   if(latestSeed){
+    const seed=showById.get(latestSeed.podcast_id),seedCategory=getCategory(seed).toLowerCase();
+    const related=shows.filter(p=>p.id!==seed.id&&getCategory(p).toLowerCase()===seedCategory).slice(0,3);
+    const cards=[{p:seed,label:"YOUR RECENT LISTEN"},{...related.slice(0,2).map(p=>({p,label:"SIMILAR CATEGORY"}))}].flat().filter(Boolean);
+    becauseBox.innerHTML='<article class="because-card"><img loading="lazy" src="'+esc(seed.artwork_url||logo())+'" alt=""><span><strong>'+esc(seed.title)+'</strong><small>Start here · your most recent show in this listening snapshot</small></span></article>'+related.slice(0,2).map(p=>'<a class="because-card" href="show.html?id='+encodeURIComponent(p.id)+'"><img loading="lazy" src="'+esc(p.artwork_url||logo())+'" alt=""><span><strong>'+esc(p.title)+'</strong><small>Because you listened to '+esc(seed.title)+' · '+esc(getCategory(p)||"Related discovery")+'</small></span></a>').join("");
+   }else{
+    becauseBox.innerHTML='<div class="empty">Play a show while signed in and we’ll use it as a starting point for related discoveries.</div>';
+   }
+  }
   const showRank=shows.filter(p=>!followed.has(p.id)).map(p=>{const cat=getCategory(p).toLowerCase(),score=(categoryScore.get(cat)||0)+(p.is_featured?2:0)+Math.log10(1+Math.max(0,Number(p.total_plays)||0));const reason=categoryScore.get(cat)>0?"Because you enjoy "+getCategory(p):p.is_featured?"Featured on CrowRules":"Popular with listeners";return{p,score,reason}}).sort((a,b)=>b.score-a.score).slice(0,6);
   showBox.innerHTML=showRank.length?showRank.map(({p,reason})=>'<article class="recommendation-card"><img loading="lazy" src="'+esc(p.artwork_url||logo())+'" alt=""><div class="rec-body"><span class="rec-reason">'+esc(reason)+'</span><h4>'+esc(p.title)+'</h4><p>'+esc(p.description||"Discover a new voice on CrowRules Podcasting.")+'</p><div class="meta">'+esc(getCategory(p)||"PODCAST")+'</div><div class="actions"><a class="btn primary" href="show.html?id='+encodeURIComponent(p.id)+'">EXPLORE SHOW →</a><button class="btn" type="button" data-rec-follow="'+esc(p.id)+'">＋ FOLLOW</button></div></div></article>').join(""):'<div class="empty rec-empty">You’re following every currently published show. Check back as new creators join.</div>';
   const episodeRank=episodes.filter(ep=>ep.audio_url&&!saved.has(ep.id)&&!playedEpisodeIds.has(ep.id)).map(ep=>{const p=showById.get(ep.podcast_id);if(!p)return null;const cat=getCategory(p).toLowerCase(),score=(categoryScore.get(cat)||0)+(followed.has(p.id)?8:0)+(playedShowIds.has(p.id)?4:0)+Math.log10(1+Math.max(0,Number(ep.play_count)||0))+(ep.published_at?Math.max(0,2-(Date.now()-new Date(ep.published_at).getTime())/86400000/30):0);const reason=followed.has(p.id)?"From a show you follow":categoryScore.get(cat)>0?"Matches your listening interests":playedShowIds.has(p.id)?"From a show you’ve played":"A fresh discovery";return{ep,p,score,reason}}).filter(Boolean).sort((a,b)=>b.score-a.score).slice(0,6);
@@ -229,8 +266,8 @@ async function init(){
  if(meta.avatar_url||meta.picture)$("#avatar").src=meta.avatar_url||meta.picture;
  $("#status").textContent="Loading verified activity from your account…";
  ["minutes","follows","comments"].forEach(id=>setMetric(id,"…"));
- const results=await Promise.allSettled([loadHistory(u.id),loadListeningMinutes(u.id),loadFollows(u.id),loadComments(u.id),loadLive(),loadSavedEpisodes(u.id),loadFollowedShows(u.id),loadPlaylists(u.id),loadPersonalRecommendations(u.id),loadListeningInsights(u.id)]);
- const labels=["Listening history","listening minutes","follows","comments","live status","saved episodes","followed shows","playlists","personal recommendations","listening insights"];
+ const results=await Promise.allSettled([loadHistory(u.id),loadListeningMinutes(u.id),loadFollows(u.id),loadComments(u.id),loadLive(),loadSavedEpisodes(u.id),loadFollowedShows(u.id),loadPlaylists(u.id),loadPersonalRecommendations(u.id),loadListeningInsights(u.id),loadFavoriteShows(u.id)]);
+ const labels=["Listening history","listening minutes","follows","comments","live status","saved episodes","followed shows","playlists","personal recommendations","listening insights","favorite shows"];
  const failed=results.map((r,i)=>r.status==="rejected"?labels[i]+": "+(r.reason?.message||String(r.reason)):null).filter(Boolean);
  $("#status").textContent=failed.length?"Some account data could not be verified. Unavailable metrics are marked —.":"Your listener dashboard is up to date.";
  $("#status").title=failed.join("\n");
@@ -449,6 +486,25 @@ function renderListeningAchievements(events,completed){
  }).join("");
  $("#achievementCoverage").textContent="Play, listening-day and show milestones use your latest "+events.length+" recorded activity events. Completed episodes use your saved playback summary. Progress may be understated when older activity falls outside the latest 200 events.";
 }
+function renderWeeklySnapshot(events){
+ const now=new Date(),cutoff=new Date(now.getTime()-7*86400000),rows=events.filter(e=>{const d=new Date(e.created_at);return e.created_at&&Number.isFinite(d.getTime())&&d>=cutoff&&d<=now});
+ const plays=rows.filter(e=>e.event_type==="play"),episodes=new Set(plays.map(e=>e.episode_id).filter(Boolean)),shows=new Set(plays.map(e=>e.podcast_id).filter(Boolean)),days=new Set(plays.map(e=>localDayKey(e.created_at)).filter(Boolean));
+ $("#weekPlays").textContent=plays.length.toLocaleString();$("#weekEpisodes").textContent=episodes.size.toLocaleString();$("#weekShows").textContent=shows.size.toLocaleString();$("#weekDays").textContent=days.size.toLocaleString();
+ $("#weekCoverage").textContent="Rolling seven-day snapshot from the latest "+events.length+" recorded activity events available to this dashboard. It may undercount if your activity is older than the latest 200 events.";
+}
+async function loadFavoriteShows(uid){
+ const box=$("#favoriteShows");if(!box)return;
+ box.innerHTML='<div class="empty">Loading your favorite shows…</div>';
+ const fav=await S.from("podcast_member_favorites").select("podcast_id,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(12);
+ if(fav.error){box.innerHTML='<div class="empty">Favorite shows are temporarily unavailable. You can manage them from your profile.</div>';throw fav.error}
+ const ids=[...new Set((fav.data||[]).map(x=>x.podcast_id).filter(Boolean))];
+ if(!ids.length){box.innerHTML='<div class="empty">You have not marked any shows as favorites yet. Add favorites from your listener profile.</div>';return}
+ const result=await S.from("podcasts").select("id,title,category,artwork_url").in("id",ids);
+ if(result.error){box.innerHTML='<div class="empty">Favorite show details are temporarily unavailable.</div>';throw result.error}
+ const map=new Map((result.data||[]).map(x=>[String(x.id),x]));
+ const rows=ids.map(id=>map.get(String(id))).filter(Boolean);
+ box.innerHTML=rows.length?rows.map(p=>'<a class="favorite-show-card" href="show.html?id='+encodeURIComponent(p.id)+'"><img loading="lazy" src="'+esc(p.artwork_url||logo())+'" alt=""><strong>'+esc(p.title||"Podcast")+'</strong><small>'+esc(p.category||"PODCAST")+'</small></a>').join(""):'<div class="empty">Your favorite shows are not currently published.</div>';
+}
 async function loadListeningInsights(uid){
  const completedBox=$("#completedList"),activityBox=$("#activityFeed");
  const [progressResult,eventsResult]=await Promise.all([
@@ -462,6 +518,7 @@ async function loadListeningInsights(uid){
  listeningGoalCompleted=completed.slice();
  renderListeningAchievements(eventsResult.error?[]:(eventsResult.data||[]),completed);
  const events=eventsResult.error?[]:(eventsResult.data||[]);
+ renderWeeklySnapshot(events);
  listeningCalendarEvents=events.slice();calculateListeningStreak();renderListeningCalendar();
  const showIds=[...new Set(events.map(x=>x.podcast_id).filter(Boolean))];
  const episodeIds=[...new Set(completed.map(x=>x.episode_id).filter(Boolean))].slice(0,12);
