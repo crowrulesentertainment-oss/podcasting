@@ -35,9 +35,10 @@ function fillShows(){
  $('announcementShow').innerHTML=options;$('releaseShow').innerHTML=options;
 }
 async function loadShows(){
- const r=await db.from('podcasts').select('id,title,status').eq('creator_id',user.id).order('title',{ascending:true}).limit(100);
+ const r=await db.from('podcasts').select('id,title,status,creator_id,user_id,owner_id,created_by,profile_id').order('title',{ascending:true}).limit(200);
  if(r.error)throw r.error;
- shows=(r.data||[]).filter(p=>p.status==='published');
+ const owns=p=>['creator_id','user_id','owner_id','created_by','profile_id'].some(k=>p[k]&&String(p[k])===String(user.id));
+ shows=(r.data||[]).filter(p=>owns(p)&&p.status==='published');
  fillShows();
  if(!shows.length){setStatus('No published shows were found for this creator account. Confirm your creator access and show ownership.');}
  else setStatus('Connected · '+shows.length+' managed published show'+(shows.length===1?'':'s'));
