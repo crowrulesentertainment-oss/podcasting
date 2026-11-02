@@ -119,3 +119,11 @@ The current project already contains podcast, episode, category, profile, playli
 - Rankings must be based on verified platform activity and published methodology.
 - Award voting requires eligibility rules, duplicate-vote safeguards and an auditable process.
 - Demo or placeholder statistics must never be presented as real audience metrics.
+
+
+## Discovery homepage publishing
+
+- Discovery editorial changes are stored as an administrator-only draft until explicitly published.
+- The public Listen homepage reads only `published_config`; draft content is previewed in an embedded same-origin admin preview and is not exposed to anonymous visitors.
+- Publishing records an immutable snapshot in `podcast_discovery_home_revisions`; the database retains the latest 20 published versions.
+- Schema setup: `SUPABASE_DISCOVERY_PUBLISHING_SETUP.sql`.
