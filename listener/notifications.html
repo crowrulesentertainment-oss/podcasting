@@ -46,7 +46,9 @@ function toast(msg){$('toast').textContent=msg;$('toast').classList.remove('hidd
 function icon(n){const t=String(n||'').toLowerCase();if(t.includes('new_episode')||t.includes('upcoming_release'))return '♫';if(t.includes('announcement'))return '✦';if(t.includes('like'))return '♥';if(t.includes('comment'))return '▤';if(t.includes('friend'))return '♧';if(t.includes('follow'))return '＋';if(t.includes('episode')||t.includes('podcast'))return '♫';if(t.includes('direct_message'))return '✉';if(t.includes('circle_invitation'))return '♧';if(t.includes('circle_'))return '◉';if(t.includes('point')||t.includes('reward'))return '✦';return '✧';}
 function isSocial(n){return /social_|follow|friend|comment|like/i.test(String(n.type||''));}
 function isMessaging(n){return /direct_message/i.test(String(n.type||''));}
-function isCircle(n){return /circle_/i.test(String(n.type||''));}\nfunction isEpisode(n){return /new_episode|upcoming_release/i.test(String(n.type||''));}\nfunction isAnnouncement(n){return /creator_announcement/i.test(String(n.type||''));}
+function isCircle(n){return /circle_/i.test(String(n.type||''));}
+function isEpisode(n){return /new_episode|upcoming_release/i.test(String(n.type||''));}
+function isAnnouncement(n){return /creator_announcement/i.test(String(n.type||''));}
 function visible(){return rows.filter(n=>filter==='unread'?!n.is_read:filter==='social'?isSocial(n):filter==='messages'?isMessaging(n):filter==='circles'?isCircle(n):filter==='episodes'?isEpisode(n):filter==='announcements'?isAnnouncement(n):true);}
 function render(){
 const unread=rows.filter(n=>!n.is_read).length;$('unreadCount').textContent=unread>99?'99+':String(unread);
@@ -152,7 +154,8 @@ channel=db.channel('crowrules-notifications-'+user.id).on('postgres_changes',{ev
 }
 document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.filter;render();}));
 $('markAll').addEventListener('click',markAll);
-$('savePrefs').addEventListener('click',savePreferences);\n$('savePodcastPrefs').addEventListener('click',savePodcastPreferences);
+$('savePrefs').addEventListener('click',savePreferences);
+$('savePodcastPrefs').addEventListener('click',savePodcastPreferences);
 $('saveCirclePrefs').addEventListener('click',saveCirclePreferences);
 $('list').addEventListener('click',e=>{const r=e.target.closest('[data-read]');if(r){markRead(r.dataset.read);return;}const o=e.target.closest('[data-open]');if(o)openAction(o.dataset.open);});
 (async()=>{
