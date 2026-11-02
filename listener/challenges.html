@@ -21,6 +21,10 @@
 .leaderboard-list{display:grid;gap:9px;margin-top:16px}.leaderboard-row{display:grid;grid-template-columns:34px 42px minmax(0,1fr) auto;align-items:center;gap:11px;padding:11px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.025);min-width:0}
 .leaderboard-rank{font:800 13px Orbitron,sans-serif;color:var(--cyan);text-align:center}.leaderboard-avatar{width:42px;height:42px;border-radius:12px;object-fit:cover;background:#111827;border:1px solid var(--line)}.leaderboard-person{min-width:0}.leaderboard-person strong{display:block;font-size:11px;overflow-wrap:anywhere}.leaderboard-person small{display:block;margin-top:4px;color:var(--muted);font-size:9px}.leaderboard-score{text-align:right}.leaderboard-score strong{display:block;font:800 13px Orbitron,sans-serif;color:var(--cyan)}.leaderboard-score small{display:block;margin-top:4px;color:var(--muted);font-size:8px}.leaderboard-badges{display:flex;gap:4px;margin-top:5px}.leaderboard-badges span{font-size:12px}.leaderboard-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.leaderboard-tools p{flex:1;min-width:200px;color:var(--muted);font-size:10px;line-height:1.7;margin:0}.leaderboard-note{margin-top:13px;padding:12px;border:1px solid rgba(103,232,249,.15);border-radius:11px;background:rgba(103,232,249,.035);color:var(--muted);font-size:9px;line-height:1.7}
 @media(max-width:580px){.leaderboard-panel{padding:15px}.leaderboard-row{grid-template-columns:27px 36px minmax(0,1fr) auto;gap:7px;padding:9px}.leaderboard-avatar{width:36px;height:36px}.leaderboard-score strong{font-size:11px}}
+
+.custom-challenge-panel{padding:22px;border:1px solid rgba(167,139,250,.25);border-radius:20px;background:linear-gradient(145deg,rgba(22,17,43,.88),rgba(8,14,28,.96))}
+.custom-challenge-form{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:10px;margin:16px 0}.custom-challenge-form label{display:grid;gap:6px;color:var(--muted);font-size:9px;font-weight:800;letter-spacing:.08em}.custom-challenge-form input,.custom-challenge-form select{width:100%;min-width:0;padding:11px;border:1px solid var(--line);border-radius:10px;background:#090f1c;color:#fff;font:12px Montserrat}.custom-challenge-form button{grid-column:1/-1;justify-self:start}.custom-challenge-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-top:16px}.custom-challenge-card{padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025);min-width:0}.custom-challenge-card h3{font:700 12px Orbitron;line-height:1.5;margin:0 0 7px}.custom-challenge-card p{font-size:10px;color:var(--muted);line-height:1.6;margin:0 0 12px}.custom-challenge-meta{display:flex;justify-content:space-between;gap:10px;font-size:9px;color:var(--muted);margin-bottom:8px}.custom-challenge-card .progress{margin:8px 0}.custom-challenge-card .btn{font-size:9px;padding:8px 10px;margin-top:8px}.event-badge{display:inline-flex;align-items:center;gap:7px;margin:0 0 10px;padding:6px 9px;border:1px solid rgba(250,204,21,.25);border-radius:999px;background:rgba(250,204,21,.06);color:#fde68a;font-size:8px;font-weight:900;letter-spacing:.08em}.event-badge.earned{border-color:rgba(52,211,153,.3);background:rgba(52,211,153,.08);color:#86efac}
+@media(max-width:760px){.custom-challenge-form{grid-template-columns:1fr 1fr}}@media(max-width:560px){.custom-challenge-panel{padding:15px}.custom-challenge-form,.custom-challenge-list{grid-template-columns:1fr}.custom-challenge-form button{grid-column:auto}}
 </style>
 
 <link rel="stylesheet" href="../css/sitewide-refinements.css">
@@ -57,6 +61,23 @@
 </div>
 <div id="challenge-grid" class="challenge-grid" aria-live="polite"></div>
 <div class="note">Challenges load from Supabase. Progress is calculated from stored podcast listen sessions, with completed-episode thresholds checked against episode duration. Because playback telemetry originates in the client, it should be treated as abuse-resistant rather than proof that a human listened to every second.</div>
+</section>
+<section class="section" id="personal-challenge-builder">
+ <div class="custom-challenge-panel">
+  <div class="section-head"><div><div class="eyebrow">YOUR PRIVATE MISSIONS</div><h2>BUILD A CHALLENGE</h2><p>Create a personal listening challenge. Only you can see or manage your custom challenges.</p></div></div>
+  <div id="custom-challenge-content">
+   <form id="custom-challenge-form" class="custom-challenge-form">
+    <label>CHALLENGE NAME<input id="custom-challenge-title" maxlength="60" minlength="3" required placeholder="e.g. Discover five new voices"></label>
+    <label>MEASURE<select id="custom-challenge-metric"><option value="completed_episodes">Completed episodes</option><option value="unique_shows">Different shows</option><option value="active_days">Listening days</option></select></label>
+    <label>YOUR TARGET<input id="custom-challenge-goal" type="number" min="1" max="1000" value="5" required></label>
+    <label>DURATION<select id="custom-challenge-duration"><option value="7">7 days</option><option value="14">14 days</option><option value="30" selected>30 days</option><option value="ongoing">No end date</option></select></label>
+    <button class="btn primary" type="submit" id="create-custom-challenge">＋ CREATE PRIVATE CHALLENGE</button>
+   </form>
+   <div id="custom-challenge-status" class="note" role="status" aria-live="polite">Your challenge progress updates from your recorded listening activity.</div>
+   <div id="custom-challenge-list" class="custom-challenge-list"><div class="empty">Sign in to create and track private challenges.</div></div>
+  </div>
+  <div class="leaderboard-note">Private challenges do not award CrowPoints or affect public rankings. Progress is calculated from your account's recorded listening history; recent activity coverage is limited to the latest 500 play events.</div>
+ </div>
 </section>
 <section class="section" id="community-leaderboard">
  <div class="leaderboard-panel">
@@ -144,7 +165,7 @@ function render(){
   const progress=Math.max(0,Number(row?.progress)||0),goal=Math.max(1,Number(c.goal)||1),pct=Math.min(100,Math.round(progress/goal*100));
   const category=c.category==='special'?'SPECIAL EVENT':String(c.category||'').toUpperCase();
   const statusText=isDone?'COMPLETED ✓':isJoined?'CHALLENGE JOINED ✓':'JOIN CHALLENGE +';
-  return '<article class="challenge"><div class="challenge-top"><div class="challenge-icon" aria-hidden="true">'+escapeHtml(c.icon||'🎧')+'</div><span class="tag">'+escapeHtml(category)+'</span></div><h3>'+escapeHtml(c.title)+'</h3><p>'+escapeHtml(c.description)+'</p><div class="challenge-bottom"><div class="reward"><span>MISSION TARGET</span><strong>'+escapeHtml(goalLabel(c))+'</strong></div><div class="reward"><span>REWARD</span><span class="points">+'+(Number(c.reward_points)||0)+' CP</span></div>'+(isJoined?'<div class="progress-label"><span>YOUR PROGRESS</span><span>'+progress+' / '+goal+'</span></div><div class="progress" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100" aria-label="Challenge progress"><span style="width:'+pct+'%"></span></div>':'')+'<button class="btn '+(isJoined?'primary':'')+'" data-join="'+escapeHtml(c.id)+'" '+((isDone||isJoined)?'disabled':'')+'>'+statusText+'</button></div></article>';
+  return '<article class="challenge">'+eventBadge+'<div class="challenge-top"><div class="challenge-icon" aria-hidden="true">'+escapeHtml(c.icon||'🎧')+'</div><span class="tag">'+escapeHtml(category)+'</span></div><h3>'+escapeHtml(c.title)+'</h3><p>'+escapeHtml(c.description)+'</p><div class="challenge-bottom"><div class="reward"><span>MISSION TARGET</span><strong>'+escapeHtml(goalLabel(c))+'</strong></div><div class="reward"><span>REWARD</span><span class="points">+'+(Number(c.reward_points)||0)+' CP</span></div>'+(isJoined?'<div class="progress-label"><span>YOUR PROGRESS</span><span>'+progress+' / '+goal+'</span></div><div class="progress" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100" aria-label="Challenge progress"><span style="width:'+pct+'%"></span></div>':'')+'<button class="btn '+(isJoined?'primary':'')+'" data-join="'+escapeHtml(c.id)+'" '+((isDone||isJoined)?'disabled':'')+'>'+statusText+'</button></div></article>';
  }).join('');
  if(!list.length)$('challenge-grid').innerHTML='<div class="empty">No active challenges in this category right now. Try another filter.</div>';
  document.querySelectorAll('[data-join]').forEach(btn=>btn.addEventListener('click',()=>joinChallenge(btn.dataset.join,btn)));
@@ -193,6 +214,54 @@ async function loadParticipation(){
  completed=new Set(currentCompletions.map(row=>row.challenge_id));
  currentParticipants.filter(row=>row.status==='completed').forEach(row=>completed.add(row.challenge_id));
 }
+function customMetricValue(metric,events,playback,start,end){
+ const inRange=t=>{const n=t?Date.parse(t):0;return n>=start.getTime()&&(!end||n<=end.getTime())};
+ if(metric==='completed_episodes')return playback.filter(x=>x.completed&&inRange(x.last_played_at||x.updated_at)).length;
+ const rows=events.filter(x=>inRange(x.created_at));
+ if(metric==='unique_shows')return new Set(rows.map(x=>x.podcast_id).filter(Boolean)).size;
+ if(metric==='active_days')return new Set(rows.map(x=>new Date(x.created_at).toLocaleDateString('en-CA'))).size;
+ return 0;
+}
+function customMetricLabel(metric){return metric==='completed_episodes'?'completed episodes':metric==='unique_shows'?'different shows':'listening days'}
+async function loadCustomChallenges(){
+ const box=$('custom-challenge-list'),status=$('custom-challenge-status'),form=$('custom-challenge-form');
+ if(!user){form.hidden=true;status.textContent='Sign in to create private challenges. These missions are visible only to your account.';box.innerHTML='<div class="empty">Sign in to create and track your own private listening challenges.</div>';return}
+ form.hidden=false;box.innerHTML='<div class="empty">Loading your private challenges…</div>';
+ try{
+  const [challengeRes,eventRes,playbackRes]=await Promise.all([
+   supabase.from('podcast_listener_custom_challenges').select('id,title,description,metric_key,goal,starts_at,ends_at,is_archived,created_at').eq('user_id',user.id).eq('is_archived',false).order('created_at',{ascending:false}).limit(30),
+   supabase.from('podcast_play_events').select('podcast_id,episode_id,created_at').eq('user_id',user.id).eq('event_type','play').order('created_at',{ascending:false}).limit(500),
+   supabase.rpc('get_my_podcast_playback_state')
+  ]);
+  if(challengeRes.error)throw challengeRes.error;if(eventRes.error)throw eventRes.error;if(playbackRes.error)throw playbackRes.error;
+  const events=eventRes.data||[],playback=playbackRes.data||[],now=new Date();
+  if(!challengeRes.data?.length){box.innerHTML='<div class="empty">No private challenges yet. Create your first mission above.</div>';status.textContent='Your private challenge space is ready.';return}
+  box.innerHTML=challengeRes.data.map(ch=>{
+   const start=new Date(ch.starts_at),end=ch.ends_at?new Date(ch.ends_at):null;
+   const value=customMetricValue(ch.metric_key,events,playback,start,end),goal=Math.max(1,Number(ch.goal)||1),pct=Math.min(100,Math.round(value/goal*100));
+   const expired=end&&now>end,done=value>=goal,remaining=expired&&!done?'Challenge period ended':done?'Target reached':end?'Ends '+end.toLocaleDateString():'Ongoing challenge';
+   return '<article class="custom-challenge-card"><div class="eyebrow">PRIVATE LISTENING MISSION</div><h3>'+escapeHtml(ch.title)+'</h3><p>'+escapeHtml(ch.description||'A personal goal you set for yourself.')+'</p><div class="custom-challenge-meta"><span>'+escapeHtml(customMetricLabel(ch.metric_key).toUpperCase())+'</span><strong>'+value+' / '+goal+'</strong></div><div class="progress" role="progressbar" aria-valuenow="'+Math.min(value,goal)+'" aria-valuemin="0" aria-valuemax="'+goal+'" aria-label="'+escapeHtml(ch.title)+' progress" style="--p:'+pct+'%"><i></i></div><div class="custom-challenge-meta"><span>'+escapeHtml(remaining)+'</span><span>'+pct+'%</span></div><button class="btn" type="button" data-archive-custom="'+escapeHtml(ch.id)+'">ARCHIVE CHALLENGE</button></article>';
+  }).join('');
+  box.querySelectorAll('[data-archive-custom]').forEach(button=>button.addEventListener('click',async()=>{
+   button.disabled=true;const {error}=await supabase.from('podcast_listener_custom_challenges').update({is_archived:true,updated_at:new Date().toISOString()}).eq('id',button.dataset.archiveCustom).eq('user_id',user.id);
+   if(error){button.disabled=false;status.textContent='Could not archive this challenge: '+error.message;return}
+   status.textContent='Challenge archived.';await loadCustomChallenges();
+  }));
+  status.textContent='Your private challenge progress is calculated from your recorded listening data.';
+ }catch(err){console.warn('Private challenges unavailable',err);box.innerHTML='<div class="empty">Your private challenges could not be loaded. '+escapeHtml(err.message||'Please try again.')+'</div>';status.textContent='Challenge data is temporarily unavailable.'}
+}
+async function createCustomChallenge(event){
+ event.preventDefault();if(!user){notify('Sign in to create a private challenge.','info');return}
+ const title=$('custom-challenge-title').value.trim(),metric=$('custom-challenge-metric').value,goal=Number($('custom-challenge-goal').value),duration=$('custom-challenge-duration').value;
+ if(title.length<3||!Number.isInteger(goal)||goal<1||goal>1000){$('custom-challenge-status').textContent='Enter a challenge name and a target between 1 and 1,000.';return}
+ const button=$('create-custom-challenge');button.disabled=true;$('custom-challenge-status').textContent='Creating your private challenge…';
+ const start=new Date(),end=duration==='ongoing'?null:new Date(start.getTime()+Number(duration)*86400000);
+ const {error}=await supabase.from('podcast_listener_custom_challenges').insert({user_id:user.id,title,description:'',metric_key:metric,goal,starts_at:start.toISOString(),ends_at:end?.toISOString()||null});
+ button.disabled=false;
+ if(error){$('custom-challenge-status').textContent='Could not create challenge: '+error.message;return}
+ $('custom-challenge-form').reset();$('custom-challenge-goal').value=5;$('custom-challenge-duration').value='30';$('custom-challenge-status').textContent='Your private challenge has been created.';await loadCustomChallenges();
+}
+$('custom-challenge-form')?.addEventListener('submit',createCustomChallenge);
 async function loadListenerLeaderboard(){
  const box=$('listener-leaderboard');if(!supabase){box.innerHTML='<div class="empty">Community standings are unavailable because the database connection is not configured.</div>';return}
  box.innerHTML='<div class="empty">Refreshing community standings…</div>';
@@ -224,6 +293,7 @@ async function init(){
    try{await loadAchievements()}catch(err){console.warn('Listener achievement load failed',err);notify('Challenges loaded, but achievements could not be refreshed: '+(err.message||''),'error')}
   }else{$('stat-points').textContent='—';joined=new Map();completed=new Set();try{await loadAchievements()}catch(err){console.warn('Public achievement definitions unavailable',err);$('achievement-grid').innerHTML='<div class="empty">Achievement collection is unavailable. Please try again later.</div>'}}
   render();
+  await loadCustomChallenges();
   await loadListenerLeaderboard();
   if(!user)notify('You can browse active challenges. Sign in to join, track progress, and earn eligible rewards.','info');
  }catch(err){console.error('Challenge page initialization',err);$('stat-points').textContent='—';$('challenge-grid').innerHTML='<div class="empty">Live challenges could not be loaded. '+escapeHtml(err.message||'Check the Supabase connection and challenge table permissions.')+'</div>';notify('Challenge database connection failed. '+(err.message||''),'error')}
