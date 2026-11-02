@@ -3,6 +3,7 @@
 create table if not exists public.podcast_production_projects (
  id uuid primary key default gen_random_uuid(),
  podcast_id uuid not null references public.podcasts(id) on delete cascade,
+ source_collaboration_id uuid references public.podcast_community_circle_collaborations(id) on delete set null,
  created_by uuid not null references auth.users(id) on delete cascade,
  title text not null check (char_length(btrim(title)) between 2 and 180),
  summary text not null default '' check (char_length(summary) <= 5000),
@@ -17,6 +18,7 @@ create table if not exists public.podcast_production_projects (
  created_at timestamptz not null default now(),
  updated_at timestamptz not null default now()
 );
+alter table public.podcast_production_projects add column if not exists source_collaboration_id uuid references public.podcast_community_circle_collaborations(id) on delete set null;
 create index if not exists podcast_production_projects_podcast_updated_idx on public.podcast_production_projects(podcast_id,updated_at desc);
 create index if not exists podcast_production_projects_creator_idx on public.podcast_production_projects(created_by,updated_at desc);
 alter table public.podcast_production_projects enable row level security;
