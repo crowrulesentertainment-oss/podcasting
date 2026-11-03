@@ -48,6 +48,8 @@ async function loadPage(reset){
  try{
   let q=client.from("podcasts").select("id,title,slug,category,description,artwork_url,author_name,is_featured,is_live,total_plays,listener_count,published_at").eq("status","published");
   if(filter.value)q=q.eq("category",filter.value);
+  const term=search.value.trim().replace(/[^a-zA-Z0-9\s'-]/g," ").replace(/\s+/g," ").trim();
+  if(term){const pattern="%"+term+"%";q=q.or("title.ilike."+pattern+",description.ilike."+pattern+",author_name.ilike."+pattern);}
   q=sortQuery(q).range(offset,offset+PAGE_SIZE-1);
   const {data,error}=await q;if(error)throw error;
   const rows=data||[];shows=reset?rows:shows.concat(rows);offset+=rows.length;hasMore=rows.length===PAGE_SIZE;
@@ -71,7 +73,7 @@ function updateUrl(){
  const query=params.toString();history.replaceState(null,"",location.pathname+(query?"?"+query:"")+location.hash);
 }
 let searchTimer=null;
-search.addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{render();updateUrl();},100);});
+search.addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{updateUrl();loadPage(true);},280);});
 filter.addEventListener("change",()=>{updateUrl();loadPage(true);});
 sort.addEventListener("change",()=>loadPage(true));
 more.addEventListener("click",()=>loadPage(false));
