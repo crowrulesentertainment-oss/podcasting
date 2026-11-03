@@ -41,7 +41,8 @@ function renderCounts(){
 function sortByFollowers(){
  const select=$("sort");if(!select||select.value!=="followers")return;
  const grid=$("creators");if(!grid)return;
- cards().sort((a,b)=>(Number(b.dataset.followerCount)||0)-(Number(a.dataset.followerCount)||0)).forEach(card=>grid.appendChild(card));
+ const ordered=cards().sort((a,b)=>(Number(b.dataset.followerCount)||0)-(Number(a.dataset.followerCount)||0));
+ const current=cards();if(ordered.some((card,index)=>card!==current[index]))ordered.forEach(card=>grid.appendChild(card));
 }
 async function loadCounts(){
  const {data,error}=await db.from("podcast_creator_follower_counts").select("creator_user_id,follower_count").limit(1000);
