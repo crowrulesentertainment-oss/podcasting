@@ -29,7 +29,7 @@
 </div></header>
 <main class="shell">
 <section class="hero"><div class="eyebrow">THE PEOPLE BEHIND THE VOICES</div><h1>MEET THE CREATORS.</h1><p>Discover the people making shows, sharing stories, and building the CrowRules Podcasting universe. Explore creator profiles, find their podcasts, and connect with the voices you want to hear more from.</p><div class="hero-actions"><a class="btn primary" href="index.html#discover">EXPLORE PODCASTS ↗</a><a class="btn" href="community.html">VISIT COMMUNITY</a><a class="btn" href="../creator/index.html">CREATOR STUDIO</a></div></section>
-<section aria-labelledby="creatorHeading"><div class="toolbar"><div><h2 class="section-title" id="creatorHeading">CREATOR DIRECTORY</h2><div id="resultCount" class="muted">Loading public creator profiles…</div></div><input id="search" class="search" type="search" maxlength="100" placeholder="Search creators by name, handle or bio…" aria-label="Search creators"><select id="sort" class="sort" aria-label="Sort creators"><option value="name">Name A–Z</option><option value="newest">Recently joined</option></select></div>
+<section aria-labelledby="creatorHeading"><div class="toolbar"><div><h2 class="section-title" id="creatorHeading">CREATOR DIRECTORY</h2><div id="resultCount" class="muted">Loading public creator profiles…</div></div><input id="search" class="search" type="search" maxlength="100" placeholder="Search creators by name, handle or bio…" aria-label="Search creators"><select id="sort" class="sort" aria-label="Sort creators"><option value="name">Name A–Z</option><option value="newest">Recently joined</option><option value="followers">Most followed</option></select></div>
 <div id="creators" class="grid" aria-live="polite"><div class="empty">Connecting to the creator directory…</div></div></section>
 <div class="notice"><strong>Are you a creator?</strong> Start from the Creator Studio to manage your podcasting journey. Creator visibility depends on published profile information and the access policies configured for your Supabase project.</div>
 </main>
@@ -68,7 +68,7 @@ function render(){
  if(!rows.length){const empty=document.createElement("div");empty.className="empty";empty.textContent=term?"No creators match that search yet. Try another name or keyword.":"No public creator profiles are available yet. Check back as creators publish their profiles.";grid.appendChild(empty);return}
  rows.forEach(p=>{
   const name=p.display_name||p.creator_name||p.name||p.username||"CrowRules Creator",handle=p.username?"@"+p.username:"CrowRules Creator";
-  const card=document.createElement("article");card.className="creator";
+  const card=document.createElement("article");card.className="creator";const followUserId=p.user_id||p.creator_user_id||p.owner_id||"";if(followUserId)card.dataset.creatorUserId=String(followUserId);
   const cover=document.createElement("div");cover.className="cover";
   if(p.cover_url||p.banner_url)p.cover_url?cover.style.backgroundImage="url("+JSON.stringify(p.cover_url)+")":cover.style.backgroundImage="url("+JSON.stringify(p.banner_url)+")";
   const body=document.createElement("div");body.className="creator-body";
@@ -136,5 +136,6 @@ if(C.logoUrl){$("brandLogo").src=C.logoUrl;$("brandLogo").hidden=false}
 load();
 })();
 </script>
+<script src="../js/creator-follow-system.js?v=20261103-follow2" defer></script>
 </body>
 </html>
