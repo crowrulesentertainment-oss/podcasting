@@ -194,6 +194,7 @@ const slugify=s=>String(s||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").r
 const fmt=d=>d?new Date(d).toLocaleString(): "—";
 const durationText=s=>{s=Number(s||0);if(!s)return"—";const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return h?(h+"h "+String(m).padStart(2,"0")+"m"):(m+"m "+String(sec).padStart(2,"0")+"s")};
 const bytes=n=>{if(!n)return"0 B";const u=["B","KB","MB","GB","TB"];let i=0,x=n;while(x>=1024&&i<u.length-1){x/=1024;i++}return x.toFixed(x>=100||i===0?0:1)+" "+u[i]};
+const MAX_AUDIO_FILE_BYTES=2*1024*1024*1024;
 const getShow=()=>shows.find(x=>String(x.id)===String(podcastId));
 function toast(msg){$("toast").textContent=msg;$("toast").classList.remove("hidden");clearTimeout(window.__toast);window.__toast=setTimeout(()=>$("toast").classList.add("hidden"),3200)}
 function setMessage(msg,good=false){$("message").textContent=msg;$("message").style.color=good?"var(--ok)":"var(--muted)"}
@@ -258,8 +259,77 @@ async function uploadImageAsset(file,kind,field,statusId){
  }catch(err){console.error("[CrowRules] Artwork upload failed",err);status.innerHTML='<span>Upload failed</span><span>Retry</span>';toast(err.message||"Artwork upload failed.")}
  finally{uploading=false}
 }
-async function uploadOne(file,kind,field,statusId){if(!file||uploading)return;if(!user||!podcastId||!$("id").value){toast("Save the episode before uploading files.");return}if((kind==="audio"||kind==="trailer")&&!isAudioFile(file)){toast("Episode media must be an audio file. Choose an audio format such as MP3, M4A, WAV, AAC, OGG, or FLAC.");return}if(kind==="thumbnail"||kind==="banner"){await uploadImageAsset(file,kind,field,statusId);return}if(!window.tus){toast("Resumable uploader is unavailable.");return}uploading=true;const status=$(statusId),episodeId=$("id").value,path="podcasts/"+user.id+"/"+podcastId+"/episodes/"+episodeId+"/"+kind+"-"+Date.now()+"-"+crypto.randomUUID()+"-"+safeName(file.name);const {data:{session}}=await S.auth.getSession();if(!session?.access_token){uploading=false;toast("Your session expired. Sign in again.");return}status.innerHTML="<span>Uploading "+esc(file.name)+"</span><span>0%</span>";$("uploadProgress").style.width="0%";const projectRef=new URL(url).hostname.split(".")[0],endpoint="https://"+projectRef+".storage.supabase.co/storage/v1/upload/resumable";
-try{await new Promise((resolve,reject)=>{const up=new tus.Upload(file,{endpoint,retryDelays:[0,3000,5000,10000,20000],headers:{authorization:"Bearer "+session.access_token,"x-upsert":"false"},uploadDataDuringCreation:true,removeFingerprintOnSuccess:true,metadata:{bucketName:"podcasting",objectName:path,contentType:file.type||"application/octet-stream",cacheControl:"3600"},onProgress:(a,b)=>{const p=b?Math.round(a/b*100):0;$("uploadProgress").style.width=p+"%";status.innerHTML="<span>"+esc(file.name)+" • "+bytes(a)+" / "+bytes(b)+"</span><span>"+p+"%</span>"},onError:reject,onSuccess:async()=>{try{const publicUrl=S.storage.from("podcasting").getPublicUrl(path).data.publicUrl;if(field){const patch={};patch[field]=publicUrl;if((field==="audio_url"||field==="trailer_url")&&!$("duration").value)detectDuration(file);const db=await S.from("podcast_episodes").update(patch).eq("id",episodeId).select("*").single();if(db.error)throw db.error;episodes=episodes.map(x=>String(x.id)===String(episodeId)?db.data:x);if(field==="audio_url"){$("audio").value=publicUrl;setPreview("audioPlayer",publicUrl,"audio")}if(field==="thumbnail_url"){$("thumb").value=publicUrl;setPreview("thumbPreview",publicUrl)}if(field==="banner_url"){$("banner").value=publicUrl;setPreview("bannerPreview",publicUrl)}if(field==="trailer_url"){$("trailer").value=publicUrl;setPreview("trailerPlayer",publicUrl,"audio")}}resolve()}catch(e){reject(e)}}});up.findPreviousUploads().then(prev=>{if(prev.length)up.resumeFromPreviousUpload(prev[0]);up.start()})});toast("Upload complete: "+file.name);await listAssets();render()}catch(e){console.error(e);toast(e.message||"Upload failed.")}finally{uploading=false}}
+async function uploadOne(file,kind,field,statusId){
+ if(!file||uploading)return;
+ if(!user||!podcastId||!$("id").value){toast("Save the episode before uploading files.");return}
+ const isLargeMedia=kind==="audio"||kind==="trailer";
+ if(isLargeMedia&&!isAudioFile(file)){toast("Episode media must be an audio file. Choose MP3, M4A, WAV, AAC, OGG, or FLAC.");return}
+ if(isLargeMedia&&file.size>MAX_AUDIO_FILE_BYTES){toast("Audio files must be 2 GB or smaller. Selected file: "+bytes(file.size)+".");return}
+ if(kind==="thumbnail"||kind==="banner"){await uploadImageAsset(file,kind,field,statusId);return}
+ if(!window.tus){toast("Resumable uploader is unavailable. Refresh the page and try again.");return}
+ uploading=true;
+ const status=$(statusId),episodeId=$("id").value;
+ // Stable audio/trailer paths let TUS find and resume an interrupted upload after a page refresh.
+ // Attachments remain uniquely named so multiple supporting files can coexist.
+ const objectName=isLargeMedia?(kind+"-"+safeName(file.name)):(kind+"-"+Date.now()+"-"+crypto.randomUUID()+"-"+safeName(file.name));
+ const path="podcasts/"+user.id+"/"+podcastId+"/episodes/"+episodeId+"/"+objectName;
+ try{
+  const {data:{session},error:sessionError}=await S.auth.getSession();
+  if(sessionError)throw sessionError;
+  if(!session?.access_token)throw new Error("Your session expired. Sign in again and retry the upload.");
+  status.innerHTML="<span>Preparing "+esc(file.name)+"</span><span>0%</span>";
+  $("uploadProgress").style.width="0%";
+  const projectRef=new URL(url).hostname.split(".")[0];
+  const endpoint="https://"+projectRef+".storage.supabase.co/storage/v1/upload/resumable";
+  await new Promise((resolve,reject)=>{
+   const up=new tus.Upload(file,{
+    endpoint,
+    retryDelays:[0,3000,5000,10000,20000],
+    headers:{authorization:"Bearer "+session.access_token,apikey:key,"x-upsert":"true"},
+    uploadDataDuringCreation:true,
+    removeFingerprintOnSuccess:true,
+    chunkSize:6*1024*1024,
+    metadata:{bucketName:"podcasting",objectName:path,contentType:file.type||"application/octet-stream",cacheControl:"3600"},
+    onProgress:(uploaded,total)=>{
+     const percent=total?Math.round(uploaded/total*100):0;
+     $("uploadProgress").style.width=percent+"%";
+     status.innerHTML="<span>"+esc(file.name)+" • "+bytes(uploaded)+" / "+bytes(total)+"</span><span>"+percent+"%</span>";
+    },
+    onError:error=>reject(error),
+    onSuccess:async()=>{
+     try{
+      const publicUrl=S.storage.from("podcasting").getPublicUrl(path).data.publicUrl;
+      if(field){
+       const patch={};patch[field]=publicUrl;
+       if((field==="audio_url"||field==="trailer_url")&&!$("duration").value)detectDuration(file);
+       const db=await S.from("podcast_episodes").update(patch).eq("id",episodeId).eq("podcast_id",podcastId).select("*").single();
+       if(db.error)throw db.error;
+       episodes=episodes.map(x=>String(x.id)===String(episodeId)?db.data:x);
+       if(field==="audio_url"){$("audio").value=publicUrl;setPreview("audioPlayer",publicUrl,"audio")}
+       if(field==="trailer_url"){$("trailer").value=publicUrl;setPreview("trailerPlayer",publicUrl,"audio")}
+      }
+      $("uploadProgress").style.width="100%";
+      status.innerHTML="<span>Uploaded and saved to episode</span><span>100%</span>";
+      resolve();
+     }catch(error){reject(error)}
+    }
+   });
+   up.findPreviousUploads().then(previous=>{
+    if(previous.length)up.resumeFromPreviousUpload(previous[0]);
+    up.start();
+   }).catch(reject);
+  });
+  toast("Upload complete: "+file.name);
+  await listAssets();
+  render();
+  updateQuality();
+ }catch(error){
+  console.error("[CrowRules] Resumable media upload failed",error);
+  const detail=error?.message||"Unknown upload error";
+  status.innerHTML='<span>Upload failed — '+esc(detail)+'</span><span>Retry available</span>';
+  toast(detail+" If this is a size-limit error, check the Supabase global and podcasting bucket limits.");
+ }finally{uploading=false}
+}
 function detectDuration(file){if(!isAudioFile(file))return;const el=document.createElement("audio"),u=URL.createObjectURL(file);el.preload="metadata";el.onloadedmetadata=()=>{if(Number.isFinite(el.duration)&&el.duration>0){$("duration").value=Math.round(el.duration);setMessage("Detected audio duration: "+durationText(el.duration),true);updateQuality()}URL.revokeObjectURL(u)};el.onerror=()=>URL.revokeObjectURL(u);el.src=u}
 function safeName(name){return String(name||"file").normalize("NFKC").replace(/[^a-zA-Z0-9._-]+/g,"-").replace(/^-+|-+$/g,"").slice(0,140)||"file"}
 async function listAssets(){const id=$("id").value;if(!id||!podcastId||!user){$("assetList").innerHTML='<div class="empty" style="padding:18px">Save the episode to view stored files.</div>';return}const prefix="podcasts/"+user.id+"/"+podcastId+"/episodes/"+id,r=await S.storage.from("podcasting").list(prefix,{limit:100,offset:0,sortBy:{column:"name",order:"desc"}});if(r.error){$("assetList").innerHTML='<div class="empty" style="padding:18px">Stored files could not be listed.</div>';return}const files=(r.data||[]).filter(x=>x.id&&x.name);if(!files.length){$("assetList").innerHTML='<div class="empty" style="padding:18px">No stored files yet.</div>';return}$("assetList").innerHTML=files.map(x=>{const p=prefix+"/"+x.name,u=S.storage.from("podcasting").getPublicUrl(p).data.publicUrl;return '<div class="asset"><span title="'+esc(x.name)+'">'+esc(x.name)+'</span><span>'+bytes(x.metadata?.size||0)+'</span><a target="_blank" rel="noopener" href="'+esc(u)+'">OPEN</a><button class="btn danger" type="button" data-delete-asset="'+esc(p)+'">DELETE</button></div>'}).join("");document.querySelectorAll("[data-delete-asset]").forEach(b=>b.onclick=async()=>{if(!confirm("Delete this stored file?"))return;const rr=await S.storage.from("podcasting").remove([b.dataset.deleteAsset]);if(rr.error){toast(rr.error.message);return}await listAssets();toast("File deleted.")})}
