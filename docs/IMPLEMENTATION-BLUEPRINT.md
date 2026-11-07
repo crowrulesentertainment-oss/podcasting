@@ -16,4 +16,4 @@ Platform memberships use `membership-checkout` plan keys `creator` and `founder`
 No service-role key in browser code. Admin bootstrap verifies account authority. Database RLS remains the source of truth. Stripe secrets remain in Supabase secrets. No database schema mutation is part of this front-end build.
 
 ## Production readiness
-Verify Storage bucket identifier and policies, Data API exposure, creator onboarding, Stripe price IDs, Stripe Connect readiness and webhook endpoints. Remote recording requires a media provider; browser MediaRecorder is single-device only.
+Creator uploads are configured for the existing `crowrules-podcast-published` bucket, whose authenticated owner-folder upload policy was verified. Confirm the Data API exposure, creator onboarding, Stripe price IDs, Stripe Connect readiness and webhook endpoints. Remote recording requires a media provider; browser MediaRecorder is single-device only.
