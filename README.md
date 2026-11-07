@@ -34,3 +34,15 @@ Add that exact URL to Supabase Dashboard → Authentication → URL Configuratio
 `https://cevylpnoexugwgygvtgu.supabase.co/auth/v1/callback`
 
 Provider-specific developer consoles must have the callback above registered, while Supabase's Redirect URLs allow-list must include the GitHub Pages login URL. OAuth client secrets belong only in Supabase Dashboard, never in this repository. Test each provider on the deployed GitHub Pages site after saving credentials.
+
+
+## Brand and quality checks
+The shared navigation/footer use the CrowRules Podcasting neon-cyan/violet vector logo at `assets/images/crowrules-podcasting-logo.svg`, based on the supplied crow/headphones/microphone artwork. The responsive navigation, keyboard focus styles, and shared player are styled in `assets/css/site.css`.
+
+GitHub Actions runs static checks on pushes and pull requests: JavaScript module syntax, local HTML asset references, page-handler coverage, and obvious server-secret patterns in public JS/CSS. These checks do not replace browser, OAuth, Stripe, or real-media integration tests.
+
+## Supabase security maintenance
+The November 7, 2026 maintenance migration:
+- restricts `podcast_subscriptions_select` to the authenticated subscription owner or a CrowRules administrator (it previously allowed anonymous reads of active subscription rows);
+- adds a service-role-only public wrapper for the existing private `podcast_email_worker_authorized(text)` function. The notification worker called this RPC in the public schema even though the function existed only in the private schema, producing repeated 404/401 worker failures.
+No existing tables were dropped or recreated, and no service-role or Stripe secret was added to GitHub.
