@@ -12,7 +12,7 @@ Cinematic HTML/CSS/JavaScript platform for CrowRules Entertainment.
 ## Supabase
 Project `cevylpnoexugwgygvtgu`. Browser code uses only the Supabase publishable key in `assets/js/config.js`. No service-role, secret or Stripe key is included. Existing schema and RLS are reused; no destructive migration is applied.
 
-Existing Edge Functions called: `create-podcast-product`, `create-podcast-checkout`, `membership-checkout`, `membership-portal`, `podcasting-admin-bootstrap`. Existing `stripe-billing-webhook` remains server-side. No deployed function is overwritten.
+Existing Edge Functions called: `create-podcast-product`, `create-podcast-checkout`, `membership-checkout`, `membership-portal`, `podcast-subscription-center`, `premium-media-upload`, `premium-media-playback`, and `podcasting-admin-bootstrap`. Existing `stripe-billing-webhook` remains server-side. No deployed function is overwritten.
 
 ## Release checks
 1. Confirm GitHub Pages is enabled for main.
