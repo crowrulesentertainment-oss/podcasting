@@ -53,3 +53,8 @@ No existing tables were dropped or recreated, and no service-role or Stripe secr
 - Shared auth lookup now propagates Supabase auth errors instead of silently treating them as signed-out sessions.
 - Anonymous-role SQL smoke check: 3 published shows, 14 published episodes, 1 awards season and 0 published nominees were visible at the time of verification.
 - `assets/js/app.js` passed a JavaScript syntax parse after stripping its browser-module imports.
+## Persistent login sessions
+
+The shared Supabase client uses one explicit browser-local storage key (`crowrules-podcasting-auth`) on every page, with session persistence, automatic access-token refresh, PKCE OAuth flow and callback detection enabled. A successful sign-in or OAuth callback is therefore restored when the user returns to the site in the same browser profile. The shared header reflects the current auth state and provides a sitewide **Log out** action that calls `supabase.auth.signOut()`.
+
+Sign-in is intentionally not a promise of an immortal session: Supabase project-level session lifetime, inactivity limits, password/security resets, administrator revocation, cleared browser storage, or browser privacy settings can still end or prevent restoration of a session. Check Authentication → Settings → Session timeouts if the desired policy is to avoid automatic inactivity/max-lifetime expiration. Never disable security controls merely to simulate permanent login.
