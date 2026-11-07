@@ -64,3 +64,23 @@ For every run, record:
 ## Important boundary
 
 The current database preflight does not establish that the five user workflows work end-to-end. Those require actual signed-in sessions in the relevant websites. Do not mark them passed based only on SQL catalog checks or anonymous smoke tests.
+
+## November 8, 2026 follow-up integration verification
+
+| Check | Result | Evidence |
+|---|---|---|
+| Updated `assets/js/app.js` syntax | PASS | JavaScript parsed successfully after removing browser-module import declarations for syntax validation. |
+| Anonymous published show catalog | PASS | SQL executed as `anon`: 3 published shows visible. |
+| Anonymous published episode catalog | PASS | SQL executed as `anon`: 14 published episodes visible. |
+| Awards season read | PASS | SQL executed as `anon`: 1 season visible. |
+| Published award nominees | PASS / EMPTY DATASET | SQL executed as `anon`: 0 published nominees. No approved nominees are currently available to display. |
+| Awards page Supabase integration | CODE UPDATED | Reads seasons and nominees, submits nominations subject to existing RLS, and calls existing secure vote/results RPC wrappers. Real signed-in voting still requires browser verification. |
+| Security Advisor | PASS | Latest live security advisor returned no lints. |
+| Health Advisor | PASS | Latest live health advisor returned no lints. |
+| Required podcast Edge Functions | PRESENT | Checkout, product, subscription center, premium upload/playback and admin bootstrap functions were found active in the project inventory. |
+
+### Remaining release limitations
+- The five authenticated browser workflows remain NOT RUN: premium entitlement playback, Hub moderation, two-user chat, signed-in awards voting, and Tacoma Nights host approval.
+- OAuth provider logins and Stripe checkout/webhook lifecycle were not exercised with test accounts or test transactions.
+- Private-schema exclusion from the PostgREST exposed-schema setting is still not independently readable from available project metadata. Confirm it in Supabase Dashboard → API Settings.
+- No database schema migration was required for this front-end integration pass.
