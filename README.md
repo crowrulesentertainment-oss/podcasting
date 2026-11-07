@@ -46,3 +46,10 @@ The November 7, 2026 maintenance migration:
 - restricts `podcast_subscriptions_select` to the authenticated subscription owner or a CrowRules administrator (it previously allowed anonymous reads of active subscription rows);
 - adds a service-role-only public wrapper for the existing private `podcast_email_worker_authorized(text)` function. The notification worker called this RPC in the public schema even though the function existed only in the private schema, producing repeated 404/401 worker failures.
 No existing tables were dropped or recreated, and no service-role or Stripe secret was added to GitHub.
+
+## November 2026 integration maintenance
+- The Awards page now reads live seasons and published nominees from `crowrules_award_seasons` and `crowrules_award_nominees`, submits nominations to `crowrules_award_nominations`, and uses the existing `crowrules_cast_award_vote` and `crowrules_get_award_results` RPC wrappers. Voting and publication eligibility remain enforced server-side.
+- Public show and episode detail pages use explicit column projections rather than unrestricted `select(*)` reads. Listener show cards also use a reduced public projection.
+- Shared auth lookup now propagates Supabase auth errors instead of silently treating them as signed-out sessions.
+- Anonymous-role SQL smoke check: 3 published shows, 14 published episodes, 1 awards season and 0 published nominees were visible at the time of verification.
+- `assets/js/app.js` passed a JavaScript syntax parse after stripping its browser-module imports.
