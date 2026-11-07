@@ -1,0 +1,24 @@
+# CrowRules Podcasting
+
+Cinematic HTML/CSS/JavaScript platform for CrowRules Entertainment.
+
+- Public: home, discover, show, episode, rankings, awards.
+- Accounts: login and signup.
+- Creator: show and episode management, browser recording, Stripe memberships.
+- Listener: follows and saved episode library.
+- Guest: guest profile and collaboration entry point.
+- Admin: verified control center and moderation entry points.
+
+## Supabase
+Project `cevylpnoexugwgygvtgu`. Browser code uses only the Supabase publishable key in `assets/js/config.js`. No service-role, secret or Stripe key is included. Existing schema and RLS are reused; no destructive migration is applied.
+
+Existing Edge Functions called: `create-podcast-product`, `create-podcast-checkout`, `membership-checkout`, `membership-portal`, `podcasting-admin-bootstrap`. Existing `stripe-billing-webhook` remains server-side. No deployed function is overwritten.
+
+## Release checks
+1. Confirm GitHub Pages is enabled for main.
+2. Confirm Data API exposure for existing tables.
+3. Confirm the actual Storage bucket name and creator upload policies; config expects `podcast-media`.
+4. Verify Creator/Founder Stripe price IDs and Stripe Connect readiness in test mode.
+5. Test auth, creator access, uploads, checkout, webhook lifecycle and admin permissions.
+
+Advanced remote multi-guest recording, isolated tracks, transcoding, full award season management and detailed finance reports rely on secure server workflows and are not simulated as complete.
