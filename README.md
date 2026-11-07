@@ -17,7 +17,7 @@ Existing Edge Functions called: `create-podcast-product`, `create-podcast-checko
 ## Release checks
 1. Confirm GitHub Pages is enabled for main.
 2. Confirm Data API exposure for existing tables.
-3. Creator media uploads use the existing `crowrules-podcast-published` bucket. Its owner-scoped authenticated upload policy was verified; public delivery is enabled for published media.
+3. Free creator media uploads use the existing `crowrules-podcast-published` bucket with an authenticated owner-folder upload policy. Premium media uses the private `podcast-premium` bucket through the existing `premium-media-upload` and `premium-media-playback` Edge Functions; playback is authorized by the existing entitlement RPC and served with short-lived signed URLs.
 4. Verify Creator/Founder Stripe price IDs and Stripe Connect readiness in test mode.
 5. Test auth, creator access, uploads, checkout, webhook lifecycle and admin permissions.
 
