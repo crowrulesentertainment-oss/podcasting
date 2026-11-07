@@ -84,3 +84,16 @@ The current database preflight does not establish that the five user workflows w
 - OAuth provider logins and Stripe checkout/webhook lifecycle were not exercised with test accounts or test transactions.
 - Private-schema exclusion from the PostgREST exposed-schema setting is still not independently readable from available project metadata. Confirm it in Supabase Dashboard → API Settings.
 - No database schema migration was required for this front-end integration pass.
+## November 7, 2026 — persistent login and signup maintenance
+
+| Check | Result | Evidence / boundary |
+|---|---|---|
+| Shared Supabase client persistence | CODE UPDATED | Explicit stable `localStorage` storage key, `persistSession`, `autoRefreshToken`, OAuth callback detection and PKCE flow configured in `assets/js/client.js`. |
+| Login/signup handling | CODE UPDATED | Restores an existing session before showing sign-in; handles email confirmation without falsely redirecting; shows sign-in errors and disables submit while requests are pending. |
+| Sitewide account controls | CODE UPDATED | Shared header follows Supabase auth state on every page and displays Account / Log out when signed in. Log out calls Supabase `signOut`. |
+| JavaScript syntax | PASS | `assets/js/app.js` passed syntax parsing after stripping its browser-module imports. |
+| Real browser persistence test | NOT RUN | Must still verify sign-in → refresh → close/reopen browser → protected page access → explicit log out, plus OAuth callback, on deployed GitHub Pages. |
+
+### Session policy note
+
+Client-side persistence and refresh do not override Supabase server-side session lifetime/inactivity settings or explicit revocation. Confirm Authentication → Settings → Session timeouts in the Supabase Dashboard if the product policy is to avoid automatic session expiration. Do not weaken security settings without a deliberate policy decision.
