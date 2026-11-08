@@ -87,3 +87,13 @@ Additional creator workflow ideas are surfaced in the Creator Toolkit: release p
 - The scheduler function is in the non-public private schema and execution is revoked from anon and authenticated. No private schema wrapper was added to the public API.
 - Verification: cron job is active and recent cron executions succeeded; direct scheduler invocation returned 0 because there were no due scheduled episodes at test time. Security and Health Advisors returned no lints.
 - Browser-based creator workflow tests and a real future-time scheduled release are still pending. Do not claim end-to-end automatic publishing until a creator schedules a test episode with media, the time passes, and the public page shows it as published.
+
+
+## November 8, 2026 — YouTube episode video links
+
+- The Creator Studio episode editor accepts YouTube watch URLs, youtu.be links, Shorts URLs and YouTube Live URLs.
+- The URL is stored in the existing podcast_episodes.video_url field; no database migration or RLS change was required.
+- Public episode pages recognize supported YouTube URL formats and render a responsive privacy-enhanced youtube-nocookie.com embed.
+- Direct uploaded video files continue to use the native video player; audio uploads continue to use the audio player.
+- YouTube links are validated before save. Audio file uploads no longer clear an existing linked video URL.
+- The upload file remains optional when a YouTube URL is provided.
