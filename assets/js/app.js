@@ -72,7 +72,7 @@ function enableSeamlessNavigation(){
 }
 let livePresenceChannel=null,livePresenceRole="listener",livePresenceUserId=null,livePresenceHeartbeat=null;
 function liveVisitorId(){try{let id=localStorage.getItem("crp_live_visitor_id");if(!id){id=window.crypto?.randomUUID?.()||("visitor-"+Date.now()+"-"+Math.random().toString(36).slice(2));localStorage.setItem("crp_live_visitor_id",id)}return id}catch{return null}}
-function liveRole(accountRole){const role=String(accountRole||"").trim().toLowerCase();if(page==="guest"||role==="guest")return"guest";return role==="creator"?"creator":"listener"}
+function liveRole(accountRole,isMember){const role=String(accountRole||"").trim().toLowerCase();if(!isMember||role==="guest")return"guest";return role==="creator"?"creator":"listener"}
 function renderLiveCounts(){
  const state=livePresenceChannel?.presenceState?.()||{},latest=new Map(),counts={creator:0,listener:0,guest:0};
  for(const[key,sessions]of Object.entries(state))for(const session of sessions||[]){
@@ -93,9 +93,9 @@ async function syncLivePresence(user){
  try{
   if(arguments.length===0){const result=await sb.auth.getUser();user=result.data?.user||null}
   livePresenceUserId=user?.id||null;
-  let accountRole="";
-  if(livePresenceUserId){const{data,error}=await sb.from("members").select("role").eq("user_id",livePresenceUserId).maybeSingle();if(error)console.warn("Could not resolve member role for live presence:",error.message);else accountRole=data?.role||""}
-  livePresenceRole=liveRole(accountRole);
+  let accountRole="",isMember=false;
+  if(livePresenceUserId){const{data,error}=await sb.from("members").select("role").eq("user_id",livePresenceUserId).maybeSingle();if(error)console.warn("Could not resolve member role for live presence:",error.message);else{isMember=!!data;accountRole=data?.role||""}}
+  livePresenceRole=liveRole(accountRole,isMember);
   const{error}=await livePresenceChannel.track({role:livePresenceRole,user_id:livePresenceUserId,visitor_id:livePresenceUserId?null:liveVisitorId(),active:true,seen_at:new Date().toISOString()});
   if(error)throw error;
   renderLiveCounts();bindEpisodeControls();
