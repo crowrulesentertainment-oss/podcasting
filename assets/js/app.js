@@ -1153,7 +1153,7 @@ async function admin(){
   work.innerHTML='<div class="admin-module platform-ops"><span class="admin-kicker">PLATFORM OPERATIONS</span><div class="section-head"><div><h3>System tools & service health</h3><p>Live connection checks for the services this admin workspace depends on.</p></div><button class="btn secondary" id="platformHealthRefresh">↻ Run checks</button></div><div id="platformHealthResults" class="platform-health-grid"><div class="loading">Running initial service checks…</div></div><div id="platformHealthUpdated" class="muted small" aria-live="polite"></div><h4>Provider dashboards</h4><p>Administrative configuration is managed in provider dashboards and secured backend functions. No service-role credentials are stored or used in this public GitHub Pages client.</p><div class="admin-shortcuts"><a href="https://supabase.com/dashboard/project/cevylpnoexugwgygvtgu" target="_blank" rel="noopener">Supabase project dashboard ↗</a><a href="https://supabase.com/dashboard/project/cevylpnoexugwgygvtgu/editor" target="_blank" rel="noopener">Database SQL editor ↗</a><a href="https://supabase.com/dashboard/project/cevylpnoexugwgygvtgu/functions" target="_blank" rel="noopener">Edge Functions ↗</a><a href="https://supabase.com/dashboard/project/cevylpnoexugwgygvtgu/storage/buckets" target="_blank" rel="noopener">Storage buckets ↗</a><a href="https://github.com/crowrulesentertainment-oss/podcasting" target="_blank" rel="noopener">GitHub source repository ↗</a></div><div class="notice good admin-security-note">Admin identity verified. Sensitive data access remains governed by Supabase Auth, Edge Functions and Row Level Security. Storage permissions are not bypassed by these checks.</div></div>';
   const healthRoot=$("#platformHealthResults"),healthRefresh=$("#platformHealthRefresh"),healthUpdated=$("#platformHealthUpdated");
   const runPlatformHealth=async()=>{
-   healthRefresh.disabled=true;healthRoot.innerHTML='<div class="loading">Checking platform services…</div>';
+   healthRefresh.disabled=true;
    const checks=[
     ["Supabase authentication",async()=>{const{data,error}=await sb.auth.getSession();if(error)throw error;if(!data.session?.user)throw Error("No active session");return "Signed-in session active";}],
     ["Admin Edge Function",async()=>{const result=await fn(FUNCTIONS.adminBootstrap,{});if(!result.ok||!["active","initialized"].includes(result.status))throw Error(result.message||"Administrator verification did not pass");return "Administrator verification passed";}],
@@ -1163,9 +1163,18 @@ async function admin(){
     ["Public storage configuration",async()=>{if(!SUPABASE_URL||!STORAGE_BUCKET)throw Error("Storage URL or bucket configuration is missing");return "Storage endpoint and bucket are configured; private object access is not probed";}],
     ["GitHub Pages client",async()=>{if(!navigator.onLine)throw Error("Browser reports offline status");return "Client is online · "+location.host;}]
    ];
-   const results=await Promise.all(checks.map(async([label,run])=>{try{return{label,ok:true,detail:await run()}}catch(error){return{label,ok:false,detail:error?.message||"Check failed"}}}));
-   healthRoot.innerHTML=results.map(item=>'<article class="platform-health-card '+(item.ok?"is-healthy":"has-warning")+'"><div class="platform-health-top"><b>'+esc(item.label)+'</b><span class="admin-status '+(item.ok?"status-active":"status-warning")+'">'+(item.ok?"Operational":"Needs attention")+'</span></div><p>'+esc(item.detail)+'</p></article>').join("");
-   const passed=results.filter(x=>x.ok).length;healthUpdated.textContent="Last checked "+new Date().toLocaleString()+" · "+passed+" of "+results.length+" checks passed.";
+   healthRoot.innerHTML=checks.map(([label],index)=>'<article class="platform-health-card is-checking" data-health-index="'+index+'"><div class="platform-health-top"><b>'+esc(label)+'</b><span class="admin-status">Checking…</span></div><p>Waiting for service response…</p></article>').join("");
+   const withTimeout=(promise)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(Error("Timed out after 12 seconds")),12000))]);
+   const results=await Promise.all(checks.map(async([label,run],index)=>{
+    let result;
+    try{result={label,ok:true,detail:await withTimeout(run())}}
+    catch(error){result={label,ok:false,detail:error?.message||"Check failed"}}
+    const card=healthRoot.querySelector('[data-health-index="'+index+'"]');
+    if(card){card.classList.remove("is-checking");card.classList.add(result.ok?"is-healthy":"has-warning");card.innerHTML='<div class="platform-health-top"><b>'+esc(label)+'</b><span class="admin-status '+(result.ok?"status-active":"status-warning")+'">'+(result.ok?"Operational":"Needs attention")+'</span></div><p>'+esc(result.detail)+'</p>'}
+    return result;
+   }));
+   const passed=results.filter(x=>x.ok).length;
+   healthUpdated.textContent="Last checked "+new Date().toLocaleString()+" · "+passed+" of "+results.length+" checks passed.";
    healthRefresh.disabled=false;
   };
   healthRefresh.onclick=runPlatformHealth;
