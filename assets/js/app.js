@@ -312,6 +312,11 @@ async function episode(){
        const blob=await response.blob();
        if(!blob.size)throw Error("The audio file is empty or unavailable.");
        const objectUrl=URL.createObjectURL(blob),link=document.createElement("a");
+       try{
+        const downloadUser=await me();
+        const{error:downloadLogError}=await sb.from("podcast_episode_download_events").insert({episode_id:e.id,podcast_id:e.podcast_id,user_id:downloadUser?.id||null,source:"episode_page"});
+        if(downloadLogError)console.warn("Episode download count could not be recorded:",downloadLogError.message);
+       }catch(downloadLogError){console.warn("Episode download count could not be recorded:",downloadLogError.message||downloadLogError)}
        const safeTitle=String(e.title||"crowrules-episode").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9_-]+/g,"-").replace(/^-|-$/g,"").slice(0,100)||"crowrules-episode";
        const extension=(blob.type.match(/audio\/(?:mpeg|mp3)/i)?"mp3":blob.type.match(/audio\/(?:mp4|x-m4a)/i)?"m4a":blob.type.match(/audio\/wav/i)?"wav":blob.type.match(/audio\/ogg/i)?"ogg":blob.type.match(/audio\/flac/i)?"flac":"audio");
        link.href=objectUrl;link.download=safeTitle+"."+extension;document.body.appendChild(link);link.click();link.remove();
@@ -964,8 +969,17 @@ async function admin(){
   }
   if(tab==="episodes"){
    const rows=await queryRows("podcast_episodes","id,podcast_id,title,status,is_published,is_live,production_stage,episode_number,season_number,created_at,published_at,video_url,audio_url",250);
+   const downloadCounts=new Map();
+   const podcastIds=[...new Set(rows.map(x=>x.podcast_id).filter(Boolean))];
+   await Promise.all(podcastIds.map(async podcastId=>{
+    try{
+     const{data,error}=await sb.rpc("get_podcast_episode_download_counts",{p_podcast_id:podcastId});
+     if(error)throw error;
+     (data||[]).forEach(item=>downloadCounts.set(item.episode_id,Number(item.download_count||0)));
+    }catch(downloadCountError){console.warn("Episode download analytics unavailable for show "+podcastId+":",downloadCountError.message)}
+   }));
    const liveN=rows.filter(x=>x.is_live).length,pubN=rows.filter(x=>x.status==="published"&&x.is_published&&!x.is_live).length,draftN=rows.length-pubN-liveN;
-   work.innerHTML='<div class="admin-stat-grid admin-episode-state-grid"><div class="admin-stat-card"><span>Published</span><strong>'+pubN+'</strong><small>Publicly available episodes</small></div><div class="admin-stat-card admin-live-stat"><span>Live</span><strong>'+liveN+'</strong><small>Marked as live releases</small></div><div class="admin-stat-card"><span>Unpublished</span><strong>'+draftN+'</strong><small>Draft or hidden episodes</small></div></div><div class="admin-module admin-episode-control"><div class="admin-module-head"><div><span class="admin-kicker">RELEASE MANAGEMENT</span><h3>Episode control room</h3><p>Manage visibility and live designation. Marking an episode Live also keeps it published so listeners can access it.</p></div><input class="admin-search" id="adminSearch" placeholder="Search episodes…" aria-label="Search episodes"></div><div class="admin-episode-control-note"><span>● LIVE</span> means designated as a live release. It does not start a LiveKit broadcast.</div>'+episodeControlRows(rows)+'</div>';
+   work.innerHTML='<div class="admin-stat-grid admin-episode-state-grid"><div class="admin-stat-card"><span>Published</span><strong>'+pubN+'</strong><small>Publicly available episodes</small></div><div class="admin-stat-card admin-live-stat"><span>Live</span><strong>'+liveN+'</strong><small>Marked as live releases</small></div><div class="admin-stat-card"><span>Unpublished</span><strong>'+draftN+'</strong><small>Draft or hidden episodes</small></div></div><div class="admin-module admin-episode-control"><div class="admin-module-head"><div><span class="admin-kicker">RELEASE MANAGEMENT</span><h3>Episode control room</h3><p>Manage visibility and live designation. Marking an episode Live also keeps it published so listeners can access it.</p></div><input class="admin-search" id="adminSearch" placeholder="Search episodes…" aria-label="Search episodes"></div><div class="admin-episode-control-note"><span>● LIVE</span> means designated as a live release. It does not start a LiveKit broadcast. Download counts show completed audio-file downloads recorded by CrowRules Podcasting.</div>'+table(["Episode","Downloads","Release state","Production","Published","Control"],rows.map(e=>'<tr data-search-row="'+esc([e.title,e.status,e.production_stage,episodeState(e)].join(" "))+'"><td><b>'+esc(e.title)+'</b><small>Season '+esc(e.season_number||"—")+' · Episode '+esc(e.episode_number||"—")+'</small></td><td><b class="admin-download-count">'+(downloadCounts.has(e.id)?downloadCounts.get(e.id).toLocaleString():"—")+'</b></td><td>'+badge(episodeState(e))+'</td><td>'+badge(e.production_stage||"idea")+'</td><td>'+(e.published_at?new Date(e.published_at).toLocaleDateString():"—")+'</td><td><select class="admin-action-select" data-episode-control="'+e.id+'"><option value="">Choose action…</option><option value="publish">Publish episode</option><option value="unpublish">Unpublish episode</option><option value="live">'+(e.is_live?"Keep live":"Set live")+'</option>'+(e.is_live?'<option value="end-live">End live status</option>':"")+'</select></td></tr>').join(""))+'</div>';
    $("#adminSearch")?.addEventListener("input",e=>all("[data-search-row]").forEach(row=>row.hidden=!row.dataset.searchRow.toLowerCase().includes(e.target.value.toLowerCase())));
    bindEpisodeControls();return;
   }
