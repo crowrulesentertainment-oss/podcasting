@@ -72,7 +72,7 @@ function enableSeamlessNavigation(){
 }
 let livePresenceChannel=null,livePresenceRole="listener",livePresenceUserId=null,livePresenceHeartbeat=null;
 function liveVisitorId(){try{let id=localStorage.getItem("crp_live_visitor_id");if(!id){id=window.crypto?.randomUUID?.()||("visitor-"+Date.now()+"-"+Math.random().toString(36).slice(2));localStorage.setItem("crp_live_visitor_id",id)}return id}catch{return null}}
-function liveRole(accountRole,isMember){const role=String(accountRole||"").trim().toLowerCase();if(!isMember||role==="guest")return"guest";return role==="creator"?"creator":"listener"}
+function liveRole(accountRole,isMember){const role=String(accountRole||"").trim().toLowerCase();if(!isMember||role==="guest")return"guest";return role==="creator"||role==="host"?"creator":"listener"}
 function renderLiveCounts(){
  const state=livePresenceChannel?.presenceState?.()||{},latest=new Map(),counts={creator:0,listener:0,guest:0};
  for(const[key,sessions]of Object.entries(state))for(const session of sessions||[]){
@@ -583,7 +583,7 @@ async function episode(){
   sb.from("podcast_subscriptions").select("id,podcast_id,status,amount_cents,currency,current_period_end").eq("user_id",u.id).order("created_at",{ascending:false}).limit(100)
  ]);
  const member=memberRes.data||null,display=member?.display_name||[member?.first_name,member?.last_name].filter(Boolean).join(" ")||member?.username||u.user_metadata?.display_name||u.email?.split("@")[0]||"CrowRules Member";
- const role=String(member?.role||"Listener"),creatorRole=role.toLowerCase()==="creator";
+ const role=String(member?.role||"Listener"),creatorRole=["creator","host"].includes(role.toLowerCase());
  const follows=followsRes.data||[],saved=savedRes.data||[],subs=subsRes.data||[];
  const creatorRes=await sb.from("creators").select("id,name,display_name,role,discipline,bio,avatar_url").eq("member_id",member?.id||"00000000-0000-0000-0000-000000000000").maybeSingle();
  const creator=creatorRes.data||null,isCreator=creatorRole||!!creator;
@@ -792,7 +792,7 @@ async function rankings(){
    sb.from("podcast_episodes").select("id,podcast_id,title,description,thumbnail_url,artwork_url,play_count,total_plays,published_at,created_at,duration_seconds").eq("status","published").order("published_at",{ascending:false}).limit(400),
    sb.from("creators").select("id,member_id,name,display_name,role,discipline,avatar_url,profile_url,is_active").eq("is_active",true).limit(150),
    sb.from("podcast_follows").select("podcast_id").limit(10000),
-   sb.from("member_roles").select("member_id").eq("role","Creator").limit(10000)
+   sb.from("member_roles").select("member_id").in("role",["Creator","Host"]).limit(10000)
   ]);
   const failure=results.find((r,i)=>r.error&&(i<3||i===4));
   if(failure)throw failure.error;
@@ -1189,8 +1189,8 @@ async function admin(){
    }
    if(tab==="creators"){
     const[roleMembersResult,assignmentsResult]=await Promise.all([
-     sb.from("members").select("id,user_id,display_name,first_name,last_name,username,email,status,created_at,role").eq("role","Creator").limit(500),
-     sb.from("member_roles").select("member_id,created_at").eq("role","Creator").order("created_at",{ascending:false}).limit(500)
+     sb.from("members").select("id,user_id,display_name,first_name,last_name,username,email,status,created_at,role").in("role",["Creator","Host"]).limit(500),
+     sb.from("member_roles").select("member_id,created_at,role").in("role",["Creator","Host"]).order("created_at",{ascending:false}).limit(500)
     ]);
     if(roleMembersResult.error)throw roleMembersResult.error;if(assignmentsResult.error)throw assignmentsResult.error;
     const assignedIds=new Set((assignmentsResult.data||[]).map(x=>x.member_id).filter(Boolean));
@@ -1202,7 +1202,7 @@ async function admin(){
     if(memberResult.error)throw memberResult.error;if(profileResult.error)throw profileResult.error;
     const profiles=new Map((profileResult.data||[]).map(x=>[x.member_id,x]));
     const creatorMembers=memberResult.data||[];
-    work.innerHTML='<div class="admin-module"><div class="admin-module-head"><div><span class="admin-kicker">VERIFIED CREATOR ROSTER</span><h3>All creator members</h3><p>Shows registered site members whose <b>members.role</b> is Creator or who have an explicit <b>member_roles.role = Creator</b> assignment. Only records linked to actual site members are included; standalone/unlinked creator records are excluded.</p></div><input class="admin-search" id="adminSearch" placeholder="Search creators…" aria-label="Search creators"></div><div class="admin-role-catalog-note"><b>'+creatorMembers.length+'</b> creator member'+(creatorMembers.length===1?'':'s')+' · '+assignedIds.size+' with an explicit member_roles Creator assignment · '+creatorMembers.filter(x=>!profiles.has(x.id)).length+' without a linked creator profile.</div>'+(creatorMembers.length?table(["Creator member","Username / email","Site role","Role assignment","Member status","Creator profile","Joined"],creatorMembers.map(x=>{const p=profiles.get(x.id);const name=x.display_name||[x.first_name,x.last_name].filter(Boolean).join(" ")||x.username||"Creator";const assigned=assignedIds.has(x.id);return '<tr data-search-row="'+esc([name,x.username,x.email,x.status,x.role,p?.name,p?.display_name].join(" "))+'"><td><b>'+esc(name)+'</b><small>'+esc(x.user_id||"")+'</small></td><td>'+esc(x.username?("@"+x.username):"—")+'<small>'+esc(x.email||"")+'</small></td><td>'+badge(x.role||"unknown")+'</td><td>'+badge(assigned?"Assigned in member_roles":"Not assigned in member_roles")+'</td><td>'+badge(x.status||"unknown")+'</td><td>'+(p?'<b>'+esc(p.display_name||p.name||"Creator profile")+'</b><small>'+esc(p.role||"")+' · '+(p.is_active?"Active":"Inactive")+'</small>':badge("No linked profile"))+'</td><td>'+(x.created_at?new Date(x.created_at).toLocaleDateString():"—")+'</td></tr>'}).join("")):'<div class="admin-empty"><b>No creator members found</b><span>Assign Creator in the Members section to add registered members to this roster.</span></div>')+'</div>';
+    work.innerHTML='<div class="admin-module"><div class="admin-module-head"><div><span class="admin-kicker">VERIFIED CREATOR ROSTER</span><h3>All creator members</h3><p>Shows registered site members whose <b>members.role</b> is Creator or Host, or who have an explicit <b>member_roles</b> Creator or Host assignment. Only records linked to actual site members are included; standalone/unlinked creator records are excluded.</p></div><input class="admin-search" id="adminSearch" placeholder="Search creators…" aria-label="Search creators"></div><div class="admin-role-catalog-note"><b>'+creatorMembers.length+'</b> creator member'+(creatorMembers.length===1?'':'s')+' · '+assignedIds.size+' with an explicit member_roles Creator/Host assignment · '+creatorMembers.filter(x=>!profiles.has(x.id)).length+' without a linked creator profile.</div>'+(creatorMembers.length?table(["Creator member","Username / email","Site role","Role assignment","Member status","Creator profile","Joined"],creatorMembers.map(x=>{const p=profiles.get(x.id);const name=x.display_name||[x.first_name,x.last_name].filter(Boolean).join(" ")||x.username||"Creator";const assigned=assignedIds.has(x.id);return '<tr data-search-row="'+esc([name,x.username,x.email,x.status,x.role,p?.name,p?.display_name].join(" "))+'"><td><b>'+esc(name)+'</b><small>'+esc(x.user_id||"")+'</small></td><td>'+esc(x.username?("@"+x.username):"—")+'<small>'+esc(x.email||"")+'</small></td><td>'+badge(x.role||"unknown")+'</td><td>'+badge(assigned?"Assigned in member_roles":"Not assigned in member_roles")+'</td><td>'+badge(x.status||"unknown")+'</td><td>'+(p?'<b>'+esc(p.display_name||p.name||"Creator profile")+'</b><small>'+esc(p.role||"")+' · '+(p.is_active?"Active":"Inactive")+'</small>':badge("No linked profile"))+'</td><td>'+(x.created_at?new Date(x.created_at).toLocaleDateString():"—")+'</td></tr>'}).join("")):'<div class="admin-empty"><b>No creator members found</b><span>Assign Creator in the Members section to add registered members to this roster.</span></div>')+'</div>';
     $("#adminSearch")?.addEventListener("input",e=>all("[data-search-row]").forEach(row=>row.hidden=!row.dataset.searchRow.toLowerCase().includes(e.target.value.toLowerCase())));
     return;
    }
