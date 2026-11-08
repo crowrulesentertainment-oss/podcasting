@@ -1313,3 +1313,14 @@ body[data-page="admin"] .badge-console .table-wrap{max-width:100%;overflow-x:aut
 .discord-hero-btn:hover{background:#4752c4!important;box-shadow:0 12px 32px #5865f277;transform:translateY(-2px)}
 .discord-hero-btn span{font-size:19px;line-height:1}
 @media(max-width:640px){.home-hero-expanded .stream-hero-content .actions .discord-hero-btn{width:100%;justify-content:center}}
+
+/* Viewer-specific local clock and weather strip */
+.viewer-local-info{position:relative;z-index:2;display:grid;grid-template-columns:minmax(220px,.8fr) minmax(320px,1.2fr);gap:24px;max-width:1320px;margin:-1px auto 0;padding:19px clamp(20px,4vw,52px);background:linear-gradient(110deg,#151515,#1b1113 55%,#151515);border:1px solid #ffffff12;border-top:2px solid #e50914;box-shadow:0 14px 38px #0005}
+.viewer-local-clock,.viewer-local-weather{display:grid;gap:5px;align-content:center;min-width:0}
+.viewer-local-weather{border-left:1px solid #ffffff20;padding-left:24px}
+.viewer-local-kicker{font-size:9px;letter-spacing:.17em;font-weight:900;color:#e50914}
+.viewer-local-clock strong{font-size:clamp(25px,3vw,34px);line-height:1.1;letter-spacing:-.04em;color:#fff;font-variant-numeric:tabular-nums}
+.viewer-local-clock>span:last-child,.viewer-local-weather>span:last-of-type{font-size:11px;color:#aaa}
+.viewer-local-weather strong{font-size:16px;color:#fff}
+.viewer-local-weather small{font-size:9px;color:#777}
+@media(max-width:640px){.viewer-local-info{grid-template-columns:1fr;gap:14px;margin:0 12px;padding:16px;border-radius:4px}.viewer-local-weather{border-left:0;border-top:1px solid #ffffff20;padding:13px 0 0}.viewer-local-clock strong{font-size:30px}}
