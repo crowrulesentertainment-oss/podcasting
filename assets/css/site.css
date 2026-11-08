@@ -305,3 +305,14 @@ input:focus,select:focus,textarea:focus{border-color:#e50914;outline:1px solid #
 .youtube-thumbnail-preview-card{position:relative;overflow:hidden;aspect-ratio:16/9;background:#111;border:1px solid #ffffff22;border-radius:6px}
 .youtube-thumbnail-preview-card img{display:block;width:100%;height:100%;object-fit:cover}
 .youtube-thumbnail-preview-card span{position:absolute;left:10px;bottom:10px;padding:6px 9px;background:#08090cdd;border:1px solid #ffffff30;border-radius:3px;color:#fff;font-size:9px;font-weight:900;letter-spacing:.14em}
+
+
+/* Expanded episode editor */
+#episodeEditor .field:has(input[name="banner_url"]),
+#episodeEditor .field:has(input[name="trailer_url"]){min-width:0}
+#episodeEditor input[name="duration_minutes"]{font-variant-numeric:tabular-nums}
+#episodeEditor .youtube-thumbnail-preview-card{max-width:520px}
+#episodeEditor .youtube-thumbnail-preview-card img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;background:#171717}
+#episodeEditor .field small.muted{display:block;line-height:1.55;margin-top:7px}
+#episodeEditor .actions{position:sticky;bottom:12px;z-index:4;padding:12px;background:rgba(12,12,12,.94);border:1px solid rgba(255,255,255,.1);border-radius:14px;backdrop-filter:blur(14px)}
+@media(max-width:680px){#episodeEditor .actions{bottom:6px;flex-wrap:wrap}#episodeEditor .actions .btn{flex:1 1 100%}}
