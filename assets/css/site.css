@@ -909,3 +909,17 @@ input:focus,select:focus,textarea:focus{border-color:#e50914;outline:1px solid #
 /* Keep the Awards page focused: hide the Creator Studio navigation label/link here only. */
 body[data-page="awards"] #primaryNav a[href*="creator.html"],
 body[data-page="awards"] footer a[href*="creator.html"]{display:none!important}
+
+/* Homepage streaming-style category and podcast shelves */
+.shelf-wrap{position:relative;min-width:0}
+.shelf-wrap>.stream-rail,.shelf-wrap>.home-category-grid{scrollbar-width:none;scroll-behavior:smooth}
+.shelf-wrap>.stream-rail::-webkit-scrollbar,.shelf-wrap>.home-category-grid::-webkit-scrollbar{display:none}
+.shelf-arrow{position:absolute;z-index:3;top:42%;display:grid;place-items:center;width:42px;height:54px;border:1px solid #ffffff35;border-radius:8px;background:#08090ce8;color:#fff;font-size:36px;line-height:1;cursor:pointer;box-shadow:0 5px 22px #0008;transition:background .18s,border-color .18s,opacity .18s}
+.shelf-arrow:hover:not(:disabled){background:#e50914;border-color:#e50914}
+.shelf-arrow:disabled{opacity:0;pointer-events:none}
+.shelf-arrow-prev{left:8px}.shelf-arrow-next{right:8px}
+.home-category-grid{display:grid;grid-auto-flow:column;grid-auto-columns:clamp(205px,19vw,245px);grid-template-columns:none;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;padding:4px 3px 16px}
+.home-category-grid>.home-category-card{scroll-snap-align:start}
+.home-category-card{min-height:165px}
+@media(max-width:900px){.home-category-grid{grid-auto-columns:clamp(195px,34vw,235px)}}
+@media(max-width:620px){.shelf-arrow{width:34px;height:44px;font-size:29px}.shelf-arrow-prev{left:3px}.shelf-arrow-next{right:3px}.home-category-grid{grid-auto-columns:78vw}.stream-rail{grid-auto-columns:78vw;gap:11px}}
