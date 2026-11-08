@@ -398,3 +398,54 @@ input:focus,select:focus,textarea:focus{border-color:#e50914;outline:1px solid #
 @media(max-width:760px){.rankings-hero{min-height:530px}.rankings-hero-content{padding-top:85px}.rankings-hero-meta{margin-top:40px}.rankings-intro{align-items:stretch;flex-direction:column}.rankings-period{width:100%}.rankings-featured{grid-template-columns:1fr}.rankings-featured-art{min-height:230px}.rankings-featured-art img{min-height:230px}.rankings-featured-art:after{background:linear-gradient(0deg,#141416 0%,transparent 70%)}.rankings-featured-copy{padding:22px}.rankings-list-head{align-items:start;flex-direction:column}.rankings-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:520px){.rankings-hero{min-height:480px}.rankings-hero-backdrop{background-position:60% center}.rankings-display-title{font-size:clamp(58px,17vw,88px)}.rankings-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ranking-tile-copy{padding:11px 10px}.ranking-tile-copy>b{font-size:12px}.rankings-featured-empty{padding:35px 20px}.rankings-period{min-width:0}}
 @media(prefers-reduced-motion:reduce){.ranking-tile,.ranking-tile-art img,.ranking-category{transition:none}}
+
+
+/* Account profile — cinematic streaming service layout */
+.account-hero{position:relative;min-height:350px;display:flex;align-items:center;overflow:hidden;background:#08090c;color:#fff;isolation:isolate}
+.account-hero-backdrop{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#08090cf5 0%,#08090cbb 50%,#08090c55 100%),linear-gradient(0deg,#08090c 0%,transparent 65%),url("https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?auto=format&fit=crop&w=1900&q=85") center 45%/cover no-repeat}
+.account-hero-inner{padding-top:85px;padding-bottom:45px}
+.account-hero-inner h1{font-size:clamp(52px,9vw,94px);line-height:.85;letter-spacing:-.08em;margin:20px 0;font-weight:950}
+.account-hero-inner h1 em{font-style:normal;color:#e50914}
+.account-hero-inner p{max-width:500px;color:#ccc;font-size:15px;line-height:1.7}
+.account-main{padding-top:28px;padding-bottom:85px}
+.account-profile{display:flex;align-items:center;gap:22px;padding:24px;margin-bottom:26px;border:1px solid #ffffff20;border-radius:7px;background:linear-gradient(110deg,#1b1c21,#111216)}
+.account-avatar{width:100px;height:100px;flex:0 0 100px;display:grid;place-items:center;overflow:hidden;border-radius:6px;background:linear-gradient(135deg,#a90b16,#25252d);color:white;font-size:42px;font-weight:950}
+.account-avatar img{width:100%;height:100%;object-fit:cover}
+.account-profile-copy{min-width:0;flex:1}
+.account-profile-copy .eyebrow{color:#e7bd69}
+.account-profile-copy h2{margin:5px 0;font-size:clamp(24px,4vw,34px);letter-spacing:-.04em}
+.account-profile-copy p{max-width:650px;margin:5px 0 12px;color:#b5b5ba;font-size:13px;line-height:1.55}
+.account-profile-meta{display:flex;gap:8px;flex-wrap:wrap}
+.account-profile-meta span{padding:5px 8px;border:1px solid #ffffff20;border-radius:3px;color:#aaa;font-size:9px;font-weight:800;letter-spacing:.06em}
+.account-edit-trigger{margin-left:auto;flex:0 0 auto}
+.account-tabs{display:flex;gap:7px;overflow-x:auto;padding:4px 0 18px;border-bottom:1px solid #ffffff22;margin-bottom:28px}
+.account-tab{flex:0 0 auto;padding:11px 16px;border:1px solid #34353b;border-radius:4px;background:#15161b;color:#aaa;font-size:11px;font-weight:850;cursor:pointer}
+.account-tab[hidden]{display:none}
+.account-tab.is-active,.account-tab:hover{background:#e50914;border-color:#e50914;color:#fff}
+.account-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:35px}
+.account-stats>div{display:grid;gap:5px;padding:18px;border:1px solid #ffffff18;border-radius:5px;background:#141519}
+.account-stats b{font-size:30px;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.account-stats span{color:#999;font-size:9px;font-weight:850;letter-spacing:.12em}
+.account-overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.account-overview-panel{min-width:0;margin-bottom:30px}
+.account-section-head{display:flex;align-items:end;justify-content:space-between;gap:15px;margin:8px 0 18px}
+.account-section-head h2{margin:5px 0;font-size:clamp(23px,3vw,31px);letter-spacing:-.04em}
+.account-section-head p{margin:0;color:#999;font-size:12px}
+.account-count{padding:7px 10px;border:1px solid #ffffff20;border-radius:3px;color:#aaa;font-size:9px;font-weight:850;white-space:nowrap}
+.account-media-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.account-overview-grid .account-media-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.account-empty{padding:38px 20px;text-align:center;border:1px solid #ffffff18;border-radius:5px;background:#141519}
+.account-empty .eyebrow{color:#d9b765}
+.account-empty h3{margin:10px 0 5px;font-size:22px}
+.account-empty p{max-width:430px;margin:0 auto 18px;color:#999;font-size:12px;line-height:1.6}
+.account-text-link{padding:5px 0;border:0;background:none;color:#eee;font-size:11px;font-weight:800;cursor:pointer}
+.account-text-link:hover{color:#e50914}
+.account-bottom-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:35px;padding-top:22px;border-top:1px solid #ffffff20}
+.account-edit-form{width:100%;display:grid;grid-template-columns:100px minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+.account-edit-form .account-avatar{grid-row:span 2}
+.account-edit-form .field{min-width:0}
+.account-edit-form .field.full,.account-edit-form .actions.full{grid-column:2/-1}
+.account-edit-form label{display:block;margin-bottom:6px;color:#aaa;font-size:10px;font-weight:800}
+.account-edit-form input,.account-edit-form textarea{width:100%;padding:11px;border:1px solid #3a3b42;border-radius:4px;background:#0e0f13;color:#fff;font:inherit}
+@media(max-width:850px){.account-media-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.account-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.account-profile{align-items:flex-start;flex-wrap:wrap;padding:17px}.account-avatar{width:72px;height:72px;flex-basis:72px;font-size:30px}.account-edit-trigger{margin:0 0 0 94px}.account-overview-grid{grid-template-columns:1fr;gap:0}.account-media-grid,.account-overview-grid .account-media-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.account-edit-form{grid-template-columns:1fr}.account-edit-form .account-avatar{grid-row:auto}.account-edit-form .field.full,.account-edit-form .actions.full{grid-column:1}.account-section-head{align-items:flex-start;flex-direction:column}}
