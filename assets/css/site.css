@@ -1400,3 +1400,58 @@ body[data-page="admin"] .badge-console .table-wrap{max-width:100%;overflow-x:aut
 .admin-visitor-periods .admin-stat-card strong{font-variant-numeric:tabular-nums}
 @media(max-width:900px){.admin-visitor-periods{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.admin-visitor-periods{grid-template-columns:1fr 1fr;gap:8px}.admin-visitor-periods .admin-stat-card{padding:13px 11px}.admin-visitor-periods .admin-stat-card strong{font-size:27px}}
+
+/* Account dashboard refresh — cinematic, clear and responsive */
+.account-hero{min-height:410px;background:#08090c}
+.account-hero-backdrop{background:linear-gradient(90deg,#08090cf5 0%,#08090cdb 43%,#08090c60 100%),linear-gradient(0deg,#08090c 0%,transparent 72%),url("https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=2000&q=85") center 48%/cover no-repeat}
+.account-hero-inner{padding-top:104px;padding-bottom:54px}
+.account-hero-topline{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.account-live-label{display:inline-flex;align-items:center;gap:8px;color:#d6d6d8;font-size:9px;font-weight:900;letter-spacing:.16em}
+.account-live-label i{width:7px;height:7px;border-radius:50%;background:#e50914;box-shadow:0 0 13px #e50914}
+.account-hero-inner h1{margin:28px 0 18px;font-size:clamp(58px,9vw,100px)}
+.account-hero-inner>p{max-width:570px;font-size:15px}
+.account-hero-links{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-top:25px}
+.account-hero-textlink{color:#eee;text-decoration:none;font-size:11px;font-weight:850}
+.account-hero-textlink:hover{color:#e50914}
+.account-main{max-width:1240px;padding-top:0;padding-bottom:90px}
+.account-profile-shell{position:relative;z-index:2;margin-top:-34px}
+.account-profile{position:relative;display:grid;grid-template-columns:112px minmax(0,1fr) auto;align-items:center;gap:22px;margin:0;padding:23px 25px;border:1px solid #ffffff25;border-radius:8px;background:linear-gradient(115deg,#1c1d23f5,#111216f7);box-shadow:0 18px 55px #0008;backdrop-filter:blur(14px)}
+.account-avatar{width:104px;height:104px;flex-basis:104px;border:2px solid #d7b56b;border-radius:7px;box-shadow:0 8px 25px #0008}
+.account-profile-copy .eyebrow{font-size:9px;letter-spacing:.18em}
+.account-profile-copy h2{font-size:clamp(25px,3vw,36px)}
+.account-profile-copy p{font-size:13px}
+.account-profile-meta span{background:#ffffff08}
+.account-edit-trigger{margin:0;align-self:center}
+.account-public-profile-link{grid-column:3;justify-self:end;margin-top:-8px}
+#accountRecognition{margin:26px 0 30px}
+.account-badges{padding:22px 24px;border:1px solid #ffffff1c;border-radius:7px;background:linear-gradient(120deg,#17181d,#101115)}
+.account-badges h3{margin:6px 0 16px;font-size:22px;letter-spacing:-.04em}
+.account-badges .show-badge-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:11px}
+.account-badges .show-badge-card{min-width:0;padding:13px;border:1px solid #ffffff17;border-radius:5px;background:#0d0e12}
+.account-tabs-wrap{position:sticky;top:0;z-index:20;margin:0 -2px 28px;padding:10px 2px 0;background:linear-gradient(180deg,#08090cf7 75%,#08090c00);backdrop-filter:blur(12px)}
+.account-tabs{gap:8px;padding:5px 0 14px;margin:0;border-bottom:1px solid #ffffff20}
+.account-tab{padding:12px 17px;border-radius:4px;white-space:nowrap}
+#accountContent{min-height:300px}
+.account-stats{gap:13px;margin:0 0 38px}
+.account-stats>div{position:relative;overflow:hidden;min-height:106px;padding:18px 20px;background:linear-gradient(145deg,#191a20,#111216);border-color:#ffffff1c}
+.account-stats>div:after{content:"";position:absolute;right:-22px;bottom:-42px;width:105px;height:105px;border:1px solid #ffffff0d;border-radius:50%;box-shadow:0 0 0 15px #ffffff04,0 0 0 30px #ffffff03}
+.account-stats b{font-size:34px}
+.account-section-head{margin:8px 0 18px}
+.account-section-head h2{font-size:clamp(25px,3vw,34px)}
+.account-overview-grid{gap:30px}
+.account-overview-panel{padding:0;min-width:0}
+.account-media-grid{gap:14px}
+.account-empty{padding:42px 22px}
+.account-activity-panel,.account-membership-panel{margin-top:36px;padding:23px;border:1px solid #ffffff18;border-radius:7px;background:#121317}
+.account-activity-list article,.account-membership-list article{border-color:#ffffff15}
+.account-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.account-settings-card{padding:22px;border:1px solid #ffffff1b;border-radius:7px;background:linear-gradient(145deg,#191a20,#111216)}
+.account-settings-card h3{margin:0 0 14px;font-size:17px}
+.account-settings-card dl{display:grid;gap:0}
+.account-settings-card dl>div{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid #ffffff12}
+.account-settings-card dt{color:#999;font-size:11px}
+.account-settings-card dd{margin:0;text-align:right;font-size:11px;overflow-wrap:anywhere}
+.account-settings-danger{border-color:#7b292e66}
+.account-edit-form{padding:22px;border:1px solid #ffffff1b;border-radius:7px;background:#15161b}
+@media(max-width:760px){.account-profile{grid-template-columns:82px minmax(0,1fr);gap:15px;padding:18px}.account-avatar{width:78px;height:78px;flex-basis:78px}.account-edit-trigger{grid-column:2;justify-self:start}.account-public-profile-link{grid-column:2;justify-self:start;margin:0}.account-tabs-wrap{top:0}.account-settings-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.account-hero{min-height:440px}.account-hero-inner{padding-top:90px}.account-hero-topline{align-items:flex-start;flex-direction:column}.account-profile{grid-template-columns:64px minmax(0,1fr);gap:13px;padding:15px}.account-avatar{width:62px;height:62px;flex-basis:62px;font-size:26px}.account-profile-copy h2{font-size:22px}.account-profile-copy p{font-size:11px}.account-profile-meta span{font-size:8px}.account-edit-trigger,.account-public-profile-link{grid-column:1/-1}.account-badges{padding:17px}.account-badges .show-badge-grid{grid-template-columns:1fr}.account-stats{gap:9px}.account-stats>div{min-height:90px;padding:14px}.account-stats b{font-size:28px}.account-tabs-wrap{margin-bottom:20px}.account-tab{padding:10px 13px;font-size:10px}.account-section-head{gap:10px}.account-settings-card{padding:17px}}
