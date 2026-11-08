@@ -937,7 +937,7 @@ async function admin(){
  try{
   const auth=await fn(FUNCTIONS.adminBootstrap,{});
   if(!auth.ok||!["active","initialized"].includes(auth.status))throw Error(auth.message||auth.error||"Administrator access is pending approval. An existing CrowRules administrator must approve your request.");
-  $("#adminRefresh").onclick=()=>admin();
+  const refreshButton=$("#adminRefresh");if(refreshButton)refreshButton.onclick=()=>admin();
   if(tab==="badges"){
    const results=await Promise.all([
     sb.from("podcast_badge_catalog").select("id,badge_key,name,description,category,icon,image_url,scope,is_active,display_order").order("display_order").order("name"),
