@@ -177,3 +177,16 @@ The 50 GiB value above is the maximum size of one object in the published-media 
 | JavaScript syntax | PASS | Full app.js parses after the update. |
 | Signed-in browser save and playback | NOT RUN | Requires a real creator account and a test YouTube URL. |
 | Cross-browser embed test | NOT RUN | Confirm playback and YouTube privacy/embedding settings in desktop and mobile browsers. |
+
+
+## November 7, 2026 — Media upload error correction and YouTube preview
+
+| Check | Result | Evidence / boundary |
+|---|---|---|
+| Large-file TUS runtime | CODE UPDATED | Replaced the esm.sh module import with the pinned browser UMD build of tus-js-client 4.3.1. The browser build exposes `tus.Upload` and accepts browser File/Blob inputs; this avoids selecting the Node runtime branch that requires Buffer or Node Readable streams. |
+| Premium upload payload | CODE UPDATED | The premium-media-upload Edge Function now converts the multipart File to Uint8Array before passing bytes to Supabase Storage. No table, bucket, or RLS changes. |
+| YouTube live preview | CODE UPDATED | Episode editor displays a responsive privacy-enhanced preview while a valid YouTube URL is entered; invalid URLs show a validation message and empty input shows a prompt. |
+| JavaScript syntax | PASS | Updated app.js parses successfully. |
+| Edge Function deployment | PASS | premium-media-upload deployed as version 63. |
+| Real media upload | NOT RUN | A signed-in creator browser test is still required for small uploads, resumable uploads above 6 MB, and premium uploads. |
+| YouTube preview browser test | NOT RUN | A signed-in creator browser test with a real embeddable video URL is still required. |
