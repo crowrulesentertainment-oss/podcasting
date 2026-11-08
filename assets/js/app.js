@@ -192,7 +192,35 @@ document.addEventListener("error",event=>{const img=event.target;if(img instance
  const intervalLabel=plan=>{const count=Number(plan.interval_count||1),unit=plan.interval||"month";return "per "+(count>1?count+" ":"")+(count===1?unit:unit+"s")};
  const planCards=plans.map(plan=>{const features=Array.isArray(plan.features)?plan.features:[];return '<article class="membership-plan-card"><div class="membership-plan-top"><span class="pill">SHOW MEMBERSHIP</span><h3>'+esc(plan.name||"Membership")+'</h3><p>'+esc(plan.description||"Support this show and unlock member benefits.")+'</p></div><div class="membership-plan-price"><strong>'+money(plan.amount_cents,plan.currency)+'</strong><span>'+intervalLabel(plan)+'</span></div>'+(plan.trial_period_days>0?'<p class="membership-trial">'+Number(plan.trial_period_days)+'-day free trial</p>':'')+(features.length?'<ul class="membership-features">'+features.map(item=>'<li>'+esc(String(item))+'</li>').join("")+'</ul>':'')+'<button class="membership-plan-cta" type="button" data-membership-product="'+esc(plan.id)+'">Subscribe to '+esc(plan.name||"this plan")+'</button></article>'}).join("");
  $("#app").innerHTML='<section class="page-hero"><div class="container split"><div><div class="eyebrow">'+esc(p.category||"PODCAST")+'</div><h1 class="page-title">'+esc(p.title)+'</h1><p>'+esc(p.description||"")+'</p><div class="actions"><button id="follow">＋ Follow show</button><button id="sub" class="secondary">View membership plans</button></div></div><div class="feature-image"><img class="feature-image-img" loading="lazy" decoding="async" src="'+esc(p.artwork_url||art)+'" data-fallback="'+logoURL+'" alt="'+esc(p.title)+' artwork"></div></div></section><section class="section container membership-plans-section" id="membershipPlans"><div class="section-head"><div><div class="eyebrow">SUPPORT THE SHOW</div><h2>Membership plans</h2><p class="muted">Choose a membership to support '+esc(p.title)+'.</p></div></div>'+(planError?'<div class="notice">Membership plans could not be loaded: '+esc(planError.message)+'</div>':plans.length?'<div class="membership-plans-grid">'+planCards+'</div>':'<div class="empty">There are no active membership plans for this show yet.</div>')+'</section><section class="section container"><h2>Episodes</h2><div class="cards">'+(es||[]).map(epCard).join("")+'</div></section>';
- $("#follow").onclick=async()=>{try{let u=await me();if(!u)return go("login.html");let{error}=await sb.from("podcast_follows").insert({user_id:u.id,podcast_id:id});if(error&&error.code!=="23505")throw error;toast("Show followed.")}catch(e){toast(e.message)}};
+ const followButton=$("#follow");let currentUser=null,isFollowing=false,followBusy=false;
+ const renderFollow=()=>{followButton.textContent=followBusy?"Please wait…":isFollowing?"✓ Following · Unfollow":"＋ Follow show";followButton.classList.toggle("is-following",isFollowing);followButton.setAttribute("aria-pressed",String(isFollowing));followButton.disabled=followBusy};
+ try{
+  currentUser=await me();
+  if(currentUser){
+   const{data:existing,error:followReadError}=await sb.from("podcast_follows").select("id").eq("user_id",currentUser.id).eq("podcast_id",id).maybeSingle();
+   if(followReadError)throw followReadError;
+   isFollowing=!!existing;
+  }
+ }catch(e){console.warn("Could not load show follow state:",e);toast("Could not check your follow status: "+(e.message||"Please try again."))}
+ renderFollow();
+ followButton.onclick=async()=>{
+  if(followBusy)return;
+  try{
+   currentUser=await me();
+   if(!currentUser){go("login.html?next="+encodeURIComponent("show.html?id="+id));return}
+   followBusy=true;renderFollow();
+   if(isFollowing){
+    const{data:removed,error}=await sb.from("podcast_follows").delete().eq("user_id",currentUser.id).eq("podcast_id",id).select("id").maybeSingle();
+    if(error)throw error;if(!removed)throw Error("Your follow could not be removed. Refresh and try again.");
+    isFollowing=false;toast("You unfollowed "+p.title+".");
+   }else{
+    const{data:added,error}=await sb.from("podcast_follows").insert({user_id:currentUser.id,podcast_id:id}).select("id").single();
+    if(error){if(error.code==="23505"){isFollowing=true}else throw error}else if(!added)throw Error("The follow was not confirmed. Please try again.");
+    isFollowing=true;toast("You are now following "+p.title+".");
+   }
+  }catch(e){toast(e.message||"Could not update your follow. Please try again.")}
+  finally{followBusy=false;renderFollow()}
+ };
  $("#sub").onclick=()=>document.getElementById("membershipPlans")?.scrollIntoView({behavior:"smooth",block:"start"});
  all("[data-membership-product]").forEach(button=>button.onclick=async()=>{const productId=button.dataset.membershipProduct;button.disabled=true;button.textContent="Opening secure checkout…";try{const user=await me();if(!user){go("login.html");return}const checkout=await fn(FUNCTIONS.showCheckout,{product_id:productId,origin:location.origin+SITE_BASE});if(!checkout?.url)throw Error("Checkout did not return a payment link.");location.href=checkout.url}catch(e){toast(e.message||"Unable to start membership checkout.");button.disabled=false;button.textContent="Subscribe to this plan"}});
 }
