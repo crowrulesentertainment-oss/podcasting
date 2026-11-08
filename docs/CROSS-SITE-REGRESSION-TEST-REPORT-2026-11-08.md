@@ -148,7 +148,7 @@ The 50 GiB value above is the maximum size of one object in the published-media 
 | Timezone handling | CODE UPDATED | datetime-local values are converted to ISO UTC before saving; calendar and edit form render in the browser's local timezone. |
 | Dedicated auto-publish worker | PASS — DATABASE | private.publish_due_podcast_episodes() installed; Cron job crowrules-podcasting-publish-due-v14 active every minute. |
 | Publishing safety checks | PASS — CODE / DATABASE | Worker requires due scheduled status, active episode, published parent show and non-empty audio or video URL. It sets status, is_published, production stage and published_at, then writes a pipeline event. |
-| Duplicate publisher control | PASS — DATABASE | v13 cron job unscheduled; publishing block removed from the separate creator workflow tick to keep a single authoritative publisher for podcast_episodes. Other workflow tick work remains scheduled. |
+| Duplicate publisher control | PASS — DATABASE | v13 cron job unscheduled; legacy public v13 function execute restricted to postgres; publishing block removed from the separate creator workflow tick to keep a single authoritative publisher for podcast_episodes. Other workflow tick work remains scheduled. |
 | Private function access | PASS — DATABASE | Private scheduler has SECURITY DEFINER in non-exposed private schema; execute privilege denied to anon and authenticated, granted to postgres. No public wrapper added. |
 | Cron execution | PASS — DATABASE | Job is active; latest run-history entries returned succeeded. |
 | Scheduler dry invocation | PASS — DATABASE | Direct invocation returned published_count=0; no episodes were due at test time, so no live episode was changed. |
