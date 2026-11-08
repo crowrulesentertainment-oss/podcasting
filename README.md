@@ -66,3 +66,10 @@ Sign-in is intentionally not a promise of an immortal session: Supabase project-
 - Premium episode media remains private and continues through the existing premium-media-upload Edge Function; premium playback remains on the existing signed-URL/authorization path.
 - Important: a bucket's per-file limit does not increase the project's total storage quota or global file-size limit. Supabase Free includes 1 GB total Storage and caps individual uploads at 50 MB; Pro includes 100 GB total Storage and permits a global per-file limit up to 500 GB. A 50 GB total quota is not a separate configurable bucket setting.
 - A live metadata inventory found approximately 1.2 GB of objects across the project's buckets at the time of this check. This is a point-in-time object-size sum, not the invoice's GB-hour average.
+
+
+## Creator Studio — show and episode management
+
+The Creator Studio now includes owner-scoped show editing, episode editing, episode media replacement, audio/video upload, episode artwork URLs, show notes, transcripts, tags, explicit-content flags, release dates, scheduled publication metadata, draft publishing, and draft deletion. Large free-media files use the existing TUS resumable uploader; premium uploads continue through the existing authenticated `premium-media-upload` Edge Function. Creator permissions remain enforced by the existing Supabase RLS policies; no database schema or policy changes were made for this interface update.
+
+Additional creator workflow ideas are surfaced in the Creator Toolkit: release planning, pre-publish quality checks, audience analytics, collaborator roles, promotion kits, and backup/version history. Items described as future development are not represented as already active features. Browser-based signed-in regression tests are still required for show updates, episode updates, free and premium media uploads, publish/delete authorization, and scheduled release behavior.
