@@ -163,3 +163,17 @@ The 50 GiB value above is the maximum size of one object in the published-media 
 - The scheduled time is retained as release metadata after publication; published_at records the actual publication timestamp.
 - The worker is idempotent: it selects only rows still in scheduled state and uses FOR UPDATE SKIP LOCKED.
 - This scheduler publishes the episode on CrowRules Podcasting. It does not automatically upload or publish to YouTube, Spotify, Apple Podcasts or other external destinations.
+
+
+## November 8, 2026 — YouTube URLs in Episodes & Uploads
+
+| Check | Result | Evidence / boundary |
+|---|---|---|
+| YouTube URL input | CODE UPDATED | Episode editor accepts YouTube watch, youtu.be, Shorts and Live URL forms. |
+| URL validation | CODE UPDATED | Unsupported hosts or malformed video IDs are rejected before save. |
+| Database storage | PASS — EXISTING FIELD | URL is saved in existing podcast_episodes.video_url; no schema or RLS changes. |
+| Public episode playback | CODE UPDATED | YouTube URLs render as responsive privacy-enhanced iframe embeds; direct video uploads retain native video playback. |
+| Audio upload compatibility | CODE UPDATED | Audio upload no longer clears an existing linked video URL. |
+| JavaScript syntax | PASS | Full app.js parses after the update. |
+| Signed-in browser save and playback | NOT RUN | Requires a real creator account and a test YouTube URL. |
+| Cross-browser embed test | NOT RUN | Confirm playback and YouTube privacy/embedding settings in desktop and mobile browsers. |
