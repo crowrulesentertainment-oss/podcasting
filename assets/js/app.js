@@ -358,7 +358,7 @@ document.addEventListener("error",event=>{const img=event.target;if(img instance
   featured.innerHTML='<div class="loading">Building the chart…</div>';list.innerHTML='<div class="loading">Loading the leaderboard…</div>';
   try{
    if(!catalog.loaded){await fetchCatalog();catalog.loaded=true}
-   const rows=(await buildRows(category)).slice(0,50);
+   const rows=(await buildRows(category)).slice(0,10);
    const snapshot=rows.some(row=>row.source==="snapshot");
    $("#rankingDataNote").textContent=snapshot?periodSelect.options[periodSelect.selectedIndex].text+" · calculated chart":"Live catalog · cumulative metrics";
    const top=rows[0];
