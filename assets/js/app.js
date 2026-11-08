@@ -940,7 +940,6 @@ async function admin(){
   sb.from("members").select("user_id,display_name,first_name,last_name,username,email,role").not("user_id","is",null).order("display_name").limit(1000),
   sb.from("podcasts").select("id,title,status").order("title").limit(500),
   sb.from("podcast_episodes").select("id,podcast_id,title,episode_number,season_number,status").order("created_at",{ascending:false}).limit(1500),
-  sb.from("creators").select("member_id").not("member_id","is",null).limit(1000),
   sb.from("podcast_badge_assignments").select("id,target_type,target_id,badge_key,is_public,note,awarded_at").order("awarded_at",{ascending:false}).limit(1000)
  ]);
  const [cr,mr,sr,er,creatorRes,ar]=results;
