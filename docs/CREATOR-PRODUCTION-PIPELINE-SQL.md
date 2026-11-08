@@ -29,7 +29,7 @@ On publication it sets status, is_published, production_stage, published_at and 
 
 Cron job: crowrules-podcasting-publish-due-v14, every minute, command: select private.publish_due_podcast_episodes();
 
-The former v13 auto-publish job was unscheduled. The publication block in private.podcast_workflow_tick() was removed to avoid a second publisher; the remainder of that workflow function continues to run.
+The former v13 auto-publish job was unscheduled and its legacy public function execute privilege was restricted to postgres. The publication block in private.podcast_workflow_tick() was removed to avoid a second publisher; the remainder of that workflow function continues to run.
 
 ## Operational verification
 
