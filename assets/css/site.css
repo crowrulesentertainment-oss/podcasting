@@ -785,3 +785,18 @@ input:focus,select:focus,textarea:focus{border-color:#e50914;outline:1px solid #
 .creator-tool-grid article{position:relative}
 .creator-tool-status{display:block;margin-bottom:10px;color:#b9c0cb;font-size:9px;font-weight:900;letter-spacing:.12em}
 .creator-tool-status.future{color:#ff858a}
+
+
+/* Creator Toolkit interactive tools */
+.creator-tool-nav{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0;border-bottom:1px solid #ffffff20;padding-bottom:12px}
+.creator-tool-nav button{background:#171a22;color:#c7cbd3;border:1px solid #ffffff20;padding:11px 15px;border-radius:6px}
+.creator-tool-nav button.active{background:#e50914;color:#fff;border-color:#e50914}
+.creator-tool-panel{padding:22px 0;border-top:1px solid #ffffff14}
+.tool-checklist-list{display:grid;gap:10px;margin:18px 0}
+.tool-check-row{display:flex;align-items:center;gap:12px;padding:13px 15px;background:#11151c;border:1px solid #ffffff18;border-radius:7px;cursor:pointer}
+.tool-check-row input{width:18px;height:18px;accent-color:#e50914}
+.tool-check-row:has(input:checked) span{color:#8e969f;text-decoration:line-through}
+.creator-tool-panel .creator-item{padding:12px 0;border-bottom:1px solid #ffffff14}
+.creator-tool-panel .creator-item small{display:block;color:#9da5b2;font-size:11px;margin-top:4px}
+.creator-tool-panel .stats{margin:18px 0}
+@media(max-width:650px){.creator-tool-nav{display:grid;grid-template-columns:1fr 1fr}.creator-tool-nav button{width:100%}.creator-tool-panel{padding:16px 0}}
