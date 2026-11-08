@@ -37,7 +37,7 @@ Provider-specific developer consoles must have the callback above registered, wh
 
 
 ## Brand and quality checks
-The shared navigation/footer use the CrowRules Podcasting neon-cyan/violet vector logo at `assets/images/crowrules-podcasting-logo.svg`, based on the supplied crow/headphones/microphone artwork. The responsive navigation, keyboard focus styles, and shared player are styled in `assets/css/site.css`.
+The shared navigation and footer now use the supplied CrowRules Podcasting logo hosted in the Supabase public `images` bucket (`podcastinglogo.png`). The shared shell also applies it as the browser favicon, Apple touch icon, and social preview image. Show/episode artwork fallback uses the same logo. The responsive navigation, keyboard focus styles, and shared player are styled in `assets/css/site.css`.
 
 GitHub Actions runs static checks on pushes and pull requests: JavaScript module syntax, local HTML asset references, page-handler coverage, and obvious server-secret patterns in public JS/CSS. These checks do not replace browser, OAuth, Stripe, or real-media integration tests.
 
