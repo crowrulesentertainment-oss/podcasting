@@ -922,3 +922,19 @@ input:focus,select:focus,textarea:focus{border-color:#e50914;outline:1px solid #
 .awards-studio-frame{height:min(1100px,calc(100vh - 120px));min-height:760px;aspect-ratio:auto;overflow:auto}
 .awards-studio-frame iframe{width:100%;height:100%;min-height:760px;border:0;background:#08090c}
 @media(max-width:700px){.awards-studio-frame{height:900px;min-height:900px}.awards-studio-frame iframe{min-height:900px}}
+
+
+/* Awards iframe: show only the interactive Creator Live Studio panel */
+body.creator-studio-embed{background:#08090c}
+body.creator-studio-embed .creator-page-hero,
+body.creator-studio-embed .creator-sidebar,
+body.creator-studio-embed .creator-studio-tabs [data-studio-tab="record"],
+body.creator-studio-embed .creator-studio-tabs [data-studio-tab="upload"]{display:none!important}
+body.creator-studio-embed .creator-dashboard{display:block!important;margin:0!important;padding:0!important;max-width:none!important}
+body.creator-studio-embed .creator-workspace{width:100%;min-width:0;padding:0!important}
+body.creator-studio-embed .creator-studio-hero{display:none!important}
+body.creator-studio-embed .creator-studio-tabs{display:flex;justify-content:flex-start;margin:0 0 14px}
+body.creator-studio-embed .creator-studio-panel#studioLivePanel{display:block!important;margin:0!important;padding:clamp(14px,2.5vw,26px)!important;border:1px solid #ffffff18;border-radius:12px;background:#101116}
+body.creator-studio-embed #studioLivePanel.hidden{display:block!important}
+body.creator-studio-embed .studio-live-toolbar{grid-template-columns:minmax(200px,1fr) minmax(150px,.4fr) repeat(3,auto)}
+@media(max-width:850px){body.creator-studio-embed .studio-live-toolbar{grid-template-columns:1fr 1fr}body.creator-studio-embed .studio-live-toolbar .field:first-child{grid-column:1/-1}}
