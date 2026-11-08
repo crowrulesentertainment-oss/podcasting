@@ -71,12 +71,13 @@ function enableSeamlessNavigation(){
  window.addEventListener("popstate",()=>navigateTo(location.href,{history:false}));
 }
 let livePresenceChannel=null,livePresenceRole="listener",livePresenceUserId=null,livePresenceHeartbeat=null;
+function liveVisitorId(){try{let id=localStorage.getItem("crp_live_visitor_id");if(!id){id=window.crypto?.randomUUID?.()||("visitor-"+Date.now()+"-"+Math.random().toString(36).slice(2));localStorage.setItem("crp_live_visitor_id",id)}return id}catch{return null}}
 function liveRole(accountRole){const role=String(accountRole||"").trim().toLowerCase();if(page==="guest"||role==="guest")return"guest";return role==="creator"?"creator":"listener"}
 function renderLiveCounts(){
  const state=livePresenceChannel?.presenceState?.()||{},latest=new Map(),counts={creator:0,listener:0,guest:0};
  for(const[key,sessions]of Object.entries(state))for(const session of sessions||[]){
   const role=String(session?.role||"").trim().toLowerCase();if(!Object.prototype.hasOwnProperty.call(counts,role)||session?.active===false)continue;
-  const identity=session?.user_id?"user:"+session.user_id:"session:"+key,seen=Date.parse(session?.seen_at||"")||0;
+  const identity=session?.user_id?"user:"+session.user_id:session?.visitor_id?"visitor:"+session.visitor_id:"session:"+key,seen=Date.parse(session?.seen_at||"")||0;
   if(!seen||Date.now()-seen>75000)continue;
   const previous=latest.get(identity);
   if(!previous||seen>=previous.seen)latest.set(identity,{role,seen});
@@ -95,7 +96,7 @@ async function syncLivePresence(user){
   let accountRole="";
   if(livePresenceUserId){const{data,error}=await sb.from("members").select("role").eq("user_id",livePresenceUserId).maybeSingle();if(error)console.warn("Could not resolve member role for live presence:",error.message);else accountRole=data?.role||""}
   livePresenceRole=liveRole(accountRole);
-  const{error}=await livePresenceChannel.track({role:livePresenceRole,user_id:livePresenceUserId,active:true,seen_at:new Date().toISOString()});
+  const{error}=await livePresenceChannel.track({role:livePresenceRole,user_id:livePresenceUserId,visitor_id:livePresenceUserId?null:liveVisitorId(),active:true,seen_at:new Date().toISOString()});
   if(error)throw error;
   renderLiveCounts();bindEpisodeControls();
  }catch(error){console.warn("Live presence update failed:",error)}
