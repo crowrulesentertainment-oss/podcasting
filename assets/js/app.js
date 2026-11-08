@@ -160,17 +160,22 @@ function initViewerLocalInfo(){
  const updateClock=()=>{const now=new Date(),zone=Intl.DateTimeFormat().resolvedOptions().timeZone||undefined;if(timeEl)timeEl.textContent=new Intl.DateTimeFormat(undefined,{hour:"numeric",minute:"2-digit",second:"2-digit",timeZone:zone}).format(now);if(dateEl)dateEl.textContent=new Intl.DateTimeFormat(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric",timeZone:zone}).format(now)};
  updateClock();viewerClockInterval=setInterval(updateClock,1000);
  const status=$("#viewerWeatherStatus"),details=$("#viewerWeatherDetails"),place=$("#viewerWeatherPlace");
- const unavailable=message=>{if(status)status.textContent=message;if(details)details.textContent="Allow location access in your browser to see local weather."};
+ const unavailable=message=>{if(status)status.textContent=message;if(details)details.textContent="Allow precise location access in your browser to see weather for your area.";if(place)place.textContent="Weather location is not available."};
  if(!navigator.geolocation){unavailable("Weather location unavailable");return}
- if(status)status.textContent="Requesting your location…";
+ if(status)status.textContent="Finding your precise location…";
  navigator.geolocation.getCurrentPosition(async position=>{try{
-  const{latitude,longitude}=position.coords,url="https://api.open-meteo.com/v1/forecast?latitude="+encodeURIComponent(latitude)+"&longitude="+encodeURIComponent(longitude)+"&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m&timezone=auto";
-  const response=await fetch(url,{headers:{Accept:"application/json"}});if(!response.ok)throw Error("Weather service unavailable");
-  const data=await response.json(),current=data.current||{},units=data.current_units||{},temperature=Number(current.temperature_2m),feels=Number(current.apparent_temperature);
-  if(status)status.textContent=viewerWeatherIcon(current.weather_code,current.is_day)+" "+viewerWeatherLabel(current.weather_code);
-  if(details)details.textContent=(Number.isFinite(temperature)?Math.round(temperature)+(units.temperature_2m||"°C"):"—")+" · Feels like "+(Number.isFinite(feels)?Math.round(feels)+(units.temperature_2m||"°C"):"—")+" · Humidity "+(current.relative_humidity_2m??"—")+"% · Wind "+(current.wind_speed_10m??"—")+" "+(units.wind_speed_10m||"km/h");
-  if(place)place.textContent="Weather near your location";
- }catch(error){unavailable("Local weather could not load")}},error=>{unavailable(error.code===1?"Location permission not granted":"Location unavailable")},{enableHighAccuracy:false,timeout:10000,maximumAge:600000});
+  const{latitude,longitude,accuracy}=position.coords;
+  const params=new URLSearchParams({latitude:String(latitude),longitude:String(longitude),current:"temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,precipitation,cloud_cover,wind_speed_10m,wind_gusts_10m",temperature_unit:"fahrenheit",wind_speed_unit:"mph",precipitation_unit:"inch",timezone:"auto"});
+  const response=await fetch("https://api.open-meteo.com/v1/forecast?"+params.toString(),{headers:{Accept:"application/json"},cache:"no-store"});if(!response.ok)throw Error("Weather service unavailable");
+  const data=await response.json(),current=data.current||{},units=data.current_units||{};
+  if(!data.current||!data.current.time||!Number.isFinite(Number(current.temperature_2m)))throw Error("Weather data is incomplete");
+  const number=(value,digits=0)=>Number.isFinite(Number(value))?Number(value).toFixed(digits):"—";
+  const temp=number(current.temperature_2m),feels=number(current.apparent_temperature),humidity=number(current.relative_humidity_2m),wind=number(current.wind_speed_10m),gust=number(current.wind_gusts_10m),rain=number(current.precipitation,2);
+  if(status)status.textContent=viewerWeatherIcon(current.weather_code,current.is_day)+" "+viewerWeatherLabel(current.weather_code)+" · "+Math.round(Number(temp))+"°F";
+  if(details)details.textContent="Feels like "+feels+"°F · Humidity "+humidity+"% · Wind "+wind+" mph (gusts "+gust+" mph) · Precipitation "+rain+" in · Cloud cover "+number(current.cloud_cover)+"%";
+  const observed=new Date(current.time+(data.utc_offset_seconds?"+00:00":""));
+  if(place)place.textContent="Weather model for your coordinates · Updated "+(Number.isNaN(observed.getTime())?current.time:observed.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}))+" · GPS accuracy ±"+(Number.isFinite(accuracy)?(accuracy>=1000?(accuracy/1000).toFixed(1)+" km":Math.round(accuracy)+" m"):"unknown");
+ }catch(error){console.warn("Local weather error:",error);unavailable("Local weather could not load")}},error=>{unavailable(error.code===1?"Location permission not granted":"Precise location unavailable")},{enableHighAccuracy:true,timeout:20000,maximumAge:60000});
 }
 async function home(){
  const a=$("#app");
