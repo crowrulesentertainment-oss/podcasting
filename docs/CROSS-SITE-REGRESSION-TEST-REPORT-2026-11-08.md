@@ -97,3 +97,20 @@ The current database preflight does not establish that the five user workflows w
 ### Session policy note
 
 Client-side persistence and refresh do not override Supabase server-side session lifetime/inactivity settings or explicit revocation. Confirm Authentication → Settings → Session timeouts in the Supabase Dashboard if the product policy is to avoid automatic session expiration. Do not weaken security settings without a deliberate policy decision.
+
+## November 7, 2026 — artwork, upload and storage configuration
+
+| Check | Result | Evidence / boundary |
+|---|---|---|
+| Show/episode artwork fallback | CODE UPDATED | Lazy-loaded image elements, async decoding and a local CrowRules logo fallback on image errors. |
+| Free episode uploads | CODE UPDATED | Small files use Storage upload; files above 6 MB use TUS resumable upload with retry and progress updates. |
+| Upload MIME types | PASS | crowrules-podcast-published now accepts common audio formats and MP4/WebM/QuickTime/M4V video. |
+| Bucket file limit | PASS | Live Storage metadata confirms crowrules-podcast-published per-file limit is 53,687,091,200 bytes (50 GiB). |
+| Total Storage inventory | OBSERVED | Object metadata sums to approximately 1.2 GB across buckets at check time. Billing quota is measured as GB-hours and may differ from this point-in-time sum. |
+| JavaScript syntax | PASS | Updated assets/js/app.js parsed successfully after removing browser-module import declarations. |
+| Supabase Security Advisor | PASS | No lints returned. |
+| Supabase Health Advisor | PASS | No lints returned. |
+| Real upload/browser verification | NOT RUN | Must test authenticated small audio, large TUS audio/video, interrupted/resumed upload, public playback and premium upload with test accounts. |
+
+### Storage quota clarification
+The 50 GiB value above is the maximum size of one object in the published-media bucket, not the project's total storage allowance. Supabase plan-wide limits still take precedence: Free includes 1 GB total Storage and a 50 MB global file-size cap; Pro includes 100 GB total Storage and supports a global file-size limit up to 500 GB. Set the global limit in Dashboard → Storage → Settings after upgrading if large uploads are required. Do not mark large uploads production-verified until a real authenticated upload succeeds.
