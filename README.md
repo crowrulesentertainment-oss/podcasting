@@ -70,6 +70,20 @@ Sign-in is intentionally not a promise of an immortal session: Supabase project-
 
 ## Creator Studio — show and episode management
 
-The Creator Studio now includes owner-scoped show editing, episode editing, episode media replacement, audio/video upload, episode artwork URLs, show notes, transcripts, tags, explicit-content flags, release dates, scheduled publication metadata, draft publishing, and draft deletion. Large free-media files use the existing TUS resumable uploader; premium uploads continue through the existing authenticated `premium-media-upload` Edge Function. Creator permissions remain enforced by the existing Supabase RLS policies; no database schema or policy changes were made for this interface update.
+The Creator Studio now includes owner-scoped show editing, episode editing, episode media replacement, audio/video upload, episode artwork URLs, show notes, transcripts, tags, explicit-content flags, release dates, scheduled publication metadata, draft publishing, and draft deletion. Large free-media files use the existing TUS resumable uploader; premium uploads continue through the existing authenticated `premium-media-upload` Edge Function. Creator permissions remain enforced by the existing Supabase RLS policies. The later Production Pipeline update adds one constrained production_stage column while retaining the existing row policies.
 
 Additional creator workflow ideas are surfaced in the Creator Toolkit: release planning, pre-publish quality checks, audience analytics, collaborator roles, promotion kits, and backup/version history. Items described as future development are not represented as already active features. Browser-based signed-in regression tests are still required for show updates, episode updates, free and premium media uploads, publish/delete authorization, and scheduled release behavior.
+
+
+## November 8, 2026 — Creator Production Pipeline and Release Calendar
+
+- Creator Studio now has a seven-stage episode workflow: Idea, Planning, Recording, Editing, Review, Scheduled and Published.
+- A Kanban-style Production Pipeline board allows creators to move their own episodes between stages. Stage changes are recorded in podcast_episode_pipeline_events, and a recent activity feed shows the workflow history.
+- The Release Calendar shows scheduled, release-date and published episode dates by month, with previous/next month navigation and direct links to edit an episode.
+- Episode editing saves the production stage and scheduling time together. Local datetime inputs are converted to UTC for storage and rendered in the browser's local timezone.
+- podcast_episodes.production_stage was added with a CHECK constraint for the seven supported values. Existing episode RLS policies remain in place; no RLS policies were broadened.
+- Automatic publishing runs through a private database function every minute using Supabase Cron. It publishes only due episodes whose show is already published, whose episode is active, and whose audio or video media URL is present. It sets status='published', is_published=true, production_stage='published', records published_at, and appends a pipeline event.
+- The previous v13 cron job was replaced by the private v14 scheduler. The scheduled-publishing block was removed from the general creator workflow tick so publication has one authoritative worker; the rest of that workflow tick remains active.
+- The scheduler function is in the non-public private schema and execution is revoked from anon and authenticated. No private schema wrapper was added to the public API.
+- Verification: cron job is active and recent cron executions succeeded; direct scheduler invocation returned 0 because there were no due scheduled episodes at test time. Security and Health Advisors returned no lints.
+- Browser-based creator workflow tests and a real future-time scheduled release are still pending. Do not claim end-to-end automatic publishing until a creator schedules a test episode with media, the time passes, and the public page shows it as published.
