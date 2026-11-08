@@ -300,7 +300,7 @@ document.addEventListener("error",event=>{const img=event.target;if(img instance
   {id:"followed",label:"Most Followed",type:"followed",kind:"show",description:"Shows building their listener communities."},
   {id:"creators",label:"Top Creators",type:null,kind:"creator",description:"Creators whose published shows are reaching listeners."}
  ];
- let active="shows",period="weekly",catalog={shows:[],episodes:[],creators:[],follows:{},snapshots:{}},loading=false;
+ let active="shows",period="weekly",catalog={shows:[],episodes:[],creators:[],follows:{},snapshots:{}},loading=false,rerenderRequested=false;
  root.innerHTML='<section class="rankings-hero"><div class="rankings-hero-backdrop" id="rankingsHeroBackdrop"></div><div class="container rankings-hero-content"><div class="eyebrow">CROWRULES ORIGINALS · THE CHARTS</div><span class="rankings-season-tag">THE CROWRULES PODCASTING TOP 10</span><h1 class="rankings-display-title">THE<br><em>RANKINGS</em></h1><p>Discover the voices, shows and episodes moving the conversation. Explore the charts and find your next favorite.</p><div class="rankings-hero-meta"><span><i></i> LIVE CATALOG DATA</span><span>ONE COMPANY. ONE UNIVERSE.</span></div></div></section><section class="container rankings-main"><div class="rankings-intro"><div><span class="eyebrow">FIND YOUR NEXT FAVORITE</span><h2>What’s rising on CrowRules.</h2><p class="muted">Explore the rankings by category and time period.</p></div><div class="rankings-period"><label for="rankingPeriod">Time period</label><select id="rankingPeriod"><option value="weekly">This week</option><option value="monthly">This month</option><option value="all_time">All time</option></select></div></div><nav class="rankings-categories" id="rankingCategories" aria-label="Ranking categories">'+categories.map(c=>'<button type="button" class="ranking-category'+(c.id==="shows"?" is-active":"")+'" data-ranking-category="'+c.id+'" aria-pressed="'+(c.id==="shows"?"true":"false")+'">'+esc(c.label)+'</button>').join("")+'</nav><div class="rankings-featured" id="rankingFeatured"><div class="loading">Loading the charts…</div></div><div class="rankings-list-head"><div><span class="eyebrow">THE LEADERBOARD</span><h2 id="rankingHeading">Top Shows</h2><p id="rankingDescription" class="muted">The shows leading the CrowRules charts.</p></div><span class="rankings-data-note" id="rankingDataNote">Connecting to live catalog…</span></div><div class="rankings-grid" id="rankingList"><div class="loading">Loading rankings…</div></div><div class="rankings-footnote">Rankings reflect the activity and published metrics available to CrowRules Podcasting. Period-based chart snapshots appear when the ranking service has calculated them; catalog fallbacks are clearly labeled.</div></section>';
  const list=$("#rankingList"),featured=$("#rankingFeatured"),periodSelect=$("#rankingPeriod");
  const number=value=>Number(value||0).toLocaleString();
@@ -351,7 +351,7 @@ document.addEventListener("error",event=>{const img=event.target;if(img instance
   return[];
  };
  const render=async()=>{
-  if(loading)return;loading=true;
+  if(loading){rerenderRequested=true;return}loading=true;
   const category=categories.find(c=>c.id===active)||categories[0];
   all("[data-ranking-category]").forEach(button=>{const selected=button.dataset.rankingCategory===active;button.classList.toggle("is-active",selected);button.setAttribute("aria-pressed",String(selected))});
   $("#rankingHeading").textContent=category.label;$("#rankingDescription").textContent=category.description;
@@ -382,7 +382,7 @@ document.addEventListener("error",event=>{const img=event.target;if(img instance
     }).join("");
    }
   }catch(error){console.error("Rankings failed:",error);featured.innerHTML='<div class="rankings-featured-empty"><h3>Rankings are unavailable.</h3><p>'+esc(error.message||"Please refresh and try again.")+'</p></div>';list.innerHTML='<div class="notice">'+esc(error.message||"Could not load rankings.")+'</div>';$("#rankingDataNote").textContent="Connection issue"}
-  finally{loading=false}
+  finally{loading=false;if(rerenderRequested){rerenderRequested=false;render()}}
  };
  $("#rankingCategories").addEventListener("click",event=>{const button=event.target.closest("[data-ranking-category]");if(!button||button.dataset.rankingCategory===active)return;active=button.dataset.rankingCategory;render()});
  periodSelect.addEventListener("change",()=>{period=periodSelect.value;render()});
