@@ -58,3 +58,11 @@ No existing tables were dropped or recreated, and no service-role or Stripe secr
 The shared Supabase client uses one explicit browser-local storage key (`crowrules-podcasting-auth`) on every page, with session persistence, automatic access-token refresh, PKCE OAuth flow and callback detection enabled. A successful sign-in or OAuth callback is therefore restored when the user returns to the site in the same browser profile. The shared header reflects the current auth state and provides a sitewide **Log out** action that calls `supabase.auth.signOut()`.
 
 Sign-in is intentionally not a promise of an immortal session: Supabase project-level session lifetime, inactivity limits, password/security resets, administrator revocation, cleared browser storage, or browser privacy settings can still end or prevent restoration of a session. Check Authentication → Settings → Session timeouts if the desired policy is to avoid automatic inactivity/max-lifetime expiration. Never disable security controls merely to simulate permanent login.
+
+## November 7, 2026 — artwork and episode media uploads
+- Show cards, episode cards and show/episode detail artwork now use lazy-loaded image elements, async decoding and a local CrowRules logo fallback if a remote artwork URL fails.
+- Free episode uploads use the existing crowrules-podcast-published bucket. Files up to 6 MB use the normal Storage upload API; larger files use resumable TUS uploads with retry support and visible progress.
+- The published-media bucket now accepts common podcast audio and video MIME types and has a 50 GiB per-file bucket limit.
+- Premium episode media remains private and continues through the existing premium-media-upload Edge Function; premium playback remains on the existing signed-URL/authorization path.
+- Important: a bucket's per-file limit does not increase the project's total storage quota or global file-size limit. Supabase Free includes 1 GB total Storage and caps individual uploads at 50 MB; Pro includes 100 GB total Storage and permits a global per-file limit up to 500 GB. A 50 GB total quota is not a separate configurable bucket setting.
+- A live metadata inventory found approximately 1.2 GB of objects across the project's buckets at the time of this check. This is a point-in-time object-size sum, not the invoice's GB-hour average.
