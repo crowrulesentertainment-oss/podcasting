@@ -955,7 +955,7 @@ async function admin(){
    const episodeOpts=eps.map(x=>'<option value="'+esc(x.id)+'" data-podcast="'+esc(x.podcast_id)+'">'+esc(x.title)+' · '+esc(showMap.get(x.podcast_id)?.title||"Podcast")+'</option>').join("");
    work.innerHTML=
     '<div class="badge-console">'+
-     '<header class="badge-console-hero"><div><span class="admin-kicker">CROWRULES RECOGNITION CENTER</span><h3>Badge Distribution</h3><p>Choose an official badge, select a recipient or piece of content, and publish the recognition to its page.</p></div><a class="btn secondary" href="badges.html">View public badge directory ↗</a></header>'+
+     '<header class="badge-console-hero"><div><span class="admin-kicker">CROWRULES RECOGNITION CENTER</span><h3>Badge Distribution</h3><p>Choose one of the badges in your collection, then designate it to any member profile, podcast or episode.</p></div><a class="btn secondary" href="badges.html">View public badge directory ↗</a></header>'+
      '<div class="badge-console-stats">'+
       '<article><span>Badge collection</span><strong>'+defs.length+'</strong><small>All definitions</small></article>'+
       '<article><span>Available to award</span><strong>'+defs.filter(x=>x.is_active).length+'</strong><small>Active badges</small></article>'+
@@ -964,8 +964,8 @@ async function admin(){
       '<article><span>Episode awards</span><strong>'+issued.filter(x=>x.target_type==="episode").length+'</strong><small>Individual episodes</small></article>'+
      '</div>'+
      '<section class="badge-console-panel badge-award-builder">'+
-      '<div class="badge-panel-heading"><div><span class="admin-kicker">STEP 1</span><h4>Choose a badge</h4><p>Select a badge from the collection below. Your selected artwork appears in the award preview.</p></div><span class="badge-step-number">01</span></div>'+
-      '<div class="badge-gallery-toolbar"><input id="badgeGallerySearch" type="search" placeholder="Search badges by name or category…"><select id="badgeGalleryCategory"><option value="all">All categories</option>'+[...new Set(defs.map(x=>x.category).filter(Boolean))].sort().map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><select id="badgeGalleryScope"><option value="all">All placements</option><option value="any">Any placement</option><option value="creator">Creator profiles</option><option value="podcast">Podcasts</option><option value="episode">Episodes</option></select></div>'+
+      '<div class="badge-panel-heading"><div><span class="admin-kicker">YOUR BADGE COLLECTION</span><h4>Choose one of your badges</h4><p>Select a badge from the collection below. Your selected artwork appears in the award preview.</p></div><span class="badge-step-number">01</span></div>'+
+      '<div class="badge-gallery-toolbar"><input id="badgeGallerySearch" type="search" placeholder="Search badges by name or category…"><select id="badgeGalleryCategory"><option value="all">All categories</option>'+[...new Set(defs.map(x=>x.category).filter(Boolean))].sort().map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><select id="badgeGalleryScope"><option value="all">All your badges</option></select></div>'+
       '<div class="badge-picker-grid" id="badgePickerGrid">'+(defs.length?defs.map(x=>'<button type="button" class="badge-picker-card '+(!x.is_active?"is-inactive":"")+'" data-badge-pick="'+esc(x.badge_key)+'" data-name="'+esc((x.name+" "+x.category+" "+x.description).toLowerCase())+'" data-category="'+esc(x.category||"")+'" data-scope="'+esc(x.scope||"any")+'" '+(!x.is_active?'disabled':'')+' aria-pressed="false"><span class="badge-picker-art">'+art(x)+'</span><span class="badge-picker-copy"><b>'+esc(x.name)+'</b><small>'+esc(x.category||"Recognition")+' · '+esc(x.scope||"any")+'</small><em>'+(x.is_active?"Select badge":"Inactive")+'</em></span></button>').join(""):'<div class="admin-empty">No badge definitions are in the catalog yet.</div>')+'</div>'+
       '<div class="badge-award-divider"></div>'+
       '<div class="badge-panel-heading"><div><span class="admin-kicker">STEP 2</span><h4>Choose where it goes</h4><p>Badges can be awarded to an individual member profile, an entire podcast, or one episode.</p></div><span class="badge-step-number">02</span></div>'+
@@ -996,10 +996,9 @@ async function admin(){
     $("#badgeAwardReviewDescription").textContent=def?(def.description||"Recognition badge"):"Choose a badge above to preview the recognition.";
     $("#badgeAwardReviewPlacement").textContent="Placement: "+(targetKind==="profile"?"Member profile":targetKind==="show"?"Podcast / show":"Episode");
     const target=targetKind==="profile"?$("#badgeMemberSelect").value:targetKind==="show"?$("#badgePodcastSelect").value:$("#badgeEpisodeSelect").value;
-    const scope=def?.scope||"any",scopeMatches=scope==="any"||scope===(targetKind==="profile"?"creator":targetKind==="show"?"podcast":"episode");
-    const valid=!!def&&scopeMatches&&!!target;
+    const valid=!!def&&!!target;
     $("#badgeAwardSubmit").disabled=!valid;
-    $("#badgeAwardStatus").textContent=!def?"Select a badge to continue.":!scopeMatches?"This badge is for "+scope+" placement. Choose a matching badge.":!target?"Choose a target to continue.":"Ready to award "+def.name+".";
+    $("#badgeAwardStatus").textContent=!def?"Select one of your badges to continue.":!target?"Choose where to designate this badge.":"Ready to designate "+def.name+".";
    };
    const setTargetKind=kind=>{
     targetKind=kind;
@@ -1014,8 +1013,8 @@ async function admin(){
     updateReview();
    }));
    const filterGallery=()=>{
-    const q=$("#badgeGallerySearch").value.trim().toLowerCase(),category=$("#badgeGalleryCategory").value,scope=$("#badgeGalleryScope").value;
-    picker.querySelectorAll("[data-badge-pick]").forEach(card=>{const visible=(!q||card.dataset.name.includes(q))&&(category==="all"||card.dataset.category===category)&&(scope==="all"||card.dataset.scope===scope);card.hidden=!visible});
+    const q=$("#badgeGallerySearch").value.trim().toLowerCase(),category=$("#badgeGalleryCategory").value;
+    picker.querySelectorAll("[data-badge-pick]").forEach(card=>{const visible=(!q||card.dataset.name.includes(q))&&(category==="all"||card.dataset.category===category);card.hidden=!visible});
    };
    $("#badgeGallerySearch").addEventListener("input",filterGallery);$("#badgeGalleryCategory").addEventListener("change",filterGallery);$("#badgeGalleryScope").addEventListener("change",filterGallery);
    const syncEpisodeOptions=()=>{
@@ -1033,8 +1032,6 @@ async function admin(){
     event.preventDefault();
     const def=selectedDef(),target=targetKind==="profile"?$("#badgeMemberSelect").value:targetKind==="show"?$("#badgePodcastSelect").value:$("#badgeEpisodeSelect").value;
     if(!def||!target)return;
-    const mapped=targetKind==="profile"?"creator":targetKind==="show"?"podcast":"episode";
-    if(def.scope&&def.scope!=="any"&&def.scope!==mapped){toast("This badge cannot be assigned to that placement.");return}
     if(targetKind==="episode"&&!eps.some(x=>x.id===target&&x.podcast_id===$("#badgeEpisodePodcastSelect").value)){toast("Choose an episode belonging to the selected podcast.");return}
     const submit=$("#badgeAwardSubmit");submit.disabled=true;submit.textContent="Awarding…";
     try{
