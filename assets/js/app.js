@@ -826,9 +826,32 @@ async function admin(){
   }
   if(tab==="shows"){
    const rows=await queryRows("podcasts","id,title,status,category,description,created_at,published_at",200);
-   work.innerHTML='<div class="admin-module"><div class="admin-module-head"><div><span class="admin-kicker">CATALOG MANAGEMENT</span><h3>Show review desk</h3><p>Review submitted shows and update publication status. Database policies decide which changes are permitted.</p></div><input class="admin-search" id="adminSearch" placeholder="Search shows…" aria-label="Search shows"></div>'+ (rows.length?table(["Show","Category","Status","Submitted","Action"],rows.map(x=>'<tr data-search-row="'+esc([x.title,x.category,x.status].join(" "))+'"><td><b>'+esc(x.title)+'</b><small>'+esc((x.description||"").slice(0,95))+'</small></td><td>'+esc(x.category||"—")+'</td><td>'+badge(x.status)+'</td><td>'+ (x.created_at?new Date(x.created_at).toLocaleDateString():"—")+'</td><td><select class="admin-action-select" data-show-status="'+x.id+'"><option value="">Change status…</option><option value="published">Publish</option><option value="draft">Move to draft</option></select></td></tr>').join("")):empty)+'</div>';
+   work.innerHTML='<div class="admin-module"><div class="admin-module-head"><div><span class="admin-kicker">CATALOG MANAGEMENT</span><h3>Show review desk</h3><p>Review submitted shows, update publication status, or permanently delete a show and its dependent content.</p></div><input class="admin-search" id="adminSearch" placeholder="Search shows…" aria-label="Search shows"></div><div class="notice admin-show-delete-notice"><b>Permanent deletion:</b> deleting a show also removes its episodes and related show data. Shows with creator subscription plans are protected until those plans are removed; billing records are never deleted automatically.</div>'+ (rows.length?table(["Show","Category","Status","Submitted","Actions"],rows.map(x=>'<tr data-search-row="'+esc([x.title,x.category,x.status].join(" "))+'"><td><b>'+esc(x.title)+'</b><small>'+esc((x.description||"").slice(0,95))+'</small></td><td>'+esc(x.category||"—")+'</td><td>'+badge(x.status)+'</td><td>'+ (x.created_at?new Date(x.created_at).toLocaleDateString():"—")+'</td><td><div class="actions compact-actions"><select class="admin-action-select" data-show-status="'+x.id+'"><option value="">Change status…</option><option value="published">Publish</option><option value="draft">Move to draft</option></select><button type="button" class="danger-btn" data-delete-show="'+x.id+'">Delete show</button></div></td></tr>').join("")):empty)+'</div>';
    $("#adminSearch")?.addEventListener("input",e=>all("[data-search-row]").forEach(row=>row.hidden=!row.dataset.searchRow.toLowerCase().includes(e.target.value.toLowerCase())));
    all("[data-show-status]").forEach(el=>el.addEventListener("change",async()=>{if(!el.value)return;const status=el.value;if(!confirm("Change this show's status to "+status+"?")){el.value="";return}el.disabled=true;const patch={status};if(status==="published")patch.published_at=new Date().toISOString();const{error}=await sb.from("podcasts").update(patch).eq("id",el.dataset.showStatus);if(error){toast("Update blocked: "+error.message);el.disabled=false;el.value="";return}toast("Show status updated.");admin()}));
+   all("[data-delete-show]").forEach(button=>button.addEventListener("click",async()=>{
+    const show=rows.find(x=>x.id===button.dataset.deleteShow);if(!show)return;
+    const confirmed=confirm('PERMANENTLY DELETE "'+show.title+'"? This also deletes its episodes and related show records. This cannot be undone.');
+    if(!confirmed)return;
+    button.disabled=true;button.textContent="Checking…";
+    try{
+     const{data:plans,error:planError}=await sb.from("creator_subscription_plans").select("id,name").eq("podcast_id",show.id).limit(10);
+     if(planError)throw planError;
+     if(plans?.length){
+      const names=plans.map(p=>p.name||"Unnamed plan").join(", ");
+      toast('Cannot delete "'+show.title+'": subscription plan(s) still reference this show ('+names+'). Remove the plans through the billing controls first. No show data was changed.');
+      button.disabled=false;button.textContent="Delete show";return;
+     }
+     const{data,error}=await sb.from("podcasts").delete().eq("id",show.id).select("id").maybeSingle();
+     if(error)throw error;
+     if(!data)throw Error("No show was deleted. Confirm your administrator permissions and try again.");
+     toast('"'+show.title+'" and its dependent show content were deleted.');
+     await admin();
+    }catch(error){
+     toast("Show deletion blocked: "+(error.message||error));
+     button.disabled=false;button.textContent="Delete show";
+    }
+   }));
    return;
   }
   if(tab==="episodes"){
