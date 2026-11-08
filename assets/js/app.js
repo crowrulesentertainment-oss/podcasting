@@ -99,7 +99,7 @@ function renderLiveCounts(){
  for(const[key,sessions]of Object.entries(state))for(const session of sessions||[]){
   const role=String(session?.role||"").trim().toLowerCase();if(!Object.prototype.hasOwnProperty.call(counts,role)||session?.active===false)continue;
   const identity=session?.user_id?"user:"+session.user_id:session?.visitor_id?"visitor:"+session.visitor_id:"session:"+key,seen=Date.parse(session?.seen_at||"")||0;
-  if(!seen||Date.now()-seen>75000)continue;
+  if(!seen||Date.now()-seen>150000)continue;
   const previous=latest.get(identity);
   if(!previous||seen>=previous.seen)latest.set(identity,{role,seen});
  }
@@ -145,7 +145,7 @@ function startLivePresence(){
   if(status==="SUBSCRIBED"){
    if(label)label.textContent="LIVE";if(adminLabel)adminLabel.textContent="LIVE";
    syncLivePresence();
-   if(!livePresenceHeartbeat)livePresenceHeartbeat=setInterval(()=>syncLivePresence(),30000);
+   if(!livePresenceHeartbeat)livePresenceHeartbeat=setInterval(()=>{syncLivePresence();renderLiveCounts()},30000);
    renderLiveCounts();
   }else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){
    if(label)label.textContent="RECONNECTING";if(adminLabel)adminLabel.textContent="RECONNECTING";
