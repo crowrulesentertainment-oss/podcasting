@@ -841,9 +841,10 @@ async function awards(){
    renderCatalog();
    if(s.results_public){
     const{data:ranked,error:re}=await sb.rpc("crowrules_get_award_results",{p_season_id:s.id});if(re)throw re;
-    const list=(ranked||[]).slice().sort((a,b)=>Number(b.votes||0)-Number(a.votes||0));
+    const byCategory=new Map();(ranked||[]).forEach(r=>{const key=String(r.category||"");const previous=byCategory.get(key);if(!previous||Number(r.votes||0)>Number(previous[0].votes||0))byCategory.set(key,[r]);else if(Number(r.votes||0)===Number(previous[0].votes||0))previous.push(r)});
+    const winners=[...byCategory.values()].flat().sort((a,b)=>String(a.category).localeCompare(String(b.category)));
     results.classList.remove("hidden");
-    results.innerHTML='<div class="awards-results-head"><span class="eyebrow">THE OFFICIAL RESULTS</span><h2>The voices have been heard.</h2><p class="muted">Celebrating this season’s recognized creators, shows and community voices.</p></div>'+(list.length?'<div class="awards-winner-grid">'+list.map((r,i)=>'<article class="awards-winner-card '+(i===0?"first":"")+'"><span class="awards-winner-rank">'+(i===0?"★ GRAND HONOREE":"#"+(i+1))+'</span><div class="awards-winner-medal">'+(i===0?"✦":"✧")+'</div><span class="eyebrow">'+esc(r.category)+'</span><h3>'+esc(r.nominee)+'</h3><span class="awards-winner-votes">'+Number(r.votes||0).toLocaleString()+' votes</span></article>').join("")+'</div>':'<p class="muted">Results have not been published yet.</p>');
+    results.innerHTML='<div class="awards-results-head"><span class="eyebrow">THE OFFICIAL RESULTS</span><h2>The voices have been heard.</h2><p class="muted">Celebrating the top-voted nominee in each category. Tied nominees share the category recognition.</p></div>'+(winners.length?'<div class="awards-winner-grid">'+winners.map(r=>'<article class="awards-winner-card"><span class="awards-winner-rank">✦ CATEGORY WINNER</span><div class="awards-winner-medal">✦</div><span class="eyebrow">'+esc(r.category)+'</span><h3>'+esc(r.nominee)+'</h3><span class="awards-winner-votes">'+Number(r.votes||0).toLocaleString()+' votes</span></article>').join("")+'</div>':'<p class="muted">Results have not been published yet.</p>');
    }
    if(!votingAvailable)say(s.announcement_voting||(!s.voting_open?"Voting is currently closed. Check back when the official voting window opens.":starts!==null&&now<starts?"Voting is scheduled to open "+new Date(starts).toLocaleString()+".":"Voting has closed for this season."));
    else say("Voting is open. Sign in to cast your vote for this season’s nominees.");
