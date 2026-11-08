@@ -312,8 +312,8 @@ async function episode(){
        const blob=await response.blob();
        if(!blob.size)throw Error("The audio file is empty or unavailable.");
        const objectUrl=URL.createObjectURL(blob),link=document.createElement("a");
-       const safeTitle=String(e.title||"crowrules-episode").normalize("NFKD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-zA-Z0-9_-]+/g,"-").replace(/^-|-$/g,"").slice(0,100)||"crowrules-episode";
-       const extension=(blob.type.match(/audio\\/(?:mpeg|mp3)/i)?"mp3":blob.type.match(/audio\\/(?:mp4|x-m4a)/i)?"m4a":blob.type.match(/audio\\/wav/i)?"wav":blob.type.match(/audio\\/ogg/i)?"ogg":blob.type.match(/audio\\/flac/i)?"flac":"audio");
+       const safeTitle=String(e.title||"crowrules-episode").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9_-]+/g,"-").replace(/^-|-$/g,"").slice(0,100)||"crowrules-episode";
+       const extension=(blob.type.match(/audio\/(?:mpeg|mp3)/i)?"mp3":blob.type.match(/audio\/(?:mp4|x-m4a)/i)?"m4a":blob.type.match(/audio\/wav/i)?"wav":blob.type.match(/audio\/ogg/i)?"ogg":blob.type.match(/audio\/flac/i)?"flac":"audio");
        link.href=objectUrl;link.download=safeTitle+"."+extension;document.body.appendChild(link);link.click();link.remove();
        setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
        toast("Your episode download is ready.");
