@@ -923,3 +923,24 @@ body[data-page="awards"] footer a[href*="creator.html"]{display:none!important}
 .home-category-card{min-height:165px}
 @media(max-width:900px){.home-category-grid{grid-auto-columns:clamp(195px,34vw,235px)}}
 @media(max-width:620px){.shelf-arrow{width:34px;height:44px;font-size:29px}.shelf-arrow-prev{left:3px}.shelf-arrow-next{right:3px}.home-category-grid{grid-auto-columns:78vw}.stream-rail{grid-auto-columns:78vw;gap:11px}}
+
+/* Centralized CrowRules badge and achievement center */
+.badge-admin-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0 24px}
+.badge-admin-stats>div{background:var(--panel,#14161d);border:1px solid var(--line,#292d38);border-radius:14px;padding:16px}
+.badge-admin-stats strong{display:block;font-size:28px;color:var(--accent,#e5b64b)}
+.badge-admin-stats span,.badge-library-card small,.badge-library-card p,.show-badge-card small{display:block;color:var(--muted,#a7aab4);font-size:12px;margin-top:5px}
+.badge-award-form{padding:20px;border:1px solid var(--line,#292d38);border-radius:16px;background:var(--panel,#14161d);margin:20px 0}
+.badge-award-form h4,.badge-library-admin h4,.badge-issued-admin h4{margin:0 0 16px}
+.badge-award-form label{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+.badge-award-form input:not([type=checkbox]),.badge-award-form select,.badge-award-form textarea{width:100%;padding:11px 12px;border:1px solid var(--line,#343844);border-radius:9px;background:#0d0f14;color:inherit}
+.badge-award-form .badge-public-check{display:flex;flex-direction:row;align-items:center;gap:9px}
+.badge-library-grid,.badge-directory-grid,.show-badge-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.badge-library-card,.badge-directory-card,.show-badge-card{display:flex;align-items:flex-start;gap:14px;padding:16px;border:1px solid var(--line,#292d38);border-radius:14px;background:var(--panel,#14161d)}
+.badge-emblem,.badge-directory-emblem,.show-badge-icon{display:grid;place-items:center;flex:0 0 54px;width:54px;height:54px;border-radius:50%;background:radial-gradient(circle at 35% 25%,#3a3030,#111318 70%);border:1px solid #b88b3b;color:#f1c96c;font-size:25px;box-shadow:inset 0 0 0 3px #b88b3b22}
+.badge-library-card b,.badge-directory-card h3,.show-badge-card b{font-size:15px}
+.badge-library-card p,.badge-directory-card p,.show-badge-card p{margin:7px 0 0;line-height:1.5}
+.badge-directory-group{margin-bottom:34px}
+.badge-directory-card small{display:block;margin-top:9px;color:var(--muted,#a7aab4);font-size:12px}
+.badge-directory-card h3{margin:0}
+.show-badges-section{padding-top:8px}
+@media(max-width:680px){.badge-admin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.badge-library-grid,.badge-directory-grid,.show-badge-grid{grid-template-columns:1fr}.badge-award-form{padding:14px}}
