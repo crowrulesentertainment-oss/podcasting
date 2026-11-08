@@ -126,12 +126,40 @@ The 50 GiB value above is the maximum size of one object in the published-media 
 | Publishing controls | CODE UPDATED | Creator can explicitly publish show/episode records; episode drafts can be deleted under existing creator delete policy. |
 | Creator dashboard | CODE UPDATED | Adds catalog overview, episode status/media counts, recent episodes, production checklist and Creator Toolkit ideas. |
 | Styling / responsive layout | CODE UPDATED | Added responsive Creator Studio list, editor header, media/action controls and toolkit cards. |
-| Database schema / RLS | UNCHANGED | Existing `podcasts` and `podcast_episodes` columns and owner-scoped policies were inspected and reused; no DDL or policy modifications were made. |
+| Database schema / RLS | UPDATED / PRESERVED | Added constrained podcast_episodes.production_stage; existing owner-scoped RLS policies remain unchanged. |
 | JavaScript syntax | PASS | Full browser-module source parsed successfully after removing its top-level import declarations for syntax validation. |
 | Authenticated browser regression | NOT RUN | Requires signed-in creator account. Verify show edit, episode edit, upload small and >6 MB audio/video, premium upload, publish, delete, and ownership denial using separate test accounts. |
 
 ### Creator Studio release notes
 - Editing an episode to another show is intentionally blocked in the UI to avoid accidental ownership/subscription reassignment; create a new episode under the destination show instead.
 - Replacing a media file updates the episode's media URL. The previous Storage object is not automatically deleted; storage cleanup should be a separate reviewed workflow to avoid deleting shared or still-referenced media.
-- Scheduled publication metadata can be saved, but automated publishing requires a trusted scheduled backend/cron worker and is not claimed as active here.
+- Scheduled publication metadata is saved in scheduled_at; the dedicated private Cron worker is now active and processes due episodes once per minute, subject to published-show, active-episode and media-present checks. End-to-end publication still needs a real future-time browser test.
 - Creator Toolkit analytics, team roles, promotion assets and versioned backups are recommendations for future development, not implemented services.
+
+
+## November 8, 2026 — Production Pipeline, Release Calendar and automatic publishing
+
+| Check | Result | Evidence / boundary |
+|---|---|---|
+| Episode production stage | PASS — DATABASE | Added production_stage with allowed values idea, planning, recording, editing, review, scheduled, published; existing records backfilled from current status. |
+| Pipeline board | CODE UPDATED | Seven columns, creator-controlled stage changes, scheduled-stage validation, and recent activity history. |
+| Pipeline event history | CODE UPDATED | Creator stage changes insert into the existing podcast_episode_pipeline_events table using the signed-in creator as actor; existing owner policy applies. |
+| Release calendar | CODE UPDATED | Month grid with previous/next navigation, scheduled releases, release dates, published dates, and episode edit links. |
+| Timezone handling | CODE UPDATED | datetime-local values are converted to ISO UTC before saving; calendar and edit form render in the browser's local timezone. |
+| Dedicated auto-publish worker | PASS — DATABASE | private.publish_due_podcast_episodes() installed; Cron job crowrules-podcasting-publish-due-v14 active every minute. |
+| Publishing safety checks | PASS — CODE / DATABASE | Worker requires due scheduled status, active episode, published parent show and non-empty audio or video URL. It sets status, is_published, production stage and published_at, then writes a pipeline event. |
+| Duplicate publisher control | PASS — DATABASE | v13 cron job unscheduled; publishing block removed from the separate creator workflow tick to keep a single authoritative publisher for podcast_episodes. Other workflow tick work remains scheduled. |
+| Private function access | PASS — DATABASE | Private scheduler has SECURITY DEFINER in non-exposed private schema; execute privilege denied to anon and authenticated, granted to postgres. No public wrapper added. |
+| Cron execution | PASS — DATABASE | Job is active; latest run-history entries returned succeeded. |
+| Scheduler dry invocation | PASS — DATABASE | Direct invocation returned published_count=0; no episodes were due at test time, so no live episode was changed. |
+| Security Advisor | PASS | No lints returned. |
+| Health Advisor | PASS | No lints returned. |
+| Browser workflow | NOT RUN | Requires a signed-in creator browser session to move an episode through stages, schedule it, and verify the public release after its time. |
+| End-to-end scheduled release | NOT YET VERIFIED | No due scheduled episodes existed during this check. A future-time test episode with media is required to prove the full browser-to-Cron-to-public-page path. |
+
+### Scheduling behavior and guardrails
+- Scheduling sets status='scheduled' and production_stage='scheduled'; the scheduler checks once per minute.
+- The worker will not publish an episode with missing audio/video media, an inactive episode, or a parent show that is not published. Such an episode remains scheduled until the creator corrects the prerequisites.
+- The scheduled time is retained as release metadata after publication; published_at records the actual publication timestamp.
+- The worker is idempotent: it selects only rows still in scheduled state and uses FOR UPDATE SKIP LOCKED.
+- This scheduler publishes the episode on CrowRules Podcasting. It does not automatically upload or publish to YouTube, Spotify, Apple Podcasts or other external destinations.
