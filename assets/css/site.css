@@ -1156,3 +1156,22 @@ body[data-page="admin"] .admin-search{max-width:300px}
 @media(max-width:1000px){.cc-workspace{grid-template-columns:205px minmax(0,1fr);gap:16px}.cc-commandbar{align-items:flex-start;flex-direction:column}.cc-banner-content{width:calc(100% - 44px)}}
 @media(max-width:760px){body[data-page="admin"] .cc-command-banner{min-height:330px}.cc-workspace{width:calc(100% - 24px);grid-template-columns:1fr;padding-top:15px}.cc-sidebar{position:relative;top:auto}.cc-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.cc-nav a{padding:9px 8px!important}.cc-sidebar-security{margin:12px 0}.cc-sidebar-foot{display:none}.cc-banner-content{width:calc(100% - 30px);padding:48px 0}.cc-banner-footer{gap:18px;flex-wrap:wrap}.cc-banner-footer span{min-width:110px}.cc-banner-coordinates{display:none}.cc-commandbar-actions{width:100%}.cc-commandbar-actions .btn{flex:1;justify-content:center}}
 @media(max-width:430px){.cc-nav{grid-template-columns:1fr 1fr}.cc-nav a{font-size:11px!important;gap:7px}.cc-overline{font-size:8px}.cc-commandbar h2{font-size:25px}.cc-session-chip{display:none}}
+
+
+/* Badge distribution is a Command Center workspace, not a standalone full-screen app */
+body[data-page="admin"] .badge-console{width:100%;max-width:100%;min-width:0;gap:16px}
+body[data-page="admin"] .badge-console-hero{padding:22px 24px;align-items:center}
+body[data-page="admin"] .badge-console-hero h3{font-size:clamp(24px,3vw,32px)}
+body[data-page="admin"] .badge-console-stats{grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:9px}
+body[data-page="admin"] .badge-console-stats article{padding:13px;min-width:0}
+body[data-page="admin"] .badge-console-stats article strong{font-size:25px}
+body[data-page="admin"] .badge-console-panel{padding:19px}
+body[data-page="admin"] .badge-picker-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+body[data-page="admin"] .badge-picker-card{min-height:92px;padding:10px;gap:9px}
+body[data-page="admin"] .badge-picker-art{width:54px;height:54px;flex-basis:54px}
+body[data-page="admin"] .badge-assignment-row{gap:10px}
+body[data-page="admin"] .badge-assignment-actions{max-width:190px}
+body[data-page="admin"] .badge-console .table-wrap{max-width:100%;overflow-x:auto}
+@media(max-width:1200px){body[data-page="admin"] .badge-picker-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){body[data-page="admin"] .badge-console-hero{padding:17px;align-items:flex-start}body[data-page="admin"] .badge-console-panel{padding:14px}body[data-page="admin"] .badge-picker-grid{grid-template-columns:repeat(2,minmax(0,1fr))}body[data-page="admin"] .badge-assignment-actions{max-width:none}}
+@media(max-width:480px){body[data-page="admin"] .badge-picker-grid{grid-template-columns:1fr}}
