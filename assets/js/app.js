@@ -255,7 +255,7 @@ document.addEventListener("error",event=>{const img=event.target;if(img instance
  };
 }async function creatorId(u){let{data:m,error}=await sb.from("members").select("id").eq("user_id",u.id).maybeSingle();if(error)throw error;if(!m)throw Error("CrowRules member profile not found. Complete account onboarding.");let{data:c,error:ce}=await sb.from("creators").select("id").eq("member_id",m.id).maybeSingle();if(ce)throw ce;if(!c)throw Error("Creator profile not found. Request creator access first.");return c.id}async function creator(){
  let u=await me();if(!u)return go("login.html");
- let tab=new URLSearchParams(location.search).get("tab")||"overview";
+ let tab=new URLSearchParams(location.search).get("tab")||"overview",roomInvite=new URLSearchParams(location.search).get("room"),guestJoin=false;
  const slugify=value=>String(value||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"")||"untitled";
  const stamp=value=>{if(!value)return"";const d=new Date(value);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
  const bytes=value=>{let n=Number(value)||0;if(n<1024)return n+" B";if(n<1048576)return(n/1024).toFixed(1)+" KB";if(n<1073741824)return(n/1048576).toFixed(1)+" MB";return(n/1073741824).toFixed(2)+" GB"};
@@ -263,8 +263,8 @@ document.addEventListener("error",event=>{const img=event.target;if(img instance
  $("#out").onclick=async e=>{e.preventDefault();await sb.auth.signOut();go("index.html")};
  const w=$("#work");
  try{
-  const cid=await creatorId(u);
-  const{data:ps,error:showError}=await sb.from("podcasts").select("*").eq("creator_id",cid).order("created_at",{ascending:false});
+  let cid=null;try{cid=await creatorId(u)}catch(creatorError){if(!roomInvite)throw creatorError;const{data:guestProfile,error:guestError}=await sb.from("podcast_guest_profiles").select("id").eq("user_id",u.id).eq("status","approved").maybeSingle();if(guestError)throw guestError;if(!guestProfile)throw creatorError;guestJoin=true;tab="studio"}
+  const{data:ps,error:showError}=cid?await sb.from("podcasts").select("*").eq("creator_id",cid).order("created_at",{ascending:false}):{data:[],error:null};
   if(showError)throw showError;
   const showsList=ps||[],ids=showsList.map(x=>x.id);
   const episodeResult=ids.length?await sb.from("podcast_episodes").select("*").in("podcast_id",ids).order("season_number",{ascending:false}).order("episode_number",{ascending:false}):{data:[],error:null};
@@ -339,7 +339,7 @@ document.addEventListener("error",event=>{const img=event.target;if(img instance
    $("#stop").onclick=()=>{if(localRecorder?.state==="recording")localRecorder.stop();$("#rec").disabled=false;$("#stop").disabled=true};
    $("#saveRecording").onclick=async()=>{try{await saveBlobToShow(localBlob,$("#recordMode").value,$("#recordTitle").value,$("#recordShow").value,$("#saveRecording"))}catch(error){toast(error.message)}};
    const tokenEndpoint="https://crowrules-livekit-token-service.onrender.com/api/token";
-   const getLiveToken=async roomName=>{const{data:{session}}=await sb.auth.getSession();if(!session)throw Error("Sign in again before joining a live room.");const response=await fetch(tokenEndpoint,{method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+session.access_token},body:JSON.stringify({roomName,participantName:u.user_metadata?.full_name||u.email||"CrowRules Creator",role:"creator"})});const data=await response.json().catch(()=>({}));if(!response.ok)throw Error(data.error||"Live room authorization failed.");return data};
+   const getLiveToken=async roomName=>{const{data:{session}}=await sb.auth.getSession();if(!session)throw Error("Sign in again before joining a live room.");const response=await fetch(tokenEndpoint,{method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+session.access_token},body:JSON.stringify({roomName,participantName:u.user_metadata?.full_name||u.email||"CrowRules Creator",role:guestJoin?"guest":"creator"})});const data=await response.json().catch(()=>({}));if(!response.ok)throw Error(data.error||"Live room authorization failed.");return data};
    const loadLiveKit=()=>new Promise((resolve,reject)=>{if(window.LivekitClient?.Room)return resolve(window.LivekitClient);let script=document.querySelector('script[data-livekit-client]');if(!script){script=document.createElement("script");script.src="https://cdn.jsdelivr.net/npm/livekit-client@2.23.0/dist/livekit-client.umd.min.js";script.dataset.livekitClient="true";script.onload=()=>window.LivekitClient?.Room?resolve(window.LivekitClient):reject(Error("LiveKit client did not initialize."));script.onerror=()=>reject(Error("Could not load the LiveKit browser client."));document.head.appendChild(script)}else{script.addEventListener("load",()=>resolve(window.LivekitClient),{once:true});script.addEventListener("error",()=>reject(Error("Could not load LiveKit.")),{once:true})}});
    const updateLiveCount=()=>$("#liveParticipantCount").textContent=liveRoom?1+liveRoom.remoteParticipants.size:0;
    const participantTile=(participant,isLocal=false)=>{const tile=document.createElement("div");tile.className="studio-participant-tile";tile.dataset.participant=participant.sid||participant.identity;const video=document.createElement("div");video.className="studio-participant-video";const name=document.createElement("b");name.className="studio-participant-name";name.textContent=(isLocal?"You":participant.name||participant.identity)+(isLocal?" · HOST":"");tile.append(video,name);$("#liveParticipants").append(tile);return tile};
