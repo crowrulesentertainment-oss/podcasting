@@ -984,3 +984,18 @@ body[data-page="awards"] footer a[href*="creator.html"]{display:none!important}
 .badge-admin-module [hidden]{display:none!important}
 @media(max-width:900px){.badge-toolbar{grid-template-columns:1fr 1fr}.badge-toolbar input{grid-column:1/-1}.badge-admin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:580px){.badge-award-form .form-grid,.badge-toolbar{grid-template-columns:1fr}.badge-toolbar input{grid-column:auto}.badge-library-admin,.badge-issued-admin{padding:14px}.badge-definition-actions button,.badge-row-actions button{flex:1}.badge-row-actions{min-width:200px}}
+
+/* Platform Operations live health checks */
+.platform-ops>.section-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:4px 0 18px}
+.platform-ops>.section-head h3{margin:0}
+.platform-ops>.section-head p{margin:6px 0 0;color:#999;font-size:12px;line-height:1.55}
+.platform-health-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}
+.platform-health-card{min-width:0;padding:14px;background:#0d0e10;border:1px solid #ffffff18;border-radius:6px}
+.platform-health-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.platform-health-top>b{font-size:12px;color:#eee}
+.platform-health-card>p{margin:10px 0 0;color:#999;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+.platform-health-card.is-healthy{border-color:#276447}
+.platform-health-card.has-warning{border-color:#765321}
+.admin-status.status-warning{background:#382c13;color:#f2d18a}
+.platform-ops>h4{margin:24px 0 6px;font-size:14px}
+@media(max-width:600px){.platform-health-grid{grid-template-columns:1fr}.platform-ops>.section-head{align-items:flex-start;flex-direction:column}}
