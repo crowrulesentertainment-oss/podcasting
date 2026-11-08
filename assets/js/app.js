@@ -79,9 +79,9 @@ function startLivePresence(){
  .on("presence",{event:"join"},renderLiveCounts)
  .on("presence",{event:"leave"},renderLiveCounts)
  .subscribe(status=>{
-  const label=$("#liveNetworkStatus");
-  if(status==="SUBSCRIBED"){if(label)label.textContent="LIVE";syncLivePresence();renderLiveCounts()}
-  else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){if(label)label.textContent="RECONNECTING"}
+  const label=$("#liveNetworkStatus"),adminLabel=$("#adminLiveStatus");
+  if(status==="SUBSCRIBED"){if(label)label.textContent="LIVE";if(adminLabel)adminLabel.textContent="LIVE";syncLivePresence();renderLiveCounts()}
+  else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){if(label)label.textContent="RECONNECTING";if(adminLabel)adminLabel.textContent="RECONNECTING"}
  });
 }
 function updateLivePresenceRole(){const next=liveRole();if(next===livePresenceRole)return;livePresenceRole=next;syncLivePresence()}
