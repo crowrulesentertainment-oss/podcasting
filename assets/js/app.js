@@ -181,15 +181,14 @@ document.addEventListener("error",event=>{const img=event.target;if(img instance
  const id=new URLSearchParams(location.search).get("id");
  const{data:e,error}=await sb.from("podcast_episodes").select("id,podcast_id,title,slug,description,episode_number,season_number,published_at,duration_seconds,audio_url,video_url,thumbnail_url,status,is_explicit,access_level,monetization_enabled,transcript,show_notes").eq("id",id||"").maybeSingle();
  if(error||!e){$("#app").innerHTML='<div class="container section"><div class="empty">Episode not found.</div></div>';return}
- const choices=[...(e.audio_url?[{type:"audio",label:"Listen to audio",short:"Audio"}]:[]),...(e.video_url?[{type:"video",label:"Watch video",short:"Video"}]:[])];
- let activeType=choices.some(x=>x.type==="audio")?"audio":"video",resolved={};
- $("#app").innerHTML='<section class="page-hero"><div class="container split"><div><div class="eyebrow">Season '+(e.season_number||1)+' · Episode '+(e.episode_number||"")+'</div><h1 class="page-title">'+esc(e.title)+'</h1><p>'+esc(e.description||"")+'</p><div class="actions"><button id="play" type="button">▶ Play</button><button id="save" class="secondary" type="button">＋ Save</button></div></div><div class="feature-image"><img class="feature-image-img" loading="lazy" decoding="async" src="'+esc(e.thumbnail_url||art)+'" data-fallback="'+logoURL+'" alt="'+esc(e.title)+' thumbnail"></div></div></section><section class="section container panel episode-media-panel" id="media"><div class="episode-media-heading"><div><div class="eyebrow">Choose your experience</div><h2>Listen or watch</h2><p class="muted">Select how you want to enjoy this episode.</p></div></div><div class="episode-media-choices" id="episodeMediaChoices" role="group" aria-label="Choose audio or video"></div><div id="episodeMediaPlayer" class="episode-media-player" aria-live="polite"></div></section>';
+ const choices=[...(e.audio_url?[{type:"audio",label:"Listen to audio"}]:[]),...(e.video_url?[{type:"video",label:"Watch video"}]:[])];
+ let activeType=choices[0]?.type||"audio",resolved={},renderSequence=0;
+ $("#app").innerHTML='<section class="page-hero"><div class="container split"><div><div class="eyebrow">Season '+(e.season_number||1)+' · Episode '+(e.episode_number||"")+'</div><h1 class="page-title">'+esc(e.title)+'</h1><p>'+esc(e.description||"")+'</p><div class="actions"><button id="play" type="button">▶ Play '+(activeType==="video"?"video":"audio")+'</button><button id="save" class="secondary" type="button">＋ Save</button></div></div><div class="feature-image"><img class="feature-image-img" loading="lazy" decoding="async" src="'+esc(e.thumbnail_url||art)+'" data-fallback="'+logoURL+'" alt="'+esc(e.title)+' thumbnail"></div></div></section><section class="section container panel episode-media-panel" id="media"><div class="episode-media-heading"><div><div class="eyebrow">Episode player</div><h2>Listen or watch</h2><p class="muted">Choose an available format. Your selection loads below.</p></div></div><div class="episode-media-choices" id="episodeMediaChoices" role="group" aria-label="Choose audio or video"></div><div id="episodeMediaPlayer" class="episode-media-player" aria-live="polite"></div></section>';
  const mediaPanel=$("#media"),choiceBox=$("#episodeMediaChoices"),player=$("#episodeMediaPlayer");
  if(!choices.length){
   mediaPanel.innerHTML='<div class="empty">Media is not attached to this episode yet.</div>';
  }else{
-  if(choices.length===1)choiceBox.innerHTML='<span class="episode-media-single">'+choices[0].label+'</span>';
-  else choiceBox.innerHTML=choices.map(c=>'<button type="button" class="btn secondary episode-media-choice '+(c.type===activeType?'is-active':'')+'" data-media-type="'+c.type+'" aria-pressed="'+(c.type===activeType?'true':'false')+'">'+(c.type==="audio"?"♫ ":"▶ ")+c.label+'</button>').join("");
+  choiceBox.innerHTML=choices.map(ch=>'<button type="button" class="btn secondary episode-media-choice '+(ch.type===activeType?'is-active':'')+'" data-media-type="'+ch.type+'" aria-pressed="'+(ch.type===activeType?'true':'false')+'">'+(ch.type==="audio"?"♫ ":"▶ ")+ch.label+'</button>').join("");
   async function getMediaUrl(type){
    if(resolved[type])return resolved[type];
    const source=type==="audio"?e.audio_url:e.video_url;
@@ -205,19 +204,40 @@ document.addEventListener("error",event=>{const img=event.target;if(img instance
    resolved[type]=url;return url;
   }
   async function selectMedia(type){
+   if(!choices.some(ch=>ch.type===type))return;
    activeType=type;
+   const sequence=++renderSequence;
+   $("#play").textContent="▶ Play "+(type==="video"?"video":"audio");
    all(".episode-media-choice").forEach(button=>{const active=button.dataset.mediaType===type;button.classList.toggle("is-active",active);button.setAttribute("aria-pressed",String(active))});
-   player.innerHTML='<div class="loading">Preparing '+(type==="audio"?"audio":"video")+'…</div>';
+   player.innerHTML='<div class="loading">Loading '+(type==="audio"?"audio player":"video player")+'…</div>';
    try{
     const url=await getMediaUrl(type);
+    if(sequence!==renderSequence)return;
     if(!url){player.innerHTML='<div class="empty">This media is not available.</div>';return}
     if(type==="video"){
      const youtubeId=youtubeVideoId(url);
-     player.innerHTML=youtubeId?'<div class="youtube-embed-wrap"><iframe id="episodeYoutubePlayer" src="https://www.youtube-nocookie.com/embed/'+youtubeId+'?enablejsapi=1&origin='+encodeURIComponent(location.origin)+'" title="'+esc(e.title)+' — YouTube video" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>':'<video controls playsinline preload="metadata" class="episode-video-player" src="'+esc(url)+'"></video>';const tracker=createQualifiedPlayTracker(e,url);if(youtubeId)tracker.addYouTube($("#episodeYoutubePlayer"));else tracker.addNative(player.querySelector("video"))
+     if(youtubeId){
+      player.innerHTML='<div class="youtube-embed-wrap"><iframe id="episodeYoutubePlayer" src="https://www.youtube-nocookie.com/embed/'+youtubeId+'?enablejsapi=1&origin='+encodeURIComponent(location.origin)+'" title="'+esc(e.title)+' — YouTube video" loading="eager" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>';
+      const iframe=$("#episodeYoutubePlayer");
+      createQualifiedPlayTracker(e,url).addYouTube(iframe);
+     }else{
+      player.innerHTML='<video controls playsinline preload="metadata" class="episode-video-player"></video><p class="muted media-load-status" role="status">Video player ready.</p>';
+      const video=player.querySelector("video");
+      video.src=url;
+      video.addEventListener("error",()=>{const status=player.querySelector(".media-load-status");if(status)status.textContent="This video could not be loaded. Check that the video URL is publicly accessible and uses a browser-supported format."},{once:true});
+      createQualifiedPlayTracker(e,url).addNative(video);
+      video.load();
+     }
     }else{
-     player.innerHTML='<div class="episode-audio-player"><div class="episode-audio-art"><img src="'+esc(e.thumbnail_url||art)+'" data-fallback="'+logoURL+'" alt=""></div><div class="episode-audio-controls"><strong>Audio edition</strong><audio controls preload="metadata" src="'+esc(url)+'"></audio></div></div>';const tracker=createQualifiedPlayTracker(e,url);tracker.addNative(player.querySelector("audio"))
+     player.innerHTML='<div class="episode-audio-player"><div class="episode-audio-art"><img src="'+esc(e.thumbnail_url||art)+'" data-fallback="'+logoURL+'" alt="'+esc(e.title)+' artwork"></div><div class="episode-audio-controls"><strong>Audio edition</strong><audio controls preload="metadata"></audio><p class="muted media-load-status" role="status">Audio player ready.</p></div></div>';
+     const audio=player.querySelector("audio");
+     audio.src=url;
+     audio.addEventListener("error",()=>{const status=player.querySelector(".media-load-status");if(status)status.textContent="This audio file could not be loaded. Check the file URL, storage access and audio format."},{once:true});
+     createQualifiedPlayTracker(e,url).addNative(audio);
+     audio.load();
     }
    }catch(playbackError){
+    if(sequence!==renderSequence)return;
     player.innerHTML='<div class="notice">'+(e.access_level&&e.access_level!=="free"?'Premium playback could not be authorized. ':'Playback could not be loaded. ')+esc(playbackError.message)+'</div>';
    }
   }
@@ -226,10 +246,22 @@ document.addEventListener("error",event=>{const img=event.target;if(img instance
  }
  $("#play").onclick=async()=>{
   if(!choices.length)return toast("Playback is not available for this episode.");
-  try{const url=await getCurrentMediaUrl();if(!url)return toast("Playback is not available for this episode.");playGlobalMedia({title:e.title,url,type:activeType,artwork:e.thumbnail_url||logoURL,episode:e})}
-  catch(playbackError){toast(playbackError.message)}
+  try{
+   const url=await getCurrentMediaUrl();
+   if(!url)return toast("Playback is not available for this episode.");
+   playGlobalMedia({title:e.title,url,type:activeType,artwork:e.thumbnail_url||logoURL,episode:e});
+  }catch(playbackError){toast(playbackError.message)}
  };
- async function getCurrentMediaUrl(){if(!choices.length)return null;if(e.access_level&&e.access_level!=="free"){const user=await me();if(!user)throw Error("Sign in and subscribe to this show to unlock premium playback.");const data=await fn(FUNCTIONS.premiumPlayback,{episode_id:e.id,media_type:activeType});return data.signed_url||null}return activeType==="audio"?e.audio_url:e.video_url}
+ async function getCurrentMediaUrl(){
+  if(!choices.length)return null;
+  if(e.access_level&&e.access_level!=="free"){
+   const user=await me();
+   if(!user)throw Error("Sign in and subscribe to this show to unlock premium playback.");
+   const data=await fn(FUNCTIONS.premiumPlayback,{episode_id:e.id,media_type:activeType});
+   return data.signed_url||null;
+  }
+  return activeType==="audio"?e.audio_url:e.video_url;
+ }
  $("#save").onclick=async()=>{try{const user=await me();if(!user)return go("login.html");const{error}=await sb.from("podcast_saved_episodes").insert({user_id:user.id,episode_id:e.id});if(error&&error.code!=="23505")throw error;toast("Episode saved.")}catch(saveError){toast(saveError.message)}};
 }async function auth(){
  let signup=page==="signup";
