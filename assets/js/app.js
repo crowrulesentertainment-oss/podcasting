@@ -589,6 +589,7 @@ async function episode(){
  const creator=creatorRes.data||null,isCreator=creatorRole||!!creator;
  let profileImage=member?.avatar_url||creator?.avatar_url||u.user_metadata?.avatar_url||"";
  profile.innerHTML='<div class="account-avatar">'+(profileImage?'<img src="'+esc(profileImage)+'" alt="Profile photo">':'<span>'+esc(display.slice(0,1).toUpperCase())+'</span>')+'</div><div class="account-profile-copy"><span class="eyebrow">'+(isCreator?"CREATOR PROFILE":"LISTENER PROFILE")+'</span><h2>'+esc(display)+'</h2><p>'+esc(member?.bio||creator?.bio||"Your CrowRules story starts here. Add a little about yourself.")+'</p><div class="account-profile-meta"><span>'+esc(role)+'</span><span>'+esc(member?.membership_type||"Free")+' member</span><span>'+esc(u.email||"")+'</span></div></div><button class="btn secondary account-edit-trigger" id="editAccountProfile">Edit profile</button>';
+ if(member?.username)profile.insertAdjacentHTML("beforeend",'<a class="btn secondary account-public-profile-link" href="'+SITE_BASE+'profile.html?username='+encodeURIComponent(member.username)+'">View public profile ↗</a>');
  const{data:profileAssignments,error:profileBadgeError}=await sb.from("podcast_badge_assignments").select("id,badge_key,awarded_at,note,is_public").eq("target_type","profile").eq("target_id",u.id).order("awarded_at",{ascending:false});
  if(profileBadgeError)console.warn("Profile badges could not be loaded:",profileBadgeError.message);
  const profileKeys=[...new Set((profileAssignments||[]).map(x=>x.badge_key))];
