@@ -182,7 +182,7 @@ function showCard(p){return'<article class="card"><a href="'+SITE_BASE+'show.htm
    {title:"Business, Ideas & Learning",keys:["business","education","technology","money","learning"]}
   ];
   const rails=aliases.map(group=>{const rows=showRows.filter(s=>group.keys.some(k=>(s.category||"").toLowerCase().includes(k)));return rows.length?'<section class="stream-row-section"><div class="stream-row-head"><div><span class="stream-kicker">EXPLORE THE UNIVERSE</span><h2>'+esc(group.title)+'</h2><p>More voices and perspectives to add to your listening list.</p></div><a href="'+SITE_BASE+'discover.html">Explore →</a></div><div class="stream-rail">'+rows.slice(0,10).map(showCard).join("")+'</div></section>':""}).join("");
-  $("#homeCategoryRails").innerHTML=rails;$("#homeCategoryRails .stream-rail").forEach(addShelfArrows);
+  $("#homeCategoryRails").innerHTML=rails;document.querySelectorAll("#homeCategoryRails .stream-rail").forEach(addShelfArrows);
  }catch(error){
   $("#shows").innerHTML='<div class="notice">Shows could not be loaded: '+esc(error.message)+'</div>';
   $("#episodes").innerHTML='<div class="notice">Episodes could not be loaded: '+esc(error.message)+'</div>';
