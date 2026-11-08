@@ -1389,15 +1389,61 @@ async function admin(){
  }catch(e){fail(e)}
 }
 async function subs(){let u=await me();if(!u)return go("login.html");$("#app").innerHTML='<section class="page-hero"><div class="container"><div class="eyebrow">Account</div><h1 class="page-title">Your memberships</h1><p>Manage show subscriptions and your CrowRules platform membership.</p></div></section><section class="section container"><div class="panel"><div class="section-head"><h3>Podcast show subscriptions</h3><button id="showPortal" class="secondary">Manage show billing</button></div><div id="subscriptionRows" class="loading">Loading your subscriptions…</div></div><div class="panel"><h3>CrowRules platform membership</h3><p class="muted">Your platform membership is separate from individual show subscriptions.</p><button id="platformPortal">Manage platform billing</button></div></section>';try{let d=await fn(FUNCTIONS.subscriptionCenter,{origin:location.origin+SITE_BASE}),rows=d.subscriptions||[],ids=[...new Set(rows.map(x=>x.podcast_id).filter(Boolean))],{data:ps}=ids.length?await sb.from("podcasts").select("id,title").in("id",ids):{data:[]};$("#subscriptionRows").innerHTML=rows.length?'<div class="table-wrap"><table><thead><tr><th>Show</th><th>Status</th><th>Amount</th><th>Renewal / end</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(ps?.find(p=>p.id===x.podcast_id)?.title||"Podcast membership")+'</td><td>'+esc(x.status)+(x.cancel_at_period_end?" · Cancels at period end":"")+'</td><td>'+Number(x.amount_cents||0)/100+' '+esc((x.currency||"USD").toUpperCase())+'</td><td>'+(x.current_period_end?new Date(x.current_period_end).toLocaleDateString():"—")+'</td></tr>').join("")+'</tbody></table></div>':'<div class="empty">You do not have any podcast show subscriptions yet.</div>';$("#showPortal").disabled=!d.portal_url;$("#showPortal").onclick=()=>{if(d.portal_url)location.href=d.portal_url}}catch(e){$("#subscriptionRows").innerHTML='<div class="notice">'+esc(e.message)+'</div>'}$("#platformPortal").onclick=async()=>{try{let d=await fn(FUNCTIONS.billingPortal,{});if(d.url)location.href=d.url}catch(e){toast(e.message)}}}async function badges(){
- const[{data:catalog,error:ce},{data:assignments,error:ae}]=await Promise.all([
-  sb.from("podcast_badge_catalog").select("badge_key,name,description,category,icon,image_url,scope,is_active,display_order").eq("is_active",true).order("display_order").order("name"),
-  sb.from("podcast_badge_assignments").select("badge_key").eq("is_public",true).limit(2000)
- ]);
- if(ce)throw ce;if(ae)throw ae;
- const counts=new Map();(assignments||[]).forEach(x=>counts.set(x.badge_key,(counts.get(x.badge_key)||0)+1));
- const groups=[...new Set((catalog||[]).map(x=>x.category))];
- $("#app").innerHTML='<section class="page-hero"><div class="container"><div class="eyebrow">CROWRULES PODCASTING</div><h1 class="page-title">Badge & Achievement Center</h1><p>Recognition for members, shows and episodes across the CrowRules Podcasting community.</p><div class="actions"><a class="btn" href="admin.html?tab=badges">Administer badges ↗</a></div></div></section><section class="section container badge-directory">'+groups.map(category=>'<section class="badge-directory-group"><div class="section-head"><div><div class="eyebrow">RECOGNITION CATEGORY</div><h2>'+esc(category)+'</h2></div></div><div class="badge-directory-grid">'+catalog.filter(x=>x.category===category).map(x=>'<article class="badge-directory-card">'+(x.image_url?'<img class="badge-directory-emblem" src="'+esc(x.image_url)+'" alt="">':'<span class="badge-directory-emblem">'+esc(x.icon||"🏅")+'</span>')+'<div><h3>'+esc(x.name)+'</h3><p>'+esc(x.description||"")+'</p><small>'+esc(x.scope==="any"?"Profile, show or episode":x.scope==="creator"?"Member profile":x.scope==="podcast"?"Show":"Episode")+' recognition · '+(counts.get(x.badge_key)||0)+' issued</small></div></article>').join("")+'</div></section>').join("")+'</section>';
-}
+  const[{data:catalog,error:ce},{data:assignments,error:ae}]=await Promise.all([
+   sb.from("podcast_badge_catalog").select("badge_key,name,description,category,icon,image_url,scope,is_active,display_order").eq("is_active",true).order("display_order").order("name"),
+   sb.from("podcast_badge_assignments").select("badge_key").eq("is_public",true).limit(2000)
+  ]);
+  if(ce)throw ce;if(ae)throw ae;
+  const counts=new Map();(assignments||[]).forEach(x=>counts.set(x.badge_key,(counts.get(x.badge_key)||0)+1));
+  const groups=[...new Set((catalog||[]).map(x=>x.category||"Community Recognition"))];
+  const photoScenes=[
+   "photo-1590602847861-f357a9332bbc","photo-1478737270239-2f02b77fc618","photo-1598488035139-bdbb2231ce04",
+   "photo-1516280440614-37939bbacd81","photo-1524368535928-5b5e00ddc76b","photo-1506157786151-b8491531f063",
+   "photo-1516321318423-f06f85e504b3","photo-1556761175-b413da4baf72","photo-1521737711867-e3b97375f902",
+   "photo-1511379938547-c1f69419868d","photo-1516280440614-37939bbacd81","photo-1492684223066-81342ee5ff30"
+  ];
+  const sceneFor=(item,index)=>{
+   const key=(String(item.name||"")+String(item.category||"")).toLowerCase();
+   let n=0;for(let i=0;i<key.length;i++)n=(n*31+key.charCodeAt(i))>>>0;
+   return photoScenes[(n+index)%photoScenes.length];
+  };
+  const badgeCards=category=>catalog.filter(x=>(x.category||"Community Recognition")===category).map((x,index)=>{
+   const scene=sceneFor(x,index);
+   const photo="https://images.unsplash.com/"+scene+"?auto=format&fit=crop&w=1000&q=85";
+   const art=x.image_url?'<img class="badge-real-emblem" src="'+esc(x.image_url)+'" alt="'+esc(x.name)+' badge" loading="lazy">':'<span class="badge-real-emblem badge-fallback-emblem" aria-hidden="true">'+esc(x.icon||"🏆")+'</span>';
+   const scope=x.scope==="any"?"Profile, show or episode":x.scope==="creator"?"Member profile":x.scope==="podcast"?"Show":"Episode";
+   return '<article class="badge-cinematic-card"><div class="badge-cinematic-scene" style="--badge-scene:url(\''+photo+'\')"><div class="badge-scene-shade"></div><div class="badge-emblem-stage">'+art+'</div><span class="badge-photo-label">CROWRULES HONORS</span></div><div class="badge-cinematic-copy"><div class="badge-cinematic-title-row"><h3>'+esc(x.name)+'</h3><span class="badge-issued-count">'+(counts.get(x.badge_key)||0)+' issued</span></div><p>'+esc(x.description||"Recognition for outstanding contribution to the CrowRules Podcasting community.")+'</p><div class="badge-cinematic-meta"><span>'+esc(scope)+'</span><span>'+esc(category)+'</span></div></div></article>';
+  }).join("");
+  $("#app").innerHTML='<style>
+  .badge-awards-hero{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(105deg,rgba(5,7,11,.97),rgba(13,12,17,.76)),url("https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=2000&q=90") center 45%/cover;border-bottom:1px solid rgba(225,177,83,.28)}
+  .badge-awards-hero:after{content:"";position:absolute;z-index:-1;inset:0;background:radial-gradient(circle at 78% 25%,rgba(184,23,39,.28),transparent 34%)}
+  .badge-awards-hero .container{padding-top:76px;padding-bottom:76px}
+  .badge-awards-hero .eyebrow{color:#e8bd68;letter-spacing:.22em}
+  .badge-awards-hero .page-title{max-width:850px;text-shadow:0 8px 35px #000}
+  .badge-awards-hero p{max-width:720px;color:#e5e0d7}
+  .badge-awards-hero .badge-hero-kicker{display:inline-flex;gap:9px;align-items:center;border:1px solid rgba(230,187,100,.5);border-radius:999px;padding:8px 13px;color:#f2d89d;background:rgba(0,0,0,.35);font-size:.76rem;letter-spacing:.13em;text-transform:uppercase}
+  .badge-directory{display:grid;gap:46px}
+  .badge-directory-group{min-width:0}
+  .badge-directory-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:22px}
+  .badge-cinematic-card{overflow:hidden;border:1px solid rgba(220,177,99,.22);border-radius:20px;background:linear-gradient(145deg,#17171b,#0b0c10);box-shadow:0 16px 42px rgba(0,0,0,.22);transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+  .badge-cinematic-card:hover{transform:translateY(-5px);border-color:rgba(235,190,104,.62);box-shadow:0 22px 48px rgba(0,0,0,.36)}
+  .badge-cinematic-scene{position:relative;display:grid;place-items:center;min-height:245px;overflow:hidden;background-image:linear-gradient(180deg,rgba(5,6,9,.05),rgba(5,6,9,.82)),var(--badge-scene);background-size:cover;background-position:center}
+  .badge-cinematic-scene:after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(180,23,39,.20),transparent 48%,rgba(235,185,91,.13));pointer-events:none}
+  .badge-scene-shade{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 8%,rgba(0,0,0,.28) 80%)}
+  .badge-emblem-stage{position:relative;z-index:1;display:grid;place-items:center;width:142px;height:142px;border-radius:50%;padding:15px;background:linear-gradient(145deg,rgba(255,255,255,.17),rgba(0,0,0,.74));border:1px solid rgba(255,222,158,.76);box-shadow:0 12px 36px rgba(0,0,0,.6),inset 0 0 0 5px rgba(220,174,91,.18),inset 0 0 24px rgba(0,0,0,.8);backdrop-filter:blur(8px)}
+  .badge-real-emblem{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 5px 9px rgba(0,0,0,.65))}
+  .badge-fallback-emblem{display:grid;place-items:center;color:#f4d18b;font-size:66px}
+  .badge-photo-label{position:absolute;z-index:2;bottom:15px;left:18px;color:#f2d59a;font-size:.66rem;letter-spacing:.2em;text-shadow:0 2px 8px #000}
+  .badge-cinematic-copy{padding:19px 20px 21px}
+  .badge-cinematic-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .badge-cinematic-title-row h3{margin:0;color:#fff;font-size:1.08rem;line-height:1.3}
+  .badge-issued-count{flex:0 0 auto;border:1px solid rgba(221,178,100,.3);border-radius:999px;padding:5px 8px;color:#e8c77f;font-size:.68rem;white-space:nowrap}
+  .badge-cinematic-copy p{margin:11px 0 15px;color:#c3c0bd;font-size:.9rem;line-height:1.55}
+  .badge-cinematic-meta{display:flex;flex-wrap:wrap;gap:8px}
+  .badge-cinematic-meta span{border-radius:999px;background:rgba(255,255,255,.065);padding:5px 9px;color:#aaa;font-size:.68rem}
+  @media(max-width:600px){.badge-awards-hero .container{padding-top:52px;padding-bottom:52px}.badge-cinematic-scene{min-height:215px}.badge-directory-grid{gap:15px}}
+  </style><section class="page-hero badge-awards-hero"><div class="container"><span class="badge-hero-kicker">✦ The CrowRules recognition collection</span><div class="eyebrow" style="margin-top:20px">CROWRULES PODCASTING</div><h1 class="page-title">Badges & Achievements</h1><p>Celebrate the voices, shows and moments that make this community special. Explore cinematic recognition artwork and the achievements awarded across CrowRules Podcasting.</p><div class="actions"><a class="btn" href="admin.html?tab=badges">Administer badges ↗</a><a class="btn secondary" href="awards.html">Explore Podcast Awards</a></div></div></section><section class="section container badge-directory">'+(groups.length?groups.map(category=>'<section class="badge-directory-group"><div class="section-head"><div><div class="eyebrow">RECOGNITION CATEGORY</div><h2>'+esc(category)+'</h2><p class="muted">Distinctive recognition, presented in a cinematic gallery.</p></div></div><div class="badge-directory-grid">'+badgeCards(category)+'</div></section>').join(""):'<div class="empty">No active badges are available yet.</div>')+'</section>';
+ }
 async function memberProfile(){
  const id=new URLSearchParams(location.search).get("id");
  if(!id){$("#app").innerHTML='<div class="container section empty">Member profile not found.</div>';return}
