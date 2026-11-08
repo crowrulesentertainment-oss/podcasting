@@ -935,46 +935,137 @@ async function admin(){
   if(!auth.ok||!["active","initialized"].includes(auth.status))throw Error(auth.message||auth.error||"Administrator access is pending approval. An existing CrowRules administrator must approve your request.");
   $("#adminRefresh").onclick=()=>admin();
   if(tab==="badges"){
- const results=await Promise.all([
-  sb.from("podcast_badge_catalog").select("id,badge_key,name,description,category,icon,image_url,scope,is_active,display_order").order("display_order").order("name"),
-  sb.from("members").select("user_id,display_name,first_name,last_name,username,email,role").not("user_id","is",null).order("display_name").limit(1000),
-  sb.from("podcasts").select("id,title,status").order("title").limit(500),
-  sb.from("podcast_episodes").select("id,podcast_id,title,episode_number,season_number,status").order("created_at",{ascending:false}).limit(1500),
-  sb.from("podcast_badge_assignments").select("id,target_type,target_id,badge_key,is_public,note,awarded_at").order("awarded_at",{ascending:false}).limit(1000)
- ]);
- const [cr,mr,sr,er,creatorRes,ar]=results;
- for(const x of results)if(x.error)throw x.error;
- const creatorIds=new Set((creatorRes.data||[]).map(x=>x.member_id).filter(Boolean));
- const defs=cr.data||[],people=mr.data||[],shows=sr.data||[],eps=er.data||[],issued=ar.data||[];
- const personName=m=>m?.display_name||[m?.first_name,m?.last_name].filter(Boolean).join(" ")||m?.username||m?.email||m?.user_id||"Member";
- const personMap=new Map(people.map(x=>[x.user_id,x])),showMap=new Map(shows.map(x=>[x.id,x])),badgeMap=new Map(defs.map(x=>[x.badge_key,x]));
- const showOptions=shows.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.title)+'</option>').join("");
- const episodeOptions=eps.map(x=>'<option value="'+esc(x.id)+'" data-show="'+esc(x.podcast_id)+'">'+esc(x.title)+' · '+esc(showMap.get(x.podcast_id)?.title||"Show")+'</option>').join("");
- const targetName=x=>x.target_type==="profile"?personName(personMap.get(x.target_id)):x.target_type==="show"?(showMap.get(x.target_id)?.title||"Show"):(eps.find(e=>e.id===x.target_id)?.title||"Episode");
- work.innerHTML='<div class="admin-module badge-admin-module"><div class="admin-module-head"><div><span class="admin-kicker">CROWRULES RECOGNITION</span><h3>Badge Distribution</h3><p>Issue, publish, manage and revoke recognition for creator profiles, podcasts and individual episodes.</p></div><a class="btn secondary" href="badges.html">Public badge directory ↗</a></div><div class="badge-admin-stats"><div><strong>'+defs.length+'</strong><span>Badge definitions</span></div><div><strong>'+defs.filter(x=>x.is_active).length+'</strong><span>Active badges</span></div><div><strong>'+issued.filter(x=>x.target_type==="profile").length+'</strong><span>Creator profile awards</span></div><div><strong>'+issued.filter(x=>x.target_type==="show").length+'</strong><span>Podcast awards</span></div><div><strong>'+issued.filter(x=>x.target_type==="episode").length+'</strong><span>Episode awards</span></div><div><strong>'+issued.filter(x=>x.is_public).length+'</strong><span>Public awards</span></div></div><form id="badgeAwardForm" class="badge-award-form"><h4>Distribute a badge</h4><p class="muted">Choose the person, podcast or episode, select a badge, then award it. Public awards appear on the relevant page.</p><div class="form-grid"><label>Placement<select name="target_type" id="badgeTargetType"><option value="profile">Creator profile</option><option value="show">Podcast / show</option><option value="episode">Episode</option></select></label><label id="badgePersonWrap">Member profile<select id="badgePerson" required><option value="">Choose a person…</option>'+people.map(x=>'<option value="'+esc(x.user_id)+'">'+esc(personName(x))+' · '+esc(x.role||"Member")+'</option>').join("")+'</select></label><label>Badge<select name="badge_key" id="badgeKey" required><option value="">Choose a badge…</option>'+defs.filter(x=>x.is_active).map(x=>'<option value="'+esc(x.badge_key)+'" data-scope="'+esc(x.scope||"any")+'">'+esc(x.icon||"🏅")+' '+esc(x.name)+'</option>').join("")+'</select></label><label id="badgeShowWrap" hidden>Podcast / show<select id="badgeShow"><option value="">Choose a podcast…</option>'+showOptions+'</select></label><label id="badgeEpisodeWrap" hidden>Episode<select id="badgeEpisode"><option value="">Choose an episode…</option>'+episodeOptions+'</select></label></div><div class="badge-selection-preview" id="badgeSelectionPreview"><span class="badge-preview-art">🏅</span><span><b>Select a badge</b><small>Your selected badge preview will appear here.</small></span></div><label><input type="checkbox" name="is_public" checked> Display publicly</label><label>Reason / award note<textarea name="note" rows="2" maxlength="2000"></textarea></label><button class="btn" type="submit">Award badge</button></form><section class="badge-library-admin"><h4>Available badge collection</h4><div class="badge-library-grid">'+defs.map(x=>'<article class="badge-library-card"><span class="badge-emblem">'+(x.image_url?'<img src="'+esc(x.image_url)+'" alt="">':esc(x.icon||"🏅"))+'</span><div><b>'+esc(x.name)+'</b><small>'+esc(x.category)+' · '+esc(x.scope||"any")+'</small><p>'+esc(x.description||"")+'</p><span class="admin-status '+(x.is_active?"status-active":"status-inactive")+'">'+(x.is_active?"Active":"Inactive")+'</span></div></article>').join("")+'</div></section><section class="badge-issued-admin"><h4>Distribution history</h4>'+(issued.length?table(["Recipient / target","Placement","Badge","Awarded","Visibility","Action"],issued.map(x=>'<tr data-badge-row data-target="'+esc(x.target_type)+'" data-visibility="'+(x.is_public?"public":"private")+'" data-search="'+esc([targetName(x),x.target_type,badgeMap.get(x.badge_key)?.name||x.badge_key,x.note||""].join(" ").toLowerCase())+'"><td><b>'+(x.target_type==="profile"?'<a href="member.html?id='+encodeURIComponent(x.target_id)+'">'+esc(targetName(x))+'</a>':esc(targetName(x)))+'</b><small>'+esc(x.note||"")+'</small></td><td>'+esc(x.target_type)+'</td><td>'+esc(badgeMap.get(x.badge_key)?.name||x.badge_key)+'</td><td>'+new Date(x.awarded_at).toLocaleDateString()+'</td><td>'+badge(x.is_public?"Public":"Private")+'</td><td><div class="badge-row-actions"><button class="secondary" type="button" data-toggle-assignment="'+esc(x.id)+'" data-current-public="'+String(x.is_public)+'">'+(x.is_public?"Make private":"Make public")+'</button><button class="secondary" type="button" data-copy-assignment="'+esc(x.id)+'" data-target-type="'+esc(x.target_type)+'" data-target-id="'+esc(x.target_id)+'">Copy link</button><button class="danger-btn" type="button" data-revoke-assignment="'+esc(x.id)+'">Revoke</button></div></td></tr>').join("")):'<div class="admin-empty"><b>No badges issued yet</b></div>')+'</section></div>';
- const issuedSection=work.querySelector(".badge-issued-admin");
- if(issuedSection){
-  issuedSection.insertAdjacentHTML("afterbegin",'<div class="badge-toolbar"><input id="badgeSearch" type="search" placeholder="Search recipient, badge or note…"><select id="badgeFilterTarget"><option value="all">All placements</option><option value="profile">Profiles</option><option value="show">Shows</option><option value="episode">Episodes</option></select><select id="badgeFilterVisibility"><option value="all">All visibility</option><option value="public">Public</option><option value="private">Private</option></select><span class="muted small" id="badgeFilterCount"></span></div>');
-  const filter=()=>{const q=$("#badgeSearch").value.trim().toLowerCase(),target=$("#badgeFilterTarget").value,visibility=$("#badgeFilterVisibility").value;let n=0;all("[data-badge-row]").forEach(row=>{const ok=(!q||row.dataset.search.includes(q))&&(target==="all"||row.dataset.target===target)&&(visibility==="all"||row.dataset.visibility===visibility);row.hidden=!ok;if(ok)n++});$("#badgeFilterCount").textContent=n+" shown of "+issued.length};
-  $("#badgeSearch").addEventListener("input",filter);$("#badgeFilterTarget").addEventListener("change",filter);$("#badgeFilterVisibility").addEventListener("change",filter);filter();
- }
- all("[data-toggle-assignment]").forEach(button=>button.onclick=async()=>{const next=button.dataset.currentPublic!=="true";button.disabled=true;const{error}=await sb.from("podcast_badge_assignments").update({is_public:next}).eq("id",button.dataset.toggleAssignment);if(error){toast(error.message||"Visibility could not be updated.");button.disabled=false;return}toast(next?"Badge is now public.":"Badge is now private.");admin()});
- all("[data-copy-assignment]").forEach(button=>button.onclick=()=>{const type=button.dataset.targetType,id=button.dataset.targetId,path=type==="profile"?"member.html?id=":type==="show"?"show.html?id=":"episode.html?id=";const url=new URL(path+encodeURIComponent(id),location.href).href;navigator.clipboard?.writeText(url).then(()=>toast("Public page link copied.")).catch(()=>toast(url))});
- all("[data-revoke-assignment]").forEach(button=>button.onclick=async()=>{if(!confirm("Revoke this badge?"))return;button.disabled=true;const{error}=await sb.from("podcast_badge_assignments").delete().eq("id",button.dataset.revokeAssignment);if(error){toast(error.message);button.disabled=false;return}toast("Badge revoked.");admin()});
- work.querySelectorAll(".badge-library-card").forEach((card,i)=>{const item=defs[i];if(!item)return;const actions=document.createElement("div");actions.className="badge-definition-actions";actions.innerHTML=(item.is_active?'<button class="btn" type="button" data-pick-badge="'+esc(item.badge_key)+'">Use this badge</button>':'')+'<button class="secondary" type="button" data-toggle-catalog="'+esc(item.id)+'">'+(item.is_active?"Deactivate":"Activate")+'</button><button class="secondary" type="button" data-edit-catalog="'+esc(item.id)+'">Edit details</button>';card.append(actions)});
- all("[data-toggle-catalog]").forEach(button=>button.onclick=async()=>{const item=defs.find(x=>x.id===button.dataset.toggleCatalog);if(!item)return;button.disabled=true;const{error}=await sb.from("podcast_badge_catalog").update({is_active:!item.is_active,updated_at:new Date().toISOString()}).eq("id",item.id);if(error){toast(error.message||"Badge status could not be changed.");button.disabled=false;return}toast(item.is_active?"Badge deactivated.":"Badge activated.");admin()});
- all("[data-edit-catalog]").forEach(button=>button.onclick=async()=>{const item=defs.find(x=>x.id===button.dataset.editCatalog);if(!item)return;const name=prompt("Badge name:",item.name);if(name===null)return;if(!name.trim())return toast("Badge name cannot be empty.");const description=prompt("Description:",item.description||"");if(description===null)return;const category=prompt("Category:",item.category||"Community");if(category===null)return;const icon=prompt("Icon / emoji:",item.icon||"🏅");if(icon===null)return;const image_url=prompt("Image URL (leave blank for icon):",item.image_url||"");if(image_url===null)return;const{error}=await sb.from("podcast_badge_catalog").update({name:name.trim(),description:description.trim(),category:category.trim(),icon:icon.trim()||"🏅",image_url:image_url.trim()||null,updated_at:new Date().toISOString()}).eq("id",item.id);if(error){toast(error.message||"Badge definition could not be updated.");return}toast("Badge definition updated.");admin()});
- const type=$("#badgeTargetType"),personWrap=$("#badgePersonWrap"),person=$("#badgePerson"),showWrap=$("#badgeShowWrap"),show=$("#badgeShow"),episodeWrap=$("#badgeEpisodeWrap"),episode=$("#badgeEpisode"),badgeSelect=$("#badgeKey");
- function filterEpisodes(){const selectedShow=show.value;let firstVisible="";all("#badgeEpisode option").forEach(option=>{if(!option.value)return;const visible=!selectedShow||option.dataset.show===selectedShow;option.hidden=!visible;option.disabled=!visible;if(visible&&!firstVisible)firstVisible=option.value});if(episode.value&&episode.selectedOptions[0]?.dataset.show!==selectedShow)episode.value="";episode.disabled=!selectedShow;if(!selectedShow)episode.value=""}
- function syncTarget(){const v=type.value;personWrap.hidden=v!=="profile";person.required=v==="profile";showWrap.hidden=v==="profile";show.required=v!=="profile";episodeWrap.hidden=v!=="episode";episode.required=v==="episode";if(v==="profile"){show.value="";episode.value="";episode.disabled=true}else if(v==="show"){episode.value="";episode.disabled=true}else{filterEpisodes()}}
- type.addEventListener("change",syncTarget);show.addEventListener("change",()=>{if(type.value==="episode")filterEpisodes()});episode.addEventListener("change",()=>{if(episode.selectedOptions[0]?.dataset.show)show.value=episode.selectedOptions[0].dataset.show;});
- const preview=$("#badgeSelectionPreview");function updateBadgePreview(){const item=badgeMap.get(badgeSelect.value);if(!preview)return;preview.innerHTML=item?'<span class="badge-preview-art">'+(item.image_url?'<img src="'+esc(item.image_url)+'" alt="">':esc(item.icon||"🏅"))+'</span><span><b>'+esc(item.name)+'</b><small>'+esc(item.description||"Badge selected")+'</small></span>':'<span class="badge-preview-art">🏅</span><span><b>Select a badge</b><small>Your selected badge preview will appear here.</small></span>'}
- badgeSelect.addEventListener("change",updateBadgePreview);
- all("[data-pick-badge]").forEach(button=>button.addEventListener("click",()=>{badgeSelect.value=button.dataset.pickBadge;badgeSelect.dispatchEvent(new Event("change",{bubbles:true}));if(badgeSelect.value){$("#badgeAwardForm").scrollIntoView({behavior:"smooth",block:"center"});toast("Badge selected. Choose a target and award it.")}}));
- badgeSelect.addEventListener("change",()=>{const scope=badgeSelect.selectedOptions[0]?.dataset.scope||"any",kind=type.value==="profile"?"creator":type.value==="show"?"podcast":"episode";if(scope!=="any"&&scope!==kind){toast("This badge is limited to "+scope+" placement.");badgeSelect.value=""}});
- syncTarget();
- $("#badgeAwardForm").onsubmit=async ev=>{ev.preventDefault();const fd=new FormData(ev.currentTarget),kind=String(fd.get("target_type")),key=String(fd.get("badge_key")||""),def=badgeMap.get(key),mapped=kind==="profile"?"creator":kind==="show"?"podcast":"episode";if(!def)return;if(def.scope&&def.scope!=="any"&&def.scope!==mapped)return toast("This badge cannot be assigned to that target.");const target=kind==="profile"?person.value:kind==="show"?show.value:episode.value;if(!target)return toast("Choose a target first.");if(kind==="episode"&&!eps.some(x=>x.id===target&&x.podcast_id===show.value))return toast("Choose an episode belonging to the selected show.");const button=ev.currentTarget.querySelector('button[type="submit"]');button.disabled=true;try{const{error}=await sb.from("podcast_badge_assignments").insert({target_type:kind,target_id:target,badge_key:key,is_public:fd.get("is_public")==="on",note:String(fd.get("note")||"").trim(),awarded_by:user.id});if(error){if(error.code==="23505")throw Error("This badge is already assigned to this target.");throw error}toast("Badge awarded.");admin()}catch(err){toast(err.message||"Could not award badge.");button.disabled=false}};
- all("[data-revoke-assignment]").forEach(button=>button.onclick=async()=>{if(!confirm("Revoke this badge?"))return;button.disabled=true;const{error}=await sb.from("podcast_badge_assignments").delete().eq("id",button.dataset.revokeAssignment);if(error){toast(error.message);button.disabled=false;return}toast("Badge revoked.");admin()});
+   const results=await Promise.all([
+    sb.from("podcast_badge_catalog").select("id,badge_key,name,description,category,icon,image_url,scope,is_active,display_order").order("display_order").order("name"),
+    sb.from("members").select("user_id,display_name,first_name,last_name,username,email,role,avatar_url").not("user_id","is",null).order("display_name").limit(2000),
+    sb.from("podcasts").select("id,title,status,artwork_url").order("title").limit(1000),
+    sb.from("podcast_episodes").select("id,podcast_id,title,episode_number,season_number,status,thumbnail_url,artwork_url").order("created_at",{ascending:false}).limit(3000),
+    sb.from("podcast_badge_assignments").select("id,target_type,target_id,badge_key,is_public,note,awarded_at,awarded_by").order("awarded_at",{ascending:false}).limit(2000)
+   ]);
+   const [cr,mr,sr,er,ar]=results;
+   for(const result of results)if(result.error)throw result.error;
+   const defs=cr.data||[],people=mr.data||[],shows=sr.data||[],eps=er.data||[],issued=ar.data||[];
+   const personName=m=>m?.display_name||[m?.first_name,m?.last_name].filter(Boolean).join(" ")||m?.username||m?.email||"Member";
+   const personMap=new Map(people.map(x=>[x.user_id,x])),showMap=new Map(shows.map(x=>[x.id,x])),episodeMap=new Map(eps.map(x=>[x.id,x])),badgeMap=new Map(defs.map(x=>[x.badge_key,x]));
+   let selectedBadgeKey="",targetKind="profile";
+   const art=x=>x?.image_url?'<img src="'+esc(x.image_url)+'" alt="'+esc(x.name||"Badge")+'" loading="lazy">':'<span class="badge-art-fallback">'+esc(x?.icon||"🏅")+'</span>';
+   const targetLabel=x=>x.target_type==="profile"?personName(personMap.get(x.target_id)):x.target_type==="show"?(showMap.get(x.target_id)?.title||"Podcast"): (episodeMap.get(x.target_id)?.title||"Episode");
+   const showOpts=shows.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.title)+'</option>').join("");
+   const personOpts=people.map(x=>'<option value="'+esc(x.user_id)+'">'+esc(personName(x))+' · '+esc(x.role||"Member")+'</option>').join("");
+   const episodeOpts=eps.map(x=>'<option value="'+esc(x.id)+'" data-podcast="'+esc(x.podcast_id)+'">'+esc(x.title)+' · '+esc(showMap.get(x.podcast_id)?.title||"Podcast")+'</option>').join("");
+   work.innerHTML=
+    '<div class="badge-console">'+
+     '<header class="badge-console-hero"><div><span class="admin-kicker">CROWRULES RECOGNITION CENTER</span><h3>Badge Distribution</h3><p>Choose an official badge, select a recipient or piece of content, and publish the recognition to its page.</p></div><a class="btn secondary" href="badges.html">View public badge directory ↗</a></header>'+
+     '<div class="badge-console-stats">'+
+      '<article><span>Badge collection</span><strong>'+defs.length+'</strong><small>All definitions</small></article>'+
+      '<article><span>Available to award</span><strong>'+defs.filter(x=>x.is_active).length+'</strong><small>Active badges</small></article>'+
+      '<article><span>Profile awards</span><strong>'+issued.filter(x=>x.target_type==="profile").length+'</strong><small>Member profiles</small></article>'+
+      '<article><span>Podcast awards</span><strong>'+issued.filter(x=>x.target_type==="show").length+'</strong><small>Entire shows</small></article>'+
+      '<article><span>Episode awards</span><strong>'+issued.filter(x=>x.target_type==="episode").length+'</strong><small>Individual episodes</small></article>'+
+     '</div>'+
+     '<section class="badge-console-panel badge-award-builder">'+
+      '<div class="badge-panel-heading"><div><span class="admin-kicker">STEP 1</span><h4>Choose a badge</h4><p>Select a badge from the collection below. Your selected artwork appears in the award preview.</p></div><span class="badge-step-number">01</span></div>'+
+      '<div class="badge-gallery-toolbar"><input id="badgeGallerySearch" type="search" placeholder="Search badges by name or category…"><select id="badgeGalleryCategory"><option value="all">All categories</option>'+[...new Set(defs.map(x=>x.category).filter(Boolean))].sort().map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><select id="badgeGalleryScope"><option value="all">All placements</option><option value="any">Any placement</option><option value="creator">Creator profiles</option><option value="podcast">Podcasts</option><option value="episode">Episodes</option></select></div>'+
+      '<div class="badge-picker-grid" id="badgePickerGrid">'+(defs.length?defs.map(x=>'<button type="button" class="badge-picker-card '+(!x.is_active?"is-inactive":"")+'" data-badge-pick="'+esc(x.badge_key)+'" data-name="'+esc((x.name+" "+x.category+" "+x.description).toLowerCase())+'" data-category="'+esc(x.category||"")+'" data-scope="'+esc(x.scope||"any")+'" '+(!x.is_active?'disabled':'')+' aria-pressed="false"><span class="badge-picker-art">'+art(x)+'</span><span class="badge-picker-copy"><b>'+esc(x.name)+'</b><small>'+esc(x.category||"Recognition")+' · '+esc(x.scope||"any")+'</small><em>'+(x.is_active?"Select badge":"Inactive")+'</em></span></button>').join(""):'<div class="admin-empty">No badge definitions are in the catalog yet.</div>')+'</div>'+
+      '<div class="badge-award-divider"></div>'+
+      '<div class="badge-panel-heading"><div><span class="admin-kicker">STEP 2</span><h4>Choose where it goes</h4><p>Badges can be awarded to an individual member profile, an entire podcast, or one episode.</p></div><span class="badge-step-number">02</span></div>'+
+      '<div class="badge-target-tabs" role="group" aria-label="Award placement"><button type="button" data-target-kind="profile" class="is-active" aria-pressed="true">♟ Member profile</button><button type="button" data-target-kind="show" aria-pressed="false">🎙 Podcast / show</button><button type="button" data-target-kind="episode" aria-pressed="false">▶ Episode</button></div>'+
+      '<form id="badgeDistributionForm" class="badge-distribution-form">'+
+       '<div class="badge-target-fields">'+
+        '<label id="badgeMemberField">Member profile<select id="badgeMemberSelect"><option value="">Choose a member…</option>'+personOpts+'</select><small>Find the person whose profile should display this badge.</small></label>'+
+        '<label id="badgePodcastField" hidden>Podcast / show<select id="badgePodcastSelect"><option value="">Choose a podcast…</option>'+showOpts+'</select><small>The badge will appear on the podcast page.</small></label>'+
+        '<label id="badgeEpisodePodcastField" hidden>Podcast containing the episode<select id="badgeEpisodePodcastSelect"><option value="">Choose a podcast first…</option>'+showOpts+'</select><small>Choose the podcast to narrow the episode list.</small></label>'+
+        '<label id="badgeEpisodeField" hidden>Episode<select id="badgeEpisodeSelect" disabled><option value="">Choose an episode…</option>'+episodeOpts+'</select><small>The badge will appear on this episode page.</small></label>'+
+       '</div>'+
+       '<div class="badge-award-review"><div class="badge-award-review-art" id="badgeAwardReviewArt"><span>🏅</span></div><div class="badge-award-review-copy"><span class="admin-kicker">STEP 3 · AWARD PREVIEW</span><h4 id="badgeAwardReviewName">No badge selected</h4><p id="badgeAwardReviewDescription">Choose a badge above to preview the recognition.</p><small id="badgeAwardReviewPlacement">Placement: Member profile</small></div></div>'+
+       '<div class="badge-award-options"><label class="badge-public-toggle"><input type="checkbox" id="badgeAwardPublic" checked><span><b>Show this badge publicly</b><small>Display the award on the selected profile, podcast or episode page.</small></span></label><label class="badge-note-field">Award message / reason<textarea id="badgeAwardNote" maxlength="2000" rows="3" placeholder="Optional: explain why this badge is being awarded…"></textarea></label></div>'+
+       '<div class="badge-award-submit-row"><span id="badgeAwardStatus" aria-live="polite">Select a badge and target to continue.</span><button class="btn" type="submit" id="badgeAwardSubmit" disabled>＋ Award selected badge</button></div>'+
+      '</form>'+
+     '</section>'+
+     '<section class="badge-console-panel badge-assignment-panel"><div class="badge-panel-heading"><div><span class="admin-kicker">AWARD MANAGEMENT</span><h4>Issued badges</h4><p>Search awards, change public visibility, or revoke an assignment.</p></div><span class="badge-assignment-count">'+issued.length+' total</span></div>'+
+      '<div class="badge-assignment-filters"><input id="badgeAssignmentSearch" type="search" placeholder="Search recipient, podcast, episode or badge…"><select id="badgeAssignmentType"><option value="all">All placements</option><option value="profile">Member profiles</option><option value="show">Podcasts</option><option value="episode">Episodes</option></select><select id="badgeAssignmentVisibility"><option value="all">All visibility</option><option value="public">Public</option><option value="private">Private</option></select></div>'+
+      '<div class="badge-assignment-list" id="badgeAssignmentList">'+(issued.length?issued.map(x=>{const def=badgeMap.get(x.badge_key);return '<article class="badge-assignment-row" data-assignment-id="'+esc(x.id)+'" data-kind="'+esc(x.target_type)+'" data-visibility="'+(x.is_public?"public":"private")+'" data-search="'+esc((targetLabel(x)+" "+(def?.name||x.badge_key)+" "+(x.note||"")+" "+x.target_type).toLowerCase())+'"><span class="badge-assignment-art">'+(def?art(def):'<span>🏅</span>')+'</span><div class="badge-assignment-main"><b>'+esc(def?.name||x.badge_key)+'</b><span>'+esc(targetLabel(x))+'</span><small>'+esc(x.target_type==="profile"?"Member profile":x.target_type==="show"?"Podcast / show":"Episode")+' · '+new Date(x.awarded_at).toLocaleDateString()+'</small>'+(x.note?'<p>'+esc(x.note)+'</p>':"")+'</div><div class="badge-assignment-actions"><span class="admin-status '+(x.is_public?"status-active":"status-inactive")+'">'+(x.is_public?"Public":"Private")+'</span><button type="button" class="secondary" data-assignment-visibility="'+esc(x.id)+'" data-current="'+String(x.is_public)+'">'+(x.is_public?"Make private":"Make public")+'</button><button type="button" class="danger-btn" data-assignment-revoke="'+esc(x.id)+'">Revoke</button></div></article>'}).join(""):'<div class="admin-empty"><b>No badges awarded yet</b><span>Choose a badge above to create the first award.</span></div>')+'</div><p class="badge-filter-result" id="badgeAssignmentCount"></p>'+
+     '</section>'+
+    '</div>';
+   const picker=work.querySelector("#badgePickerGrid"),form=work.querySelector("#badgeDistributionForm"),memberField=$("#badgeMemberField"),podcastField=$("#badgePodcastField"),episodePodcastField=$("#badgeEpisodePodcastField"),episodeField=$("#badgeEpisodeField");
+   const selectedDef=()=>badgeMap.get(selectedBadgeKey);
+   const updateReview=()=>{
+    const def=selectedDef(),reviewArt=$("#badgeAwardReviewArt");
+    reviewArt.innerHTML=def?art(def):'<span>🏅</span>';
+    $("#badgeAwardReviewName").textContent=def?def.name:"No badge selected";
+    $("#badgeAwardReviewDescription").textContent=def?(def.description||"Recognition badge"):"Choose a badge above to preview the recognition.";
+    $("#badgeAwardReviewPlacement").textContent="Placement: "+(targetKind==="profile"?"Member profile":targetKind==="show"?"Podcast / show":"Episode");
+    const target=targetKind==="profile"?$("#badgeMemberSelect").value:targetKind==="show"?$("#badgePodcastSelect").value:$("#badgeEpisodeSelect").value;
+    const scope=def?.scope||"any",scopeMatches=scope==="any"||scope===(targetKind==="profile"?"creator":targetKind==="show"?"podcast":"episode");
+    const valid=!!def&&scopeMatches&&!!target;
+    $("#badgeAwardSubmit").disabled=!valid;
+    $("#badgeAwardStatus").textContent=!def?"Select a badge to continue.":!scopeMatches?"This badge is for "+scope+" placement. Choose a matching badge.":!target?"Choose a target to continue.":"Ready to award "+def.name+".";
+   };
+   const setTargetKind=kind=>{
+    targetKind=kind;
+    work.querySelectorAll("[data-target-kind]").forEach(button=>{const active=button.dataset.targetKind===kind;button.classList.toggle("is-active",active);button.setAttribute("aria-pressed",String(active))});
+    memberField.hidden=kind!=="profile";podcastField.hidden=kind!=="show";episodePodcastField.hidden=kind!=="episode";episodeField.hidden=kind!=="episode";
+    updateReview();
+   };
+   work.querySelectorAll("[data-target-kind]").forEach(button=>button.addEventListener("click",()=>setTargetKind(button.dataset.targetKind)));
+   picker.querySelectorAll("[data-badge-pick]").forEach(button=>button.addEventListener("click",()=>{
+    selectedBadgeKey=button.dataset.badgePick;
+    picker.querySelectorAll("[data-badge-pick]").forEach(card=>{const active=card.dataset.badgePick===selectedBadgeKey;card.classList.toggle("is-selected",active);card.setAttribute("aria-pressed",String(active))});
+    updateReview();
+   }));
+   const filterGallery=()=>{
+    const q=$("#badgeGallerySearch").value.trim().toLowerCase(),category=$("#badgeGalleryCategory").value,scope=$("#badgeGalleryScope").value;
+    picker.querySelectorAll("[data-badge-pick]").forEach(card=>{const visible=(!q||card.dataset.name.includes(q))&&(category==="all"||card.dataset.category===category)&&(scope==="all"||card.dataset.scope===scope);card.hidden=!visible});
+   };
+   $("#badgeGallerySearch").addEventListener("input",filterGallery);$("#badgeGalleryCategory").addEventListener("change",filterGallery);$("#badgeGalleryScope").addEventListener("change",filterGallery);
+   const syncEpisodeOptions=()=>{
+    const showId=$("#badgeEpisodePodcastSelect").value,select=$("#badgeEpisodeSelect");
+    select.value="";
+    select.querySelectorAll("option[data-podcast]").forEach(option=>{const match=!!showId&&option.dataset.podcast===showId;option.hidden=!match;option.disabled=!match});
+    select.disabled=!showId;
+    const first=select.querySelector('option[value=""]');if(first)first.textContent=showId?"Choose an episode…":"Choose a podcast first…";
+    updateReview();
+   };
+   ["badgeMemberSelect","badgePodcastSelect","badgeEpisodeSelect"].forEach(id=>$("#"+id).addEventListener("change",updateReview));
+   $("#badgeEpisodePodcastSelect").addEventListener("change",syncEpisodeOptions);
+   $("#badgeAwardPublic").addEventListener("change",updateReview);
+   form.addEventListener("submit",async event=>{
+    event.preventDefault();
+    const def=selectedDef(),target=targetKind==="profile"?$("#badgeMemberSelect").value:targetKind==="show"?$("#badgePodcastSelect").value:$("#badgeEpisodeSelect").value;
+    if(!def||!target)return;
+    const mapped=targetKind==="profile"?"creator":targetKind==="show"?"podcast":"episode";
+    if(def.scope&&def.scope!=="any"&&def.scope!==mapped){toast("This badge cannot be assigned to that placement.");return}
+    if(targetKind==="episode"&&!eps.some(x=>x.id===target&&x.podcast_id===$("#badgeEpisodePodcastSelect").value)){toast("Choose an episode belonging to the selected podcast.");return}
+    const submit=$("#badgeAwardSubmit");submit.disabled=true;submit.textContent="Awarding…";
+    try{
+     const payload={target_type:targetKind,target_id:target,badge_key:def.badge_key,is_public:$("#badgeAwardPublic").checked,note:$("#badgeAwardNote").value.trim(),awarded_by:user.id};
+     const{data,error}=await sb.from("podcast_badge_assignments").insert(payload).select("id").single();
+     if(error){if(error.code==="23505")throw Error("This badge has already been awarded to this target.");throw error}
+     if(!data?.id)throw Error("The award could not be confirmed. Refresh and check the award list.");
+     toast("Badge awarded successfully.");
+     admin();
+    }catch(error){toast(error.message||"Could not award badge.");submit.textContent="＋ Award selected badge";updateReview()}
+   });
+   const applyAssignmentFilters=()=>{
+    const q=$("#badgeAssignmentSearch").value.trim().toLowerCase(),kind=$("#badgeAssignmentType").value,visibility=$("#badgeAssignmentVisibility").value;let count=0;
+    work.querySelectorAll("[data-assignment-id]").forEach(row=>{const show=(!q||row.dataset.search.includes(q))&&(kind==="all"||row.dataset.kind===kind)&&(visibility==="all"||row.dataset.visibility===visibility);row.hidden=!show;if(show)count++});
+    $("#badgeAssignmentCount").textContent=count+" awards shown · "+issued.length+" total";
+   };
+   ["badgeAssignmentSearch","badgeAssignmentType","badgeAssignmentVisibility"].forEach(id=>$("#"+id).addEventListener(id==="badgeAssignmentSearch"?"input":"change",applyAssignmentFilters));
+   applyAssignmentFilters();
+   work.querySelectorAll("[data-assignment-visibility]").forEach(button=>button.addEventListener("click",async()=>{
+    const next=button.dataset.current!=="true";button.disabled=true;
+    try{const{data,error}=await sb.from("podcast_badge_assignments").update({is_public:next}).eq("id",button.dataset.assignmentVisibility).select("id").maybeSingle();if(error)throw error;if(!data)throw Error("No award was updated. Check administrator permissions.");toast(next?"Badge is now public.":"Badge is now private.");admin()}
+    catch(error){toast(error.message||"Visibility could not be changed.");button.disabled=false}
+   }));
+   work.querySelectorAll("[data-assignment-revoke]").forEach(button=>button.addEventListener("click",async()=>{
+    if(!confirm("Revoke this badge assignment? It will be removed from the recipient's public page."))return;
+    button.disabled=true;
+    try{const{data,error}=await sb.from("podcast_badge_assignments").delete().eq("id",button.dataset.assignmentRevoke).select("id").maybeSingle();if(error)throw error;if(!data)throw Error("No award was revoked. Check administrator permissions.");toast("Badge assignment revoked.");admin()}
+    catch(error){toast(error.message||"Badge could not be revoked.");button.disabled=false}
+   }));
+   picker.querySelectorAll("[data-badge-pick]").forEach(button=>{if(button.dataset.badgePick===selectedBadgeKey)button.classList.add("is-selected")});
+   setTargetKind("profile");updateReview();
 }else if(tab==="overview"){
    const results=await Promise.all([optionalRpc("podcasting_admin_stats",{overview:{}}),optionalRpc("podcasting_admin_play_metrics",{episode_count:0,raw_play_events:0,episode_play_count:0,show_play_count:0}),optionalRpc("podcasting_admin_visitor_metrics",{day:{},week:{},month:{},rankings:[],busiest_days:[]}),count("members"),count("creators"),count("podcast_guest_profiles"),sb.from("podcasts").select("id,title,status,category,created_at").order("created_at",{ascending:false}).limit(6),sb.from("podcast_episodes").select("id,title,status,is_published,is_live,production_stage,published_at,created_at,episode_number,season_number").order("created_at",{ascending:false}).limit(8)]);
    if(results[0].error)throw results[0].error;if(results[1].error)throw results[1].error;if(results[2].error)throw results[2].error;
