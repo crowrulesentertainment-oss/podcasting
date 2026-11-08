@@ -1,10 +1,22 @@
 import{sb}from"./client.js";import{SITE_BASE,FUNCTIONS,STORAGE_BUCKET,SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}from"./config.js";const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],page=document.body.dataset.page;const go=p=>location.href=SITE_BASE+p;const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));const art="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=900&q=85";function toast(s){let t=$("#toast");if(t){t.textContent=s;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),4000)}}async function me(){const{data,error}=await sb.auth.getUser();if(error)throw error;return data.user}async function fn(name,body){let{data:{session}}=await sb.auth.getSession();if(!session)throw Error("Please sign in first.");let{data,error}=await sb.functions.invoke(name,{body,headers:{Authorization:"Bearer "+session.access_token}});if(error)throw error;if(data?.error)throw Error(data.error);return data}
 function youtubeVideoId(value){try{const u=new URL(String(value||"").trim()),host=u.hostname.toLowerCase().replace(/^www\./,"");if(host==="youtu.be")return u.pathname.split("/").filter(Boolean)[0]?.match(/^[\w-]{11}$/)?.[0]||null;if(host==="youtube.com"||host==="m.youtube.com"||host==="youtube-nocookie.com"){const id=u.searchParams.get("v")||u.pathname.match(/^\/(?:embed|shorts|live)\/([\w-]{11})/)?.[1];return id?.match(/^[\w-]{11}$/)?id:null}}catch{}return null}function mediaMime(file){if(!file?.name)return"";const ext=file.name.split(".").pop().toLowerCase();const known={mp3:"audio/mpeg",mpeg:"audio/mpeg",mp4:"audio/mp4",m4a:"audio/x-m4a",aac:"audio/aac",wav:"audio/wav",ogg:"audio/ogg",opus:"audio/ogg",webm:file.type||"audio/webm",flac:"audio/flac",mpga:"audio/mpeg",mp4v:"video/mp4",mov:"video/quicktime",m4v:"video/x-m4v"};return (file.type&&(file.type.startsWith("audio/")||file.type.startsWith("video/")))?file.type:(known[ext]||file.type||"application/octet-stream")}
+let tusClientPromise;
+function loadTusClient(){
+ if(window.tus?.Upload)return Promise.resolve(window.tus);
+ if(tusClientPromise)return tusClientPromise;
+ tusClientPromise=new Promise((resolve,reject)=>{
+  const script=document.createElement("script");script.src="https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js";script.async=true;script.dataset.tusClient="true";
+  script.onload=()=>window.tus?.Upload?resolve(window.tus):reject(Error("The browser upload client did not initialize."));
+  script.onerror=()=>{tusClientPromise=null;reject(Error("Could not load the resumable upload library. Refresh and try again."))};
+  document.head.appendChild(script);
+ });
+ return tusClientPromise;
+}
 async function uploadEpisodeMedia(file,path,onProgress){
  const bucket=sb.storage.from(STORAGE_BUCKET),contentType=mediaMime(file)||"application/octet-stream";
  if(file.size<=6*1024*1024){const{data,error}=await bucket.upload(path,file,{upsert:false,contentType,cacheControl:"3600"});if(error)throw error;onProgress?.(100);return data.path}
  const{data:{session},error:sessionError}=await sb.auth.getSession();if(sessionError)throw sessionError;if(!session)throw Error("Your session expired. Sign in again before uploading.");
- const{Upload}=await import("https://esm.sh/tus-js-client@4.3.1");
+ const tus=await loadTusClient(),Upload=tus.Upload;
  const endpoint=SUPABASE_URL.replace(".supabase.co",".storage.supabase.co")+"/storage/v1/upload/resumable";
  return new Promise((resolve,reject)=>{
   const upload=new Upload(file,{endpoint,chunkSize:6*1024*1024,retryDelays:[0,3000,5000,10000,20000],headers:{authorization:"Bearer "+session.access_token,apikey:SUPABASE_PUBLISHABLE_KEY},metadata:{bucketName:STORAGE_BUCKET,objectName:path,contentType,cacheControl:"3600"},uploadDataDuringCreation:true,removeFingerprintOnSuccess:true,onProgress:(sent,total)=>onProgress?.(Math.round(sent/total*100)),onError:reject,onSuccess:()=>resolve(path)});
