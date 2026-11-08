@@ -214,14 +214,17 @@ async function home(){
   if(memberResult.error){$("#homeNewestMembers").innerHTML='<div class="empty">Newest member profiles are temporarily unavailable.</div>'}
   else{
    const people=memberResult.data||[];
-   const [{data:creatorLinks},{data:memberProfiles}]=await Promise.all([
+   const memberIds=people.map(p=>p.id).filter(Boolean),userIds=people.map(p=>p.user_id).filter(Boolean);
+   const [{data:creatorLinks},{data:roleLinks},{data:memberProfiles}]=await Promise.all([
     sb.from("creators").select("member_id").eq("is_active",true).not("member_id","is",null).limit(500),
-    sb.from("podcast_member_profiles").select("user_id,avatar_url,tagline").eq("is_public",true).in("user_id",people.map(p=>p.user_id).filter(Boolean))
+    memberIds.length?sb.from("member_roles").select("member_id,role").in("member_id",memberIds):Promise.resolve({data:[]}),
+    userIds.length?sb.from("podcast_member_profiles").select("user_id,avatar_url,tagline").eq("is_public",true).in("user_id",userIds):Promise.resolve({data:[]})
    ]);
    const creatorIds=new Set((creatorLinks||[]).map(x=>x.member_id));
+   const roleMap=new Map();(roleLinks||[]).forEach(x=>{if(!roleMap.has(x.member_id))roleMap.set(x.member_id,[]);roleMap.get(x.member_id).push(String(x.role||"").toLowerCase())});
    const profileMap=new Map((memberProfiles||[]).map(x=>[x.user_id,x]));
    const memberCards=people.map(p=>{
-    const profile=profileMap.get(p.user_id),role=String(p.role||"").toLowerCase(),creator=creatorIds.has(p.id)||/creator|producer|podcaster/.test(role),guest=/guest/.test(role),label=creator?"CREATOR":guest?"GUEST":"LISTENER";
+    const profile=profileMap.get(p.user_id),roles=[String(p.role||"").toLowerCase(),...(roleMap.get(p.id)||[])],creator=creatorIds.has(p.id)||roles.some(role=>/creator|producer|podcaster|host/.test(role)),guest=roles.some(role=>/guest/.test(role)),label=creator?"CREATOR":guest?"GUEST":"LISTENER";
     const name=profile?.display_name||p.display_name||[p.first_name,p.last_name].filter(Boolean).join(" ")||p.username,avatar=profile?.avatar_url||p.avatar_url;
     return '<article class="card"><a href="'+SITE_BASE+'profile.html?username='+encodeURIComponent(p.username)+'"><div class="card-art member-new-art">'+(avatar?'<img class="card-art-img" loading="lazy" decoding="async" src="'+esc(avatar)+'" alt="'+esc(name)+'">':'<div class="member-new-initial">'+esc(name.slice(0,1).toUpperCase())+'</div>')+'</div><div class="card-body"><span class="pill">'+label+'</span><h3>'+esc(name)+'</h3><p>'+esc(profile?.tagline||p.bio||"New to the CrowRules community.")+'</p><small>Joined '+(p.created_at?new Date(p.created_at).toLocaleDateString():"recently")+'</small></div></a></article>';
    }).join("");
