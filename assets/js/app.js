@@ -1066,6 +1066,7 @@ async function admin(){
    }));
    picker.querySelectorAll("[data-badge-pick]").forEach(button=>{if(button.dataset.badgePick===selectedBadgeKey)button.classList.add("is-selected")});
    setTargetKind("profile");updateReview();
+   return;
 }else if(tab==="overview"){
    const results=await Promise.all([optionalRpc("podcasting_admin_stats",{overview:{}}),optionalRpc("podcasting_admin_play_metrics",{episode_count:0,raw_play_events:0,episode_play_count:0,show_play_count:0}),optionalRpc("podcasting_admin_visitor_metrics",{day:{},week:{},month:{},rankings:[],busiest_days:[]}),count("members"),count("creators"),count("podcast_guest_profiles"),sb.from("podcasts").select("id,title,status,category,created_at").order("created_at",{ascending:false}).limit(6),sb.from("podcast_episodes").select("id,title,status,is_published,is_live,production_stage,published_at,created_at,episode_number,season_number").order("created_at",{ascending:false}).limit(8)]);
    if(results[0].error)throw results[0].error;if(results[1].error)throw results[1].error;if(results[2].error)throw results[2].error;
