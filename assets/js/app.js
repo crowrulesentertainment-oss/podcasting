@@ -628,12 +628,15 @@ async function rankings(){
   const results=await Promise.all([
    sb.from("podcasts").select("id,creator_id,title,category,description,artwork_url,total_plays,listener_count,published_at,created_at").eq("status","published").limit(250),
    sb.from("podcast_episodes").select("id,podcast_id,title,description,thumbnail_url,artwork_url,play_count,total_plays,published_at,created_at,duration_seconds").eq("status","published").order("published_at",{ascending:false}).limit(400),
-   sb.from("creators").select("id,name,display_name,role,discipline,avatar_url,profile_url,is_active").eq("is_active",true).limit(150),
-   sb.from("podcast_follows").select("podcast_id").limit(10000)
+   sb.from("creators").select("id,member_id,name,display_name,role,discipline,avatar_url,profile_url,is_active").eq("is_active",true).limit(150),
+   sb.from("podcast_follows").select("podcast_id").limit(10000),
+   sb.from("member_roles").select("member_id").eq("role","Creator").limit(10000)
   ]);
-  const failure=results.find((r,i)=>r.error&&i<3);
+  const failure=results.find((r,i)=>r.error&&(i<3||i===4));
   if(failure)throw failure.error;
-  catalog.shows=results[0].data||[];catalog.episodes=results[1].data||[];catalog.creators=results[2].data||[];
+  catalog.shows=results[0].data||[];catalog.episodes=results[1].data||[];
+  catalog.creatorMemberIds=new Set((results[4].data||[]).map(row=>row.member_id).filter(Boolean));
+  catalog.creators=(results[2].data||[]).filter(item=>item.member_id&&catalog.creatorMemberIds.has(item.member_id));
   catalog.follows={};for(const row of results[3].data||[])catalog.follows[row.podcast_id]=(catalog.follows[row.podcast_id]||0)+1;
   catalog.followsAvailable=!results[3].error;
  };
@@ -668,7 +671,7 @@ async function rankings(){
   }
   if(category.id==="creators"){
    const totals=new Map();for(const show of catalog.shows){if(!show.creator_id)continue;const current=totals.get(show.creator_id)||{plays:0,shows:0};current.plays+=Number(show.total_plays||0);current.shows++;totals.set(show.creator_id,current)}
-   return catalog.creators.map(item=>({kind:"creator",item,plays:totals.get(item.id)?.plays||0,shows:totals.get(item.id)?.shows||0,source:"catalog"})).sort((a,b)=>Number(b.plays||0)-Number(a.plays||0));
+   return catalog.creators.map(item=>({kind:"creator",item,plays:totals.get(item.id)?.plays||0,shows:totals.get(item.id)?.shows||0,source:"member-role"})).sort((a,b)=>Number(b.plays||0)-Number(a.plays||0));
   }
   return[];
  };
