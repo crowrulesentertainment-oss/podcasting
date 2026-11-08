@@ -173,8 +173,8 @@ function initViewerLocalInfo(){
   const temp=number(current.temperature_2m),feels=number(current.apparent_temperature),humidity=number(current.relative_humidity_2m),wind=number(current.wind_speed_10m),gust=number(current.wind_gusts_10m),rain=number(current.precipitation,2);
   if(status)status.textContent=viewerWeatherIcon(current.weather_code,current.is_day)+" "+viewerWeatherLabel(current.weather_code)+" · "+Math.round(Number(temp))+"°F";
   if(details)details.textContent="Feels like "+feels+"°F · Humidity "+humidity+"% · Wind "+wind+" mph (gusts "+gust+" mph) · Precipitation "+rain+" in · Cloud cover "+number(current.cloud_cover)+"%";
-  const observed=new Date(current.time+(data.utc_offset_seconds?"+00:00":""));
-  if(place)place.textContent="Weather model for your coordinates · Updated "+(Number.isNaN(observed.getTime())?current.time:observed.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}))+" · GPS accuracy ±"+(Number.isFinite(accuracy)?(accuracy>=1000?(accuracy/1000).toFixed(1)+" km":Math.round(accuracy)+" m"):"unknown");
+  const modelTime=String(current.time||"").replace("T"," ").slice(0,16);
+  if(place)place.textContent="Weather model for your coordinates · Model time "+modelTime+" · GPS accuracy ±"+(Number.isFinite(accuracy)?(accuracy>=1000?(accuracy/1000).toFixed(1)+" km":Math.round(accuracy)+" m"):"unknown");
  }catch(error){console.warn("Local weather error:",error);unavailable("Local weather could not load")}},error=>{unavailable(error.code===1?"Location permission not granted":"Precise location unavailable")},{enableHighAccuracy:true,timeout:20000,maximumAge:60000});
 }
 async function home(){
