@@ -710,3 +710,26 @@ input:focus,select:focus,textarea:focus{border-color:#e50914;outline:1px solid #
 .creator-workspace .studio-save-row select,.creator-workspace .studio-save-row input,.creator-workspace .studio-live-toolbar input,.creator-workspace .studio-live-toolbar select{min-height:44px;border:1px solid #ffffff24;border-radius:4px;background:#090b10;color:#fff;padding:10px}
 @media(max-width:900px){.creator-dashboard{grid-template-columns:1fr}.creator-sidebar{position:relative;top:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.creator-sidebar-heading,.creator-sidebar-divider,.creator-sidebar-promo{grid-column:1/-1}.creator-sidebar-promo{display:none}.creator-hero-poster{width:155px;height:215px;flex-basis:155px}.creator-hero-poster b{font-size:24px}}
 @media(max-width:620px){.creator-page-hero,.creator-hero-inner{min-height:390px}.creator-hero-inner{padding-top:36px;padding-bottom:35px}.creator-hero-poster{display:none}.creator-hero-copy .page-title{font-size:clamp(52px,15vw,78px)}.creator-hero-meta{font-size:8px;gap:8px}.creator-dashboard{padding-top:15px;gap:14px}.creator-sidebar{grid-template-columns:1fr 1fr;padding:9px}.creator-sidebar>a{font-size:10px;padding:10px 7px;gap:7px}.creator-sidebar-heading{padding:7px 8px 11px}.creator-workspace .creator-panel-head{display:block}.creator-workspace .creator-panel-head>.btn,.creator-workspace .creator-panel-head>a{display:inline-flex;margin-top:10px}.creator-workspace>.panel{padding:16px}.creator-workspace .form-grid{grid-template-columns:1fr}.creator-workspace .field.full,.creator-workspace .actions.full{grid-column:1}.creator-workspace .creator-item{align-items:flex-start;gap:12px}.creator-workspace .creator-item>.actions{flex-wrap:wrap}.creator-workspace .creator-studio-tabs{top:56px}}
+
+/* Creator Studio — expanded camera monitor and live video canvas */
+#studioRecordPanel .studio-record-layout{grid-template-columns:minmax(0,1fr);gap:18px}
+#studioRecordPanel .studio-monitor{width:100%;min-height:0;height:auto;aspect-ratio:16/9;max-height: min(72vh,820px);border-radius:10px;background:#030406;box-shadow:0 22px 65px #0008;border:1px solid #ffffff26}
+#studioRecordPanel .studio-monitor video:not(.hidden){position:absolute;inset:0;width:100%;height:100%;min-height:0;max-height:none;object-fit:contain;background:#030406}
+#studioRecordPanel .studio-monitor-placeholder{position:absolute;inset:0;padding:24px}
+#studioRecordPanel .studio-monitor-footer{z-index:2;padding:18px 22px;background:linear-gradient(transparent,#000d);font-size:12px}
+#studioRecordPanel .studio-control-panel{display:grid;grid-template-columns:minmax(180px,.7fr) minmax(260px,1.3fr);align-items:end;gap:16px;padding:18px 20px;border-radius:9px}
+#studioRecordPanel .studio-control-panel>.field{margin:0}
+#studioRecordPanel .studio-control-panel>.actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:9px}
+#studioRecordPanel .studio-control-panel>.actions button:first-child{grid-column:auto}
+#studioRecordPanel #recStatus,#studioRecordPanel .studio-playback,#studioRecordPanel #recordOutput{grid-column:1/-1}
+#studioRecordPanel .studio-playback{width:100%;max-height: min(65vh,680px);background:#030406;border-radius:8px}
+#studioLivePanel .studio-live-stage{padding:20px;border-radius:10px}
+#studioLivePanel .studio-participant-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px;padding:20px 0}
+#studioLivePanel .studio-participant-tile,#studioLivePanel .studio-empty-tile{min-height:0;aspect-ratio:16/9;border-radius:9px;background:#030406}
+#studioLivePanel .studio-participant-video{height:100%;min-height:0}
+#studioLivePanel .studio-participant-video video{display:block;width:100%;height:100%;min-height:0;object-fit:contain;background:#030406}
+#studioLivePanel .studio-participant-name{z-index:2;bottom:12px;left:14px;padding:7px 11px;border:1px solid #ffffff25;border-radius:4px}
+#studioLivePanel .studio-empty-tile{padding:24px;text-align:center}
+#studioLivePanel .studio-live-actions{padding:16px 0 6px}
+@media(min-width:1200px){#studioRecordPanel .studio-monitor{max-height:820px}#studioLivePanel .studio-participant-grid{grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}}
+@media(max-width:700px){#studioRecordPanel .studio-monitor{aspect-ratio:16/10;max-height:none}#studioRecordPanel .studio-control-panel{grid-template-columns:1fr;align-items:stretch}#studioRecordPanel .studio-control-panel>.actions{justify-content:stretch}#studioRecordPanel .studio-control-panel>.actions button{flex:1 1 130px}#studioLivePanel .studio-participant-grid{grid-template-columns:1fr}#studioLivePanel .studio-participant-tile,#studioLivePanel .studio-empty-tile{aspect-ratio:16/10}}
