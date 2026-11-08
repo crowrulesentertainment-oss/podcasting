@@ -316,3 +316,23 @@ input:focus,select:focus,textarea:focus{border-color:#e50914;outline:1px solid #
 #episodeEditor .field small.muted{display:block;line-height:1.55;margin-top:7px}
 #episodeEditor .actions{position:sticky;bottom:12px;z-index:4;padding:12px;background:rgba(12,12,12,.94);border:1px solid rgba(255,255,255,.1);border-radius:14px;backdrop-filter:blur(14px)}
 @media(max-width:680px){#episodeEditor .actions{bottom:6px;flex-wrap:wrap}#episodeEditor .actions .btn{flex:1 1 100%}}
+
+
+/* Episode audio / video format selector */
+.episode-media-panel{overflow:hidden}
+.episode-media-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}
+.episode-media-heading h2{margin:5px 0;font-size:clamp(23px,3vw,34px)}
+.episode-media-heading p{margin:0}
+.episode-media-choices{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 20px}
+.episode-media-choice{min-width:170px;justify-content:center;border:1px solid rgba(255,255,255,.18);background:#171717}
+.episode-media-choice.is-active{background:#b51222;border-color:#e63a48;color:#fff;box-shadow:0 0 0 2px rgba(229,40,58,.18)}
+.episode-media-single{display:inline-flex;padding:11px 16px;margin-bottom:18px;border-radius:9px;background:#191919;color:#fff;font-weight:800}
+.episode-media-player{min-width:0}
+.episode-video-player{display:block;width:100%;max-height:620px;background:#000;border-radius:12px}
+.episode-audio-player{display:flex;align-items:center;gap:18px;padding:18px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:linear-gradient(120deg,#1a1a1a,#101010)}
+.episode-audio-art{width:112px;height:112px;flex:0 0 112px;border-radius:10px;overflow:hidden;background:#222}
+.episode-audio-art img{width:100%;height:100%;object-fit:cover}
+.episode-audio-controls{flex:1;min-width:0}
+.episode-audio-controls strong{display:block;margin-bottom:12px}
+.episode-audio-controls audio{width:100%;display:block}
+@media(max-width:600px){.episode-media-choice{flex:1 1 100%;min-width:0}.episode-audio-player{align-items:flex-start;flex-direction:column}.episode-audio-art{width:88px;height:88px;flex-basis:88px}.episode-audio-controls{width:100%}}
