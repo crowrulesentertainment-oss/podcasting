@@ -114,3 +114,24 @@ Client-side persistence and refresh do not override Supabase server-side session
 
 ### Storage quota clarification
 The 50 GiB value above is the maximum size of one object in the published-media bucket, not the project's total storage allowance. Supabase plan-wide limits still take precedence: Free includes 1 GB total Storage and a 50 MB global file-size cap; Pro includes 100 GB total Storage and supports a global file-size limit up to 500 GB. Set the global limit in Dashboard → Storage → Settings after upgrading if large uploads are required. Do not mark large uploads production-verified until a real authenticated upload succeeds.
+
+
+## November 7, 2026 — Creator Studio management upgrade
+
+| Check | Result | Evidence / boundary |
+|---|---|---|
+| Creator show editor | CODE UPDATED | Creator can create a show draft and edit title, category, description, artwork/trailer/website/RSS URLs, author, language, copyright, subcategory, format, production status, help-needed text and explicit-content flag. Existing creator ownership/RLS remains the authorization boundary. |
+| Episode editor | CODE UPDATED | Creator can edit episode title, description, show assignment is intentionally locked, season/episode numbers, access level, thumbnail, release date, scheduled timestamp, tags, show notes, transcript and explicit flag. |
+| Audio/video upload and replacement | CODE UPDATED | Free files use the existing Storage uploader (standard for small files, TUS resumable above 6 MB); premium files use the existing authenticated premium upload Edge Function. Browser upload tests remain NOT RUN. |
+| Publishing controls | CODE UPDATED | Creator can explicitly publish show/episode records; episode drafts can be deleted under existing creator delete policy. |
+| Creator dashboard | CODE UPDATED | Adds catalog overview, episode status/media counts, recent episodes, production checklist and Creator Toolkit ideas. |
+| Styling / responsive layout | CODE UPDATED | Added responsive Creator Studio list, editor header, media/action controls and toolkit cards. |
+| Database schema / RLS | UNCHANGED | Existing `podcasts` and `podcast_episodes` columns and owner-scoped policies were inspected and reused; no DDL or policy modifications were made. |
+| JavaScript syntax | PASS | Full browser-module source parsed successfully after removing its top-level import declarations for syntax validation. |
+| Authenticated browser regression | NOT RUN | Requires signed-in creator account. Verify show edit, episode edit, upload small and >6 MB audio/video, premium upload, publish, delete, and ownership denial using separate test accounts. |
+
+### Creator Studio release notes
+- Editing an episode to another show is intentionally blocked in the UI to avoid accidental ownership/subscription reassignment; create a new episode under the destination show instead.
+- Replacing a media file updates the episode's media URL. The previous Storage object is not automatically deleted; storage cleanup should be a separate reviewed workflow to avoid deleting shared or still-referenced media.
+- Scheduled publication metadata can be saved, but automated publishing requires a trusted scheduled backend/cron worker and is not claimed as active here.
+- Creator Toolkit analytics, team roles, promotion assets and versioned backups are recommendations for future development, not implemented services.
