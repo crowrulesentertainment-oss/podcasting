@@ -644,3 +644,27 @@ input:focus,select:focus,textarea:focus{border-color:#e50914;outline:1px solid #
 .admin-play-reset-actions button:disabled{opacity:.6;cursor:wait}
 .admin-play-last-reset{margin:14px 0 0;color:var(--muted);font-size:12px}
 @media(max-width:620px){.admin-play-reset-grid{grid-template-columns:1fr}.admin-play-reset-actions{align-items:flex-start;flex-direction:column}}
+
+/* Awards administration workspace */
+.admin-awards-module{padding:clamp(18px,3vw,30px)}
+.admin-awards-head-actions,.admin-award-statuses,.admin-award-controls{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.admin-awards-head-actions{justify-content:flex-end}
+.admin-award-season{padding:22px 0;border-top:1px solid var(--line)}
+.admin-award-season-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.admin-award-season-head h3{margin:6px 0;font-size:24px}
+.admin-award-season-head p{margin:0;color:var(--muted)}
+.admin-award-statuses{justify-content:flex-end}
+.admin-award-controls{margin:18px 0 22px}
+.admin-award-add-grid{display:grid;grid-template-columns:minmax(260px,.85fr) minmax(300px,1.15fr);gap:18px}
+.admin-award-add-form,.admin-award-roster{padding:18px;border:1px solid var(--line);border-radius:14px;background:#0b0d13}
+.admin-award-add-form h4,.admin-award-roster h4,.admin-award-nominations h4{margin:0 0 14px;font-size:17px}
+.admin-award-add-form label{display:block;margin:10px 0 5px;color:var(--muted);font-size:12px}
+.admin-award-add-form input,.admin-award-add-form select,.admin-award-add-form textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:8px;background:#141720;color:var(--text)}
+.admin-award-add-form button{margin-top:14px}
+.admin-award-roster-list{display:grid;gap:8px}
+.admin-award-roster-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px;border:1px solid var(--line);border-radius:9px}
+.admin-award-roster-item small,.admin-award-reason{display:block;color:var(--muted);font-size:12px;margin-top:4px}
+.admin-award-nominations{margin-top:22px}
+.admin-award-nominations td{vertical-align:top}
+.admin-award-nominations .btn{padding:7px 10px;font-size:12px}
+@media(max-width:760px){.admin-award-add-grid{grid-template-columns:1fr}.admin-award-season-head{display:block}.admin-award-statuses{justify-content:flex-start;margin-top:12px}.admin-awards-head-actions{justify-content:flex-start}}
