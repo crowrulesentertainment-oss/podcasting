@@ -951,3 +951,36 @@ body[data-page="awards"] footer a[href*="creator.html"]{display:none!important}
 .account-badges .show-badge-grid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 .account-badges .show-badge-card{min-width:0}
 @media(max-width:600px){.account-badges .show-badge-grid{grid-template-columns:1fr}}
+
+
+/* Badge center administration upgrade */
+.badge-admin-module{display:grid;gap:22px}
+.badge-admin-module .admin-module-head{align-items:center}
+.badge-admin-module .admin-module-head p{max-width:760px}
+.badge-admin-stats>div{background:linear-gradient(145deg,rgba(185,139,59,.12),rgba(20,22,29,.96));border-color:rgba(190,151,80,.24)}
+.badge-award-form{display:grid;gap:14px}
+.badge-award-form .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.badge-award-form .form-grid label{margin:0}
+.badge-award-form>label{margin:0}
+.badge-award-form button[type=submit]{justify-self:start;min-width:180px}
+.badge-library-admin,.badge-issued-admin{padding:20px;border:1px solid var(--line,#292d38);border-radius:16px;background:rgba(12,14,19,.45)}
+.badge-library-admin>h4,.badge-issued-admin>h4{margin-bottom:16px}
+.badge-library-card{position:relative;min-width:0}
+.badge-library-card>div{min-width:0;flex:1}
+.badge-library-card p{overflow-wrap:anywhere}
+.badge-library-card small{display:block}
+.badge-definition-actions,.badge-row-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.badge-definition-actions button,.badge-row-actions button{font-size:12px;padding:7px 10px}
+.badge-toolbar{display:grid;grid-template-columns:minmax(220px,1fr) 180px 180px auto;gap:10px;align-items:center;margin:0 0 14px}
+.badge-toolbar input,.badge-toolbar select{min-width:0;width:100%;padding:10px 12px;border:1px solid var(--line,#343844);border-radius:9px;background:#0d0f14;color:inherit}
+.badge-toolbar .muted{white-space:nowrap}
+.badge-issued-admin [data-badge-row][hidden]{display:none}
+.badge-issued-admin td small{display:block;margin-top:4px;color:var(--muted,#a7aab4)}
+.badge-issued-admin .table-wrap{overflow-x:auto}
+.badge-issued-admin table{min-width:850px}
+.badge-library-card .badge-emblem{overflow:hidden}
+.badge-library-card .badge-emblem img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.badge-library-card .admin-status{display:inline-flex;margin-top:8px}
+.badge-admin-module [hidden]{display:none!important}
+@media(max-width:900px){.badge-toolbar{grid-template-columns:1fr 1fr}.badge-toolbar input{grid-column:1/-1}.badge-admin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){.badge-award-form .form-grid,.badge-toolbar{grid-template-columns:1fr}.badge-toolbar input{grid-column:auto}.badge-library-admin,.badge-issued-admin{padding:14px}.badge-definition-actions button,.badge-row-actions button{flex:1}.badge-row-actions{min-width:200px}}
