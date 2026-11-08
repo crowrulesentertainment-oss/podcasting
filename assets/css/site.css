@@ -1368,3 +1368,28 @@ body[data-page="admin"] .badge-console .table-wrap{max-width:100%;overflow-x:aut
 .player-close{align-self:center}
 @media(max-width:760px){.player{grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:9px 12px}.player-meta{grid-column:1;grid-row:1}.player-meta img{width:38px;height:38px}.player-stage{grid-column:1/-1;grid-row:2}.player-close{grid-column:2;grid-row:1}.player-stage>.cr-player-controls{padding:8px}.cr-player-main-controls{gap:6px}.cr-player-controls button{min-width:32px;min-height:32px;padding:5px}.cr-control-skip span{font-size:10px}.cr-volume-control{display:none}.episode-audio-player{align-items:stretch}.episode-audio-art{width:84px;height:84px;flex-basis:84px;margin:14px 14px 0}.episode-audio-controls{padding:14px}.episode-media-panel{padding:14px}}
 @media(max-width:390px){.cr-player-time{font-size:10px}.cr-control-skip{font-size:12px}.cr-player-controls .cr-control-play{width:36px;height:36px}.cr-player-main-controls{gap:4px}}
+
+
+/* Social network layer: member stats, friends, followers and discovery */
+.social-network-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;margin:0 0 20px;border:1px solid #ffffff18;border-radius:13px;overflow:hidden;background:#ffffff18}
+.social-network-stats>a{display:grid;gap:5px;padding:15px 12px;text-align:center;text-decoration:none;background:#111722;color:#fff}
+.social-network-stats>a:hover{background:#1b2432}
+.social-network-stats b{font-size:22px;color:#e6c27c;font-variant-numeric:tabular-nums}
+.social-network-stats span{font-size:10px;color:#aeb7c5;text-transform:uppercase;letter-spacing:.1em;font-weight:800}
+.social-friend-status{display:inline-flex;align-items:center;justify-content:center;padding:10px 13px;border:1px solid #ffffff20;border-radius:7px;color:#c6d7c9;font-size:11px;font-weight:800}
+.social-network-panel h3,.social-suggestions-panel h3{margin:5px 0 0}
+.social-mini-people,.social-suggestion-list{display:grid;gap:11px}
+.social-mini-person{display:flex;align-items:center;gap:10px;min-width:0;color:#f5f5f5;text-decoration:none}
+.social-mini-person:hover b{color:#e8c77f}
+.social-mini-avatar{width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;overflow:hidden;border-radius:50%;background:#29313e;color:#e6c27c;font-weight:900}
+.social-mini-avatar img{width:100%;height:100%;object-fit:cover}
+.social-mini-person>span:last-child{display:grid;gap:3px;min-width:0}
+.social-mini-person b{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.social-mini-person small{font-size:9px;color:#929cab}
+.social-suggestion-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.social-suggest-follow{width:32px;height:32px;flex:0 0 32px;border:1px solid #ffffff24;border-radius:50%;background:#e50914;color:#fff;font-size:18px;font-weight:800;cursor:pointer}
+.social-suggest-follow:disabled{opacity:.55}
+.social-directory-link{display:inline-flex;margin-top:16px;color:#e7c47d;font-size:11px;font-weight:800;text-decoration:none}
+.social-profile-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.social-profile-actions .btn{white-space:nowrap}
+@media(max-width:600px){.social-network-stats{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:4px}.social-network-stats>a{padding:12px 8px}.social-network-stats b{font-size:19px}.social-profile-actions{justify-content:flex-start}.social-profile-actions .btn{flex:1}.social-mini-avatar{width:38px;height:38px;flex-basis:38px}}
