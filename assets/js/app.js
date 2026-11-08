@@ -846,16 +846,10 @@ async function admin(){
     const reset=$("#adminLastPlayReset");if(reset)reset.textContent=metrics.last_reset?"Last reset: "+new Date(metrics.last_reset.reset_at).toLocaleString()+" · "+Number(metrics.last_reset.play_events_cleared||0).toLocaleString()+" play events cleared.":"No play-counter reset has been recorded.";
    };
    const refreshPlayMetrics=async()=>{const{data,error}=await sb.rpc("podcasting_admin_play_metrics");if(error){const status=$("#adminPlayRealtimeStatus");if(status)status.textContent="REFRESH ERROR";console.warn("Play metrics refresh failed:",error.message);return}renderPlayMetrics(data||{})};
-   let playRefreshTimer=null;const schedulePlayRefresh=()=>{clearTimeout(playRefreshTimer);playRefreshTimer=setTimeout(refreshPlayMetrics,350)};
-   const playChannel=sb.channel("crowrules-admin-play-metrics")
-    .on("postgres_changes",{event:"*",schema:"public",table:"podcast_play_events"},schedulePlayRefresh)
-    .on("postgres_changes",{event:"*",schema:"public",table:"podcast_episodes"},schedulePlayRefresh)
-    .on("postgres_changes",{event:"*",schema:"public",table:"podcasts"},schedulePlayRefresh)
-    .on("postgres_changes",{event:"*",schema:"public",table:"podcast_listens"},schedulePlayRefresh)
-    .subscribe(status=>{const label=$("#adminPlayRealtimeStatus");if(label)label.textContent=status==="SUBSCRIBED"?"LIVE":status==="CHANNEL_ERROR"||status==="TIMED_OUT"?"RECONNECTING":String(status).toUpperCase()});
+   const playStatus=$("#adminPlayRealtimeStatus");if(playStatus)playStatus.textContent="AUTO-REFRESH · 30 SEC";
    const playRefreshInterval=setInterval(refreshPlayMetrics,30000);
    document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshPlayMetrics()});
-   window.addEventListener("beforeunload",()=>{clearInterval(playRefreshInterval);clearTimeout(playRefreshTimer);sb.removeChannel(playChannel)});
+   window.addEventListener("beforeunload",()=>clearInterval(playRefreshInterval));
    $("#adminResetAllPlays").onclick=async()=>{
     if(!confirm("Reset ALL episode and podcast play counters to zero? This permanently clears raw play-event history. Listening-time records and follows remain unchanged."))return;
     const button=$("#adminResetAllPlays");button.disabled=true;button.textContent="Resetting…";
