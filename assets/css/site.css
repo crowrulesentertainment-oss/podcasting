@@ -999,3 +999,14 @@ body[data-page="awards"] footer a[href*="creator.html"]{display:none!important}
 .admin-status.status-warning{background:#382c13;color:#f2d18a}
 .platform-ops>h4{margin:24px 0 6px;font-size:14px}
 @media(max-width:600px){.platform-health-grid{grid-template-columns:1fr}.platform-ops>.section-head{align-items:flex-start;flex-direction:column}}
+
+/* Badge distribution layout refresh */
+.badge-admin-module .badge-admin-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+.badge-admin-module .badge-award-form{border-color:rgba(184,139,59,.38);background:linear-gradient(145deg,rgba(184,139,59,.08),rgba(12,14,19,.94))}
+.badge-admin-module .badge-award-form h4{font-size:19px}
+.badge-admin-module .badge-library-card .badge-emblem{flex:0 0 62px;width:62px;height:62px}
+.badge-admin-module .badge-library-card .badge-emblem img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.badge-admin-module .badge-library-card{align-items:center}
+.badge-admin-module .badge-library-card .badge-emblem{flex-shrink:0}
+@media(max-width:900px){.badge-admin-module .badge-admin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){.badge-admin-module .badge-admin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
