@@ -733,3 +733,47 @@ input:focus,select:focus,textarea:focus{border-color:#e50914;outline:1px solid #
 #studioLivePanel .studio-live-actions{padding:16px 0 6px}
 @media(min-width:1200px){#studioRecordPanel .studio-monitor{max-height:820px}#studioLivePanel .studio-participant-grid{grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}}
 @media(max-width:700px){#studioRecordPanel .studio-monitor{aspect-ratio:16/10;max-height:none}#studioRecordPanel .studio-control-panel{grid-template-columns:1fr;align-items:stretch}#studioRecordPanel .studio-control-panel>.actions{justify-content:stretch}#studioRecordPanel .studio-control-panel>.actions button{flex:1 1 130px}#studioLivePanel .studio-participant-grid{grid-template-columns:1fr}#studioLivePanel .studio-participant-tile,#studioLivePanel .studio-empty-tile{aspect-ratio:16/10}}
+
+
+/* Live Studio: larger, uncropped participant video */
+#studioLivePanel .studio-participant-grid{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,560px),1fr));
+  gap:18px;
+  align-items:start;
+}
+#studioLivePanel .studio-participant-tile,
+#studioLivePanel .studio-empty-tile{
+  width:100%;
+  min-width:0;
+  min-height:0;
+  aspect-ratio:16/9;
+  background:#030406;
+  border-radius:12px;
+}
+#studioLivePanel .studio-participant-video{
+  width:100%;
+  height:100%;
+  min-height:0;
+  aspect-ratio:16/9;
+  background:#030406;
+}
+#studioLivePanel .studio-participant-video video{
+  display:block;
+  width:100%;
+  height:100%;
+  min-height:0;
+  object-fit:contain;
+  object-position:center;
+  background:#030406;
+}
+#studioLivePanel .studio-participant-name{z-index:2}
+#studioLivePanel .studio-empty-tile{padding:24px;text-align:center}
+@media(min-width:1500px){
+  #studioLivePanel .studio-participant-grid{grid-template-columns:repeat(auto-fit,minmax(640px,1fr))}
+}
+@media(max-width:700px){
+  #studioLivePanel .studio-participant-grid{grid-template-columns:minmax(0,1fr)}
+  #studioLivePanel .studio-participant-tile,
+  #studioLivePanel .studio-empty-tile,
+  #studioLivePanel .studio-participant-video{aspect-ratio:16/9}
+}
