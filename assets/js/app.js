@@ -862,7 +862,7 @@ async function rankings(){
   {id:"rising",label:"Rising Shows",type:"rising",kind:"show",description:"Shows building momentum across the platform."},
   {id:"new",label:"New Releases",type:"new",kind:"episode",description:"The latest published episodes to discover."},
   {id:"followed",label:"Most Followed",type:"followed",kind:"show",description:"Shows building their listener communities."},
-  {id:"creators",label:"Top Creators",type:null,kind:"creator",description:"Creators whose published shows are reaching listeners."},
+  {id:"hosts",label:"Top Hosts",type:null,kind:"host",description:"Hosts ranked by the combined plays and reach of their published shows."},
   {id:"listeners",label:"Top Listeners",type:null,kind:"listener",description:"Listeners recognized for verified completed listening across published episodes."}
  ];
  let active="shows",period="weekly",catalog={shows:[],episodes:[],creators:[],follows:{},snapshots:{}},loading=false,rerenderRequested=false;
@@ -878,13 +878,13 @@ async function rankings(){
    sb.from("podcast_episodes").select("id,podcast_id,title,description,thumbnail_url,artwork_url,play_count,total_plays,published_at,created_at,duration_seconds").eq("status","published").order("published_at",{ascending:false}).limit(400),
    sb.from("creators").select("id,member_id,name,display_name,role,discipline,avatar_url,profile_url,is_active").eq("is_active",true).limit(150),
    sb.from("podcast_follows").select("podcast_id").limit(10000),
-   sb.from("member_roles").select("member_id").in("role",["Creator","Host"]).limit(10000)
+   sb.from("member_roles").select("member_id").eq("role","Host").limit(10000)
   ]);
   const failure=results.find((r,i)=>r.error&&(i<3||i===4));
   if(failure)throw failure.error;
   catalog.shows=results[0].data||[];catalog.episodes=results[1].data||[];
-  catalog.creatorMemberIds=new Set((results[4].data||[]).map(row=>row.member_id).filter(Boolean));
-  catalog.creators=(results[2].data||[]).filter(item=>item.member_id&&catalog.creatorMemberIds.has(item.member_id));
+  catalog.hostMemberIds=new Set((results[4].data||[]).map(row=>row.member_id).filter(Boolean));
+  catalog.creators=(results[2].data||[]).filter(item=>item.member_id&&catalog.hostMemberIds.has(item.member_id));
   catalog.follows={};for(const row of results[3].data||[])catalog.follows[row.podcast_id]=(catalog.follows[row.podcast_id]||0)+1;
   catalog.followsAvailable=!results[3].error;
  };
@@ -918,13 +918,13 @@ async function rankings(){
    return catalog.shows.map(item=>({kind:"show",item,followers:catalog.follows[item.id]||0,plays:item.total_plays,source:"catalog"})).sort((a,b)=>Number(b.followers||0)-Number(a.followers||0));
   }
   if(category.id==="listeners"){
-   const{data,error}=await sb.rpc("get_public_podcast_listener_leaderboard");
+   const{data,error}=await sb.rpc("get_public_podcast_listener_play_leaderboard");
    if(error)throw error;
-   return(data||[]).map(item=>({kind:"listener",item:{...item,id:item.user_id,title:item.display_name,avatar_url:item.avatar_url,description:item.username?"@"+item.username:"CrowRules listener"},completedEpisodes:Number(item.completed_episodes||0),badges:Number(item.badge_count||0),source:"verified"}));
+   return(data||[]).map(item=>({kind:"listener",item:{...item,id:item.user_id,title:item.display_name,avatar_url:item.avatar_url,description:item.username?"@"+item.username:"CrowRules listener"},qualifiedPlays:Number(item.qualified_plays||0),uniqueEpisodes:Number(item.unique_episodes||0),badges:Number(item.badge_count||0),source:"qualified-play"}));
   }
-  if(category.id==="creators"){
+  if(category.id==="hosts"){
    const totals=new Map();for(const show of catalog.shows){if(!show.creator_id)continue;const current=totals.get(show.creator_id)||{plays:0,shows:0};current.plays+=Number(show.total_plays||0);current.shows++;totals.set(show.creator_id,current)}
-   return catalog.creators.map(item=>({kind:"creator",item,plays:totals.get(item.id)?.plays||0,shows:totals.get(item.id)?.shows||0,source:"member-role"})).sort((a,b)=>Number(b.plays||0)-Number(a.plays||0));
+   return catalog.creators.map(item=>({kind:"host",item,plays:totals.get(item.id)?.plays||0,shows:totals.get(item.id)?.shows||0,source:"host-role"})).sort((a,b)=>Number(b.plays||0)-Number(a.plays||0));
   }
   return[];
  };
@@ -941,21 +941,21 @@ async function rankings(){
    $("#rankingDataNote").textContent=category.id==="listeners"?"Verified completed listening · all time":snapshot?periodSelect.options[periodSelect.selectedIndex].text+" · calculated chart":"Live catalog · cumulative metrics";
    const top=rows[0];
    if(top){
-    const item=top.item,title=top.kind==="category"?item.title:category.id==="creators"||category.id==="listeners"?(item.display_name||item.name||"Listener"):item.title||"Untitled";
+    const item=top.item,title=top.kind==="category"?item.title:category.id==="hosts"||category.id==="listeners"?(item.display_name||item.name||"Listener"):item.title||"Untitled";
     const image=safeUrl(imageFor(item))||art;
     const href=top.kind==="category"?"discover.html?category="+encodeURIComponent(item.category):top.kind==="episode"?"episode.html?id="+encodeURIComponent(item.id):top.kind==="show"?"show.html?id="+encodeURIComponent(item.id):top.kind==="listener"?"listener.html":safeUrl(item.profile_url)||"creator.html";
     $("#rankingsHeroBackdrop").style.backgroundImage='linear-gradient(90deg,rgba(4,5,8,.97) 0%,rgba(4,5,8,.8) 42%,rgba(4,5,8,.22) 100%),linear-gradient(0deg,#08090c 0%,transparent 55%),url("'+image.replace(/"/g,"%22")+'")';
-    featured.innerHTML='<div class="rankings-featured-art"><img src="'+esc(image)+'" alt="" loading="lazy"></div><div class="rankings-featured-copy"><span class="eyebrow">#1 · CURRENT CHART LEADER</span><div class="rankings-featured-kicker">'+esc(category.label.toUpperCase())+'</div><h3>'+esc(title)+'</h3><p>'+esc(item.description||item.category||item.discipline||(top.kind==="listener"?"Recognized for verified completed listening.":"Discover this featured CrowRules voice."))+'</p><div class="rankings-featured-stats">'+(top.kind==="listener"?'<span><b>'+number(top.completedEpisodes)+'</b><small>COMPLETED EPISODES</small></span><span><b>'+number(top.badges)+'</b><small>BADGES EARNED</small></span>':'<span><b>'+number(top.plays||0)+'</b><small>PLAYS</small></span>'+(top.followers!==undefined?'<span><b>'+number(top.followers)+'</b><small>FOLLOWERS</small></span>':top.shows!==undefined?'<span><b>'+number(top.shows)+'</b><small>SHOWS</small></span>':''))+'</div><a class="btn" href="'+href+'">'+(top.kind==="category"?"Explore category":top.kind==="episode"?"Listen / Watch":top.kind==="creator"?"Creator profile":top.kind==="listener"?"Explore listener community":"Explore show")+'</a></div>';
+    featured.innerHTML='<div class="rankings-featured-art"><img src="'+esc(image)+'" alt="" loading="lazy"></div><div class="rankings-featured-copy"><span class="eyebrow">#1 · CURRENT CHART LEADER</span><div class="rankings-featured-kicker">'+esc(category.label.toUpperCase())+'</div><h3>'+esc(title)+'</h3><p>'+esc(item.description||item.category||item.discipline||(top.kind==="listener"?"Recognized for verified listening activity.":"Discover this featured CrowRules voice."))+'</p><div class="rankings-featured-stats">'+(top.kind==="listener"?'<span><b>'+number(top.qualifiedPlays)+'</b><small>QUALIFIED PLAYS</small></span><span><b>'+number(top.uniqueEpisodes)+'</b><small>UNIQUE EPISODES</small></span>':'<span><b>'+number(top.plays||0)+'</b><small>PLAYS</small></span>'+(top.followers!==undefined?'<span><b>'+number(top.followers)+'</b><small>FOLLOWERS</small></span>':top.shows!==undefined?'<span><b>'+number(top.shows)+'</b><small>SHOWS</small></span>':''))+'</div><a class="btn" href="'+href+'">'+(top.kind==="category"?"Explore category":top.kind==="episode"?"Listen / Watch":top.kind==="host"?"Creator profile":top.kind==="listener"?"Explore listener community":"Explore show")+'</a></div>';
    }else{featured.innerHTML='<div class="rankings-featured-empty"><span class="eyebrow">THE CHARTS ARE JUST GETTING STARTED</span><h3>No chart leader yet.</h3><p>As more shows publish episodes and listeners join in, this space will spotlight the leaders.</p><a class="btn secondary" href="'+SITE_BASE+'discover.html">Discover shows</a></div>'}
    if(!rows.length){
     const note=active==="followed"&&!catalog.followsAvailable?"Follower totals are not publicly readable yet.":active==="listeners"?"No eligible verified listening completions are available yet.":"There are no published entries in this category yet.";
     list.innerHTML='<div class="rankings-empty"><b>'+esc(note)+'</b><span>Check back as the CrowRules Podcasting community grows.</span></div>';
    }else{
     list.innerHTML=rows.map((row,index)=>{
-     const item=row.item,title=row.kind==="category"?item.title:row.kind==="creator"||row.kind==="listener"?(item.display_name||item.name||"Listener"):item.title||"Untitled";
+     const item=row.item,title=row.kind==="category"?item.title:row.kind==="host"||row.kind==="listener"?(item.display_name||item.name||"Listener"):item.title||"Untitled";
      const href=row.kind==="category"?"discover.html?category="+encodeURIComponent(item.category):row.kind==="episode"?"episode.html?id="+encodeURIComponent(item.id):row.kind==="show"?"show.html?id="+encodeURIComponent(item.id):row.kind==="listener"?"listener.html":safeUrl(item.profile_url)||"creator.html";
-     const image=safeUrl(imageFor(item))||art,metric=row.kind==="category"?number(row.plays)+" plays · "+number(row.shows)+" shows":row.kind==="listener"?number(row.completedEpisodes)+" completed episodes · "+number(row.badges)+" badges":row.kind==="creator"?number(row.plays)+" plays · "+number(row.shows)+" shows":row.kind==="episode"?number(row.plays)+" plays":active==="followed"?number(row.followers)+" followers":active==="rising"?number(Math.round(row.score||0))+" estimated plays/day":number(row.plays||0)+" plays";
-     const sub=row.kind==="category"?"PODCAST CATEGORY":row.kind==="listener"?(item.username?"@"+item.username:"CrowRules listener"):row.kind==="creator"?(item.discipline||item.role||"Creator"):row.kind==="episode"?(catalog.shows.find(s=>s.id===item.podcast_id)?.title||"CrowRules episode"):(item.category||"Podcast show");
+     const image=safeUrl(imageFor(item))||art,metric=row.kind==="category"?number(row.plays)+" plays · "+number(row.shows)+" shows":row.kind==="listener"?number(row.qualifiedPlays)+" qualified plays · "+number(row.uniqueEpisodes)+" episodes":row.kind==="host"?number(row.plays)+" plays · "+number(row.shows)+" shows":row.kind==="episode"?number(row.plays)+" plays":active==="followed"?number(row.followers)+" followers":active==="rising"?number(Math.round(row.score||0))+" estimated plays/day":number(row.plays||0)+" plays";
+     const sub=row.kind==="category"?"PODCAST CATEGORY":row.kind==="listener"?(item.username?"@"+item.username:"CrowRules listener"):row.kind==="host"?(item.discipline||"Host"):row.kind==="episode"?(catalog.shows.find(s=>s.id===item.podcast_id)?.title||"CrowRules episode"):(item.category||"Podcast show");
      return'<a class="ranking-tile" href="'+href+'"><div class="ranking-tile-art"><img src="'+esc(image)+'" alt="" loading="lazy"><span class="ranking-tile-number">'+String(index+1).padStart(2,"0")+'</span><span class="ranking-tile-play">↗</span></div><div class="ranking-tile-copy"><span class="ranking-tile-category">'+esc(sub)+'</span><b>'+esc(title)+'</b><small>'+esc(metric)+'</small></div></a>';
     }).join("");
    }
