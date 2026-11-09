@@ -730,7 +730,7 @@ async function episode(){
     else cards+=rankCard("HOST STANDING",0,"Connect a host profile to appear in host rankings.","creator.html","");
     if(showRanks.length)showRanks.forEach(row=>cards+=rankCard("SHOW · "+(row.podcast_title||"YOUR SHOW"),row.ranking,"Your published show","show.html?id="+encodeURIComponent(row.podcast_id),Number(row.listens||0).toLocaleString()+" listens"));
     else cards+=rankCard("SHOW STANDING",0,owned.length?"Your shows are not ranked in this period yet.":"Publish a show to start building your chart position.","creator.html","");
-    cards+=rankCard("LISTENER STANDING",listenerRank?.rank||0,"Based on qualified listening completions. "+(period==="all_time"?"All-time listener chart.":"Listener standings currently use the all-time qualified-play chart."),"rankings.html",listenerRank?listenerRank.plays.toLocaleString()+" qualified plays · "+listenerRank.episodes+" episodes":"No qualified plays yet");
+    cards+=rankCard("LISTENER STANDING",listenerRank?.rank||0,listenerRank?"Based on qualified listening completions. All-time listener chart.":"The public listener chart currently displays its Top 10. Keep listening to build your position.","rankings.html",listenerRank?listenerRank.plays.toLocaleString()+" qualified plays · "+listenerRank.episodes+" episodes":"Outside the published Top 10 or not yet eligible");
     summary.innerHTML=cards;
     const historyIds=[...new Set([...showIds,...(creator?.id?[creator.id]:[]),u.id])];
     if(historyIds.length){
