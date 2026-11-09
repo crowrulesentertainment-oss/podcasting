@@ -1540,3 +1540,38 @@ body[data-page="admin"] .badge-console .table-wrap{max-width:100%;overflow-x:aut
 @media(max-width:900px){.social-profile-layout{grid-template-columns:minmax(0,1fr) 270px}.social-profile-identity{grid-template-columns:120px minmax(0,1fr);align-items:center}.social-avatar-wrap,.social-large-avatar{width:120px;height:120px;flex-basis:120px}.social-identity-copy{padding:28px 0 0}.social-profile-actions{grid-column:2;justify-content:flex-start;padding:0 0 8px}}
 @media(max-width:700px){.social-profile-cover{aspect-ratio:16/7;min-height:170px}.social-cover-image{max-height:300px!important}.social-profile-shell{padding-left:13px;padding-right:13px}.social-profile-identity{grid-template-columns:82px minmax(0,1fr);gap:12px;margin-top:-36px;padding:0 13px 15px}.social-avatar-wrap,.social-large-avatar{width:82px;height:82px;flex-basis:82px}.social-large-avatar{font-size:30px;border-width:4px}.social-avatar-upload{width:27px;height:27px;font-size:17px}.social-identity-copy{padding:26px 0 0}.social-identity-copy h1{font-size:24px}.social-identity-copy p{font-size:10px}.social-profile-actions{grid-column:1/-1;padding:0;justify-content:stretch}.social-profile-actions .btn{flex:1;min-width:0}.social-network-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.social-network-stats>a{min-height:57px;padding:9px 11px}.social-network-stats b{font-size:20px}.social-network-stats span{font-size:9px}.social-profile-nav{top:0;gap:2px;padding:7px}.social-profile-nav a{padding:10px;font-size:9px}.social-profile-layout{grid-template-columns:1fr;gap:13px}.social-profile-aside{grid-template-columns:1fr}.social-panel{padding:16px}.social-panel h2{font-size:19px}.social-post-card{padding:13px}.social-post-actions{gap:12px}.social-post-body{font-size:12px}.social-album-grid{grid-template-columns:1fr}.social-cover-label{padding:15px}.social-cover-mark{font-size:8px}.social-cover-upload{font-size:9px;padding:7px 10px}}
 @media(prefers-reduced-motion:reduce){.social-network-stats>a,.social-album-card{transition:none}}
+
+
+/* Phase 1.3 — Member ranking profiles */
+.member-rankings-panel{display:grid;gap:25px}
+.member-ranking-period-label{display:grid;gap:7px;color:var(--muted,#aaa);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.member-ranking-period-label select{min-width:145px;padding:11px 13px;border:1px solid var(--line,#333);border-radius:9px;background:#11151c;color:var(--text,#fff);font:inherit;letter-spacing:normal;text-transform:none}
+.member-ranking-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:13px}
+.member-rank-card{min-width:0;padding:19px;border:1px solid #ffffff16;border-radius:15px;background:linear-gradient(145deg,#191a20,#0e1015);box-shadow:0 12px 35px #0003}
+.member-rank-card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.member-rank-card-top .eyebrow{font-size:9px;letter-spacing:.13em;color:#c9a96b}
+.member-rank-card-top strong{font-size:30px;line-height:1;color:#f1d49b}
+.member-rank-card>p{min-height:38px;margin:15px 0;color:#c5c5ca;font-size:12px;line-height:1.55}
+.member-rank-progress{height:7px;overflow:hidden;border-radius:20px;background:#ffffff12}
+.member-rank-progress span{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#9f2632,#e0b96e)}
+.member-rank-card-foot{display:flex;justify-content:space-between;gap:8px;margin-top:10px;color:#9d9da5;font-size:10px}
+.member-rank-card-foot small:last-child{text-align:right}
+.member-rank-top10{color:#f0cf86;letter-spacing:.08em}
+.member-rank-card>a{display:inline-block;margin-top:13px;color:#e4c47e;font-size:11px;font-weight:800}
+.member-ranking-history,.member-ranking-awards{padding:20px;border:1px solid #ffffff14;border-radius:15px;background:#101217}
+.member-ranking-history .account-section-head,.member-ranking-awards .account-section-head{margin-bottom:15px}
+.member-ranking-history .account-section-head h3,.member-ranking-awards .account-section-head h3{margin:4px 0;font-size:21px}
+.member-ranking-history-table{display:grid;gap:0}
+.member-ranking-history-head,.member-ranking-history-row{display:grid;grid-template-columns:1.1fr .7fr .7fr 1fr;gap:10px;align-items:center;padding:12px 8px;border-bottom:1px solid #ffffff12}
+.member-ranking-history-head{color:#9f9fa7;font-size:9px;font-weight:900;letter-spacing:.1em}
+.member-ranking-history-row{font-size:12px;color:#d8d8dc}
+.member-ranking-history-row b{color:#f0d18e;font-size:15px}
+.member-ranking-history-row time{color:#9999a1;font-size:10px}
+.member-ranking-badge-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:11px}
+.member-ranking-badge{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #ffffff14;border-radius:11px;background:#ffffff06}
+.member-ranking-badge img,.member-ranking-badge>span{width:48px;height:48px;flex:0 0 48px;object-fit:contain;border-radius:9px}
+.member-ranking-badge>span{display:grid;place-items:center;background:#ffffff0b;font-size:25px}
+.member-ranking-badge div{display:grid;gap:4px;min-width:0}
+.member-ranking-badge b{font-size:12px}
+.member-ranking-badge small{color:#a9a9b0;font-size:10px}
+@media(max-width:650px){.member-ranking-history,.member-ranking-awards{padding:14px}.member-ranking-history-head,.member-ranking-history-row{grid-template-columns:1fr .65fr .65fr;gap:6px}.member-ranking-history-head span:last-child,.member-ranking-history-row time{display:none}.member-ranking-period-label{width:100%}.member-ranking-period-label select{width:100%}}
