@@ -860,7 +860,6 @@ async function rankings(){
   {id:"topcategories",label:"Top Categories",type:null,kind:"category",description:"The podcast categories attracting the most plays and building the biggest communities."},
   {id:"episodes",label:"Top Episodes",type:"episodes",kind:"episode",description:"Episodes listeners are spending time with."},
   {id:"rising",label:"Rising Shows",type:"rising",kind:"show",description:"Shows building momentum across the platform."},
-  {id:"new",label:"New Releases",type:"new",kind:"episode",description:"The latest published episodes to discover."},
   {id:"followed",label:"Most Followed",type:"followed",kind:"show",description:"Shows building their listener communities."},
   {id:"hosts",label:"Top Hosts",type:null,kind:"host",description:"Hosts ranked by the combined plays and reach of their published shows."},
   {id:"listeners",label:"Top Listeners",type:null,kind:"listener",description:"Listeners ranked by qualified plays on published episodes."}
