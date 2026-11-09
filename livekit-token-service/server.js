@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
-import { AccessToken } from "livekit-server-sdk";
+import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
 
 const PORT = Number(process.env.PORT || 10000);
 const SUPABASE_URL = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
@@ -15,6 +15,10 @@ const allowedOrigins = new Set(
 const rateBuckets = new Map();
 const MAX_BODY = 16 * 1024;
 const TOKEN_TTL_SECONDS = 10 * 60;
+const MAX_ROOM_PARTICIPANTS = 10;
+const roomService = LIVEKIT_URL && LIVEKIT_API_KEY && LIVEKIT_API_SECRET
+  ? new RoomServiceClient(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET)
+  : null;
 
 function send(res, status, payload, origin) {
   res.writeHead(status, {
@@ -87,6 +91,7 @@ const server = createServer(async (req, res) => {
     return send(res, 200, {
       ok: true,
       service: "crowrules-livekit-token-service",
+      maxRoomParticipants: MAX_ROOM_PARTICIPANTS,
       configured: {
         supabase: Boolean(SUPABASE_URL && SUPABASE_KEY),
         livekit: Boolean(LIVEKIT_URL && LIVEKIT_API_KEY && LIVEKIT_API_SECRET)
@@ -117,6 +122,23 @@ const server = createServer(async (req, res) => {
     if (!["listener", "guest", "creator"].includes(role)) {
       return send(res, 400, { error: "Role must be listener, guest or creator.", requestId }, corsOrigin);
     }
+
+    // Create the room before issuing a join token so LiveKit itself enforces
+    // the hard participant ceiling, including simultaneous join attempts.
+    await roomService.createRoom({
+      name: room,
+      maxParticipants: MAX_ROOM_PARTICIPANTS
+    });
+    const currentParticipants = await roomService.listParticipants(room);
+    if (currentParticipants.length >= MAX_ROOM_PARTICIPANTS) {
+      return send(res, 409, {
+        error: "This recording room is full. CrowRules Studio allows up to 10 people, including the host.",
+        maxParticipants: MAX_ROOM_PARTICIPANTS,
+        participantCount: currentParticipants.length,
+        requestId
+      }, corsOrigin);
+    }
+
     const token = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
       identity: String(user.id),
       name: displayName,
