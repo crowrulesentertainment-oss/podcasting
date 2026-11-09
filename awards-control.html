@@ -1,1 +1,67 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#08090c"><title>Awards Live Control Room | CrowRules Podcasting"><link rel="stylesheet" href="assets/css/awards-live.css?v=20261109-live-polls-v2"></head><body class="control-page"><header class="control-header"><a href="awards-live.html">← BACK TO AWARDS LIVE</a><a href="admin.html?tab=awards">MAIN ADMIN CENTER ↗</a></header><main class="control-main"><div class="control-title"><div><p class="eyebrow">PRODUCER & AWARDS ADMINISTRATION</p><h1>LIVE POLL <em>CONTROL.</em></h1><p>Prepare audience questions, launch them during the ceremony, close voting and reveal results on the public show page.</p></div><a class="outline-button" href="awards-live.html#ceremonyPolls">VIEW PUBLIC POLLS ↗</a></div><div id="controlMessage" class="control-status">Verifying administrator access…</div><div id="controlApp"></div></main><script type="module" src="assets/js/awards-live-control.js?v=20261109-live-polls-v2"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#08090c">
+  <title>Awards Live Poll Control Room | CrowRules Podcasting</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2308090c'/%3E%3Cpath d='M32 8 39 25 57 32 39 39 32 56 25 39 7 32 25 25Z' fill='%23d6b36b'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/awards-live.css?v=20261109-live-polls-v3">
+  <style>
+    body.control-page{min-height:100vh;background:#08090c;color:#f7f5ef}
+    .control-title,.control-header,.control-main{visibility:visible;opacity:1}
+    .control-boot{padding:14px 16px;margin:14px 0;background:#111318;border:1px solid #383941;color:#c7c5bf;font:12px/1.6 system-ui,sans-serif}
+    .control-boot.error{border-color:#a94b4b;color:#ffaaaa}
+  </style>
+</head>
+<body class="control-page">
+  <header class="control-header">
+    <a href="awards-live.html">← BACK TO AWARDS LIVE</a>
+    <a href="admin.html?tab=awards">MAIN ADMIN CENTER ↗</a>
+  </header>
+  <main class="control-main">
+    <div class="control-title">
+      <div>
+        <p class="eyebrow">PRODUCER &amp; AWARDS ADMINISTRATION</p>
+        <h1>LIVE POLL <em>CONTROL.</em></h1>
+        <p>Prepare audience questions, launch them during the ceremony, close voting and reveal results on the public show page.</p>
+      </div>
+      <a class="outline-button" href="awards-live.html#ceremonyPolls">VIEW PUBLIC POLLS ↗</a>
+    </div>
+    <div id="controlMessage" class="control-status" role="status" aria-live="polite">Starting the live poll control room…</div>
+    <div id="controlApp">
+      <section class="control-panel">
+        <h2>Loading poll management</h2>
+        <p class="control-help">The control room is connecting to CrowRules Podcasting. If this message remains, the connection error will appear above.</p>
+      </section>
+    </div>
+  </main>
+  <script type="module">
+    try {
+      await import("./assets/js/awards-live-control.js?v=20261109-live-polls-v3");
+    } catch (error) {
+      const message = document.getElementById("controlMessage");
+      const app = document.getElementById("controlApp");
+      const detail = error && (error.stack || error.message) ? (error.stack || error.message) : String(error);
+      if (message) {
+        message.className = "control-boot error";
+        message.textContent = "The poll control script could not start: " + detail;
+      }
+      if (app) {
+        const panel = document.createElement("section");
+        panel.className = "control-access";
+        const heading = document.createElement("h2");
+        heading.textContent = "Control room startup error";
+        const paragraph = document.createElement("p");
+        paragraph.textContent = detail;
+        const link = document.createElement("a");
+        link.className = "gold-button";
+        link.href = "awards-live.html";
+        link.textContent = "RETURN TO AWARDS LIVE";
+        panel.append(heading, paragraph, link);
+        app.replaceChildren(panel);
+      }
+    }
+  </script>
+</body>
+</html>
