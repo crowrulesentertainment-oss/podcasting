@@ -904,7 +904,7 @@ async function rankings(){
   {id:"breakout",label:"Breakout Episodes",type:null,kind:"episode",description:"Episodes gaining the strongest daily listening momentum."},
   {id:"consistent",label:"Consistency Champions",type:null,kind:"show",description:"Shows building a steady publishing rhythm with recent episodes."},
   {id:"rising",label:"Rising Shows",type:"rising",kind:"show",description:"Shows building momentum across the platform."},
-  {id:"followed",label:"Most Followed Shows",type:"followed",kind:"show",description:"Shows building their listener communities."}
+  {id:"followed",label:"Most Followed Shows",type:"followed",kind:"show",description:"Shows building their listener communities.",
   {id:"hosts",label:"Top Hosts",type:null,kind:"host",description:"Hosts ranked by the combined plays and reach of their published shows."},
   {id:"listeners",label:"Top Listeners",type:null,kind:"listener",description:"Listeners ranked by qualified plays on published episodes."}
  ];
