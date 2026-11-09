@@ -56,7 +56,7 @@ declare
 begin
   if v_user is null then raise exception 'Sign in to view your referral dashboard.'; end if;
   insert into public.podcast_referral_profiles(user_id, referral_code)
-  values (v_user, 'CR' || upper(substr(encode(digest(v_user::text, 'sha256'), 'hex'), 1, 8)))
+  values (v_user, 'CR' || upper(substr(md5(v_user::text), 1, 8)))
   on conflict (user_id) do nothing;
   select referral_code into v_code
   from public.podcast_referral_profiles where user_id=v_user;
