@@ -119,7 +119,7 @@ async function recordDailyVisitor(){
   try{localStorage.setItem(marker,visitorKey)}catch{}
  }catch(error){console.warn("Daily visitor analytics could not be recorded:",error?.message||error)}
 }
-async function syncLivePresence(user){
+async async function syncLivePresence(user){
  try{
   if(arguments.length===0){const result=await sb.auth.getUser();user=result.data?.user||null}
   livePresenceUserId=user?.id||null;
