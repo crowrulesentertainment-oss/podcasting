@@ -1592,3 +1592,21 @@ body[data-page="admin"] .badge-console .table-wrap{max-width:100%;overflow-x:aut
 .home-badge-showcase{padding-top:24px;padding-bottom:24px;border-top:1px solid #ffffff12;border-bottom:1px solid #ffffff12}
 @media(max-width:1050px){.home-featured-badges{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.home-featured-badges{grid-template-columns:1fr}.home-featured-badge{padding:12px}.home-featured-badge-art,.home-featured-badge-art .profile-badge-emblem{width:68px;height:68px;flex-basis:68px}}
+
+/* Public profile community recognition and badge emblems */
+.community-recognition-section{padding-top:clamp(30px,5vw,58px);padding-bottom:clamp(42px,6vw,72px)}
+.community-recognition-heading{max-width:760px;margin:0 auto 26px;text-align:center}
+.community-recognition-heading h2{margin:8px 0 10px;font-size:clamp(1.8rem,4vw,2.6rem);font-weight:900;letter-spacing:-.035em}
+.community-recognition-heading p{color:var(--muted,#a7aab4);line-height:1.65}
+.community-recognition-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.community-recognition-card{display:flex;align-items:center;gap:16px;min-width:0;padding:18px;border:1px solid rgba(207,166,91,.3);border-radius:16px;background:linear-gradient(145deg,#1b1a1b,#0b0d12);box-shadow:0 14px 36px #0004}
+.community-recognition-art{display:grid;place-items:center;flex:0 0 100px;width:100px;height:100px}
+.community-recognition-art .profile-badge-emblem{display:block;width:100px;height:100px;object-fit:contain;filter:drop-shadow(0 6px 10px #0009)}
+.community-recognition-copy{min-width:0}
+.community-recognition-copy b{display:block;color:#f2d18e;font-size:1rem;line-height:1.35}
+.community-recognition-copy small{display:block;margin-top:5px;color:#b6a17a;font-size:.7rem;letter-spacing:.07em;text-transform:uppercase}
+.community-recognition-copy p{margin:8px 0 0;color:#b8bbc4;font-size:.85rem;line-height:1.5}
+.community-profile-tags{padding-top:0}
+.community-profile-chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.community-profile-chips span{padding:7px 11px;border:1px solid #c9a15b55;border-radius:99px;color:#e6d1a5;background:#c9a15b12;font-size:.8rem}
+@media(max-width:560px){.community-recognition-grid{grid-template-columns:1fr}.community-recognition-card{gap:12px;padding:13px}.community-recognition-art,.community-recognition-art .profile-badge-emblem{width:82px;height:82px;flex-basis:82px}}
