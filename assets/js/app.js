@@ -1388,7 +1388,46 @@ async function admin(){
   await runPlatformHealth();
  }catch(e){fail(e)}
 }
-async function subs(){let u=await me();if(!u)return go("login.html");$("#app").innerHTML='<section class="page-hero"><div class="container"><div class="eyebrow">Account</div><h1 class="page-title">Your memberships</h1><p>Manage show subscriptions and your CrowRules platform membership.</p></div></section><section class="section container"><div class="panel"><div class="section-head"><h3>Podcast show subscriptions</h3><button id="showPortal" class="secondary">Manage show billing</button></div><div id="subscriptionRows" class="loading">Loading your subscriptions…</div></div><div class="panel"><h3>CrowRules platform membership</h3><p class="muted">Your platform membership is separate from individual show subscriptions.</p><button id="platformPortal">Manage platform billing</button></div></section>';try{let d=await fn(FUNCTIONS.subscriptionCenter,{origin:location.origin+SITE_BASE}),rows=d.subscriptions||[],ids=[...new Set(rows.map(x=>x.podcast_id).filter(Boolean))],{data:ps}=ids.length?await sb.from("podcasts").select("id,title").in("id",ids):{data:[]};$("#subscriptionRows").innerHTML=rows.length?'<div class="table-wrap"><table><thead><tr><th>Show</th><th>Status</th><th>Amount</th><th>Renewal / end</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(ps?.find(p=>p.id===x.podcast_id)?.title||"Podcast membership")+'</td><td>'+esc(x.status)+(x.cancel_at_period_end?" · Cancels at period end":"")+'</td><td>'+Number(x.amount_cents||0)/100+' '+esc((x.currency||"USD").toUpperCase())+'</td><td>'+(x.current_period_end?new Date(x.current_period_end).toLocaleDateString():"—")+'</td></tr>').join("")+'</tbody></table></div>':'<div class="empty">You do not have any podcast show subscriptions yet.</div>';$("#showPortal").disabled=!d.portal_url;$("#showPortal").onclick=()=>{if(d.portal_url)location.href=d.portal_url}}catch(e){$("#subscriptionRows").innerHTML='<div class="notice">'+esc(e.message)+'</div>'}$("#platformPortal").onclick=async()=>{try{let d=await fn(FUNCTIONS.billingPortal,{});if(d.url)location.href=d.url}catch(e){toast(e.message)}}}async function badges(){
+async function subs(){
+ let u=await me();if(!u)return go("login.html");
+ $("#app").innerHTML='<section class="page-hero"><div class="container"><div class="eyebrow">Your listening account</div><h1 class="page-title">Show subscriptions</h1><p>Every show you support, together in one place. New memberships are added automatically when your subscription is confirmed.</p></div></section><section class="section container"><div class="panel"><div class="section-head"><div><span class="eyebrow">YOUR SHOWS</span><h3>Podcast memberships</h3><p class="muted">Your paid memberships to individual CrowRules shows.</p></div><div class="actions"><span id="subscriptionLiveStatus" class="badge">SYNCING</span><button id="refreshShowSubs" class="secondary">↻ Refresh</button><button id="showPortal" class="secondary">Manage show billing</button></div></div><div id="subscriptionRows" class="loading">Loading your show subscriptions…</div><p id="subscriptionUpdatedAt" class="muted" aria-live="polite"></p></div><div class="panel"><h3>CrowRules platform membership</h3><p class="muted">Your platform membership is separate from individual show subscriptions.</p><button id="platformPortal">Manage platform billing</button></div></section>';
+ const rowsEl=$("#subscriptionRows"),refreshButton=$("#refreshShowSubs"),liveBadge=$("#subscriptionLiveStatus"),updatedEl=$("#subscriptionUpdatedAt"),portalButton=$("#showPortal");
+ let loading=false;
+ const money=x=>{const cents=Number(x.amount_cents||0);return new Intl.NumberFormat(undefined,{style:"currency",currency:String(x.currency||"USD").toUpperCase()}).format(cents/100)};
+ const statusLabel=x=>{const status=String(x.status||"unknown").replace(/_/g," ");return status+(x.cancel_at_period_end?" · Cancels at period end":"")};
+ const dateLabel=x=>x.current_period_end?new Date(x.current_period_end).toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"}):"—";
+ const renderRows=async()=>{
+  if(loading)return;loading=true;refreshButton.disabled=true;liveBadge.textContent="SYNCING";
+  try{
+   const d=await fn(FUNCTIONS.subscriptionCenter,{origin:location.origin+SITE_BASE});
+   const rows=d.subscriptions||[];
+   const ids=[...new Set(rows.map(x=>x.podcast_id).filter(Boolean))];
+   const{data:shows,error:showError}=ids.length?await sb.from("podcasts").select("id,title,slug,artwork_url,description").in("id",ids):{data:[],error:null};
+   if(showError)throw showError;
+   const showMap=new Map((shows||[]).map(x=>[x.id,x]));
+   rowsEl.innerHTML=rows.length?'<div class="table-wrap"><table><thead><tr><th>Show</th><th>Membership</th><th>Status</th><th>Amount</th><th>Next renewal / end</th></tr></thead><tbody>'+rows.map(x=>{
+    const show=showMap.get(x.podcast_id),title=show?.title||x.show_title||"Show membership";
+    const artwork=show?.artwork_url?'<img src="'+esc(show.artwork_url)+'" alt="" loading="lazy" style="width:54px;height:54px;object-fit:cover;border-radius:10px;vertical-align:middle;margin-right:12px">':'';
+    const plan=x.plan_name||x.product_name||x.membership_name||x.name||"Show membership";
+    return '<tr><td><div style="display:flex;align-items:center;min-width:180px">'+artwork+'<span><b>'+esc(title)+'</b>'+(show?.description?'<small>'+esc(show.description.slice(0,100))+'</small>':'')+'</span></div></td><td>'+esc(plan)+'</td><td>'+esc(statusLabel(x))+'</td><td>'+esc(money(x))+'</td><td>'+esc(dateLabel(x))+'</td></tr>';
+   }).join("")+'</tbody></table></div>':'<div class="empty"><h3>No show memberships yet</h3><p>When you subscribe to a show, it will appear here automatically.</p><a class="btn secondary" href="'+SITE_BASE+'discover.html">Discover shows</a></div>';
+   portalButton.disabled=!d.portal_url;portalButton.onclick=()=>{if(d.portal_url)location.href=d.portal_url};
+   liveBadge.textContent="UP TO DATE";liveBadge.className="badge success";
+   updatedEl.textContent="Last synced "+new Date().toLocaleTimeString()+" · "+rows.length+" show subscription"+(rows.length===1?"":"s");
+  }catch(e){liveBadge.textContent="SYNC ISSUE";liveBadge.className="badge warning";rowsEl.innerHTML='<div class="notice">'+esc(e.message)+'</div>'}
+  finally{loading=false;refreshButton.disabled=false}
+ };
+ refreshButton.onclick=renderRows;
+ await renderRows();
+ if(window.__crpMembershipRefresh)clearInterval(window.__crpMembershipRefresh);
+ window.__crpMembershipRefresh=setInterval(()=>{if(page==="subscriptions"&&document.visibilityState!=="hidden")renderRows()},45000);
+ if(window.__crpMembershipChannel)sb.removeChannel(window.__crpMembershipChannel).catch(()=>{});
+ window.__crpMembershipChannel=sb.channel("my-show-subscriptions-"+u.id)
+  .on("postgres_changes",{event:"*",schema:"public",table:"podcast_subscriptions",filter:"user_id=eq."+u.id},()=>{if(page==="subscriptions")renderRows()})
+  .subscribe(status=>{if(status==="SUBSCRIBED"&&page==="subscriptions"){liveBadge.textContent="LIVE SYNC";liveBadge.className="badge success"}});
+ $("#platformPortal").onclick=async()=>{try{let d=await fn(FUNCTIONS.billingPortal,{});if(d.url)location.href=d.url}catch(e){toast(e.message)}};
+}
+async function badges(){
   const[{data:catalog,error:ce},{data:assignments,error:ae}]=await Promise.all([
    sb.from("podcast_badge_catalog").select("badge_key,name,description,category,icon,image_url,scope,is_active,display_order").eq("is_active",true).order("display_order").order("name"),
    sb.from("podcast_badge_assignments").select("badge_key").eq("is_public",true).limit(2000)
