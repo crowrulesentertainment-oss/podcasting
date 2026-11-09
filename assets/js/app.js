@@ -891,10 +891,16 @@ async function rankings(){
  const getSnapshot=async(category)=>{
   if(!category.type)return null;
   const key=category.type+":"+period;if(Object.prototype.hasOwnProperty.call(catalog.snapshots,key))return catalog.snapshots[key];
-  const dbPeriod=period==="weekly"?"7_days":period==="monthly"?"30_days":"all_time";
-  const{data,error}=await sb.from("podcast_rankings_period_live").select("podcast_id,ranking,ranking_score,listens,followers,previous_rank,movement,movement_label").eq("period_type",dbPeriod).order("ranking",{ascending:true}).limit(50);
-  if(error)throw error;
-  catalog.snapshots[key]=(data||[]).map(row=>({...row,rank:row.ranking,score:row.ranking_score,plays:row.listens,source:"live-view"}));return catalog.snapshots[key];
+  if(category.type==="podcasts"){
+   const dbPeriod=period==="weekly"?"7_days":period==="monthly"?"30_days":"all_time";
+   const{data,error}=await sb.from("podcast_rankings_period_live").select("podcast_id,ranking,ranking_score,listens,followers,previous_rank,movement,movement_label").eq("period_type",dbPeriod).order("ranking",{ascending:true}).limit(50);
+   if(error)throw error;
+   catalog.snapshots[key]=(data||[]).map(row=>({...row,rank:row.ranking,score:row.ranking_score,plays:row.listens,source:"live-view"}));
+  }else{
+   const{data,error}=await sb.from("podcast_rankings").select("rank,podcast_id,episode_id,score,plays,followers,listening_seconds,calculated_at").eq("ranking_type",category.type).eq("period_type",period).order("rank",{ascending:true}).limit(50);
+   if(error)throw error;catalog.snapshots[key]=data||[];
+  }
+  return catalog.snapshots[key];
  };
  const buildRows=async category=>{
   const snapshot=await getSnapshot(category);
