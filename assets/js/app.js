@@ -919,15 +919,14 @@ async function rankings(){
   const results=await Promise.all([
    sb.from("podcasts").select("id,creator_id,title,category,description,artwork_url,total_plays,listener_count,published_at,created_at").eq("status","published").limit(250),
    sb.from("podcast_episodes").select("id,podcast_id,title,description,thumbnail_url,artwork_url,play_count,total_plays,published_at,created_at,duration_seconds").eq("status","published").order("published_at",{ascending:false}).limit(400),
-   sb.from("creators").select("id,member_id,name,display_name,role,discipline,avatar_url,profile_url,is_active").eq("is_active",true).limit(150),
-   sb.from("podcast_follows").select("podcast_id").limit(10000),
-   sb.from("member_roles").select("member_id").eq("role","Host").limit(10000)
+   sb.from("creators").select("id,member_id,name,display_name,role,discipline,avatar_url,profile_url,is_active").eq("is_active",true).limit(500),
+   sb.from("podcast_follows").select("podcast_id").limit(10000)
   ]);
-  const failure=results.find((r,i)=>r.error&&(i<3||i===4));
+  const failure=results.find((r,i)=>r.error&&i<3);
   if(failure)throw failure.error;
   catalog.shows=results[0].data||[];catalog.episodes=results[1].data||[];
-  catalog.hostMemberIds=new Set((results[4].data||[]).map(row=>row.member_id).filter(Boolean));
-  catalog.creators=(results[2].data||[]).filter(item=>item.member_id&&catalog.hostMemberIds.has(item.member_id));
+  // The creator directory is the source of truth; do not require an additional Host role assignment.
+  catalog.creators=results[2].data||[];
   catalog.follows={};for(const row of results[3].data||[])catalog.follows[row.podcast_id]=(catalog.follows[row.podcast_id]||0)+1;
   catalog.followsAvailable=!results[3].error;
  };
@@ -990,7 +989,8 @@ async function rankings(){
   try{
    if(!catalog.loaded){await fetchCatalog();catalog.loaded=true}
    if(!catalog.featuredLoaded){const{data:featuredRows,error:featuredError}=await sb.from("podcast_ranking_featured").select("ranking_type").eq("is_featured",true);if(!featuredError)catalog.featuredTypes=new Set((featuredRows||[]).map(x=>x.ranking_type));catalog.featuredLoaded=true}
-   const rows=(await buildRows(category)).slice(0,10);
+   const builtRows=await buildRows(category);
+   const rows=(category.id==="hosts"||category.id==="listeners")?builtRows:builtRows.slice(0,10);
    const snapshot=rows.some(row=>row.source==="live-view");
    $("#rankingDataNote").textContent=category.id==="listeners"?"Qualified 30-second plays · all time":snapshot?periodSelect.options[periodSelect.selectedIndex].text+" · live chart with movement":["newshows","breakout","consistent","topcategories","followed","hosts"].includes(category.id)?"Live catalog · category-specific metrics":"Live catalog · cumulative metrics";
    const top=rows[0];
