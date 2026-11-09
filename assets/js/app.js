@@ -859,8 +859,11 @@ async function rankings(){
   {id:"shows",label:"Top Shows",type:"podcasts",kind:"show",description:"The shows leading the CrowRules charts."},
   {id:"topcategories",label:"Top Categories",type:null,kind:"category",description:"The podcast categories attracting the most plays and building the biggest communities."},
   {id:"episodes",label:"Top Episodes",type:"episodes",kind:"episode",description:"Episodes listeners are spending time with."},
+  {id:"newshows",label:"Top New Shows",type:null,kind:"show",description:"Recently published shows getting their start on CrowRules."},
+  {id:"breakout",label:"Breakout Episodes",type:null,kind:"episode",description:"Episodes gaining the strongest daily listening momentum."},
+  {id:"consistent",label:"Consistency Champions",type:null,kind:"show",description:"Shows building a steady publishing rhythm with recent episodes."},
   {id:"rising",label:"Rising Shows",type:"rising",kind:"show",description:"Shows building momentum across the platform."},
-  {id:"followed",label:"Most Followed",type:"followed",kind:"show",description:"Shows building their listener communities."},
+  {id:"followed",label:"Most Followed Shows",type:"followed",kind:"show",description:"Shows building their listener communities."}
   {id:"hosts",label:"Top Hosts",type:null,kind:"host",description:"Hosts ranked by the combined plays and reach of their published shows."},
   {id:"listeners",label:"Top Listeners",type:null,kind:"listener",description:"Listeners ranked by qualified plays on published episodes."}
  ];
@@ -917,6 +920,9 @@ async function rankings(){
    return Array.from(groups.values()).map(item=>({kind:"category",item,plays:item.plays,shows:item.shows,followers:item.followers,source:"catalog"})).sort((a,b)=>b.plays-a.plays||b.shows-a.shows||b.followers-a.followers);
   }
   if(category.id==="episodes")return catalog.episodes.map(item=>({kind:"episode",item,plays:item.total_plays??item.play_count,source:"catalog"})).sort((a,b)=>Number(b.plays||0)-Number(a.plays||0));
+  if(category.id==="newshows")return catalog.shows.map(item=>({kind:"show",item,plays:Number(item.total_plays||0),publishedAt:item.published_at||item.created_at,source:"new-show"})).sort((a,b)=>dateValue(b.publishedAt)-dateValue(a.publishedAt));
+  if(category.id==="breakout")return catalog.episodes.map(item=>{const days=Math.max(1,(Date.now()-dateValue(item.published_at||item.created_at))/86400000);const plays=Number(item.total_plays??item.play_count??0);return{kind:"episode",item,plays,score:plays/days,source:"breakout"}}).sort((a,b)=>Number(b.score||0)-Number(a.score||0));
+  if(category.id==="consistent"){const cutoff=Date.now()-90*86400000;const counts=new Map();for(const episode of catalog.episodes){const published=dateValue(episode.published_at||episode.created_at);if(published>=cutoff)counts.set(episode.podcast_id,(counts.get(episode.podcast_id)||0)+1)}return catalog.shows.map(item=>({kind:"show",item,recentEpisodes:counts.get(item.id)||0,plays:Number(item.total_plays||0),source:"consistency"})).filter(row=>row.recentEpisodes>0).sort((a,b)=>b.recentEpisodes-a.recentEpisodes||b.plays-a.plays);}
   if(category.id==="rising")return catalog.shows.map(item=>{const days=Math.max(1,(Date.now()-dateValue(item.published_at||item.created_at))/86400000);const plays=Number(item.total_plays||0);return{kind:"show",item,plays,score:plays/days,source:"catalog"}}).sort((a,b)=>Number(b.score||0)-Number(a.score||0));
   if(category.id==="new")return catalog.episodes.map(item=>({kind:"episode",item,plays:item.total_plays??item.play_count,source:"catalog"})).sort((a,b)=>dateValue(b.published_at||b.created_at)-dateValue(a.published_at||a.created_at));
   if(category.id==="followed"){
@@ -945,7 +951,7 @@ async function rankings(){
    if(!catalog.featuredLoaded){const{data:featuredRows,error:featuredError}=await sb.from("podcast_ranking_featured").select("ranking_type").eq("is_featured",true);if(!featuredError)catalog.featuredTypes=new Set((featuredRows||[]).map(x=>x.ranking_type));catalog.featuredLoaded=true}
    const rows=(await buildRows(category)).slice(0,10);
    const snapshot=rows.some(row=>row.source==="live-view");
-   $("#rankingDataNote").textContent=category.id==="listeners"?"Qualified 30-second plays · all time":snapshot?periodSelect.options[periodSelect.selectedIndex].text+" · live chart with movement":"Live catalog · cumulative metrics";
+   $("#rankingDataNote").textContent=category.id==="listeners"?"Qualified 30-second plays · all time":snapshot?periodSelect.options[periodSelect.selectedIndex].text+" · live chart with movement":["newshows","breakout","consistent","topcategories","followed","hosts"].includes(category.id)?"Live catalog · category-specific metrics":"Live catalog · cumulative metrics";
    const top=rows[0];
    if(top){
     const item=top.item,title=top.kind==="category"?item.title:category.id==="hosts"||category.id==="listeners"?(item.display_name||item.name||"Listener"):item.title||"Untitled";
@@ -961,7 +967,7 @@ async function rankings(){
     list.innerHTML=rows.map((row,index)=>{
      const item=row.item,title=row.kind==="category"?item.title:row.kind==="host"||row.kind==="listener"?(item.display_name||item.name||"Listener"):item.title||"Untitled";
      const href=row.kind==="category"?"discover.html?category="+encodeURIComponent(item.category):row.kind==="episode"?"episode.html?id="+encodeURIComponent(item.id):row.kind==="show"?"show.html?id="+encodeURIComponent(item.id):row.kind==="listener"?"listener.html":safeUrl(item.profile_url)||"creator.html";
-     const image=safeUrl(imageFor(item))||art,metric=row.kind==="category"?number(row.plays)+" plays · "+number(row.shows)+" shows":row.kind==="listener"?number(row.qualifiedPlays)+" qualified plays · "+number(row.uniqueEpisodes)+" episodes":row.kind==="host"?number(row.plays)+" plays · "+number(row.shows)+" shows":row.kind==="episode"?number(row.plays)+" plays":active==="followed"?number(row.followers)+" followers":active==="rising"?number(Math.round(row.score||0))+" estimated plays/day":number(row.plays||0)+" plays";
+     const image=safeUrl(imageFor(item))||art,metric=row.kind==="category"?number(row.plays)+" plays · "+number(row.shows)+" shows":row.kind==="listener"?number(row.qualifiedPlays)+" qualified plays · "+number(row.uniqueEpisodes)+" episodes":row.kind==="host"?number(row.plays)+" plays · "+number(row.shows)+" shows":active==="newshows"?"Published "+(row.publishedAt?new Date(row.publishedAt).toLocaleDateString():"recently"):active==="breakout"?number(row.plays)+" plays · "+number(Math.round(row.score||0))+" per day":active==="consistent"?number(row.recentEpisodes)+" episodes in 90 days":row.kind==="episode"?number(row.plays)+" plays":active==="followed"?number(row.followers)+" followers":active==="rising"?number(Math.round(row.score||0))+" estimated plays/day":number(row.plays||0)+" plays";
      const sub=row.kind==="category"?"PODCAST CATEGORY":row.kind==="listener"?(item.username?"@"+item.username:"CrowRules listener"):row.kind==="host"?(item.discipline||"Host"):row.kind==="episode"?(catalog.shows.find(s=>s.id===item.podcast_id)?.title||"CrowRules episode"):(item.category||"Podcast show");
      return'<a class="ranking-tile" href="'+href+'"><div class="ranking-tile-art"><img src="'+esc(image)+'" alt="" loading="lazy"><span class="ranking-tile-number">'+String(index+1).padStart(2,"0")+'</span><span class="ranking-tile-play">↗</span>'+(period!=="all_time"&&row.movementLabel?'<span class="ranking-movement" style="position:absolute;right:10px;bottom:10px;background:rgba(8,9,12,.88);padding:5px 8px;border-radius:6px;font-size:12px;font-weight:800">'+esc(row.movementLabel)+'</span>':"")+'</div><div class="ranking-tile-copy"><span class="ranking-tile-category">'+esc(sub)+'</span><b>'+esc(title)+'</b><small>'+esc(metric)+'</small></div></a>';
     }).join("");
