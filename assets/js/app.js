@@ -1327,7 +1327,7 @@ async function admin(){
    return;
   }
   if(tab==="episodes"){
-   const rows=await queryRows("podcast_episodes","id,podcast_id,title,status,is_published,is_live,production_stage,episode_number,season_number,created_at,published_at,video_url,audio_url,tags",250);
+   const rows=await queryRows("podcast_episodes","id,podcast_id,title,status,is_published,is_live,production_stage,episode_number,season_number,created_at,published_at,video_url,audio_url,tags",1000);
    const pendingAutoPublish=rows.filter(e=>e.status!=="published"&&e.status!=="scheduled"&&!e.is_live&&!((e.tags||[]).some(t=>/challenge/i.test(String(t)))));if(pendingAutoPublish.length){const now=new Date().toISOString();const ids=pendingAutoPublish.map(e=>e.id);const{error:autoPublishError}=await sb.from("podcast_episodes").update({status:"published",is_published:true,production_stage:"published",published_at:now}).in("id",ids).select("id");if(autoPublishError)console.warn("Automatic episode publishing skipped:",autoPublishError.message);else pendingAutoPublish.forEach(e=>Object.assign(e,{status:"published",is_published:true,production_stage:"published",published_at:now}));}
    const downloadCounts=new Map();
    const podcastIds=[...new Set(rows.map(x=>x.podcast_id).filter(Boolean))];
