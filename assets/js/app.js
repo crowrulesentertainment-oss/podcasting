@@ -730,7 +730,7 @@ async function episode(){
     else cards+=rankCard("HOST STANDING",0,"Connect a host profile to appear in host rankings.","creator.html","");
     if(showRanks.length)showRanks.forEach(row=>cards+=rankCard("SHOW · "+(row.podcast_title||"YOUR SHOW"),row.ranking,"Your published show","show.html?id="+encodeURIComponent(row.podcast_id),Number(row.listens||0).toLocaleString()+" listens"));
     else cards+=rankCard("SHOW STANDING",0,owned.length?"Your shows are not ranked in this period yet.":"Publish a show to start building your chart position.","creator.html","");
-    cards+=rankCard("LISTENER STANDING",listenerRank?.rank||0,listenerRank?"Based on qualified listening completions. All-time listener chart.":"The public listener chart currently displays its Top 10. Keep listening to build your position.","rankings.html",listenerRank?listenerRank.plays.toLocaleString()+" qualified plays · "+listenerRank.episodes+" episodes":"Outside the published Top 10 or not yet eligible");
+    cards+=rankCard("LISTENER STANDING",listenerRank?.rank||0,listenerRank?"Based on your qualified plays. All-time public listener chart.":"Your listener profile is not currently listed. Check your public profile visibility settings.","rankings.html",listenerRank?listenerRank.plays.toLocaleString()+" qualified plays · "+listenerRank.episodes+" episodes":"Not on the public listener chart");
     summary.innerHTML=cards;
     const historyIds=[...new Set([...showIds,...(creator?.id?[creator.id]:[]),u.id])];
     if(historyIds.length){
@@ -992,7 +992,7 @@ async function rankings(){
    const builtRows=await buildRows(category);
    const rows=(category.id==="hosts"||category.id==="listeners")?builtRows:builtRows.slice(0,10);
    const snapshot=rows.some(row=>row.source==="live-view");
-   $("#rankingDataNote").textContent=category.id==="listeners"?"All public signed-in listeners · all-time qualified plays":category.id==="hosts"?"All active creator profiles · published-show totals":snapshot?periodSelect.options[periodSelect.selectedIndex].text+" · live chart with movement":["newshows","breakout","consistent","topcategories","followed"].includes(category.id)?"Live catalog · category-specific metrics":"Live catalog · cumulative metrics";
+   $("#rankingDataNote").textContent=category.id==="listeners"?"All publicly visible signed-in listeners · all-time qualified plays":category.id==="hosts"?"All active creator profiles · published-show totals":snapshot?periodSelect.options[periodSelect.selectedIndex].text+" · live chart with movement":["newshows","breakout","consistent","topcategories","followed"].includes(category.id)?"Live catalog · category-specific metrics":"Live catalog · cumulative metrics";
    const top=rows[0];
    if(top){
     const item=top.item,title=top.kind==="category"?item.title:category.id==="hosts"||category.id==="listeners"?(item.display_name||item.name||"Listener"):item.title||"Untitled";
