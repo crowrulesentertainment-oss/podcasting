@@ -1610,3 +1610,16 @@ body[data-page="admin"] .badge-console .table-wrap{max-width:100%;overflow-x:aut
 .community-profile-chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
 .community-profile-chips span{padding:7px 11px;border:1px solid #c9a15b55;border-radius:99px;color:#e6d1a5;background:#c9a15b12;font-size:.8rem}
 @media(max-width:560px){.community-recognition-grid{grid-template-columns:1fr}.community-recognition-card{gap:12px;padding:13px}.community-recognition-art,.community-recognition-art .profile-badge-emblem{width:82px;height:82px;flex-basis:82px}}
+/* Public profile — cinematic community recognition emblems */
+.community-recognition-section{padding-top:clamp(38px,6vw,76px);padding-bottom:clamp(48px,7vw,88px)}
+.community-recognition-heading{max-width:780px;margin:0 auto 30px;text-align:center}
+.community-recognition-heading .eyebrow{color:#d8b56d;letter-spacing:.2em;font-weight:850}
+.community-recognition-card{position:relative;overflow:hidden;min-height:142px;align-items:center;border-color:#b88b3b66;background:radial-gradient(ellipse at 12% 50%,#8a64251c,transparent 48%),linear-gradient(145deg,#211c19,#0b0d12 72%);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.community-recognition-card:hover{transform:translateY(-3px);border-color:#e0bd75a8;box-shadow:0 18px 42px #0008,0 0 24px #c99b3820}
+.community-recognition-art{position:relative;flex:0 0 104px;width:104px;height:104px;border-radius:50%;background:radial-gradient(circle,#d5a94b18 0%,#d5a94b08 55%,transparent 72%)}
+.community-recognition-art .profile-badge-emblem{display:block;width:104px;height:104px;max-width:100%;object-fit:contain;filter:drop-shadow(0 7px 12px #000b)}
+.community-recognition-copy{flex:1;min-width:0}
+.community-recognition-copy b{font-size:1.02rem;letter-spacing:.01em}
+.community-recognition-copy small{display:block;margin-top:6px;color:#d2b77e;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase}
+.community-recognition-copy p{margin:8px 0 0;color:#c0c1c5;font-size:.88rem;line-height:1.55}
+@media(max-width:560px){.community-recognition-grid{grid-template-columns:minmax(0,1fr)}.community-recognition-card{gap:12px;padding:14px;min-height:120px}.community-recognition-art,.community-recognition-art .profile-badge-emblem{width:84px;height:84px}.community-recognition-art{flex-basis:84px}.community-recognition-copy b{font-size:.94rem}}
