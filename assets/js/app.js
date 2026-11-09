@@ -1595,27 +1595,34 @@ async function badges(){
   const badgeCards=category=>catalog.filter(x=>(x.category||"Community Recognition")===category).map((x,index)=>{
    const scene=sceneFor(x,index);
    const photo="https://images.unsplash.com/"+scene+"?auto=format&fit=crop&w=1000&q=85";
-   const badgeKey=(String(x.name||"")+" "+String(x.category||"")).toLowerCase();
-   const motif=/(host|creator|podcast|mic|voice|speaker)/.test(badgeKey)?"mic":
-    /(listener|audio|sound|music|fan)/.test(badgeKey)?"headphones":
-    /(show|episode|film|production|studio|video)/.test(badgeKey)?"clapper":
-    /(global|world|international|ambassador)/.test(badgeKey)?"globe":
-    /(community|impact|volunteer|collab|partner|team)/.test(badgeKey)?"hands":
-    /(education|student|learn|mentor|graduate)/.test(badgeKey)?"cap":
-    /(news|report|journal|interview)/.test(badgeKey)?"broadcast":
-    /(heart|favorite|love|kindness)/.test(badgeKey)?"heart":
-    /(rising|breakout|star|top|champion|winner|award|achievement)/.test(badgeKey)?"star":"laurel";
+   const badgeKey=String(x.badge_key||"").toLowerCase();
+   const motifByBadge={
+    founding_creator:"laurel",founding_creator_2026:"medal",verified_creator:"shield",
+    award_nominee_2027:"star",award_winner_2027:"trophy",award_nominee_2028:"diamond",award_winner_2028:"crown",
+    first_top_10:"podium",top_host:"mic",rising_star:"rocket",monthly_champion:"trophy",
+    first_referral:"hands",community_builder:"community",rising_ambassador:"globe",crowrules_ambassador:"laurel",legendary_recruiter:"crown",
+    first_episode:"clapper",episodes_50:"headphones",episodes_100:"hundred",
+    top_10_host:"mic",top_10_podcast:"podium",community_favorite:"heart",outstanding_contributor:"hands",lifetime_achievement:"crown"
+   };
+   const motif=motifByBadge[badgeKey]||"star";
    const iconPaths={
     mic:'<rect x="106" y="65" width="28" height="66" rx="14" fill="none" stroke="url(#shine)" stroke-width="7"/><path d="M91 111v9a29 29 0 0 0 58 0v-9M120 149v22m-19 0h38" fill="none" stroke="url(#shine)" stroke-width="7" stroke-linecap="round"/>',
-    headphones:'<path d="M76 125v-15a44 44 0 0 1 88 0v15M76 122h17v39H81a9 9 0 0 1-9-9v-21a9 9 0 0 1 9-9zm71 0h17a9 9 0 0 1 9 9v21a9 9 0 0 1-9 9h-12z" fill="none" stroke="url(#shine)" stroke-width="8" stroke-linejoin="round"/>',
-    clapper:'<path d="M75 91l89-20 9 25-92 20zM83 117h82v57H83zM92 88l17 18m12-24 17 18m12-25 17 18" fill="none" stroke="url(#shine)" stroke-width="7" stroke-linejoin="round"/><path d="M101 140h46m-46 16h32" stroke="url(#shine)" stroke-width="6" stroke-linecap="round"/>',
+    headphones:'<path d="M76 125v-15a44 44 0 0 1 88 0v15M76 122h17v39H81a9 9 0 0 1-9-9v-21a9 9 0 0 1 9-9zm71 0h17a9 9 0 0 1 9 9v21a9 9 0 0 1-9 9h-12z" fill="none" stroke="url(#shine)" stroke-width="8"/>',
+    clapper:'<path d="M75 91l89-20 9 25-92 20zM83 117h82v57H83zM92 88l17 18m12-24 17 18m12-25 17 18" fill="none" stroke="url(#shine)" stroke-width="7"/>',
     globe:'<circle cx="120" cy="119" r="48" fill="none" stroke="url(#shine)" stroke-width="7"/><path d="M72 119h96M120 71c-26 25-26 71 0 96m0-96c26 25 26 71 0 96M83 91h74M83 147h74" fill="none" stroke="url(#shine)" stroke-width="5"/>',
-    hands:'<path d="M70 119l27-25 23 18 22-18 28 25-24 39h-52zM97 94l-8-13m31 31l-10 17m32-35l9-13" fill="none" stroke="url(#shine)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>',
-    cap:'<path d="M65 105l55-29 55 29-55 29zM87 118v29q33 23 66 0v-29m22-13v43" fill="none" stroke="url(#shine)" stroke-width="7" stroke-linejoin="round"/><circle cx="175" cy="151" r="6" fill="#f7df9e"/>',
-    broadcast:'<circle cx="120" cy="118" r="13" fill="url(#shine)"/><path d="M91 89a41 41 0 0 0 0 58m58-58a41 41 0 0 1 0 58M73 71a67 67 0 0 0 0 94m94-94a67 67 0 0 1 0 94" fill="none" stroke="url(#shine)" stroke-width="7" stroke-linecap="round"/>',
-    heart:'<path d="M120 164S65 130 65 99c0-28 36-39 55-11 19-28 55-17 55 11 0 31-55 65-55 65z" fill="none" stroke="url(#shine)" stroke-width="8" stroke-linejoin="round"/>',
-    star:'<path d="M120 68l15 31 34 5-25 24 6 35-30-17-30 17 6-35-25-24 34-5z" fill="none" stroke="url(#shine)" stroke-width="8" stroke-linejoin="round"/>',
-    laurel:'<path d="M91 166Q43 125 75 76q28 34 16 68m58 22q48-41 16-90-28 34-16 68" fill="none" stroke="url(#shine)" stroke-width="7"/><path d="M84 105l-18-7m26 27l-20-1m73-19l18-7m-26 27l20-1" stroke="url(#shine)" stroke-width="6" stroke-linecap="round"/><path d="M120 83v78" stroke="url(#shine)" stroke-width="5"/>'
+    hands:'<path d="M70 119l27-25 23 18 22-18 28 25-24 39h-52z" fill="none" stroke="url(#shine)" stroke-width="7" stroke-linejoin="round"/>',
+    heart:'<path d="M120 164S65 130 65 99c0-28 36-39 55-11 19-28 55-17 55 11 0 31-55 65-55 65z" fill="none" stroke="url(#shine)" stroke-width="8"/>',
+    star:'<path d="M120 68l15 31 34 5-25 24 6 35-30-17-30 17 6-35-25-24 34-5z" fill="none" stroke="url(#shine)" stroke-width="8"/>',
+    laurel:'<path d="M91 166Q43 125 75 76q28 34 16 68m58 22q48-41 16-90-28 34-16 68" fill="none" stroke="url(#shine)" stroke-width="7"/><path d="M84 105l-18-7m26 27l-20-1m73-19l18-7m-26 27l20-1" stroke="url(#shine)" stroke-width="6"/>',
+    shield:'<path d="M120 65l53 20-6 52q-8 36-47 55-39-19-47-55l-6-52z" fill="none" stroke="url(#shine)" stroke-width="8"/><path d="M94 119l18 18 36-40" fill="none" stroke="url(#shine)" stroke-width="8"/>',
+    medal:'<path d="M91 67h58l-10 42h-38z" fill="none" stroke="url(#shine)" stroke-width="7"/><circle cx="120" cy="137" r="37" fill="none" stroke="url(#shine)" stroke-width="8"/><path d="M120 112l8 17 19 3-14 13 3 19-16-9-16 9 3-19-14-13 19-3z" fill="url(#shine)"/>',
+    diamond:'<path d="M80 82h80l25 31-65 68-65-68zM80 82l40 99 40-99m-120 31h160" fill="none" stroke="url(#shine)" stroke-width="7" stroke-linejoin="round"/>',
+    trophy:'<path d="M91 72h58v38q0 37-29 37t-29-37zM91 86H67v17q0 27 35 27m47-44h24v17q0 27-35 27M120 147v22m-27 0h54" fill="none" stroke="url(#shine)" stroke-width="8" stroke-linejoin="round"/>',
+    crown:'<path d="M66 99l34 24 20-48 20 48 34-24-12 67H78z" fill="none" stroke="url(#shine)" stroke-width="8" stroke-linejoin="round"/><circle cx="66" cy="94" r="7" fill="url(#shine)"/><circle cx="120" cy="70" r="7" fill="url(#shine)"/><circle cx="174" cy="94" r="7" fill="url(#shine)"/>',
+    podium:'<path d="M69 145h37v34H69zm37-31h37v65h-37zm37 16h37v49h-37z" fill="none" stroke="url(#shine)" stroke-width="7"/><path d="M87 90l8 14 16 2-12 11 3 16-15-8-15 8 3-16-12-11 16-2z" fill="url(#shine)"/>',
+    rocket:'<path d="M120 65q42 25 29 76l-29 29-29-29q-13-51 29-76zM91 128l-22 15-5 29 31-18m54-26l22 15 5 29-31-18" fill="none" stroke="url(#shine)" stroke-width="7"/><circle cx="120" cy="111" r="12" fill="none" stroke="url(#shine)" stroke-width="6"/>',
+    community:'<circle cx="120" cy="94" r="17" fill="none" stroke="url(#shine)" stroke-width="7"/><circle cx="79" cy="111" r="13" fill="none" stroke="url(#shine)" stroke-width="6"/><circle cx="161" cy="111" r="13" fill="none" stroke="url(#shine)" stroke-width="6"/><path d="M85 165q4-38 35-38t35 38M51 161q3-27 28-27m110 27q-3-27-28-27" fill="none" stroke="url(#shine)" stroke-width="7"/>',
+    hundred:'<text x="120" y="137" text-anchor="middle" font-size="63" font-family="Georgia,serif" font-weight="bold" fill="url(#shine)" stroke="#54351a" stroke-width="2" paint-order="stroke">100</text>',
    };
    const palette=/(silver|listener|audio)/.test(badgeKey)?["#f7fbff","#8e9eaf","#dce7f1"]:/(community|heart|favorite|love)/.test(badgeKey)?["#ffe5e8","#c73b4b","#7d1728"]:/(global|world)/.test(badgeKey)?["#e5f5ff","#5a9bc8","#174b75"]:["#fff5cf","#d9a94e","#70431c"];
    const badgeSvg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"><defs><linearGradient id="shine" x1="0" y1="0" x2="1" y2="1"><stop stop-color="'+palette[0]+'"/><stop offset=".48" stop-color="'+palette[1]+'"/><stop offset="1" stop-color="'+palette[2]+'"/></linearGradient><radialGradient id="enamel"><stop stop-color="#45151b"/><stop offset="1" stop-color="#08090d"/></radialGradient><filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceAlpha" stdDeviation="4"/><feOffset dy="4"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#shadow)"><circle cx="120" cy="112" r="101" fill="#09090b" stroke="#5b3b1b" stroke-width="8"/><circle cx="120" cy="110" r="91" fill="url(#shine)" stroke="'+palette[0]+'" stroke-width="2"/><circle cx="120" cy="110" r="79" fill="url(#enamel)" stroke="'+palette[1]+'" stroke-width="7"/><circle cx="120" cy="110" r="67" fill="none" stroke="'+palette[0]+'" stroke-opacity=".75" stroke-width="2"/><path d="M43 148Q18 112 45 73M197 148Q222 112 195 73M38 132l-13-7 7 17M39 104l-11-11 2 17M202 132l13-7-7 17M201 104l11-11-2 17" fill="none" stroke="url(#shine)" stroke-width="5" stroke-linecap="round"/>'+iconPaths[motif]+'<path d="M50 174Q120 198 190 174L179 211Q120 229 61 211Z" fill="url(#shine)" stroke="'+palette[0]+'" stroke-width="2"/><text x="120" y="199" text-anchor="middle" font-size="10" letter-spacing="2" font-family="Arial" font-weight="bold" fill="#27170b">CROWRULES</text></g></svg>';
