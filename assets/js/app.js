@@ -1133,7 +1133,16 @@ async function admin(){
    const personName=m=>m?.display_name||[m?.first_name,m?.last_name].filter(Boolean).join(" ")||m?.username||m?.email||"Member";
    const personMap=new Map(people.map(x=>[x.user_id,x])),showMap=new Map(shows.map(x=>[x.id,x])),episodeMap=new Map(eps.map(x=>[x.id,x])),badgeMap=new Map(defs.map(x=>[x.badge_key,x]));
    let selectedBadgeKey="",targetKind="profile";
-   const art=x=>x?.image_url?'<img src="'+esc(x.image_url)+'" alt="'+esc(x.name||"Badge")+'" loading="lazy">':'<span class="badge-art-fallback">'+esc(x?.icon||"🏅")+'</span>';
+   const art=x=>{
+    if(!x)return '<span class="badge-art-fallback">🏅</span>';
+    const key=String(x.badge_key||x.name||"badge"),label=String(x.icon||"🏅");
+    let seed=0;for(let i=0;i<key.length;i++)seed=(seed*33+key.charCodeAt(i))>>>0;
+    const sides=5+(seed%8),hue=seed%360,points=Array.from({length:sides},(_,i)=>{const a=2*Math.PI*i/sides-Math.PI/2+(seed%29)*Math.PI/180,r=i%2===0?92:82;return (120+Math.cos(a)*r).toFixed(1)+","+(112+Math.sin(a)*r).toFixed(1)}).join(" ");
+    const rays=Array.from({length:6+seed%7},(_,i)=>{const a=2*Math.PI*i/(6+seed%7);return '<path d="M'+(120+Math.cos(a)*72).toFixed(1)+' '+(112+Math.sin(a)*72).toFixed(1)+'L'+(120+Math.cos(a)*87).toFixed(1)+' '+(112+Math.sin(a)*87).toFixed(1)+'"/>'}).join("");
+    const glyph=label.length>5?label.slice(0,2):label;
+    const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"><defs><linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl('+hue+' 90% 92%)"/><stop offset=".5" stop-color="hsl('+hue+' 68% 56%)"/><stop offset="1" stop-color="hsl('+((hue+35)%360)+' 72% 24%)"/></linearGradient><radialGradient id="core"><stop stop-color="#42202a"/><stop offset="1" stop-color="#08090d"/></radialGradient></defs><polygon points="'+points+'" fill="#08090d" stroke="#070708" stroke-width="10"/><polygon points="'+points+'" fill="url(#metal)" stroke="#fff1c8" stroke-width="2"/><circle cx="120" cy="112" r="75" fill="url(#core)" stroke="hsl('+hue+' 70% 60%)" stroke-width="7"/><circle cx="120" cy="112" r="64" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="2"/><g fill="none" stroke="url(#metal)" stroke-width="4">'+rays+'</g><text x="120" y="139" text-anchor="middle" font-size="'+(glyph.length>3?40:62)+'" font-family="Arial,sans-serif" font-weight="bold" fill="url(#metal)">'+esc(glyph)+'</text><path d="M49 177Q120 199 191 177L179 213Q120 230 61 213Z" fill="url(#metal)"/><text x="120" y="201" text-anchor="middle" font-size="10" letter-spacing="2" font-family="Arial" font-weight="bold" fill="#24170d">CROWRULES</text></svg>';
+    return '<img src="data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg)+'" alt="'+esc(x.name)+' award emblem" loading="lazy">';
+   };
    const targetLabel=x=>x.target_type==="profile"?personName(personMap.get(x.target_id)):x.target_type==="show"?(showMap.get(x.target_id)?.title||"Podcast"): (episodeMap.get(x.target_id)?.title||"Episode");
    const showOpts=shows.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.title)+'</option>').join("");
    const personOpts=people.map(x=>'<option value="'+esc(x.user_id)+'">'+esc(personName(x))+' · '+esc(x.role||"Member")+'</option>').join("");
