@@ -42,7 +42,7 @@ on conflict (badge_key) do update set
   name=excluded.name, description=excluded.description, category=excluded.category,
   icon=excluded.icon, scope=excluded.scope, is_active=true, display_order=excluded.display_order;
 
-create or replace function public.podcasting_my_referral_dashboard()
+create or replace function private.podcasting_my_referral_dashboard_impl()
 returns jsonb
 language plpgsql
 security definer
@@ -71,7 +71,7 @@ begin
 end;
 $function$;
 
-create or replace function public.claim_podcast_referral(p_referral_code text)
+create or replace function private.claim_podcast_referral_impl(p_referral_code text)
 returns jsonb
 language plpgsql
 security definer
@@ -124,7 +124,19 @@ begin
 end;
 $function$;
 
-revoke all on function public.podcasting_my_referral_dashboard() from public, anon;
+grant usage on schema private to authenticated;
+revoke all on function private.podcasting_my_referral_dashboard_impl() from public, anon, authenticated;
+revoke all on function private.claim_podcast_referral_impl(text) from public, anon, authenticated;
+grant execute on function private.podcasting_my_referral_dashboard_impl() to authenticated;
+grant execute on function private.claim_podcast_referral_impl(text) to authenticated;
+
+create or replace function public.podcasting_my_referral_dashboard()
+returns jsonb language sql stable security invoker set search_path=''
+as $function$ select private.podcasting_my_referral_dashboard_impl(); $function$;
+create or replace function public.claim_podcast_referral(p_referral_code text)
+returns jsonb language sql volatile security invoker set search_path=''
+as $function$ select private.claim_podcast_referral_impl(p_referral_code); $function$;
+revoke all on function public.podcasting_my_referral_dashboard() from public, anon, authenticated;
+revoke all on function public.claim_podcast_referral(text) from public, anon, authenticated;
 grant execute on function public.podcasting_my_referral_dashboard() to authenticated;
-revoke all on function public.claim_podcast_referral(text) from public, anon;
 grant execute on function public.claim_podcast_referral(text) to authenticated;
