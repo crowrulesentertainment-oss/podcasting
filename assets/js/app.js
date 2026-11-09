@@ -919,7 +919,7 @@ async function rankings(){
   const results=await Promise.all([
    sb.from("podcasts").select("id,creator_id,title,category,description,artwork_url,total_plays,listener_count,published_at,created_at").eq("status","published").limit(250),
    sb.from("podcast_episodes").select("id,podcast_id,title,description,thumbnail_url,artwork_url,play_count,total_plays,published_at,created_at,duration_seconds").eq("status","published").order("published_at",{ascending:false}).limit(400),
-   sb.from("creators").select("id,member_id,name,display_name,role,discipline,avatar_url,profile_url,is_active").eq("is_active",true).limit(500),
+   sb.from("creators").select("id,member_id,name,display_name,role,discipline,avatar_url,profile_url,is_active").limit(500),
    sb.from("podcast_follows").select("podcast_id").limit(10000)
   ]);
   const failure=results.find((r,i)=>r.error&&i<3);
