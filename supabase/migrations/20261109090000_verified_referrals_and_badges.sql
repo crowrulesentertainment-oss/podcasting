@@ -131,7 +131,7 @@ grant execute on function private.podcasting_my_referral_dashboard_impl() to aut
 grant execute on function private.claim_podcast_referral_impl(text) to authenticated;
 
 create or replace function public.podcasting_my_referral_dashboard()
-returns jsonb language sql stable security invoker set search_path=''
+returns jsonb language sql volatile security invoker set search_path=''
 as $function$ select private.podcasting_my_referral_dashboard_impl(); $function$;
 create or replace function public.claim_podcast_referral(p_referral_code text)
 returns jsonb language sql volatile security invoker set search_path=''
