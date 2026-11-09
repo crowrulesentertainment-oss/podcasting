@@ -1677,3 +1677,36 @@ body[data-page="admin"] .badge-console .table-wrap{max-width:100%;overflow-x:aut
 .studio-roster-details{display:grid;gap:3px;min-width:0;flex:1}.studio-roster-details b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.studio-roster-details small{font-size:10px;color:#aab0bb}
 .studio-roster-status{font-size:9px;letter-spacing:.08em;color:#8ee0ae;font-weight:900}.studio-roster-empty{padding:12px;border:1px dashed #ffffff28;border-radius:10px;color:#aab0bb;font-size:11px}.studio-roster-note{margin:10px 0 0}
 @media(max-width:600px){.studio-record-roster{padding:13px}.studio-record-roster-head{align-items:flex-start}.studio-record-roster-list{grid-template-columns:1fr}}
+
+
+/* 2027 Challenge Control Room */
+.admin-challenge-layout{display:grid;grid-template-columns:minmax(210px,260px) minmax(0,1fr);gap:16px;align-items:start}
+.admin-challenge-list,.admin-panel{min-width:0;padding:16px;background:linear-gradient(145deg,#17181c,#101114);border:1px solid #ffffff1c;border-radius:8px}
+.admin-challenge-list{position:sticky;top:18px;max-height:calc(100vh - 36px);overflow:auto}
+.admin-challenge-list h4,.admin-panel h4{margin:0 0 13px;font-size:15px}
+.admin-challenge-pick{width:100%;display:grid;gap:6px;text-align:left;padding:12px;margin:0 0 8px;background:#ffffff06;border:1px solid #ffffff1c;border-radius:6px;color:#eee;cursor:pointer}
+.admin-challenge-pick.active{border-color:#d8b56c;background:#d8b56c12}
+.admin-challenge-pick>span,.admin-challenge-pick>small{font-size:9px;color:#aaa;text-transform:uppercase;letter-spacing:.08em}
+.admin-challenge-pick>b{font-size:12px}
+.admin-challenge-main{display:grid;gap:14px;min-width:0}
+.admin-panel .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}
+.admin-panel .section-head p{font-size:11px;color:#999;margin:5px 0 0;line-height:1.5}
+.admin-stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:15px 0}
+.admin-stats-grid .admin-stat-card{padding:13px;min-height:78px}
+.admin-stats-grid .admin-stat-card>span{font-size:10px}
+.admin-stats-grid .admin-stat-card>b{font-size:25px;color:#f0d18d;margin:0}
+.admin-panel .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.admin-panel .form-field{display:grid;gap:6px;min-width:0;color:#c9c9ca;font-size:11px;font-weight:800}
+.admin-panel .form-field.full{grid-column:1/-1}
+.admin-panel .form-field input,.admin-panel .form-field select,.admin-panel .form-field textarea,.admin-panel td input,.admin-panel td select{width:100%;min-width:0;padding:10px 11px;border:1px solid #ffffff28;border-radius:5px;background:#090a0d;color:#f4f4f4;font:inherit;font-size:12px}
+.admin-panel .form-field textarea{resize:vertical;line-height:1.5}
+.admin-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
+.admin-panel td small{display:block;color:#999;font-size:10px;margin-top:5px;max-width:250px;overflow-wrap:anywhere}
+.admin-panel td a{display:inline-block;color:#e7bd68;font-size:10px;margin-top:5px}
+.admin-panel td{vertical-align:top}
+.admin-panel .admin-status{white-space:nowrap}
+.admin-panel .admin-count{display:inline-block;padding:2px 7px;border-radius:99px;background:#ffffff12;color:#e7bd68;font-size:11px}
+.admin-panel #challengePublishResult:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:1050px){.admin-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:780px){.admin-challenge-layout{grid-template-columns:1fr}.admin-challenge-list{position:static;max-height:260px}.admin-challenge-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.admin-challenge-list h4{grid-column:1/-1}.admin-challenge-pick{margin:0}.admin-panel .section-head{align-items:flex-start;flex-direction:column}}
+@media(max-width:560px){.admin-panel .form-grid{grid-template-columns:1fr}.admin-panel .form-field.full{grid-column:auto}.admin-stats-grid{gap:7px}.admin-stats-grid .admin-stat-card{padding:10px}.admin-panel{padding:12px}.admin-challenge-list{grid-template-columns:1fr 1fr}}
