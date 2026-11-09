@@ -1285,18 +1285,44 @@ async function admin(){
    const tableName=tab==="creators"?"creators":tab==="guests"?"podcast_guest_profiles":"members";
    const rows=tab==="creators"?[]:await queryRows(tableName,"*",200);
    if(tab==="users"){
-    const{data:roleOptions,error:roleOptionsError}=await sb.from("member_role_options").select("role_key,display_name,is_active,sort_order").eq("is_active",true).order("sort_order",{ascending:true}).order("display_name",{ascending:true});
-    if(roleOptionsError)throw roleOptionsError;
-    const activeRoles=roleOptions||[];
-    const roleSelect=x=>{
-      const current=String(x.role||"Member");
-      const currentExists=activeRoles.some(r=>r.display_name.toLowerCase()===current.toLowerCase());
-      const options=activeRoles.map(r=>'<option value="'+esc(r.display_name)+'" '+(r.display_name.toLowerCase()===current.toLowerCase()?"selected":"")+'>'+esc(r.display_name)+'</option>').join("");
-      return '<select class="admin-action-select" data-member-role="'+esc(x.id)+'" data-current-role="'+esc(current)+'"><option value="">Keep current role</option>'+(currentExists?"":'<option value="'+esc(current)+'" selected>'+esc(current)+' (not active in role catalog)</option>')+options+'</select>';
+    const[{data:roleOptions,error:roleOptionsError},{data:roleAssignments,error:roleAssignmentsError}]=await Promise.all([
+     sb.from("member_role_options").select("role_key,display_name,is_active,sort_order").eq("is_active",true).order("sort_order",{ascending:true}).order("display_name",{ascending:true}),
+     sb.from("member_roles").select("member_id,role").limit(5000)
+    ]);
+    if(roleOptionsError)throw roleOptionsError;if(roleAssignmentsError)throw roleAssignmentsError;
+    const activeRoles=roleOptions||[],assignments=roleAssignments||[],normalizeRole=value=>String(value||"").trim().toLowerCase();
+    const secondaryFor=member=>assignments.filter(item=>item.member_id===member.id&&normalizeRole(item.role)!==normalizeRole(member.role)).map(item=>item.role);
+    const roleOptionsHtml=(selected,allowNone=false)=>(allowNone?'<option value="">No secondary role</option>':"")+activeRoles.map(role=>'<option value="'+esc(role.display_name)+'" '+(normalizeRole(role.display_name)===normalizeRole(selected)?"selected":"")+'>'+esc(role.display_name)+'</option>').join("");
+    const roleControls=member=>{
+     const primary=String(member.role||"Member"),secondary=secondaryFor(member)[0]||"",primaryExists=activeRoles.some(role=>normalizeRole(role.display_name)===normalizeRole(primary)),secondaryExists=activeRoles.some(role=>normalizeRole(role.display_name)===normalizeRole(secondary));
+     const primaryOptions=(primaryExists?"":'<option value="'+esc(primary)+'" selected>'+esc(primary)+' (not active in catalog)</option>')+roleOptionsHtml(primary);
+     const secondaryOptions=(secondary&&!secondaryExists?'<option value="'+esc(secondary)+'" selected>'+esc(secondary)+' (not active in catalog)</option>':"")+roleOptionsHtml(secondary,true);
+     return '<div class="admin-member-role-editor" data-member-role-editor="'+esc(member.id)+'"><label class="admin-member-role-field"><span>Primary role</span><select class="admin-action-select" data-primary-role>'+primaryOptions+'</select></label><label class="admin-member-role-field"><span>Secondary role</span><select class="admin-action-select" data-secondary-role>'+secondaryOptions+'</select></label><button type="button" class="btn secondary" data-save-member-roles>Save roles</button><small class="admin-member-role-help">A secondary role is optional. The same role cannot be selected twice.</small></div>';
     };
-    work.innerHTML='<div class="admin-module"><div class="admin-module-head"><div><span class="admin-kicker">MEMBER DIRECTORY</span><h3>Members & account roles</h3><p>Role choices load from the central role catalog. Changing this field updates the member role only; it does not create a creator profile or grant privileged backend administrator access.</p></div><input class="admin-search" id="adminSearch" placeholder="Search members…" aria-label="Search members"></div><div class="admin-role-catalog-note"><b>Active role options:</b> '+(activeRoles.length?activeRoles.map(r=>esc(r.display_name)).join(" · "):"No active roles are configured.")+' <span>Manage role names, descriptions and active status in Supabase → member_role_options.</span></div>'+(rows.length?table(["Member","Email","Current role","Joined","Change role"],rows.map(x=>'<tr data-search-row="'+esc([x.display_name,x.username,x.email,x.role,x.status].join(" "))+'"><td><b>'+esc(x.display_name||x.username||x.id||"Member")+'</b><small>'+esc(x.user_id||"")+'</small></td><td>'+esc(x.email||"—")+'</td><td>'+badge(x.role||"Member")+'</td><td>'+(x.created_at?new Date(x.created_at).toLocaleDateString():"—")+'</td><td>'+roleSelect(x)+'</td></tr>').join("")):empty)+'</div>';
-    $("#adminSearch")?.addEventListener("input",e=>all("[data-search-row]").forEach(row=>row.hidden=!row.dataset.searchRow.toLowerCase().includes(e.target.value.toLowerCase())));
-    all("[data-member-role]").forEach(el=>el.addEventListener("change",async()=>{const role=el.value;if(!role)return;const previous=el.dataset.currentRole;if(!confirm("Change this member's role from "+previous+" to "+role+"?")){el.value="";return}el.disabled=true;const{data,error}=await sb.from("members").update({role,updated_at:new Date().toISOString()}).eq("id",el.dataset.memberRole).select("id,role").maybeSingle();if(error||!data){toast("Member role update blocked: "+(error?.message||"No member row was updated. Check administrator permissions."));el.disabled=false;el.value="";return}toast("Member role changed to "+role+".");admin()}));return;
+    work.innerHTML='<style>.admin-member-role-editor{display:grid;grid-template-columns:minmax(125px,1fr) minmax(125px,1fr) auto;gap:8px;align-items:end;min-width:420px}.admin-member-role-field{display:grid;gap:5px;color:var(--muted,#aaa);font-size:.72rem}.admin-member-role-field select{width:100%;min-width:0}.admin-member-role-help{grid-column:1/-1;color:var(--muted,#999);font-size:.7rem}.admin-member-role-editor button{white-space:nowrap}@media(max-width:700px){.admin-member-role-editor{grid-template-columns:1fr 1fr}.admin-member-role-editor button{grid-column:1/-1}}</style><div class="admin-module"><div class="admin-module-head"><div><span class="admin-kicker">MEMBER DIRECTORY</span><h3>Members & account roles</h3><p>Give a member a primary role and an optional secondary role. The primary role remains on the member record; the additional role is stored in the existing member_roles table. This does not grant privileged backend administrator access.</p></div><input class="admin-search" id="adminSearch" placeholder="Search members…" aria-label="Search members"></div><div class="admin-role-catalog-note"><b>Active role options:</b> '+(activeRoles.length?activeRoles.map(role=>esc(role.display_name)).join(" · "):"No active roles are configured.")+' <span>Manage role names, descriptions and active status in Supabase → member_role_options.</span></div>'+(rows.length?table(["Member","Email","Assigned roles","Joined","Manage roles"],rows.map(member=>{
+     const secondary=secondaryFor(member),roleLabels=[member.role||"Member",...secondary];
+     return '<tr data-search-row="'+esc([member.display_name,member.username,member.email,member.role,secondary.join(" "),member.status].join(" "))+'"><td><b>'+esc(member.display_name||member.username||member.id||"Member")+'</b><small>'+esc(member.user_id||"")+'</small></td><td>'+esc(member.email||"—")+'</td><td><div class="actions compact-actions">'+roleLabels.map((role,index)=>badge((index===0?"Primary · ":"Secondary · ")+role)).join("")+'</div></td><td>'+(member.created_at?new Date(member.created_at).toLocaleDateString():"—")+'</td><td>'+roleControls(member)+'</td></tr>';
+    }).join("")):empty)+'</div>';
+    $("#adminSearch")?.addEventListener("input",event=>all("[data-search-row]").forEach(row=>row.hidden=!row.dataset.searchRow.toLowerCase().includes(event.target.value.toLowerCase())));
+    all("[data-save-member-roles]").forEach(button=>button.addEventListener("click",async()=>{
+     const editor=button.closest("[data-member-role-editor]"),memberId=editor.dataset.memberRoleEditor,member=rows.find(item=>item.id===memberId);if(!member)return;
+     const primary=editor.querySelector("[data-primary-role]").value,secondary=editor.querySelector("[data-secondary-role]").value,oldSecondary=secondaryFor(member);
+     if(!primary){toast("Choose a primary role.");return}if(secondary&&normalizeRole(primary)===normalizeRole(secondary)){toast("Choose two different roles.");return}
+     const changesPrimary=normalizeRole(primary)!==normalizeRole(member.role||"Member"),changesSecondary=normalizeRole(secondary)!==normalizeRole(oldSecondary[0]||"");
+     if(!changesPrimary&&!changesSecondary){toast("No role changes to save.");return}
+     if(!confirm("Save roles for "+(member.display_name||member.username||"this member")+"?\n\nPrimary: "+primary+"\nSecondary: "+(secondary||"None")))return;
+     button.disabled=true;button.textContent="Saving…";
+     try{
+      if(changesPrimary){const{data,error}=await sb.from("members").update({role:primary,updated_at:new Date().toISOString()}).eq("id",memberId).select("id,role").maybeSingle();if(error)throw error;if(!data)throw Error("The primary role was not updated. Check administrator permissions.");member.role=data.role}
+      if(changesSecondary){
+       const previous=oldSecondary[0]||"";
+       if(previous){const{error}=await sb.from("member_roles").delete().eq("member_id",memberId).eq("role",previous);if(error)throw Error("Primary role saved, but the previous secondary role could not be removed: "+error.message)}
+       if(secondary){const{data:existing,error:lookupError}=await sb.from("member_roles").select("member_id,role").eq("member_id",memberId).eq("role",secondary).limit(1);if(lookupError)throw lookupError;if(!existing?.length){const{error}=await sb.from("member_roles").insert({member_id:memberId,role:secondary});if(error)throw Error("Primary role saved, but the secondary role could not be assigned: "+error.message)}}
+      }
+      toast("Roles updated: "+primary+(secondary?" + "+secondary:"")+".");await admin();
+     }catch(error){toast("Role update issue: "+(error.message||error));button.disabled=false;button.textContent="Save roles"}
+    }));
+    return;
    }
    if(tab==="creators"){
     const[roleMembersResult,assignmentsResult]=await Promise.all([
