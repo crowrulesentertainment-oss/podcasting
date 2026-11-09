@@ -976,7 +976,7 @@ async function rankings(){
   }
   if(category.id==="hosts"){
    const totals=new Map();for(const show of catalog.shows){if(!show.creator_id)continue;const current=totals.get(show.creator_id)||{plays:0,shows:0};current.plays+=Number(show.total_plays||0);current.shows++;totals.set(show.creator_id,current)}
-   return catalog.creators.map(item=>({kind:"host",item,plays:totals.get(item.id)?.plays||0,shows:totals.get(item.id)?.shows||0,source:"host-role"})).sort((a,b)=>Number(b.plays||0)-Number(a.plays||0));
+   return catalog.creators.filter(item=>{const name=String(item.display_name||item.name||"").trim().toLowerCase().replace(/[^a-z0-9]/g,"");return !name.startsWith("crowrules")&&name!=="jasonriehle"}).map(item=>({kind:"host",item,plays:totals.get(item.id)?.plays||0,shows:totals.get(item.id)?.shows||0,source:"host-role"})).sort((a,b)=>Number(b.plays||0)-Number(a.plays||0));
   }
   return[];
  };
@@ -992,7 +992,7 @@ async function rankings(){
    const builtRows=await buildRows(category);
    const rows=(category.id==="hosts"||category.id==="listeners")?builtRows:builtRows.slice(0,10);
    const snapshot=rows.some(row=>row.source==="live-view");
-   $("#rankingDataNote").textContent=category.id==="listeners"?"All publicly visible signed-in listeners · all-time qualified plays":category.id==="hosts"?"All active creator profiles · published-show totals":snapshot?periodSelect.options[periodSelect.selectedIndex].text+" · live chart with movement":["newshows","breakout","consistent","topcategories","followed"].includes(category.id)?"Live catalog · category-specific metrics":"Live catalog · cumulative metrics";
+   $("#rankingDataNote").textContent=category.id==="listeners"?"All publicly visible signed-in listeners · all-time qualified plays":category.id==="hosts"?"Creator rankings · excluding CrowRules and Jason Riehle":snapshot?periodSelect.options[periodSelect.selectedIndex].text+" · live chart with movement":["newshows","breakout","consistent","topcategories","followed"].includes(category.id)?"Live catalog · category-specific metrics":"Live catalog · cumulative metrics";
    const top=rows[0];
    if(top){
     const item=top.item,title=top.kind==="category"?item.title:category.id==="hosts"||category.id==="listeners"?(item.display_name||item.name||"Listener"):item.title||"Untitled";
