@@ -82,7 +82,6 @@ async function loadData() {
 function render(optionsByPoll = new Map()) {
   const active = polls.filter((poll) => poll.status === "active").length;
   const draft = polls.filter((poll) => poll.status === "draft").length;
-  const totalVotes = 0;
   const seasonOptions = seasons.map((season) =>
     '<option value="' + esc(season.id) + '">' + esc(season.title) + "</option>"
   ).join("");
@@ -133,7 +132,7 @@ function render(optionsByPoll = new Map()) {
   const form = $("#newPoll");
   if (form) form.addEventListener("submit", createPoll);
   $("#refreshPolls")?.addEventListener("click", refresh);
-  $("#pollSearch")?.addEventListener("input", (event) => {
+  $("#pollSearch")?.addEventListener("change", (event) => {
     searchTerm = event.target.value.trim().toLowerCase();
     render(optionsByPoll);
   });
@@ -279,6 +278,7 @@ async function act(action, id) {
       action === "close" ? "Voting is closed." :
       action === "reveal" ? (patch.results_visible ? "Results are visible to the audience." : "Results are hidden from the audience.") :
       "Poll archived.", "success");
+    busy = false;
     await refresh();
   } catch (error) {
     status("Poll action failed: " + failMessage(error), "error");
