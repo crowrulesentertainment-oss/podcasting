@@ -1685,6 +1685,32 @@ async function badges(){
   @media(max-width:600px){.badge-awards-hero .container{padding-top:52px;padding-bottom:52px}.badge-cinematic-scene{min-height:215px}.badge-directory-grid{gap:15px}}
   </style>`+'<section class="page-hero badge-awards-hero"><div class="container"><span class="badge-hero-kicker">✦ The CrowRules recognition collection</span><div class="eyebrow" style="margin-top:20px">CROWRULES PODCASTING</div><h1 class="page-title">Badges & Achievements</h1><p>Celebrate the voices, shows and moments that make this community special. Explore cinematic recognition artwork and the achievements awarded across CrowRules Podcasting.</p><div class="actions"><a class="btn" href="admin.html?tab=badges">Administer badges ↗</a><a class="btn secondary" href="awards.html">Explore Podcast Awards</a></div></div></section><section class="section container badge-directory">'+(groups.length?groups.map(category=>'<section class="badge-directory-group"><div class="section-head"><div><div class="eyebrow">RECOGNITION CATEGORY</div><h2>'+esc(category)+'</h2><p class="muted">Distinctive recognition, presented in a cinematic gallery.</p></div></div><div class="badge-directory-grid">'+badgeCards(category)+'</div></section>').join(""):'<div class="empty">No active badges are available yet.</div>')+'</section>';
  }
+async function publicProfile(){
+ const params=new URLSearchParams(location.search),username=String(params.get("username")||"").replace(/^@/,"").trim(),id=params.get("id");
+ if(!username&&!id){$("#app").innerHTML='<div class="container section empty">This public profile link is incomplete.</div>';return}
+ let query=sb.from("podcast_public_member_profiles").select("user_id,display_name,username,headline,bio,avatar_url,skills,interests,created_at");
+ if(username)query=query.ilike("username",username);else query=query.eq("user_id",id);
+ let{data:m,error}=await query.maybeSingle();
+ if(error)console.warn("Public member profile lookup:",error.message);
+ if(!m&&username){
+  const fallback=await sb.from("crowrules_public_profiles").select("id,user_id,username,display_name,first_name,last_name,role,bio,avatar_url,created_at").ilike("username",username).maybeSingle();
+  if(!fallback.error&&fallback.data){const p=fallback.data;m={user_id:p.user_id,username:p.username,display_name:p.display_name||[p.first_name,p.last_name].filter(Boolean).join(" "),headline:p.role||"Community Member",bio:p.bio,avatar_url:p.avatar_url,created_at:p.created_at}}
+ }
+ if(!m){$("#app").innerHTML='<div class="container section empty">This member profile is unavailable or private.</div>';return}
+ const[{data:assignments,error:badgeError},{data:creatorRows}]=await Promise.all([
+  sb.from("podcast_badge_assignments").select("badge_key,awarded_at,note").eq("target_type","profile").eq("target_id",m.user_id).eq("is_public",true).order("awarded_at",{ascending:false}),
+  sb.from("creators").select("id,name,display_name,role,discipline,bio,avatar_url").eq("member_id",m.user_id).eq("is_active",true).limit(1)
+ ]);
+ if(badgeError)console.warn("Public profile badges unavailable:",badgeError.message);
+ const keys=[...new Set((assignments||[]).map(x=>x.badge_key))];
+ const{data:defs}=keys.length?await sb.from("podcast_badge_catalog").select("badge_key,name,description,category,icon,image_url").in("badge_key",keys):{data:[]};
+ const map=new Map((defs||[]).map(x=>[x.badge_key,x]));
+ const creator=(creatorRows||[])[0],name=m.display_name||m.username||creator?.display_name||creator?.name||"CrowRules Community Member";
+ const badgeHtml=(assignments||[]).map(x=>{const d=map.get(x.badge_key);if(!d)return"";return '<article class="community-recognition-card"><div class="community-recognition-art">'+profileBadgeEmblem(d)+'</div><div class="community-recognition-copy"><b>'+esc(d.name)+'</b><small>'+esc(d.category||"Achievement")+(x.awarded_at?' · '+new Date(x.awarded_at).toLocaleDateString():"")+'</small><p>'+esc(x.note||d.description||"A CrowRules community achievement.")+'</p></div></article>'}).join("");
+ const skills=Array.isArray(m.skills)?m.skills:[],interests=Array.isArray(m.interests)?m.interests:[];
+ const chips=[...skills.map(x=>String(x)),...interests.map(x=>String(x))].filter(Boolean).slice(0,16);
+ $("#app").innerHTML='<section class="page-hero"><div class="container split"><div><div class="eyebrow">CROWRULES COMMUNITY PROFILE</div><h1 class="page-title">'+esc(name)+'</h1><p>'+esc(m.bio||creator?.bio||"A member of the CrowRules Podcasting community.")+'</p><div class="account-profile-meta"><span>'+esc(m.headline||creator?.role||creator?.discipline||"Community Member")+'</span>'+(m.username?'<span>@'+esc(m.username)+'</span>':"")+'</div></div><div class="feature-image">'+(m.avatar_url||creator?.avatar_url?'<img class="feature-image-img" src="'+esc(m.avatar_url||creator.avatar_url)+'" alt="'+esc(name)+'" loading="lazy">':'<div class="account-avatar"><span>'+esc(name.slice(0,1).toUpperCase())+'</span></div>')+'</div></div></section>'+(chips.length?'<section class="container section community-profile-tags"><div class="eyebrow">SKILLS & INTERESTS</div><div class="community-profile-chips">'+chips.map(x=>'<span>'+esc(x)+'</span>').join("")+'</div></section>':'')+'<section class="container section community-recognition-section"><div class="community-recognition-heading"><div class="eyebrow">COMMUNITY RECOGNITION</div><h2>Badges & achievements</h2><p>Celebrating creator milestones, contributions and the people who help build the CrowRules community.</p></div>'+(badgeHtml?'<div class="community-recognition-grid">'+badgeHtml+'</div>':'<div class="empty">No public badges have been awarded to this member yet. Achievements will appear here as they are earned.</div>')+'</section>';
+}
 async function memberProfile(){
  const id=new URLSearchParams(location.search).get("id");
  if(!id){$("#app").innerHTML='<div class="container section empty">Member profile not found.</div>';return}
