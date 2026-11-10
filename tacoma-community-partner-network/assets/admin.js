@@ -41,14 +41,36 @@ async function loadApplications(){
   message("#applicationMessage","Application review saved.");
  }));
 }
+async function loadAnalytics(){
+ const liveEl=$("#analyticsLive"),visitorsEl=$("#analyticsVisitors"),viewsEl=$("#analyticsPageviews"),todayEl=$("#analyticsToday");
+ message("#analyticsMessage","Refreshing analytics…");
+ try{
+  const {data:live,error:liveError}=await sb.rpc("partner_network_live_visitors");if(liveError)throw liveError;
+  const since=new Date(Date.now()-30*24*60*60*1000).toISOString();
+  const {data,error}=await sb.from("partner_network_analytics").select("visitor_id,page_path,event_type,created_at").gte("created_at",since).order("created_at",{ascending:false}).limit(10000);
+  if(error)throw error;
+  const rows=data||[],pageviews=rows.filter(x=>x.event_type==="pageview"),unique=new Set(rows.map(x=>x.visitor_id));
+  const todayKey=new Date().toISOString().slice(0,10),todayVisitors=new Set(rows.filter(x=>x.created_at.slice(0,10)===todayKey).map(x=>x.visitor_id));
+  liveEl.textContent=String(live??0);visitorsEl.textContent=String(unique.size);viewsEl.textContent=String(pageviews.length);todayEl.textContent=String(todayVisitors.size);
+  const counts={};pageviews.forEach(x=>{counts[x.page_path]=(counts[x.page_path]||0)+1;});
+  const top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  $("#analyticsTopPages").innerHTML=top.length?top.map(([path,count])=>`<div class="analytics-row"><span>${esc(path)}</span><strong>${count}</strong></div>`).join(""):"No pageviews recorded yet.";
+  const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const key=d.toISOString().slice(0,10);const names=new Set(rows.filter(x=>x.created_at.slice(0,10)===key).map(x=>x.visitor_id));days.push({key,label:d.toLocaleDateString(undefined,{weekday:"short"}),count:names.size});}
+  const max=Math.max(1,...days.map(d=>d.count));
+  $("#analyticsDaily").innerHTML=days.map(d=>`<div class="analytics-row"><span>${d.label} · ${d.key}</span><strong>${d.count}</strong><div class="analytics-bar" style="grid-column:1/-1"><i style="width:${Math.round(d.count/max*100)}%"></i></div></div>`).join("");
+  message("#analyticsMessage","Updated "+new Date().toLocaleTimeString()+".");
+ }catch(error){message("#analyticsMessage",error.message||"Analytics could not be loaded.",true);}
+}
 async function showSession(){
  const {data}=await sb.auth.getSession();const session=data.session;
  login.classList.toggle("hidden",!!session);dashboard.classList.toggle("hidden",!session);
- if(session){await load();await loadApplications();}
+ if(session){await load();await loadApplications();await loadAnalytics();}
 }
 $("#loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.currentTarget);message("#loginMessage","Signing in…");const {error}=await sb.auth.signInWithPassword({email:String(f.get("email")),password:String(f.get("password"))});if(error){message("#loginMessage",error.message,true);return;}await showSession();});
 $("#signOut").addEventListener("click",async()=>{await sb.auth.signOut();await showSession();});
 $("#clearEditor").addEventListener("click",clearForm);
+$("#refreshAnalytics").addEventListener("click",loadAnalytics);
+setInterval(()=>{if(!dashboard.classList.contains("hidden"))loadAnalytics();},60000);
 const IMAGE_BUCKET="cr-podcast-artwork";
 const imageTypes=["image/jpeg","image/png","image/webp","image/gif"];
 function bindImagePreview(inputId,previewId){
