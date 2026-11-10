@@ -1710,3 +1710,15 @@ body[data-page="admin"] .badge-console .table-wrap{max-width:100%;overflow-x:aut
 @media(max-width:1050px){.admin-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:780px){.admin-challenge-layout{grid-template-columns:1fr}.admin-challenge-list{position:static;max-height:260px}.admin-challenge-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.admin-challenge-list h4{grid-column:1/-1}.admin-challenge-pick{margin:0}.admin-panel .section-head{align-items:flex-start;flex-direction:column}}
 @media(max-width:560px){.admin-panel .form-grid{grid-template-columns:1fr}.admin-panel .form-field.full{grid-column:auto}.admin-stats-grid{gap:7px}.admin-stats-grid .admin-stat-card{padding:10px}.admin-panel{padding:12px}.admin-challenge-list{grid-template-columns:1fr 1fr}}
+
+
+/* Live network monitoring and 30-day audience growth */
+.admin-growth-monitor{overflow:hidden}
+.admin-growth-stats{grid-template-columns:repeat(3,minmax(0,1fr));margin:18px 0}
+.admin-growth-chart-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:22px 0 10px}
+.admin-growth-chart-head h4{margin:0}
+.admin-growth-chart{height:190px;display:flex;align-items:flex-end;gap:clamp(2px,.45vw,7px);padding:12px 8px 0;border-bottom:1px solid #ffffff24;border-radius:8px;background:linear-gradient(180deg,#ffffff08,transparent)}
+.admin-growth-bar{height:100%;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px}
+.admin-growth-bar i{display:block;width:min(100%,18px);min-height:3px;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#f04b54,#9e111b);box-shadow:0 0 12px #e5091425}
+.admin-growth-bar small{height:13px;color:#9a9a9a;font-size:8px;white-space:nowrap}
+@media(max-width:700px){.admin-growth-stats{grid-template-columns:1fr}.admin-growth-chart{height:145px;gap:2px;padding-left:2px;padding-right:2px}.admin-growth-bar small{font-size:7px}.admin-growth-bar i{width:100%}}
