@@ -12,6 +12,7 @@ Standalone development build stored in the CrowRules Podcasting repository under
 - Community commitments and frequently asked questions.
 - Accessible skip link, responsive navigation, semantic sections and reduced-motion support.
 - Expanded partner application fields for audience served and collaboration interests.
+- Optional organization logo upload with image preview; accepts JPG, PNG or WebP up to 2 MB.
 
 ## Files
 - `index.html` — public network homepage, directory, application form and informational sections.
@@ -23,6 +24,7 @@ Standalone development build stored in the CrowRules Podcasting repository under
 - Uses the existing Supabase project `cevylpnoexugwgygvtgu`.
 - Reads active records from `podcast_public_partners`.
 - Submits applications through the existing `partnership-application` Edge Function.
+- The Edge Function securely uploads optional logos to the existing public `podcast-artwork` bucket using its server-side credential, then includes the public logo URL in the saved inquiry message and notification email. No storage upload permission is granted to anonymous browsers.
 - Uses only the browser-safe Supabase publishable key. No service-role key or server secret is included.
 - Partner listing visibility and administrator permissions remain governed by existing database RLS policies.
 - The expanded application fields are included in the existing message field to avoid requiring a database schema or Edge Function contract change.
