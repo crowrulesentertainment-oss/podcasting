@@ -36,8 +36,7 @@ import { sb } from "./client.js";
   async function loadPartners() {
     if (!directory) return;
     const { data, error } = await sb.from("podcast_public_partners").select("id,organization_name,short_description,category,recognition_tier,logo_url,website_url,is_featured,spotlight_month,spotlight_title,spotlight_story,episode_url,sort_order").eq("is_active", true).order("sort_order").order("organization_name");
-    if (error || !result?.ok) {
-      console.error('Partnership application submission failed:', error || result?.error);
+    if (error) {
       directory.innerHTML = '<div class="partner-empty"><div><div class="empty-emblem">✦</div><h3>Our partner story starts here.</h3><p>Our public directory is being prepared. Partnership inquiries are open.</p></div></div>';
       return;
     }
@@ -81,8 +80,9 @@ import { sb } from "./client.js";
         company_website: String(data.get("company_website") || "").trim()
       }
     });
-    if (error) {
-      feedback.textContent = "We couldn't submit the inquiry just now. Please try again or email crowrulesentertainment@gmail.com.";
+    if (error || !result?.ok) {
+      console.error("Partnership application submission failed:", error || result?.error);
+      feedback.textContent = result?.error || "We couldn't submit the inquiry just now. Please try again or email crowrulesentertainment@gmail.com.";
       button.disabled = false;
       button.innerHTML = 'Submit partnership inquiry <span>↗</span>';
       return;
