@@ -90,7 +90,7 @@ import { sb } from "./client.js";
     form.reset();
     button.disabled = false;
     button.innerHTML = 'Submit partnership inquiry <span>↗</span>';
-    track("apply_click");
+    track("application_submit");
   });
 
   if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
