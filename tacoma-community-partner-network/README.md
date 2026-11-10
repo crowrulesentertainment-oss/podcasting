@@ -6,7 +6,11 @@ Standalone development build stored in the CrowRules Podcasting repository under
 - Expanded cinematic, responsive landing page focused on Tacoma, Pierce County and the South Sound.
 - Mission, community principles and six practical collaboration pathways.
 - Ten organization categories.
-- Searchable and filterable approved partner directory.
+- Searchable and filterable approved partner directory, including category, organization, location, mission and profile-description matching.
+- Featured partner section controlled from the administration center.
+- Expanded organization profiles with mission, full description, city/community, approved public contact details and social links.
+- Partner verification status (pending, verified or unverified); only administrator-approved verified records display a public verification marker.
+- Organization logo and cover-image support on partner profiles. Application logos can be submitted through the existing secure Edge Function upload; cover and profile image URLs are managed by administrators.
 - Clear participation expectations: no application fee, membership dues, required donation or financial contribution.
 - Five-step application and collaboration explanation.
 - Community commitments and frequently asked questions.
@@ -18,16 +22,24 @@ Standalone development build stored in the CrowRules Podcasting repository under
 - `index.html` — public network homepage, directory, application form and informational sections.
 - `assets/network.css` — responsive visual system and expanded page styles.
 - `assets/network.js` — public partner directory and application submission.
-- `admin.html` and `assets/admin.js` — separate Supabase-authenticated partner listing administration interface.
+- `admin.html` and `assets/admin.js` — separate Supabase-authenticated partner listing administration interface, featured controls, verification status and partner-application review tools.
 
 ## Current integrations
 - Uses the existing Supabase project `cevylpnoexugwgygvtgu`.
-- Reads active records from `podcast_public_partners`.
+- Reads active records from `podcast_public_partners` using the existing public-read RLS policy.
+- Phase 1 adds nullable profile fields and a constrained `verification_status` column to the existing `podcast_public_partners` table. Existing partner records and RLS policies are retained.
+- Application review reads and updates `business_inquiries` records where `interest='partnership'`, using the existing administrator-only RLS policy and existing status values. No new application table or public application-data access is added.
 - Submits applications through the existing `partnership-application` Edge Function.
 - The Edge Function securely uploads optional logos to the existing public `podcast-artwork` bucket using its server-side credential, then includes the public logo URL in the saved inquiry message and notification email. No storage upload permission is granted to anonymous browsers.
 - Uses only the browser-safe Supabase publishable key. No service-role key or server secret is included.
 - Partner listing visibility and administrator permissions remain governed by existing database RLS policies.
 - The expanded application fields are included in the existing message field to avoid requiring a database schema or Edge Function contract change.
+
+## Phase 1 implementation notes
+- Partner directory now supports featured cards, expanded details, public-approved contact channels, social links, city/community search and verification badges.
+- Administration supports profile editing, logo/cover image URLs, mission and full profile text, featured status, publication status and verification status.
+- Application review displays private submission details, allows status changes using the existing allowed statuses (`new`, `reviewing`, `contacted`, `qualified`, `closed`, `spam`) and saves administrator-only notes.
+- Applicant logo upload remains server-side through the existing Edge Function and `podcast-artwork` bucket. No anonymous Storage upload policy was added. For cover photos, administrators currently provide an HTTPS image URL; direct cover-photo upload is not part of this phase.
 
 ## Isolation and release status
 The files are committed to the repository's `main` branch, but no link has been added to the live CrowRules Podcasting homepage or navigation. The page should be treated as a development build until the live directory schema, Edge Function payload, form delivery, email notifications, administrator access and responsive behavior have been tested end to end.
