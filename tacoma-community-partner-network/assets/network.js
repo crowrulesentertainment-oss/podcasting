@@ -20,7 +20,7 @@ function render(){
 async function loadPartners(){
  const box=$("#partnerDirectory");
  try{
-  const {data,error}=await sb.from("podcast_public_partners").select("id,organization_name,short_description,category,logo_url,website_url,is_active,sort_order,city").eq("is_active",true).order("sort_order").order("organization_name");
+  const {data,error}=await sb.from("podcast_public_partners").select("id,organization_name,short_description,category,logo_url,website_url,is_active,sort_order").eq("is_active",true).order("sort_order").order("organization_name");
   if(error)throw error;
   partners=data||[];render();
  }catch(e){console.error("Partner directory:",e);box.innerHTML='<div class="empty-state"><div class="empty-symbol">✦</div><h3>Our community is taking shape.</h3><p>The partner directory is being prepared. You can still submit an application below.</p></div>';}
