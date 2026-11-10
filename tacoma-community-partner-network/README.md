@@ -40,8 +40,8 @@ Standalone development build stored in the CrowRules Podcasting repository under
 - Collaboration Matchmaker suggests potential connections based on matching categories, city/community and overlapping terms in published offers and requests. Suggestions are automated prompts, not endorsements or confirmed matches.
 - Partner announcements and a month-navigable community events calendar.
 - Public submission forms for opportunities, announcements and events. Submissions enter a pending state and are not public until approved.
-- Administration moderation queues for all three content tables, with pending, published, rejected and archived states.
-- New tables: `community_opportunities`, `community_announcements` and `community_events`. RLS is enabled on all three. Anonymous and authenticated users may submit pending records and read published records; only authenticated CrowRules administrators authorized by the existing `private.crowrules_is_admin_impl()` helper can review, update or delete records.
+- Administration moderation queues for all three Phase 2 content tables, with pending, published, rejected and archived states.
+- New tables: `community_opportunities`, `community_announcements` and `tacoma_partner_events`. RLS is enabled on all three. Anonymous and authenticated users may submit pending records and read published records; only authenticated CrowRules administrators authorized by the existing `private.crowrules_is_admin_impl()` helper can review, update or delete records.
 - Public content fields contain no applicant email or private contact fields. Submitters may provide a public website/contact URL, which is displayed only after publication.
 - Events store timezone-aware timestamps; event listings display in each visitor's local timezone.
 
