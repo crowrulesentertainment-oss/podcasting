@@ -22,6 +22,12 @@ export async function mountChallengeProgram() {
     style.id = "cr27-program-styles";
     style.textContent = `
       .cr27-live-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+      .cr27-guide-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+      .cr27-guide-grid article{padding:16px;border:1px solid #b58d4b44;border-radius:13px;background:linear-gradient(145deg,#1b1916,#0b0c0f)}
+      .cr27-guide-grid b{font-size:10px;letter-spacing:.13em;color:#e7c77e}
+      .cr27-guide-grid p{margin:8px 0 0;font-size:12px;line-height:1.65;color:#c4bdae}
+      @media(max-width:760px){.cr27-guide-grid{grid-template-columns:1fr 1fr}}
+      @media(max-width:480px){.cr27-guide-grid{grid-template-columns:1fr}}
       .cr27-live-card{border:1px solid #ffffff20;border-radius:17px;background:linear-gradient(145deg,#17181c,#0d0e11);padding:22px;min-width:0}
       .cr27-live-card h3{font-size:20px;margin:8px 0 10px}
       .cr27-live-card p{font-size:12px;color:#aaa69f;line-height:1.65}
@@ -69,6 +75,19 @@ export async function mountChallengeProgram() {
         <div><div class="cr27-kicker">THE LIVE CREATOR PROGRAM</div><h2>Enter. Be heard.<br>Earn your crown.</h2>
         <p class="cr27-lead">The challenge calendar is connected to CrowRules Podcasting. Sign in to submit an entry, vote during the official voting window, track your achievements and explore the Hall of Champions.</p></div>
       </div>
+      <section class="cr27-live-card" style="margin:0 0 20px" aria-labelledby="cr27-eligibility-title">
+        <div class="cr27-kicker">START HERE / OFFICIAL PARTICIPATION GUIDE</div>
+        <h3 id="cr27-eligibility-title">Who can enter — and how the season works</h3>
+        <div class="cr27-guide-grid">
+          <article><b>WHO CAN SUBMIT</b><p>To enter as a competitor, you need a CrowRules Podcasting login and a creator profile registered in the podcast creator system. A listener-only account is not enough to submit. The live entry form checks for that creator profile before allowing an entry.</p></article>
+          <article><b>WHO CAN VOTE</b><p>Voting is open to signed-in CrowRules Podcasting accounts while a challenge's voting window is open. You do not have to be a competing creator to support an entry. You cannot vote for your own submission.</p></article>
+          <article><b>ONE ENTRY PER MONTH</b><p>Each creator may submit one primary entry to each monthly challenge. Choose your best eligible episode before submitting: the system records one submission for that creator and challenge.</p></article>
+          <article><b>WHAT COUNTS AS AN ENTRY</b><p>Submit an original audio or video podcast episode that responds to that month's theme and requirements. You provide the show name, episode title, a public HTTPS link and an optional note explaining how it fits.</p></article>
+          <article><b>REVIEW BEFORE VOTING</b><p>Submissions start as pending. A CrowRules administrator reviews the entry and approves or rejects it. Only approved entries appear in the public voting gallery. Approval is not a promise of a win or a prize.</p></article>
+          <article><b>COMMUNITY VOTE</b><p>During the published voting window, each signed-in account can cast one vote for one eligible entry in that monthly challenge. The vote is recorded to the account; duplicate votes are blocked by the challenge's one-vote rule.</p></article>
+        </div>
+        <div class="cr27-live-notice"><strong>Important:</strong> This is a creator-community recognition competition. No entry fee or cash prize is promised. You retain ownership of your work; only submit material you created or have permission to share. The entry form currently accepts a public episode link, not a direct audio/video file upload.</div>
+      </section>
       <div class="cr27-live-grid">
         <section class="cr27-live-card" aria-labelledby="cr27-entry-title">
           <div class="cr27-kicker">01 / CREATOR SUBMISSIONS</div><h3 id="cr27-entry-title">Submit your monthly entry</h3>
@@ -153,11 +172,11 @@ export async function mountChallengeProgram() {
 
   function renderEntry() {
     if (!user) {
-      entryArea.innerHTML = '<div class="cr27-live-notice">Sign in with your CrowRules Podcasting account to submit an original entry and track its review status.</div>'+loginLink;
+      entryArea.innerHTML = '<div class="cr27-live-notice">Sign in with your CrowRules Podcasting account and create a creator profile to submit an original entry. Listener-only accounts can vote, but cannot enter as competitors.</div>'+loginLink;
       return;
     }
     if (!creatorMember) {
-      entryArea.innerHTML = '<div class="cr27-live-notice">Your account is signed in, but it is not currently linked to a podcast creator profile. Set up your creator account before entering a monthly challenge.</div>'+signupLink;
+      entryArea.innerHTML = '<div class="cr27-live-notice">Your account is signed in, but it is not linked to a registered podcast creator profile. Create or complete your creator profile before entering. You can still vote as a signed-in community member when voting is open.</div>'+signupLink;
       return;
     }
     if (!nextSubmission) {
@@ -208,7 +227,7 @@ export async function mountChallengeProgram() {
     }
     const entries=approvedEntries.filter(s=>s.challenge_id===votingChallenge.id);
     const myVote=myVotes.find(v=>v.challenge_id===votingChallenge.id);
-    voteArea.innerHTML='<div class="cr27-live-meta"><span class="cr27-live-chip">'+esc(monthName(votingChallenge.challenge_month))+' 2027</span><span class="cr27-live-chip">Voting is live</span></div><h4>'+esc(votingChallenge.title)+'</h4><p>Voting closes '+esc(dateLabel(votingChallenge.voting_closes_at))+'. Each signed-in member may cast one vote. Creators cannot vote for their own entry. Vote totals remain hidden until results are verified.</p>'+
+    voteArea.innerHTML='<div class="cr27-live-meta"><span class="cr27-live-chip">'+esc(monthName(votingChallenge.challenge_month))+' 2027</span><span class="cr27-live-chip">Voting is live</span></div><h4>'+esc(votingChallenge.title)+'</h4><p>Voting closes '+esc(dateLabel(votingChallenge.voting_closes_at))+'. Each signed-in CrowRules account may cast one vote in this monthly challenge. You do not need to be a creator to vote. You cannot vote for your own entry. Public vote totals are not displayed in this gallery.</p>'+
       (myVote?'<div class="cr27-live-notice">Your vote has been recorded. Thank you for supporting a fellow creator.</div>':!user?'<div class="cr27-live-notice">Sign in to cast your one vote for this month.</div>'+loginLink:'')+
       (entries.length?'<div class="cr27-live-list">'+entries.map(s=>'<article class="cr27-live-entry"><h4>'+esc(s.episode_title)+'</h4><p>'+esc(s.show_name)+'</p><p>'+esc(s.creator_statement||"A CrowRules creator challenge entry.")+'</p><a href="'+esc(s.episode_url)+'" target="_blank" rel="noopener noreferrer">Listen / watch entry ↗</a><div class="cr27-entry-actions">'+(myVote?'':user?(s.creator_user_id===user.id?'<span class="cr27-feature-note">You cannot vote for your own entry.</span>':'<button type="button" data-vote-for="'+esc(s.id)+'">Vote for this entry</button>'):'')+'</div></article>').join("")+'</div>':'<div class="cr27-live-notice">No approved entries are available for voting yet. Check back when creators have submitted their episodes and reviews are complete.</div>');
     voteArea.querySelectorAll("[data-vote-for]").forEach(button=>button.addEventListener("click",async()=>{
