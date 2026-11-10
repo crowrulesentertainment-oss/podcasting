@@ -36,7 +36,7 @@ form.addEventListener("submit",async e=>{
  button.disabled=true;button.textContent="Submitting application…";
  const type=String(f.get("category")||"");
  const website=String(f.get("website")||"").trim();
- const message="Category: "+type+"\nCity/community: "+String(f.get("city")||"").trim()+"\nPhone: "+String(f.get("phone")||"").trim()+"\n\n"+String(f.get("message")||"").trim();
+ const message="Category: "+type+"\nCity/community: "+String(f.get("city")||"").trim()+"\nPhone: "+String(f.get("phone")||"").trim()+"\nWho they serve: "+String(f.get("audience")||"Not specified").trim()+"\nCollaboration interest: "+String(f.get("collaboration")||"Not specified").trim()+"\n\n"+String(f.get("message")||"").trim();
  try{
   const {data,error}=await sb.functions.invoke("partnership-application",{body:{name:String(f.get("name")||"").trim(),organization:String(f.get("organization")||"").trim(),email:String(f.get("email")||"").trim(),interest:"partnership",message,website_url:website,company_website:String(f.get("company_website")||"").trim()}});
   if(error||!data?.ok)throw new Error(data?.error||error?.message||"The application could not be confirmed.");
