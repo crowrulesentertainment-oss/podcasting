@@ -7,8 +7,11 @@ const show = (message, kind="") => {status.textContent=message;status.className=
 async function init(){
  const {data:{user},error}=await sb.auth.getUser();
  if(error||!user){show("Please sign in with your CrowRules administrator account first. Open the main admin page, sign in, then return here.","bad");return;}
- const {data:probe,error:probeError}=await sb.from("business_inquiries").select("id").limit(1);
- if(probeError){show("Your session is active, but administrator access could not be confirmed. Check your CrowRules admin role and try again.","bad");return;}
+ const {data:auth,error:authError}=await sb.functions.invoke("podcasting-admin-bootstrap",{body:{}});
+ if(authError||!auth?.ok||!["active","initialized"].includes(auth.status)){
+   show(auth?.message||auth?.error||"Administrator access is pending approval. Sign in with an approved CrowRules administrator account.","bad");
+   return;
+ }
  app.classList.remove("hidden");
  show("Signed in as "+(user.email||"administrator")+". Data access is protected by database policies.","good");
  await refreshAll();
