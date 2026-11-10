@@ -100,3 +100,87 @@ form.addEventListener("submit",async e=>{
  }catch(err){console.error(err);feedback.textContent=err.message||"We couldn't submit your application. Please try again or email crowrulesentertainment@gmail.com.";feedback.classList.add("error");}
  finally{button.disabled=false;button.innerHTML='Submit partner application <span>↗</span>';}
 });
+
+// Phase 2 community board: public content is visible only after administrator approval.
+const boardTabs=[...document.querySelectorAll("[data-board-tab]")];
+boardTabs.forEach(tab=>tab.addEventListener("click",()=>{
+ boardTabs.forEach(t=>t.classList.toggle("active",t===tab));
+ ["opportunities","announcements","events","submit"].forEach(key=>{const panel=$("#board-"+key);panel.hidden=key!==tab.dataset.boardTab;});
+}));
+let opportunityRows=[],announcementRows=[],eventRows=[];
+let eventMonth=new Date();eventMonth.setDate(1);
+const typeLabels={collaboration:"COLLABORATION",volunteer:"VOLUNTEER",resource_offer:"RESOURCE OFFER",resource_request:"RESOURCE REQUEST"};
+function opportunityCard(o){
+ const link=safeUrl(o.website_url);
+ const expiry=o.expires_at?new Date(o.expires_at+"T12:00:00").toLocaleDateString():"";
+ return '<article class="board-card"><div class="board-card-meta"><span>'+esc(typeLabels[o.opportunity_type]||"OPPORTUNITY")+'</span><span>'+esc(o.category)+'</span></div><h4>'+esc(o.title)+'</h4><p class="board-org">'+esc(o.organization_name)+' · '+esc(o.city)+'</p><p>'+esc(o.description)+'</p>'+
+ (o.what_needed?'<p><strong>Looking for:</strong> '+esc(o.what_needed)+'</p>':'')+(o.what_offered?'<p><strong>Can offer:</strong> '+esc(o.what_offered)+'</p>':'')+
+ (expiry?'<small>Listed until '+esc(expiry)+'</small>':'')+(link?'<a class="board-link" href="'+esc(link)+'" target="_blank" rel="noopener noreferrer">Contact / learn more ↗</a>':'')+'</article>';
+}
+function renderOpportunities(){
+ const selected=$("#opportunityFilter").value;
+ const rows=opportunityRows.filter(o=>!selected||o.opportunity_type===selected);
+ $("#opportunityList").innerHTML=rows.length?rows.map(opportunityCard).join(""):'<p class="muted">No published opportunities match this filter yet. Check back as the community board grows.</p>';
+ const offers=opportunityRows.filter(o=>o.opportunity_type==="resource_offer"||o.opportunity_type==="collaboration");
+ const needs=opportunityRows.filter(o=>o.opportunity_type==="resource_request"||o.opportunity_type==="collaboration");
+ const pairs=[];
+ for(const need of needs)for(const offer of offers){
+  if(need.id===offer.id||need.organization_name.toLowerCase()===offer.organization_name.toLowerCase())continue;
+  const sameCity=String(need.city||"").toLowerCase()===String(offer.city||"").toLowerCase();
+  const sameCategory=String(need.category||"").toLowerCase()===String(offer.category||"").toLowerCase();
+  const textOverlap=[need.what_needed,need.description].join(" ").toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>4&&[offer.what_offered,offer.description].join(" ").toLowerCase().includes(w));
+  const score=(sameCity?2:0)+(sameCategory?2:0)+(textOverlap.length?1:0);
+  if(score>=2)pairs.push({need,offer,score});
+ }
+ pairs.sort((a,b)=>b.score-a.score);
+ $("#matchmakerResults").innerHTML=pairs.length?'<div class="matchmaker-heading"><span>✦ MATCHMAKER SUGGESTIONS</span><p>Potential connections based on shared categories, communities and descriptions. These are suggestions, not confirmed partnerships.</p></div>'+pairs.slice(0,3).map(x=>'<article class="match-card"><div><small>LOOKING FOR</small><strong>'+esc(x.need.organization_name)+'</strong><span>'+esc(x.need.what_needed||x.need.title)+'</span></div><div class="match-symbol">↔</div><div><small>POTENTIAL MATCH</small><strong>'+esc(x.offer.organization_name)+'</strong><span>'+esc(x.offer.what_offered||x.offer.title)+'</span></div></article>').join(""):'<div class="matchmaker-empty"><strong>Matchmaker is warming up.</strong><p>As organizations publish offers and requests, potential connections will appear here.</p></div>';
+}
+async function loadCommunityBoard(){
+ const [o,a,e]=await Promise.all([
+  sb.from("community_opportunities").select("id,opportunity_type,title,organization_name,category,city,description,what_needed,what_offered,website_url,expires_at,created_at").eq("status","published").order("created_at",{ascending:false}).limit(100),
+  sb.from("community_announcements").select("id,title,organization_name,category,city,summary,body,link_url,created_at").eq("status","published").order("created_at",{ascending:false}).limit(60),
+  sb.from("community_events").select("id,title,organization_name,category,city,venue,address,starts_at,ends_at,description,registration_url").eq("status","published").gte("starts_at",new Date(Date.now()-86400000).toISOString()).order("starts_at").limit(100)
+ ]);
+ if(o.error)$("#opportunityList").innerHTML='<p class="muted">Opportunities are temporarily unavailable.</p>';else{opportunityRows=o.data||[];renderOpportunities();}
+ if(a.error)$("#announcementList").innerHTML='<p class="muted">Announcements are temporarily unavailable.</p>';else{announcementRows=a.data||[];renderAnnouncements();}
+ if(e.error)$("#eventList").innerHTML='<p class="muted">Events are temporarily unavailable.</p>';else{eventRows=e.data||[];renderEvents();}
+}
+function renderAnnouncements(){
+ $("#announcementList").innerHTML=announcementRows.length?announcementRows.map(a=>'<article class="board-card"><div class="board-card-meta"><span>PARTNER ANNOUNCEMENT</span><span>'+esc(a.category)+'</span></div><h4>'+esc(a.title)+'</h4><p class="board-org">'+esc(a.organization_name)+' · '+esc(a.city)+'</p><p>'+esc(a.summary)+'</p><details class="announcement-more"><summary>Read announcement</summary><p>'+esc(a.body)+'</p></details>'+(safeUrl(a.link_url)?'<a class="board-link" href="'+esc(safeUrl(a.link_url))+'" target="_blank" rel="noopener noreferrer">More information ↗</a>':'')+'</article>').join(""):'<p class="muted">No partner announcements have been published yet.</p>';
+}
+function renderEvents(){
+ const label=eventMonth.toLocaleDateString(undefined,{month:"long",year:"numeric"});
+ $("#eventsMonth").textContent=label;
+ const year=eventMonth.getFullYear(),month=eventMonth.getMonth();
+ const rows=eventRows.filter(e=>{const d=new Date(e.starts_at);return d.getFullYear()===year&&d.getMonth()===month;});
+ $("#eventList").innerHTML=rows.length?rows.map(e=>{
+  const d=new Date(e.starts_at),date=d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}),time=d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
+  return '<article class="board-card event-card"><div class="event-date"><strong>'+d.getDate()+'</strong><span>'+d.toLocaleDateString(undefined,{month:"short"})+'</span></div><div class="board-card-meta"><span>'+esc(e.category)+'</span><span>'+esc(e.city)+'</span></div><h4>'+esc(e.title)+'</h4><p class="board-org">'+esc(e.organization_name)+'</p><p>'+esc(date)+' · '+esc(time)+(e.ends_at?' – '+esc(new Date(e.ends_at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})):'')+'</p>'+(e.venue?'<p>'+esc(e.venue)+(e.address?' · '+esc(e.address):'')+'</p>':'')+'<p>'+esc(e.description)+'</p>'+(safeUrl(e.registration_url)?'<a class="board-link" href="'+esc(safeUrl(e.registration_url))+'" target="_blank" rel="noopener noreferrer">Event details / registration ↗</a>':'')+'</article>';
+ }).join(""):'<p class="muted">No events are listed for this month yet. Use the submission form to share an upcoming community event.</p>';
+}
+$("#opportunityFilter").addEventListener("change",renderOpportunities);
+$("#eventsPrev").addEventListener("click",()=>{eventMonth.setMonth(eventMonth.getMonth()-1);renderEvents();});
+$("#eventsNext").addEventListener("click",()=>{eventMonth.setMonth(eventMonth.getMonth()+1);renderEvents();});
+function formObject(form,exclude=[]){const f=new FormData(form),o={};for(const [k,v] of f.entries())if(!exclude.includes(k)&&k!=="website_trap"&&String(v).trim()!=="")o[k]=String(v).trim();return o;}
+function bindBoardForm(id,feedbackId,table,transform){
+ const form=$(id),feedback=$(feedbackId);if(!form)return;
+ form.addEventListener("submit",async ev=>{
+  ev.preventDefault();feedback.textContent="";feedback.className="form-feedback";
+  if(!form.reportValidity())return;
+  const f=new FormData(form);if(String(f.get("website_trap")||"").trim())return;
+  const button=form.querySelector('button[type="submit"]');button.disabled=true;button.textContent="Submitting for review…";
+  try{
+   const payload=transform?transform(formObject(form)):formObject(form);
+   payload.status="pending";
+   const {error}=await sb.from(table).insert(payload);
+   if(error)throw error;
+   feedback.textContent="Thank you. Your submission has been received and is awaiting CrowRules review.";
+   feedback.classList.add("success");form.reset();
+  }catch(err){console.error("Community submission:",err);feedback.textContent=err.message||"Submission failed. Please try again later.";feedback.classList.add("error");}
+  finally{button.disabled=false;button.textContent=table==="community_opportunities"?"Submit opportunity ↗":table==="community_announcements"?"Submit announcement ↗":"Submit event ↗";}
+ });
+}
+bindBoardForm("#opportunityForm","#opportunityFeedback","community_opportunities");
+bindBoardForm("#announcementForm","#announcementFeedback","community_announcements");
+bindBoardForm("#eventForm","#eventFeedback","community_events",o=>({...o,starts_at:new Date(o.starts_at).toISOString(),ends_at:o.ends_at?new Date(o.ends_at).toISOString():null}));
+loadCommunityBoard();
