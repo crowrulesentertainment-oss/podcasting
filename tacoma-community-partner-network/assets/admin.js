@@ -4,8 +4,11 @@ const $=s=>document.querySelector(s),login=$("#loginPanel"),dashboard=$("#dashbo
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const safeUrl=v=>{try{const u=new URL(String(v||""));return u.protocol==="https:"?u.href:"";}catch{return "";}};
 function message(id,text,error=false){const el=$(id);el.textContent=text;el.style.color=error?"#ffaaa4":"var(--gold)";}
-function clearForm(){form.reset();form.elements.id.value="";form.elements.is_active.checked=true;form.elements.is_featured.checked=false;form.elements.sort_order.value="100";form.elements.verification_status.value="pending";$("#editorTitle").textContent="Add a partner listing";}
+function clearForm(){form.reset();$("#logoUploadPreview").hidden=true;$("#logoUploadPreview").removeAttribute("src");$("#coverUploadPreview").hidden=true;$("#coverUploadPreview").removeAttribute("src");form.elements.id.value="";form.elements.is_active.checked=true;form.elements.is_featured.checked=false;form.elements.sort_order.value="100";form.elements.verification_status.value="pending";$("#editorTitle").textContent="Add a partner listing";}
 function setEditor(p){
+ form.elements.logo_file.value="";form.elements.cover_file.value="";
+ $("#logoUploadPreview").src=p.logo_url||"";$("#logoUploadPreview").hidden=!p.logo_url;
+ $("#coverUploadPreview").src=p.cover_image_url||"";$("#coverUploadPreview").hidden=!p.cover_image_url;
  form.elements.id.value=p.id;
  for(const k of ["organization_name","category","short_description","website_url","logo_url","cover_image_url","recognition_tier","sort_order","city","mission","full_description","public_email","public_phone","facebook_url","instagram_url","youtube_url","verification_status"])form.elements[k].value=p[k]??"";
  form.elements.is_active.checked=!!p.is_active;form.elements.is_featured.checked=!!p.is_featured;
@@ -46,12 +49,48 @@ async function showSession(){
 $("#loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.currentTarget);message("#loginMessage","Signing in…");const {error}=await sb.auth.signInWithPassword({email:String(f.get("email")),password:String(f.get("password"))});if(error){message("#loginMessage",error.message,true);return;}await showSession();});
 $("#signOut").addEventListener("click",async()=>{await sb.auth.signOut();await showSession();});
 $("#clearEditor").addEventListener("click",clearForm);
+const IMAGE_BUCKET="cr-podcast-artwork";
+const imageTypes=["image/jpeg","image/png","image/webp","image/gif"];
+function bindImagePreview(inputId,previewId){
+ const input=$(inputId),preview=$(previewId);
+ input.addEventListener("change",()=>{
+  const file=input.files?.[0];
+  if(!file){preview.hidden=true;preview.removeAttribute("src");return;}
+  if(!imageTypes.includes(file.type)){input.value="";preview.hidden=true;message("#saveMessage","Choose a JPG, PNG, WebP or GIF image.",true);return;}
+  if(file.size>8*1024*1024){input.value="";preview.hidden=true;message("#saveMessage","Each image must be 8 MB or smaller.",true);return;}
+  preview.src=URL.createObjectURL(file);preview.hidden=false;
+ });
+}
+bindImagePreview("#logoFile","#logoUploadPreview");
+bindImagePreview("#coverFile","#coverUploadPreview");
+async function uploadPartnerImage(file,kind,organization){
+ if(!file)return null;
+ const ext=({"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/gif":"gif"})[file.type];
+ if(!ext||file.size>8*1024*1024)throw new Error("Invalid "+kind+" image. Use JPG, PNG, WebP or GIF up to 8 MB.");
+ const slug=String(organization||"partner").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,50)||"partner";
+ const path="community-partners/"+slug+"/"+kind+"-"+crypto.randomUUID()+"."+ext;
+ const {error}=await sb.storage.from(IMAGE_BUCKET).upload(path,file,{cacheControl:"3600",contentType:file.type,upsert:false});
+ if(error)throw error;
+ return sb.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
+}
 form.addEventListener("submit",async e=>{
- e.preventDefault();if(!form.reportValidity())return;message("#saveMessage","Saving partner listing…");
+ e.preventDefault();if(!form.reportValidity())return;
  const f=new FormData(form),id=String(f.get("id")||""),verification=String(f.get("verification_status")||"pending");
- const payload={organization_name:String(f.get("organization_name")).trim(),category:String(f.get("category")),short_description:String(f.get("short_description")).trim(),website_url:String(f.get("website_url")||"").trim()||null,logo_url:String(f.get("logo_url")||"").trim()||null,cover_image_url:String(f.get("cover_image_url")||"").trim()||null,recognition_tier:String(f.get("recognition_tier")||"Community Partner"),sort_order:Number(f.get("sort_order")||100),is_active:f.get("is_active")==="on",is_featured:f.get("is_featured")==="on",city:String(f.get("city")||"").trim()||null,mission:String(f.get("mission")||"").trim()||null,full_description:String(f.get("full_description")||"").trim()||null,public_email:String(f.get("public_email")||"").trim()||null,public_phone:String(f.get("public_phone")||"").trim()||null,facebook_url:String(f.get("facebook_url")||"").trim()||null,instagram_url:String(f.get("instagram_url")||"").trim()||null,youtube_url:String(f.get("youtube_url")||"").trim()||null,verification_status:verification,verified_at:verification==="verified"?new Date().toISOString():null};
- const result=id?await sb.from("podcast_public_partners").update(payload).eq("id",id):await sb.from("podcast_public_partners").insert(payload);
- if(result.error){message("#saveMessage",result.error.message,true);return;}
- message("#saveMessage","Partner listing saved.");clearForm();await load();
+ const organization=String(f.get("organization_name")).trim();
+ const saveButton=form.querySelector('button[type="submit"]');
+ saveButton.disabled=true;message("#saveMessage","Uploading images and saving partner listing…");
+ try{
+  let logoUrl=String(f.get("logo_url")||"").trim()||null;
+  let coverUrl=String(f.get("cover_image_url")||"").trim()||null;
+  const logoFile=form.elements.logo_file.files?.[0],coverFile=form.elements.cover_file.files?.[0];
+  if(logoFile)logoUrl=await uploadPartnerImage(logoFile,"logo",organization);
+  if(coverFile)coverUrl=await uploadPartnerImage(coverFile,"cover",organization);
+  const payload={organization_name:organization,category:String(f.get("category")),short_description:String(f.get("short_description")).trim(),website_url:String(f.get("website_url")||"").trim()||null,logo_url:logoUrl,cover_image_url:coverUrl,recognition_tier:String(f.get("recognition_tier")||"Community Partner"),sort_order:Number(f.get("sort_order")||100),is_active:f.get("is_active")==="on",is_featured:f.get("is_featured")==="on",city:String(f.get("city")||"").trim()||null,mission:String(f.get("mission")||"").trim()||null,full_description:String(f.get("full_description")||"").trim()||null,public_email:String(f.get("public_email")||"").trim()||null,public_phone:String(f.get("public_phone")||"").trim()||null,facebook_url:String(f.get("facebook_url")||"").trim()||null,instagram_url:String(f.get("instagram_url")||"").trim()||null,youtube_url:String(f.get("youtube_url")||"").trim()||null,verification_status:verification,verified_at:verification==="verified"?new Date().toISOString():null};
+  const result=id?await sb.from("podcast_public_partners").update(payload).eq("id",id):await sb.from("podcast_public_partners").insert(payload);
+  if(result.error)throw result.error;
+  message("#saveMessage","Partner listing saved with uploaded images.");
+  clearForm();await load();
+ }catch(error){message("#saveMessage",error.message||"The partner listing could not be saved.",true);}
+ finally{saveButton.disabled=false;}
 });
 showSession();
