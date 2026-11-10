@@ -139,7 +139,7 @@ async function loadCommunityBoard(){
  const [o,a,e]=await Promise.all([
   sb.from("community_opportunities").select("id,opportunity_type,title,organization_name,category,city,description,what_needed,what_offered,website_url,expires_at,created_at").eq("status","published").order("created_at",{ascending:false}).limit(100),
   sb.from("community_announcements").select("id,title,organization_name,category,city,summary,body,link_url,created_at").eq("status","published").order("created_at",{ascending:false}).limit(60),
-  sb.from("community_events").select("id,title,organization_name,category,city,venue,address,starts_at,ends_at,description,registration_url").eq("status","published").order("starts_at").limit(100)
+  sb.from("tacoma_partner_events").select("id,title,organization_name,category,city,venue,address,starts_at,ends_at,description,registration_url").eq("status","published").order("starts_at").limit(100)
  ]);
  if(o.error)$("#opportunityList").innerHTML='<p class="muted">Opportunities are temporarily unavailable.</p>';else{opportunityRows=o.data||[];renderOpportunities();}
  if(a.error)$("#announcementList").innerHTML='<p class="muted">Announcements are temporarily unavailable.</p>';else{announcementRows=a.data||[];renderAnnouncements();}
@@ -182,5 +182,5 @@ function bindBoardForm(id,feedbackId,table,transform){
 }
 bindBoardForm("#opportunityForm","#opportunityFeedback","community_opportunities");
 bindBoardForm("#announcementForm","#announcementFeedback","community_announcements");
-bindBoardForm("#eventForm","#eventFeedback","community_events",o=>({...o,starts_at:new Date(o.starts_at).toISOString(),ends_at:o.ends_at?new Date(o.ends_at).toISOString():null}));
+bindBoardForm("#eventForm","#eventFeedback","tacoma_partner_events",o=>({...o,starts_at:new Date(o.starts_at).toISOString(),ends_at:o.ends_at?new Date(o.ends_at).toISOString():null}));
 loadCommunityBoard();
