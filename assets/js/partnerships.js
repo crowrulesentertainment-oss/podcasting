@@ -15,6 +15,10 @@ import { sb } from "./client.js";
         event_type: eventType,
         partner_id: partnerId,
         campaign_key: new URLSearchParams(location.search).get("utm_campaign")?.slice(0,100) || null,
+        campaign_source: new URLSearchParams(location.search).get("utm_source")?.slice(0,100) || null,
+        campaign_medium: new URLSearchParams(location.search).get("utm_medium")?.slice(0,100) || null,
+        campaign_content: new URLSearchParams(location.search).get("utm_content")?.slice(0,150) || null,
+        referral_code: new URLSearchParams(location.search).get("ref")?.slice(0,100) || null,
         page_path: location.pathname.slice(0,300),
         referrer_host: document.referrer ? new URL(document.referrer).hostname.slice(0,160) : null
       });
@@ -42,7 +46,7 @@ import { sb } from "./client.js";
     }
     directory.innerHTML = data.map(partnerCard).join("");
     directory.querySelectorAll("[data-partner-link]").forEach(link => link.addEventListener("click", () => track("partner_click", link.dataset.partnerLink)));
-    const spotlight = data.find(p => p.spotlight_title || p.spotlight_story);
+    const spotlight = data.find(p => p.is_featured && (p.spotlight_title || p.spotlight_story)) || data.find(p => p.spotlight_title || p.spotlight_story);
     const feature = document.getElementById("featuredSpotlight");
     if (spotlight && feature) {
       feature.hidden = false;
