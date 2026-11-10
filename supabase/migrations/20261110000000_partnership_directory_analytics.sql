@@ -31,7 +31,7 @@ grant insert, update, delete on public.podcast_public_partners to authenticated;
 
 create table if not exists public.podcast_partnership_events (
   id bigint generated always as identity primary key,
-  event_type text not null check (event_type in ('page_view','partner_click','spotlight_click','media_kit_open','apply_click')),
+  event_type text not null check (event_type in ('page_view','partner_click','spotlight_click','media_kit_open','apply_click','application_submit')),
   partner_id uuid references public.podcast_public_partners(id) on delete set null,
   campaign_key text,
   campaign_source text,
@@ -48,7 +48,7 @@ alter table public.podcast_partnership_events enable row level security;
 create policy "Public can record partnership engagement" on public.podcast_partnership_events
   for insert to anon, authenticated
   with check (
-    event_type in ('page_view','partner_click','spotlight_click','media_kit_open','apply_click')
+    event_type in ('page_view','partner_click','spotlight_click','media_kit_open','apply_click','application_submit')
     and (campaign_key is null or char_length(campaign_key) <= 100)
     and (campaign_source is null or char_length(campaign_source) <= 100)
     and (campaign_medium is null or char_length(campaign_medium) <= 100)
