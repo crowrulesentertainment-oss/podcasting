@@ -1,4 +1,4 @@
-import { mountChallengeProgram } from "./challenge-program-2027.js";
+import { mountChallengeProgram } from "./challenge-program-2027.js?v=20261109-creator-champions-v4";
 const $=s=>document.querySelector(s);
 const SITE_BASE="/podcasting/";
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#x27;"}[c]));
