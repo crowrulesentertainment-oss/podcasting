@@ -139,7 +139,7 @@ async function loadCommunityBoard(){
  const [o,a,e]=await Promise.all([
   sb.from("community_opportunities").select("id,opportunity_type,title,organization_name,category,city,description,what_needed,what_offered,website_url,expires_at,created_at").eq("status","published").order("created_at",{ascending:false}).limit(100),
   sb.from("community_announcements").select("id,title,organization_name,category,city,summary,body,link_url,created_at").eq("status","published").order("created_at",{ascending:false}).limit(60),
-  sb.from("community_events").select("id,title,organization_name,category,city,venue,address,starts_at,ends_at,description,registration_url").eq("status","published").gte("starts_at",new Date(Date.now()-86400000).toISOString()).order("starts_at").limit(100)
+  sb.from("community_events").select("id,title,organization_name,category,city,venue,address,starts_at,ends_at,description,registration_url").eq("status","published").order("starts_at").limit(100)
  ]);
  if(o.error)$("#opportunityList").innerHTML='<p class="muted">Opportunities are temporarily unavailable.</p>';else{opportunityRows=o.data||[];renderOpportunities();}
  if(a.error)$("#announcementList").innerHTML='<p class="muted">Announcements are temporarily unavailable.</p>';else{announcementRows=a.data||[];renderAnnouncements();}
