@@ -70,4 +70,4 @@ Do not add a live-site link or describe the application flow as production-ready
 11. Only after approval, decide whether to add a link from the live Podcasting site.
 
 ## Scope protection
-This page update does not create or alter database tables, RLS policies, authentication settings, Edge Functions or existing live Podcasting pages.
+Phase 2 adds three isolated community-content tables with RLS. It does not change the existing `community_events` table or its policies, Phase 1 partner records, authentication settings, Edge Functions or existing live Podcasting pages.
