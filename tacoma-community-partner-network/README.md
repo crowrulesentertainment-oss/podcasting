@@ -35,6 +35,16 @@ Standalone development build stored in the CrowRules Podcasting repository under
 - Partner listing visibility and administrator permissions remain governed by existing database RLS policies.
 - The expanded application fields are included in the existing message field to avoid requiring a database schema or Edge Function contract change.
 
+## Phase 2 implementation notes
+- Public community board with collaboration, volunteer, resource-offer and resource-request opportunity types.
+- Collaboration Matchmaker suggests potential connections based on matching categories, city/community and overlapping terms in published offers and requests. Suggestions are automated prompts, not endorsements or confirmed matches.
+- Partner announcements and a month-navigable community events calendar.
+- Public submission forms for opportunities, announcements and events. Submissions enter a pending state and are not public until approved.
+- Administration moderation queues for all three content tables, with pending, published, rejected and archived states.
+- New tables: `community_opportunities`, `community_announcements` and `community_events`. RLS is enabled on all three. Anonymous and authenticated users may submit pending records and read published records; only authenticated CrowRules administrators authorized by the existing `private.crowrules_is_admin_impl()` helper can review, update or delete records.
+- Public content fields contain no applicant email or private contact fields. Submitters may provide a public website/contact URL, which is displayed only after publication.
+- Events store timezone-aware timestamps; event listings display in each visitor's local timezone.
+
 ## Phase 1 implementation notes
 - Partner directory now supports featured cards, expanded details, public-approved contact channels, social links, city/community search and verification badges.
 - Administration supports profile editing, logo/cover image URLs, mission and full profile text, featured status, publication status and verification status.
@@ -42,7 +52,7 @@ Standalone development build stored in the CrowRules Podcasting repository under
 - Applicant logo upload remains server-side through the existing Edge Function and `podcast-artwork` bucket. No anonymous Storage upload policy was added. For cover photos, administrators currently provide an HTTPS image URL; direct cover-photo upload is not part of this phase.
 
 ## Isolation and release status
-The files are committed to the repository's `main` branch, but no link has been added to the live CrowRules Podcasting homepage or navigation. The page should be treated as a development build until the live directory schema, Edge Function payload, form delivery, email notifications, administrator access and responsive behavior have been tested end to end.
+The files are committed to the repository's `main` branch, but no link has been added to the live CrowRules Podcasting homepage or navigation. The page should be treated as a development build until the live directory schema, Edge Function payload, form delivery, email notifications, administrator access, Phase 2 submissions and moderation, and responsive behavior have been tested end to end.
 
 Do not add a live-site link or describe the application flow as production-ready until those checks are complete and the owner approves the release.
 
@@ -54,7 +64,10 @@ Do not add a live-site link or describe the application flow as production-ready
 5. Confirm the notification result and email delivery.
 6. Test administrator sign-in, partner creation, editing and publishing under existing RLS controls.
 7. Test mobile navigation, keyboard access, search, category filtering, form validation and honeypot behavior.
-8. Only after approval, decide whether to add a link from the live Podcasting site.
+8. Test all three Phase 2 public submission forms and verify new rows remain pending and invisible until administrator approval.
+9. Test all three moderation queues, including publishing, rejection and archiving.
+10. Test match suggestions, category filtering, event month navigation and timezone display.
+11. Only after approval, decide whether to add a link from the live Podcasting site.
 
 ## Scope protection
 This page update does not create or alter database tables, RLS policies, authentication settings, Edge Functions or existing live Podcasting pages.
