@@ -32,7 +32,7 @@ export async function mountChallengeProgram() {
       .cr27-live-card h3{font-size:20px;margin:8px 0 10px}
       .cr27-live-card p{font-size:12px;color:#aaa69f;line-height:1.65}
       .cr27-live-card label{display:block;color:#d8c9a9;font-size:10px;font-weight:850;letter-spacing:.12em;text-transform:uppercase;margin:14px 0 6px}
-      .cr27-live-card input,.cr27-live-card select,.cr27-live-card textarea{width:100%;background:#090a0d;color:#f8f5ef;border:1px solid #ffffff2c;border-radius:10px;padding:12px;font:inherit;font-size:13px}
+      .cr27-live-card input,.cr27-live-card select,.cr27-live-card textarea{width:100%;background:#090a0d;color:#f8f5ef;border:1px solid #ffffff2c;border-radius:10px;padding:12px;font:inherit;font-size:13px}.cr27-live-card input[type=file]{padding:14px;border-style:dashed;background:#ffffff06}.cr27-upload-help{font-size:10px;color:#a9a397;line-height:1.55;margin:7px 0 12px}.cr27-upload-divider{display:flex;align-items:center;gap:10px;color:#898378;font-size:9px;letter-spacing:.18em;text-transform:uppercase;margin:15px 0}.cr27-upload-divider:before,.cr27-upload-divider:after{content:'';height:1px;background:#ffffff20;flex:1}
       .cr27-live-card textarea{min-height:92px;resize:vertical}
       .cr27-live-card input:focus,.cr27-live-card select:focus,.cr27-live-card textarea:focus{outline:2px solid #e7bd68;outline-offset:2px}
       .cr27-live-card button{margin-top:14px}
@@ -86,7 +86,7 @@ export async function mountChallengeProgram() {
           <article><b>REVIEW BEFORE VOTING</b><p>Submissions start as pending. A CrowRules administrator reviews the entry and approves or rejects it. Only approved entries appear in the public voting gallery. Approval is not a promise of a win or a prize.</p></article>
           <article><b>COMMUNITY VOTE</b><p>During the published voting window, each signed-in account can cast one vote for one eligible entry in that monthly challenge. The vote is recorded to the account; duplicate votes are blocked by the challenge's one-vote rule.</p></article>
         </div>
-        <div class="cr27-live-notice"><strong>Important:</strong> This is a creator-community recognition competition. No entry fee or cash prize is promised. You retain ownership of your work; only submit material you created or have permission to share. The entry form currently accepts a public episode link, not a direct audio/video file upload.</div>
+        <div class="cr27-live-notice"><strong>Important:</strong> This is a creator-community recognition competition. No entry fee or cash prize is promised. You retain ownership of your work; only submit material you created or have permission to share. The entry form accepts a direct audio/video file upload or a public episode link.</div>
       </section>
       <div class="cr27-live-grid">
         <section class="cr27-live-card" aria-labelledby="cr27-entry-title">
@@ -196,23 +196,41 @@ export async function mountChallengeProgram() {
     }).join("")+'</div>' : '<div class="cr27-live-notice">Your challenge entry history will appear here after you submit.</div>';
     entryArea.innerHTML = '<div class="cr27-live-meta"><span class="cr27-live-chip">'+esc(monthName(nextSubmission.challenge_month))+' 2027</span><span class="cr27-live-chip">'+(open?'Entries open':'Upcoming entry')+'</span></div><h4>'+esc(nextSubmission.title)+'</h4><p>'+esc(nextSubmission.description)+'</p><p><strong>Entry requirements:</strong> '+esc(nextSubmission.requirements)+'</p><div class="cr27-live-notice">'+esc(openText)+'</div>'+
       (mine ? '<div class="cr27-live-notice"><strong>Your entry:</strong> '+esc(mine.episode_title)+' · '+esc(mine.status)+'. One entry per creator is allowed for each monthly challenge.</div>' :
-      '<form id="cr27-submit-form"><label for="cr27-show-name">Podcast / show name</label><input id="cr27-show-name" name="show_name" maxlength="120" required placeholder="Your show name"><label for="cr27-episode-title">Episode title</label><input id="cr27-episode-title" name="episode_title" maxlength="180" required placeholder="Title of your challenge episode"><label for="cr27-episode-url">Public episode link</label><input id="cr27-episode-url" name="episode_url" type="url" maxlength="1000" required placeholder="https://…"><label for="cr27-statement">Tell us how your entry fits the theme</label><textarea id="cr27-statement" name="creator_statement" maxlength="1200" placeholder="A short note for the review team"></textarea><button type="submit" '+(!open?'disabled':'')+'>Submit my challenge entry ↗</button><div class="cr27-feature-note">One original entry per creator per month. Entries begin as pending and appear in the public voting gallery only after approval.</div></form>')+
+      '<form id="cr27-submit-form"><label for="cr27-show-name">Podcast / show name</label><input id="cr27-show-name" name="show_name" maxlength="120" required placeholder="Your show name"><label for="cr27-episode-title">Episode title</label><input id="cr27-episode-title" name="episode_title" maxlength="180" required placeholder="Title of your challenge episode"><label for="cr27-episode-file">Upload your episode</label><input id="cr27-episode-file" name="episode_file" type="file" accept="audio/*,video/mp4,video/webm,video/quicktime,video/x-m4v"><div class="cr27-upload-help">Audio or video file · Maximum 500 MB · MP3, M4A, WAV, OGG, WebM, MP4, MOV and supported formats. Your upload is stored with your CrowRules creator account and reviewed before appearing in voting.</div><div class="cr27-upload-divider">OR SHARE A LINK</div><label for="cr27-episode-url">Public episode link</label><input id="cr27-episode-url" name="episode_url" type="url" maxlength="1000" placeholder="https://…"><label for="cr27-statement">Tell us how your entry fits the theme</label><textarea id="cr27-statement" name="creator_statement" maxlength="1200" placeholder="A short note for the review team"></textarea><button type="submit" '+(!open?'disabled':'')+'>Submit my challenge entry ↗</button><div class="cr27-feature-note">One original entry per creator per month. Entries begin as pending and appear in the public voting gallery only after approval.</div></form>')+
       '<div style="margin-top:22px"><div class="cr27-kicker">MY SUBMISSION HISTORY</div>'+myHtml+'</div>';
     const form=document.querySelector("#cr27-submit-form");
     form?.addEventListener("submit",async event=>{
       event.preventDefault();
       const data=new FormData(form);
-      const url=safeEpisodeUrl(data.get("episode_url"));
-      if(!url){alert("Please provide a valid public HTTPS episode link.");return;}
+      const link=safeEpisodeUrl(data.get("episode_url"));
+      const file=data.get("episode_file");
+      if(!file || !file.size){if(!link){alert("Upload an episode file or provide a public HTTPS episode link.");return;}}
+      if(link==="" && String(data.get("episode_url")||"").trim()){alert("Please provide a valid public HTTPS episode link.");return;}
+      const maxBytes=500*1024*1024;
+      if(file && file.size){
+        const allowed=new Set(["audio/mpeg","audio/mp4","audio/aac","audio/x-m4a","audio/wav","audio/x-wav","audio/ogg","audio/webm","audio/flac","video/mp4","video/webm","video/quicktime","video/x-m4v"]);
+        if(file.size>maxBytes){alert("Your episode must be 500 MB or smaller.");return;}
+        if(!allowed.has(file.type)){alert("Please choose a supported audio or video file (MP3, M4A, WAV, OGG, WebM, MP4 or MOV).");return;}
+      }
       const button=form.querySelector("button[type=submit]");
-      button.disabled=true;button.textContent="Submitting…";
+      button.disabled=true;button.textContent=file&&file.size?"Uploading episode…":"Submitting…";
+      let episodeUrl=link;
+      let uploadedPath="";
+      if(file&&file.size){
+        const safeName=file.name.toLowerCase().replace(/[^a-z0-9._-]+/g,"-").replace(/^-+|-+$/g,"").slice(-120)||"episode-media";
+        uploadedPath=user.id+"/challenge-entries/2027/"+nextSubmission.challenge_month+"/"+crypto.randomUUID()+"-"+safeName;
+        const upload=await sb.storage.from("crowrules-podcast-published").upload(uploadedPath,file,{contentType:file.type,upsert:false,cacheControl:"3600"});
+        if(upload.error){alert("Episode upload failed: "+upload.error.message);button.disabled=false;button.textContent="Submit my challenge entry ↗";return;}
+        episodeUrl=sb.storage.from("crowrules-podcast-published").getPublicUrl(uploadedPath).data.publicUrl;
+      }
+      button.textContent="Saving your entry…";
       const {error}=await sb.from("podcast_challenge_submissions").insert({
         challenge_id:nextSubmission.id,creator_user_id:user.id,
         show_name:String(data.get("show_name")||"").trim(),
         episode_title:String(data.get("episode_title")||"").trim(),
-        episode_url:url,creator_statement:String(data.get("creator_statement")||"").trim()
+        episode_url:episodeUrl,creator_statement:String(data.get("creator_statement")||"").trim()
       });
-      if(error){alert(error.code==="23505"?"You already submitted an entry for this monthly challenge.":error.message);button.disabled=false;button.textContent="Submit my challenge entry ↗";return;}
+      if(error){if(uploadedPath)await sb.storage.from("crowrules-podcast-published").remove([uploadedPath]);alert(error.code==="23505"?"You already submitted an entry for this monthly challenge.":error.message);button.disabled=false;button.textContent="Submit my challenge entry ↗";return;}
       alert("Your entry has been submitted for review. You can track its status here.");
       await mountChallengeProgram();
     });
