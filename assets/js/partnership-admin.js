@@ -45,7 +45,7 @@ async function loadEvents(){
  if(error){$("#analyticsSummary").innerHTML='<div class="empty-state">Analytics unavailable. Check administrator permissions.</div>';return;}
  events=data||[];
  const count=t=>events.filter(e=>e.event_type===t).length;
- const metrics=[["Page views",count("page_view")],["Partner clicks",count("partner_click")],["Spotlight clicks",count("spotlight_click")],["Media kit opens",count("media_kit_open")],["Apply clicks",count("apply_click")]];
+ const metrics=[["Page views",count("page_view")],["Partner clicks",count("partner_click")],["Spotlight clicks",count("spotlight_click")],["Media kit opens",count("media_kit_open")],["Apply clicks",count("apply_click")],["Applications submitted",count("application_submit")]];
  $("#analyticsSummary").innerHTML=metrics.map(m=>'<div class="admin-stat"><b>'+m[1]+'</b><span>'+m[0]+' · 30 days</span></div>').join("");
  const campaigns={};events.forEach(e=>{const key=e.referral_code?"Referral: "+e.referral_code:(e.campaign_key?e.campaign_key+" · "+(e.campaign_source||"source unknown")+" / "+(e.campaign_medium||"medium unknown"):"Un-tagged / direct");campaigns[key]=(campaigns[key]||0)+1;});
  $("#campaignBreakdown").innerHTML='<div class="section-label">CAMPAIGN TAG BREAKDOWN · LAST 30 DAYS</div>'+Object.entries(campaigns).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<article class="admin-row"><div><h3>'+esc(k)+'</h3><p>Recorded engagement events</p></div><b>'+v+'</b></article>').join("")||'<div class="empty-state">No campaign events recorded yet.</div>';
