@@ -121,7 +121,7 @@ async function loadCommunitySubmissions(){
  const configs=[
   {table:"community_opportunities",body:"#communityOpportunityRows",kind:"Opportunity",date:"created_at",title:r=>r.title,detail:r=>[r.opportunity_type,r.description,r.what_needed,r.what_offered].filter(Boolean).join(" · ")},
   {table:"community_announcements",body:"#communityAnnouncementRows",kind:"Announcement",date:"created_at",title:r=>r.title,detail:r=>[r.summary,r.body].filter(Boolean).join(" · ")},
-  {table:"community_events",body:"#communityEventRows",kind:"Event",date:"starts_at",title:r=>r.title,detail:r=>[r.venue,r.address,r.description].filter(Boolean).join(" · ")}
+  {table:"tacoma_partner_events",body:"#communityEventRows",kind:"Event",date:"starts_at",title:r=>r.title,detail:r=>[r.venue,r.address,r.description].filter(Boolean).join(" · ")}
  ];
  for(const cfg of configs){
   const target=$(cfg.body);target.innerHTML="<tr><td colspan='5'>Loading submissions…</td></tr>";
