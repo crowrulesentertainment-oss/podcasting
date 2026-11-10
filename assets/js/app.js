@@ -91,23 +91,24 @@ function enableSeamlessNavigation(){
  });
  window.addEventListener("popstate",()=>navigateTo(location.href,{history:false}));
 }
-function syncPrimaryNavigation(){const current=new URL(location.href),cleanPath=p=>p.endsWith("/")?p.slice(0,-1):p;let activeGroup=null;all("#primaryNav [data-primary-link]").forEach(link=>{const target=new URL(link.href,location.href),active=cleanPath(target.pathname)===cleanPath(current.pathname);link.classList.toggle("active",active);if(active){link.setAttribute("aria-current","page");activeGroup=link.closest(".nav-group")}else link.removeAttribute("aria-current")});all("#primaryNav .nav-group").forEach(group=>group.classList.toggle("has-active",group===activeGroup))}function closePrimaryNavigation(){const nav=$("#primaryNav"),toggle=$("#menuToggle");if(!nav||!toggle)return;nav.classList.remove("nav-open");toggle.setAttribute("aria-expanded","false");const label=toggle.querySelector("span");if(label)label.textContent="Menu";if(toggle.firstChild)toggle.firstChild.textContent="☰ ";nav.querySelectorAll("details[open]").forEach(group=>group.open=false)}function installNavigationStyles(){if($("#cr-navigation-styles"))return;const style=document.createElement("style");style.id="cr-navigation-styles";style.textContent=".topbar{gap:clamp(10px,1.5vw,22px);min-height:76px;height:auto;padding-top:8px;padding-bottom:8px;align-items:center}.topbar .nav{display:flex;flex:1;min-width:0;gap:clamp(5px,1vw,14px);align-items:center;justify-content:center;flex-wrap:nowrap}.topbar .nav-group{position:relative}.topbar .nav-group>summary{list-style:none;cursor:pointer;white-space:nowrap;padding:10px 11px;border-radius:10px;color:#d6d9e0;font-size:12px;font-weight:800}.topbar .nav-group>summary::-webkit-details-marker{display:none}.topbar .nav-group>summary:after{content:\"⌄\";margin-left:7px;color:#13d8ff}.topbar .nav-group[open]>summary,.topbar .nav-group.has-active>summary{background:#13d8ff16;color:#fff}.topbar .nav-menu{position:absolute;top:calc(100% + 10px);left:0;z-index:60;min-width:205px;padding:8px;background:#0c111b;border:1px solid #13d8ff44;border-radius:14px;box-shadow:0 18px 45px #000b;display:grid;gap:3px}.topbar .nav-menu a{display:block;padding:10px 12px;border-radius:9px;color:#d5d9e2;font-size:12px;font-weight:700;white-space:nowrap}.topbar .nav-menu a:hover,.topbar .nav-menu a.active{background:#13d8ff18;color:#fff}.topbar .nav-menu a.active:after{content:\" •\";color:#13d8ff}.topbar .live-network-counts{flex-shrink:0;gap:8px;font-size:10px}.topbar .live-network-counts>span{min-width:30px}.topbar .header-actions{flex-shrink:0}.topbar .menu-toggle{white-space:nowrap}@media(max-width:1200px){.topbar .live-network-counts{display:none}.topbar .nav{justify-content:flex-end}}@media(max-width:900px){.topbar{height:70px;min-height:70px;padding:0 3vw;gap:10px}.topbar .nav{display:none;position:absolute;top:70px;left:0;right:0;max-height:calc(100vh - 70px);overflow-y:auto;padding:12px 16px 18px;background:#070a12fa;border-bottom:1px solid #13d8ff33;backdrop-filter:blur(18px);flex-direction:column;align-items:stretch;justify-content:flex-start;gap:5px}.topbar .nav.nav-open{display:flex}.topbar .nav-group{width:100%;border:1px solid #ffffff12;border-radius:12px;background:#ffffff05}.topbar .nav-group>summary{padding:13px 14px;font-size:13px}.topbar .nav-menu{position:static;min-width:0;padding:0 8px 8px;border:0;box-shadow:none;background:transparent}.topbar .nav-menu a{padding:11px 14px;white-space:normal}.topbar .nav-group>summary:after{float:right}}@media(max-width:560px){.topbar{padding:0 10px;gap:6px}.topbar .brand-logo{width:150px;max-width:39vw}.topbar .header-actions{gap:4px}.topbar .header-actions .btn{padding:8px 9px;font-size:10px}}";document.head.appendChild(style)}let livePresenceChannel=null,livePresenceRole="listener",livePresenceUserId=null,livePresenceHeartbeat=null;
+function syncPrimaryNavigation(){const current=new URL(location.href),cleanPath=p=>p.endsWith("/")?p.slice(0,-1):p;let activeGroup=null;all("#primaryNav [data-primary-link]").forEach(link=>{const target=new URL(link.href,location.href),active=cleanPath(target.pathname)===cleanPath(current.pathname);link.classList.toggle("active",active);if(active){link.setAttribute("aria-current","page");activeGroup=link.closest(".nav-group")}else link.removeAttribute("aria-current")});all("#primaryNav .nav-group").forEach(group=>group.classList.toggle("has-active",group===activeGroup))}function closePrimaryNavigation(){const nav=$("#primaryNav"),toggle=$("#menuToggle");if(!nav||!toggle)return;nav.classList.remove("nav-open");toggle.setAttribute("aria-expanded","false");const label=toggle.querySelector("span");if(label)label.textContent="Menu";if(toggle.firstChild)toggle.firstChild.textContent="☰ ";nav.querySelectorAll("details[open]").forEach(group=>group.open=false)}function installNavigationStyles(){if($("#cr-navigation-styles"))return;const style=document.createElement("style");style.id="cr-navigation-styles";style.textContent=".topbar{gap:clamp(10px,1.5vw,22px);min-height:76px;height:auto;padding-top:8px;padding-bottom:8px;align-items:center}.topbar .nav{display:flex;flex:1;min-width:0;gap:clamp(5px,1vw,14px);align-items:center;justify-content:center;flex-wrap:nowrap}.topbar .nav-group{position:relative}.topbar .nav-group>summary{list-style:none;cursor:pointer;white-space:nowrap;padding:10px 11px;border-radius:10px;color:#d6d9e0;font-size:12px;font-weight:800}.topbar .nav-group>summary::-webkit-details-marker{display:none}.topbar .nav-group>summary:after{content:\"⌄\";margin-left:7px;color:#13d8ff}.topbar .nav-group[open]>summary,.topbar .nav-group.has-active>summary{background:#13d8ff16;color:#fff}.topbar .nav-menu{position:absolute;top:calc(100% + 10px);left:0;z-index:60;min-width:205px;padding:8px;background:#0c111b;border:1px solid #13d8ff44;border-radius:14px;box-shadow:0 18px 45px #000b;display:grid;gap:3px}.topbar .nav-menu a{display:block;padding:10px 12px;border-radius:9px;color:#d5d9e2;font-size:12px;font-weight:700;white-space:nowrap}.topbar .nav-menu a:hover,.topbar .nav-menu a.active{background:#13d8ff18;color:#fff}.topbar .nav-menu a.active:after{content:\" •\";color:#13d8ff}.topbar .live-network-counts{flex-shrink:0;gap:8px;font-size:10px}.topbar .live-network-counts>span{min-width:30px}.topbar .header-actions{flex-shrink:0}.topbar .menu-toggle{white-space:nowrap}@media(max-width:1200px){.topbar .live-network-counts{display:none}.topbar .nav{justify-content:flex-end}}@media(max-width:900px){.topbar{height:70px;min-height:70px;padding:0 3vw;gap:10px}.topbar .nav{display:none;position:absolute;top:70px;left:0;right:0;max-height:calc(100vh - 70px);overflow-y:auto;padding:12px 16px 18px;background:#070a12fa;border-bottom:1px solid #13d8ff33;backdrop-filter:blur(18px);flex-direction:column;align-items:stretch;justify-content:flex-start;gap:5px}.topbar .nav.nav-open{display:flex}.topbar .nav-group{width:100%;border:1px solid #ffffff12;border-radius:12px;background:#ffffff05}.topbar .nav-group>summary{padding:13px 14px;font-size:13px}.topbar .nav-menu{position:static;min-width:0;padding:0 8px 8px;border:0;box-shadow:none;background:transparent}.topbar .nav-menu a{padding:11px 14px;white-space:normal}.topbar .nav-group>summary:after{float:right}}@media(max-width:560px){.topbar{padding:0 10px;gap:6px}.topbar .brand-logo{width:150px;max-width:39vw}.topbar .header-actions{gap:4px}.topbar .header-actions .btn{padding:8px 9px;font-size:10px}}";document.head.appendChild(style)}let livePresenceChannel=null,livePresenceRole="listener",livePresenceUserId=null,livePresenceHeartbeat=null,livePresenceSubscribed=false,livePresenceSyncVersion=0;
 let fallbackLiveVisitorId=null;function liveVisitorId(){try{let id=localStorage.getItem("crp_live_visitor_id");if(!id){id=window.crypto?.randomUUID?.()||("visitor-"+Date.now()+"-"+Math.random().toString(36).slice(2));localStorage.setItem("crp_live_visitor_id",id)}return id}catch{return fallbackLiveVisitorId||(fallbackLiveVisitorId=window.crypto?.randomUUID?.()||("visitor-"+Date.now()+"-"+Math.random().toString(36).slice(2)))}}
-function liveRole(accountRole,isMember){const role=String(accountRole||"").trim().toLowerCase();if(!isMember||role==="guest")return"guest";return role==="creator"||role==="host"?"creator":"listener"}
+function liveRole(accountRole,isMember){const role=String(accountRole||"").trim().toLowerCase();if(!isMember||role==="guest")return"guest";if(["creator","host","podcaster"].includes(role))return"creator";return"listener"}
 function renderLiveCounts(){
- const state=livePresenceChannel?.presenceState?.()||{},latest=new Map(),counts={creator:0,listener:0,guest:0};
+ const state=livePresenceChannel?.presenceState?.()||{},latest=new Map(),counts={creator:0,listener:0,guest:0},now=Date.now();
  for(const[key,sessions]of Object.entries(state))for(const session of sessions||[]){
   const role=String(session?.role||"").trim().toLowerCase();if(!Object.prototype.hasOwnProperty.call(counts,role)||session?.active===false)continue;
   const identity=session?.user_id?"user:"+session.user_id:session?.visitor_id?"visitor:"+session.visitor_id:"session:"+key,seen=Date.parse(session?.seen_at||"")||0;
-  if(!seen||Date.now()-seen>150000)continue;
+  if(!seen||now-seen>150000||seen-now>30000)continue;
   const previous=latest.get(identity);
   if(!previous||seen>=previous.seen)latest.set(identity,{role,seen});
  }
  for(const entry of latest.values())counts[entry.role]++;
- const c=$("#liveCreatorCount"),l=$("#liveListenerCount"),g=$("#liveGuestCount"),total=$("#liveTotalCount");
- if(c)c.textContent=counts.creator;if(l)l.textContent=counts.listener;if(g)g.textContent=counts.guest;if(total)total.textContent=latest.size;
+ const total=counts.creator+counts.listener+counts.guest;
+ const c=$("#liveCreatorCount"),l=$("#liveListenerCount"),g=$("#liveGuestCount"),allOnline=$("#liveTotalCount");
+ if(c)c.textContent=counts.creator.toLocaleString();if(l)l.textContent=counts.listener.toLocaleString();if(g)g.textContent=counts.guest.toLocaleString();if(allOnline)allOnline.textContent=total.toLocaleString();
  const ac=$("#adminLiveCreatorCount"),al=$("#adminLiveListenerCount"),ag=$("#adminLiveGuestCount"),at=$("#adminLiveTotal");
- if(ac)ac.textContent=counts.creator;if(al)al.textContent=counts.listener;if(ag)ag.textContent=counts.guest;if(at)at.textContent=latest.size;
+ if(ac)ac.textContent=counts.creator.toLocaleString();if(al)al.textContent=counts.listener.toLocaleString();if(ag)ag.textContent=counts.guest.toLocaleString();if(at)at.textContent=total.toLocaleString();
 }
 async function recordDailyVisitor(){
  try{
@@ -120,21 +121,28 @@ async function recordDailyVisitor(){
  }catch(error){console.warn("Daily visitor analytics could not be recorded:",error?.message||error)}
 }
 async function syncLivePresence(user){
+ const version=++livePresenceSyncVersion;
  try{
   if(arguments.length===0){const result=await sb.auth.getUser();user=result.data?.user||null}
+  if(version!==livePresenceSyncVersion)return;
   livePresenceUserId=user?.id||null;
   let accountRole="",isMember=false;
-  if(livePresenceUserId){const{data,error}=await sb.from("members").select("role").eq("user_id",livePresenceUserId).maybeSingle();if(error)console.warn("Could not resolve member role for live presence:",error.message);else{isMember=!!data;accountRole=data?.role||""}}
+  if(livePresenceUserId){
+   const{data,error}=await sb.from("members").select("role").eq("user_id",livePresenceUserId).maybeSingle();
+   if(version!==livePresenceSyncVersion)return;
+   if(error){console.warn("Could not resolve member role for live presence:",error.message);isMember=true;accountRole="Listener"}
+   else{isMember=!!data;accountRole=data?.role||""}
+  }
   livePresenceRole=liveRole(accountRole,isMember);
   await recordDailyVisitor();
-  if(!livePresenceChannel)return;
+  if(version!==livePresenceSyncVersion||!livePresenceChannel||!livePresenceSubscribed)return;
   const{error}=await livePresenceChannel.track({role:livePresenceRole,user_id:livePresenceUserId,visitor_id:livePresenceUserId?null:liveVisitorId(),active:true,seen_at:new Date().toISOString()});
   if(error)throw error;
   renderLiveCounts();bindEpisodeControls();
- }catch(error){console.warn("Live presence update failed:",error)}
+ }catch(error){if(version===livePresenceSyncVersion)console.warn("Live presence update failed:",error)}
 }
 function startLivePresence(){
- const nav=$("#liveNetworkCounts");syncLivePresence();if(!nav||!sb.channel)return;
+ const nav=$("#liveNetworkCounts");if(!nav||!sb.channel||livePresenceChannel)return;
  const key=window.crypto?.randomUUID?.()||("tab-"+Date.now()+"-"+Math.random().toString(36).slice(2));
  livePresenceChannel=sb.channel("crowrules-podcasting-live-network",{config:{presence:{key}}})
  .on("presence",{event:"sync"},renderLiveCounts)
@@ -143,12 +151,15 @@ function startLivePresence(){
  .subscribe(status=>{
   const label=$("#liveNetworkStatus"),adminLabel=$("#adminLiveStatus");
   if(status==="SUBSCRIBED"){
+   livePresenceSubscribed=true;
    if(label)label.textContent="LIVE";if(adminLabel)adminLabel.textContent="LIVE";
    syncLivePresence();
-   if(!livePresenceHeartbeat)livePresenceHeartbeat=setInterval(()=>{syncLivePresence();renderLiveCounts()},30000);
+   if(!livePresenceHeartbeat)livePresenceHeartbeat=setInterval(()=>{if(!document.hidden){syncLivePresence();renderLiveCounts()}},30000);
    renderLiveCounts();
   }else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){
+   livePresenceSubscribed=false;
    if(label)label.textContent="RECONNECTING";if(adminLabel)adminLabel.textContent="RECONNECTING";
+   renderLiveCounts();
   }
  });
 }
