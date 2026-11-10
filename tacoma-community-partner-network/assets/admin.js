@@ -64,7 +64,7 @@ async function loadAnalytics(){
 async function showSession(){
  const {data}=await sb.auth.getSession();const session=data.session;
  login.classList.toggle("hidden",!!session);dashboard.classList.toggle("hidden",!session);
- if(session){await load();await loadApplications();await loadAnalytics();}
+ if(session){await load();await loadApplications();await loadAnalytics();await loadCommunitySubmissions();}
 }
 $("#loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.currentTarget);message("#loginMessage","Signing in…");const {error}=await sb.auth.signInWithPassword({email:String(f.get("email")),password:String(f.get("password"))});if(error){message("#loginMessage",error.message,true);return;}await showSession();});
 $("#signOut").addEventListener("click",async()=>{await sb.auth.signOut();await showSession();});
@@ -116,3 +116,33 @@ form.addEventListener("submit",async e=>{
  finally{saveButton.disabled=false;}
 });
 showSession();
+const communityStatuses=[["pending","Pending review"],["published","Published"],["rejected","Rejected"],["archived","Archived"]];
+async function loadCommunitySubmissions(){
+ const configs=[
+  {table:"community_opportunities",body:"#communityOpportunityRows",kind:"Opportunity",date:"created_at",title:r=>r.title,detail:r=>[r.opportunity_type,r.description,r.what_needed,r.what_offered].filter(Boolean).join(" · ")},
+  {table:"community_announcements",body:"#communityAnnouncementRows",kind:"Announcement",date:"created_at",title:r=>r.title,detail:r=>[r.summary,r.body].filter(Boolean).join(" · ")},
+  {table:"community_events",body:"#communityEventRows",kind:"Event",date:"starts_at",title:r=>r.title,detail:r=>[r.venue,r.address,r.description].filter(Boolean).join(" · ")}
+ ];
+ for(const cfg of configs){
+  const target=$(cfg.body);target.innerHTML="<tr><td colspan='5'>Loading submissions…</td></tr>";
+  const {data,error}=await sb.from(cfg.table).select("*").order("created_at",{ascending:false}).limit(150);
+  if(error){target.innerHTML="<tr><td colspan='5'>Unable to load this queue.</td></tr>";message("#communityModerationMessage",cfg.kind+": "+error.message,true);continue;}
+  if(!data?.length){target.innerHTML="<tr><td colspan='5'>No submissions yet.</td></tr>";continue;}
+  target.innerHTML=data.map(row=>{
+   const date=row[cfg.date]?new Date(row[cfg.date]).toLocaleString():"";
+   const options=communityStatuses.map(([v,l])=>'<option value="'+v+'" '+(row.status===v?"selected":"")+'>'+l+'</option>').join("");
+   const detail=cfg.detail(row);
+   return '<tr><td><strong>'+esc(cfg.title(row))+'</strong>'+(detail?'<details class="application-detail"><summary>View details</summary><pre>'+esc(detail)+'</pre></details>':'')+'</td><td>'+esc(row.organization_name)+'</td><td>'+esc(date)+'</td><td><select data-community-status="'+cfg.table+':'+esc(row.id)+'">'+options+'</select></td><td><button type="button" data-community-save="'+cfg.table+':'+esc(row.id)+'">Save status</button></td></tr>';
+  }).join("");
+  target.querySelectorAll("[data-community-save]").forEach(button=>button.addEventListener("click",async()=>{
+   const [table,id]=button.dataset.communitySave.split(":");
+   const select=target.querySelector('[data-community-status="'+table+':'+id+'"]');
+   button.disabled=true;button.textContent="Saving…";
+   const {error}=await sb.from(table).update({status:select.value,updated_at:new Date().toISOString()}).eq("id",id);
+   button.disabled=false;button.textContent="Save status";
+   if(error){message("#communityModerationMessage",error.message,true);return;}
+   message("#communityModerationMessage","Submission status updated. Public visibility follows the published status.");
+   await loadCommunitySubmissions();
+  }));
+ }
+}
