@@ -28,6 +28,25 @@ async function loadPartners(){
 $("#partnerSearch").addEventListener("input",render);filter.addEventListener("change",render);
 loadPartners();
 const form=$("#partnerForm"),feedback=$("#formFeedback"),button=form.querySelector('button[type="submit"]');
+const logoInput=$("#organizationLogo"),logoPreviewWrap=$("#logoPreviewWrap"),logoPreview=$("#logoPreview"),removeLogo=$("#removeLogo");
+let logoPreviewUrl="";
+function clearLogo(){logoInput.value="";if(logoPreviewUrl)URL.revokeObjectURL(logoPreviewUrl);logoPreviewUrl="";logoPreview.removeAttribute("src");logoPreviewWrap.hidden=true;}
+logoInput.addEventListener("change",()=>{
+ const file=logoInput.files?.[0];if(!file){clearLogo();return;}
+ const allowed=["image/jpeg","image/png","image/webp"];
+ if(!allowed.includes(file.type)){clearLogo();feedback.textContent="Please choose a JPG, PNG or WebP image.";feedback.classList.add("error");return;}
+ if(file.size>2*1024*1024){clearLogo();feedback.textContent="Logo files must be 2 MB or smaller.";feedback.classList.add("error");return;}
+ if(logoPreviewUrl)URL.revokeObjectURL(logoPreviewUrl);
+ logoPreviewUrl=URL.createObjectURL(file);logoPreview.src=logoPreviewUrl;logoPreviewWrap.hidden=false;
+ feedback.textContent="Logo ready to upload.";feedback.className="form-feedback";
+});
+removeLogo.addEventListener("click",clearLogo);
+async function fileToBase64(file){
+ const bytes=new Uint8Array(await file.arrayBuffer());let binary="";
+ for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
+ return btoa(binary);
+}
+
 form.addEventListener("submit",async e=>{
  e.preventDefault();feedback.textContent="";feedback.className="form-feedback";
  if(!form.reportValidity())return;
@@ -38,10 +57,12 @@ form.addEventListener("submit",async e=>{
  const website=String(f.get("website")||"").trim();
  const message="Category: "+type+"\nCity/community: "+String(f.get("city")||"").trim()+"\nPhone: "+String(f.get("phone")||"").trim()+"\nWho they serve: "+String(f.get("audience")||"Not specified").trim()+"\nCollaboration interest: "+String(f.get("collaboration")||"Not specified").trim()+"\n\n"+String(f.get("message")||"").trim();
  try{
-  const {data,error}=await sb.functions.invoke("partnership-application",{body:{name:String(f.get("name")||"").trim(),organization:String(f.get("organization")||"").trim(),email:String(f.get("email")||"").trim(),interest:"partnership",message,website_url:website,company_website:String(f.get("company_website")||"").trim()}});
+  const logoFile=logoInput.files?.[0];
+  const logoPayload=logoFile?{logo_data:await fileToBase64(logoFile),logo_content_type:logoFile.type}: {};
+  const {data,error}=await sb.functions.invoke("partnership-application",{body:{name:String(f.get("name")||"").trim(),organization:String(f.get("organization")||"").trim(),email:String(f.get("email")||"").trim(),interest:"partnership",message,website_url:website,company_website:String(f.get("company_website")||"").trim(),...logoPayload}});
   if(error||!data?.ok)throw new Error(data?.error||error?.message||"The application could not be confirmed.");
   feedback.textContent=data.notification_sent===false?"Your application was saved, but the email notification could not be confirmed. The team can review it in the administration center.":"Thank you. Your application has been received and saved. The CrowRules team will review it.";
-  feedback.classList.add("success");form.reset();
+  feedback.classList.add("success");form.reset();clearLogo();
  }catch(err){console.error(err);feedback.textContent=err.message||"We couldn't submit your application. Please try again or email crowrulesentertainment@gmail.com.";feedback.classList.add("error");}
  finally{button.disabled=false;button.innerHTML='Submit partner application <span>↗</span>';}
 });
