@@ -34,6 +34,10 @@ create table if not exists public.podcast_partnership_events (
   event_type text not null check (event_type in ('page_view','partner_click','spotlight_click','media_kit_open','apply_click')),
   partner_id uuid references public.podcast_public_partners(id) on delete set null,
   campaign_key text,
+  campaign_source text,
+  campaign_medium text,
+  campaign_content text,
+  referral_code text,
   page_path text,
   referrer_host text,
   created_at timestamptz not null default now()
@@ -46,6 +50,10 @@ create policy "Public can record partnership engagement" on public.podcast_partn
   with check (
     event_type in ('page_view','partner_click','spotlight_click','media_kit_open','apply_click')
     and (campaign_key is null or char_length(campaign_key) <= 100)
+    and (campaign_source is null or char_length(campaign_source) <= 100)
+    and (campaign_medium is null or char_length(campaign_medium) <= 100)
+    and (campaign_content is null or char_length(campaign_content) <= 150)
+    and (referral_code is null or char_length(referral_code) <= 100)
     and (page_path is null or char_length(page_path) <= 300)
     and (referrer_host is null or char_length(referrer_host) <= 160)
   );
