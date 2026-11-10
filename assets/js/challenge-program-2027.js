@@ -257,7 +257,7 @@ export async function mountChallengeProgram() {
     const entryMap=new Map(entries.map(e=>[e.id,e]));
     hallArea.innerHTML='<div class="cr27-champion-grid">'+results.sort((a,b)=>(challengeById.get(a.challenge_id)?.challenge_month||0)-(challengeById.get(b.challenge_id)?.challenge_month||0)).map(r=>{
       const c=challengeById.get(r.challenge_id),p=profileMap.get(r.winner_user_id),e=entryMap.get(r.winning_submission_id);
-      return '<article class="cr27-champion"><div class="crown">🏆</div><div class="cr27-kicker">'+esc(c?monthName(c.challenge_month).toUpperCase():"2027 CHAMPION")+' 2027</div><strong>'+esc(p?.display_name||p?.username||"CrowRules Creator")+'</strong><small>'+esc(c?.title||"Monthly Challenge")+(e?' · '+esc(e.episode_title):'')+'</small>'+(e?.episode_url?'<p><a href="'+esc(e.episode_url)+'" target="_blank" rel="noopener noreferrer">Watch the winning entry ↗</a></p>':'')+'<div class="cr27-live-chip">Verified champion</div></article>';
+      return '<article class="cr27-champion"><div class="crown">🏆</div><div class="cr27-kicker">'+esc(c?monthName(c.challenge_month).toUpperCase():"2027 CHAMPION")+' 2027</div><strong>'+(p?.username?'<a href="/podcasting/profile.html?username='+encodeURIComponent(p.username)+'">'+esc(p.display_name||p.username)+'</a>':esc(p?.display_name||"CrowRules Creator"))+'</strong><small>'+esc(c?.title||"Monthly Challenge")+(e?' · '+esc(e.episode_title):'')+'</small>'+(e?.episode_url?'<p><a href="'+esc(e.episode_url)+'" target="_blank" rel="noopener noreferrer">Watch the winning entry ↗</a></p>':'')+'<div class="cr27-live-chip">Verified champion</div></article>';
     }).join("")+'</div>';
   }
 
