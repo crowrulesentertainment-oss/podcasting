@@ -28,5 +28,4 @@ form.addEventListener("submit",async e=>{
  if(result.error){message("#saveMessage",result.error.message,true);return;}
  message("#saveMessage","Partner listing saved.");clearForm();await load();
 });
-sb.auth.onAuthStateChange(()=>{showSession();});
 showSession();
