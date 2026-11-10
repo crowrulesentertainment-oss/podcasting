@@ -783,7 +783,7 @@ async function account(){
   badgesRoot.innerHTML=visibleProfileBadges.length?'<div class="member-ranking-badge-grid">'+visibleProfileBadges.map(x=>'<article class="member-ranking-badge">'+(x.badge.image_url?'<img src="'+esc(x.badge.image_url)+'" alt="">':'<span>'+esc(x.badge.icon||"🏅")+'</span>')+'<div><b>'+esc(x.badge.name)+'</b><small>'+esc(x.badge.category||"Recognition")+'</small></div></article>').join("")+'</div>':'<div class="account-empty"><h3>Your recognition collection starts here.</h3><p>Profile badges awarded by CrowRules will appear here.</p><a class="btn secondary" href="'+SITE_BASE+'badges.html">Explore badges</a></div>';
   periodSelect.addEventListener("change",load);await load();
  };
- const renderTab=tab=>{
+ const renderTab=async tab=>{
   all("[data-account-tab]").forEach(b=>{const on=b.dataset.accountTab===tab;b.classList.toggle("is-active",on);b.setAttribute("aria-selected",String(on))});
   if(tab==="challenges"){
    const root=work;
