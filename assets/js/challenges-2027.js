@@ -29,6 +29,7 @@ async function challenges2027(){
   ].join("");
   document.head.appendChild(style);
  }
+ if(!document.getElementById('cr27-cinematic-theme')){const theme=document.createElement('link');theme.id='cr27-cinematic-theme';theme.rel='stylesheet';theme.href=SITE_BASE+'assets/css/challenges-2027-cinematic.css?v=20261109-full-cinematic-v1';document.head.appendChild(theme);}
  const months=[
   {n:"01",month:"January",title:"New Year, New Voice",award:"New Year Voice Champion",desc:"Set the tone for a new year. Share the idea, goal or story you want the world to hear.",prompts:["Introduce yourself and your creative voice in a short episode.","Share one meaningful goal for 2027 and how you will pursue it.","Tell a story about a fresh start or a lesson you are carrying forward."],image:"https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1200&q=85",accent:"#d7ad58"},
   {n:"02",month:"February",title:"Love, Friendship & Connection",award:"Heart of the Community",desc:"Celebrate the people, friendships and moments that make life meaningful.",prompts:["Tell a story about a friendship that changed your life.","Share a message of appreciation for someone who inspires you.","Explore what connection and belonging mean to you."],image:"https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=1200&q=85",accent:"#d95b73"},
