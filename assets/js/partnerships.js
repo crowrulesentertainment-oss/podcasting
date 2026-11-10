@@ -36,7 +36,8 @@ import { sb } from "./client.js";
   async function loadPartners() {
     if (!directory) return;
     const { data, error } = await sb.from("podcast_public_partners").select("id,organization_name,short_description,category,recognition_tier,logo_url,website_url,is_featured,spotlight_month,spotlight_title,spotlight_story,episode_url,sort_order").eq("is_active", true).order("sort_order").order("organization_name");
-    if (error) {
+    if (error || !result?.ok) {
+      console.error('Partnership application submission failed:', error || result?.error);
       directory.innerHTML = '<div class="partner-empty"><div><div class="empty-emblem">✦</div><h3>Our partner story starts here.</h3><p>Our public directory is being prepared. Partnership inquiries are open.</p></div></div>';
       return;
     }
@@ -69,15 +70,16 @@ import { sb } from "./client.js";
     const data = new FormData(form);
     const type = String(data.get("type") || "");
     const interest = /nonprofit|community/i.test(type) ? "events" : /media|creator/i.test(type) ? "creator" : /technology|production/i.test(type) ? "production" : /custom/i.test(type) ? "other" : "partnership";
-    const website = String(data.get("website") || "").trim();
-    const message = "Partnership type: " + type + "\nWebsite / social: " + (website || "Not provided") + "\n\n" + String(data.get("message") || "").trim();
-    const { error } = await sb.from("business_inquiries").insert({
-      name: String(data.get("name") || "").trim(),
-      organization: String(data.get("organization") || "").trim() || null,
-      email: String(data.get("email") || "").trim(),
-      interest,
-      message,
-      status: "new"
+    const websiteUrl = String(data.get("website") || "").trim();
+    const message = "Partnership type: " + type + "\n\n" + String(data.get("message") || "").trim();
+    const { data: result, error } = await sb.functions.invoke("partnership-application", {
+      body: {
+        name: String(data.get("name") || "").trim(),
+        organization: String(data.get("organization") || "").trim(),
+        email: String(data.get("email") || "").trim(),
+        interest, message, website_url: websiteUrl,
+        company_website: String(data.get("company_website") || "").trim()
+      }
     });
     if (error) {
       feedback.textContent = "We couldn't submit the inquiry just now. Please try again or email crowrulesentertainment@gmail.com.";
@@ -85,7 +87,7 @@ import { sb } from "./client.js";
       button.innerHTML = 'Submit partnership inquiry <span>↗</span>';
       return;
     }
-    feedback.textContent = "Thank you. Your partnership inquiry has been received by CrowRules for review.";
+    feedback.textContent = result.notification_sent === false ? "Your inquiry was saved, but the email alert could not be confirmed. Your application is in the administration center." : "Thank you. Your partnership inquiry has been received, saved and emailed to the CrowRules partnership team.";
     feedback.classList.add("success");
     form.reset();
     button.disabled = false;
