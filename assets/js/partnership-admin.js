@@ -41,13 +41,13 @@ form.addEventListener("submit",async e=>{
 async function deletePartner(id){if(!confirm("Delete this partner profile? This cannot be undone."))return;const {error}=await sb.from("podcast_public_partners").delete().eq("id",id);if(error)alert(error.message);else loadPartners();}
 async function loadEvents(){
  const since=new Date(Date.now()-30*86400000).toISOString();
- const {data,error}=await sb.from("podcast_partnership_events").select("event_type,partner_id,campaign_key,created_at").gte("created_at",since).order("created_at",{ascending:false}).limit(5000);
+ const {data,error}=await sb.from("podcast_partnership_events").select("event_type,partner_id,campaign_key,campaign_source,campaign_medium,referral_code,created_at").gte("created_at",since).order("created_at",{ascending:false}).limit(5000);
  if(error){$("#analyticsSummary").innerHTML='<div class="empty-state">Analytics unavailable. Check administrator permissions.</div>';return;}
  events=data||[];
  const count=t=>events.filter(e=>e.event_type===t).length;
  const metrics=[["Page views",count("page_view")],["Partner clicks",count("partner_click")],["Spotlight clicks",count("spotlight_click")],["Media kit opens",count("media_kit_open")],["Apply clicks",count("apply_click")]];
  $("#analyticsSummary").innerHTML=metrics.map(m=>'<div class="admin-stat"><b>'+m[1]+'</b><span>'+m[0]+' · 30 days</span></div>').join("");
- const campaigns={};events.forEach(e=>{const key=e.campaign_key||"Un-tagged / direct";campaigns[key]=(campaigns[key]||0)+1;});
+ const campaigns={};events.forEach(e=>{const key=e.referral_code?"Referral: "+e.referral_code:(e.campaign_key?e.campaign_key+" · "+(e.campaign_source||"source unknown")+" / "+(e.campaign_medium||"medium unknown"):"Un-tagged / direct");campaigns[key]=(campaigns[key]||0)+1;});
  $("#campaignBreakdown").innerHTML='<div class="section-label">CAMPAIGN TAG BREAKDOWN · LAST 30 DAYS</div>'+Object.entries(campaigns).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<article class="admin-row"><div><h3>'+esc(k)+'</h3><p>Recorded engagement events</p></div><b>'+v+'</b></article>').join("")||'<div class="empty-state">No campaign events recorded yet.</div>';
 }
 $("#refreshInquiries").addEventListener("click",loadInquiries);$("#refreshAnalytics").addEventListener("click",loadEvents);$("#resetPartner").addEventListener("click",resetForm);
