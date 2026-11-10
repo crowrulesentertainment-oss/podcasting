@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), esc=v=>String(v??"").replace(/[&<>"']/g,c=
 const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
 const isoLocal=(d)=>{const x=new Date(d);return new Date(x.getTime()-x.getTimezoneOffset()*60000).toISOString().slice(0,16)};
 const toIso=v=>v?new Date(v).toISOString():null;
-let user=null,year=new Date().getFullYear(),challenges=[],selected=null,subs=[],votes=[],results=[];
+let user=null,year=Math.max(2027,new Date().getFullYear()),challenges=[],selected=null,subs=[],votes=[],results=[];
 const say=(s)=>$("#ca-status").textContent=s;
 function dateInput(label,key,val){return '<div class="ca-field"><label>'+label+'</label><input type="datetime-local" data-field="'+key+'" value="'+esc(val?isoLocal(val):"")+'"></div>'}
 function dateDefault(y,m,day,hour,min){return new Date(y,m-1,day,hour,min,0).toISOString()}
