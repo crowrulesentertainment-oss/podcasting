@@ -312,7 +312,7 @@ export async function mountChallengeProgram() {
         const timestamp=new Date().toISOString();
         const {error}=await sb.from("podcast_challenge_results").upsert({
           challenge_id:c.id,winning_submission_id:button.dataset.finalize,winner_user_id:button.dataset.user,
-          valid_vote_count:Number(button.dataset.votes),result_status:"finalized",is_published:true,
+          valid_vote_count:(voteRes.data||[]).length,result_status:"finalized",is_published:true,
           finalized_by:user.id,finalized_at:timestamp,announced_at:timestamp,
           tie_break_details:tied.length>1?{administrator_selected_tie_break:true,selection_note:"Administrator verified tie-break"}:{}
         },{onConflict:"challenge_id"});
