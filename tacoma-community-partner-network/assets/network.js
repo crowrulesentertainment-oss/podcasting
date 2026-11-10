@@ -47,6 +47,21 @@ async function loadPartners(){
 }
 $("#partnerSearch").addEventListener("input",render);filter.addEventListener("change",render);
 loadPartners();
+const liveVisitorCount=$("#liveVisitorCount");
+let visitorId="";
+try{visitorId=sessionStorage.getItem("cr_partner_network_visitor")||crypto.randomUUID();sessionStorage.setItem("cr_partner_network_visitor",visitorId);}catch(e){visitorId=crypto.randomUUID();}
+const visitorPath=location.pathname.slice(0,300)||"/";
+async function recordVisit(eventType){
+ try{const {error}=await sb.from("partner_network_analytics").insert({visitor_id:visitorId,page_path:visitorPath,event_type:eventType});if(error)console.warn("Visitor analytics:",error.message);}
+ catch(e){console.warn("Visitor analytics unavailable:",e);}
+}
+async function refreshLiveVisitors(){
+ try{const {data,error}=await sb.rpc("partner_network_live_visitors");if(error)throw error;if(liveVisitorCount)liveVisitorCount.textContent=String(data??0);}
+ catch(e){if(liveVisitorCount)liveVisitorCount.textContent="—";console.warn("Live visitor count:",e.message);}
+}
+recordVisit("pageview");refreshLiveVisitors();
+setInterval(()=>{if(document.visibilityState==="visible"){recordVisit("heartbeat");refreshLiveVisitors();}},60000);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){recordVisit("heartbeat");refreshLiveVisitors();}});
 const form=$("#partnerForm"),feedback=$("#formFeedback"),button=form.querySelector('button[type="submit"]');
 const logoInput=$("#organizationLogo"),logoPreviewWrap=$("#logoPreviewWrap"),logoPreview=$("#logoPreview"),removeLogo=$("#removeLogo");
 let logoPreviewUrl="";
