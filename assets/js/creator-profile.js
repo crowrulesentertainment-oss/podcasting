@@ -43,7 +43,7 @@ export async function creatorProfile(){
  const status=$("#crcpStatus"),save=$("#crcpSave"),file=$("#crcpAvatarFile");let user=null,member=null,creator=null,avatarUrl="";
  const say=(kind,msg)=>{status.className="crcp-status "+kind;status.textContent=msg};
  const paintAvatar=url=>{const box=$("#crcpAvatar");box.innerHTML=url?'<img src="'+esc(url)+'" alt="Creator avatar preview">':'<span>'+esc($("#crcpName").value.trim().slice(0,1).toUpperCase()||"CR")+'</span>'};
- const preview=()=>{$("#crcpPreviewName").textContent=$("#crcpName").value.trim()||"Your name belongs here."=$("#crcpPreviewName").textContent;$("#crcpPreviewRole").textContent=($("#crcpRole").value||"Creator").toUpperCase()+" · CROWRULES NETWORK";$("#crcpPreviewBio").textContent=$("#crcpBio").value.trim()||"Your story, creative interests and next big idea will come to life here."};
+ const preview=()=>{$("#crcpPreviewName").textContent=$("#crcpName").value.trim()||"Your name belongs here.";$("#crcpPreviewRole").textContent=($("#crcpRole").value||"Creator").toUpperCase()+" · CROWRULES NETWORK";$("#crcpPreviewBio").textContent=$("#crcpBio").value.trim()||"Your story, creative interests and next big idea will come to life here."};
  ["#crcpName","#crcpRole","#crcpBio"].forEach(sel=>$(sel).addEventListener("input",preview));
  file.addEventListener("change",()=>{const f=file.files?.[0];if(!f)return;if(f.size>5*1024*1024){say("error","Please choose an image smaller than 5 MB.");file.value="";return}if(!/^image\/(jpeg|png|webp|gif)$/.test(f.type)){say("error","Choose a JPG, PNG, WEBP or GIF image.");file.value="";return}const reader=new FileReader();reader.onload=()=>paintAvatar(String(reader.result));reader.readAsDataURL(f)});
  try{
