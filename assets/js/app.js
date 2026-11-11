@@ -959,7 +959,7 @@ async function listener(){
 }
 async function guest(){
  const root=$("#app"),u=await me();
- let ownGuest=null,ownCreator=null,guestProfiles=[],creatorProfiles=[],threads=[],activeThread=null;
+ let ownGuest=null,ownCreator=null,guestProfiles=[],creatorProfiles=[],threads=[],activeThread=null,messageRefreshTimer=null,messageChannel=null,messageLoadInFlight=false;
  const safeImage=v=>{try{const x=new URL(v);return x.protocol==="https:"?x.href:""}catch{return""}};
  const initials=v=>String(v||"Guest").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase();
  const guestName=id=>guestProfiles.find(x=>x.id===id)?.display_name||"Podcast guest";
@@ -1004,15 +1004,25 @@ async function guest(){
   all("[data-thread-id]").forEach(btn=>btn.onclick=()=>openThread(btn.dataset.threadId));
   if(activeThread)openThread(activeThread.id);
  };
- const openThread=async id=>{
-  activeThread=threads.find(t=>t.id===id)||null;if(!activeThread)return;
-  const panel=$("#guestChatPanel");if(!panel)return;panel.innerHTML='<div class="loading">Loading private messages…</div>';
+ const openThread=async(id,options={})=>{
+  activeThread=threads.find(t=>t.id===id)||activeThread;if(!activeThread||activeThread.id!==id)return;
+  const panel=$("#guestChatPanel");if(!panel||messageLoadInFlight)return;
+  const silent=options.silent===true,draft=silent?panel.querySelector('textarea[name="body"]')?.value||"":"";
+  if(!silent){if(messageRefreshTimer){clearInterval(messageRefreshTimer);messageRefreshTimer=null}if(messageChannel){sb.removeChannel(messageChannel);messageChannel=null}panel.innerHTML='<div class="loading">Loading private messages…</div>'}
+  messageLoadInFlight=true;
   const{data,error}=await sb.from("podcast_guest_messages").select("id,thread_id,sender_id,body,created_at").eq("thread_id",id).order("created_at",{ascending:true}).limit(250);
-  if(error){sectionError(panel,error.message);return}
+  messageLoadInFlight=false;
+  if(error){if(!silent)sectionError(panel,error.message);return}
   const other=activeThread.creator_user_id===u.id?guestName(activeThread.guest_profile_id):creatorName(activeThread.creator_profile_id);
   panel.innerHTML='<div class="guest-chat-heading"><div><span class="eyebrow">PRIVATE CONVERSATION</span><h3>'+esc(other)+'</h3><small>Only you and this '+(activeThread.creator_user_id===u.id?"guest":"creator")+' can see these messages.</small></div><span class="guest-review-pill">'+esc(activeThread.status.toUpperCase())+'</span></div><div class="guest-message-list" id="guestMessageList">'+((data||[]).map(m=>'<div class="guest-message '+(m.sender_id===u.id?"is-mine":"")+'"><span>'+esc(m.sender_id===u.id?"You":other)+'</span><p>'+esc(m.body)+'</p><small>'+esc(new Date(m.created_at).toLocaleString())+'</small></div>').join("")||'<div class="guest-empty compact">Start the conversation with a friendly introduction.</div>')+'</div><form class="guest-message-compose" id="guestMessageForm"><textarea name="body" maxlength="4000" rows="2" required placeholder="Write a private message…"></textarea><button class="btn guest-primary" type="submit" '+(activeThread.status!=="open"?"disabled":"")+'>Send message</button></form>';
-  const list=$("#guestMessageList");if(list)list.scrollTop=list.scrollHeight;
-  $("#guestMessageForm").onsubmit=async e=>{e.preventDefault();const form=e.currentTarget,body=String(new FormData(form).get("body")||"").trim();if(!body)return;const button=form.querySelector("button");button.disabled=true;const{error}=await sb.from("podcast_guest_messages").insert({thread_id:id,sender_id:u.id,body});if(error){toast("Message could not be sent: "+error.message);button.disabled=false;return}await openThread(id)};
+  const composer=$("#guestMessageForm"),draftField=composer?.querySelector('textarea[name="body"]');if(draftField&&silent)draftField.value=draft;
+  const list=$("#guestMessageList");if(list&&(!silent||list.scrollTop+list.clientHeight>=list.scrollHeight-80))list.scrollTop=list.scrollHeight;
+  if(!silent){
+   messageChannel=sb.channel("guest-private-"+id).on("postgres_changes",{event:"INSERT",schema:"public",table:"podcast_guest_messages",filter:"thread_id=eq."+id},()=>openThread(id,{silent:true})).subscribe();
+   messageRefreshTimer=setInterval(()=>openThread(id,{silent:true}),10000);
+  }
+  composer.onsubmit=async e=>{e.preventDefault();const form=e.currentTarget,body=String(new FormData(form).get("body")||"").trim();if(!body)return;const button=form.querySelector("button");button.disabled=true;const{error}=await sb.from("podcast_guest_messages").insert({thread_id:id,sender_id:u.id,body});if(error){toast("Message could not be sent: "+error.message);button.disabled=false;return}form.reset();await openThread(id,{silent:true})};
+
  };
  guestGrid.onclick=async e=>{
   const button=e.target.closest("[data-connect-guest]");if(!button)return;
