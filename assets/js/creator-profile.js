@@ -42,19 +42,46 @@ async function publicCreatorProfile(id,root){
  try{
   const{data:creator,error}=await sb.from("creators").select("id,member_id,name,display_name,role,discipline,bio,avatar_url,is_active").eq("id",id).maybeSingle();
   if(error)throw error;if(!creator)throw Error("This creator profile is not available.");
-  let member=null;
+  let member=null,ownerMember=null,user=null;
   if(creator.member_id){const result=await sb.from("crowrules_public_profiles").select("id,username,display_name,first_name,last_name,role,bio,avatar_url").eq("id",creator.member_id).maybeSingle();if(!result.error)member=result.data||null}
+  const{data:{user:authUser}}=await sb.auth.getUser();user=authUser||null;
+  if(user){const own=await sb.from("members").select("id,user_id,avatar_url").eq("user_id",user.id).maybeSingle();if(!own.error&&own.data&&own.data.id===creator.member_id)ownerMember=own.data}
   const{data:shows,error:showError}=await sb.from("podcasts").select("id,title,description,category,artwork_url,total_plays").eq("creator_id",creator.id).eq("status","published").order("created_at",{ascending:false}).limit(24);
   if(showError)console.warn("Creator show list unavailable:",showError.message);
   const name=creator.display_name||creator.name||member?.display_name||[member?.first_name,member?.last_name].filter(Boolean).join(" ")||"CrowRules Creator";
   const role=creator.role||member?.role||"Creator";
   const bio=creator.bio||member?.bio||"A member of the CrowRules Podcasting creator community.";
-  const avatar=creator.avatar_url||member?.avatar_url||"";
+  let avatar=ownerMember?.avatar_url||member?.avatar_url||creator.avatar_url||"";
   const image=avatar&&/^https?:\/\//i.test(avatar)?'<img src="'+esc(avatar)+'" alt="'+esc(name)+'" loading="lazy">':'<span>'+esc(name.slice(0,1).toUpperCase())+'</span>';
   const cards=(shows||[]).map(show=>'<a class="crcp-public-show" href="'+SITE_BASE+'show.html?id='+encodeURIComponent(show.id)+'"><img src="'+esc(show.artwork_url&&/^https?:\/\//i.test(show.artwork_url)?show.artwork_url:art)+'" alt="" loading="lazy"><span><b>'+esc(show.title||"Untitled show")+'</b><small>'+esc(show.category||"Podcast")+' · '+Number(show.total_plays||0).toLocaleString()+' plays</small></span></a>').join("");
   const publicLink=member?.username?'<a class="crcp-btn secondary" href="'+SITE_BASE+'profile.html?username='+encodeURIComponent(member.username)+'">View full community profile ↗</a>':"";
-  root.innerHTML='<div class="crcp"><header class="crcp-hero"><div class="crcp-wrap crcp-hero-inner"><div class="crcp-kicker">CROWRULES PODCASTING · CREATOR NETWORK</div><h1>Meet the voice.<br><em>Discover the work.</em></h1><p>Explore the creator behind the shows and conversations in the CrowRules Podcasting community.</p><div class="crcp-actions"><a class="crcp-btn secondary" href="'+SITE_BASE+'rankings.html">← Back to rankings</a>'+publicLink+'</div></div></header><main class="crcp-main crcp-wrap"><section class="crcp-card"><div class="crcp-card-head"><div><div class="crcp-kicker">CROWRULES CREATOR PROFILE</div><h2>'+esc(name)+'</h2><p>'+esc(role)+(creator.discipline?' · '+esc(creator.discipline):"")+'</p></div><span class="crcp-kicker">ONE COMPANY. ONE UNIVERSE.</span></div><div class="crcp-form" style="grid-template-columns:220px minmax(0,1fr)"><div class="crcp-avatar-panel"><div class="crcp-avatar">'+image+'</div><b>'+esc(name)+'</b><p>'+esc(role)+'</p></div><div class="crcp-preview-copy"><div class="crcp-kicker">ABOUT THE CREATOR</div><p>'+esc(bio)+'</p><div class="crcp-kicker" style="margin-top:28px">PUBLISHED SHOWS</div><h2>'+Number((shows||[]).length)+' '+((shows||[]).length===1?"show":"shows")+'</h2>'+(shows?.length?'<div class="crcp-public-shows">'+cards+'</div>':'<p>No published shows are listed for this creator yet.</p>')+'</div></div></section></main></div>';
+  const avatarControl=ownerMember?'<label class="crcp-file">Change your avatar<input id="crcpPublicAvatarFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></label><div class="crcp-help">JPG, PNG, WEBP or GIF · Max 5 MB</div><button class="crcp-btn" id="crcpPublicAvatarSave" type="button" disabled>Upload new avatar</button><div class="crcp-status" id="crcpPublicAvatarStatus" role="status" aria-live="polite">Choose a photo to update your creator profile.</div>':"";
+  root.innerHTML='<div class="crcp"><header class="crcp-hero"><div class="crcp-wrap crcp-hero-inner"><div class="crcp-kicker">CROWRULES PODCASTING · CREATOR NETWORK</div><h1>Meet the voice.<br><em>Discover the work.</em></h1><p>Explore the creator behind the shows and conversations in the CrowRules Podcasting community.</p><div class="crcp-actions"><a class="crcp-btn secondary" href="'+SITE_BASE+'rankings.html">← Back to rankings</a>'+publicLink+'</div></div></header><main class="crcp-main crcp-wrap"><section class="crcp-card"><div class="crcp-card-head"><div><div class="crcp-kicker">CROWRULES CREATOR PROFILE</div><h2>'+esc(name)+'</h2><p>'+esc(role)+(creator.discipline?' · '+esc(creator.discipline):"")+'</p></div><span class="crcp-kicker">ONE COMPANY. ONE UNIVERSE.</span></div><div class="crcp-form" style="grid-template-columns:220px minmax(0,1fr)"><div class="crcp-avatar-panel"><div class="crcp-avatar" id="crcpPublicAvatar">'+image+'</div><b>'+esc(name)+'</b><p>'+esc(role)+'</p>'+avatarControl+'</div><div class="crcp-preview-copy"><div class="crcp-kicker">ABOUT THE CREATOR</div><p>'+esc(bio)+'</p><div class="crcp-kicker" style="margin-top:28px">PUBLISHED SHOWS</div><h2>'+Number((shows||[]).length)+' '+((shows||[]).length===1?"show":"shows")+'</h2>'+(shows?.length?'<div class="crcp-public-shows">'+cards+'</div>':'<p>No published shows are listed for this creator yet.</p>')+'</div></div></section></main></div>';
   if(!document.getElementById("crcp-public-styles")){const style=document.createElement("style");style.id="crcp-public-styles";style.textContent='.crcp-public-shows{display:grid;gap:12px;margin-top:14px}.crcp-public-show{display:flex;gap:13px;align-items:center;padding:10px;border:1px solid #ffffff18;border-radius:12px;background:#ffffff06;text-decoration:none}.crcp-public-show img{width:68px;height:68px;object-fit:cover;border-radius:9px}.crcp-public-show span{display:grid;gap:6px}.crcp-public-show small{color:#aaa;font-size:11px}.crcp-public-show b{font-size:14px}.crcp-public-show:hover{border-color:#e7bd68}';document.head.appendChild(style)}
+  if(ownerMember){
+   const input=$("#crcpPublicAvatarFile"),button=$("#crcpPublicAvatarSave"),status=$("#crcpPublicAvatarStatus");
+   const say=(kind,message)=>{status.className="crcp-status "+kind;status.textContent=message};
+   let picked=null;
+   input.addEventListener("change",()=>{picked=input.files?.[0]||null;button.disabled=!picked;if(!picked)return;if(picked.size>5*1024*1024||!/^image\/(jpeg|png|webp|gif)$/.test(picked.type)){say("error","Choose a JPG, PNG, WEBP or GIF image smaller than 5 MB.");picked=null;input.value="";button.disabled=true;return}const reader=new FileReader();reader.onload=()=>{$("#crcpPublicAvatar").innerHTML='<img src="'+esc(String(reader.result))+'" alt="New avatar preview">'};reader.readAsDataURL(picked);say("","Ready to upload your new avatar.")});
+   button.addEventListener("click",async()=>{if(!picked||button.disabled)return;button.disabled=true;button.textContent="Uploading…";say("","Uploading your avatar…");
+    try{
+     const ext=(picked.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+     const path=user.id+"/"+Date.now()+"."+ext;
+     const{data:uploaded,error:uploadError}=await sb.storage.from("creator-avatars").upload(path,picked,{upsert:true,contentType:picked.type,cacheControl:"3600"});
+     if(uploadError)throw uploadError;
+     const{data:publicData}=sb.storage.from("creator-avatars").getPublicUrl(uploaded.path);
+     const newAvatarUrl=publicData.publicUrl;
+     const{error:memberSaveError}=await sb.from("members").update({avatar_url:newAvatarUrl}).eq("id",ownerMember.id).eq("user_id",user.id);
+     if(memberSaveError)throw memberSaveError;
+     const{error:creatorSaveError}=await sb.from("creators").update({avatar_url:newAvatarUrl}).eq("id",creator.id).eq("member_id",ownerMember.id);
+     if(creatorSaveError)console.warn("Creator avatar mirror update failed:",creatorSaveError.message);
+     avatar=newAvatarUrl;ownerMember.avatar_url=newAvatarUrl;
+     $("#crcpPublicAvatar").innerHTML='<img src="'+esc(avatar)+'" alt="'+esc(name)+'" loading="lazy">';
+     say("success","Your creator avatar has been updated.");button.textContent="Avatar updated ✓";input.value="";picked=null;
+    }catch(error){console.error("Public creator avatar upload failed:",error);say("error","Could not update your avatar: "+(error.message||"Please try again."));button.textContent="Upload new avatar"}
+    finally{button.disabled=!picked}
+   });
+  }
  }catch(error){console.error("Public creator profile failed:",error);root.innerHTML='<div class="container section notice">'+esc(error.message||"Could not load this creator profile.")+'<p><a href="'+SITE_BASE+'rankings.html">Return to rankings</a></p></div>'}
 }
 export async function creatorProfile(){
