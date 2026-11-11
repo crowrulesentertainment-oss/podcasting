@@ -12,13 +12,13 @@ toggle.addEventListener("click",()=>{const open=menu.classList.toggle("open");to
 menu.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>{menu.classList.remove("open");toggle.setAttribute("aria-expanded","false");}));
 const filter=$("#categoryFilter");categories.forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=c;filter.append(o);});
 let partners=[];
-function partnerCard(p,featured=false){
+function partnerCard(p,featured=false,founding50=false){
  const logo=safeUrl(p.logo_url),cover=safeUrl(p.cover_image_url);
  const social=[["Facebook",p.facebook_url],["Instagram",p.instagram_url],["YouTube",p.youtube_url]].filter(x=>safeUrl(x[1]));
- return '<article class="partner-card '+(featured?"featured-card":"")+'">'+
+ return '<article class="partner-card '+(featured?"featured-card":"")+(founding50?" founding50-card":"")+'">'+
  (cover?'<img class="partner-cover" src="'+esc(cover)+'" alt="" loading="lazy">':'<div class="partner-cover cover-placeholder"></div>')+
  '<div class="partner-card-body">'+(logo?'<img class="partner-logo" src="'+esc(logo)+'" alt="'+esc(p.organization_name)+' logo" loading="lazy">':'<div class="partner-logo monogram">'+esc((p.organization_name||"CR").slice(0,2).toUpperCase())+'</div>')+
- '<div class="partner-card-meta"><span class="partner-category">'+esc(p.category||"COMMUNITY PARTNER")+'</span>'+(p.verification_status==="verified"?'<span class="verified-mark" title="Verified organization">✓ VERIFIED</span>':'')+(featured?'<span class="featured-mark">FEATURED</span>':'')+'</div>'+
+ '<div class="partner-card-meta"><span class="partner-category">'+esc(p.category||"COMMUNITY PARTNER")+'</span>'+(p.verification_status==="verified"?'<span class="verified-mark" title="Verified organization">✓ VERIFIED</span>':'')+(founding50?'<span class="founding50-mark">FOUNDING 50</span>':'')+(featured?'<span class="featured-mark">FEATURED</span>':'')+'</div>'+
  '<h3>'+esc(p.organization_name)+'</h3>'+(p.city?'<p class="partner-location">'+esc(p.city)+'</p>':'')+
  '<p>'+esc(p.short_description||"A member of the CrowRules Tacoma Community Partner Network.")+'</p>'+
  '<details class="partner-details"><summary>View organization profile</summary>'+
@@ -35,12 +35,18 @@ function render(){
  const featureWrap=$("#featuredPartners");
  featureWrap.hidden=!featured.length;
  $("#featuredPartnerGrid").innerHTML=featured.map(p=>partnerCard(p,true)).join("");
+ const founding=partners.filter(p=>p.recognition_tier==="Founding 50");
+ const foundingCount=Math.min(founding.length,50),foundingBar=$("#founding50Progress"),foundingTrack=foundingBar?.parentElement;
+ $("#founding50Count").textContent=String(foundingCount);
+ if(foundingTrack){foundingTrack.style.setProperty("--progress",String(foundingCount*2)+"%");foundingTrack.setAttribute("aria-valuenow",String(foundingCount));}
+ $("#founding50Status").textContent=foundingCount>=50?"Our initial goal of 50 founding partners has been reached. Thank you for building with us.":foundingCount+" of 50 founding partner spots filled. We're continuing to welcome approved organizations.";
+ $("#founding50Grid").innerHTML=founding.length?founding.map(p=>partnerCard(p,false,true)).join(""):'<div class="founding50-empty"><h4>Be among the first.</h4><p>Approved Founding 50 profiles will be featured here as organizations are welcomed into the network.</p><a class="text-link" href="#apply">Apply to join ↗</a></div>';
  $("#partnerDirectory").innerHTML=rows.length?rows.map(p=>partnerCard(p,false)).join(""):'<div class="empty-state"><div class="empty-symbol">✦</div><h3>No matching partners yet.</h3><p>Try another search or category. Our directory will grow as partners are approved.</p></div>';
 }
 async function loadPartners(){
  const box=$("#partnerDirectory");
  try{
-  const {data,error}=await sb.from("podcast_public_partners").select("id,organization_name,short_description,category,logo_url,website_url,is_active,sort_order,is_featured,city,mission,full_description,cover_image_url,public_email,public_phone,facebook_url,instagram_url,youtube_url,verification_status").eq("is_active",true).order("is_featured",{ascending:false}).order("sort_order").order("organization_name");
+  const {data,error}=await sb.from("podcast_public_partners").select("id,organization_name,short_description,category,logo_url,website_url,is_active,sort_order,is_featured,recognition_tier,city,mission,full_description,cover_image_url,public_email,public_phone,facebook_url,instagram_url,youtube_url,verification_status").eq("is_active",true).order("is_featured",{ascending:false}).order("sort_order").order("organization_name");
   if(error)throw error;
   partners=data||[];render();
  }catch(e){console.error("Partner directory:",e);box.innerHTML='<div class="empty-state"><div class="empty-symbol">✦</div><h3>Our community is taking shape.</h3><p>The partner directory is being prepared. You can still submit an application below.</p></div>';}
@@ -89,7 +95,7 @@ form.addEventListener("submit",async e=>{
  button.disabled=true;button.textContent="Submitting application…";
  const type=String(f.get("category")||"");
  const website=String(f.get("website")||"").trim();
- const message="Applicant type: "+String(f.get("applicant_type")||"Not specified")+"\nCategory: "+type+"\nCity/community: "+String(f.get("city")||"").trim()+"\nPhone: "+String(f.get("phone")||"").trim()+"\nWho they serve: "+String(f.get("audience")||"Not specified").trim()+"\nCollaboration interest: "+String(f.get("collaboration")||"Not specified").trim()+"\n\n"+String(f.get("message")||"").trim();
+ const founding50Interest=f.get("founding50_interest")==="on";\n const message="Founding 50 consideration: "+(founding50Interest?"Yes":"No")+"\nApplicant type: "+String(f.get("applicant_type")||"Not specified")+"\nCategory: "+type+"\nCity/community: "+String(f.get("city")||"").trim()+"\nPhone: "+String(f.get("phone")||"").trim()+"\nWho they serve: "+String(f.get("audience")||"Not specified").trim()+"\nCollaboration interest: "+String(f.get("collaboration")||"Not specified").trim()+"\n\n"+String(f.get("message")||"").trim();
  try{
   const logoFile=logoInput.files?.[0];
   const logoPayload=logoFile?{logo_data:await fileToBase64(logoFile),logo_content_type:logoFile.type}: {};
