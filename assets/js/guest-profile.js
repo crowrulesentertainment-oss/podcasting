@@ -30,7 +30,7 @@ async function editProfile(){
  avatarInput.addEventListener("change",()=>{
   const file=avatarInput.files?.[0]||null;
   if(!file){pickedAvatar=null;return}
-  if(file.size>5*1024*1024||!/^image\\/(jpeg|png|webp|gif)$/.test(file.type)){
+  if(file.size>5*1024*1024||!/^image\/(jpeg|png|webp|gif)$/.test(file.type)){
    status("error","Choose a JPG, PNG, WEBP or GIF image smaller than 5 MB.");avatarInput.value="";pickedAvatar=null;return;
   }
   pickedAvatar=file;
