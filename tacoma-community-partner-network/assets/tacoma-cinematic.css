@@ -57,3 +57,30 @@ footer{background:#06080c;border-top:1px solid rgba(217,184,121,.22)}
 @media(max-width:700px){.hero{min-height:690px;background-position:58% center}.hq-hero,.cg-hero,.dir-hero{background-position:58% center}.apply{background-attachment:scroll}}
 @media(max-width:600px){.tacoma-photo-grid{grid-template-columns:1fr}.tacoma-photo-main{grid-column:auto;min-height:300px}.tacoma-photo-card{min-height:270px}.tacoma-photo-story{padding-inline:18px}}
 @media(prefers-reduced-motion:reduce){[data-reveal]{opacity:1;transform:none;transition:none}.tacoma-photo-card img{transition:none}}
+
+/* CROWRULES ENTERTAINMENT PARTNERSHIP NETWORK — branch universe */
+.branch-universe{padding:clamp(66px,8vw,112px) clamp(20px,7vw,110px);max-width:1600px;margin:0 auto;position:relative}
+.branch-universe-head{display:flex;align-items:end;justify-content:space-between;gap:30px;margin:18px 0 30px}
+.branch-universe-head h2{font-size:clamp(38px,5.4vw,68px);line-height:1.02;letter-spacing:-.05em;margin:0 0 16px}
+.branch-universe-head h2 em{font-family:"Playfair Display",Georgia,serif;color:var(--tacoma-gold);font-weight:600}
+.branch-universe-head p{max-width:720px;color:var(--tacoma-muted);line-height:1.85;font-size:14px}
+.branch-all-link,.branch-feature a{color:var(--tacoma-gold);font-weight:800;text-decoration:none}
+.branch-universe-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px}
+.branch-feature{position:relative;isolation:isolate;overflow:hidden;min-height:285px;padding:26px;border:1px solid #d9b87945;border-radius:14px;background:linear-gradient(145deg,#1a2029,#090c12);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end}
+.branch-feature:before{content:"";position:absolute;inset:0;z-index:-1;background-position:center;background-size:cover;opacity:.42;transition:transform .7s}
+.branch-feature:hover:before{transform:scale(1.05)}
+.branch-feature:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(5,7,11,.12),rgba(5,7,11,.96) 86%)}
+.branch-feature span{font-size:9px;letter-spacing:.18em;color:#e6cb94;font-weight:900}
+.branch-feature h3{font-size:clamp(22px,2.2vw,30px);margin:13px 0 8px;letter-spacing:-.035em}
+.branch-feature p{font-size:13px;line-height:1.75;color:#d0d0cc;margin:0 0 18px;max-width:560px}
+.branch-feature a{font-size:12px;margin-top:auto}
+.branch-parent{grid-column:span 3;min-height:340px}.branch-podcast{grid-column:span 3;min-height:340px}
+.branch-nights,.branch-deck,.branch-future{grid-column:span 2}
+.branch-parent:before{background-image:url("https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1200&q=85")}
+.branch-podcast:before{background-image:url("https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=1200&q=85")}
+.branch-nights:before{background-image:url("https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1000&q=85")}
+.branch-deck:before{background-image:url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1000&q=85")}
+.branch-future:before{background-image:url("https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1000&q=85")}
+.branch-universe-note{margin:20px 0 0;color:#aeb0b5;font-size:11px;line-height:1.7}
+@media(max-width:900px){.branch-universe-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.branch-parent,.branch-podcast{grid-column:span 2}.branch-nights,.branch-deck,.branch-future{grid-column:span 1}}
+@media(max-width:600px){.branch-universe-head{display:block}.branch-all-link{display:inline-block;margin-top:8px}.branch-universe-grid{grid-template-columns:1fr}.branch-parent,.branch-podcast,.branch-nights,.branch-deck,.branch-future{grid-column:auto;min-height:270px}}
