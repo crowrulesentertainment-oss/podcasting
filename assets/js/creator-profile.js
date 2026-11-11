@@ -62,7 +62,7 @@ export async function creatorProfile(){
   save.disabled=true;save.textContent="Saving…";say("","Saving your creator profile…");
   try{
    const picked=file.files?.[0];if(picked){const ext=(picked.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg",path="creator-avatars/"+user.id+"/"+Date.now()+"."+ext;const{data:uploaded,error:uploadError}=await sb.storage.from(STORAGE_BUCKET).upload(path,picked,{upsert:true,contentType:picked.type,cacheControl:"3600"});if(uploadError)throw uploadError;const{data:publicData}=sb.storage.from(STORAGE_BUCKET).getPublicUrl(uploaded.path);avatarUrl=publicData.publicUrl}
-   const memberPatch={display_name,username:username||null,role,bio:bio||null,avatar_url:avatarUrl||null};const{error:saveMemberError}=await sb.from("members").update(memberPatch).eq("id",member.id);if(saveMemberError)throw saveMemberError;
+   const memberPatch={display_name,username:username||null,bio:bio||null,avatar_url:avatarUrl||null};const{error:saveMemberError}=await sb.from("members").update(memberPatch).eq("id",member.id);if(saveMemberError)throw saveMemberError;
    if(creator){const{error:saveCreatorError}=await sb.from("creators").update({display_name,name:display_name,role,discipline:discipline||null,bio:bio||null,avatar_url:avatarUrl||null}).eq("id",creator.id);if(saveCreatorError)console.warn("Creator record update failed:",saveCreatorError.message)}
    paintAvatar(avatarUrl);say("success","Your creator profile has been saved.");save.textContent="Saved ✓";
   }catch(error){console.error("Creator profile save failed:",error);say("error","Could not save your profile: "+(error.message||"Please try again."));save.textContent="Save creator profile ↗"}
