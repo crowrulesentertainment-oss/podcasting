@@ -10,11 +10,12 @@ A cinematic, multi-page partnership hub for CrowRules Podcasting, a division of 
 - `opportunities.html` — collaboration, community, volunteer and media opportunity pathways.
 - `directory.html` — live, searchable and filterable Supabase-backed partner directory.
 - `sponsorships.html` — sponsorship and advertising overview.
-- `creators-guests.html` — creator, production, guest and subject-expert network.
+- `creators-guests.html` — cinematic creator and guest recruitment center with six participation pathways, show/format overview, collaboration process, FAQ and introduction form.
 - `sponsorships.html` — dedicated sponsorship center with six pathways, transparent process, editorial integrity terms, FAQ and inquiry form.
 - All public pages use the shared cinematic visual system in `assets/headquarters.css`.
 - `assets/directory.js` and `assets/directory.css` — live partner directory search, filtering and profile cards.
 - `assets/sponsorships.js` and `assets/sponsorships.css` — responsive sponsorship experience and secure submission through the existing `partnership-application` Edge Function.
+- `assets/creators-guests.js` and `assets/creators-guests.css` — creator/guest pathways, form interactions and secure introduction submission through the existing `partnership-application` Edge Function.
 
 ## Administration
 - `admin.html` — restricted, noindex administration command center.
