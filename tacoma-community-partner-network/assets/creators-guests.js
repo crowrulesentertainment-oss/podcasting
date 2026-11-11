@@ -18,6 +18,7 @@ form.addEventListener("submit",async event=>{
  const message=[
  "Creator & Guest Network introduction",
  "Primary interest: "+String(f.get("primary_interest")||""),
+ "Branch pathway: "+String(f.get("primary_interest")||""),
  "City / region: "+String(f.get("city")||"Not provided"),
  "Work samples: "+String(f.get("work_samples")||"Not provided"),
  "",
