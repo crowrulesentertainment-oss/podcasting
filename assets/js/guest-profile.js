@@ -1,5 +1,5 @@
-import{sb}from"./assets/js/client.js";
-import{SITE_BASE}from"./assets/js/config.js";
+import{sb}from"./client.js";
+import{SITE_BASE}from"./config.js";
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const safeUrl=value=>{try{const u=new URL(String(value||""));return u.protocol==="https:"?u.href:""}catch{return""}};
