@@ -146,3 +146,29 @@ async function loadCommunitySubmissions(){
   }));
  }
 }
+
+/* Partnership Email Center: safe client-side draft generation only. */
+const emailTemplates={
+ received:{subject:"We received your CrowRules Podcasting partnership inquiry",body:"Hello {{name}},\n\nThank you for introducing {{organization}} to CrowRules Podcasting. We have received your inquiry and will review the information you provided.\n\nSubmitting an inquiry does not create an obligation or guarantee a partnership. If there is a potential fit, we will follow up to discuss next steps and expectations.\n\nThank you,\nCrowRules Podcasting Partnerships\nCrowRules Entertainment"},
+ clarification:{subject:"A quick follow-up about your CrowRules partnership inquiry",body:"Hello {{name}},\n\nThank you for your interest in connecting {{organization}} with CrowRules Podcasting. We have a few questions so we can understand the opportunity and determine the best next step.\n\n[Add the specific questions here.]\n\nThere is no commitment at this stage. We appreciate your time.\n\nCrowRules Podcasting Partnerships"},
+ approved:{subject:"Welcome to the CrowRules Podcasting Partnership Network",body:"Hello {{name}},\n\nWe are pleased to let you know that {{organization}} has been approved to join the CrowRules Podcasting Partnership Network. Welcome.\n\nYour next step is to confirm the public profile details and discuss any specific collaboration separately. Approval to join the network does not automatically commit either party to sponsorship, advertising, production, promotion or other work.\n\nWe look forward to getting to know your organization.\n\nCrowRules Podcasting Partnerships"},
+ declined:{subject:"Update on your CrowRules Podcasting partnership inquiry",body:"Hello {{name}},\n\nThank you for taking the time to introduce {{organization}} to CrowRules Podcasting. After reviewing the inquiry, we are not moving forward with this particular partnership request at this time.\n\nWe appreciate your interest and wish your organization well. This decision relates to the current inquiry and is not a judgment on the value of your work.\n\nCrowRules Podcasting Partnerships"},
+ sponsor:{subject:"Thank you for your interest in partnering with CrowRules Podcasting",body:"Hello {{name}},\n\nThank you for reaching out on behalf of {{organization}}. We would be glad to learn more about your sponsorship or advertising goals.\n\nBefore discussing a proposal, it would help to understand your audience, campaign objectives, preferred formats, timing and budget range. Any sponsorship or paid placement would be subject to a separate written agreement covering deliverables, approvals, timing and payment terms.\n\nCrowRules Podcasting Partnerships"},
+ guest:{subject:"Thank you for your interest in appearing on CrowRules Podcasting",body:"Hello {{name}},\n\nThank you for offering to share your experience with CrowRules Podcasting. We would like to learn more about your proposed topic, relevant experience, availability and the show or segment that may be the best fit.\n\nAn invitation to discuss a guest appearance is not a guarantee of booking or publication. We will confirm format, recording arrangements, permissions and any other expectations in advance.\n\nCrowRules Podcasting"},
+ collaboration:{subject:"Exploring a creator collaboration with CrowRules Podcasting",body:"Hello {{name}},\n\nThank you for introducing {{organization}}. We are interested in learning more about your creative work and what a mutually useful collaboration might look like.\n\nPlease share your project idea, intended audience, proposed contributions, timeline and any resources or rights that would need to be discussed. We will confirm responsibilities and permissions before any work begins.\n\nCrowRules Podcasting Partnerships"},
+ general:{subject:"Following up from CrowRules Podcasting Partnerships",body:"Hello {{name}},\n\nI am following up regarding {{organization}} and your connection with CrowRules Podcasting.\n\n[Add the specific update or question here.]\n\nThank you for your time.\n\nCrowRules Podcasting Partnerships"}
+};
+const templateSelect=document.querySelector("#emailTemplate");
+if(templateSelect){
+ const nameField=document.querySelector("#emailRecipientName"),orgField=document.querySelector("#emailOrganization"),replyField=document.querySelector("#emailReplyTo"),subjectField=document.querySelector("#emailSubject"),bodyField=document.querySelector("#emailBody");
+ const personalize=s=>s.replaceAll("{{name}}",nameField.value.trim()||"there").replaceAll("{{organization}}",orgField.value.trim()||"your organization");
+ const renderDraft=()=>{const t=emailTemplates[templateSelect.value];subjectField.value=personalize(t.subject);bodyField.value=personalize(t.body);};
+ templateSelect.addEventListener("change",renderDraft);nameField.addEventListener("input",renderDraft);orgField.addEventListener("input",renderDraft);
+ document.querySelector("#resetEmailDraft").addEventListener("click",()=>{renderDraft();message("#emailCenterMessage","Template reset.");});
+ document.querySelector("#copyEmailDraft").addEventListener("click",async()=>{
+  const full="To: [recipient email]\nReply-To: "+(replyField.value.trim()||"crowrulesentertainment@gmail.com")+"\nSubject: "+subjectField.value+"\n\n"+bodyField.value;
+  try{await navigator.clipboard.writeText(full);message("#emailCenterMessage","Complete email draft copied. Paste it into your email client and verify the recipient before sending.");}
+  catch(e){message("#emailCenterMessage","Clipboard access was unavailable. Select and copy the subject and message manually.",true);}
+ });
+ renderDraft();
+}
