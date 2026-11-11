@@ -5,7 +5,7 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const safeUrl=v=>{try{const u=new URL(String(v||""));return u.protocol==="https:"?u.href:"";}catch{return "";}};
 const emailLink=v=>{const s=String(v||"").trim();return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)?"mailto:"+encodeURIComponent(s):"";};
 const phoneLink=v=>{const s=String(v||"").replace(/[^+\d]/g,"");return s.length>=7?"tel:"+s:"";};
-const fields=["id","organization_name","short_description","category","logo_url","website_url","is_active","is_featured","city","mission","full_description","cover_image_url","public_email","public_phone","facebook_url","instagram_url","youtube_url","verification_status"];
+const fields=["id","organization_name","short_description","category","logo_url","website_url","is_active","is_featured","city","mission","full_description","cover_image_url","public_email","public_phone","facebook_url","instagram_url","youtube_url","verification_status","recognition_tier"];
 let partners=[],filtered=[],page=1;
 const search=$("#dirSearch"),category=$("#dirCategory"),city=$("#dirCity"),sort=$("#dirSort"),verified=$("#verifiedOnly");
 const menu=$("#mainNav"),toggle=$("#menuToggle");
@@ -19,7 +19,7 @@ function card(p,featured=false,prefix=""){
  return '<article class="dir-card">'+
  '<div class="dir-card-cover">'+(cover?'<img src="'+esc(cover)+'" alt="" loading="lazy">':'')+'</div>'+
  '<div class="dir-card-body"><div class="dir-card-brand">'+(logo?'<img class="dir-card-logo" src="'+esc(logo)+'" alt="'+esc(p.organization_name)+' logo" loading="lazy">':'<div class="dir-card-logo dir-card-monogram">'+esc((p.organization_name||"CR").slice(0,2).toUpperCase())+'</div>')+'</div>'+
- '<div class="dir-card-tags"><span class="dir-tag">'+esc(p.category||"COMMUNITY PARTNER")+'</span>'+(p.verification_status==="verified"?'<span class="dir-tag verified">✓ VERIFIED</span>':'')+(featured?'<span class="dir-tag">FEATURED</span>':'')+'</div>'+
+ '<div class="dir-card-tags"><span class="dir-tag">'+esc(p.category||"COMMUNITY PARTNER")+'</span>'+(p.verification_status==="verified"?'<span class="dir-tag verified">✓ VERIFIED</span>':'')+(p.recognition_tier==="Founding 50"?'<span class="dir-tag founding50-tag">FOUNDING 50</span>':'')+(featured?'<span class="dir-tag">FEATURED</span>':'')+'</div>'+
  '<h3>'+esc(p.organization_name)+'</h3>'+(p.city?'<p class="dir-city">⌖ '+esc(p.city)+'</p>':'')+'<p class="dir-card-desc">'+esc(desc)+'</p>'+
  (p.mission?'<p class="dir-mission"><strong>Mission:</strong> '+esc(p.mission)+'</p>':'')+
  '<div class="dir-card-actions">'+(mail?'<a href="'+esc(mail)+'">Email ↗</a>':'')+(phone?'<a href="'+esc(phone)+'">Call ↗</a>':'')+(website?'<a href="'+esc(website)+'" target="_blank" rel="noopener noreferrer">Website ↗</a>':'')+'</div>'+
