@@ -97,3 +97,14 @@ Additional creator workflow ideas are surfaced in the Creator Toolkit: release p
 - Direct uploaded video files continue to use the native video player; audio uploads continue to use the audio player.
 - YouTube links are validated before save. Audio file uploads no longer clear an existing linked video URL.
 - The upload file remains optional when a YouTube URL is provided.
+
+
+### Partnership Headquarters homepage refresh (November 2026)
+- Refreshed the main tacoma-community-partner-network/index.html landing page to make the upgraded network sections easier to discover.
+- Added a five-path launchpad linking to About, Opportunities, Partner Directory, Creators & Guests, and Sponsorships.
+- Added clear trust cues for free participation, Tacoma roots, nationwide reach, and reviewed public submissions.
+- Updated hero messaging and primary calls to action while preserving the existing application, directory, community board, analytics, and Supabase integrations.
+- Added responsive styling in tacoma-community-partner-network/assets/homepage-upgrade.css.
+- No database schema, RLS policy, Edge Function, or secret-key changes.
+- GitHub commits: homepage 5c9437615e8e3c8f7f07678ed4439ad2f2667678; stylesheet 03a13a8898ad19515886319303fc42487c8ecb5a.
+- GitHub Pages deployment, browser rendering, and live form/database behavior have not been independently verified.
