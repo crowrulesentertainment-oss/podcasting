@@ -1057,13 +1057,15 @@ async function rankings(){
    sb.from("podcasts").select("id,creator_id,title,category,description,artwork_url,total_plays,listener_count,published_at,created_at").eq("status","published").limit(250),
    sb.from("podcast_episodes").select("id,podcast_id,title,description,thumbnail_url,artwork_url,play_count,total_plays,published_at,created_at,duration_seconds").eq("status","published").order("published_at",{ascending:false}).limit(400),
    sb.from("creators").select("id,member_id,name,display_name,role,discipline,avatar_url,profile_url,is_active").limit(500),
-   sb.from("podcast_follows").select("podcast_id").limit(10000)
+   sb.from("podcast_follows").select("podcast_id").limit(10000),
+   sb.from("crowrules_public_profiles").select("id,avatar_url,display_name").limit(500)
   ]);
   const failure=results.find((r,i)=>r.error&&i<3);
   if(failure)throw failure.error;
   catalog.shows=results[0].data||[];catalog.episodes=results[1].data||[];
-  // The creator directory is the source of truth; do not require an additional Host role assignment.
-  catalog.creators=results[2].data||[];
+  // The public member profile is the canonical avatar source; creators.avatar_url is a fallback mirror.
+  const memberProfiles=new Map((results[4].data||[]).map(profile=>[profile.id,profile]));
+  catalog.creators=(results[2].data||[]).map(creator=>({...creator,avatar_url:memberProfiles.get(creator.member_id)?.avatar_url||creator.avatar_url||"",display_name:creator.display_name||memberProfiles.get(creator.member_id)?.display_name||creator.name}));
   catalog.follows={};for(const row of results[3].data||[])catalog.follows[row.podcast_id]=(catalog.follows[row.podcast_id]||0)+1;
   catalog.followsAvailable=!results[3].error;
  };
