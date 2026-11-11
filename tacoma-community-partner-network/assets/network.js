@@ -95,7 +95,8 @@ form.addEventListener("submit",async e=>{
  button.disabled=true;button.textContent="Submitting application…";
  const type=String(f.get("category")||"");
  const website=String(f.get("website")||"").trim();
- const founding50Interest=f.get("founding50_interest")==="on";\n const message="Founding 50 consideration: "+(founding50Interest?"Yes":"No")+"\nApplicant type: "+String(f.get("applicant_type")||"Not specified")+"\nCategory: "+type+"\nCity/community: "+String(f.get("city")||"").trim()+"\nPhone: "+String(f.get("phone")||"").trim()+"\nWho they serve: "+String(f.get("audience")||"Not specified").trim()+"\nCollaboration interest: "+String(f.get("collaboration")||"Not specified").trim()+"\n\n"+String(f.get("message")||"").trim();
+ const founding50Interest=f.get("founding50_interest")==="on";
+ const message="Founding 50 consideration: "+(founding50Interest?"Yes":"No")+"\nApplicant type: "+String(f.get("applicant_type")||"Not specified")+"\nCategory: "+type+"\nCity/community: "+String(f.get("city")||"").trim()+"\nPhone: "+String(f.get("phone")||"").trim()+"\nWho they serve: "+String(f.get("audience")||"Not specified").trim()+"\nCollaboration interest: "+String(f.get("collaboration")||"Not specified").trim()+"\n\n"+String(f.get("message")||"").trim();
  try{
   const logoFile=logoInput.files?.[0];
   const logoPayload=logoFile?{logo_data:await fileToBase64(logoFile),logo_content_type:logoFile.type}: {};
