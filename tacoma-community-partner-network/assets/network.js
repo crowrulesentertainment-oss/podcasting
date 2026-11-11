@@ -3,7 +3,7 @@ const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co";
 const SUPABASE_KEY="sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=s=>document.querySelector(s);
-const categories=["Business & Brands","Sponsors & Advertisers","Media & Podcast Networks","Creators & Production","Guests & Subject Experts","Nonprofits & Charities","Education & Youth","Community Organizations","Arts, Culture & Entertainment","Sports & Recreation","Professional Services","Other / Not Listed"];
+const categories=["Business & Brands","Sponsors & Advertisers","Media & Podcast Networks","Creators & Production","Guests & Subject Experts","Nonprofits & Charities","Education & Youth","Community Organizations","Arts, Culture & Entertainment","Sports & Recreation","Professional Services","Other / Not Listed","Food & Beverage","Small Business & Retail","Health & Wellness","Creators & Media"];
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const safeUrl=v=>{try{const u=new URL(String(v||""));return u.protocol==="https:"?u.href:"";}catch{return "";}};
 $("#year").textContent=new Date().getFullYear();
