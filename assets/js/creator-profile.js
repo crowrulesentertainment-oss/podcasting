@@ -1,5 +1,5 @@
 import{sb}from"./client.js";
-import{SITE_BASE,STORAGE_BUCKET}from"./config.js";
+import{SITE_BASE}from"./config.js";
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const art="https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=2200&q=90";
@@ -61,7 +61,7 @@ export async function creatorProfile(){
  $("#crcpForm").addEventListener("submit",async e=>{e.preventDefault();if(save.disabled)return;const display_name=$("#crcpName").value.trim(),username=$("#crcpUsername").value.trim(),role=$("#crcpRole").value,discipline=$("#crcpSpecialty").value.trim(),bio=$("#crcpBio").value.trim();if(!display_name){say("error","Please enter a display name.");return}if(username&&!/^[A-Za-z0-9_]{2,40}$/.test(username)){say("error","Username must be 2–40 characters using letters, numbers or underscores.");return}
   save.disabled=true;save.textContent="Saving…";say("","Saving your creator profile…");
   try{
-   const picked=file.files?.[0];if(picked){const ext=(picked.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg",path="creator-avatars/"+user.id+"/"+Date.now()+"."+ext;const{data:uploaded,error:uploadError}=await sb.storage.from(STORAGE_BUCKET).upload(path,picked,{upsert:true,contentType:picked.type,cacheControl:"3600"});if(uploadError)throw uploadError;const{data:publicData}=sb.storage.from(STORAGE_BUCKET).getPublicUrl(uploaded.path);avatarUrl=publicData.publicUrl}
+   const picked=file.files?.[0];if(picked){const ext=(picked.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg",path=user.id+"/"+Date.now()+"."+ext;const{data:uploaded,error:uploadError}=await sb.storage.from("creator-avatars").upload(path,picked,{upsert:true,contentType:picked.type,cacheControl:"3600"});if(uploadError)throw uploadError;const{data:publicData}=sb.storage.from(STORAGE_BUCKET).getPublicUrl(uploaded.path);avatarUrl=publicData.publicUrl}
    const memberPatch={display_name,username:username||null,bio:bio||null,avatar_url:avatarUrl||null};const{error:saveMemberError}=await sb.from("members").update(memberPatch).eq("id",member.id);if(saveMemberError)throw saveMemberError;
    if(creator){const{error:saveCreatorError}=await sb.from("creators").update({display_name,name:display_name,role,discipline:discipline||null,bio:bio||null,avatar_url:avatarUrl||null}).eq("id",creator.id);if(saveCreatorError)console.warn("Creator record update failed:",saveCreatorError.message)}
    paintAvatar(avatarUrl);say("success","Your creator profile has been saved.");save.textContent="Saved ✓";
