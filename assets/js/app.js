@@ -1473,6 +1473,75 @@ async function admin(){
    const names=new Map((episodes||[]).map(x=>[x.id,x.title]));
    work.innerHTML='<div class="admin-module"><div class="admin-module-head"><div><span class="admin-kicker">PRODUCTION CONTROL</span><h3>Pipeline activity</h3><p>Recent production-stage changes recorded by the creator workflow.</p></div><a class="btn secondary" href="creator.html?tab=pipeline">Open creator pipeline ↗</a></div>'+(rows.length?table(["Episode","Event","Transition","Details","Time"],rows.map(x=>'<tr><td><b>'+esc(names.get(x.episode_id)||"Episode record")+'</b></td><td>'+badge(x.event_type)+'</td><td>'+esc(x.from_status||"—")+' → '+esc(x.to_status||"—")+'</td><td>'+esc(x.message||"—")+'</td><td>'+ (x.created_at?new Date(x.created_at).toLocaleString():"—")+'</td></tr>').join("")):empty)+'</div>';return;
   }
+
+  if(tab==="guests"){
+   const{data:guestRows,error:guestError}=await sb.from("podcast_guest_profiles").select("id,user_id,display_name,headline,bio,topics,website_url,status,created_at").order("created_at",{ascending:false}).limit(500);
+   if(guestError)throw guestError;
+   const guestProfiles=guestRows||[];
+   const guestStatus=x=>String(x.status||"pending").toLowerCase();
+   const guestName=x=>x.display_name||"Unnamed guest";
+   const guestDate=x=>x.created_at?new Date(x.created_at).toLocaleDateString():"—";
+   const guestStatusBadge=x=>badge(guestStatus(x));
+   const guestStats=[
+    ["All profiles",guestProfiles.length,"Every submitted guest profile"],
+    ["Pending review",guestProfiles.filter(x=>guestStatus(x)==="pending").length,"Awaiting administrator review"],
+    ["Approved",guestProfiles.filter(x=>guestStatus(x)==="approved").length,"Eligible for public discovery"],
+    ["Not approved",guestProfiles.filter(x=>!["pending","approved"].includes(guestStatus(x))).length,"Rejected or other statuses"]
+   ];
+   const guestCard=x=>{
+    const topics=Array.isArray(x.topics)?x.topics:(typeof x.topics==="string"?x.topics.split(",").map(t=>t.trim()).filter(Boolean):[]);
+    const searchable=[x.display_name,x.headline,x.bio,topics.join(" "),x.website_url,x.user_id,x.status].join(" ").toLowerCase();
+    return '<article class="guest-admin-card" data-guest-card="'+esc(x.id)+'" data-status="'+esc(guestStatus(x))+'" data-search="'+esc(searchable)+'">'+
+     '<div class="guest-admin-card-top"><div class="guest-admin-avatar">'+esc((guestName(x).trim().charAt(0)||"G").toUpperCase())+'</div><div class="guest-admin-identity"><span class="admin-kicker">GUEST PROFILE · '+esc(guestDate(x))+'</span><h4>'+esc(guestName(x))+'</h4><p>'+esc(x.headline||"No headline supplied")+'</p></div><div class="guest-admin-status">'+guestStatusBadge(x)+'</div></div>'+
+     '<div class="guest-admin-bio">'+(x.bio?esc(x.bio):'<span class="guest-admin-muted">No biography supplied.</span>')+'</div>'+
+     '<div class="guest-admin-topics">'+(topics.length?topics.map(t=>'<span>'+esc(t)+'</span>').join(""):'<small>No topics listed</small>')+'</div>'+
+     '<div class="guest-admin-meta"><span><b>Account ID</b><code>'+esc(x.user_id||"Not linked")+'</code></span>'+(x.website_url?'<span><b>Website</b><a href="'+esc(x.website_url)+'" target="_blank" rel="noopener noreferrer">Open website ↗</a></span>':'<span><b>Website</b>Not provided</span>')+'</div>'+
+     '<details class="guest-admin-edit"><summary>Edit profile details</summary><form data-guest-edit="'+esc(x.id)+'"><div class="guest-admin-edit-grid"><label>Display name<input name="display_name" maxlength="120" required value="'+esc(x.display_name||"")+'"></label><label>Headline<input name="headline" maxlength="180" value="'+esc(x.headline||"")+'"></label><label class="full">Biography<textarea name="bio" rows="4" maxlength="5000">'+esc(x.bio||"")+'</textarea></label><label>Topics (comma separated)<input name="topics" maxlength="1000" value="'+esc(topics.join(", "))+'"></label><label>Website URL<input name="website_url" type="url" maxlength="500" value="'+esc(x.website_url||"")+'" placeholder="https://"></label></div><div class="guest-admin-edit-actions"><button type="submit" class="btn secondary">Save profile details</button><span class="guest-admin-feedback" aria-live="polite"></span></div></form></details>'+
+     '<div class="guest-admin-actions"><label>Review status<select data-guest-status="'+esc(x.id)+'"><option value="pending" '+(guestStatus(x)==="pending"?"selected":"")+'>Pending review</option><option value="approved" '+(guestStatus(x)==="approved"?"selected":"")+'>Approved</option><option value="rejected" '+(guestStatus(x)==="rejected"?"selected":"")+'>Rejected</option></select></label><button class="btn" type="button" data-guest-save-status="'+esc(x.id)+'">Save review status</button></div>'+
+    '</article>';
+   };
+   if(!document.getElementById("cr-guest-admin-css")){
+    const st=document.createElement("style");st.id="cr-guest-admin-css";
+    st.textContent=".guest-admin-hero{padding:22px;border:1px solid #d9b87944;border-radius:16px;background:linear-gradient(120deg,#1a2029,#0b0e13);margin-bottom:18px}.guest-admin-hero h3{font-size:clamp(23px,3vw,34px);margin:7px 0}.guest-admin-hero p{max-width:760px;color:#aeb3bd;margin:0}.guest-admin-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0 22px}.guest-admin-stat{padding:16px;border:1px solid #ffffff20;border-radius:12px;background:#ffffff08}.guest-admin-stat span{display:block;color:#b4b7bf;font-size:10px;text-transform:uppercase;letter-spacing:.12em}.guest-admin-stat b{display:block;font-size:30px;color:#e4c98f;margin:4px 0}.guest-admin-stat small{color:#9298a3;font-size:10px}.guest-admin-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.guest-admin-toolbar input{flex:1;min-width:220px}.guest-admin-toolbar select{width:auto;min-width:160px}.guest-admin-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.guest-admin-card{min-width:0;padding:17px;border:1px solid #ffffff20;border-radius:14px;background:linear-gradient(145deg,#151a22,#0c0f14)}.guest-admin-card[hidden]{display:none}.guest-admin-card-top{display:flex;gap:12px;align-items:center}.guest-admin-avatar{width:44px;height:44px;flex:0 0 44px;border-radius:50%;display:grid;place-items:center;background:#d9b87920;border:1px solid #d9b87970;color:#e4c98f;font-weight:900;font-size:18px}.guest-admin-identity{min-width:0;flex:1}.guest-admin-identity h4{margin:3px 0;font-size:17px;overflow-wrap:anywhere}.guest-admin-identity p{margin:0;color:#aeb3bd;font-size:11px}.guest-admin-status{margin-left:auto}.guest-admin-bio{margin:14px 0;color:#d1d3d7;font-size:12px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}.guest-admin-muted{color:#7f8792}.guest-admin-topics{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.guest-admin-topics span{padding:4px 8px;border:1px solid #d9b87944;border-radius:30px;color:#e3c88e;font-size:9px}.guest-admin-topics small{color:#8d939d}.guest-admin-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:11px 0;border-top:1px solid #ffffff16;border-bottom:1px solid #ffffff16;color:#b5bac2;font-size:10px}.guest-admin-meta b{display:block;color:#858d98;text-transform:uppercase;letter-spacing:.1em;font-size:8px;margin-bottom:4px}.guest-admin-meta code{overflow-wrap:anywhere;font-size:9px}.guest-admin-meta a{color:#e4c98f}.guest-admin-edit{margin-top:12px;border-bottom:1px solid #ffffff16;padding-bottom:12px}.guest-admin-edit summary{cursor:pointer;color:#e4c98f;font-size:11px;font-weight:800;padding:8px 0}.guest-admin-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.guest-admin-edit-grid label,.guest-admin-actions label{display:grid;gap:5px;color:#aeb3bd;font-size:10px}.guest-admin-edit-grid .full{grid-column:1/-1}.guest-admin-edit-grid input,.guest-admin-edit-grid textarea,.guest-admin-actions select{width:100%;min-width:0;padding:9px;background:#090c11;color:#fff;border:1px solid #ffffff28;border-radius:8px;font:inherit;font-size:11px}.guest-admin-edit-grid textarea{resize:vertical}.guest-admin-edit-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}.guest-admin-feedback{font-size:10px;color:#b7c5b8}.guest-admin-actions{display:flex;gap:10px;align-items:end;margin-top:13px}.guest-admin-actions label{flex:1}.guest-admin-actions button{white-space:nowrap}.guest-admin-result{color:#9da4af;font-size:11px;margin:12px 0}.guest-admin-empty{grid-column:1/-1;padding:28px;text-align:center;border:1px dashed #ffffff30;border-radius:12px;color:#aeb3bd}@media(max-width:900px){.guest-admin-list{grid-template-columns:1fr}}@media(max-width:650px){.guest-admin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.guest-admin-actions{align-items:stretch;flex-direction:column}.guest-admin-actions button{width:100%;justify-content:center}.guest-admin-edit-grid{grid-template-columns:1fr}.guest-admin-edit-grid .full{grid-column:auto}.guest-admin-meta{grid-template-columns:1fr}}";
+    document.head.appendChild(st);
+   }
+   const renderGuestWorkspace=()=>{
+    const q=$("#guestAdminSearch").value.trim().toLowerCase(),status=$("#guestAdminFilter").value;
+    let visible=0;
+    work.querySelectorAll("[data-guest-card]").forEach(card=>{const show=(!q||card.dataset.search.includes(q))&&(status==="all"||card.dataset.status===status);card.hidden=!show;if(show)visible++});
+    $("#guestAdminResult").textContent=visible+" profiles shown · "+guestProfiles.length+" total";
+   };
+   work.innerHTML='<div class="guest-admin-hero"><span class="admin-kicker">CROWRULES PODCASTING · GUEST RELATIONS</span><h3>Guest Management Center</h3><p>Review guest applications, approve profiles for public discovery, update profile information and keep the guest directory current. Tacoma and Pacific Northwest voices are always welcome.</p><div class="actions" style="margin-top:14px"><a class="btn secondary" href="guests.html">Open public Guest Lounge ↗</a><button class="btn secondary" type="button" id="guestAdminRefresh">↻ Refresh guest records</button></div></div>'+
+    '<div class="guest-admin-stats">'+guestStats.map(x=>'<article class="guest-admin-stat"><span>'+x[0]+'</span><b>'+x[1]+'</b><small>'+x[2]+'</small></article>').join("")+'</div>'+
+    '<div class="guest-admin-toolbar"><input id="guestAdminSearch" type="search" placeholder="Search names, topics, biographies or account IDs…" aria-label="Search guest profiles"><select id="guestAdminFilter" aria-label="Filter guest profiles"><option value="all">All review statuses</option><option value="pending">Pending review</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div>'+
+    '<div class="guest-admin-list">'+(guestProfiles.length?guestProfiles.map(guestCard).join(""):'<div class="guest-admin-empty"><b>No guest profiles yet.</b><p>New guest applications will appear here when submitted.</p></div>')+'</div><p class="guest-admin-result" id="guestAdminResult" aria-live="polite"></p>';
+   $("#guestAdminSearch").addEventListener("input",renderGuestWorkspace);$("#guestAdminFilter").addEventListener("change",renderGuestWorkspace);
+   $("#guestAdminRefresh").addEventListener("click",()=>admin());
+   all("[data-guest-edit]").forEach(form=>form.addEventListener("submit",async event=>{
+    event.preventDefault();const button=form.querySelector('button[type="submit"]'),feedback=form.querySelector(".guest-admin-feedback");button.disabled=true;feedback.textContent="Saving…";
+    try{
+     const f=new FormData(form),display_name=String(f.get("display_name")||"").trim(),headline=String(f.get("headline")||"").trim(),bio=String(f.get("bio")||"").trim(),topics=String(f.get("topics")||"").split(",").map(x=>x.trim()).filter(Boolean).slice(0,30),website=String(f.get("website_url")||"").trim();
+     if(!display_name)throw Error("A display name is required.");
+     if(website){const parsed=new URL(website);if(!["http:","https:"].includes(parsed.protocol))throw Error("Website must use http or https.");}
+     const{data,error}=await sb.from("podcast_guest_profiles").update({display_name,headline,bio,topics,website_url:website||null}).eq("id",form.dataset.guestEdit).select("id").maybeSingle();
+     if(error)throw error;if(!data)throw Error("No profile was updated. Check administrator permissions.");
+     toast("Guest profile details saved.");await admin();
+    }catch(error){feedback.textContent=error.message||"Could not save profile.";button.disabled=false}
+   }));
+   all("[data-guest-save-status]").forEach(button=>button.addEventListener("click",async()=>{
+    const id=button.dataset.guestSaveStatus,select=work.querySelector('[data-guest-status="'+id+'"]'),profile=guestProfiles.find(x=>x.id===id);if(!profile||!select)return;
+    const next=select.value;if(next===guestStatus(profile)){toast("No review status change to save.");return}
+    const action=next==="approved"?"approve":next==="rejected"?"reject":"return to pending review";
+    if(!confirm("Are you sure you want to "+action+" "+guestName(profile)+"?"+(next==="approved"?" This makes the profile eligible for the public Guest Lounge.":"")))return;
+    button.disabled=true;button.textContent="Saving…";
+    try{
+     const{data,error}=await sb.from("podcast_guest_profiles").update({status:next}).eq("id",id).select("id,status").maybeSingle();
+     if(error)throw error;if(!data)throw Error("No guest profile status was updated. Check administrator permissions.");
+     toast("Guest profile status updated to "+next+".");await admin();
+    }catch(error){toast("Could not update guest review: "+error.message);button.disabled=false;button.textContent="Save review status"}
+   }));
+   renderGuestWorkspace();return;
+  }
   if(tab==="creators"||tab==="guests"||tab==="users"){
    const tableName=tab==="creators"?"creators":tab==="guests"?"podcast_guest_profiles":"members";
    const rows=tab==="creators"?[]:await queryRows(tableName,"*",200);
