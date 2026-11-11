@@ -94,7 +94,12 @@ form.addEventListener("submit",async e=>{
   const logoFile=logoInput.files?.[0];
   const logoPayload=logoFile?{logo_data:await fileToBase64(logoFile),logo_content_type:logoFile.type}: {};
   const {data,error}=await sb.functions.invoke("partnership-application",{body:{name:String(f.get("name")||"").trim(),organization:String(f.get("organization")||"").trim(),email:String(f.get("email")||"").trim(),interest:"partnership",message,website_url:website,company_website:String(f.get("company_website")||"").trim(),...logoPayload}});
-  if(error||!data?.ok)throw new Error(data?.error||error?.message||"The application could not be confirmed.");
+  if(error){
+   let detail="";
+   try{const responseBody=await error.context?.json();detail=responseBody?.error||"";}catch(e){}
+   throw new Error(detail||error.message||"The application could not be confirmed.");
+  }
+  if(!data?.ok)throw new Error(data?.error||"The application could not be confirmed.");
   feedback.textContent=data.notification_sent===false?"Your application was saved, but the email notification could not be confirmed. The team can review it in the administration center.":"Thank you. Your application has been received and saved. The CrowRules team will review it.";
   feedback.classList.add("success");form.reset();clearLogo();
  }catch(err){console.error(err);feedback.textContent=err.message||"We couldn't submit your application. Please try again or email crowrulesentertainment@gmail.com.";feedback.classList.add("error");}
