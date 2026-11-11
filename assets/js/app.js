@@ -1739,7 +1739,7 @@ async function subs(){
    const websiteRoot=$("#websiteMembershipGrid");
    websiteRoot.innerHTML=websites.map(site=>{
     const record=siteMap.get(site.key),granted=entitlementKeys.has(site.key);
-    const sitePlans=websitePlans.filter(x=>x.site_key===site.key);
+    const sitePlans=websitePlans.filter(x=>x.site_key===site.key&&record?.is_active===true);
     const siteMembership=platform.find(x=>x.site_key===site.key&&["active","trialing","past_due"].includes(String(x.status||"").toLowerCase()));
     const launchStatus=site.status==="free"?"FREE COMMUNITY":site.status==="current"?"CURRENT":"COMING SOON";
     const accessLabel=siteMembership?"YOUR WEBSITE MEMBERSHIP":granted?"ACCESS INCLUDED WITH YOUR CROWRULES PLAN":site.status==="free"?"FREE ACCESS":site.status==="current"?"EXPLORE SHOWS":record?.is_active?"MEMBERSHIP SYSTEM READY":"PLANNED";
