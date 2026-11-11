@@ -3,7 +3,7 @@ const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co";
 const SUPABASE_KEY="sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=s=>document.querySelector(s);
-const categories=["Food & Beverage","Small Business & Retail","Arts, Culture & Entertainment","Nonprofits & Charities","Education & Youth","Health & Wellness","Sports & Recreation","Community Organizations","Professional Services","Creators & Media"];
+const categories=["Business & Brands","Sponsors & Advertisers","Media & Podcast Networks","Creators & Production","Guests & Subject Experts","Nonprofits & Charities","Education & Youth","Community Organizations","Arts, Culture & Entertainment","Sports & Recreation","Professional Services","Other / Not Listed"];
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const safeUrl=v=>{try{const u=new URL(String(v||""));return u.protocol==="https:"?u.href:"";}catch{return "";}};
 $("#year").textContent=new Date().getFullYear();
@@ -93,7 +93,7 @@ form.addEventListener("submit",async e=>{
  try{
   const logoFile=logoInput.files?.[0];
   const logoPayload=logoFile?{logo_data:await fileToBase64(logoFile),logo_content_type:logoFile.type}: {};
-  const {data,error}=await sb.functions.invoke("partnership-application",{body:{name:String(f.get("name")||"").trim(),organization:String(f.get("organization")||"").trim(),email:String(f.get("email")||"").trim(),interest:"partnership",message,website_url:website,company_website:String(f.get("company_website")||"").trim(),...logoPayload}});
+  const {data,error}=await sb.functions.invoke("partnership-application",{body:{name:String(f.get("name")||"").trim(),organization:String(f.get("organization")||"").trim(),email:String(f.get("email")||"").trim(),interest:"partnership",message:"Partnership pathway: "+String(f.get("collaboration")||"Not specified")+"\n"+message,website_url:website,company_website:String(f.get("company_website")||"").trim(),...logoPayload}});
   if(error){
    let detail="";
    try{const responseBody=await error.context?.json();detail=responseBody?.error||"";}catch(e){}
