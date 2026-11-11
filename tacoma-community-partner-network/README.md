@@ -2,53 +2,38 @@
 
 Public URL: https://crowrulesentertainment-oss.github.io/podcasting/tacoma-community-partner-network/
 
-This project is the central partnership hub for CrowRules Podcasting, a division of CrowRules Entertainment. Tacoma and the Pacific Northwest are the founding community; the network is designed to welcome qualified relationships nationwide.
+A cinematic, multi-page partnership hub for CrowRules Podcasting, a division of CrowRules Entertainment. Tacoma and the Pacific Northwest are the founding community; the network welcomes businesses, organizations and individuals from across the United States.
 
-## Public portal
-- Partnership-focused landing page explaining the network and its scope.
-- Partnership pathways for business and brand partners, sponsors and advertisers, media and creators, guests and subject experts, community/nonprofit organizations, and production/project collaborators.
-- Searchable, filterable approved partner directory with featured profiles, profile details, public contact channels, social links and verification markers.
-- Partner application and inquiry form with optional organization logo upload through the existing secure Edge Function.
-- Public opportunity exchange with collaboration, volunteer, resource offer/request posts, partner announcements and community events.
-- Collaboration Matchmaker suggestions based on shared categories, communities and descriptive terms. Suggestions are not endorsements or confirmed matches.
-- Public submissions remain pending until an administrator approves publication.
-- Clear separation between voluntary network participation and any separately negotiated paid sponsorship or advertising arrangement.
-- Responsive navigation, semantic structure, skip link and reduced-motion support.
+## Public pages
+- `index.html` — main partnership headquarters, application, approved directory, FAQ, community board and matchmaker.
+- `about.html` — network mission, local roots and participation model.
+- `opportunities.html` — collaboration, community, volunteer and media opportunity pathways.
+- `directory.html` — approved partner directory introduction and entry point.
+- `sponsorships.html` — sponsorship and advertising overview.
+- `creators-guests.html` — creator, production, guest and subject-expert network.
+- All public pages use the shared cinematic visual system in `assets/headquarters.css`.
 
 ## Administration
-- Separate noindex administration page at admin.html.
-- Existing Supabase-authenticated sign-in and RLS-governed partner record management.
-- Visitor analytics, partner profile editor, partner directory controls, private application review and community submission moderation.
-- Section navigation for administration workflows.
-- Email Center with editable, personalized templates for application receipt, clarification, approval/welcome, decline, sponsorship inquiry, guest follow-up, creator collaboration and general follow-up.
-- Email Center currently generates and copies ready-to-send drafts. It does not send email from the browser and does not expose Resend credentials. Automated sending requires a secured server-side delivery function and verified sender domain.
+- `admin.html` — restricted, noindex administration command center.
+- `assets/admin.js` — Supabase-authenticated partner listing editor, application review, visitor analytics, community moderation and email draft center.
+- Existing administration sections include overview/analytics, partner editor, directory management, applications, community submission moderation and email templates.
+- Existing database RLS remains the authority for administrator access and write permissions.
 
-## Existing integrations and security
-- Supabase project: cevylpnoexugwgygvtgu.
-- Browser uses only the Supabase publishable key.
-- Partner directory reads podcast_public_partners; admin changes remain subject to existing RLS policies.
-- Applications are submitted through the existing partnership-application Edge Function and stored in the existing business_inquiries workflow.
-- Community board uses existing Phase 2 tables: community_opportunities, community_announcements, tacoma_partner_events.
-- No service-role key, Resend API key, private application fields or privileged credentials are included in the public frontend.
-- No new database tables or RLS policies are introduced by this UI rebuild.
-- Sponsorship pricing, paid deliverables, media usage rights and other commercial terms must be agreed separately in writing.
+## Existing integrations preserved
+- Supabase project: `cevylpnoexugwgygvtgu`.
+- Browser client uses the publishable key only. No service-role key or Resend secret is included in public assets.
+- Partner directory reads `podcast_public_partners`.
+- Applications continue through the existing `partnership-application` Edge Function and the existing private `business_inquiries` review workflow.
+- Community exchange continues using `community_opportunities`, `community_announcements` and `tacoma_partner_events`; public submissions remain pending until reviewed and published.
+- Anonymous traffic measurement continues using `partner_network_analytics` and the existing `partner_network_live_visitors` RPC.
+- Public applicants may be businesses, organizations, independent professionals or individuals. Organization/affiliation is optional; applicant type is included in the private application message.
+- Network participation is free. Sponsorships and advertising are optional commercial arrangements negotiated separately in writing.
 
-## Files
-- index.html — public partnership headquarters.
-- assets/network.css — shared responsive design system.
-- assets/network.js — public directory, analytics, applications and community board.
-- admin.html — restricted administration interface.
-- assets/admin.js — authenticated partner management, application review, moderation, analytics and email draft templates.
+## Security and limitations
+- Existing Supabase RLS policies were inspected and retained; this UI rebuild does not create new tables, relax policies or expose private application records.
+- Existing global CrowRules administrator authorization remains in force. Fine-grained delegated staff roles are not introduced by this visual rebuild; those require a separately designed and tested authorization model before granting staff database access.
+- The Email Center prepares/copies email drafts; it does not send email from the browser. Live sending requires a secured server-side delivery workflow and verified sender domain.
+- Partner applications do not guarantee acceptance, a public listing, an interview or a paid role.
 
-## Release validation still required
-The files are committed to the repository's main branch. GitHub Pages deployment and live Supabase workflows should be tested after the commit. Specifically verify:
-1. Public page renders and all internal navigation anchors work on desktop and mobile.
-2. Directory category values match the deployed podcast_public_partners schema.
-3. Partner application form submits and the Edge Function confirms the saved application and notification result.
-4. Admin sign-in, profile create/edit/publish, application review and community moderation work with current administrator RLS permissions.
-5. The Email Center creates and copies each template correctly.
-6. Opportunity, announcement and event submissions remain pending until approved.
-7. No private contact or application data is exposed publicly.
-8. Verify any future sender domain and connect a server-side email delivery function before describing email automation as active.
-
-Do not change existing authentication, RLS policies, Edge Functions or unrelated Podcasting pages as part of this standalone partnership portal.
+## Release validation
+After GitHub Pages publishes the latest commits, verify desktop/mobile navigation, all page links, application submission for both individuals and organizations, directory rendering, admin login, partner editing, private application review, community moderation and email draft copying. Confirm public pages never expose private application fields.
