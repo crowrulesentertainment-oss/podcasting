@@ -1768,7 +1768,9 @@ async function subs(){
  window.__crpMembershipChannel=sb.channel("my-show-subscriptions-"+u.id)
   .on("postgres_changes",{event:"*",schema:"public",table:"podcast_subscriptions",filter:"user_id=eq."+u.id},()=>{if(page==="subscriptions")renderRows()})
   .subscribe(status=>{if(status==="SUBSCRIBED"&&page==="subscriptions"){liveBadge.textContent="LIVE SYNC";liveBadge.className="badge success"}});
- $("#platformPortal").onclick=async()=>{try{let d=await fn(FUNCTIONS.billingPortal,{});if(d.url)location.href=d.url}catch(e){toast(e.message)}};
+ $("#platformPortal").onclick=async()=>{try{let d=await fn(FUNCTIONS.billingPortal,{});if(d.url)location.href=d.url;else if(d.message)toast(d.message)}catch(e){toast(e.message)}};
+ if(window.__crUniversalMembershipChannel)sb.removeChannel(window.__crUniversalMembershipChannel).catch(()=>{});
+ window.__crUniversalMembershipChannel=sb.channel("my-crowrules-membership-"+u.id).on("postgres_changes",{event:"*",schema:"public",table:"membership_subscriptions",filter:"user_id=eq."+u.id},()=>{if(page==="subscriptions")renderRows()}).subscribe();
 }
 async function referrals(){
  const u=await me();if(!u)return go("login.html");
