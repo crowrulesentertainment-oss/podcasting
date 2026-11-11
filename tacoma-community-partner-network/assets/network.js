@@ -3,7 +3,7 @@ const SUPABASE_URL="https://cevylpnoexugwgygvtgu.supabase.co";
 const SUPABASE_KEY="sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuGTQLD-";
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=s=>document.querySelector(s);
-const categories=["Business & Brands","Sponsors & Advertisers","Media & Podcast Networks","Creators & Production","Guests & Subject Experts","Nonprofits & Charities","Education & Youth","Community Organizations","Arts, Culture & Entertainment","Sports & Recreation","Professional Services","Other / Not Listed","Food & Beverage","Small Business & Retail","Health & Wellness","Creators & Media"];
+const categories=["Business & Brands","Sponsors & Advertisers","Media & Podcast Networks","Creators & Production","Guests & Subject Experts","Nonprofits & Charities","Education & Youth","Community Organizations","Arts, Culture & Entertainment","Sports & Recreation","Professional Services","Other / Not Listed","Food & Beverage","Small Business & Retail","Health & Wellness","Creators & Media","Individuals & Independent Professionals"];
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const safeUrl=v=>{try{const u=new URL(String(v||""));return u.protocol==="https:"?u.href:"";}catch{return "";}};
 $("#year").textContent=new Date().getFullYear();
@@ -89,7 +89,7 @@ form.addEventListener("submit",async e=>{
  button.disabled=true;button.textContent="Submitting application…";
  const type=String(f.get("category")||"");
  const website=String(f.get("website")||"").trim();
- const message="Category: "+type+"\nCity/community: "+String(f.get("city")||"").trim()+"\nPhone: "+String(f.get("phone")||"").trim()+"\nWho they serve: "+String(f.get("audience")||"Not specified").trim()+"\nCollaboration interest: "+String(f.get("collaboration")||"Not specified").trim()+"\n\n"+String(f.get("message")||"").trim();
+ const message="Applicant type: "+String(f.get("applicant_type")||"Not specified")+"\nCategory: "+type+"\nCity/community: "+String(f.get("city")||"").trim()+"\nPhone: "+String(f.get("phone")||"").trim()+"\nWho they serve: "+String(f.get("audience")||"Not specified").trim()+"\nCollaboration interest: "+String(f.get("collaboration")||"Not specified").trim()+"\n\n"+String(f.get("message")||"").trim();
  try{
   const logoFile=logoInput.files?.[0];
   const logoPayload=logoFile?{logo_data:await fileToBase64(logoFile),logo_content_type:logoFile.type}: {};
