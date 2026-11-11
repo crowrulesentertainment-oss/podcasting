@@ -1220,7 +1220,7 @@ async function awards(){
 async function admin(){
  if(adminPlayRefreshInterval){clearInterval(adminPlayRefreshInterval);adminPlayRefreshInterval=null}if(adminVisitorRefreshInterval){clearInterval(adminVisitorRefreshInterval);adminVisitorRefreshInterval=null}if(adminVisibilityHandler){document.removeEventListener("visibilitychange",adminVisibilityHandler);adminVisibilityHandler=null}
  const user=await me();if(!user)return go("login.html");
- const tabs=[["overview","Command Center"],["shows","Shows"],["episodes","Episodes"],["pipeline","Production"],["creators","Creators"],["guests","Guests"],["rankings","Rankings"],["badges","Badges"],["awards","Awards"],["users","Members"],["finance","Finance"],["settings","System"],["challenges","Challenge Control Room"],["partnerships","Partnerships"]];
+ const tabs=[["overview","Command Center"],["shows","Shows"],["episodes","Episodes"],["pipeline","Production"],["creators","Creator Profiles"],["guests","Guests"],["rankings","Rankings"],["badges","Badges"],["awards","Awards"],["users","Members"],["finance","Finance"],["settings","System"],["challenges","Challenge Control Room"],["partnerships","Partnerships"]];
  const requestedTab=new URLSearchParams(location.search).get("tab")||"overview";
  let tab=tabs.some(x=>x[0]===requestedTab)?requestedTab:"overview";
  const title=tabs.find(x=>x[0]===tab)[1];
