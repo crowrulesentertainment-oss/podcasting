@@ -11,8 +11,10 @@ A cinematic, multi-page partnership hub for CrowRules Podcasting, a division of 
 - `directory.html` — live, searchable and filterable Supabase-backed partner directory.
 - `sponsorships.html` — sponsorship and advertising overview.
 - `creators-guests.html` — creator, production, guest and subject-expert network.
+- `sponsorships.html` — dedicated sponsorship center with six pathways, transparent process, editorial integrity terms, FAQ and inquiry form.
 - All public pages use the shared cinematic visual system in `assets/headquarters.css`.
 - `assets/directory.js` and `assets/directory.css` — live partner directory search, filtering and profile cards.
+- `assets/sponsorships.js` and `assets/sponsorships.css` — responsive sponsorship experience and secure submission through the existing `partnership-application` Edge Function.
 
 ## Administration
 - `admin.html` — restricted, noindex administration command center.
@@ -24,7 +26,7 @@ A cinematic, multi-page partnership hub for CrowRules Podcasting, a division of 
 - Supabase project: `cevylpnoexugwgygvtgu`.
 - Browser client uses the publishable key only. No service-role key or Resend secret is included in public assets.
 - Partner directory reads `podcast_public_partners`.
-- Applications continue through the existing `partnership-application` Edge Function and the existing private `business_inquiries` review workflow.
+- General partnership and sponsorship inquiries continue through the existing `partnership-application` Edge Function and private `business_inquiries` review workflow. Sponsorship details are stored in the private inquiry message; no new table or public pricing is introduced.
 - Community exchange continues using `community_opportunities`, `community_announcements` and `tacoma_partner_events`; public submissions remain pending until reviewed and published.
 - Anonymous traffic measurement continues using `partner_network_analytics` and the existing `partner_network_live_visitors` RPC.
 - Public applicants may be businesses, organizations, independent professionals or individuals. Organization/affiliation is optional; applicant type is included in the private application message.
