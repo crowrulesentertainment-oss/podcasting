@@ -13,6 +13,7 @@ A cinematic, multi-page partnership hub for CrowRules Podcasting, a division of 
 - `creators-guests.html` — cinematic creator and guest recruitment center with six participation pathways, show/format overview, collaboration process, FAQ and introduction form.
 - `sponsorships.html` — dedicated sponsorship center with six pathways, transparent process, editorial integrity terms, FAQ and inquiry form.
 - All public pages use the shared cinematic visual system in `assets/headquarters.css`.
+- `assets/opportunities.css` — responsive, cinematic layout for the expanded opportunity pathways, collaboration matchmaker explainer, participation process and expectations.
 - `assets/directory.js`, `assets/directory.css` and `assets/directory-upgrade.css` — live approved-partner discovery, featured cards, search/filter/sort, public profile details and pagination.
 - `assets/sponsorships.js` and `assets/sponsorships.css` — responsive sponsorship experience and secure submission through the existing `partnership-application` Edge Function.
 - `assets/creators-guests.js` and `assets/creators-guests.css` — creator/guest pathways, form interactions and secure introduction submission through the existing `partnership-application` Edge Function.
