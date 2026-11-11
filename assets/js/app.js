@@ -152,7 +152,7 @@ async function syncLivePresence(user){
   if(version!==livePresenceSyncVersion||!livePresenceChannel||!livePresenceSubscribed)return;
   const{error}=await livePresenceChannel.track({role:livePresenceRole,user_id:livePresenceUserId,visitor_id:livePresenceUserId?null:liveVisitorId(),active:true,seen_at:new Date().toISOString()});
   if(error)throw error;
-  renderLiveCounts();bindEpisodeControls();
+  renderLiveCounts();
  }catch(error){if(version===livePresenceSyncVersion)console.warn("Live presence update failed:",error)}
 }
 function startLivePresence(){
