@@ -1530,7 +1530,13 @@ async function admin(){
     }catch(error){feedback.textContent=error.message||"Could not save profile.";button.disabled=false}
    }));
    all("[data-guest-publish]").forEach(button=>button.addEventListener("click",async()=>{
-    const id=button.dataset.guestPublish,profile=guestProfiles.find(x=>x.id===id);if(!profile)return;const publish=button.dataset.published!=="true";\n    if(publish&&guestStatus(profile)!=="approved"){toast("Approve this guest profile before publishing it.");return}\n    if(!confirm((publish?"Publish ":"Unpublish ")+guestName(profile)+"?"+(publish?" This makes the approved profile visible in the public Guest Lounge.":" This immediately hides the profile from public discovery.")))return;\n    button.disabled=true;button.textContent=publish?"Publishing…":"Unpublishing…";\n    try{const{data,error}=await sb.from("podcast_guest_profiles").update({is_published:publish}).eq("id",id).select("id,is_published").maybeSingle();if(error)throw error;if(!data)throw Error("No publication setting was updated. Check administrator permissions.");toast("Guest profile "+(publish?"published.":"unpublished."));await admin()}catch(error){toast("Could not change publication: "+error.message);button.disabled=false;button.textContent=publish?"Publish profile":"Unpublish profile"}\n   }));\n   all("[data-guest-save-status]").forEach(button=>button.addEventListener("click",async()=>{
+    const id=button.dataset.guestPublish,profile=guestProfiles.find(x=>x.id===id);if(!profile)return;const publish=button.dataset.published!=="true";
+    if(publish&&guestStatus(profile)!=="approved"){toast("Approve this guest profile before publishing it.");return}
+    if(!confirm((publish?"Publish ":"Unpublish ")+guestName(profile)+"?"+(publish?" This makes the approved profile visible in the public Guest Lounge.":" This immediately hides the profile from public discovery.")))return;
+    button.disabled=true;button.textContent=publish?"Publishing…":"Unpublishing…";
+    try{const{data,error}=await sb.from("podcast_guest_profiles").update({is_published:publish}).eq("id",id).select("id,is_published").maybeSingle();if(error)throw error;if(!data)throw Error("No publication setting was updated. Check administrator permissions.");toast("Guest profile "+(publish?"published.":"unpublished."));await admin()}catch(error){toast("Could not change publication: "+error.message);button.disabled=false;button.textContent=publish?"Publish profile":"Unpublish profile"}
+   }));
+   all("[data-guest-save-status]").forEach(button=>button.addEventListener("click",async()=>{
     const id=button.dataset.guestSaveStatus,select=work.querySelector('[data-guest-status="'+id+'"]'),profile=guestProfiles.find(x=>x.id===id);if(!profile||!select)return;
     const next=select.value;if(next===guestStatus(profile)){toast("No review status change to save.");return}
     const action=next==="approved"?"approve":next==="rejected"?"reject":"return to pending review";
