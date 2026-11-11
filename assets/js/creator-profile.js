@@ -40,7 +40,7 @@ function styles(){if($("#cr-creator-profile-css"))return;const s=document.create
 async function publicCreatorProfile(id,root){
  root.innerHTML='<div class="loading">Loading creator profile…</div>';
  try{
-  const{data:creator,error}=await sb.from("creators").select("id,member_id,name,display_name,role,discipline,bio,avatar_url,is_active").eq("id",id).eq("is_active",true).maybeSingle();
+  const{data:creator,error}=await sb.from("creators").select("id,member_id,name,display_name,role,discipline,bio,avatar_url,is_active").eq("id",id).maybeSingle();
   if(error)throw error;if(!creator)throw Error("This creator profile is not available.");
   let member=null;
   if(creator.member_id){const result=await sb.from("crowrules_public_profiles").select("id,username,display_name,first_name,last_name,role,bio,avatar_url").eq("id",creator.member_id).maybeSingle();if(!result.error)member=result.data||null}
