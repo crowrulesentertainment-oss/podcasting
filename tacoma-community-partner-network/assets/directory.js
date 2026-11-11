@@ -11,10 +11,10 @@ const search=$("#dirSearch"),category=$("#dirCategory"),city=$("#dirCity"),sort=
 const menu=$("#mainNav"),toggle=$("#menuToggle");
 toggle?.addEventListener("click",()=>{const open=menu.classList.toggle("open");toggle.setAttribute("aria-expanded",String(open));});
 menu?.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>{menu.classList.remove("open");toggle?.setAttribute("aria-expanded","false");}));
-function card(p,featured=false){
+function card(p,featured=false,prefix=""){
  const cover=safeUrl(p.cover_image_url),logo=safeUrl(p.logo_url),website=safeUrl(p.website_url),mail=emailLink(p.public_email),phone=phoneLink(p.public_phone);
  const socials=[["Facebook",p.facebook_url],["Instagram",p.instagram_url],["YouTube",p.youtube_url]].filter(x=>safeUrl(x[1]));
- const id="profile-"+String(p.id).replace(/[^a-zA-Z0-9_-]/g,"");
+ const id=prefix+"profile-"+String(p.id).replace(/[^a-zA-Z0-9_-]/g,"");
  const desc=p.short_description||"A member of the CrowRules Podcasting Community Partner Network.";
  return '<article class="dir-card">'+
  '<div class="dir-card-cover">'+(cover?'<img src="'+esc(cover)+'" alt="" loading="lazy">':'')+'</div>'+
@@ -58,7 +58,7 @@ function render(){
  const featured=partners.filter(p=>p.is_featured);
  $("#featuredSection").hidden=!featured.length;
  $("#featuredCount").textContent=featured.length+" FEATURED";
- $("#featuredGrid").innerHTML=featured.slice(0,6).map(p=>card(p,true)).join("");
+ $("#featuredGrid").innerHTML=featured.slice(0,6).map(p=>card(p,true,"featured-")).join("");
  const tags=[];
  if(search.value.trim())tags.push("Search: "+search.value.trim());
  if(category.value)tags.push(category.value);
@@ -76,7 +76,7 @@ function clearFilters(){search.value="";category.value="";city.value="";sort.val
 $("#clearFilters").addEventListener("click",clearFilters);
 $("#prevPage").addEventListener("click",()=>{if(page>1){page--;render();$("#directoryGrid").scrollIntoView({behavior:"smooth",block:"start"});}});
 $("#nextPage").addEventListener("click",()=>{if(page<Math.ceil(filtered.length/PAGE_SIZE)){page++;render();$("#directoryGrid").scrollIntoView({behavior:"smooth",block:"start"});}});
-$("#directoryGrid").addEventListener("click",event=>{const button=event.target.closest("[data-profile]");if(!button)return;const panel=document.getElementById(button.dataset.profile);const open=button.getAttribute("aria-expanded")==="true";button.setAttribute("aria-expanded",String(!open));button.textContent=open?"View full profile +":"Hide full profile −";panel.hidden=open;});
+function bindProfileToggles(container){container.addEventListener("click",event=>{const button=event.target.closest("[data-profile]");if(!button)return;const panel=document.getElementById(button.dataset.profile);if(!panel)return;const open=button.getAttribute("aria-expanded")==="true";button.setAttribute("aria-expanded",String(!open));button.textContent=open?"View full profile +":"Hide full profile −";panel.hidden=open;});}\nbindProfileToggles($("#directoryGrid"));bindProfileToggles($("#featuredGrid"));
 document.addEventListener("keydown",event=>{if(event.key==="/"&&!["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName)&&!event.ctrlKey&&!event.metaKey){event.preventDefault();search.focus();}});
 async function load(){
  try{
