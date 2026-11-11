@@ -1730,7 +1730,7 @@ async function subs(){
     const state=String(x.status||"unknown").replace(/_/g," ");
     const until=x.current_period_end||x.ends_at;
     return '<article class="cr-membership-card is-current"><div class="cr-membership-card-top"><span class="cr-membership-icon">👑</span><span class="badge success">'+esc(state.toUpperCase())+'</span></div><small>UNIVERSAL CROWRULES MEMBERSHIP</small><h4>'+esc(plan.name||"CrowRules member")+'</h4><p>'+esc(plan.description||"One account across participating CrowRules websites.")+'</p><b>'+amount+(plan.billing_interval==="month"?" / month":plan.billing_interval==="year"?" / year":" · no recurring charge")+'</b>'+(until?'<span class="cr-membership-note">'+(x.cancel_at_period_end?"Access through ":"Renews / ends ")+esc(new Date(until).toLocaleDateString())+'</span>':"")+'</article>';
-   }).join(""):'<div class="empty"><h3>No universal paid membership found</h3><p>Your CrowRules account remains available. A universal membership can be added when you choose an available plan.</p><a class="btn secondary" href="'+"https://crowrulesentertainment-oss.github.io/crowrulesentertainment/membership.html"">View membership plans</a></div>';
+   }).join(""):'<div class="empty"><h3>No universal paid membership found</h3><p>Your CrowRules account remains available. A universal membership can be added when you choose an available plan.</p><a class="btn secondary" href="https://crowrulesentertainment-oss.github.io/crowrulesentertainment/membership.html">View membership plans</a></div>';
    const entitlements=d.website_entitlements||[];
    const siteRecords=d.website_sites||[];
    const websitePlans=d.website_membership_plans||[];
