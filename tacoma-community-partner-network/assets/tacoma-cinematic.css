@@ -1,51 +1,59 @@
-/* Tacoma cinematic visual rebuild — additive layer; existing network styles and workflows remain intact. */
-:root{--tacoma-red:#9e2834;--tacoma-gold:#d9b879;--tacoma-ink:#07090d;--tacoma-glass:rgba(10,13,18,.78)}
-body{background:var(--tacoma-ink);background-image:linear-gradient(180deg,#07090d 0%,#0b0e14 52%,#080a0e 100%)}
-body:before{background:radial-gradient(ellipse at 12% 12%,rgba(158,40,52,.18),transparent 38%),radial-gradient(ellipse at 88% 48%,rgba(217,184,121,.09),transparent 34%),linear-gradient(145deg,#07090d,#10141b 55%,#080a0e)}
-.topbar{background:rgba(6,8,12,.9);border-bottom-color:rgba(217,184,121,.26)}
-.brand-mark{border-radius:9px;background:linear-gradient(145deg,#e4c98f,#8f1e2a);color:#16120d;box-shadow:0 8px 26px #9e283433}
-.hero{min-height:min(850px,calc(100vh - 76px));background-image:linear-gradient(90deg,rgba(4,7,11,.94) 0%,rgba(4,7,11,.78) 38%,rgba(4,7,11,.22) 78%,rgba(4,7,11,.18)),linear-gradient(0deg,#080a0e 0%,transparent 32%),url("https://images.pexels.com/photos/33980998/pexels-photo-33980998.jpeg?auto=compress&cs=tinysrgb&w=2400");background-position:center 48%;background-size:cover}
-.hero:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 62%,rgba(6,8,12,.42)),linear-gradient(90deg,rgba(158,40,52,.12),transparent 40%)}
-.hero-content{max-width:900px}
-.hero h1{max-width:880px;text-wrap:balance}
-.hero-overline{color:#e1c991}
-.hero-tags{flex-wrap:wrap}
-.btn.gold,.nav-cta{background:linear-gradient(115deg,#ead19c,#c59a59);color:#17130d!important}
-.btn.ghost{border-color:#ffffff70;background:rgba(7,10,15,.42);backdrop-filter:blur(8px)}
-.hq-launchpad{background:linear-gradient(180deg,#0b0e13,#10141a);border-bottom:1px solid rgba(217,184,121,.16)}
-.hq-path-card{background:linear-gradient(145deg,rgba(28,32,40,.92),rgba(11,14,19,.96));border-color:rgba(217,184,121,.22);box-shadow:0 18px 42px rgba(0,0,0,.2)}
-.hq-path-card:hover{border-color:rgba(217,184,121,.72);box-shadow:0 22px 55px rgba(0,0,0,.36)}
+/* CROWRULES TACOMA CINEMATIC SYSTEM
+   Shared visual layer for every public page in the Partnership Network.
+   Original page layouts, forms, data modules and moderation workflows remain in place. */
+:root{--tacoma-red:#a52b37;--tacoma-gold:#d9b879;--tacoma-ink:#07090d;--tacoma-muted:#b8b8b5;--tacoma-photo:url("https://images.pexels.com/photos/33980998/pexels-photo-33980998.jpeg?auto=compress&cs=tinysrgb&w=2400")}
+html{scroll-behavior:smooth;scroll-padding-top:92px}
+body{background:#080a0e;color:#f5f2ed}
+body:before{background:radial-gradient(ellipse at 12% 12%,rgba(165,43,55,.17),transparent 38%),radial-gradient(ellipse at 88% 48%,rgba(217,184,121,.09),transparent 34%),linear-gradient(145deg,#07090d,#11151d 55%,#080a0e)}
+.topbar{background:rgba(6,8,12,.91);border-bottom:1px solid rgba(217,184,121,.26);backdrop-filter:blur(18px)}
+.brand-mark{border-radius:10px;background:linear-gradient(145deg,#ead19c,#922331);color:#17120d;box-shadow:0 8px 28px #a52b3738}
+.topbar nav a:hover,.topbar nav a[aria-current=page],.topbar nav a.active{color:var(--tacoma-gold)}
+.nav-cta,.btn.gold{background:linear-gradient(115deg,#ead19c,#c59a59);color:#17130d!important;border:1px solid #f0dcae}
+.btn.ghost{border-color:#ffffff70;background:rgba(7,10,15,.48);backdrop-filter:blur(8px)}
+.eyebrow,.hero-overline,.hero-tags,.hq-hero .eyebrow,.cg-hero .eyebrow,.dir-hero .eyebrow,.sponsor-hero .eyebrow{color:#e1c991}
+.hero{min-height:min(850px,calc(100vh - 76px));background-image:linear-gradient(90deg,rgba(4,7,11,.94) 0%,rgba(4,7,11,.77) 39%,rgba(4,7,11,.18) 82%),linear-gradient(0deg,#080a0e 0%,transparent 35%),var(--tacoma-photo);background-position:center 48%;background-size:cover}
+.hero:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 62%,rgba(6,8,12,.42)),linear-gradient(90deg,rgba(165,43,55,.11),transparent 42%)}
+.hero-content{max-width:930px}
+.hero h1,.hq-hero h1,.cg-hero h1,.dir-hero h1,.sponsor-hero h1{letter-spacing:-.045em;text-wrap:balance}
+.hero h1 em,.hq-hero h1 em,.cg-hero h1 em,.dir-hero h1 em,.sponsor-hero h1 em{color:var(--tacoma-gold)}
+.hq-hero,.cg-hero,.dir-hero{position:relative;isolation:isolate;background-position:center;background-size:cover}
+.hq-hero{background-image:linear-gradient(90deg,rgba(4,7,11,.93),rgba(4,7,11,.56) 58%,rgba(4,7,11,.25)),linear-gradient(0deg,#080a0e,transparent 38%),var(--hero-image,var(--tacoma-photo))}
+.cg-hero{background-image:linear-gradient(90deg,rgba(4,7,11,.93),rgba(4,7,11,.58) 58%,rgba(4,7,11,.2)),linear-gradient(0deg,#080a0e,transparent 38%),var(--cg-image,var(--tacoma-photo))}
+.dir-hero{background-image:linear-gradient(90deg,rgba(4,7,11,.93),rgba(4,7,11,.55) 58%,rgba(4,7,11,.22)),linear-gradient(0deg,#080a0e,transparent 38%),var(--dir-image,var(--tacoma-photo))}
+.sponsor-hero-image{background-image:linear-gradient(90deg,rgba(4,7,11,.8),rgba(4,7,11,.25)),var(--tacoma-photo)!important;background-position:center 48%;background-size:cover}
+.hq-hero-inner,.cg-hero-inner,.dir-hero-inner,.sponsor-hero-content{position:relative;z-index:2}
+.hq-section,.about-origin,.about-structure,.cg-intro,.cg-pathways,.dir-intro,.dir-listings,.opp-intro,.opp-pathways,.sponsor-section{position:relative}
+.hq-launchpad,.community-board,.dir-listings,.opp-pathways{background:linear-gradient(180deg,#0b0e13,#10141a 52%,#090b10);border-color:rgba(217,184,121,.18)}
+.hq-path-card,.principles article,.opportunity-card,.category-card,.commitment-grid article,.cg-path,.opp-pathway,.sponsor-offer,.board-panel,.board-form,.partner-form,.dir-filter-panel{background:linear-gradient(145deg,rgba(28,32,40,.95),rgba(10,13,18,.98));border-color:rgba(217,184,121,.2);box-shadow:0 16px 38px rgba(0,0,0,.15)}
+.hq-path-card:hover,.opportunity-card:hover,.category-card:hover,.cg-path:hover,.opp-pathway:hover,.sponsor-offer:hover{border-color:rgba(217,184,121,.72);box-shadow:0 22px 50px rgba(0,0,0,.32)}
+.founding50-section{background:radial-gradient(ellipse at 12% 18%,#a52b3730,transparent 42%),linear-gradient(135deg,#151820,#090c11 70%);border-color:rgba(217,184,121,.22)}
+.directory{background:linear-gradient(125deg,#151920,#0a0d12 64%,#171116);border-block-color:rgba(217,184,121,.2)}
+.partner-card,.dir-card{border-color:rgba(217,184,121,.2)}
+.feature-band{background:#10141a}
+.feature-image{background-image:linear-gradient(0deg,#090c13bb,#090c1320),var(--tacoma-photo);background-position:center;background-size:cover}
+.apply{background:linear-gradient(115deg,rgba(14,17,23,.97),rgba(8,10,15,.94)),var(--tacoma-photo);background-position:center;background-size:cover;background-attachment:fixed;border-block-color:rgba(217,184,121,.2)}
+.closing{background-image:linear-gradient(180deg,rgba(8,10,14,.72),rgba(8,10,14,.96)),var(--tacoma-photo);background-position:center 55%;background-size:cover}
+.about-origin-visual{background-image:linear-gradient(180deg,rgba(8,10,14,.25),rgba(8,10,14,.85)),var(--tacoma-photo)!important;background-position:center;background-size:cover}
 .tacoma-photo-story{padding:clamp(64px,8vw,112px) clamp(20px,7vw,110px);max-width:1600px;margin:auto}
 .tacoma-photo-story-head{max-width:760px;margin-bottom:30px}
 .tacoma-photo-story-head h2{font-size:clamp(38px,5vw,66px);line-height:1.04;letter-spacing:-.05em;margin:15px 0}
 .tacoma-photo-story-head h2 em{font-family:"Playfair Display",Georgia,serif;color:var(--tacoma-gold);font-weight:600}
-.tacoma-photo-story-head p{max-width:640px;color:#b9b8b5;font-size:14px;line-height:1.85}
+.tacoma-photo-story-head p{max-width:640px;color:var(--tacoma-muted);font-size:14px;line-height:1.85}
 .tacoma-photo-grid{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:14px}
 .tacoma-photo-card{position:relative;isolation:isolate;min-height:320px;margin:0;overflow:hidden;border:1px solid rgba(217,184,121,.22);border-radius:13px;background:#151922}
 .tacoma-photo-main{min-height:410px}
-.tacoma-photo-card:after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,transparent 28%,rgba(4,6,10,.86) 100%),linear-gradient(90deg,rgba(6,8,12,.14),transparent)}
-.tacoma-photo-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.7,.2,1);filter:saturate(.82) contrast(1.04)}
+.tacoma-photo-card:after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,transparent 28%,rgba(4,6,10,.86) 100%)}
+.tacoma-photo-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.7,.2,1);filter:saturate(.84) contrast(1.04)}
 .tacoma-photo-card:hover img{transform:scale(1.045)}
 .tacoma-photo-card figcaption{position:absolute;z-index:2;left:22px;right:20px;bottom:22px;display:grid;gap:7px}
 .tacoma-photo-card figcaption span{font-size:8px;letter-spacing:.2em;color:var(--tacoma-gold);font-weight:900}
 .tacoma-photo-card figcaption strong{font-size:clamp(18px,2vw,25px);letter-spacing:-.02em}
 .tacoma-photo-card figcaption small{font-size:11px;color:#d2d0cb}
-.tacoma-photo-credit{margin:12px 0 0;color:#777b83;font-size:9px;line-height:1.6}
-.founding50-section{background:radial-gradient(ellipse at 12% 18%,#9e283426,transparent 42%),linear-gradient(135deg,#151820,#090c11 70%);border-color:rgba(217,184,121,.2)}
-.intro,.opportunities,.categories,.how,.commitments,.faq{position:relative}
-.principles article,.opportunity-card,.category-card,.commitment-grid article{background:linear-gradient(145deg,rgba(28,32,40,.94),rgba(11,14,19,.98));border-color:rgba(217,184,121,.2)}
-.opportunity-card:hover,.category-card:hover{border-color:rgba(217,184,121,.75)}
-.community-board{background:linear-gradient(180deg,#0b0e13,#10141a 52%,#090b10);border-top-color:rgba(217,184,121,.2)}
-.board-panel,.board-form,.partner-form{background:linear-gradient(145deg,rgba(28,32,40,.97),rgba(10,13,18,.98));border-color:rgba(217,184,121,.25)}
-.directory{background:linear-gradient(125deg,#151920,#0a0d12 64%,#171116);border-block-color:rgba(217,184,121,.2)}
-.partner-card{border-color:rgba(217,184,121,.22)}
-.feature-band{background:#10141a}
-.feature-image{background-image:linear-gradient(0deg,#090c13aa,#090c1320),url("https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1500&q=88");background-position:center}
-.apply{background:linear-gradient(115deg,rgba(14,17,23,.97),rgba(8,10,15,.96)),url("https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1800&q=85") center/cover fixed;border-block-color:rgba(217,184,121,.2)}
-.closing{background:linear-gradient(180deg,rgba(8,10,14,.78),rgba(8,10,14,.96)),url("https://images.pexels.com/photos/33980998/pexels-photo-33980998.jpeg?auto=compress&cs=tinysrgb&w=1800") center 55%/cover}
-footer{background:#06080c;border-top-color:rgba(217,184,121,.22)}
+.tacoma-photo-credit{margin:12px 0 0;color:#858891;font-size:9px;line-height:1.6}
+footer{background:#06080c;border-top:1px solid rgba(217,184,121,.22)}
 [data-reveal]{opacity:0;transform:translateY(18px);transition:opacity .65s ease,transform .65s ease}
 [data-reveal].is-visible{opacity:1;transform:translateY(0)}
 @media(max-width:900px){.tacoma-photo-grid{grid-template-columns:1fr 1fr}.tacoma-photo-main{grid-column:1/-1;min-height:360px}.tacoma-photo-card{min-height:260px}}
-@media(max-width:600px){.hero{min-height:690px;background-position:58% center}.hero-content{padding-inline:0}.hero-tags{line-height:1.8}.tacoma-photo-grid{grid-template-columns:1fr}.tacoma-photo-main{grid-column:auto;min-height:300px}.tacoma-photo-card{min-height:270px}.tacoma-photo-story{padding-inline:18px}.apply{background-attachment:scroll}}
+@media(max-width:700px){.hero{min-height:690px;background-position:58% center}.hq-hero,.cg-hero,.dir-hero{background-position:58% center}.apply{background-attachment:scroll}}
+@media(max-width:600px){.tacoma-photo-grid{grid-template-columns:1fr}.tacoma-photo-main{grid-column:auto;min-height:300px}.tacoma-photo-card{min-height:270px}.tacoma-photo-story{padding-inline:18px}}
 @media(prefers-reduced-motion:reduce){[data-reveal]{opacity:1;transform:none;transition:none}.tacoma-photo-card img{transition:none}}
