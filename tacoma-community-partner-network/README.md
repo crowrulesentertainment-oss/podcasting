@@ -8,10 +8,11 @@ A cinematic, multi-page partnership hub for CrowRules Podcasting, a division of 
 - `index.html` — main partnership headquarters, application, approved directory, FAQ, community board and matchmaker.
 - `about.html` — network mission, local roots and participation model.
 - `opportunities.html` — collaboration, community, volunteer and media opportunity pathways.
-- `directory.html` — approved partner directory introduction and entry point.
+- `directory.html` — live, searchable and filterable Supabase-backed partner directory.
 - `sponsorships.html` — sponsorship and advertising overview.
 - `creators-guests.html` — creator, production, guest and subject-expert network.
 - All public pages use the shared cinematic visual system in `assets/headquarters.css`.
+- `assets/directory.js` and `assets/directory.css` — live partner directory search, filtering and profile cards.
 
 ## Administration
 - `admin.html` — restricted, noindex administration command center.
