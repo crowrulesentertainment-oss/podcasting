@@ -1,38 +1,91 @@
 import { sb } from "../../assets/js/client.js";
 const $ = s => document.querySelector(s);
 const esc = v => String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const root=$("#challenge-submit");
-const status=$("#submit-status");
+const root=$("#challenge-submit"),status=$("#submit-status");
 const say=(message,type="info")=>{status.textContent=message;status.dataset.type=type;};
-const validUrl=value=>{try{const u=new URL(value);return ["https:","http:"].includes(u.protocol)}catch{return false}};
-let user=null,events=[];
+const validUrl=value=>{try{const u=new URL(value);return ["https:","http:"].includes(u.protocol)&&!!u.hostname}catch{return false}};
+const dateText=value=>new Intl.DateTimeFormat("en-US",{dateStyle:"medium",timeStyle:"short",timeZone:"America/Los_Angeles"}).format(new Date(value))+" Pacific";
+let user=null,events=[],submitting=false;
 async function load(){
- const auth=await sb.auth.getUser();user=auth.data.user;
- if(!user){root.innerHTML='<div class="notice"><b>Sign in required.</b><p>Sign in to your CrowRules Podcasting account before submitting a challenge entry.</p><a class="btn" href="../../login.html?next='+encodeURIComponent(location.pathname)+'">Sign in to CrowRules</a></div>';return}
- const [creatorResult,eventResult,entryResult]=await Promise.all([
+ root.innerHTML="";
+ const auth=await sb.auth.getUser();
+ if(auth.error)throw auth.error;
+ user=auth.data.user;
+ if(!user){say("Sign in to your CrowRules Podcasting account to submit an entry.");root.innerHTML='<div class="submit-panel"><h2>Creator sign-in required</h2><p class="panel-intro">Sign in first. Your submission and recognition history will be connected to your creator account.</p><a class="btn" href="../../login.html?next='+encodeURIComponent(location.pathname)+'">Sign in to CrowRules</a></div>';return}
+ say("Checking your creator membership and available challenges…");
+ const [creatorResult,eventResult,entryResult,profileResult]=await Promise.all([
   sb.from("podcast_creators").select("id,podcast_id,role,member_id").eq("user_id",user.id),
-  sb.from("podcast_monthly_challenges").select("id,title,challenge_code,challenge_month,submission_opens_at,submission_closes_at,status").eq("challenge_year",2026).in("challenge_code",["CRPC-2026-PILOT-11","CRPC-2026-PILOT-12"]).order("challenge_month"),
-  sb.from("podcast_challenge_submissions").select("id,challenge_id,episode_title,status,submitted_at,episode_slug,published_at").eq("creator_user_id",user.id).order("submitted_at",{ascending:false})
+  sb.from("podcast_monthly_challenges").select("id,title,challenge_code,challenge_month,submission_opens_at,submission_closes_at,status,description,requirements").eq("challenge_year",2026).in("challenge_code",["CRPC-2026-PILOT-11","CRPC-2026-PILOT-12"]).order("challenge_month"),
+  sb.from("podcast_challenge_submissions").select("id,challenge_id,episode_title,status,submitted_at,episode_slug,published_at,public_display_consent").eq("creator_user_id",user.id).order("submitted_at",{ascending:false}),
+  sb.from("creator_profiles").select("id,creator_id").eq("user_id",user.id).maybeSingle()
  ]);
- if(creatorResult.error){say(creatorResult.error.message,"error");return}
- if(!(creatorResult.data||[]).length){root.innerHTML='<div class="notice"><b>Creator account required.</b><p>Challenge entries are submitted through an active CrowRules Podcasting creator account. Create or join a podcast first, then return here.</p><a class="btn" href="../../creator.html">Open Creator Studio</a></div>';return}
- if(eventResult.error){say(eventResult.error.message,"error");return}
+ if(creatorResult.error)throw creatorResult.error;
+ if(!creatorResult.data?.length){say("An active CrowRules Podcasting creator membership is required.","error");root.innerHTML='<div class="submit-panel"><h2>Creator account required</h2><p class="panel-intro">Join or create a podcast in CrowRules Podcasting, then return here to enter a holiday challenge.</p><a class="btn" href="../../creator.html">Open Creator Studio</a></div>';return}
+ if(eventResult.error)throw eventResult.error;
+ if(entryResult.error)throw entryResult.error;
  events=eventResult.data||[];
- const creatorLink=await sb.from("creators").select("id").eq("member_id",creatorResult.data[0].member_id).limit(1).maybeSingle();
- const creatorProfileId=creatorLink.data?.id||null;
- if(!events.length){root.innerHTML='<div class="notice">The 2026 pilot challenges are not currently available for submission.</div>';return}
  const entries=entryResult.data||[];
- root.innerHTML='<form id="entry-form" class="challenge-form" novalidate><div class="field"><label for="challenge-event">Choose your holiday challenge</label><select id="challenge-event" required>'+events.map(e=>'<option value="'+e.id+'">'+esc(e.title)+' · '+(e.challenge_month===11?"November":"December")+'</option>').join("")+'</select><small id="event-window"></small></div><div class="field"><label for="show-name">Podcast / show name</label><input id="show-name" maxlength="160" required placeholder="Your podcast name"></div><div class="field"><label for="episode-title">Episode title</label><input id="episode-title" maxlength="200" required placeholder="Thanksgiving Gratitude — A Story Worth Sharing"></div><div class="field"><label for="media-type">Challenge episode format</label><select id="media-type" required><option value="audio">Audio episode</option><option value="video">Video episode</option><option value="written">Written story / script</option><option value="external">External podcast or media link</option></select></div><div class="field"><label for="episode-url">Public episode or media URL</label><input id="episode-url" type="url" maxlength="1000" required placeholder="https://…"><small>Upload or publish your media in Creator Studio first, then paste its public link. Do not paste a private storage URL.</small></div><div class="field"><label for="thumbnail-url">Episode artwork / thumbnail (optional)</label><input id="thumbnail-url" type="url" maxlength="1000" placeholder="https://…"><small>Use a public HTTPS image URL. Holiday artwork frames are applied in the Challenge Episode library.</small></div><div class="field"><label for="creator-statement">Tell us how your entry connects to the challenge (optional)</label><textarea id="creator-statement" maxlength="1500" rows="4" placeholder="A short note for the review team…"></textarea></div><label class="consent"><input id="public-consent" type="checkbox" required><span><b>Required public Challenge Episode publishing consent.</b> If approved, I authorize CrowRules Podcasting to display this entry on the holiday challenge page, the public Challenge Episode library, and my creator profile. I retain ownership of my original work. This permission covers display of this submitted entry on CrowRules only.</span></label><button class="btn" id="entry-submit" type="submit">Submit challenge entry</button><p id="submit-local-status" class="form-status" aria-live="polite"></p></form><div class="notice mt"><b>Recognition reminder</b><p>One approved entry in either 2026 pilot earns the permanent Founding Creator 2026 badge. Approved entries in both events also earn the Double Event distinction. Voting and popularity do not determine these recognitions.</p></div><div class="mt"><h2>Your submissions</h2><div id="my-entries">'+(entries.length?entries.map(e=>'<div class="entry-row"><b>'+esc(e.episode_title)+'</b><span>'+esc(e.status)+'</span><small>'+new Date(e.submitted_at).toLocaleString()+'</small></div>').join(""):'<p class="muted">No challenge entries submitted yet.</p>')+'</div></div>';
-
- const profileResult=await sb.from("creator_profiles").select("id").eq("user_id",user.id).maybeSingle();
- let badges=[];
- if(profileResult.data?.id){const badgeResult=await sb.from("podcast_badge_assignments").select("badge_key,awarded_at,podcast_badge_catalog(name,description,image_url,icon)").eq("target_type","profile").eq("target_id",profileResult.data.id).order("awarded_at",{ascending:false});if(!badgeResult.error)badges=badgeResult.data||[];}
- const badgeCards=badges.map(b=>{const m=b.podcast_badge_catalog||{};const art=m.image_url?'<img src="'+esc(m.image_url)+'" alt="" style="width:118px;max-width:100%;margin:0 auto 10px;display:block">':'<span class="icon">'+esc(m.icon||"🏅")+'</span>';return '<article class="feature center">'+art+'<b>'+esc(m.name||b.badge_key)+'</b><p>'+esc(m.description||"CrowRules Podcasting recognition.")+'</p><small>'+new Date(b.awarded_at).toLocaleDateString()+'</small></article>';}).join("");
- root.insertAdjacentHTML("beforeend",'<section class="mt"><h2>Your recognition</h2><div class="grid3">'+(badgeCards||'<p class="muted">No challenge recognition has been awarded yet. Approved 2026 pilot entries will appear here.</p>')+'</div></section>');
- const form=$("#entry-form"),select=$("#challenge-event"),windowText=$("#event-window"),submit=$("#entry-submit"),local=$("#submit-local-status");
- function updateWindow(){const e=events.find(x=>x.id===select.value);if(!e)return;const now=Date.now(),opens=new Date(e.submission_opens_at).getTime(),closes=new Date(e.submission_closes_at).getTime(),open=now>=opens&&now<=closes;windowText.textContent="Submissions: "+new Date(e.submission_opens_at).toLocaleString("en-US",{timeZone:"America/Los_Angeles"})+" – "+new Date(e.submission_closes_at).toLocaleString("en-US",{timeZone:"America/Los_Angeles"})+" Pacific Time.";submit.disabled=!open;submit.textContent=open?"Submit challenge entry":now<opens?"Submissions open soon":"Submission window closed";}
+ if(!events.length){say("The 2026 pilot challenge records could not be found. Please contact CrowRules support.","error");return}
+ let creatorProfileId=profileResult.data?.creator_id||null;
+ if(!creatorProfileId&&creatorResult.data[0].member_id){
+  const creatorLink=await sb.from("creators").select("id").eq("member_id",creatorResult.data[0].member_id).limit(1).maybeSingle();
+  if(!creatorLink.error)creatorProfileId=creatorLink.data?.id||null;
+ }
+ const used=new Set(entries.map(e=>e.challenge_id));
+ const options=events.map(e=>'<option value="'+esc(e.id)+'">'+esc(e.title)+(used.has(e.id)?" · Entry already submitted":"")+'</option>').join("");
+ const rows=entries.map(e=>{
+  const event=events.find(x=>x.id===e.challenge_id);
+  return '<article class="entry-row"><div><strong>'+esc(e.episode_title)+'</strong><small>'+esc(event?.title||"Holiday challenge")+' · '+new Date(e.submitted_at).toLocaleDateString()+'</small></div><span class="entry-state">'+esc(e.status)+'</span></article>';
+ }).join("");
+ root.innerHTML='<div class="submit-layout"><section class="submit-panel"><div class="eyebrow">Official entry form · 2026 pilot</div><h2>Tell us about your episode</h2><p class="panel-intro">Publish your media first, then share its public URL below. You can submit one entry per creator for each pilot challenge.</p><form id="entry-form" class="challenge-form" novalidate>'+
+ '<div class="field full"><label for="challenge-event">1. Choose your holiday challenge *</label><select id="challenge-event" required>'+options+'</select><div id="event-window" class="event-window" aria-live="polite"></div></div>'+
+ '<div class="field"><label for="show-name">2. Podcast / show name *</label><input id="show-name" maxlength="160" required autocomplete="organization" placeholder="Your podcast or show name"></div>'+
+ '<div class="field"><label for="episode-title">3. Challenge episode title *</label><input id="episode-title" maxlength="200" required placeholder="A title for your episode"></div>'+
+ '<div class="field"><label for="media-type">4. Episode format *</label><select id="media-type" required><option value="audio">Audio episode</option><option value="video">Video episode</option><option value="written">Written story / script</option><option value="external">External podcast or media link</option></select></div>'+
+ '<div class="field"><label for="episode-url">5. Public episode or media URL *</label><input id="episode-url" type="url" maxlength="1000" required inputmode="url" placeholder="https://…"><small>Use a public link that reviewers can open. Do not submit a private Supabase storage URL or an unpublished draft.</small></div>'+
+ '<div class="field full"><label for="thumbnail-url">6. Episode artwork / thumbnail (optional)</label><input id="thumbnail-url" type="url" maxlength="1000" inputmode="url" placeholder="https://…"><small>Use a public image URL. CrowRules adds the holiday Challenge Episode frame when your entry is published.</small></div>'+
+ '<div class="field full"><label for="creator-statement">7. Tell us how your entry connects to the challenge</label><textarea id="creator-statement" maxlength="1500" rows="4" placeholder="What inspired this episode? What would you like the review team and audience to know?"></textarea><small>Optional · Up to 1,500 characters</small></div>'+
+ '<label class="consent"><input id="public-consent" type="checkbox" required><span><b>Public Challenge Episode publishing permission *</b><br>If approved, I authorize CrowRules Podcasting to display this submission on the relevant holiday challenge page, the public Challenge Episode library, and my CrowRules creator profile. I retain ownership of my original work. This permission applies only to displaying this submitted entry on CrowRules. I understand I can contact CrowRules to request that public display be removed.</span></label>'+
+ '<div class="form-actions"><button class="btn submit-btn" id="entry-submit" type="submit">Submit challenge entry</button><p id="submit-local-status" class="form-status" role="status" aria-live="polite"></p></div></form>'+
+ '<div class="mt"><h2>Your submissions</h2><p class="panel-intro">Track review status for your 2026 pilot entries.</p><div id="my-entries" class="entry-list">'+(rows||'<p class="muted">No challenge entries submitted yet.</p>')+'</div></div></section>'+
+ '<aside class="submit-side"><article class="side-card"><div class="eyebrow">Before you submit</div><h3>Prepare your episode</h3><ul><li>Publish your audio or video first.</li><li>Check that the public link works without signing in.</li><li>Use an original entry that follows the challenge rules.</li><li>Submit before the event deadline.</li></ul><a href="../../creator.html?tab=studio" class="btn alt">Open Creator Studio</a></article><article class="side-card"><div class="eyebrow">Recognition</div><h3>Founding Creator 2026</h3><p>One approved entry in either Thanksgiving or Christmas qualifies for the permanent Founding Creator distinction. Public-display consent controls episode publication; it does not determine historical participation recognition.</p><a href="../founding-creators/index.html">Read recognition rules →</a></article><article class="side-card"><div class="eyebrow">Need help?</div><h3>Submission guidelines</h3><p>Review the challenge requirements before sending your entry. Only one submission per creator per holiday pilot is accepted.</p><a href="../rules/index.html">Read challenge rules →</a></article></aside></div>';
+ const form=$("#entry-form"),select=$("#challenge-event"),windowBox=$("#event-window"),submit=$("#entry-submit"),local=$("#submit-local-status");
+ function updateWindow(){
+  const event=events.find(x=>x.id===select.value);if(!event)return;
+  const now=Date.now(),opens=new Date(event.submission_opens_at).getTime(),closes=new Date(event.submission_closes_at).getTime();
+  const open=event.status==="published"&&now>=opens&&now<=closes,usedEntry=used.has(event.id);
+  let label=usedEntry?"You already submitted an entry for this challenge.":open?"Submissions are OPEN.":now<opens?"Submissions have not opened yet.":"The submission window has closed.";
+  windowBox.dataset.open=String(open);windowBox.innerHTML='<strong>'+label+'</strong>'+esc(dateText(event.submission_opens_at))+' – '+esc(dateText(event.submission_closes_at))+'<br>'+esc(event.requirements||"Please follow the published challenge guidelines.");
+  submit.disabled=!open||usedEntry||submitting;
+  submit.textContent=usedEntry?"Entry already submitted":open?"Submit challenge entry":now<opens?"Opens "+new Date(opens).toLocaleDateString():"Submission window closed";
+ }
  select.addEventListener("change",updateWindow);updateWindow();
- form.addEventListener("submit",async ev=>{ev.preventDefault();local.textContent="";const challenge_id=select.value,show_name=$("#show-name").value.trim(),episode_title=$("#episode-title").value.trim(),episode_url=$("#episode-url").value.trim(),creator_statement=$("#creator-statement").value.trim(),public_display_consent=$("#public-consent").checked,media_type=$("#media-type").value,thumbnail_url=$("#thumbnail-url").value.trim();if(!show_name||!episode_title||!validUrl(episode_url)){local.textContent="Enter a show name, episode title and valid public http(s) episode URL.";return}if(!public_display_consent){local.textContent="Public Challenge Episode consent is required for entries to appear on the challenge site and creator profile.";return}if(thumbnail_url&&!validUrl(thumbnail_url)){local.textContent="Enter a valid public thumbnail URL or leave it blank.";return}submit.disabled=true;submit.textContent="Submitting…";const {error}=await sb.from("podcast_challenge_submissions").insert({challenge_id,creator_user_id:user.id,creator_id:creatorProfileId,show_name,episode_title,episode_url,creator_statement,public_display_consent,media_type,thumbnail_url:thumbnail_url||null,status:"pending"});if(error){local.textContent=error.code==="23505"?"You already have an entry for this challenge.":error.message;updateWindow();return}say("Your entry has been received and is awaiting review.","success");local.textContent="Submission received. CrowRules will review it before any public display or award.";await load();}
- );
+ form.addEventListener("submit",async ev=>{
+  ev.preventDefault();if(submitting)return;local.textContent="";local.dataset.type="";
+  const challenge_id=select.value,show_name=$("#show-name").value.trim(),episode_title=$("#episode-title").value.trim(),episode_url=$("#episode-url").value.trim(),creator_statement=$("#creator-statement").value.trim(),public_display_consent=$("#public-consent").checked,media_type=$("#media-type").value,thumbnail_url=$("#thumbnail-url").value.trim();
+  if(!show_name||!episode_title||!episode_url){local.textContent="Please complete your show name, episode title and public episode URL.";local.dataset.type="error";return}
+  if(!validUrl(episode_url)){local.textContent="Enter a valid http or https public episode URL.";local.dataset.type="error";return}
+  if(thumbnail_url&&!validUrl(thumbnail_url)){local.textContent="Enter a valid http or https artwork URL, or leave the optional field blank.";local.dataset.type="error";return}
+  if(!public_display_consent){local.textContent="Please review and check the public Challenge Episode publishing permission.";local.dataset.type="error";return}
+  const event=events.find(x=>x.id===challenge_id),now=Date.now();
+  if(!event||event.status!=="published"||now<new Date(event.submission_opens_at).getTime()||now>new Date(event.submission_closes_at).getTime()){local.textContent="This challenge is not accepting entries yet. Check the submission dates above.";local.dataset.type="error";updateWindow();return}
+  if(used.has(challenge_id)){local.textContent="You already submitted an entry for this challenge.";local.dataset.type="error";updateWindow();return}
+  submitting=true;submit.disabled=true;submit.textContent="Submitting securely…";
+  try{
+   const payload={challenge_id,creator_user_id:user.id,creator_id:creatorProfileId,show_name,episode_title,episode_url,creator_statement:creator_statement||"",public_display_consent,media_type,thumbnail_url:thumbnail_url||null,status:"pending"};
+   const result=await sb.from("podcast_challenge_submissions").insert(payload).select("id,challenge_id,episode_title,status,submitted_at").single();
+   if(result.error)throw result.error;
+   used.add(challenge_id);say("Your challenge entry has been received and is awaiting review.","success");
+   local.textContent="Submission received. You can track its review status below.";local.dataset.type="success";
+   const item=result.data;
+   $("#my-entries").insertAdjacentHTML("afterbegin",'<article class="entry-row"><div><strong>'+esc(item.episode_title)+'</strong><small>'+esc(event.title)+' · '+new Date(item.submitted_at).toLocaleDateString()+'</small></div><span class="entry-state">pending</span></article>');
+   updateWindow();
+  }catch(error){
+   console.error("Challenge submission failed",error);
+   local.textContent=error.code==="23505"?"An entry for this challenge has already been submitted from your creator account.":error.code==="42501"?"Your account is not currently authorized to submit this entry. Confirm that your creator membership is active and the challenge window is open.":error.message||"We could not submit your entry. Please try again.";
+   local.dataset.type="error";
+  }finally{submitting=false;updateWindow();}
+ });
+ say("Your creator account is ready. Review the dates and complete the form when submissions open.","success");
 }
-load().catch(e=>say(e.message,"error"));
+load().catch(error=>{console.error("Challenge submission page failed",error);say("We could not load the submission form: "+(error.message||"Please refresh and try again."),"error");root.innerHTML='<div class="submit-panel"><h2>We could not load your form</h2><p class="panel-intro">Please refresh this page. If the problem continues, contact CrowRules support and include the error message shown above.</p><a class="btn alt" href="../index.html">Return to Challenge Hub</a></div>';});
