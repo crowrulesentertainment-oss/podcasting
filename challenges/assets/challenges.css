@@ -11,3 +11,11 @@ body{background:#07090d}.head{position:sticky;top:0;z-index:20;backdrop-filter:b
 .calendar-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.calendar-card{padding:19px;border:1px solid #ffffff20;border-radius:16px;background:linear-gradient(145deg,#1b2027,#101319);min-height:190px}.calendar-card small{color:var(--season-accent);font-weight:900;letter-spacing:.12em;text-transform:uppercase}.calendar-card h3{margin:7px 0;font-size:20px}.calendar-card p{font-size:12px;color:var(--muted)}.calendar-card a{font-size:11px;color:var(--season-accent);font-weight:900}
 .page-shell{width:min(var(--max),calc(100% - 36px));margin:auto}.filters{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.filters input,.filters select{min-height:44px;padding:10px 13px;border:1px solid #ffffff30;border-radius:10px;background:#11151b;color:#fff}.episode-empty{padding:28px;border:1px dashed #ffffff35;border-radius:16px;color:var(--muted);text-align:center}
 @media(max-width:850px){.challenge-episode-grid,.calendar-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:580px){.challenge-episode-grid,.calendar-grid{grid-template-columns:1fr}.challenge-episode-art{height:210px}.hero{min-height:520px}}@media(prefers-reduced-motion:reduce){.seasonal-particles{display:none}.challenge-episode-art img{transition:none}}
+
+/* Holiday-specific Challenge Episode artwork frames */
+.challenge-episode-card{--episode-accent:var(--season-accent)}
+.challenge-episode-card[data-season="thanksgiving"]{--episode-accent:#e6ad62}
+.challenge-episode-card[data-season="christmas"]{--episode-accent:#e8c47c}
+.challenge-episode-art{border-bottom:2px solid var(--episode-accent)}
+.challenge-episode-art:after{content:"";position:absolute;inset:7px;border:1px solid var(--episode-accent);border-radius:10px;pointer-events:none}
+.challenge-episode-frame{border-color:var(--episode-accent);color:var(--episode-accent)}
