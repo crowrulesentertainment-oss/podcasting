@@ -823,6 +823,59 @@ async function account(){
  };
  const renderTab=async tab=>{
   all("[data-account-tab]").forEach(b=>{const on=b.dataset.accountTab===tab;b.classList.toggle("is-active",on);b.setAttribute("aria-selected",String(on))});
+
+  if(tab==="challengeEpisodes"){
+   const root=work;
+   let rows=[],challengeMap=new Map(),filter="all",search="";
+   root.innerHTML='<div class="admin-module"><span class="admin-kicker">CREATOR PUBLISHING / CHALLENGE LIBRARY</span><div class="section-head"><div><h3>Challenge Episode Management</h3><p>One approved submission becomes one official Challenge Episode, shared by the public holiday challenge page and creator profile. Manage review, publication, featuring and archiving here.</p></div><button class="btn secondary" id="ce-refresh">Refresh</button></div><div class="admin-stats-grid" id="ce-stats"></div><div class="cr-challenge-toolbar"><input id="ce-search" type="search" placeholder="Search title, creator or challenge"><select id="ce-filter"><option value="all">All entries</option><option value="pending">Pending review</option><option value="approved">Approved</option><option value="published">Published episodes</option><option value="private">Consent not granted</option><option value="rejected">Rejected</option><option value="archived">Archived</option></select></div><div id="ce-status" class="notice">Loading…</div><div id="ce-list"></div></div>';
+   const status=$("#ce-status"),list=$("#ce-list"),stats=$("#ce-stats");
+   const say=t=>status.textContent=t;
+   const escCE=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+   const isEpisodeRecord=r=>r.status==="approved"&&!!r.public_display_consent&&!!r.published_at;const isPublished=r=>isEpisodeRecord(r)&&!r.archived_at;
+   const load=async()=>{
+    say("Loading challenge episode records…");
+    const [s,c]=await Promise.all([
+     sb.from("podcast_challenge_submissions").select("*").order("submitted_at",{ascending:false}).limit(500),
+     sb.from("podcast_monthly_challenges").select("id,title,challenge_code,challenge_year,challenge_month,status")
+    ]);
+    if(s.error||c.error){say(s.error?.message||c.error.message);return}
+    rows=s.data||[];challengeMap=new Map((c.data||[]).map(x=>[x.id,x]));render();say("Loaded "+rows.length+" challenge submissions.");
+   };
+   const render=()=>{
+    const published=rows.filter(isPublished),pending=rows.filter(x=>x.status==="pending").length,featured=published.filter(x=>x.is_featured).length,archived=rows.filter(x=>!!x.archived_at).length;
+    stats.innerHTML=[["SUBMISSIONS",rows.length],["PENDING REVIEW",pending],["PUBLISHED EPISODES",published.length],["FEATURED / ARCHIVED",featured+" / "+archived]].map(x=>'<article class="admin-stat-card"><span>'+x[0]+'</span><b>'+x[1]+'</b></article>').join("");
+    const filtered=rows.filter(r=>{
+     const c=challengeMap.get(r.challenge_id),hay=[r.episode_title,r.show_name,c?.title,r.status].join(" ").toLowerCase();
+     const match=!search||hay.includes(search);
+     const ok=filter==="all"||(filter==="published"&&isPublished(r))||(filter==="private"&&r.status==="approved"&&!r.public_display_consent)||(filter==="archived"&&!!r.archived_at)||r.status===filter;
+     return match&&ok;
+    });
+    list.innerHTML=filtered.map(r=>{
+     const c=challengeMap.get(r.challenge_id)||{},pub=isPublished(r),media=(r.media_type||"external").toUpperCase(),state=r.archived_at?"archived":pub?"published":r.status;
+     return '<article class="admin-panel" style="margin:12px 0;padding:18px;border:1px solid #ffffff20;border-radius:15px;background:#11151b"><div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap"><div><span class="admin-kicker">'+escCE(c.title||"Challenge entry")+' · '+media+'</span><h3 style="margin:6px 0">'+escCE(r.episode_title)+'</h3><p class="muted small">'+escCE(r.show_name)+' · '+new Date(r.submitted_at).toLocaleString()+'</p></div><span class="badge">'+escCE(state.toUpperCase())+'</span></div><p class="muted small">'+escCE(r.creator_statement||"No creator statement provided.")+'</p><p class="muted small">'+(r.public_display_consent?"Public display consent granted":"Public display consent not granted")+(r.published_at?" · Published "+new Date(r.published_at).toLocaleString():"")+'</p><div class="actions"><a class="btn secondary" href="'+escCE(r.episode_url)+'" target="_blank" rel="noopener noreferrer">Open submitted episode ↗</a>'+(r.status==="pending"?'<button class="btn" data-ce-action="approve" data-id="'+r.id+'">Approve</button><button class="btn danger" data-ce-action="reject" data-id="'+r.id+'">Reject</button>':"")+(isEpisodeRecord(r)?'<button class="btn secondary" data-ce-action="feature" data-id="'+r.id+'">'+(r.is_featured?"Remove feature":"Feature episode")+'</button><button class="btn secondary" data-ce-action="archive" data-id="'+r.id+'">'+(r.archived_at?"Restore episode":"Archive episode")+'</button>'+(pub?'<a class="btn secondary" href="challenges/episodes/index.html?episode='+encodeURIComponent(r.id)+'" target="_blank">Public episode ↗</a>':""):"")+'</div></article>';
+    }).join("")||'<div class="cr-challenge-empty">No entries match this filter.</div>';
+    list.querySelectorAll("[data-ce-action]").forEach(button=>button.addEventListener("click",async()=>{
+     const r=rows.find(x=>x.id===button.dataset.id);if(!r)return;
+     const action=button.dataset.ceAction;let patch={updated_at:new Date().toISOString()};
+     if(action==="approve"){
+      const note=prompt("Optional review note for the creator:","Approved for the CrowRules Challenge Episode library.");if(note===null)return;
+      patch={...patch,status:"approved",reviewed_by:user.id,reviewed_at:new Date().toISOString(),review_notes:note};
+      if(!r.public_display_consent&&!confirm("This creator has not granted public-display consent. Approve the entry privately? It will not appear publicly."))return;
+     }else if(action==="reject"){
+      const note=prompt("Reason for rejection (visible to the creator):","Please review the challenge requirements.");if(note===null)return;
+      patch={...patch,status:"rejected",reviewed_by:user.id,reviewed_at:new Date().toISOString(),review_notes:note};
+     }else if(action==="feature"){patch.is_featured=!r.is_featured}
+     else if(action==="archive"){patch.archived_at=r.archived_at?null:new Date().toISOString()}
+     button.disabled=true;const result=await sb.from("podcast_challenge_submissions").update(patch).eq("id",r.id);
+     if(result.error){say(result.error.message);button.disabled=false;return}
+     await load();say("Challenge Episode settings updated.");
+    }));
+   };
+   $("#ce-search").addEventListener("input",e=>{search=e.target.value.toLowerCase();render()});
+   $("#ce-filter").addEventListener("change",e=>{filter=e.target.value;render()});
+   $("#ce-refresh").addEventListener("click",load);
+   await load();return;
+  }
   if(tab==="challenges"){
    const root=work;
    const fmtDate=v=>{if(!v)return "";const d=new Date(v);return Number.isNaN(d.getTime())?"":new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
@@ -1234,11 +1287,11 @@ async function awards(){
 async function admin(){
  if(adminPlayRefreshInterval){clearInterval(adminPlayRefreshInterval);adminPlayRefreshInterval=null}if(adminVisitorRefreshInterval){clearInterval(adminVisitorRefreshInterval);adminVisitorRefreshInterval=null}if(adminVisibilityHandler){document.removeEventListener("visibilitychange",adminVisibilityHandler);adminVisibilityHandler=null}
  const user=await me();if(!user)return go("login.html");
- const tabs=[["overview","Command Center"],["shows","Shows"],["episodes","Episodes"],["pipeline","Production"],["creators","Creator Profiles"],["guests","Guests"],["rankings","Rankings"],["badges","Badges"],["awards","Awards"],["users","Members"],["finance","Finance"],["settings","System"],["challenges","Challenge Control Room"],["partnerships","Partnerships"]];
+ const tabs=[["overview","Command Center"],["shows","Shows"],["episodes","Episodes"],["pipeline","Production"],["creators","Creator Profiles"],["guests","Guests"],["rankings","Rankings"],["badges","Badges"],["awards","Awards"],["users","Members"],["finance","Finance"],["settings","System"],["challenges","Challenge Control Room"],["challengeEpisodes","Challenge Episodes"],["partnerships","Partnerships"]];
  const requestedTab=new URLSearchParams(location.search).get("tab")||"overview";
  let tab=tabs.some(x=>x[0]===requestedTab)?requestedTab:"overview";
  const title=tabs.find(x=>x[0]===tab)[1];
- $("#app").innerHTML='<section class="cc-command-banner"><div class="cc-banner-photo"></div><div class="cc-banner-shade"></div><div class="cc-banner-content"><div class="cc-overline"><span class="cc-live-dot"></span> CROWRULES NETWORK OPERATIONS <span class="cc-overline-divider">/</span> ADMINISTRATOR ACCESS</div><h1>Command <em>Center</em></h1><p>One operational view for creators, shows, releases, community, awards and platform health.</p><div class="cc-banner-footer"><span><b>SECURE SESSION</b><small>'+esc(user.email||"Administrator")+'</small></span><span><b>CONTROL ROOM</b><small>Podcasting platform</small></span><span><b>LOCAL TIME</b><small id="ccLocalClock">Live session</small></span></div></div><div class="cc-banner-coordinates">CR / PODCASTING / CONTROL</div></section><section class="container cc-workspace"><aside class="cc-sidebar"><div class="cc-sidebar-heading"><span>OPERATIONS MENU</span><b>01 — 14</b></div><label class="admin-nav-search cc-search"><span>⌕</span><input id="adminNavSearch" type="search" placeholder="Find a workspace…" aria-label="Find an admin workspace"></label><nav class="admin-nav-links cc-nav">'+tabs.map(([id,label],i)=>'<a data-admin-nav="'+esc(label.toLowerCase())+'" class="'+(tab===id?'active':'')+'" href="admin.html?tab='+id+'"><i>'+String(i+1).padStart(2,"0")+'</i><span>'+label+'</span>'+(tab===id?'<b>●</b>':"") +'</a>').join("")+'</nav><div class="cc-sidebar-security"><span class="cc-security-icon">⌑</span><div><b>Protected workspace</b><small>Supabase authorization active</small></div><span class="cc-secure-pip"></span></div><div class="cc-sidebar-foot">CROWRULES ENTERTAINMENT <span>ONE COMPANY. ONE UNIVERSE.</span></div></aside><div class="cc-main"><div class="cc-commandbar"><div><span class="cc-commandbar-label">CONTROL ROOM / '+esc(title.toUpperCase())+'</span><h2>'+esc(title)+'</h2></div><div class="cc-commandbar-actions"><span class="cc-session-chip"><i></i> SESSION VERIFIED</span><button class="btn secondary" id="adminRefresh">↻ Refresh data</button><a class="btn" href="creator.html">Creator Studio ↗</a></div></div><div class="cc-module-content" id="adminWork"><div class="loading">Verifying administrator access…</div></div></div></section>';
+ $("#app").innerHTML='<section class="cc-command-banner"><div class="cc-banner-photo"></div><div class="cc-banner-shade"></div><div class="cc-banner-content"><div class="cc-overline"><span class="cc-live-dot"></span> CROWRULES NETWORK OPERATIONS <span class="cc-overline-divider">/</span> ADMINISTRATOR ACCESS</div><h1>Command <em>Center</em></h1><p>One operational view for creators, shows, releases, community, awards and platform health.</p><div class="cc-banner-footer"><span><b>SECURE SESSION</b><small>'+esc(user.email||"Administrator")+'</small></span><span><b>CONTROL ROOM</b><small>Podcasting platform</small></span><span><b>LOCAL TIME</b><small id="ccLocalClock">Live session</small></span></div></div><div class="cc-banner-coordinates">CR / PODCASTING / CONTROL</div></section><section class="container cc-workspace"><aside class="cc-sidebar"><div class="cc-sidebar-heading"><span>OPERATIONS MENU</span><b>01 — 15</b></div><label class="admin-nav-search cc-search"><span>⌕</span><input id="adminNavSearch" type="search" placeholder="Find a workspace…" aria-label="Find an admin workspace"></label><nav class="admin-nav-links cc-nav">'+tabs.map(([id,label],i)=>'<a data-admin-nav="'+esc(label.toLowerCase())+'" class="'+(tab===id?'active':'')+'" href="admin.html?tab='+id+'"><i>'+String(i+1).padStart(2,"0")+'</i><span>'+label+'</span>'+(tab===id?'<b>●</b>':"") +'</a>').join("")+'</nav><div class="cc-sidebar-security"><span class="cc-security-icon">⌑</span><div><b>Protected workspace</b><small>Supabase authorization active</small></div><span class="cc-secure-pip"></span></div><div class="cc-sidebar-foot">CROWRULES ENTERTAINMENT <span>ONE COMPANY. ONE UNIVERSE.</span></div></aside><div class="cc-main"><div class="cc-commandbar"><div><span class="cc-commandbar-label">CONTROL ROOM / '+esc(title.toUpperCase())+'</span><h2>'+esc(title)+'</h2></div><div class="cc-commandbar-actions"><span class="cc-session-chip"><i></i> SESSION VERIFIED</span><button class="btn secondary" id="adminRefresh">↻ Refresh data</button><a class="btn" href="creator.html">Creator Studio ↗</a></div></div><div class="cc-module-content" id="adminWork"><div class="loading">Verifying administrator access…</div></div></div></section>';
  const work=$("#adminWork");
  const navSearch=$("#adminNavSearch");if(navSearch)navSearch.addEventListener("input",()=>all("[data-admin-nav]").forEach(link=>link.hidden=!link.dataset.adminNav.includes(navSearch.value.trim().toLowerCase())));
  const clockEl=$("#ccLocalClock");const updateClock=()=>{if(clockEl)clockEl.textContent=new Intl.DateTimeFormat(undefined,{weekday:"short",hour:"numeric",minute:"2-digit"}).format(new Date())};updateClock();
