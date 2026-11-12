@@ -873,14 +873,14 @@ if(tab==="challenges"){
     yearSelect.value=selectedYear;
     yearSelect.addEventListener("change",async()=>{selectedYear=yearSelect.value;const visible=challenges.filter(x=>selectedYear==="all"||String(x.challenge_year)===selectedYear);if(visible.length&&!visible.some(x=>x.id===selectedId))selectedId=visible[0].id;try{await loadChallengeDetail();renderChallengeControl()}catch(error){fail(error)}});
     root.querySelector("#crNewChallenge").addEventListener("click",async()=>{
-      const yearRaw=prompt("Challenge year (for example 2028):",String(new Date().getFullYear()+1));if(yearRaw===null)return;
+      const yearRaw=prompt("Challenge year (for example 2028):",String(Math.max(new Date().getFullYear(),...challenges.map(x=>Number(x.challenge_year)||0))+1));if(yearRaw===null)return;
       const year=Number(yearRaw),monthRaw=prompt("Challenge month (1–12):","1");if(monthRaw===null)return;
       const month=Number(monthRaw);if(!Number.isInteger(year)||year<2026||year>2100||!Number.isInteger(month)||month<1||month>12){toast("Enter a year from 2026–2100 and a month from 1–12.");return}
       const title=prompt("Challenge title:","New Creator Challenge");if(!title?.trim())return;
       const description=prompt("Short public description:","A new CrowRules creator challenge.");if(description===null)return;
       const start=new Date(year,month-1,1),next=new Date(year,month,1),end=new Date(next.getTime()-1000),slugBase=title.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
       const code="CRPC-"+year+"-"+String(month).padStart(2,"0")+"-"+Date.now().toString(36).toUpperCase();
-      const payload={challenge_code:code,challenge_year:year,challenge_month:month,title:title.trim(),slug:slugBase+"-"+year,description:description.trim(),requirements:"Submit original audio or video work related to this challenge. Follow CrowRules community and copyright rules.",timezone:"America/Los_Angeles",starts_at:start.toISOString(),ends_at:end.toISOString(),submission_opens_at:start.toISOString(),submission_closes_at:end.toISOString(),voting_opens_at:end.toISOString(),voting_closes_at:end.toISOString(),status:"draft",created_by:user?.id||null,updated_at:new Date().toISOString()};
+      const payload={challenge_code:code,challenge_year:year,challenge_month:month,title:title.trim(),slug:slugBase+"-"+year+"-"+String(month).padStart(2,"0"),description:description.trim(),requirements:"Submit original audio or video work related to this challenge. Follow CrowRules community and copyright rules.",timezone:"America/Los_Angeles",starts_at:start.toISOString(),ends_at:end.toISOString(),submission_opens_at:start.toISOString(),submission_closes_at:end.toISOString(),voting_opens_at:end.toISOString(),voting_closes_at:end.toISOString(),status:"draft",created_by:user?.id||null,updated_at:new Date().toISOString()};
       try{const{data,error}=await sb.from("podcast_monthly_challenges").insert(payload).select("id").single();if(error)throw error;selectedId=data.id;selectedYear=String(year);await loadChallengeList();await loadChallengeDetail();renderChallengeControl();toast("Draft challenge created. Edit its dates and details, then publish when ready.")}catch(error){toast("Could not create challenge: "+error.message)}
     });
     const sectionPanels=[...root.querySelectorAll(".admin-challenge-main .admin-panel")];
@@ -1783,14 +1783,14 @@ async function admin(){
     yearSelect.value=selectedYear;
     yearSelect.addEventListener("change",async()=>{selectedYear=yearSelect.value;const visible=challenges.filter(x=>selectedYear==="all"||String(x.challenge_year)===selectedYear);if(visible.length&&!visible.some(x=>x.id===selectedId))selectedId=visible[0].id;try{await loadChallengeDetail();renderChallengeControl()}catch(error){fail(error)}});
     root.querySelector("#crNewChallenge").addEventListener("click",async()=>{
-      const yearRaw=prompt("Challenge year (for example 2028):",String(new Date().getFullYear()+1));if(yearRaw===null)return;
+      const yearRaw=prompt("Challenge year (for example 2028):",String(Math.max(new Date().getFullYear(),...challenges.map(x=>Number(x.challenge_year)||0))+1));if(yearRaw===null)return;
       const year=Number(yearRaw),monthRaw=prompt("Challenge month (1–12):","1");if(monthRaw===null)return;
       const month=Number(monthRaw);if(!Number.isInteger(year)||year<2026||year>2100||!Number.isInteger(month)||month<1||month>12){toast("Enter a year from 2026–2100 and a month from 1–12.");return}
       const title=prompt("Challenge title:","New Creator Challenge");if(!title?.trim())return;
       const description=prompt("Short public description:","A new CrowRules creator challenge.");if(description===null)return;
       const start=new Date(year,month-1,1),next=new Date(year,month,1),end=new Date(next.getTime()-1000),slugBase=title.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
       const code="CRPC-"+year+"-"+String(month).padStart(2,"0")+"-"+Date.now().toString(36).toUpperCase();
-      const payload={challenge_code:code,challenge_year:year,challenge_month:month,title:title.trim(),slug:slugBase+"-"+year,description:description.trim(),requirements:"Submit original audio or video work related to this challenge. Follow CrowRules community and copyright rules.",timezone:"America/Los_Angeles",starts_at:start.toISOString(),ends_at:end.toISOString(),submission_opens_at:start.toISOString(),submission_closes_at:end.toISOString(),voting_opens_at:end.toISOString(),voting_closes_at:end.toISOString(),status:"draft",created_by:user?.id||null,updated_at:new Date().toISOString()};
+      const payload={challenge_code:code,challenge_year:year,challenge_month:month,title:title.trim(),slug:slugBase+"-"+year+"-"+String(month).padStart(2,"0"),description:description.trim(),requirements:"Submit original audio or video work related to this challenge. Follow CrowRules community and copyright rules.",timezone:"America/Los_Angeles",starts_at:start.toISOString(),ends_at:end.toISOString(),submission_opens_at:start.toISOString(),submission_closes_at:end.toISOString(),voting_opens_at:end.toISOString(),voting_closes_at:end.toISOString(),status:"draft",created_by:user?.id||null,updated_at:new Date().toISOString()};
       try{const{data,error}=await sb.from("podcast_monthly_challenges").insert(payload).select("id").single();if(error)throw error;selectedId=data.id;selectedYear=String(year);await loadChallengeList();await loadChallengeDetail();renderChallengeControl();toast("Draft challenge created. Edit its dates and details, then publish when ready.")}catch(error){toast("Could not create challenge: "+error.message)}
     });
     const sectionPanels=[...root.querySelectorAll(".admin-challenge-main .admin-panel")];
