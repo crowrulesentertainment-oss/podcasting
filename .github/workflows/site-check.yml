@@ -17,7 +17,7 @@ jobs:
           node-version: 20
       - name: Check JavaScript syntax
         run: |
-          for file in assets/js/*.js; do
+          for file in assets/js/*.js challenges/assets/*.js; do
             node --check --input-type=module < "$file"
           done
       - name: Check pages, assets and public secrets
