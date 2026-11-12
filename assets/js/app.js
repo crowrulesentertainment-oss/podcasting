@@ -110,19 +110,20 @@ function renderLiveCounts(){
  const ac=$("#adminLiveCreatorCount"),al=$("#adminLiveListenerCount"),ag=$("#adminLiveGuestCount"),at=$("#adminLiveTotal");
  if(ac)ac.textContent=counts.creator.toLocaleString();if(al)al.textContent=counts.listener.toLocaleString();if(ag)ag.textContent=counts.guest.toLocaleString();if(at)at.textContent=total.toLocaleString();
  livePresenceCounts={...counts};
-
+ if($("#adminPeakConcurrent")&&livePresenceSubscribed)refreshAdminLivePeak();
 }
-async function recordAdminLiveSnapshot(){
- const now=Date.now();if(now-livePresenceSnapshotAttempt<25000||!livePresenceSubscribed)return;
- livePresenceSnapshotAttempt=now;
+let livePeakRefreshAttempt=0;
+async function refreshAdminLivePeak(){
+ const now=Date.now();if(now-livePeakRefreshAttempt<20000)return;
+ livePeakRefreshAttempt=now;
  try{
-  const{data,error}=await sb.rpc("podcasting_admin_record_live_snapshot",{p_creators:livePresenceCounts.creator,p_listeners:livePresenceCounts.listener,p_guests:livePresenceCounts.guest});
+  const{data,error}=await sb.rpc("podcasting_admin_get_live_peak");
   if(error)throw error;
   const peak=$("#adminPeakConcurrent"),when=$("#adminPeakAt"),status=$("#adminPeakStatus");
   if(peak)peak.textContent=Number(data?.peak_simultaneous||0).toLocaleString();
-  if(when)when.textContent=data?.peak_recorded_at?"Recorded "+new Date(data.peak_recorded_at).toLocaleString():"Peak tracking started";
-  if(status)status.textContent="RECORDING";
- }catch(error){console.warn("Live network snapshot could not be saved:",error?.message||error);const status=$("#adminPeakStatus");if(status)status.textContent="RETRYING"}
+  if(when)when.textContent=data?.peak_recorded_at?"Recorded "+new Date(data.peak_recorded_at).toLocaleString():"Waiting for first peak";
+  if(status)status.textContent="24/7 TRACKING";
+ }catch(error){console.warn("24/7 live peak could not be refreshed:",error?.message||error);const status=$("#adminPeakStatus");if(status)status.textContent="RETRYING"}
 }
 async function recordDailyVisitor(){
  try{
