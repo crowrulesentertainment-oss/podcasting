@@ -163,14 +163,14 @@ function startLivePresence(){
  livePresenceChannel=sb.channel("crowrules-podcasting-live-network",{config:{presence:{key}}})
  .on("presence",{event:"sync"},renderLiveCounts)
  .on("presence",{event:"join"},renderLiveCounts)
- .on("presence",{event:"leave"},renderLiveCounts)
- .subscribe(status=>{
+ .on("presence",{event:"leave"},renderLiveCounts);
+ if(!livePresenceHeartbeat)livePresenceHeartbeat=setInterval(()=>{syncLivePresence();if(livePresenceSubscribed)renderLiveCounts()},30000);
+ livePresenceChannel.subscribe(status=>{
   const label=$("#liveNetworkStatus"),adminLabel=$("#adminLiveStatus");
   if(status==="SUBSCRIBED"){
    livePresenceSubscribed=true;
    if(label)label.textContent="LIVE";if(adminLabel)adminLabel.textContent="LIVE";
    syncLivePresence();
-   if(!livePresenceHeartbeat)livePresenceHeartbeat=setInterval(()=>{syncLivePresence();renderLiveCounts()},30000);
    renderLiveCounts();
   }else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){
    livePresenceSubscribed=false;
