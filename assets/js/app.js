@@ -621,8 +621,8 @@ async function episode(){
    $("#saveRecording").onclick=async()=>{try{await saveBlobToShow(localBlob,$("#recordMode").value,$("#recordTitle").value,$("#recordShow").value,$("#saveRecording"))}catch(error){toast(error.message)}};
    const uploadShow=$("#studioUploadShow"),uploadEpisode=$("#studioUploadEpisode"),uploadPurpose=$("#studioUploadPurpose"),challengePicker=$("#studioChallengePicker"),challengeSelect=$("#studioUploadChallenge"),challengeConsentWrap=$("#studioChallengeConsent"),challengeConsent=$("#studioChallengePublicConsent");
    const uploadFileInput=$("#studioUploadFile"),uploadFileList=$("#studioUploadFileList");
-   const supportedMediaFile=file=>file&&(file.type.startsWith("audio/")||file.type.startsWith("video/")||/\.(mp3|m4a|wav|aac|ogg|flac|mp4|mov|webm|m4v)$/i.test(file.name));
-   const uploadFileMode=file=>file.type.startsWith("video/")||/\.(mp4|mov|webm|m4v)$/i.test(file.name)?"video":"audio";
+   const supportedMediaFile=file=>!!file&&file.size>0&&file.size<=50*1024*1024*1024&&/\.(mp3|m4a|wav|aac|ogg|flac|mp4|mov|webm|m4v)$/i.test(file.name);
+   const uploadFileMode=file=>file.type.startsWith("audio/")?"audio":(/\.(mp4|mov|webm|m4v)$/i.test(file.name)||file.type.startsWith("video/"))?"video":"audio";
    const renderUploadFileQueue=()=>{
     const files=Array.from(uploadFileInput?.files||[]);
     if(!uploadFileList)return;
