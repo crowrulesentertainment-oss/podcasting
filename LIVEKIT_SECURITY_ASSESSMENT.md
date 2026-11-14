@@ -75,3 +75,30 @@ The token endpoint uses an in-memory map with a 60 requests/minute threshold key
 ## Deployment status
 
 No remediation has been applied to the Render service. No secrets were read or changed. Because Render is configured for automatic deployment from `main`, do not commit a fix to `main` until it has been reviewed and tested in an isolated preview/staging service. The security status remains **not verified / not certified**.
+
+
+## Implementation package prepared on the security branch
+
+The branch now includes a coordinated implementation draft:
+
+- `supabase/migrations/20261114000200_livekit_session_authorization.sql` creates private session and invitation tables, RLS-denies browser roles, and adds an atomic invitation-redemption RPC. Invitation secrets are stored as SHA-256 hashes; invitations support expiry, use limits, optional user/email binding, and revocation.
+- `livekit-token-service/server.js` removes client-controlled room names and roles. Host session creation verifies the authenticated user's active member-to-creator relationship and optional podcast ownership. Guest token issuance redeems an invitation and verifies approved guest status in the database. Listener tokens cannot publish media; creator and approved guest tokens can. Tokens remain 10 minutes; room limit remains 10.
+- `assets/js/app.js` creates a server-side session before connecting, uses expiring invitation links for guests, restores host sessions by session ID (the server still checks ownership), and exposes the browser recording control only to the host.
+- `livekit-token-service/README.md` documents the required server-only `SUPABASE_SERVICE_ROLE_KEY` configuration and rollout requirements.
+
+### Validation performed
+
+- The modified `livekit-token-service/server.js` passed a JavaScript syntax parse.
+- The modified `assets/js/app.js` passed a JavaScript syntax parse.
+- No database migration was applied, no Render environment variable was changed, no Render deploy was triggered, and no production LiveKit room was created.
+
+### Remaining deployment prerequisites / limitations
+
+- Configure `SUPABASE_SERVICE_ROLE_KEY` as a Render secret for the token service. Do not place it in GitHub or browser code. The service health endpoint must report `authorizationDatabase: true` after configuration.
+- Apply the migration to a staging Supabase project first and test host, approved guest, unapproved guest, listener, expired/revoked invitation, wrong-user binding, cross-creator podcast, arbitrary room, and 10-person capacity cases.
+- Old invite links containing only a room name will no longer authorize entry after the new service is deployed. Hosts must issue new invitation links.
+- The browser recording is a local MediaRecorder workflow, not LiveKit server-side Egress. Hiding the record control from non-hosts is a UI restriction; a participant can still independently record audio/video on their own device. Do not represent this as DRM or a server-enforced prohibition on local recording.
+- The current rate limiter remains process-local and IP-based; durable shared rate limiting is still outstanding.
+- The current grant distinguishes listener (subscribe-only) from creator/guest (media publishing). More granular audio/video source restrictions should be validated against the installed LiveKit SDK before adding them.
+
+This package is a review draft, not a production security certification.
