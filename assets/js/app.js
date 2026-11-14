@@ -19,7 +19,7 @@ async function uploadEpisodeMedia(file,path,onProgress){
  const tus=await loadTusClient(),Upload=tus.Upload;
  const endpoint=SUPABASE_URL.replace(".supabase.co",".storage.supabase.co")+"/storage/v1/upload/resumable";
  return new Promise((resolve,reject)=>{
-  const upload=new Upload(file,{endpoint,chunkSize:6*1024*1024,retryDelays:[0,3000,5000,10000,20000],headers:{authorization:"Bearer "+session.access_token,apikey:SUPABASE_PUBLISHABLE_KEY},metadata:{bucketName:STORAGE_BUCKET,objectName:path,contentType,cacheControl:"3600"},uploadDataDuringCreation:false,removeFingerprintOnSuccess:true,onProgress:(sent,total)=>onProgress?.(Math.round(sent/total*100)),onError:error=>{const response=error?.originalResponse;let detail=error?.message||"Network or storage error.";try{const body=response?.getBody?.();if(body){const parsed=JSON.parse(body);detail=parsed.message||parsed.error||detail}}catch{}const code=response?.getStatus?.();reject(new Error("Resumable upload failed"+(code?" (HTTP "+code+")":"")+": "+detail))},onSuccess:()=>resolve(path)});
+  const upload=new Upload(file,{endpoint,chunkSize:6*1024*1024,retryDelays:[0,3000,5000,10000,20000],headers:{authorization:"Bearer "+session.access_token,apikey:SUPABASE_PUBLISHABLE_KEY},metadata:{bucketName:STORAGE_BUCKET,objectName:path,contentType,cacheControl:"3600"},uploadDataDuringCreation:true,removeFingerprintOnSuccess:true,onProgress:(sent,total)=>onProgress?.(Math.round(sent/total*100)),onError:error=>{const response=error?.originalResponse;let detail=error?.message||"Network or storage error.";try{const body=response?.getBody?.();if(body){const parsed=JSON.parse(body);detail=parsed.message||parsed.error||detail}}catch{}const code=response?.getStatus?.();reject(new Error("Resumable upload failed"+(code?" (HTTP "+code+")":"")+": "+detail))},onSuccess:()=>resolve(path)});
   upload.findPreviousUploads().then(previous=>{if(previous.length)upload.resumeFromPreviousUpload(previous[0]);upload.start()}).catch(reject);
  });
 }
@@ -621,7 +621,7 @@ async function episode(){
    $("#saveRecording").onclick=async()=>{try{await saveBlobToShow(localBlob,$("#recordMode").value,$("#recordTitle").value,$("#recordShow").value,$("#saveRecording"))}catch(error){toast(error.message)}};
    const uploadShow=$("#studioUploadShow"),uploadEpisode=$("#studioUploadEpisode"),uploadPurpose=$("#studioUploadPurpose"),challengePicker=$("#studioChallengePicker"),challengeSelect=$("#studioUploadChallenge"),challengeConsentWrap=$("#studioChallengeConsent"),challengeConsent=$("#studioChallengePublicConsent");
    const uploadFileInput=$("#studioUploadFile"),uploadFileList=$("#studioUploadFileList");
-   const supportedMediaFile=file=>!!file&&file.size>0&&file.size<=50*1024*1024*1024&&/\.(mp3|m4a|wav|aac|ogg|flac|mp4|mov|webm|m4v)$/i.test(file.name);
+   const supportedMediaFile=file=>{if(!file||!Number.isFinite(file.size)||file.size<=0||file.size>50*1024*1024*1024)return false;const ext=(file.name.split(".").pop()||"").toLowerCase();const allowed=new Set(["mp3","m4a","wav","aac","ogg","flac","mp4","mov","webm","m4v"]);return allowed.has(ext)};
    const uploadFileMode=file=>file.type.startsWith("audio/")?"audio":(/\.(mp4|mov|webm|m4v)$/i.test(file.name)||file.type.startsWith("video/"))?"video":"audio";
    const renderUploadFileQueue=()=>{
     const files=Array.from(uploadFileInput?.files||[]);
