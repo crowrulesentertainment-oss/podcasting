@@ -80,3 +80,18 @@ Required server-side checks:
 - Verify with owner/non-owner, anonymous/authenticated, draft/published, valid/invalid media, Stripe test-mode redirects, and LiveKit role-escalation cases.
 - Re-run Supabase security advisors and inspect relevant logs after deployment.
 - Security status remains **not yet verified / not certified** until every gate is completed.
+
+
+## LiveKit authorization implementation draft
+
+A coordinated LiveKit implementation is now prepared on this branch:
+
+- New migration: `supabase/migrations/20261114000200_livekit_session_authorization.sql`.
+- Token service: `livekit-token-service/server.js`.
+- Browser integration: `assets/js/app.js`.
+- Deployment instructions: `livekit-token-service/README.md`.
+- Detailed findings and limitations: `LIVEKIT_SECURITY_ASSESSMENT.md`.
+
+The new backend requires a Render-only `SUPABASE_SERVICE_ROLE_KEY`. Configure it as a secret only after staging validation; never expose it to the browser or repository. The new client requires the matching backend endpoints, so the migration, secret configuration, Render deployment, and GitHub Pages client update must be rolled out in a coordinated order. Render currently auto-deploys from `main`; merging without preparation can interrupt LiveKit studio sessions and new room creation.
+
+JavaScript syntax parsing passed for the updated token service and browser application. Integration tests and migration execution have not yet been performed. No production changes have been made.
