@@ -425,6 +425,30 @@ async function episode(){
    }
    resolved[choice.id]=url;return url;
   }
+  async function downloadSelectedMedia(choice,url,button){
+   button.disabled=true;button.textContent="Preparing download…";
+   try{
+    const response=await fetch(url);
+    if(!response.ok)throw Error("The media file could not be retrieved (HTTP "+response.status+").");
+    const blob=await response.blob();
+    if(!blob.size)throw Error("The media file is empty or unavailable.");
+    try{
+     const downloadUser=await me();
+     const{error:downloadLogError}=await sb.from("podcast_episode_download_events").insert({episode_id:e.id,podcast_id:e.podcast_id,media_id:choice.id.startsWith("legacy-")?null:choice.id,user_id:downloadUser?.id||null,source:"listener_show"});
+     if(downloadLogError)console.warn("Media download could not be recorded:",downloadLogError.message);
+    }catch(downloadLogError){console.warn("Media download could not be recorded:",downloadLogError.message||downloadLogError)}
+    const original=String(choice.label||"").trim();
+    const safeName=original?original.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9._-]+/g,"-").replace(/^-|-$/g,"").slice(0,140):"";
+    const safeTitle=String(e.title||"crowrules-episode").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9_-]+/g,"-").replace(/^-|-$/g,"").slice(0,100)||"crowrules-episode";
+    const extension=(blob.type.match(/\/(?:mpeg|mp3)/i)?"mp3":blob.type.match(/\/(?:mp4|x-m4a)/i)?"m4a":blob.type.match(/\/wav/i)?"wav":blob.type.match(/\/ogg/i)?"ogg":blob.type.match(/\/flac/i)?"flac":blob.type.match(/\/quicktime/i)?"mov":blob.type.match(/\/webm/i)?"webm":"media");
+    const filename=safeName&&/\.[a-z0-9]{2,5}$/i.test(safeName)?safeName:safeTitle+"-"+(choice.type||"media")+"."+extension;
+    const objectUrl=URL.createObjectURL(blob),link=document.createElement("a");
+    link.href=objectUrl;link.download=filename;document.body.appendChild(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
+    toast("Your "+(choice.type==="video"?"video":"audio")+" download is ready.");
+   }catch(downloadError){toast("Download failed: "+(downloadError.message||"Please try again."))}
+   finally{button.disabled=false;button.textContent="↓ Download "+(choice.type==="video"?"video":"audio")}
+  }
   async function selectMedia(choiceId){
    const choice=choices.find(item=>item.id===choiceId);if(!choice)return;
    activeChoice=choice;
@@ -443,13 +467,14 @@ async function episode(){
       const iframe=$("#episodeYoutubePlayer");
       createQualifiedPlayTracker(e,url).addYouTube(iframe);
      }else{
-      player.innerHTML='<div class="episode-video-shell"><video playsinline preload="metadata" class="episode-video-player"></video></div><p class="muted media-load-status" role="status">Video player ready.</p>';
+      player.innerHTML='<div class="episode-video-shell"><video playsinline preload="metadata" class="episode-video-player"></video></div><p class="muted media-load-status" role="status">Video player ready.</p><button type="button" class="btn secondary" id="downloadEpisodeVideo">↓ Download video</button>';
       const video=player.querySelector("video");
       video.src=url;
       video.addEventListener("error",()=>{const status=player.querySelector(".media-load-status");if(status)status.textContent="This video could not be loaded. Check that the video URL is publicly accessible and uses a browser-supported format."},{once:true});
       createQualifiedPlayTracker(e,url).addNative(video);
       mountEnhancedMediaControls(video,player,{video:true,label:e.title});
       video.load();
+      $("#downloadEpisodeVideo").onclick=event=>downloadSelectedMedia(choice,url,event.currentTarget);
      }
     }else{
      player.innerHTML='<div class="episode-audio-player"><div class="episode-audio-art"><img src="'+esc(e.thumbnail_url||art)+'" data-fallback="'+logoURL+'" alt="'+esc(e.title)+' artwork"></div><div class="episode-audio-controls"><strong>'+esc(choice.label)+'</strong><audio preload="metadata"></audio><p class="muted media-load-status" role="status">Audio player ready.</p><button type="button" class="btn secondary episode-download-button" id="downloadEpisodeAudio">↓ Download episode audio</button></div></div>';
@@ -459,29 +484,7 @@ async function episode(){
      createQualifiedPlayTracker(e,url).addNative(audio);
      mountEnhancedMediaControls(audio,player.querySelector(".episode-audio-controls"),{label:e.title});
      audio.load();
-     $("#downloadEpisodeAudio").onclick=async buttonEvent=>{
-      const button=buttonEvent.currentTarget;
-      button.disabled=true;button.textContent="Preparing download…";
-      try{
-       const response=await fetch(url);
-       if(!response.ok)throw Error("The audio file could not be retrieved (HTTP "+response.status+").");
-       const blob=await response.blob();
-       if(!blob.size)throw Error("The audio file is empty or unavailable.");
-       const objectUrl=URL.createObjectURL(blob),link=document.createElement("a");
-       try{
-        const downloadUser=await me();
-        const{error:downloadLogError}=await sb.from("podcast_episode_download_events").insert({episode_id:e.id,podcast_id:e.podcast_id,user_id:downloadUser?.id||null,source:"episode_page"});
-        if(downloadLogError)console.warn("Episode download count could not be recorded:",downloadLogError.message);
-       }catch(downloadLogError){console.warn("Episode download count could not be recorded:",downloadLogError.message||downloadLogError)}
-       const safeTitle=String(e.title||"crowrules-episode").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9_-]+/g,"-").replace(/^-|-$/g,"").slice(0,100)||"crowrules-episode";
-       const extension=(blob.type.match(/audio\/(?:mpeg|mp3)/i)?"mp3":blob.type.match(/audio\/(?:mp4|x-m4a)/i)?"m4a":blob.type.match(/audio\/wav/i)?"wav":blob.type.match(/audio\/ogg/i)?"ogg":blob.type.match(/audio\/flac/i)?"flac":"audio");
-       link.href=objectUrl;link.download=safeTitle+"."+extension;document.body.appendChild(link);link.click();link.remove();
-       setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
-       toast("Your episode download is ready.");
-      }catch(downloadError){
-       toast("Download failed: "+(downloadError.message||"Please try again."));
-      }finally{button.disabled=false;button.textContent="↓ Download episode audio"}
-     };
+     $("#downloadEpisodeAudio").onclick=event=>downloadSelectedMedia(choice,url,event.currentTarget);
     }
    }catch(playbackError){
     if(sequence!==renderSequence)return;
