@@ -13,7 +13,11 @@ create table if not exists public.podcast_episode_media (
 );
 create index if not exists podcast_episode_media_episode_sort_idx on public.podcast_episode_media (episode_id, sort_order, created_at);
 alter table public.podcast_episode_media enable row level security;
-create policy podcast_episode_media_select on public.podcast_episode_media for select to anon, authenticated using (
+create policy podcast_episode_media_select_public on public.podcast_episode_media for select to anon using (
+  exists (select 1 from public.podcast_episodes e where e.id = episode_id
+    and e.status = 'published' and coalesce(e.access_level, 'free') = 'free')
+);
+create policy podcast_episode_media_select_authenticated on public.podcast_episode_media for select to authenticated using (
   exists (select 1 from public.podcast_episodes e where e.id = episode_id and (
     (e.status = 'published' and coalesce(e.access_level, 'free') = 'free')
     or private.can_manage_podcast(e.podcast_id) or private.crowrules_is_admin_impl()
