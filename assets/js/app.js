@@ -1665,7 +1665,7 @@ async function admin(){
     if(!files.length){toast("There are no registered uploads to delete.");return}
     const storedFiles=files.filter(item=>item.storage_path),orphaned=files.length-storedFiles.length;
     const totalBytes=files.reduce((sum,item)=>sum+Number(item.size_bytes||0),0);
-    if(!confirm("PERMANENTLY DELETE ALL UPLOADS?\\n\\nThis will remove "+files.length+" uploaded media attachment(s) across "+new Set(files.map(item=>item.episode_id)).size+" episode(s), including "+storedFiles.length+" Storage file(s). "+(orphaned?orphaned+" attachment record(s) have no Storage path. ":"")+"Episode records, show records, download analytics and comments will remain. This cannot be undone. Continue?"))return;
+    if(!confirm("PERMANENTLY DELETE ALL UPLOADS?\n\nThis will remove "+files.length+" uploaded media attachment(s) across "+new Set(files.map(item=>item.episode_id)).size+" episode(s), including "+storedFiles.length+" Storage file(s). "+(orphaned?orphaned+" attachment record(s) have no Storage path. ":"")+"Episode records, show records, download analytics and comments will remain. This cannot be undone. Continue?"))return;
     if(!confirm("Final confirmation: delete every uploaded audio/video attachment from the Episodes library?"))return;
     button.disabled=true;button.textContent="Deleting uploads…";
     try{
