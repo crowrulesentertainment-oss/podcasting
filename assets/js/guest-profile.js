@@ -13,10 +13,64 @@ function status(kind,msg){const el=$("#gpStatus");if(el){el.className="gp-status
 function initials(name){return String(name||"Guest").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()}
 function showError(message){root.innerHTML='<div class="gp"><div class="gp-wrap gp-empty"><h2>Guest profile unavailable</h2><p>'+esc(message)+'</p><a class="gp-btn alt" href="'+SITE_BASE+'guest.html">Return to Guest Lounge</a></div></div>'}
 async function publicProfile(id){
- const{data,error}=await sb.from("podcast_guest_profiles").select("id,display_name,headline,bio,topics,website_url,avatar_url,status,is_published,created_at").eq("id",id).eq("status","approved").eq("is_published",true).maybeSingle();
+ const{data,error}=await sb.from("podcast_guest_profiles").select("id,user_id,display_name,headline,bio,topics,website_url,avatar_url,status,is_published,created_at").eq("id",id).eq("status","approved").eq("is_published",true).maybeSingle();
  if(error)throw error;if(!data)throw Error("This guest profile is not publicly available.");
  const website=safeUrl(data.website_url);
- root.innerHTML='<div class="gp"><header class="gp-hero"><div class="gp-wrap gp-hero-inner"><div class="gp-kicker">CROWRULES PODCASTING · GUEST NETWORK</div><h1>THE VOICE.<br><em>THE STORY.</em></h1><p>Meet a member of the CrowRules guest community and discover the topics they bring to the conversation.</p><div class="gp-actions"><a class="gp-btn alt" href="'+SITE_BASE+'guest.html">← Guest Lounge</a><a class="gp-btn" href="'+SITE_BASE+'guest.html#guest-messages">Connect through Guest Lounge</a></div></div></header><main class="gp-wrap gp-main"><section class="gp-card"><div class="gp-head"><div class="gp-kicker">APPROVED GUEST PROFILE</div><h2>'+esc(data.display_name)+'</h2><p>'+esc(data.headline||"CrowRules Podcasting guest")+'</p></div><div class="gp-public"><aside><div class="gp-avatar">'+(safeUrl(data.avatar_url)?'<img src="'+esc(safeUrl(data.avatar_url))+'" alt="'+esc(data.display_name)+' avatar" loading="lazy">':esc(initials(data.display_name)))+'</div><span class="gp-badge">APPROVED GUEST</span></aside><article><div class="gp-kicker">ABOUT THIS GUEST</div><p>'+esc(data.bio||"This guest is part of the CrowRules community.")+'</p><div class="gp-topics">'+(data.topics||[]).map(t=>'<span>'+esc(t)+'</span>').join("")+'</div>'+(website?'<a class="gp-btn alt" href="'+esc(website)+'" target="_blank" rel="noopener">Visit website ↗</a>':"")+'<div class="gp-note">Private conversations take place inside the Guest Lounge. A creator can start a one-to-one conversation from an approved guest profile.</div></article></div></section></main></div>';
+ const{data:{user}}=await sb.auth.getUser();
+ let creator=null,thread=null,chatChannel=null,chatTimer=null;
+ if(user&&user.id!==data.user_id){
+  const result=await sb.from("creator_profiles").select("id,user_id,is_discoverable").eq("user_id",user.id).maybeSingle();
+  if(!result.error&&result.data?.is_discoverable)creator=result.data;
+  const existing=await sb.from("podcast_guest_threads").select("*").eq("creator_user_id",user.id).eq("guest_user_id",data.user_id).maybeSingle();
+  if(!existing.error)thread=existing.data;
+ }
+ const connectMarkup=!user
+  ?'<a class="gp-btn" href="'+SITE_BASE+'login.html">Sign in to message this guest</a>'
+  :user.id===data.user_id
+   ?'<span class="gp-badge">THIS IS YOUR PROFILE</span>'
+   :creator
+    ?'<button class="gp-btn" id="gpStartChat" type="button">'+(thread?'Open private conversation':'Message this guest')+' ↗</button>'
+    :'<a class="gp-btn alt" href="'+SITE_BASE+'creator-profile.html">Set up a discoverable creator profile to message guests</a>';
+ root.innerHTML='<div class="gp"><header class="gp-hero"><div class="gp-wrap gp-hero-inner"><div class="gp-kicker">CROWRULES PODCASTING · GUEST NETWORK</div><h1>THE VOICE.<br><em>THE STORY.</em></h1><p>Meet a member of the CrowRules guest community and discover the topics they bring to the conversation.</p><div class="gp-actions"><a class="gp-btn alt" href="'+SITE_BASE+'guest.html">← Guest Lounge</a>'+connectMarkup+'</div></div></header><main class="gp-wrap gp-main"><section class="gp-card"><div class="gp-head"><div class="gp-kicker">APPROVED GUEST PROFILE</div><h2>'+esc(data.display_name)+'</h2><p>'+esc(data.headline||"CrowRules Podcasting guest")+'</p></div><div class="gp-public"><aside><div class="gp-avatar">'+(safeUrl(data.avatar_url)?'<img src="'+esc(safeUrl(data.avatar_url))+'" alt="'+esc(data.display_name)+' avatar" loading="lazy">':esc(initials(data.display_name)))+'</div><span class="gp-badge">APPROVED GUEST</span></aside><article><div class="gp-kicker">ABOUT THIS GUEST</div><p>'+esc(data.bio||"This guest is part of the CrowRules community.")+'</p><div class="gp-topics">'+(data.topics||[]).map(t=>'<span>'+esc(t)+'</span>').join("")+'</div>'+(website?'<a class="gp-btn alt" href="'+esc(website)+'" target="_blank" rel="noopener">Visit website ↗</a>':"")+'<div class="gp-note">Creators can contact this guest directly here. Messages are private to the guest and the creator in the conversation.</div></article></div></section><section class="gp-card gp-chat-card" id="gpChatCard" style="display:none"><div class="gp-head"><div class="gp-kicker">CREATOR ↔ GUEST</div><h2>Private conversation</h2><p>Coordinate an appearance, ask questions and discuss the show.</p></div><div id="gpChatPanel" class="gp-chat-panel"><div class="gp-empty">Choose Message this guest to open your conversation.</div></div></section></main></div>';
+ const chatStyles=document.createElement("style");
+ chatStyles.textContent='.gp-chat-card{margin-top:22px}.gp-chat-panel{padding:22px}.gp-chat-list{display:grid;gap:12px;max-height:420px;overflow:auto;padding:4px 2px 18px}.gp-chat-message{max-width:min(82%,620px);padding:12px 15px;border:1px solid #ffffff20;border-radius:14px;background:#ffffff0b}.gp-chat-message.mine{margin-left:auto;background:#b88a3a22;border-color:#d6ad5b66}.gp-chat-message b{display:block;color:#e8bd69;font-size:11px;margin-bottom:5px}.gp-chat-message p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;color:#f2eee7;font-size:13px;line-height:1.6}.gp-chat-message time{display:block;margin-top:7px;color:#92949a;font-size:10px}.gp-chat-compose{display:flex;gap:10px;align-items:end;border-top:1px solid #ffffff20;padding-top:16px}.gp-chat-compose textarea{flex:1;min-width:0;min-height:74px;resize:vertical;border:1px solid #ffffff30;border-radius:12px;background:#090b10;color:#fff;padding:12px;font:inherit}.gp-chat-empty{padding:28px;text-align:center;color:#aaa}.gp-chat-status{font-size:12px;color:#aaa;margin:8px 0}.gp-chat-compose button:disabled{opacity:.55;cursor:wait}@media(max-width:600px){.gp-chat-compose{flex-direction:column;align-items:stretch}.gp-chat-compose button{width:100%}}';
+ document.head.appendChild(chatStyles);
+ async function openChat(){
+  if(!user||!creator)return;
+  const card=$("#gpChatCard"),panel=$("#gpChatPanel");card.style.display="block";card.scrollIntoView({behavior:"smooth",block:"start"});
+  const button=$("#gpStartChat");if(button){button.disabled=true;button.textContent="Opening conversation…"}
+  try{
+   if(!thread){
+    const created=await sb.from("podcast_guest_threads").insert({creator_user_id:user.id,guest_user_id:data.user_id,creator_profile_id:creator.id,guest_profile_id:data.id}).select("*").single();
+    if(created.error)throw created.error;thread=created.data;
+   }
+   await renderChat();
+  }catch(err){panel.innerHTML='<p class="gp-status error">'+esc(err.message||"Could not open this conversation.")+'</p>';if(button){button.disabled=false;button.textContent="Try messaging again"}}
+ }
+ async function renderChat(){
+  const panel=$("#gpChatPanel");if(!panel||!thread)return;
+  const{data:messages,error:messageError}=await sb.from("podcast_guest_messages").select("id,thread_id,sender_id,body,created_at").eq("thread_id",thread.id).order("created_at",{ascending:true}).limit(250);
+  if(messageError)throw messageError;
+  const locked=thread.status!=="open";
+  panel.innerHTML='<div class="gp-chat-list" id="gpChatList">'+((messages||[]).map(m=>'<article class="gp-chat-message '+(m.sender_id===user.id?"mine":"")+'"><b>'+esc(m.sender_id===user.id?"You":data.display_name)+'</b><p>'+esc(m.body)+'</p><time>'+esc(new Date(m.created_at).toLocaleString())+'</time></article>').join("")||'<div class="gp-chat-empty">No messages yet. Send a friendly introduction to start the conversation.</div>')+'</div><form class="gp-chat-compose" id="gpChatForm"><textarea name="body" maxlength="4000" required placeholder="Write a private message…"' +(locked?' disabled':'')+'></textarea><button class="gp-btn" type="submit" '+(locked?'disabled':'')+'>Send message</button></form><p class="gp-chat-status" role="status">'+(locked?'This conversation is currently closed.':'Only you and '+esc(data.display_name)+' can read this conversation.')+'</p>';
+  const list=$("#gpChatList");list.scrollTop=list.scrollHeight;
+  $("#gpChatForm").onsubmit=async e=>{
+   e.preventDefault();const form=e.currentTarget,body=String(new FormData(form).get("body")||"").trim();if(!body)return;
+   const send=form.querySelector("button");send.disabled=true;
+   const{error:sendError}=await sb.from("podcast_guest_messages").insert({thread_id:thread.id,sender_id:user.id,body});
+   if(sendError){panel.querySelector(".gp-chat-status").textContent="Message not sent: "+sendError.message;send.disabled=false;return}
+   form.reset();await renderChat();
+  };
+  if(!chatChannel){
+   chatChannel=sb.channel("guest-profile-chat-"+thread.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"podcast_guest_messages",filter:"thread_id=eq."+thread.id},()=>renderChat().catch(console.warn)).subscribe();
+   chatTimer=setInterval(()=>renderChat().catch(()=>{}),12000);
+  }
+ }
+ $("#gpStartChat")?.addEventListener("click",openChat);
+ if(thread&&creator){
+  // Existing conversations can be opened immediately from the guest profile.
+  const start=$("#gpStartChat");if(start)start.textContent="Open private conversation ↗";
+ }
 }
 async function editProfile(){
  const{data:{user},error:authError}=await sb.auth.getUser();if(authError)throw authError;
