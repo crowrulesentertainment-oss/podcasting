@@ -373,9 +373,13 @@ async function episode(){
  const episodeBadgeMap=new Map((episodeBadgeDefs||[]).map(x=>[x.badge_key,x]));
  const episodeBadges=(episodeAssignments||[]).map(x=>({...x,badge:episodeBadgeMap.get(x.badge_key)})).filter(x=>x.badge);
  const episodeBadgeSection=episodeBadges.length?'<section class="section container show-badges-section"><div class="section-head"><div><div class="eyebrow">EPISODE RECOGNITION</div><h2>Episode badges</h2><p class="muted">Recognition awarded directly to this episode.</p></div><a href="badges.html">Badge directory ↗</a></div><div class="show-badge-grid">'+episodeBadges.map(x=>'<article class="show-badge-card"><span class="show-badge-icon">'+(x.badge.image_url?'<img src="'+esc(x.badge.image_url)+'" alt="">':esc(x.badge.icon||"🏅"))+'</span><div><b>'+esc(x.badge.name)+'</b><small>'+esc(x.badge.category||"Recognition")+' · '+new Date(x.awarded_at).toLocaleDateString()+'</small>'+(x.note?'<p>'+esc(x.note)+'</p>':"")+'</div></article>').join("")+'</div></section>':'';
- const choices=[...(e.audio_url?[{type:"audio",label:"Listen to audio"}]:[]),...(e.video_url?[{type:"video",label:"Watch video"}]:[])];
- let activeType=choices[0]?.type||"audio",resolved={},renderSequence=0;
- $("#app").innerHTML='<section class="page-hero"><div class="container split"><div><div class="eyebrow">Season '+(e.season_number||1)+' · Episode '+(e.episode_number||"")+'</div><h1 class="page-title">'+esc(e.title)+'</h1><p>'+esc(e.description||"")+'</p><div class="actions"><button id="play" type="button">▶ Play '+(activeType==="video"?"video":"audio")+'</button><button id="save" class="secondary" type="button">＋ Save</button><button id="shareEpisode" class="secondary" type="button" aria-label="Share this episode on Facebook">f Share to Facebook</button></div></div><div class="feature-image"><img class="feature-image-img" loading="lazy" decoding="async" src="'+esc(e.thumbnail_url||art)+'" data-fallback="'+logoURL+'" alt="'+esc(e.title)+' thumbnail"></div></div></section>'+episodeBadgeSection+'<section class="section container panel episode-media-panel" id="media"><div class="episode-media-heading"><div><div class="eyebrow">Episode player</div><h2>Listen or watch</h2><p class="muted">Choose an available format. Your selection loads below.</p></div></div><div class="episode-media-choices" id="episodeMediaChoices" role="group" aria-label="Choose audio or video"></div><div id="episodeMediaPlayer" class="episode-media-player" aria-live="polite"></div></section><section class="section container panel episode-comments-panel" id="episodeComments"><div class="section-head"><div><div class="eyebrow">COMMUNITY CONVERSATION</div><h2>Episode comments</h2><p class="muted">Share your thoughts about this episode. Keep it respectful and on topic.</p></div><span class="episode-comment-count" id="episodeCommentCount">Loading…</span></div><div id="episodeCommentList" class="episode-comment-list"><div class="loading">Loading comments…</div></div><div id="episodeCommentComposer" class="episode-comment-composer"></div></section>';
+ const{data:episodeMedia,error:episodeMediaError}=await sb.from("podcast_episode_media").select("id,media_type,original_filename,public_url,storage_path,sort_order,created_at").eq("episode_id",e.id).order("sort_order",{ascending:true}).order("created_at",{ascending:true});
+ if(episodeMediaError)console.warn("Additional episode media could not be loaded; using legacy media fields:",episodeMediaError.message);
+ const storedChoices=(episodeMedia||[]).filter(row=>["audio","video"].includes(row.media_type)).map((row,index)=>({id:row.id,type:row.media_type,label:row.original_filename||((row.media_type==="audio"?"Audio":"Video")+" file "+(index+1)),url:row.public_url||(row.storage_path?sb.storage.from(STORAGE_BUCKET).getPublicUrl(row.storage_path).data?.publicUrl:null)})).filter(row=>row.url);
+ const legacyChoices=[...(e.audio_url?[{id:"legacy-audio",type:"audio",label:"Original audio",url:e.audio_url}]:[]),...(e.video_url?[{id:"legacy-video",type:"video",label:"Original video",url:e.video_url}]:[])];
+ const choices=storedChoices.length?storedChoices:legacyChoices;
+ let activeChoice=choices[0]||null,resolved={},renderSequence=0;
+ $("#app").innerHTML='<section class="page-hero"><div class="container split"><div><div class="eyebrow">Season '+(e.season_number||1)+' · Episode '+(e.episode_number||"")+'</div><h1 class="page-title">'+esc(e.title)+'</h1><p>'+esc(e.description||"")+'</p><div class="actions"><button id="play" type="button">▶ Play '+(activeChoice?.type==="video"?"video":"audio")+'</button><button id="save" class="secondary" type="button">＋ Save</button><button id="shareEpisode" class="secondary" type="button" aria-label="Share this episode on Facebook">f Share to Facebook</button></div></div><div class="feature-image"><img class="feature-image-img" loading="lazy" decoding="async" src="'+esc(e.thumbnail_url||art)+'" data-fallback="'+logoURL+'" alt="'+esc(e.title)+' thumbnail"></div></div></section>'+episodeBadgeSection+'<section class="section container panel episode-media-panel" id="media"><div class="episode-media-heading"><div><div class="eyebrow">Episode player</div><h2>Listen or watch</h2><p class="muted">Choose an available format. Your selection loads below.</p></div></div><div class="episode-media-choices" id="episodeMediaChoices" role="group" aria-label="Choose audio or video"></div><div id="episodeMediaPlayer" class="episode-media-player" aria-live="polite"></div></section><section class="section container panel episode-comments-panel" id="episodeComments"><div class="section-head"><div><div class="eyebrow">COMMUNITY CONVERSATION</div><h2>Episode comments</h2><p class="muted">Share your thoughts about this episode. Keep it respectful and on topic.</p></div><span class="episode-comment-count" id="episodeCommentCount">Loading…</span></div><div id="episodeCommentList" class="episode-comment-list"><div class="loading">Loading comments…</div></div><div id="episodeCommentComposer" class="episode-comment-composer"></div></section>';
  const mediaPanel=$("#media"),choiceBox=$("#episodeMediaChoices"),player=$("#episodeMediaPlayer");
  async function loadEpisodeComments(){
   const list=$("#episodeCommentList"),count=$("#episodeCommentCount"),composer=$("#episodeCommentComposer");
@@ -407,27 +411,26 @@ async function episode(){
  if(!choices.length){
   mediaPanel.innerHTML='<div class="empty">Media is not attached to this episode yet.</div>';
  }else{
-  choiceBox.innerHTML=choices.map(ch=>'<button type="button" class="btn secondary episode-media-choice '+(ch.type===activeType?'is-active':'')+'" data-media-type="'+ch.type+'" aria-pressed="'+(ch.type===activeType?'true':'false')+'">'+(ch.type==="audio"?"♫ ":"▶ ")+ch.label+'</button>').join("");
-  async function getMediaUrl(type){
-   if(resolved[type])return resolved[type];
-   const source=type==="audio"?e.audio_url:e.video_url;
-   if(!source)return null;
-   let url=source;
-   if(e.access_level&&e.access_level!=="free"){
+  choiceBox.innerHTML=choices.map(ch=>'<button type="button" class="btn secondary episode-media-choice '+(ch.id===activeChoice?.id?'is-active':'')+'" data-media-id="'+esc(ch.id)+'" aria-pressed="'+(ch.id===activeChoice?.id?'true':'false')+'"><span aria-hidden="true">'+(ch.type==="audio"?"♫ ":"▶ ")+'</span><span>'+esc(ch.label)+'</span></button>').join("");
+  async function getMediaUrl(choice){
+   if(!choice)return null;
+   if(resolved[choice.id])return resolved[choice.id];
+   let url=choice.url||null;
+   if(!url&&e.access_level&&e.access_level!=="free"){
     const user=await me();
     if(!user)throw Error("Sign in and subscribe to this show to unlock premium playback.");
-    const data=await fn(FUNCTIONS.premiumPlayback,{episode_id:e.id,media_type:type});
+    const data=await fn(FUNCTIONS.premiumPlayback,{episode_id:e.id,media_type:choice.type});
     url=data.signed_url||null;
     if(!url)throw Error("The playback service did not return a media URL.");
    }
-   resolved[type]=url;return url;
+   resolved[choice.id]=url;return url;
   }
-  async function selectMedia(type){
-   if(!choices.some(ch=>ch.type===type))return;
-   activeType=type;
-   const sequence=++renderSequence;
+  async function selectMedia(choiceId){
+   const choice=choices.find(item=>item.id===choiceId);if(!choice)return;
+   activeChoice=choice;
+   const type=choice.type,sequence=++renderSequence;
    $("#play").textContent="▶ Play "+(type==="video"?"video":"audio");
-   all(".episode-media-choice").forEach(button=>{const active=button.dataset.mediaType===type;button.classList.toggle("is-active",active);button.setAttribute("aria-pressed",String(active))});
+   all(".episode-media-choice").forEach(button=>{const active=button.dataset.mediaId===choiceId;button.classList.toggle("is-active",active);button.setAttribute("aria-pressed",String(active))});
    player.innerHTML='<div class="loading">Loading '+(type==="audio"?"audio player":"video player")+'…</div>';
    try{
     const url=await getMediaUrl(type);
@@ -449,7 +452,7 @@ async function episode(){
       video.load();
      }
     }else{
-     player.innerHTML='<div class="episode-audio-player"><div class="episode-audio-art"><img src="'+esc(e.thumbnail_url||art)+'" data-fallback="'+logoURL+'" alt="'+esc(e.title)+' artwork"></div><div class="episode-audio-controls"><strong>Audio edition</strong><audio preload="metadata"></audio><p class="muted media-load-status" role="status">Audio player ready.</p><button type="button" class="btn secondary episode-download-button" id="downloadEpisodeAudio">↓ Download episode audio</button></div></div>';
+     player.innerHTML='<div class="episode-audio-player"><div class="episode-audio-art"><img src="'+esc(e.thumbnail_url||art)+'" data-fallback="'+logoURL+'" alt="'+esc(e.title)+' artwork"></div><div class="episode-audio-controls"><strong>'+esc(choice.label)+'</strong><audio preload="metadata"></audio><p class="muted media-load-status" role="status">Audio player ready.</p><button type="button" class="btn secondary episode-download-button" id="downloadEpisodeAudio">↓ Download episode audio</button></div></div>';
      const audio=player.querySelector("audio");
      audio.src=url;
      audio.addEventListener("error",()=>{const status=player.querySelector(".media-load-status");if(status)status.textContent="This audio file could not be loaded. Check the file URL, storage access and audio format."},{once:true});
@@ -485,26 +488,20 @@ async function episode(){
     player.innerHTML='<div class="notice">'+(e.access_level&&e.access_level!=="free"?'Premium playback could not be authorized. ':'Playback could not be loaded. ')+esc(playbackError.message)+'</div>';
    }
   }
-  all(".episode-media-choice").forEach(button=>button.addEventListener("click",()=>selectMedia(button.dataset.mediaType)));
-  await selectMedia(activeType);
+  all(".episode-media-choice").forEach(button=>button.addEventListener("click",()=>selectMedia(button.dataset.mediaId)));
+  await selectMedia(activeChoice.id);
  }
  $("#play").onclick=async()=>{
   if(!choices.length)return toast("Playback is not available for this episode.");
   try{
    const url=await getCurrentMediaUrl();
    if(!url)return toast("Playback is not available for this episode.");
-   playGlobalMedia({title:e.title,url,type:activeType,artwork:e.thumbnail_url||logoURL,episode:e});
+   playGlobalMedia({title:e.title+" · "+(activeChoice?.label||"Episode"),url,type:activeChoice?.type||"audio",artwork:e.thumbnail_url||logoURL,episode:e});
   }catch(playbackError){toast(playbackError.message)}
  };
  async function getCurrentMediaUrl(){
-  if(!choices.length)return null;
-  if(e.access_level&&e.access_level!=="free"){
-   const user=await me();
-   if(!user)throw Error("Sign in and subscribe to this show to unlock premium playback.");
-   const data=await fn(FUNCTIONS.premiumPlayback,{episode_id:e.id,media_type:activeType});
-   return data.signed_url||null;
-  }
-  return activeType==="audio"?e.audio_url:e.video_url;
+  if(!activeChoice)return null;
+  return getMediaUrl(activeChoice);
  }
  $("#save").onclick=async()=>{try{const user=await me();if(!user)return go("login.html");const{error}=await sb.from("podcast_saved_episodes").insert({user_id:user.id,episode_id:e.id});if(error&&error.code!=="23505")throw error;toast("Episode saved.")}catch(saveError){toast(saveError.message)}};
  $("#shareEpisode").onclick=()=>{const shareUrl=location.href;const facebookUrl="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(shareUrl);const popup=window.open(facebookUrl,"crowrulesFacebookShare","width=720,height=640,menubar=no,toolbar=no,location=yes,status=yes,scrollbars=yes,resizable=yes");if(!popup){location.href=facebookUrl;return}try{popup.focus()}catch{}};
