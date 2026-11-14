@@ -1787,3 +1787,13 @@ body[data-page="admin"] .badge-console .table-wrap{max-width:100%;overflow-x:aut
 
 /* Creator episode multi-file upload queue */
 #episodeMediaQueue ul,#episodeExistingMedia ul{display:grid;gap:7px;padding-left:20px;margin:8px 0}#episodeMediaQueue li{display:flex;align-items:center;gap:9px;flex-wrap:wrap}#episodeMediaQueue li span{overflow-wrap:anywhere}#episodeExistingMedia{margin-top:8px;overflow-wrap:anywhere}
+
+/* Creator Studio podcast directory distribution center */
+.distribution-directory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:16px 0}
+.distribution-directory-card{min-width:0;padding:16px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.09);border-radius:12px}
+.distribution-directory-card h4{margin:4px 0;font-size:1.05rem}
+.distribution-directory-card .field{margin:10px 0}
+.distribution-directory-card input,.distribution-directory-card select{width:100%;max-width:100%;box-sizing:border-box}
+.distribution-directory-card .actions{display:flex;flex-wrap:wrap;gap:8px}
+.distribution-directory-card .actions>*{flex:0 1 auto}
+@media(max-width:760px){.distribution-directory-grid{grid-template-columns:1fr}.distribution-directory-card{padding:13px}.distribution-directory-card .actions>*{flex:1 1 100%;text-align:center}}
