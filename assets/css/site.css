@@ -1797,3 +1797,10 @@ body[data-page="admin"] .badge-console .table-wrap{max-width:100%;overflow-x:aut
 .distribution-directory-card .actions{display:flex;flex-wrap:wrap;gap:8px}
 .distribution-directory-card .actions>*{flex:0 1 auto}
 @media(max-width:760px){.distribution-directory-grid{grid-template-columns:1fr}.distribution-directory-card{padding:13px}.distribution-directory-card .actions>*{flex:1 1 100%;text-align:center}}
+
+/* Separate audio and video pickers in Creator Studio */
+.studio-media-picker-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:10px 0}
+.studio-media-picker{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:14px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.025)}
+.studio-media-picker input[type=file]{width:100%;max-width:100%;font-size:12px}
+.studio-media-picker .btn{cursor:pointer}
+@media(max-width:640px){.studio-media-picker-row{grid-template-columns:1fr}.studio-media-picker{width:auto}}
