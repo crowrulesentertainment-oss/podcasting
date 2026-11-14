@@ -433,7 +433,7 @@ async function episode(){
    all(".episode-media-choice").forEach(button=>{const active=button.dataset.mediaId===choiceId;button.classList.toggle("is-active",active);button.setAttribute("aria-pressed",String(active))});
    player.innerHTML='<div class="loading">Loading '+(type==="audio"?"audio player":"video player")+'…</div>';
    try{
-    const url=await getMediaUrl(type);
+    const url=await getMediaUrl(choice);
     if(sequence!==renderSequence)return;
     if(!url){player.innerHTML='<div class="empty">This media is not available.</div>';return}
     if(type==="video"){
