@@ -266,8 +266,7 @@ const a=$("#app");
    };
    showSlide(0);
    if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches){
-    const timer=window.setInterval(()=>showSlide(active+1),12000);
-    heroCarousel.addEventListener("mouseenter",()=>window.clearInterval(timer),{once:true});
+    window.setInterval(()=>showSlide(active+1),12000);
    }
   }
  }
