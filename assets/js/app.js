@@ -256,7 +256,7 @@ const a=$("#app");
   let active=0,timer=null;
   const showSlide=index=>{active=(index+slides.length)%slides.length;slides.forEach((slide,i)=>{const selected=i===active;slide.classList.toggle("is-active",selected);slide.setAttribute("aria-hidden",String(!selected))});dots.forEach((dot,i)=>{const selected=i===active;dot.classList.toggle("is-active",selected);if(selected)dot.setAttribute("aria-current","true");else dot.removeAttribute("aria-current")})};
   const stop=()=>{if(timer){clearInterval(timer);timer=null}};
-  const start=()=>{stop();if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches)timer=window.setInterval(()=>showSlide(active+1),8500)};
+  const start=()=>{stop();if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches)timer=window.setInterval(()=>showSlide(active+1),30000)};
   heroCarousel.querySelector("[data-hero-prev]")?.addEventListener("click",()=>{showSlide(active-1);start()});
   heroCarousel.querySelector("[data-hero-next]")?.addEventListener("click",()=>{showSlide(active+1);start()});
   dots.forEach(dot=>dot.addEventListener("click",()=>{showSlide(Number(dot.dataset.heroGo));start()}));
