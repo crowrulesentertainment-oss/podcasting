@@ -252,11 +252,24 @@ const a=$("#app");
  initViewerLocalInfo();
  const heroCarousel=$("#app [data-home-hero-carousel]");
  if(heroCarousel){
-  const slides=[...heroCarousel.querySelectorAll("[data-hero-slide]")];
-  let active=0;
-  const showSlide=index=>{active=(index+slides.length)%slides.length;slides.forEach((slide,i)=>{const selected=i===active;slide.classList.toggle("is-active",selected);slide.setAttribute("aria-hidden",String(!selected))})};
-  showSlide(0);
-  if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches)window.setInterval(()=>showSlide(active+1),30000);
+  const slides=Array.from(heroCarousel.querySelectorAll(":scope > [data-hero-slide]"));
+  if(slides.length){
+   let active=0;
+   const showSlide=index=>{
+    active=((index%slides.length)+slides.length)%slides.length;
+    slides.forEach((slide,i)=>{
+     const selected=i===active;
+     slide.classList.toggle("is-active",selected);
+     slide.setAttribute("aria-hidden",selected?"false":"true");
+     slide.inert=!selected;
+    });
+   };
+   showSlide(0);
+   if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+    const timer=window.setInterval(()=>showSlide(active+1),12000);
+    heroCarousel.addEventListener("mouseenter",()=>window.clearInterval(timer),{once:true});
+   }
+  }
  }
  try{
   const [showRows,episodeRows,newestPodcasts,newestEpisodes,memberResult,badgeResult]=await Promise.all([
