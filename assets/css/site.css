@@ -2041,3 +2041,20 @@ body[data-page="admin"] .badge-console .table-wrap{max-width:100%;overflow-x:aut
 .cr-review-response{display:grid;gap:9px;margin-top:15px;padding-top:14px;border-top:1px solid var(--line)}
 .cr-review-response .btn{justify-self:start}
 @media(max-width:600px){.cr-review-form-grid{grid-template-columns:1fr}.cr-review-card-head{align-items:flex-start;flex-direction:column}.cr-review-signin{align-items:flex-start;flex-direction:column}}
+
+
+/* CrowRules Reviews Phase 2 — helpful votes and moderation */
+.cr-review-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.cr-review-helpful{display:inline-flex;align-items:center;gap:8px;border:1px solid #ffffff24;border-radius:999px;background:#ffffff08;color:#e8e9ed;padding:8px 13px;font:inherit;font-size:12px;cursor:pointer}
+.cr-review-helpful b{color:#e7bd68}.cr-review-helpful.is-voted{border-color:#d5ad5b99;background:#d5ad5b18;color:#f5d99e}
+.cr-review-report{font-size:12px;color:var(--muted)}.cr-review-report summary{cursor:pointer}.cr-review-report form{display:grid;gap:8px;min-width:min(300px,75vw);padding:12px;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:#090d14}
+.cr-review-report select,.cr-review-report textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;background:#11151e;color:#fff;font:inherit}.cr-review-report textarea{min-height:65px}
+.cr-review-moderation{display:grid;gap:18px}.cr-review-mod-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.cr-review-mod-stats article{padding:15px;border:1px solid var(--line);border-radius:12px;background:#ffffff06}.cr-review-mod-stats b{display:block;font-size:26px;color:#e7bd68}.cr-review-mod-stats span{font-size:11px;color:var(--muted)}
+.cr-review-mod-filters{display:flex;gap:10px;flex-wrap:wrap}.cr-review-mod-filters input,.cr-review-mod-filters select,.cr-review-mod-actions input,.cr-review-mod-actions select{min-width:180px;max-width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#10141c;color:#fff;font:inherit}
+.cr-review-mod-rows{display:grid;gap:14px}.cr-review-mod-card{padding:18px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(145deg,#171923,#0d1017)}
+.cr-review-mod-card header{display:flex;justify-content:space-between;gap:12px;align-items:center}.cr-review-mod-card header b,.cr-review-mod-card header small{display:block}.cr-review-mod-card header small{color:var(--muted);font-size:11px;margin-top:4px}
+.cr-review-mod-stars{color:#e7bd68;margin-top:12px}.cr-review-mod-card h4{margin:8px 0}.cr-review-mod-card>p{white-space:pre-wrap;line-height:1.55;color:#d3d6dc}
+.cr-review-mod-reports{margin:15px 0;padding:13px;border:1px solid #d5ad5b55;border-radius:10px;background:#d5ad5b0a}.cr-review-mod-reports>div{padding:12px 0;border-top:1px solid var(--line)}.cr-review-mod-reports p{margin:6px 0}.cr-review-mod-reports small{color:var(--muted)}
+.cr-review-mod-report-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.cr-review-mod-report-actions .btn{font-size:11px;padding:7px 10px}
+.cr-review-mod-actions{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin-top:15px;padding-top:13px;border-top:1px solid var(--line)}.cr-review-mod-actions label{display:grid;gap:6px;font-size:11px;color:var(--muted)}.cr-review-mod-actions .btn{padding:10px 14px}
+@media(max-width:650px){.cr-review-mod-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.cr-review-mod-actions label{width:100%}.cr-review-mod-actions input,.cr-review-mod-actions select{width:100%}}

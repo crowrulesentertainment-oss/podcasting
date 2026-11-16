@@ -119,3 +119,11 @@ Additional creator workflow ideas are surfaced in the Creator Toolkit: release p
 - The Supabase migration also prepares episode written reviews, creator replies, helpful votes, reports, reviewer badge catalog/awards and the related RLS policies for later phases. The existing numeric `podcast_episode_ratings` table is not replaced.
 - New public-schema tables have explicit Data API grants and RLS enabled. No service-role key, secret, Edge Function, existing show/episode table, or existing creator workflow is changed.
 - Phase 1 currently launches show-level reviews only. Episode written reviews, helpful-vote UI, report submission/moderation UI, reviewer badges, and awards remain future phases.
+
+## CrowRules Reviews — Phase 2
+
+- Listener review cards now include authenticated helpful-vote toggles and live counts.
+- Signed-in listeners can report a published review for spam, harassment, hate, misinformation, conflicts of interest or other concerns.
+- The Podcasting Admin Command Center has a Review Moderation workspace for reviewing reports and changing review visibility to published, hidden, removed or pending.
+- Vote identities remain private. A narrowly scoped security-definer RPC returns only aggregate vote counts and whether the current signed-in viewer has voted; a second RPC toggles the current viewer's own vote.
+- Report submission is restricted to the signed-in reporter and an existing published review. Existing admin authorization and RLS remain in force.
