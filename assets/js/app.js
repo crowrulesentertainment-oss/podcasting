@@ -2033,7 +2033,7 @@ async function admin(){
       const data=await fn("podcasting-admin-email-center",{action:"status"});
       audience.textContent=Number(data.eligible_recipients||0).toLocaleString();
       provider.className="podcaster-email-status "+(data.provider_ready?"good":"warn");
-      provider.textContent=data.provider_ready?"Brevo is configured for Podcasting. Sender address is configured.":"Brevo needs configuration. Set BREVO_API_KEY and PODCAST_EMAIL_FROM in Supabase Edge Function secrets.";
+      provider.textContent=data.provider_ready?"Brevo is configured for Podcasting. Sender address is configured.":"Brevo needs configuration. Set BREVO_API_KEY and PODCAST_EMAIL_FROM (or BREVO_EMAIL_FROM / HUB_EMAIL_FROM) in Supabase Edge Function secrets.";
       feedback.textContent=data.provider_ready?"Ready to send. Messages are sent individually through Brevo.":"Provider configuration is incomplete; sending is disabled until the required Supabase secrets are set.";
       send.disabled=!data.provider_ready||!Number(data.eligible_recipients||0);
       history.innerHTML=data.campaigns?.length?'<div class="table-wrap admin-table-wrap"><table><thead><tr><th>Subject</th><th>Recipients</th><th>Sent</th><th>Failed</th><th>Status</th><th>Created</th></tr></thead><tbody>'+data.campaigns.map(c=>'<tr><td><b>'+esc(c.subject)+'</b></td><td>'+Number(c.total_recipients||0)+'</td><td>'+Number(c.sent_count||0)+'</td><td>'+Number(c.failed_count||0)+'</td><td>'+badge(c.status)+'</td><td>'+new Date(c.created_at).toLocaleString()+'</td></tr>').join("")+'</tbody></table></div>':'<div class="admin-empty"><b>No announcements sent yet</b><span>Completed campaigns will appear here.</span></div>';
