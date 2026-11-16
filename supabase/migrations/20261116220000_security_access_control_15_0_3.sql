@@ -97,10 +97,7 @@ begin
   select email into v_email from auth.users where id=p_user_id;
   if not found then raise exception 'USER_NOT_FOUND' using errcode = 'P0002'; end if;
   select coalesce(is_active,false) into v_before from public.cr_admins where user_id=p_user_id;
-  if not p_is_active and v_before and (select count(*) from public.cr_admins where is_active=true and lower(role) in ('admin','owner','super_admin')) <= 1 then
-    raise exception 'LAST_ACTIVE_REGISTRY_ADMIN' using errcode = '23514';
-  end if;
-  if p_is_active then
+    if p_is_active then
     insert into public.cr_admins(user_id,role,is_active,updated_at)
     values(p_user_id,'admin',true,now())
     on conflict (user_id) do update set role='admin',is_active=true,updated_at=now();
