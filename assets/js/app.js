@@ -1318,6 +1318,7 @@ if(tab==="challenges"){
   if(tab==="reviews"){
    work.innerHTML='<div class="admin-module cr-review-moderation"><span class="admin-kicker">COMMUNITY TRUST & SAFETY</span><div class="section-head"><div><h3>Review Moderation</h3><p>Review listener reports, investigate flagged content and manage review visibility.</p></div><button class="btn secondary" id="reviewModerationReload">↻ Refresh queue</button></div><div class="cr-review-mod-stats" id="reviewModerationStats"></div><div class="cr-review-mod-filters"><input id="reviewModerationSearch" type="search" placeholder="Search reviews, show names or report details"><select id="reviewModerationFilter"><option value="all">All reviews</option><option value="reported">Reported reviews</option><option value="published">Published</option><option value="hidden">Hidden</option><option value="removed">Removed</option></select></div><div id="reviewModerationRows" class="cr-review-mod-rows"><div class="loading">Loading moderation queue…</div></div></div>';
    const rowsBox=$("#reviewModerationRows"),statsBox=$("#reviewModerationStats"),search=$("#reviewModerationSearch"),filter=$("#reviewModerationFilter");let allReviews=[],allReports=[],showNames=new Map();
+   let renderReviewQueue=()=>{};
    const loadReviewQueue=async()=>{
     rowsBox.innerHTML='<div class="loading">Loading moderation queue…</div>';
     const[reviewsResult,reportsResult,showsResult]=await Promise.all([
@@ -1335,7 +1336,7 @@ if(tab==="challenges"){
     if(profileResult.error)console.warn("Review profile labels unavailable:",profileResult.error.message);
     const profiles=new Map((profileResult.data||[]).map(x=>[x.user_id,x.display_name||x.username||"Member"])),votes=new Map((voteResult.data||[]).map(x=>[x.review_id,x.helpful_count]));
     statsBox.innerHTML='<article><b>'+allReviews.length+'</b><span>Total reviews</span></article><article><b>'+allReviews.filter(x=>x.status==="published").length+'</b><span>Published</span></article><article><b>'+allReviews.filter(x=>x.status==="hidden").length+'</b><span>Hidden</span></article><article><b>'+allReports.filter(x=>x.status==="new"||x.status==="reviewing").length+'</b><span>Open reports</span></article>';
-    const render=()=>{
+    renderReviewQueue=()=>{
      const q=search.value.trim().toLowerCase(),f=filter.value;
      const list=allReviews.filter(row=>{
       const reports=allReports.filter(x=>x.review_id===row.id),reported=reports.some(x=>x.status==="new"||x.status==="reviewing");
@@ -1354,13 +1355,12 @@ if(tab==="challenges"){
      });
      all("[data-report-state]").forEach(button=>button.onclick=async()=>{
       const id=button.dataset.reportState,report=allReports.find(x=>x.id===id);button.disabled=true;
-      try{const patch={status:button.dataset.state,reviewed_at:new Date().toISOString(),reviewed_by:user.id};const{error}=await sb.from("podcast_review_reports").update(patch).eq("id",id);if(error)throw error;report.status=patch.status;toast("Report updated.");render()}catch(error){toast("Report update failed: "+error.message)}finally{button.disabled=false}
+      try{const patch={status:button.dataset.state,reviewed_at:new Date().toISOString(),reviewed_by:user.id};const{error}=await sb.from("podcast_review_reports").update(patch).eq("id",id);if(error)throw error;report.status=patch.status;toast("Report updated.");renderReviewQueue()}catch(error){toast("Report update failed: "+error.message)}finally{button.disabled=false}
      });
     };
-    render();
+    renderReviewQueue();
    };
-   search.addEventListener("input",renderIfLoaded);filter.addEventListener("change",renderIfLoaded);
-   function renderIfLoaded(){if(allReviews.length||allReports.length){const q=search.value;search.value=q;render()}}
+   search.addEventListener("input",()=>renderReviewQueue());filter.addEventListener("change",()=>renderReviewQueue());
    $("#reviewModerationReload").onclick=()=>loadReviewQueue().catch(fail);
    await loadReviewQueue();return;
   }
