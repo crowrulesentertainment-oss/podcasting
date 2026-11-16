@@ -70,8 +70,3 @@ select
  'This public roadmap connects the CrowRules Platform Reviews feedback queue with visible development stages. CrowRules administrators can publish updates as work progresses.',
  'community feedback','in_progress','high',20,true
 where not exists(select 1 from public.podcast_development_roadmap where title='Community-Driven Development Roadmap');
-
-create index if not exists podcast_development_roadmap_created_by_idx
- on public.podcast_development_roadmap(created_by);
-create index if not exists podcast_development_roadmap_updated_by_idx
- on public.podcast_development_roadmap(updated_by);
