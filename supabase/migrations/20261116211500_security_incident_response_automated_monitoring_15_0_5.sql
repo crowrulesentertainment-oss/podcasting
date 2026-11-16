@@ -1,0 +1,2 @@
+-- Superseded by 20261116211335_security_incident_response_automated_monitoring_15_0_5.sql.
+-- Intentionally empty compatibility placeholder; the schema migration is tracked at the applied version.
