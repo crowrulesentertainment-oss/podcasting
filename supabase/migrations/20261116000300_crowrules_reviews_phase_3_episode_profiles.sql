@@ -44,14 +44,14 @@ create policy "Members manage own episode review votes"
   and exists(select 1 from public.podcast_episode_reviews r where r.id=review_id and r.status='published')
  );
 
-revoke all on table public.podcast_episode_review_votes from anon;
+revoke all on table public.podcast_episode_review_votes from anon,authenticated;
 grant select,insert,delete on table public.podcast_episode_review_votes to authenticated;
-revoke all on table public.podcast_episode_review_reports from anon;
+revoke all on table public.podcast_episode_review_reports from anon,authenticated;
 grant select,insert,update,delete on table public.podcast_episode_review_reports to authenticated;
-revoke all on table public.podcast_episode_review_replies from anon;
+revoke all on table public.podcast_episode_review_replies from anon,authenticated;
 grant select on table public.podcast_episode_review_replies to anon;
 grant select,insert,update,delete on table public.podcast_episode_review_replies to authenticated;
-revoke all on table public.podcast_episode_reviews from anon;
+revoke all on table public.podcast_episode_reviews from anon,authenticated;
 grant select on table public.podcast_episode_reviews to anon;
 grant select,insert,update,delete on table public.podcast_episode_reviews to authenticated;
 grant select on table public.podcast_member_profile_stats to anon,authenticated;
