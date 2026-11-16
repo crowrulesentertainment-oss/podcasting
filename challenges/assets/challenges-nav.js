@@ -3,7 +3,7 @@
   const header = document.querySelector("header.head");
   if (!header) return;
   const rootPage = /\/challenges\/?$/.test(location.pathname);
-  const base = rootPage ? "challenges/" : "";
+  const base = rootPage ? "" : "../";
   const podcastHome = rootPage ? "../index.html" : "../../index.html";
   const href = (path) => base + path;
   const groups = [
