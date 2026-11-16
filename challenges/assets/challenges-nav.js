@@ -2,10 +2,9 @@
 (() => {
   const header = document.querySelector("header.head");
   if (!header) return;
-  const rootPage = /\/challenges\/?$/.test(location.pathname);
-  const base = rootPage ? "" : "../";
-  const podcastHome = rootPage ? "../index.html" : "../../index.html";
-  const href = (path) => base + path;
+  const challengesHome = "https://crowrulesentertainment-oss.github.io/podcasting/challenges/";
+  const podcastHome = "https://crowrulesentertainment-oss.github.io/podcasting/";
+  const href = (path) => challengesHome + path;
   const groups = [
     { label: "Explore", links: [
       ["Challenge Headquarters", "index.html"],
