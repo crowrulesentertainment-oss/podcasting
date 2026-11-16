@@ -2180,7 +2180,7 @@ async function admin(){
      finally{$("#podcasterEmailRefresh").disabled=false}
     };
     $("#podcasterEmailRefresh").onclick=loadEmailCenter;
-    test.onclick=async()=>{test.disabled=true;try{const result=await fn("podcasting-admin-email-center",{action:"test"});feedback.textContent=result.message||"Test email accepted by Brevo."}catch(error){feedback.textContent="Test email failed: "+error.message}finally{test.disabled=false}};
+    test.onclick=async()=>{test.disabled=true;try{const result=await fn("podcasting-admin-email-center",{action:"test",subject:subject.value.trim(),body:body.value,template:emailTemplate()});feedback.textContent=result.message||"Test email accepted by Brevo."}catch(error){feedback.textContent="Test email failed: "+error.message}finally{test.disabled=false}};
     send.onclick=async()=>{
      const emailSubject=subject.value.trim(),emailBody=body.value.trim(),count=Number(audience.textContent.replace(/,/g,""))||0;
      if(emailSubject.length<3||emailBody.length<2){feedback.textContent="Enter a subject and message before sending.";return}
