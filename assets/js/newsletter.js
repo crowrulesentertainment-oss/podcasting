@@ -17,4 +17,4 @@ async function handleAction(){
  try{const result=await request(confirmToken?"confirm":"unsubscribe",{token:confirmToken||unsubscribeToken});status.textContent=result.message;status.classList.add("good")}
  catch(error){status.textContent=error.message;status.classList.add("warn")}
 }
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",handleAction);else handleAction();
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{initNewsletterSignup();handleAction()});else{initNewsletterSignup();handleAction()}
