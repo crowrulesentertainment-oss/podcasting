@@ -92,6 +92,15 @@
 </head>
 <body data-page="home">
   <main id="app"><div class="loading">Loading CrowRules Podcasting…</div></main>
-  <script type="module" src="assets/js/app.js?v=20261115-seo-dynamic-v1"></script>
+  <script>
+  // If the application module or one of its imports fails before startup,
+  // replace the permanent loading label with a recoverable message.
+  window.setTimeout(() => {
+    const app = document.getElementById("app");
+    if (!app || !app.querySelector(".loading")) return;
+    app.innerHTML = '<section class="container section notice" role="alert"><h2>Podcasting is taking longer than expected.</h2><p>The app could not finish loading. This can happen when a browser has an older cached module or a network request is interrupted.</p><button type="button" onclick="location.reload()">Reload CrowRules Podcasting</button></section>';
+  }, 15000);
+</script>
+<script type="module" src="assets/js/app.js?v=20261115-startup-recovery-v1"></script>
 </body>
 </html>
