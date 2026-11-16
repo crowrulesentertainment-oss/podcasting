@@ -49,3 +49,24 @@ drop policy if exists "Admins delete development roadmap items" on public.podcas
 create policy "Admins delete development roadmap items"
  on public.podcast_development_roadmap for delete to authenticated
  using (private.crowrules_is_admin_impl());
+
+
+-- Seed the first visible milestones so members can see the feedback-to-release lifecycle.
+insert into public.podcast_development_roadmap
+ (title,summary,details,category,status,priority,sort_order,is_public,release_notes,completed_at)
+select
+ 'Monthly Platform Feedback Reporting',
+ 'Recurring member suggestions, reported issues and platform ratings are summarized for CrowRules development planning.',
+ 'Monthly reporting brings together platform reviews, feature requests, bug reports and feedback status so recurring themes can inform development priorities.',
+ 'community feedback','completed','normal',10,true,
+ 'Monthly feedback reporting and the administrator report workspace are available in CrowRules Podcasting.',now()
+where not exists(select 1 from public.podcast_development_roadmap where title='Monthly Platform Feedback Reporting');
+
+insert into public.podcast_development_roadmap
+ (title,summary,details,category,status,priority,sort_order,is_public)
+select
+ 'Community-Driven Development Roadmap',
+ 'Members can follow platform suggestions from initial review through approval, active development and release.',
+ 'This public roadmap connects the CrowRules Platform Reviews feedback queue with visible development stages. CrowRules administrators can publish updates as work progresses.',
+ 'community feedback','in_progress','high',20,true
+where not exists(select 1 from public.podcast_development_roadmap where title='Community-Driven Development Roadmap');
