@@ -6,12 +6,13 @@ const avatar=(url,name)=>url?'<img src="'+esc(url)+'" alt="">':'<span>'+esc((nam
 function person(p){const name=p.display_name||p.username||"Community member";return'<a class="cr-rec-person" href="'+profileLink(p)+'">'+avatar(p.avatar_url,name)+'<span><b>'+esc(name)+'</b><small>@'+esc(p.username||"member")+'</small></span></a>'}
 function stars(n){return'<span class="cr-review-stars" aria-label="'+Number(n)+' out of 5 stars">'+'★'.repeat(Number(n)||0)+'☆'.repeat(5-(Number(n)||0))+'</span>'}
 async function featuredReviews(){
- const[shows,episodes]=await Promise.all([
+ const[shows,episodes,platform]=await Promise.all([
   sb.from("podcast_reviews").select("id,user_id,podcast_id,rating,title,body,created_at,featured_at").eq("status","published").not("featured_at","is",null).order("featured_at",{ascending:false}).limit(8),
-  sb.from("podcast_episode_reviews").select("id,user_id,episode_id,rating,title,body,created_at,featured_at").eq("status","published").not("featured_at","is",null).order("featured_at",{ascending:false}).limit(8)
+  sb.from("podcast_episode_reviews").select("id,user_id,episode_id,rating,title,body,created_at,featured_at").eq("status","published").not("featured_at","is",null).order("featured_at",{ascending:false}).limit(8),
+  sb.from("podcast_platform_reviews").select("id,user_id,overall_rating,title,body,created_at,featured_at").eq("status","published").not("featured_at","is",null).order("featured_at",{ascending:false}).limit(8)
  ]);
- if(shows.error)throw shows.error;if(episodes.error)throw episodes.error;
- const rows=[...(shows.data||[]).map(x=>({...x,kind:"show"})),...(episodes.data||[]).map(x=>({...x,kind:"episode"}))].sort((a,b)=>new Date(b.featured_at)-new Date(a.featured_at)).slice(0,8);
+ if(shows.error)throw shows.error;if(episodes.error)throw episodes.error;if(platform.error)throw platform.error;
+ const rows=[...(shows.data||[]).map(x=>({...x,kind:"show"})),...(episodes.data||[]).map(x=>({...x,kind:"episode"})),...(platform.data||[]).map(x=>({...x,rating:x.overall_rating,kind:"platform"}))].sort((a,b)=>new Date(b.featured_at)-new Date(a.featured_at)).slice(0,8);
  if(!rows.length)return'<div class="cr-rec-empty">Featured listener reviews will appear here when the CrowRules team selects them.</div>';
  const ids=[...new Set(rows.map(x=>x.user_id))],showIds=rows.filter(x=>x.kind==="show").map(x=>x.podcast_id),episodeIds=rows.filter(x=>x.kind==="episode").map(x=>x.episode_id);
  const[profiles,showsById,episodesById]=await Promise.all([
@@ -20,7 +21,7 @@ async function featuredReviews(){
   episodeIds.length?sb.from("podcast_episodes").select("id,title").in("id",episodeIds):Promise.resolve({data:[]})
  ]);
  const people=new Map((profiles.data||[]).map(x=>[x.user_id,x])),showMap=new Map((showsById.data||[]).map(x=>[x.id,x])),episodeMap=new Map((episodesById.data||[]).map(x=>[x.id,x]));
- return rows.map(r=>{const p=people.get(r.user_id)||{username:"community"},target=r.kind==="show"?showMap.get(r.podcast_id):episodeMap.get(r.episode_id),url=SITE_BASE+(r.kind==="show"?"show.html?id=":"episode.html?id=")+encodeURIComponent(r.kind==="show"?r.podcast_id:r.episode_id);return'<article class="cr-rec-feature"><div class="cr-rec-feature-top"><span>✦ FEATURED '+(r.kind==="show"?"SHOW":"EPISODE")+' REVIEW</span>'+stars(r.rating)+'</div><h3>'+esc(r.title||"Listener review")+'</h3><p>'+esc(r.body||"")+'</p><div class="cr-rec-feature-foot">'+person(p)+'<a href="'+url+'">Read review ↗</a></div><small class="cr-rec-target">On '+esc(target?.title||"a CrowRules title")+'</small></article>'}).join("");
+ return rows.map(r=>{const p=people.get(r.user_id)||{username:"community"},target=r.kind==="show"?showMap.get(r.podcast_id):r.kind==="episode"?episodeMap.get(r.episode_id):{title:"CrowRules Podcasting Platform"},url=r.kind==="platform"?SITE_BASE+"platform-reviews.html":SITE_BASE+(r.kind==="show"?"show.html?id=":"episode.html?id=")+encodeURIComponent(r.kind==="show"?r.podcast_id:r.episode_id);return'<article class="cr-rec-feature"><div class="cr-rec-feature-top"><span>✦ FEATURED '+(r.kind==="show"?"SHOW":r.kind==="episode"?"EPISODE":"PLATFORM")+' REVIEW</span>'+stars(r.rating)+'</div><h3>'+esc(r.title||"Listener review")+'</h3><p>'+esc(r.body||"")+'</p><div class="cr-rec-feature-foot">'+person(p)+'<a href="'+url+'">Read review ↗</a></div><small class="cr-rec-target">On '+esc(target?.title||"a CrowRules title")+'</small></article>'}).join("");
 }
 async function renderLeaderboard(month){
  const{data,error}=await sb.rpc("get_podcast_monthly_reviewer_leaderboard",{p_month:monthValue(month)+"-01"});if(error)throw error;
