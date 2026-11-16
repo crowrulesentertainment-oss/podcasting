@@ -127,3 +127,14 @@ Additional creator workflow ideas are surfaced in the Creator Toolkit: release p
 - The Podcasting Admin Command Center has a Review Moderation workspace for reviewing reports and changing review visibility to published, hidden, removed or pending.
 - Vote identities remain private. A narrowly scoped security-definer RPC returns only aggregate vote counts and whether the current signed-in viewer has voted; a second RPC toggles the current viewer's own vote.
 - Report submission is restricted to the signed-in reporter and an existing published review. Existing admin authorization and RLS remain in force.
+
+## CrowRules Reviews — Phase 3
+
+- Episode pages now include a dedicated five-star rating and written-review section, separate from the podcast's overall show reviews.
+- Listeners can publish one review per episode and update their own published review.
+- Public episode review cards link to discoverable member profiles and show creator responses.
+- Creator Studio → Listener Reviews now includes an Episode Reviews workspace with creator replies.
+- Podcasting Admin → Episode Review Moderation includes report triage, review search/filtering, publish/hide/remove/pending actions and moderator notes.
+- Public member profiles now include review contribution totals, average ratings and a chronological history of published show and episode reviews.
+- The existing episode review, reply, report, vote and member profile stats tables are reused; existing numeric episode ratings are preserved.
+- Supabase policies were tightened so episode review edits require a currently published episode/show, reports must target a published review, and vote writes are limited to the signed-in member and published reviews. Anonymous roles have read-only access to published episode reviews and replies; vote/report tables are not exposed to anon.
