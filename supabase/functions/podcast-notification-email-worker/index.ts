@@ -62,7 +62,7 @@ async function main(req){
  const user=await er.json(); const to=user?.email;
  if(!to){await db.from("podcast_notification_delivery_queue").update({status:"failed",last_error:"recipient_email_not_found",locked_at:null,updated_at:new Date().toISOString()}).eq("id",job.id);return out({ok:false,status:"failed",job_id:job.id},422);}
  let unsubscribeUrl:string|undefined;
- if(nr.data.notification_type==="development_roadmap_update"){
+ if(nr.data.metadata?.source==="platform_feedback_roadmap"){
   const pref=await db.from("podcast_notification_preferences").select("email_enabled,roadmap_email_enabled,roadmap_email_unsubscribe_token").eq("user_id",nr.data.user_id).maybeSingle();
   if(pref.error)throw pref.error;
   if(!pref.data?.email_enabled||!pref.data?.roadmap_email_enabled||!user?.email_confirmed_at){
