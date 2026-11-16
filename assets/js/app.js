@@ -629,7 +629,7 @@ async function episode(){
    catch(err){feedback.textContent=err.message||"Your review could not be saved.";button.disabled=false;button.textContent=mine?"Save review":"Publish review"}
   });
  }
- let reviewViewer=null;try{reviewViewer=await me()}catch{}
+ let user=null;try{user=await me()}catch{}
  loadEpisodeReviews().catch(error=>{console.warn("Episode reviews failed:",error);$("#episodeReviewList").innerHTML='<div class="notice">Episode reviews could not be loaded.</div>'});
  async function loadEpisodeComments(){
   const list=$("#episodeCommentList"),count=$("#episodeCommentCount"),composer=$("#episodeCommentComposer");
@@ -908,7 +908,7 @@ async function episode(){
   };
 
   if(tab==="reviews"){
-   w.innerHTML='<div class="panel"><div class="creator-panel-head"><div><div class="eyebrow">AUDIENCE CONNECTION</div><h2>Listener Reviews</h2><p class="muted">Read feedback on your shows and respond as the creator. Listener reviews remain in the listener’s control.</p></div></div><div class="field creator-filter"><label>Filter by show</label><select id="creatorReviewShow"><option value="">All my shows</option>'+showsList.map(p=>'<option value="'+p.id+'">'+esc(p.title)+'</option>').join("")+'</select></div><div id="creatorReviewSummary" class="cr-review-summary"></div><div id="creatorReviewRows" class="cr-review-list"><div class="loading">Loading reviews…</div></div></div>';
+   w.innerHTML='<div class="panel"><div class="creator-panel-head"><div><div class="eyebrow">AUDIENCE CONNECTION</div><h2>Listener Reviews</h2><p class="muted">Read feedback on your shows and respond as the creator. Listener reviews remain in the listener’s control.</p></div></div><div class="field creator-filter"><label>Filter by show</label><select id="creatorReviewShow"><option value="">All my shows</option>'+showsList.map(p=>'<option value="'+p.id+'">'+esc(p.title)+'</option>').join("")+'</select></div><div id="creatorReviewSummary" class="cr-review-summary"></div><div id="creatorReviewRows" class="cr-review-list"><div class="loading">Loading reviews…</div></div></div><div class="panel"><div class="creator-panel-head"><div><div class="eyebrow">EPISODE FEEDBACK</div><h2>Episode Reviews</h2><p class="muted">Read and respond to reviews on individual episodes from your shows.</p></div></div><div id="creatorEpisodeReviewSummary" class="cr-review-summary"></div><div id="creatorEpisodeReviewRows" class="cr-review-list"><div class="loading">Loading episode reviews…</div></div></div>';
    const reviewBox=$("#creatorReviewRows"),reviewSummary=$("#creatorReviewSummary"),filter=$("#creatorReviewShow");
    async function loadCreatorReviews(){
     reviewBox.innerHTML='<div class="loading">Loading reviews…</div>';
@@ -941,7 +941,35 @@ async function episode(){
      }catch(err){if(status)status.textContent=err.message||"Response could not be saved.";button.disabled=false;button.textContent=existing?"Update response":"Post response"}
     });
    }
-   filter.onchange=loadCreatorReviews;await loadCreatorReviews();
+   const episodeReviewBox=$("#creatorEpisodeReviewRows"),episodeReviewSummary=$("#creatorEpisodeReviewSummary");
+   async function loadCreatorEpisodeReviews(){
+    if(!episodeReviewBox)return;
+    const ownedEpisodes=(episodes||[]).filter(x=>ids.includes(x.podcast_id)),episodeIds=ownedEpisodes.map(x=>x.id);
+    if(!episodeIds.length){episodeReviewBox.innerHTML='<div class="empty">Your published episodes will receive listener reviews here.</div>';episodeReviewSummary.textContent="0 episode reviews";return}
+    let query=sb.from("podcast_episode_reviews").select("id,user_id,episode_id,rating,title,body,status,created_at").in("episode_id",episodeIds).order("created_at",{ascending:false}).limit(300);
+    if(filter.value){const selectedIds=ownedEpisodes.filter(x=>x.podcast_id===filter.value).map(x=>x.id);query=query.in("episode_id",selectedIds)}
+    const{data:rows,error}=await query;if(error){episodeReviewBox.innerHTML='<div class="notice">Episode reviews could not be loaded: '+esc(error.message)+'</div>';return}
+    const reviews=rows||[],reviewIds=reviews.map(x=>x.id),users=[...new Set(reviews.map(x=>x.user_id))];
+    const[profilesResult,repliesResult]=await Promise.all([
+     users.length?sb.from("crowrules_public_profiles").select("user_id,username,display_name,first_name,last_name,avatar_url").in("user_id",users):Promise.resolve({data:[]}),
+     reviewIds.length?sb.from("podcast_episode_review_replies").select("id,review_id,creator_user_id,body,status").in("review_id",reviewIds):Promise.resolve({data:[]})
+    ]);
+    const profiles=new Map((profilesResult.data||[]).map(x=>[x.user_id,x])),replies=new Map((repliesResult.data||[]).map(x=>[x.review_id,x])),episodeMap=new Map(ownedEpisodes.map(x=>[x.id,x]));
+    const avg=reviews.length?reviews.reduce((n,x)=>n+Number(x.rating||0),0)/reviews.length:0;
+    episodeReviewSummary.innerHTML='<strong class="cr-review-average">'+(reviews.length?avg.toFixed(1):"—")+'</strong><span class="cr-review-stars">'+(reviews.length?"★".repeat(Math.round(avg))+"☆".repeat(5-Math.round(avg)):"☆☆☆☆☆")+'</span><span class="muted">'+reviews.length+' episode reviews</span>';
+    episodeReviewBox.innerHTML=reviews.length?reviews.map(row=>{
+     const profile=profiles.get(row.user_id)||{},name=profile.display_name||[profile.first_name,profile.last_name].filter(Boolean).join(" ")||profile.username||"Listener",ep=episodeMap.get(row.episode_id),reply=replies.get(row.id),mine=reply?.creator_user_id===u.id;
+     return '<article class="cr-review-card"><div class="cr-review-card-head"><div><b>'+esc(ep?.title||"Episode")+'</b><small>'+(profile.username?'<a href="'+SITE_BASE+'profile.html?username='+encodeURIComponent(profile.username)+'">'+esc(name)+'</a>':esc(name))+' · '+new Date(row.created_at).toLocaleDateString()+'</small></div><span class="cr-review-stars">'+'★'.repeat(Number(row.rating))+'☆'.repeat(5-Number(row.rating))+'</span></div><h3>'+esc(row.title)+'</h3><p>'+esc(row.body)+'</p><div class="cr-review-response"><label for="creatorEpisodeReply-'+row.id+'">Your public episode response</label><textarea id="creatorEpisodeReply-'+row.id+'" rows="3" maxlength="2000" '+(reply&&!mine?'disabled':'')+' placeholder="Respond thoughtfully to this listener…">'+esc(reply?.body||"")+'</textarea>'+(reply&&!mine?'<small class="muted">Another show team member has already responded.</small>':'<button class="btn secondary" type="button" data-save-episode-review-reply="'+row.id+'">'+(reply?"Update response":"Post response")+'</button>')+'<span class="muted small" id="creatorEpisodeReplyStatus-'+row.id+'" role="status"></span></div></article>'
+    }).join(""):'<div class="empty">No episode reviews yet. New listener feedback will appear here.</div>';
+    all("[data-save-episode-review-reply]").forEach(button=>button.onclick=async()=>{
+     const id=button.dataset.saveEpisodeReviewReply,existing=replies.get(id),textarea=$("#creatorEpisodeReply-"+id),status=$("#creatorEpisodeReplyStatus-"+id),body=String(textarea?.value||"").trim();
+     if(!body){status.textContent="Write a response before saving.";return}
+     button.disabled=true;button.textContent="Saving…";
+     try{const payload={body,creator_user_id:u.id,status:"published"};const result=existing?await sb.from("podcast_episode_review_replies").update(payload).eq("id",existing.id).eq("creator_user_id",u.id):await sb.from("podcast_episode_review_replies").insert({...payload,review_id:id});if(result.error)throw result.error;toast(existing?"Episode response updated.":"Episode response published.");await loadCreatorEpisodeReviews()}
+     catch(err){status.textContent=err.message||"Response could not be saved.";button.disabled=false;button.textContent=existing?"Update response":"Post response"}
+    });
+   }
+   filter.onchange=()=>{loadCreatorReviews();loadCreatorEpisodeReviews()};await Promise.all([loadCreatorReviews(),loadCreatorEpisodeReviews()]);
   }else if(tab==="shows"){
    if(new URLSearchParams(location.search).get("edit")){const p=showsList.find(x=>x.id===new URLSearchParams(location.search).get("edit"));if(!p)throw Error("That show is not in your creator workspace.");showForm(p);return}
    w.innerHTML='<div class="panel"><div class="creator-panel-head"><div><div class="eyebrow">Your catalog</div><h2>My Shows</h2><p class="muted">Create a new show or edit its public details and distribution information.</p></div><button class="btn" id="newShow">＋ Create show</button></div><div class="creator-list">'+showsList.map(p=>'<article class="creator-item"><div class="creator-item-main"><div class="creator-thumb">'+(p.artwork_url?'<img loading="lazy" src="'+esc(p.artwork_url)+'" alt="">':'🎙')+'</div><div><b>'+esc(p.title)+'</b><small>'+esc(p.category)+' · '+esc(p.status)+' · '+episodes.filter(e=>e.podcast_id===p.id).length+' episodes</small></div></div><div class="actions"><a class="btn secondary" href="creator.html?tab=shows&edit='+p.id+'">Edit show</a><a class="btn secondary" href="creator.html?tab=episodes&podcast_id='+p.id+'">Manage episodes</a></div></article>').join("")||'<div class="empty">You have not created a show yet. Start with your first show draft.</div>'+'</div>';
@@ -1709,7 +1737,7 @@ async function awards(){
 async function admin(){
  if(adminPlayRefreshInterval){clearInterval(adminPlayRefreshInterval);adminPlayRefreshInterval=null}if(adminVisitorRefreshInterval){clearInterval(adminVisitorRefreshInterval);adminVisitorRefreshInterval=null}if(adminVisibilityHandler){document.removeEventListener("visibilitychange",adminVisibilityHandler);adminVisibilityHandler=null}
  const user=await me();if(!user)return go("login.html");
- const tabs=[["overview","Command Center"],["reviews","Review Moderation"],["shows","Shows"],["episodes","Episodes"],["pipeline","Production"],["creators","Creator Profiles"],["guests","Guests"],["rankings","Rankings"],["badges","Badges"],["awards","Awards"],["users","Members"],["finance","Finance"],["settings","System"],["email","Podcaster Email Center"],["listenerEmail","Listener Email Center"],["guestEmail","Guest Email Center"],["newsletterEmail","Newsletter Email Center"],["challenges","Challenge Control Room"],["challengeEpisodes","Challenge Episodes"],["partnerships","Partnerships"]];
+ const tabs=[["overview","Command Center"],["reviews","Show Review Moderation"],["episodeReviews","Episode Review Moderation"],["shows","Shows"],["episodes","Episodes"],["pipeline","Production"],["creators","Creator Profiles"],["guests","Guests"],["rankings","Rankings"],["badges","Badges"],["awards","Awards"],["users","Members"],["finance","Finance"],["settings","System"],["email","Podcaster Email Center"],["listenerEmail","Listener Email Center"],["guestEmail","Guest Email Center"],["newsletterEmail","Newsletter Email Center"],["challenges","Challenge Control Room"],["challengeEpisodes","Challenge Episodes"],["partnerships","Partnerships"]];
  const requestedTab=new URLSearchParams(location.search).get("tab")||"overview";
  let tab=tabs.some(x=>x[0]===requestedTab)?requestedTab:"overview";
  const title=tabs.find(x=>x[0]===tab)[1];
@@ -1961,6 +1989,36 @@ async function admin(){
     finally{button.disabled=false;button.textContent="↺ Reset all episode plays"}
    };
    return;
+  }
+  if(tab==="episodeReviews"){
+   work.innerHTML='<div class="admin-module cr-review-moderation"><span class="admin-kicker">EPISODE COMMUNITY TRUST & SAFETY</span><div class="section-head"><div><h3>Episode Review Moderation</h3><p>Investigate listener reports and manage feedback attached to individual episodes.</p></div><button class="btn secondary" id="episodeReviewModerationReload">↻ Refresh queue</button></div><div class="cr-review-mod-stats" id="episodeReviewModStats"></div><div class="cr-review-mod-filters"><input id="episodeReviewModSearch" type="search" placeholder="Search episode reviews"><select id="episodeReviewModFilter"><option value="all">All reviews</option><option value="reported">Reported</option><option value="published">Published</option><option value="hidden">Hidden</option><option value="removed">Removed</option><option value="pending">Pending</option></select></div><div id="episodeReviewModRows" class="cr-review-mod-rows"><div class="loading">Loading episode review queue…</div></div></div>';
+   const box=$("#episodeReviewModRows"),stats=$("#episodeReviewModStats"),search=$("#episodeReviewModSearch"),filter=$("#episodeReviewModFilter");let reviews=[],reports=[],episodesById=new Map(),profiles=new Map();
+   const loadEpisodeReviewQueue=async()=>{
+    box.innerHTML='<div class="loading">Loading episode review queue…</div>';
+    const[reviewResult,reportResult,episodeResult]=await Promise.all([
+     sb.from("podcast_episode_reviews").select("id,episode_id,user_id,rating,title,body,status,moderation_reason,created_at").order("created_at",{ascending:false}).limit(500),
+     sb.from("podcast_episode_review_reports").select("id,review_id,reporter_user_id,reason,details,status,created_at").order("created_at",{ascending:false}).limit(500),
+     sb.from("podcast_episodes").select("id,title,podcast_id").limit(2000)
+    ]);
+    for(const x of [reviewResult,reportResult,episodeResult])if(x.error)throw x.error;
+    reviews=reviewResult.data||[];reports=reportResult.data||[];episodesById=new Map((episodeResult.data||[]).map(x=>[x.id,x]));
+    const userIds=[...new Set([...reviews.map(x=>x.user_id),...reports.map(x=>x.reporter_user_id)])],profileResult=userIds.length?await sb.from("crowrules_public_profiles").select("user_id,username,display_name,first_name,last_name").in("user_id",userIds):{data:[]};
+    profiles=new Map((profileResult.data||[]).map(x=>[x.user_id,x]));
+    stats.innerHTML='<article><b>'+reviews.length+'</b><span>Total episode reviews</span></article><article><b>'+reviews.filter(x=>x.status==="published").length+'</b><span>Published</span></article><article><b>'+reviews.filter(x=>x.status==="hidden").length+'</b><span>Hidden</span></article><article><b>'+reports.filter(x=>x.status==="new"||x.status==="reviewing").length+'</b><span>Open reports</span></article>';
+    const render=()=>{
+     const q=search.value.trim().toLowerCase(),f=filter.value;
+     const visible=reviews.filter(row=>{const rs=reports.filter(x=>x.review_id===row.id),reported=rs.some(x=>x.status==="new"||x.status==="reviewing");if(f==="reported"&&!reported)return false;if(["published","hidden","removed","pending"].includes(f)&&row.status!==f)return false;const ep=episodesById.get(row.episode_id),profile=profiles.get(row.user_id)||{},hay=[row.title,row.body,row.status,ep?.title,profile.display_name,profile.username,...rs.flatMap(x=>[x.reason,x.details,x.status])].join(" ").toLowerCase();return !q||hay.includes(q)});
+     box.innerHTML=visible.length?visible.map(row=>{
+      const ep=episodesById.get(row.episode_id),rs=reports.filter(x=>x.review_id===row.id),profile=profiles.get(row.user_id)||{},name=profile.display_name||[profile.first_name,profile.last_name].filter(Boolean).join(" ")||profile.username||"Listener";
+      return '<article class="cr-review-mod-card"><header><div><b>'+esc(ep?.title||"Episode")+'</b><small>'+esc(name)+' · '+new Date(row.created_at).toLocaleString()+'</small></div><span class="admin-status">'+esc(row.status)+'</span></header><div class="cr-review-mod-stars">'+'★'.repeat(Number(row.rating))+'☆'.repeat(5-Number(row.rating))+'</div><h4>'+esc(row.title)+'</h4><p>'+esc(row.body)+'</p>'+(rs.length?'<div class="cr-review-mod-reports"><b>Reports ('+rs.length+')</b>'+rs.map(r=>'<div><span class="admin-status">'+esc(r.reason.replaceAll("_"," "))+' · '+esc(r.status)+'</span><p>'+esc(r.details||"No additional details")+'</p><div class="cr-review-mod-report-actions"><button class="btn secondary" type="button" data-episode-report="'+r.id+'" data-state="reviewing">Mark reviewing</button><button class="btn secondary" type="button" data-episode-report="'+r.id+'" data-state="dismissed">Dismiss</button><button class="btn secondary" type="button" data-episode-report="'+r.id+'" data-state="actioned">Actioned</button></div></div>').join("")+'</div>':'')+'<div class="cr-review-mod-actions"><label>Moderation action<select data-episode-review-status="'+row.id+'"><option value="">Change status…</option><option value="published">Publish</option><option value="hidden">Hide</option><option value="removed">Remove</option><option value="pending">Pending</option></select></label><label>Moderator note<input data-episode-review-note="'+row.id+'" maxlength="500" value="'+esc(row.moderation_reason||"")+'" placeholder="Internal note"></label><button class="btn secondary" type="button" data-save-episode-review="'+row.id+'">Save moderation</button><span role="status" data-episode-review-status-text="'+row.id+'"></span></div></article>'
+     }).join(""):'<div class="empty">No episode reviews match this filter.</div>';
+     all("[data-save-episode-review]").forEach(button=>button.onclick=async()=>{const id=button.dataset.saveEpisodeReview,status=box.querySelector('[data-episode-review-status="'+id+'"]'),note=box.querySelector('[data-episode-review-note="'+id+'"]'),message=box.querySelector('[data-episode-review-status-text="'+id+'"]'),patch={moderation_reason:note.value.trim()||null};if(status.value)patch.status=status.value;button.disabled=true;try{const{error}=await sb.from("podcast_episode_reviews").update(patch).eq("id",id);if(error)throw error;message.textContent="Moderation saved.";toast("Episode review updated.");await loadEpisodeReviewQueue()}catch(err){message.textContent=err.message||"Could not save moderation.";button.disabled=false}});
+     all("[data-episode-report]").forEach(button=>button.onclick=async()=>{button.disabled=true;try{const{error}=await sb.from("podcast_episode_review_reports").update({status:button.dataset.state,reviewed_at:new Date().toISOString(),reviewed_by:user.id}).eq("id",button.dataset.episodeReport);if(error)throw error;toast("Episode report updated.");await loadEpisodeReviewQueue()}catch(err){toast(err.message||"Report update failed.");button.disabled=false}});
+    };
+    search.oninput=render;filter.onchange=render;render();
+   };
+   $("#episodeReviewModerationReload").onclick=()=>loadEpisodeReviewQueue().catch(fail);
+   await loadEpisodeReviewQueue();return;
   }
   if(tab==="shows"){
    const rows=await queryRows("podcasts","id,title,status,category,description,created_at,published_at,is_crowrules_original",1000);
