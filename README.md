@@ -108,3 +108,14 @@ Additional creator workflow ideas are surfaced in the Creator Toolkit: release p
 - No database schema, RLS policy, Edge Function, or secret-key changes.
 - GitHub commits: homepage 5c9437615e8e3c8f7f07678ed4439ad2f2667678; stylesheet 03a13a8898ad19515886319303fc42487c8ecb5a.
 - GitHub Pages deployment, browser rendering, and live form/database behavior have not been independently verified.
+
+
+## CrowRules Reviews — November 16, 2026
+
+- Public show pages now include listener star ratings, written reviews, an average score and review count.
+- Signed-in listeners can publish one review per show and update their own review. The existing `podcast_reviews` table and its unique `(user_id, podcast_id)` constraint are retained.
+- Public reviews display member profile names and creator responses. Creator Studio has a **Listener Reviews** workspace where show owners can read feedback and publish one public response per review.
+- Existing review rows are preserved. Public reads are restricted to published reviews; members can read and manage their own reviews; show owners can read reviews for shows they manage; CrowRules administrators retain moderation access.
+- The Supabase migration also prepares episode written reviews, creator replies, helpful votes, reports, reviewer badge catalog/awards and the related RLS policies for later phases. The existing numeric `podcast_episode_ratings` table is not replaced.
+- New public-schema tables have explicit Data API grants and RLS enabled. No service-role key, secret, Edge Function, existing show/episode table, or existing creator workflow is changed.
+- Phase 1 currently launches show-level reviews only. Episode written reviews, helpful-vote UI, report submission/moderation UI, reviewer badges, and awards remain future phases.
