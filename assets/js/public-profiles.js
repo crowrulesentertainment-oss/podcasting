@@ -52,6 +52,14 @@ export async function profile(){
  const root=$("#app"),username=new URLSearchParams(location.search).get("username")||"";if(!username){root.innerHTML='<div class="container section"><a href="'+SITE_BASE+'profiles.html">Browse public profiles</a></div>';return}root.innerHTML='<div class="loading">Loading public profile…</div>';
  try{
   const{data:p,error}=await sb.from("crowrules_public_profiles").select("id,user_id,username,display_name,first_name,last_name,role,bio,avatar_url,membership_type,created_at").eq("username",username).maybeSingle();if(error)throw error;if(!p)throw Error("Public profile not found.");
+  const publicName=p.display_name||[p.first_name,p.last_name].filter(Boolean).join(" ")||p.username;
+  const publicBio=String(p.bio||"Discover "+publicName+" on the CrowRules Podcasting community.").replace(/\s+/g," ").slice(0,260);
+  const profileUrl=SITE_BASE+"profile.html?username="+encodeURIComponent(p.username);
+  document.title=publicName+" | CrowRules Podcasting Creator & Community Profile";
+  const setMeta=(key,value,property=false)=>{let node=document.head.querySelector((property?'meta[property="':'meta[name="')+key+'"]');if(!node){node=document.createElement("meta");node.setAttribute(property?"property":"name",key);document.head.appendChild(node)}node.content=value};
+  setMeta("description",publicBio);setMeta("robots","index,follow,max-image-preview:large");setMeta("og:type","profile",true);setMeta("og:site_name","CrowRules Podcasting",true);setMeta("og:title",publicName+" | CrowRules Podcasting",true);setMeta("og:description",publicBio,true);setMeta("og:url",profileUrl,true);setMeta("og:image",p.avatar_url||"https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png",true);setMeta("twitter:card","summary");setMeta("twitter:title",publicName+" | CrowRules Podcasting");setMeta("twitter:description",publicBio);
+  let canonical=document.head.querySelector('link[rel="canonical"]');if(!canonical){canonical=document.createElement("link");canonical.rel="canonical";document.head.appendChild(canonical)}canonical.href=profileUrl;
+  const schema=document.createElement("script");schema.type="application/ld+json";schema.id="cr-public-profile-jsonld";schema.textContent=JSON.stringify({"@context":"https://schema.org","@type":"Person","name":publicName,"alternateName":"@"+p.username,"description":publicBio,"url":profileUrl,"image":p.avatar_url||undefined}).replace(/</g,"\\u003c");document.head.appendChild(schema);
   const[{data:memberProfile},{data:creator},{data:assignments}]=await Promise.all([
    sb.from("podcast_member_profiles").select("*").eq("user_id",p.user_id).maybeSingle(),
    sb.from("creators").select("id,bio").eq("member_id",p.id).maybeSingle(),
