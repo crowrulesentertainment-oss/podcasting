@@ -317,7 +317,7 @@ const a=$("#app");
  }
 }async function discover(){
  let a=$("#app");
- a.innerHTML='<section class="page-hero"><div class="container"><div class="eyebrow">Explore the network</div><h1 class="page-title">Discover podcasts</h1><p>Search shows and conversations across the CrowRules universe.</p><div class="form-grid"><input id="q" placeholder="Search shows or topics"><select id="cat"><option value="">All categories</option></select></div></div></section><section class="section container"><div id="grid" class="cards"></div></section>';
+ a.innerHTML='<section class="page-hero"><div class="container"><div class="eyebrow">Explore the network</div><h1 class="page-title">Discover podcasts</h1><p>Search shows and conversations across the CrowRules universe.</p><p><a class="btn secondary" href="'+SITE_BASE+'podcasters.html">Have a podcast? Join the creator community ↗</a></p><div class="form-grid"><input id="q" placeholder="Search shows or topics"><select id="cat"><option value="">All categories</option></select></div></div></section><section class="section container"><div id="grid" class="cards"></div></section>';
  try{
   let data=await shows(100),requested=new URLSearchParams(location.search).get("category")||"";
   const categories=[...new Set([...data.map(x=>x.category).filter(Boolean),"Live","CrowRules Originals"])].sort((x,y)=>x.localeCompare(y));
