@@ -32,7 +32,7 @@ if auth.uid() is null or not coalesce(private.crowrules_is_admin_impl(),false) t
 return query select q.event_id,q.occurred_at,q.user_id,q.email,q.action,q.ip_address,q.user_agent,q.metadata from (
 select e.id as event_id,e.created_at as occurred_at,
 case when (e.payload->>'user_id') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then (e.payload->>'user_id')::uuid else null end as user_id,
-coalesce(u.email,'') as email,coalesce(e.payload->>'action','unknown') as action,nullif(e.ip_address,'') as ip_address,nullif(e.payload->>'user_agent','') as user_agent,coalesce(e.payload->'metadata','{}'::json) as metadata
+coalesce(u.email,'') as email,coalesce(e.payload->>'action','unknown') as action,nullif(e.ip_address,'') as ip_address,nullif(e.payload->>'user_agent','') as user_agent,coalesce(e.payload->'metadata','{}'::json)::jsonb as metadata
 from auth.audit_log_entries e left join auth.users u on u.id=case when (e.payload->>'user_id') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then (e.payload->>'user_id')::uuid else null end
 union all
 select f.id,f.attempted_at,null::uuid,'Identifier '||left(f.identifier_hash,12),'failed_password_login',null::text,null::text,jsonb_build_object('source',f.source,'identifier_fingerprint',left(f.identifier_hash,12))
