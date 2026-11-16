@@ -1316,55 +1316,6 @@ if(tab==="challenges"){
    try{await loadChallengeList();await loadChallengeDetail();renderChallengeControl()}catch(e){fail(e)}
    return;
   }
-  if(tab==="reviews"){
-   work.innerHTML='<div class="admin-module cr-review-moderation"><span class="admin-kicker">COMMUNITY TRUST & SAFETY</span><div class="section-head"><div><h3>Review Moderation</h3><p>Review listener reports, investigate flagged content and manage review visibility.</p></div><button class="btn secondary" id="reviewModerationReload">↻ Refresh queue</button></div><div class="cr-review-mod-stats" id="reviewModerationStats"></div><div class="cr-review-mod-filters"><input id="reviewModerationSearch" type="search" placeholder="Search reviews, show names or report details"><select id="reviewModerationFilter"><option value="all">All reviews</option><option value="reported">Reported reviews</option><option value="published">Published</option><option value="hidden">Hidden</option><option value="removed">Removed</option></select></div><div id="reviewModerationRows" class="cr-review-mod-rows"><div class="loading">Loading moderation queue…</div></div></div>';
-   const rowsBox=$("#reviewModerationRows"),statsBox=$("#reviewModerationStats"),search=$("#reviewModerationSearch"),filter=$("#reviewModerationFilter");let allReviews=[],allReports=[],showNames=new Map();
-   let renderReviewQueue=()=>{};
-   const loadReviewQueue=async()=>{
-    rowsBox.innerHTML='<div class="loading">Loading moderation queue…</div>';
-    const[reviewsResult,reportsResult,showsResult]=await Promise.all([
-     sb.from("podcast_reviews").select("id,podcast_id,user_id,rating,title,body,status,moderation_reason,created_at").order("created_at",{ascending:false}).limit(500),
-     sb.from("podcast_review_reports").select("id,review_id,reporter_user_id,reason,details,status,moderator_note,created_at,reviewed_at").order("created_at",{ascending:false}).limit(500),
-     sb.from("podcasts").select("id,title").limit(1000)
-    ]);
-    for(const result of [reviewsResult,reportsResult,showsResult])if(result.error)throw result.error;
-    allReviews=reviewsResult.data||[];allReports=reportsResult.data||[];showNames=new Map((showsResult.data||[]).map(x=>[x.id,x.title]));
-    const reviewIds=allReviews.map(x=>x.id),userIds=[...new Set([...allReviews.map(x=>x.user_id),...allReports.map(x=>x.reporter_user_id)])];
-    const[profileResult,voteResult]=await Promise.all([
-     userIds.length?sb.from("podcast_member_profiles").select("user_id,display_name,username").in("user_id",userIds):Promise.resolve({data:[]}),
-     reviewIds.length?sb.rpc("podcast_review_vote_summary",{p_review_ids:reviewIds}):Promise.resolve({data:[]})
-    ]);
-    if(profileResult.error)console.warn("Review profile labels unavailable:",profileResult.error.message);
-    const profiles=new Map((profileResult.data||[]).map(x=>[x.user_id,x.display_name||x.username||"Member"])),votes=new Map((voteResult.data||[]).map(x=>[x.review_id,x.helpful_count]));
-    statsBox.innerHTML='<article><b>'+allReviews.length+'</b><span>Total reviews</span></article><article><b>'+allReviews.filter(x=>x.status==="published").length+'</b><span>Published</span></article><article><b>'+allReviews.filter(x=>x.status==="hidden").length+'</b><span>Hidden</span></article><article><b>'+allReports.filter(x=>x.status==="new"||x.status==="reviewing").length+'</b><span>Open reports</span></article>';
-    renderReviewQueue=()=>{
-     const q=search.value.trim().toLowerCase(),f=filter.value;
-     const list=allReviews.filter(row=>{
-      const reports=allReports.filter(x=>x.review_id===row.id),reported=reports.some(x=>x.status==="new"||x.status==="reviewing");
-      if(f==="reported"&&!reported)return false;if(["published","hidden","removed"].includes(f)&&row.status!==f)return false;
-      const hay=[row.title,row.body,row.status,showNames.get(row.podcast_id),profiles.get(row.user_id),...reports.flatMap(x=>[x.reason,x.details,x.status])].join(" ").toLowerCase();
-      return !q||hay.includes(q)
-     });
-     rowsBox.innerHTML=list.length?list.map(row=>{
-      const reports=allReports.filter(x=>x.review_id===row.id),name=profiles.get(row.user_id)||"Listener",show=showNames.get(row.podcast_id)||"Podcast",reportHtml=reports.length?'<div class="cr-review-mod-reports"><b>Reports ('+reports.length+')</b>'+reports.map(report=>'<div><span class="admin-status">'+esc(report.reason.replaceAll("_"," "))+' · '+esc(report.status)+'</span><p>'+esc(report.details||"No additional details")+'</p><small>'+esc(profiles.get(report.reporter_user_id)||"Member")+' · '+new Date(report.created_at).toLocaleString()+'</small><div class="cr-review-mod-report-actions"><button type="button" class="btn secondary" data-report-state="'+report.id+'" data-state="reviewing">Mark reviewing</button><button type="button" class="btn secondary" data-report-state="'+report.id+'" data-state="dismissed">Dismiss report</button><button type="button" class="btn secondary" data-report-state="'+report.id+'" data-state="actioned">Actioned</button></div></div>').join("")+'</div>':'';
-      return '<article class="cr-review-mod-card" data-review-mod-card="'+row.id+'"><header><div><b>'+esc(show)+'</b><small>'+esc(name)+' · '+new Date(row.created_at).toLocaleString()+'</small></div><span class="admin-status">'+esc(row.status)+'</span></header><div class="cr-review-mod-stars">'+'★'.repeat(Number(row.rating))+'☆'.repeat(5-Number(row.rating))+' · '+Number(votes.get(row.id)||0)+' helpful votes</div><h4>'+esc(row.title||"Listener review")+'</h4><p>'+esc(row.body||"")+'</p>'+reportHtml+'<div class="cr-review-mod-actions"><label>Moderation action<select data-review-status="'+row.id+'"><option value="">Change review status…</option><option value="published">Publish</option><option value="hidden">Hide</option><option value="removed">Remove</option><option value="pending">Pending review</option></select></label><label>Moderator note<input type="text" maxlength="500" data-review-note="'+row.id+'" value="'+esc(row.moderation_reason||"")+'" placeholder="Reason / internal note"></label><button type="button" class="btn secondary" data-save-review-mod="'+row.id+'">Save moderation</button><span class="muted small" data-review-mod-status="'+row.id+'" role="status"></span></div></article>'
-     }).join(""):'<div class="admin-empty"><b>No reviews match this view</b><span>Try another filter or search term.</span></div>';
-     all("[data-save-review-mod]").forEach(button=>button.onclick=async()=>{
-      const id=button.dataset.saveReviewMod,row=allReviews.find(x=>x.id===id),status=$("#reviewModerationRows [data-review-status=\""+id+"\"]"),note=$("#reviewModerationRows [data-review-note=\""+id+"\"]"),message=$("#reviewModerationRows [data-review-mod-status=\""+id+"\"]");
-      const patch={moderation_reason:note.value.trim()||null};if(status.value)patch.status=status.value;button.disabled=true;
-      try{const{error}=await sb.from("podcast_reviews").update(patch).eq("id",id);if(error)throw error;message.textContent="Moderation changes saved.";if(status.value)row.status=status.value;row.moderation_reason=patch.moderation_reason;toast("Review moderation updated.");await loadReviewQueue()}catch(error){message.textContent=error.message||"Could not save moderation changes."}finally{button.disabled=false}
-     });
-     all("[data-report-state]").forEach(button=>button.onclick=async()=>{
-      const id=button.dataset.reportState,report=allReports.find(x=>x.id===id);button.disabled=true;
-      try{const patch={status:button.dataset.state,reviewed_at:new Date().toISOString(),reviewed_by:user.id};const{error}=await sb.from("podcast_review_reports").update(patch).eq("id",id);if(error)throw error;report.status=patch.status;toast("Report updated.");renderReviewQueue()}catch(error){toast("Report update failed: "+error.message)}finally{button.disabled=false}
-     });
-    };
-    renderReviewQueue();
-   };
-   search.addEventListener("input",()=>renderReviewQueue());filter.addEventListener("change",()=>renderReviewQueue());
-   $("#reviewModerationReload").onclick=()=>loadReviewQueue().catch(fail);
-   await loadReviewQueue();return;
-  }
   if(tab==="rankings"){renderMemberRankings();return}
   if(tab==="saved"){content.innerHTML='<div class="account-section-head"><div><span class="eyebrow">YOUR COLLECTION</span><h2>My List</h2><p>Episodes you saved for later.</p></div><span class="account-count">'+savedEpisodes.length+' SAVED</span></div>'+renderCards(savedEpisodes,"episode");return}
   if(tab==="follows"){content.innerHTML='<div class="account-section-head"><div><span class="eyebrow">YOUR NETWORK</span><h2>Following</h2><p>Shows you’ve chosen to keep up with.</p></div><span class="account-count">'+followed.length+' SHOWS</span></div>'+renderCards(followed,"show");return}
@@ -1742,7 +1693,56 @@ async function admin(){
   const auth=await fn(FUNCTIONS.adminBootstrap,{});
   if(!auth.ok||!["active","initialized"].includes(auth.status))throw Error(auth.message||auth.error||"Administrator access is pending approval. An existing CrowRules administrator must approve your request.");
   const refreshButton=$("#adminRefresh");if(refreshButton)refreshButton.onclick=()=>admin();
-  if(tab==="rankings"){
+  if(tab==="reviews"){
+   work.innerHTML='<div class="admin-module cr-review-moderation"><span class="admin-kicker">COMMUNITY TRUST & SAFETY</span><div class="section-head"><div><h3>Review Moderation</h3><p>Review listener reports, investigate flagged content and manage review visibility.</p></div><button class="btn secondary" id="reviewModerationReload">↻ Refresh queue</button></div><div class="cr-review-mod-stats" id="reviewModerationStats"></div><div class="cr-review-mod-filters"><input id="reviewModerationSearch" type="search" placeholder="Search reviews, show names or report details"><select id="reviewModerationFilter"><option value="all">All reviews</option><option value="reported">Reported reviews</option><option value="published">Published</option><option value="hidden">Hidden</option><option value="removed">Removed</option></select></div><div id="reviewModerationRows" class="cr-review-mod-rows"><div class="loading">Loading moderation queue…</div></div></div>';
+   const rowsBox=$("#reviewModerationRows"),statsBox=$("#reviewModerationStats"),search=$("#reviewModerationSearch"),filter=$("#reviewModerationFilter");let allReviews=[],allReports=[],showNames=new Map();
+   let renderReviewQueue=()=>{};
+   const loadReviewQueue=async()=>{
+    rowsBox.innerHTML='<div class="loading">Loading moderation queue…</div>';
+    const[reviewsResult,reportsResult,showsResult]=await Promise.all([
+     sb.from("podcast_reviews").select("id,podcast_id,user_id,rating,title,body,status,moderation_reason,created_at").order("created_at",{ascending:false}).limit(500),
+     sb.from("podcast_review_reports").select("id,review_id,reporter_user_id,reason,details,status,moderator_note,created_at,reviewed_at").order("created_at",{ascending:false}).limit(500),
+     sb.from("podcasts").select("id,title").limit(1000)
+    ]);
+    for(const result of [reviewsResult,reportsResult,showsResult])if(result.error)throw result.error;
+    allReviews=reviewsResult.data||[];allReports=reportsResult.data||[];showNames=new Map((showsResult.data||[]).map(x=>[x.id,x.title]));
+    const reviewIds=allReviews.map(x=>x.id),userIds=[...new Set([...allReviews.map(x=>x.user_id),...allReports.map(x=>x.reporter_user_id)])];
+    const[profileResult,voteResult]=await Promise.all([
+     userIds.length?sb.from("podcast_member_profiles").select("user_id,display_name,username").in("user_id",userIds):Promise.resolve({data:[]}),
+     reviewIds.length?sb.rpc("podcast_review_vote_summary",{p_review_ids:reviewIds}):Promise.resolve({data:[]})
+    ]);
+    if(profileResult.error)console.warn("Review profile labels unavailable:",profileResult.error.message);
+    const profiles=new Map((profileResult.data||[]).map(x=>[x.user_id,x.display_name||x.username||"Member"])),votes=new Map((voteResult.data||[]).map(x=>[x.review_id,x.helpful_count]));
+    statsBox.innerHTML='<article><b>'+allReviews.length+'</b><span>Total reviews</span></article><article><b>'+allReviews.filter(x=>x.status==="published").length+'</b><span>Published</span></article><article><b>'+allReviews.filter(x=>x.status==="hidden").length+'</b><span>Hidden</span></article><article><b>'+allReports.filter(x=>x.status==="new"||x.status==="reviewing").length+'</b><span>Open reports</span></article>';
+    renderReviewQueue=()=>{
+     const q=search.value.trim().toLowerCase(),f=filter.value;
+     const list=allReviews.filter(row=>{
+      const reports=allReports.filter(x=>x.review_id===row.id),reported=reports.some(x=>x.status==="new"||x.status==="reviewing");
+      if(f==="reported"&&!reported)return false;if(["published","hidden","removed"].includes(f)&&row.status!==f)return false;
+      const hay=[row.title,row.body,row.status,showNames.get(row.podcast_id),profiles.get(row.user_id),...reports.flatMap(x=>[x.reason,x.details,x.status])].join(" ").toLowerCase();
+      return !q||hay.includes(q)
+     });
+     rowsBox.innerHTML=list.length?list.map(row=>{
+      const reports=allReports.filter(x=>x.review_id===row.id),name=profiles.get(row.user_id)||"Listener",show=showNames.get(row.podcast_id)||"Podcast",reportHtml=reports.length?'<div class="cr-review-mod-reports"><b>Reports ('+reports.length+')</b>'+reports.map(report=>'<div><span class="admin-status">'+esc(report.reason.replaceAll("_"," "))+' · '+esc(report.status)+'</span><p>'+esc(report.details||"No additional details")+'</p><small>'+esc(profiles.get(report.reporter_user_id)||"Member")+' · '+new Date(report.created_at).toLocaleString()+'</small><div class="cr-review-mod-report-actions"><button type="button" class="btn secondary" data-report-state="'+report.id+'" data-state="reviewing">Mark reviewing</button><button type="button" class="btn secondary" data-report-state="'+report.id+'" data-state="dismissed">Dismiss report</button><button type="button" class="btn secondary" data-report-state="'+report.id+'" data-state="actioned">Actioned</button></div></div>').join("")+'</div>':'';
+      return '<article class="cr-review-mod-card" data-review-mod-card="'+row.id+'"><header><div><b>'+esc(show)+'</b><small>'+esc(name)+' · '+new Date(row.created_at).toLocaleString()+'</small></div><span class="admin-status">'+esc(row.status)+'</span></header><div class="cr-review-mod-stars">'+'★'.repeat(Number(row.rating))+'☆'.repeat(5-Number(row.rating))+' · '+Number(votes.get(row.id)||0)+' helpful votes</div><h4>'+esc(row.title||"Listener review")+'</h4><p>'+esc(row.body||"")+'</p>'+reportHtml+'<div class="cr-review-mod-actions"><label>Moderation action<select data-review-status="'+row.id+'"><option value="">Change review status…</option><option value="published">Publish</option><option value="hidden">Hide</option><option value="removed">Remove</option><option value="pending">Pending review</option></select></label><label>Moderator note<input type="text" maxlength="500" data-review-note="'+row.id+'" value="'+esc(row.moderation_reason||"")+'" placeholder="Reason / internal note"></label><button type="button" class="btn secondary" data-save-review-mod="'+row.id+'">Save moderation</button><span class="muted small" data-review-mod-status="'+row.id+'" role="status"></span></div></article>'
+     }).join(""):'<div class="admin-empty"><b>No reviews match this view</b><span>Try another filter or search term.</span></div>';
+     all("[data-save-review-mod]").forEach(button=>button.onclick=async()=>{
+      const id=button.dataset.saveReviewMod,row=allReviews.find(x=>x.id===id),status=$("#reviewModerationRows [data-review-status=\""+id+"\"]"),note=$("#reviewModerationRows [data-review-note=\""+id+"\"]"),message=$("#reviewModerationRows [data-review-mod-status=\""+id+"\"]");
+      const patch={moderation_reason:note.value.trim()||null};if(status.value)patch.status=status.value;button.disabled=true;
+      try{const{error}=await sb.from("podcast_reviews").update(patch).eq("id",id);if(error)throw error;message.textContent="Moderation changes saved.";if(status.value)row.status=status.value;row.moderation_reason=patch.moderation_reason;toast("Review moderation updated.");await loadReviewQueue()}catch(error){message.textContent=error.message||"Could not save moderation changes."}finally{button.disabled=false}
+     });
+     all("[data-report-state]").forEach(button=>button.onclick=async()=>{
+      const id=button.dataset.reportState,report=allReports.find(x=>x.id===id);button.disabled=true;
+      try{const patch={status:button.dataset.state,reviewed_at:new Date().toISOString(),reviewed_by:user.id};const{error}=await sb.from("podcast_review_reports").update(patch).eq("id",id);if(error)throw error;report.status=patch.status;toast("Report updated.");renderReviewQueue()}catch(error){toast("Report update failed: "+error.message)}finally{button.disabled=false}
+     });
+    };
+    renderReviewQueue();
+   };
+   search.addEventListener("input",()=>renderReviewQueue());filter.addEventListener("change",()=>renderReviewQueue());
+   $("#reviewModerationReload").onclick=()=>loadReviewQueue().catch(fail);
+   await loadReviewQueue();return;
+  }
+    if(tab==="rankings"){
    const periods=[["7_days","Weekly"],["30_days","Monthly"],["all_time","All time"]];
    const types=[["podcasts","Top Shows"],["episodes","Top Episodes"],["hosts","Top Hosts"],["listeners","Top Listeners"]];
    const{data:featuredRows,error:featuredError}=await sb.from("podcast_ranking_featured").select("ranking_type,period_type,is_featured").order("ranking_type");
