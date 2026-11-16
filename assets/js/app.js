@@ -1536,10 +1536,10 @@ if(tab==="challenges"){
     const results=await Promise.all(specs.map(x=>x[1]));for(let i=0;i<results.length;i++)if(results[i].error)throw results[i].error;
     const data={};specs.forEach((x,i)=>data[x[0]]=results[i].data||[]);
     const ids={show:data.show.map(x=>x.id),episode:data.episode.map(x=>x.id),platform:data.platform.map(x=>x.id)};
-    const fetchRelated=async(table,field,list)=>{if(!list.length)return[];const{data,error}=await sb.from(table).select("review_id,created_at,status").in("review_id",list).limit(10000);if(error)throw error;return data||[]};
+    const fetchRelated=async(table,list,withStatus=false)=>{if(!list.length)return[];const{data,error}=await sb.from(table).select(withStatus?"review_id,created_at,status":"review_id,created_at").in("review_id",list).limit(10000);if(error)throw error;return data||[]};
     const rel=await Promise.all([
-     fetchRelated("podcast_review_votes","review_id",ids.show),fetchRelated("podcast_episode_review_votes","review_id",ids.episode),fetchRelated("podcast_platform_review_votes","review_id",ids.platform),
-     fetchRelated("podcast_review_replies","review_id",ids.show),fetchRelated("podcast_episode_review_replies","review_id",ids.episode),fetchRelated("podcast_platform_review_replies","review_id",ids.platform)
+     fetchRelated("podcast_review_votes",ids.show),fetchRelated("podcast_episode_review_votes",ids.episode),fetchRelated("podcast_platform_review_votes",ids.platform),
+     fetchRelated("podcast_review_replies",ids.show,true),fetchRelated("podcast_episode_review_replies",ids.episode,true),fetchRelated("podcast_platform_review_replies",ids.platform,true)
     ]);
     snapshot={...data,showVotes:rel[0],episodeVotes:rel[1],platformVotes:rel[2],showReplies:rel[3].filter(x=>x.status==="published"),episodeReplies:rel[4].filter(x=>x.status==="published"),platformReplies:rel[5].filter(x=>x.status==="published")};
     const{data:saved,error}=await sb.from("podcast_review_analytics_monthly_reports").select("month_start,report_data,generated_at").eq("month_start",monthInput.value+"-01").maybeSingle();if(error)throw error;
