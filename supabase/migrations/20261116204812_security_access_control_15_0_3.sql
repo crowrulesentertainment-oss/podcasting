@@ -50,7 +50,7 @@ begin
     raise exception 'ADMIN_AUTH_REQUIRED' using errcode = '42501';
   end if;
   return query
-  select u.id, coalesce(u.email,''),
+  select u.id, coalesce(u.email,'')::text,
     a.role, coalesce(a.is_active,false), a.created_at, a.updated_at,
     (
       lower(coalesce(u.raw_app_meta_data->>'role','')) in ('admin','owner','super_admin')
@@ -140,7 +140,7 @@ begin
     raise exception 'ADMIN_AUTH_REQUIRED' using errcode = '42501';
   end if;
   return query
-  select s.id,s.user_id,coalesce(u.email,''),s.created_at,s.updated_at,s.refreshed_at,
+  select s.id,s.user_id,coalesce(u.email,'')::text,s.created_at,s.updated_at,s.refreshed_at,
     s.not_after,host(s.ip),s.user_agent,s.aal::text,
     s.id::text = (auth.jwt()->>'session_id')
   from auth.sessions s
@@ -195,7 +195,7 @@ begin
   return query
   select e.id,e.created_at,
     case when (e.payload->>'user_id') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then (e.payload->>'user_id')::uuid else null end,
-    coalesce(u.email,''),
+    coalesce(u.email,'')::text,
     coalesce(e.payload->>'action','unknown'),
     nullif(e.ip_address,''),
     nullif(e.payload->>'user_agent',''),
