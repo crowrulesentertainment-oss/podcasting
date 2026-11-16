@@ -138,3 +138,14 @@ Additional creator workflow ideas are surfaced in the Creator Toolkit: release p
 - Public member profiles now include review contribution totals, average ratings and a chronological history of published show and episode reviews.
 - The existing episode review, reply, report, vote and member profile stats tables are reused; existing numeric episode ratings are preserved.
 - Supabase policies were tightened so episode review edits require a currently published episode/show, reports must target a published review, and vote writes are limited to the signed-in member and published reviews. Anonymous roles have read-only access to published episode reviews and replies; vote/report tables are not exposed to anon.
+
+
+## CrowRules Reviews — Phase 4: Reviewer Recognition & Rewards
+
+- The Reviewer Hub at `reviewers.html` includes a monthly leaderboard ranked by helpful votes received by reviews published during the selected month, featured show and episode reviews, the reviewer badge catalog, and recent public achievements.
+- CrowRules administrators can feature or unfeature published show and episode reviews from the existing review moderation workspaces. Featured reviews appear on the public Reviewer Hub.
+- Reviewer achievements are awarded automatically: **First Review** for the first published show or episode review, **Community Voice** after five published reviews, and **Top Reviewer** after ten helpful votes across the member's published reviews.
+- Existing eligible reviewers are backfilled when the migration runs. Public member profiles display public reviewer awards alongside existing profile badges.
+- The monthly leaderboard RPC returns only public profile labels and aggregated review/helpful-vote totals. It does not expose vote identities.
+- Existing review, vote, report, badge and profile tables are reused. No existing review data is deleted; the service-role key is not used in the browser.
+- Verification: the Phase 4 Supabase migration was applied, badge catalog and leaderboard SQL queries were checked, and GitHub static checks passed. Authenticated browser end-to-end testing remains outstanding.
