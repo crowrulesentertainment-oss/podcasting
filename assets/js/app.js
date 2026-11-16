@@ -470,7 +470,7 @@ const a=$("#app");
   if(!summary||!list||!composer)return;
   const{data:rows,error}=await sb.from("podcast_reviews").select("id,user_id,rating,title,body,status,created_at,updated_at").eq("podcast_id",p.id).eq("status","published").order("created_at",{ascending:false}).limit(100);
   if(error){summary.textContent="Ratings are temporarily unavailable.";list.innerHTML='<div class="notice">Listener reviews could not be loaded. Please try again later.</div>';console.warn("Podcast reviews unavailable:",error.message);return}
-  const reviews=rows||[],average=reviews.length?reviews.reduce((sum,row)=>sum+Number(row.rating||0),0)/reviews.length:0;
+  let user=null;try{user=await me()}catch{}\n  const reviews=rows||[],average=reviews.length?reviews.reduce((sum,row)=>sum+Number(row.rating||0),0)/reviews.length:0;
   summary.innerHTML='<strong class="cr-review-average">'+(reviews.length?average.toFixed(1):"—")+'</strong><span class="cr-review-stars" aria-label="'+(reviews.length?average.toFixed(1)+" out of 5 stars":"No ratings yet")+'">'+(reviews.length?"★".repeat(Math.round(average))+"☆".repeat(5-Math.round(average)):"☆☆☆☆☆")+'</span><span class="muted">'+reviews.length+' '+(reviews.length===1?"review":"reviews")+'</span>';
   const userIds=[...new Set(reviews.map(x=>x.user_id))],reviewIds=reviews.map(x=>x.id);
   const[profilesResult,repliesResult]=await Promise.all([
@@ -484,9 +484,18 @@ const a=$("#app");
   const replyMap=new Map(replyRows.map(x=>[x.review_id,x]));
   list.innerHTML=reviews.length?reviews.map(row=>{
    const profile=profileMap.get(row.user_id)||{},name=profile.display_name||profile.username||"CrowRules listener",reply=replyMap.get(row.id),replyProfile=reply?replyProfileMap.get(reply.creator_user_id)||{}:{};
-   return '<article class="cr-review-card"><div class="cr-review-card-head"><div class="cr-review-author">'+(profile.avatar_url?'<img src="'+esc(profile.avatar_url)+'" alt="">':'<span>'+esc(name.slice(0,1).toUpperCase())+'</span>')+'<div><b>'+esc(name)+'</b><small>'+new Date(row.created_at).toLocaleDateString(undefined,{dateStyle:"medium"})+'</small></div></div><span class="cr-review-stars" aria-label="'+Number(row.rating)+' out of 5 stars">'+'★'.repeat(Number(row.rating))+'☆'.repeat(5-Number(row.rating))+'</span></div><h3>'+esc(row.title||"Listener review")+'</h3><p>'+esc(row.body||"")+'</p>'+(reply?'<div class="cr-review-reply"><b>Creator response · '+esc(replyProfile.display_name||replyProfile.username||"Show creator")+'</b><p>'+esc(reply.body)+'</p></div>':"")+'</article>'
+   const vote=voteMap.get(row.id)||{helpful_count:0,viewer_voted:false};
+   return '<article class="cr-review-card"><div class="cr-review-card-head"><div class="cr-review-author">'+(profile.avatar_url?'<img src="'+esc(profile.avatar_url)+'" alt="">':'<span>'+esc(name.slice(0,1).toUpperCase())+'</span>')+'<div><b>'+esc(name)+'</b><small>'+new Date(row.created_at).toLocaleDateString(undefined,{dateStyle:"medium"})+'</small></div></div><span class="cr-review-stars" aria-label="'+Number(row.rating)+' out of 5 stars">'+'★'.repeat(Number(row.rating))+'☆'.repeat(5-Number(row.rating))+'</span></div><h3>'+esc(row.title||"Listener review")+'</h3><p>'+esc(row.body||"")+'</p>'+(reply?'<div class="cr-review-reply"><b>Creator response · '+esc(replyProfile.display_name||replyProfile.username||"Show creator")+'</b><p>'+esc(reply.body)+'</p></div>':"")+'<div class="cr-review-actions"><button type="button" class="cr-review-helpful '+(vote.viewer_voted?'is-voted':'')+'" data-review-vote="'+row.id+'" '+(!user?'aria-label="Sign in to vote"':'')+'>👍 Helpful <b>'+Number(vote.helpful_count||0)+'</b></button>'+(user&&user.id!==row.user_id?'<details class="cr-review-report"><summary>Report review</summary><form data-review-report="'+row.id+'"><label>Reason<select name="reason" required><option value="">Choose a reason</option><option value="spam">Spam</option><option value="harassment">Harassment</option><option value="hate">Hate or abuse</option><option value="misinformation">Misinformation</option><option value="conflict_of_interest">Conflict of interest</option><option value="other">Other</option></select></label><textarea name="details" maxlength="1500" placeholder="Additional details (optional)"></textarea><button class="btn secondary" type="submit">Submit report</button><small role="status"></small></form></details>':"")+'</div></article>'
   }).join(""):'<div class="empty">No reviews yet. Be the first to share what you think.</div>';
   let user=null;try{user=await me()}catch{}
+  all("[data-review-vote]").forEach(button=>button.addEventListener("click",async()=>{
+   if(!user){toast("Sign in to mark reviews helpful.");return}
+   button.disabled=true;try{const{data,error}=await sb.rpc("podcast_toggle_review_helpful",{p_review_id:button.dataset.reviewVote});if(error)throw error;const count=Number(button.querySelector("b")?.textContent||0)+(data?1:-1);button.classList.toggle("is-voted",!!data);button.querySelector("b").textContent=Math.max(0,count);toast(data?"Marked helpful.":"Helpful vote removed.")}catch(error){toast(error.message||"Your vote could not be saved.")}finally{button.disabled=false}
+  }));
+  all("[data-review-report]").forEach(form=>form.addEventListener("submit",async event=>{
+   event.preventDefault();const submit=form.querySelector("button"),status=form.querySelector("[role=status]"),data=new FormData(form);submit.disabled=true;status.textContent="Submitting…";
+   try{const{error}=await sb.from("podcast_review_reports").insert({review_id:form.dataset.reviewReport,reporter_user_id:user.id,reason:String(data.get("reason")||""),details:String(data.get("details")||"").trim()||null});if(error)throw error;status.textContent="Thank you. Your report has been sent to CrowRules moderation.";form.reset();submit.textContent="Report submitted"}catch(error){status.textContent=error.message||"Report could not be submitted.";submit.disabled=false}
+  }));
   if(!user){composer.innerHTML='<div class="cr-review-signin"><p>Sign in to rate and review this podcast.</p><a class="btn secondary" href="'+SITE_BASE+'login.html">Sign in</a> <a href="'+SITE_BASE+'signup.html">Create an account</a></div>';return}
   const{data:mine}=await sb.from("podcast_reviews").select("id,rating,title,body,status").eq("podcast_id",p.id).eq("user_id",user.id).maybeSingle();
   let profileName=String(user.user_metadata?.display_name||user.user_metadata?.full_name||user.user_metadata?.name||user.email?.split("@")[0]||"Listener");
@@ -1305,6 +1314,55 @@ if(tab==="challenges"){
    try{await loadChallengeList();await loadChallengeDetail();renderChallengeControl()}catch(e){fail(e)}
    return;
   }
+  if(tab==="reviews"){
+   work.innerHTML='<div class="admin-module cr-review-moderation"><span class="admin-kicker">COMMUNITY TRUST & SAFETY</span><div class="section-head"><div><h3>Review Moderation</h3><p>Review listener reports, investigate flagged content and manage review visibility.</p></div><button class="btn secondary" id="reviewModerationReload">↻ Refresh queue</button></div><div class="cr-review-mod-stats" id="reviewModerationStats"></div><div class="cr-review-mod-filters"><input id="reviewModerationSearch" type="search" placeholder="Search reviews, show names or report details"><select id="reviewModerationFilter"><option value="all">All reviews</option><option value="reported">Reported reviews</option><option value="published">Published</option><option value="hidden">Hidden</option><option value="removed">Removed</option></select></div><div id="reviewModerationRows" class="cr-review-mod-rows"><div class="loading">Loading moderation queue…</div></div></div>';
+   const rowsBox=$("#reviewModerationRows"),statsBox=$("#reviewModerationStats"),search=$("#reviewModerationSearch"),filter=$("#reviewModerationFilter");let allReviews=[],allReports=[],showNames=new Map();
+   const loadReviewQueue=async()=>{
+    rowsBox.innerHTML='<div class="loading">Loading moderation queue…</div>';
+    const[reviewsResult,reportsResult,showsResult]=await Promise.all([
+     sb.from("podcast_reviews").select("id,podcast_id,user_id,rating,title,body,status,moderation_reason,created_at").order("created_at",{ascending:false}).limit(500),
+     sb.from("podcast_review_reports").select("id,review_id,reporter_user_id,reason,details,status,moderator_note,created_at,reviewed_at").order("created_at",{ascending:false}).limit(500),
+     sb.from("podcasts").select("id,title").limit(1000)
+    ]);
+    for(const result of [reviewsResult,reportsResult,showsResult])if(result.error)throw result.error;
+    allReviews=reviewsResult.data||[];allReports=reportsResult.data||[];showNames=new Map((showsResult.data||[]).map(x=>[x.id,x.title]));
+    const reviewIds=allReviews.map(x=>x.id),userIds=[...new Set([...allReviews.map(x=>x.user_id),...allReports.map(x=>x.reporter_user_id)])];
+    const[profileResult,voteResult]=await Promise.all([
+     userIds.length?sb.from("podcast_member_profiles").select("user_id,display_name,username").in("user_id",userIds):Promise.resolve({data:[]}),
+     reviewIds.length?sb.rpc("podcast_review_vote_summary",{p_review_ids:reviewIds}):Promise.resolve({data:[]})
+    ]);
+    if(profileResult.error)console.warn("Review profile labels unavailable:",profileResult.error.message);
+    const profiles=new Map((profileResult.data||[]).map(x=>[x.user_id,x.display_name||x.username||"Member"])),votes=new Map((voteResult.data||[]).map(x=>[x.review_id,x.helpful_count]));
+    statsBox.innerHTML='<article><b>'+allReviews.length+'</b><span>Total reviews</span></article><article><b>'+allReviews.filter(x=>x.status==="published").length+'</b><span>Published</span></article><article><b>'+allReviews.filter(x=>x.status==="hidden").length+'</b><span>Hidden</span></article><article><b>'+allReports.filter(x=>x.status==="new"||x.status==="reviewing").length+'</b><span>Open reports</span></article>';
+    const render=()=>{
+     const q=search.value.trim().toLowerCase(),f=filter.value;
+     const list=allReviews.filter(row=>{
+      const reports=allReports.filter(x=>x.review_id===row.id),reported=reports.some(x=>x.status==="new"||x.status==="reviewing");
+      if(f==="reported"&&!reported)return false;if(["published","hidden","removed"].includes(f)&&row.status!==f)return false;
+      const hay=[row.title,row.body,row.status,showNames.get(row.podcast_id),profiles.get(row.user_id),...reports.flatMap(x=>[x.reason,x.details,x.status])].join(" ").toLowerCase();
+      return !q||hay.includes(q)
+     });
+     rowsBox.innerHTML=list.length?list.map(row=>{
+      const reports=allReports.filter(x=>x.review_id===row.id),name=profiles.get(row.user_id)||"Listener",show=showNames.get(row.podcast_id)||"Podcast",reportHtml=reports.length?'<div class="cr-review-mod-reports"><b>Reports ('+reports.length+')</b>'+reports.map(report=>'<div><span class="admin-status">'+esc(report.reason.replaceAll("_"," "))+' · '+esc(report.status)+'</span><p>'+esc(report.details||"No additional details")+'</p><small>'+esc(profiles.get(report.reporter_user_id)||"Member")+' · '+new Date(report.created_at).toLocaleString()+'</small><div class="cr-review-mod-report-actions"><button type="button" class="btn secondary" data-report-state="'+report.id+'" data-state="reviewing">Mark reviewing</button><button type="button" class="btn secondary" data-report-state="'+report.id+'" data-state="dismissed">Dismiss report</button><button type="button" class="btn secondary" data-report-state="'+report.id+'" data-state="actioned">Actioned</button></div></div>').join("")+'</div>':'';
+      return '<article class="cr-review-mod-card" data-review-mod-card="'+row.id+'"><header><div><b>'+esc(show)+'</b><small>'+esc(name)+' · '+new Date(row.created_at).toLocaleString()+'</small></div><span class="admin-status">'+esc(row.status)+'</span></header><div class="cr-review-mod-stars">'+'★'.repeat(Number(row.rating))+'☆'.repeat(5-Number(row.rating))+' · '+Number(votes.get(row.id)||0)+' helpful votes</div><h4>'+esc(row.title||"Listener review")+'</h4><p>'+esc(row.body||"")+'</p>'+reportHtml+'<div class="cr-review-mod-actions"><label>Moderation action<select data-review-status="'+row.id+'"><option value="">Change review status…</option><option value="published">Publish</option><option value="hidden">Hide</option><option value="removed">Remove</option><option value="pending">Pending review</option></select></label><label>Moderator note<input type="text" maxlength="500" data-review-note="'+row.id+'" value="'+esc(row.moderation_reason||"")+'" placeholder="Reason / internal note"></label><button type="button" class="btn secondary" data-save-review-mod="'+row.id+'">Save moderation</button><span class="muted small" data-review-mod-status="'+row.id+'" role="status"></span></div></article>'
+     }).join(""):'<div class="admin-empty"><b>No reviews match this view</b><span>Try another filter or search term.</span></div>';
+     all("[data-save-review-mod]").forEach(button=>button.onclick=async()=>{
+      const id=button.dataset.saveReviewMod,row=allReviews.find(x=>x.id===id),status=$("#reviewModerationRows [data-review-status=\""+id+"\"]"),note=$("#reviewModerationRows [data-review-note=\""+id+"\"]"),message=$("#reviewModerationRows [data-review-mod-status=\""+id+"\"]");
+      const patch={moderation_reason:note.value.trim()||null};if(status.value)patch.status=status.value;button.disabled=true;
+      try{const{error}=await sb.from("podcast_reviews").update(patch).eq("id",id);if(error)throw error;message.textContent="Moderation changes saved.";if(status.value)row.status=status.value;row.moderation_reason=patch.moderation_reason;toast("Review moderation updated.");await loadReviewQueue()}catch(error){message.textContent=error.message||"Could not save moderation changes."}finally{button.disabled=false}
+     });
+     all("[data-report-state]").forEach(button=>button.onclick=async()=>{
+      const id=button.dataset.reportState,report=allReports.find(x=>x.id===id);button.disabled=true;
+      try{const patch={status:button.dataset.state,reviewed_at:new Date().toISOString(),reviewed_by:user.id};const{error}=await sb.from("podcast_review_reports").update(patch).eq("id",id);if(error)throw error;report.status=patch.status;toast("Report updated.");render()}catch(error){toast("Report update failed: "+error.message)}finally{button.disabled=false}
+     });
+    };
+    render();
+   };
+   search.addEventListener("input",renderIfLoaded);filter.addEventListener("change",renderIfLoaded);
+   function renderIfLoaded(){if(allReviews.length||allReports.length){const q=search.value;search.value=q;render()}}
+   $("#reviewModerationReload").onclick=()=>loadReviewQueue().catch(fail);
+   await loadReviewQueue();return;
+  }
   if(tab==="rankings"){renderMemberRankings();return}
   if(tab==="saved"){content.innerHTML='<div class="account-section-head"><div><span class="eyebrow">YOUR COLLECTION</span><h2>My List</h2><p>Episodes you saved for later.</p></div><span class="account-count">'+savedEpisodes.length+' SAVED</span></div>'+renderCards(savedEpisodes,"episode");return}
   if(tab==="follows"){content.innerHTML='<div class="account-section-head"><div><span class="eyebrow">YOUR NETWORK</span><h2>Following</h2><p>Shows you’ve chosen to keep up with.</p></div><span class="account-count">'+followed.length+' SHOWS</span></div>'+renderCards(followed,"show");return}
@@ -1659,7 +1717,7 @@ async function awards(){
 async function admin(){
  if(adminPlayRefreshInterval){clearInterval(adminPlayRefreshInterval);adminPlayRefreshInterval=null}if(adminVisitorRefreshInterval){clearInterval(adminVisitorRefreshInterval);adminVisitorRefreshInterval=null}if(adminVisibilityHandler){document.removeEventListener("visibilitychange",adminVisibilityHandler);adminVisibilityHandler=null}
  const user=await me();if(!user)return go("login.html");
- const tabs=[["overview","Command Center"],["shows","Shows"],["episodes","Episodes"],["pipeline","Production"],["creators","Creator Profiles"],["guests","Guests"],["rankings","Rankings"],["badges","Badges"],["awards","Awards"],["users","Members"],["finance","Finance"],["settings","System"],["email","Podcaster Email Center"],["listenerEmail","Listener Email Center"],["guestEmail","Guest Email Center"],["newsletterEmail","Newsletter Email Center"],["challenges","Challenge Control Room"],["challengeEpisodes","Challenge Episodes"],["partnerships","Partnerships"]];
+ const tabs=[["overview","Command Center"],["reviews","Review Moderation"],["shows","Shows"],["episodes","Episodes"],["pipeline","Production"],["creators","Creator Profiles"],["guests","Guests"],["rankings","Rankings"],["badges","Badges"],["awards","Awards"],["users","Members"],["finance","Finance"],["settings","System"],["email","Podcaster Email Center"],["listenerEmail","Listener Email Center"],["guestEmail","Guest Email Center"],["newsletterEmail","Newsletter Email Center"],["challenges","Challenge Control Room"],["challengeEpisodes","Challenge Episodes"],["partnerships","Partnerships"]];
  const requestedTab=new URLSearchParams(location.search).get("tab")||"overview";
  let tab=tabs.some(x=>x[0]===requestedTab)?requestedTab:"overview";
  const title=tabs.find(x=>x[0]===tab)[1];
