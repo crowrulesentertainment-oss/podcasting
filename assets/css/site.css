@@ -1936,3 +1936,43 @@ body[data-page="admin"] .badge-console .table-wrap{max-width:100%;overflow-x:aut
 .holiday-side-footer{padding-top:12px;border-top:1px solid rgba(255,255,255,.14);color:#e9c994;font-size:.58rem;font-weight:850;letter-spacing:.13em}
 @media(max-width:900px){.home-hero-carousel .home-hero-third .stream-hero-content{max-width:58%;padding-right:18px}.home-hero-carousel .home-hero-third .holiday-countdown-side{width:38%;min-width:245px;padding:18px!important;gap:13px}}
 @media(max-width:640px){.home-hero-carousel .home-hero-third{flex-direction:column;align-items:stretch;gap:18px;padding-top:34px;padding-bottom:96px}.home-hero-carousel .home-hero-third .stream-hero-content{max-width:100%;padding-right:0}.home-hero-carousel .home-hero-third .holiday-countdown-side{width:100%;min-width:0;max-width:440px;margin:0;padding:17px!important}.holiday-side-countdown strong{font-size:1.55rem}.holiday-side-event b{font-size:1.12rem}}
+
+
+/* Slide three — paired holiday countdowns and published challenge episodes */
+.home-hero-carousel .home-hero-third .stream-hero-content{max-width:min(690px,56%);padding-right:clamp(14px,2.5vw,34px)}
+.home-hero-carousel .home-hero-third .holiday-countdown-side{width:min(520px,44%);min-width:350px;gap:13px;padding:clamp(16px,2vw,25px)!important}
+.holiday-countdown-pair{display:grid;gap:10px}
+.holiday-countdown-card{padding:12px;border:1px solid rgba(244,211,157,.25);border-radius:14px;background:rgba(0,0,0,.28)}
+.holiday-countdown-card-next{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.14)}
+.holiday-countdown-card .holiday-side-event{grid-template-columns:42px minmax(0,1fr);gap:10px}
+.holiday-countdown-card .holiday-side-emoji{width:42px;height:42px;border-radius:12px;font-size:1.55rem}
+.holiday-countdown-card .holiday-side-event b{font-size:clamp(.85rem,1.2vw,1.05rem);letter-spacing:.055em}
+.holiday-countdown-card .holiday-side-event small{font-size:.68rem;margin-top:3px}
+.holiday-countdown-card .holiday-side-countdown{gap:5px;margin-top:10px}
+.holiday-countdown-card .holiday-side-countdown>div{padding:8px 2px 7px;gap:4px;border-radius:8px}
+.holiday-countdown-card .holiday-side-countdown strong{font-size:clamp(1.05rem,1.6vw,1.45rem)}
+.holiday-countdown-card .holiday-side-countdown span{font-size:.49rem}
+.holiday-challenge-episodes{padding-top:4px}
+.holiday-episodes-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.holiday-episodes-heading b{color:#f0c987;font-size:.62rem;font-weight:950;letter-spacing:.1em}
+.holiday-episodes-heading a{color:#fff;font-size:.66rem;font-weight:800;text-decoration:none;white-space:nowrap}
+.holiday-episode-list{display:grid;gap:6px}
+.holiday-episode-list>span,.holiday-episode-empty{color:rgba(255,255,255,.72);font-size:.68rem;line-height:1.4}
+.holiday-episode-link{display:grid;grid-template-columns:27px minmax(0,1fr) 16px;align-items:center;gap:8px;padding:7px 9px;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:rgba(0,0,0,.25);color:#fff;text-decoration:none;transition:background .2s,border-color .2s}
+.holiday-episode-link:hover{background:rgba(255,255,255,.1);border-color:rgba(240,201,135,.45)}
+.holiday-episode-icon{display:grid;place-items:center;width:27px;height:27px;border-radius:8px;background:rgba(177,43,43,.35);color:#f4d39d;font-size:.7rem}
+.holiday-episode-link b{display:block;overflow:hidden;color:#fff;font-size:.69rem;line-height:1.25;text-overflow:ellipsis;white-space:nowrap}
+.holiday-episode-link small{display:block;margin-top:2px;color:rgba(255,255,255,.58);font-size:.57rem}
+.holiday-episode-arrow{color:#e9c994;font-size:.8rem}
+.holiday-episode-empty{display:block;padding:8px 9px;border:1px dashed rgba(240,201,135,.35);border-radius:9px;color:#f3d9ad;text-decoration:none}
+.holiday-side-footer{padding-top:8px}
+@media(max-width:900px){
+ .home-hero-carousel .home-hero-third .stream-hero-content{max-width:52%;padding-right:12px}
+ .home-hero-carousel .home-hero-third .holiday-countdown-side{width:46%;min-width:320px;padding:14px!important;gap:10px}
+ .holiday-countdown-card{padding:9px}
+}
+@media(max-width:640px){
+ .home-hero-carousel .home-hero-third .stream-hero-content{max-width:100%;padding-right:0}
+ .home-hero-carousel .home-hero-third .holiday-countdown-side{width:100%;min-width:0;max-width:480px;margin:0;padding:15px!important}
+ .holiday-countdown-card .holiday-side-countdown strong{font-size:1.35rem}
+}
