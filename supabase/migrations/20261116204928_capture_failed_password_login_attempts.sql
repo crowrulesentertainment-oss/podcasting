@@ -35,6 +35,9 @@ case when (e.payload->>'user_id') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a
 coalesce(u.email,'') as email,coalesce(e.payload->>'action','unknown') as action,nullif(e.ip_address,'') as ip_address,nullif(e.payload->>'user_agent','') as user_agent,coalesce(e.payload->'metadata','{}'::json)::jsonb as metadata
 from auth.audit_log_entries e left join auth.users u on u.id=case when (e.payload->>'user_id') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then (e.payload->>'user_id')::uuid else null end
 union all
+select l.id,l.created_at,l.user_id,coalesce(u.email,'')::text,'login_success',null::text,null::text,jsonb_build_object('source','podcast_login_activity','event_type',l.event_type)
+from public.podcast_login_activity l left join auth.users u on u.id=l.user_id where l.event_type='login'
+union all
 select f.id,f.attempted_at,null::uuid,'Identifier '||left(f.identifier_hash,12),'failed_password_login',null::text,null::text,jsonb_build_object('source',f.source,'identifier_fingerprint',left(f.identifier_hash,12))
 from public.podcasting_auth_failure_events f
 ) q order by q.occurred_at desc limit greatest(1,least(coalesce(p_limit,100),250));
