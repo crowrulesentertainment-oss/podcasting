@@ -1894,33 +1894,43 @@ async function rankings(){
  const dateValue=value=>value?new Date(value).getTime()||0:0;
  const safeUrl=value=>{try{const u=new URL(value,location.href);return u.protocol==="https:"||u.protocol==="http:"?u.href:""}catch{return""}};
  const imageFor=item=>item?.artwork_url||item?.thumbnail_url||item?.avatar_url||art;
+ const fetchAllRows=async query=>{
+  const rows=[];let from=0;
+  for(;;){
+   const{data,error}=await query.range(from,from+999);
+   if(error)throw error;
+   rows.push(...(data||[]));
+   if(!data||data.length<1000)break;
+   from+=1000;
+  }
+  return rows;
+ };
+ const fetchOptionalRows=async query=>{try{return await fetchAllRows(query)}catch(error){console.warn("Optional rankings data unavailable:",error.message);return null}};
  const fetchCatalog=async()=>{
-  const results=await Promise.all([
-   sb.from("podcasts").select("id,creator_id,title,category,description,artwork_url,total_plays,listener_count,published_at,created_at").eq("status","published").limit(250),
-   sb.from("podcast_episodes").select("id,podcast_id,title,description,thumbnail_url,artwork_url,play_count,total_plays,published_at,created_at,duration_seconds").eq("status","published").order("published_at",{ascending:false}).limit(400),
-   sb.from("creators").select("id,member_id,name,display_name,role,discipline,avatar_url,profile_url,is_active").limit(500),
-   sb.from("podcast_follows").select("podcast_id").limit(10000),
-   sb.from("crowrules_public_profiles").select("id,avatar_url,display_name").limit(500)
+  const [shows,episodes,creators,follows,profiles]=await Promise.all([
+   fetchAllRows(sb.from("podcasts").select("id,creator_id,title,category,description,artwork_url,total_plays,listener_count,published_at,created_at").eq("status","published")),
+   fetchAllRows(sb.from("podcast_episodes").select("id,podcast_id,title,description,thumbnail_url,artwork_url,play_count,total_plays,published_at,created_at,duration_seconds").eq("status","published").order("published_at",{ascending:false})),
+   fetchAllRows(sb.from("creators").select("id,member_id,name,display_name,role,discipline,avatar_url,profile_url,is_active")),
+   fetchOptionalRows(sb.from("podcast_follows").select("podcast_id")),
+   fetchOptionalRows(sb.from("crowrules_public_profiles").select("id,avatar_url,display_name"))
   ]);
-  const failure=results.find((r,i)=>r.error&&i<3);
-  if(failure)throw failure.error;
-  catalog.shows=results[0].data||[];catalog.episodes=results[1].data||[];
+  catalog.shows=shows;catalog.episodes=episodes;
   // The public member profile is the canonical avatar source; creators.avatar_url is a fallback mirror.
-  const memberProfiles=new Map((results[4].data||[]).map(profile=>[profile.id,profile]));
-  catalog.creators=(results[2].data||[]).map(creator=>({...creator,avatar_url:memberProfiles.get(creator.member_id)?.avatar_url||creator.avatar_url||"",display_name:creator.display_name||memberProfiles.get(creator.member_id)?.display_name||creator.name}));
-  catalog.follows={};for(const row of results[3].data||[])catalog.follows[row.podcast_id]=(catalog.follows[row.podcast_id]||0)+1;
-  catalog.followsAvailable=!results[3].error;
+  const memberProfiles=new Map((profiles||[]).map(profile=>[profile.id,profile]));
+  catalog.creators=creators.map(creator=>({...creator,avatar_url:memberProfiles.get(creator.member_id)?.avatar_url||creator.avatar_url||"",display_name:creator.display_name||memberProfiles.get(creator.member_id)?.display_name||creator.name}));
+  catalog.follows={};for(const row of follows||[])catalog.follows[row.podcast_id]=(catalog.follows[row.podcast_id]||0)+1;
+  catalog.followsAvailable=Array.isArray(follows);
  };
  const getSnapshot=async(category)=>{
   if(!category.type)return null;
   const key=category.type+":"+period;if(Object.prototype.hasOwnProperty.call(catalog.snapshots,key))return catalog.snapshots[key];
+  const dbPeriod=period==="weekly"?"7_days":period==="monthly"?"30_days":"all_time";
   if(category.type==="podcasts"){
-   const dbPeriod=period==="weekly"?"7_days":period==="monthly"?"30_days":"all_time";
    const{data,error}=await sb.from("podcast_rankings_period_live").select("podcast_id,ranking,ranking_score,listens,followers,previous_rank,movement,movement_label").eq("period_type",dbPeriod).order("ranking",{ascending:true}).limit(50);
    if(error)throw error;
    catalog.snapshots[key]=(data||[]).map(row=>({...row,rank:row.ranking,score:row.ranking_score,plays:row.listens,source:"live-view"}));
   }else{
-   const{data,error}=await sb.from("podcast_rankings").select("rank,podcast_id,episode_id,score,plays,followers,listening_seconds,calculated_at").eq("ranking_type",category.type).eq("period_type",period).order("rank",{ascending:true}).limit(50);
+   const{data,error}=await sb.from("podcast_rankings").select("rank,podcast_id,episode_id,score,plays,followers,listening_seconds,calculated_at").eq("ranking_type",category.type).eq("period_type",dbPeriod).order("rank",{ascending:true}).limit(50);
    if(error)throw error;catalog.snapshots[key]=data||[];
   }
   return catalog.snapshots[key];
@@ -1960,7 +1970,7 @@ async function rankings(){
   }
   if(category.id==="hosts"||category.id==="creatorShows"){
    const totals=new Map();for(const show of catalog.shows){if(!show.creator_id)continue;const current=totals.get(show.creator_id)||{plays:0,shows:0};current.plays+=Number(show.total_plays||0);current.shows++;totals.set(show.creator_id,current)}
-   return catalog.creators.filter(item=>{const name=String(item.display_name||item.name||"").trim().toLowerCase().replace(/[^a-z0-9]/g,"");return totals.has(item.id)&&item.is_active!==false&&!name.startsWith("crowrules")&&name!=="jasonriehle"}).map(item=>({kind:"host",item,plays:totals.get(item.id)?.plays||0,shows:totals.get(item.id)?.shows||0,source:"host-role"})).sort((a,b)=>category.id==="creatorShows"?Number(b.shows||0)-Number(a.shows||0)||Number(b.plays||0)-Number(a.plays||0):Number(b.plays||0)-Number(a.plays||0));
+   return catalog.creators.filter(item=>{const name=String(item.display_name||item.name||"").trim().toLowerCase().replace(/[^a-z0-9]/g,""),role=String(item.role||"").trim().toLowerCase();return role==="host"&&totals.has(item.id)&&item.is_active!==false&&!name.startsWith("crowrules")&&name!=="jasonriehle"}).map(item=>({kind:"host",item,plays:totals.get(item.id)?.plays||0,shows:totals.get(item.id)?.shows||0,source:"host-role"})).sort((a,b)=>category.id==="creatorShows"?Number(b.shows||0)-Number(a.shows||0)||Number(b.plays||0)-Number(a.plays||0):Number(b.plays||0)-Number(a.plays||0));
   }
   return[];
  };
@@ -1976,7 +1986,7 @@ async function rankings(){
    const builtRows=await buildRows(category);
    const rows=(category.id==="hosts"||category.id==="listeners"||category.id==="creatorShows")?builtRows:builtRows.slice(0,10);
    const snapshot=rows.some(row=>row.source==="live-view");
-   $("#rankingDataNote").textContent=category.id==="listeners"?"All publicly visible signed-in listeners · all-time qualified plays":category.id==="hosts"?"Hosts ranked by published-show plays · excluding CrowRules and Jason Riehle":category.id==="creatorShows"?"Hosts ranked by published-show count":snapshot?periodSelect.options[periodSelect.selectedIndex].text+" · live chart with movement":["newshows","newEpisodes","longform","activeShows","creatorShows","breakout","consistent","topcategories","followed"].includes(category.id)?"Live catalog · category-specific metrics":"Live catalog · cumulative metrics";
+   $("#rankingDataNote").textContent=category.id==="listeners"?"Publicly visible eligible listeners · all-time qualified plays":category.id==="hosts"?"Actual Host-role members · published-show plays":category.id==="creatorShows"?"Actual Host-role members · published-show count":snapshot?periodSelect.options[periodSelect.selectedIndex].text+" · verified ranking snapshot with movement":["newshows","newEpisodes","longform","activeShows","creatorShows","breakout","consistent","topcategories","followed"].includes(category.id)?"Published catalog · category-specific metric":"Cumulative catalog totals · period-specific chart not yet available";
    const top=rows[0];
    if(top){
     const item=top.item,title=top.kind==="category"?item.title:category.id==="hosts"||category.id==="listeners"?(item.display_name||item.name||"Listener"):item.title||"Untitled";
@@ -1994,7 +2004,7 @@ async function rankings(){
      const href=row.kind==="category"?"discover.html?category="+encodeURIComponent(item.category):row.kind==="episode"?"episode.html?id="+encodeURIComponent(item.id):row.kind==="show"?"show.html?id="+encodeURIComponent(item.id):row.kind==="listener"?"listener.html":row.kind==="host"?"creator-profile.html?id="+encodeURIComponent(item.id):"creator-profile.html";
      const image=safeUrl(imageFor(item))||art,metric=row.kind==="category"?number(row.plays)+" plays · "+number(row.shows)+" shows":row.kind==="listener"?number(row.qualifiedPlays)+" qualified plays · "+number(row.uniqueEpisodes)+" episodes":row.kind==="host"?(active==="creatorShows"?number(row.shows)+" published shows · "+number(row.plays)+" plays":number(row.plays)+" plays · "+number(row.shows)+" shows"):active==="newshows"||active==="newEpisodes"?"Published "+(row.publishedAt?new Date(row.publishedAt).toLocaleDateString():"recently"):active==="longform"?"Runtime "+Math.floor(Number(row.score||0)/60)+" min":active==="activeShows"?"Published "+number(row.recentEpisodes)+" episodes in 90 days":active==="breakout"?number(row.plays)+" plays · "+number(Math.round(row.score||0))+" per day":active==="consistent"?number(row.recentEpisodes)+" episodes in 90 days":row.kind==="episode"?number(row.plays)+" plays":active==="followed"?number(row.followers)+" followers":active==="rising"?number(Math.round(row.score||0))+" estimated plays/day":number(row.plays||0)+" plays";
      const sub=row.kind==="category"?"PODCAST CATEGORY":row.kind==="listener"?(item.username?"@"+item.username:"CrowRules listener"):row.kind==="host"?(active==="creatorShows"?"Host · "+number(row.shows)+" shows":item.discipline||"Host"):row.kind==="episode"?(catalog.shows.find(s=>s.id===item.podcast_id)?.title||"CrowRules episode"):(item.category||"Podcast show");
-     return'<a class="ranking-tile" href="'+href+'"><div class="ranking-tile-art"><img src="'+esc(image)+'" alt="" loading="lazy"><span class="ranking-tile-number">'+String(index+1).padStart(2,"0")+'</span><span class="ranking-tile-play">↗</span>'+(period!=="all_time"&&row.movementLabel?'<span class="ranking-movement" style="position:absolute;right:10px;bottom:10px;background:rgba(8,9,12,.88);padding:5px 8px;border-radius:6px;font-size:12px;font-weight:800">'+esc(row.movementLabel)+'</span>':"")+'</div><div class="ranking-tile-copy"><span class="ranking-tile-category">'+esc(sub)+'</span><b>'+esc(title)+'</b><small>'+esc(metric)+'</small></div></a>';
+     return'<a class="ranking-tile" href="'+href+'"><div class="ranking-tile-art"><img src="'+esc(image)+'" alt="" loading="lazy"><span class="ranking-tile-number">'+String(row.rank??index+1).padStart(2,"0")+'</span><span class="ranking-tile-play">↗</span>'+(period!=="all_time"&&row.movementLabel?'<span class="ranking-movement" style="position:absolute;right:10px;bottom:10px;background:rgba(8,9,12,.88);padding:5px 8px;border-radius:6px;font-size:12px;font-weight:800">'+esc(row.movementLabel)+'</span>':"")+'</div><div class="ranking-tile-copy"><span class="ranking-tile-category">'+esc(sub)+'</span><b>'+esc(title)+'</b><small>'+esc(metric)+'</small></div></a>';
     }).join("");
    }
   }catch(error){console.error("Rankings failed:",error);featured.innerHTML='<div class="rankings-featured-empty"><h3>Rankings are unavailable.</h3><p>'+esc(error.message||"Please refresh and try again.")+'</p></div>';list.innerHTML='<div class="notice">'+esc(error.message||"Could not load rankings.")+'</div>';$("#rankingDataNote").textContent="Connection issue"}
@@ -2002,7 +2012,18 @@ async function rankings(){
  };
  $("#rankingCategories").addEventListener("click",event=>{const button=event.target.closest("[data-ranking-category]");if(!button||button.dataset.rankingCategory===active)return;active=button.dataset.rankingCategory;render()});
  periodSelect.addEventListener("change",()=>{period=periodSelect.value;catalog.snapshots={};render()});
- const renderSpotlights=async()=>{try{const{data,error}=await sb.from("podcast_rankings_period_live").select("podcast_id,podcast_title,ranking,movement,movement_label,previous_rank").eq("period_type","7_days").order("ranking",{ascending:true}).limit(12);if(error)throw error;const rows=data||[],make=(x,i)=>'<a href="'+SITE_BASE+'show.html?id='+encodeURIComponent(x.podcast_id)+'" style="display:flex;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line,#333)"><b>#'+(i+1)+'</b><span style="flex:1">'+esc(x.podcast_title||"Podcast")+'</span><small>'+esc(x.movement_label||"—")+'</small></a>';$("#rankingTrending").innerHTML=rows.slice(0,5).map(make).join("")||"No trending shows yet.";const rising=rows.filter(x=>x.movement==="UP").sort((a,b)=>(Number(b.previous_rank)-Number(b.ranking))-(Number(a.previous_rank)-Number(a.ranking))).slice(0,5);$("#rankingRising").innerHTML=rising.map(make).join("")||"New upward movement will appear here."}catch(error){$("#rankingTrending").textContent="Trending charts unavailable.";$("#rankingRising").textContent="Rising charts unavailable."}};
+ const renderSpotlights=async()=>{
+  try{
+   const{data,error}=await sb.from("podcast_rankings_period_live").select("podcast_id,podcast_title,ranking,movement,movement_label,previous_rank").eq("period_type","7_days").order("ranking",{ascending:true}).limit(50);
+   if(error)throw error;
+   const rows=data||[],delta=x=>Number.isFinite(Number(x.previous_rank))&&Number.isFinite(Number(x.ranking))?Number(x.previous_rank)-Number(x.ranking):null;
+   const make=x=>'<a href="'+SITE_BASE+'show.html?id='+encodeURIComponent(x.podcast_id)+'" style="display:flex;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line,#333)"><b>#'+number(x.ranking)+'</b><span style="flex:1">'+esc(x.podcast_title||"Podcast")+'</span><small>'+esc(x.movement_label||"—")+'</small></a>';
+   const moved=rows.filter(x=>delta(x)!==null&&delta(x)!==0).sort((a,b)=>Math.abs(delta(b))-Math.abs(delta(a))).slice(0,5);
+   const rising=rows.filter(x=>delta(x)!==null&&delta(x)>0).sort((a,b)=>delta(b)-delta(a)).slice(0,5);
+   $("#rankingTrending").innerHTML=moved.map(make).join("")||"No verified week-over-week movement is available yet.";
+   $("#rankingRising").innerHTML=rising.map(make).join("")||"No verified upward movement is available yet.";
+  }catch(error){$("#rankingTrending").textContent="Trending charts unavailable.";$("#rankingRising").textContent="Rising charts unavailable."}
+ };
  render();renderSpotlights();
  const refreshRankings=async()=>{if(page!=="rankings"||document.hidden||loading)return;catalog.loaded=false;catalog.snapshots={};catalog.featuredLoaded=false;await render();await renderSpotlights()};
  const rankingRefreshTimer=setInterval(refreshRankings,60000);window.addEventListener("pagehide",()=>clearInterval(rankingRefreshTimer),{once:true});
