@@ -29,8 +29,10 @@ const automation=moduleBlock("automation14","notificationCenter15");
 for(const token of ["podcast_admin_list_scheduled_automations_v14","podcast_automation_runs_v14","crAutoSearch","crAutoStatus","crAutoRefresh"])assert(automation.includes(token),"Automation center supports "+token);
 assert(automation.includes("catch(e){fail(e)}"),"Automation refresh surfaces failures");
 const notifications=moduleBlock("notificationCenter15","developmentRoadmap");
-for(const token of ["podcast_live_notifications","podcast_notifications","podcast_notification_delivery_queue","podcast_platform_announcements_v15","podcast_notification_preferences","crNcForm","crNcRefresh","data-ann","email_enabled","announcements_enabled"])assert(notifications.includes(token),"Notification center supports "+token);
+for(const token of ["podcast_live_notifications","podcast_notifications","podcast_notification_delivery_queue","podcast_platform_announcements_v15","crNcForm","crNcRefresh","data-ann","email_enabled","announcements_enabled"])assert(notifications.includes(token),"Notification center supports "+token);
 assert(notifications.includes("catch(e){fail(e)}"),"Notification center surfaces refresh and management failures");
+assert(app.includes("podcast_notification_preferences")&&app.includes("announcements_enabled")&&app.includes("email_enabled"),"Member preferences persist in the account database");
+assert(app.includes("memberNotificationInbox")&&app.includes("loadInbox")&&app.includes("data-read"),"Member inbox loads alerts and supports marking them read");
 assert(notifications.includes("@media(max-width:600px)"),"Notification center stacks rows and forms on mobile");
 
 const roadmap=moduleBlock("developmentRoadmap","shows");
