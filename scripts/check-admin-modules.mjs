@@ -12,9 +12,9 @@ function moduleBlock(tab,nextTab){
  assert(start>=0&&end>start,"Module "+tab+" is registered in the admin renderer");
  return app.slice(start,end);
 }
-const tabs=["platformFeedback","reviewAnalytics","healthMonitoring","automation14","developmentRoadmap"];
+const tabs=["platformFeedback","reviewAnalytics","healthMonitoring","automation14","notificationCenter15","developmentRoadmap"];
 for(const tab of tabs)assert(app.includes('["'+tab+'",'),"Navigation includes "+tab);
-assert(admin.includes("20261117-live-visitor-map-v1"),"Admin HTML uses cache-busted app.js");
+assert(admin.includes("20261117-notification-center-15-qa-v1"),"Admin HTML uses cache-busted app.js");
 const feedback=moduleBlock("platformFeedback","reviewAnalytics");
 for(const token of ["podcast_platform_feedback","podcast_platform_reviews","podcast_platform_review_reports","podcast_platform_feedback_monthly_reports","admin_generate_podcast_platform_feedback_report","data-save-platform-feedback","data-save-platform-review","data-platform-report-state","data-save-platform-reply","data-feedback-to-roadmap"])assert(feedback.includes(token),"Platform feedback supports "+token);
 assert(feedback.includes(".catch(fail)")||feedback.includes("catch(error)"),"Platform feedback surfaces query and action failures");
@@ -25,9 +25,14 @@ assert(analytics.includes("catch(e=>status.textContent")||analytics.includes("ca
 const health=moduleBlock("healthMonitoring","automation14");
 for(const token of ["podcast_health_incidents","podcast_media_uploads","podcast_media_processing_jobs","podcast_notification_delivery_queue","crHealthIncidentForm","crHealthRefresh","data-health-incident-save"])assert(health.includes(token),"Health monitoring supports "+token);
 assert(health.includes("catch(e){fail(e)}"),"Health refresh surfaces failures");
-const automation=moduleBlock("automation14","developmentRoadmap");
+const automation=moduleBlock("automation14","notificationCenter15");
 for(const token of ["podcast_admin_list_scheduled_automations_v14","podcast_automation_runs_v14","crAutoSearch","crAutoStatus","crAutoRefresh"])assert(automation.includes(token),"Automation center supports "+token);
 assert(automation.includes("catch(e){fail(e)}"),"Automation refresh surfaces failures");
+const notifications=moduleBlock("notificationCenter15","developmentRoadmap");
+for(const token of ["podcast_live_notifications","podcast_notifications","podcast_notification_delivery_queue","podcast_platform_announcements_v15","podcast_notification_preferences","crNcForm","crNcRefresh","data-ann","email_enabled","announcements_enabled"])assert(notifications.includes(token),"Notification center supports "+token);
+assert(notifications.includes("catch(e){fail(e)}"),"Notification center surfaces refresh and management failures");
+assert(notifications.includes("@media(max-width:600px)"),"Notification center stacks rows and forms on mobile");
+
 const roadmap=moduleBlock("developmentRoadmap","shows");
 for(const token of ["podcast_development_roadmap","podcast_platform_feedback","crRoadmapCreate","data-cr-roadmap-edit","data-cr-roadmap-delete","crRoadmapReload"])assert(roadmap.includes(token),"Development roadmap supports "+token);
 assert(roadmap.includes("work.innerHTML=")&&!roadmap.includes("content.innerHTML="),"Roadmap renders into the admin workspace");
