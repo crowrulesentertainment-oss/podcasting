@@ -37,12 +37,14 @@ function styles() {
 }
 
 async function loadMetrics(showIds) {
-  const [follows, episodes] = await Promise.all([
+  const [follows, episodes, viewEvents] = await Promise.all([
     fetchAll(sb.from("podcast_follows").select("podcast_id").in("podcast_id", showIds)),
-    fetchAll(sb.from("podcast_episodes").select("id,podcast_id").in("podcast_id", showIds))
+    fetchAll(sb.from("podcast_episodes").select("id,podcast_id").in("podcast_id", showIds)),
+    fetchAll(sb.from("analytics_events").select("content_id").eq("event_name", "show_view").eq("content_type", "podcast_show").in("content_id", showIds))
   ]);
-  const followers = new Map(), listens = new Map();
+  const followers = new Map(), listens = new Map(), views = new Map();
   follows.forEach(row => followers.set(row.podcast_id, (followers.get(row.podcast_id) || 0) + 1));
+  viewEvents.forEach(row => views.set(row.content_id, (views.get(row.content_id) || 0) + 1));
   const episodeToShow = new Map(episodes.map(row => [row.id, row.podcast_id]));
   if (episodes.length) {
     const ids = episodes.map(row => row.id);
@@ -56,7 +58,7 @@ async function loadMetrics(showIds) {
       });
     }
   }
-  return { followers, listens, episodes };
+  return { followers, listens, views, episodes };
 }
 
 function showRows() {
@@ -97,13 +99,14 @@ async function enhanceShows() {
     listens.textContent = "…";
     const views = document.createElement("td");
     views.className = "admin-show-metric";
-    views.innerHTML = '<span class="admin-show-metric-unavailable" title="Per-show page-view events are not currently recorded.">Not tracked</span>';
+    views.dataset.showViews = id;
+    views.textContent = "…";
     row.append(followers, listens, views);
   });
 
   const summary = document.createElement("section");
   summary.className = "admin-show-analytics";
-  summary.innerHTML = '<div class="admin-show-analytics-grid"><article class="admin-show-analytics-card"><span>Total followers</span><strong data-total-followers>—</strong><small>Accounts following the shows in this catalog</small></article><article class="admin-show-analytics-card"><span>Qualified listens</span><strong data-total-listens>—</strong><small>Recorded play events after the 30-second listening threshold</small></article><article class="admin-show-analytics-card views"><span>Show page views</span><strong>Not tracked</strong><small>Per-show page-view tracking is not currently available</small></article></div><p class="admin-show-analytics-note">Follower and listen counts are calculated from the existing CrowRules Podcasting records. A show-page view is intentionally not estimated from listens or general site traffic; it will display once a reliable per-show view event source is implemented.</p>';
+  summary.innerHTML = '<div class="admin-show-analytics-grid"><article class="admin-show-analytics-card"><span>Total followers</span><strong data-total-followers>—</strong><small>Accounts following the shows in this catalog</small></article><article class="admin-show-analytics-card"><span>Play events</span><strong data-total-listens>—</strong><small>Recorded episode play-start events</small></article><article class="admin-show-analytics-card views"><span>Show page views</span><strong data-total-views>—</strong><small>One recorded view per show per browser tab session</small></article></div><p class="admin-show-analytics-note">Followers, episode play events and show-page views are separate metrics. Show views are recorded when a published show page opens; refreshes in the same tab session do not add another view.</p>';
   const module = work.querySelector(".admin-module");
   if (module) module.insertAdjacentElement("beforebegin", summary);
   else work.prepend(summary);
@@ -120,17 +123,21 @@ async function enhanceShows() {
       const metrics = await loadMetrics(ids);
       const followerTotal = [...metrics.followers.values()].reduce((sum, value) => sum + value, 0);
       const listenTotal = [...metrics.listens.values()].reduce((sum, value) => sum + value, 0);
+      const viewTotal = [...metrics.views.values()].reduce((sum, value) => sum + value, 0);
       summary.querySelector("[data-total-followers]").textContent = number(followerTotal);
       summary.querySelector("[data-total-listens]").textContent = number(listenTotal);
+      summary.querySelector("[data-total-views]").textContent = number(viewTotal);
       items.forEach(({ id }) => {
         const f = summary.parentElement.querySelector("[data-show-followers='" + CSS.escape(id) + "']");
         const l = summary.parentElement.querySelector("[data-show-listens='" + CSS.escape(id) + "']");
+        const v = summary.parentElement.querySelector("[data-show-views='" + CSS.escape(id) + "']");
         if (f) f.textContent = number(metrics.followers.get(id) || 0);
         if (l) l.textContent = number(metrics.listens.get(id) || 0);
+        if (v) v.textContent = number(metrics.views.get(id) || 0);
       });
       summary.dataset.metricsLoaded = "true";
       summary.querySelector(".admin-show-analytics-note").textContent =
-        "Updated " + new Date().toLocaleTimeString() + ". Followers count unique follow records; qualified listens count recorded play events that passed the 30-second threshold. Show-page views remain untracked rather than being estimated.";
+        "Updated " + new Date().toLocaleTimeString() + ". Followers count follow records; play events count recorded episode play starts; show views count published show-page visits, deduplicated per show and browser tab session."
     } catch (error) {
       console.warn("Show audience metrics unavailable:", error);
       summary.querySelector(".admin-show-analytics-note").textContent =
