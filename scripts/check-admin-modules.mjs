@@ -14,7 +14,7 @@ function moduleBlock(tab,nextTab){
 }
 const tabs=["platformFeedback","reviewAnalytics","healthMonitoring","automation14","developmentRoadmap"];
 for(const tab of tabs)assert(app.includes('["'+tab+'",'),"Navigation includes "+tab);
-assert(admin.includes("20261117-admin-workspace-fixes-v1"),"Admin HTML uses cache-busted app.js");
+assert(admin.includes("20261117-live-visitor-map-v1"),"Admin HTML uses cache-busted app.js");
 const feedback=moduleBlock("platformFeedback","reviewAnalytics");
 for(const token of ["podcast_platform_feedback","podcast_platform_reviews","podcast_platform_review_reports","podcast_platform_feedback_monthly_reports","admin_generate_podcast_platform_feedback_report","data-save-platform-feedback","data-save-platform-review","data-platform-report-state","data-save-platform-reply","data-feedback-to-roadmap"])assert(feedback.includes(token),"Platform feedback supports "+token);
 assert(feedback.includes(".catch(fail)")||feedback.includes("catch(error)"),"Platform feedback surfaces query and action failures");
@@ -34,5 +34,12 @@ assert(roadmap.includes("work.innerHTML=")&&!roadmap.includes("content.innerHTML
 
 assert(css.includes("@media(max-width:650px)")&&css.includes(".cr-review-mod-stats{grid-template-columns:repeat(2,minmax(0,1fr))}"),"Review/admin cards collapse to two columns on mobile");
 assert(css.includes("@media(max-width:600px){.cr-review-form-grid{grid-template-columns:1fr}"),"Admin forms collapse to one column on small screens");
-console.log("PASS: "+checks.length+" Admin Dashboard 14.1 static regression checks.");
+
+const liveMap=app.slice(app.indexOf('if(tab==="overview"){'),app.indexOf('if(tab==="securityAudit"){'));
+for(const token of ["adminVisitorMap","adminVisitorMapLeader","adminVisitorMapNote","renderVisitorMap(countries,displayNames)"])assert(liveMap.includes(token),"Live visitor map renders "+token);
+for(const token of ["visitorCountryCenters","loadVisitorMapLibrary","L.tileLayer","L.circleMarker","MOST ACTIVE ESTIMATED COUNTRY","Approximate country center"])assert(app.includes(token),"Visitor map supports "+token);
+assert(app.includes("Heartbeat received within 90 seconds")&&app.includes("browser locale"),"Visitor map preserves 90-second activity and locale-estimate privacy wording");
+assert(app.includes("@media(max-width:760px)")&&app.includes("admin-visitor-map-frame #adminVisitorMap{height:310px}"),"Visitor map has a responsive mobile layout");
+
+console.log("PASS: "+checks.length+" Admin Dashboard static regression checks.");
 for(const item of checks)console.log("  ✓ "+item);
