@@ -22,3 +22,5 @@ jobs:
           done
       - name: Check pages, assets and public secrets
         run: node scripts/check-site.mjs
+      - name: Check admin module regression coverage
+        run: node scripts/check-admin-modules.mjs
