@@ -164,7 +164,7 @@ function startLivePresence(){
  .on("presence",{event:"sync"},renderLiveCounts)
  .on("presence",{event:"join"},renderLiveCounts)
  .on("presence",{event:"leave"},renderLiveCounts);
- if(!livePresenceHeartbeat)livePresenceHeartbeat=setInterval(()=>{syncLivePresence();if(livePresenceSubscribed)renderLiveCounts()},30000);
+ if(!livePresenceHeartbeat)livePresenceHeartbeat=setInterval(()=>{if(!document.hidden)syncLivePresence();if(livePresenceSubscribed)renderLiveCounts()},15000);if(!window.__crpPresenceVisibilityBound){window.__crpPresenceVisibilityBound=true;document.addEventListener("visibilitychange",()=>{if(!document.hidden){syncLivePresence();renderLiveCounts()}});window.addEventListener("online",()=>{syncLivePresence();renderLiveCounts()});}
  livePresenceChannel.subscribe(status=>{
   const label=$("#liveNetworkStatus"),adminLabel=$("#adminLiveStatus");
   if(status==="SUBSCRIBED"){
