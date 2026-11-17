@@ -4,6 +4,8 @@ const root=process.cwd();
 const app=readFileSync(join(root,"assets/js/app.js"),"utf8");
 const css=readFileSync(join(root,"assets/css/site.css"),"utf8");
 const admin=readFileSync(join(root,"admin.html"),"utf8");
+const geo=readFileSync(join(root,"supabase/functions/podcasting-live-visitor-geolocation/index.ts"),"utf8");
+const geoMigration=readFileSync(join(root,"supabase/migrations/20261117130000_podcasting_live_visitor_city_region_geolocation.sql"),"utf8");
 const checks=[];
 function assert(ok,message){if(!ok)throw Error("Admin QA failed: "+message);checks.push(message)}
 function moduleBlock(tab,nextTab){
@@ -41,6 +43,9 @@ assert(app.includes("Heartbeat received within 90 seconds")&&app.includes("Brows
 assert(app.includes("podcasting-live-visitor-geolocation")&&app.includes("21600000"),"Visitor geo lookup is server-side and throttled to six hours per browser session");
 assert(app.includes("rounded to about 0.1°")&&app.includes("not GPS or street addresses"),"Visitor city map discloses approximate location precision and privacy limits");
 assert(app.includes("admin-visitor-map-leaders")&&app.includes("adminActivityRegions"),"City, state/region and country leaders and rankings are rendered");
+assert(geo.includes("ipwho.is/")&&geo.includes("podcasting_touch_live_presence_geo")&&geo.includes("SUPABASE_ANON_KEY"),"Server-side geolocation forwards only approximate fields through the authenticated RPC");
+assert(!geo.includes("console.log(ip)")&&!geo.includes("console.error(ip)")&&!geo.includes("p_ip_address"),"Visitor IP is not logged or persisted by the edge function");
+assert(geoMigration.includes("add column if not exists city")&&geoMigration.includes("add column if not exists region")&&geoMigration.includes("round(p_latitude,1)")&&geoMigration.includes("podcasting_admin_live_activity_impl"),"Database migration stores city/region and rounded coordinates for admin aggregates");
 assert(app.includes("@media(max-width:760px)")&&app.includes("admin-visitor-map-frame #adminVisitorMap{height:330px}"),"Visitor map has a responsive mobile layout");
 
 console.log("PASS: "+checks.length+" Admin Dashboard static regression checks.");
