@@ -1,0 +1,89 @@
+/* CrowRules Podcasting — Episodes Control Room redesign */
+body[data-page="admin"] .admin-episode-state-grid{
+  grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin:0 0 22px
+}
+body[data-page="admin"] .admin-episode-state-grid .admin-stat-card{
+  min-width:0;min-height:112px;padding:18px;border:1px solid #ffffff18;border-radius:12px;
+  background:linear-gradient(145deg,#1b1b1b,#101010);box-shadow:0 12px 30px #0005
+}
+body[data-page="admin"] .admin-episode-state-grid .admin-stat-card>span{
+  display:block;color:#aaa;font-size:11px;font-weight:800;letter-spacing:.11em;text-transform:uppercase
+}
+body[data-page="admin"] .admin-episode-state-grid .admin-stat-card>strong{
+  display:block;margin:9px 0 5px;color:#fff;font-size:clamp(25px,3vw,36px);line-height:1.08;
+  overflow-wrap:anywhere
+}
+body[data-page="admin"] .admin-episode-state-grid .admin-stat-card>small{color:#999;font-size:11px;line-height:1.45}
+body[data-page="admin"] .admin-episode-popular{border-color:#e5091466!important;background:linear-gradient(145deg,#321316,#171010)!important}
+body[data-page="admin"] .admin-episode-popular>strong{font-size:clamp(16px,2vw,23px)!important;line-height:1.25!important}
+body[data-page="admin"] .admin-module.admin-top-episodes,
+body[data-page="admin"] .admin-module.admin-episode-control{
+  margin:22px 0;padding:clamp(16px,2.5vw,26px);border:1px solid #ffffff18;border-radius:14px;
+  background:linear-gradient(145deg,#171717,#101010);box-shadow:0 18px 42px #0005
+}
+body[data-page="admin"] .admin-module-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap
+}
+body[data-page="admin"] .admin-module-head h3{margin:6px 0;font-size:clamp(20px,2.5vw,27px);letter-spacing:-.035em}
+body[data-page="admin"] .admin-module-head p{margin:6px 0;color:#aaa;font-size:12px;line-height:1.6}
+body[data-page="admin"] .admin-top-episodes-grid{
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-top:20px
+}
+body[data-page="admin"] .admin-top-episode-card{
+  min-width:0;overflow:hidden;border:1px solid #ffffff18;border-radius:11px;background:#0b0b0b
+}
+body[data-page="admin"] .admin-top-episode-cover{
+  position:relative;aspect-ratio:16/10;overflow:hidden;background:linear-gradient(135deg,#351316,#171717)
+}
+body[data-page="admin"] .admin-top-episode-cover img{width:100%;height:100%;display:block;object-fit:cover}
+body[data-page="admin"] .admin-top-episode-rank{
+  position:absolute;left:9px;top:9px;padding:5px 8px;border-radius:5px;background:#e50914;color:#fff;
+  font-size:11px;font-weight:900;box-shadow:0 3px 12px #0008
+}
+body[data-page="admin"] .admin-top-episode-info{display:grid;gap:6px;padding:12px}
+body[data-page="admin"] .admin-top-episode-info>b{font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+body[data-page="admin"] .admin-top-episode-info>small{font-size:10px;color:#aaa}
+body[data-page="admin"] .admin-top-episode-placeholder{height:100%;display:grid;place-items:center;color:#fff;font-size:42px;font-weight:950}
+body[data-page="admin"] .admin-episode-toolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+body[data-page="admin"] .admin-episode-toolbar .admin-search{min-width:min(280px,100%);margin:0}
+body[data-page="admin"] .admin-episode-control-note{
+  margin:17px 0;padding:12px 14px;border:1px solid #ffffff16;border-radius:8px;
+  background:#ffffff07;color:#aaa;font-size:11px;line-height:1.6
+}
+body[data-page="admin"] .admin-episode-control-note span{color:#ff656d;font-weight:900;margin-right:8px}
+body[data-page="admin"] .admin-episode-control table{width:100%;min-width:950px;border-collapse:separate;border-spacing:0}
+body[data-page="admin"] .admin-episode-control{overflow:hidden}
+body[data-page="admin"] .admin-episode-control .table-wrap,
+body[data-page="admin"] .admin-episode-control .table-responsive{overflow-x:auto;max-width:100%}
+body[data-page="admin"] .admin-episode-control th{
+  position:sticky;top:0;z-index:1;background:#211719;color:#eee;font-size:10px;
+  letter-spacing:.09em;text-transform:uppercase
+}
+body[data-page="admin"] .admin-episode-control td{vertical-align:top;padding:13px 11px;border-bottom:1px solid #ffffff12;font-size:12px}
+body[data-page="admin"] .admin-episode-control td>b{display:block;line-height:1.4}
+body[data-page="admin"] .admin-episode-control td small{display:block;margin-top:5px;color:#999;font-size:10px;line-height:1.4}
+body[data-page="admin"] .admin-episode-files{display:grid;gap:8px;min-width:190px}
+body[data-page="admin"] .admin-episode-file{
+  display:flex;align-items:center;justify-content:space-between;gap:9px;padding:9px;
+  border:1px solid #ffffff14;border-radius:8px;background:#ffffff05
+}
+body[data-page="admin"] .admin-episode-file>span{min-width:0;overflow-wrap:anywhere}
+body[data-page="admin"] .admin-episode-file button{flex:0 0 auto;font-size:10px;padding:7px 9px}
+body[data-page="admin"] .admin-action-select{min-width:150px;max-width:100%;margin-bottom:8px;font-size:11px}
+body[data-page="admin"] .admin-episode-control [data-admin-delete-episode]{display:block;white-space:nowrap;font-size:10px;padding:8px 10px}
+body[data-page="admin"] .admin-challenge-flag{color:#ffd17a!important;font-weight:900;letter-spacing:.06em}
+body[data-page="admin"] .admin-episode-control tr[hidden]{display:none}
+@media(max-width:900px){
+ body[data-page="admin"] .admin-top-episodes-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:600px){
+ body[data-page="admin"] .admin-episode-state-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ body[data-page="admin"] .admin-episode-state-grid .admin-stat-card{min-height:100px;padding:12px}
+ body[data-page="admin"] .admin-top-episodes-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ body[data-page="admin"] .admin-top-episode-info{padding:9px}
+ body[data-page="admin"] .admin-module.admin-top-episodes,
+ body[data-page="admin"] .admin-module.admin-episode-control{padding:13px;margin:14px 0}
+ body[data-page="admin"] .admin-episode-toolbar{width:100%}
+ body[data-page="admin"] .admin-episode-toolbar .admin-search{width:100%;min-width:0}
+ body[data-page="admin"] .admin-episode-toolbar button{width:100%}
+}
