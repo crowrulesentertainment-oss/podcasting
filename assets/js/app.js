@@ -1887,7 +1887,7 @@ async function rankings(){
   {id:"activeShows",label:"Most Active Shows",type:null,kind:"show",description:"Shows publishing the most episodes in the last 90 days."},
   {id:"longform",label:"Longform Episodes",type:null,kind:"episode",description:"Long-form conversations and episodes, ranked by runtime."}
  ];
- let active="shows",period="weekly",catalog={shows:[],episodes:[],creators:[],follows:{},snapshots:{},featuredLoaded:false,featuredTypes:new Set()},loading=false,rerenderRequested=false;
+ let active="shows",period="weekly",catalog={shows:[],episodes:[],creators:[],follows:{},snapshots:{},featuredLoaded:false,featuredTypes:new Set(),featuredSettings:new Map()},loading=false,rerenderRequested=false;
  root.innerHTML='<section class="rankings-hero"><div class="rankings-hero-backdrop" id="rankingsHeroBackdrop"></div><div class="container rankings-hero-content"><div class="eyebrow">CROWRULES ORIGINALS · THE CHARTS</div><span class="rankings-season-tag">THE CROWRULES PODCASTING CHARTS</span><h1 class="rankings-display-title">THE<br><em>RANKINGS</em></h1><p>Discover the voices, shows and episodes moving the conversation. Explore the charts and find your next favorite.</p><div class="rankings-hero-meta"><span><i></i> LIVE CATALOG DATA</span><span>ONE COMPANY. ONE UNIVERSE.</span></div></div></section><section class="container rankings-main"><div class="rankings-intro"><div><span class="eyebrow">FIND YOUR NEXT FAVORITE</span><h2>What’s rising on CrowRules.</h2><p class="muted">Explore the rankings by category and time period.</p></div><div class="rankings-period"><label for="rankingPeriod">Time period</label><select id="rankingPeriod"><option value="weekly">This week</option><option value="monthly">This month</option><option value="all_time">All time</option></select></div></div><nav class="rankings-categories" id="rankingCategories" aria-label="Ranking categories">'+categories.map(c=>'<button type="button" class="ranking-category'+(c.id==="shows"?" is-active":"")+'" data-ranking-category="'+c.id+'" aria-pressed="'+(c.id==="shows"?"true":"false")+'">'+esc(c.label)+'</button>').join("")+'</nav><div class="rankings-featured" id="rankingFeatured"><div class="loading">Loading the charts…</div></div><div class="ranking-spotlight-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin:24px 0"><section class="panel"><span class="eyebrow">MOVING THIS WEEK</span><h3>Trending</h3><div id="rankingTrending">Loading…</div></section><section class="panel"><span class="eyebrow">BREAKING THROUGH</span><h3>Rising Stars</h3><div id="rankingRising">Loading…</div></section></div><div class="rankings-list-head"><div><span class="eyebrow">THE LEADERBOARD</span><h2 id="rankingHeading">Top Shows</h2><p id="rankingDescription" class="muted">The shows leading the CrowRules charts.</p></div><span class="rankings-data-note" id="rankingDataNote">Connecting to live catalog…</span></div><div class="rankings-grid" id="rankingList"><div class="loading">Loading rankings…</div></div><div class="rankings-footnote">Rankings reflect the activity and published metrics available to CrowRules Podcasting. Period-based chart snapshots appear when the ranking service has calculated them; catalog fallbacks are clearly labeled.</div></section>';
  const list=$("#rankingList"),featured=$("#rankingFeatured"),periodSelect=$("#rankingPeriod");
  const number=value=>Number(value||0).toLocaleString();
@@ -1982,7 +1982,22 @@ async function rankings(){
   featured.innerHTML='<div class="loading">Building the chart…</div>';list.innerHTML='<div class="loading">Loading the leaderboard…</div>';
   try{
    if(!catalog.loaded){await fetchCatalog();catalog.loaded=true}
-   if(!catalog.featuredLoaded){const{data:featuredRows,error:featuredError}=await sb.from("podcast_ranking_featured").select("ranking_type").eq("is_featured",true);if(!featuredError)catalog.featuredTypes=new Set((featuredRows||[]).map(x=>x.ranking_type));catalog.featuredLoaded=true}
+   if(!catalog.featuredLoaded){
+    const{data:featuredRows,error:featuredError}=await sb.from("podcast_ranking_featured").select("ranking_type,period_type,is_featured,display_order");
+    if(featuredError)throw featuredError;
+    catalog.featuredSettings=new Map((featuredRows||[]).map(x=>[x.ranking_type,x]));
+    catalog.featuredTypes=new Set((featuredRows||[]).filter(x=>x.is_featured).map(x=>x.ranking_type));
+    all("[data-ranking-category]").forEach(button=>{
+     const linked=categories.find(x=>x.id===button.dataset.rankingCategory),setting=catalog.featuredSettings.get(linked?.type||linked?.id);
+     if(setting&&Number.isFinite(Number(setting.display_order)))button.style.order=String(Number(setting.display_order));
+    });
+    catalog.featuredLoaded=true;
+   }
+   const adminSetting=catalog.featuredSettings.get(category.type||category.id);
+   if(adminSetting?.period_type){
+    const adminPeriod=adminSetting.period_type==="7_days"?"weekly":adminSetting.period_type==="30_days"?"monthly":adminSetting.period_type==="all_time"?"all_time":null;
+    if(adminPeriod&&periodSelect.value!==adminPeriod){period=adminPeriod;periodSelect.value=adminPeriod;catalog.snapshots={}}
+   }
    const builtRows=await buildRows(category);
    const rows=(category.id==="hosts"||category.id==="listeners"||category.id==="creatorShows")?builtRows:builtRows.slice(0,10);
    const snapshot=rows.some(row=>row.source==="live-view");
@@ -2010,7 +2025,7 @@ async function rankings(){
   }catch(error){console.error("Rankings failed:",error);featured.innerHTML='<div class="rankings-featured-empty"><h3>Rankings are unavailable.</h3><p>'+esc(error.message||"Please refresh and try again.")+'</p></div>';list.innerHTML='<div class="notice">'+esc(error.message||"Could not load rankings.")+'</div>';$("#rankingDataNote").textContent="Connection issue"}
   finally{loading=false;if(rerenderRequested){rerenderRequested=false;render()}}
  };
- $("#rankingCategories").addEventListener("click",event=>{const button=event.target.closest("[data-ranking-category]");if(!button||button.dataset.rankingCategory===active)return;active=button.dataset.rankingCategory;render()});
+ $("#rankingCategories").addEventListener("click",event=>{const button=event.target.closest("[data-ranking-category]");if(!button||button.dataset.rankingCategory===active)return;active=button.dataset.rankingCategory;const nextCategory=categories.find(x=>x.id===active),setting=catalog.featuredSettings.get(nextCategory?.type||nextCategory?.id);if(setting?.period_type){const mapped=setting.period_type==="7_days"?"weekly":setting.period_type==="30_days"?"monthly":setting.period_type==="all_time"?"all_time":null;if(mapped){period=mapped;periodSelect.value=mapped;catalog.snapshots={}}}render()});
  periodSelect.addEventListener("change",()=>{period=periodSelect.value;catalog.snapshots={};render()});
  const renderSpotlights=async()=>{
   try{
