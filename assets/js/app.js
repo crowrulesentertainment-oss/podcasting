@@ -461,6 +461,20 @@ const a=$("#app");
  const{data:p,error}=await sb.from("podcasts").select("id,title,slug,category,description,artwork_url,trailer_url,website_url,status,is_featured,is_live,listener_count,total_plays,created_at").eq("id",id||"").maybeSingle();
  if(error||!p){$("#app").innerHTML='<div class="container section"><div class="empty">Show not found.</div></div>';return}
  if(p.status!=="published"){document.querySelector('meta[name="robots"]')?.setAttribute("content","noindex,nofollow");$("#app").innerHTML="<div class='container section'><div class='empty'>This show is not publicly available.</div></div>";return}
+ // Count one show-page view per show per browser tab session. Refreshes do not inflate totals.
+ const recordShowPageView=async()=>{
+  const marker="crp_show_view_"+p.id;
+  try{if(sessionStorage.getItem(marker))return}catch{}
+  try{
+   let sessionKey="";
+   try{sessionKey=sessionStorage.getItem("crp_show_analytics_session")||""}catch{}
+   if(!sessionKey){sessionKey=window.crypto?.randomUUID?.()||("show-"+Date.now()+"-"+Math.random().toString(36).slice(2));try{sessionStorage.setItem("crp_show_analytics_session",sessionKey)}catch{}}
+   const{error:viewError}=await sb.from("analytics_events").insert({session_id:sessionKey,event_name:"show_view",property:"podcasting",page_url:location.href,content_id:p.id,content_type:"podcast_show",metadata:{source:"published_show_page",dedupe_scope:"tab_session"}});
+   if(viewError)throw viewError;
+   try{sessionStorage.setItem(marker,"1")}catch{}
+  }catch(viewError){console.warn("Show page view could not be recorded:",viewError?.message||viewError)}
+ };
+ recordShowPageView();
  setPageSEO({title:p.title+" Podcast | "+(p.category||"Independent Podcast")+" | CrowRules Podcasting",description:(p.description||"Listen to "+p.title+" on CrowRules Podcasting.")+" Discover episodes and follow this independent podcast.",url:SITE_BASE+"show.html?id="+encodeURIComponent(p.id),image:p.artwork_url||logoURL,type:"PodcastSeries",structuredData:{"genre":p.category||undefined}});
  const[{data:es,error:episodeError},{data:rawPlans,error:planError}]=await Promise.all([
   sb.from("podcast_episodes").select("*").eq("podcast_id",id).eq("status","published").order("published_at",{ascending:false}),
