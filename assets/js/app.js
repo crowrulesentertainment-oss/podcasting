@@ -792,31 +792,80 @@ async function episode(){
   if(!document.getElementById("episode-share-styles")){const style=document.createElement("style");style.id="episode-share-styles";style.textContent=".episode-share-panel{position:relative;margin-top:14px;padding:18px;border:1px solid #d5ad5b66;border-radius:16px;background:#10131c;color:#f5f5f5;box-shadow:0 16px 45px #0008;max-width:520px;z-index:5}.episode-share-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.episode-share-heading strong{font-size:15px}.episode-share-panel p{margin:7px 0 14px;color:#b8c0ce;font-size:13px}.episode-share-close{border:0;background:#ffffff14;color:#fff;border-radius:8px;padding:5px 10px;font-size:20px;cursor:pointer}.episode-share-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.episode-share-grid a,.episode-share-grid button,.episode-share-native{display:flex;align-items:center;justify-content:center;min-height:40px;padding:8px 10px;border:1px solid #ffffff24;border-radius:9px;background:#ffffff0b;color:#f5f5f5;text-decoration:none;font:700 12px inherit;cursor:pointer}.episode-share-grid a:hover,.episode-share-grid button:hover,.episode-share-native:hover{border-color:#d5ad5b;color:#f4cf83;background:#d5ad5b12}.episode-share-native{width:100%;margin-top:10px;background:#d5ad5b;color:#17130a;border-color:#d5ad5b}.episode-share-status{display:block;min-height:18px;margin-top:8px;color:#d9bd7a;font-size:12px}@media(max-width:560px){.episode-share-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}";document.head.appendChild(style)}
  };
 }async function auth(){
- let signup=page==="signup";
+ const signup=page==="signup";
  const providers=[{id:"google",label:"Continue with Google",icon:"G"},{id:"discord",label:"Continue with Discord",icon:"◈"},{id:"twitch",label:"Continue with Twitch",icon:"▣"},{id:"spotify",label:"Continue with Spotify",icon:"♫"}];
- const redirectTo=location.origin+SITE_BASE+"login.html";
+ const redirectTo=new URL(SITE_BASE+"login.html",location.origin).href;
  const authParams=new URLSearchParams(location.search);
  const incomingReferral=(authParams.get("ref")||localStorage.getItem("crp_referral_code")||"").trim().toUpperCase();
  if(authParams.get("ref"))try{localStorage.setItem("crp_referral_code",incomingReferral)}catch{}
  const claimReferral=async user=>{const code=incomingReferral||String(user?.user_metadata?.referral_code||"").trim().toUpperCase();if(!code||!user)return;const{error}=await sb.rpc("claim_podcast_referral",{p_referral_code:code});if(error){console.warn("Referral claim will be retried after sign-in:",error.message);return}try{localStorage.removeItem("crp_referral_code")}catch{}};
- $("#app").innerHTML='<section class="auth-wrap"><div class="auth-card"><div class="eyebrow">CrowRules Podcasting</div><h1>'+(signup?"Create your account":"Welcome back")+'</h1><p class="muted">One account opens creator, listener and guest experiences.</p><div class="oauth-grid">'+providers.map(p=>'<button type="button" class="btn secondary oauth-button" data-provider="'+p.id+'"><span class="oauth-icon" aria-hidden="true">'+p.icon+'</span>'+p.label+'</button>').join("")+'</div><div class="auth-divider"><span>or use email</span></div><form id="auth">'+(signup?'<div class="field"><label>Display name</label><input name="name" autocomplete="name" required></div>':'')+'<div class="field"><label>Email</label><input name="email" type="email" autocomplete="email" required></div><div class="field"><label>Password</label><input name="password" type="password" minlength="8" autocomplete="'+(signup?"new-password":"current-password")+'" required></div><button class="btn" id="authSubmit">'+(signup?"Create account":"Sign in")+'</button></form><div id="msg" class="notice hidden" role="status" aria-live="polite"></div><p class="small muted">'+(signup?'Already a member? <a href="'+SITE_BASE+'login.html">Sign in</a>':'New here? <a href="'+SITE_BASE+'signup.html">Create an account</a>')+'</p><p class="small muted">By continuing, you agree to use CrowRules Podcasting responsibly.</p></div></section>';
- const message=(value,bad=false)=>{let el=$("#msg");el.classList.remove("hidden");el.classList.toggle("error",bad);el.textContent=value};
- try{const{data,error}=await sb.auth.getSession();if(error)throw error;if(data.session){await claimReferral(data.session.user);message("You’re already signed in. Opening your listener dashboard…");setTimeout(()=>go("listener.html"),350);return}}catch(e){message("We couldn’t restore your saved session: "+e.message+" Please sign in again.",true)}
- const params=new URLSearchParams(location.search),oauthError=params.get("error_description")||params.get("error");
+ $("#app").innerHTML='<section class="auth-wrap"><div class="auth-card"><div class="eyebrow">CrowRules Podcasting</div><h1>'+(signup?"Create your account":"Welcome back")+'</h1><p class="muted">One account opens creator, listener and guest experiences.</p><div class="oauth-grid">'+providers.map(p=>'<button type="button" class="btn secondary oauth-button" data-provider="'+p.id+'"><span class="oauth-icon" aria-hidden="true">'+p.icon+'</span>'+p.label+'</button>').join("")+'</div><div class="auth-divider"><span>or use email</span></div><form id="auth">'+(signup?'<div class="field"><label for="authName">Display name</label><input id="authName" name="name" autocomplete="name" maxlength="80" required></div>':'')+'<div class="field"><label for="authEmail">Email address</label><input id="authEmail" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" required></div><div class="field"><label for="authPassword">Password</label><div class="auth-password-row"><input id="authPassword" name="password" type="password" minlength="8" autocomplete="'+(signup?"new-password":"current-password")+'" required>'+(signup?'<button type="button" class="btn secondary auth-password-toggle" id="passwordToggle" aria-controls="authPassword" aria-pressed="false">Show</button>':'')+'</div>'+(signup?'<small class="muted">Use at least 8 characters. Keep your password somewhere safe.</small>':'')+'</div><button class="btn" id="authSubmit" type="submit">'+(signup?"Create account":"Sign in")+'</button></form><div id="msg" class="notice hidden" role="status" aria-live="polite"></div><div id="authRecovery" class="hidden"></div><p class="small muted">'+(signup?'Already have an account? <a href="'+SITE_BASE+'login.html">Sign in</a>':'New to CrowRules Podcasting? <a href="'+SITE_BASE+'signup.html">Create an account</a>')+'</p><p class="small muted">By continuing, you agree to use CrowRules Podcasting responsibly.</p></div></section>';
+ const message=(value,bad=false)=>{const el=$("#msg");el.classList.remove("hidden");el.classList.toggle("error",bad);el.textContent=value};
+ const friendlyError=error=>{
+  const raw=String(error?.message||error||"Unable to complete your request. Please try again.");
+  const lower=raw.toLowerCase();
+  if(lower.includes("redirect")&&(lower.includes("allow")||lower.includes("url")||lower.includes("not permitted")))return "The signup return address is not approved in the authentication settings. Please contact CrowRules support so the Podcasting redirect address can be checked.";
+  if(lower.includes("email rate limit")||lower.includes("too many requests")||lower.includes("rate limit"))return "Too many signup or email requests were made in a short time. Please wait a few minutes before trying again.";
+  if(lower.includes("user already registered")||lower.includes("already been registered"))return "An account may already exist for this email. Try signing in instead, or use the same social sign-in method you used before.";
+  if(lower.includes("password")&&(lower.includes("least")||lower.includes("weak")||lower.includes("short")))return "Please choose a stronger password with at least 8 characters.";
+  if(lower.includes("signup")&&lower.includes("not allowed"))return "New email registrations are currently disabled in the authentication settings. Please contact CrowRules support.";
+  if(lower.includes("failed to fetch")||lower.includes("networkerror")||lower.includes("load failed"))return "We couldn't reach the signup service. Check your internet connection, refresh this page and try again.";
+  if(lower.includes("invalid login credentials"))return "That email and password combination wasn't accepted. Check your details, or try the social sign-in method linked to your account.";
+  return raw;
+ };
+ const recovery=$("#authRecovery");
+ const showResend=email=>{
+  recovery.classList.remove("hidden");
+  recovery.innerHTML='<p class="small muted">Didn’t receive the confirmation email? Check your spam or junk folder, then request another email.</p><button type="button" class="btn secondary" id="resendConfirmation">Resend confirmation email</button>';
+  $("#resendConfirmation").addEventListener("click",async event=>{
+   const button=event.currentTarget;button.disabled=true;button.textContent="Sending…";
+   try{const{error}=await sb.auth.resend({type:"signup",email,options:{emailRedirectTo:redirectTo}});if(error)throw error;message("A new confirmation email has been requested. Check your inbox and spam folder.");button.textContent="Email requested"}
+   catch(error){message(friendlyError(error),true);button.disabled=false;button.textContent="Resend confirmation email"}
+  });
+ };
+ $("#passwordToggle")?.addEventListener("click",event=>{const input=$("#authPassword"),button=event.currentTarget;const reveal=input.type==="password";input.type=reveal?"text":"password";button.textContent=reveal?"Hide":"Show";button.setAttribute("aria-pressed",String(reveal))});
+ try{const{data,error}=await sb.auth.getSession();if(error)throw error;if(data.session){await claimReferral(data.session.user);message("You’re already signed in. Opening your listener dashboard…");setTimeout(()=>go("listener.html"),350);return}}catch(error){message("We couldn’t restore your saved session: "+friendlyError(error)+" You can still try signing in.",true)}
+ const callbackParams=new URLSearchParams(location.search);const hashParams=new URLSearchParams(location.hash.replace(/^#/,""));
+ const oauthError=callbackParams.get("error_description")||callbackParams.get("error")||hashParams.get("error_description")||hashParams.get("error");
  if(oauthError)message("Sign-in could not be completed: "+oauthError.replace(/\+/g," "),true);
  all(".oauth-button").forEach(button=>button.addEventListener("click",async()=>{
   const provider=button.dataset.provider;button.disabled=true;message("Connecting securely to "+provider.charAt(0).toUpperCase()+provider.slice(1)+"…");
   try{const options={redirectTo};if(provider==="discord")options.scopes="identify email";if(provider==="twitch")options.scopes="user:read:email";if(provider==="spotify")options.scopes="user-read-email";const{error}=await sb.auth.signInWithOAuth({provider,options});if(error)throw error}
-  catch(e){message(e.message||"Unable to start provider sign-in.",true);button.disabled=false}
+  catch(error){message(friendlyError(error),true);button.disabled=false}
  }));
- $("#auth").onsubmit=async ev=>{
-  ev.preventDefault();const submit=$("#authSubmit"),f=new FormData(ev.currentTarget);submit.disabled=true;submit.textContent=signup?"Creating account…":"Signing in…";
-  try{const r=signup?await sb.auth.signUp({email:String(f.get("email")).trim(),password:f.get("password"),options:{data:{display_name:f.get("name"),full_name:f.get("name"),...(incomingReferral?{referral_code:incomingReferral}:{})},emailRedirectTo:redirectTo}}):await sb.auth.signInWithPassword({email:String(f.get("email")).trim(),password:f.get("password")});if(r.error)throw r.error;
-   if(r.data?.session){if(!signup){try{await sb.from("podcast_login_activity").insert({user_id:r.data.session.user.id,event_type:"login"})}catch(_){}}await claimReferral(r.data.session.user);message(signup?"Account created. Your session is saved on this device.":"You’re signed in. Your session is saved on this device.");setTimeout(()=>go("listener.html"),550)}
-   else if(signup){message("Account created. Check your email and confirm your address; then return here to sign in.");submit.disabled=false;submit.textContent="Create account"}
-   else throw Error("Sign-in completed without an active session. Check your email confirmation and try again.");
-  }catch(e){if(!signup){try{await sb.rpc("podcasting_record_login_failure",{p_identifier:String(f.get("email")||"").trim()})}catch(_){}}message(e.message||"Unable to authenticate. Please try again.",true);submit.disabled=false;submit.textContent=signup?"Create account":"Sign in"}
- };
+ $("#auth").addEventListener("submit",async event=>{
+  event.preventDefault();const form=event.currentTarget,submit=$("#authSubmit"),fields=new FormData(form);
+  const email=String(fields.get("email")||"").trim().toLowerCase(),password=String(fields.get("password")||"");
+  const displayName=String(fields.get("name")||"").trim();
+  if(signup&&displayName.length<2){message("Please enter a display name with at least 2 characters.",true);$("#authName").focus();return}
+  if(signup&&password.length<8){message("Please choose a password with at least 8 characters.",true);$("#authPassword").focus();return}
+  submit.disabled=true;submit.textContent=signup?"Creating account…":"Signing in…";recovery.classList.add("hidden");
+  try{
+   const result=signup
+    ?await sb.auth.signUp({email,password,options:{data:{display_name:displayName,full_name:displayName,...(incomingReferral?{referral_code:incomingReferral}:{})},emailRedirectTo:redirectTo}})
+    :await sb.auth.signInWithPassword({email,password});
+   if(result.error)throw result.error;
+   if(result.data?.session){
+    if(!signup){try{await sb.from("podcast_login_activity").insert({user_id:result.data.session.user.id,event_type:"login"})}catch(error){console.warn("Login activity could not be recorded:",error)}}
+    await claimReferral(result.data.session.user);message(signup?"Your account is ready. Welcome to CrowRules Podcasting!":"You’re signed in. Opening your listener dashboard…");setTimeout(()=>go("listener.html"),550);return;
+   }
+   if(signup){
+    const user=result.data?.user;
+    if(user&&Array.isArray(user.identities)&&user.identities.length===0){
+     message("An account may already exist with this email address. Try signing in, or use the social sign-in option connected to your account.");
+    }else{
+     message("Your signup request was received. We’ve asked Supabase to send a confirmation email to "+email+". Open that email to verify your address, then return to sign in. Check spam or junk if it doesn’t arrive.");
+     showResend(email);
+    }
+    submit.disabled=false;submit.textContent="Create account";
+   }else{
+    throw Error("Sign-in completed without an active session. Your email may still need confirmation. Check your inbox, then try again.");
+   }
+  }catch(error){
+   if(!signup){try{await sb.rpc("podcasting_record_login_failure",{p_identifier:email})}catch(_){}}
+   message(friendlyError(error),true);submit.disabled=false;submit.textContent=signup?"Create account":"Sign in";
+  }
+ });
 }async function creatorId(u){let{data:m,error}=await sb.from("members").select("id").eq("user_id",u.id).maybeSingle();if(error)throw error;let{data:c,error:ce}=await sb.from("creators").select("id").eq("member_id",m?.id||"00000000-0000-0000-0000-000000000000").maybeSingle();if(ce)throw ce;if(c)return c.id;const{data:newCreator,error:onboardError}=await sb.rpc("start_independent_podcast_creator",{p_display_name:String(u.user_metadata?.display_name||u.user_metadata?.full_name||u.user_metadata?.name||u.email?.split("@")[0]||"Independent Creator").slice(0,100)});if(onboardError)throw Error("Creator onboarding could not be completed: "+onboardError.message);if(!newCreator)throw Error("Creator onboarding did not return a creator profile. Please try again.");return newCreator}async function creator(){
  let u=await me();if(!u)return go("login.html");
  let tab=new URLSearchParams(location.search).get("tab")||"overview",roomInvite=new URLSearchParams(location.search).get("room"),guestJoin=false;
