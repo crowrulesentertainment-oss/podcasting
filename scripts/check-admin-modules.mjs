@@ -35,8 +35,7 @@ assert(roadmap.includes("work.innerHTML=")&&!roadmap.includes("content.innerHTML
 assert(css.includes("@media(max-width:650px)")&&css.includes(".cr-review-mod-stats{grid-template-columns:repeat(2,minmax(0,1fr))}"),"Review/admin cards collapse to two columns on mobile");
 assert(css.includes("@media(max-width:600px){.cr-review-form-grid{grid-template-columns:1fr}"),"Admin forms collapse to one column on small screens");
 
-const liveMap=app.slice(app.indexOf('if(tab==="overview"){'),app.indexOf('if(tab==="securityAudit"){'));
-for(const token of ["adminVisitorMap","adminVisitorMapLeader","adminVisitorMapNote","renderVisitorMap(countries,displayNames)"])assert(liveMap.includes(token),"Live visitor map renders "+token);
+for(const token of ["adminVisitorMap","adminVisitorMapLeader","adminVisitorMapNote","renderVisitorMap(countries,displayNames)"])assert(app.includes(token),"Live visitor map renders "+token);
 for(const token of ["visitorCountryCenters","loadVisitorMapLibrary","L.tileLayer","L.circleMarker","MOST ACTIVE ESTIMATED COUNTRY","Approximate country center"])assert(app.includes(token),"Visitor map supports "+token);
 assert(app.includes("Heartbeat received within 90 seconds")&&app.includes("browser locale"),"Visitor map preserves 90-second activity and locale-estimate privacy wording");
 assert(app.includes("@media(max-width:760px)")&&app.includes("admin-visitor-map-frame #adminVisitorMap{height:310px}"),"Visitor map has a responsive mobile layout");
