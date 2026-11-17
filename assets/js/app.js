@@ -1500,8 +1500,8 @@ if(tab==="challenges"){
        const{error}=await sb.from("podcast_development_roadmap").update(patch).eq("id",existing.id);if(error)throw error;Object.assign(existing,patch);
       }else{
        const{data,error}=await sb.from("podcast_development_roadmap").insert({
-        title:row.title.trim().slice(0,140),
-        summary:row.description.trim().slice(0,280),
+        title:(row.title.trim().length>=4?row.title.trim():("Member idea: "+row.title.trim())).slice(0,140),
+        summary:(row.description.trim().length>=8?row.description.trim():("Member request: "+row.description.trim())).slice(0,280),
         details:row.description.trim(),
         category:row.category||"platform",
         status:stage,
