@@ -80,7 +80,7 @@ async function enhanceShows() {
   table.dataset.showAnalyticsReady = "true";
   const headRow = table.querySelector("thead tr");
   if (headRow) {
-    ["Followers", "Listen events", "Show views"].forEach(label => {
+    ["Followers", "Qualified listens", "Show views"].forEach(label => {
       const th = document.createElement("th");
       th.textContent = label;
       th.scope = "col";
@@ -106,7 +106,7 @@ async function enhanceShows() {
 
   const summary = document.createElement("section");
   summary.className = "admin-show-analytics";
-  summary.innerHTML = '<div class="admin-show-analytics-grid"><article class="admin-show-analytics-card"><span>Total followers</span><strong data-total-followers>—</strong><small>Accounts following the shows in this catalog</small></article><article class="admin-show-analytics-card"><span>Listen events</span><strong data-total-listens>—</strong><small>Recorded episode play-start events; not a 30-second completion measure</small></article><article class="admin-show-analytics-card views"><span>Show page views</span><strong data-total-views>—</strong><small>One recorded view per show per browser tab session</small></article></div><p class="admin-show-analytics-note">Followers, episode play events and show-page views are separate metrics. Show views are recorded when a published show page opens; refreshes in the same tab session do not add another view.</p>';
+  summary.innerHTML = '<div class="admin-show-analytics-grid"><article class="admin-show-analytics-card"><span>Total followers</span><strong data-total-followers>—</strong><small>Accounts following the shows in this catalog</small></article><article class="admin-show-analytics-card"><span>Qualified listens</span><strong data-total-listens>—</strong><small>Episode plays recorded after 30 seconds of active listening</small></article><article class="admin-show-analytics-card views"><span>Show page views</span><strong data-total-views>—</strong><small>One recorded view per show per browser tab session</small></article></div><p class="admin-show-analytics-note">Followers, episode play events and show-page views are separate metrics. Show views are recorded when a published show page opens; refreshes in the same tab session do not add another view.</p>';
   const module = work.querySelector(".admin-module");
   if (module) module.insertAdjacentElement("beforebegin", summary);
   else work.prepend(summary);
@@ -137,7 +137,7 @@ async function enhanceShows() {
       });
       summary.dataset.metricsLoaded = "true";
       summary.querySelector(".admin-show-analytics-note").textContent =
-        "Updated " + new Date().toLocaleTimeString() + ". Followers count follow records; listen events count recorded episode play starts; show views count published show-page visits, deduplicated per show and browser tab session."
+        "Updated " + new Date().toLocaleTimeString() + ". Followers count follow records; qualified listens count episode plays after 30 seconds of active listening; show views count published show-page visits, deduplicated per show and browser tab session."
     } catch (error) {
       console.warn("Show audience metrics unavailable:", error);
       summary.querySelector(".admin-show-analytics-note").textContent =
