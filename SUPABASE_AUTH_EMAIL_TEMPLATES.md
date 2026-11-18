@@ -4,6 +4,8 @@ The Podcasting frontend uses the Supabase JavaScript client with PKCE (`flowType
 
 This avoids sending a PKCE-prefixed token through the Auth GET `/verify` route, which is currently returning HTTP 500 for the project's email verification requests.
 
+Important: Supabase's generated `{{ .ConfirmationURL }}` commonly contains `type=email`; that is a documented value and should not be changed to `type=signup`. This project is switching to the documented token-hash plus `verifyOtp` flow to avoid the failing GET verification path observed in its Auth logs.
+
 ## Confirm signup
 
 In Supabase Dashboard → Authentication → Email Templates → Confirm signup, use:
