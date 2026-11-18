@@ -850,7 +850,7 @@ async function episode(){
 }async function auth(){
  const signup=page==="signup";
  const providers=[{id:"google",label:"Continue with Google",icon:"G"},{id:"discord",label:"Continue with Discord",icon:"◈"},{id:"twitch",label:"Continue with Twitch",icon:"▣"},{id:"spotify",label:"Continue with Spotify",icon:"♫"}];
- const redirectTo=new URL(SITE_BASE+"login.html",location.origin).href;
+ const redirectTo=new URL(SITE_BASE+"login.html?source=podcasting",location.origin).href;
  const authParams=new URLSearchParams(location.search);
  const incomingReferral=(authParams.get("ref")||localStorage.getItem("crp_referral_code")||"").trim().toUpperCase();
  if(authParams.get("ref"))try{localStorage.setItem("crp_referral_code",incomingReferral)}catch{}
@@ -884,7 +884,7 @@ async function episode(){
  };
  $("#passwordToggle")?.addEventListener("click",event=>{const input=$("#authPassword"),button=event.currentTarget;const reveal=input.type==="password";input.type=reveal?"text":"password";button.textContent=reveal?"Hide":"Show";button.setAttribute("aria-pressed",String(reveal))});
  if(signup){const passwordInput=$("#authPassword");if(passwordInput){const meter=document.createElement("div");meter.className="cr-password-meter";meter.innerHTML='<div class="cr-password-track"><span></span></div><small class="cr-password-copy" aria-live="polite">Password strength: not checked</small>';passwordInput.closest(".field")?.appendChild(meter);passwordInput.addEventListener("input",()=>{const value=passwordInput.value;let score=0;if(value.length>=8)score++;if(value.length>=12)score++;if(/[a-z]/.test(value)&&/[A-Z]/.test(value))score++;if(/\d/.test(value))score++;if(/[^A-Za-z0-9]/.test(value))score++;const level=value.length===0?0:score<=2?1:score<=3?2:3;meter.dataset.level=String(level);meter.querySelector("span").style.width=level===0?"0%":level===1?"33%":level===2?"66%":"100%";meter.querySelector("small").textContent=value.length===0?"Password strength: not checked":level===1?"Password strength: could be stronger":level===2?"Password strength: good":"Password strength: strong";});}}
- try{const{data,error}=await sb.auth.getSession();if(error)throw error;if(data.session){await claimReferral(data.session.user);let welcome="You’re already signed in. Opening your listener dashboard…";try{const award=await foundingStatus();if(award?.member_number)welcome="You’re Founding 50 member #"+String(award.member_number).padStart(2,"0")+"! Your permanent badge and gold avatar frame are active. Opening your dashboard…"}catch(error){console.warn("Founding 50 status could not be loaded:",error)}message(welcome);setTimeout(()=>go("listener.html"),350);return}}catch(error){message("We couldn’t restore your saved session: "+friendlyError(error)+" You can still try signing in.",true)}
+ try{const{data,error}=await sb.auth.getSession();if(error)throw error;if(data.session){if(authParams.get("source")==="podcasting"){try{const{error:sourceError}=await sb.auth.updateUser({data:{cr_podcast_signup:true}});if(sourceError)throw sourceError}catch(error){console.warn("Podcasting signup source could not be saved:",error)}}await claimReferral(data.session.user);let welcome="You’re already signed in. Opening your listener dashboard…";try{const award=await foundingStatus();if(award?.member_number)welcome="You’re Founding 50 member #"+String(award.member_number).padStart(2,"0")+"! Your permanent badge and gold avatar frame are active. Opening your dashboard…"}catch(error){console.warn("Founding 50 status could not be loaded:",error)}message(welcome);setTimeout(()=>go("listener.html"),350);return}}catch(error){message("We couldn’t restore your saved session: "+friendlyError(error)+" You can still try signing in.",true)}
  const callbackParams=new URLSearchParams(location.search);const hashParams=new URLSearchParams(location.hash.replace(/^#/,""));
  const oauthError=callbackParams.get("error_description")||callbackParams.get("error")||hashParams.get("error_description")||hashParams.get("error");
  if(oauthError)message("Sign-in could not be completed: "+oauthError.replace(/\+/g," "),true);
@@ -902,7 +902,7 @@ async function episode(){
   submit.disabled=true;submit.textContent=signup?"Creating account…":"Signing in…";recovery.classList.add("hidden");
   try{
    const result=signup
-    ?await sb.auth.signUp({email,password,options:{data:{display_name:displayName,full_name:displayName,...(incomingReferral?{referral_code:incomingReferral}:{})},emailRedirectTo:redirectTo}})
+    ?await sb.auth.signUp({email,password,options:{data:{display_name:displayName,full_name:displayName,cr_podcast_signup:true,...(incomingReferral?{referral_code:incomingReferral}:{})},emailRedirectTo:redirectTo}})
     :await sb.auth.signInWithPassword({email,password});
    if(result.error)throw result.error;
    if(result.data?.session){
