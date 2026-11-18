@@ -2535,6 +2535,7 @@ if(tab==="securityAccess"){
    if(window.__crpAdminVisitorRealtimeChannel)sb.removeChannel(window.__crpAdminVisitorRealtimeChannel).catch(()=>{});
    window.__crpAdminVisitorRealtimeChannel=sb.channel("podcasting:admin:visitor-activity",{config:{private:true}})
     .on("broadcast",{event:"page_view_inserted"},()=>{if(!document.hidden){refreshLiveActivity();refreshPageViewMetrics()}})
+    .on("broadcast",{event:"presence_changed"},()=>{if(!document.hidden)refreshLiveActivity()})
     .subscribe(status=>{const liveStatus=$("#adminLiveActivityStatus"),pageStatus=$("#adminPageViewStatus");if(status==="SUBSCRIBED"){if(liveStatus)liveStatus.textContent="LIVE";if(pageStatus)pageStatus.textContent="LIVE SYNC";refreshLiveActivity();refreshPageViewMetrics()}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){if(liveStatus)liveStatus.textContent="RECONNECTING";if(pageStatus)pageStatus.textContent="RECONNECTING"}});
    adminVisibilityHandler=()=>{if(!document.hidden){refreshPlayMetrics();refreshVisitorMetrics();refreshLiveActivity();refreshPageViewMetrics();syncLivePresence()}};document.addEventListener("visibilitychange",adminVisibilityHandler);
    $("#adminResetAllPlays").onclick=async()=>{
