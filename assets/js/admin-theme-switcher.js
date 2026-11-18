@@ -403,8 +403,8 @@
     const root = document.createElement("div");
     root.id = "crAdminThemeControl";
     root.innerHTML = `
-      <button id="crAdminThemeToggle" type="button" aria-expanded="false" aria-controls="crAdminThemePanel">🎨 <span>Admin theme</span></button>
-      <section id="crAdminThemePanel" hidden aria-label="Admin theme settings">
+      <button id="crAdminThemeToggle" type="button" aria-expanded="false" aria-controls="crAdminThemePanel">🎨 <span>Site theme</span></button>
+      <section id="crAdminThemePanel" hidden aria-label="Sitewide theme settings">
         <label for="crAdminThemeSelect">PREMADE CROWRULES THEMES</label>
         <select id="crAdminThemeSelect">
           <option value="original">◈ Original · Site default</option>
