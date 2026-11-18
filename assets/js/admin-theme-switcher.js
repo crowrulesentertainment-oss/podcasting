@@ -49,16 +49,16 @@
   },
   {
     "id": "christmas",
-    "label": "Christmas · Winter Wonderland",
+    "label": "Christmas · Cinematic Christmas Eve",
     "icon": "🎄",
-    "desc": "Snow-dusted evergreens, glowing winter lights, midnight blue and festive cranberry",
-    "accent": "#e8c77b",
-    "glow": "rgba(55,190,157,.25)",
-    "panel": "rgba(7,22,29,.94)",
-    "ink": "#f5fbff",
-    "muted": "#c2d4dc",
-    "photo": "https://images.unsplash.com/photo-1512389142860-9c449e58a543?auto=format&fit=crop&w=2400&q=90",
-    "hero": "https://images.unsplash.com/photo-1482517967863-00e15c9b44be?auto=format&fit=crop&w=2400&q=90"
+    "desc": "Photoreal snowy village streets, towering evergreens, glowing cabin windows and festive lights beneath a midnight winter sky",
+    "accent": "#f1d58b",
+    "glow": "rgba(82,204,177,.30)",
+    "panel": "rgba(5,19,29,.94)",
+    "ink": "#f7fbff",
+    "muted": "#c6d8e2",
+    "photo": "https://images.unsplash.com/photo-1478265409131-1f65c88f965c?auto=format&fit=crop&w=2400&q=92",
+    "hero": "https://images.unsplash.com/photo-1512389142860-9c449e58a543?auto=format&fit=crop&w=2400&q=92"
   },
   {
     "id": "newyear",
