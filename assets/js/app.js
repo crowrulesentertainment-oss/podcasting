@@ -902,7 +902,7 @@ async function episode(){
   if(lower.includes("signup")&&lower.includes("not allowed"))return "New email registrations are currently disabled in the authentication settings. Please contact CrowRules support.";
   if(lower.includes("failed to fetch")||lower.includes("networkerror")||lower.includes("load failed"))return "We couldn't reach the signup service. Check your internet connection, refresh this page and try again.";
   if(lower.includes("invalid login credentials"))return "That email and password combination wasn't accepted. Check your details, or try the social sign-in method linked to your account.";
-  if(lower.includes("unsupported authentication method")&&lower.includes("email"))return "Supabase rejected the confirmation link before it reached CrowRules Podcasting. The confirmation email template must use the standard Supabase ConfirmationURL with signup verification. Please request a new confirmation email after the authentication settings are corrected.";
+  if(lower.includes("unsupported authentication method")&&lower.includes("email"))return "Supabase Auth returned a server-side error while verifying this email link. The link reached Supabase, but its verification service failed. Please request a fresh confirmation email and try again later; if it continues, the project Auth service needs investigation.";
   return raw;
  };
  const recovery=$("#authRecovery");
