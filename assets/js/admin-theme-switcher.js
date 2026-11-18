@@ -49,16 +49,16 @@
   },
   {
     "id": "christmas",
-    "label": "Christmas Cinematic",
+    "label": "Christmas · Winter Wonderland",
     "icon": "🎄",
-    "desc": "Snow-covered evergreens, glowing cabins, falling snow and festive lights",
-    "accent": "#8ce8c2",
-    "glow": "rgba(42,177,145,.22)",
-    "panel": "rgba(5,19,21,.92)",
-    "ink": "#effff9",
-    "muted": "#b5d5ce",
-    "photo": "https://images.unsplash.com/photo-1512389142860-9c449e58a543?auto=format&fit=crop&w=2400&q=85",
-    "hero": "https://images.unsplash.com/photo-1482517967863-00e15c9b44be?auto=format&fit=crop&w=2400&q=85"
+    "desc": "Snow-dusted evergreens, glowing winter lights, midnight blue and festive cranberry",
+    "accent": "#e8c77b",
+    "glow": "rgba(55,190,157,.25)",
+    "panel": "rgba(7,22,29,.94)",
+    "ink": "#f5fbff",
+    "muted": "#c2d4dc",
+    "photo": "https://images.unsplash.com/photo-1512389142860-9c449e58a543?auto=format&fit=crop&w=2400&q=90",
+    "hero": "https://images.unsplash.com/photo-1482517967863-00e15c9b44be?auto=format&fit=crop&w=2400&q=90"
   },
   {
     "id": "newyear",
@@ -378,6 +378,15 @@
     body[data-admin-theme]:not([data-admin-theme=""]) #crAdminThemeToggle{border-color:color-mix(in srgb,var(--cr-admin-accent) 55%,transparent);background:var(--cr-admin-panel)}
     @media(max-width:760px){#crAdminThemeControl{top:9px;right:10px}#crAdminThemeToggle{min-height:36px;padding:8px 10px;font-size:11px}}
 
+    body[data-admin-theme="christmas"]{background-color:#07141c!important;background-image:radial-gradient(ellipse at 50% 0%,rgba(95,209,177,.20),transparent 48%),linear-gradient(180deg,rgba(3,14,22,.48),rgba(3,10,17,.90)),var(--cr-admin-scene)!important}
+    body[data-admin-theme="christmas"] .topbar{background:linear-gradient(100deg,rgba(5,25,31,.98),rgba(13,43,43,.94),rgba(8,20,31,.98))!important;border-bottom:1px solid rgba(232,199,123,.42)!important}
+    body[data-admin-theme="christmas"] .admin-module,body[data-admin-theme="christmas"] .panel,body[data-admin-theme="christmas"] .admin-card,body[data-admin-theme="christmas"] .admin-stat-card{border:1px solid rgba(142,218,197,.27)!important;border-radius:18px!important;box-shadow:0 16px 42px rgba(0,0,0,.36),inset 0 1px rgba(255,255,255,.06)!important}
+    body[data-admin-theme="christmas"] .admin-module-head h2,body[data-admin-theme="christmas"] .admin-module-head h3,body[data-admin-theme="christmas"] .section-head h2,body[data-admin-theme="christmas"] .admin-kicker{color:#e8c77b!important}
+    body[data-admin-theme="christmas"] .btn:not(.secondary),body[data-admin-theme="christmas"] button.primary{background:linear-gradient(120deg,#17634f,#249b79 58%,#e8c77b)!important;border:1px solid rgba(232,199,123,.62)!important;color:#061b19!important;box-shadow:0 5px 18px rgba(36,155,121,.22)!important}
+    body[data-admin-theme="christmas"] .btn.secondary,body[data-admin-theme="christmas"] button.secondary{border-color:rgba(142,218,197,.34)!important;background:rgba(17,65,58,.35)!important;color:#effff9!important}
+    body[data-admin-theme="christmas"] input,body[data-admin-theme="christmas"] select,body[data-admin-theme="christmas"] textarea{border-color:rgba(142,218,197,.3)!important;background:rgba(5,20,28,.92)!important;color:#f5fbff!important}
+    body[data-admin-theme="christmas"] .admin-table th{background:linear-gradient(90deg,rgba(12,66,54,.92),rgba(8,36,43,.95))!important;color:#e8c77b!important}
+    body[data-admin-theme="christmas"] .admin-module-head,body[data-admin-theme="christmas"] .section-head{border-bottom:1px solid rgba(232,199,123,.20)!important}
     body[data-admin-theme="thanksgiving"]{--cr-thanksgiving-ember:#9b3f1e;--cr-thanksgiving-cranberry:#6e1e28;--cr-thanksgiving-copper:#c87537}
     body[data-admin-theme="thanksgiving"]::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 50% 0%,rgba(255,181,91,.20),transparent 48%),linear-gradient(180deg,rgba(20,8,5,.24),rgba(10,6,5,.82))}
     body[data-admin-theme="thanksgiving"] .topbar{background:linear-gradient(100deg,rgba(35,16,10,.97),rgba(72,29,15,.88),rgba(24,13,10,.97))!important;box-shadow:0 8px 36px rgba(0,0,0,.36),inset 0 -1px rgba(242,180,95,.38)!important}
