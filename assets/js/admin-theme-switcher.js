@@ -36,16 +36,16 @@
   },
   {
     "id": "thanksgiving",
-    "label": "Thanksgiving Cinematic",
+    "label": "Thanksgiving · Harvest Cinematic",
     "icon": "🦃",
-    "desc": "Golden fall foliage, harvest tables, warm windows and drifting leaves",
-    "accent": "#ffc477",
-    "glow": "rgba(219,113,39,.23)",
-    "panel": "rgba(27,16,11,.92)",
-    "ink": "#fff4e4",
-    "muted": "#d5bda6",
-    "photo": "https://images.unsplash.com/photo-1506368249639-73a05d6f6488?auto=format&fit=crop&w=2400&q=85",
-    "hero": "https://images.unsplash.com/photo-1515003197210-e0cd7184f8b5?auto=format&fit=crop&w=2400&q=85"
+    "desc": "A premium harvest-night experience with ember gold, cranberry velvet, copper leaves and warm candlelight",
+    "accent": "#f2b45f",
+    "glow": "rgba(242,145,53,.30)",
+    "panel": "rgba(29,15,10,.94)",
+    "ink": "#fff5e8",
+    "muted": "#d9bda4",
+    "photo": "https://images.unsplash.com/photo-1506368249639-73a05d6f6488?auto=format&fit=crop&w=2400&q=90",
+    "hero": "https://images.unsplash.com/photo-1515003197210-e0cd7184f8b5?auto=format&fit=crop&w=2400&q=90"
   },
   {
     "id": "christmas",
@@ -374,6 +374,23 @@
     body[data-admin-theme]:not([data-admin-theme=""]) .admin-table tr:hover{background:color-mix(in srgb,var(--cr-admin-accent) 10%,transparent)!important}
     body[data-admin-theme]:not([data-admin-theme=""]) #crAdminThemeToggle{border-color:color-mix(in srgb,var(--cr-admin-accent) 55%,transparent);background:var(--cr-admin-panel)}
     @media(max-width:760px){#crAdminThemeControl{top:9px;right:10px}#crAdminThemeToggle{min-height:36px;padding:8px 10px;font-size:11px}}
+
+    body[data-admin-theme="thanksgiving"]{--cr-thanksgiving-ember:#9b3f1e;--cr-thanksgiving-cranberry:#6e1e28;--cr-thanksgiving-copper:#c87537}
+    body[data-admin-theme="thanksgiving"]::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 50% 0%,rgba(255,181,91,.20),transparent 48%),linear-gradient(180deg,rgba(20,8,5,.24),rgba(10,6,5,.82))}
+    body[data-admin-theme="thanksgiving"] .topbar{background:linear-gradient(100deg,rgba(35,16,10,.97),rgba(72,29,15,.88),rgba(24,13,10,.97))!important;box-shadow:0 8px 36px rgba(0,0,0,.36),inset 0 -1px rgba(242,180,95,.38)!important}
+    body[data-admin-theme="thanksgiving"] .admin-module,body[data-admin-theme="thanksgiving"] .panel,body[data-admin-theme="thanksgiving"] .admin-card,body[data-admin-theme="thanksgiving"] .admin-stat-card{position:relative;overflow:hidden;border:1px solid rgba(242,180,95,.34)!important;border-radius:18px!important;box-shadow:0 16px 42px rgba(0,0,0,.34),inset 0 1px rgba(255,239,211,.06)!important}
+    body[data-admin-theme="thanksgiving"] .admin-module::after,body[data-admin-theme="thanksgiving"] .panel::after,body[data-admin-theme="thanksgiving"] .admin-card::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(130deg,rgba(255,206,132,.07),transparent 38%,rgba(133,54,24,.08))}
+    body[data-admin-theme="thanksgiving"] h1,body[data-admin-theme="thanksgiving"] h2,body[data-admin-theme="thanksgiving"] h3{text-shadow:0 2px 18px rgba(242,145,53,.16)}
+    body[data-admin-theme="thanksgiving"] .admin-module-head,body[data-admin-theme="thanksgiving"] .section-head{border-bottom:1px solid rgba(242,180,95,.20)!important}
+    body[data-admin-theme="thanksgiving"] .btn:not(.secondary),body[data-admin-theme="thanksgiving"] button.primary{background:linear-gradient(135deg,#8e351c,#c87537 55%,#f2b45f)!important;border:1px solid rgba(255,215,157,.55)!important;color:#1b100b!important;box-shadow:0 5px 18px rgba(173,75,27,.24)!important}
+    body[data-admin-theme="thanksgiving"] .btn.secondary,body[data-admin-theme="thanksgiving"] button.secondary{border-color:rgba(242,180,95,.40)!important;background:rgba(104,45,28,.30)!important;color:#ffdfb8!important}
+    body[data-admin-theme="thanksgiving"] input,body[data-admin-theme="thanksgiving"] select,body[data-admin-theme="thanksgiving"] textarea{border-color:rgba(242,180,95,.28)!important;background:rgba(18,10,8,.88)!important;color:#fff5e8!important}
+    body[data-admin-theme="thanksgiving"] .admin-table th{background:linear-gradient(90deg,rgba(111,43,24,.78),rgba(75,32,21,.88))!important;color:#ffd18a!important}
+    body[data-admin-theme="thanksgiving"] .admin-table td{border-color:rgba(242,180,95,.12)!important}
+    body[data-admin-theme="thanksgiving"] a{text-decoration-color:rgba(242,180,95,.38);text-underline-offset:3px}
+    body[data-admin-theme="thanksgiving"] ::selection{background:#c87537;color:#160b07}
+    @media(max-width:760px){body[data-admin-theme="thanksgiving"] .admin-module,body[data-admin-theme="thanksgiving"] .panel,body[data-admin-theme="thanksgiving"] .admin-card{border-radius:14px!important}}
+    @media(prefers-reduced-motion:no-preference){body[data-admin-theme="thanksgiving"] .admin-card,body[data-admin-theme="thanksgiving"] .admin-stat-card{transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}body[data-admin-theme="thanksgiving"] .admin-card:hover,body[data-admin-theme="thanksgiving"] .admin-stat-card:hover{transform:translateY(-2px);border-color:rgba(242,180,95,.62)!important;box-shadow:0 20px 46px rgba(0,0,0,.40),0 0 22px rgba(242,145,53,.10)!important}}
     @media(prefers-reduced-motion:reduce){#crAdminThemePanel *{transition:none!important}}
   `;
   document.head.appendChild(style);
