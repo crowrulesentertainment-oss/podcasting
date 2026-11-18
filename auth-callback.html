@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#08090c">
+<meta name="robots" content="noindex,nofollow">
+<title>Secure account verification | CrowRules Podcasting</title>
+<link rel="stylesheet" href="assets/css/site.css?v=20261118-complete-auth-v1">
+<style>
+.auth-callback-wrap{min-height:100svh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 15% 10%,#7c1d2c55,transparent 38%),#08090c;color:#f8f7f4}
+.auth-callback-card{width:min(100%,520px);padding:clamp(24px,5vw,42px);border:1px solid #c99a4b66;border-radius:20px;background:#12141a;box-shadow:0 24px 80px #0009}
+.auth-callback-card h1{font-size:clamp(25px,5vw,36px);margin:0 0 12px}
+.auth-callback-card p{color:#c9c5bd;line-height:1.65}
+.auth-callback-card label{display:block;margin:18px 0 7px;font-weight:700}
+.auth-callback-card input{width:100%;box-sizing:border-box;padding:14px;border:1px solid #ffffff35;border-radius:9px;background:#080a0f;color:#fff;font:inherit}
+.auth-callback-card button,.auth-callback-card a{display:inline-flex;justify-content:center;margin-top:18px;padding:13px 18px;border:0;border-radius:9px;background:#c8202f;color:#fff;font:700 15px inherit;text-decoration:none;cursor:pointer}
+.auth-callback-card button:disabled{opacity:.6;cursor:wait}
+.auth-callback-status{min-height:24px;margin-top:14px;color:#d8b45a}
+</style>
+</head>
+<body>
+<main class="auth-callback-wrap">
+<section class="auth-callback-card" aria-live="polite">
+<div class="eyebrow">CROWRULES PODCASTING · SECURE ACCOUNT ACCESS</div>
+<h1 id="callbackTitle">Finishing your secure sign-in…</h1>
+<p id="callbackDescription">Please keep this page open while we verify your account.</p>
+<div id="callbackForm"></div>
+<div id="callbackStatus" class="auth-callback-status" role="status"></div>
+</section>
+</main>
+<script type="module">
+import { sb } from "./assets/js/client.js";
+const $ = selector => document.querySelector(selector);
+const title = $("#callbackTitle");
+const description = $("#callbackDescription");
+const formRoot = $("#callbackForm");
+const status = $("#callbackStatus");
+const params = new URLSearchParams(location.search);
+const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
+const callbackType = params.get("type") || hash.get("type") || "";
+const flow = params.get("flow") || "";
+const tokenHash = params.get("token_hash");
+const allowedTypes = new Set(["signup","invite","magiclink","recovery","email_change"]);
+const safeLogin = suffix => location.replace("./login.html" + suffix);
+function fail(message) {
+  title.textContent = "We couldn't complete verification";
+  description.textContent = message;
+  status.textContent = "Your account and existing data have not been changed by this page.";
+  const link = document.createElement("a");
+  link.href = "./login.html";
+  link.textContent = "Return to sign in";
+  formRoot.replaceChildren(link);
+}
+function showRecovery() {
+  title.textContent = "Choose a new password";
+  description.textContent = "Your recovery link has been verified. Choose a new password for your CrowRules Podcasting account.";
+  formRoot.innerHTML = '<form id="newPasswordForm"><label for="newPassword">New password</label><input id="newPassword" type="password" autocomplete="new-password" minlength="8" required><label for="confirmPassword">Confirm new password</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="8" required><button id="savePassword" type="submit">Update password</button></form>';
+  $("#newPasswordForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    const password = $("#newPassword").value;
+    const confirm = $("#confirmPassword").value;
+    const button = $("#savePassword");
+    if (password.length < 8) { status.textContent = "Use at least 8 characters."; return; }
+    if (password !== confirm) { status.textContent = "The passwords do not match."; return; }
+    button.disabled = true;
+    button.textContent = "Updating…";
+    try {
+      const { error } = await sb.auth.updateUser({ password });
+      if (error) throw error;
+      title.textContent = "Password updated";
+      description.textContent = "Your password has been changed. You can now sign in with your new password.";
+      status.textContent = "Your account is ready.";
+      const link = document.createElement("a");
+      link.href = "./login.html";
+      link.textContent = "Continue to sign in";
+      formRoot.replaceChildren(link);
+    } catch (error) {
+      status.textContent = error?.message || "We couldn't update your password. Request a new reset email and try again.";
+      button.disabled = false;
+      button.textContent = "Update password";
+    }
+  });
+}
+async function run() {
+  const authError = params.get("error_description") || params.get("error") || hash.get("error_description") || hash.get("error");
+  if (authError) throw new Error(authError.replace(/\+/g, " "));
+  if (tokenHash) {
+    if (!allowedTypes.has(callbackType)) throw new Error("The verification email used an unsupported link type. The Supabase confirmation template must use signup verification.");
+    const { error } = await sb.auth.verifyOtp({ token_hash: tokenHash, type: callbackType });
+    if (error) throw error;
+  }
+  const { data, error } = await sb.auth.getSession();
+  if (error) throw error;
+  const isRecovery = flow === "recovery" || callbackType === "recovery" || hash.get("type") === "recovery";
+  if (isRecovery) {
+    if (!data.session) throw new Error("The password reset link is expired or has already been used. Request another reset email.");
+    showRecovery();
+    return;
+  }
+  if (!data.session) throw new Error("The verification link may be expired, already used, or incorrectly configured. Request a fresh email and try again.");
+  title.textContent = "Your account is verified";
+  description.textContent = "Your secure CrowRules Podcasting session is ready. Taking you back to sign in.";
+  status.textContent = "Verification successful.";
+  setTimeout(() => safeLogin("?source=podcasting&verified=1"), 900);
+}
+run().catch(error => fail(error?.message || "An unexpected verification error occurred."));
+</script>
+</body>
+</html>
