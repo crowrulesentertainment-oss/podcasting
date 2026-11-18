@@ -46,7 +46,7 @@ create table if not exists public.podcasting_visitor_daily_uniques (
   visitor_id uuid not null,
   session_id uuid not null,
   first_seen_at timestamptz not null default now(),
-  primary key (visit_day, location_id, visitor_id),
+  primary key (visit_day, location_id, visitor_id)
 );
 
 create table if not exists public.podcasting_visitor_daily_sessions (
@@ -113,7 +113,6 @@ declare
   v_location_id uuid;
   v_location_key text;
   v_event_id bigint;
-  v_inserted boolean := false;
   v_visitor_new boolean := false;
   v_session_new boolean := false;
   v_rows integer := 0;
