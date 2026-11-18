@@ -6,7 +6,7 @@
   "use strict";
   if (document.body.dataset.page !== "admin") return;
 
-  const STORAGE_KEY = "crp_admin_theme";
+  const STORAGE_KEY = "crp_site_theme";
   const THEMES = [
   {
     "id": "default",
@@ -325,7 +325,7 @@
   const getTheme = id => THEMES.find(theme => theme.id === id) || original;
   const readTheme = () => {
     try {
-      const value = localStorage.getItem(STORAGE_KEY) || "original";
+      const value = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("crp_admin_theme") || "original";
       return value === "original" || THEMES.some(theme => theme.id === value) ? value : "original";
     } catch { return "original"; }
   };
@@ -335,6 +335,8 @@
     const root = document.documentElement;
     root.dataset.adminTheme = selected === "original" ? "" : selected;
     document.body.dataset.adminTheme = selected === "original" ? "" : selected;
+    root.dataset.siteTheme = selected === "original" ? "" : selected;
+    document.body.dataset.siteTheme = selected === "original" ? "" : selected;
     if (selected === "original") {
       ["--cr-admin-accent","--cr-admin-glow","--cr-admin-panel","--cr-admin-ink","--cr-admin-muted","--cr-admin-scene"].forEach(key => root.style.removeProperty(key));
     } else {
@@ -348,8 +350,9 @@
     const select = document.getElementById("crAdminThemeSelect");
     const status = document.getElementById("crAdminThemeStatus");
     if (select) select.value = selected;
-    if (status) status.textContent = selected === "original" ? "Original admin appearance is active." : theme.icon + " " + theme.label + " is active. This changes the admin appearance only.";
-    if (persist) { try { localStorage.setItem(STORAGE_KEY, selected); } catch {} }
+    if (status) status.textContent = selected === "original" ? "Original CrowRules Podcasting appearance is active." : theme.icon + " " + theme.label + " is active across CrowRules Podcasting.";
+    if (persist) { try { localStorage.setItem(STORAGE_KEY, selected); localStorage.setItem("crp_admin_theme", selected); } catch {} }
+    window.dispatchEvent(new CustomEvent("cr:site-theme-change", { detail: selected }));
   };
 
   const style = document.createElement("style");
