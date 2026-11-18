@@ -47,7 +47,14 @@ create table if not exists public.podcasting_visitor_daily_uniques (
   session_id uuid not null,
   first_seen_at timestamptz not null default now(),
   primary key (visit_day, location_id, visitor_id),
-  constraint podcasting_visitor_daily_uniques_session unique (visit_day, location_id, session_id)
+);
+
+create table if not exists public.podcasting_visitor_daily_sessions (
+  visit_day date not null,
+  location_id uuid not null references public.podcasting_visitor_locations(id),
+  session_id uuid not null,
+  first_seen_at timestamptz not null default now(),
+  primary key (visit_day, location_id, session_id)
 );
 
 create table if not exists public.podcasting_visitor_daily_rollups (
@@ -76,6 +83,7 @@ create index if not exists podcasting_visitor_daily_rollups_day_idx
 alter table public.podcasting_visitor_locations enable row level security;
 alter table public.podcasting_page_view_events enable row level security;
 alter table public.podcasting_visitor_daily_uniques enable row level security;
+alter table public.podcasting_visitor_daily_sessions enable row level security;
 alter table public.podcasting_visitor_daily_rollups enable row level security;
 
 -- No anon/authenticated table policies or direct table grants are created.
@@ -108,6 +116,7 @@ declare
   v_inserted boolean := false;
   v_visitor_new boolean := false;
   v_session_new boolean := false;
+  v_rows integer := 0;
   v_day date := (now() at time zone 'UTC')::date;
   v_city text := nullif(left(trim(coalesce(p_city, '')), 100), '');
   v_region text := nullif(left(trim(coalesce(p_region, '')), 100), '');
@@ -118,7 +127,7 @@ declare
   v_lon numeric := case when p_longitude between -180 and 180 then round(p_longitude, 1) else null end;
   v_path text := left(coalesce(p_page_path, '/'), 300);
   v_device text := case when p_device_type in ('desktop','tablet','mobile') then p_device_type else 'unknown' end;
-  v_referrer text := nullif(left(lower(trim(coalesce(p_referrer_domain, '')), 253), '');
+  v_referrer text := nullif(left(lower(trim(coalesce(p_referrer_domain, ''))), 253), '');
 begin
   if p_idempotency_key is null or p_visitor_id is null or p_session_id is null then
     raise exception 'Visitor, session, and event identifiers are required' using errcode = '22023';
@@ -166,18 +175,16 @@ begin
   insert into public.podcasting_visitor_daily_uniques
     (visit_day, location_id, visitor_id, session_id)
   values (v_day, v_location_id, p_visitor_id, p_session_id)
-  on conflict do nothing;
-  get diagnostics v_event_id = row_count;
-  v_visitor_new := v_event_id > 0;
+  on conflict (visit_day, location_id, visitor_id) do nothing;
+  get diagnostics v_rows = row_count;
+  v_visitor_new := v_rows > 0;
 
-  -- Session count is separately deduplicated for the same visitor/location/day.
-  -- A conflicting visitor row can still be a new session; test it independently.
-  insert into public.podcasting_visitor_daily_uniques
-    (visit_day, location_id, visitor_id, session_id)
-  values (v_day, v_location_id, p_visitor_id, p_session_id)
-  on conflict (visit_day, location_id, session_id) do nothing;
-  get diagnostics v_event_id = row_count;
-  v_session_new := v_event_id > 0;
+  insert into public.podcasting_visitor_daily_sessions
+    (visit_day, location_id, session_id)
+  values (v_day, v_location_id, p_session_id)
+  on conflict do nothing;
+  get diagnostics v_rows = row_count;
+  v_session_new := v_rows > 0;
 
   insert into public.podcasting_visitor_daily_rollups
     (visit_day, location_id, page_views, unique_visitors, sessions, updated_at)
