@@ -14,7 +14,7 @@
 .auth-callback-card p{color:#c9c5bd;line-height:1.65}
 .auth-callback-card label{display:block;margin:18px 0 7px;font-weight:700}
 .auth-callback-card input{width:100%;box-sizing:border-box;padding:14px;border:1px solid #ffffff35;border-radius:9px;background:#080a0f;color:#fff;font:inherit}
-.auth-callback-card button,.auth-callback-card a{display:inline-flex;justify-content:center;margin-top:18px;padding:13px 18px;border:0;border-radius:9px;background:#c8202f;color:#fff;font:700 15px inherit;text-decoration:none;cursor:pointer}
+.auth-callback-card button,.auth-callback-card a{display:inline-flex;justify-content:center;margin-top:18px;padding:13px 18px;border:0;border-radius:9px;background:#c8202f;color:#fff;font:inherit;font-weight:700;text-decoration:none;cursor:pointer}
 .auth-callback-card button:disabled{opacity:.6;cursor:wait}
 .auth-callback-status{min-height:24px;margin-top:14px;color:#d8b45a}
 </style>
@@ -41,7 +41,7 @@ const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
 const callbackType = params.get("type") || hash.get("type") || "";
 const flow = params.get("flow") || "";
 const tokenHash = params.get("token_hash");
-const allowedTypes = new Set(["signup","invite","magiclink","recovery","email_change"]);
+const allowedTypes = new Set(["signup","invite","magiclink","recovery","email_change","email"]);
 const safeLogin = suffix => location.replace("./login.html" + suffix);
 function fail(message) {
   title.textContent = "We couldn't complete verification";
@@ -86,7 +86,7 @@ async function run() {
   const authError = params.get("error_description") || params.get("error") || hash.get("error_description") || hash.get("error");
   if (authError) throw new Error(authError.replace(/\+/g, " "));
   if (tokenHash) {
-    if (!allowedTypes.has(callbackType)) throw new Error("The verification email used an unsupported link type. The Supabase confirmation template must use signup verification.");
+    if (!allowedTypes.has(callbackType)) throw new Error("The verification email used an unsupported link type. Request a fresh confirmation email or contact support.");
     const { error } = await sb.auth.verifyOtp({ token_hash: tokenHash, type: callbackType });
     if (error) throw error;
   }
