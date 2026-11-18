@@ -264,7 +264,7 @@ begin
     order by page_views desc, unique_visitors desc limit v_limit
   ),
   daily as (
-    select (created_at at time zone 'UTC')::date day,
+    select (created_at at time zone 'UTC')::date as visit_day,
            count(*)::bigint page_views,
            count(distinct visitor_id)::bigint unique_visitors
     from filtered group by 1 order by 1
