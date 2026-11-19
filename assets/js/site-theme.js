@@ -56,7 +56,7 @@
     const theme=themeById(id)||themeById("original");
     const scene=pageScene(theme);
     if(!theme)return;
-    const active=theme.id!=="original",root=document.documentElement;
+    const active=true,root=document.documentElement;
     root.dataset.siteTheme=active?theme.id:"";
     document.body.dataset.siteTheme=active?theme.id:"";
     const vars={"--cr-site-accent":theme.accent,"--cr-site-glow":theme.glow,"--cr-site-panel":theme.panel,"--cr-site-ink":theme.ink,"--cr-site-muted":theme.muted,"--cr-site-scene":scene?'url("'+scene+'")':"none","--cr-site-hero":scene?'url("'+scene+'")':"none"};
