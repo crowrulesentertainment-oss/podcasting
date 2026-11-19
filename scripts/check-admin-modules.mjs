@@ -38,8 +38,8 @@ assert(css.includes("@media(max-width:650px)")&&css.includes(".cr-review-mod-sta
 assert(css.includes("@media(max-width:600px){.cr-review-form-grid{grid-template-columns:1fr}"),"Admin forms collapse to one column on small screens");
 
 for(const token of ["adminVisitorMap","adminVisitorMapLeader","adminVisitorMapNote","adminActivityCitiesList","adminActivityRegionsList","renderVisitorMap(data,displayNames)"])assert(app.includes(token),"Live visitor map renders "+token);
-for(const token of ["visitorCountryCenters","loadVisitorMapLibrary","L.tileLayer","L.circleMarker","MOST ACTIVE CITY","MOST ACTIVE STATE / REGION","MOST ACTIVE COUNTRY","Approximate country center","countryFallbacks","by_city","by_region"])assert(app.includes(token),"Visitor map supports "+token);
-assert(app.includes("Heartbeat received within 90 seconds")&&app.includes("Browser language provides a country-only fallback"),"Visitor map preserves 90-second activity and locale-estimate privacy wording");
+for(const token of ["visitorCountryCenters","loadVisitorMapLibrary","L.tileLayer","L.circleMarker","MOST ACTIVE CITY","MOST ACTIVE STATE / REGION","MOST ACTIVE COUNTRY","countryFallbacks","by_city","by_region"])assert(app.includes(token),"Visitor map supports "+token);
+assert(app.includes("Heartbeat received within 90 seconds")&&app.includes("Browser locale remains a country-only fallback"),"Visitor map preserves 90-second activity and locale-estimate privacy wording");
 assert(app.includes("podcasting-live-visitor-geolocation")&&app.includes("21600000"),"Visitor geo lookup is server-side and throttled to six hours per browser session");
 assert(app.includes("rounded to about 0.1°")&&app.includes("not GPS or street addresses"),"Visitor city map discloses approximate location precision and privacy limits");
 assert(app.includes("admin-visitor-map-leaders")&&app.includes("adminActivityRegions"),"City, state/region and country leaders and rankings are rendered");
