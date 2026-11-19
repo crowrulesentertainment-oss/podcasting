@@ -32,10 +32,10 @@
     if(!settings)return "original";
     const now=new Date();
     const windows=Array.isArray(settings.theme_schedule)?settings.theme_schedule:[];
-    const match=windows.find(w=>w&&valid(w.theme_id)&&w.start&&w.end&&now>=new Date(w.start+"T00:00:00")&&now<new Date(w.end+"T23:59:59"));
-    if(match)return match.theme_id;
     if(settings.theme_mode==="manual")return valid(settings.featured_theme)?settings.featured_theme:"original";
-    if(settings.theme_mode==="scheduled")return valid(settings.featured_theme)?settings.featured_theme:"original";
+    const match=windows.find(w=>w&&valid(w.theme_id)&&w.start&&w.end&&now>=new Date(w.start+"T00:00:00")&&now<new Date(w.end+"T23:59:59"));
+    if(settings.theme_mode==="scheduled")return match?match.theme_id:(valid(settings.featured_theme)?settings.featured_theme:"original");
+    if(match)return match.theme_id;
     if(settings.seasonal_auto!==false)return automaticTheme(now);
     return valid(settings.featured_theme)?settings.featured_theme:"original";
   }
