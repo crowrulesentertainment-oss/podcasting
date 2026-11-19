@@ -1,100 +1,154 @@
-/* CrowRules Podcasting sitewide theme runtime.
- * Admin-selected themes are synchronized across every app page on this browser.
- * Presentation only: no authentication, database, or feature behavior.
+/* CrowRules Podcasting member themes + platform featured theme runtime.
+ * Personal preferences are stored per authenticated user; featured themes never overwrite them.
  */
 (() => {
   "use strict";
-  const STORAGE_KEY = "crp_site_theme";
-  const LEGACY_KEY = "crp_admin_theme";
-  const THEMES = [{"id":"default","label":"Tacoma Nights · Default","icon":"🌃","desc":"Rain-slick Tacoma skyline, waterfront lights and deep Pacific Northwest blues","accent":"#9bdcff","glow":"rgba(75,155,220,.20)","panel":"rgba(7,15,28,.90)","ink":"#f0f7ff","muted":"#b7c6d8","photo":"https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=2400&q=85","hero":"https://commons.wikimedia.org/wiki/Special:FilePath/Tacoma_Narrows_Bridge_Panorama.jpg?width=2400"},{"id":"halloween","label":"Halloween Cinematic","icon":"🎃","desc":"Haunted woods, drifting ghosts, bats, eerie eyes and rolling moonlit fog","accent":"#ffb36b","glow":"rgba(255,105,38,.22)","panel":"rgba(24,11,12,.92)","ink":"#fff2e7","muted":"#d1b6a8","photo":"https://images.unsplash.com/photo-1509557965875-b88c97052f0e?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1475738198235-4b30fcf6a3b9?auto=format&fit=crop&w=2400&q=85"},{"id":"thanksgiving","label":"Thanksgiving · Harvest Cinematic","icon":"🦃","desc":"A premium harvest-night experience with ember gold, cranberry velvet, copper leaves and warm candlelight","accent":"#f2b45f","glow":"rgba(242,145,53,.30)","panel":"rgba(29,15,10,.94)","ink":"#fff5e8","muted":"#d9bda4","photo":"https://images.unsplash.com/photo-1506368249639-73a05d6f6488?auto=format&fit=crop&w=2400&q=90","hero":"https://images.unsplash.com/photo-1515003197210-e0cd7184f8b5?auto=format&fit=crop&w=2400&q=90"},{"id":"christmas","label":"Christmas · Cinematic Christmas Eve","icon":"🎄","desc":"Photoreal snowy village streets, towering evergreens, glowing cabin windows and festive lights beneath a midnight winter sky","accent":"#f1d58b","glow":"rgba(82,204,177,.30)","panel":"rgba(5,19,29,.94)","ink":"#f7fbff","muted":"#c6d8e2","photo":"https://images.unsplash.com/photo-1478265409131-1f65c88f965c?auto=format&fit=crop&w=2400&q=92","hero":"https://images.unsplash.com/photo-1512389142860-9c449e58a543?auto=format&fit=crop&w=2400&q=92"},{"id":"newyear","label":"New Year’s Eve Cinematic","icon":"🎆","desc":"A midnight city skyline, sparkling fireworks and elegant gold-violet light","accent":"#f8d98b","glow":"rgba(119,121,255,.24)","panel":"rgba(9,11,27,.93)","ink":"#fff9e9","muted":"#c7c9df","photo":"https://images.unsplash.com/photo-1498931299472-f7a63a5a1cfa?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1467810563316-b5476525c0f9?auto=format&fit=crop&w=2400&q=85"},{"id":"new-years-day","label":"New Year’s Day · Fresh Start","icon":"🌅","desc":"A luminous first sunrise, champagne-gold light and a clean new-year horizon","accent":"#f6d78b","glow":"rgba(255,205,96,.24)","panel":"rgba(14,17,31,.94)","ink":"#fff9ec","muted":"#d2c8ad","photo":"https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=2400&q=85"},{"id":"st-patricks-day","label":"St. Patrick’s Day · Emerald Celebration","icon":"☘️","desc":"Emerald greens, shamrocks, soft golden glimmers and Irish spring atmosphere","accent":"#7ff0a3","glow":"rgba(34,190,94,.24)","panel":"rgba(5,28,18,.94)","ink":"#effff3","muted":"#b9d8c2","photo":"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=2400&q=85"},{"id":"april-fools-day","label":"April Fools’ Day · Playful Chaos","icon":"🤡","desc":"Colorful confetti, playful surprises, bright accents and a mischievous party mood","accent":"#ffdc62","glow":"rgba(255,82,145,.23)","panel":"rgba(24,12,35,.94)","ink":"#fff9f1","muted":"#d8c6e5","photo":"https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=2400&q=85"},{"id":"memorial-day","label":"Memorial Day · Honor & Remembrance","icon":"🇺🇸","desc":"A respectful tribute with deep navy, quiet red-white-blue accents and candlelit remembrance","accent":"#c6d8f4","glow":"rgba(86,126,198,.20)","panel":"rgba(7,14,29,.95)","ink":"#f4f7ff","muted":"#bac6da","photo":"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1498931299472-f7a63a5a1cfa?auto=format&fit=crop&w=2400&q=85"},{"id":"labor-day","label":"Labor Day · Celebrate the People Who Build","icon":"🛠️","desc":"Industrial steel, warm copper light and a tribute to workers and community builders","accent":"#f3b477","glow":"rgba(225,124,57,.22)","panel":"rgba(19,20,23,.95)","ink":"#fff7ed","muted":"#c9c3bc","photo":"https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=2400&q=85"},{"id":"veterans-day","label":"Veterans Day · Service & Gratitude","icon":"🎖️","desc":"Dignified midnight blue, muted flag colors and a calm atmosphere of gratitude","accent":"#c4d4e8","glow":"rgba(91,126,164,.22)","panel":"rgba(9,18,29,.95)","ink":"#f3f7fb","muted":"#bac9d7","photo":"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1498931299472-f7a63a5a1cfa?auto=format&fit=crop&w=2400&q=85"},{"id":"black-friday","label":"Black Friday · Midnight Shopping","icon":"🛍️","desc":"Sleek black glass, electric gold highlights, neon storefront glow and city-night energy","accent":"#ffd36b","glow":"rgba(255,190,54,.24)","panel":"rgba(10,10,13,.96)","ink":"#fff9e8","muted":"#c9c3b4","photo":"https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=2400&q=85"},{"id":"kwanzaa","label":"Kwanzaa · Unity & Heritage","icon":"🕯️","desc":"Black, red and green with warm candlelight celebrating unity, purpose and community","accent":"#f4c45f","glow":"rgba(196,46,50,.24)","panel":"rgba(18,12,13,.96)","ink":"#fff6e8","muted":"#d5c3b3","photo":"https://images.unsplash.com/photo-1515003197210-e0cd7184f8b5?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1515003197210-e0cd7184f8b5?auto=format&fit=crop&w=2400&q=85"},{"id":"groundhog-day","label":"Groundhog Day · Winter Watch","icon":"🐿️","desc":"A cozy winter dawn, frosted branches, a curious groundhog and the promise of spring","accent":"#c9d9e8","glow":"rgba(155,190,220,.23)","panel":"rgba(13,20,31,.94)","ink":"#f2f7ff","muted":"#bdcbd9","photo":"https://images.unsplash.com/photo-1483664852095-d6cc6870702d?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1457269449834-928af64c684d?auto=format&fit=crop&w=2400&q=85"},{"id":"spring","label":"Spring · Bloom & Renewal","icon":"🌷","desc":"Fresh blossoms, soft rain, new leaves and a bright Pacific Northwest spring","accent":"#a7edbd","glow":"rgba(105,220,147,.22)","panel":"rgba(8,25,22,.92)","ink":"#f0fff6","muted":"#bed9cc","photo":"https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?auto=format&fit=crop&w=2400&q=85"},{"id":"summer","label":"Summer · Golden Evenings","icon":"☀️","desc":"Golden-hour sunshine, warm skies, vivid greenery and long summer evenings","accent":"#ffd479","glow":"rgba(255,183,65,.24)","panel":"rgba(24,20,11,.91)","ink":"#fff9ed","muted":"#ded0b2","photo":"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2400&q=85"},{"id":"fall","label":"Fall · Pacific Northwest Autumn","icon":"🍁","desc":"Copper leaves, misty forests, amber light and cozy autumn atmosphere","accent":"#f4b36f","glow":"rgba(214,104,43,.23)","panel":"rgba(27,16,11,.93)","ink":"#fff4e7","muted":"#d8bea7","photo":"https://images.unsplash.com/photo-1507371341162-763b5e419408?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=2400&q=85"},{"id":"winter","label":"Winter · Frost & Northern Lights","icon":"❄️","desc":"Snowy evergreens, icy blue light, drifting snow and a tranquil winter night","accent":"#a9dfff","glow":"rgba(99,181,237,.23)","panel":"rgba(7,17,30,.94)","ink":"#f0f9ff","muted":"#bbd0df","photo":"https://images.unsplash.com/photo-1478265409131-1f65c88f965c?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1517299321609-52687d1bc55a?auto=format&fit=crop&w=2400&q=85"},{"id":"valentines","label":"Valentine’s Day · Love & Connection","icon":"💗","desc":"Crimson roses, candlelit warmth and romantic rose-gold highlights","accent":"#ff8ba7","glow":"rgba(244,65,112,.25)","panel":"rgba(35,10,22,.94)","ink":"#fff0f4","muted":"#e0b9c7","photo":"https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=2400&q=85"},{"id":"easter","label":"Easter · Spring Awakening","icon":"🌷","desc":"Spring blossoms, fresh greenery and soft pastel sunrise colors","accent":"#c7a6ff","glow":"rgba(170,130,255,.23)","panel":"rgba(18,22,35,.93)","ink":"#f8f4ff","muted":"#c8c6df","photo":"https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?auto=format&fit=crop&w=2400&q=85"},{"id":"independence-day","label":"Independence Day · Stars & Stripes","icon":"🇺🇸","desc":"Midnight-blue skies, patriotic red-white-blue light and celebration","accent":"#7db6ff","glow":"rgba(54,112,255,.24)","panel":"rgba(7,16,35,.94)","ink":"#f4f7ff","muted":"#b9c8e4","photo":"https://images.unsplash.com/photo-1498931299472-f7a63a5a1cfa?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1467810563316-b5476525c0f9?auto=format&fit=crop&w=2400&q=85"},{"id":"mothers-day","label":"Mother’s Day · A Celebration of Care","icon":"🌸","desc":"Blush florals, peonies and warm golden sunlight","accent":"#f2a3cb","glow":"rgba(229,111,177,.22)","panel":"rgba(31,14,29,.94)","ink":"#fff2fa","muted":"#dfbfd4","photo":"https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=2400&q=85"},{"id":"fathers-day","label":"Father’s Day · Legacy & Strength","icon":"🌄","desc":"Mountain horizons, deep steel blues and copper sunset warmth","accent":"#8dc7e8","glow":"rgba(80,155,205,.22)","panel":"rgba(10,20,30,.94)","ink":"#f1f8fc","muted":"#b8cad5","photo":"https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2400&q=85"},{"id":"juneteenth","label":"Juneteenth · Freedom & Heritage","icon":"✊🏿","desc":"Respectful heritage palette celebrating freedom, history and community","accent":"#f0c15b","glow":"rgba(202,48,55,.23)","panel":"rgba(20,12,13,.95)","ink":"#fff6e8","muted":"#d6c2b0","photo":"https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=2400&q=85","hero":"https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=2400&q=85"}];
-  const original = { id: "original" };
-  const getTheme = id => THEMES.find(theme => theme.id === id) || original;
-  const readTheme = () => {
-    try {
-      const id = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_KEY) || "original";
-      return id === "original" || THEMES.some(theme => theme.id === id) ? id : "original";
-    } catch { return "original"; }
-  };
-  const applyTheme = id => {
-    const theme = id === "original" ? original : getTheme(id);
-    const root = document.documentElement;
-    const active = theme.id !== "original";
-    root.dataset.siteTheme = active ? theme.id : "";
-    document.body.dataset.siteTheme = active ? theme.id : "";
-    let snow = document.getElementById("crChristmasSnow");
-    if (theme.id === "christmas") {
-      if (!snow) {
-        snow = document.createElement("div");
-        snow.id = "crChristmasSnow";
-        snow.className = "cr-christmas-snow";
-        snow.setAttribute("aria-hidden", "true");
-        document.body.appendChild(snow);
-      }
-    } else if (snow) {
-      snow.remove();
+  const CATALOG = window.CRP_THEME_CATALOG || {themes:[]};
+  const THEMES = CATALOG.themes || [];
+  const MEMBER_KEY = "crp_member_theme";
+  const themeById = id => THEMES.find(t => t.id === id) || THEMES.find(t => t.id === "original") || THEMES[0];
+  const valid = id => THEMES.some(t => t.id === id);
+  let sb = null, currentUser = null, selectedId = "original", featuredId = "original";
+  const esc = v => String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const easterDate = year => {const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;return new Date(year,month-1,day)};
+  const sameDayRange=(now,start,end)=>now>=start&&now<=end;
+  function automaticTheme(now=new Date()){
+    const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
+    const easter=easterDate(y), easterStart=new Date(y,easter.getMonth(),easter.getDate()-4),easterEnd=new Date(y,easter.getMonth(),easter.getDate()+1);
+    if(m===9)return "halloween";
+    if(m===10&&d>=15&&d<=27)return "thanksgiving";
+    if(m===11&&d<=25)return "christmas";
+    if((m===11&&d>=26)||(m===0&&d<=2))return d>=26?"newyear":"new-years-day";
+    if(m===1&&d<=14)return "valentines";
+    if(m===2&&d>=10&&d<=17)return "st-patricks-day";
+    if(sameDayRange(now,easterStart,easterEnd))return "easter";
+    if(m===6&&d>=1&&d<=5)return "independence-day";
+    if(m>=2&&m<=4)return "spring";
+    if(m>=5&&m<=7)return "summer";
+    if(m>=8&&m<=10)return "fall";
+    return "winter";
+  }
+  function resolveFeatured(settings){
+    if(!settings)return "original";
+    const now=new Date();
+    const windows=Array.isArray(settings.theme_schedule)?settings.theme_schedule:[];
+    const match=windows.find(w=>w&&valid(w.theme_id)&&w.start&&w.end&&now>=new Date(w.start+"T00:00:00")&&now<new Date(w.end+"T23:59:59"));
+    if(match)return match.theme_id;
+    if(settings.theme_mode==="manual")return valid(settings.featured_theme)?settings.featured_theme:"original";
+    if(settings.theme_mode==="scheduled")return valid(settings.featured_theme)?settings.featured_theme:"original";
+    if(settings.seasonal_auto!==false)return automaticTheme(now);
+    return valid(settings.featured_theme)?settings.featured_theme:"original";
+  }
+  function applyTheme(id){
+    const theme=themeById(id)||themeById("original");
+    if(!theme)return;
+    const active=theme.id!=="original",root=document.documentElement;
+    root.dataset.siteTheme=active?theme.id:"";
+    document.body.dataset.siteTheme=active?theme.id:"";
+    const vars={"--cr-site-accent":theme.accent,"--cr-site-glow":theme.glow,"--cr-site-panel":theme.panel,"--cr-site-ink":theme.ink,"--cr-site-muted":theme.muted,"--cr-site-scene":theme.photo?'url("'+theme.photo+'")':"none","--cr-site-hero":theme.hero?'url("'+theme.hero+'")':"none"};
+    Object.entries(vars).forEach(([key,value])=>{if(active&&value&&value!=="none")root.style.setProperty(key,value);else root.style.removeProperty(key)});
+    let snow=document.getElementById("crChristmasSnow");
+    if(theme.id==="christmas"&&!snow){snow=document.createElement("div");snow.id="crChristmasSnow";snow.className="cr-christmas-snow";snow.setAttribute("aria-hidden","true");document.body.appendChild(snow)}
+    else if(theme.id!=="christmas"&&snow)snow.remove();
+    selectedId=theme.id;
+    const status=document.getElementById("crMemberThemeStatus");if(status)status.textContent=theme.icon+" "+theme.label+" selected";
+  }
+  async function loadSettings(){
+    try{
+      const {data,error}=await sb.from("crp_site_settings").select("featured_theme,theme_mode,seasonal_auto,theme_schedule").eq("site_key","podcasting").maybeSingle();
+      if(error)throw error;featuredId=resolveFeatured(data);return data;
+    }catch(error){console.warn("[CrowRules themes] Featured theme unavailable:",error.message);featuredId=automaticTheme();return null}
+  }
+  async function loadPreference(){
+    const local=(()=>{try{return localStorage.getItem(MEMBER_KEY)}catch{return null}})();
+    if(currentUser){
+      try{
+        const {data,error}=await sb.from("crp_theme_preferences").select("theme_id").eq("user_id",currentUser.id).maybeSingle();
+        if(error)throw error;
+        if(data&&valid(data.theme_id))return data.theme_id;
+        if(local&&valid(local)){
+          const saved=await sb.from("crp_theme_preferences").upsert({user_id:currentUser.id,theme_id:local,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+          if(!saved.error)return local;
+        }
+      }catch(error){console.warn("[CrowRules themes] Member preference unavailable:",error.message)}
     }
-    const vars = {
-      "--cr-site-accent": theme.accent,
-      "--cr-site-glow": theme.glow,
-      "--cr-site-panel": theme.panel,
-      "--cr-site-ink": theme.ink,
-      "--cr-site-muted": theme.muted,
-      "--cr-site-scene": theme.photo ? 'url("' + theme.photo + '")' : "none",
-      "--cr-site-hero": theme.hero ? 'url("' + theme.hero + '")' : "none"
-    };
-    Object.entries(vars).forEach(([key, value]) => {
-      if (active && value && value !== "none") root.style.setProperty(key, value);
-      else root.style.removeProperty(key);
-    });
-  };
-  const style = document.createElement("style");
-  style.id = "cr-site-theme-styles";
-  style.textContent = `
+    return local&&valid(local)?local:featuredId;
+  }
+  async function savePreference(id){
+    if(!valid(id))return;
+    try{localStorage.setItem(MEMBER_KEY,id)}catch{}
+    applyTheme(id);
+    const status=document.getElementById("crMemberThemeStatus");
+    if(currentUser&&sb){
+      const {error}=await sb.from("crp_theme_preferences").upsert({user_id:currentUser.id,theme_id:id,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+      if(error){if(status)status.textContent="Theme applied on this device; account sync failed: "+error.message;return}
+      if(status)status.textContent="Saved to your CrowRules account. Your theme stays yours when featured themes change.";
+    }else if(status)status.textContent="Saved on this device. Sign in to sync your theme across devices.";
+  }
+  function mountMemberPicker(){
+    if(document.body.dataset.page==="admin"||document.getElementById("crMemberThemeControl")||!THEMES.length)return;
+    const css=document.createElement("style");css.id="cr-member-theme-css";css.textContent=`
+      #crMemberThemeControl{position:fixed;z-index:9990;left:16px;bottom:18px;color:#fff;font:inherit}
+      #crMemberThemeToggle{display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #ffffff2b;border-radius:999px;background:#111720ed;color:#fff;font-size:11px;font-weight:850;box-shadow:0 8px 28px #0008;cursor:pointer;backdrop-filter:blur(12px)}
+      #crMemberThemeToggle:hover{border-color:#d8ad61}
+      #crMemberThemePanel{position:absolute;left:0;bottom:50px;width:min(440px,calc(100vw - 28px));max-height:min(72vh,650px);overflow:auto;padding:14px;border:1px solid #ffffff25;border-radius:17px;background:linear-gradient(145deg,#171d28,#080c13);box-shadow:0 20px 60px #000b}
+      #crMemberThemePanel[hidden]{display:none}
+      #crMemberThemePanel h3{margin:0;font-size:16px}
+      #crMemberThemePanel p{margin:4px 0 12px;color:#aeb9c8;font-size:10px;line-height:1.5}
+      #crMemberThemeSearch{width:100%;margin-bottom:10px;padding:9px 10px;border:1px solid #ffffff24;border-radius:9px;background:#080c12;color:#fff;font:inherit;font-size:11px}
+      #crMemberThemeGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+      .cr-member-theme-card{overflow:hidden;padding:0;border:1px solid #ffffff20;border-radius:10px;background:#080c12;color:#fff;text-align:left;cursor:pointer}
+      .cr-member-theme-card[aria-pressed=true]{border:2px solid #e2b66f}
+      .cr-member-theme-card img{display:block;width:100%;height:74px;object-fit:cover;background:#222}
+      .cr-member-theme-card span{display:block;padding:7px 8px;font-size:10px;font-weight:800;line-height:1.3}
+      #crMemberThemeStatus{display:block;margin-top:10px;color:#b9c8d6;font-size:10px;line-height:1.5}
+      @media(max-width:600px){#crMemberThemeControl{left:10px;bottom:12px}#crMemberThemeToggle{padding:9px 12px}#crMemberThemePanel{width:min(380px,calc(100vw - 20px));max-height:66vh}}
+      @media(prefers-reduced-motion:reduce){#crMemberThemePanel *{transition:none!important}}
+    `;document.head.appendChild(css);
+    const host=document.createElement("div");host.id="crMemberThemeControl";host.innerHTML='<button id="crMemberThemeToggle" type="button" aria-expanded="false" aria-controls="crMemberThemePanel">🎨 <span>Choose your atmosphere</span></button><section id="crMemberThemePanel" hidden aria-label="Personal theme selector"><h3>Make CrowRules yours.</h3><p>Your personal theme is independent of the platform featured theme. It will not change when the seasonal environment updates.</p><input id="crMemberThemeSearch" type="search" placeholder="Find a cinematic world…" aria-label="Search themes"><div id="crMemberThemeGrid"></div><small id="crMemberThemeStatus" role="status" aria-live="polite"></small></section>';
+    document.body.appendChild(host);
+    const panel=document.getElementById("crMemberThemePanel"),toggle=document.getElementById("crMemberThemeToggle"),grid=document.getElementById("crMemberThemeGrid"),search=document.getElementById("crMemberThemeSearch");
+    const render=()=>{const q=search.value.trim().toLowerCase();const list=THEMES.filter(t=>(t.label+" "+t.desc+" "+(t.collection||"")).toLowerCase().includes(q));grid.innerHTML=list.map(t=>'<button type="button" class="cr-member-theme-card" data-member-theme="'+esc(t.id)+'" aria-pressed="'+(selectedId===t.id)+'"><img loading="lazy" src="'+esc(t.photo||"")+'" alt=""><span>'+esc(t.icon+" "+t.label)+'</span></button>').join("")};
+    toggle.addEventListener("click",()=>{panel.hidden=!panel.hidden;toggle.setAttribute("aria-expanded",String(!panel.hidden))});
+    grid.addEventListener("click",e=>{const card=e.target.closest("[data-member-theme]");if(!card)return;savePreference(card.dataset.memberTheme).then(render)});
+    search.addEventListener("input",render);
+    document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden){panel.hidden=true;toggle.setAttribute("aria-expanded","false")}});
+    render();
+  }
+  async function boot(){
+    if(!THEMES.length)return;
+    mountMemberPicker();
+    try{
+      const mod=await import("./client.js");sb=mod.sb;
+      const {data:{user}}=await sb.auth.getUser();currentUser=user||null;
+    }catch(error){console.warn("[CrowRules themes] Auth client unavailable:",error.message)}
+    await loadSettings();
+    const preference=await loadPreference();
+    applyTheme(preference);
+    const status=document.getElementById("crMemberThemeStatus");
+    if(status&&currentUser)status.textContent="Signed in. Your personal theme can sync across devices.";
+  }
+  window.addEventListener("cr:site-theme-change",e=>{if(e.detail&&valid(e.detail))applyTheme(e.detail)});
+  window.addEventListener("cr:featured-theme-published",async()=>{await loadSettings();if(!currentUser){applyTheme(featuredId)}else{const pref=await loadPreference();applyTheme(pref)}});
+  window.addEventListener("storage",e=>{if(e.key===MEMBER_KEY&&valid(e.newValue))applyTheme(e.newValue)});
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
+  const style=document.createElement("style");style.id="cr-site-theme-styles";style.textContent=`
     html[data-site-theme]:not([data-site-theme=""]),body[data-site-theme]:not([data-site-theme=""]){color-scheme:dark}
-    body[data-site-theme]:not([data-site-theme=""]){background-color:#120b08!important;background-image:linear-gradient(180deg,rgba(16,8,5,.70),rgba(8,7,7,.94)),var(--cr-site-scene)!important;background-position:center,center 38%!important;background-size:cover!important;background-attachment:fixed!important;color:var(--cr-site-ink,#fff5e8)!important}
-    body[data-site-theme]:not([data-site-theme=""]) .topbar,body[data-site-theme]:not([data-site-theme=""]) .crp-nav{background:linear-gradient(100deg,var(--cr-site-panel),rgba(17,9,7,.97))!important;border-bottom:1px solid color-mix(in srgb,var(--cr-site-accent) 42%,transparent)!important;box-shadow:0 8px 34px rgba(0,0,0,.34)!important}
-    body[data-site-theme]:not([data-site-theme=""]) .hero{background-image:linear-gradient(90deg,rgba(18,8,5,.94),rgba(18,8,5,.62) 55%,rgba(18,8,5,.18)),linear-gradient(0deg,#100907,transparent 48%),var(--cr-site-hero)!important;background-color:#180d08!important}
-    body[data-site-theme]:not([data-site-theme=""]) .page-hero{background:radial-gradient(ellipse at 78% 0%,color-mix(in srgb,var(--cr-site-accent) 24%,transparent),transparent 46%),linear-gradient(135deg,var(--cr-site-panel),rgba(14,9,8,.96))!important}
-    body[data-site-theme]:not([data-site-theme=""]) .card,body[data-site-theme]:not([data-site-theme=""]) .panel,body[data-site-theme]:not([data-site-theme=""]) .stat,body[data-site-theme]:not([data-site-theme=""]) .tile,body[data-site-theme]:not([data-site-theme=""]) .sidebar,body[data-site-theme]:not([data-site-theme=""]) .auth-card{background:linear-gradient(145deg,var(--cr-site-panel),rgba(16,10,8,.96))!important;border-color:color-mix(in srgb,var(--cr-site-accent) 28%,rgba(255,255,255,.08))!important;box-shadow:0 14px 36px rgba(0,0,0,.24)!important}
-    body[data-site-theme]:not([data-site-theme=""]) .card:hover,body[data-site-theme]:not([data-site-theme=""]) .ranking-tile:hover{border-color:color-mix(in srgb,var(--cr-site-accent) 65%,transparent)!important;box-shadow:0 16px 38px var(--cr-site-glow)!important}
-    body[data-site-theme]:not([data-site-theme=""]) .eyebrow,body[data-site-theme]:not([data-site-theme=""]) .hero h1 em,body[data-site-theme]:not([data-site-theme=""]) .section-head h2,body[data-site-theme]:not([data-site-theme=""]) .page-title,body[data-site-theme]:not([data-site-theme=""]) .rank-num,body[data-site-theme]:not([data-site-theme=""]) .crp-eyebrow,body[data-site-theme]:not([data-site-theme=""]) .crp-hero h1 em{color:var(--cr-site-accent)!important}
-    body[data-site-theme]:not([data-site-theme=""]) .hero h1 em{background:none!important;-webkit-text-fill-color:var(--cr-site-accent)!important}
-    body[data-site-theme]:not([data-site-theme=""]) .btn:not(.secondary),body[data-site-theme]:not([data-site-theme=""]) button:not(.secondary):not(.menu-toggle),body[data-site-theme]:not([data-site-theme=""]) .crp-button-red{background:linear-gradient(135deg,color-mix(in srgb,var(--cr-site-accent) 60%,#71301c),var(--cr-site-accent))!important;border-color:var(--cr-site-accent)!important;color:#211108!important;box-shadow:0 5px 18px var(--cr-site-glow)!important}
-    body[data-site-theme]:not([data-site-theme=""]) .btn.secondary,body[data-site-theme]:not([data-site-theme=""]) button.secondary{background:rgba(93,43,27,.28)!important;border-color:color-mix(in srgb,var(--cr-site-accent) 40%,transparent)!important;color:var(--cr-site-ink)!important}
-    body[data-site-theme]:not([data-site-theme=""]) input,body[data-site-theme]:not([data-site-theme=""]) select,body[data-site-theme]:not([data-site-theme=""]) textarea{background:rgba(16,9,7,.88)!important;border-color:color-mix(in srgb,var(--cr-site-accent) 30%,transparent)!important;color:var(--cr-site-ink)!important}
+    body[data-site-theme]:not([data-site-theme=""]){background-color:#080a0e!important;background-image:linear-gradient(180deg,rgba(5,8,13,.64),rgba(5,8,13,.92)),var(--cr-site-scene)!important;background-position:center,center 38%!important;background-size:cover!important;background-attachment:fixed!important;color:var(--cr-site-ink,#fff)!important}
+    body[data-site-theme]:not([data-site-theme=""]) .topbar,body[data-site-theme]:not([data-site-theme=""]) .crp-nav{background:linear-gradient(100deg,var(--cr-site-panel),rgba(8,10,14,.97))!important;border-bottom:1px solid color-mix(in srgb,var(--cr-site-accent) 42%,transparent)!important;box-shadow:0 8px 34px rgba(0,0,0,.34)!important}
+    body[data-site-theme]:not([data-site-theme=""]) .hero{background-image:linear-gradient(90deg,rgba(5,8,13,.94),rgba(5,8,13,.62) 55%,rgba(5,8,13,.18)),linear-gradient(0deg,#080a0e,transparent 48%),var(--cr-site-hero)!important;background-color:#080a0e!important}
+    body[data-site-theme]:not([data-site-theme=""]) .page-hero{background:radial-gradient(ellipse at 78% 0%,color-mix(in srgb,var(--cr-site-accent) 24%,transparent),transparent 46%),linear-gradient(135deg,var(--cr-site-panel),rgba(8,10,14,.96))!important}
+    body[data-site-theme]:not([data-site-theme=""]) .card,body[data-site-theme]:not([data-site-theme=""]) .panel,body[data-site-theme]:not([data-site-theme=""]) .stat,body[data-site-theme]:not([data-site-theme=""]) .tile,body[data-site-theme]:not([data-site-theme=""]) .sidebar,body[data-site-theme]:not([data-site-theme=""]) .auth-card{background:linear-gradient(145deg,var(--cr-site-panel),rgba(9,12,17,.96))!important;border-color:color-mix(in srgb,var(--cr-site-accent) 28%,rgba(255,255,255,.08))!important;box-shadow:0 14px 36px rgba(0,0,0,.24)!important}
+    body[data-site-theme]:not([data-site-theme=""]) .eyebrow,body[data-site-theme]:not([data-site-theme=""]) .hero h1 em,body[data-site-theme]:not([data-site-theme=""]) .section-head h2,body[data-site-theme]:not([data-site-theme=""]) .page-title,body[data-site-theme]:not([data-site-theme=""]) .rank-num{color:var(--cr-site-accent)!important}
+    body[data-site-theme]:not([data-site-theme=""]) .btn:not(.secondary),body[data-site-theme]:not([data-site-theme=""]) button:not(.secondary):not(.menu-toggle){background:linear-gradient(135deg,color-mix(in srgb,var(--cr-site-accent) 65%,#171717),var(--cr-site-accent))!important;border-color:var(--cr-site-accent)!important;color:#111!important}
+    body[data-site-theme]:not([data-site-theme=""]) input,body[data-site-theme]:not([data-site-theme=""]) select,body[data-site-theme]:not([data-site-theme=""]) textarea{background:rgba(8,11,16,.9)!important;border-color:color-mix(in srgb,var(--cr-site-accent) 30%,transparent)!important;color:var(--cr-site-ink)!important}
     body[data-site-theme]:not([data-site-theme=""]) .muted,body[data-site-theme]:not([data-site-theme=""]) .card p,body[data-site-theme]:not([data-site-theme=""]) .page-hero p{color:var(--cr-site-muted)!important}
-    body[data-site-theme]:not([data-site-theme=""]) .footer{border-top-color:color-mix(in srgb,var(--cr-site-accent) 28%,transparent)!important}
-    body[data-site-theme="christmas"]{background-color:#07141c!important;background-image:radial-gradient(ellipse at 50% -10%,rgba(95,209,177,.22),transparent 48%),linear-gradient(180deg,rgba(3,14,22,.54),rgba(3,10,17,.94)),var(--cr-site-scene)!important}
-    body[data-site-theme="christmas"] .topbar,body[data-site-theme="christmas"] .crp-nav{background:linear-gradient(100deg,rgba(5,25,31,.97),rgba(13,43,43,.94),rgba(8,20,31,.98))!important;border-bottom:1px solid rgba(232,199,123,.38)!important}
-    body[data-site-theme="christmas"] .hero{background-image:linear-gradient(90deg,rgba(4,18,26,.91),rgba(4,18,26,.52) 56%,rgba(4,18,26,.12)),linear-gradient(0deg,#06131b,transparent 52%),var(--cr-site-hero)!important}
-    body[data-site-theme="christmas"] .card,body[data-site-theme="christmas"] .panel,body[data-site-theme="christmas"] .stat,body[data-site-theme="christmas"] .tile,body[data-site-theme="christmas"] .auth-card{border-color:rgba(142,218,197,.24)!important;box-shadow:0 16px 40px rgba(0,0,0,.32),inset 0 1px rgba(255,255,255,.06)!important}
-    body[data-site-theme="christmas"] .eyebrow,body[data-site-theme="christmas"] .section-head h2,body[data-site-theme="christmas"] .page-title,body[data-site-theme="christmas"] .rank-num{color:#e8c77b!important}
-    body[data-site-theme="christmas"] .btn:not(.secondary),body[data-site-theme="christmas"] button:not(.secondary):not(.menu-toggle){background:linear-gradient(120deg,#17634f,#249b79 58%,#e8c77b)!important;border-color:rgba(232,199,123,.62)!important;color:#061b19!important}
-    body[data-site-theme="christmas"] .btn.secondary,body[data-site-theme="christmas"] button.secondary{background:rgba(17,65,58,.35)!important;border-color:rgba(142,218,197,.34)!important;color:#effff9!important}
-    body[data-site-theme="christmas"] input,body[data-site-theme="christmas"] select,body[data-site-theme="christmas"] textarea{background:rgba(5,20,28,.92)!important;border-color:rgba(142,218,197,.3)!important}
-    body[data-site-theme="christmas"] .card,body[data-site-theme="christmas"] .panel,body[data-site-theme="christmas"] .tile{position:relative;overflow:hidden}
-    body[data-site-theme="christmas"] .card:after,body[data-site-theme="christmas"] .panel:after,body[data-site-theme="christmas"] .tile:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,.07),transparent 38%,rgba(44,139,111,.08))}
-    body[data-site-theme="christmas"] ::selection{background:#e8c77b;color:#10221f}
-    body[data-site-theme="thanksgiving"] .card,body[data-site-theme="thanksgiving"] .panel,body[data-site-theme="thanksgiving"] .stat,body[data-site-theme="thanksgiving"] .tile{position:relative;overflow:hidden;border-radius:16px!important}
-    body[data-site-theme="thanksgiving"] .card:after,body[data-site-theme="thanksgiving"] .panel:after,body[data-site-theme="thanksgiving"] .tile:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(130deg,rgba(255,213,153,.055),transparent 42%,rgba(129,48,22,.09))}
-    body[data-site-theme="thanksgiving"] .rankings-hero-backdrop{filter:saturate(.82) sepia(.12)}
-    body[data-site-theme="thanksgiving"] .rankings-season-tag,body[data-site-theme="thanksgiving"] .rankings-featured-copy .eyebrow{background:linear-gradient(120deg,#7c2b20,#c87537)!important;color:#fff3df!important;border-color:#d79a55!important}
-    body[data-site-theme="thanksgiving"] .ranking-tile{background:linear-gradient(145deg,#321b13,#17100d)!important}
-    body[data-site-theme="thanksgiving"] .crp-member-card{background:linear-gradient(145deg,#321b13,#17100d)!important;border-color:rgba(242,180,95,.24)!important}
-    body[data-site-theme="thanksgiving"] ::selection{background:#c87537;color:#160b07}
-    body[data-site-theme="christmas"] .crp-nav,body[data-site-theme="christmas"] .topbar{backdrop-filter:blur(16px) saturate(1.25)!important}
-    .cr-christmas-snow{position:fixed;inset:0;z-index:9997;overflow:hidden;pointer-events:none;opacity:.78}
-    .cr-christmas-snow:before,.cr-christmas-snow:after{content:"";position:absolute;inset:-100vh 0 0;background-repeat:repeat;background-size:320px 320px;background-image:radial-gradient(2px 2px at 24px 38px,rgba(255,255,255,.95) 98%,transparent),radial-gradient(1.5px 1.5px at 116px 92px,rgba(255,255,255,.82) 98%,transparent),radial-gradient(2.5px 2.5px at 218px 164px,rgba(226,244,255,.88) 98%,transparent),radial-gradient(1px 1px at 286px 258px,rgba(255,255,255,.75) 98%,transparent);animation:crChristmasFall 18s linear infinite}
-    .cr-christmas-snow:after{background-size:460px 460px;background-position:90px 40px;opacity:.55;filter:blur(1px);animation:crChristmasFall 28s linear infinite}
+    body[data-site-theme="christmas"] .topbar,body[data-site-theme="christmas"] .crp-nav{border-bottom-color:rgba(232,199,123,.42)!important}
+    .cr-christmas-snow{position:fixed;inset:0;z-index:9988;overflow:hidden;pointer-events:none;opacity:.55}
+    .cr-christmas-snow:before,.cr-christmas-snow:after{content:"";position:absolute;inset:-100vh 0 0;background-repeat:repeat;background-size:320px 320px;background-image:radial-gradient(2px 2px at 24px 38px,rgba(255,255,255,.95) 98%,transparent),radial-gradient(1.5px 1.5px at 116px 92px,rgba(255,255,255,.82) 98%,transparent),radial-gradient(2.5px 2.5px at 218px 164px,rgba(226,244,255,.88) 98%,transparent);animation:crChristmasFall 22s linear infinite}
+    .cr-christmas-snow:after{background-size:460px 460px;background-position:90px 40px;opacity:.48;filter:blur(1px);animation:crChristmasFall 32s linear infinite}
     @keyframes crChristmasFall{from{transform:translate3d(0,-15vh,0)}to{transform:translate3d(-5vw,100vh,0)}}
-    @media(max-width:760px){body[data-site-theme]:not([data-site-theme=""]){background-attachment:scroll!important}.cr-christmas-snow{opacity:.58}}
+    @media(max-width:760px){body[data-site-theme]:not([data-site-theme=""]){background-attachment:scroll!important}.cr-christmas-snow{opacity:.38}}
     @media(prefers-reduced-motion:reduce){body[data-site-theme] *{scroll-behavior:auto!important;transition:none!important;animation-duration:.01ms!important}.cr-christmas-snow{display:none!important}}
-  `;
-  document.head.appendChild(style);
-  const refresh = () => applyTheme(readTheme());
-  refresh();
-  window.addEventListener("storage", event => {
-    if (event.key === STORAGE_KEY || event.key === LEGACY_KEY) refresh();
-  });
-  window.addEventListener("cr:site-theme-change", event => applyTheme(event.detail || readTheme()));
+  `;document.head.appendChild(style);
 })();
