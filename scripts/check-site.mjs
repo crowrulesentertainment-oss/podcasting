@@ -15,18 +15,18 @@ const js=readFileSync(join(root,"assets/js/app.js"),"utf8");
 const missing=[];
 for(const page of pages){
  const html=readFileSync(join(root,page),"utf8");
- const refs=[...html.matchAll(/(?:src|href)="([^"]+\\.(?:js|css))(?:\\?[^"]*)?"/g)].map(x=>x[1]).filter(x=>!/^https?:\\/\\//i.test(x));
+ const refs=[...html.matchAll(/(?:src|href)="([^"]+\.(?:js|css))(?:\?[^"]*)?"/g)].map(x=>x[1]).filter(x=>!/^https?:\/\//i.test(x));
  for(const ref of refs){
   if(ref.startsWith("/")&&!ref.startsWith("/podcasting/"))continue;
-  const localRef=ref.startsWith("/podcasting/")?ref.slice("/podcasting/".length):ref.replace(/^\\//,"");
+  const localRef=ref.startsWith("/podcasting/")?ref.slice("/podcasting/".length):ref.replace(/^\//,"");
   const path=ref.startsWith("/")?join(root,localRef):resolve(dirname(join(root,page)),localRef);
   if(!existsSync(path))missing.push(page+" -> "+ref);
  }
  const match=html.match(/data-page="([^"]+)"/);
  if(match){const key=match[1];const handled=key==="home"||key==="login"||key==="signup"||js.includes('page==="'+key+'"');if(!handled)missing.push(page+" -> no app handler for data-page="+key)}
 }
-if(missing.length)throw Error("Site checks failed:\\n"+missing.join("\\n"));
+if(missing.length)throw Error("Site checks failed:\n"+missing.join("\n"));
 const publicFiles=["assets/js","assets/css"];
-const secretPattern=/(sb_secret_[A-Za-z0-9_-]{12,}|service_role\\s*[:=]|sk_live_[A-Za-z0-9]{12,}|whsec_[A-Za-z0-9]{12,}|re_[A-Za-z0-9]{20,})/i;
+const secretPattern=/(sb_secret_[A-Za-z0-9_-]{12,}|service_role\s*[:=]|sk_live_[A-Za-z0-9]{12,}|whsec_[A-Za-z0-9]{12,}|re_[A-Za-z0-9]{20,})/i;
 for(const dir of publicFiles)for(const f of readdirSync(join(root,dir))){const path=join(root,dir,f);if(!existsSync(path))continue;const content=readFileSync(path,"utf8");if(secretPattern.test(content))throw Error("Possible server secret found in "+path)}
 console.log("PASS: "+pages.length+" HTML pages across all directories; all local JS/CSS assets resolve; page handlers exist; no obvious server secrets in public JS/CSS.");
