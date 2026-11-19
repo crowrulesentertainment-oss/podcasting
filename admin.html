@@ -18,6 +18,36 @@
 #adminLiveActivityModule .admin-activity-list tbody td:last-child{text-align:right;font-variant-numeric:tabular-nums}
 #adminLiveActivityModule #adminLiveActivityStatus{white-space:nowrap;font-variant-numeric:tabular-nums}
 @media(max-width:760px){#adminLiveActivityModule .admin-visitor-map-leaders{grid-template-columns:1fr}#adminLiveActivityModule .admin-visitor-leader-item{min-height:116px;padding:16px}#adminLiveActivityModule #adminVisitorMap{height:280px;min-height:260px}}
+
+#adminLiveActivityModule .admin-visitor-map-frame{position:relative;background:#090e17}
+#adminLiveActivityModule .admin-visitor-map-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;background:linear-gradient(90deg,#111a28,#0c111b);border-bottom:1px solid rgba(255,255,255,.1)}
+#adminLiveActivityModule .admin-visitor-map-toolbar>span{display:grid;gap:3px}
+#adminLiveActivityModule .admin-visitor-map-toolbar b{font-size:11px;letter-spacing:.14em;color:#f2f4f8}
+#adminLiveActivityModule .admin-visitor-map-toolbar small{font-size:11px;color:#9da9ba}
+#adminLiveActivityModule .admin-visitor-map-toolbar>div{display:flex;gap:8px;flex-wrap:wrap}
+#adminLiveActivityModule .admin-visitor-map-toolbar button{min-height:34px;padding:7px 12px;font-size:11px}
+#adminLiveActivityModule #adminVisitorMap{height:500px;min-height:360px;background:#090e17}
+#adminLiveActivityModule .admin-visitor-map-legend{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+#adminLiveActivityModule .admin-visitor-map-legend span{display:inline-flex;align-items:center;gap:7px;font-size:11px;color:#c1c9d5}
+#adminLiveActivityModule .admin-visitor-map-legend i{width:9px;height:9px;border-radius:50%;display:inline-block;background:#ef6672}
+#adminLiveActivityModule .admin-visitor-map-legend i.rank-gold{background:#ffd166}
+#adminLiveActivityModule .admin-visitor-map-legend i.rank-silver{background:#c5d0df}
+#adminLiveActivityModule .admin-visitor-map-legend i.rank-bronze{background:#d99a70}
+#adminLiveActivityModule .admin-visitor-map-legend i.rank-other{background:#ef6672}
+#adminLiveActivityModule .admin-visitor-rank{display:inline-flex;vertical-align:middle;margin-right:6px;padding:4px 7px;border-radius:7px;background:rgba(255,209,102,.14);color:#ffd166;font-size:12px;letter-spacing:0}
+#adminLiveActivityModule .admin-live-ranking-table{min-width:430px}
+#adminLiveActivityModule .admin-visitor-rank-badge{display:inline-flex;min-width:32px;justify-content:center;padding:4px 6px;border-radius:7px;background:rgba(255,255,255,.08);font-size:11px;font-weight:850;color:#d8dfeb}
+#adminLiveActivityModule .admin-visitor-rank-badge.rank-1{background:rgba(255,209,102,.16);color:#ffd166}
+#adminLiveActivityModule .admin-visitor-rank-badge.rank-2{background:rgba(197,208,223,.15);color:#dce4ef}
+#adminLiveActivityModule .admin-visitor-rank-badge.rank-3{background:rgba(217,154,112,.16);color:#e5aa80}
+#adminLiveActivityModule .admin-rank-meter{height:4px;margin-top:6px;border-radius:9px;overflow:hidden;background:rgba(255,255,255,.09);max-width:160px}
+#adminLiveActivityModule .admin-rank-meter i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#c43e53,#ffd166)}
+#adminLiveActivityModule .crp-visitor-map-count{background:#111a28!important;border:1px solid rgba(255,255,255,.2)!important;border-radius:7px!important;color:#fff!important;font-weight:800!important;box-shadow:0 4px 14px rgba(0,0,0,.4)!important}
+#adminLiveActivityModule .crp-visitor-map-count:before{border-top-color:#111a28!important}
+#adminLiveActivityModule .crp-visitor-popup{min-width:180px;line-height:1.55}
+#adminLiveActivityModule .crp-visitor-popup small{color:#667085}
+.leaflet-container{font-family:inherit}
+@media(max-width:760px){#adminLiveActivityModule .admin-visitor-map-toolbar{align-items:flex-start;flex-direction:column}#adminLiveActivityModule .admin-visitor-map-toolbar>div{width:100%}#adminLiveActivityModule .admin-visitor-map-toolbar button{flex:1}#adminLiveActivityModule #adminVisitorMap{height:330px;min-height:280px}#adminLiveActivityModule .admin-visitor-map-legend{gap:10px}}
 </style><style id="crp-admin-workspace-navigation">
 .cc-nav-group{display:grid;gap:5px;margin:0 0 13px}
 .cc-nav-group h3{margin:10px 10px 5px;color:#8f9aaa;font-size:10px;letter-spacing:.15em;text-transform:uppercase;font-weight:850}
@@ -41,4 +71,4 @@
 .admin-visitor-analytics .admin-growth-chart{min-height:145px}
 .admin-episode-control{margin-top:20px}
 @media(max-width:760px){#adminLiveActivityModule .admin-two-col,.admin-visitor-analytics .admin-two-col{grid-template-columns:1fr}}
-</style></head><body data-page="admin"><main id="app"><div class="loading">Loading CrowRules Podcasting…</div></main><script type="module" src="assets/js/app.js?v=20261118-command-center-no-traffic-history-v1"></script><script type="module" src="assets/js/admin-episodes.js?v=20261117-popular-shows-v1"></script><script type="module" src="assets/js/admin-shows.js?v=20261117-show-views-v1"></script></body></html>
+</style></head><body data-page="admin"><main id="app"><div class="loading">Loading CrowRules Podcasting…</div></main><script type="module" src="assets/js/app.js?v=20261118-live-world-map-ranking-v1"></script><script type="module" src="assets/js/admin-episodes.js?v=20261117-popular-shows-v1"></script><script type="module" src="assets/js/admin-shows.js?v=20261117-show-views-v1"></script></body></html>
