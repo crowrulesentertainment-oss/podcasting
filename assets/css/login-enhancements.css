@@ -1,0 +1,23 @@
+/* Login-page accessibility and account recovery enhancements */
+body[data-page="login"] .cr-auth-card .auth-password-row{display:flex;gap:9px;align-items:stretch}
+body[data-page="login"] .cr-auth-card .auth-password-row input{min-width:0;flex:1}
+body[data-page="login"] .cr-auth-card .auth-password-toggle{min-width:76px;justify-content:center;border-radius:11px;padding-inline:13px}
+body[data-page="login"] .cr-auth-card .auth-forgot-link{display:inline-flex;align-self:flex-start;margin:-2px 0 0;padding:7px 0;border:0;background:transparent;color:#75e9ff;font:700 13px/1.4 inherit;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+body[data-page="login"] .cr-auth-card .auth-forgot-link:focus-visible,
+body[data-page="login"] .cr-auth-card .auth-password-toggle:focus-visible,
+body[data-page="login"] .cr-auth-card .oauth-button:focus-visible{outline:3px solid #75e9ff;outline-offset:3px}
+body[data-page="login"] .cr-auth-card .auth-session-note{margin:-7px 0 2px;color:#9da8ba;font-size:11px;line-height:1.5}
+body[data-page="login"] .cr-auth-card .auth-quick-links{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 18px;margin-top:18px;padding-top:14px;border-top:1px solid #ffffff14}
+body[data-page="login"] .cr-auth-card .auth-quick-links a{color:#aebbd0;font-size:12px;text-decoration:underline;text-decoration-color:#65e6ff66;text-underline-offset:4px}
+body[data-page="login"] .cr-auth-card .auth-quick-links a:hover{color:#75e9ff}
+body[data-page="login"] .cr-auth-card .oauth-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+body[data-page="login"] .cr-auth-card .oauth-button{min-width:0;min-height:48px;padding-inline:10px;white-space:normal}
+body[data-page="login"] .cr-auth-card .notice{overflow-wrap:anywhere}
+@media(max-width:520px){
+ body[data-page="login"] .cr-auth-card .oauth-grid{grid-template-columns:1fr}
+ body[data-page="login"] .cr-auth-card .auth-quick-links{flex-direction:column;align-items:flex-start}
+}
+@media(prefers-reduced-motion:reduce){
+ body[data-page="login"] .cr-auth-card *,
+ body[data-page="login"] .cr-auth-story *{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
