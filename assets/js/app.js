@@ -95,7 +95,32 @@ function syncPrimaryNavigation(){const current=new URL(location.href),cleanPath=
 function crpUuid(){if(window.crypto?.randomUUID)return window.crypto.randomUUID();return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==="x"?r:(r&3|8)).toString(16)})}const crpUuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;let fallbackLiveVisitorId=null;let livePresenceSessionIdValue=null;function getLivePresenceSessionId(){if(livePresenceSessionIdValue)return livePresenceSessionIdValue;try{let id=sessionStorage.getItem("crp_live_presence_session_id");if(!crpUuidPattern.test(id||"")){id=crpUuid();sessionStorage.setItem("crp_live_presence_session_id",id)}return livePresenceSessionIdValue=id}catch{return livePresenceSessionIdValue||(livePresenceSessionIdValue=crpUuid())}}function liveVisitorId(){try{let id=localStorage.getItem("crp_live_visitor_id");if(!crpUuidPattern.test(id||"")){id=crpUuid();localStorage.setItem("crp_live_visitor_id",id)}return id}catch{return fallbackLiveVisitorId||(fallbackLiveVisitorId=crpUuid())}}
 let visitorMapInstance=null,visitorMapLayer=null,visitorMapContainer=null,visitorMapLibraryPromise=null;
 const visitorCountryCenters={US:[39.5,-98.35],CA:[56,-106],MX:[23,-102],GB:[54,-2.5],IE:[53,-8],FR:[46,2],DE:[51,10],ES:[40,-4],IT:[42.5,12.5],NL:[52,5],BE:[50.5,4.5],PT:[39.5,-8],PL:[52,19],SE:[62,15],NO:[62,10],DK:[56,10],FI:[64,26],CH:[47,8],AT:[47.5,14],UA:[49,32],RU:[60,100],TR:[39,35],IN:[22,79],PK:[30,70],BD:[24,90],LK:[7,81],CN:[35,103],JP:[36,138],KR:[36,128],TW:[24,121],HK:[22,114],SG:[1.35,103.8],MY:[4,102],TH:[15,101],VN:[16,106],ID:[-2,118],PH:[12,122],AU:[-25,134],NZ:[-41,174],BR:[-10,-55],AR:[-34,-64],CL:[-30,-71],CO:[4,-72],PE:[-10,-76],ZA:[-29,24],NG:[9,8],KE:[0,38],EG:[26,30],MA:[32,-6],AE:[24,54],SA:[24,45],IL:[31,35],QA:[25.3,51.2],GH:[7.9,-1],TZ:[-6,35],ET:[9,40],UG:[1,32],IS:[65,-19],GR:[39,22],CZ:[49.8,15.5],RO:[46,25],HU:[47,20],BG:[42.7,25.5],HR:[45,16],RS:[44,21],SK:[48.7,19.7],SI:[46,15],LT:[55,24],LV:[57,25],EE:[59,25],BY:[53,28],GE:[42,43.5],AM:[40,45],AZ:[40,47.5],KZ:[48,68],UZ:[41,64],NP:[28,84],MM:[21,96],KH:[13,105],LA:[19,103],MN:[46,105],AF:[33,66],IR:[32,53],IQ:[33,44],JO:[31,36],LB:[33.8,35.8],KW:[29.3,47.5],OM:[21,57],BH:[26,50.5],CY:[35,33],MT:[35.9,14.4],LU:[49.8,6.1],MC:[43.7,7.4],DO:[19,-70],CU:[21,-78],JM:[18,-77],CR:[10,-84],PA:[9,-80],EC:[-1.5,-78.5],VE:[8,-66],UY:[-33,-56],PY:[-23,-58],BO:[-17,-65],GT:[15.5,-90.3],HN:[15,-86.5],SV:[13.8,-89],NI:[13,-85],PR:[18.2,-66.5]};
-function loadVisitorMapLibrary(){if(window.L?.map)return Promise.resolve(window.L);if(visitorMapLibraryPromise)return visitorMapLibraryPromise;visitorMapLibraryPromise=new Promise((resolve,reject)=>{if(!document.querySelector('link[data-visitor-leaflet]')){const css=document.createElement("link");css.rel="stylesheet";css.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";css.dataset.visitorLeaflet="true";document.head.appendChild(css)}let script=document.querySelector('script[data-visitor-leaflet]');if(script){script.addEventListener("load",()=>window.L?resolve(window.L):reject(Error("Map library unavailable.")),{once:true});script.addEventListener("error",()=>reject(Error("Map library failed to load.")),{once:true});return}script=document.createElement("script");script.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";script.async=true;script.dataset.visitorLeaflet="true";script.onload=()=>window.L?resolve(window.L):reject(Error("Map library unavailable."));script.onerror=()=>{visitorMapLibraryPromise=null;reject(Error("Map library failed to load."))};document.head.appendChild(script)});return visitorMapLibraryPromise}
+function loadVisitorMapLibrary(){
+ if(window.L?.map)return Promise.resolve(window.L);
+ if(visitorMapLibraryPromise)return visitorMapLibraryPromise;
+ visitorMapLibraryPromise=new Promise((resolve,reject)=>{
+  const finish=()=>{if(window.L?.map)resolve(window.L);else reject(Error("Leaflet loaded without its map API."))};
+  const addCss=()=>{if(document.querySelector('link[data-visitor-leaflet]'))return;const css=document.createElement("link");css.rel="stylesheet";css.href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css";css.dataset.visitorLeaflet="true";document.head.appendChild(css)};
+  addCss();
+  const existing=document.querySelector('script[data-visitor-leaflet]');
+  if(existing){
+   if(window.L?.map){finish();return}
+   if(existing.dataset.loaded==="true"){finish();return}
+   existing.addEventListener("load",()=>{existing.dataset.loaded="true";finish()},{once:true});
+   existing.addEventListener("error",()=>{existing.remove();loadFallback()},{once:true});
+   return;
+  }
+  const loadFallback=()=>{
+   const fallback=document.createElement("script");fallback.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";fallback.async=true;fallback.dataset.visitorLeaflet="fallback";
+   fallback.onload=finish;fallback.onerror=()=>{visitorMapLibraryPromise=null;reject(Error("Map library failed to load from both CDNs."))};document.head.appendChild(fallback);
+  };
+  const script=document.createElement("script");script.src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js";script.async=true;script.dataset.visitorLeaflet="true";
+  script.onload=()=>{script.dataset.loaded="true";finish()};
+  script.onerror=()=>{script.remove();loadFallback()};
+  document.head.appendChild(script);
+ });
+ return visitorMapLibraryPromise;
+}
 function renderVisitorMap(activity,displayNames){
  const mapElements=all('[id="adminVisitorMap"]'),mapEl=mapElements[0],leader=$("#adminVisitorMapLeader");
  mapElements.slice(1).forEach(duplicate=>{if(visitorMapContainer===duplicate){visitorMapInstance?.remove();visitorMapInstance=null;visitorMapContainer=null;visitorMapLayer=null}duplicate.remove()});if(!mapEl)return;
