@@ -39,13 +39,50 @@
     if(settings.seasonal_auto!==false)return automaticTheme(now);
     return valid(settings.featured_theme)?settings.featured_theme:"original";
   }
+  // Keep a theme's palette while giving every page its own real-world cinematic location.
+  const PAGE_SCENES={
+    home:"https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=2400&q=88",
+    discover:"https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=2400&q=88",
+    podcast:"https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=2400&q=88",
+    show:"https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=2400&q=88",
+    episode:"https://images.unsplash.com/photo-147873?auto=format&fit=crop&w=2400&q=88",
+    creator:"https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=2400&q=88",
+    studio:"https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=2400&q=88",
+    community:"https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=2400&q=88",
+    messages:"https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=2400&q=88",
+    account:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=2400&q=88",
+    profile:"https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=2400&q=88",
+    reviews:"https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=2400&q=88",
+    events:"https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=2400&q=88",
+    admin:"https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=2400&q=88",
+    default:"https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=2400&q=88"
+  };
+  function pageScene(){
+    const page=String(document.body.dataset.page||"").toLowerCase();
+    const path=String(location.pathname||"").toLowerCase();
+    const key=page+" "+path;
+    if(/admin|control-room|moderation/.test(key))return PAGE_SCENES.admin;
+    if(/discover|search|explore|directory/.test(key))return PAGE_SCENES.discover;
+    if(/episode|listen|player/.test(key))return PAGE_SCENES.episode;
+    if(/show|podcast|series/.test(key))return PAGE_SCENES.show;
+    if(/creator|studio|record|upload/.test(key))return PAGE_SCENES.studio;
+    if(/community|group|member|hub/.test(key))return PAGE_SCENES.community;
+    if(/message|inbox|chat/.test(key))return PAGE_SCENES.messages;
+    if(/account|setting|login|signup|auth/.test(key))return PAGE_SCENES.account;
+    if(/profile|people|host/.test(key))return PAGE_SCENES.profile;
+    if(/review|feedback|rating/.test(key))return PAGE_SCENES.reviews;
+    if(/event|calendar|live/.test(key))return PAGE_SCENES.events;
+    if(page==="home"||path.endsWith("/podcasting/")||path.endsWith("/index.html"))return PAGE_SCENES.home;
+    return PAGE_SCENES.default;
+  }
   function applyTheme(id){
     const theme=themeById(id)||themeById("original");
+    const scene=pageScene();
     if(!theme)return;
     const active=theme.id!=="original",root=document.documentElement;
     root.dataset.siteTheme=active?theme.id:"";
     document.body.dataset.siteTheme=active?theme.id:"";
-    const vars={"--cr-site-accent":theme.accent,"--cr-site-glow":theme.glow,"--cr-site-panel":theme.panel,"--cr-site-ink":theme.ink,"--cr-site-muted":theme.muted,"--cr-site-scene":theme.photo?'url("'+theme.photo+'")':"none","--cr-site-hero":theme.hero?'url("'+theme.hero+'")':"none"};
+    const vars={"--cr-site-accent":theme.accent,"--cr-site-glow":theme.glow,"--cr-site-panel":theme.panel,"--cr-site-ink":theme.ink,"--cr-site-muted":theme.muted,"--cr-site-scene":scene?'url("'+scene+'")':"none","--cr-site-hero":scene?'url("'+scene+'")':"none"};
     Object.entries(vars).forEach(([key,value])=>{if(active&&value&&value!=="none")root.style.setProperty(key,value);else root.style.removeProperty(key)});
     let snow=document.getElementById("crChristmasSnow");
     if(theme.id==="christmas"&&!snow){snow=document.createElement("div");snow.id="crChristmasSnow";snow.className="cr-christmas-snow";snow.setAttribute("aria-hidden","true");document.body.appendChild(snow)}
