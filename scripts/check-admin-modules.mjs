@@ -16,7 +16,7 @@ function moduleBlock(tab,nextTab){
 }
 const tabs=["platformFeedback","reviewAnalytics","healthMonitoring","automation14","developmentRoadmap"];
 for(const tab of tabs)assert(app.includes('["'+tab+'",'),"Navigation includes "+tab);
-assert(admin.includes("20261117-city-region-visitor-map-v1"),"Admin HTML uses cache-busted app.js");
+assert(admin.includes("20261118-live-world-map-osm-v1"),"Admin HTML uses cache-busted app.js");
 const feedback=moduleBlock("platformFeedback","reviewAnalytics");
 for(const token of ["podcast_platform_feedback","podcast_platform_reviews","podcast_platform_review_reports","podcast_platform_feedback_monthly_reports","admin_generate_podcast_platform_feedback_report","data-save-platform-feedback","data-save-platform-review","data-platform-report-state","data-save-platform-reply","data-feedback-to-roadmap"])assert(feedback.includes(token),"Platform feedback supports "+token);
 assert(feedback.includes(".catch(fail)")||feedback.includes("catch(error)"),"Platform feedback surfaces query and action failures");
@@ -38,15 +38,15 @@ assert(css.includes("@media(max-width:650px)")&&css.includes(".cr-review-mod-sta
 assert(css.includes("@media(max-width:600px){.cr-review-form-grid{grid-template-columns:1fr}"),"Admin forms collapse to one column on small screens");
 
 for(const token of ["adminVisitorMap","adminVisitorMapLeader","adminVisitorMapNote","adminActivityCitiesList","adminActivityRegionsList","renderVisitorMap(data,displayNames)"])assert(app.includes(token),"Live visitor map renders "+token);
-for(const token of ["visitorCountryCenters","loadVisitorMapLibrary","L.tileLayer","L.circleMarker","MOST ACTIVE CITY","MOST ACTIVE STATE / REGION","MOST ACTIVE COUNTRY","Approximate country center","countryFallbacks","by_city","by_region"])assert(app.includes(token),"Visitor map supports "+token);
-assert(app.includes("Heartbeat received within 90 seconds")&&app.includes("Browser language provides a country-only fallback"),"Visitor map preserves 90-second activity and locale-estimate privacy wording");
+for(const token of ["visitorCountryCenters","loadVisitorMapLibrary","L.tileLayer","L.circleMarker","MOST ACTIVE CITY","MOST ACTIVE STATE / REGION","MOST ACTIVE COUNTRY","countryFallbacks","by_city","by_region"])assert(app.includes(token),"Visitor map supports "+token);
+assert(app.includes("Heartbeat received within 90 seconds")&&app.includes("Browser locale remains a country-only fallback"),"Visitor map preserves 90-second activity and locale-estimate privacy wording");
 assert(app.includes("podcasting-live-visitor-geolocation")&&app.includes("21600000"),"Visitor geo lookup is server-side and throttled to six hours per browser session");
 assert(app.includes("rounded to about 0.1°")&&app.includes("not GPS or street addresses"),"Visitor city map discloses approximate location precision and privacy limits");
 assert(app.includes("admin-visitor-map-leaders")&&app.includes("adminActivityRegions"),"City, state/region and country leaders and rankings are rendered");
 assert(geo.includes("ipwho.is/")&&geo.includes("podcasting_touch_live_presence_geo")&&geo.includes("SUPABASE_ANON_KEY"),"Server-side geolocation forwards only approximate fields through the authenticated RPC");
 assert(!geo.includes("console.log(ip)")&&!geo.includes("console.error(ip)")&&!geo.includes("p_ip_address"),"Visitor IP is not logged or persisted by the edge function");
 assert(geoMigration.includes("add column if not exists city")&&geoMigration.includes("add column if not exists region")&&geoMigration.includes("round(p_latitude,1)")&&geoMigration.includes("podcasting_admin_live_activity_impl"),"Database migration stores city/region and rounded coordinates for admin aggregates");
-assert(app.includes("@media(max-width:760px)")&&app.includes("admin-visitor-map-frame #adminVisitorMap{height:330px}"),"Visitor map has a responsive mobile layout");
+assert(admin.includes("@media(max-width:760px)")&&admin.includes("#adminLiveActivityModule #adminVisitorMap{height:330px;min-height:280px}"),"Visitor map has a responsive mobile layout");
 
 console.log("PASS: "+checks.length+" Admin Dashboard static regression checks.");
 for(const item of checks)console.log("  ✓ "+item);
