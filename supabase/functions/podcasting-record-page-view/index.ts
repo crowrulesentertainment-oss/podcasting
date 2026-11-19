@@ -24,7 +24,28 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { headers: corsHeaders });
   }
   if (req.method !== "POST") return json({ ok: false, reason: "method_not_allowed" }, 405);
-  if (!req.headers.get("authorization")) return json({ ok: false, reason: "authorization_required" }, 401);
+  // This endpoint records public page views, so the Edge gateway must not require
+  // a user JWT. Authenticate the caller with the project's public API key instead.
+  const suppliedApiKey = req.headers.get("apikey") || "";
+  const acceptedKeys = new Set<string>();
+  try {
+    const namedKeys = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") || "{}");
+    for (const value of Object.values(namedKeys)) {
+      if (typeof value === "string" && value) acceptedKeys.add(value);
+    }
+  } catch {
+    // Fall through to the legacy single-key environment variables.
+  }
+  for (const value of [
+    Deno.env.get("SUPABASE_ANON_KEY"),
+    Deno.env.get("SUPABASE_PUBLISHABLE_KEY"),
+  ]) {
+    if (value) acceptedKeys.add(value);
+  }
+  if (!acceptedKeys.size) return json({ ok: false, reason: "not_configured" }, 503);
+  if (!suppliedApiKey || !acceptedKeys.has(suppliedApiKey)) {
+    return json({ ok: false, reason: "invalid_api_key" }, 401);
+  }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
