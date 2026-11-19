@@ -26,10 +26,21 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ ok: false, reason: "method_not_allowed" }, 405);
 
-  const authorization = req.headers.get("Authorization");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!authorization || !supabaseUrl || !anonKey) {
+  // Prefer the current named publishable-key environment variable; retain legacy fallbacks.
+  let publishableKey = "";
+  try {
+    const namedKeys = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") || "{}");
+    publishableKey = typeof namedKeys.default === "string"
+      ? namedKeys.default
+      : Object.values(namedKeys).find((value): value is string => typeof value === "string") || "";
+  } catch {
+    publishableKey = "";
+  }
+  publishableKey = publishableKey || Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
+  // Preserve a member JWT when present; otherwise use the public key for this RLS/RPC-guarded write.
+  const authorization = req.headers.get("Authorization") || (publishableKey ? "Bearer " + publishableKey : "");
+  if (!authorization || !supabaseUrl || !publishableKey) {
     return json({ ok: false, reason: "not_configured" }, 503);
   }
 
@@ -62,7 +73,7 @@ Deno.serve(async (req: Request) => {
 
     const saveResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/podcasting_touch_live_presence_geo`, {
       method: "POST",
-      headers: { "apikey": anonKey, "Authorization": authorization, "Content-Type": "application/json" },
+      headers: { "apikey": publishableKey, "Authorization": authorization, "Content-Type": "application/json" },
       body: JSON.stringify({
         p_session_id: sessionId, p_city: city, p_region: region, p_country_code: country,
         p_latitude: latitude, p_longitude: longitude,
