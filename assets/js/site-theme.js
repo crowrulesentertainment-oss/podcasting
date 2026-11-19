@@ -8,7 +8,7 @@
   const MEMBER_KEY = "crp_member_theme";
   const themeById = id => THEMES.find(t => t.id === id) || THEMES.find(t => t.id === "original") || THEMES[0];
   const valid = id => THEMES.some(t => t.id === id);
-  let sb = null, currentUser = null, selectedId = "original", featuredId = "original";
+  let sb = null, currentUser = null, selectedId = "original", draftId = "original", featuredId = "original";
   const esc = v => String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const easterDate = year => {const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;return new Date(year,month-1,day)};
   const sameDayRange=(now,start,end)=>now>=start&&now<=end;
@@ -81,9 +81,10 @@
     const status=document.getElementById("crMemberThemeStatus");
     if(currentUser&&sb){
       const {error}=await sb.from("crp_theme_preferences").upsert({user_id:currentUser.id,theme_id:id,updated_at:new Date().toISOString()},{onConflict:"user_id"});
-      if(error){if(status)status.textContent="Theme applied on this device; account sync failed: "+error.message;return}
+      if(error){if(status)status.textContent="Saved on this device, but account sync failed: "+error.message;return false}
       if(status)status.textContent="Saved to your CrowRules account. Your theme stays yours when featured themes change.";
     }else if(status)status.textContent="Saved on this device. Sign in to sync your theme across devices.";
+    return true;
   }
   function mountMemberPicker(){
     if(document.body.dataset.page==="admin"||document.getElementById("crMemberThemeControl")||!THEMES.length)return;
@@ -101,16 +102,22 @@
       .cr-member-theme-card[aria-pressed=true]{border:2px solid #e2b66f}
       .cr-member-theme-card img{display:block;width:100%;height:74px;object-fit:cover;background:#222}
       .cr-member-theme-card span{display:block;padding:7px 8px;font-size:10px;font-weight:800;line-height:1.3}
+      #crMemberThemeActions{display:flex;gap:8px;margin-top:12px;position:sticky;bottom:-14px;padding:10px 0 2px;background:linear-gradient(180deg,transparent,#0c111b 22%)}
+      #crMemberThemeActions button{flex:1;min-height:38px;padding:8px 10px;border:1px solid #ffffff2b;border-radius:9px;background:#ffffff0c;color:#fff;font:inherit;font-size:10px;font-weight:850;cursor:pointer}
+      #crMemberThemeActions #crMemberThemeSave{border-color:#e2b66f;background:linear-gradient(120deg,#a66b37,#e2b66f);color:#17110a}
+      #crMemberThemeActions button:disabled{opacity:.55;cursor:wait}
       #crMemberThemeStatus{display:block;margin-top:10px;color:#b9c8d6;font-size:10px;line-height:1.5}
       @media(max-width:600px){#crMemberThemeControl{left:10px;bottom:12px}#crMemberThemeToggle{padding:9px 12px}#crMemberThemePanel{width:min(380px,calc(100vw - 20px));max-height:66vh}}
       @media(prefers-reduced-motion:reduce){#crMemberThemePanel *{transition:none!important}}
     `;document.head.appendChild(css);
-    const host=document.createElement("div");host.id="crMemberThemeControl";host.innerHTML='<button id="crMemberThemeToggle" type="button" aria-expanded="false" aria-controls="crMemberThemePanel">🎨 <span>Choose your atmosphere</span></button><section id="crMemberThemePanel" hidden aria-label="Personal theme selector"><h3>Make CrowRules yours.</h3><p>Your personal theme is independent of the platform featured theme. It will not change when the seasonal environment updates.</p><input id="crMemberThemeSearch" type="search" placeholder="Find a cinematic world…" aria-label="Search themes"><div id="crMemberThemeGrid"></div><small id="crMemberThemeStatus" role="status" aria-live="polite"></small></section>';
+    const host=document.createElement("div");host.id="crMemberThemeControl";host.innerHTML='<button id="crMemberThemeToggle" type="button" aria-expanded="false" aria-controls="crMemberThemePanel">🎨 <span>Choose your atmosphere</span></button><section id="crMemberThemePanel" hidden aria-label="Personal theme selector"><h3>Make CrowRules yours.</h3><p>Your personal theme is independent of the platform featured theme. It will not change when the seasonal environment updates.</p><input id="crMemberThemeSearch" type="search" placeholder="Find a cinematic world…" aria-label="Search themes"><div id="crMemberThemeGrid"></div><div id="crMemberThemeActions"><button id="crMemberThemePreview" type="button">Preview</button><button id="crMemberThemeSave" type="button">Save my theme</button></div><small id="crMemberThemeStatus" role="status" aria-live="polite">Choose a theme, preview it, then save your selection.</small></section>';
     document.body.appendChild(host);
     const panel=document.getElementById("crMemberThemePanel"),toggle=document.getElementById("crMemberThemeToggle"),grid=document.getElementById("crMemberThemeGrid"),search=document.getElementById("crMemberThemeSearch");
-    const render=()=>{const q=search.value.trim().toLowerCase();const list=THEMES.filter(t=>(t.label+" "+t.desc+" "+(t.collection||"")).toLowerCase().includes(q));grid.innerHTML=list.map(t=>'<button type="button" class="cr-member-theme-card" data-member-theme="'+esc(t.id)+'" aria-pressed="'+(selectedId===t.id)+'"><img loading="lazy" src="'+esc(t.photo||"")+'" alt=""><span>'+esc(t.icon+" "+t.label)+'</span></button>').join("")};
-    toggle.addEventListener("click",()=>{panel.hidden=!panel.hidden;toggle.setAttribute("aria-expanded",String(!panel.hidden))});
-    grid.addEventListener("click",e=>{const card=e.target.closest("[data-member-theme]");if(!card)return;savePreference(card.dataset.memberTheme).then(render)});
+    const render=()=>{const q=search.value.trim().toLowerCase();const list=THEMES.filter(t=>(t.label+" "+t.desc+" "+(t.collection||"")).toLowerCase().includes(q));grid.innerHTML=list.map(t=>'<button type="button" class="cr-member-theme-card" data-member-theme="'+esc(t.id)+'" aria-pressed="'+(draftId===t.id)+'"><img loading="lazy" src="'+esc(t.photo||"")+'" alt=""><span>'+esc(t.icon+" "+t.label)+'</span></button>').join("");const save=document.getElementById("crMemberThemeSave");if(save)save.disabled=draftId===selectedId};
+    toggle.addEventListener("click",()=>{panel.hidden=!panel.hidden;if(!panel.hidden){draftId=selectedId;render()}toggle.setAttribute("aria-expanded",String(!panel.hidden))});
+    grid.addEventListener("click",e=>{const card=e.target.closest("[data-member-theme]");if(!card)return;draftId=card.dataset.memberTheme;const status=document.getElementById("crMemberThemeStatus");if(status)status.textContent="Selected "+themeById(draftId).label+". Preview or save to apply it.";render()});
+    document.getElementById("crMemberThemePreview").addEventListener("click",()=>{applyTheme(draftId);const status=document.getElementById("crMemberThemeStatus");if(status)status.textContent="Previewing "+themeById(draftId).label+". Save my theme to keep this choice."});
+    document.getElementById("crMemberThemeSave").addEventListener("click",async()=>{const button=document.getElementById("crMemberThemeSave");button.disabled=true;button.textContent="Saving…";const ok=await savePreference(draftId);button.textContent=ok?"Saved":"Save my theme";render()});
     search.addEventListener("input",render);
     document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden){panel.hidden=true;toggle.setAttribute("aria-expanded","false")}});
     render();
@@ -124,7 +131,7 @@
     }catch(error){console.warn("[CrowRules themes] Auth client unavailable:",error.message)}
     await loadSettings();
     const preference=await loadPreference();
-    applyTheme(preference);
+    draftId=preference;applyTheme(preference);
     const status=document.getElementById("crMemberThemeStatus");
     if(status&&currentUser)status.textContent="Signed in. Your personal theme can sync across devices.";
   }
