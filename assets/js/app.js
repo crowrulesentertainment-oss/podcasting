@@ -103,19 +103,15 @@ function loadVisitorMapLibrary(){
   const loadFallback=()=>{
    const fallback=document.createElement("script");fallback.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";fallback.async=true;fallback.dataset.visitorLeaflet="fallback";
    fallback.onload=()=>{fallback.dataset.loaded="true";finish()};
-   fallback.onerror=()=>{visitorMapLibraryPromise=null;reject(Error("Map library failed to load from both CDNs."))};
+   fallback.onerror=()=>{fallback.remove();visitorMapLibraryPromise=null;reject(Error("Map library failed to load from both CDNs."))};
    document.head.appendChild(fallback);
   };
   if(!document.querySelector('link[data-visitor-leaflet]')){
    const css=document.createElement("link");css.rel="stylesheet";css.href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css";css.dataset.visitorLeaflet="true";document.head.appendChild(css);
   }
-  const existing=document.querySelector('script[data-visitor-leaflet]');
-  if(existing){
-   if(window.L?.map||existing.dataset.loaded==="true"){finish();return}
-   existing.addEventListener("load",()=>{existing.dataset.loaded="true";finish()},{once:true});
-   existing.addEventListener("error",()=>{existing.remove();loadFallback()},{once:true});
-   return;
-  }
+  // A prior failed load can leave a script element after its error event has fired.
+  // Remove that stale element rather than waiting on an event that will never fire.
+  document.querySelectorAll('script[data-visitor-leaflet]').forEach(node=>node.remove());
   const script=document.createElement("script");script.src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js";script.async=true;script.dataset.visitorLeaflet="true";
   script.onload=()=>{script.dataset.loaded="true";finish()};
   script.onerror=()=>{script.remove();loadFallback()};
