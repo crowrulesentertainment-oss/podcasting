@@ -100,20 +100,22 @@ function loadVisitorMapLibrary(){
  if(visitorMapLibraryPromise)return visitorMapLibraryPromise;
  visitorMapLibraryPromise=new Promise((resolve,reject)=>{
   const finish=()=>{if(window.L?.map)resolve(window.L);else reject(Error("Leaflet loaded without its map API."))};
-  const addCss=()=>{if(document.querySelector('link[data-visitor-leaflet]'))return;const css=document.createElement("link");css.rel="stylesheet";css.href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css";css.dataset.visitorLeaflet="true";document.head.appendChild(css)};
-  addCss();
+  const loadFallback=()=>{
+   const fallback=document.createElement("script");fallback.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";fallback.async=true;fallback.dataset.visitorLeaflet="fallback";
+   fallback.onload=()=>{fallback.dataset.loaded="true";finish()};
+   fallback.onerror=()=>{visitorMapLibraryPromise=null;reject(Error("Map library failed to load from both CDNs."))};
+   document.head.appendChild(fallback);
+  };
+  if(!document.querySelector('link[data-visitor-leaflet]')){
+   const css=document.createElement("link");css.rel="stylesheet";css.href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css";css.dataset.visitorLeaflet="true";document.head.appendChild(css);
+  }
   const existing=document.querySelector('script[data-visitor-leaflet]');
   if(existing){
-   if(window.L?.map){finish();return}
-   if(existing.dataset.loaded==="true"){finish();return}
+   if(window.L?.map||existing.dataset.loaded==="true"){finish();return}
    existing.addEventListener("load",()=>{existing.dataset.loaded="true";finish()},{once:true});
    existing.addEventListener("error",()=>{existing.remove();loadFallback()},{once:true});
    return;
   }
-  const loadFallback=()=>{
-   const fallback=document.createElement("script");fallback.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";fallback.async=true;fallback.dataset.visitorLeaflet="fallback";
-   fallback.onload=finish;fallback.onerror=()=>{visitorMapLibraryPromise=null;reject(Error("Map library failed to load from both CDNs."))};document.head.appendChild(fallback);
-  };
   const script=document.createElement("script");script.src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js";script.async=true;script.dataset.visitorLeaflet="true";
   script.onload=()=>{script.dataset.loaded="true";finish()};
   script.onerror=()=>{script.remove();loadFallback()};
