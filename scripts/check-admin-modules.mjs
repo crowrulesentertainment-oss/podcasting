@@ -16,7 +16,7 @@ function moduleBlock(tab,nextTab){
 }
 const tabs=["platformFeedback","reviewAnalytics","healthMonitoring","automation14","developmentRoadmap"];
 for(const tab of tabs)assert(app.includes('["'+tab+'",'),"Navigation includes "+tab);
-assert(/assets\\/js\\/app\\.js\\?v=[^"]+/.test(admin),"Admin HTML loads a versioned app.js bundle");
+assert(admin.includes('src="assets/js/app.js?v='),"Admin HTML loads a versioned app.js bundle");
 const feedback=moduleBlock("platformFeedback","reviewAnalytics");
 for(const token of ["podcast_platform_feedback","podcast_platform_reviews","podcast_platform_review_reports","podcast_platform_feedback_monthly_reports","admin_generate_podcast_platform_feedback_report","data-save-platform-feedback","data-save-platform-review","data-platform-report-state","data-save-platform-reply","data-feedback-to-roadmap"])assert(feedback.includes(token),"Platform feedback supports "+token);
 assert(feedback.includes(".catch(fail)")||feedback.includes("catch(error)"),"Platform feedback surfaces query and action failures");
