@@ -1,4 +1,4 @@
-import{createClient}from"https://esm.sh/@supabase/supabase-js@2";import{SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}from"./config.js";
+import{createClient}from"https://esm.sh/@supabase/supabase-js@2.119.1?bundle";import{SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}from"./config.js";
 // Use Supabase's standard project-scoped key so Podcasting shares the same
 // browser session as CrowRules Universal Admin and the other same-origin workspaces.
 const SHARED_AUTH_KEY="sb-cevylpnoexugwgygvtgu-auth-token";
