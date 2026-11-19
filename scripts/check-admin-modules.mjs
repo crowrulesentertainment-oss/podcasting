@@ -46,7 +46,7 @@ assert(app.includes("admin-visitor-map-leaders")&&app.includes("adminActivityReg
 assert(geo.includes("ipwho.is/")&&geo.includes("podcasting_touch_live_presence_geo")&&geo.includes("SUPABASE_ANON_KEY"),"Server-side geolocation forwards only approximate fields through the authenticated RPC");
 assert(!geo.includes("console.log(ip)")&&!geo.includes("console.error(ip)")&&!geo.includes("p_ip_address"),"Visitor IP is not logged or persisted by the edge function");
 assert(geoMigration.includes("add column if not exists city")&&geoMigration.includes("add column if not exists region")&&geoMigration.includes("round(p_latitude,1)")&&geoMigration.includes("podcasting_admin_live_activity_impl"),"Database migration stores city/region and rounded coordinates for admin aggregates");
-assert(app.includes("@media(max-width:760px)")&&app.includes("admin-visitor-map-frame #adminVisitorMap{height:330px}"),"Visitor map has a responsive mobile layout");
+assert(admin.includes("@media(max-width:760px)")&&admin.includes("#adminLiveActivityModule #adminVisitorMap{height:330px;min-height:280px}"),"Visitor map has a responsive mobile layout");
 
 console.log("PASS: "+checks.length+" Admin Dashboard static regression checks.");
 for(const item of checks)console.log("  ✓ "+item);
