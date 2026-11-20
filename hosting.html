@@ -55,6 +55,20 @@
       <article class="free-card"><div class="free-label">Creator control</div><h2>One feed to distribute</h2><p>Keep using your show's CrowRules RSS URL when submitting to multiple podcast platforms. Track directory submissions and save your public listing links in the Distribution Center.</p></article>
     </section>
 
+    <section class="info-panel" style="margin-top:18px">
+      <div class="free-label">Live example</div>
+      <h2>See a CrowRules RSS feed</h2>
+      <p>This is an example of the public RSS feed URL generated for a CrowRules show. It uses the Back Deck Live show as a working example. Open it to view the feed response in your browser, or copy the address when testing a podcast app or RSS validator.</p>
+      <p><strong>Sample show:</strong> Back Deck Live</p>
+      <p><strong>Sample RSS feed URL:</strong></p>
+      <p style="overflow-wrap:anywhere;word-break:break-word"><code>https://cevylpnoexugwgygvtgu.supabase.co/functions/v1/podcast-rss?show=ab335e1a-56db-47de-98a1-73bd67c2a1c8</code></p>
+      <div class="actions">
+        <a class="btn primary" href="https://cevylpnoexugwgygvtgu.supabase.co/functions/v1/podcast-rss?show=ab335e1a-56db-47de-98a1-73bd67c2a1c8" target="_blank" rel="noopener">Open sample RSS feed ↗</a>
+        <button class="btn secondary" type="button" id="copySampleRss">Copy sample feed URL</button>
+      </div>
+      <p class="muted small" id="sampleRssCopyStatus" aria-live="polite">This is an example feed address. Each creator's show receives its own unique RSS URL.</p>
+    </section>
+
     <section class="info-panel">
       <div class="free-label">How it works</div>
       <h2>From your first show to podcast directories</h2>
@@ -91,5 +105,21 @@
     </section>
   </main>
   <footer class="site-footer"><div class="container"><p>© CrowRules Entertainment · One company. One universe.</p></div></footer>
+  <script>
+    (() => {
+      const button = document.getElementById("copySampleRss");
+      const status = document.getElementById("sampleRssCopyStatus");
+      if (!button || !status) return;
+      const feed = "https://cevylpnoexugwgygvtgu.supabase.co/functions/v1/podcast-rss?show=ab335e1a-56db-47de-98a1-73bd67c2a1c8";
+      button.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(feed);
+          status.textContent = "Sample RSS feed URL copied.";
+        } catch (error) {
+          status.textContent = "Copy was unavailable in this browser. Select and copy the feed URL above.";
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
