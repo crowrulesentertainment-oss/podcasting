@@ -228,7 +228,8 @@ using (
   )
 )
 with check (
-  status in ('approved', 'declined')
+  -- Direct table updates may only decline. Approval must use the atomic RPC below.
+  status = 'declined'
   and reviewed_at is not null
   and reviewed_by = (select auth.uid())
   and (
@@ -267,7 +268,7 @@ begin
     raise exception 'Authentication required' using errcode = '28000';
   end if;
 
-  if p_decision not in ('approved', 'declined') then
+  if p_decision is null or p_decision not in ('approved', 'declined') then
     raise exception 'Decision must be approved or declined' using errcode = '22023';
   end if;
 
@@ -396,12 +397,28 @@ on public.podcast_community_circle_messages
 for update
 to authenticated
 using (
-  sender_id = (select auth.uid())
+  (
+    sender_id = (select auth.uid())
+    and exists (
+      select 1
+      from public.podcast_community_circle_members m
+      where m.circle_id = podcast_community_circle_messages.circle_id
+        and m.member_id = (select auth.uid())
+    )
+  )
   or private.crowspace_is_circle_moderator_or_owner(circle_id)
   or private.crowrules_is_admin_impl()
 )
 with check (
-  sender_id = (select auth.uid())
+  (
+    sender_id = (select auth.uid())
+    and exists (
+      select 1
+      from public.podcast_community_circle_members m
+      where m.circle_id = podcast_community_circle_messages.circle_id
+        and m.member_id = (select auth.uid())
+    )
+  )
   or private.crowspace_is_circle_moderator_or_owner(circle_id)
   or private.crowrules_is_admin_impl()
 );
@@ -411,7 +428,15 @@ on public.podcast_community_circle_messages
 for delete
 to authenticated
 using (
-  sender_id = (select auth.uid())
+  (
+    sender_id = (select auth.uid())
+    and exists (
+      select 1
+      from public.podcast_community_circle_members m
+      where m.circle_id = podcast_community_circle_messages.circle_id
+        and m.member_id = (select auth.uid())
+    )
+  )
   or private.crowspace_is_circle_moderator_or_owner(circle_id)
   or private.crowrules_is_admin_impl()
 );
