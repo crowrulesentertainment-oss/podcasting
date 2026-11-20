@@ -100,6 +100,8 @@ begin
 end;
 $function$;
 
+revoke all on function public.podcasting_prepare_community_circle_insert() from public, anon, authenticated;
+
 create or replace function public.podcasting_sync_community_circle_visibility()
 returns trigger
 language plpgsql
@@ -116,7 +118,9 @@ begin
 end;
 $function$;
 
-do $$
+revoke all on function public.podcasting_sync_community_circle_visibility() from public, anon, authenticated;
+
+do $
 begin
   if not exists (
     select 1 from pg_trigger
@@ -179,6 +183,9 @@ create index if not exists podcast_circle_join_requests_user_status_idx
   on public.podcast_community_circle_join_requests (user_id, status, created_at desc);
 
 alter table public.podcast_community_circle_join_requests enable row level security;
+
+-- Do not inherit broad default Data API grants. Access is explicitly opt-in.
+revoke all on table public.podcast_community_circle_join_requests from public, anon, authenticated;
 
 grant select, insert, delete
   on table public.podcast_community_circle_join_requests to authenticated;
@@ -355,6 +362,9 @@ create index if not exists podcast_circle_messages_sender_created_idx
   on public.podcast_community_circle_messages (sender_id, created_at desc);
 
 alter table public.podcast_community_circle_messages enable row level security;
+
+-- Group chat is authenticated-only and additionally constrained by RLS.
+revoke all on table public.podcast_community_circle_messages from public, anon, authenticated;
 
 grant select, insert, delete
   on table public.podcast_community_circle_messages to authenticated;
