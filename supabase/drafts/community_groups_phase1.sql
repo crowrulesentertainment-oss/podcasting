@@ -151,6 +151,7 @@ $$;
 -- Private groups may appear in discovery, but their posts, events, and chat
 -- remain member-only. Hidden groups remain visible only under the existing
 -- owner/member policy. This is additive; existing SELECT policies are retained.
+drop policy if exists "podcasting_discoverable_community_groups" on public.podcast_community_circles;
 create policy "podcasting_discoverable_community_groups"
 on public.podcast_community_circles
 for select
@@ -172,9 +173,13 @@ create table if not exists public.podcast_community_circle_join_requests (
   created_at timestamptz not null default now(),
   reviewed_at timestamptz,
   reviewed_by uuid references auth.users(id) on delete set null,
-  constraint podcast_community_circle_join_requests_unique
-    unique (circle_id, user_id)
 );
+
+-- Keep one pending request per user/group while retaining declined history.
+-- This lets a member reapply after a decline without deleting audit history.
+create unique index if not exists podcast_circle_join_requests_one_pending_uidx
+  on public.podcast_community_circle_join_requests (circle_id, user_id)
+  where status = 'pending';
 
 create index if not exists podcast_circle_join_requests_group_status_idx
   on public.podcast_community_circle_join_requests (circle_id, status, created_at desc);
@@ -192,6 +197,7 @@ grant select, insert, delete
 grant update (status, reviewed_at, reviewed_by)
   on table public.podcast_community_circle_join_requests to authenticated;
 
+drop policy if exists "Circle join requests visible to requester and moderators" on public.podcast_community_circle_join_requests;
 create policy "Circle join requests visible to requester and moderators"
 on public.podcast_community_circle_join_requests
 for select
@@ -202,6 +208,7 @@ using (
   or private.crowrules_is_admin_impl()
 );
 
+drop policy if exists "Members request access to private circles" on public.podcast_community_circle_join_requests;
 create policy "Members request access to private circles"
 on public.podcast_community_circle_join_requests
 for insert
@@ -223,6 +230,7 @@ with check (
   )
 );
 
+drop policy if exists "Circle moderators review join requests" on public.podcast_community_circle_join_requests;
 create policy "Circle moderators review join requests"
 on public.podcast_community_circle_join_requests
 for update
@@ -245,6 +253,7 @@ with check (
   )
 );
 
+drop policy if exists "Requesters or moderators remove pending join requests" on public.podcast_community_circle_join_requests;
 create policy "Requesters or moderators remove pending join requests"
 on public.podcast_community_circle_join_requests
 for delete
@@ -265,7 +274,7 @@ create or replace function private.review_podcast_circle_join_request(
 returns void
 language plpgsql
 security definer
-set search_path = pg_catalog, public, private, auth
+set search_path = pg_catalog
 as $function$
 declare
   v_circle_id uuid;
@@ -316,6 +325,7 @@ revoke all on function private.review_podcast_circle_join_request(uuid, text) fr
 grant execute on function private.review_podcast_circle_join_request(uuid, text) to authenticated;
 
 -- Invitees may join hidden groups only after accepting an existing invitation.
+drop policy if exists "Accepted invitees may join hidden circles" on public.podcast_community_circle_members;
 create policy "Accepted invitees may join hidden circles"
 on public.podcast_community_circle_members
 for insert
@@ -371,6 +381,7 @@ grant select, insert, delete
 grant update (body, edited_at, deleted_at)
   on table public.podcast_community_circle_messages to authenticated;
 
+drop policy if exists "Circle members read enabled group chat" on public.podcast_community_circle_messages;
 create policy "Circle members read enabled group chat"
 on public.podcast_community_circle_messages
 for select
@@ -386,6 +397,7 @@ using (
   )
 );
 
+drop policy if exists "Circle members send group chat messages" on public.podcast_community_circle_messages;
 create policy "Circle members send group chat messages"
 on public.podcast_community_circle_messages
 for insert
@@ -402,6 +414,7 @@ with check (
   )
 );
 
+drop policy if exists "Authors and moderators edit group chat messages" on public.podcast_community_circle_messages;
 create policy "Authors and moderators edit group chat messages"
 on public.podcast_community_circle_messages
 for update
@@ -433,6 +446,7 @@ with check (
   or private.crowrules_is_admin_impl()
 );
 
+drop policy if exists "Authors and moderators delete group chat messages" on public.podcast_community_circle_messages;
 create policy "Authors and moderators delete group chat messages"
 on public.podcast_community_circle_messages
 for delete
