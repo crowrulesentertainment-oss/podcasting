@@ -80,3 +80,36 @@ The existing `podcast_marketing_consents` workflow remains a distinct, optional 
 - No backfilling of acceptance for existing users.
 - No changes to promotional-email consent.
 - No production database changes or mandatory signup gate as part of this design phase.
+
+
+## Phase 1C: migration draft and live-schema review (2026-11-20)
+
+### Live database findings
+
+- `supabase_migrations.schema_migrations` exists; the latest observed applied migration at audit time was `20261120045815`.
+- The three proposed policy tables do not exist in the live project.
+- The existing marketing-consent table has a narrow owner-read policy; it is not a general agreement ledger.
+- Existing `profiles` policies use `auth.uid() = id`; `members` uses `auth.uid() = user_id` for own-row reads. Admin checks also use existing private helper functions.
+- The live project uses RLS broadly and has recent targeted security-hardening migrations. The proposed migration therefore adds narrowly scoped policies and explicit grants instead of changing existing tables or global defaults.
+
+### Migration drafted on the feature branch
+
+File: `supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql`
+
+Creates:
+- `policy_documents`: stable document keys and public-facing titles.
+- `policy_versions`: immutable version content reference, SHA-256 checksum, effective date, acceptance requirement, and controlled draft/published/withdrawn lifecycle.
+- `policy_acceptances`: append-only member/version evidence with a database-generated timestamp.
+
+Security model:
+- RLS enabled on all three tables.
+- Anonymous and authenticated users can read only effective published documents and versions.
+- Members can read only their own acceptance history.
+- Client roles receive no direct insert/update/delete access to the ledger.
+- A security-definer RPC derives the member ID from `auth.uid()`, accepts only the complete set of current required versions, and inserts the records atomically.
+- Acceptance rows cannot be updated or deleted; version content cannot be rewritten after creation.
+- No IP address, device fingerprint, marketing subscription, or historical acceptance is created.
+
+### Not yet done
+
+This is a migration draft only. It has not been applied to the live Supabase project, and no policy versions have been seeded or published. Before applying it, review the SQL against the exact production role grants, test the migration in a disposable Supabase branch/project, and run authenticated/anonymous/RLS/RPC tests. The current policy pages must also be approved and their final content checksums and effective dates established before any version is published.
