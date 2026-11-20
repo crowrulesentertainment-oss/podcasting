@@ -2380,3 +2380,16 @@ body[data-page="admin"] .badge-console .table-wrap{max-width:100%;overflow-x:aut
 .home-growth-breakdown{display:flex;gap:13px;margin-left:auto;color:#e3e0d9;font-size:.7rem;white-space:nowrap}
 .home-growth-breakdown span:first-child{color:#8ce0ad}.home-growth-breakdown span:last-child{color:#ffaaaa}
 @media(max-width:760px){.home-membership-growth{gap:10px 13px;padding:12px}.home-growth-total{min-width:100px;padding-right:12px}.home-growth-breakdown{width:100%;margin-left:0;padding-top:8px;border-top:1px solid #ffffff1f}}
+
+/* Slide seven — accurate member, creator, listener and guest net growth */
+.home-growth-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;flex:1;min-width:260px}
+.home-growth-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;padding:9px 11px;border:1px solid rgba(255,255,255,.13);border-radius:9px;background:rgba(255,255,255,.045);color:#f5f1e8}
+.home-growth-row>b{font-size:.72rem;font-weight:850;letter-spacing:.025em}
+.home-growth-row>b em{display:block;font-size:.52rem;font-style:normal;font-weight:600;color:#c6bda9;letter-spacing:0}
+.home-growth-row .growth-net{display:flex;align-items:center;gap:5px;font-size:.63rem;color:#d8d3c8;white-space:nowrap}
+.home-growth-row .growth-net i{font-size:1.05rem;font-style:normal;color:#b9c0cb}
+.home-growth-row.is-up .growth-net i{color:#64d69b}.home-growth-row.is-down .growth-net i{color:#ff7777}.home-growth-row.is-flat .growth-net i{color:#b9c0cb}
+.home-growth-row .growth-net strong{font-size:.9rem;font-variant-numeric:tabular-nums}
+.home-growth-row small{grid-column:1/-1;color:#c9c4b8;font-size:.58rem;letter-spacing:.015em}
+.home-growth-period{width:100%;text-align:right;color:#d8c18d;font-size:.54rem;font-weight:850;letter-spacing:.13em}
+@media(max-width:760px){.home-growth-grid{grid-template-columns:1fr;min-width:0;width:100%}.home-growth-period{text-align:left}}
