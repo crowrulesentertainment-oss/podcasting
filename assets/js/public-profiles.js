@@ -34,14 +34,14 @@ export async function directory(){
   const rows=(people||[]).filter(x=>x.username).map(x=>({...x,creatorMember:creatorIds.has(x.id),memberProfile:byId.get(x.user_id),founding50:foundingById.get(x.user_id)}));
   const scenes=["photo-1521737711867-e3b97375f902","photo-1590602847861-f357a9332bbc","photo-1516321318423-f06f85e504b3","photo-1524368535928-5b5e00ddc76b","photo-1516280440614-37939bbacd81","photo-1522071820081-009f0129c71c"];
   const isCreator=p=>/creator|producer|podcaster/i.test(p.role||"")||p.creatorMember===true;
-  const isHost=p=>/host|presenter|talent/i.test(p.role||"");
+  const isHost=p=>isCreator(p)||/host|presenter|talent/i.test(p.role||"");
   const displayName=p=>p.display_name||[p.first_name,p.last_name].filter(Boolean).join(" ")||p.username;
   const matchesFilter=(p,filter)=>filter==="all"||(filter==="creator"&&isCreator(p))||(filter==="host"&&isHost(p))||(filter==="listener"&&!isCreator(p)&&!isHost(p));
   let active="all",sort="newest";
   const ordered=list=>list.slice().sort((a,b)=>sort==="name"?displayName(a).localeCompare(displayName(b)):sort==="name-desc"?displayName(b).localeCompare(displayName(a)):new Date(b.created_at||0)-new Date(a.created_at||0));
   const card=(p,index)=>{
    const name=displayName(p),cover=p.memberProfile?.cover_url,photo=p.memberProfile?.avatar_url||p.avatar_url,scene=scenes[index%scenes.length],role=p.memberProfile?.tagline||p.role||"Community member";
-   const type=isCreator(p)?"CREATOR":isHost(p)?"HOST":"COMMUNITY";
+   const type=isCreator(p)?"CREATOR · HOST":isHost(p)?"HOST":"COMMUNITY";
    const artStyle=cover?'background-image:url("'+esc(cover).replace(/["\\]/g,"")+'")':'background-image:url(https://images.unsplash.com/'+scene+'?auto=format&fit=crop&w=900&q=82)';
    return '<a class="crp-member-card" href="'+SITE_BASE+'profile.html?username='+encodeURIComponent(p.username)+'" aria-label="View '+esc(name)+'’s profile"><div class="crp-card-cover" style="'+artStyle+'"><div class="crp-card-overlay"></div><span class="crp-card-type">'+type+'</span><span class="crp-card-arrow" aria-hidden="true">↗</span><div class="crp-card-person'+(p.founding50?' cr-founding50-avatar':'')+'">'+(photo?'<img src="'+esc(photo)+'" alt="" loading="lazy">':'<span class="crp-avatar-fallback">'+esc(name.slice(0,1).toUpperCase())+'</span>')+(p.founding50?'<span class="cr-founding50-avatar-number">#'+String(p.founding50.member_number).padStart(2,"0")+'</span>':'')+'</div></div><div class="crp-card-info"><h4>'+esc(name)+'</h4><span class="crp-username">@'+esc(p.username)+'</span>'+(p.founding50?'<span class="cr-founding50-pill">✦ FOUNDING 50 · #'+String(p.founding50.member_number).padStart(2,"0")+'</span>':'')+'<p>'+esc(role)+'</p><span class="crp-card-link">VIEW PROFILE <b>→</b></span></div></a>';
   };
