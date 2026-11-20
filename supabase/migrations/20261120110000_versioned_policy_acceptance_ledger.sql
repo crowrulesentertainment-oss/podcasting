@@ -192,13 +192,18 @@ begin
 
   select count(*) into v_required_count
   from (
-    select distinct on (d.id) v.id
+    select current_version.id
     from public.policy_documents d
-    join public.policy_versions v on v.document_id = d.id
-    where v.status = 'published'
-      and v.requires_acceptance is true
-      and v.effective_at <= now()
-    order by d.id, v.effective_at desc, v.published_at desc, v.id
+    cross join lateral (
+      select v.id, v.requires_acceptance
+      from public.policy_versions v
+      where v.document_id = d.id
+        and v.status = 'published'
+        and v.effective_at <= now()
+      order by v.effective_at desc, v.published_at desc, v.id
+      limit 1
+    ) current_version
+    where current_version.requires_acceptance is true
   ) required_versions;
 
   select count(distinct supplied.version_id)
@@ -214,11 +219,11 @@ begin
       from public.policy_versions v2
       where v2.document_id = v.document_id
         and v2.status = 'published'
-        and v2.requires_acceptance is true
         and v2.effective_at <= now()
       order by v2.effective_at desc, v2.published_at desc, v2.id
       limit 1
-    );
+    )
+    and v.requires_acceptance is true;
 
   if v_supplied_count <> cardinality(p_policy_version_ids)
      or v_supplied_count <> v_required_count then
