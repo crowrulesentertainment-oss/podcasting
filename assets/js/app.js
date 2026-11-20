@@ -926,7 +926,7 @@ async function episode(){
  };
 }async function auth(){
  const signup=page==="signup";
- const providers=[{id:"google",label:"Continue with Google",icon:"G"},{id:"discord",label:"Continue with Discord",icon:"◈"},{id:"twitch",label:"Continue with Twitch",icon:"▣"},{id:"spotify",label:"Continue with Spotify",icon:"♪"}];
+ const providers=[{id:"google",label:"Continue with Google",icon:"G"},{id:"discord",label:"Continue with Discord",icon:"◈"},{id:"twitch",label:"Continue with Twitch",icon:"▣"}];
  const redirectTo=new URL(SITE_BASE+"auth-callback.html?source=podcasting",location.origin).href;const recoveryRedirectTo=new URL(SITE_BASE+"auth-callback.html?flow=recovery",location.origin).href;
  const authParams=new URLSearchParams(location.search);
  const incomingReferral=(authParams.get("ref")||localStorage.getItem("crp_referral_code")||"").trim().toUpperCase();
@@ -973,7 +973,7 @@ async function episode(){
  if(oauthError)message("Sign-in could not be completed: "+oauthError.replace(/\+/g," "),true);
  all(".oauth-button").forEach(button=>button.addEventListener("click",async()=>{
   const provider=button.dataset.provider;button.disabled=true;message("Connecting securely to "+provider.charAt(0).toUpperCase()+provider.slice(1)+"…");
-  try{const options={redirectTo};if(provider==="discord")options.scopes="identify email";if(provider==="twitch")options.scopes="user:read:email";if(provider==="spotify")options.scopes="user-read-email";const{error}=await sb.auth.signInWithOAuth({provider,options});if(error)throw error}
+  try{const options={redirectTo};if(provider==="discord")options.scopes="identify email";if(provider==="twitch")options.scopes="user:read:email";const{error}=await sb.auth.signInWithOAuth({provider,options});if(error)throw error}
   catch(error){message(friendlyError(error),true);button.disabled=false}
  }));
  $("#auth").addEventListener("submit",async event=>{
