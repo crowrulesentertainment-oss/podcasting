@@ -926,7 +926,7 @@ async function episode(){
  };
 }async function auth(){
  const signup=page==="signup";
- const providers=[{id:"google",label:"Continue with Google",icon:"G"},{id:"microsoft",label:"Continue with Microsoft",icon:"M"},{id:"discord",label:"Continue with Discord",icon:"◈"},{id:"twitch",label:"Continue with Twitch",icon:"▣"}];
+ const providers=[{id:"google",label:"Continue with Google",icon:"G"},{id:"azure",label:"Continue with Microsoft",icon:"M"},{id:"discord",label:"Continue with Discord",icon:"◈"},{id:"twitch",label:"Continue with Twitch",icon:"▣"}];
  const redirectTo=new URL(SITE_BASE+"auth-callback.html?source=podcasting",location.origin).href;const recoveryRedirectTo=new URL(SITE_BASE+"auth-callback.html?flow=recovery",location.origin).href;
  const authParams=new URLSearchParams(location.search);
  const incomingReferral=(authParams.get("ref")||localStorage.getItem("crp_referral_code")||"").trim().toUpperCase();
