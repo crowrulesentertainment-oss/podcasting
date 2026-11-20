@@ -11,6 +11,9 @@
 - Helpful votes have a composite primary key on `(reply_id, voter_id)`; existing policies already require a same-circle member voting on another member's reply.
 - Circle events and RSVPs already exist; events are created by circle owners/moderators and RSVP rows are member-scoped.
 - The database has no pgTAP or Supabase test-helper extension installed at inspection time.
+- All three target tables have RLS enabled. The replies table has no SELECT grant for `anon`, so anonymous reply reads are not part of the current API contract.
+- The membership table already has owner/own-membership SELECT policies; the proposed roster policy adds same-circle member visibility.
+- The helper functions exist in the `private` schema, are SECURITY DEFINER, and grant EXECUTE to `authenticated` (and service role where applicable). The membership/owner helpers use an empty search_path and fully qualified references.
 
 ## Pre-migration data integrity check
 
@@ -31,7 +34,8 @@ Create two disposable circles (A and B), each with an owner, moderator, and regu
 
 | Test | Expected |
 |---|---|
-| Anonymous reads a post and its replies in public circle A | Allowed |
+| Anonymous reads a public post in circle A | Allowed |
+| Anonymous reads replies in public circle A | Denied under current table grants; change only if public reply reads are explicitly approved and anon SELECT is granted safely |
 | Anonymous reads private/hidden circle content | Denied by parent-post RLS |
 | Member A reads roster A | Allowed |
 | Member A reads roster B | Denied |
@@ -52,7 +56,7 @@ Create two disposable circles (A and B), each with an owner, moderator, and regu
 
 1. Reconcile migration history and replay the full project locally.
 2. Run the integrity query; require zero mismatches.
-3. Review the SQL diff and helper function grants.
+3. Review the SQL diff and helper function grants (read-only inspection confirmed the current helper definitions and authenticated EXECUTE grants).
 4. Apply the patch locally only.
 5. Run the matrix using real authenticated JWT claims for disposable test users and verify both positive and negative cases.
 6. Confirm unrelated tables, policies, and existing members are unchanged.
