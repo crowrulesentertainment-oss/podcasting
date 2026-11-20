@@ -204,10 +204,9 @@ async function recordDailyVisitor(){
 async function recordPermanentPageView(){
  if(window.__crpPermanentPageViewRecorded)return true;
  if(window.__crpPermanentPageViewPromise)return window.__crpPermanentPageViewPromise;
- // This endpoint deliberately requires a verified Supabase session. Public pages
- // must not send anonymous requests to a JWT-protected Edge Function.
- const{data:{session},error:sessionError}=await sb.auth.getSession();
- if(sessionError||!session?.access_token)return false;
+ // The page-view Edge Function validates the public API key and writes through
+ // its server-side service role. Anonymous visitors must be included too.
+ // Never send or persist visitor IP addresses from this browser code.
  const idempotencyKey=window.__crpPermanentPageViewKey||(window.__crpPermanentPageViewKey=crpUuid());
  const pageUrl=new URL(location.href),pagePath=pageUrl.pathname.slice(0,300)||"/";
  let referrerDomain=null;try{if(document.referrer)referrerDomain=new URL(document.referrer).hostname.toLowerCase()}catch{}
