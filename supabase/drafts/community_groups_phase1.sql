@@ -120,7 +120,7 @@ $function$;
 
 revoke all on function public.podcasting_sync_community_circle_visibility() from public, anon, authenticated;
 
-do $
+do $$
 begin
   if not exists (
     select 1 from pg_trigger
