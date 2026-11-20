@@ -71,6 +71,32 @@ Expected reconciliation result: the local migration file set should include the 
 
 Supabase CLI v3 targets local databases by default, but commands can target hosted projects with `--remote`. Read the resolved target printed by the CLI before confirming any hosted operation.
 
+## Draft review corrections
+
+The draft was reviewed against the current production circle policies and helper functions using read-only queries. The production database was not changed.
+
+Corrections committed to the feature branch:
+
+- Fixed the malformed anonymous block delimiter so the trigger-creation block uses `DO $ ... $;`.
+- Made the ten new/additive policy definitions rerunnable during development by dropping only each policy with this draft's exact name immediately before recreating it. Existing production policies are not dropped or replaced.
+- Changed join-request uniqueness to a partial unique index for **pending** requests only. A declined request remains in the audit history, while the member can submit a fresh request later.
+- Restricted the join-request approval function's search path to `pg_catalog`; referenced application/auth objects are schema-qualified.
+- Confirmed that the existing moderator/owner and admin helper functions referenced by the draft exist, and inspected current circle/member/invite RLS policies. Existing public self-join and accepted-invite flows remain in place.
+
+## Local validation status
+
+The SQL draft has received a source-level review, but it has **not yet been executed or validated by PostgreSQL**. This environment does not have the repository's recovered migration chain, a local Supabase stack, or a local PostgreSQL client available. Do not treat static review as a successful migration test.
+
+Before running the Community Groups SQL locally:
+
+1. Complete the migration-history reconciliation above and recover the full historical migration chain.
+2. Verify `supabase migration list --remote` matches the recovered local files.
+3. Start the local Supabase stack and replay the existing history with `npx supabase db reset` against the local database only.
+4. Only after the historical replay succeeds, create the official timestamped migration and test the corrected SQL locally.
+5. Verify public/private/hidden discovery, public self-join, private request/reapply/approval/decline, accepted hidden-group invitations, chat membership checks, and moderator/admin authorization using separate test identities.
+
+No SQL from this draft has been applied to production.
+
 ## Phase 1 scope
 
 - Extend existing circle records with slugs, cover/avatar URL fields, visibility, and group-chat enablement.
