@@ -31,3 +31,7 @@ Before December 1, complete the migration-history reconciliation and local repla
 5. Test sign-in, group creation, public joining, private requests, posts, and chat using real member accounts.
 6. Test desktop and mobile layouts.
 7. Confirm the December 1 Pacific-time launch gate and merge the UI branch before launch.
+
+## Phase 1 draft issue found during integration review
+
+The SQL patch attached to PR #46 currently shows a trailing comma after the `reviewed_by` column in the `podcast_community_circle_join_requests` table definition. PostgreSQL will reject that `CREATE TABLE` statement. Remove the trailing comma before attempting local execution, then continue with the migration-history reconciliation and full local replay. This UI branch does not change or apply that SQL.
