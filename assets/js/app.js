@@ -1050,7 +1050,7 @@ async function episode(){
   if(!state||!subscribe||!unsubscribe||!check)return;
   subscribe.disabled=true;unsubscribe.disabled=false;unsubscribe.style.display="none";
   try{
-   const result=await fn("podcasting-marketing-preferences",{action:"status"});
+   const result=await fn("podcast-creator-daily-preferences",{action:"status"});
    const optedIn=result?.consented===true;
    check.checked=false;check.disabled=optedIn;
    subscribe.style.display=optedIn?"none":"inline-flex";
@@ -1064,14 +1064,14 @@ async function episode(){
   const check=$("#crCreatorDailyConsent"),button=$("#crCreatorDailySubscribe"),state=$("#crCreatorDailyState");
   if(!check?.checked){state.textContent="Please check the consent box before subscribing.";check?.focus();return}
   button.disabled=true;state.textContent="Saving your subscription…";
-  try{await fn("podcasting-marketing-preferences",{action:"subscribe",confirm:true});state.textContent="You’re subscribed to CrowRules Creator Daily. Your preference has been saved.";await refreshCreatorDailyConsent()}
+  try{await fn("podcast-creator-daily-preferences",{action:"subscribe",confirm:true});state.textContent="You’re subscribed to CrowRules Creator Daily. Your preference has been saved.";await refreshCreatorDailyConsent()}
   catch(error){state.textContent="We could not save your subscription: "+(error.message||"Please try again.");button.disabled=false}
  });
  $("#crCreatorDailyUnsubscribe")?.addEventListener("click",async()=>{
   const button=$("#crCreatorDailyUnsubscribe"),state=$("#crCreatorDailyState");
   if(!confirm("Unsubscribe from CrowRules Creator Daily?"))return;
   button.disabled=true;state.textContent="Updating your preference…";
-  try{await fn("podcasting-marketing-preferences",{action:"unsubscribe"});state.textContent="You are unsubscribed from CrowRules Creator Daily.";await refreshCreatorDailyConsent()}
+  try{await fn("podcast-creator-daily-preferences",{action:"unsubscribe"});state.textContent="You are unsubscribed from CrowRules Creator Daily.";await refreshCreatorDailyConsent()}
   catch(error){state.textContent="We could not update your preference: "+(error.message||"Please try again.");button.disabled=false}
  });
  refreshCreatorDailyConsent();
