@@ -54,7 +54,7 @@ begin
 
   select u.id into v_user_id
   from auth.users as u
-  where pg_catalog.lower(u.email) = pg_catalog.lower(pg_catalog.trim(p_email))
+  where pg_catalog.lower(u.email) = pg_catalog.lower(pg_catalog.btrim(p_email))
   limit 1;
 
   if v_user_id is null then
@@ -74,7 +74,7 @@ begin
         consent_source = 'creator_daily_unsubscribe',
         unsubscribed_at = excluded.unsubscribed_at,
         updated_at = excluded.updated_at
-    where pg_catalog.coalesce(current_consent.consent_at, '-infinity'::timestamptz) <= excluded.unsubscribed_at
+    where coalesce(current_consent.consent_at, '-infinity'::timestamptz) <= excluded.unsubscribed_at
       and (current_consent.unsubscribed_at is null
         or current_consent.unsubscribed_at < excluded.unsubscribed_at)
   returning user_id into v_updated_user_id;
