@@ -3,7 +3,7 @@ name: Policy acceptance SQL validation
 on:
   pull_request:
     paths:
-      - "supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql"
+      - "supabase/migrations/**"
       - "docs/policy-acceptance-local-tests.sql"
       - "docs/policy-acceptance-negative-lifecycle-tests.sql"
       - "docs/policy-version-expiration-migration-draft.sql"
@@ -163,21 +163,11 @@ jobs:
           npx --yes supabase@3.0.0 init
           mkdir -p supabase/migrations
           cp "$GITHUB_WORKSPACE/supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql" supabase/migrations/
+          cp "$GITHUB_WORKSPACE/supabase/migrations/20261121070329_policy_version_expiration.sql" supabase/migrations/
           if grep -q 'crowrules_policy_private' supabase/config.toml; then
             echo "Private policy schema must not be exposed through the Data API."
             exit 1
           fi
-
-      - name: Generate the timestamped local migration from the reviewed draft
-        shell: bash
-        run: |
-          set -euo pipefail
-          cd "$TEST_PROJECT_DIR"
-          npx --yes supabase@3.0.0 migration new policy_version_expiration
-          migration_file="$(find supabase/migrations -maxdepth 1 -type f -name '*_policy_version_expiration.sql' -print -quit)"
-          test -n "$migration_file"
-          cp "$GITHUB_WORKSPACE/docs/policy-version-expiration-migration-draft.sql" "$migration_file"
-          echo "Generated local migration: $migration_file"
 
       - name: Start the isolated local Supabase stack
         shell: bash
