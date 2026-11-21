@@ -58,6 +58,7 @@ jobs:
           create role service_role nologin bypassrls;
           create schema auth;
           create schema private;
+          revoke all on schema private from public, anon, authenticated, service_role;
           create table auth.users (
             id uuid primary key
           );
@@ -74,9 +75,10 @@ jobs:
           stable
           security definer
           set search_path = ''
-          as $$
+          as $
             select current_setting('request.jwt.claim.role', true) = 'admin'
-          $$;
+          $;
+          revoke all on function private.crowrules_is_admin_impl() from public, anon, authenticated, service_role;
           grant usage on schema auth to anon, authenticated;
           grant execute on function auth.uid() to anon, authenticated;
           SQL
@@ -260,9 +262,11 @@ jobs:
           stable
           security definer
           set search_path = ''
-          as $$
+          as $
             select current_setting('request.jwt.claim.role', true) = 'admin'
-          $$;
+          $;
+          revoke all on schema private from public, anon, authenticated, service_role;
+          revoke all on function private.crowrules_is_admin_impl() from public, anon, authenticated, service_role;
           SQL
 
       - name: Apply policy reconciliation candidate to disposable local Supabase
