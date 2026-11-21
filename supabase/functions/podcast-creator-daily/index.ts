@@ -68,8 +68,8 @@ async function getOptedInCreators(db: any) {
   if (!userIds.length) return [];
 
   const { data: consents, error: consentError } = await db
-    .from("podcast_marketing_consents")
-    .select("user_id,consented,unsubscribed_at")
+    .from("podcast_creator_daily_consents")
+    .select("user_id,consented,consent_at,consent_source,unsubscribed_at")
     .in("user_id", userIds);
   if (consentError) throw consentError;
   const consented = new Set((consents ?? [])
@@ -188,9 +188,9 @@ Deno.serve(async (req: Request) => {
 
     const [creatorCount, consentCount, optedInCount, unsubscribedCount, tokenCount, ledgerCheck] = await Promise.all([
       db.from("creators").select("id", { count: "exact", head: true }).eq("is_active", true).eq("discipline", "podcasting").not("member_id", "is", null),
-      db.from("podcast_marketing_consents").select("user_id", { count: "exact", head: true }),
-      db.from("podcast_marketing_consents").select("user_id", { count: "exact", head: true }).eq("consented", true).not("consent_at", "is", null).not("consent_source", "is", null).is("unsubscribed_at", null),
-      db.from("podcast_marketing_consents").select("user_id", { count: "exact", head: true }).not("unsubscribed_at", "is", null),
+      db.from("podcast_creator_daily_consents").select("user_id", { count: "exact", head: true }),
+      db.from("podcast_creator_daily_consents").select("user_id", { count: "exact", head: true }).eq("consented", true).not("consent_at", "is", null).not("consent_source", "is", null).is("unsubscribed_at", null),
+      db.from("podcast_creator_daily_consents").select("user_id", { count: "exact", head: true }).not("unsubscribed_at", "is", null),
       db.from("podcast_marketing_unsubscribe_tokens").select("token_hash", { count: "exact", head: true }),
       db.from("podcast_creator_daily_editions").select("id", { count: "exact", head: true }),
     ]);
@@ -256,7 +256,7 @@ Deno.serve(async (req: Request) => {
     };
 
     const [consentCheck, tokenCheck, campaignCheck, deliveryCheck] = await Promise.all([
-      db.from("podcast_marketing_consents").select("user_id,consented,consent_at,consent_source,unsubscribe_token_hash,unsubscribed_at", { count: "exact", head: true }),
+      db.from("podcast_creator_daily_consents").select("user_id,consented,consent_at,consent_source,unsubscribe_token_hash,unsubscribed_at", { count: "exact", head: true }),
       db.from("podcast_marketing_unsubscribe_tokens").select("token_hash,user_id,used_at", { count: "exact", head: true }),
       db.from("podcast_email_campaigns").select("id", { count: "exact", head: true }),
       db.from("podcast_email_campaign_deliveries").select("id", { count: "exact", head: true }),
@@ -309,7 +309,7 @@ Deno.serve(async (req: Request) => {
       provider_key_configured: true,
       sender: "crowrulesentertainment@gmail.com",
       reply_to: "crowrulesentertainment@gmail.com",
-      audience_scope: "active podcasting creators with confirmed email and current explicit marketing consent",
+      audience_scope: "active podcasting creators with confirmed email and current, product-specific Creator Daily consent",
       eligible_creator_count: action === "preview" ? eligibleCount : undefined,
       production_dispatch_enabled: false,
       schedule_enabled: false,
