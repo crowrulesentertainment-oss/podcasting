@@ -170,7 +170,7 @@ for each row execute function public.guard_policy_version_revision();
 -- Add this schema to the project's exposed Data API schemas only if explicitly reviewed;
 -- it must remain non-exposed for the public wrapper to be the only API entry point.
 create schema if not exists crowrules_policy_private authorization postgres;
-revoke all on schema crowrules_policy_private from public, anon;
+revoke all on schema crowrules_policy_private from public, anon, authenticated;
 grant usage on schema crowrules_policy_private to authenticated;
 
 -- The public RPC is SECURITY INVOKER and is only an authenticated entry point.
@@ -271,13 +271,13 @@ as $function$
 $function$;
 
 revoke all on function public.accept_current_required_policy_versions(uuid[])
-  from public, anon;
+  from public, anon, authenticated, service_role;
 grant execute on function public.accept_current_required_policy_versions(uuid[])
   to authenticated;
 
 revoke all on function public.prevent_policy_acceptance_mutation()
-  from public, anon, authenticated;
+  from public, anon, authenticated, service_role;
 revoke all on function public.guard_policy_version_revision()
-  from public, anon, authenticated;
+  from public, anon, authenticated, service_role;
 
 commit;
