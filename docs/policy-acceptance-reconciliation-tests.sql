@@ -37,9 +37,13 @@ select not has_table_privilege('authenticated','public.policy_versions','UPDATE'
   as member_cannot_update_policy_versions_directly;
 select has_table_privilege('crowrules_policy_owner','public.policy_acceptances','INSERT')
   as restricted_owner_can_insert_acceptance;
-select not pg_catalog.has_any_column_privilege(
-  'crowrules_policy_owner','public.policy_acceptances','SELECT'
-) as restricted_owner_cannot_read_acceptance_history;
+select (
+  pg_catalog.has_column_privilege('crowrules_policy_owner','public.policy_acceptances','user_id','SELECT')
+  and pg_catalog.has_column_privilege('crowrules_policy_owner','public.policy_acceptances','policy_version_id','SELECT')
+  and not pg_catalog.has_column_privilege('crowrules_policy_owner','public.policy_acceptances','accepted_at','SELECT')
+  and not pg_catalog.has_column_privilege('crowrules_policy_owner','public.policy_acceptances','acceptance_context','SELECT')
+  and not pg_catalog.has_table_privilege('crowrules_policy_owner','public.policy_acceptances','SELECT')
+) as restricted_owner_can_read_only_conflict_keys;
 
 select (
   not r.rolcanlogin and not r.rolsuper and not r.rolcreatedb
