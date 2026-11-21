@@ -113,6 +113,13 @@ begin
   if v_count <> 3 then raise exception 'Expected three current required acceptances, got %',v_count; end if;
 end
 $test$;
+select set_config(
+  'test.expiry_original_accepted_at',
+  (select accepted_at::text from public.policy_acceptances
+   where policy_version_id=current_setting('test.expiry_no_end_version')::uuid
+     and user_id='10000000-0000-0000-0000-000000000001'::uuid),
+  true
+);
 
 -- Withdrawal does not revive an older required version. Even though that old
 -- version is still historically published, the withdrawn newer version remains
@@ -194,7 +201,8 @@ begin
     select 1 from public.policy_acceptances
     where policy_version_id=current_setting('test.expiry_no_end_version')::uuid
       and user_id='10000000-0000-0000-0000-000000000001'::uuid
-  ) then raise exception 'Expected original acceptance history to remain'; end if;
+      and accepted_at=current_setting('test.expiry_original_accepted_at')::timestamptz
+  ) then raise exception 'Original acceptance history or accepted_at timestamp changed'; end if;
 end
 $test$;
 
