@@ -14,6 +14,7 @@ on:
       - "docs/policy-acceptance-reconciliation-draft.sql"
       - "docs/policy-acceptance-reconciliation-tests.sql"
       - "docs/policy-acceptance-isolation-test.sql"
+      - "docs/policy-acceptance-concurrency-test.sh"
       - ".github/workflows/policy-acceptance-sql.yml"
   workflow_dispatch:
 
@@ -173,6 +174,12 @@ jobs:
           set -euo pipefail
           psql -X -v ON_ERROR_STOP=1 -f docs/policy-acceptance-isolation-test.sql
 
+      - name: Run policy two-session concurrency tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash docs/policy-acceptance-concurrency-test.sh
+
   local-supabase:
     name: Isolated local Supabase migration and RLS tests
     runs-on: ubuntu-latest
@@ -317,6 +324,14 @@ jobs:
           set -euo pipefail
           psql "$DB_URL" -X -v ON_ERROR_STOP=1 \
             -f "$GITHUB_WORKSPACE/docs/policy-acceptance-isolation-test.sql"
+
+      - name: Run policy two-session concurrency tests
+        env:
+          DB_URL: ${{ steps.local-db.outputs.db_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash "$GITHUB_WORKSPACE/docs/policy-acceptance-concurrency-test.sh"
 
       - name: Run Supabase database security advisors
         shell: bash
