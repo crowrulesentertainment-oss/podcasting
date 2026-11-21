@@ -36,7 +36,7 @@ values (
 returning id \gset ver_
 select set_config('test.version_id', :'ver_id', true);
 
--- Anonymous: published policy metadata is readable; acceptance ledger is not.
+-- Anonymous: published policy metadata is readable; acceptance ledger and RPC are not.
 set local role anon;
 select set_config('request.jwt.claim.sub','',true);
 select count(*) >= 1 as anon_can_read_published_versions
@@ -44,6 +44,7 @@ from public.policy_versions where id=current_setting('test.version_id')::uuid;
 select count(*) >= 1 as anon_can_read_published_document
 from public.policy_documents where id=:'doc_id'::uuid;
 select not has_table_privilege('anon','public.policy_acceptances','SELECT') as anon_cannot_select_acceptance_ledger;
+select not has_function_privilege('anon','public.accept_current_required_policy_versions(uuid[])','EXECUTE') as anon_cannot_execute_acceptance_rpc;
 reset role;
 
 -- Member A accepts. The RPC derives identity from auth.uid().
@@ -72,6 +73,8 @@ from public.policy_acceptances where user_id=current_setting('test.member_b')::u
 select not has_table_privilege('authenticated','public.policy_acceptances','INSERT') as member_cannot_insert_directly;
 select not has_table_privilege('authenticated','public.policy_acceptances','UPDATE') as member_cannot_update_directly;
 select not has_table_privilege('authenticated','public.policy_acceptances','DELETE') as member_cannot_delete_directly;
+select has_function_privilege('authenticated','public.accept_current_required_policy_versions(uuid[])','EXECUTE') as member_can_execute_public_rpc;
+select has_schema_privilege('authenticated','crowrules_policy_private','USAGE') as member_can_reach_private_impl_schema;
 
 -- Direct client insert is denied by table privileges.
 do $$
@@ -97,6 +100,12 @@ begin
     raise exception 'SECURITY FAILURE: acceptance update unexpectedly succeeded';
   exception when object_not_in_prerequisite_state then null;
   end;
-end $$;
+  begin
+    delete from public.policy_acceptances
+    where user_id=current_setting('test.member_a')::uuid and policy_version_id=current_setting('test.version_id')::uuid;
+    raise exception 'SECURITY FAILURE: acceptance delete unexpectedly succeeded';
+  exception when object_not_in_prerequisite_state then null;
+  end;
+end $;
 
 rollback;
