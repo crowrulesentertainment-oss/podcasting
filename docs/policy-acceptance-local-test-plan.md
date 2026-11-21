@@ -77,7 +77,7 @@ Do not add `--remote`, `--linked`, a project ref, or production credentials to t
 - `docs/policy-acceptance-local-tests.sql`: smoke tests for Auth identity, RLS, own-row history, direct-write denial, and idempotency.
 - `docs/policy-acceptance-negative-lifecycle-tests.sql`: invalid inputs, exact required set, optional supersession, and immutable/lifecycle checks.
 - `docs/policy-version-expiration-tests.sql`: expiration boundary, history, expiry immutability, and withdrawal no-fallback checks.
-- `docs/policy-acceptance-reconciliation-tests.sql`: restricted owner/RPC privileges, public current/history views, withdrawal no-fallback, admin authorization, and replacement behavior.
+- `docs/policy-acceptance-reconciliation-tests.sql`: restricted owner/RPC privileges, public current/history discovery RPCs, withdrawal no-fallback, admin authorization, and replacement behavior.
 - `docs/policy-acceptance-isolation-test.sql`: confirms repeatable-read calls are rejected.
 - `docs/policy-acceptance-concurrency-test.sh`: two-session lock-order and stale-acceptance regression tests.
 
