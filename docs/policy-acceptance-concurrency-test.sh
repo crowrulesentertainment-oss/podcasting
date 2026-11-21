@@ -261,9 +261,9 @@ set local statement_timeout='15s';
 set local role authenticated;
 select set_config('request.jwt.claim.sub','$MEMBER_B',true);
 select set_config('request.jwt.claim.role','admin',true);
-select public.policy_admin_create_document('$catalog_key', 'Catalog race policy', 'Synthetic catalog-sentinel concurrency fixture') as new_doc_id \\gset
-\\echo CATALOG_SENTINEL_LOCKED
-select public.policy_admin_create_draft_version(:'new_doc_id'::uuid, 'v1', 'https://example.invalid/catalog-race', repeat('d',64), true, transaction_timestamp() - interval '30 seconds', null) as new_version_id \\gset
+select public.policy_admin_create_document('$catalog_key', 'Catalog race policy', 'Synthetic catalog-sentinel concurrency fixture') as new_doc_id \gset
+\echo CATALOG_SENTINEL_LOCKED
+select public.policy_admin_create_draft_version(:'new_doc_id'::uuid, 'v1', 'https://example.invalid/catalog-race', repeat('d',64), true, transaction_timestamp() - interval '30 seconds', null) as new_version_id \gset
 select public.policy_admin_publish_version(:'new_version_id'::uuid);
 select pg_sleep(2);
 commit;
