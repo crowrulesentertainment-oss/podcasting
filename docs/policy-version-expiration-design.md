@@ -39,7 +39,7 @@ Add nullable `policy_versions.expires_at timestamptz`. A null value means no sch
 - CLI-generated migration: `supabase/migrations/20261121070329_policy_version_expiration.sql`
 - Generated with Supabase CLI 3.0.0 using `supabase migration new policy_version_expiration`.
 - Its SQL body matches `docs/policy-version-expiration-migration-draft.sql`.
-- The migration exists on draft PR #68 only. It has not been applied to a hosted database.
+- The migration is included in follow-up draft PR #69. It has not been applied to a hosted database.
 
 ## Test files and coverage
 
@@ -71,7 +71,7 @@ Coverage includes:
 
 The separate disposable PostgreSQL 16 workflow also passed: [run #44876860809](https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/44876860809).
 
-**Validation status after the withdrawal decision:** the runs above predate the latest withdrawal-selection change and the new withdrawal/visibility regression assertions. Those additions are committed to this draft branch but still require a fresh local Supabase and PostgreSQL CI run before the design review can be considered complete.
+**Fresh validation after the withdrawal decision: passed on PR #69 head `36c2687d9b9821ed1155cd84cb0bdf3ce39a3289`.** Both [Policy acceptance SQL validation run #28](https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/44880393917) and [Podcasting site checks run #1721](https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/44880393955) completed successfully. The PostgreSQL 16 job passed the base migration, expiration SQL candidate, RLS/ledger harness, negative/lifecycle/immutability tests, and expiration semantics tests. The isolated local Supabase job passed migration reset/history verification, synthetic Auth setup, RLS/ledger tests, negative/lifecycle/immutability tests, expiration boundary/history tests, and database security advisors; the local stack was stopped. The site-check job passed JavaScript syntax, page/assets/public-secret checks, and admin regression coverage. The formal migration SQL body and disposable PostgreSQL draft SQL body were compared and match (comments/header differ).
 
 ## Isolation note
 
