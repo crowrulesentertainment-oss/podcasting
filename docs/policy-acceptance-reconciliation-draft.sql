@@ -1,10 +1,9 @@
--- PREPARATION DRAFT ONLY: reconcile the merged policy foundation and expiry migration.
--- Apply only after the base ledger migration and the timestamped expiration migration,
--- and only to a disposable PostgreSQL/Supabase environment.
+-- RECONCILIATION CANDIDATE: source template for a CLI-generated migration.
+-- CI copies this SQL into a timestamped migration created with "supabase migration new"
+-- inside a temporary local Supabase project. The generated file is for review and
+-- disposable validation only; production application requires separate authorization.
 --
--- This is deliberately in docs/, not supabase/migrations/: the Supabase CLI is not
--- installed in this execution environment, so a formal migration file has not been
--- generated with "supabase migration new".
+-- Apply only after the base ledger migration and the timestamped expiration migration.
 --
 -- This corrective migration:
 --   * closes authenticated access to the private helper/schema;
