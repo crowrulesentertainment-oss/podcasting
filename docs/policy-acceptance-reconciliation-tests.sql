@@ -68,7 +68,12 @@ select case
   else (
     select count(*)=1
        and bool_and(
-         m.member=(select oid from pg_catalog.pg_roles where rolname=session_user)
+         exists (
+           select 1 from pg_catalog.pg_roles executor
+           where executor.oid=m.member
+             and executor.rolcreaterole
+             and not executor.rolsuper
+         )
          and m.admin_option
          and not m.inherit_option
          and not m.set_option
