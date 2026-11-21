@@ -12,6 +12,7 @@ on:
       - "docs/policy-version-expiration-design.md"
       - "docs/policy-version-expiration-local-supabase-runbook.md"
       - "docs/policy-acceptance-reconciliation-draft.sql"
+      - "supabase/migrations/20261121084611_policy_acceptance_reconciliation.sql"
       - "docs/policy-acceptance-reconciliation-tests.sql"
       - "docs/policy-acceptance-isolation-test.sql"
       - "docs/policy-acceptance-concurrency-test.sh"
@@ -99,7 +100,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          psql -X -v ON_ERROR_STOP=1 -f docs/policy-acceptance-reconciliation-draft.sql
+          psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261121084611_policy_acceptance_reconciliation.sql
 
       - name: Create two disposable Auth identities
         shell: bash
@@ -243,6 +244,13 @@ jobs:
             exit 1
           fi
           cp "$GITHUB_WORKSPACE/docs/policy-acceptance-reconciliation-draft.sql" "$reconciliation_file"
+          formal_migration="$GITHUB_WORKSPACE/supabase/migrations/20261121084611_policy_acceptance_reconciliation.sql"
+          if ! cmp -s "$reconciliation_file" "$formal_migration"; then
+            diff -u "$formal_migration" "$reconciliation_file" || true
+            echo "CLI-generated migration does not match the committed formal migration."
+            exit 1
+          fi
+          echo "CLI-generated migration matches the committed formal migration."
           if grep -q 'crowrules_policy_private' supabase/config.toml; then
             echo "Private policy schema must not be exposed through the Data API."
             exit 1
