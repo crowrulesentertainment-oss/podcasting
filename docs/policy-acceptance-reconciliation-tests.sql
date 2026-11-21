@@ -37,6 +37,8 @@ select not has_table_privilege('authenticated','public.policy_versions','UPDATE'
   as member_cannot_update_policy_versions_directly;
 select has_table_privilege('crowrules_policy_owner','public.policy_acceptances','INSERT')
   as restricted_owner_can_insert_acceptance;
+select has_table_privilege('crowrules_policy_owner','public.policy_acceptances','SELECT')
+  as restricted_owner_can_check_idempotency;
 
 select (
   not r.rolcanlogin and not r.rolsuper and not r.rolcreatedb
