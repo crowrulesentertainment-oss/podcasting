@@ -325,9 +325,26 @@ begin
 end
 $membership$;
 
-create or replace view public.policy_current_versions
-with (security_barrier = true)
-as
+create or replace function public.get_current_policy_versions()
+returns table (
+  document_id uuid,
+  document_key text,
+  title text,
+  description text,
+  policy_version_id uuid,
+  version_label text,
+  content_url text,
+  content_sha256 text,
+  requires_acceptance boolean,
+  effective_at timestamptz,
+  published_at timestamptz,
+  expires_at timestamptz
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $current_policy_versions$
 with latest as materialized (
   select distinct on (v.document_id)
     v.document_id, v.id, v.version_label, v.content_url, v.content_sha256,
@@ -358,10 +375,29 @@ from latest
 join public.policy_documents d on d.id = latest.document_id
 where latest.status = 'published'
   and (latest.expires_at is null or latest.expires_at > transaction_timestamp());
+$current_policy_versions$;
 
-create or replace view public.policy_published_history
-with (security_barrier = true)
-as
+create or replace function public.get_published_policy_history()
+returns table (
+  document_id uuid,
+  document_key text,
+  title text,
+  policy_version_id uuid,
+  version_label text,
+  content_url text,
+  content_sha256 text,
+  requires_acceptance boolean,
+  effective_at timestamptz,
+  published_at timestamptz,
+  expires_at timestamptz,
+  history_state text,
+  document_state text
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $published_policy_history$
 with latest as materialized (
   select distinct on (v.document_id)
     v.document_id, v.id, v.status, v.expires_at
@@ -412,13 +448,18 @@ join public.policy_documents d on d.id = v.document_id
 join latest on latest.document_id = v.document_id
 where v.status = 'published'
   and v.effective_at <= transaction_timestamp();
+$published_policy_history$;
 
-alter view public.policy_current_versions owner to crowrules_policy_owner;
-alter view public.policy_published_history owner to crowrules_policy_owner;
+alter function public.get_current_policy_versions() owner to crowrules_policy_owner;
+alter function public.get_published_policy_history() owner to crowrules_policy_owner;
 
-revoke all on public.policy_current_versions, public.policy_published_history
+revoke all on function public.get_current_policy_versions()
   from public, anon, authenticated, service_role;
-grant select on public.policy_current_versions, public.policy_published_history
+revoke all on function public.get_published_policy_history()
+  from public, anon, authenticated, service_role;
+grant execute on function public.get_current_policy_versions()
+  to anon, authenticated;
+grant execute on function public.get_published_policy_history()
   to anon, authenticated;
 
 revoke create on schema public from crowrules_policy_owner;
