@@ -137,11 +137,40 @@ select not pg_catalog.has_function_privilege(
   'EXECUTE'
 ) as service_role_cannot_execute_identity_bridge;
 
-select pg_catalog.pg_get_userbyid(c.relowner)='crowrules_policy_owner'
-  as current_view_has_restricted_owner
-from pg_catalog.pg_class c
-join pg_catalog.pg_namespace n on n.oid=c.relnamespace
-where n.nspname='public' and c.relname='policy_current_versions';
+select (
+  pg_catalog.pg_get_userbyid(p.proowner)='crowrules_policy_owner'
+  and p.prosecdef
+  and coalesce(array_to_string(p.proconfig,','),'') like '%search_path=""%'
+) as current_discovery_rpc_has_restricted_owner
+from pg_catalog.pg_proc p
+join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+where n.nspname='public' and p.proname='get_current_policy_versions';
+
+select (
+  pg_catalog.pg_get_userbyid(p.proowner)='crowrules_policy_owner'
+  and p.prosecdef
+  and coalesce(array_to_string(p.proconfig,','),'') like '%search_path=""%'
+) as history_discovery_rpc_has_restricted_owner
+from pg_catalog.pg_proc p
+join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+where n.nspname='public' and p.proname='get_published_policy_history';
+
+select pg_catalog.has_function_privilege('anon','public.get_current_policy_versions()','EXECUTE')
+  as anon_can_execute_current_discovery;
+select pg_catalog.has_function_privilege('authenticated','public.get_current_policy_versions()','EXECUTE')
+  as member_can_execute_current_discovery;
+select not pg_catalog.has_function_privilege('service_role','public.get_current_policy_versions()','EXECUTE')
+  as service_role_cannot_execute_current_discovery;
+select pg_catalog.has_function_privilege('anon','public.get_published_policy_history()','EXECUTE')
+  as anon_can_execute_history_discovery;
+select pg_catalog.has_function_privilege('authenticated','public.get_published_policy_history()','EXECUTE')
+  as member_can_execute_history_discovery;
+select not pg_catalog.has_function_privilege('service_role','public.get_published_policy_history()','EXECUTE')
+  as service_role_cannot_execute_history_discovery;
+
+select to_regclass('public.policy_current_versions') is null
+   and to_regclass('public.policy_published_history') is null
+  as no_security_definer_discovery_views_remain;
 
 select not exists (
   select 1
@@ -187,19 +216,19 @@ select set_config('test.reconcile_new_id', :'reconcile_new_id', true);
 
 set local role anon;
 select count(*)=1 as anonymous_can_read_current_version_contract
-from public.policy_current_versions
+from public.get_current_policy_versions()
 where document_id=:'reconcile_doc_id'::uuid
   and policy_version_id=:'reconcile_new_id'::uuid;
 reset role;
 
 
 select count(*)=1 as current_view_selects_only_latest_published
-from public.policy_current_versions
+from public.get_current_policy_versions()
 where document_id=:'reconcile_doc_id'::uuid
   and policy_version_id=:'reconcile_new_id'::uuid;
 
 select count(*)=1 as history_marks_old_version_superseded
-from public.policy_published_history
+from public.get_published_policy_history()
 where policy_version_id=:'reconcile_old_id'::uuid
   and history_state='superseded'
   and document_state='active';
@@ -229,23 +258,23 @@ reset role;
 -- historical only and the document state is explicitly withdrawn.
 set local role anon;
 select count(*)=0 as anonymous_current_view_hides_withdrawn_document
-from public.policy_current_versions
+from public.get_current_policy_versions()
 where document_id=:'reconcile_doc_id'::uuid;
 select count(*)=0 as anonymous_base_read_hides_withdrawn_content
 from public.policy_versions
 where id=:'reconcile_new_id'::uuid;
 select count(*)=1 as anonymous_history_marks_document_withdrawn
-from public.policy_published_history
+from public.get_published_policy_history()
 where policy_version_id=:'reconcile_old_id'::uuid
   and document_state='withdrawn';
 reset role;
 
 select count(*)=0 as withdrawn_latest_has_no_current_version
-from public.policy_current_versions
+from public.get_current_policy_versions()
 where document_id=:'reconcile_doc_id'::uuid;
 
 select count(*)=1 as prior_published_version_marked_historical_after_withdrawal
-from public.policy_published_history
+from public.get_published_policy_history()
 where policy_version_id=:'reconcile_old_id'::uuid
   and history_state='superseded'
   and document_state='withdrawn';
@@ -300,7 +329,7 @@ select public.policy_admin_publish_version(:'future_version_id'::uuid);
 reset role;
 
 select count(*)=0 as future_replacement_is_not_current_early
-from public.policy_current_versions
+from public.get_current_policy_versions()
 where document_id=:'reconcile_doc_id'::uuid;
 
 set local role authenticated;
@@ -337,7 +366,7 @@ select public.policy_admin_publish_version(:'effective_version_id'::uuid);
 reset role;
 
 select count(*)=1 as effective_replacement_is_current
-from public.policy_current_versions
+from public.get_current_policy_versions()
 where document_id=:'reconcile_doc_id'::uuid
   and policy_version_id=:'effective_version_id'::uuid;
 
