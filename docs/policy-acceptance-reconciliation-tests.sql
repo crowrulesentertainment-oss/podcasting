@@ -131,6 +131,11 @@ select not pg_catalog.has_function_privilege(
   'crowrules_policy_private.current_user_id_impl()',
   'EXECUTE'
 ) as anon_cannot_execute_identity_bridge;
+select not pg_catalog.has_function_privilege(
+  'service_role',
+  'crowrules_policy_private.current_user_id_impl()',
+  'EXECUTE'
+) as service_role_cannot_execute_identity_bridge;
 
 select pg_catalog.pg_get_userbyid(c.relowner)='crowrules_policy_owner'
   as current_view_has_restricted_owner
