@@ -331,7 +331,7 @@ Deno.serve(async (req: Request) => {
       db.from("podcast_creator_daily_consents").select("user_id", { count: "exact", head: true }),
       db.from("podcast_creator_daily_consents").select("user_id", { count: "exact", head: true }).eq("consented", true).not("consent_at", "is", null).not("consent_source", "is", null).is("unsubscribed_at", null),
       db.from("podcast_creator_daily_consents").select("user_id", { count: "exact", head: true }).not("unsubscribed_at", "is", null),
-      db.from("podcast_marketing_unsubscribe_tokens").select("token_hash", { count: "exact", head: true }),
+      db.from("podcast_creator_daily_unsubscribe_tokens").select("token_hash", { count: "exact", head: true }),
       db.from("podcast_creator_daily_editions").select("id", { count: "exact", head: true }),
     ]);
     const liveEligible = await getOptedInCreators(db);
@@ -396,8 +396,8 @@ Deno.serve(async (req: Request) => {
     };
 
     const [consentCheck, tokenCheck, campaignCheck, deliveryCheck] = await Promise.all([
-      db.from("podcast_creator_daily_consents").select("user_id,consented,consent_at,consent_source,unsubscribe_token_hash,unsubscribed_at", { count: "exact", head: true }),
-      db.from("podcast_marketing_unsubscribe_tokens").select("token_hash,user_id,used_at", { count: "exact", head: true }),
+      db.from("podcast_creator_daily_consents").select("user_id,consented,consent_at,consent_source,unsubscribed_at", { count: "exact", head: true }),
+      db.from("podcast_creator_daily_unsubscribe_tokens").select("token_hash,user_id,used_at", { count: "exact", head: true }),
       db.from("podcast_email_campaigns").select("id", { count: "exact", head: true }),
       db.from("podcast_email_campaign_deliveries").select("id", { count: "exact", head: true }),
     ]);
