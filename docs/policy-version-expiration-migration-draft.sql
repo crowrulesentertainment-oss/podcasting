@@ -41,13 +41,21 @@ begin
   if row(
     new.document_id, new.version_label, new.content_url,
     new.content_sha256, new.requires_acceptance, new.effective_at,
-    new.expires_at, new.created_at
+    new.created_at
   ) is distinct from row(
     old.document_id, old.version_label, old.content_url,
     old.content_sha256, old.requires_acceptance, old.effective_at,
-    old.expires_at, old.created_at
+    old.created_at
   ) then
     raise exception 'Policy version content is immutable; create a new version'
+      using errcode = '55000';
+  end if;
+
+  -- Administrators may set or correct the scheduled expiry while a version
+  -- is still draft. Once published, expiration is immutable.
+  if old.status in ('published', 'withdrawn')
+     and new.expires_at is distinct from old.expires_at then
+    raise exception 'Published policy expiration is immutable; create a new version'
       using errcode = '55000';
   end if;
 
