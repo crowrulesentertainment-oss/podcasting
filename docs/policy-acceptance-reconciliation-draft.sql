@@ -276,7 +276,7 @@ $membership$;
 create or replace view public.policy_current_versions
 with (security_barrier = true)
 as
-with latest as (
+with latest as materialized (
   select distinct on (v.document_id)
     v.document_id, v.id, v.version_label, v.content_url, v.content_sha256,
     v.requires_acceptance, v.status, v.effective_at, v.published_at, v.expires_at
@@ -310,7 +310,7 @@ where latest.status = 'published'
 create or replace view public.policy_published_history
 with (security_barrier = true)
 as
-with latest as (
+with latest as materialized (
   select distinct on (v.document_id)
     v.document_id, v.id, v.status, v.expires_at
   from public.policy_versions v
@@ -432,7 +432,7 @@ begin
 
   -- Latest effective withdrawn required version blocks completion. Never
   -- filter withdrawn rows before selecting the latest candidate.
-  with latest as (
+  with latest as materialized (
     select distinct on (v.document_id)
       v.document_id, v.id, v.status, v.requires_acceptance, v.expires_at
     from public.policy_versions v
@@ -454,7 +454,7 @@ begin
 
   -- Latest effective expired required version blocks completion. A future
   -- replacement does not become current until its effective_at is reached.
-  with latest as (
+  with latest as materialized (
     select distinct on (v.document_id)
       v.document_id, v.id, v.status, v.requires_acceptance, v.expires_at
     from public.policy_versions v
@@ -477,7 +477,7 @@ begin
       using errcode = '22023';
   end if;
 
-  with latest as (
+  with latest as materialized (
     select distinct on (v.document_id)
       v.document_id, v.id, v.status, v.requires_acceptance, v.expires_at
     from public.policy_versions v
@@ -493,7 +493,7 @@ begin
     and requires_acceptance is true
     and (expires_at is null or expires_at > transaction_timestamp());
 
-  with latest as (
+  with latest as materialized (
     select distinct on (v.document_id)
       v.document_id, v.id, v.status, v.requires_acceptance, v.expires_at
     from public.policy_versions v
