@@ -116,6 +116,10 @@ select pg_catalog.has_function_privilege(
   'EXECUTE'
 ) as owner_can_execute_identity_bridge;
 
+select not pg_catalog.has_schema_privilege(
+  'crowrules_policy_owner','auth','USAGE'
+) as restricted_owner_has_no_auth_schema_usage;
+
 select not pg_catalog.has_function_privilege(
   'authenticated',
   'crowrules_policy_private.current_user_id_impl()',
