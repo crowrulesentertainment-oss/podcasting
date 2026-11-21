@@ -27,12 +27,10 @@ do $role$
 declare
   v_role oid;
   v_executor oid;
-  v_created boolean := false;
 begin
   if not exists (select 1 from pg_catalog.pg_roles where rolname = 'crowrules_policy_owner') then
     create role crowrules_policy_owner
       nologin nosuperuser nocreatedb nocreaterole noinherit noreplication nobypassrls;
-    v_created := true;
   end if;
 
   select oid into v_role
@@ -50,12 +48,20 @@ begin
     raise exception 'crowrules_policy_owner must not be a member of another role';
   end if;
 
-  if exists (
+  if (
+    select count(*) from pg_catalog.pg_auth_members m
+    where m.roleid = v_role
+  ) > 1 or exists (
     select 1 from pg_catalog.pg_auth_members m
     where m.roleid = v_role
-      and (not v_created or m.member <> v_executor)
+      and (
+        m.member <> v_executor
+        or not m.admin_option
+        or m.inherit_option
+        or m.set_option
+      )
   ) then
-    raise exception 'crowrules_policy_owner has unexpected role members';
+    raise exception 'crowrules_policy_owner may only have the restricted CREATEROLE executor membership';
   end if;
 end
 $role$;
@@ -289,7 +295,7 @@ begin
        select 1 from pg_catalog.pg_roles
        where rolname = current_user and rolsuper
      ) then
-    execute format('grant crowrules_policy_owner to %I with set true', current_user);
+    execute format('grant crowrules_policy_owner to %I with inherit false, set true', current_user);
   end if;
 end
 $membership$;
