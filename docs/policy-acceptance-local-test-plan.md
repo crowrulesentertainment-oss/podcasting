@@ -26,7 +26,7 @@ The test-only helper returns admin authorization only when the synthetic JWT rol
 - Client roles have no direct acceptance INSERT/UPDATE/DELETE. Authenticated members can read only their own rows; anon and service_role have no ledger read grant. The restricted non-login owner has internal SELECT/INSERT only for the idempotent acceptance operation. The ledger remains append-only.
 - Policy acceptance and lifecycle RPCs require READ COMMITTED isolation. Stronger isolation is rejected rather than risking a stale transaction snapshot after a lock wait.
 - The catalog sentinel is locked first to serialize document-set membership. Then all parent documents are locked in ascending UUID order, followed by version rows ordered by parent ID and version ID. Document creation locks the same sentinel before inserting a new parent.
-- Current discovery uses `public.policy_current_versions`; historical published display uses `public.policy_published_history`. Clients must not infer current policy by sorting the raw version list.
+- Current discovery uses `public.get_current_policy_versions()`; historical published display uses `public.get_published_policy_history()`. Clients must not infer current policy by sorting the raw version list.
 
 ## Repeatable CI execution
 
