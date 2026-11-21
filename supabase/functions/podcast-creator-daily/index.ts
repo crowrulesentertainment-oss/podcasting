@@ -70,7 +70,7 @@ async function loadDigestContent(db: any, recipientUserId: string) {
       .eq("status", "published").or("starts_at.is.null,starts_at.lte." + nowIso)
       .or("ends_at.is.null,ends_at.gt." + nowIso).order("starts_at", { ascending: false }).limit(8),
     db.from("podcasts").select("title,description,author_name,slug,artwork_url")
-      .eq("status", "published").eq("is_featured", true).order("published_at", { ascending: false }).limit(5),
+      .eq("status", "published").eq("is_featured", true).order("created_at", { ascending: false }).limit(5),
     db.from("community_announcements").select("title,organization_name,summary,link_url,created_at")
       .eq("status", "published").order("created_at", { ascending: false }).limit(8),
     db.from("community_events").select("title,description,event_type,starts_at,location,event_url")
