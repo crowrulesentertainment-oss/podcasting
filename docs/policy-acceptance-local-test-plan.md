@@ -20,6 +20,11 @@ The job runs for pull requests that change the migration, harness, or workflow, 
 
 The harness output is checked for any boolean assertion returning false, in addition to stopping on SQL errors. A green workflow means the migration applied and all boolean smoke assertions passed against that disposable PostgreSQL database. It does not replace the additional negative/lifecycle tests listed above, a full Supabase local-stack run, or a review of Supabase-specific advisors and Data API exposure settings.
 
+
+The expanded CI suite is in `docs/policy-acceptance-negative-lifecycle-tests.sql`. It runs after the smoke harness in the same disposable PostgreSQL job and rolls back its fixtures. It covers duplicate document keys and version labels, malformed checksums/URLs/labels, empty/unknown/draft/withdrawn/future/superseded/duplicate/incomplete RPC submissions, valid draft → published → withdrawn transitions, rejected reverse transitions, and immutable version content fields.
+
+**Schema limitation:** the current `policy_versions` table has no `expires_at` or validity-end column. An "expired" version therefore cannot be represented or tested independently yet. The suite does test a not-yet-effective future version. If policy expiry becomes a requirement, add an explicit expiry field and define how it affects current-version selection before adding that test.
+
 ## SQL harness
 
 Run `psql` using the local database URL printed by `supabase status`, for example: `psql '<local-db-url>' -v member_a='<member-a-uuid>' -v member_b='<member-b-uuid>' -f docs/policy-acceptance-local-tests.sql`. Replace the placeholder UUIDs with the two disposable local Auth users. The harness opens a transaction and rolls back its policy fixtures. The CLI v3 default is local; do not run hosted/remote commands for this test.
