@@ -162,7 +162,7 @@ No production migration, production schema/grant/RLS/configuration change, polic
 
 ## Phase 1E disposable validation results (2026-11-21)
 
-- PostgreSQL 16 disposable service tests passed, including RLS, ledger writes, idempotency, lifecycle/immutability, expiry boundaries, current/history RPCs, identity-bridge privileges, READ COMMITTED enforcement, and two-session concurrency with catalog-sentinel phantom prevention.
+- Final CI run [#44886646065](https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/44886646065) completed successfully. PostgreSQL 16 disposable service tests passed, including RLS, ledger writes, idempotency, lifecycle/immutability, expiry boundaries, current/history RPCs, identity-bridge privileges, READ COMMITTED enforcement, and two-session concurrency with catalog-sentinel phantom prevention.
 - Isolated local Supabase tests passed the full migration chain via supabase db reset, migration-history verification, synthetic Auth tests, the same SQL and concurrency suites, and supabase db advisors.
 - The Supabase security advisor returned No issues found after replacing security-definer views with fixed-search-path discovery RPCs.
 - CI generated the timestamped reconciliation migration using supabase migration new in a disposable project. The resulting migration is committed on the implementation branch at supabase/migrations/20261121084611_policy_acceptance_reconciliation.sql. CI applies that committed file in the PostgreSQL 16 job and compares the CLI-generated local Supabase migration byte-for-byte with it.
