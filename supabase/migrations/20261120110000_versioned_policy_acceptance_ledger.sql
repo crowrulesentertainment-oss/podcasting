@@ -166,9 +166,15 @@ for each row execute function public.guard_policy_version_revision();
 
 -- Accept the complete set of currently effective required versions in one
 -- authenticated action. The caller cannot choose another member or timestamp.
--- Keep the privileged insert routine in the non-exposed private schema.
+-- Keep the privileged insert routine in a dedicated non-exposed schema.
+-- Add this schema to the project's exposed Data API schemas only if explicitly reviewed;
+-- it must remain non-exposed for the public wrapper to be the only API entry point.
+create schema if not exists crowrules_policy_private authorization postgres;
+revoke all on schema crowrules_policy_private from public, anon;
+grant usage on schema crowrules_policy_private to authenticated;
+
 -- The public RPC is SECURITY INVOKER and is only an authenticated entry point.
-create or replace function private.accept_current_required_policy_versions_impl(
+create or replace function crowrules_policy_private.accept_current_required_policy_versions_impl(
   p_policy_version_ids uuid[]
 )
 returns integer
@@ -247,10 +253,10 @@ begin
 end;
 $function$;
 
-revoke all on function private.accept_current_required_policy_versions_impl(uuid[])
+revoke all on function crowrules_policy_private.accept_current_required_policy_versions_impl(uuid[])
   from public, anon;
 grant usage on schema private to authenticated;
-grant execute on function private.accept_current_required_policy_versions_impl(uuid[])
+grant execute on function crowrules_policy_private.accept_current_required_policy_versions_impl(uuid[])
   to authenticated;
 
 create or replace function public.accept_current_required_policy_versions(
@@ -261,7 +267,7 @@ language sql
 security invoker
 set search_path = ''
 as $function$
-  select private.accept_current_required_policy_versions_impl(p_policy_version_ids);
+  select crowrules_policy_private.accept_current_required_policy_versions_impl(p_policy_version_ids);
 $function$;
 
 revoke all on function public.accept_current_required_policy_versions(uuid[])
