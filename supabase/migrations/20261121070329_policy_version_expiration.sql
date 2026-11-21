@@ -6,7 +6,7 @@
 -- Semantics:
 --   * NULL expires_at means no scheduled expiry.
 --   * expires_at must be later than effective_at.
---   * The latest effective published version wins, even when expired.
+--   * The latest effective published or withdrawn version is authoritative; withdrawn versions prevent fallback.
 --   * An expired latest required version blocks acceptance until a replacement is effective.
 --   * An expired newer version never causes an older version to become current again.
 --   * Expired published content remains readable as historical policy content.
@@ -132,10 +132,10 @@ begin
     select latest.id
     from public.policy_documents d
     cross join lateral (
-      select v.id, v.requires_acceptance, v.expires_at
+      select v.id, v.status, v.requires_acceptance, v.expires_at
       from public.policy_versions v
       where v.document_id = d.id
-        and v.status = 'published'
+        and v.status in ('published', 'withdrawn')
         and v.effective_at <= now()
       order by v.effective_at desc, v.published_at desc, v.id
       limit 1
