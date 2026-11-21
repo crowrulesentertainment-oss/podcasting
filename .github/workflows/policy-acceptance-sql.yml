@@ -64,7 +64,7 @@ jobs:
           returns uuid
           language sql
           stable
-          as $$
+          as $$$
             select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
           $$;
           create or replace function private.crowrules_is_admin_impl()
@@ -73,9 +73,9 @@ jobs:
           stable
           security definer
           set search_path = ''
-          as $
+          as $$
             select current_setting('request.jwt.claim.role', true) = 'admin'
-          $;
+          $$;
           grant usage on schema auth to anon, authenticated;
           grant execute on function auth.uid() to anon, authenticated;
           SQL
@@ -253,9 +253,9 @@ jobs:
           stable
           security definer
           set search_path = ''
-          as $
+          as $$
             select current_setting('request.jwt.claim.role', true) = 'admin'
-          $;
+          $$;
           SQL
 
       - name: Apply policy reconciliation candidate to disposable local Supabase
