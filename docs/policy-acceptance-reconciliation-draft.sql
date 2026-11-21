@@ -64,6 +64,17 @@ begin
   if to_regprocedure('private.crowrules_is_admin_impl()') is null then
     raise exception 'Required existing admin authorization helper private.crowrules_is_admin_impl() is missing';
   end if;
+
+  if exists (
+    select 1
+    from pg_catalog.pg_class c
+    join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public'
+      and c.relname in ('policy_documents', 'policy_versions', 'policy_acceptances')
+      and c.relowner = v_role
+  ) then
+    raise exception 'crowrules_policy_owner must not own the policy tables; owned views rely on RLS';
+  end if;
 end
 $role_check$;
 
@@ -798,12 +809,12 @@ $function$;
 -- ---------------------------------------------------------------------------
 
 grant create on schema crowrules_policy_private to crowrules_policy_owner;
+grant create on schema public to crowrules_policy_owner;
 
 alter function crowrules_policy_private.accept_current_required_policy_versions_impl(uuid[])
   owner to crowrules_policy_owner;
 
-alter function public.accept_current_required_policy_versions(uuid[])
-  security definer;
+
 alter function public.accept_current_required_policy_versions(uuid[])
   owner to crowrules_policy_owner;
 
@@ -818,6 +829,7 @@ alter function public.policy_admin_publish_version(uuid)
 alter function public.policy_admin_withdraw_version(uuid)
   owner to crowrules_policy_owner;
 
+revoke create on schema public from crowrules_policy_owner;
 revoke create on schema crowrules_policy_private from crowrules_policy_owner;
 
 revoke all on function crowrules_policy_private.accept_current_required_policy_versions_impl(uuid[])
