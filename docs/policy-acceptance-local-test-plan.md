@@ -51,7 +51,7 @@ The workflow has no project reference, hosted credentials, remote database conne
 - Published content and expiry are immutable; withdrawn rows cannot be republished.
 - The public wrapper is executable by authenticated and not anon; the private schema/helper is unavailable to client roles.
 - Wrapper/helper owners, SECURITY DEFINER/INVOKER modes, fixed search paths, role attributes, RLS, and grants are inspected.
-- Direct acceptance ledger writes fail; members can read only their own acceptance rows; duplicate acceptance is idempotent and preserves the original accepted timestamp.
+- Direct acceptance ledger writes fail; members can read only their own acceptance rows; duplicate acceptance is idempotent and preserves the original accepted timestamp. The restricted function owner has INSERT plus column-level SELECT only on `(user_id, policy_version_id)` for `ON CONFLICT`; it cannot read `accepted_at` or `acceptance_context`.
 - Admin lifecycle RPCs reject non-admin synthetic members.
 - Acceptance and lifecycle calls reject non-READ COMMITTED isolation.
 - Two-session tests cover acceptance-first vs withdrawal, withdrawal-first vs acceptance, publication-first vs stale acceptance, and multi-document calls supplied in opposite orders.
