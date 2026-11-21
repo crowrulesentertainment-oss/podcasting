@@ -17,7 +17,7 @@ The test-only helper returns admin authorization only when the synthetic JWT rol
 
 ## Security model under test
 
-- `crowrules_policy_owner` is a dedicated NOLOGIN, NOINHERIT, NOBYPASSRLS role with no role memberships. It must not own the policy tables.
+- `crowrules_policy_owner` is a dedicated NOLOGIN, NOINHERIT, NOBYPASSRLS role with no role memberships at rest. The migration may temporarily grant its executor the SET ROLE option for ownership transfer, then revokes that membership before commit; the test asserts no membership remains. It must not own the policy tables.
 - The public member acceptance wrapper is SECURITY DEFINER, owned by `crowrules_policy_owner`, and has an empty search path. It validates `auth.uid()` before delegating.
 - The private implementation in `crowrules_policy_private` is SECURITY INVOKER, owned by the same restricted role. PUBLIC, anon, authenticated, and service_role have no schema USAGE or helper EXECUTE.
 - The public wrapper is the only member acceptance write path. Admin lifecycle RPCs are separately granted to authenticated users and authorize through the existing `private.crowrules_is_admin_impl()` helper.
