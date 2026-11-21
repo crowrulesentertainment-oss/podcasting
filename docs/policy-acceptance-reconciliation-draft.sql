@@ -284,12 +284,12 @@ grant create on schema public to crowrules_policy_owner;
 -- membership is revoked after all ownership changes are complete.
 do $membership$
 begin
-  if not pg_catalog.pg_has_role(current_user, 'crowrules_policy_owner', 'MEMBER')
+  if not pg_catalog.pg_has_role(current_user, 'crowrules_policy_owner', 'SET')
      and not exists (
        select 1 from pg_catalog.pg_roles
        where rolname = current_user and rolsuper
      ) then
-    execute format('grant crowrules_policy_owner to %I', current_user);
+    execute format('grant crowrules_policy_owner to %I with set true', current_user);
   end if;
 end
 $membership$;
