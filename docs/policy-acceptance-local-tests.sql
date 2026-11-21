@@ -47,6 +47,21 @@ select not has_table_privilege('anon','public.policy_acceptances','SELECT') as a
 select not has_function_privilege('anon','public.accept_current_required_policy_versions(uuid[])','EXECUTE') as anon_cannot_execute_acceptance_rpc;
 reset role;
 
+-- An authenticated database role without a JWT subject must not accept.
+set local role authenticated;
+select set_config('request.jwt.claim.sub','',true);
+do $
+begin
+  begin
+    perform public.accept_current_required_policy_versions(
+      array[current_setting('test.version_id')::uuid]
+    );
+    raise exception 'SECURITY FAILURE: RPC accepted a request without auth.uid()';
+  exception when sqlstate '28000' then null;
+  end;
+end $;
+reset role;
+
 -- Member A accepts. The RPC derives identity from auth.uid().
 set local role authenticated;
 select set_config('request.jwt.claim.sub',current_setting('test.member_a'),true);
