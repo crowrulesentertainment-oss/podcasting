@@ -55,6 +55,7 @@ The workflow has no project reference, hosted credentials, remote database conne
 - Admin lifecycle RPCs reject non-admin synthetic members.
 - Acceptance and lifecycle calls reject non-READ COMMITTED isolation.
 - Two-session tests cover acceptance-first vs withdrawal, withdrawal-first vs acceptance, publication-first vs stale acceptance, and multi-document calls supplied in opposite orders.
+- The catalog-sentinel phantom test holds the catalog lock while an admin transaction creates and publishes a new required document; acceptance must wait, observe the expanded required set, reject the incomplete submission, and insert no partial acceptance.
 - The local Supabase job confirms the private implementation schema is not listed among exposed Data API schemas.
 
 ## Running locally
