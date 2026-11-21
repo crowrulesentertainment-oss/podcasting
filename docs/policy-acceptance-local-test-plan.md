@@ -11,6 +11,15 @@ Status: prepared, not executed. Do not run against production or a shared Supaba
 5. Create two disposable Auth users (Member A and Member B) in local Studio/Auth. Use their UUIDs in the SQL harness placeholders.
 6. Confirm the local database has the three policy tables, RLS enabled, the public wrapper, and the dedicated non-exposed `crowrules_policy_private` implementation function. Confirm `crowrules_policy_private` is not listed as an exposed Data API schema.
 
+
+## Repeatable CI execution
+
+The repository includes `.github/workflows/policy-acceptance-sql.yml`. It starts a disposable PostgreSQL 16 service inside GitHub Actions, bootstraps only the minimal Supabase-compatible database roles and `auth.users` / `auth.uid()` objects required by this migration, applies the migration, inserts two synthetic Auth identities, and runs the SQL harness.
+
+The job runs for pull requests that change the migration, harness, or workflow, and can also be started manually with `workflow_dispatch`. It is isolated from Supabase projects: it has no project reference, Supabase credentials, production secrets, deployment steps, or remote database connection.
+
+The harness output is checked for any boolean assertion returning false, in addition to stopping on SQL errors. A green workflow means the migration applied and all boolean smoke assertions passed against that disposable PostgreSQL database. It does not replace the additional negative/lifecycle tests listed above, a full Supabase local-stack run, or a review of Supabase-specific advisors and Data API exposure settings.
+
 ## SQL harness
 
 Run `psql` using the local database URL printed by `supabase status`, for example: `psql '<local-db-url>' -v member_a='<member-a-uuid>' -v member_b='<member-b-uuid>' -f docs/policy-acceptance-local-tests.sql`. Replace the placeholder UUIDs with the two disposable local Auth users. The harness opens a transaction and rolls back its policy fixtures. The CLI v3 default is local; do not run hosted/remote commands for this test.
