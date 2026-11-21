@@ -32,9 +32,6 @@ begin
 end
 $role$;
 
-alter role crowrules_policy_owner
-  nologin nosuperuser nocreatedb nocreaterole noinherit noreplication nobypassrls;
-
 do $role_check$
 declare
   v_role oid;
