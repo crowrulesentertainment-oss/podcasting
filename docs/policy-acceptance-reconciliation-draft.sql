@@ -101,7 +101,7 @@ begin
 end
 $role_check$;
 
-grant usage on schema public, auth, private, crowrules_policy_private
+grant usage on schema public, private, crowrules_policy_private
   to crowrules_policy_owner;
 
 -- A catalog sentinel prevents a document from being inserted concurrently
@@ -125,7 +125,32 @@ grant update (singleton) on crowrules_policy_private.policy_catalog_guard
 revoke all on crowrules_policy_private.policy_catalog_guard
   from public, anon, authenticated, service_role;
 
-grant execute on function auth.uid() to crowrules_policy_owner;
+-- Supabase's auth schema is owned outside this migration role. Keep the
+-- identity lookup behind a private SECURITY DEFINER bridge owned by the
+-- migration executor; the acceptance implementation itself remains INVOKER.
+do $identity_preflight$
+begin
+  if not pg_catalog.has_schema_privilege(current_user, 'auth', 'USAGE')
+     or not pg_catalog.has_function_privilege(current_user, 'crowrules_policy_private.current_user_id_impl()', 'EXECUTE') then
+    raise exception 'Migration executor must be able to call the Auth identity function';
+  end if;
+end
+$identity_preflight$;
+
+create or replace function crowrules_policy_private.current_user_id_impl()
+returns uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $
+  select auth.uid()
+$;
+revoke all on function crowrules_policy_private.current_user_id_impl()
+  from public, anon, authenticated, service_role;
+grant execute on function crowrules_policy_private.current_user_id_impl()
+  to crowrules_policy_owner;
+
 grant execute on function private.crowrules_is_admin_impl()
   to crowrules_policy_owner;
 
@@ -412,7 +437,7 @@ security invoker
 set search_path = ''
 as $function$
 declare
-  v_user_id uuid := auth.uid();
+  v_user_id uuid := crowrules_policy_private.current_user_id_impl();
   v_withdrawn_required_exists boolean;
   v_expired_required_exists boolean;
   v_required_count integer;
@@ -571,7 +596,7 @@ security definer
 set search_path = ''
 as $function$
 declare
-  v_user_id uuid := auth.uid();
+  v_user_id uuid := crowrules_policy_private.current_user_id_impl();
 begin
   if v_user_id is null then
     raise exception 'Authentication required'
@@ -603,7 +628,7 @@ as $function$
 declare
   v_id uuid;
 begin
-  if auth.uid() is null
+  if crowrules_policy_private.current_user_id_impl() is null
      or not coalesce(private.crowrules_is_admin_impl(), false) then
     raise exception 'ADMIN_AUTH_REQUIRED' using errcode = '42501';
   end if;
@@ -645,7 +670,7 @@ declare
   v_document_id uuid;
   v_id uuid;
 begin
-  if auth.uid() is null
+  if crowrules_policy_private.current_user_id_impl() is null
      or not coalesce(private.crowrules_is_admin_impl(), false) then
     raise exception 'ADMIN_AUTH_REQUIRED' using errcode = '42501';
   end if;
@@ -695,7 +720,7 @@ as $function$
 declare
   v_document_id uuid;
 begin
-  if auth.uid() is null
+  if crowrules_policy_private.current_user_id_impl() is null
      or not coalesce(private.crowrules_is_admin_impl(), false) then
     raise exception 'ADMIN_AUTH_REQUIRED' using errcode = '42501';
   end if;
@@ -754,7 +779,7 @@ as $function$
 declare
   v_document_id uuid;
 begin
-  if auth.uid() is null
+  if crowrules_policy_private.current_user_id_impl() is null
      or not coalesce(private.crowrules_is_admin_impl(), false) then
     raise exception 'ADMIN_AUTH_REQUIRED' using errcode = '42501';
   end if;
@@ -808,7 +833,7 @@ as $function$
 declare
   v_document_id uuid;
 begin
-  if auth.uid() is null
+  if crowrules_policy_private.current_user_id_impl() is null
      or not coalesce(private.crowrules_is_admin_impl(), false) then
     raise exception 'ADMIN_AUTH_REQUIRED' using errcode = '42501';
   end if;
