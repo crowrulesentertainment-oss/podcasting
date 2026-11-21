@@ -90,7 +90,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     // Brevo creates email campaigns in draft status by default. Recipients and
-    // scheduling are deliberately omitted. Never add sendNow or scheduledAt here.
+    // Scheduling is deliberately omitted; this handler has no dispatch capability.
     const created = await brevoRequest(brevoKey, "/emailCampaigns", {
       method: "POST",
       body: JSON.stringify({
