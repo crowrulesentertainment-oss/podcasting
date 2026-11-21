@@ -153,6 +153,7 @@ revoke insert, update, delete, truncate, references, trigger
 
 revoke all on public.policy_acceptances
   from public, anon, authenticated, service_role;
+grant insert, select on public.policy_acceptances to crowrules_policy_owner;
 grant select on public.policy_acceptances to authenticated;
 
 -- Keep the private schema and helper unavailable to every API/client role.
