@@ -46,7 +46,6 @@ select id as future_version from public.policy_versions where document_id=:'futu
 select id as replacement_current from public.policy_versions where document_id=:'replacement_doc'::uuid and version_label='replacement-current' \gset
 select id as resurrection_old from public.policy_versions where document_id=:'resurrection_doc'::uuid and version_label='resurrection-old-required' \gset
 
--- Invalid expiration must be later than effective_at.
 select pg_temp.assert_sqlstate(
  format('insert into public.policy_versions(document_id,version_label,content_url,content_sha256,requires_acceptance,status,effective_at,published_at,expires_at) values (%L,%L,%L,%L,true,''published'',now(),now(),now())',:'no_end_doc','invalid-expiry','https://example.invalid/invalid-expiry',repeat('3',64)),
  '23514','expiration must follow effective date'
@@ -60,8 +59,8 @@ select set_config('test.expiry_resurrection_old', :'resurrection_old', true);
 set local role authenticated;
 select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',true);
 
--- First prove the valid acceptance set succeeds before introducing an
--- expired required policy into the synthetic dataset.
+-- No-expiry and future-expiry versions remain valid; the effective replacement
+-- supersedes its expired predecessor.
 do $test$
 declare v_count integer;
 begin
@@ -74,8 +73,26 @@ begin
 end
 $test$;
 
--- Introduce an expired latest required version with only a future-effective
--- replacement. It must block the next acceptance attempt.
+-- An expired newer optional version supersedes the old required version;
+-- the old required version must not be resurrected into the acceptance set.
+do $test$
+declare v_count integer;
+begin
+  v_count := public.accept_current_required_policy_versions(array[
+    current_setting('test.expiry_no_end_version')::uuid,
+    current_setting('test.expiry_future_version')::uuid,
+    current_setting('test.expiry_replacement_current')::uuid
+  ]);
+  if v_count <> 0 then raise exception 'Repeated exact acceptance should be idempotent'; end if;
+  if exists (
+    select 1 from public.policy_acceptances
+    where policy_version_id=current_setting('test.expiry_resurrection_old')::uuid
+  ) then raise exception 'Expired newer optional version revived old required version'; end if;
+end
+$test$;
+
+-- Add an expired latest required version with only a future-effective replacement.
+-- It must block subsequent acceptance until that replacement becomes effective.
 reset role;
 insert into public.policy_versions(document_id,version_label,content_url,content_sha256,requires_acceptance,status,effective_at,published_at,expires_at)
 values
@@ -102,32 +119,12 @@ begin
 end
 $test$;
 
--- The expired newer optional version supersedes the old required version;
--- the old required version must not be resurrected into the acceptance set.
-do $test$
-declare v_count integer;
-begin
-  v_count := public.accept_current_required_policy_versions(array[
-    current_setting('test.expiry_no_end_version')::uuid,
-    current_setting('test.expiry_future_version')::uuid,
-    current_setting('test.expiry_replacement_current')::uuid
-  ]);
-  if v_count <> 0 then raise exception 'Repeated exact acceptance should be idempotent'; end if;
-  if exists (
-    select 1 from public.policy_acceptances
-    where policy_version_id=current_setting('test.expiry_resurrection_old')::uuid
-  ) then raise exception 'Expired newer optional version revived old required version'; end if;
-end
-$test$;
-
--- Expiration is part of immutable published version metadata.
 reset role;
 select pg_temp.assert_sqlstate(
  format('update public.policy_versions set expires_at=now()+interval ''30 days'' where id=%L',:'replacement_current'),
  '55000','published expiration immutable'
 );
 
--- Existing acceptance history is not rewritten or removed by expiration.
 do $test$
 begin
   if not exists (
