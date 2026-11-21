@@ -874,12 +874,19 @@ revoke create on schema crowrules_policy_private from crowrules_policy_owner;
 
 do $membership_cleanup$
 begin
-  if pg_catalog.pg_has_role(current_user, 'crowrules_policy_owner', 'MEMBER')
+  if pg_catalog.pg_has_role(current_user, 'crowrules_policy_owner', 'SET')
      and not exists (
        select 1 from pg_catalog.pg_roles
        where rolname = current_user and rolsuper
      ) then
-    execute format('revoke crowrules_policy_owner from %I', current_user);
+    -- Revoke only the temporary SET-capable grant made by this migration
+    -- executor. PostgreSQL 16+ retains its automatic ADMIN-only CREATEROLE
+    -- membership (INHERIT FALSE, SET FALSE) on the role it created.
+    execute format(
+      'revoke crowrules_policy_owner from %I granted by %I',
+      current_user,
+      current_user
+    );
   end if;
 end
 $membership_cleanup$;
