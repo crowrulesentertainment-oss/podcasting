@@ -59,29 +59,25 @@ select not pg_catalog.pg_has_role('authenticated','crowrules_policy_owner','SET'
 select not pg_catalog.pg_has_role('anon','crowrules_policy_owner','SET')
   as anon_cannot_set_restricted_owner_role;
 
-select case
-  when (select r.rolsuper from pg_catalog.pg_roles r where r.rolname=session_user)
-    then not exists (
-      select 1 from pg_catalog.pg_auth_members m
-      where m.roleid=(select oid from pg_catalog.pg_roles where rolname='crowrules_policy_owner')
+select (
+  count(*)=0
+  or (
+    count(*)=1
+    and bool_and(
+      exists (
+        select 1 from pg_catalog.pg_roles executor
+        where executor.oid=m.member
+          and executor.rolcreaterole
+          and not executor.rolsuper
+      )
+      and m.admin_option
+      and not m.inherit_option
+      and not m.set_option
     )
-  else (
-    select count(*)=1
-       and bool_and(
-         exists (
-           select 1 from pg_catalog.pg_roles executor
-           where executor.oid=m.member
-             and executor.rolcreaterole
-             and not executor.rolsuper
-         )
-         and m.admin_option
-         and not m.inherit_option
-         and not m.set_option
-       )
-    from pg_catalog.pg_auth_members m
-    where m.roleid=(select oid from pg_catalog.pg_roles where rolname='crowrules_policy_owner')
   )
-end as function_owner_has_only_restricted_executor_membership;
+) as function_owner_has_only_restricted_executor_membership
+from pg_catalog.pg_auth_members m
+where m.roleid=(select oid from pg_catalog.pg_roles where rolname='crowrules_policy_owner');
 
 select pg_catalog.pg_get_userbyid(p.proowner)='crowrules_policy_owner'
   and p.prosecdef
