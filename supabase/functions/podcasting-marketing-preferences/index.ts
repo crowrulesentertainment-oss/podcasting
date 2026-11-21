@@ -108,7 +108,7 @@ Deno.serve(async (req: Request) => {
     }
   }
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
-  const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\\s+/i, "");
+  const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
   if (!bearer) return json({ error: "Sign-in required." }, 401);
   const userClient = createClient(url, anonKey, { global: { headers: { Authorization: "Bearer " + bearer } }, auth: { persistSession: false, autoRefreshToken: false } });
   const { data: authData, error: authError } = await userClient.auth.getUser(bearer);
