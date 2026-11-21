@@ -8,7 +8,7 @@ Status: prepared, not executed. Do not run against production or a shared Supaba
 2. From the repository root, use the project's existing Supabase configuration and start a fresh local stack with supabase start.
 3. Apply the repository migrations to the local database only. Inspect CLI output and migration history; stop if an earlier project migration fails. Do not use the remote project ref.
 4. Create two disposable Auth users (Member A and Member B) in the local Auth service. Use their UUIDs in the SQL harness placeholders.
-5. Confirm the local database has the three policy tables, RLS enabled, the public wrapper, and the private implementation function. Confirm private is not listed as an exposed Data API schema.
+5. Confirm the local database has the three policy tables, RLS enabled, the public wrapper, and the dedicated non-exposed crowrules_policy_private implementation function. Confirm crowrules_policy_private is not listed as an exposed Data API schema.
 
 ## SQL harness
 
@@ -60,7 +60,7 @@ Use a separate transaction for each identity when possible. Never substitute a r
 - No direct client write path exists for acceptance rows.
 - RPC calls are idempotent and accept only the exact current required set.
 - Security advisor findings are reviewed after local migration.
-- The public RPC is invoker-security; only the private implementation is definer-security, with empty search path and explicit auth.uid() validation.
+- The public RPC is invoker-security; only the dedicated crowrules_policy_private implementation is definer-security, with empty search path and explicit auth.uid() validation.
 
 ## Not in scope yet
 
