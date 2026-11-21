@@ -123,7 +123,7 @@ The SQL files use psql meta-commands such as `\gset`; run them with `psql`, not 
 - Confirm the identity bridge is SECURITY DEFINER with an empty search path, owned by the trusted migration executor, calls only fully qualified `auth.uid()`, and is executable only by `crowrules_policy_owner`; the restricted owner role itself has no `auth` schema usage.
 - Confirm anon, authenticated, and service_role cannot use `crowrules_policy_private` or execute the private helper or identity bridge.
 - Confirm authenticated can execute the public acceptance wrapper, anon cannot, and direct client ledger writes are denied.
-- Confirm the current/history views return only the intended public rows and do not expose withdrawn content or acceptance rows.
+- Confirm the current/history discovery RPCs return only the intended public rows and do not expose withdrawn content or acceptance rows; confirm their fixed search paths, restricted owner, and anon/authenticated-only EXECUTE grants.
 - Confirm admin lifecycle RPCs reject a non-admin synthetic user.
 - Confirm acceptance and lifecycle RPCs reject non-READ COMMITTED isolation.
 - Confirm `crowrules_policy_private` is not listed in PostgREST exposed schemas.
