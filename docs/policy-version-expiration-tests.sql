@@ -153,7 +153,7 @@ select public.policy_admin_create_draft_version(
   false,
   transaction_timestamp()-interval '1 day',
   null
-) as withdrawal_optional_replacement \\gset
+) as withdrawal_optional_replacement \gset
 select public.policy_admin_publish_version(:'withdrawal_optional_replacement'::uuid);
 select set_config('request.jwt.claim.role','member',true);
 
