@@ -38,15 +38,12 @@ values
  (:'future_doc','future-end-1','https://example.invalid/future-end',repeat('b',64),true,'published',now()-interval '1 day',now()-interval '1 day',now()+interval '1 day'),
  (:'replacement_doc','replacement-old','https://example.invalid/replacement-old',repeat('c',64),true,'published',now()-interval '3 days',now()-interval '3 days',now()-interval '1 day'),
  (:'replacement_doc','replacement-current','https://example.invalid/replacement-current',repeat('d',64),true,'published',now()-interval '1 hour',now()-interval '1 hour',now()+interval '1 day'),
- (:'blocked_doc','blocked-expired','https://example.invalid/blocked-expired',repeat('e',64),true,'published',now()-interval '3 days',now()-interval '3 days',now()-interval '1 day'),
- (:'blocked_doc','blocked-future-replacement','https://example.invalid/blocked-future',repeat('f',64),true,'published',now()+interval '1 day',now(),now()+interval '2 days'),
  (:'resurrection_doc','resurrection-old-required','https://example.invalid/resurrection-old',repeat('1',64),true,'published',now()-interval '4 days',now()-interval '4 days',null),
  (:'resurrection_doc','resurrection-new-optional-expired','https://example.invalid/resurrection-new',repeat('2',64),false,'published',now()-interval '2 days',now()-interval '2 days',now()-interval '1 day');
 
 select id as no_end_version from public.policy_versions where document_id=:'no_end_doc'::uuid \gset
 select id as future_version from public.policy_versions where document_id=:'future_doc'::uuid \gset
 select id as replacement_current from public.policy_versions where document_id=:'replacement_doc'::uuid and version_label='replacement-current' \gset
-select id as blocked_version from public.policy_versions where document_id=:'blocked_doc'::uuid and version_label='blocked-expired' \gset
 select id as resurrection_old from public.policy_versions where document_id=:'resurrection_doc'::uuid and version_label='resurrection-old-required' \gset
 
 -- Invalid expiration must be later than effective_at.
@@ -58,14 +55,13 @@ select pg_temp.assert_sqlstate(
 select set_config('test.expiry_no_end_version', :'no_end_version', true);
 select set_config('test.expiry_future_version', :'future_version', true);
 select set_config('test.expiry_replacement_current', :'replacement_current', true);
-select set_config('test.expiry_blocked_version', :'blocked_version', true);
 select set_config('test.expiry_resurrection_old', :'resurrection_old', true);
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',true);
 
--- No-expiry and future-expiry versions remain valid; replacement is current
--- for its document even though the older required version has expired.
+-- First prove the valid acceptance set succeeds before introducing an
+-- expired required policy into the synthetic dataset.
 do $test$
 declare v_count integer;
 begin
@@ -78,8 +74,18 @@ begin
 end
 $test$;
 
--- An expired latest required policy blocks the whole acceptance operation,
--- including while its replacement is not yet effective.
+-- Introduce an expired latest required version with only a future-effective
+-- replacement. It must block the next acceptance attempt.
+reset role;
+insert into public.policy_versions(document_id,version_label,content_url,content_sha256,requires_acceptance,status,effective_at,published_at,expires_at)
+values
+ (:'blocked_doc','blocked-expired','https://example.invalid/blocked-expired',repeat('e',64),true,'published',now()-interval '3 days',now()-interval '3 days',now()-interval '1 day'),
+ (:'blocked_doc','blocked-future-replacement','https://example.invalid/blocked-future',repeat('f',64),true,'published',now()+interval '1 day',now(),now()+interval '2 days');
+select id as blocked_version from public.policy_versions where document_id=:'blocked_doc'::uuid and version_label='blocked-expired' \gset
+select set_config('test.expiry_blocked_version', :'blocked_version', true);
+set local role authenticated;
+select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',true);
+
 do $test$
 begin
   begin
@@ -115,12 +121,11 @@ end
 $test$;
 
 -- Expiration is part of immutable published version metadata.
+reset role;
 select pg_temp.assert_sqlstate(
  format('update public.policy_versions set expires_at=now()+interval ''30 days'' where id=%L',:'replacement_current'),
  '55000','published expiration immutable'
 );
-
-reset role;
 
 -- Existing acceptance history is not rewritten or removed by expiration.
 do $test$
