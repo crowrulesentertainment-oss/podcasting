@@ -1,10 +1,10 @@
-# Policy version expiration: design and test plan
+# Policy version expiration: design and validation
 
-Status: design prepared; migration candidate and CI tests are isolated drafts. No production work is authorized or performed.
+Status: formal migration prepared and validated in isolated local environments. No hosted/production changes are authorized or performed.
 
 ## Decision
 
-Add nullable `policy_versions.expires_at timestamptz` before production readiness. A null value means no scheduled expiration. A non-null value must be strictly later than `effective_at`.
+Add nullable `policy_versions.expires_at timestamptz`. A null value means no scheduled expiration. A non-null value must be strictly later than `effective_at`.
 
 ## Required selection semantics
 
@@ -20,35 +20,57 @@ Add nullable `policy_versions.expires_at timestamptz` before production readines
 
 - `expires_at IS NULL` is allowed.
 - Otherwise `expires_at > effective_at` is required.
-- Expiration is immutable after publication, alongside the other version identity/content fields.
+- Expiration can be set or corrected while a version is draft; after publication it is immutable.
 - Corrections require a new policy version.
 - Withdrawal remains a separate administrator lifecycle action; expiration is time-based and does not rewrite status.
-- Existing acceptance rows remain append-only and retain their original accepted_at timestamps.
+- Existing acceptance rows remain append-only and retain their original `accepted_at` timestamps.
 
-## Candidate files
+## Formal migration
 
-- `docs/policy-version-expiration-migration-draft.sql`: additive SQL candidate, deliberately outside `supabase/migrations/` until it can be generated/reviewed with the Supabase CLI.
+- CLI-generated migration: `supabase/migrations/20261121070329_policy_version_expiration.sql`
+- Generated with Supabase CLI 3.0.0 using `supabase migration new policy_version_expiration`.
+- Its SQL body matches `docs/policy-version-expiration-migration-draft.sql`.
+- The migration exists on draft PR #68 only. It has not been applied to a hosted database.
+
+## Test files and coverage
+
 - `docs/policy-version-expiration-tests.sql`: synthetic transaction-rolled-back tests.
-- CI applies the candidate after the existing migration in a disposable PostgreSQL 16 service only.
+- `docs/policy-acceptance-local-tests.sql`: RLS and acceptance ledger smoke tests.
+- `docs/policy-acceptance-negative-lifecycle-tests.sql`: negative, duplicate, lifecycle, and immutability tests.
 
-## Test coverage
-
+Coverage includes:
 - No expiry remains valid.
 - Future expiry remains valid.
 - Expiry at/before effective date is rejected.
+- Expiration exactly at the current transaction time is expired.
 - An effective replacement supersedes an expired prior version.
 - An expired required version blocks acceptance while a replacement remains future-effective.
 - An expired newer optional version does not revive an older required version.
-- Published expiration cannot be edited.
+- Draft expiration can be edited; published expiration cannot.
 - Existing acceptance history remains intact.
 
-## Remaining verification before promoting to a real Supabase migration
+## Validation results
 
-- Run the full disposable PostgreSQL CI workflow.
-- Run a full local Supabase stack test when a local Docker-compatible environment is available.
-- Review function security, grants, RLS behavior, and Data API exposure against the actual Supabase project configuration.
-- Generate the final migration with `supabase migration new` in the local repository, place the reviewed SQL in that generated file, and run local migration reset/tests.
-- Keep all production migration, deployment, policy publication, and enforcement actions separately gated by explicit approval.
+**Passed**: [isolated local Supabase validation run #44878712477](https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/44878712477).
+- Supabase CLI initialized an unlinked temporary workspace.
+- The policy base migration and formal expiration migration were applied locally.
+- Local migration reset and migration-history verification passed.
+- Two synthetic Auth identities were created.
+- RLS/ledger, negative/lifecycle, and expiration tests passed.
+- Supabase database advisors reported **No issues found**.
+- The local Supabase stack was stopped after testing.
+
+The separate disposable PostgreSQL 16 workflow also passed: [run #44876860809](https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/44876860809).
+
+## Isolation note
+
+A full-repository local Supabase start encountered an unrelated historical migration dependency: `20261107223000_secure_podcast_subscriptions_and_email_worker.sql` references `public.podcast_subscriptions`, which is not created by the available migration chain. No unrelated migration was modified. Policy validation uses a temporary project containing only the two policy migrations, so the test does not depend on or alter other Podcasting schema work.
+
+## Remaining review before any hosted rollout
+
+- Review the actual hosted project's Data API exposed-schema configuration and confirm `crowrules_policy_private` remains non-exposed. This was not checked against production because no hosted connection was used.
+- Review the migration and policy language with the appropriate stakeholders.
+- Any hosted migration, deployment, policy publication, or acceptance enforcement requires separate explicit approval.
 
 ## Safety boundary
 
