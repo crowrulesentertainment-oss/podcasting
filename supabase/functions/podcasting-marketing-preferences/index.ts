@@ -21,7 +21,9 @@ const page = (title: string, message: string) => new Response(
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
-  if (req.headers.get("origin") && req.headers.get("origin") !== ORIGIN) return json({ error: "Origin not allowed." }, 403);
+  const requestOrigin = req.headers.get("origin");
+  const sameFunctionOrigin = new URL(req.url).origin;
+  if (requestOrigin && requestOrigin !== ORIGIN && requestOrigin !== sameFunctionOrigin) return json({ error: "Origin not allowed." }, 403);
   const url = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
