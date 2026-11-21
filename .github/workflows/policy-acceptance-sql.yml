@@ -66,7 +66,7 @@ jobs:
           returns uuid
           language sql
           stable
-          as $$$$
+          as $$
             select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
           $$;
           create or replace function private.crowrules_is_admin_impl()
