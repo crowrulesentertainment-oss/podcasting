@@ -24,10 +24,38 @@ begin;
 -- ---------------------------------------------------------------------------
 
 do $role$
+declare
+  v_role oid;
+  v_executor oid;
+  v_created boolean := false;
 begin
   if not exists (select 1 from pg_catalog.pg_roles where rolname = 'crowrules_policy_owner') then
     create role crowrules_policy_owner
       nologin nosuperuser nocreatedb nocreaterole noinherit noreplication nobypassrls;
+    v_created := true;
+  end if;
+
+  select oid into v_role
+  from pg_catalog.pg_roles
+  where rolname = 'crowrules_policy_owner';
+
+  select oid into v_executor
+  from pg_catalog.pg_roles
+  where rolname = current_user;
+
+  if exists (
+    select 1 from pg_catalog.pg_auth_members m
+    where m.member = v_role
+  ) then
+    raise exception 'crowrules_policy_owner must not be a member of another role';
+  end if;
+
+  if exists (
+    select 1 from pg_catalog.pg_auth_members m
+    where m.roleid = v_role
+      and (not v_created or m.member <> v_executor)
+  ) then
+    raise exception 'crowrules_policy_owner has unexpected role members';
   end if;
 end
 $role$;
@@ -39,14 +67,6 @@ begin
   select oid into v_role
   from pg_catalog.pg_roles
   where rolname = 'crowrules_policy_owner';
-
-  if exists (
-    select 1
-    from pg_catalog.pg_auth_members m
-    where m.roleid = v_role or m.member = v_role
-  ) then
-    raise exception 'crowrules_policy_owner must not participate in role memberships';
-  end if;
 
   if exists (
     select 1
@@ -264,10 +284,11 @@ grant create on schema public to crowrules_policy_owner;
 -- membership is revoked after all ownership changes are complete.
 do $membership$
 begin
-  if not exists (
-    select 1 from pg_catalog.pg_roles
-    where rolname = current_user and rolsuper
-  ) then
+  if not pg_catalog.pg_has_role(current_user, 'crowrules_policy_owner', 'MEMBER')
+     and not exists (
+       select 1 from pg_catalog.pg_roles
+       where rolname = current_user and rolsuper
+     ) then
     execute format('grant crowrules_policy_owner to %I', current_user);
   end if;
 end
@@ -853,10 +874,11 @@ revoke create on schema crowrules_policy_private from crowrules_policy_owner;
 
 do $membership_cleanup$
 begin
-  if not exists (
-    select 1 from pg_catalog.pg_roles
-    where rolname = current_user and rolsuper
-  ) then
+  if pg_catalog.pg_has_role(current_user, 'crowrules_policy_owner', 'MEMBER')
+     and not exists (
+       select 1 from pg_catalog.pg_roles
+       where rolname = current_user and rolsuper
+     ) then
     execute format('revoke crowrules_policy_owner from %I', current_user);
   end if;
 end
