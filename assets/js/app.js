@@ -2278,7 +2278,7 @@ async function admin(){
  if(adminHealthRefreshInterval){clearInterval(adminHealthRefreshInterval);adminHealthRefreshInterval=null}if(adminHealthVisibilityHandler){document.removeEventListener("visibilitychange",adminHealthVisibilityHandler);adminHealthVisibilityHandler=null}
  if(adminPlayRefreshInterval){clearInterval(adminPlayRefreshInterval);adminPlayRefreshInterval=null}if(adminVisibilityHandler){document.removeEventListener("visibilitychange",adminVisibilityHandler);adminVisibilityHandler=null}
  const user=await me();if(!user)return go("login.html");
- const tabs=[["overview","Command Center"],["securityAudit","Security & Audit Logs 15.0.2"],["securityAccess","Security & Access Control 15.0.3"],["securityMonitoring","Security Incident Response & Automated Monitoring 15.0.5"],["reviews","Show Review Moderation"],["episodeReviews","Episode Review Moderation"],["platformFeedback","Platform Reviews & Feedback"],["reviewAnalytics","Review Analytics & Insights"],["healthMonitoring","Health & Monitoring 13.0"],["automation14","Automation 14.0"],["developmentRoadmap","Development Roadmap"],["shows","Shows"],["episodes","Episodes"],["pipeline","Production"],["creators","Creator Profiles"],["guests","Guests"],["rankings","Rankings"],["badges","Badges"],["awards","Awards"],["challenges","Challenge Manager"],["holidayChallenge","Holiday Challenge"],["users","Members"],["finance","Finance"],["settings","System"],["email","Podcaster Email Center"],["listenerEmail","Listener Email Center"],["guestEmail","Guest Email Center"],["partnerships","Partnerships"]];
+ const tabs=[["overview","Command Center"],["securityAudit","Security & Audit Logs 15.0.2"],["securityAccess","Security & Access Control 15.0.3"],["securityMonitoring","Security Incident Response & Automated Monitoring 15.0.5"],["reviews","Show Review Moderation"],["episodeReviews","Episode Review Moderation"],["platformFeedback","Platform Reviews & Feedback"],["reviewAnalytics","Review Analytics & Insights"],["healthMonitoring","Health & Monitoring 13.0"],["automation14","Automation 14.0"],["developmentRoadmap","Development Roadmap"],["shows","Shows"],["episodes","Episodes"],["pipeline","Production"],["creators","Creator Profiles"],["guests","Guests"],["rankings","Rankings"],["badges","Badges"],["awards","Awards"],["challenges","Challenge Manager"],["holidayChallenge","Holiday Challenge"],["users","Members"],["finance","Finance"],["settings","System"],["email","Podcaster Email Center"],["creatorDaily","Creator Daily Diagnostics"],["listenerEmail","Listener Email Center"],["guestEmail","Guest Email Center"],["partnerships","Partnerships"]];
  const adminGroups=[
   {label:"Command Center",items:[["overview","Command Center"]]},
   {label:"Control Room",items:[["platformFeedback","Platform Reviews & Feedback"]]},
@@ -2286,7 +2286,7 @@ async function admin(){
   {label:"Content Operations",items:[["shows","Shows"],["episodes","Episodes"],["pipeline","Production"]]},
   {label:"People & Community",items:[["users","Members"],["creators","Creator Profiles"],["guests","Guests"],["reviews","Show Review Moderation"],["episodeReviews","Episode Review Moderation"],["reviewAnalytics","Review Analytics & Insights"]]},
   {label:"Recognition",items:[["rankings","Rankings"],["badges","Badges"],["awards","Awards"]]},{label:"Community Challenges",items:[["challenges","Challenge Manager"],["holidayChallenge","Holiday Challenge"]]},
-  {label:"Business Operations",items:[["finance","Finance"],["partnerships","Partnerships"],["email","Podcaster Email Center"],["listenerEmail","Listener Email Center"],["guestEmail","Guest Email Center"]]},
+  {label:"Business Operations",items:[["finance","Finance"],["partnerships","Partnerships"],["email","Podcaster Email Center"],["creatorDaily","Creator Daily Diagnostics"],["listenerEmail","Listener Email Center"],["guestEmail","Guest Email Center"]]},
   {label:"Security & System",items:[["securityAudit","Security & Audit Logs 15.0.2"],["securityAccess","Security & Access Control 15.0.3"],["securityMonitoring","Security Incident Response & Automated Monitoring 15.0.5"],["healthMonitoring","Health & Monitoring 13.0"],["automation14","Automation 14.0"],["settings","System"]]},
   {label:"Development",items:[["developmentRoadmap","Development Roadmap"]]}
  ];
@@ -2596,6 +2596,45 @@ if(tab==="securityAccess"){
    };
    $("#crAdminAuditRefresh").onclick=()=>loadAudit();search.oninput=renderAudit;actionFilter.onchange=()=>{auditOffset=0;loadAudit()};prev.onclick=()=>{auditOffset=Math.max(0,auditOffset-100);loadAudit()};next.onclick=()=>{auditOffset+=100;loadAudit()};
    await loadAudit();return;
+  }
+  if(tab==="creatorDaily"){
+    const styles='<style>.crcd-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.crcd-card{background:linear-gradient(145deg,#151922,#0b0e14);border:1px solid #ffffff20;border-radius:15px;padding:18px;min-width:0}.crcd-card h4{margin:0 0 8px;color:#f4f0e7}.crcd-card p{margin:0;color:#aeb8c8;font-size:12px;line-height:1.6}.crcd-actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.crcd-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.crcd-check{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid #ffffff18;border-radius:11px;background:#ffffff06}.crcd-check i{font-style:normal;font-size:18px;line-height:1}.crcd-check b{display:block;font-size:12px;color:#f2f4f8}.crcd-check small{display:block;color:#aeb8c8;font-size:11px;line-height:1.5;margin-top:4px}.crcd-good{border-color:#3eaa7655}.crcd-warn{border-color:#d8a94c66}.crcd-status{margin:12px 0;padding:13px 15px;border:1px solid #ffffff20;border-radius:11px;background:#ffffff08;color:#cbd3df;font-size:12px;line-height:1.6}.crcd-status.good{border-color:#3eaa7655}.crcd-status.warn{border-color:#d8a94c66}.crcd-actions button:disabled{opacity:.55;cursor:wait}.crcd-meta{font-size:11px;color:#9da8b8;line-height:1.7}.crcd-pill{display:inline-block;padding:5px 8px;border-radius:20px;background:#d5ad5920;color:#e8c47c;font-size:10px;font-weight:800;letter-spacing:.08em}.crcd-history{margin-top:18px;overflow-wrap:anywhere}@media(max-width:760px){.crcd-grid,.crcd-results{grid-template-columns:1fr}}</style>';
+    work.innerHTML=styles+'<section class="admin-module"><div class="admin-module-head"><div><span class="admin-kicker">CROWRULES CREATOR RELATIONS / BREVO</span><h3>CrowRules Creator Daily</h3><p>Permanent diagnostics for administrator access, Supabase, Brevo, consent controls and sandbox delivery records.</p></div><span class="crcd-pill">PRODUCTION SENDS DISABLED</span></div><div class="crcd-grid"><article class="crcd-card"><h4>Connection diagnostics</h4><p>Verify the signed-in administrator, database access, Brevo API key, campaign tables, and consent/unsubscribe storage. No email is sent by this check.</p><div class="crcd-actions"><button class="btn" id="crcdRunDiagnostics" type="button">Run diagnostics</button></div><div class="crcd-meta" id="crcdDiagStatus" aria-live="polite">Diagnostics have not been run in this session.</div><div class="crcd-results" id="crcdChecks"></div></article><article class="crcd-card"><h4>Brevo sandbox test</h4><p>Sends a sandbox-mode API request addressed only to the signed-in administrator. Brevo should accept the request without delivering an email.</p><div class="crcd-actions"><button class="btn secondary" id="crcdRunSandbox" type="button">Run sandbox test</button></div><div class="crcd-status" id="crcdSandboxStatus" aria-live="polite">No sandbox test has been run in this session.</div><div class="crcd-meta">The test writes one campaign record and one delivery record to the existing campaign tables.</div></article><article class="crcd-card"><h4>Consent & unsubscribe safeguards</h4><p>Diagnostics read the existing marketing consent and hashed unsubscribe-token tables. Creator Daily must never enroll anyone automatically or re-enable an unsubscribed member.</p><div class="crcd-meta">Audience: active podcasting creators with confirmed email and explicit current opt-in only.</div></article><article class="crcd-card"><h4>Production controls</h4><p>Promotional delivery remains blocked until the approved Brevo marketing-campaign route provides compliant unsubscribe handling and one-click List-Unsubscribe support.</p><div class="crcd-meta">Nightly schedule: not enabled · Creator campaign dispatch: disabled · Existing Gmail workflows: unchanged.</div></article></div><div class="crcd-history"><h4>Latest diagnostic result</h4><div class="crcd-status" id="crcdSummary">Run diagnostics to check the live connections.</div></div></section>';
+    const diagButton=$("#crcdRunDiagnostics"),sandboxButton=$("#crcdRunSandbox"),diagStatus=$("#crcdDiagStatus"),checksBox=$("#crcdChecks"),summary=$("#crcdSummary"),sandboxStatus=$("#crcdSandboxStatus");
+    const renderChecks=checks=>{
+      const labels={authentication:"Administrator authentication",admin_permissions:"Administrator permissions",supabase_database:"Supabase database",consent_infrastructure:"Consent & unsubscribe infrastructure",campaign_delivery_tables:"Campaign & delivery tables",brevo_api:"Brevo API"};
+      checksBox.innerHTML=Object.entries(labels).map(([key,label])=>{const item=checks?.[key]||{ok:false,detail:"No result returned."};return '<div class="crcd-check '+(item.ok?"crcd-good":"crcd-warn")+'"><i>'+(item.ok?"✓":"!")+'</i><div><b>'+label+'</b><small>'+esc(item.detail||"No details available.")+'</small></div></div>'}).join("");
+    };
+    diagButton.onclick=async()=>{
+      diagButton.disabled=true;diagStatus.textContent="Running authenticated checks…";summary.textContent="Checking Supabase and Brevo connectivity…";
+      try{
+        const result=await fn("podcast-creator-daily",{action:"diagnostics"});
+        renderChecks(result.checks||{});
+        const passed=Object.values(result.checks||{}).filter(x=>x.ok).length,total=Object.keys(result.checks||{}).length;
+        diagStatus.textContent=passed+" of "+total+" diagnostics passed.";
+        summary.className="crcd-status "+(result.ok?"good":"warn");
+        summary.textContent=result.ok?"All connection and infrastructure diagnostics passed. You can run the separate sandbox test.":"Some diagnostics need attention. Review the individual results above before running the sandbox test.";
+        sandboxButton.disabled=!result.sandbox_test_available;
+      }catch(error){
+        checksBox.innerHTML="";diagStatus.textContent="Diagnostics failed.";
+        summary.className="crcd-status warn";summary.textContent=error.message||"Could not run diagnostics.";
+        sandboxButton.disabled=true;
+      }finally{diagButton.disabled=false}
+    };
+    sandboxButton.disabled=true;
+    sandboxButton.onclick=async()=>{
+      if(!confirm("Run a Brevo sandbox test addressed only to your signed-in administrator account? No email should be delivered. One campaign and one delivery test record will be created."))return;
+      sandboxButton.disabled=true;sandboxStatus.className="crcd-status";sandboxStatus.textContent="Creating test records and checking Brevo sandbox acceptance…";
+      try{
+        const result=await fn("podcast-creator-daily",{action:"test",confirm_test:true});
+        sandboxStatus.className="crcd-status good";
+        sandboxStatus.textContent=(result.message||"Brevo sandbox accepted the request.")+" Campaign record: "+(result.campaign_id||"created")+". Delivery record: "+(result.delivery_id||"created")+".";
+      }catch(error){
+        sandboxStatus.className="crcd-status warn";
+        sandboxStatus.textContent=error.message||"Sandbox test failed. Review Edge Function logs and campaign delivery status.";
+      }finally{sandboxButton.disabled=false}
+    };
+    await diagButton.click();return;
   }
   if(tab==="overview"){
    const results=await Promise.all([optionalRpc("podcasting_admin_stats",{overview:{}}),optionalRpc("podcasting_admin_play_metrics",{episode_count:0,raw_play_events:0,episode_play_count:0,show_play_count:0}),optionalRpc("podcasting_admin_visitor_metrics",{day:{},week:{},month:{},rankings:[],busiest_days:[]}),count("members"),count("creators"),count("podcast_guest_profiles"),sb.from("podcasts").select("id,title,status,category,created_at").order("created_at",{ascending:false}).limit(6),sb.from("podcast_episodes").select("id,title,status,is_published,is_live,production_stage,published_at,created_at,episode_number,season_number").order("created_at",{ascending:false}).limit(8)]);
