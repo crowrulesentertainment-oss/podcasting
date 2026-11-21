@@ -132,10 +132,10 @@ begin
     select latest.id
     from public.policy_documents d
     cross join lateral (
-      select v.id, v.requires_acceptance, v.expires_at
+      select v.id, v.status, v.requires_acceptance, v.expires_at
       from public.policy_versions v
       where v.document_id = d.id
-        and v.status = 'published'
+        and v.status in ('published', 'withdrawn')
         and v.effective_at <= now()
       order by v.effective_at desc, v.published_at desc, v.id
       limit 1
