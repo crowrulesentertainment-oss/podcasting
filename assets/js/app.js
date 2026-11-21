@@ -1544,7 +1544,7 @@ async function account(){
     if(docs.length){
      docsRoot.innerHTML=docs.map(d=>{
       const v=latest.get(d.id),acceptedAt=v?acceptanceMap.get(v.id):null;
-      const pill=!v?"No effective published version":v.requires_acceptance?(acceptedAt?"Acknowledged":"Action required"):"Published · informational";
+      const pill=!v?"No effective published version":v.requires_acceptance?(acceptedAt?"Acknowledged":"Acceptance not enabled"):"Published · informational";
       const href=v?.content_url||"#";
       return '<article class="cr-agreement-card"><div class="cr-agreement-card-top"><span class="cr-agreement-pill">'+esc(pill)+'</span><span class="cr-agreement-key">'+esc(d.document_key.replaceAll("_"," ").toUpperCase())+'</span></div><h3>'+esc(d.title)+'</h3><p>'+esc(d.description||"")+'</p>'+(v?'<small>Version '+esc(v.version_label)+' · Effective '+new Date(v.effective_at).toLocaleDateString()+'</small>':'<small>Not currently published</small>')+(v?'<a href="'+esc(href)+'" target="_blank" rel="noopener">Read current version ↗</a>':'')+(acceptedAt?'<small class="cr-agreement-confirmed">Acknowledged '+new Date(acceptedAt).toLocaleString()+'</small>':"")+'</article>';
      }).join("");
