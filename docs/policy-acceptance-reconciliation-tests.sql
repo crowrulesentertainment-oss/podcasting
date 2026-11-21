@@ -51,9 +51,27 @@ where r.rolname='crowrules_policy_owner';
 select not exists (
   select 1
   from pg_catalog.pg_auth_members m
-  where m.roleid=(select oid from pg_catalog.pg_roles where rolname='crowrules_policy_owner')
-     or m.member=(select oid from pg_catalog.pg_roles where rolname='crowrules_policy_owner')
-) as function_owner_has_no_role_memberships;
+  where m.member=(select oid from pg_catalog.pg_roles where rolname='crowrules_policy_owner')
+) as function_owner_is_not_member_of_another_role;
+
+select case
+  when (select r.rolsuper from pg_catalog.pg_roles r where r.rolname=session_user)
+    then not exists (
+      select 1 from pg_catalog.pg_auth_members m
+      where m.roleid=(select oid from pg_catalog.pg_roles where rolname='crowrules_policy_owner')
+    )
+  else (
+    select count(*)=1
+       and bool_and(
+         m.member=(select oid from pg_catalog.pg_roles where rolname=session_user)
+         and m.admin_option
+         and not m.inherit_option
+         and not m.set_option
+       )
+    from pg_catalog.pg_auth_members m
+    where m.roleid=(select oid from pg_catalog.pg_roles where rolname='crowrules_policy_owner')
+  )
+end as function_owner_has_only_restricted_executor_membership;
 
 select pg_catalog.pg_get_userbyid(p.proowner)='crowrules_policy_owner'
   and p.prosecdef
