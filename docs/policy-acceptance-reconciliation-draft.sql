@@ -69,6 +69,28 @@ $role_check$;
 
 grant usage on schema public, auth, private, crowrules_policy_private
   to crowrules_policy_owner;
+
+-- A catalog sentinel prevents a document from being inserted concurrently
+-- after acceptance has enumerated and locked the complete document set.
+create table crowrules_policy_private.policy_catalog_guard (
+  singleton boolean primary key default true check (singleton)
+);
+insert into crowrules_policy_private.policy_catalog_guard(singleton)
+values (true)
+on conflict (singleton) do nothing;
+alter table crowrules_policy_private.policy_catalog_guard enable row level security;
+create policy policy_catalog_guard_owner_access
+  on crowrules_policy_private.policy_catalog_guard
+  for all to crowrules_policy_owner
+  using (true)
+  with check (true);
+grant select on crowrules_policy_private.policy_catalog_guard
+  to crowrules_policy_owner;
+grant update (singleton) on crowrules_policy_private.policy_catalog_guard
+  to crowrules_policy_owner;
+revoke all on crowrules_policy_private.policy_catalog_guard
+  from public, anon, authenticated, service_role;
+
 grant execute on function auth.uid() to crowrules_policy_owner;
 grant execute on function private.crowrules_is_admin_impl()
   to crowrules_policy_owner;
@@ -355,8 +377,19 @@ begin
       using errcode = '22023';
   end if;
 
-  -- Common lock order: every parent document, ascending; then every version,
-  -- ordered by parent ID and version ID. Lifecycle RPCs use the same order.
+  -- Common lock order: catalog sentinel; every parent document in ascending
+  -- UUID order; then every version ordered by parent ID and version ID.
+  -- Document creation locks the same sentinel before inserting a new parent.
+  perform g.singleton
+  from crowrules_policy_private.policy_catalog_guard g
+  where g.singleton is true
+  for update;
+
+  if not found then
+    raise exception 'Policy catalog lock row is missing'
+      using errcode = '55000';
+  end if;
+
   perform d.id
   from public.policy_documents d
   order by d.id
@@ -516,6 +549,17 @@ begin
   if auth.uid() is null
      or not coalesce(private.crowrules_is_admin_impl(), false) then
     raise exception 'ADMIN_AUTH_REQUIRED' using errcode = '42501';
+  end if;
+
+  -- Serialize catalog membership with acceptance's complete-set scan.
+  perform g.singleton
+  from crowrules_policy_private.policy_catalog_guard g
+  where g.singleton is true
+  for update;
+
+  if not found then
+    raise exception 'Policy catalog lock row is missing'
+      using errcode = '55000';
   end if;
 
   insert into public.policy_documents(document_key, title, description)
