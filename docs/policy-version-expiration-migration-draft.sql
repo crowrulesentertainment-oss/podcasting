@@ -1,0 +1,182 @@
+-- PREPARATION DRAFT ONLY: policy-version expiration semantics.
+-- Apply only to a disposable PostgreSQL test database after the base policy migration.
+-- This file is intentionally in docs/, not supabase/migrations/, until the design is approved
+-- and a local Supabase CLI migration can be generated/reviewed.
+--
+-- Semantics:
+--   * NULL expires_at means no scheduled expiry.
+--   * expires_at must be later than effective_at.
+--   * The latest effective published version wins, even when expired.
+--   * An expired latest required version blocks acceptance until a replacement is effective.
+--   * An expired newer version never causes an older version to become current again.
+--   * Expired published content remains readable as historical policy content.
+--   * Published expiration metadata is immutable; publish a new version to correct it.
+
+begin;
+
+alter table public.policy_versions
+  add column if not exists expires_at timestamptz;
+
+do $constraint$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.policy_versions'::regclass
+      and conname = 'policy_versions_expiration_after_effective_check'
+  ) then
+    alter table public.policy_versions
+      add constraint policy_versions_expiration_after_effective_check
+      check (expires_at is null or (effective_at is not null and expires_at > effective_at));
+  end if;
+end;
+$constraint$;
+
+create or replace function public.guard_policy_version_revision()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $function$
+begin
+  if row(
+    new.document_id, new.version_label, new.content_url,
+    new.content_sha256, new.requires_acceptance, new.effective_at,
+    new.expires_at, new.created_at
+  ) is distinct from row(
+    old.document_id, old.version_label, old.content_url,
+    old.content_sha256, old.requires_acceptance, old.effective_at,
+    old.expires_at, old.created_at
+  ) then
+    raise exception 'Policy version content is immutable; create a new version'
+      using errcode = '55000';
+  end if;
+
+  if old.status = 'draft' and new.status = 'published' then
+    if new.published_at is null then
+      raise exception 'Publishing requires published_at';
+    end if;
+  elsif old.status = 'published' and new.status = 'withdrawn' then
+    if new.published_at is distinct from old.published_at then
+      raise exception 'The original publication timestamp must be retained';
+    end if;
+  elsif new.status is distinct from old.status
+     or new.published_at is distinct from old.published_at then
+    raise exception 'Invalid policy version lifecycle transition'
+      using errcode = '55000';
+  end if;
+
+  return new;
+end;
+$function$;
+
+create or replace function crowrules_policy_private.accept_current_required_policy_versions_impl(
+  p_policy_version_ids uuid[]
+)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_user_id uuid := auth.uid();
+  v_required_count integer;
+  v_supplied_count integer;
+  v_inserted_count integer := 0;
+  v_expired_required_exists boolean;
+begin
+  if v_user_id is null then
+    raise exception 'Authentication required' using errcode = '28000';
+  end if;
+
+  if p_policy_version_ids is null
+     or cardinality(p_policy_version_ids) = 0 then
+    raise exception 'At least one current policy version is required'
+      using errcode = '22023';
+  end if;
+
+  -- Select the latest effective published version first, then evaluate expiry.
+  -- This prevents an expired newer version from reviving an older version.
+  select exists (
+    select 1
+    from public.policy_documents d
+    cross join lateral (
+      select v.id, v.requires_acceptance, v.expires_at
+      from public.policy_versions v
+      where v.document_id = d.id
+        and v.status = 'published'
+        and v.effective_at <= now()
+      order by v.effective_at desc, v.published_at desc, v.id
+      limit 1
+    ) latest
+    where latest.requires_acceptance is true
+      and latest.expires_at is not null
+      and latest.expires_at <= now()
+  ) into v_expired_required_exists;
+
+  if v_expired_required_exists then
+    raise exception 'A required policy has expired; a current replacement must be published'
+      using errcode = '22023';
+  end if;
+
+  select count(*) into v_required_count
+  from (
+    select latest.id
+    from public.policy_documents d
+    cross join lateral (
+      select v.id, v.requires_acceptance, v.expires_at
+      from public.policy_versions v
+      where v.document_id = d.id
+        and v.status = 'published'
+        and v.effective_at <= now()
+      order by v.effective_at desc, v.published_at desc, v.id
+      limit 1
+    ) latest
+    where latest.requires_acceptance is true
+      and (latest.expires_at is null or latest.expires_at > now())
+  ) required_versions;
+
+  select count(distinct supplied.version_id)
+    into v_supplied_count
+  from unnest(p_policy_version_ids) as supplied(version_id)
+  join public.policy_versions v on v.id = supplied.version_id
+  where v.status = 'published'
+    and v.requires_acceptance is true
+    and v.effective_at <= now()
+    and (v.expires_at is null or v.expires_at > now())
+    and v.id = (
+      select v2.id
+      from public.policy_versions v2
+      where v2.document_id = v.document_id
+        and v2.status = 'published'
+        and v2.effective_at <= now()
+      order by v2.effective_at desc, v2.published_at desc, v2.id
+      limit 1
+    );
+
+  if v_supplied_count <> cardinality(p_policy_version_ids)
+     or v_supplied_count <> v_required_count then
+    raise exception 'Please review and accept every currently required policy version'
+      using errcode = '22023';
+  end if;
+
+  insert into public.policy_acceptances (
+    user_id, policy_version_id, acceptance_context
+  )
+  select v_user_id, supplied.version_id, 'member_confirmation'
+  from (
+    select distinct unnest(p_policy_version_ids) as version_id
+  ) supplied
+  on conflict (user_id, policy_version_id) do nothing;
+
+  get diagnostics v_inserted_count = row_count;
+  return v_inserted_count;
+end;
+$function$;
+
+revoke all on function crowrules_policy_private.accept_current_required_policy_versions_impl(uuid[])
+  from public, anon, authenticated, service_role;
+grant usage on schema crowrules_policy_private to authenticated;
+grant execute on function crowrules_policy_private.accept_current_required_policy_versions_impl(uuid[])
+  to authenticated;
+
+commit;
