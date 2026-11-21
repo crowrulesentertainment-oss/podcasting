@@ -131,7 +131,7 @@ revoke all on crowrules_policy_private.policy_catalog_guard
 do $identity_preflight$
 begin
   if not pg_catalog.has_schema_privilege(current_user, 'auth', 'USAGE')
-     or not pg_catalog.has_function_privilege(current_user, 'crowrules_policy_private.current_user_id_impl()', 'EXECUTE') then
+     or not pg_catalog.has_function_privilege(current_user, 'auth.uid()', 'EXECUTE') then
     raise exception 'Migration executor must be able to call the Auth identity function';
   end if;
 end
