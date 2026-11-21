@@ -70,7 +70,7 @@ async function loadDigestContent(db: any, recipientUserId: string) {
       .eq("status", "published").or("starts_at.is.null,starts_at.lte." + nowIso)
       .or("ends_at.is.null,ends_at.gt." + nowIso).order("starts_at", { ascending: false }).limit(8),
     db.from("podcasts").select("title,description,author_name,slug,artwork_url")
-      .eq("status", "published").eq("is_featured", true).order("published_at", { ascending: false }).limit(5),
+      .eq("status", "published").eq("is_featured", true).order("created_at", { ascending: false }).limit(5),
     db.from("community_announcements").select("title,organization_name,summary,link_url,created_at")
       .eq("status", "published").order("created_at", { ascending: false }).limit(8),
     db.from("community_events").select("title,description,event_type,starts_at,location,event_url")
@@ -356,7 +356,7 @@ Deno.serve(async (req: Request) => {
       },
       digest_section_renderer: {
         ok: sectionPassed,
-        detail: "Nine-section order, populated-section rendering, and empty-section omission passed with synthetic content. Live content-source wiring is not yet complete.",
+        detail: "Nine-section order, populated-section rendering, and empty-section omission passed with synthetic content. Live content-source queries are wired; an administrator must still run a real recipient-scoped preview to verify live schema and data.",
       },
       pacific_edition_date_and_ledger: {
         ok: dstPassed && !ledgerCheck.error,
@@ -377,7 +377,7 @@ Deno.serve(async (req: Request) => {
       production_dispatch_enabled: false,
       schedule_enabled: false,
       next_blockers: [
-        "Wire approved/published live content sources into the nine digest sections.",
+        "Run the administrator digest preview against a real creator profile and verify live source queries plus recipient-specific privacy.",
         "Complete and verify RFC 8058 one-click unsubscribe handling and Brevo campaign header behavior.",
         "Implement the scheduled runner against the unique Pacific-date edition ledger, then test it without activating a production schedule.",
       ],
