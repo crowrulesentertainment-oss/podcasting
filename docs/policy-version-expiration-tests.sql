@@ -32,6 +32,7 @@ select id as future_doc from public.policy_documents where document_key='expiry_
 select id as replacement_doc from public.policy_documents where document_key='expiry_replacement' \gset
 select id as blocked_doc from public.policy_documents where document_key='expiry_blocked' \gset
 select id as resurrection_doc from public.policy_documents where document_key='expiry_no_resurrection' \gset
+select id as draft_doc from public.policy_documents where document_key='expiry_draft_edit' \gset
 
 insert into public.policy_versions(document_id,version_label,content_url,content_sha256,requires_acceptance,status,effective_at,published_at,expires_at)
 values
@@ -47,6 +48,7 @@ select id as no_end_version from public.policy_versions where document_id=:'no_e
 select id as future_version from public.policy_versions where document_id=:'future_doc'::uuid \gset
 select id as replacement_current from public.policy_versions where document_id=:'replacement_doc'::uuid and version_label='replacement-current' \gset
 select id as resurrection_old from public.policy_versions where document_id=:'resurrection_doc'::uuid and version_label='resurrection-old-required' \gset
+select id as draft_version from public.policy_versions where document_id=:'draft_doc'::uuid and version_label='draft-expiry-edit' \gset
 
 select pg_temp.assert_sqlstate(
  format('insert into public.policy_versions(document_id,version_label,content_url,content_sha256,requires_acceptance,status,effective_at,published_at,expires_at) values (%L,%L,%L,%L,true,''published'',now(),now(),now())',:'no_end_doc','invalid-expiry','https://example.invalid/invalid-expiry',repeat('3',64)),
