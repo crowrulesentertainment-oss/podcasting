@@ -65,10 +65,6 @@ select pg_temp.assert_sqlstate(
  '23514','expiration must follow effective date'
 );
 
--- Withdraw the latest effective version. The previous published version must not
--- become current again; it remains historical content only.
-update public.policy_versions set status='withdrawn' where id=:'withdrawal_new'::uuid;
-
 -- Expiration may be configured while draft, then is frozen on publication.
 update public.policy_versions
 set expires_at=now()+interval '30 days'
@@ -108,9 +104,10 @@ begin
   v_count := public.accept_current_required_policy_versions(array[
     current_setting('test.expiry_no_end_version')::uuid,
     current_setting('test.expiry_future_version')::uuid,
-    current_setting('test.expiry_replacement_current')::uuid
+    current_setting('test.expiry_replacement_current')::uuid,
+    current_setting('test.expiry_withdrawal_new')::uuid
   ]);
-  if v_count <> 3 then raise exception 'Expected three current required acceptances, got %',v_count; end if;
+  if v_count <> 4 then raise exception 'Expected four current required acceptances, got %',v_count; end if;
 end
 $test$;
 select set_config(
@@ -138,6 +135,38 @@ begin
   end;
 end
 $test$;
+
+-- Withdrawal does not revive an older required version. Even though that old
+-- version is still historically published, the withdrawn newer version remains
+-- authoritative for selection and acceptance must reject the fallback.
+update public.policy_versions set status='withdrawn' where id=:'withdrawal_new'::uuid;
+
+do $test$
+begin
+  begin
+    perform public.accept_current_required_policy_versions(array[
+      current_setting('test.expiry_no_end_version')::uuid,
+      current_setting('test.expiry_future_version')::uuid,
+      current_setting('test.expiry_replacement_current')::uuid,
+      current_setting('test.expiry_withdrawal_old')::uuid
+    ]);
+    raise exception 'Withdrawn latest version unexpectedly revived its older version';
+  exception when sqlstate '22023' then null;
+  end;
+end
+$test$;
+
+-- Restore the complete acceptance flow with an optional replacement. This
+-- optional latest version supersedes the withdrawn required version.
+insert into public.policy_versions(
+  document_id,version_label,content_url,content_sha256,
+  requires_acceptance,status,effective_at,published_at
+)
+values (
+  :'withdrawal_doc','withdrawal-optional-replacement',
+  'https://example.invalid/withdrawal-optional',repeat('8',64),
+  false,'published',now()-interval '1 day',now()-interval '1 day'
+);
 
 -- An expired newer optional version supersedes the old required version;
 -- the old required version must not be resurrected into the acceptance set.
