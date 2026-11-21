@@ -6,6 +6,9 @@ on:
       - "supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql"
       - "docs/policy-acceptance-local-tests.sql"
       - "docs/policy-acceptance-negative-lifecycle-tests.sql"
+      - "docs/policy-version-expiration-migration-draft.sql"
+      - "docs/policy-version-expiration-tests.sql"
+      - "docs/policy-version-expiration-design.md"
       - ".github/workflows/policy-acceptance-sql.yml"
   workflow_dispatch:
 
@@ -62,11 +65,17 @@ jobs:
           grant execute on function auth.uid() to anon, authenticated;
           SQL
 
-      - name: Apply policy acceptance migration to disposable PostgreSQL
+      - name: Apply base policy acceptance migration to disposable PostgreSQL
         shell: bash
         run: |
           set -euo pipefail
           psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql
+
+      - name: Apply expiration migration candidate to disposable PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f docs/policy-version-expiration-migration-draft.sql
 
       - name: Create two disposable Auth identities
         shell: bash
@@ -107,3 +116,18 @@ jobs:
             exit 1
           fi
           echo "All negative, lifecycle, duplicate, and immutability tests passed."
+
+      - name: Run policy expiration semantics tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="$RUNNER_TEMP/policy-version-expiration-tests.txt"
+          psql -X -qAt -v ON_ERROR_STOP=1 \
+            -v member_a='10000000-0000-0000-0000-000000000001' \
+            -v member_b='20000000-0000-0000-0000-000000000002' \
+            -f docs/policy-version-expiration-tests.sql | tee "$output"
+          if grep -qx 'f' "$output"; then
+            echo "One or more policy expiration assertions returned false."
+            exit 1
+          fi
+          echo "All policy expiration semantics tests passed."
