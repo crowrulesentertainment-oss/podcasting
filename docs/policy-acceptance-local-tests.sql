@@ -2,8 +2,14 @@
 -- Run only after applying the policy migration to a disposable local Supabase database.
 -- Supply two existing disposable Auth user UUIDs in the variables below.
 -- This script rolls back all policy fixtures and acceptance records at the end.
-\set member_a '00000000-0000-0000-0000-000000000001'
-\set member_b '00000000-0000-0000-0000-000000000002'
+\if :{?member_a}
+\else
+  \set member_a '00000000-0000-0000-0000-000000000001'
+\endif
+\if :{?member_b}
+\else
+  \set member_b '00000000-0000-0000-0000-000000000002'
+\endif
 
 begin;
 select set_config('test.member_a', :'member_a', true);
