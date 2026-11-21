@@ -267,6 +267,10 @@ select count(*)=1 as anonymous_history_marks_document_withdrawn
 from public.get_published_policy_history()
 where policy_version_id=:'reconcile_old_id'::uuid
   and document_state='withdrawn';
+
+select count(*)=0 as anonymous_history_rpc_hides_withdrawn_version_content
+from public.get_published_policy_history()
+where policy_version_id=:'reconcile_new_id'::uuid;
 reset role;
 
 select count(*)=0 as withdrawn_latest_has_no_current_version
