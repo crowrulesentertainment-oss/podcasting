@@ -345,6 +345,11 @@ begin
       using errcode = '28000';
   end if;
 
+  if current_setting('transaction_isolation') <> 'read committed' then
+    raise exception 'Policy acceptance requires READ COMMITTED transaction isolation'
+      using errcode = '25001';
+  end if;
+
   if p_policy_version_ids is null then
     raise exception 'A policy version array is required'
       using errcode = '22023';
@@ -466,6 +471,29 @@ begin
 end;
 $function$;
 
+-- The public wrapper validates the Auth identity before delegating.
+create or replace function public.accept_current_required_policy_versions(
+  p_policy_version_ids uuid[]
+)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    raise exception 'Authentication required'
+      using errcode = '28000';
+  end if;
+
+  return crowrules_policy_private.accept_current_required_policy_versions_impl(
+    p_policy_version_ids
+  );
+end;
+$function$;
+
 -- ---------------------------------------------------------------------------
 -- 6. Controlled admin lifecycle RPCs. Every version mutation obtains the parent
 --    document lock before locking or changing the version row. Authorization
@@ -521,6 +549,11 @@ begin
     raise exception 'ADMIN_AUTH_REQUIRED' using errcode = '42501';
   end if;
 
+  if current_setting('transaction_isolation') <> 'read committed' then
+    raise exception 'Policy lifecycle operations require READ COMMITTED transaction isolation'
+      using errcode = '25001';
+  end if;
+
   select d.id into v_document_id
   from public.policy_documents d
   where d.id = p_document_id
@@ -564,6 +597,11 @@ begin
   if auth.uid() is null
      or not coalesce(private.crowrules_is_admin_impl(), false) then
     raise exception 'ADMIN_AUTH_REQUIRED' using errcode = '42501';
+  end if;
+
+  if current_setting('transaction_isolation') <> 'read committed' then
+    raise exception 'Policy lifecycle operations require READ COMMITTED transaction isolation'
+      using errcode = '25001';
   end if;
 
   -- Non-locking lookup only; the first row lock is always the parent document.
@@ -620,6 +658,11 @@ begin
     raise exception 'ADMIN_AUTH_REQUIRED' using errcode = '42501';
   end if;
 
+  if current_setting('transaction_isolation') <> 'read committed' then
+    raise exception 'Policy lifecycle operations require READ COMMITTED transaction isolation'
+      using errcode = '25001';
+  end if;
+
   select v.document_id into v_document_id
   from public.policy_versions v
   where v.id = p_policy_version_id;
@@ -667,6 +710,11 @@ begin
   if auth.uid() is null
      or not coalesce(private.crowrules_is_admin_impl(), false) then
     raise exception 'ADMIN_AUTH_REQUIRED' using errcode = '42501';
+  end if;
+
+  if current_setting('transaction_isolation') <> 'read committed' then
+    raise exception 'Policy lifecycle operations require READ COMMITTED transaction isolation'
+      using errcode = '25001';
   end if;
 
   select v.document_id into v_document_id
