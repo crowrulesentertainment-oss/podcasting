@@ -853,10 +853,10 @@ revoke create on schema crowrules_policy_private from crowrules_policy_owner;
 
 do $membership_cleanup$
 begin
-  if exists (
+  if not exists (
     select 1 from pg_catalog.pg_roles
     where rolname = current_user and rolsuper
-  ) is false then
+  ) then
     execute format('revoke crowrules_policy_owner from %I', current_user);
   end if;
 end
