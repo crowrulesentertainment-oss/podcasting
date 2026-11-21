@@ -119,7 +119,7 @@ This is a migration draft only. It has not been applied to the live Supabase pro
 
 ### Security refinement
 
-The member-callable RPC is now a SECURITY INVOKER function in the exposed public schema. It delegates to a narrowly granted implementation function in the non-exposed private schema. The implementation is SECURITY DEFINER, has an empty search path, derives the member identity exclusively from auth.uid(), and validates the complete set of current required versions before inserting. The private implementation is executable by authenticated users only; anonymous and PUBLIC execution are revoked. The private schema must remain absent from the project's exposed Data API schemas.
+The member-callable RPC is now a SECURITY INVOKER function in the exposed public schema. It delegates to a narrowly granted implementation function in the dedicated non-exposed `crowrules_policy_private` schema. The implementation is SECURITY DEFINER, has an empty search path, derives the member identity exclusively from auth.uid(), and validates the complete set of current required versions before inserting. The `crowrules_policy_private` implementation is executable by authenticated users only; anonymous and PUBLIC execution are revoked. The `crowrules_policy_private` schema must remain absent from the project's exposed Data API schemas.
 
 The public wrapper is not privileged and cannot itself bypass RLS. No client table write grants are added. Acceptance remains append-only and promotional email consent remains a separate opt-in system.
 
@@ -135,3 +135,10 @@ Added an Agreements & Policies tab to the signed-in account center. It provides 
 ### Explicit limits
 
 No Supabase branch/project was created. No production SQL was executed. The migration, RLS policies, and RPC have not been run against Postgres yet. The member UI's live ledger path is intentionally dormant until a safe database test and migration are completed. No production deployment or PR merge was performed.
+
+
+### Local execution readiness (2026-11-20)
+
+The first static pass found that the migration referenced a private implementation schema without creating it. The migration now creates a dedicated `crowrules_policy_private` schema, revokes schema access from PUBLIC and anon, and grants the minimum schema usage and function execution needed by authenticated sessions. This schema must not be added to the Supabase Data API exposed-schema list.
+
+The local validation plan now includes CLI setup and safe local-only commands. The current execution container has no Supabase CLI, Docker-compatible runtime, or PostgreSQL client, and this repository has no `supabase/config.toml`. Therefore the local stack and SQL harness could not be executed in this session. This is an environment limitation, not a passing test result. The next execution must begin with `supabase init` (without linking a remote project), then `supabase start` and `supabase db reset` locally.
