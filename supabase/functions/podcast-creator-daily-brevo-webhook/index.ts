@@ -6,9 +6,16 @@ const json = (body: unknown, status = 200) => Response.json(body, {
   headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
 });
 
-async function sha256(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+async function hmacSha256(secret: string, value: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(signature), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 function safeEqual(a: string, b: string): boolean {
@@ -69,8 +76,8 @@ Deno.serve(async (req: Request) => {
     String(payload.camp_id ?? ""), String(payload.id ?? ""),
   ].join("|");
   const [eventKey, emailHash] = await Promise.all([
-    sha256(stableEvent),
-    sha256(email),
+    hmacSha256(expectedSecret, stableEvent),
+    hmacSha256(expectedSecret, email),
   ]);
 
   const db = createClient(url, serviceKey, {
