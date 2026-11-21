@@ -93,6 +93,17 @@ values (
 )
 returning id \gset reconcile_new_
 
+select set_config('test.reconcile_old_id', :'reconcile_old_id', true);
+select set_config('test.reconcile_new_id', :'reconcile_new_id', true);
+
+set local role anon;
+select count(*)=1 as anonymous_can_read_current_version_contract
+from public.policy_current_versions
+where document_id=:'reconcile_doc_id'::uuid
+  and policy_version_id=:'reconcile_new_id'::uuid;
+reset role;
+
+
 select count(*)=1 as current_view_selects_only_latest_published
 from public.policy_current_versions
 where document_id=:'reconcile_doc_id'::uuid
