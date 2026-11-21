@@ -184,7 +184,7 @@ jobs:
         run: |
           set -euo pipefail
           cd "$TEST_PROJECT_DIR"
-          npx --yes supabase@3.0.0 start
+          npx --yes supabase@3.0.0 start -x studio,storage-api,realtime,imgproxy,edge-runtime,logflare,vector,supavisor,postgres-meta
           npx --yes supabase@3.0.0 status
 
       - name: Reset the local database and verify migration history
