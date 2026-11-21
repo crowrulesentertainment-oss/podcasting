@@ -98,6 +98,35 @@ join pg_catalog.pg_namespace n on n.oid=p.pronamespace
 where n.nspname='crowrules_policy_private'
   and p.proname='accept_current_required_policy_versions_impl';
 
+select (
+  p.prosecdef
+  and coalesce(array_to_string(p.proconfig,','),'') like '%search_path=""%'
+  and pg_catalog.pg_get_userbyid(p.proowner) <> 'crowrules_policy_owner'
+  and pg_catalog.has_schema_privilege(pg_catalog.pg_get_userbyid(p.proowner), 'auth', 'USAGE')
+  and pg_catalog.has_function_privilege(pg_catalog.pg_get_userbyid(p.proowner), 'auth.uid()', 'EXECUTE')
+) as identity_bridge_is_narrow_security_definer
+from pg_catalog.pg_proc p
+join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+where n.nspname='crowrules_policy_private'
+  and p.proname='current_user_id_impl';
+
+select pg_catalog.has_function_privilege(
+  'crowrules_policy_owner',
+  'crowrules_policy_private.current_user_id_impl()',
+  'EXECUTE'
+) as owner_can_execute_identity_bridge;
+
+select not pg_catalog.has_function_privilege(
+  'authenticated',
+  'crowrules_policy_private.current_user_id_impl()',
+  'EXECUTE'
+) as authenticated_cannot_execute_identity_bridge;
+select not pg_catalog.has_function_privilege(
+  'anon',
+  'crowrules_policy_private.current_user_id_impl()',
+  'EXECUTE'
+) as anon_cannot_execute_identity_bridge;
+
 select pg_catalog.pg_get_userbyid(c.relowner)='crowrules_policy_owner'
   as current_view_has_restricted_owner
 from pg_catalog.pg_class c
