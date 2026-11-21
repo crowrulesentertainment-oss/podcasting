@@ -4,15 +4,16 @@ Status: prepared, not executed. Do not run against production or a shared Supaba
 
 ## Environment
 
-1. Install/start the Supabase CLI locally and verify the CLI version using supabase --version.
-2. From the repository root, use the project's existing Supabase configuration and start a fresh local stack with supabase start.
-3. Apply the repository migrations to the local database only. Inspect CLI output and migration history; stop if an earlier project migration fails. Do not use the remote project ref.
-4. Create two disposable Auth users (Member A and Member B) in the local Auth service. Use their UUIDs in the SQL harness placeholders.
-5. Confirm the local database has the three policy tables, RLS enabled, the public wrapper, and the dedicated non-exposed crowrules_policy_private implementation function. Confirm crowrules_policy_private is not listed as an exposed Data API schema.
+1. Verify the prerequisites with `supabase --version`, `docker --version`, and `docker info`. The local stack requires a Docker-compatible runtime.
+2. This repository currently has no `supabase/config.toml`. Run `supabase init` in the repository root to generate the local config, preserving the existing migrations directory; review the generated file and do not add production secrets or link a remote project.
+3. Run `supabase start` to launch only the local stack. Confirm the displayed project/API/DB URLs are local.
+4. Run `supabase db reset` to recreate the local database and apply the repository migrations from scratch. This command is intentionally local-only; do not add `--remote`, `--linked`, or a project ref. Stop if any earlier migration fails.
+5. Create two disposable Auth users (Member A and Member B) in local Studio/Auth. Use their UUIDs in the SQL harness placeholders.
+6. Confirm the local database has the three policy tables, RLS enabled, the public wrapper, and the dedicated non-exposed `crowrules_policy_private` implementation function. Confirm `crowrules_policy_private` is not listed as an exposed Data API schema.
 
 ## SQL harness
 
-Run docs/policy-acceptance-local-tests.sql with psql against the local database. Replace the two placeholder UUIDs with the disposable Auth users. The harness opens a transaction and rolls back its policy fixtures.
+Run `psql` using the local database URL printed by `supabase status`, for example: `psql '<local-db-url>' -v member_a='<member-a-uuid>' -v member_b='<member-b-uuid>' -f docs/policy-acceptance-local-tests.sql`. Replace the placeholder UUIDs with the two disposable local Auth users. The harness opens a transaction and rolls back its policy fixtures. The CLI v3 default is local; do not run hosted/remote commands for this test.
 
 The harness checks:
 - Anonymous users can read effective published policy versions.
@@ -29,7 +30,8 @@ The harness checks:
 
 Run these as separate local-only checks after the smoke harness:
 
-1. Call the RPC as anon; expect permission denied.
+1. Call the RPC as anon; expect permission denied. The smoke harness also checks that anon has no EXECUTE privilege.
+2. Call the RPC as the authenticated database role with no JWT subject; expect SQLSTATE 28000 (Authentication required).
 2. Call the RPC as an authenticated session with no JWT subject; expect Authentication required.
 3. Submit an empty array, an unknown version UUID, a draft version, a withdrawn version, an expired/not-yet-effective version, and an incomplete set; each must fail without inserting any row.
 4. Submit a duplicate version ID; expect rejection because supplied cardinality does not match the distinct valid count.
