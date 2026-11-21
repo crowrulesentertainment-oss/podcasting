@@ -55,6 +55,42 @@ SQL
   printf '%s\n' "$row" | tail -n 1
 }
 
+publish_optional_replacement() {
+  local doc_id="$1"
+  local label="$2"
+  "${PSQL[@]}" -qAt <<SQL >/dev/null
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','$MEMBER_B',true);
+select set_config('request.jwt.claim.role','admin',true);
+select public.policy_admin_create_draft_version(
+  '$doc_id','$label','https://example.invalid/$label',repeat('c',64),
+  false,transaction_timestamp()-interval '30 seconds',null
+) as version_id \\gset
+select public.policy_admin_publish_version(:'version_id'::uuid);
+commit;
+SQL
+}
+
+run_multi_acceptance() {
+  local member="$1"
+  local first="$2"
+  local second="$3"
+  local delay="$4"
+  "${PSQL[@]}" <<SQL
+begin;
+set local statement_timeout='15s';
+set local role authenticated;
+select set_config('request.jwt.claim.sub','$member',true);
+select set_config('request.jwt.claim.role','member',true);
+select public.accept_current_required_policy_versions(
+  array['$first'::uuid,'$second'::uuid]
+);
+select pg_sleep($delay);
+commit;
+SQL
+}
+
 assert_sql() {
   local sql="$1"
   "${PSQL[@]}" -qAt -c "$sql" | grep -qx 't'
@@ -127,6 +163,7 @@ wait "$accept_pid" || { cat "$tmpdir/accept-first-member.log"; exit 1; }
 wait "$withdraw_pid" || { cat "$tmpdir/accept-first-admin.log"; exit 1; }
 assert_sql "select count(*)=1 from public.policy_acceptances where user_id='$MEMBER_A'::uuid and policy_version_id='$version_a'::uuid"
 assert_sql "select status='withdrawn' from public.policy_versions where id='$version_a'::uuid"
+publish_optional_replacement "$doc_a" optional-after-withdrawal
 
 # 2. Withdrawal obtains the lock first. Acceptance waits, then sees the
 #    withdrawn latest version and fails rather than accepting the older row.
@@ -145,6 +182,7 @@ else
   exit 1
 fi
 assert_sql "select count(*)=0 from public.policy_acceptances where user_id='$MEMBER_A'::uuid and policy_version_id='$version_b'::uuid"
+publish_optional_replacement "$doc_b" optional-after-withdrawal
 
 # 3. Publication obtains the lock first. Acceptance waits and cannot accept the
 #    formerly-current version after the new effective version is published.
@@ -164,22 +202,16 @@ else
   exit 1
 fi
 assert_sql "select count(*)=0 from public.policy_acceptances where user_id='$MEMBER_A'::uuid and policy_version_id='$old_c'::uuid"
+publish_optional_replacement "$doc_c" optional-after-publish
 
 # 4. Two acceptance sessions submit the same two-document set in opposite
 #    input orders. Both must complete without deadlock or partial acceptance.
 IFS='|' read -r doc_d version_d1 <<<"$(new_published_fixture "concurrency_multi_a_$suffix")"
 IFS='|' read -r doc_e version_e1 <<<"$(new_published_fixture "concurrency_multi_b_$suffix")"
-"${PSQL[@]}" -qAt <<SQL >/dev/null
-begin;
-set local role authenticated;
-select set_config('request.jwt.claim.sub','$MEMBER_A',true);
-select set_config('request.jwt.claim.role','admin',true);
-select public.policy_admin_create_document('concurrency_multi_c_$suffix','multi-c','fixture');
-select set_config('request.jwt.claim.role','member',true);
-commit;
-SQL
-# The two existing documents are sufficient to test reversed caller ordering.
-run_member_acceptance "$MEMBER_A" "$version_d1" 1 >"$tmpdir/multi-a.log" 2>&1 &
+run_multi_acceptance "$MEMBER_A" "$version_d1" "$version_e1" 1 >"$tmpdir/multi-a.log" 2>&1 &
+multi_a_pid=$!
+sleep 0.2
+ >"$tmpdir/multi-a.log" 2>&1 &
 multi_a_pid=$!
 sleep 0.2
 "${PSQL[@]}" <<SQL >"$tmpdir/multi-b.log" 2>&1 &
