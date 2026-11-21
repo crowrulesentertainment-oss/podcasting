@@ -51,6 +51,7 @@ select count(*) >= 1 as anon_can_read_published_document
 from public.policy_documents where id=:'doc_id'::uuid;
 select not has_table_privilege('anon','public.policy_acceptances','SELECT') as anon_cannot_select_acceptance_ledger;
 select not has_function_privilege('anon','public.accept_current_required_policy_versions(uuid[])','EXECUTE') as anon_cannot_execute_acceptance_rpc;
+select not has_schema_privilege('anon','crowrules_policy_private','USAGE') as anon_cannot_access_private_schema;
 reset role;
 
 -- An authenticated database role without a JWT subject must not accept.
