@@ -143,9 +143,9 @@ language sql
 stable
 security definer
 set search_path = ''
-as $
+as $identity_bridge$
   select auth.uid()
-$;
+$identity_bridge$;
 revoke all on function crowrules_policy_private.current_user_id_impl()
   from public, anon, authenticated, service_role;
 grant execute on function crowrules_policy_private.current_user_id_impl()
