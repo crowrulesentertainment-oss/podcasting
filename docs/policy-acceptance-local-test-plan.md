@@ -43,7 +43,7 @@ The workflow has no project reference, hosted credentials, remote database conne
 
 - Anonymous current-version discovery returns the current published version.
 - A withdrawn or expired latest effective version produces no current row and never revives an older published version.
-- Historical published versions remain displayable with clear historical/document state; withdrawn content is not returned in the public history view.
+- Historical published versions remain displayable with clear historical/document state; withdrawn content is not returned by the public history RPC.
 - Future-effective versions do not supersede early.
 - A required latest withdrawn/expired version blocks acceptance until an effective replacement exists.
 - A latest optional version supersedes earlier required versions without requiring acceptance.
