@@ -24,7 +24,8 @@ values
  ('expiry_future_end','Expiry Future End'),
  ('expiry_replacement','Expiry Replacement'),
  ('expiry_blocked','Expiry Blocked'),
- ('expiry_no_resurrection','Expiry No Resurrection');
+ ('expiry_no_resurrection','Expiry No Resurrection'),
+ ('expiry_draft_edit','Expiry Draft Edit');
 
 select id as no_end_doc from public.policy_documents where document_key='expiry_no_end' \gset
 select id as future_doc from public.policy_documents where document_key='expiry_future_end' \gset
@@ -39,7 +40,8 @@ values
  (:'replacement_doc','replacement-old','https://example.invalid/replacement-old',repeat('c',64),true,'published',now()-interval '3 days',now()-interval '3 days',now()-interval '1 day'),
  (:'replacement_doc','replacement-current','https://example.invalid/replacement-current',repeat('d',64),true,'published',now()-interval '1 hour',now()-interval '1 hour',now()+interval '1 day'),
  (:'resurrection_doc','resurrection-old-required','https://example.invalid/resurrection-old',repeat('1',64),true,'published',now()-interval '4 days',now()-interval '4 days',null),
- (:'resurrection_doc','resurrection-new-optional-expired','https://example.invalid/resurrection-new',repeat('2',64),false,'published',now()-interval '2 days',now()-interval '2 days',now()-interval '1 day');
+ (:'resurrection_doc','resurrection-new-optional-expired','https://example.invalid/resurrection-new',repeat('2',64),false,'published',now()-interval '2 days',now()-interval '2 days',now()-interval '1 day'),
+ (:'draft_doc','draft-expiry-edit','https://example.invalid/draft-expiry',repeat('4',64),true,'draft',now()-interval '1 hour',null,null);
 
 select id as no_end_version from public.policy_versions where document_id=:'no_end_doc'::uuid \gset
 select id as future_version from public.policy_versions where document_id=:'future_doc'::uuid \gset
@@ -50,6 +52,14 @@ select pg_temp.assert_sqlstate(
  format('insert into public.policy_versions(document_id,version_label,content_url,content_sha256,requires_acceptance,status,effective_at,published_at,expires_at) values (%L,%L,%L,%L,true,''published'',now(),now(),now())',:'no_end_doc','invalid-expiry','https://example.invalid/invalid-expiry',repeat('3',64)),
  '23514','expiration must follow effective date'
 );
+
+-- Expiration may be configured while draft, then is frozen on publication.
+update public.policy_versions
+set expires_at=now()+interval '30 days'
+where id=:'draft_version'::uuid;
+update public.policy_versions
+set status='published',published_at=now()
+where id=:'draft_version'::uuid;
 
 select set_config('test.expiry_no_end_version', :'no_end_version', true);
 select set_config('test.expiry_future_version', :'future_version', true);
@@ -96,7 +106,7 @@ $test$;
 reset role;
 insert into public.policy_versions(document_id,version_label,content_url,content_sha256,requires_acceptance,status,effective_at,published_at,expires_at)
 values
- (:'blocked_doc','blocked-expired','https://example.invalid/blocked-expired',repeat('e',64),true,'published',now()-interval '3 days',now()-interval '3 days',now()-interval '1 day'),
+ ( :'blocked_doc','blocked-expired','https://example.invalid/blocked-expired',repeat('e',64),true,'published',now()-interval '3 days',now()-interval '3 days',now()),
  (:'blocked_doc','blocked-future-replacement','https://example.invalid/blocked-future',repeat('f',64),true,'published',now()+interval '1 day',now(),now()+interval '2 days');
 select id as blocked_version from public.policy_versions where document_id=:'blocked_doc'::uuid and version_label='blocked-expired' \gset
 select set_config('test.expiry_blocked_version', :'blocked_version', true);
@@ -123,6 +133,10 @@ reset role;
 select pg_temp.assert_sqlstate(
  format('update public.policy_versions set expires_at=now()+interval ''30 days'' where id=%L',:'replacement_current'),
  '55000','published expiration immutable'
+);
+select pg_temp.assert_sqlstate(
+ format('update public.policy_versions set expires_at=now()+interval ''60 days'' where id=%L',:'draft_version'),
+ '55000','draft expiration becomes immutable after publication'
 );
 
 do $test$
