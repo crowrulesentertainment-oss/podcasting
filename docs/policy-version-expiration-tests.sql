@@ -1,5 +1,5 @@
 -- Disposable-only policy expiration tests.
--- Run after the base versioned policy migration and docs/policy-version-expiration-migration-draft.sql.
+-- Run after the base versioned policy migration and the formal timestamped expiration migration.
 -- Every fixture is synthetic and rolled back.
 
 begin;
@@ -98,6 +98,7 @@ from public.policy_versions where id=:'withdrawal_new'::uuid;
 select count(*) = 0 as anon_cannot_read_draft_version
 from public.policy_versions where id=:'still_draft_version'::uuid;
 reset role;
+set local role authenticated;
 
 -- No-expiry and future-expiry versions remain valid; the effective replacement
 -- supersedes its expired predecessor.
