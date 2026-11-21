@@ -1,6 +1,6 @@
 # Policy acceptance implementation plan
 
-Status: implementation design only. No database schema, authentication behavior, or production policy has been changed by this document.
+Status: Phase 1D implementation prepared on the feature branch. The migration remains unapplied; no production schema, authentication enforcement, or policy publication has been changed.
 
 ## Audit findings (2026-11-20)
 
