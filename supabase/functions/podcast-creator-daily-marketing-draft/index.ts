@@ -99,7 +99,6 @@ Deno.serve(async (req: Request) => {
         sender: { name: "CrowRules Entertainment", email: "crowrulesentertainment@gmail.com" },
         replyTo: "crowrulesentertainment@gmail.com",
         htmlContent,
-        tag: "crowrules-creator-daily-draft-test",
         previewText: "A recipient-free draft validation; no email will be sent.",
         mirrorActive: true,
       }),
