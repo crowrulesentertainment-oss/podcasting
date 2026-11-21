@@ -63,7 +63,7 @@ If a future revision is required, create a new migration using `npx --yes supaba
 ## Start and reset the local stack
 
 ```powershell
-npx --yes supabase@3.0.0 start -x studio,storage-api,realtime,imgproxy,edge-runtime,logflare,vector,supavisor,postgres-meta
+npx --yes supabase@3.0.0 start
 npx --yes supabase@3.0.0 status
 npx --yes supabase@3.0.0 db reset
 npx --yes supabase@3.0.0 migration list
