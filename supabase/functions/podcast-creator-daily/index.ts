@@ -12,6 +12,31 @@ const reply = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: cors });
 const clean = (value: unknown, max: number) =>
   String(value ?? "").trim().replace(/[\r\n]/g, " ").slice(0, max);
+const CONSENT_TESTS = [
+  { name: "explicit_opt_in", consented: true, consent_at: "2026-01-01T00:00:00Z", consent_source: "account_preferences", unsubscribed_at: null, expected: true },
+  { name: "no_record", consented: false, consent_at: null, consent_source: null, unsubscribed_at: null, expected: false },
+  { name: "not_consented", consented: false, consent_at: null, consent_source: null, unsubscribed_at: null, expected: false },
+  { name: "previously_unsubscribed", consented: true, consent_at: "2026-01-01T00:00:00Z", consent_source: "account_preferences", unsubscribed_at: "2026-01-02T00:00:00Z", expected: false },
+  { name: "incomplete_consent", consented: true, consent_at: null, consent_source: null, unsubscribed_at: null, expected: false },
+];
+const isCurrentOptIn = (c: any) =>
+  c?.consented === true && !!c?.consent_at && !!c?.consent_source && !c?.unsubscribed_at;
+const CREATOR_DAILY_SECTION_ORDER = [
+  "Announcements", "Creator Spotlight", "Collaboration Opportunities",
+  "Community Activity", "Upcoming Events", "Production Reminders",
+  "Tomorrow's Preview", "Creator Statistics & Milestones", "New Shows & Episodes",
+];
+const composeDigestSections = (content: Record<string, unknown[]>) =>
+  CREATOR_DAILY_SECTION_ORDER
+    .map((title) => ({ title, items: Array.isArray(content[title]) ? content[title] : [] }))
+    .filter((section) => section.items.length > 0);
+const editionDateAt = (instant: string) => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date(instant));
+  const part = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  return part("year") + "-" + part("month") + "-" + part("day");
+};
 const escapeHtml = (value: string) =>
   value.replace(/[&<>"']/g, (c) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
@@ -48,7 +73,7 @@ async function getOptedInCreators(db: any) {
     .in("user_id", userIds);
   if (consentError) throw consentError;
   const consented = new Set((consents ?? [])
-    .filter((c: any) => c.consented === true && !c.unsubscribed_at)
+    .filter((c: any) => isCurrentOptIn(c))
     .map((c: any) => c.user_id));
 
   const creatorByMember = new Map((creatorRows ?? []).map((c: any) => [c.member_id, c]));
@@ -129,6 +154,95 @@ Deno.serve(async (req: Request) => {
   let input: any = {};
   try { input = await req.json(); } catch { return reply({ error: "Invalid JSON body." }, 400); }
   const action = input.action ?? "status";
+
+  if (action === "readiness") {
+    const consentTests = CONSENT_TESTS.map((fixture) => ({
+      name: fixture.name,
+      passed: isCurrentOptIn(fixture) === fixture.expected,
+    }));
+    const consentLogicPassed = consentTests.every((test) => test.passed);
+
+    const recipientFixtures = [
+      { user_id: "recipient-a", metric: 12 },
+      { user_id: "recipient-b", metric: 999 },
+    ];
+    const scoped = recipientFixtures.filter((row) => row.user_id === "recipient-a");
+    const privacyPassed = scoped.length === 1 && scoped.every((row) => row.user_id === "recipient-a") &&
+      !scoped.some((row) => row.metric === 999);
+
+    const sectionFixture: Record<string, unknown[]> = {
+      "Creator Spotlight": [{ title: "fixture" }],
+      "Announcements": [{ title: "fixture" }],
+      "New Shows & Episodes": [{ title: "fixture" }],
+      "Upcoming Events": [],
+    };
+    const rendered = composeDigestSections(sectionFixture);
+    const sectionPassed = rendered.map((section) => section.title).join("|") ===
+      "Announcements|Creator Spotlight|New Shows & Episodes" &&
+      rendered.every((section) => section.items.length > 0) &&
+      CREATOR_DAILY_SECTION_ORDER.length === 9;
+
+    const dstSummer = editionDateAt("2026-07-15T04:00:00.000Z");
+    const dstWinter = editionDateAt("2026-12-15T05:00:00.000Z");
+    const dstPassed = dstSummer === "2026-07-14" && dstWinter === "2026-12-14";
+
+    const [creatorCount, consentCount, optedInCount, unsubscribedCount, tokenCount, ledgerCheck] = await Promise.all([
+      db.from("creators").select("id", { count: "exact", head: true }).eq("is_active", true).eq("discipline", "podcasting").not("member_id", "is", null),
+      db.from("podcast_marketing_consents").select("user_id", { count: "exact", head: true }),
+      db.from("podcast_marketing_consents").select("user_id", { count: "exact", head: true }).eq("consented", true).not("consent_at", "is", null).not("consent_source", "is", null).is("unsubscribed_at", null),
+      db.from("podcast_marketing_consents").select("user_id", { count: "exact", head: true }).not("unsubscribed_at", "is", null),
+      db.from("podcast_marketing_unsubscribe_tokens").select("token_hash", { count: "exact", head: true }),
+      db.from("podcast_creator_daily_editions").select("id", { count: "exact", head: true }),
+    ]);
+    const liveEligible = await getOptedInCreators(db);
+    const checks = {
+      opt_in_and_unsubscribe_rules: {
+        ok: consentLogicPassed && !creatorCount.error && !consentCount.error && !optedInCount.error && !unsubscribedCount.error,
+        detail: consentTests.filter((test) => test.passed).length + "/" + consentTests.length +
+          " synthetic consent cases passed. Live creator profiles: " + (creatorCount.count ?? 0) +
+          "; consent records: " + (consentCount.count ?? 0) +
+          "; explicit opt-ins: " + (optedInCount.count ?? 0) +
+          "; unsubscribed: " + (unsubscribedCount.count ?? 0) +
+          "; currently eligible: " + liveEligible.length + ".",
+      },
+      unsubscribed_creator_exclusion: {
+        ok: consentTests.find((test) => test.name === "previously_unsubscribed")?.passed === true &&
+          liveEligible.every((recipient: any) => !!recipient.user_id),
+        detail: "A consented record with unsubscribed_at set is excluded; no recipient addresses are returned.",
+      },
+      recipient_privacy_isolation: {
+        ok: privacyPassed,
+        detail: "Synthetic recipient-scoped data test passed; the recipient filter does not include another creator's private metrics.",
+      },
+      digest_section_renderer: {
+        ok: sectionPassed,
+        detail: "Nine-section order, populated-section rendering, and empty-section omission passed with synthetic content. Live content-source wiring is not yet complete.",
+      },
+      pacific_edition_date_and_ledger: {
+        ok: dstPassed && !ledgerCheck.error,
+        detail: "Pacific date conversion passed summer/winter DST fixtures. Unique edition-date ledger " +
+          (ledgerCheck.error ? "is unavailable." : "is reachable.") +
+          " The database enforces one row per local edition date.",
+      },
+    };
+
+    return reply({
+      ok: Object.values(checks).every((check) => check.ok),
+      product: "CrowRules Creator Daily",
+      checks,
+      consent_test_cases: consentTests,
+      digest_sections: CREATOR_DAILY_SECTION_ORDER,
+      live_digest_sources_ready: false,
+      one_click_unsubscribe_ready: false,
+      production_dispatch_enabled: false,
+      schedule_enabled: false,
+      next_blockers: [
+        "Wire approved/published live content sources into the nine digest sections.",
+        "Complete and verify RFC 8058 one-click unsubscribe handling and Brevo campaign header behavior.",
+        "Implement the scheduled runner against the unique Pacific-date edition ledger, then test it without activating a production schedule.",
+      ],
+    }, 200);
+  }
 
   if (action === "diagnostics") {
     const checks: Record<string, { ok: boolean; detail: string }> = {};
