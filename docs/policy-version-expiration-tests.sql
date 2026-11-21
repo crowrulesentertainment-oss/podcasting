@@ -123,7 +123,9 @@ select set_config(
 -- Withdrawal does not revive an older required version. Even though that old
 -- version is still historically published, the withdrawn newer version remains
 -- authoritative for selection and acceptance must reject the fallback.
-update public.policy_versions set status='withdrawn' where id=:'withdrawal_new'::uuid;
+select set_config('request.jwt.claim.role','admin',true);
+select public.policy_admin_withdraw_version(:'withdrawal_new'::uuid);
+select set_config('request.jwt.claim.role','member',true);
 
 do $test$
 begin
@@ -142,15 +144,18 @@ $test$;
 
 -- Restore the complete acceptance flow with an optional replacement. This
 -- optional latest version supersedes the withdrawn required version.
-insert into public.policy_versions(
-  document_id,version_label,content_url,content_sha256,
-  requires_acceptance,status,effective_at,published_at
-)
-values (
-  :'withdrawal_doc','withdrawal-optional-replacement',
-  'https://example.invalid/withdrawal-optional',repeat('8',64),
-  false,'published',now()-interval '1 day',now()-interval '1 day'
-);
+select set_config('request.jwt.claim.role','admin',true);
+select public.policy_admin_create_draft_version(
+  :'withdrawal_doc'::uuid,
+  'withdrawal-optional-replacement',
+  'https://example.invalid/withdrawal-optional',
+  repeat('8',64),
+  false,
+  transaction_timestamp()-interval '1 day',
+  null
+) as withdrawal_optional_replacement \\gset
+select public.policy_admin_publish_version(:'withdrawal_optional_replacement'::uuid);
+select set_config('request.jwt.claim.role','member',true);
 
 -- An expired newer optional version supersedes the old required version;
 -- the old required version must not be resurrected into the acceptance set.
