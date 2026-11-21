@@ -1,0 +1,93 @@
+name: Policy acceptance SQL validation
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql"
+      - "docs/policy-acceptance-local-tests.sql"
+      - ".github/workflows/policy-acceptance-sql.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  postgres-policy-ledger:
+    name: PostgreSQL policy ledger security tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: crowrules_policy_test
+          POSTGRES_USER: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d crowrules_policy_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: crowrules_policy_test
+      PGUSER: postgres
+    steps:
+      - name: Check out pull request
+        uses: actions/checkout@v4
+
+      - name: Bootstrap disposable Supabase-compatible roles and Auth schema
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 <<'SQL'
+          create role anon nologin;
+          create role authenticated nologin;
+          create role service_role nologin bypassrls;
+          create schema auth;
+          create table auth.users (
+            id uuid primary key
+          );
+          create or replace function auth.uid()
+          returns uuid
+          language sql
+          stable
+          as $$
+            select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
+          $$;
+          grant usage on schema auth to anon, authenticated;
+          grant execute on function auth.uid() to anon, authenticated;
+          SQL
+
+      - name: Apply policy acceptance migration to disposable PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql
+
+      - name: Create two disposable Auth identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 <<'SQL'
+          insert into auth.users (id) values
+            ('10000000-0000-0000-0000-000000000001'),
+            ('20000000-0000-0000-0000-000000000002');
+          SQL
+
+      - name: Run policy acceptance RLS and ledger harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="$RUNNER_TEMP/policy-acceptance-test-output.txt"
+          psql -X -qAt -v ON_ERROR_STOP=1 \
+            -v member_a='10000000-0000-0000-0000-000000000001' \
+            -v member_b='20000000-0000-0000-0000-000000000002' \
+            -f docs/policy-acceptance-local-tests.sql | tee "$output"
+          if grep -qx 'f' "$output"; then
+            echo "One or more policy acceptance assertions returned false."
+            exit 1
+          fi
+          echo "All boolean policy acceptance smoke-test assertions passed."
