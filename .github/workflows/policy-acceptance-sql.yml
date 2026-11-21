@@ -137,8 +137,6 @@ jobs:
     name: Isolated local Supabase migration and RLS tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      TEST_PROJECT_DIR: ${{ runner.temp }}/policy-supabase
     steps:
       - name: Check out pull request
         uses: actions/checkout@v4
@@ -157,6 +155,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          TEST_PROJECT_DIR="$RUNNER_TEMP/policy-supabase"
+          echo "TEST_PROJECT_DIR=$TEST_PROJECT_DIR" >> "$GITHUB_ENV"
           mkdir -p "$TEST_PROJECT_DIR"
           cd "$TEST_PROJECT_DIR"
           npx --yes supabase@3.0.0 --version
