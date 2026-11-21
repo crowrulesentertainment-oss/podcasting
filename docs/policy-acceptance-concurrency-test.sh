@@ -151,6 +151,30 @@ SQL
   fi
 }
 
+
+expect_acceptance_rejection_many() {
+  local version_array_sql="$1"
+  local log="$2"
+  if "${PSQL[@]}" -v VERBOSITY=verbose <<SQL >"$log" 2>&1
+begin;
+set local statement_timeout='15s';
+set local role authenticated;
+select set_config('request.jwt.claim.sub','$MEMBER_A',true);
+select set_config('request.jwt.claim.role','member',true);
+select public.accept_current_required_policy_versions($version_array_sql);
+commit;
+SQL
+  then
+    echo "Expected catalog-race acceptance to be rejected, but it succeeded."
+    exit 1
+  fi
+  if ! grep -q '22023' "$log"; then
+    cat "$log"
+    echo "Expected SQLSTATE 22023 for catalog-race acceptance."
+    exit 1
+  fi
+}
+
 # 1. Acceptance obtains the document lock first. Withdrawal waits; the
 #    acceptance remains valid for the version current when it acquired the lock.
 IFS='|' read -r doc_a version_a <<<"$(new_published_fixture "concurrency_accept_first_$suffix")"
@@ -225,5 +249,53 @@ wait "$multi_a_pid" || { cat "$tmpdir/multi-a.log"; exit 1; }
 wait "$multi_b_pid" || { cat "$tmpdir/multi-b.log"; exit 1; }
 assert_sql "select count(*)=2 from public.policy_acceptances where user_id='$MEMBER_A'::uuid and policy_version_id in ('$version_d1'::uuid,'$version_e1'::uuid)"
 assert_sql "select count(*)=2 from public.policy_acceptances where user_id='$MEMBER_B'::uuid and policy_version_id in ('$version_d1'::uuid,'$version_e1'::uuid)"
+
+# 5. Catalog creation and acceptance serialize on the private catalog sentinel.
+IFS='|' read -r doc_f version_f <<<"$(new_published_fixture catalog_existing required)"
+catalog_suffix="${suffix}_catalog"
+catalog_key="concurrency_catalog_new_${catalog_suffix}"
+catalog_log="$tmpdir/catalog-create.log"
+stdbuf -oL "${PSQL[@]}" <<SQL >"$catalog_log" 2>&1 &
+begin;
+set local statement_timeout='15s';
+set local role authenticated;
+select set_config('request.jwt.claim.sub','$MEMBER_B',true);
+select set_config('request.jwt.claim.role','admin',true);
+select public.policy_admin_create_document('$catalog_key', 'Catalog race policy', 'Synthetic catalog-sentinel concurrency fixture') as new_doc_id \\gset
+\\echo CATALOG_SENTINEL_LOCKED
+select public.policy_admin_create_draft_version(:'new_doc_id'::uuid, 'v1', 'https://example.invalid/catalog-race', repeat('d',64), true, transaction_timestamp() - interval '30 seconds', null) as new_version_id \\gset
+select public.policy_admin_publish_version(:'new_version_id'::uuid);
+select pg_sleep(2);
+commit;
+SQL
+catalog_pid=$!
+
+for attempt in $(seq 1 80); do
+  if grep -q 'CATALOG_SENTINEL_LOCKED' "$catalog_log"; then
+    break
+  fi
+  sleep 0.05
+done
+if ! grep -q 'CATALOG_SENTINEL_LOCKED' "$catalog_log"; then
+  cat "$catalog_log"
+  echo "Admin transaction did not acquire the catalog sentinel in time."
+  wait "$catalog_pid" || true
+  exit 1
+fi
+
+catalog_started_ms=$(date +%s%3N)
+expect_acceptance_rejection_many "array['$version_d1'::uuid,'$version_e1'::uuid,'$version_f'::uuid]" "$tmpdir/catalog-accept.log"
+catalog_elapsed_ms=$(( $(date +%s%3N) - catalog_started_ms ))
+if ! wait "$catalog_pid"; then
+  cat "$catalog_log"
+  exit 1
+fi
+if (( catalog_elapsed_ms < 1000 )); then
+  cat "$tmpdir/catalog-accept.log"
+  echo "Acceptance did not wait on the catalog sentinel before validating the required set."
+  exit 1
+fi
+
+assert_sql "select count(*)=0 from public.policy_acceptances where user_id='$MEMBER_A'::uuid and policy_version_id='$version_f'::uuid"
 
 echo "All policy acceptance concurrency scenarios passed."
