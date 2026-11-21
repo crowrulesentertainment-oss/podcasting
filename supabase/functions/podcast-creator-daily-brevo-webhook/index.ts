@@ -24,7 +24,7 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
 
   const expectedSecret = Deno.env.get("BREVO_CREATOR_DAILY_WEBHOOK_SECRET") ?? "";
-  const suppliedSecret = req.headers.get("x-crowrules-webhook-secret") ?? "";
+  const suppliedSecret = (req.headers.get("authorization") ?? "").replace(/^Bearer\\s+/i, "");
   if (!expectedSecret || !safeEqual(suppliedSecret, expectedSecret)) {
     return json({ error: "Webhook authentication failed." }, 401);
   }
