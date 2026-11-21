@@ -439,6 +439,31 @@ Deno.serve(async (req: Request) => {
     }, 200);
   }
 
+  if (action === "preview_digest") {
+    const previewUserId = String(input.preview_user_id ?? "");
+    if (!/^[0-9a-f-]{36}$/i.test(previewUserId)) {
+      return reply({ error: "Provide a valid creator user ID for this administrator-only preview." }, 400);
+    }
+    const { data: creatorLink, error: creatorLinkError } = await db.from("podcast_creators")
+      .select("user_id").eq("user_id", previewUserId).limit(1).maybeSingle();
+    if (creatorLinkError) return reply({ error: "Could not verify the selected creator account." }, 500);
+    if (!creatorLink) return reply({ error: "The selected account is not linked to a podcast creator profile." }, 404);
+    try {
+      const digest = await loadDigestContent(db, previewUserId);
+      return reply({
+        ok: true,
+        product: "CrowRules Creator Daily",
+        preview_only: true,
+        email_delivered: false,
+        recipient_scope: "administrator-selected creator; private data limited to that creator user ID",
+        ...digest,
+      });
+    } catch (error) {
+      console.error("Creator Daily preview source error:", error);
+      return reply({ error: "One or more Creator Daily content sources could not be loaded. No email was sent." }, 503);
+    }
+  }
+
   if (action === "status" || action === "preview") {
     let eligibleCount = 0;
     if (action === "preview") eligibleCount = (await getOptedInCreators(db)).length;
