@@ -15,6 +15,7 @@ Add nullable `policy_versions.expires_at timestamptz`. A null value means no sch
 5. An expired newer version never causes an older version to become current again. This applies whether the newer version was required or optional.
 6. A latest optional version does not create a new acceptance requirement. It still supersedes older versions for that document.
 7. Expired published content remains readable as historical policy content. Expiration prevents new acceptance; it does not erase prior acceptances or the policy text needed to understand them.
+8. Withdrawal does not restore an older version. For current-version selection, the latest effective published or withdrawn version is authoritative. If that version is withdrawn, the document has no current version until a new replacement is published and becomes effective. Older published versions remain historical only and cannot be accepted as a fallback.
 
 ## Integrity and lifecycle
 
@@ -22,7 +23,7 @@ Add nullable `policy_versions.expires_at timestamptz`. A null value means no sch
 - Otherwise `expires_at > effective_at` is required.
 - Expiration can be set or corrected while a version is draft; after publication it is immutable.
 - Corrections require a new policy version.
-- Withdrawal remains a separate administrator lifecycle action; expiration is time-based and does not rewrite status.
+- Withdrawal remains a separate administrator lifecycle action; expiration is time-based and does not rewrite status. Withdrawing the latest effective version does not revive an older version. A new replacement must be published and become effective before the document has a current version again.
 - Existing acceptance rows remain append-only and retain their original `accepted_at` timestamps.
 
 ## Formal migration
