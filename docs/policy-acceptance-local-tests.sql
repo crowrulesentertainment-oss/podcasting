@@ -34,29 +34,31 @@ values (
   true,'published',now()-interval '1 minute',now()
 )
 returning id \gset ver_
+select set_config('test.version_id', :'ver_id', true);
 
 -- Anonymous: published policy metadata is readable; acceptance ledger is not.
 set local role anon;
 select set_config('request.jwt.claim.sub','',true);
 select count(*) >= 1 as anon_can_read_published_versions
-from public.policy_versions where id=:'ver_id'::uuid;
-select count(*) = 0 as anon_cannot_read_acceptance_ledger
-from public.policy_acceptances;
+from public.policy_versions where id=current_setting('test.version_id')::uuid;
+select count(*) >= 1 as anon_can_read_published_document
+from public.policy_documents where id=:'doc_id'::uuid;
+select not has_table_privilege('anon','public.policy_acceptances','SELECT') as anon_cannot_select_acceptance_ledger;
 reset role;
 
 -- Member A accepts. The RPC derives identity from auth.uid().
 set local role authenticated;
 select set_config('request.jwt.claim.sub',current_setting('test.member_a'),true);
-select public.accept_current_required_policy_versions(array[:'ver_id'::uuid]) = 1
+select public.accept_current_required_policy_versions(array[current_setting('test.version_id')::uuid]) = 1
   as member_a_first_acceptance_inserts_one;
-select public.accept_current_required_policy_versions(array[:'ver_id'::uuid]) = 0
+select public.accept_current_required_policy_versions(array[current_setting('test.version_id')::uuid]) = 0
   as member_a_repeat_is_idempotent;
 reset role;
 
 -- Member B accepts the same version; this must create a separate owner-scoped row.
 set local role authenticated;
 select set_config('request.jwt.claim.sub',current_setting('test.member_b'),true);
-select public.accept_current_required_policy_versions(array[:'ver_id'::uuid]) = 1
+select public.accept_current_required_policy_versions(array[current_setting('test.version_id')::uuid]) = 1
   as member_b_acceptance_is_scoped_to_member_b;
 reset role;
 
@@ -67,13 +69,16 @@ select count(*) = 1 as member_a_can_read_own_acceptance
 from public.policy_acceptances where user_id=current_setting('test.member_a')::uuid;
 select count(*) = 0 as member_a_cannot_read_member_b
 from public.policy_acceptances where user_id=current_setting('test.member_b')::uuid;
+select not has_table_privilege('authenticated','public.policy_acceptances','INSERT') as member_cannot_insert_directly;
+select not has_table_privilege('authenticated','public.policy_acceptances','UPDATE') as member_cannot_update_directly;
+select not has_table_privilege('authenticated','public.policy_acceptances','DELETE') as member_cannot_delete_directly;
 
 -- Direct client insert is denied by table privileges.
 do $$
 begin
   begin
     insert into public.policy_acceptances(user_id,policy_version_id)
-    values (current_setting('test.member_a')::uuid, :'ver_id'::uuid);
+    values (current_setting('test.member_a')::uuid, current_setting('test.version_id')::uuid);
     raise exception 'SECURITY FAILURE: direct acceptance insert unexpectedly succeeded';
   exception when insufficient_privilege then null;
   end;
@@ -83,12 +88,12 @@ reset role;
 -- Owner-side assertions and immutability check.
 do $$
 begin
-  if (select count(*) from public.policy_acceptances where policy_version_id=:'ver_id'::uuid) <> 2 then
+  if (select count(*) from public.policy_acceptances where policy_version_id=current_setting('test.version_id')::uuid) <> 2 then
     raise exception 'Expected one acceptance per test member';
   end if;
   begin
     update public.policy_acceptances set accepted_at=now()
-    where user_id=current_setting('test.member_a')::uuid and policy_version_id=:'ver_id'::uuid;
+    where user_id=current_setting('test.member_a')::uuid and policy_version_id=current_setting('test.version_id')::uuid;
     raise exception 'SECURITY FAILURE: acceptance update unexpectedly succeeded';
   exception when object_not_in_prerequisite_state then null;
   end;
