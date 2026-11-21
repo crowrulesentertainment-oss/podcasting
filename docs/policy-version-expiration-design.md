@@ -21,7 +21,7 @@ Add nullable `policy_versions.expires_at timestamptz`. A null value means no sch
 
 - Store and compare expiration as an exact timestamp; do not reinterpret it as the end of a calendar day.
 - Display the date, time, and explicit timezone in the member interface. Avoid ambiguous phrases such as “expires tonight.”
-- When a required version has expired and no effective replacement exists, explain that policy acceptance is temporarily unavailable until a replacement becomes effective.
+- When a required version has expired or its latest version has been withdrawn and no effective replacement exists, explain that the affected policy cannot be accepted until a replacement becomes effective.
 - Describe the restriction narrowly as an acceptance-flow restriction. Do not say or imply that expiration itself suspends the member's account or removes access to unrelated Podcasting features.
 - Keep the expired published policy available as historical text, clearly labeled as expired.
 
