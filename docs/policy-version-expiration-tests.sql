@@ -55,6 +55,7 @@ select id as no_end_version from public.policy_versions where document_id=:'no_e
 select id as future_version from public.policy_versions where document_id=:'future_doc'::uuid \gset
 select id as replacement_current from public.policy_versions where document_id=:'replacement_doc'::uuid and version_label='replacement-current' \gset
 select id as resurrection_old from public.policy_versions where document_id=:'resurrection_doc'::uuid and version_label='resurrection-old-required' \gset
+select id as resurrection_new_optional from public.policy_versions where document_id=:'resurrection_doc'::uuid and version_label='resurrection-new-optional-expired' \gset
 select id as draft_version from public.policy_versions where document_id=:'draft_doc'::uuid and version_label='draft-expiry-edit' \gset
 select id as withdrawal_old from public.policy_versions where document_id=:'withdrawal_doc'::uuid and version_label='withdrawal-old' \gset
 select id as withdrawal_new from public.policy_versions where document_id=:'withdrawal_doc'::uuid and version_label='withdrawal-new' \gset
@@ -78,6 +79,38 @@ select set_config('test.expiry_future_version', :'future_version', true);
 select set_config('test.expiry_replacement_current', :'replacement_current', true);
 select set_config('test.expiry_resurrection_old', :'resurrection_old', true);
 select set_config('test.expiry_withdrawal_old', :'withdrawal_old', true);
+
+-- Public discovery RPCs must share the acceptance path's exact latest-version
+-- and expiration semantics.
+select count(*)=1 as current_rpc_returns_effective_replacement
+from public.get_current_policy_versions()
+where document_id=:'replacement_doc'::uuid
+  and policy_version_id=:'replacement_current'::uuid;
+
+select count(*)=1 as history_rpc_marks_expired_predecessor_superseded
+from public.get_published_policy_history()
+where policy_version_id=(
+  select id from public.policy_versions
+  where document_id=:'replacement_doc'::uuid and version_label='replacement-old'
+)
+  and history_state='superseded'
+  and document_state='active';
+
+select count(*)=0 as current_rpc_hides_expired_optional_latest
+from public.get_current_policy_versions()
+where document_id=:'resurrection_doc'::uuid;
+
+select count(*)=1 as history_rpc_marks_expired_optional_latest
+from public.get_published_policy_history()
+where policy_version_id=:'resurrection_new_optional'::uuid
+  and history_state='expired'
+  and document_state='expired';
+
+select count(*)=1 as history_rpc_marks_old_required_superseded_after_expiry
+from public.get_published_policy_history()
+where policy_version_id=:'resurrection_old'::uuid
+  and history_state='superseded'
+  and document_state='expired';
 select set_config('test.expiry_withdrawal_new', :'withdrawal_new', true);
 
 set local role authenticated;
