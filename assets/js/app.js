@@ -1048,7 +1048,7 @@ async function episode(){
  async function refreshCreatorDailyConsent(){
   const state=$("#crCreatorDailyState"),subscribe=$("#crCreatorDailySubscribe"),unsubscribe=$("#crCreatorDailyUnsubscribe"),check=$("#crCreatorDailyConsent");
   if(!state||!subscribe||!unsubscribe||!check)return;
-  subscribe.disabled=true;unsubscribe.style.display="none";
+  subscribe.disabled=true;unsubscribe.disabled=false;unsubscribe.style.display="none";
   try{
    const result=await fn("podcasting-marketing-preferences",{action:"status"});
    const optedIn=result?.consented===true;
