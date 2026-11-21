@@ -134,7 +134,7 @@ Added an Agreements & Policies tab to the signed-in account center. It provides 
 
 ### Explicit limits
 
-No Supabase branch/project was created. No production SQL was executed. The migration, RLS policies, and RPC have not been run against Postgres yet. The member UI's live ledger path is intentionally dormant until a safe database test and migration are completed. No production deployment or PR merge was performed.
+No Supabase branch/project was created. No production SQL was executed. The migration, RLS policies, and RPC have not been run against Postgres yet. The member UI's live ledger path is intentionally dormant until a safe database test and migration are completed. No production deployment or merge of the Phase 1D follow-up commits was performed.
 
 
 ### Local execution readiness (2026-11-20)
