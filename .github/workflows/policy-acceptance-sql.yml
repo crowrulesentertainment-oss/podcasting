@@ -134,9 +134,11 @@ jobs:
           echo "All policy expiration semantics tests passed."
 
   local-supabase:
-    name: Full local Supabase migration and RLS tests
+    name: Isolated local Supabase migration and RLS tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      TEST_PROJECT_DIR: ${{ runner.temp }}/policy-supabase
     steps:
       - name: Check out pull request
         uses: actions/checkout@v4
@@ -151,13 +153,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes postgresql-client
 
-      - name: Initialize an unlinked local Supabase workspace
+      - name: Initialize isolated Supabase workspace with policy migrations only
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p "$TEST_PROJECT_DIR"
+          cd "$TEST_PROJECT_DIR"
           npx --yes supabase@3.0.0 --version
           npx --yes supabase@3.0.0 init
-          test -f supabase/config.toml
+          mkdir -p supabase/migrations
+          cp "$GITHUB_WORKSPACE/supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql" supabase/migrations/
           if grep -q 'crowrules_policy_private' supabase/config.toml; then
             echo "Private policy schema must not be exposed through the Data API."
             exit 1
@@ -167,16 +172,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          cd "$TEST_PROJECT_DIR"
           npx --yes supabase@3.0.0 migration new policy_version_expiration
           migration_file="$(find supabase/migrations -maxdepth 1 -type f -name '*_policy_version_expiration.sql' -print -quit)"
           test -n "$migration_file"
-          cp docs/policy-version-expiration-migration-draft.sql "$migration_file"
+          cp "$GITHUB_WORKSPACE/docs/policy-version-expiration-migration-draft.sql" "$migration_file"
           echo "Generated local migration: $migration_file"
 
-      - name: Start the disposable local Supabase stack
+      - name: Start the isolated local Supabase stack
         shell: bash
         run: |
           set -euo pipefail
+          cd "$TEST_PROJECT_DIR"
           npx --yes supabase@3.0.0 start
           npx --yes supabase@3.0.0 status
 
@@ -184,6 +191,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          cd "$TEST_PROJECT_DIR"
           npx --yes supabase@3.0.0 db reset
           npx --yes supabase@3.0.0 migration list
 
@@ -192,6 +200,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          cd "$TEST_PROJECT_DIR"
           db_url="$(npx --yes supabase@3.0.0 status -o env | grep '^DB_URL=' | cut -d= -f2- | tr -d '"')"
           if [ -z "$db_url" ]; then
             echo "Could not read the local DB_URL from Supabase status."
@@ -206,12 +215,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          psql "$DB_URL" -X -v ON_ERROR_STOP=1 <<'SQL'
-          insert into auth.users (id) values
-            ('10000000-0000-0000-0000-000000000001'),
-            ('20000000-0000-0000-0000-000000000002')
-          on conflict (id) do nothing;
-          SQL
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 -c "insert into auth.users (id) values ('10000000-0000-0000-0000-000000000001'), ('20000000-0000-0000-0000-000000000002') on conflict (id) do nothing;"
 
       - name: Run policy RLS and acceptance ledger smoke tests
         env:
@@ -219,10 +223,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          psql "$DB_URL" -X -v ON_ERROR_STOP=1 \
-            -v member_a='10000000-0000-0000-0000-000000000001' \
-            -v member_b='20000000-0000-0000-0000-000000000002' \
-            -f docs/policy-acceptance-local-tests.sql
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 -v member_a='10000000-0000-0000-0000-000000000001' -v member_b='20000000-0000-0000-0000-000000000002' -f "$GITHUB_WORKSPACE/docs/policy-acceptance-local-tests.sql"
 
       - name: Run negative, lifecycle, duplicate, and immutability tests
         env:
@@ -230,10 +231,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          psql "$DB_URL" -X -v ON_ERROR_STOP=1 \
-            -v member_a='10000000-0000-0000-0000-000000000001' \
-            -v member_b='20000000-0000-0000-0000-000000000002' \
-            -f docs/policy-acceptance-negative-lifecycle-tests.sql
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 -v member_a='10000000-0000-0000-0000-000000000001' -v member_b='20000000-0000-0000-0000-000000000002' -f "$GITHUB_WORKSPACE/docs/policy-acceptance-negative-lifecycle-tests.sql"
 
       - name: Run policy expiration boundary and history tests
         env:
@@ -241,17 +239,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          psql "$DB_URL" -X -v ON_ERROR_STOP=1 \
-            -v member_a='10000000-0000-0000-0000-000000000001' \
-            -v member_b='20000000-0000-0000-0000-000000000002' \
-            -f docs/policy-version-expiration-tests.sql
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 -v member_a='10000000-0000-0000-0000-000000000001' -v member_b='20000000-0000-0000-0000-000000000002' -f "$GITHUB_WORKSPACE/docs/policy-version-expiration-tests.sql"
 
       - name: Run Supabase database security advisors
         shell: bash
-        run: npx --yes supabase@3.0.0 db advisors
+        run: |
+          set -euo pipefail
+          cd "$TEST_PROJECT_DIR"
+          npx --yes supabase@3.0.0 db advisors
 
-      - name: Stop the disposable local Supabase stack
+      - name: Stop the isolated local Supabase stack
         if: always()
         continue-on-error: true
         shell: bash
-        run: npx --yes supabase@3.0.0 stop
+        run: |
+          cd "$TEST_PROJECT_DIR"
+          npx --yes supabase@3.0.0 stop
