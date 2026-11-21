@@ -48,6 +48,13 @@ select (
 from pg_catalog.pg_roles r
 where r.rolname='crowrules_policy_owner';
 
+select not exists (
+  select 1
+  from pg_catalog.pg_auth_members m
+  where m.roleid=(select oid from pg_catalog.pg_roles where rolname='crowrules_policy_owner')
+     or m.member=(select oid from pg_catalog.pg_roles where rolname='crowrules_policy_owner')
+) as function_owner_has_no_role_memberships;
+
 select pg_catalog.pg_get_userbyid(p.proowner)='crowrules_policy_owner'
   and p.prosecdef
   and coalesce(array_to_string(p.proconfig,','),'') like '%search_path=""%'
