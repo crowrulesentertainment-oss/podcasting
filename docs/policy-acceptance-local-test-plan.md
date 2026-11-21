@@ -1,87 +1,92 @@
 # Local policy acceptance validation plan
 
-Status: prepared, not executed. Do not run against production or a shared Supabase branch.
+Status: implementation-preparation test plan. All execution is limited to disposable PostgreSQL or local Supabase environments. Never run these commands against production or a shared Supabase branch.
 
-## Environment
+## Candidate and migration history
 
-1. Verify the prerequisites with `supabase --version`, `docker --version`, and `docker info`. The local stack requires a Docker-compatible runtime.
-2. This repository currently has no `supabase/config.toml`. Run `supabase init` in the repository root to generate the local config, preserving the existing migrations directory; review the generated file and do not add production secrets or link a remote project.
-3. Run `supabase start` to launch only the local stack. Confirm the displayed project/API/DB URLs are local.
-4. Run `supabase db reset` to recreate the local database and apply the repository migrations from scratch. This command is intentionally local-only; do not add `--remote`, `--linked`, or a project ref. Stop if any earlier migration fails.
-5. Create two disposable Auth users (Member A and Member B) in local Studio/Auth. Use their UUIDs in the SQL harness placeholders.
-6. Confirm the local database has the three policy tables, RLS enabled, the public wrapper, and the dedicated non-exposed `crowrules_policy_private` implementation function. Confirm `crowrules_policy_private` is not listed as an exposed Data API schema.
+The approved design is in PR #70, which GitHub now reports as merged. The implementation branch keeps the SQL candidate in `docs/policy-acceptance-reconciliation-draft.sql` until Supabase CLI creates a formal migration filename.
 
+The expected local migration order is:
+
+1. `20261120110000_versioned_policy_acceptance_ledger.sql`
+2. `20261121070329_policy_version_expiration.sql`
+3. A CLI-generated, test-only admin-helper bootstrap migration.
+4. A CLI-generated `policy_acceptance_reconciliation` migration containing the SQL candidate.
+
+The test-only helper returns admin authorization only when the synthetic JWT role claim is `admin`. It is not production authorization code and must never be copied into a hosted database.
+
+## Security model under test
+
+- `crowrules_policy_owner` is a dedicated NOLOGIN, NOINHERIT, NOBYPASSRLS role with no role memberships. It must not own the policy tables.
+- The public member acceptance wrapper is SECURITY DEFINER, owned by `crowrules_policy_owner`, and has an empty search path. It validates `auth.uid()` before delegating.
+- The private implementation in `crowrules_policy_private` is SECURITY INVOKER, owned by the same restricted role. PUBLIC, anon, authenticated, and service_role have no schema USAGE or helper EXECUTE.
+- The public wrapper is the only member acceptance write path. Admin lifecycle RPCs are separately granted to authenticated users and authorize through the existing `private.crowrules_is_admin_impl()` helper.
+- The restricted function/view owner is not the policy-table owner and has no BYPASSRLS. The current/history views therefore run with the restricted owner's privileges while the underlying table RLS policies still apply.
+- Anonymous and authenticated users can read published policy content intended for public display. Withdrawn and draft content is not returned as active/public policy content. Acceptance history is member-owned.
+- Client roles have no direct acceptance INSERT/UPDATE/DELETE. The ledger remains append-only.
+- Policy acceptance and lifecycle RPCs require READ COMMITTED isolation. Stronger isolation is rejected rather than risking a stale transaction snapshot after a lock wait.
+- The catalog sentinel is locked first to serialize document-set membership. Then all parent documents are locked in ascending UUID order, followed by version rows ordered by parent ID and version ID. Document creation locks the same sentinel before inserting a new parent.
+- Current discovery uses `public.policy_current_versions`; historical published display uses `public.policy_published_history`. Clients must not infer current policy by sorting the raw version list.
 
 ## Repeatable CI execution
 
-The repository includes `.github/workflows/policy-acceptance-sql.yml`. It starts a disposable PostgreSQL 16 service inside GitHub Actions, bootstraps only the minimal Supabase-compatible database roles and `auth.users` / `auth.uid()` objects required by this migration, applies the migration, inserts two synthetic Auth identities, and runs the SQL harness.
+The workflow is `.github/workflows/policy-acceptance-sql.yml`. It has two independent disposable test jobs:
 
-The job runs for pull requests that change the migration, harness, or workflow, and can also be started manually with `workflow_dispatch`. It is isolated from Supabase projects: it has no project reference, Supabase credentials, production secrets, deployment steps, or remote database connection.
+1. PostgreSQL 16 service: bootstraps minimal Supabase-compatible roles and Auth helpers, applies the two formal migrations plus the reconciliation SQL candidate, and runs the SQL and two-session concurrency tests.
+2. Local Supabase: initializes a temporary project, uses `supabase migration new` to create the test-helper and reconciliation migration files, applies the full local migration chain with `supabase db reset`, verifies `supabase migration list`, runs the SQL/concurrency tests, and runs `supabase db advisors`.
 
-The harness output is checked for any boolean assertion returning false, in addition to stopping on SQL errors. A green workflow means the migration applied and all boolean smoke assertions passed against that disposable PostgreSQL database. It does not replace the additional negative/lifecycle tests listed above, a full Supabase local-stack run, or a review of Supabase-specific advisors and Data API exposure settings.
+The local job uploads the CLI-generated reconciliation migration as an artifact so its exact generated filename and contents can be reviewed before creating a repository migration file.
 
+The workflow has no project reference, hosted credentials, remote database connection, deployment step, or production mutation. CLI commands run against the temporary local project only.
 
-The expanded CI suite is in `docs/policy-acceptance-negative-lifecycle-tests.sql`. It runs after the smoke harness in the same disposable PostgreSQL job and rolls back its fixtures. It covers duplicate document keys and version labels, malformed checksums/URLs/labels, empty/unknown/draft/withdrawn/future/superseded/duplicate/incomplete RPC submissions, valid draft → published → withdrawn transitions, rejected reverse transitions, and immutable version content fields.
+## Required test coverage
 
-**Schema limitation:** the current `policy_versions` table has no `expires_at` or validity-end column. An "expired" version therefore cannot be represented or tested independently yet. The suite does test a not-yet-effective future version. If policy expiry becomes a requirement, add an explicit expiry field and define how it affects current-version selection before adding that test.
+- Anonymous current-version discovery returns the current published version.
+- A withdrawn or expired latest effective version produces no current row and never revives an older published version.
+- Historical published versions remain displayable with clear historical/document state; withdrawn content is not returned in the public history view.
+- Future-effective versions do not supersede early.
+- A required latest withdrawn/expired version blocks acceptance until an effective replacement exists.
+- A latest optional version supersedes earlier required versions without requiring acceptance.
+- Exact expiry timestamp boundary and draft-only expiry editing.
+- Published content and expiry are immutable; withdrawn rows cannot be republished.
+- The public wrapper is executable by authenticated and not anon; the private schema/helper is unavailable to client roles.
+- Wrapper/helper owners, SECURITY DEFINER/INVOKER modes, fixed search paths, role attributes, RLS, and grants are inspected.
+- Direct acceptance ledger writes fail; members can read only their own acceptance rows; duplicate acceptance is idempotent and preserves the original accepted timestamp.
+- Admin lifecycle RPCs reject non-admin synthetic members.
+- Acceptance and lifecycle calls reject non-READ COMMITTED isolation.
+- Two-session tests cover acceptance-first vs withdrawal, withdrawal-first vs acceptance, publication-first vs stale acceptance, and multi-document calls supplied in opposite orders.
+- The local Supabase job confirms the private implementation schema is not listed among exposed Data API schemas.
 
-## SQL harness
+## Running locally
 
-Run `psql` using the local database URL printed by `supabase status`, for example: `psql '<local-db-url>' -v member_a='<member-a-uuid>' -v member_b='<member-b-uuid>' -f docs/policy-acceptance-local-tests.sql`. Replace the placeholder UUIDs with the two disposable local Auth users. The harness opens a transaction and rolls back its policy fixtures. The CLI v3 default is local; do not run hosted/remote commands for this test.
+Use a temporary workspace, not the repository's production configuration:
 
-The harness checks:
-- Anonymous users can read effective published policy versions.
-- Anonymous users cannot read acceptance history.
-- Member A can accept the current required version.
-- Repeating acceptance is idempotent.
-- Member A can read their own acceptance row.
-- Member A cannot read Member B's acceptance rows.
-- Direct client writes to the acceptance ledger are denied.
-- Member B's acceptance is attributed to Member B, never Member A.
-- Acceptance rows reject mutation.
+1. Verify `supabase --version`, `docker --version`, and `docker info`.
+2. Create a temporary directory and run `supabase init` there. Do not run `supabase link` and do not add a production project reference.
+3. Copy only the two policy migrations into the temporary workspace.
+4. Generate a test-only admin helper migration and then a reconciliation migration with `supabase migration new`. Ensure the helper migration sorts before the reconciliation migration.
+5. Put the synthetic admin-helper stub in the helper migration and copy the reviewed candidate SQL into the generated reconciliation migration.
+6. Run `supabase start`, `supabase db reset`, and `supabase migration list` locally.
+7. Create two disposable Auth users, then run the SQL harnesses and `bash docs/policy-acceptance-concurrency-test.sh` using the local DB URL.
+8. Run `supabase db advisors`, review the results, and stop the stack with `supabase stop`.
 
-## Additional negative / lifecycle checks
+Do not add `--remote`, `--linked`, a project ref, or production credentials to these commands. Stop if an unrelated earlier migration is pulled into the temporary workspace or any command attempts a hosted connection.
 
-Run these as separate local-only checks after the smoke harness:
+## SQL test files
 
-1. Call the RPC as anon; expect permission denied. The smoke harness also checks that anon has no EXECUTE privilege.
-2. Call the RPC as the authenticated database role with no JWT subject; expect SQLSTATE 28000 (Authentication required).
-2. Call the RPC as an authenticated session with no JWT subject; expect Authentication required.
-3. Submit an empty array, an unknown version UUID, a draft version, a withdrawn version, an expired/not-yet-effective version, and an incomplete set; each must fail without inserting any row.
-4. Submit a duplicate version ID; expect rejection because supplied cardinality does not match the distinct valid count.
-5. Publish a newer version for the same document. Confirm the older version is no longer accepted as current.
-6. Publish a newer non-required version. Confirm it supersedes the old required version and the old version is no longer in the required set.
-7. Attempt to rewrite a version's URL, checksum, acceptance requirement, effective date, or document association; expect the immutable-version trigger to reject it.
-8. Attempt invalid lifecycle transitions (published back to draft, withdrawn back to published); expect rejection.
-9. Verify a user cannot update/delete acceptance rows even when they can select their own row.
-10. Verify policy document metadata remains hidden until an effective published version exists.
-
-## RLS identity setup
-
-For SQL role tests, set the local JWT subject before switching to the role:
-
-    begin;
-    set local role authenticated;
-    select set_config('request.jwt.claim.sub', '<member-uuid>', true);
-    select auth.uid();
-    rollback;
-
-Use a separate transaction for each identity when possible. Never substitute a real member UUID or real user data into this test.
+- `docs/policy-acceptance-local-tests.sql`: smoke tests for Auth identity, RLS, own-row history, direct-write denial, and idempotency.
+- `docs/policy-acceptance-negative-lifecycle-tests.sql`: invalid inputs, exact required set, optional supersession, and immutable/lifecycle checks.
+- `docs/policy-version-expiration-tests.sql`: expiration boundary, history, expiry immutability, and withdrawal no-fallback checks.
+- `docs/policy-acceptance-reconciliation-tests.sql`: restricted owner/RPC privileges, public current/history views, withdrawal no-fallback, admin authorization, and replacement behavior.
+- `docs/policy-acceptance-isolation-test.sql`: confirms repeatable-read calls are rejected.
+- `docs/policy-acceptance-concurrency-test.sh`: two-session lock-order and stale-acceptance regression tests.
 
 ## Acceptance criteria
 
-- All positive assertions return true.
-- Every negative test fails for the expected authorization / validation reason.
-- No cross-member rows are visible.
-- No direct client write path exists for acceptance rows.
-- RPC calls are idempotent and accept only the exact current required set.
-- Security advisor findings are reviewed after local migration.
-- The public RPC is invoker-security; only the dedicated crowrules_policy_private implementation is definer-security, with empty search path and explicit auth.uid() validation.
-
-## Not in scope yet
-
-- No signup enforcement or OAuth gating.
-- No acceptance checkbox or button.
-- No publishing / admin policy editor.
-- No production migration or policy seed data.
-- No marketing-email consent changes.
+- Every boolean assertion is true.
+- Every negative test fails with the expected SQLSTATE/message.
+- Both PostgreSQL 16 and the isolated local Supabase migration chain pass.
+- Migration history contains the generated candidate migration in the local test workspace.
+- No private schema is exposed through the Data API.
+- Supabase advisors are reviewed; any view/function warning is assessed against the restricted owner, empty search path, RLS, and grants.
+- No production schema, policy, configuration, or acceptance enforcement is changed.
