@@ -259,6 +259,20 @@ revoke all on function public.guard_policy_version_revision()
 
 grant create on schema public to crowrules_policy_owner;
 
+-- Supabase's migration executor may not be SUPERUSER. Temporarily grant it
+-- membership so ALTER VIEW/FUNCTION OWNER TO can transfer ownership. The
+-- membership is revoked after all ownership changes are complete.
+do $membership$
+begin
+  if not exists (
+    select 1 from pg_catalog.pg_roles
+    where rolname = current_user and rolsuper
+  ) then
+    execute format('grant crowrules_policy_owner to %I', current_user);
+  end if;
+end
+$membership$;
+
 create or replace view public.policy_current_versions
 with (security_barrier = true)
 as
@@ -836,6 +850,17 @@ alter function public.policy_admin_withdraw_version(uuid)
 
 revoke create on schema public from crowrules_policy_owner;
 revoke create on schema crowrules_policy_private from crowrules_policy_owner;
+
+do $membership_cleanup$
+begin
+  if exists (
+    select 1 from pg_catalog.pg_roles
+    where rolname = current_user and rolsuper
+  ) is false then
+    execute format('revoke crowrules_policy_owner from %I', current_user);
+  end if;
+end
+$membership_cleanup$;
 
 revoke all on function crowrules_policy_private.accept_current_required_policy_versions_impl(uuid[])
   from public, anon, authenticated, service_role;
