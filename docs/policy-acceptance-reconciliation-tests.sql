@@ -29,6 +29,14 @@ select has_function_privilege('authenticated',
 select not has_function_privilege('anon',
   'public.accept_current_required_policy_versions(uuid[])','EXECUTE')
   as anon_cannot_execute_public_wrapper;
+select not has_table_privilege('authenticated','public.policy_documents','INSERT')
+  as member_cannot_insert_policy_documents_directly;
+select not has_table_privilege('authenticated','public.policy_versions','INSERT')
+  as member_cannot_insert_policy_versions_directly;
+select not has_table_privilege('authenticated','public.policy_versions','UPDATE')
+  as member_cannot_update_policy_versions_directly;
+select has_table_privilege('crowrules_policy_owner','public.policy_acceptances','INSERT')
+  as restricted_owner_can_insert_acceptance;
 
 select (
   not r.rolcanlogin and not r.rolsuper and not r.rolcreatedb
@@ -62,6 +70,15 @@ select pg_catalog.pg_get_userbyid(c.relowner)='crowrules_policy_owner'
 from pg_catalog.pg_class c
 join pg_catalog.pg_namespace n on n.oid=c.relnamespace
 where n.nspname='public' and c.relname='policy_current_versions';
+
+select not exists (
+  select 1
+  from pg_catalog.pg_class c
+  join pg_catalog.pg_namespace n on n.oid=c.relnamespace
+  where n.nspname='public'
+    and c.relname in ('policy_documents','policy_versions','policy_acceptances')
+    and c.relowner=(select oid from pg_catalog.pg_roles where rolname='crowrules_policy_owner')
+) as function_owner_does_not_own_policy_tables;
 
 -- Synthetic document with an older published version and a newer published
 -- version. The newer version must be the only current result.
@@ -115,6 +132,19 @@ where policy_version_id=:'reconcile_old_id'::uuid
   and history_state='superseded'
   and document_state='active';
 
+-- The private implementation cannot be invoked directly by an authenticated member.
+set local role authenticated;
+do $test$
+begin
+  begin
+    perform crowrules_policy_private.accept_current_required_policy_versions_impl(array[]::uuid[]);
+    raise exception 'Authenticated member unexpectedly invoked private helper';
+  exception when insufficient_privilege then null;
+  end;
+end
+$test$;
+reset role;
+
 -- Only a synthetic admin claim can use the admin lifecycle RPC. The CI/local
 -- bootstrap supplies a test-only private.crowrules_is_admin_impl() stub.
 set local role authenticated;
@@ -125,6 +155,19 @@ reset role;
 
 -- Latest withdrawn version leaves no current version; old published text is
 -- historical only and the document state is explicitly withdrawn.
+set local role anon;
+select count(*)=0 as anonymous_current_view_hides_withdrawn_document
+from public.policy_current_versions
+where document_id=:'reconcile_doc_id'::uuid;
+select count(*)=0 as anonymous_base_read_hides_withdrawn_content
+from public.policy_versions
+where id=:'reconcile_new_id'::uuid;
+select count(*)=1 as anonymous_history_marks_document_withdrawn
+from public.policy_published_history
+where policy_version_id=:'reconcile_old_id'::uuid
+  and document_state='withdrawn';
+reset role;
+
 select count(*)=0 as withdrawn_latest_has_no_current_version
 from public.policy_current_versions
 where document_id=:'reconcile_doc_id'::uuid;
