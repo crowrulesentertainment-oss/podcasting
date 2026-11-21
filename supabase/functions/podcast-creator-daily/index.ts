@@ -130,6 +130,61 @@ Deno.serve(async (req: Request) => {
   try { input = await req.json(); } catch { return reply({ error: "Invalid JSON body." }, 400); }
   const action = input.action ?? "status";
 
+  if (action === "diagnostics") {
+    const checks: Record<string, { ok: boolean; detail: string }> = {};
+    checks.authentication = { ok: true, detail: "Signed-in user verified." };
+    checks.admin_permissions = { ok: true, detail: "Active CrowRules administrator verified." };
+
+    const adminDbCheck = await db.from("cr_admins").select("user_id", { count: "exact", head: true }).eq("user_id", user.id).eq("is_active", true);
+    checks.supabase_database = {
+      ok: !adminDbCheck.error,
+      detail: adminDbCheck.error ? "Administrator database query failed." : "Supabase database is reachable.",
+    };
+
+    const [consentCheck, tokenCheck, campaignCheck, deliveryCheck] = await Promise.all([
+      db.from("podcast_marketing_consents").select("user_id,consented,consent_at,consent_source,unsubscribe_token_hash,unsubscribed_at", { count: "exact", head: true }),
+      db.from("podcast_marketing_unsubscribe_tokens").select("token_hash,user_id,used_at", { count: "exact", head: true }),
+      db.from("podcast_email_campaigns").select("id", { count: "exact", head: true }),
+      db.from("podcast_email_campaign_deliveries").select("id", { count: "exact", head: true }),
+    ]);
+    checks.consent_infrastructure = {
+      ok: !consentCheck.error && !tokenCheck.error,
+      detail: !consentCheck.error && !tokenCheck.error
+        ? "Consent records and hashed unsubscribe-token storage are reachable."
+        : "Consent or unsubscribe-token schema could not be read.",
+    };
+    checks.campaign_delivery_tables = {
+      ok: !campaignCheck.error && !deliveryCheck.error,
+      detail: !campaignCheck.error && !deliveryCheck.error
+        ? "Campaign and recipient-delivery tables are reachable."
+        : "Campaign or delivery table could not be read.",
+    };
+
+    let brevoResponse: Response | null = null;
+    try {
+      brevoResponse = await fetch("https://api.brevo.com/v3/account", {
+        method: "GET",
+        headers: { "accept": "application/json", "api-key": brevoKey },
+      });
+      checks.brevo_api = {
+        ok: brevoResponse.ok,
+        detail: brevoResponse.ok ? "Brevo API key accepted; account endpoint reachable."
+          : "Brevo rejected the account check (HTTP " + brevoResponse.status + ").",
+      };
+    } catch {
+      checks.brevo_api = { ok: false, detail: "Could not reach the Brevo account endpoint." };
+    }
+
+    return reply({
+      ok: Object.values(checks).every((check) => check.ok),
+      product: "CrowRules Creator Daily",
+      checks,
+      sandbox_test_available: Object.values(checks).every((check) => check.ok),
+      production_dispatch_enabled: false,
+      schedule_enabled: false,
+    }, 200);
+  }
+
   if (action === "status" || action === "preview") {
     let eligibleCount = 0;
     if (action === "preview") eligibleCount = (await getOptedInCreators(db)).length;
