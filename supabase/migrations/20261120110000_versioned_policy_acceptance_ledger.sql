@@ -166,7 +166,9 @@ for each row execute function public.guard_policy_version_revision();
 
 -- Accept the complete set of currently effective required versions in one
 -- authenticated action. The caller cannot choose another member or timestamp.
-create or replace function public.accept_current_required_policy_versions(
+-- Keep the privileged insert routine in the non-exposed private schema.
+-- The public RPC is SECURITY INVOKER and is only an authenticated entry point.
+create or replace function private.accept_current_required_policy_versions_impl(
   p_policy_version_ids uuid[]
 )
 returns integer
@@ -243,6 +245,23 @@ begin
   get diagnostics v_inserted_count = row_count;
   return v_inserted_count;
 end;
+$function$;
+
+revoke all on function private.accept_current_required_policy_versions_impl(uuid[])
+  from public, anon;
+grant usage on schema private to authenticated;
+grant execute on function private.accept_current_required_policy_versions_impl(uuid[])
+  to authenticated;
+
+create or replace function public.accept_current_required_policy_versions(
+  p_policy_version_ids uuid[]
+)
+returns integer
+language sql
+security invoker
+set search_path = ''
+as $function$
+  select private.accept_current_required_policy_versions_impl(p_policy_version_ids);
 $function$;
 
 revoke all on function public.accept_current_required_policy_versions(uuid[])
