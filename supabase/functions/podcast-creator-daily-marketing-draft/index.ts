@@ -113,16 +113,26 @@ Deno.serve(async (req: Request) => {
       method: "GET",
     });
     const status = String(verified?.status ?? "").toLowerCase();
-    const hasRecipients = Array.isArray(verified?.recipients?.lists) &&
-      verified.recipients.lists.length > 0;
+    const recipientConfig = verified?.recipients;
+    const recipientConfigValid = recipientConfig == null ||
+      (typeof recipientConfig === "object" && !Array.isArray(recipientConfig) &&
+        (recipientConfig.lists === undefined || Array.isArray(recipientConfig.lists)) &&
+        (recipientConfig.segments === undefined || Array.isArray(recipientConfig.segments)));
+    const recipientListsPresent = Array.isArray(recipientConfig?.lists) &&
+      recipientConfig.lists.length > 0;
+    const recipientSegmentsPresent = Array.isArray(recipientConfig?.segments) &&
+      recipientConfig.segments.length > 0;
+    const hasRecipients = recipientListsPresent || recipientSegmentsPresent;
     const scheduledAt = clean(verified?.scheduledAt, 80);
 
-    if (status !== "draft" || hasRecipients || scheduledAt) {
+    if (status !== "draft" || !recipientConfigValid || hasRecipients || scheduledAt) {
       return json({
         ok: false,
         campaign_id: campaignId,
         status,
-        recipient_lists_present: hasRecipients,
+        recipient_configuration_valid: recipientConfigValid,
+        recipient_lists_present: recipientListsPresent,
+        recipient_segments_present: recipientSegmentsPresent,
         scheduled_at_present: !!scheduledAt,
         error: "Draft verification failed. Do not send or schedule this campaign; inspect it in Brevo.",
       }, 502);
