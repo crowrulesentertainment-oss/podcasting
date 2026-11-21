@@ -118,23 +118,7 @@ select set_config(
   true
 );
 
--- Withdrawal does not revive an older required version. Even though that old
--- version is still historically published, the withdrawn newer version remains
--- authoritative for selection and acceptance must reject the fallback.
-do $test$
-begin
-  begin
-    perform public.accept_current_required_policy_versions(array[
-      current_setting('test.expiry_no_end_version')::uuid,
-      current_setting('test.expiry_future_version')::uuid,
-      current_setting('test.expiry_replacement_current')::uuid,
-      current_setting('test.expiry_withdrawal_old')::uuid
-    ]);
-    raise exception 'Withdrawn latest version unexpectedly revived its older version';
-  exception when sqlstate '22023' then null;
-  end;
-end
-$test$;
+
 
 -- Withdrawal does not revive an older required version. Even though that old
 -- version is still historically published, the withdrawn newer version remains
