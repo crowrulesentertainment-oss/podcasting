@@ -66,7 +66,7 @@ select set_config('request.jwt.claim.role','admin',true);
 select public.policy_admin_create_draft_version(
   '$doc_id','$label','https://example.invalid/$label',repeat('c',64),
   false,transaction_timestamp()-interval '30 seconds',null
-) as version_id \\gset
+) as version_id \gset
 select public.policy_admin_publish_version(:'version_id'::uuid);
 commit;
 SQL
@@ -211,9 +211,6 @@ IFS='|' read -r doc_e version_e1 <<<"$(new_published_fixture "concurrency_multi_
 run_multi_acceptance "$MEMBER_A" "$version_d1" "$version_e1" 1 >"$tmpdir/multi-a.log" 2>&1 &
 multi_a_pid=$!
 sleep 0.2
- >"$tmpdir/multi-a.log" 2>&1 &
-multi_a_pid=$!
-sleep 0.2
 "${PSQL[@]}" <<SQL >"$tmpdir/multi-b.log" 2>&1 &
 begin;
 set local statement_timeout='15s';
@@ -226,5 +223,7 @@ SQL
 multi_b_pid=$!
 wait "$multi_a_pid" || { cat "$tmpdir/multi-a.log"; exit 1; }
 wait "$multi_b_pid" || { cat "$tmpdir/multi-b.log"; exit 1; }
+assert_sql "select count(*)=2 from public.policy_acceptances where user_id='$MEMBER_A'::uuid and policy_version_id in ('$version_d1'::uuid,'$version_e1'::uuid)"
+assert_sql "select count(*)=2 from public.policy_acceptances where user_id='$MEMBER_B'::uuid and policy_version_id in ('$version_d1'::uuid,'$version_e1'::uuid)"
 
 echo "All policy acceptance concurrency scenarios passed."
