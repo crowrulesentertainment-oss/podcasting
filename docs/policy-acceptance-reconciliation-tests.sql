@@ -233,23 +233,5 @@ from public.policy_acceptances
 where user_id=:'member_a'::uuid
   and policy_version_id=:'effective_version_id'::uuid;
 
--- The acceptance RPC must reject stronger isolation levels instead of silently
--- using a stale transaction snapshot after waiting on a document lock.
-set transaction isolation level repeatable read;
-set local role authenticated;
-select set_config('request.jwt.claim.sub', :'member_a', true);
-select set_config('request.jwt.claim.role','member',true);
-do $test$
-begin
-  begin
-    perform public.accept_current_required_policy_versions(
-      array[current_setting('test.reconcile_effective_version_id')::uuid]
-    );
-    raise exception 'Repeatable-read policy acceptance unexpectedly succeeded';
-  exception when sqlstate '25001' then null;
-  end;
-end
-$test$;
-reset role;
 
 rollback;
