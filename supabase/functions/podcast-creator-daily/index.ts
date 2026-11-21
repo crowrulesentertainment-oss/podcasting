@@ -30,6 +30,146 @@ const composeDigestSections = (content: Record<string, unknown[]>) =>
   CREATOR_DAILY_SECTION_ORDER
     .map((title) => ({ title, items: Array.isArray(content[title]) ? content[title] : [] }))
     .filter((section) => section.items.length > 0);
+
+const pacificMidnight = (date: string) => {
+  const [year, month, day] = date.split("-").map(Number);
+  const target = Date.UTC(year, month - 1, day, 0, 0, 0);
+  let guess = target;
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit",
+    day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
+  });
+  for (let i = 0; i < 3; i++) {
+    const parts = formatter.formatToParts(new Date(guess));
+    const value = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0);
+    const represented = Date.UTC(value("year"), value("month") - 1, value("day"), value("hour"), value("minute"), value("second"));
+    guess += target - represented;
+  }
+  return new Date(guess);
+};
+const addDateDays = (date: string, days: number) => {
+  const [year, month, day] = date.split("-").map(Number);
+  const next = new Date(Date.UTC(year, month - 1, day + days));
+  return next.toISOString().slice(0, 10);
+};
+
+async function loadDigestContent(db: any, recipientUserId: string) {
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const today = editionDateAt(nowIso);
+  const yesterday = addDateDays(today, -1);
+  const tomorrow = addDateDays(today, 1);
+  const dayAfter = addDateDays(today, 2);
+  const tomorrowStart = pacificMidnight(tomorrow).toISOString();
+  const dayAfterStart = pacificMidnight(dayAfter).toISOString();
+  const yesterdayStart = pacificMidnight(yesterday).toISOString();
+  const content: Record<string, unknown[]> = Object.fromEntries(CREATOR_DAILY_SECTION_ORDER.map((name) => [name, []]));
+
+  const [announcements, spotlights, community, events, briefing, stats, memberships, recentPodcasts] = await Promise.all([
+    db.from("podcast_platform_announcements_v15").select("title,body,action_url,priority,starts_at")
+      .eq("status", "published").or("starts_at.is.null,starts_at.lte." + nowIso)
+      .or("ends_at.is.null,ends_at.gt." + nowIso).order("starts_at", { ascending: false }).limit(8),
+    db.from("podcasts").select("title,description,author_name,slug,artwork_url")
+      .eq("status", "published").eq("is_featured", true).order("published_at", { ascending: false }).limit(5),
+    db.from("community_announcements").select("title,organization_name,summary,link_url,created_at")
+      .eq("status", "published").order("created_at", { ascending: false }).limit(8),
+    db.from("community_events").select("title,description,event_type,starts_at,location,event_url")
+      .eq("is_published", true).eq("visibility", "public").gte("starts_at", nowIso)
+      .order("starts_at", { ascending: true }).limit(8),
+    db.from("podcast_creator_daily_briefings").select("summary,attention_count,report_date")
+      .eq("user_id", recipientUserId).gte("report_date", yesterday).order("report_date", { ascending: false }).limit(1),
+    db.from("podcast_creator_stats").select("podcast_count,published_episode_count,total_episode_count,total_plays,listening_seconds,follower_count,approved_comment_count,saved_episode_count,crowpoints")
+      .eq("user_id", recipientUserId).maybeSingle(),
+    db.from("podcast_creators").select("podcast_id").eq("user_id", recipientUserId).limit(100),
+    db.from("podcasts").select("id,title,slug").eq("status", "published").limit(500),
+  ]);
+  for (const result of [announcements, spotlights, community, events, briefing, stats, memberships, recentPodcasts]) {
+    if (result.error) throw result.error;
+  }
+
+  content["Announcements"] = (announcements.data ?? []).map((row: any) => ({
+    title: clean(row.title, 160), summary: clean(row.body, 500),
+    url: /^https?:\/\//i.test(String(row.action_url ?? "")) ? row.action_url : null,
+    priority: clean(row.priority, 24),
+  }));
+  content["Creator Spotlight"] = (spotlights.data ?? []).map((row: any) => ({
+    title: clean(row.title, 160), creator: clean(row.author_name, 100),
+    summary: clean(row.description, 400),
+    url: row.slug ? "https://crowrulesentertainment-oss.github.io/podcasting/show.html?slug=" + encodeURIComponent(row.slug) : null,
+    artwork_url: /^https:\/\//i.test(String(row.artwork_url ?? "")) ? row.artwork_url : null,
+  }));
+  content["Community Activity"] = (community.data ?? []).map((row: any) => ({
+    title: clean(row.title, 160), organization: clean(row.organization_name, 120),
+    summary: clean(row.summary, 300),
+    url: /^https?:\/\//i.test(String(row.link_url ?? "")) ? row.link_url : null,
+  }));
+  content["Upcoming Events"] = (events.data ?? []).map((row: any) => ({
+    title: clean(row.title, 160), summary: clean(row.description, 350),
+    event_type: clean(row.event_type, 60), starts_at: row.starts_at,
+    location: clean(row.location, 160),
+    url: /^https?:\/\//i.test(String(row.event_url ?? "")) ? row.event_url : null,
+  }));
+
+  const ownPodcastIds = [...new Set((memberships.data ?? []).map((row: any) => row.podcast_id).filter(Boolean))];
+  if (ownPodcastIds.length) {
+    const { data: scheduled, error: scheduledError } = await db.from("podcast_episodes")
+      .select("title,scheduled_at,podcast_id").in("podcast_id", ownPodcastIds)
+      .not("scheduled_at", "is", null).gte("scheduled_at", tomorrowStart).lt("scheduled_at", dayAfterStart)
+      .eq("is_active", true).order("scheduled_at", { ascending: true }).limit(10);
+    if (scheduledError) throw scheduledError;
+    content["Tomorrow's Preview"] = (scheduled ?? []).map((row: any) => ({
+      title: clean(row.title, 160), scheduled_at: row.scheduled_at,
+      note: "Scheduled release for your show",
+    }));
+  }
+
+  const latestBriefing = briefing.data?.[0];
+  if (latestBriefing && Number(latestBriefing.attention_count ?? 0) > 0 && latestBriefing.summary) {
+    content["Production Reminders"] = [{
+      title: "Your creator briefing",
+      summary: clean(latestBriefing.summary, 500),
+      report_date: latestBriefing.report_date,
+    }];
+  }
+  if (stats.data) {
+    content["Creator Statistics & Milestones"] = [{
+      podcast_count: Number(stats.data.podcast_count ?? 0),
+      published_episode_count: Number(stats.data.published_episode_count ?? 0),
+      total_episode_count: Number(stats.data.total_episode_count ?? 0),
+      total_plays: Number(stats.data.total_plays ?? 0),
+      listening_seconds: Number(stats.data.listening_seconds ?? 0),
+      follower_count: Number(stats.data.follower_count ?? 0),
+      approved_comment_count: Number(stats.data.approved_comment_count ?? 0),
+      saved_episode_count: Number(stats.data.saved_episode_count ?? 0),
+      crowpoints: Number(stats.data.crowpoints ?? 0),
+      privacy_scope: "recipient_only",
+    }];
+  }
+
+  const publicPodcastIds = (recentPodcasts.data ?? []).map((row: any) => row.id);
+  if (publicPodcastIds.length) {
+    const since = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+    const { data: episodes, error: episodesError } = await db.from("podcast_episodes")
+      .select("title,description,slug,podcast_id,published_at").in("podcast_id", publicPodcastIds)
+      .eq("is_published", true).eq("is_active", true).not("published_at", "is", null)
+      .gte("published_at", since).order("published_at", { ascending: false }).limit(12);
+    if (episodesError) throw episodesError;
+    const podcastNames = new Map((recentPodcasts.data ?? []).map((row: any) => [row.id, row.title]));
+    content["New Shows & Episodes"] = (episodes ?? []).map((row: any) => ({
+      title: clean(row.title, 160), show: clean(podcastNames.get(row.podcast_id) ?? "Podcast", 160),
+      summary: clean(row.description, 350), published_at: row.published_at,
+      url: row.slug ? "https://crowrulesentertainment-oss.github.io/podcasting/episode.html?slug=" + encodeURIComponent(row.slug) : null,
+    }));
+  }
+
+  return {
+    edition_date: today,
+    sections: composeDigestSections(content),
+    section_order: CREATOR_DAILY_SECTION_ORDER,
+    source_policy: "Only published public platform content and the authenticated recipient's own creator statistics, briefing, and scheduled episodes are included.",
+    omitted_sections: CREATOR_DAILY_SECTION_ORDER.filter((name) => !content[name]?.length),
+  };
+}
 const editionDateAt = (instant: string) => {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit",
