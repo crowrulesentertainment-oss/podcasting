@@ -3,9 +3,13 @@ name: Policy acceptance SQL validation
 on:
   pull_request:
     paths:
-      - "supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql"
+      - "supabase/migrations/**"
       - "docs/policy-acceptance-local-tests.sql"
       - "docs/policy-acceptance-negative-lifecycle-tests.sql"
+      - "docs/policy-version-expiration-migration-draft.sql"
+      - "docs/policy-version-expiration-tests.sql"
+      - "docs/policy-version-expiration-design.md"
+      - "docs/policy-version-expiration-local-supabase-runbook.md"
       - ".github/workflows/policy-acceptance-sql.yml"
   workflow_dispatch:
 
@@ -62,11 +66,17 @@ jobs:
           grant execute on function auth.uid() to anon, authenticated;
           SQL
 
-      - name: Apply policy acceptance migration to disposable PostgreSQL
+      - name: Apply base policy acceptance migration to disposable PostgreSQL
         shell: bash
         run: |
           set -euo pipefail
           psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql
+
+      - name: Apply expiration migration candidate to disposable PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f docs/policy-version-expiration-migration-draft.sql
 
       - name: Create two disposable Auth identities
         shell: bash
@@ -107,3 +117,131 @@ jobs:
             exit 1
           fi
           echo "All negative, lifecycle, duplicate, and immutability tests passed."
+
+      - name: Run policy expiration semantics tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="$RUNNER_TEMP/policy-version-expiration-tests.txt"
+          psql -X -qAt -v ON_ERROR_STOP=1 \
+            -v member_a='10000000-0000-0000-0000-000000000001' \
+            -v member_b='20000000-0000-0000-0000-000000000002' \
+            -f docs/policy-version-expiration-tests.sql | tee "$output"
+          if grep -qx 'f' "$output"; then
+            echo "One or more policy expiration assertions returned false."
+            exit 1
+          fi
+          echo "All policy expiration semantics tests passed."
+
+  local-supabase:
+    name: Isolated local Supabase migration and RLS tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out pull request
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+
+      - name: Initialize isolated Supabase workspace with policy migrations only
+        shell: bash
+        run: |
+          set -euo pipefail
+          TEST_PROJECT_DIR="$RUNNER_TEMP/policy-supabase"
+          echo "TEST_PROJECT_DIR=$TEST_PROJECT_DIR" >> "$GITHUB_ENV"
+          mkdir -p "$TEST_PROJECT_DIR"
+          cd "$TEST_PROJECT_DIR"
+          npx --yes supabase@3.0.0 --version
+          npx --yes supabase@3.0.0 init
+          mkdir -p supabase/migrations
+          cp "$GITHUB_WORKSPACE/supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql" supabase/migrations/
+          cp "$GITHUB_WORKSPACE/supabase/migrations/20261121070329_policy_version_expiration.sql" supabase/migrations/
+          if grep -q 'crowrules_policy_private' supabase/config.toml; then
+            echo "Private policy schema must not be exposed through the Data API."
+            exit 1
+          fi
+
+      - name: Start the isolated local Supabase stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$TEST_PROJECT_DIR"
+          npx --yes supabase@3.0.0 start
+          npx --yes supabase@3.0.0 status
+
+      - name: Reset the local database and verify migration history
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$TEST_PROJECT_DIR"
+          npx --yes supabase@3.0.0 db reset
+          npx --yes supabase@3.0.0 migration list
+
+      - name: Resolve the local database URL
+        id: local-db
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$TEST_PROJECT_DIR"
+          db_url="$(npx --yes supabase@3.0.0 status -o env | grep '^DB_URL=' | cut -d= -f2- | tr -d '"')"
+          if [ -z "$db_url" ]; then
+            echo "Could not read the local DB_URL from Supabase status."
+            exit 1
+          fi
+          echo "::add-mask::$db_url"
+          echo "db_url=$db_url" >> "$GITHUB_OUTPUT"
+
+      - name: Create synthetic local Auth identities
+        env:
+          DB_URL: ${{ steps.local-db.outputs.db_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 -c "insert into auth.users (id) values ('10000000-0000-0000-0000-000000000001'), ('20000000-0000-0000-0000-000000000002') on conflict (id) do nothing;"
+
+      - name: Run policy RLS and acceptance ledger smoke tests
+        env:
+          DB_URL: ${{ steps.local-db.outputs.db_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 -v member_a='10000000-0000-0000-0000-000000000001' -v member_b='20000000-0000-0000-0000-000000000002' -f "$GITHUB_WORKSPACE/docs/policy-acceptance-local-tests.sql"
+
+      - name: Run negative, lifecycle, duplicate, and immutability tests
+        env:
+          DB_URL: ${{ steps.local-db.outputs.db_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 -v member_a='10000000-0000-0000-0000-000000000001' -v member_b='20000000-0000-0000-0000-000000000002' -f "$GITHUB_WORKSPACE/docs/policy-acceptance-negative-lifecycle-tests.sql"
+
+      - name: Run policy expiration boundary and history tests
+        env:
+          DB_URL: ${{ steps.local-db.outputs.db_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 -v member_a='10000000-0000-0000-0000-000000000001' -v member_b='20000000-0000-0000-0000-000000000002' -f "$GITHUB_WORKSPACE/docs/policy-version-expiration-tests.sql"
+
+      - name: Run Supabase database security advisors
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$TEST_PROJECT_DIR"
+          npx --yes supabase@3.0.0 db advisors
+
+      - name: Stop the isolated local Supabase stack
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          cd "$TEST_PROJECT_DIR"
+          npx --yes supabase@3.0.0 stop
