@@ -120,7 +120,8 @@ The SQL files use psql meta-commands such as `\gset`; run them with `psql`, not 
 - Confirm RLS is enabled on `policy_documents`, `policy_versions`, `policy_acceptances`, and the private catalog guard.
 - Confirm `crowrules_policy_owner` is NOLOGIN, NOINHERIT, NOBYPASSRLS and does not own the policy tables. On PostgreSQL 16+, allow only the creator's automatic ADMIN-only membership (`INHERIT FALSE`, `SET FALSE`); verify no application/client role is a member and the temporary SET-capable ownership-transfer grant has been revoked.
 - Confirm the public wrapper is SECURITY DEFINER with an empty search path and the private helper is SECURITY INVOKER with an empty search path; both are owned by the restricted role.
-- Confirm anon, authenticated, and service_role cannot use `crowrules_policy_private` or execute the private helper.
+- Confirm the identity bridge is SECURITY DEFINER with an empty search path, owned by the trusted migration executor, calls only fully qualified `auth.uid()`, and is executable only by `crowrules_policy_owner`; the restricted owner role itself has no `auth` schema usage.
+- Confirm anon, authenticated, and service_role cannot use `crowrules_policy_private` or execute the private helper or identity bridge.
 - Confirm authenticated can execute the public acceptance wrapper, anon cannot, and direct client ledger writes are denied.
 - Confirm the current/history views return only the intended public rows and do not expose withdrawn content or acceptance rows.
 - Confirm admin lifecycle RPCs reject a non-admin synthetic user.
