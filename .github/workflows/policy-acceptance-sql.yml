@@ -213,6 +213,36 @@ jobs:
           mkdir -p supabase/migrations
           cp "$GITHUB_WORKSPACE/supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql" supabase/migrations/
           cp "$GITHUB_WORKSPACE/supabase/migrations/20261121070329_policy_version_expiration.sql" supabase/migrations/
+          npx --yes supabase@3.0.0 migration --help
+          npx --yes supabase@3.0.0 migration new --help
+          npx --yes supabase@3.0.0 migration new test_admin_authorization_helper
+          helper_file="$(find supabase/migrations -maxdepth 1 -type f -name '*_test_admin_authorization_helper.sql' -print -quit)"
+          if [ -z "$helper_file" ]; then
+            echo "Supabase CLI did not create the test admin helper migration."
+            exit 1
+          fi
+          cat > "$helper_file" <<'SQL'
+          create schema if not exists private;
+          create or replace function private.crowrules_is_admin_impl()
+          returns boolean
+          language sql
+          stable
+          security definer
+          set search_path = ''
+          as $
+            select current_setting('request.jwt.claim.role', true) = 'admin'
+          $;
+          revoke all on schema private from public, anon, authenticated, service_role;
+          revoke all on function private.crowrules_is_admin_impl() from public, anon, authenticated, service_role;
+          SQL
+          sleep 1
+          npx --yes supabase@3.0.0 migration new policy_acceptance_reconciliation
+          reconciliation_file="$(find supabase/migrations -maxdepth 1 -type f -name '*_policy_acceptance_reconciliation.sql' -print -quit)"
+          if [ -z "$reconciliation_file" ]; then
+            echo "Supabase CLI did not create the reconciliation migration."
+            exit 1
+          fi
+          cp "$GITHUB_WORKSPACE/docs/policy-acceptance-reconciliation-draft.sql" "$reconciliation_file"
           if grep -q 'crowrules_policy_private' supabase/config.toml; then
             echo "Private policy schema must not be exposed through the Data API."
             exit 1
@@ -234,6 +264,13 @@ jobs:
           npx --yes supabase@3.0.0 db reset
           npx --yes supabase@3.0.0 migration list
 
+      - name: Save CLI-generated reconciliation migration artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: policy-acceptance-reconciliation-migration
+          path: ${{ runner.temp }}/policy-supabase/supabase/migrations/*_policy_acceptance_reconciliation.sql
+          if-no-files-found: error
+
       - name: Resolve the local database URL
         id: local-db
         shell: bash
@@ -247,36 +284,6 @@ jobs:
           fi
           echo "::add-mask::$db_url"
           echo "db_url=$db_url" >> "$GITHUB_OUTPUT"
-
-      - name: Install disposable admin-authorization test helper
-        env:
-          DB_URL: ${{ steps.local-db.outputs.db_url }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          psql "$DB_URL" -X -v ON_ERROR_STOP=1 <<'SQL'
-          create schema if not exists private;
-          create or replace function private.crowrules_is_admin_impl()
-          returns boolean
-          language sql
-          stable
-          security definer
-          set search_path = ''
-          as $
-            select current_setting('request.jwt.claim.role', true) = 'admin'
-          $;
-          revoke all on schema private from public, anon, authenticated, service_role;
-          revoke all on function private.crowrules_is_admin_impl() from public, anon, authenticated, service_role;
-          SQL
-
-      - name: Apply policy reconciliation candidate to disposable local Supabase
-        env:
-          DB_URL: ${{ steps.local-db.outputs.db_url }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          psql "$DB_URL" -X -v ON_ERROR_STOP=1 \
-            -f "$GITHUB_WORKSPACE/docs/policy-acceptance-reconciliation-draft.sql"
 
       - name: Create synthetic local Auth identities
         env:
