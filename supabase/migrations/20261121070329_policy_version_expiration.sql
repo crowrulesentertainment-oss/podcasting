@@ -108,15 +108,16 @@ begin
     select 1
     from public.policy_documents d
     cross join lateral (
-      select v.id, v.requires_acceptance, v.expires_at
+      select v.id, v.status, v.requires_acceptance, v.expires_at
       from public.policy_versions v
       where v.document_id = d.id
-        and v.status = 'published'
+        and v.status in ('published', 'withdrawn')
         and v.effective_at <= now()
       order by v.effective_at desc, v.published_at desc, v.id
       limit 1
     ) latest
-    where latest.requires_acceptance is true
+    where latest.status = 'published'
+      and latest.requires_acceptance is true
       and latest.expires_at is not null
       and latest.expires_at <= now()
   ) into v_expired_required_exists;
@@ -139,7 +140,8 @@ begin
       order by v.effective_at desc, v.published_at desc, v.id
       limit 1
     ) latest
-    where latest.requires_acceptance is true
+    where latest.status = 'published'
+      and latest.requires_acceptance is true
       and (latest.expires_at is null or latest.expires_at > now())
   ) required_versions;
 
@@ -155,7 +157,7 @@ begin
       select v2.id
       from public.policy_versions v2
       where v2.document_id = v.document_id
-        and v2.status = 'published'
+        and v2.status in ('published', 'withdrawn')
         and v2.effective_at <= now()
       order by v2.effective_at desc, v2.published_at desc, v2.id
       limit 1
