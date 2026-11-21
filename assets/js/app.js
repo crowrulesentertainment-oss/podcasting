@@ -1429,7 +1429,7 @@ async function episode(){
 async function account(){
  const u=await me();if(!u)return go("login.html");
  const root=$("#app");
- root.innerHTML='<section class="account-hero"><div class="account-hero-backdrop"></div><div class="container account-hero-inner"><div class="account-hero-topline"><span class="eyebrow">CROWRULES / MEMBER SPACE</span><span class="account-live-label"><i></i> YOUR ACCOUNT</span></div><h1>YOUR<br><em>UNIVERSE.</em></h1><p>Your personal home for the shows you follow, episodes you save and the creator journey you are building.</p><div class="account-hero-links"><a class="btn" href="'+SITE_BASE+'discover.html">Explore podcasts</a><a class="btn secondary" href="'+SITE_BASE+'creator.html">Start a podcast / Creator Studio</a><a class="account-hero-textlink" href="'+SITE_BASE+'profiles.html">Meet the community ↗</a></div></div></section><section class="container account-main"><div class="account-profile-shell"><div class="account-profile" id="accountProfile"><div class="loading">Loading your profile…</div></div></div><div id="accountRecognition"></div><div class="account-tabs-wrap"><div class="account-tabs" role="tablist" aria-label="Your account sections"><button class="account-tab is-active" data-account-tab="overview">Overview</button><button class="account-tab" data-account-tab="saved">My List</button><button class="account-tab" data-account-tab="follows">Following</button><button class="account-tab" data-account-tab="shows" id="accountShowsTab">My Shows</button><button class="account-tab" data-account-tab="settings">Settings</button><button class="account-tab" data-account-tab="rankings">My Rankings</button><button class="account-tab" data-account-tab="history">Listening History</button></div></div><div id="accountContent"><div class="loading">Loading your CrowRules library…</div></div></section>';
+ root.innerHTML='<section class="account-hero"><div class="account-hero-backdrop"></div><div class="container account-hero-inner"><div class="account-hero-topline"><span class="eyebrow">CROWRULES / MEMBER SPACE</span><span class="account-live-label"><i></i> YOUR ACCOUNT</span></div><h1>YOUR<br><em>UNIVERSE.</em></h1><p>Your personal home for the shows you follow, episodes you save and the creator journey you are building.</p><div class="account-hero-links"><a class="btn" href="'+SITE_BASE+'discover.html">Explore podcasts</a><a class="btn secondary" href="'+SITE_BASE+'creator.html">Start a podcast / Creator Studio</a><a class="account-hero-textlink" href="'+SITE_BASE+'profiles.html">Meet the community ↗</a></div></div></section><section class="container account-main"><div class="account-profile-shell"><div class="account-profile" id="accountProfile"><div class="loading">Loading your profile…</div></div></div><div id="accountRecognition"></div><div class="account-tabs-wrap"><div class="account-tabs" role="tablist" aria-label="Your account sections"><button class="account-tab is-active" data-account-tab="overview">Overview</button><button class="account-tab" data-account-tab="saved">My List</button><button class="account-tab" data-account-tab="follows">Following</button><button class="account-tab" data-account-tab="shows" id="accountShowsTab">My Shows</button><button class="account-tab" data-account-tab="settings">Settings</button><button class="account-tab" data-account-tab="agreements">Agreements &amp; Policies</button><button class="account-tab" data-account-tab="rankings">My Rankings</button><button class="account-tab" data-account-tab="history">Listening History</button></div></div><div id="accountContent"><div class="loading">Loading your CrowRules library…</div></div></section>';
  const profile=$("#accountProfile"),content=$("#accountContent"),recognition=$("#accountRecognition");
  const [memberRes,followsRes,savedRes,subsRes]=await Promise.all([
   sb.from("members").select("id,user_id,first_name,last_name,username,display_name,role,membership_type,bio,avatar_url,created_at").eq("user_id",u.id).maybeSingle(),
@@ -1519,6 +1519,47 @@ async function account(){
  const renderTab=async tab=>{
   all("[data-account-tab]").forEach(b=>{const on=b.dataset.accountTab===tab;b.classList.toggle("is-active",on);b.setAttribute("aria-selected",String(on))});
 
+  if(tab==="agreements"){
+   content.innerHTML='<section class="cr-agreements"><div class="account-section-head"><div><span class="eyebrow">YOUR ACCOUNT · TRUST &amp; TRANSPARENCY</span><h2>Agreements &amp; Policies</h2><p>Review the documents that explain how CrowRules Podcasting works, how information is handled and what is expected in the community.</p></div></div><div class="cr-agreements-status" id="crAgreementStatus" role="status">Checking your policy records…</div><div class="cr-agreements-grid" id="crAgreementDocuments"></div><section class="cr-agreement-history"><div class="account-section-head"><div><span class="eyebrow">YOUR RECORD</span><h3>Acceptance history</h3><p>When policy acceptance is enabled, this area will show the versions you personally acknowledged.</p></div></div><div id="crAgreementHistory" class="cr-agreement-history-list"><div class="loading">Loading your records…</div></div></section><p class="cr-agreements-footnote">Policy acknowledgements are separate from optional promotional email subscriptions. You can manage promotional email preferences independently.</p></section>';
+   const status=$("#crAgreementStatus"),docsRoot=$("#crAgreementDocuments"),historyRoot=$("#crAgreementHistory");
+   const staticDocs=[
+    ["terms","Terms of Service","Rules and conditions for using CrowRules Podcasting.","legal/terms/"],
+    ["privacy","Privacy Policy","How personal information and account data are handled.","legal/privacy/"],
+    ["cookies","Cookie Policy","Information about browser storage and similar technologies.","legal/cookies/"],
+    ["copyright","Copyright &amp; DMCA","Copyright ownership, reporting and takedown information.","legal/copyright/"],
+    ["community_guidelines","Community Guidelines","Standards for respectful participation and creator conduct.","legal/community-guidelines/"]
+   ];
+   docsRoot.innerHTML=staticDocs.map(d=>'<article class="cr-agreement-card"><div class="cr-agreement-card-top"><span class="cr-agreement-pill">Draft for review</span><span class="cr-agreement-key">'+esc(d[0].replaceAll("_"," ").toUpperCase())+'</span></div><h3>'+d[1]+'</h3><p>'+d[2]+'</p><a href="'+SITE_BASE+d[3]+'">Read document ↗</a></article>').join("");
+   try{
+    const [docRes,versionRes,acceptRes]=await Promise.all([
+     sb.from("policy_documents").select("id,document_key,title,description").order("title"),
+     sb.from("policy_versions").select("id,document_id,version_label,content_url,requires_acceptance,status,effective_at,published_at").eq("status","published").lte("effective_at",new Date().toISOString()).order("effective_at",{ascending:false}),
+     sb.from("policy_acceptances").select("policy_version_id,accepted_at").eq("user_id",u.id).order("accepted_at",{ascending:false})
+    ]);
+    const dbError=docRes.error||versionRes.error||acceptRes.error;
+    if(dbError)throw dbError;
+    const docs=docRes.data||[],versions=versionRes.data||[],acceptances=acceptRes.data||[],latest=new Map();
+    for(const v of versions){if(!latest.has(v.document_id))latest.set(v.document_id,v)}
+    const acceptanceMap=new Map(acceptances.map(a=>[a.policy_version_id,a.accepted_at]));
+    if(docs.length){
+     docsRoot.innerHTML=docs.map(d=>{
+      const v=latest.get(d.id),acceptedAt=v?acceptanceMap.get(v.id):null;
+      const pill=!v?"No effective published version":v.requires_acceptance?(acceptedAt?"Acknowledged":"Action required"):"Published · informational";
+      const href=v?.content_url||"#";
+      return '<article class="cr-agreement-card"><div class="cr-agreement-card-top"><span class="cr-agreement-pill">'+esc(pill)+'</span><span class="cr-agreement-key">'+esc(d.document_key.replaceAll("_"," ").toUpperCase())+'</span></div><h3>'+esc(d.title)+'</h3><p>'+esc(d.description||"")+'</p>'+(v?'<small>Version '+esc(v.version_label)+' · Effective '+new Date(v.effective_at).toLocaleDateString()+'</small>':'<small>Not currently published</small>')+(v?'<a href="'+esc(href)+'" target="_blank" rel="noopener">Read current version ↗</a>':'')+(acceptedAt?'<small class="cr-agreement-confirmed">Acknowledged '+new Date(acceptedAt).toLocaleString()+'</small>':"")+'</article>';
+     }).join("");
+    }
+    const versionMap=new Map(versions.map(v=>[v.id,v])),rows=acceptances.filter(a=>versionMap.has(a.policy_version_id));
+    historyRoot.innerHTML=rows.length?'<ul>'+rows.map(a=>{const v=versionMap.get(a.policy_version_id),d=docs.find(x=>x.id===v.document_id);return '<li><div><b>'+esc(d?.title||"Policy document")+'</b><small>Version '+esc(v.version_label)+'</small></div><time>'+new Date(a.accepted_at).toLocaleString()+'</time></li>'}).join("")+'</ul>':'<p class="muted">No policy acknowledgements are recorded for this account.</p>';
+    status.textContent=docs.length?"Policy records loaded. Required acknowledgements are not yet enabled in this release.":"No policy versions have been published yet.";
+   }catch(error){
+    const missing=/policy_(documents|versions|acceptances)|relation .* does not exist|schema cache/i.test(error.message||"");
+    status.textContent=missing?"Policy history is not connected yet. The policy documents below are available to review; no acceptance status is being inferred.":"Your policy records could not be loaded. Please try again later.";
+    historyRoot.innerHTML='<p class="muted">Acceptance history will appear here after the policy ledger is validated and connected.</p>';
+    console.info("Policy ledger is not available in this environment:",error.message);
+   }
+   return;
+  }
   if(tab==="challengeEpisodes"){
 const root=work;let rows=[],challengeMap=new Map(),filter="all",search="";
 root.innerHTML='<div class="admin-module ce-library"><div class="section-head"><div><span class="admin-kicker">CROWRULES PODCASTING</span><h3>Challenge Episode Library</h3><p>Creator uploads, episode artwork and media previews. Choose what is published, keep an episode private, or delete a submission.</p></div><button class="btn secondary" id="ce-refresh">Refresh episodes</button></div><div class="admin-stats-grid" id="ce-stats"></div><div class="cr-challenge-toolbar"><input id="ce-search" type="search" placeholder="Search episodes, creators or challenges"><select id="ce-filter"><option value="all">All episodes</option><option value="published">Published</option><option value="unpublished">Not published</option><option value="pending">Awaiting review</option><option value="rejected">Rejected</option><option value="consent">Public consent missing</option></select></div><div id="ce-status" class="notice">Loading creator episodes…</div><div id="ce-list" class="ce-library-grid"></div></div>';
