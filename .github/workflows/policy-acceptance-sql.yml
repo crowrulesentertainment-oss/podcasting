@@ -11,6 +11,9 @@ on:
       - "docs/policy-version-expiration-tests.sql"
       - "docs/policy-version-expiration-design.md"
       - "docs/policy-version-expiration-local-supabase-runbook.md"
+      - "docs/policy-acceptance-reconciliation-draft.sql"
+      - "docs/policy-acceptance-reconciliation-tests.sql"
+      - "docs/policy-acceptance-isolation-test.sql"
       - ".github/workflows/policy-acceptance-sql.yml"
   workflow_dispatch:
 
@@ -53,6 +56,7 @@ jobs:
           create role authenticated nologin;
           create role service_role nologin bypassrls;
           create schema auth;
+          create schema private;
           create table auth.users (
             id uuid primary key
           );
@@ -63,6 +67,15 @@ jobs:
           as $$
             select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
           $$;
+          create or replace function private.crowrules_is_admin_impl()
+          returns boolean
+          language sql
+          stable
+          security definer
+          set search_path = ''
+          as $
+            select current_setting('request.jwt.claim.role', true) = 'admin'
+          $;
           grant usage on schema auth to anon, authenticated;
           grant execute on function auth.uid() to anon, authenticated;
           SQL
@@ -73,11 +86,17 @@ jobs:
           set -euo pipefail
           psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql
 
-      - name: Apply expiration migration candidate to disposable PostgreSQL
+      - name: Apply formal expiration migration to disposable PostgreSQL
         shell: bash
         run: |
           set -euo pipefail
-          psql -X -v ON_ERROR_STOP=1 -f docs/policy-version-expiration-migration-draft.sql
+          psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261121070329_policy_version_expiration.sql
+
+      - name: Apply policy reconciliation candidate to disposable PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f docs/policy-acceptance-reconciliation-draft.sql
 
       - name: Create two disposable Auth identities
         shell: bash
@@ -133,6 +152,26 @@ jobs:
             exit 1
           fi
           echo "All policy expiration semantics tests passed."
+
+      - name: Run policy reconciliation security and lifecycle tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="$RUNNER_TEMP/policy-reconciliation-tests.txt"
+          psql -X -qAt -v ON_ERROR_STOP=1 \
+            -v member_a='10000000-0000-0000-0000-000000000001' \
+            -f docs/policy-acceptance-reconciliation-tests.sql | tee "$output"
+          if grep -qx 'f' "$output"; then
+            echo "One or more policy reconciliation assertions returned false."
+            exit 1
+          fi
+          echo "Policy reconciliation security and lifecycle assertions passed."
+
+      - name: Run policy transaction-isolation guard test
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f docs/policy-acceptance-isolation-test.sql
 
   local-supabase:
     name: Isolated local Supabase migration and RLS tests
@@ -200,6 +239,34 @@ jobs:
           echo "::add-mask::$db_url"
           echo "db_url=$db_url" >> "$GITHUB_OUTPUT"
 
+      - name: Install disposable admin-authorization test helper
+        env:
+          DB_URL: ${{ steps.local-db.outputs.db_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 <<'SQL'
+          create schema if not exists private;
+          create or replace function private.crowrules_is_admin_impl()
+          returns boolean
+          language sql
+          stable
+          security definer
+          set search_path = ''
+          as $
+            select current_setting('request.jwt.claim.role', true) = 'admin'
+          $;
+          SQL
+
+      - name: Apply policy reconciliation candidate to disposable local Supabase
+        env:
+          DB_URL: ${{ steps.local-db.outputs.db_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 \
+            -f "$GITHUB_WORKSPACE/docs/policy-acceptance-reconciliation-draft.sql"
+
       - name: Create synthetic local Auth identities
         env:
           DB_URL: ${{ steps.local-db.outputs.db_url }}
@@ -231,6 +298,25 @@ jobs:
         run: |
           set -euo pipefail
           psql "$DB_URL" -X -v ON_ERROR_STOP=1 -v member_a='10000000-0000-0000-0000-000000000001' -v member_b='20000000-0000-0000-0000-000000000002' -f "$GITHUB_WORKSPACE/docs/policy-version-expiration-tests.sql"
+
+      - name: Run policy reconciliation security and lifecycle tests
+        env:
+          DB_URL: ${{ steps.local-db.outputs.db_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 \
+            -v member_a='10000000-0000-0000-0000-000000000001' \
+            -f "$GITHUB_WORKSPACE/docs/policy-acceptance-reconciliation-tests.sql"
+
+      - name: Run policy transaction-isolation guard test
+        env:
+          DB_URL: ${{ steps.local-db.outputs.db_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 \
+            -f "$GITHUB_WORKSPACE/docs/policy-acceptance-isolation-test.sql"
 
       - name: Run Supabase database security advisors
         shell: bash
