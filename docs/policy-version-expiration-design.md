@@ -71,6 +71,8 @@ Coverage includes:
 
 The separate disposable PostgreSQL 16 workflow also passed: [run #44876860809](https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/44876860809).
 
+**Validation status after the withdrawal decision:** the runs above predate the latest withdrawal-selection change and the new withdrawal/visibility regression assertions. Those additions are committed to this draft branch but still require a fresh local Supabase and PostgreSQL CI run before the design review can be considered complete.
+
 ## Isolation note
 
 A full-repository local Supabase start encountered an unrelated historical migration dependency: `20261107223000_secure_podcast_subscriptions_and_email_worker.sql` references `public.podcast_subscriptions`, which is not created by the available migration chain. No unrelated migration was modified. Policy validation uses a temporary project containing only the two policy migrations, so the test does not depend on or alter other Podcasting schema work.
