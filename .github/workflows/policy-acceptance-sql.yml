@@ -192,7 +192,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          db_url="$(npx --yes supabase@3.0.0 status -o env | sed -n 's/^DB_URL="\\(.*\\)"$/\\1/p')"
+          db_url="$(npx --yes supabase@3.0.0 status -o env | grep '^DB_URL=' | cut -d= -f2- | tr -d '"')"
           if [ -z "$db_url" ]; then
             echo "Could not read the local DB_URL from Supabase status."
             exit 1
@@ -219,9 +219,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          psql "$DB_URL" -X -v ON_ERROR_STOP=1 \\
-            -v member_a='10000000-0000-0000-0000-000000000001' \\
-            -v member_b='20000000-0000-0000-0000-000000000002' \\
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 \
+            -v member_a='10000000-0000-0000-0000-000000000001' \
+            -v member_b='20000000-0000-0000-0000-000000000002' \
             -f docs/policy-acceptance-local-tests.sql
 
       - name: Run negative, lifecycle, duplicate, and immutability tests
@@ -230,9 +230,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          psql "$DB_URL" -X -v ON_ERROR_STOP=1 \\
-            -v member_a='10000000-0000-0000-0000-000000000001' \\
-            -v member_b='20000000-0000-0000-0000-000000000002' \\
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 \
+            -v member_a='10000000-0000-0000-0000-000000000001' \
+            -v member_b='20000000-0000-0000-0000-000000000002' \
             -f docs/policy-acceptance-negative-lifecycle-tests.sql
 
       - name: Run policy expiration boundary and history tests
@@ -241,9 +241,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          psql "$DB_URL" -X -v ON_ERROR_STOP=1 \\
-            -v member_a='10000000-0000-0000-0000-000000000001' \\
-            -v member_b='20000000-0000-0000-0000-000000000002' \\
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 \
+            -v member_a='10000000-0000-0000-0000-000000000001' \
+            -v member_b='20000000-0000-0000-0000-000000000002' \
             -f docs/policy-version-expiration-tests.sql
 
       - name: Run Supabase database security advisors
