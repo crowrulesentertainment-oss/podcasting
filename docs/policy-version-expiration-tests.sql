@@ -42,7 +42,7 @@ values
  (:'replacement_doc','replacement-current','https://example.invalid/replacement-current',repeat('d',64),true,'published',now()-interval '1 hour',now()-interval '1 hour',now()+interval '1 day'),
  (:'resurrection_doc','resurrection-old-required','https://example.invalid/resurrection-old',repeat('1',64),true,'published',now()-interval '4 days',now()-interval '4 days',null),
  (:'resurrection_doc','resurrection-new-optional-expired','https://example.invalid/resurrection-new',repeat('2',64),false,'published',now()-interval '2 days',now()-interval '2 days',now()-interval '1 day'),
- (:'draft_doc','draft-expiry-edit','https://example.invalid/draft-expiry',repeat('4',64),true,'draft',now()-interval '1 hour',null,null);
+ (:'draft_doc','draft-expiry-edit','https://example.invalid/draft-expiry',repeat('4',64),false,'draft',now()-interval '1 hour',null,null);
 
 select id as no_end_version from public.policy_versions where document_id=:'no_end_doc'::uuid \gset
 select id as future_version from public.policy_versions where document_id=:'future_doc'::uuid \gset
