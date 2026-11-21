@@ -254,8 +254,8 @@ end;
 $function$;
 
 revoke all on function crowrules_policy_private.accept_current_required_policy_versions_impl(uuid[])
-  from public, anon;
-grant usage on schema private to authenticated;
+  from public, anon, authenticated, service_role;
+grant usage on schema crowrules_policy_private to authenticated;
 grant execute on function crowrules_policy_private.accept_current_required_policy_versions_impl(uuid[])
   to authenticated;
 
