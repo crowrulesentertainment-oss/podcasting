@@ -62,7 +62,7 @@ as $$
 $$;
 revoke all on schema private from public, anon, authenticated, service_role;
 revoke all on function private.crowrules_is_admin_impl() from public, anon, authenticated, service_role;
-'@ | Set-Content -Path $HelperMigration.FullName -Encoding utf8
+'@ | Set-Content -Path $HelperMigration.FullName -Encoding ascii
 
 Start-Sleep -Seconds 1
 npx --yes supabase@3.0.0 migration new policy_acceptance_reconciliation
