@@ -54,6 +54,11 @@ select not exists (
   where m.member=(select oid from pg_catalog.pg_roles where rolname='crowrules_policy_owner')
 ) as function_owner_is_not_member_of_another_role;
 
+select not pg_catalog.pg_has_role('authenticated','crowrules_policy_owner','SET')
+  as authenticated_cannot_set_restricted_owner_role;
+select not pg_catalog.pg_has_role('anon','crowrules_policy_owner','SET')
+  as anon_cannot_set_restricted_owner_role;
+
 select case
   when (select r.rolsuper from pg_catalog.pg_roles r where r.rolname=session_user)
     then not exists (
