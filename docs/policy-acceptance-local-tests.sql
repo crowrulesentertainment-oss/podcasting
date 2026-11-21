@@ -96,7 +96,7 @@ select not has_table_privilege('authenticated','public.policy_acceptances','INSE
 select not has_table_privilege('authenticated','public.policy_acceptances','UPDATE') as member_cannot_update_directly;
 select not has_table_privilege('authenticated','public.policy_acceptances','DELETE') as member_cannot_delete_directly;
 select has_function_privilege('authenticated','public.accept_current_required_policy_versions(uuid[])','EXECUTE') as member_can_execute_public_rpc;
-select has_schema_privilege('authenticated','crowrules_policy_private','USAGE') as member_can_reach_private_impl_schema;
+select not has_schema_privilege('authenticated','crowrules_policy_private','USAGE') as member_cannot_reach_private_impl_schema;
 
 -- Direct client insert is denied by table privileges.
 do $$
