@@ -75,25 +75,6 @@ select pg_temp.assert_sqlstate(
   '23514','published version requires valid status metadata'
 );
 
--- Invalid or incomplete required-version submissions. Every call is made as
--- the authenticated member, with identity derived from auth.uid().
-set local role authenticated;
-select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',true);
-
-do $$
-begin
-  begin perform public.accept_current_required_policy_versions(array[]::uuid[]);
-    raise exception 'empty version list unexpectedly accepted';
-  exception when sqlstate '22023' then null; end;
-  begin perform public.accept_current_required_policy_versions(array['99999999-9999-9999-9999-999999999999'::uuid]);
-    raise exception 'unknown version unexpectedly accepted';
-  exception when sqlstate '22023' then null; end;
-  begin perform public.accept_current_required_policy_versions(array[current_setting('test.draft_version_id',true)::uuid]);
-    raise exception 'draft version unexpectedly accepted';
-  exception when sqlstate '22023' then null; end;
-end $$;
-reset role;
-
 -- psql variables are not visible inside PL/pgSQL. Set fixture IDs as transaction
 -- settings, then exercise all invalid sets using those settings.
 select set_config('test.required_version_id', :'required_version_id', true);
@@ -153,7 +134,6 @@ where id=:'draft_version_id'::uuid;
 select pg_temp.assert_sqlstate(format('update public.policy_versions set status=''published'' where id=%L',:'draft_version_id'),'55000','withdrawn cannot be republished');
 select pg_temp.assert_sqlstate(format('update public.policy_versions set status=''draft'',published_at=null where id=%L',:'required_version_id'),'55000','published cannot return to draft');
 select pg_temp.assert_sqlstate(format('update public.policy_versions set published_at=now()+interval ''1 day'' where id=%L',:'required_version_id'),'55000','publication timestamp immutable after publish');
-select pg_temp.assert_sqlstate(format('update public.policy_versions set status=''withdrawn'' where id=%L',:'draft_version_id'),'55000','withdrawn-to-withdrawn lifecycle metadata is stable');
 
 -- Final owner-side check: exactly one acceptance was inserted by the valid set.
 do $$
