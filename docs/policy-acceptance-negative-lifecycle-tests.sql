@@ -7,6 +7,7 @@ begin;
 insert into public.policy_documents(document_key,title,description)
 values
   ('negative_required','Negative Test Required','Disposable fixture'),
+  ('negative_required_two','Negative Test Required Two','Disposable fixture'),
   ('negative_draft','Negative Test Draft','Disposable fixture'),
   ('negative_withdrawn','Negative Test Withdrawn','Disposable fixture'),
   ('negative_future','Negative Test Future','Disposable fixture'),
@@ -14,6 +15,7 @@ values
   ('negative_optional','Negative Test Optional','Disposable fixture');
 
 select id as required_doc_id from public.policy_documents where document_key='negative_required' \gset
+select id as required_doc_two_id from public.policy_documents where document_key='negative_required_two' \gset
 select id as draft_doc_id from public.policy_documents where document_key='negative_draft' \gset
 select id as withdrawn_doc_id from public.policy_documents where document_key='negative_withdrawn' \gset
 select id as future_doc_id from public.policy_documents where document_key='negative_future' \gset
@@ -22,12 +24,14 @@ select id as superseded_doc_id from public.policy_documents where document_key='
 insert into public.policy_versions(document_id,version_label,content_url,content_sha256,requires_acceptance,status,effective_at,published_at)
 values
   (:'required_doc_id','required-1','https://example.invalid/required-1',repeat('a',64),true,'published',now()-interval '1 hour',now()-interval '1 hour'),
+  (:'required_doc_two_id','required-2','https://example.invalid/required-2',repeat('7',64),true,'published',now()-interval '30 minutes',now()-interval '30 minutes'),
   (:'draft_doc_id','draft-1','https://example.invalid/draft-1',repeat('b',64),true,'draft',now()+interval '1 hour',null),
   (:'withdrawn_doc_id','withdrawn-1','https://example.invalid/withdrawn-1',repeat('c',64),true,'withdrawn',now()-interval '2 hours',now()-interval '2 hours'),
   (:'future_doc_id','future-1','https://example.invalid/future-1',repeat('d',64),true,'published',now()+interval '1 day',now()),
   (:'superseded_doc_id','superseded-required-1','https://example.invalid/superseded-required-1',repeat('e',64),true,'published',now()-interval '2 hours',now()-interval '2 hours');
 
 select id as required_version_id from public.policy_versions where document_id=:'required_doc_id'::uuid \gset
+select id as required_version_two_id from public.policy_versions where document_id=:'required_doc_two_id'::uuid \gset
 select id as draft_version_id from public.policy_versions where document_id=:'draft_doc_id'::uuid \gset
 select id as withdrawn_version_id from public.policy_versions where document_id=:'withdrawn_doc_id'::uuid \gset
 select id as future_version_id from public.policy_versions where document_id=:'future_doc_id'::uuid \gset
@@ -78,6 +82,7 @@ select pg_temp.assert_sqlstate(
 -- psql variables are not visible inside PL/pgSQL. Set fixture IDs as transaction
 -- settings, then exercise all invalid sets using those settings.
 select set_config('test.required_version_id', :'required_version_id', true);
+select set_config('test.required_version_two_id', :'required_version_two_id', true);
 select set_config('test.draft_version_id', :'draft_version_id', true);
 select set_config('test.withdrawn_version_id', :'withdrawn_version_id', true);
 select set_config('test.future_version_id', :'future_version_id', true);
@@ -99,7 +104,7 @@ begin
   begin perform public.accept_current_required_policy_versions(array[current_setting('test.superseded_required_version_id')::uuid]);
     raise exception 'superseded required version unexpectedly accepted';
   exception when sqlstate '22023' then null; end;
-  begin perform public.accept_current_required_policy_versions(array[]::uuid[]);
+  begin perform public.accept_current_required_policy_versions(array[current_setting('test.required_version_id')::uuid]);
     raise exception 'incomplete required set unexpectedly accepted';
   exception when sqlstate '22023' then null; end;
   begin perform public.accept_current_required_policy_versions(array[
@@ -112,8 +117,10 @@ end $$;
 
 -- The exact current required set succeeds. The newer optional version has
 -- superseded its document's former required version and is not required.
-select public.accept_current_required_policy_versions(array[current_setting('test.required_version_id')::uuid]) = 1
-  as exact_current_required_set_succeeds;
+select public.accept_current_required_policy_versions(array[
+  current_setting('test.required_version_id')::uuid,
+  current_setting('test.required_version_two_id')::uuid
+]) = 2 as exact_current_required_set_succeeds;
 reset role;
 
 -- Immutable version content: all identifying/content/effectivity fields reject edits.
@@ -138,8 +145,11 @@ select pg_temp.assert_sqlstate(format('update public.policy_versions set publish
 -- Final owner-side check: exactly one acceptance was inserted by the valid set.
 do $$
 begin
-  if (select count(*) from public.policy_acceptances where policy_version_id=current_setting('test.required_version_id')::uuid) <> 1 then
-    raise exception 'Expected exactly one acceptance from the valid current set';
+  if (select count(*) from public.policy_acceptances where policy_version_id in (
+    current_setting('test.required_version_id')::uuid,
+    current_setting('test.required_version_two_id')::uuid
+  )) <> 2 then
+    raise exception 'Expected exactly two acceptances from the complete current required set';
   end if;
   if exists (select 1 from public.policy_acceptances where policy_version_id=current_setting('test.superseded_required_version_id')::uuid) then
     raise exception 'Superseded required version must not have an acceptance';
