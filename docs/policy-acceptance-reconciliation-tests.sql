@@ -102,6 +102,7 @@ select (
   p.prosecdef
   and coalesce(array_to_string(p.proconfig,','),'') like '%search_path=""%'
   and pg_catalog.pg_get_userbyid(p.proowner) <> 'crowrules_policy_owner'
+  and regexp_replace(p.prosrc, '[[:space:]]+', '', 'g') = 'selectauth.uid()'
   and pg_catalog.has_schema_privilege(pg_catalog.pg_get_userbyid(p.proowner), 'auth', 'USAGE')
   and pg_catalog.has_function_privilege(pg_catalog.pg_get_userbyid(p.proowner), 'auth.uid()', 'EXECUTE')
 ) as identity_bridge_is_narrow_security_definer
