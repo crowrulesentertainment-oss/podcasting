@@ -129,10 +129,17 @@ create policy policy_acceptances_policy_owner_insert
   for insert to crowrules_policy_owner
   with check (true);
 
+create policy policy_acceptances_policy_owner_read
+  on public.policy_acceptances
+  for select to crowrules_policy_owner
+  using (true);
+
 grant select on public.policy_documents, public.policy_versions
   to crowrules_policy_owner;
 grant insert on public.policy_documents, public.policy_versions,
   public.policy_acceptances to crowrules_policy_owner;
+-- ON CONFLICT idempotency checks the existing unique-key row internally.
+grant select on public.policy_acceptances to crowrules_policy_owner;
 
 -- SELECT ... FOR UPDATE requires UPDATE privilege. Only the immutable parent
 -- key is granted on documents; version UPDATE is needed by the controlled
