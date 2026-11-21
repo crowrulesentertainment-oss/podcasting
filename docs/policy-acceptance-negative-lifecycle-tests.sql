@@ -27,13 +27,14 @@ values
   (:'required_doc_two_id','required-2','https://example.invalid/required-2',repeat('7',64),true,'published',now()-interval '30 minutes',now()-interval '30 minutes'),
   (:'draft_doc_id','draft-1','https://example.invalid/draft-1',repeat('b',64),true,'draft',now()+interval '1 hour',null),
   (:'withdrawn_doc_id','withdrawn-1','https://example.invalid/withdrawn-1',repeat('c',64),true,'withdrawn',now()-interval '2 hours',now()-interval '2 hours'),
+  (:'withdrawn_doc_id','withdrawn-optional-replacement','https://example.invalid/withdrawn-optional',repeat('8',64),false,'published',now()-interval '1 hour',now()-interval '1 hour'),
   (:'future_doc_id','future-1','https://example.invalid/future-1',repeat('d',64),true,'published',now()+interval '1 day',now()),
   (:'superseded_doc_id','superseded-required-1','https://example.invalid/superseded-required-1',repeat('e',64),true,'published',now()-interval '2 hours',now()-interval '2 hours');
 
 select id as required_version_id from public.policy_versions where document_id=:'required_doc_id'::uuid \gset
 select id as required_version_two_id from public.policy_versions where document_id=:'required_doc_two_id'::uuid \gset
 select id as draft_version_id from public.policy_versions where document_id=:'draft_doc_id'::uuid \gset
-select id as withdrawn_version_id from public.policy_versions where document_id=:'withdrawn_doc_id'::uuid \gset
+select id as withdrawn_version_id from public.policy_versions where document_id=:'withdrawn_doc_id'::uuid and version_label='withdrawn-1' \gset
 select id as future_version_id from public.policy_versions where document_id=:'future_doc_id'::uuid \gset
 select id as superseded_required_version_id from public.policy_versions where document_id=:'superseded_doc_id'::uuid \gset
 
