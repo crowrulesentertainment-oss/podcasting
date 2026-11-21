@@ -5,6 +5,7 @@ on:
     paths:
       - "supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql"
       - "docs/policy-acceptance-local-tests.sql"
+      - "docs/policy-acceptance-negative-lifecycle-tests.sql"
       - ".github/workflows/policy-acceptance-sql.yml"
   workflow_dispatch:
 
@@ -91,3 +92,18 @@ jobs:
             exit 1
           fi
           echo "All boolean policy acceptance smoke-test assertions passed."
+
+      - name: Run negative, duplicate, lifecycle, and immutability tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="$RUNNER_TEMP/policy-acceptance-negative-tests.txt"
+          psql -X -qAt -v ON_ERROR_STOP=1 \
+            -v member_a='10000000-0000-0000-0000-000000000001' \
+            -v member_b='20000000-0000-0000-0000-000000000002' \
+            -f docs/policy-acceptance-negative-lifecycle-tests.sql | tee "$output"
+          if grep -qx 'f' "$output"; then
+            echo "One or more negative/lifecycle policy assertions returned false."
+            exit 1
+          fi
+          echo "All negative, lifecycle, duplicate, and immutability tests passed."
