@@ -90,8 +90,14 @@ select set_config('test.superseded_required_version_id', :'superseded_required_v
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',true);
-do $$
+do $
 begin
+  begin perform public.accept_current_required_policy_versions(array[]::uuid[]);
+    raise exception 'empty version list unexpectedly accepted';
+  exception when sqlstate '22023' then null; end;
+  begin perform public.accept_current_required_policy_versions(array['99999999-9999-9999-9999-999999999999'::uuid]);
+    raise exception 'unknown version unexpectedly accepted';
+  exception when sqlstate '22023' then null; end;
   begin perform public.accept_current_required_policy_versions(array[current_setting('test.draft_version_id')::uuid]);
     raise exception 'draft version unexpectedly accepted';
   exception when sqlstate '22023' then null; end;
