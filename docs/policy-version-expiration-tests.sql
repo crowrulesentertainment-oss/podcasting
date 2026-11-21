@@ -89,7 +89,7 @@ reset role;
 set local role anon;
 select count(*) = 1 as anon_can_read_expired_published_history
 from public.policy_versions where document_id=:'replacement_doc'::uuid and version_label='replacement-old' and expires_at <= now();
-select count(*) = 0 as anon_cannot_read_withdrawn_version
+select count(*) = 1 as anon_can_read_version_before_withdrawal
 from public.policy_versions where id=:'withdrawal_new'::uuid;
 select count(*) = 0 as anon_cannot_read_draft_version
 from public.policy_versions where id=:'still_draft_version'::uuid;
@@ -125,6 +125,12 @@ select set_config(
 -- authoritative for selection and acceptance must reject the fallback.
 select set_config('request.jwt.claim.role','admin',true);
 select public.policy_admin_withdraw_version(:'withdrawal_new'::uuid);
+reset role;
+set local role anon;
+select count(*) = 0 as anon_cannot_read_withdrawn_version
+from public.policy_versions where id=:'withdrawal_new'::uuid;
+reset role;
+set local role authenticated;
 select set_config('request.jwt.claim.role','member',true);
 
 do $test$
