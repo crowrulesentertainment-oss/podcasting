@@ -17,6 +17,14 @@ Add nullable `policy_versions.expires_at timestamptz`. A null value means no sch
 7. Expired published content remains readable as historical policy content. Expiration prevents new acceptance; it does not erase prior acceptances or the policy text needed to understand them.
 8. Withdrawal does not restore an older version. For current-version selection, the latest effective published or withdrawn version is authoritative. If that version is withdrawn, the document has no current version until a new replacement is published and becomes effective. Older published versions remain historical only and cannot be accepted as a fallback.
 
+## Member-facing expiration language
+
+- Store and compare expiration as an exact timestamp; do not reinterpret it as the end of a calendar day.
+- Display the date, time, and explicit timezone in the member interface. Avoid ambiguous phrases such as “expires tonight.”
+- When a required version has expired and no effective replacement exists, explain that policy acceptance is temporarily unavailable until a replacement becomes effective.
+- Describe the restriction narrowly as an acceptance-flow restriction. Do not say or imply that expiration itself suspends the member's account or removes access to unrelated Podcasting features.
+- Keep the expired published policy available as historical text, clearly labeled as expired.
+
 ## Integrity and lifecycle
 
 - `expires_at IS NULL` is allowed.
