@@ -1,6 +1,6 @@
 # Policy acceptance implementation plan
 
-Status: Phase 1D implementation prepared on the feature branch. The migration remains unapplied; no production schema, authentication enforcement, or policy publication has been changed.
+Status: the corrected design has been approved. Implementation preparation is in progress on `implementation/policy-acceptance-reconciliation`. All SQL remains a disposable-only candidate; no production schema, authentication enforcement, policy publication, or acceptance enforcement has been changed.
 
 ## Audit findings (2026-11-20)
 
@@ -119,9 +119,15 @@ This is a migration draft only. It has not been applied to the live Supabase pro
 
 ### Security refinement
 
-The member-callable RPC is now a SECURITY INVOKER function in the exposed public schema. It delegates to a narrowly granted implementation function in the dedicated non-exposed `crowrules_policy_private` schema. The implementation is SECURITY DEFINER, has an empty search path, derives the member identity exclusively from auth.uid(), and validates the complete set of current required versions before inserting. The `crowrules_policy_private` implementation is executable by authenticated users only; anonymous and PUBLIC execution are revoked. The `crowrules_policy_private` schema must remain absent from the project's exposed Data API schemas.
+The public member acceptance wrapper is SECURITY DEFINER, owned by a dedicated NOLOGIN, NOINHERIT, NOBYPASSRLS role named `crowrules_policy_owner`, with an empty search path. It validates `auth.uid()` before delegating to the private implementation in the non-exposed `crowrules_policy_private` schema. The private implementation is SECURITY INVOKER and is owned by the same restricted role. The owner is not a policy-table owner and is not a member of any other role, so RLS continues to apply inside the wrapper and its owned discovery views.
 
-The public wrapper is not privileged and cannot itself bypass RLS. No client table write grants are added. Acceptance remains append-only and promotional email consent remains a separate opt-in system.
+PUBLIC, anon, authenticated, and service_role have no USAGE on `crowrules_policy_private` and no EXECUTE on the private helper. Authenticated members receive EXECUTE only on the public wrapper. The wrapper cannot be invoked by anon and does not accept a caller-supplied user ID or timestamp. The private schema must remain absent from the project's exposed Data API schemas.
+
+Current discovery is explicit through `public.policy_current_versions`; historical published content is exposed through `public.policy_published_history`. These views are owned by the restricted non-bypass role, not postgres or the policy tables' owner. The role's narrow RLS policies allow the views to evaluate withdrawn/expired candidates without exposing withdrawn content to public clients.
+
+Acceptance and lifecycle RPCs require READ COMMITTED isolation. The lock protocol is catalog sentinel first, parent documents in ascending UUID order, then version rows in deterministic order. The catalog sentinel prevents a newly inserted policy document from becoming a phantom outside an acceptance transaction's complete required-set scan. Document creation locks that sentinel; publication, withdrawal, and draft mutation lock the parent before the version.
+
+Admin-only lifecycle RPCs use the existing `private.crowrules_is_admin_impl()` authorization helper. They create documents/drafts, edit drafts, publish, and withdraw through the same controlled lock protocol. No client table write grants are added. Acceptance remains append-only and promotional email consent remains a separate opt-in system.
 
 ### Member Agreements & Policies area
 
@@ -141,4 +147,15 @@ No Supabase branch/project was created. No production SQL was executed. The migr
 
 The first static pass found that the migration referenced a private implementation schema without creating it. The migration now creates a dedicated `crowrules_policy_private` schema, revokes schema access from PUBLIC and anon, and grants the minimum schema usage and function execution needed by authenticated sessions. This schema must not be added to the Supabase Data API exposed-schema list.
 
-The local validation plan now includes CLI setup and safe local-only commands. The current execution container has no Supabase CLI, Docker-compatible runtime, or PostgreSQL client, and this repository has no `supabase/config.toml`. Therefore the local stack and SQL harness could not be executed in this session. This is an environment limitation, not a passing test result. The next execution must begin with `supabase init` (without linking a remote project), then `supabase start` and `supabase db reset` locally.
+The local validation plan now includes CLI setup and safe local-only commands. The current execution container has no Supabase CLI, Docker-compatible runtime, or PostgreSQL client, and this repository has no `supabase/config.toml`. Therefore the local stack and SQL harness could not be executed in this session. This is an environment limitation, not a passing test result. The CI workflow now generates the candidate migration with `supabase migration new` inside a temporary local Supabase workspace, applies it with `supabase db reset`, verifies migration history, and uploads the generated migration as an artifact for review.
+
+
+## Corrected implementation preparation (2026-11-21)
+
+The approved design has been translated into a corrective SQL candidate at `docs/policy-acceptance-reconciliation-draft.sql`. It is intentionally not yet in `supabase/migrations/`: the current execution environment does not have the Supabase CLI. The CI workflow generates a timestamped migration with the CLI in a disposable project, copies the candidate into it, applies the full local chain, and uploads the generated file for review.
+
+The candidate does not edit either merged historical migration. It is additive after the foundation and expiration migrations. It adds a restricted function owner, private catalog-lock sentinel, current/history read views, the corrected wrapper/helper privilege boundary, controlled admin lifecycle RPCs, and parent-first locking. The candidate's acceptance selector chooses the latest effective published-or-withdrawn version before evaluating withdrawal or expiry; it never falls back to an older version.
+
+The tests use only synthetic Auth identities and fixtures. They cover the complete required set, idempotency, no-fallback after withdrawal/expiry, current-version discovery, admin authorization, private helper denial, READ COMMITTED enforcement, and two-session concurrency. The CI suite has not yet been run; no test result is claimed here.
+
+No production migration, production schema/grant/RLS/configuration change, policy publication, policy acceptance enforcement, or marketing-consent change is authorized by this implementation-preparation milestone.
