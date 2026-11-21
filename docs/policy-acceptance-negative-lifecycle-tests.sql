@@ -90,7 +90,7 @@ select set_config('test.superseded_required_version_id', :'superseded_required_v
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',true);
-do $
+do $test$
 begin
   begin perform public.accept_current_required_policy_versions(array[]::uuid[]);
     raise exception 'empty version list unexpectedly accepted';
@@ -119,7 +119,7 @@ begin
   ]);
     raise exception 'duplicate version ID unexpectedly accepted';
   exception when sqlstate '22023' then null; end;
-end $$;
+end $test$;
 
 -- The exact current required set succeeds. The newer optional version has
 -- superseded its document's former required version and is not required.
