@@ -57,7 +57,7 @@ reset role;
 -- An authenticated database role without a JWT subject must not accept.
 set local role authenticated;
 select set_config('request.jwt.claim.sub','',true);
-do $
+do $$
 begin
   begin
     perform public.accept_current_required_policy_versions(
@@ -66,7 +66,7 @@ begin
     raise exception 'SECURITY FAILURE: RPC accepted a request without auth.uid()';
   exception when sqlstate '28000' then null;
   end;
-end $;
+end $$;
 reset role;
 
 -- Member A accepts. The RPC derives identity from auth.uid().
@@ -128,6 +128,6 @@ begin
     raise exception 'SECURITY FAILURE: acceptance delete unexpectedly succeeded';
   exception when object_not_in_prerequisite_state then null;
   end;
-end $;
+end $$;
 
 rollback;
