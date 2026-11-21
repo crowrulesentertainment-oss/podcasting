@@ -26,7 +26,8 @@ values
  ('expiry_blocked','Expiry Blocked'),
  ('expiry_no_resurrection','Expiry No Resurrection'),
  ('expiry_draft_edit','Expiry Draft Edit'),
- ('expiry_withdrawal','Expiry Withdrawal');
+ ('expiry_withdrawal','Expiry Withdrawal'),
+ ('expiry_draft_visibility','Expiry Draft Visibility');
 
 select id as no_end_doc from public.policy_documents where document_key='expiry_no_end' \gset
 select id as future_doc from public.policy_documents where document_key='expiry_future_end' \gset
@@ -35,6 +36,7 @@ select id as blocked_doc from public.policy_documents where document_key='expiry
 select id as resurrection_doc from public.policy_documents where document_key='expiry_no_resurrection' \gset
 select id as draft_doc from public.policy_documents where document_key='expiry_draft_edit' \gset
 select id as withdrawal_doc from public.policy_documents where document_key='expiry_withdrawal' \gset
+select id as draft_visibility_doc from public.policy_documents where document_key='expiry_draft_visibility' \gset
 
 insert into public.policy_versions(document_id,version_label,content_url,content_sha256,requires_acceptance,status,effective_at,published_at,expires_at)
 values
@@ -46,7 +48,8 @@ values
  (:'resurrection_doc','resurrection-new-optional-expired','https://example.invalid/resurrection-new',repeat('2',64),false,'published',now()-interval '2 days',now()-interval '2 days',now()-interval '1 day'),
  (:'draft_doc','draft-expiry-edit','https://example.invalid/draft-expiry',repeat('4',64),false,'draft',now()-interval '1 hour',null,null),
  (:'withdrawal_doc','withdrawal-old','https://example.invalid/withdrawal-old',repeat('5',64),true,'published',now()-interval '4 days',now()-interval '4 days',null),
- (:'withdrawal_doc','withdrawal-new','https://example.invalid/withdrawal-new',repeat('6',64),true,'published',now()-interval '2 days',now()-interval '2 days',null);
+ (:'withdrawal_doc','withdrawal-new','https://example.invalid/withdrawal-new',repeat('6',64),true,'published',now()-interval '2 days',now()-interval '2 days',null),
+ (:'draft_visibility_doc','still-draft','https://example.invalid/still-draft',repeat('7',64),false,'draft',now()+interval '1 day',null,null);
 
 select id as no_end_version from public.policy_versions where document_id=:'no_end_doc'::uuid \gset
 select id as future_version from public.policy_versions where document_id=:'future_doc'::uuid \gset
@@ -55,6 +58,7 @@ select id as resurrection_old from public.policy_versions where document_id=:'re
 select id as draft_version from public.policy_versions where document_id=:'draft_doc'::uuid and version_label='draft-expiry-edit' \gset
 select id as withdrawal_old from public.policy_versions where document_id=:'withdrawal_doc'::uuid and version_label='withdrawal-old' \gset
 select id as withdrawal_new from public.policy_versions where document_id=:'withdrawal_doc'::uuid and version_label='withdrawal-new' \gset
+select id as still_draft_version from public.policy_versions where document_id=:'draft_visibility_doc'::uuid and version_label='still-draft' \gset
 
 select pg_temp.assert_sqlstate(
  format('insert into public.policy_versions(document_id,version_label,content_url,content_sha256,requires_acceptance,status,effective_at,published_at,expires_at) values (%L,%L,%L,%L,true,''published'',now(),now(),now())',:'no_end_doc','invalid-expiry','https://example.invalid/invalid-expiry',repeat('3',64)),
@@ -88,11 +92,11 @@ select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001'
 reset role;
 set local role anon;
 select count(*) = 1 as anon_can_read_expired_published_history
-from public.policy_versions where id=:'replacement_current'::uuid and expires_at is not null;
+from public.policy_versions where document_id=:'replacement_doc'::uuid and version_label='replacement-old' and expires_at <= now();
 select count(*) = 0 as anon_cannot_read_withdrawn_version
 from public.policy_versions where id=:'withdrawal_new'::uuid;
 select count(*) = 0 as anon_cannot_read_draft_version
-from public.policy_versions where id=:'draft_version'::uuid;
+from public.policy_versions where id=:'still_draft_version'::uuid;
 reset role;
 
 -- No-expiry and future-expiry versions remain valid; the effective replacement
