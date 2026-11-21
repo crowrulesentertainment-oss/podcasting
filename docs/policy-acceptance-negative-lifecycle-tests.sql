@@ -71,8 +71,8 @@ select pg_temp.assert_sqlstate(
   '23514','non-HTTPS policy content URL'
 );
 select pg_temp.assert_sqlstate(
-  format('insert into public.policy_versions(document_id,version_label,content_url,content_sha256,requires_acceptance,status,effective_at,published_at) values (%L,%L,%L,%L,true,''published'',now(),now())',:'required_doc_id','bad-status','https://example.invalid/bad-status',repeat('3',64)),
-  '23514','published version requires valid status metadata'
+  format('insert into public.policy_versions(document_id,version_label,content_url,content_sha256,requires_acceptance,status,effective_at,published_at) values (%L,%L,%L,%L,true,''published'',now(),now())',:'required_doc_id','','https://example.invalid/bad-status',repeat('3',64)),
+  '23514','empty version label is invalid'
 );
 
 -- psql variables are not visible inside PL/pgSQL. Set fixture IDs as transaction
