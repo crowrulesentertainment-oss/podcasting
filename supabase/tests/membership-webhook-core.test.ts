@@ -120,3 +120,19 @@ Deno.test("unmapped Stripe price fails closed", async () => {
   const h = makeHarness({ noPlan: true });
   await assertRejects(() => processMembershipStripeEvent(h.admin, h.stripe, h.event), Error, "No active membership plan maps");
 });
+
+Deno.test("unrelated podcast subscription events are ignored without failing webhook delivery", async () => {
+  const h = makeHarness({
+    noPlan: true,
+    subscription: {
+      id: "sub_podcast",
+      status: "active",
+      metadata: { user_id: "user_123", podcast_id: "podcast_123", product_id: "product_123" },
+      customer: "cus_123",
+      items: { data: [{ price: { id: "price_podcast" } }] },
+    },
+  });
+  const result = await processMembershipStripeEvent(h.admin, h.stripe, h.event);
+  assertEquals(result.outcome, "ignored");
+  assertEquals(h.calls.some((c) => c.kind === "upsert"), false);
+});
