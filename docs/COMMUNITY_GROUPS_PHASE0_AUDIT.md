@@ -157,13 +157,45 @@ Repository Groups documentation itself says migration recovery and full local re
 
 No migration fetch, reset, or DDL was performed as part of this read-only audit.
 
-## 6. Supabase advisor snapshot
+## 6. Groups 2.0 migration-source recovery checkpoint
+
+The original production-named migration file `supabase/migrations/20261122090848_groups_2_0_production_upgrade.sql` is **not present** on repository `main` or the reviewed Groups 2.0 branches. No PR or commit containing that timestamped migration file was found.
+
+A source ancestor was recovered:
+- Merged PR #77, **Build CrowRules Groups 2.0 community experience**: https://github.com/crowrulesentertainment-oss/podcasting/pull/77
+- Its merged source file is `supabase/drafts/groups_2_0.sql`, blob SHA `7e838b2fa6bb302ec9fbc4d4241cdedd09814d18` (303 lines, 20,029 characters).
+- The PR explicitly labels that SQL a review draft and states it was not applied to production at PR merge time.
+- The remote migration ledger later records `20261122090848 / groups_2_0_production_upgrade`.
+
+The live catalog now contains strong matching fingerprints from that draft:
+- The same circle avatar/banner path columns.
+- The same post metadata columns and partial feed index.
+- The image-suggestion and post-report tables with matching columns and policy names.
+- The `guard_circle_post_moderation_fields` and `apply_podcast_circle_image_suggestion` function definitions match the draft.
+- The `podcast-group-media` private bucket has the same 8 MB limit and MIME allowlist.
+- The matching post moderation, owner-delete, image-suggestion, report, and Storage policy names exist.
+
+**Recovery conclusion:** the Groups 2.0 draft is a high-confidence source ancestor for the production upgrade, but it is not proof of the exact SQL body that was applied. The timestamped production migration source remains unrecovered. Do not rename or copy the draft into `supabase/migrations/` and do not replay it as though it were the original migration; it contains statements that would recreate or replace policies and functions.
+
+### Recovered source defect requiring review
+
+The live `Public group media is viewable` Storage SELECT policy references `storage.foldername(c.name)` inside its circle lookup instead of using the Storage object's `name` path. The same expression appears in the recovered draft. This is likely a defect in the public-media path check. It has not been changed. Keep the bucket private and do not claim anonymous public-group media access is working until this policy is corrected in a separately reviewed migration and tested.
+
+## 7. Full migration replay status
+
+The Supabase migration API returned **1,445** remote migration records, from `20260907232724` through `20261122192634`. The repository `main` tree contains **61** tracked SQL files under `supabase/migrations/`. The Groups 2.0 timestamped migration is not among them.
+
+A full local replay cannot be declared successful from this repository state. Replaying only the 61 available files would omit most of the recorded migration history and could produce a misleading or invalid database. The read-only catalog API returns migration versions/names, not the original SQL bodies. A Supabase development branch would incur hourly compute charges; no branch was created.
+
+**Required recovery input:** restore the complete migration directory or obtain a trusted database schema/migration backup that contains the missing migration bodies. Then reconcile versions, run the full local replay, and only after that execute the Groups 2.0 and Phase 1 test plans in an isolated local database.
+
+## 8. Supabase advisor snapshot
 
 The read-only Security Advisor run returned four lint categories. The relevant Community Groups finding was `public.podcast_public_member_profiles` under `security_definer_view` at ERROR level. The advisor also reported 73 RLS-enabled tables without policies and multiple executable SECURITY DEFINER functions across the wider project; the filtered results did not identify the inspected Podcasting circle tables or CrowSpace group chat tables among those no-policy findings. These project-wide counts are not attributed to Community Groups without table-by-table verification.
 
 The Performance Advisor returned six duplicate-index findings elsewhere in the project; none of the filtered findings referenced the inspected circle tables. No performance changes were made.
 
-## 7. Phase 1 implementation sequence after recovery
+## 9. Phase 1 implementation sequence after recovery
 
 1. Reconcile migration history and obtain a successful local replay.
 2. Run the existing two-circle data-integrity checks.
@@ -173,7 +205,7 @@ The Performance Advisor returned six duplicate-index findings elsewhere in the p
 6. Run existing UI regression checks against the local database.
 7. Only then prepare a reviewed migration and front-end implementation plan.
 
-## 8. Release decision
+## 10. Release decision
 
 **Status: BLOCKED — Phase 0 migration recovery and privacy review incomplete.**
 
