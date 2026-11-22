@@ -32,6 +32,9 @@ begin
   if to_regprocedure('public.review_podcast_circle_join_request(uuid,text)') is null then
     raise exception 'Phase 1 migration is missing the public approval wrapper';
   end if;
+  if to_regprocedure('private.crowspace_user_has_circle_invite(uuid)') is null then
+    raise exception 'Phase 1 migration is missing the invitee visibility helper';
+  end if;
   if to_regprocedure('public.accept_podcast_circle_invite(uuid)') is null then
     raise exception 'Phase 1 migration is missing the public invitation acceptance wrapper';
   end if;
@@ -345,6 +348,11 @@ values ('10000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-00000000
 
 do $wrong_hidden_invite$
 begin
+  if exists (
+    select 1 from public.podcast_community_circles
+    where id='10000000-0000-4000-8000-000000000004'
+  ) then raise exception 'Invitee for hidden group B can see unrelated hidden group D'; end if;
+
   begin
     insert into public.podcast_community_circle_members (circle_id,member_id,role)
     values ('10000000-0000-4000-8000-000000000004','00000000-0000-4000-8000-000000000008','member');
