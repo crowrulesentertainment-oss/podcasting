@@ -43,7 +43,9 @@ jobs:
           CREATE TABLE auth.users (id uuid PRIMARY KEY);
           CREATE OR REPLACE FUNCTION auth.uid()
           RETURNS uuid LANGUAGE sql STABLE
-          AS $$ SELECT nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+          AS $ SELECT nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $;
+          GRANT USAGE ON SCHEMA auth TO authenticated;
+          GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated;
           CREATE TABLE public.members (
             user_id uuid,
             role text NOT NULL DEFAULT 'Member',
