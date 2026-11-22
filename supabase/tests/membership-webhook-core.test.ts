@@ -118,7 +118,7 @@ Deno.test("membership sync failure is not acknowledged as processed", async () =
 
 Deno.test("unmapped Stripe price fails closed", async () => {
   const h = makeHarness({ noPlan: true });
-  await assertRejects(() => processMembershipStripeEvent(h.admin, h.stripe, h.event), Error, "No active membership plan maps");
+  await assertRejects(() => processMembershipStripeEvent(h.admin, h.stripe, h.event), Error, "No membership plan maps");
 });
 
 Deno.test("unrelated podcast subscription events are ignored without failing webhook delivery", async () => {
