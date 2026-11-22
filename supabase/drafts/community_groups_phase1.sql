@@ -426,7 +426,7 @@ with check (
     select 1
     from public.podcast_community_circles c
     join public.podcast_community_circle_members m on m.circle_id = c.id
-    where c.id = circle_id
+    where c.id = public.podcast_community_circle_messages.circle_id
       and c.group_chat_enabled = true
       and m.member_id = (select auth.uid())
   )
