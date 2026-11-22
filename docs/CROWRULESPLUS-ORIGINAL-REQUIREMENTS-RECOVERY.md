@@ -304,3 +304,23 @@ All job steps passed, including:
 The SQL fixture uses its own `webhook_it` and `webhook_race_it` schemas in an ephemeral CI PostgreSQL service. Its main behavior fixture runs inside a transaction and rolls back. No connection to the production Supabase project is configured or used.
 
 **Critical limitation:** these tests exercise an isolated reference implementation of the proposed database contract, not the production `sync_member_membership_from_subscription(uuid)` function or a future membership event-ledger migration. They establish PostgreSQL behavior for the design, not production integration correctness. The production Edge Function, database schema, grants, policies, Stripe configuration, and membership data remain unchanged.
+
+## Membership webhook candidate implementation and disposable verification (2026-11-22)
+
+A branch-only candidate implementation was added after inspecting the deployed version 77 Edge Function and the production table/function definitions read-only.
+
+New candidate files:
+- supabase/functions/_shared/membership-webhook-core.ts — membership-only event processor with event-ledger claim/finish, canonical Stripe subscription retrieval, plan/user resolution, stale-event guard, checked upsert/RPC errors, global-only membership synchronization, and safe ignore behavior for unrelated podcast subscriptions.
+- supabase/functions/_shared/stripe-webhook-verification.ts — official Stripe SDK 17.7.0 signature verification helper using the raw request body and the SDK's default 300-second timestamp tolerance.
+- supabase/drafts/20261122150000_membership_webhook_reliability_candidate.sql — review-only draft for the event ledger, lease/retry RPCs, event timestamp column, and corrected global-only synchronization function.
+- supabase/tests/membership-webhook-core.test.ts — Deno processor tests.
+- supabase/tests/membership-webhook-schema.setup.sql — synthetic disposable Supabase-like schema fixture.
+- supabase/tests/membership_webhook_postgres.integration.sql — PostgreSQL assertions now also invoke the actual candidate SQL RPCs and sync function.
+- .github/workflows/membership-webhook-core.yml and .github/workflows/membership-webhook-postgres.yml — isolated CI workflows.
+
+Verified CI:
+- Deno core run #45080369260: 8 passed, 0 failed. https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/45080369260
+- Stripe SDK verifier type-check passed in run #45080433810. https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/45080433810
+- Candidate SQL applied to ephemeral PostgreSQL 16, actual SQL assertions passed, and concurrent claim test passed in run #45080719130. https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/45080719130
+
+Integration boundary / not deployable yet: the candidate processor and verifier are shared modules, not a replacement Edge Function entrypoint. The existing deployed webhook also handles podcast monetization. A follow-up integration must merge these helpers into the existing handler while preserving its podcast subscription and entitlement behavior, route busy outcomes to a retryable non-2xx response, and test the complete handler with Stripe test events before deployment. The candidate SQL draft was applied only to an ephemeral CI database. No production SQL, Edge Function, Stripe object, or membership data was changed.
