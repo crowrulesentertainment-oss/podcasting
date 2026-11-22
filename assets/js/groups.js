@@ -165,8 +165,14 @@ async function renderMembership(group, container) {
     return false;
   }
   if (user.id === group.owner_id) {
-    container.innerHTML = '<span class="crg-membership-state">You own this community.</span>';
-    return;
+    try {
+      const ownerMembership = await loadMyMembership(group.id, user.id);
+      container.innerHTML = '<span class="crg-membership-state">You own this community.</span>';
+      return Boolean(ownerMembership);
+    } catch (error) {
+      status(container, "Membership status is temporarily unavailable. Please try again.", "error");
+      return false;
+    }
   }
   let membership;
   try {
