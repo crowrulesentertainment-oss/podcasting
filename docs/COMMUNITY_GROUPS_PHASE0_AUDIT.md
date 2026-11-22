@@ -189,6 +189,22 @@ A full local replay cannot be declared successful from this repository state. Re
 
 **Required recovery input:** restore the complete migration directory or obtain a trusted database schema/migration backup that contains the missing migration bodies. Then reconcile versions, run the full local replay, and only after that execute the Groups 2.0 and Phase 1 test plans in an isolated local database.
 
+### V7.51–V7.55 recovery archive investigation (read-only)
+
+The existing recovery framework was inspected as a possible source for the missing migration bodies. This investigation queried the V7.51 recovery case, forensic snapshot, action, and certificate tables; the V7.53 drill ledger; the V7.55 readiness certificate; the V7.60 drill-run ledger; the archive table referenced by the recovery functions; and the relevant function definitions. No recovery function was invoked and no restore, approval, verification, or archive mutation was performed.
+
+Observed production state:
+
+- V7.51 recovery cases: **0**; forensic snapshots: **0**; recovery actions: **0**; V7.51 recovery certificates: **0**.
+- V7.53 disaster drills: **1**, status **PASSED**, run on 2026-10-06. It references archive ID **1** and last-known-good ID **1**. Its recorded stages explicitly mark restore as **NON_DESTRUCTIVE / SIMULATE_RESTORE**; this is a simulation, not an executed restore.
+- V7.55 readiness certificate: **1**, readiness score **100 / grade A**, chain validation **VALID**, referencing the same drill and archive ID. This certifies the simulation/readiness result, not the existence of a recoverable migration bundle.
+- V7.60 recovery drill runs: **0**.
+- The referenced archive table is cr_podcast_evidence_security_report_archive_v747. It contains **one** immutable, trusted SECURITY_OPERATIONS report archive. Its JSON payload is approximately **1.1 KB** and has report/operations summary fields (for example, audit integrity, security health, SLA certificate, incident summary, and report period); it is not a database backup or migration-source archive.
+
+The V7.51 function definitions confirm that recovery operates on cr_podcast_evidence_security_report_archive_v747.report_payload: the restore function would create a new report archive from a trusted report snapshot. It does not restore PostgreSQL schema, migration files, or a repository tree. The recovery cases and forensic rows are empty, so there is no approved/verified V7.51 recovery case to inspect in any event.
+
+**Recovery-route conclusion:** V7.51–V7.55 cannot supply the missing migration history. The single V7.53 PASS and V7.55 A-grade certificate are evidence of a successful non-destructive simulation only. They must not be interpreted as proof that a full database backup exists or that the 1,445 migration bodies are recoverable. No recovery operation was run. The full replay blocker remains unchanged.
+
 ## 8. Supabase advisor snapshot
 
 The read-only Security Advisor run returned four lint categories. The relevant Community Groups finding was `public.podcast_public_member_profiles` under `security_definer_view` at ERROR level. The advisor also reported 73 RLS-enabled tables without policies and multiple executable SECURITY DEFINER functions across the wider project; the filtered results did not identify the inspected Podcasting circle tables or CrowSpace group chat tables among those no-policy findings. These project-wide counts are not attributed to Community Groups without table-by-table verification.
