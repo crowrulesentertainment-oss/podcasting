@@ -62,25 +62,8 @@ jobs:
           wait "$pid_a"
           wait "$pid_b"
           cat /tmp/claim-a.txt /tmp/claim-b.txt
-          claimed=$(cat /tmp/claim-a.txt /tmp/claim-b.txt | grep -c '^claimed
-          busy=$(cat /tmp/claim-a.txt /tmp/claim-b.txt | grep -c '^busy
-          if [[ "$claimed" -ne 1 || "$busy" -ne 1 ]]; then
-            echo "Expected exactly one claimed and one busy response"
-            exit 1
-          fi
- || true)
-          busy=$(grep -c '^busy$' /tmp/claim-a.txt /tmp/claim-b.txt || true)
-          if [[ "$claimed" -ne 1 || "$busy" -ne 1 ]]; then
-            echo "Expected exactly one claimed and one busy response"
-            exit 1
-          fi
- || true)
-          if [[ "$claimed" -ne 1 || "$busy" -ne 1 ]]; then
-            echo "Expected exactly one claimed and one busy response"
-            exit 1
-          fi
- || true)
-          busy=$(grep -c '^busy$' /tmp/claim-a.txt /tmp/claim-b.txt || true)
+          claimed=$(cat /tmp/claim-a.txt /tmp/claim-b.txt | grep -Fxc claimed || true)
+          busy=$(cat /tmp/claim-a.txt /tmp/claim-b.txt | grep -Fxc busy || true)
           if [[ "$claimed" -ne 1 || "$busy" -ne 1 ]]; then
             echo "Expected exactly one claimed and one busy response"
             exit 1
