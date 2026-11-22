@@ -138,3 +138,10 @@ The current `membership_plans` records are:
 These findings establish a real shared membership/entitlement vocabulary and an existing view-level integration point. They do **not** establish the missing CrowRules+ catalog, episode, creator-studio, playback, ratings, follows, or live/schedule schema. The two views are not substitutes for the original migration bodies.
 
 The catalog query was read-only. No view, membership row, plan, table, policy, or grant was changed.
+
+
+### Membership view access check
+
+The two membership views both have `security_invoker=true`. The read-only privilege check found that neither `anon` nor `authenticated` currently has SELECT privilege on either view. This means they are not presently exposed through those roles as direct client-readable views. No access grants were changed.
+
+This narrows the confirmed integration to an existing internal/database-side membership reporting surface; it does not demonstrate a client-facing CrowRules+ entitlement API.
