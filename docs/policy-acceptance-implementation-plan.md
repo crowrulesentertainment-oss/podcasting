@@ -1,6 +1,6 @@
 # Policy acceptance implementation plan
 
-Status: Phase 1D implementation prepared on the feature branch. The migration remains unapplied; no production schema, authentication enforcement, or policy publication has been changed.
+Status: the corrected design has been approved. Implementation preparation is in progress on `implementation/policy-acceptance-reconciliation`. All SQL remains a disposable-only candidate; no production schema, authentication enforcement, policy publication, or acceptance enforcement has been changed.
 
 ## Audit findings (2026-11-20)
 
@@ -119,9 +119,15 @@ This is a migration draft only. It has not been applied to the live Supabase pro
 
 ### Security refinement
 
-The member-callable RPC is now a SECURITY INVOKER function in the exposed public schema. It delegates to a narrowly granted implementation function in the dedicated non-exposed `crowrules_policy_private` schema. The implementation is SECURITY DEFINER, has an empty search path, derives the member identity exclusively from auth.uid(), and validates the complete set of current required versions before inserting. The `crowrules_policy_private` implementation is executable by authenticated users only; anonymous and PUBLIC execution are revoked. The `crowrules_policy_private` schema must remain absent from the project's exposed Data API schemas.
+The public member acceptance wrapper is SECURITY DEFINER, owned by a dedicated NOLOGIN, NOINHERIT, NOBYPASSRLS role named `crowrules_policy_owner`, with an empty search path. It validates the member ID through a narrow private identity bridge that calls fully qualified `auth.uid()`. Supabase's `auth` schema ACL does not grant the restricted owner role direct access, so the bridge is SECURITY DEFINER, owned by the trusted migration executor, fixed to an empty search path, and executable only by `crowrules_policy_owner`. The acceptance implementation itself remains SECURITY INVOKER in the non-exposed `crowrules_policy_private` schema. The private implementation is SECURITY INVOKER and is owned by the same restricted role. The owner is not a policy-table owner and is not a member of any other role, so RLS continues to apply inside the wrapper and its owned discovery RPCs. PostgreSQL 16+ automatically gives a CREATEROLE creator an ADMIN-only membership in a newly created role (`INHERIT FALSE`, `SET FALSE`); the migration preserves only that trusted database-executor membership and revokes the temporary SET-capable grant used for ownership transfer. No application/client role is a member.
 
-The public wrapper is not privileged and cannot itself bypass RLS. No client table write grants are added. Acceptance remains append-only and promotional email consent remains a separate opt-in system.
+PUBLIC, anon, authenticated, and service_role have no USAGE on `crowrules_policy_private` and no EXECUTE on the private helper. Authenticated members receive EXECUTE only on the public wrapper. The wrapper cannot be invoked by anon and does not accept a caller-supplied user ID or timestamp. The private schema must remain absent from the project's exposed Data API schemas.
+
+Current discovery is explicit through `public.get_current_policy_versions()`; historical published content is exposed through `public.get_published_policy_history()`. These fixed-search-path SECURITY DEFINER RPCs are owned by the restricted non-bypass role, not postgres or the policy tables' owner. Their narrow RLS policies allow them to evaluate withdrawn/expired candidates without exposing withdrawn content to public clients. RPCs are used instead of views because Supabase's security advisor flags security-definer views even when their owner is restricted and RLS remains enabled.
+
+Acceptance and lifecycle RPCs require READ COMMITTED isolation. The lock protocol is catalog sentinel first, parent documents in ascending UUID order, then version rows in deterministic order. The catalog sentinel prevents a newly inserted policy document from becoming a phantom outside an acceptance transaction's complete required-set scan. Document creation locks that sentinel; publication, withdrawal, and draft mutation lock the parent before the version.
+
+Admin-only lifecycle RPCs use the existing `private.crowrules_is_admin_impl()` authorization helper. They create documents/drafts, edit drafts, publish, and withdraw through the same controlled lock protocol. No client table write grants are added. Acceptance remains append-only and promotional email consent remains a separate opt-in system.
 
 ### Member Agreements & Policies area
 
@@ -134,11 +140,33 @@ Added an Agreements & Policies tab to the signed-in account center. It provides 
 
 ### Explicit limits
 
-No Supabase branch/project was created. No production SQL was executed. The migration, RLS policies, and RPC have not been run against Postgres yet. The member UI's live ledger path is intentionally dormant until a safe database test and migration are completed. No production deployment or merge of the Phase 1D follow-up commits was performed.
+No Supabase branch/project was created and no production SQL was executed. At the time of Phase 1D, the migration, RLS policies, and RPC had not yet been run against Postgres; subsequent disposable-only validation is recorded in Phase 1E below. The member UI's live ledger path remains intentionally dormant pending formal migration review and a separately authorized rollout. No production deployment or merge of the Phase 1D follow-up commits was performed.
 
 
 ### Local execution readiness (2026-11-20)
 
 The first static pass found that the migration referenced a private implementation schema without creating it. The migration now creates a dedicated `crowrules_policy_private` schema, revokes schema access from PUBLIC and anon, and grants the minimum schema usage and function execution needed by authenticated sessions. This schema must not be added to the Supabase Data API exposed-schema list.
 
-The local validation plan now includes CLI setup and safe local-only commands. The current execution container has no Supabase CLI, Docker-compatible runtime, or PostgreSQL client, and this repository has no `supabase/config.toml`. Therefore the local stack and SQL harness could not be executed in this session. This is an environment limitation, not a passing test result. The next execution must begin with `supabase init` (without linking a remote project), then `supabase start` and `supabase db reset` locally.
+The preceding Phase 1D note recorded that the interactive execution container lacked the Supabase CLI and Docker runtime. Subsequent CI validation now runs the candidate in a temporary local Supabase workspace, applies it with `supabase db reset`, verifies migration history, and uploads the CLI-generated migration artifact; current results are recorded in Phase 1E below.
+
+
+## Corrected implementation preparation (2026-11-21)
+
+The approved design has been translated into a source template at `docs/policy-acceptance-reconciliation-draft.sql`. It remains outside `supabase/migrations/` until the generated artifact is reviewed. CI uses `supabase migration new` in a temporary project, copies the source template into the timestamped migration, applies the local chain, and uploads the generated file.
+
+The candidate does not edit either merged historical migration. It is additive after the foundation and expiration migrations. It adds a restricted function owner, private catalog-lock sentinel, fixed-search-path current/history discovery RPCs, the corrected wrapper/helper privilege boundary, controlled admin lifecycle RPCs, and parent-first locking. The candidate's acceptance selector chooses the latest effective published-or-withdrawn version before evaluating withdrawal or expiry; it never falls back to an older version. The restricted owner has only INSERT plus column-level SELECT on the acceptance conflict keys.
+
+The tests use only synthetic Auth identities and fixtures. They cover the complete required set, idempotency, no-fallback after withdrawal/expiry, current/history discovery RPCs, admin authorization, private helper denial, READ COMMITTED enforcement, two-session lifecycle races, and the catalog-sentinel phantom case. Phase 1E validation results follow.
+
+No production migration, production schema/grant/RLS/configuration change, policy publication, policy acceptance enforcement, or marketing-consent change is authorized by this implementation-preparation milestone.
+
+## Phase 1E disposable validation results (2026-11-21)
+
+- Final CI run [#44886646065](https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/44886646065) completed successfully. PostgreSQL 16 disposable service tests passed, including RLS, ledger writes, idempotency, lifecycle/immutability, expiry boundaries, current/history RPCs, identity-bridge privileges, READ COMMITTED enforcement, and two-session concurrency with catalog-sentinel phantom prevention.
+- Isolated local Supabase tests passed the full migration chain via supabase db reset, migration-history verification, synthetic Auth tests, the same SQL and concurrency suites, and supabase db advisors.
+- The Supabase security advisor returned No issues found after replacing security-definer views with fixed-search-path discovery RPCs.
+- CI generated the timestamped reconciliation migration using supabase migration new in a disposable project. The resulting migration is committed on the implementation branch at supabase/migrations/20261121084611_policy_acceptance_reconciliation.sql. CI applies that committed file in the PostgreSQL 16 job and compares the CLI-generated local Supabase migration byte-for-byte with it.
+- The role-owner implementation accounts for PostgreSQL 16's automatic ADMIN-only CREATEROLE creator membership. The trusted executor's automatic membership remains non-inheriting and non-SET-capable; only the temporary SET-capable grant used for ownership transfer is revoked. See the PostgreSQL 16 role attributes documentation: https://www.postgresql.org/docs/16/role-attributes.html.
+- The private identity bridge calls fully qualified auth.uid() under the trusted migration executor because the restricted owner role has no auth schema usage. It exposes no table access and is executable only by the restricted owner role.
+- Current/history discovery uses restricted SECURITY DEFINER RPCs rather than views; the RPCs expose only published policy content and preserve no-fallback semantics.
+- No production database was accessed or changed. No production schema, grants, RLS, or configuration were modified. No policy was seeded or published, and acceptance enforcement remains disabled. PR #71 remains draft and unmerged.

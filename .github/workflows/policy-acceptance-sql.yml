@@ -11,6 +11,11 @@ on:
       - "docs/policy-version-expiration-tests.sql"
       - "docs/policy-version-expiration-design.md"
       - "docs/policy-version-expiration-local-supabase-runbook.md"
+      - "docs/policy-acceptance-reconciliation-draft.sql"
+      - "supabase/migrations/20261121084611_policy_acceptance_reconciliation.sql"
+      - "docs/policy-acceptance-reconciliation-tests.sql"
+      - "docs/policy-acceptance-isolation-test.sql"
+      - "docs/policy-acceptance-concurrency-test.sh"
       - ".github/workflows/policy-acceptance-sql.yml"
   workflow_dispatch:
 
@@ -53,6 +58,8 @@ jobs:
           create role authenticated nologin;
           create role service_role nologin bypassrls;
           create schema auth;
+          create schema private;
+          revoke all on schema private from public, anon, authenticated, service_role;
           create table auth.users (
             id uuid primary key
           );
@@ -63,6 +70,16 @@ jobs:
           as $$
             select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
           $$;
+          create or replace function private.crowrules_is_admin_impl()
+          returns boolean
+          language sql
+          stable
+          security definer
+          set search_path = ''
+          as $$
+            select current_setting('request.jwt.claim.role', true) = 'admin'
+          $$;
+          revoke all on function private.crowrules_is_admin_impl() from public, anon, authenticated, service_role;
           grant usage on schema auth to anon, authenticated;
           grant execute on function auth.uid() to anon, authenticated;
           SQL
@@ -73,11 +90,17 @@ jobs:
           set -euo pipefail
           psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql
 
-      - name: Apply expiration migration candidate to disposable PostgreSQL
+      - name: Apply formal expiration migration to disposable PostgreSQL
         shell: bash
         run: |
           set -euo pipefail
-          psql -X -v ON_ERROR_STOP=1 -f docs/policy-version-expiration-migration-draft.sql
+          psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261121070329_policy_version_expiration.sql
+
+      - name: Apply policy reconciliation candidate to disposable PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261121084611_policy_acceptance_reconciliation.sql
 
       - name: Create two disposable Auth identities
         shell: bash
@@ -134,6 +157,32 @@ jobs:
           fi
           echo "All policy expiration semantics tests passed."
 
+      - name: Run policy reconciliation security and lifecycle tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="$RUNNER_TEMP/policy-reconciliation-tests.txt"
+          psql -X -qAt -v ON_ERROR_STOP=1 \
+            -v member_a='10000000-0000-0000-0000-000000000001' \
+            -f docs/policy-acceptance-reconciliation-tests.sql | tee "$output"
+          if grep -qx 'f' "$output"; then
+            echo "One or more policy reconciliation assertions returned false."
+            exit 1
+          fi
+          echo "Policy reconciliation security and lifecycle assertions passed."
+
+      - name: Run policy transaction-isolation guard test
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f docs/policy-acceptance-isolation-test.sql
+
+      - name: Run policy two-session concurrency tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash docs/policy-acceptance-concurrency-test.sh
+
   local-supabase:
     name: Isolated local Supabase migration and RLS tests
     runs-on: ubuntu-latest
@@ -165,6 +214,43 @@ jobs:
           mkdir -p supabase/migrations
           cp "$GITHUB_WORKSPACE/supabase/migrations/20261120110000_versioned_policy_acceptance_ledger.sql" supabase/migrations/
           cp "$GITHUB_WORKSPACE/supabase/migrations/20261121070329_policy_version_expiration.sql" supabase/migrations/
+          npx --yes supabase@3.0.0 migration --help
+          npx --yes supabase@3.0.0 migration new --help
+          npx --yes supabase@3.0.0 migration new test_admin_authorization_helper
+          helper_file="$(find supabase/migrations -maxdepth 1 -type f -name '*_test_admin_authorization_helper.sql' -print -quit)"
+          if [ -z "$helper_file" ]; then
+            echo "Supabase CLI did not create the test admin helper migration."
+            exit 1
+          fi
+          cat > "$helper_file" <<'SQL'
+          create schema if not exists private;
+          create or replace function private.crowrules_is_admin_impl()
+          returns boolean
+          language sql
+          stable
+          security definer
+          set search_path = ''
+          as $$
+            select current_setting('request.jwt.claim.role', true) = 'admin'
+          $$;
+          revoke all on schema private from public, anon, authenticated, service_role;
+          revoke all on function private.crowrules_is_admin_impl() from public, anon, authenticated, service_role;
+          SQL
+          sleep 1
+          npx --yes supabase@3.0.0 migration new policy_acceptance_reconciliation
+          reconciliation_file="$(find supabase/migrations -maxdepth 1 -type f -name '*_policy_acceptance_reconciliation.sql' -print -quit)"
+          if [ -z "$reconciliation_file" ]; then
+            echo "Supabase CLI did not create the reconciliation migration."
+            exit 1
+          fi
+          cp "$GITHUB_WORKSPACE/docs/policy-acceptance-reconciliation-draft.sql" "$reconciliation_file"
+          formal_migration="$GITHUB_WORKSPACE/supabase/migrations/20261121084611_policy_acceptance_reconciliation.sql"
+          if ! cmp -s "$reconciliation_file" "$formal_migration"; then
+            diff -u "$formal_migration" "$reconciliation_file" || true
+            echo "CLI-generated migration does not match the committed formal migration."
+            exit 1
+          fi
+          echo "CLI-generated migration matches the committed formal migration."
           if grep -q 'crowrules_policy_private' supabase/config.toml; then
             echo "Private policy schema must not be exposed through the Data API."
             exit 1
@@ -175,7 +261,7 @@ jobs:
         run: |
           set -euo pipefail
           cd "$TEST_PROJECT_DIR"
-          npx --yes supabase@3.0.0 start
+          npx --yes supabase@3.0.0 start --exclude studio,mailpit,edge-runtime,logflare,vector
           npx --yes supabase@3.0.0 status
 
       - name: Reset the local database and verify migration history
@@ -185,6 +271,13 @@ jobs:
           cd "$TEST_PROJECT_DIR"
           npx --yes supabase@3.0.0 db reset
           npx --yes supabase@3.0.0 migration list
+
+      - name: Save CLI-generated reconciliation migration artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: policy-acceptance-reconciliation-migration
+          path: ${{ runner.temp }}/policy-supabase/supabase/migrations/*_policy_acceptance_reconciliation.sql
+          if-no-files-found: error
 
       - name: Resolve the local database URL
         id: local-db
@@ -231,6 +324,33 @@ jobs:
         run: |
           set -euo pipefail
           psql "$DB_URL" -X -v ON_ERROR_STOP=1 -v member_a='10000000-0000-0000-0000-000000000001' -v member_b='20000000-0000-0000-0000-000000000002' -f "$GITHUB_WORKSPACE/docs/policy-version-expiration-tests.sql"
+
+      - name: Run policy reconciliation security and lifecycle tests
+        env:
+          DB_URL: ${{ steps.local-db.outputs.db_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 \
+            -v member_a='10000000-0000-0000-0000-000000000001' \
+            -f "$GITHUB_WORKSPACE/docs/policy-acceptance-reconciliation-tests.sql"
+
+      - name: Run policy transaction-isolation guard test
+        env:
+          DB_URL: ${{ steps.local-db.outputs.db_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB_URL" -X -v ON_ERROR_STOP=1 \
+            -f "$GITHUB_WORKSPACE/docs/policy-acceptance-isolation-test.sql"
+
+      - name: Run policy two-session concurrency tests
+        env:
+          DB_URL: ${{ steps.local-db.outputs.db_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash "$GITHUB_WORKSPACE/docs/policy-acceptance-concurrency-test.sh"
 
       - name: Run Supabase database security advisors
         shell: bash

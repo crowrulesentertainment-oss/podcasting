@@ -55,6 +55,7 @@ select id as no_end_version from public.policy_versions where document_id=:'no_e
 select id as future_version from public.policy_versions where document_id=:'future_doc'::uuid \gset
 select id as replacement_current from public.policy_versions where document_id=:'replacement_doc'::uuid and version_label='replacement-current' \gset
 select id as resurrection_old from public.policy_versions where document_id=:'resurrection_doc'::uuid and version_label='resurrection-old-required' \gset
+select id as resurrection_new_optional from public.policy_versions where document_id=:'resurrection_doc'::uuid and version_label='resurrection-new-optional-expired' \gset
 select id as draft_version from public.policy_versions where document_id=:'draft_doc'::uuid and version_label='draft-expiry-edit' \gset
 select id as withdrawal_old from public.policy_versions where document_id=:'withdrawal_doc'::uuid and version_label='withdrawal-old' \gset
 select id as withdrawal_new from public.policy_versions where document_id=:'withdrawal_doc'::uuid and version_label='withdrawal-new' \gset
@@ -64,10 +65,6 @@ select pg_temp.assert_sqlstate(
  format('insert into public.policy_versions(document_id,version_label,content_url,content_sha256,requires_acceptance,status,effective_at,published_at,expires_at) values (%L,%L,%L,%L,true,''published'',now(),now(),now())',:'no_end_doc','invalid-expiry','https://example.invalid/invalid-expiry',repeat('3',64)),
  '23514','expiration must follow effective date'
 );
-
--- Withdraw the latest effective version. The previous published version must not
--- become current again; it remains historical content only.
-update public.policy_versions set status='withdrawn' where id=:'withdrawal_new'::uuid;
 
 -- Expiration may be configured while draft, then is frozen on publication.
 update public.policy_versions
@@ -82,6 +79,38 @@ select set_config('test.expiry_future_version', :'future_version', true);
 select set_config('test.expiry_replacement_current', :'replacement_current', true);
 select set_config('test.expiry_resurrection_old', :'resurrection_old', true);
 select set_config('test.expiry_withdrawal_old', :'withdrawal_old', true);
+
+-- Public discovery RPCs must share the acceptance path's exact latest-version
+-- and expiration semantics.
+select count(*)=1 as current_rpc_returns_effective_replacement
+from public.get_current_policy_versions()
+where document_id=:'replacement_doc'::uuid
+  and policy_version_id=:'replacement_current'::uuid;
+
+select count(*)=1 as history_rpc_marks_expired_predecessor_superseded
+from public.get_published_policy_history()
+where policy_version_id=(
+  select id from public.policy_versions
+  where document_id=:'replacement_doc'::uuid and version_label='replacement-old'
+)
+  and history_state='superseded'
+  and document_state='active';
+
+select count(*)=0 as current_rpc_hides_expired_optional_latest
+from public.get_current_policy_versions()
+where document_id=:'resurrection_doc'::uuid;
+
+select count(*)=1 as history_rpc_marks_expired_optional_latest
+from public.get_published_policy_history()
+where policy_version_id=:'resurrection_new_optional'::uuid
+  and history_state='expired'
+  and document_state='expired';
+
+select count(*)=1 as history_rpc_marks_old_required_superseded_after_expiry
+from public.get_published_policy_history()
+where policy_version_id=:'resurrection_old'::uuid
+  and history_state='superseded'
+  and document_state='expired';
 select set_config('test.expiry_withdrawal_new', :'withdrawal_new', true);
 
 set local role authenticated;
@@ -93,8 +122,6 @@ reset role;
 set local role anon;
 select count(*) = 1 as anon_can_read_expired_published_history
 from public.policy_versions where document_id=:'replacement_doc'::uuid and version_label='replacement-old' and expires_at <= now();
-select count(*) = 0 as anon_cannot_read_withdrawn_version
-from public.policy_versions where id=:'withdrawal_new'::uuid;
 select count(*) = 0 as anon_cannot_read_draft_version
 from public.policy_versions where id=:'still_draft_version'::uuid;
 reset role;
@@ -108,9 +135,10 @@ begin
   v_count := public.accept_current_required_policy_versions(array[
     current_setting('test.expiry_no_end_version')::uuid,
     current_setting('test.expiry_future_version')::uuid,
-    current_setting('test.expiry_replacement_current')::uuid
+    current_setting('test.expiry_replacement_current')::uuid,
+    current_setting('test.expiry_withdrawal_new')::uuid
   ]);
-  if v_count <> 3 then raise exception 'Expected three current required acceptances, got %',v_count; end if;
+  if v_count <> 4 then raise exception 'Expected four current required acceptances, got %',v_count; end if;
 end
 $test$;
 select set_config(
@@ -121,9 +149,21 @@ select set_config(
   true
 );
 
+
+
 -- Withdrawal does not revive an older required version. Even though that old
 -- version is still historically published, the withdrawn newer version remains
 -- authoritative for selection and acceptance must reject the fallback.
+select set_config('request.jwt.claim.role','admin',true);
+select public.policy_admin_withdraw_version(:'withdrawal_new'::uuid);
+reset role;
+set local role anon;
+select count(*) = 0 as anon_cannot_read_withdrawn_version
+from public.policy_versions where id=:'withdrawal_new'::uuid;
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.role','member',true);
+
 do $test$
 begin
   begin
@@ -138,6 +178,21 @@ begin
   end;
 end
 $test$;
+
+-- Restore the complete acceptance flow with an optional replacement. This
+-- optional latest version supersedes the withdrawn required version.
+select set_config('request.jwt.claim.role','admin',true);
+select public.policy_admin_create_draft_version(
+  :'withdrawal_doc'::uuid,
+  'withdrawal-optional-replacement',
+  'https://example.invalid/withdrawal-optional',
+  repeat('8',64),
+  false,
+  transaction_timestamp()-interval '1 day',
+  null
+) as withdrawal_optional_replacement \gset
+select public.policy_admin_publish_version(:'withdrawal_optional_replacement'::uuid);
+select set_config('request.jwt.claim.role','member',true);
 
 -- An expired newer optional version supersedes the old required version;
 -- the old required version must not be resurrected into the acceptance set.
