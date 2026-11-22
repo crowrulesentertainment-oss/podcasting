@@ -363,6 +363,63 @@ begin
 end
 $admin_tests$;
 
+-- Category ID writes synchronize the legacy text label, and legacy is_public
+-- writes continue to map false to hidden rather than discoverable private.
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',true);
+select set_config('request.jwt.claims','{"sub":"00000000-0000-4000-8000-000000000001","role":"authenticated","app_metadata":{}}',true);
+
+insert into public.podcast_community_circles (
+  id,owner_id,name,description,category,category_id,is_public,is_featured,
+  community_rules,branch_key,visibility,group_chat_enabled
+)
+select
+  '10000000-0000-4000-8000-000000000005',
+  '00000000-0000-4000-8000-000000000001',
+  'CRG Category Sync',
+  'Category synchronization test',
+  'Legacy label',
+  id,
+  true,
+  false,
+  '',
+  'community',
+  'public',
+  true
+from public.podcast_community_circle_categories
+where slug='crg-admin-category';
+
+insert into public.podcast_community_circles (
+  id,owner_id,name,description,category,is_public,is_featured,community_rules,branch_key
+) values (
+  '10000000-0000-4000-8000-000000000006',
+  '00000000-0000-4000-8000-000000000001',
+  'CRG Legacy Visibility',
+  'Legacy visibility compatibility test',
+  'General',
+  false,
+  false,
+  '',
+  'community'
+);
+
+do $compatibility_tests$
+begin
+  if not exists (
+    select 1 from public.podcast_community_circles
+    where id='10000000-0000-4000-8000-000000000005'
+      and category='CRG Admin Category'
+      and category_id=(select id from public.podcast_community_circle_categories where slug='crg-admin-category')
+  ) then raise exception 'Category ID did not synchronize the legacy category label'; end if;
+
+  if not exists (
+    select 1 from public.podcast_community_circles
+    where id='10000000-0000-4000-8000-000000000006'
+      and visibility='hidden'
+      and is_public=false
+  ) then raise exception 'Legacy is_public=false did not remain hidden'; end if;
+end
+$compatibility_tests$;
+
 reset role;
 rollback;
 
