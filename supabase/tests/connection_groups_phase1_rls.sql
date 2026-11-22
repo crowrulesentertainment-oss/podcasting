@@ -33,8 +33,31 @@ begin
   if not (select relrowsecurity from pg_class where oid='public.podcast_community_circle_messages'::regclass) then
     raise exception 'RLS is not enabled on group messages';
   end if;
+  if not has_table_privilege('anon','public.podcast_community_circle_categories','SELECT') then
+    raise exception 'Anonymous SELECT grant missing for public active category directory';
+  end if;
+  if not has_table_privilege('authenticated','public.podcast_community_circle_messages','SELECT') then
+    raise exception 'Authenticated SELECT grant missing for group chat';
+  end if;
+  if has_table_privilege('anon','public.podcast_community_circle_messages','SELECT') then
+    raise exception 'Anonymous group chat SELECT must remain revoked';
+  end if;
+  if has_function_privilege('anon','public.review_podcast_circle_join_request(uuid,text)','EXECUTE') then
+    raise exception 'Anonymous execution of join-request approval wrapper must remain revoked';
+  end if;
+  if not has_function_privilege('authenticated','public.review_podcast_circle_join_request(uuid,text)','EXECUTE') then
+    raise exception 'Authenticated execution grant missing for join-request approval wrapper';
+  end if;
   if has_table_privilege('anon','public.podcast_community_circle_replies','SELECT') then
     raise exception 'Anonymous reply SELECT is not part of the approved API contract';
+  end if;
+  if exists (
+    select 1
+    from public.podcast_community_circle_replies r
+    left join public.podcast_community_circle_posts p on p.id = r.post_id
+    where p.id is null or p.circle_id <> r.circle_id
+  ) then
+    raise exception 'Existing reply rows contain missing or cross-circle parent posts; resolve before rollout';
   end if;
 end
 $preflight$;
