@@ -583,6 +583,120 @@ grant insert,update,delete on public.crplus_collections,
   public.crplus_collection_items,public.crplus_content_sources to authenticated;
 
 
+
+-- Notification helpers and triggers recovered from migration 20260920050036.
+create or replace function public.crplus_notify_user(
+  p_user_id uuid,
+  p_type text,
+  p_title text,
+  p_body text default null,
+  p_content_id uuid default null
+) returns void
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $
+begin
+  if p_user_id is null then return; end if;
+  insert into public.crplus_notifications(user_id,notification_type,title,body,content_id)
+  values(p_user_id,p_type,p_title,p_body,p_content_id);
+end;
+$;
+revoke all on function public.crplus_notify_user(uuid,text,text,text,uuid)
+  from public,anon,authenticated;
+
+create or replace function public.crplus_project_status_notification()
+returns trigger
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $
+begin
+  if tg_op='UPDATE' and new.status is distinct from old.status
+     and new.owner_user_id is not null then
+    perform public.crplus_notify_user(
+      new.owner_user_id,'project_status','Project status updated',
+      new.title || ' moved to ' || replace(new.status,'_',' ') || '.',
+      new.content_id
+    );
+  elsif tg_op='INSERT' and new.owner_user_id is not null then
+    perform public.crplus_notify_user(
+      new.owner_user_id,'project_created','Production project created',
+      new.title || ' has been added to the CrowRules+ production pipeline.',
+      new.content_id
+    );
+  end if;
+  return new;
+end;
+$;
+revoke all on function public.crplus_project_status_notification()
+  from public,anon,authenticated;
+drop trigger if exists trg_crplus_project_status_notification on public.crplus_projects;
+create trigger trg_crplus_project_status_notification
+after insert or update of status on public.crplus_projects
+for each row execute function public.crplus_project_status_notification();
+
+create or replace function public.crplus_content_workflow_notification()
+returns trigger
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $
+declare v_user uuid;
+begin
+  if new.project_id is null
+     or not (tg_op='INSERT' or new.workflow_status is distinct from old.workflow_status) then
+    return new;
+  end if;
+  select owner_user_id into v_user
+  from public.crplus_projects where id=new.project_id;
+  if new.workflow_status='review' then
+    perform public.crplus_notify_user(v_user,'content_review',
+      'Content sent for review',new.title || ' is ready for review.',new.id);
+  elsif new.workflow_status='published' then
+    perform public.crplus_notify_user(v_user,'content_published',
+      'Content published',new.title || ' is now published on CrowRules+.',new.id);
+  end if;
+  return new;
+end;
+$;
+revoke all on function public.crplus_content_workflow_notification()
+  from public,anon,authenticated;
+drop trigger if exists trg_crplus_content_workflow_notification on public.crplus_content;
+create trigger trg_crplus_content_workflow_notification
+after insert or update of workflow_status on public.crplus_content
+for each row execute function public.crplus_content_workflow_notification();
+
+create or replace function public.crplus_schedule_notification()
+returns trigger
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $
+declare v_user uuid; v_title text;
+begin
+  if new.content_id is null then return new; end if;
+  select p.owner_user_id,c.title into v_user,v_title
+  from public.crplus_content c
+  left join public.crplus_projects p on p.id=c.project_id
+  where c.id=new.content_id;
+  if v_user is not null then
+    perform public.crplus_notify_user(v_user,'content_scheduled',
+      'Content scheduled for CrowRules TV',
+      coalesce(v_title,new.title) || ' was added to the TV guide.',
+      new.content_id);
+  end if;
+  return new;
+end;
+$;
+revoke all on function public.crplus_schedule_notification()
+  from public,anon,authenticated;
+drop trigger if exists trg_crplus_schedule_notification on public.crplus_schedule;
+create trigger trg_crplus_schedule_notification
+after insert on public.crplus_schedule
+for each row execute function public.crplus_schedule_notification();
+
+
 commit;
 
 -- REVIEW BLOCKERS BEFORE THIS CAN BECOME A DEPLOYABLE MIGRATION:
