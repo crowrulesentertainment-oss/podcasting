@@ -267,3 +267,17 @@ It specifies standard Stripe timestamp-tolerant signature verification, a dedica
 The production `sync_member_membership_from_subscription(uuid)` definition was inspected and confirms it currently selects a user's subscription without filtering `site_key IS NULL`. The proposal preserves current plan mappings and status/grace-period semantics; those require a separate product decision.
 
 **No implementation or deployment was performed.** The proposal contains no executable migration and no production changes were made.
+
+
+## Isolated membership webhook contract tests (2026-11-22)
+
+Added:
+- `scripts/membership-webhook-contract.test.mjs` — isolated Node.js contract harness.
+- `.github/workflows/membership-webhook-contract.yml` — CI workflow for the harness.
+
+GitHub Actions run **#45079621025** completed successfully:
+https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/45079621025
+
+Result: **21 tests passed, 0 failed**. Coverage includes signature acceptance/rejection and timestamp tolerance, duplicate and concurrent event claims, failed-event retry, event ordering, global-versus-site subscription selection, checked-write failure behavior, and unmapped price handling.
+
+**Important limitation:** these are isolated contract/model tests, not integration tests of the deployed Edge Function, real Stripe SDK verification, PostgreSQL locking/RPC behavior, or Supabase persistence. They validate the expected contract only. The actual webhook implementation and database migration remain unmodified; integration tests must be added when implementation is prepared in a disposable Supabase project.
