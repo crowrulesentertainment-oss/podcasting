@@ -25,6 +25,12 @@ alter table public.podcast_community_circle_posts
   add constraint podcast_community_circle_posts_post_type_check
   check (post_type in ('discussion','episode','question','announcement','media'));
 
+alter table public.podcast_community_circle_posts
+  drop constraint if exists podcast_circle_post_media_path_owner_check;
+alter table public.podcast_community_circle_posts
+  add constraint podcast_circle_post_media_path_owner_check
+  check (media_path is null or media_path like circle_id::text || '/' || author_id::text || '/%');
+
 create index if not exists podcast_circle_posts_feed_v2_idx
   on public.podcast_community_circle_posts(circle_id, is_pinned desc, created_at desc)
   where deleted_at is null;
@@ -41,6 +47,11 @@ create table if not exists public.podcast_community_circle_image_suggestions (
   reviewed_at timestamptz,
   unique (circle_id, object_path)
 );
+alter table public.podcast_community_circle_image_suggestions
+  drop constraint if exists podcast_circle_image_suggestion_path_owner_check;
+alter table public.podcast_community_circle_image_suggestions
+  add constraint podcast_circle_image_suggestion_path_owner_check
+  check (object_path like circle_id::text || '/' || submitted_by::text || '/%');
 create index if not exists podcast_circle_image_suggestions_review_idx
   on public.podcast_community_circle_image_suggestions(circle_id,status,created_at desc);
 alter table public.podcast_community_circle_image_suggestions enable row level security;
@@ -154,6 +165,7 @@ on conflict (id) do update set public=false,file_size_limit=8388608,
   allowed_mime_types=excluded.allowed_mime_types;
 
 drop policy if exists "Group members upload their own group media" on storage.objects;
+drop policy if exists "Public group media is viewable" on storage.objects;
 drop policy if exists "Group members read group media" on storage.objects;
 drop policy if exists "Owners and moderators delete group media" on storage.objects;
 create policy "Group members upload their own group media"
@@ -162,6 +174,11 @@ with check (bucket_id='podcast-group-media'
   and (storage.foldername(name))[1] ~* '^[0-9a-f-]{36}$'
   and (storage.foldername(name))[2]=(select auth.uid())::text
   and private.crowspace_is_circle_member(((storage.foldername(name))[1])::uuid));
+create policy "Public group media is viewable"
+on storage.objects for select to anon,authenticated
+using (bucket_id='podcast-group-media'
+  and exists (select 1 from public.podcast_community_circles c
+    where c.id=((storage.foldername(name))[1])::uuid and c.is_public=true));
 create policy "Group members read group media"
 on storage.objects for select to authenticated
 using (bucket_id='podcast-group-media'
