@@ -78,7 +78,7 @@ const notificationTypes = [
 ];
 const notificationIdentity = row => {
   const meta = row.metadata || {};
-  const entity = ["circle_invitation", "community_invite"].includes(row.type) ? "invite:" + (meta.invitation_id || meta.circle_id || row.id) :
+  const entity = ["circle_invitation", "community_invite"].includes(row.type) ? "invite:" + (meta.circle_id || meta.invitation_id || row.id) :
     meta.post_id ? "post:" + meta.post_id :
     meta.event_id ? "event:" + meta.event_id :
     meta.circle_id ? "circle:" + meta.circle_id + ":" + row.type : row.id;
