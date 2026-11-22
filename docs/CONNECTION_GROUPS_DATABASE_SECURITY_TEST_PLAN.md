@@ -113,3 +113,25 @@ Inspect existing category labels and duplicate/blank values before backfilling t
 - GitHub Pages deployment: not performed.
 
 **Release gate:** No production migration or frontend feature activation until full local replay, all synthetic security tests, and a separate review are complete.
+
+
+## Activity feed and notification validation
+
+The follow-on frontend phase reuses existing production resources; it adds no tables, triggers, policies, or RPCs. Read-only schema inspection confirmed the existing activity recorder and group notification trigger families are already present.
+
+Additional local acceptance checks:
+
+| Area | Required result |
+|---|---|
+| Group activity feed | Members see discussion, reply, event, and member-joined activity for the exact group they belong to |
+| Activity isolation | Nonmembers cannot read private-group activity; cross-group activity is not exposed |
+| Notification center | A signed-in user sees only their own group-related notifications |
+| Notification types | Invitations, discussions, replies, event creation, and event updates are represented |
+| Duplicate notifications | Existing trigger variants for the same invitation/post/event are collapsed in the display |
+| Mark read | A member can mark only their own notification read |
+| Mark all read | Every group-related notification source row for that member is marked read, including collapsed duplicates |
+| Notification preferences | Only the signed-in user's existing invitation/discussion/reply/moderation preferences can be changed |
+| Deep links | Activity and notifications navigate to the correct group, discussion section, or event section |
+| Compatibility | Existing invitation, event, post, reply, and activity triggers remain unchanged |
+
+No new event-preference control should be shown unless a supported event preference is added through a separately reviewed database change.
