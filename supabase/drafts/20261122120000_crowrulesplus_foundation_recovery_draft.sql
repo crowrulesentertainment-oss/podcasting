@@ -151,6 +151,24 @@ alter table public.crplus_content enable row level security;
 alter table public.crplus_live_channels enable row level security;
 alter table public.crplus_schedule enable row level security;
 
+create or replace function public.crplus_is_admin()
+returns boolean
+language sql stable security definer
+set search_path=public,pg_temp
+as $
+  select exists(
+    select 1 from public.crplus_admins a
+    where a.user_id=(select auth.uid()) and a.is_active
+  ) or exists(
+    select 1 from public.members m
+    where m.user_id=(select auth.uid())
+      and lower(m.role) in ('admin','owner')
+      and lower(m.status)='active'
+  );
+$;
+revoke all on function public.crplus_is_admin() from public,anon;
+grant execute on function public.crplus_is_admin() to authenticated;
+
 drop policy if exists crplus_admins_self_read on public.crplus_admins;
 create policy crplus_admins_self_read on public.crplus_admins
   for select to authenticated using (user_id = (select auth.uid()));
