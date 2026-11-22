@@ -208,6 +208,9 @@ async function renderMembership(group, container) {
         membership = null;
       }
       paint();
+      container.dispatchEvent(new CustomEvent("crg-membership-change", {
+        bubbles: true, detail: { isMember: Boolean(membership) }
+      }));
     } catch (error) {
       console.error("CrowRules circle membership action failed:", error);
       paint();
@@ -293,9 +296,14 @@ function renderPosts(posts, labels, replies, canReply, signedIn) {
 async function renderConversation(group, postsRoot, canReply, user) {
   try {
     const posts = await loadPosts(group.id);
-    const repliesResult = user
-      ? await loadReplies(group.id, posts, true)
-      : { replies: [], unavailable: false };
+    let repliesResult = { replies: [], unavailable: false };
+    if (user) {
+      try { repliesResult = await loadReplies(group.id, posts, true); }
+      catch (replyError) {
+        console.warn("CrowRules replies unavailable:", replyError);
+        repliesResult = { replies: [], unavailable: true };
+      }
+    }
     const labels = await loadAuthorLabels([
       ...posts.map(post => post.author_id),
       ...repliesResult.replies.map(reply => reply.author_id)
@@ -307,6 +315,13 @@ async function renderConversation(group, postsRoot, canReply, user) {
         hint.className = "crg-feed-hint";
         hint.textContent = "Sign in to view replies.";
         section.querySelectorAll(".crg-reply, .crg-reply-form").forEach(node => node.remove());
+        section.appendChild(hint);
+      });
+    } else if (repliesResult.unavailable) {
+      postsRoot.querySelectorAll(".crg-replies").forEach(section => {
+        const hint = document.createElement("p");
+        hint.className = "crg-feed-hint";
+        hint.textContent = "Replies are temporarily unavailable.";
         section.appendChild(hint);
       });
     }
@@ -369,7 +384,11 @@ async function renderDetail(root, id) {
   const membershipRoot = $("#crg-membership", root);
   let currentUser = null;
   try { currentUser = await loadCurrentUser(); } catch (error) { currentUser = null; }
-  const canParticipate = await renderMembership(group, membershipRoot);
+  let canParticipate = await renderMembership(group, membershipRoot);
+  membershipRoot.addEventListener("crg-membership-change", event => {
+    canParticipate = Boolean(event.detail?.isMember);
+    renderConversation(group, postsRoot, canParticipate, currentUser);
+  });
   await renderConversation(group, postsRoot, canParticipate, currentUser);
 }
 
