@@ -700,11 +700,16 @@ for each row execute function public.crplus_schedule_notification();
 commit;
 
 -- REVIEW BLOCKERS BEFORE THIS CAN BECOME A DEPLOYABLE MIGRATION:
--- 1. Define/verify the complete crplus_content schema against the original UI.
--- 2. Verify show_id FK target and type; it is intentionally left unconstrained.
--- 3. Create crplus_project_submissions before adding source_submission_id FK.
--- 4. Confirm whether schedule entries without content_id should be publicly visible.
--- 5. Reconstruct missing entitlement/social/ratings/notifications/collections/
---    content-source tables because their historical migration versions are already
---    recorded and will not automatically rerun on the restored environment.
--- 6. Reconcile crplus_admins versus the existing public.crplus_is_admin() helper.
+-- 1. crplus_content, crplus_live_channels and crplus_schedule base definitions
+--    are reconstructed because their original CREATE TABLE statements were not
+--    present in the recoverable migration history. Compare against the original UI.
+-- 2. Verify crplus_content.show_id target/type; intentionally left unconstrained.
+-- 3. Confirm whether schedule entries without content_id should be public.
+-- 4. Validate the existing Dreamscapes bridge trigger against current ds_submissions
+--    columns before restoring that integration. It is intentionally not recreated here.
+-- 5. Review the historical private storage bucket and storage.objects policies before
+--    adding the crplus-videos bucket/policies; this draft does not mutate Storage.
+-- 6. Confirm all current app queries, enum/status values, and admin workflows against
+--    this schema, then test in an isolated database before applying anywhere.
+-- 7. No admin user is bootstrapped here. Populate crplus_admins only through a
+--    trusted, reviewed administrative process.
