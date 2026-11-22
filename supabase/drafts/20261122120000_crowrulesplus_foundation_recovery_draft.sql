@@ -151,9 +151,12 @@ alter table public.crplus_content enable row level security;
 alter table public.crplus_live_channels enable row level security;
 alter table public.crplus_schedule enable row level security;
 
+-- Preserve the production helper's existing members-based authorization,
+-- including super_admin, while allowing an explicitly managed CR+ admin row.
+-- Do not use SECURITY DEFINER here; keep the helper's existing execution model.
 create or replace function public.crplus_is_admin()
 returns boolean
-language sql stable security definer
+language sql stable
 set search_path=public,pg_temp
 as $
   select exists(
@@ -162,8 +165,8 @@ as $
   ) or exists(
     select 1 from public.members m
     where m.user_id=(select auth.uid())
-      and lower(m.role) in ('admin','owner')
-      and lower(m.status)='active'
+      and m.status='Active'
+      and lower(coalesce(m.role,'')) in ('admin','owner','super_admin')
   );
 $;
 revoke all on function public.crplus_is_admin() from public,anon;
