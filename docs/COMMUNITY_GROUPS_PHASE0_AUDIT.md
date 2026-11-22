@@ -36,7 +36,7 @@ Confirmed production tables include:
 - `podcast_community_circle_notification_preferences`
 - `podcast_community_circle_image_suggestions`
 
-The live circle table currently has the original identity and visibility fields, including `owner_id`, `name`, `description`, `category`, and `is_public`. The newer `visibility`, `slug`, `category_id`, `group_chat_enabled`, and group image URL fields in the Phase 1 draft were not present in the inspected production schema.
+The live circle table already includes Groups 2.0 image-path fields (`avatar_image_path`, `banner_image_path`), and posts already include the Groups 2.0 post types, episode URL/title/artwork, media path, edit/delete timestamps, pinning, and reply-lock fields. The Phase 1 draft's newer `visibility`, `slug`, `category_id`, `group_chat_enabled`, and URL-based image metadata fields were not present in the inspected production schema. Keep the existing image-path fields; do not add duplicate image representations without a compatibility decision.
 
 ### Missing Phase 1 objects
 
@@ -138,11 +138,12 @@ These are point-in-time checks, not a substitute for ongoing constraints and aut
 Production migration ledger snapshot:
 
 - Recorded migration versions: **1,445**
+- The remote ledger includes `groups_2_0_production_upgrade` at version `20261122090848`. The corresponding timestamped SQL body was not found at the expected path in repository `main` or the reviewed connection-groups branch. Some Groups 2.0 columns are present in production, so the migration source and exact applied diff must be recovered before planning further additive changes.
 - Latest recorded version: **20261122192634**
 - Latest recorded migration name: `create_student_hub_private_foundation`
 - SQL migration files on repository `main` at audit time: **61**
 
-Repository Groups documentation itself says migration recovery and full local replay are release gates. The current draft SQL files are under `supabase/drafts/`, not production migration history.
+Repository Groups documentation itself says migration recovery and full local replay are release gates. The current Phase 1 and social-permissions draft SQL files are under `supabase/drafts/`, not production migration history. Do not infer that all Groups 2.0 work is unapplied: the production ledger records a Groups 2.0 upgrade and the database already has some of its schema changes.
 
 **Required before migration work:**
 
