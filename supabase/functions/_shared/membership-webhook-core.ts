@@ -94,7 +94,7 @@ export async function processMembershipStripeEvent(
 
     const { data: existing, error: existingError } = await admin
       .from("membership_subscriptions")
-      .select("user_id,last_stripe_event_created")
+      .select("user_id,last_stripe_event_created,plan_id")
       .eq("stripe_subscription_id", subscriptionId)
       .maybeSingle();
     throwIfError(existingError, "read existing membership subscription");
@@ -121,6 +121,14 @@ export async function processMembershipStripeEvent(
         .eq("plan_key", explicitPlanKey)
         .maybeSingle();
       throwIfError(error, "resolve membership plan by plan_key");
+      plan = data;
+    }
+    if (!plan && existing?.plan_id) {
+      const { data, error } = await admin.from("membership_plans")
+        .select("id,plan_key,site_key,stripe_price_id")
+        .eq("id", existing.plan_id)
+        .maybeSingle();
+      throwIfError(error, "resolve existing membership plan");
       plan = data;
     }
 
