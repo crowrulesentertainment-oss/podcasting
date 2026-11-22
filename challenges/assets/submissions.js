@@ -114,7 +114,7 @@ async function load(){
   if(audio&&(audio.size>500*1024*1024||!audio.type.startsWith("audio/"))){local.textContent="Choose an audio file under 500 MB in a supported audio format.";local.dataset.type="error";return}
   if(cover&&(cover.size>10*1024*1024||!/^image\/(jpeg|png|webp|gif)$/.test(cover.type))){local.textContent="Choose a JPG, PNG, WebP or GIF cover image under 10 MB.";local.dataset.type="error";return}
   if(thumbnail_url&&!validUrl(thumbnail_url)){local.textContent="Enter a valid http or https artwork URL, or leave the optional field blank.";local.dataset.type="error";return}
-  if(cover&&thumbnail_url){local.textContent="Choose an uploaded cover image or an artwork URL, not both.";local.dataset.type="error";return}
+  if(cover&&thumbnail_url&&source!=="studio"){local.textContent="Choose an uploaded cover image or an artwork URL, not both.";local.dataset.type="error";return}
   const event=events.find(x=>x.id===challenge_id),now=Date.now();
   if(!event||event.status!=="published"||now<new Date(event.submission_opens_at).getTime()||now>new Date(event.submission_closes_at).getTime()){local.textContent="This challenge is not accepting entries yet. Check the submission dates above.";local.dataset.type="error";updateWindow();return}
   if(used.has(challenge_id)){local.textContent="You already submitted an entry for this challenge.";local.dataset.type="error";updateWindow();return}
