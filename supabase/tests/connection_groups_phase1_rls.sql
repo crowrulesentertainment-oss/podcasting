@@ -59,7 +59,8 @@ insert into public.podcast_community_circles (
 ) values
   ('10000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','CRG Private A','Private test circle','Test',false,false,'','community','private',true),
   ('10000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000004','CRG Hidden B','Hidden test circle','Test',false,false,'','community','hidden',false),
-  ('10000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-000000000001','CRG Public C','Public test circle','Test',true,false,'','community','public',true);
+  ('10000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-000000000001','CRG Public C','Public test circle','Test',true,false,'','community','public',true),
+  ('10000000-0000-4000-8000-000000000004','00000000-0000-4000-8000-000000000001','CRG Hidden D','Uninvited hidden test circle','Test',false,false,'','community','hidden',true);
 
 insert into public.podcast_community_circle_members (circle_id, member_id, role) values
   ('10000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','owner'),
@@ -279,8 +280,37 @@ select set_config('request.jwt.claims','{"sub":"00000000-0000-4000-8000-00000000
 insert into public.podcast_community_circle_members (circle_id,member_id,role)
 values ('10000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000008','member');
 
--- Chat is hidden when disabled, even for a current member.
+do $wrong_hidden_invite$
+begin
+  begin
+    insert into public.podcast_community_circle_members (circle_id,member_id,role)
+    values ('10000000-0000-4000-8000-000000000004','00000000-0000-4000-8000-000000000008','member');
+    raise exception 'An invite for hidden group B must not authorize hidden group D';
+  exception when insufficient_privilege then
+    null;
+  end;
+end
+$wrong_hidden_invite$;
+
+-- Member B must not read or write messages belonging to circle A.
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000005',true);
+select set_config('request.jwt.claims','{"sub":"00000000-0000-4000-8000-000000000005","role":"authenticated","app_metadata":{}}',true);
+do $cross_group_chat$
+begin
+  if exists (select 1 from public.podcast_community_circle_messages where circle_id='10000000-0000-4000-8000-000000000001') then
+    raise exception 'Circle B member can read Circle A chat';
+  end if;
+  begin
+    insert into public.podcast_community_circle_messages (circle_id,sender_id,body)
+    values ('10000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000005','Circle B member cannot write Circle A chat');
+    raise exception 'Expected cross-group chat write to be rejected';
+  exception when insufficient_privilege then
+    null;
+  end;
+end
+$cross_group_chat$;
+
+-- Chat is hidden when disabled, even for a current member.
 select set_config('request.jwt.claims','{"sub":"00000000-0000-4000-8000-000000000005","role":"authenticated","app_metadata":{}}',true);
 do $disabled_chat$
 begin
