@@ -1,0 +1,121 @@
+name: CrowRules+ recovery SQL validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/drafts/20261122120000_crowrulesplus_foundation_recovery_draft.sql'
+      - '.github/workflows/crowrulesplus-recovery-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  postgres-validation:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: crowrulesplus_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d crowrulesplus_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Create minimal Supabase-compatible test prerequisites
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d crowrulesplus_test -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE anon NOLOGIN;
+          CREATE ROLE authenticated NOLOGIN;
+          CREATE SCHEMA auth;
+          CREATE TABLE auth.users (id uuid PRIMARY KEY);
+          CREATE OR REPLACE FUNCTION auth.uid()
+          RETURNS uuid LANGUAGE sql STABLE
+          AS $$ SELECT nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+          CREATE TABLE public.members (
+            user_id uuid,
+            role text NOT NULL DEFAULT 'Member',
+            status text NOT NULL DEFAULT 'Active'
+          );
+          CREATE TABLE public.ds_projects (id uuid PRIMARY KEY DEFAULT gen_random_uuid());
+          SQL
+      - name: Apply recovery draft to disposable PostgreSQL
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d crowrulesplus_test -v ON_ERROR_STOP=1 \
+            -f supabase/drafts/20261122120000_crowrulesplus_foundation_recovery_draft.sql
+      - name: Verify schema, RLS, triggers, and admin helper
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d crowrulesplus_test -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          DECLARE
+            expected text[] := ARRAY[
+              'crplus_admins','crplus_creators','crplus_projects','crplus_content',
+              'crplus_live_channels','crplus_schedule','crplus_project_submissions',
+              'crplus_project_tasks','crplus_project_credits','crplus_project_status_history',
+              'crplus_entitlements','crplus_comments','crplus_follows','crplus_play_events',
+              'crplus_ratings','crplus_notifications','crplus_collections',
+              'crplus_collection_items','crplus_content_sources'
+            ];
+            missing text[];
+            unprotected text[];
+          BEGIN
+            SELECT array_agg(t) INTO missing
+            FROM unnest(expected) AS t
+            WHERE to_regclass('public.' || t) IS NULL;
+            IF missing IS NOT NULL THEN
+              RAISE EXCEPTION 'Missing expected tables: %', missing;
+            END IF;
+
+            SELECT array_agg(c.relname) INTO unprotected
+            FROM pg_class c
+            JOIN pg_namespace n ON n.oid=c.relnamespace
+            WHERE n.nspname='public'
+              AND c.relname = ANY(expected)
+              AND c.relrowsecurity IS NOT TRUE;
+            IF unprotected IS NOT NULL THEN
+              RAISE EXCEPTION 'RLS not enabled: %', unprotected;
+            END IF;
+
+            IF NOT EXISTS (
+              SELECT 1 FROM pg_trigger
+              WHERE tgname='trg_crplus_project_status_notification' AND NOT tgisinternal
+            ) THEN RAISE EXCEPTION 'Project notification trigger missing'; END IF;
+            IF NOT EXISTS (
+              SELECT 1 FROM pg_trigger
+              WHERE tgname='trg_crplus_content_workflow_notification' AND NOT tgisinternal
+            ) THEN RAISE EXCEPTION 'Content workflow trigger missing'; END IF;
+            IF NOT EXISTS (
+              SELECT 1 FROM pg_trigger
+              WHERE tgname='trg_crplus_schedule_notification' AND NOT tgisinternal
+            ) THEN RAISE EXCEPTION 'Schedule notification trigger missing'; END IF;
+          END $$;
+
+          INSERT INTO auth.users(id) VALUES ('00000000-0000-0000-0000-000000000001');
+          INSERT INTO public.members(user_id,role,status)
+          VALUES ('00000000-0000-0000-0000-000000000001','Super_Admin','Active');
+          SELECT set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',false);
+          SET ROLE authenticated;
+          DO $$
+          BEGIN
+            IF public.crplus_is_admin() IS NOT TRUE THEN
+              RAISE EXCEPTION 'Existing members-based super_admin authorization was not preserved';
+            END IF;
+          END $$;
+          RESET ROLE;
+          SQL
