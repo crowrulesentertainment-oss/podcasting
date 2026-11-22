@@ -6,12 +6,15 @@ on:
     paths:
       - 'supabase/functions/_shared/membership-webhook-core.ts'
       - 'supabase/functions/_shared/stripe-webhook-verification.ts'
+      - 'supabase/functions/membership-stripe-webhook/index.ts'
       - 'supabase/tests/membership-webhook-core.test.ts'
       - '.github/workflows/membership-webhook-core.yml'
   pull_request:
     branches: [main]
     paths:
       - 'supabase/functions/_shared/membership-webhook-core.ts'
+      - 'supabase/functions/_shared/stripe-webhook-verification.ts'
+      - 'supabase/functions/membership-stripe-webhook/index.ts'
       - 'supabase/tests/membership-webhook-core.test.ts'
       - '.github/workflows/membership-webhook-core.yml'
   workflow_dispatch:
@@ -27,7 +30,7 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-      - name: Type-check Stripe SDK verification helper
-        run: deno check supabase/functions/_shared/stripe-webhook-verification.ts
+      - name: Type-check Stripe SDK verification helper and shared webhook entrypoint
+        run: deno check supabase/functions/_shared/stripe-webhook-verification.ts supabase/functions/membership-stripe-webhook/index.ts
       - name: Run membership webhook core tests
         run: deno test supabase/tests/membership-webhook-core.test.ts
