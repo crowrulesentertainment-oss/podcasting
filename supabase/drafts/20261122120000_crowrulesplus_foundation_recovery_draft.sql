@@ -159,7 +159,7 @@ create or replace function public.crplus_is_admin()
 returns boolean
 language sql stable
 set search_path=public,pg_temp
-as $
+as $$
   select exists(
     select 1 from public.crplus_admins a
     where a.user_id=(select auth.uid()) and a.is_active
@@ -169,7 +169,7 @@ as $
       and m.status='Active'
       and lower(coalesce(m.role,'')) in ('admin','owner','super_admin')
   );
-$;
+$$;
 revoke all on function public.crplus_is_admin() from public,anon;
 grant execute on function public.crplus_is_admin() to authenticated;
 
@@ -579,13 +579,13 @@ create or replace function public.crplus_notify_user(
 language plpgsql
 security definer
 set search_path=public,pg_temp
-as $
+as $$
 begin
   if p_user_id is null then return; end if;
   insert into public.crplus_notifications(user_id,notification_type,title,body,content_id)
   values(p_user_id,p_type,p_title,p_body,p_content_id);
 end;
-$;
+$$;
 revoke all on function public.crplus_notify_user(uuid,text,text,text,uuid)
   from public,anon,authenticated;
 
@@ -594,7 +594,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path=public,pg_temp
-as $
+as $$
 begin
   if tg_op='UPDATE' and new.status is distinct from old.status
      and new.owner_user_id is not null then
@@ -612,7 +612,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 revoke all on function public.crplus_project_status_notification()
   from public,anon,authenticated;
 drop trigger if exists trg_crplus_project_status_notification on public.crplus_projects;
@@ -625,7 +625,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path=public,pg_temp
-as $
+as $$
 declare v_user uuid;
 begin
   if new.project_id is null
@@ -643,7 +643,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 revoke all on function public.crplus_content_workflow_notification()
   from public,anon,authenticated;
 drop trigger if exists trg_crplus_content_workflow_notification on public.crplus_content;
@@ -656,7 +656,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path=public,pg_temp
-as $
+as $$
 declare v_user uuid; v_title text;
 begin
   if new.content_id is null then return new; end if;
@@ -672,7 +672,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 revoke all on function public.crplus_schedule_notification()
   from public,anon,authenticated;
 drop trigger if exists trg_crplus_schedule_notification on public.crplus_schedule;
