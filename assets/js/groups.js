@@ -1,41 +1,227 @@
-import{sb}from"./client.js";import{SITE_BASE}from"./config.js";
-const $=s=>document.querySelector(s),esc=v=>String(v??"").replace(/[&<>\"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const launchDate="2026-12-01",preview=new URLSearchParams(location.search).get("preview")==="1";
-const categories=[{name:"All groups",key:"all"},{name:"Podcasting & Creators",key:"Podcasting & Creators",cover:"photo-1598488035139-bdbb2231ce04"},{name:"Business & Entrepreneurship",key:"Business & Entrepreneurship",cover:"photo-1521737711867-e3b97375f902"},{name:"Sports & Entertainment",key:"Sports & Entertainment",cover:"photo-1461896836934-ffe607ba8211"},{name:"Local Communities",key:"Local Communities",cover:"photo-1500530855697-b586d89ba3ee"},{name:"Hobbies & Lifestyle",key:"Hobbies & Lifestyle",cover:"photo-1470252649378-9c29740c9fa8"},{name:"Social & General",key:"Social & General",cover:"photo-1529156069898-49953e39b3ac"}];
-const categoryForDatabase = value => ({ "Podcasting & Creators":"Creators", "Business & Entrepreneurship":"Other", "Sports & Entertainment":"Entertainment", "Local Communities":"Local & PNW", "Hobbies & Lifestyle":"General", "Social & General":"General" }[value] || (["General","Entertainment","Sports","Storytelling","Local & PNW","Music","Film & TV","Creators","Technology","Other"].includes(value) ? value : "Other"));
-function pacificDate(){const p=new Intl.DateTimeFormat("en-US",{timeZone:"America/Los_Angeles",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date()),v=Object.fromEntries(p.map(x=>[x.type,x.value]));return v.year+"-"+v.month+"-"+v.day}
-function live(){return pacificDate()>=launchDate}
-function css(){if(document.getElementById("crg-style"))return;const l=document.createElement("link");l.id="crg-style";l.rel="stylesheet";l.href=SITE_BASE+"assets/css/groups.css?v=20261119-groups-launch-v1";document.head.appendChild(l)}
-function groupHref(id){return SITE_BASE+"groups.html?group="+encodeURIComponent(id)+(preview?"&preview=1":"")}
-function coverFor(g){const c=categories.find(x=>x.key===g.category),id=c?.cover||"photo-1529156069898-49953e39b3ac";return g.cover_image_url||"https://images.unsplash.com/"+id+"?auto=format&fit=crop&w=1200&q=86"}
-async function userNow(){const{data,error}=await sb.auth.getUser();if(error)throw error;return data.user||null}
-async function getCircles(){const a=await sb.from("podcast_community_circles").select("id,owner_id,name,description,category,is_public,is_featured,created_at,community_rules,pinned_post_id,branch_key,slug,cover_image_url,avatar_image_url,visibility,group_chat_enabled").order("is_featured",{ascending:false}).order("created_at",{ascending:false}).limit(100);if(!a.error)return{rows:a.data||[],rich:true};const b=await sb.from("podcast_community_circles").select("id,owner_id,name,description,category,is_public,is_featured,created_at,community_rules,pinned_post_id,branch_key").eq("is_public",true).order("is_featured",{ascending:false}).order("created_at",{ascending:false}).limit(100);if(b.error)throw b.error;return{rows:(b.data||[]).map(x=>({...x,visibility:x.is_public?"public":"hidden"})),rich:false}}
-function catButtons(){return categories.filter(c=>c.key!=="all").map(c=>'<button class="crg-chip" type="button" data-category="'+esc(c.key)+'" aria-pressed="false">'+esc(c.name)+'</button>').join("")}
-function card(g,user,joined,rich){const vis=g.visibility||(g.is_public?"public":"hidden"),action=joined?'<a class="crg-btn secondary" href="'+groupHref(g.id)+'">Open group →</a>':vis==="hidden"?'<button class="crg-btn secondary" disabled>Invite only</button>':user?'<button class="crg-btn" type="button" data-join="'+esc(g.id)+'">'+(vis==="private"?"Request to join":"Join group")+'</button>':'<a class="crg-btn" href="'+SITE_BASE+'login.html">Sign in to join</a>';return '<article class="crg-card"><div class="crg-cover" style="background-image:url(&quot;'+esc(coverFor(g))+'&quot;)"><span class="crg-cover-label">'+esc(vis.toUpperCase())+'</span></div><div class="crg-card-body"><div class="crg-meta"><span>'+esc(g.category||"Community")+'</span>'+(g.is_featured?'<span>Featured</span>':"")+'</div><h3>'+esc(g.name)+'</h3><p>'+esc(g.description||"A place to connect, share ideas and build community.")+'</p><div class="crg-card-actions">'+action+'<a href="'+groupHref(g.id)+'" style="color:#aaa;font-size:10px;text-decoration:none">Details ↗</a></div></div></article>'}
-async function discover(root){
- root.innerHTML='<section class="crg-hero"><div class="crg-wrap crg-hero-copy"><div class="crg-kicker"><i></i> CROWRULES PODCASTING · COMMUNITY</div><h1>Find your people.<br><em>Build together.</em></h1><p>Real communities, real conversations and real-life places to connect. Every group has its own identity, shaped by the people and interests that bring it together.</p><div class="crg-actions"><a class="crg-btn" href="#crg-discover">Explore groups ↓</a><button class="crg-btn secondary" type="button" id="crg-create-open">Create a group +</button><a class="crg-btn secondary" href="'+SITE_BASE+'groups/index.html'+(preview?'?preview=1':'')+'">Groups workspace ↗</a></div></div></section><section class="crg-section crg-wrap" id="crg-discover"><div class="crg-section-head"><div><div class="crg-kicker">COMMUNITY DIRECTORY</div><h2>Discover your community</h2><p>Browse public communities or find a group that fits your interests.</p></div><label class="crg-search"><span>⌕</span><input id="crg-search" type="search" placeholder="Search groups…" aria-label="Search groups"></label></div><div class="crg-categories" id="crg-categories">'+catButtons()+'</div><div class="crg-grid" id="crg-grid"><div class="crg-empty">Loading communities…</div></div><div class="crg-footer-note">Public groups are discoverable by everyone. Private groups are discoverable but require approval. Hidden groups are invitation-only. Supabase Row Level Security governs access.</div></section><dialog id="crg-create-dialog" style="max-width:620px;width:calc(100% - 28px);color:#fff;background:#151515;border:1px solid #ffffff30;border-radius:10px;padding:20px"><form id="crg-create-form" class="crg-form"><h2>Create a community</h2><label>Group name<input name="name" required maxlength="90" placeholder="Give your group a name"></label><label>Category<select name="category" required>'+categories.filter(c=>c.key!=="all").map(c=>'<option value="'+esc(c.key)+'">'+esc(c.name)+'</option>').join("")+'</select></label><label>Description<textarea name="description" maxlength="600" required placeholder="What brings this community together?"></textarea></label><label>Visibility<select name="visibility"><option value="public">Public — anyone can discover and join</option><option value="private">Private — discoverable, approval required</option><option value="hidden">Hidden — invitation only</option></select></label><label>Group cover image URL (optional)<input name="cover_image_url" type="url" placeholder="https://…"></label><div class="crg-status" id="crg-create-status" role="status"></div><div class="crg-actions"><button class="crg-btn" type="submit">Create group</button><button class="crg-btn secondary" type="button" id="crg-create-cancel">Cancel</button></div></form></dialog>';
- let user=null,rows=[],rich=false,members=new Set(),active="all";const grid=$("#crg-grid"),search=$("#crg-search"),dialog=$("#crg-create-dialog"),status=$("#crg-create-status");
- try{user=await userNow();const r=await getCircles();rows=r.rows;rich=r.rich;if(user){const m=await sb.from("podcast_community_circle_members").select("circle_id,role").eq("member_id",user.id);if(!m.error)members=new Set((m.data||[]).map(x=>x.circle_id))}draw()}catch(e){grid.innerHTML='<div class="crg-empty">Groups could not load. '+esc(e.message||"Please try again.")+'</div>'}
- function draw(){const q=search.value.trim().toLowerCase(),list=rows.filter(g=>(g.visibility||(g.is_public?"public":"hidden"))!=="hidden"&&(active==="all"||g.category===active)&&[g.name,g.description,g.category].join(" ").toLowerCase().includes(q));grid.innerHTML=list.length?list.map(g=>card(g,user,members.has(g.id),rich)).join(""):'<div class="crg-empty">No groups match that search yet. Try another category or create a community.</div>';grid.querySelectorAll("[data-join]").forEach(b=>b.addEventListener("click",()=>join(b.dataset.join,b)))}
- async function join(id,b){if(!user){location.href=SITE_BASE+"login.html";return}b.disabled=true;try{const g=rows.find(x=>x.id===id),vis=g.visibility||(g.is_public?"public":"hidden");if(vis==="private"){const{error}=await sb.from("podcast_community_circle_join_requests").insert({circle_id:id,user_id:user.id,status:"pending"});if(error)throw error;b.textContent="Request sent"}else{const{error}=await sb.from("podcast_community_circle_members").insert({circle_id:id,member_id:user.id,role:"member"});if(error&&error.code!=="23505")throw error;members.add(id);draw()}}catch(e){b.disabled=false;b.textContent="Try again";alert(e.message||"Could not join this group.")}}
- $("#crg-create-open").addEventListener("click",()=>{if(!user){location.href=SITE_BASE+"login.html";return}dialog.showModal()});$("#crg-create-cancel").addEventListener("click",()=>dialog.close());search.addEventListener("input",draw);
- $("#crg-categories").querySelectorAll("[data-category]").forEach(b=>b.addEventListener("click",()=>{active=b.dataset.category;$("#crg-categories").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));draw()}));
- $("#crg-create-form").addEventListener("submit",async e=>{e.preventDefault();if(!user)return;const d=new FormData(e.currentTarget),visibility=String(d.get("visibility"));if(!rich&&visibility!=="public"){status.textContent="Private and hidden groups unlock after the Phase 1 database upgrade. Choose Public for this preview.";return}const base={owner_id:user.id,name:String(d.get("name")).trim(),description:String(d.get("description")).trim(),category:categoryForDatabase(String(d.get("category"))),is_public:visibility==="public",community_rules:"Be respectful. Keep conversations constructive. Follow CrowRules community standards."};if(rich){base.visibility=visibility;base.cover_image_url=String(d.get("cover_image_url")||"").trim()||null}const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;status.textContent="Creating your group…";try{const{data,error}=await sb.from("podcast_community_circles").insert(base).select("id").single();if(error)throw error;const{error:memberError}=await sb.from("podcast_community_circle_members").insert({circle_id:data.id,member_id:user.id,role:"owner"});if(memberError)throw memberError;dialog.close();location.href=SITE_BASE+"groups.html?group="+encodeURIComponent(data.id)+(preview?"&preview=1":"")}catch(error){status.textContent=error.message||"Could not create group."}finally{btn.disabled=false}});
+import { sb } from "./client.js";
+import { SITE_BASE } from "./config.js";
+
+const $ = (selector, root = document) => root.querySelector(selector);
+const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+}[char]));
+const LAUNCH_DATE = "2026-12-01";
+const preview = new URLSearchParams(location.search).get("preview") === "1";
+const CIRCLES = "podcast_community_circles";
+const POSTS = "podcast_community_circle_posts";
+const CIRCLE_FIELDS = "id,owner_id,name,description,category,is_public,is_featured,created_at,community_rules,pinned_post_id,branch_key,avatar_image_path,banner_image_path";
+const POST_FIELDS = "id,circle_id,author_id,body,created_at,updated_at,post_type,edited_at,deleted_at,is_pinned,is_locked";
+const CATEGORIES = [
+  "General", "Entertainment", "Sports", "Storytelling", "Local & PNW",
+  "Music", "Film & TV", "Creators", "Technology", "Other"
+];
+const CATEGORY_ART = {
+  "General": "photo-1529156069898-49953e39b3ac",
+  "Entertainment": "photo-1470229722913-7c0e2dbbafd3",
+  "Sports": "photo-1461896836934-ffe607ba8211",
+  "Storytelling": "photo-1455390582262-044cdead277a",
+  "Local & PNW": "photo-1500530855697-b586d89ba3ee",
+  "Music": "photo-1516280440614-37939bbacd81",
+  "Film & TV": "photo-1489599849927-2ee91b7f6a8d",
+  "Creators": "photo-1598488035139-bdbb2231ce04",
+  "Technology": "photo-1518770660439-4636190af475",
+  "Other": "photo-1529156069898-49953e39b3ac"
+};
+
+function pacificDate() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit"
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return values.year + "-" + values.month + "-" + values.day;
 }
-async function detail(root,id){
- root.innerHTML='<div class="crg-wrap crg-section"><div class="crg-empty">Loading group…</div></div>';
- let result=await sb.from("podcast_community_circles").select("id,owner_id,name,description,category,is_public,is_featured,created_at,community_rules,pinned_post_id,branch_key,slug,cover_image_url,visibility,group_chat_enabled").eq("id",id).maybeSingle();
- if(result.error)result=await sb.from("podcast_community_circles").select("id,owner_id,name,description,category,is_public,is_featured,created_at,community_rules,pinned_post_id,branch_key").eq("id",id).maybeSingle();
- const group=result.data;if(result.error||!group){root.innerHTML='<div class="crg-wrap crg-section"><div class="crg-empty">This group could not be found or you do not have permission to view it. <a href="'+SITE_BASE+'groups.html">Back to groups</a></div></div>';return}
- const user=await userNow().catch(()=>null),vis=group.visibility||(group.is_public?"public":"hidden");let member=null;if(user){const m=await sb.from("podcast_community_circle_members").select("role").eq("circle_id",id).eq("member_id",user.id).maybeSingle();member=m.data||null}
- root.innerHTML='<section class="crg-group-head" style="--crg-cover:url(&quot;'+esc(coverFor(group))+'&quot;)"><div class="crg-wrap"><div class="crg-kicker">CROWRULES GROUP · '+esc(group.category||"COMMUNITY")+'</div><h1>'+esc(group.name)+'</h1><p>'+esc(group.description||"A place to connect and build together.")+'</p><div class="crg-meta"><span>'+esc(vis.toUpperCase())+'</span>'+(group.is_featured?'<span>FEATURED</span>':"")+'</div><div class="crg-actions"><a class="crg-btn secondary" href="'+SITE_BASE+'groups.html'+(preview?'?preview=1':'')+'">← All groups</a>'+(member?'<span class="crg-btn gold">Member · '+esc(member.role)+'</span>':vis==="public"&&user?'<button class="crg-btn" id="crg-join-detail">Join group</button>':!user?'<a class="crg-btn" href="'+SITE_BASE+'login.html">Sign in to join</a>':vis==="private"?'<button class="crg-btn" id="crg-request-detail">Request to join</button>':'<span class="crg-btn secondary">Invitation only</span>')+'</div></div></section><section class="crg-section crg-wrap"><div class="crg-detail-layout"><div><section class="crg-panel"><h2>Group discussion</h2>'+(member?'<form id="crg-post-form" class="crg-form"><label>Start a conversation<textarea name="body" required maxlength="5000" placeholder="What would you like to share with this group?"></textarea></label><button class="crg-btn" type="submit">Publish post</button><div class="crg-status" id="crg-post-status" role="status"></div></form>':'<p style="color:#aaa;font-size:12px">Join this group to publish a post and take part in the conversation.</p>')+'<div id="crg-posts" style="margin-top:18px">Loading posts…</div></section></div><aside><section class="crg-panel"><h3>About this group</h3><p style="color:#bbb;font-size:12px;line-height:1.6">'+esc(group.community_rules||"Be respectful, stay on topic and help make this a welcoming community.")+'</p><div class="crg-meta"><span>'+esc(group.category||"Community")+'</span><span>'+esc(vis)+'</span></div></section>'+(member&&group.group_chat_enabled?'<section class="crg-panel"><h3>Group chat</h3><p style="color:#aaa;font-size:11px">Real-time conversation for group members.</p><div id="crg-chat-messages" style="max-height:260px;overflow:auto;margin:12px 0">Loading chat…</div><form id="crg-chat-form" class="crg-form"><label>Message<input name="body" maxlength="3000" required placeholder="Write a message…"></label><button class="crg-btn" type="submit">Send message</button></form><div class="crg-status" id="crg-chat-status" role="status"></div></section>':"")+'</aside></div></section>';
- const posts=$("#crg-posts"),q=await sb.from("podcast_community_circle_posts").select("id,circle_id,author_id,body,created_at").eq("circle_id",id).order("created_at",{ascending:false}).limit(60);if(q.error){posts.textContent="Posts are temporarily unavailable.";return}
- const ids=[...new Set((q.data||[]).map(x=>x.author_id))],names=new Map();if(ids.length){const p=await sb.from("crowrules_public_profiles").select("user_id,display_name,username").in("user_id",ids);(p.data||[]).forEach(x=>names.set(x.user_id,x.display_name||x.username||"Community member"))}
- const drawPosts=list=>{posts.innerHTML=list.length?list.map(p=>'<article class="crg-post"><div class="crg-post-head"><strong>'+esc(names.get(p.author_id)||"Community member")+'</strong><time>'+new Date(p.created_at).toLocaleString()+'</time></div><p>'+esc(p.body)+'</p></article>').join(""):'<p style="color:#aaa;font-size:12px">No posts yet. Start the first conversation.</p>'};drawPosts(q.data||[]);
- $("#crg-post-form")?.addEventListener("submit",async e=>{e.preventDefault();const form=e.currentTarget,btn=form.querySelector("button"),status=$("#crg-post-status"),body=String(new FormData(form).get("body")||"").trim();if(!body)return;btn.disabled=true;try{const{error}=await sb.from("podcast_community_circle_posts").insert({circle_id:id,author_id:user.id,body});if(error)throw error;form.reset();status.textContent="Post published.";const again=await sb.from("podcast_community_circle_posts").select("id,circle_id,author_id,body,created_at").eq("circle_id",id).order("created_at",{ascending:false}).limit(60);if(!again.error)drawPosts(again.data||[])}catch(error){status.textContent=error.message||"Post could not be published."}finally{btn.disabled=false}});
- $("#crg-join-detail")?.addEventListener("click",async e=>{e.currentTarget.disabled=true;const{error}=await sb.from("podcast_community_circle_members").insert({circle_id:id,member_id:user.id,role:"member"});if(error&&error.code!=="23505"){alert(error.message);e.currentTarget.disabled=false}else detail(root,id)});
- $("#crg-request-detail")?.addEventListener("click",async e=>{e.currentTarget.disabled=true;const{error}=await sb.from("podcast_community_circle_join_requests").insert({circle_id:id,user_id:user.id,status:"pending"});if(error){alert(error.message);e.currentTarget.disabled=false}else e.currentTarget.textContent="Request sent"});
- if(member&&group.group_chat_enabled)mountChat(id,user);
+function isLive() { return pacificDate() >= LAUNCH_DATE; }
+function addStylesheet() {
+  if ($("#crg-style")) return;
+  const link = document.createElement("link");
+  link.id = "crg-style";
+  link.rel = "stylesheet";
+  link.href = SITE_BASE + "assets/css/groups.css?v=phase1b-discovery-1";
+  document.head.appendChild(link);
 }
-function mountChat(id,user){const box=$("#crg-chat-messages"),form=$("#crg-chat-form"),status=$("#crg-chat-status");let channel=null;const refresh=async()=>{const{data,error}=await sb.from("podcast_community_circle_messages").select("id,sender_id,body,created_at").eq("circle_id",id).is("deleted_at",null).order("created_at",{ascending:true}).limit(100);if(error){box.textContent="Chat is unavailable until the Phase 1 database upgrade is installed.";return}box.innerHTML=(data||[]).map(m=>'<div style="padding:7px 0;border-bottom:1px solid #ffffff15"><b style="font-size:10px">'+(m.sender_id===user.id?"You":"Member")+'</b><p style="font-size:12px;color:#ddd;margin:4px 0">'+esc(m.body)+'</p><small style="font-size:9px;color:#888">'+new Date(m.created_at).toLocaleTimeString()+'</small></div>').join("")||'<small style="color:#999">No messages yet.</small>';box.scrollTop=box.scrollHeight};refresh();channel=sb.channel("crp-group-chat-"+id).on("postgres_changes",{event:"INSERT",schema:"public",table:"podcast_community_circle_messages",filter:"circle_id=eq."+id},refresh).subscribe();form.addEventListener("submit",async e=>{e.preventDefault();const body=String(new FormData(form).get("body")||"").trim(),button=form.querySelector("button");if(!body)return;button.disabled=true;try{const{error}=await sb.from("podcast_community_circle_messages").insert({circle_id:id,sender_id:user.id,body});if(error)throw error;form.reset();status.textContent="Sent."}catch(error){status.textContent=error.message||"Message could not be sent."}finally{button.disabled=false}});window.addEventListener("pagehide",()=>{if(channel)sb.removeChannel(channel)},{once:true})}
-export async function renderGroups(){const root=$("#app");if(!root)return;css();root.innerHTML='<div class="crg-page">'+(preview&&!live()?'<div class="crg-preview-bar">PRE-LAUNCH PREVIEW · Public launch remains scheduled for December 1, 2026</div>':"")+'<div id="crg-root"><div class="crg-empty">Loading CrowRules Groups…</div></div></div>';const id=new URLSearchParams(location.search).get("group");if(id&&(live()||preview)){const target=SITE_BASE+"groups/community.html?group="+encodeURIComponent(id)+(preview?"&preview=1":"");location.replace(target);return}if(!live()&&!preview){$("#crg-root").innerHTML='<section class="crg-launch"><div class="crg-kicker"><i></i> A NEW WAY TO CONNECT</div><h1>Find your people.<br><em>Build together.</em></h1><p>CrowRules Groups is bringing a social community experience to CrowRules Podcasting — with real conversations, shared interests and cinematic spaces that feel like the communities they represent.</p><div class="crg-launch-date">PUBLIC LAUNCH · DECEMBER 1, 2026</div></section>';return}if(id)await detail($("#crg-root"),id);else await discover($("#crg-root"))}
+function groupUrl(id) {
+  return SITE_BASE + "groups.html?group=" + encodeURIComponent(id) + (preview ? "&preview=1" : "");
+}
+function categoryArt(category) {
+  const photo = CATEGORY_ART[category] || CATEGORY_ART.General;
+  return "https://images.unsplash.com/" + photo + "?auto=format&fit=crop&w=1200&q=85";
+}
+function dateLabel(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString(undefined, {
+    year: "numeric", month: "short", day: "numeric"
+  });
+}
+function status(root, message, kind = "info") {
+  root.innerHTML = '<div class="crg-empty" role="' + (kind === "error" ? "alert" : "status") + '">' + esc(message) + '</div>';
+}
+function launchNotice(root) {
+  root.innerHTML = '<section class="crg-launch"><div class="crg-kicker">CROWRULES PODCASTING · COMMUNITY</div><h1>Something good is <em>coming together.</em></h1><p>CrowRules Groups opens December 1, 2026. Come back soon to discover communities, meet creators and find your people.</p><div class="crg-launch-date">PUBLIC LAUNCH · DECEMBER 1, 2026</div></section>';
+}
+function categoryFilters() {
+  return '<button class="crg-chip" type="button" data-category="all" aria-pressed="true">All groups</button>' +
+    CATEGORIES.map(category => '<button class="crg-chip" type="button" data-category="' + esc(category) + '" aria-pressed="false">' + esc(category) + '</button>').join("");
+}
+function groupCard(group) {
+  const href = groupUrl(group.id);
+  return '<article class="crg-card">' +
+    '<a class="crg-card-link" href="' + esc(href) + '" aria-label="View ' + esc(group.name) + '">' +
+      '<div class="crg-cover" style="background-image:url(&quot;' + esc(categoryArt(group.category)) + '&quot;)"><span class="crg-cover-label">PUBLIC COMMUNITY</span></div>' +
+    '</a><div class="crg-card-body"><div class="crg-meta"><span>' + esc(group.category || "Community") + '</span>' +
+    (group.is_featured ? '<span>Featured</span>' : '') + '</div><h3><a href="' + esc(href) + '">' + esc(group.name) + '</a></h3>' +
+    '<p>' + esc(group.description || "A place to connect, share ideas and build community.") + '</p>' +
+    '<div class="crg-card-actions"><a class="crg-btn" href="' + esc(href) + '">View community <span aria-hidden="true">→</span></a>' +
+    '<span class="crg-card-date">' + esc(dateLabel(group.created_at)) + '</span></div></div></article>';
+}
+
+async function loadPublicCircles() {
+  const result = await sb.from(CIRCLES).select(CIRCLE_FIELDS)
+    .eq("is_public", true)
+    .order("is_featured", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(100);
+  if (result.error) throw result.error;
+  return result.data || [];
+}
+function renderDirectory(root, circles) {
+  root.innerHTML = '<section class="crg-hero"><div class="crg-wrap crg-hero-copy">' +
+    '<div class="crg-kicker"><i></i> CROWRULES PODCASTING · COMMUNITY</div>' +
+    '<h1>Find your people.<br><em>Build together.</em></h1>' +
+    '<p>Discover communities built around creativity, conversation, shared interests and the places we call home.</p>' +
+    '<div class="crg-actions"><a class="crg-btn" href="#crg-discover">Explore communities ↓</a></div></div></section>' +
+    '<section class="crg-section crg-wrap" id="crg-discover"><div class="crg-section-head"><div>' +
+    '<div class="crg-kicker">COMMUNITY DIRECTORY</div><h2>Discover your community</h2>' +
+    '<p>Browse public groups and find a place to connect.</p></div>' +
+    '<label class="crg-search"><span aria-hidden="true">⌕</span><input id="crg-search" type="search" placeholder="Search groups…" aria-label="Search public groups"></label></div>' +
+    '<div class="crg-categories" id="crg-categories">' + categoryFilters() + '</div>' +
+    '<div class="crg-grid" id="crg-grid"></div>' +
+    '<p class="crg-footer-note">Only public communities are listed here. Group visibility and access are enforced by Supabase Row Level Security.</p></section>';
+  const grid = $("#crg-grid", root);
+  const search = $("#crg-search", root);
+  const filters = $("#crg-categories", root);
+  let activeCategory = "all";
+  function draw() {
+    const query = search.value.trim().toLocaleLowerCase();
+    const visible = circles.filter(group =>
+      (activeCategory === "all" || group.category === activeCategory) &&
+      [group.name, group.description, group.category].join(" ").toLocaleLowerCase().includes(query)
+    );
+    grid.innerHTML = visible.length
+      ? visible.map(groupCard).join("")
+      : '<div class="crg-empty">No public groups match your search. Try another category.</div>';
+  }
+  search.addEventListener("input", draw);
+  filters.addEventListener("click", event => {
+    const button = event.target.closest("[data-category]");
+    if (!button) return;
+    activeCategory = button.dataset.category;
+    filters.querySelectorAll("[data-category]").forEach(item =>
+      item.setAttribute("aria-pressed", String(item === button))
+    );
+    draw();
+  });
+  draw();
+}
+
+async function loadCircle(id) {
+  const result = await sb.from(CIRCLES).select(CIRCLE_FIELDS)
+    .eq("id", id).eq("is_public", true).maybeSingle();
+  if (result.error) throw result.error;
+  return result.data;
+}
+async function loadPosts(circleId) {
+  const result = await sb.from(POSTS).select(POST_FIELDS)
+    .eq("circle_id", circleId)
+    .is("deleted_at", null)
+    .order("is_pinned", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(30);
+  if (result.error) throw result.error;
+  return result.data || [];
+}
+async function loadAuthorLabels(authorIds) {
+  const ids = [...new Set(authorIds.filter(Boolean))];
+  const labels = new Map();
+  if (!ids.length) return labels;
+  // Deliberately request only public display labels; never fetch full member profiles.
+  const result = await sb.from("crowrules_public_profiles")
+    .select("user_id,display_name,username").in("user_id", ids);
+  if (result.error) return labels;
+  for (const profile of result.data || []) {
+    labels.set(profile.user_id, profile.display_name || profile.username || "Community member");
+  }
+  return labels;
+}
+function renderPosts(posts, labels) {
+  if (!posts.length) return '<div class="crg-empty">No conversations yet. This community is ready for its first post.</div>';
+  return posts.map(post => {
+    const author = labels.get(post.author_id) || "Community member";
+    const locked = post.is_locked ? '<span class="crg-post-flag">Replies closed</span>' : "";
+    const pinned = post.is_pinned ? '<span class="crg-post-flag">Pinned</span>' : "";
+    return '<article class="crg-post"><div class="crg-post-head"><strong>' + esc(author) + '</strong>' +
+      '<time datetime="' + esc(post.created_at) + '">' + esc(dateLabel(post.created_at)) + '</time></div>' +
+      '<div class="crg-post-flags">' + pinned + locked + '</div>' +
+      '<p>' + esc(post.body || "") + '</p></article>';
+  }).join("");
+}
+async function renderDetail(root, id) {
+  status(root, "Loading community…");
+  const group = await loadCircle(id);
+  if (!group) {
+    status(root, "This public community could not be found.", "error");
+    return;
+  }
+  root.innerHTML = '<section class="crg-group-head" style="--crg-cover:url(&quot;' + esc(categoryArt(group.category)) + '&quot;)"><div class="crg-wrap">' +
+    '<div class="crg-kicker">CROWRULES GROUP · ' + esc(group.category || "COMMUNITY") + '</div>' +
+    '<h1>' + esc(group.name) + '</h1><p>' + esc(group.description || "A place to connect and build together.") + '</p>' +
+    '<div class="crg-meta"><span>PUBLIC COMMUNITY</span>' + (group.is_featured ? '<span>FEATURED</span>' : "") + '</div>' +
+    '<div class="crg-actions"><a class="crg-btn secondary" href="' + esc(SITE_BASE + "groups.html" + (preview ? "?preview=1" : "")) + '">← All communities</a>' +
+    '<a class="crg-btn" href="' + esc(SITE_BASE + "login.html") + '">Sign in to participate</a></div></div></section>' +
+    '<section class="crg-section crg-wrap"><div class="crg-detail-layout"><div><section class="crg-panel">' +
+    '<h2>Community conversations</h2><p class="crg-panel-intro">Recent public posts from this group.</p>' +
+    '<div id="crg-posts" aria-live="polite"><div class="crg-empty">Loading conversations…</div></div></section></div>' +
+    '<aside><section class="crg-panel"><h3>About this community</h3><p class="crg-rules">' +
+    esc(group.community_rules || "Be respectful, stay on topic and help make this a welcoming community.") + '</p>' +
+    '<div class="crg-meta"><span>' + esc(group.category || "Community") + '</span><span>Public</span></div>' +
+    (group.branch_key ? '<p class="crg-branch-label">Community area: ' + esc(group.branch_key) + '</p>' : "") +
+    '<p class="crg-branch-label">Created ' + esc(dateLabel(group.created_at)) + '</p></section></aside></div></section>';
+  const postsRoot = $("#crg-posts", root);
+  try {
+    const posts = await loadPosts(group.id);
+    const labels = await loadAuthorLabels(posts.map(post => post.author_id));
+    postsRoot.innerHTML = renderPosts(posts, labels);
+  } catch (error) {
+    status(postsRoot, "Conversations are temporarily unavailable. Please try again later.", "error");
+  }
+}
+
+export async function renderGroups() {
+  const app = $("#app");
+  if (!app) return;
+  addStylesheet();
+  app.innerHTML = '<div class="crg-page">' +
+    (preview && !isLive() ? '<div class="crg-preview-bar">PRE-LAUNCH PREVIEW · Public launch remains scheduled for December 1, 2026</div>' : "") +
+    '<div class="crg-wrap" id="crg-root"><div class="crg-empty">Loading CrowRules Groups…</div></div></div>';
+  const root = $("#crg-root", app);
+  const groupId = new URLSearchParams(location.search).get("group");
+  if (!isLive() && !preview) {
+    launchNotice(root);
+    return;
+  }
+  try {
+    if (groupId) {
+      await renderDetail(root, groupId);
+      return;
+    }
+    const circles = await loadPublicCircles();
+    renderDirectory(root, circles);
+  } catch (error) {
+    status(root, "Groups could not be loaded right now. Please refresh and try again.", "error");
+    console.error("CrowRules Groups load failed:", error);
+  }
+}
