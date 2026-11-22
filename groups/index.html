@@ -1,3 +1,127 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#090909"><title>Groups Workspace | CrowRules Podcasting</title><link rel="stylesheet" href="../assets/css/groups-pages.css"><script type="module" src="../assets/js/groups-pages.js"></script></head>
-<body data-groups-page="home"><header class="gp-header"><a class="gp-brand" href="../groups.html">CROWRULES <b>GROUPS</b></a><nav><a href="discover.html?preview=1">Discover</a><a href="my-groups.html">My Groups</a><a href="feed.html">Feed</a><a href="events.html">Events</a></nav><a class="gp-cta" href="create.html">Create a Group</a></header><main><section class="gp-hero"><div class="gp-hero-copy"><span class="gp-kicker">THE COMMUNITY NETWORK OF CROWRULES PODCASTING</span><h1>Find your people.<br><em>Build together.</em></h1><p>Communities for podcast fans, creators, storytellers, sports fans and people who want to connect. Browse public groups freely; sign in with your CrowRules account to participate.</p><div class="gp-actions"><a class="gp-button" href="#gp-preview">Preview created groups</a><a class="gp-button ghost" href="create.html">Start a group</a></div><section class="gp-countdown" aria-label="Groups public launch countdown"><span class="gp-kicker">PUBLIC LAUNCH · DECEMBER 1, 2026 · PACIFIC TIME</span><div class="gp-countdown-grid" id="gp-countdown" data-target="2026-12-01T00:00:00-08:00"><div><strong data-days>--</strong><small>DAYS</small></div><div><strong data-hours>--</strong><small>HOURS</small></div><div><strong data-minutes>--</strong><small>MINUTES</small></div><div><strong data-seconds>--</strong><small>SECONDS</small></div></div><p id="gp-countdown-note">The countdown is on. Preview communities while we get ready to open.</p></section></div><div class="gp-hero-art" role="img" aria-label="Cinematic community gathering"></div></section><section class="gp-section"><div class="gp-section-title"><div><span class="gp-kicker">YOUR COMMUNITY STARTS HERE</span><h2>Make room for connection.</h2></div><a href="discover.html?preview=1">Browse all groups →</a></div><div class="gp-feature-grid"><a class="gp-feature" href="discover.html?preview=1&category=Podcasting%20%26%20Creators"><span>01 / PODCASTS</span><h3>Talk about the shows you love.</h3></a><a class="gp-feature" href="discover.html?preview=1&category=Sports%20%26%20Entertainment"><span>02 / SPORTS & ENTERTAINMENT</span><h3>Find your team and your people.</h3></a><a class="gp-feature" href="discover.html?preview=1&category=Local%20Communities"><span>03 / COMMUNITY</span><h3>Build something together.</h3></a></div></section><section class="gp-section" id="gp-preview"><div id="gp-status" class="gp-status" aria-live="polite"></div><div class="gp-section-title"><div><span class="gp-kicker">GROUP PREVIEW</span><h2>See the communities already taking shape.</h2><p class="gp-muted">Preview public groups, and sign in to preview private or hidden groups you own. Joining and posting remain subject to each group’s access settings.</p></div><a href="discover.html?preview=1">Browse all groups →</a></div><div id="gp-featured" class="gp-card-grid"><p class="gp-muted">Loading groups…</p></div></section></main><footer class="gp-footer"><span>© CrowRules Entertainment</span><span>One company. One universe.</span></footer></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#08090c">
+  <meta name="description" content="Find your people, share your voice and build together in CrowRules Groups. Explore communities inside CrowRules Podcasting.">
+  <meta property="og:title" content="CrowRules Groups | Find Your People">
+  <meta property="og:description" content="A community experience inside CrowRules Podcasting. Find your people and build together.">
+  <meta property="og:type" content="website">
+  <title>CrowRules Groups | Find Your People</title>
+  <link rel="canonical" href="https://crowrulesentertainment-oss.github.io/podcasting/groups/index.html">
+  <link rel="icon" type="image/png" href="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png">
+  <link rel="stylesheet" href="../assets/css/site.css?v=20261122-groups-hub-brand-v1">
+  <link rel="stylesheet" href="../assets/css/groups.css?v=20261119-groups-launch-v1">
+  <link rel="stylesheet" href="../assets/css/groups-pages.css?v=20261122-groups-hub-brand-v1">
+  <style>
+    body{background:#08090c}
+    .gp-hub{--crg-red:#13d8ff;--crg-gold:#9c5cff;background:#08090c;color:#f6f5f2}
+    .gp-hub .topbar{height:76px}
+    .gp-hub .crg-hero:before{background:linear-gradient(90deg,#05070df5 0%,#05070dbd 50%,#05070d35 100%),url("https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=2200&q=88") center 43%/cover}
+    .gp-hub .crg-hero h1 em{background:linear-gradient(90deg,#13d8ff,#8b5cff 70%,#ed43d9);background-clip:text;-webkit-background-clip:text;color:transparent}
+    .gp-hub .crg-hero-copy{max-width:780px}
+    .gp-hub .crg-kicker{color:#9c5cff}
+    .gp-hub .crg-kicker i{background:#13d8ff}
+    .gp-hub .crg-btn{background:linear-gradient(110deg,#13d8ff,#8b5cff);color:#071018;border:0;border-radius:999px}
+    .gp-hub .crg-btn.secondary{background:#ffffff12;border:1px solid #ffffff35;color:#fff}
+    .gp-hub .crg-section{padding:52px 0}
+    .gp-hub .gp-countdown{max-width:560px;margin-top:28px;padding:18px 20px;border:1px solid #9c5cff66;border-radius:14px;background:linear-gradient(135deg,#151a2a,#101218);box-shadow:0 18px 50px #0007}
+    .gp-hub .gp-countdown .gp-kicker{color:#13d8ff}
+    .gp-hub .gp-countdown-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:15px}
+    .gp-hub .gp-countdown-grid>div{padding:13px 8px;text-align:center;border:1px solid #ffffff20;border-radius:10px;background:#08090c}
+    .gp-hub .gp-countdown-grid strong{display:block;color:#fff;font-size:clamp(25px,4vw,38px);font-variant-numeric:tabular-nums;letter-spacing:-.05em}
+    .gp-hub .gp-countdown-grid small{display:block;margin-top:5px;color:#9c5cff;font-size:9px;font-weight:900;letter-spacing:.14em}
+    .gp-hub .gp-countdown p{margin:13px 0 0;color:#a5aab4;font-size:11px;line-height:1.5}
+    .gp-hub .gp-feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .gp-hub .gp-feature{min-height:190px;padding:24px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid #ffffff20;border-radius:16px;color:#fff;text-decoration:none;background:linear-gradient(145deg,#17212c,#101218);transition:transform .2s,border-color .2s}
+    .gp-hub .gp-feature:nth-child(2){background:linear-gradient(145deg,#21182d,#101218)}
+    .gp-hub .gp-feature:nth-child(3){background:linear-gradient(145deg,#18252b,#101218)}
+    .gp-hub .gp-feature:hover{transform:translateY(-3px);border-color:#13d8ff77}
+    .gp-hub .gp-feature span{color:#13d8ff;font-size:9px;letter-spacing:.15em;font-weight:900}
+    .gp-hub .gp-feature h3{font-size:22px;max-width:260px;margin:24px 0 0}
+    .gp-hub .gp-section-title{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:22px}
+    .gp-hub .gp-section-title h2{font-size:clamp(25px,3.5vw,38px);margin:7px 0}
+    .gp-hub .gp-section-title>a{color:#13d8ff;font-size:12px;font-weight:800}
+    .gp-hub .gp-muted{color:#a5aab4}
+    .gp-hub .gp-card{border-radius:16px;background:linear-gradient(150deg,#191d26,#101218)}
+    .gp-hub .gp-card-content h3{color:#fff}
+    .gp-hub .gp-card-content p{color:#a5aab4}
+    .gp-hub .gp-card-content small{color:#13d8ff}
+    .gp-hub .gp-card-cover{height:190px}
+    .gp-hub .gp-card-actions .gp-button{border-radius:999px;background:linear-gradient(110deg,#13d8ff,#8b5cff);color:#071018}
+    .gp-hub .gp-status{color:#13d8ff}
+    .gp-hub .gp-notice{background:#121722;border-color:#13d8ff44;color:#d9eaf0}
+    .gp-hub .footer{margin-top:20px}
+    @media(max-width:900px){.gp-hub .gp-feature-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:620px){.gp-hub .topbar{height:70px}.gp-hub .gp-feature-grid{grid-template-columns:1fr}.gp-hub .crg-hero{min-height:510px}.gp-hub .crg-hero-copy{padding:50px 0 44px}.gp-hub .gp-countdown{padding:14px}.gp-hub .gp-countdown-grid{gap:5px}.gp-hub .gp-countdown-grid>div{padding:11px 4px}.gp-hub .gp-countdown-grid strong{font-size:25px}.gp-hub .gp-section-title{align-items:start;flex-direction:column}}
+    @media(prefers-reduced-motion:reduce){.gp-hub .gp-feature{transition:none}.gp-hub .gp-feature:hover{transform:none}}
+  </style>
+</head>
+<body data-groups-page="home">
+<div class="gp-hub">
+  <header class="topbar">
+    <a class="brand" href="../" aria-label="CrowRules Podcasting home"><img class="brand-logo" src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png" alt="CrowRules Podcasting"></a>
+    <button class="menu-toggle" id="groupsMenuToggle" type="button" aria-expanded="false" aria-controls="groupsPrimaryNav">☰ <span>Menu</span></button>
+    <nav class="nav" id="groupsPrimaryNav" aria-label="Main navigation">
+      <details class="nav-group"><summary>Explore</summary><div class="nav-menu"><a href="../discover.html">Discover shows</a><a href="../profiles.html">People & creators</a></div></details>
+      <details class="nav-group"><summary>Community</summary><div class="nav-menu"><a href="../groups.html">Groups</a><a href="../rankings.html">Rankings</a><a href="../badges.html">Badges & achievements</a><a href="../referrals.html">Refer a friend</a></div></details>
+      <details class="nav-group"><summary>Participate</summary><div class="nav-menu"><a href="../creator.html">Creator Studio</a><a href="../listener.html">My Library</a><a href="../guest.html">Guest Lounge</a></div></details>
+    </nav>
+    <div class="actions header-actions"><a class="btn secondary" href="../login.html">Sign in</a><a class="btn" href="../signup.html">Join free</a></div>
+  </header>
+
+  <main>
+    <section class="crg-hero">
+      <div class="crg-wrap crg-hero-copy">
+        <div class="crg-kicker"><i></i> CROWRULES PODCASTING · COMMUNITY</div>
+        <h1>Find your people.<br><em>Build together.</em></h1>
+        <p>Discover communities for podcast fans, creators, storytellers, sports fans and people who want to connect. Share ideas, take part in conversations and build something together.</p>
+        <div class="crg-actions">
+          <a class="crg-btn" href="#gp-preview">Explore group previews ↓</a>
+          <a class="crg-btn secondary" href="discover.html?preview=1">Discover groups</a>
+          <a class="crg-btn secondary" href="create.html">＋ Start a group</a>
+        </div>
+        <section class="gp-countdown" aria-label="Groups public launch countdown">
+          <span class="gp-kicker">PUBLIC LAUNCH · DECEMBER 1, 2026 · PACIFIC TIME</span>
+          <div class="gp-countdown-grid" id="gp-countdown" data-target="2026-12-01T00:00:00-08:00">
+            <div><strong data-days>--</strong><small>DAYS</small></div><div><strong data-hours>--</strong><small>HOURS</small></div><div><strong data-minutes>--</strong><small>MINUTES</small></div><div><strong data-seconds>--</strong><small>SECONDS</small></div>
+          </div>
+          <p id="gp-countdown-note">The countdown is on. Preview communities while we get ready to open.</p>
+        </section>
+      </div>
+    </section>
+
+    <section class="crg-section crg-wrap">
+      <div class="gp-section-title"><div><div class="crg-kicker">YOUR COMMUNITY STARTS HERE</div><h2>More than a group. A place to belong.</h2><p class="gp-muted">Find the conversations and communities that make CrowRules feel connected.</p></div><a href="discover.html?preview=1">Browse all groups ↗</a></div>
+      <div class="gp-feature-grid">
+        <a class="gp-feature" href="discover.html?preview=1&category=Podcasting%20%26%20Creators"><span>01 / PODCASTS & CREATORS</span><h3>Talk about the shows and stories you love.</h3></a>
+        <a class="gp-feature" href="discover.html?preview=1&category=Sports%20%26%20Entertainment"><span>02 / SPORTS & ENTERTAINMENT</span><h3>Find your team, your fandom and your people.</h3></a>
+        <a class="gp-feature" href="discover.html?preview=1&category=Local%20Communities"><span>03 / LOCAL COMMUNITIES</span><h3>Turn shared interests into real connections.</h3></a>
+      </div>
+    </section>
+
+    <section class="crg-section crg-wrap" id="gp-preview">
+      <div id="gp-status" class="gp-status" aria-live="polite"></div>
+      <div class="gp-section-title"><div><div class="crg-kicker">GROUP PREVIEW</div><h2>Communities already taking shape.</h2><p class="gp-muted">Preview public groups. Sign in to preview private or hidden groups you own. Joining and posting remain governed by each group’s access settings.</p></div><a href="discover.html?preview=1">Explore the directory ↗</a></div>
+      <div id="gp-featured" class="gp-card-grid"><p class="gp-muted">Loading groups…</p></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div><img class="footer-logo" src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png" alt="CrowRules Podcasting"><p>Where every voice has a platform.</p><small>A CrowRules Entertainment platform.</small></div>
+      <div><b>Explore</b><a href="../discover.html">Discover</a><a href="../groups.html">Groups</a><a href="../rankings.html">Rankings</a><a href="../awards.html">Awards</a></div>
+      <div><b>Participate</b><a href="../creator.html">Creator Studio</a><a href="../listener.html">Listener Library</a><a href="../guest.html">Guest Lounge</a></div>
+      <div><b>Account</b><a href="../account.html">Account</a><a href="../login.html">Sign in</a><a href="../signup.html">Join free</a></div>
+      <div><b>Company</b><a href="../company/">About CrowRules</a><a href="../company/contact/">Contact</a></div>
+      <div><b>Legal</b><a href="../legal/">Legal Center</a><a href="../legal/terms/">Terms</a><a href="../legal/privacy/">Privacy</a></div>
+    </div>
+  </footer>
+</div>
+<script>
+  (()=>{const button=document.getElementById("groupsMenuToggle"),nav=document.getElementById("groupsPrimaryNav");if(!button||!nav)return;button.addEventListener("click",()=>{const open=button.getAttribute("aria-expanded")!=="true";button.setAttribute("aria-expanded",String(open));nav.classList.toggle("nav-open",open)});nav.addEventListener("click",event=>{if(event.target.closest("a")&&window.matchMedia("(max-width: 900px)").matches){nav.classList.remove("nav-open");button.setAttribute("aria-expanded","false")}})})();
+</script>
+<script type="module" src="../assets/js/groups-pages.js?v=20261122-groups-hub-brand-v1"></script>
+</body>
+</html>
