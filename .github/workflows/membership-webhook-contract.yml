@@ -1,0 +1,30 @@
+name: Membership Stripe webhook contract tests
+
+on:
+  push:
+    branches: [security/crowrulesplus-rls-review]
+    paths:
+      - 'scripts/membership-webhook-contract.test.mjs'
+      - '.github/workflows/membership-webhook-contract.yml'
+      - 'docs/MEMBERSHIP-STRIPE-WEBHOOK-RELIABILITY-PATCH-PROPOSAL.md'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/membership-webhook-contract.test.mjs'
+      - '.github/workflows/membership-webhook-contract.yml'
+      - 'docs/MEMBERSHIP-STRIPE-WEBHOOK-RELIABILITY-PATCH-PROPOSAL.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run isolated webhook contract tests
+        run: node --test scripts/membership-webhook-contract.test.mjs

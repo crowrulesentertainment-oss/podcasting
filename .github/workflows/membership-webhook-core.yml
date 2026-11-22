@@ -1,0 +1,33 @@
+name: Membership webhook core tests
+
+on:
+  push:
+    branches: [security/crowrulesplus-rls-review]
+    paths:
+      - 'supabase/functions/_shared/membership-webhook-core.ts'
+      - 'supabase/functions/_shared/stripe-webhook-verification.ts'
+      - 'supabase/tests/membership-webhook-core.test.ts'
+      - '.github/workflows/membership-webhook-core.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/functions/_shared/membership-webhook-core.ts'
+      - 'supabase/tests/membership-webhook-core.test.ts'
+      - '.github/workflows/membership-webhook-core.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  core-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check Stripe SDK verification helper
+        run: deno check supabase/functions/_shared/stripe-webhook-verification.ts
+      - name: Run membership webhook core tests
+        run: deno test supabase/tests/membership-webhook-core.test.ts

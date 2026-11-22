@@ -117,6 +117,9 @@ jobs:
           INSERT INTO auth.users(id) VALUES ('00000000-0000-0000-0000-000000000001');
           INSERT INTO public.members(user_id,role,status)
           VALUES ('00000000-0000-0000-0000-000000000001','Super_Admin','Active');
+          INSERT INTO auth.users(id) VALUES
+            ('00000000-0000-0000-0000-000000000002'),
+            ('00000000-0000-0000-0000-000000000003');
           SELECT set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',false);
           SET ROLE authenticated;
           DO $$
@@ -137,7 +140,25 @@ jobs:
             ('20000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000001','Public comment'),
             ('20000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002','Private comment');
           INSERT INTO public.crplus_notifications(id,user_id,title)
-          VALUES ('30000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','Server notification');
+          VALUES
+            ('30000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000002','User two notification'),
+            ('30000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000003','User three notification');
+          INSERT INTO public.crplus_projects(id,owner_user_id,title,slug)
+          VALUES
+            ('40000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000002','User two project','user-two-project'),
+            ('40000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000003','User three project','user-three-project');
+          INSERT INTO public.crplus_project_tasks(project_id,title)
+          VALUES ('40000000-0000-0000-0000-000000000003','Private admin task');
+          INSERT INTO public.crplus_project_submissions(id,project_id,submitter_user_id,message)
+          VALUES
+            ('50000000-0000-0000-0000-000000000002','40000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000002','User two submission'),
+            ('50000000-0000-0000-0000-000000000003','40000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000003','User three submission');
+          INSERT INTO public.crplus_entitlements(user_id,membership_level)
+          VALUES ('00000000-0000-0000-0000-000000000002',1),
+                 ('00000000-0000-0000-0000-000000000003',2);
+          INSERT INTO public.crplus_play_events(user_id,event_type)
+          VALUES ('00000000-0000-0000-0000-000000000002','start'),
+                 ('00000000-0000-0000-0000-000000000003','complete');
 
           SET ROLE anon;
           DO $crtest$
@@ -150,7 +171,44 @@ jobs:
           END $crtest$;
           RESET ROLE;
 
+          SELECT set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000002',false);
           SET ROLE authenticated;
+          DO $crtest$
+          DECLARE n integer;
+          BEGIN
+            SELECT count(*) INTO n FROM public.crplus_projects
+            WHERE id='40000000-0000-0000-0000-000000000002';
+            IF n <> 1 THEN RAISE EXCEPTION 'Project owner cannot read own project'; END IF;
+            SELECT count(*) INTO n FROM public.crplus_projects
+            WHERE id='40000000-0000-0000-0000-000000000003';
+            IF n <> 0 THEN RAISE EXCEPTION 'Project owner can read another user project'; END IF;
+            SELECT count(*) INTO n FROM public.crplus_entitlements
+            WHERE user_id='00000000-0000-0000-0000-000000000003';
+            IF n <> 0 THEN RAISE EXCEPTION 'User can read another user entitlement'; END IF;
+            SELECT count(*) INTO n FROM public.crplus_play_events
+            WHERE user_id='00000000-0000-0000-0000-000000000003';
+            IF n <> 0 THEN RAISE EXCEPTION 'User can read another user playback events'; END IF;
+            SELECT count(*) INTO n FROM public.crplus_project_submissions
+            WHERE submitter_user_id='00000000-0000-0000-0000-000000000003';
+            IF n <> 0 THEN RAISE EXCEPTION 'User can read another user submission'; END IF;
+            SELECT count(*) INTO n FROM public.crplus_project_tasks;
+            IF n <> 0 THEN RAISE EXCEPTION 'Non-admin can read private production tasks'; END IF;
+            UPDATE public.crplus_projects SET title='Unauthorized edit'
+            WHERE id='40000000-0000-0000-0000-000000000002';
+            GET DIAGNOSTICS n = ROW_COUNT;
+            IF n <> 0 THEN RAISE EXCEPTION 'Non-admin updated project'; END IF;
+            DELETE FROM public.crplus_comments
+            WHERE id='20000000-0000-0000-0000-000000000001';
+            GET DIAGNOSTICS n = ROW_COUNT;
+            IF n <> 0 THEN RAISE EXCEPTION 'User deleted another user comment'; END IF;
+            SELECT count(*) INTO n FROM public.crplus_notifications
+            WHERE id='30000000-0000-0000-0000-000000000002'
+              AND user_id='00000000-0000-0000-0000-000000000002';
+            IF n <> 1 THEN RAISE EXCEPTION 'User cannot read the seeded own notification'; END IF;
+            SELECT count(*) INTO n FROM public.crplus_notifications
+            WHERE user_id='00000000-0000-0000-0000-000000000003';
+            IF n <> 0 THEN RAISE EXCEPTION 'User can read another user notification'; END IF;
+          END $crtest$;
           DO $crtest$
           BEGIN
             BEGIN
@@ -171,7 +229,7 @@ jobs:
             BEGIN
               UPDATE public.crplus_notifications
               SET title='Forged notification'
-              WHERE id='30000000-0000-0000-0000-000000000001';
+              WHERE id='30000000-0000-0000-0000-000000000002';
               RAISE EXCEPTION 'Notification title update unexpectedly succeeded';
             EXCEPTION WHEN insufficient_privilege THEN
               NULL;
@@ -179,6 +237,6 @@ jobs:
           END $crtest$;
           UPDATE public.crplus_notifications
           SET is_read=true
-          WHERE id='30000000-0000-0000-0000-000000000001';
+          WHERE id='30000000-0000-0000-0000-000000000002';
           RESET ROLE;
           SQL
