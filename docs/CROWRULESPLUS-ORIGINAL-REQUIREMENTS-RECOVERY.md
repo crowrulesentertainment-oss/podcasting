@@ -348,3 +348,23 @@ https://github.com/crowrulesentertainment-oss/podcasting/pull/104
 The prior shared-module candidate PR **#103** is now merged to the repository's main branch; it contained only review code, tests, docs, and a SQL file under `supabase/drafts`. It did not apply that SQL or deploy an Edge Function.
 
 **Remaining blockers:** the new entrypoint still needs behavioral tests with mocked Stripe/Supabase dependencies, explicit podcast regression coverage, and review of invoice payload compatibility with the deployed Stripe API version and database schema. It has not been deployed. No production Supabase function, database object, Stripe setting, or live subscription was changed.
+
+
+### Shared webhook handler behavioral and podcast regression tests (2026-11-22)
+
+The handler was refactored to expose an injectable request-handler factory for deterministic tests while keeping the deployed Edge Function entrypoint guarded by `import.meta.main`. The podcast checkout-completion path now retrieves the canonical Stripe subscription object before writing subscription and entitlement state, rather than synthesizing an incomplete subscription from the Checkout Session.
+
+Added `supabase/tests/membership-stripe-webhook-entrypoint.test.ts` and expanded the Deno workflow. Coverage includes:
+- Exact raw-body signature verification invoked once before any side effects.
+- Invalid signature and timestamp-tolerance rejection.
+- Busy membership event returns HTTP 503 and does not start podcast writes.
+- Membership/podcast database errors return retryable HTTP 500.
+- Method and missing-environment handling.
+- Podcast Checkout completion retrieves canonical subscription and upserts subscription plus entitlement.
+- Podcast subscription update and invoice paid/payment-failed persistence behavior.
+- Podcast database write errors propagate.
+
+CI run **#45081621007** passed: Deno type-check and **17 tests passed, 0 failed** (8 membership core + 9 shared entrypoint/podcast regression tests).
+https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/45081621007
+
+This remains a branch-only review candidate. The earlier PR #104 was merged by the repository while this additional test/refinement work was still being added; the latest test work is on the review branch and is not included in that merged PR snapshot. No deployment or production database changes occurred.
