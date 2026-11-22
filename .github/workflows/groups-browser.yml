@@ -1,0 +1,27 @@
+name: Community Groups browser tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  groups-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Start local site
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/groups-http.log 2>&1 &
+          echo $! > /tmp/groups-http.pid
+      - name: Run Groups browser scenarios
+        run: node tests/groups-browser.mjs
