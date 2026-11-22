@@ -281,3 +281,26 @@ https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/4507962102
 Result: **21 tests passed, 0 failed**. Coverage includes signature acceptance/rejection and timestamp tolerance, duplicate and concurrent event claims, failed-event retry, event ordering, global-versus-site subscription selection, checked-write failure behavior, and unmapped price handling.
 
 **Important limitation:** these are isolated contract/model tests, not integration tests of the deployed Edge Function, real Stripe SDK verification, PostgreSQL locking/RPC behavior, or Supabase persistence. They validate the expected contract only. The actual webhook implementation and database migration remain unmodified; integration tests must be added when implementation is prepared in a disposable Supabase project.
+
+
+## Disposable PostgreSQL integration tests (2026-11-22)
+
+Added a PostgreSQL 16 CI job and isolated SQL fixtures:
+
+- `supabase/tests/membership_webhook_postgres.integration.sql`
+- `supabase/tests/membership_webhook_concurrency.setup.sql`
+- `.github/workflows/membership-webhook-postgres.yml`
+
+Successful GitHub Actions run **#45079944062**:
+https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/45079944062
+
+All job steps passed, including:
+1. Disposable PostgreSQL 16 startup.
+2. SQL assertions for event claim/duplicate/retry/finish behavior.
+3. Older/equal/newer subscription event ordering guards.
+4. Global membership synchronization isolation from site-scoped subscriptions.
+5. A two-session concurrent claim race proving exactly one claimant and one busy duplicate response.
+
+The SQL fixture uses its own `webhook_it` and `webhook_race_it` schemas in an ephemeral CI PostgreSQL service. Its main behavior fixture runs inside a transaction and rolls back. No connection to the production Supabase project is configured or used.
+
+**Critical limitation:** these tests exercise an isolated reference implementation of the proposed database contract, not the production `sync_member_membership_from_subscription(uuid)` function or a future membership event-ledger migration. They establish PostgreSQL behavior for the design, not production integration correctness. The production Edge Function, database schema, grants, policies, Stripe configuration, and membership data remain unchanged.
