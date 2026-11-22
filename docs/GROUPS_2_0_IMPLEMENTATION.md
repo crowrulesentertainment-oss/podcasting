@@ -26,7 +26,7 @@ Groups 2.0 extends the existing `podcast_community_circles` ecosystem. It does n
 ## Storage model
 The proposed private `podcast-group-media` bucket stores group media under:
 `<circle UUID>/<uploader UUID>/<unique filename>`.
-Uploads are restricted to authenticated circle members; downloads require membership in the same circle. Group media URLs are short-lived signed URLs. Image formats are JPEG, PNG, WebP and GIF; the client enforces an 8 MB limit.
+Uploads are restricted to authenticated circle members and scoped to the uploader's own group folder. Public-group media can be viewed publicly; private-group media requires membership in that group. Group media URLs are short-lived signed URLs. Image formats are JPEG, PNG, WebP and GIF; the client enforces an 8 MB limit.
 
 ## Release blockers / required review
 1. The SQL file under `supabase/drafts/` is a review draft, not an executable production migration. Production has a long migration history; recover and replay it locally before promoting this SQL to a generated timestamped migration.
