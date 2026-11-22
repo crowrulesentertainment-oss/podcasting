@@ -80,7 +80,7 @@ using ((submitted_by=(select auth.uid()) and status='pending') or private.crowsp
 create table if not exists public.podcast_community_circle_reports (
   id uuid primary key default gen_random_uuid(),
   circle_id uuid not null references public.podcast_community_circles(id) on delete cascade,
-  post_id uuid not null references public.podcast_community_circle_posts(id) on delete cascade,
+  post_id uuid references public.podcast_community_circle_posts(id) on delete set null,
   reported_by uuid references auth.users(id) on delete set null,
   reason text not null check (char_length(btrim(reason)) between 5 and 1000),
   status text not null default 'open' check (status in ('open','closed')),
@@ -131,6 +131,28 @@ using (owner_id=(select auth.uid()) or private.crowrules_is_admin_impl());
 revoke update on public.podcast_community_circle_posts from authenticated;
 grant update (body,edited_at,is_pinned,is_locked) on public.podcast_community_circle_posts to authenticated;
 
+-- Prevent ordinary post authors from pinning their own posts or locking replies
+-- by calling the Data API directly. Only moderators, owners and platform admins
+-- may change these moderation fields.
+create or replace function private.guard_circle_post_moderation_fields()
+returns trigger language plpgsql security definer set search_path = pg_catalog
+as $function$
+begin
+  if auth.uid() is not null
+     and (new.is_pinned is distinct from old.is_pinned or new.is_locked is distinct from old.is_locked)
+     and not (private.crowspace_is_circle_moderator_or_owner(old.circle_id)
+              or private.crowrules_is_admin_impl()) then
+    raise exception 'Only group moderators, owners, or platform admins can pin posts or lock replies' using errcode='42501';
+  end if;
+  return new;
+end;
+$function$;
+revoke all on function private.guard_circle_post_moderation_fields() from public,anon,authenticated;
+drop trigger if exists guard_circle_post_moderation_fields on public.podcast_community_circle_posts;
+create trigger guard_circle_post_moderation_fields
+before update of is_pinned,is_locked on public.podcast_community_circle_posts
+for each row execute function private.guard_circle_post_moderation_fields();
+
 -- Moderators can see the roster for their own circle. Members retain the
 -- existing self-membership visibility policy.
 drop policy if exists "Circle moderators can view roster" on public.podcast_community_circle_members;
@@ -173,16 +195,68 @@ on storage.objects for insert to authenticated
 with check (bucket_id='podcast-group-media'
   and (storage.foldername(name))[1] ~* '^[0-9a-f-]{36}$'
   and (storage.foldername(name))[2]=(select auth.uid())::text
-  and private.crowspace_is_circle_member(((storage.foldername(name))[1])::uuid));
+  and (private.crowspace_is_circle_member(((storage.foldername(name))[1])::uuid)
+       or private.crowspace_is_circle_moderator_or_owner(((storage.foldername(name))[1])::uuid)));
 create policy "Public group media is viewable"
 on storage.objects for select to anon,authenticated
 using (bucket_id='podcast-group-media'
+  and (storage.foldername(name))[1] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
+create policy "Group members read group media"
+on storage.objects for select to authenticated
+using (bucket_id='podcast-group-media'
+  and (private.crowspace_is_circle_member(((storage.foldername(name))[1])::uuid)
+       or private.crowspace_is_circle_moderator_or_owner(((storage.foldername(name))[1])::uuid)));
+create policy "Owners and moderators delete group media"
+on storage.objects for delete to authenticated
+using (bucket_id='podcast-group-media'
+  and (private.crowspace_is_circle_moderator_or_owner(((storage.foldername(name))[1])::uuid)
+       or owner_id=(select auth.uid())::text));
+
+-- Apply approved member artwork through a narrowly scoped private RPC.
+create or replace function private.apply_podcast_circle_image_suggestion(p_suggestion_id uuid)
+returns void language plpgsql security definer set search_path = pg_catalog
+as $function$
+declare v_circle_id uuid; v_kind text; v_path text;
+begin
+  if auth.uid() is null then raise exception 'Authentication required' using errcode='28000'; end if;
+  select s.circle_id,s.image_kind,s.object_path into v_circle_id,v_kind,v_path
+  from public.podcast_community_circle_image_suggestions s
+  where s.id=p_suggestion_id and s.status='pending' for update;
+  if not found then raise exception 'Pending image suggestion not found' using errcode='P0002'; end if;
+  if not (private.crowspace_is_circle_moderator_or_owner(v_circle_id) or private.crowrules_is_admin_impl()) then
+    raise exception 'Not authorized to approve group artwork' using errcode='42501';
+  end if;
+  if v_kind='avatar' then update public.podcast_community_circles set avatar_image_path=v_path where id=v_circle_id;
+  elsif v_kind='banner' then update public.podcast_community_circles set banner_image_path=v_path where id=v_circle_id;
+  else raise exception 'Unsupported group image kind' using errcode='22023'; end if;
+  update public.podcast_community_circle_image_suggestions set status='approved',reviewed_by=auth.uid(),reviewed_at=now() where id=p_suggestion_id;
+end;
+$function$;
+revoke all on function private.apply_podcast_circle_image_suggestion(uuid) from public,anon,authenticated;
+grant execute on function private.apply_podcast_circle_image_suggestion(uuid) to authenticated;
+create or replace function public.apply_podcast_circle_image_suggestion(p_suggestion_id uuid)
+returns void language sql security invoker set search_path = ''
+as $function$ select private.apply_podcast_circle_image_suggestion($1); $function$;
+revoke all on function public.apply_podcast_circle_image_suggestion(uuid) from public,anon,authenticated;
+grant execute on function public.apply_podcast_circle_image_suggestion(uuid) to authenticated;
+
+comment on table public.podcast_community_circle_image_suggestions is
+  'Member-submitted group avatars and banners awaiting owner or moderator review.';
+comment on table public.podcast_community_circle_reports is
+  'Member reports of group posts; review is restricted to the same group owner/moderator or platform admin.';
+commit;
+
+-- IMPORTANT: This is a draft, not a production migration. Test anon/member/author/
+-- moderator/owner/admin identities, storage object paths, cross-circle isolation,
+-- group deletion cascade behavior, and replies against a recovered local migration chain.
+
   and exists (select 1 from public.podcast_community_circles c
     where c.id=((storage.foldername(name))[1])::uuid and c.is_public=true));
 create policy "Group members read group media"
 on storage.objects for select to authenticated
 using (bucket_id='podcast-group-media'
-  and private.crowspace_is_circle_member(((storage.foldername(name))[1])::uuid));
+  and (private.crowspace_is_circle_member(((storage.foldername(name))[1])::uuid)
+       or private.crowspace_is_circle_moderator_or_owner(((storage.foldername(name))[1])::uuid)));
 create policy "Owners and moderators delete group media"
 on storage.objects for delete to authenticated
 using (bucket_id='podcast-group-media'

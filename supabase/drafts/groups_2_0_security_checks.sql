@@ -23,7 +23,7 @@ from storage.buckets where id='podcast-group-media';
 
 select 'media_storage_policies' as check_name,policyname,cmd,roles
 from pg_policies where schemaname='storage' and tablename='objects'
-  and policyname in ('Group members upload their own group media','Group members read group media','Owners and moderators delete group media')
+  and policyname in ('Group members upload their own group media','Public group media is viewable','Group members read group media','Owners and moderators delete group media')
 order by policyname;
 
 -- Must return zero rows: every reply must reference a post in its own circle.
@@ -35,5 +35,12 @@ where p.id is null or p.circle_id<>r.circle_id;
 -- Verify helper routines used by the new RLS policies exist.
 select n.nspname as schema_name,p.proname as function_name,pg_get_function_identity_arguments(p.oid) as arguments
 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
-where (n.nspname='private' and p.proname in ('crowspace_is_circle_member','crowspace_is_circle_moderator_or_owner','crowrules_is_admin_impl'))
+where (n.nspname='private' and p.proname in ('crowspace_is_circle_member','crowspace_is_circle_moderator_or_owner','crowspace_is_circle_owner','crowrules_is_admin_impl'))
 order by p.proname;
+
+-- Moderation guard must exist and be attached to the posts table.
+select t.tgname, pg_get_triggerdef(t.oid) as trigger_definition
+from pg_trigger t
+where t.tgrelid='public.podcast_community_circle_posts'::regclass
+  and not t.tgisinternal
+  and t.tgname='guard_circle_post_moderation_fields';
