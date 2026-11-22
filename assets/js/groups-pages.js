@@ -32,5 +32,76 @@ function pacificToday(){const parts=new Intl.DateTimeFormat("en-US",{timeZone:"A
 function launchGate(page){if(page==="home"||pacificToday()>="2026-12-01"||params.get("preview")==="1")return false;const main=document.querySelector("main");if(main)main.innerHTML="<section class='gp-launch'><span class='gp-kicker'>A NEW WAY TO CONNECT</span><h1>Find your people.<br><em>Build together.</em></h1><p>CrowRules Groups opens December 1, 2026 (Pacific). Public visitors will be able to explore public communities; a CrowRules Podcasting account will be required to join and participate.</p><div class='gp-launch-date'>PUBLIC LAUNCH · DECEMBER 1, 2026</div></section>";return true}
 function mountCountdown(){const root=$("#gp-countdown");if(!root)return;const target=Date.parse(root.dataset.target);const fields={days:root.querySelector("[data-days]"),hours:root.querySelector("[data-hours]"),minutes:root.querySelector("[data-minutes]"),seconds:root.querySelector("[data-seconds]")};const note=$("#gp-countdown-note");const tick=()=>{const left=Math.max(0,target-Date.now()),total=Math.floor(left/1000);fields.days.textContent=String(Math.floor(total/86400)).padStart(2,"0");fields.hours.textContent=String(Math.floor(total%86400/3600)).padStart(2,"0");fields.minutes.textContent=String(Math.floor(total%3600/60)).padStart(2,"0");fields.seconds.textContent=String(total%60).padStart(2,"0");if(left===0){note.textContent="Groups 2.0 is now open. Explore communities and join the conversation.";root.setAttribute("aria-label","Groups 2.0 is now live");}};tick();setInterval(tick,1000)}
 function decoratePreviewLinks(){if(params.get("preview")!=="1")return;document.querySelectorAll("a[href]").forEach(a=>{try{const u=new URL(a.href,location.href);if(u.origin===location.origin&&u.pathname.includes("/groups/")&&!u.searchParams.has("preview")){u.searchParams.set("preview","1");a.href=u.pathname+u.search+u.hash}}catch{}})}
-async function start(){const page=document.body.dataset.groupsPage;if(!page)return;decoratePreviewLinks();if(launchGate(page))return;try{if(page==="home"){mountCountdown();const root=$("#gp-featured"),all=await loadGroups(),user=await currentUser().catch(()=>null),visible=all.filter(g=>(g.visibility||(g.is_public?"public":"hidden"))!=="hidden"||g.owner_id===user?.id);renderCards(root,visible.slice(0,9),"Preview group");if(!visible.length)root.innerHTML='<div class="gp-notice">No groups have been created yet. Sign in and start the first community, then return here to preview it.</div>'}else if(page==="discover")await discover();else if(page==="mine")await mine();else if(page==="feed")await feed();else if(page==="create")await create();else if(page==="community")await community();else if(page==="members")await members();else if(page==="settings")await settings()}catch(error){const status=$("#gp-status");if(status)status.textContent=error.message||"Groups could not load."}}
+
+function eventDate(value, options={}){return value?new Intl.DateTimeFormat(undefined,{dateStyle:"medium",timeStyle:"short",...options}).format(new Date(value)):"Time to be announced"}
+function safeEventUrl(value){const s=String(value||"").trim();return /^https:\/\/[^\s]+$/i.test(s)?s:""}
+function eventTypeLabel(value){return ({meetup:"Meetup",listening_party:"Listening party",ama:"Ask me anything",livestream:"Livestream",other:"Community event"})[value]||"Community event"}
+async function eventsPage(){
+ const root=$("#gp-events"),status=$("#gp-status"),createRoot=$("#gp-event-create");
+ if(!root)return;
+ const user=await currentUser().catch(()=>null),selectedGroup=params.get("group");
+ let managed=[];
+ if(user){
+  const {data:members}=await sb.from("podcast_community_circle_members").select("circle_id,role").eq("member_id",user.id).in("role",["owner","moderator"]);
+  const memberships=members||[];
+  if(memberships.length){
+   const {data:groups}=await sb.from("podcast_community_circles").select("id,name").in("id",memberships.map(x=>x.circle_id));
+   const names=new Map((groups||[]).map(g=>[g.id,g.name]));
+   managed=memberships.map(m=>({id:m.circle_id,name:names.get(m.circle_id)||"Your group"})).filter(g=>names.has(g.id));
+  }
+ }
+ if(createRoot){
+  if(!user){createRoot.innerHTML='<div class="gp-notice">Sign in to create events for a group you manage. <a class="gp-link" href="'+SITE_BASE+'login.html">Sign in</a></div>'}
+  else if(!managed.length){createRoot.innerHTML='<p class="gp-muted">Event creation is available to group owners and moderators. Join or create a group, or ask a group moderator to add an event.</p>'}
+  else{
+   createRoot.innerHTML='<form id="gp-event-form" class="gp-form gp-event-form"><label>Group<select name="circle_id" required>'+managed.map(g=>'<option value="'+esc(g.id)+'" '+(selectedGroup===g.id?'selected':'')+'>'+esc(g.name)+'</option>').join("")+'</select></label><label>Event title<input name="title" required minlength="3" maxlength="120" placeholder="Give your event a name"></label><label>Event type<select name="event_type"><option value="meetup">Meetup</option><option value="listening_party">Listening party</option><option value="ama">Ask me anything</option><option value="livestream">Livestream</option><option value="other">Other</option></select></label><label>Description<textarea name="description" maxlength="3000" placeholder="What should members know?"></textarea></label><div class="gp-event-two"><label>Starts<input name="starts_at" type="datetime-local" required></label><label>Ends (optional)<input name="ends_at" type="datetime-local"></label></div><label>Location type<select name="location_type"><option value="online">Online</option><option value="in_person">In person</option><option value="hybrid">Hybrid</option></select></label><label>Location or venue<input name="location_text" maxlength="300" placeholder="Meeting room, venue, or online"></label><label>Meeting link (optional)<input name="meeting_url" type="url" maxlength="1000" placeholder="https://…"></label><label>Related episode link (optional)<input name="episode_url" type="url" maxlength="1000" placeholder="https://…"></label><button class="gp-button" type="submit">Create group event</button><p class="gp-help">Only owners and moderators can create events. Events are visible according to the group’s existing visibility and membership rules.</p></form>';
+   $("#gp-event-form")?.addEventListener("submit",async e=>{
+    e.preventDefault();const form=e.currentTarget,d=new FormData(form),startValue=String(d.get("starts_at")||""),endValue=String(d.get("ends_at")||"");
+    const starts=new Date(startValue),ends=endValue?new Date(endValue):null;
+    if(!Number.isFinite(starts.getTime())||(ends&&(!Number.isFinite(ends.getTime())||ends<=starts))){status.textContent="Please check the event dates. The end must be after the start.";return}
+    const meeting=String(d.get("meeting_url")||"").trim(),episode=String(d.get("episode_url")||"").trim();
+    if((meeting&&!safeEventUrl(meeting))||(episode&&!safeEventUrl(episode))){status.textContent="Links must use https://";return}
+    const button=form.querySelector('button[type="submit"]');button.disabled=true;status.textContent="Creating event…";
+    try{
+     const {error}=await sb.from("podcast_community_circle_events").insert({circle_id:String(d.get("circle_id")),creator_id:user.id,title:String(d.get("title")||"").trim(),description:String(d.get("description")||"").trim(),event_type:String(d.get("event_type")||"meetup"),starts_at:starts.toISOString(),ends_at:ends?ends.toISOString():null,location_type:String(d.get("location_type")||"online"),location_text:String(d.get("location_text")||"").trim(),meeting_url:meeting,episode_url:episode,status:"scheduled",branch_key:"community"});
+     if(error)throw error;status.textContent="Event created.";form.reset();await drawEvents();
+    }catch(error){status.textContent=error.message||"The event could not be created."}
+    finally{button.disabled=false}
+   });
+  }
+ }
+ async function drawEvents(){
+  root.innerHTML='<p class="gp-muted">Loading group events…</p>';
+  let query=sb.from("podcast_community_circle_events").select("id,circle_id,creator_id,title,description,event_type,starts_at,ends_at,location_type,location_text,meeting_url,episode_url,status,created_at,branch_key").gte("starts_at",new Date(Date.now()-30*86400000).toISOString()).order("starts_at",{ascending:true}).limit(100);
+  if(selectedGroup)query=query.eq("circle_id",selectedGroup);
+  const {data:events,error}=await query;
+  if(error){root.innerHTML='<div class="gp-notice">Events could not be loaded: '+esc(error.message)+'</div>';return}
+  if(!events?.length){root.innerHTML='<div class="gp-event-empty"><span class="gp-event-empty-icon">◷</span><h2>No group events scheduled yet</h2><p>When a group owner or moderator schedules a meetup, listening party, livestream or community event, it will appear here.</p><a class="gp-button ghost" href="discover.html">Explore groups</a></div>';return}
+  const circleIds=[...new Set(events.map(e=>e.circle_id))];
+  const [{data:groups},{data:members}]=await Promise.all([
+   sb.from("podcast_community_circles").select("id,name").in("id",circleIds),
+   user?sb.from("podcast_community_circle_members").select("circle_id,role").eq("member_id",user.id).in("circle_id",circleIds):Promise.resolve({data:[]})
+  ]);
+  const groupNames=new Map((groups||[]).map(g=>[g.id,g.name])),roles=new Map((members||[]).map(m=>[m.circle_id,m.role]));
+  let rsvps=[];
+  if(user){const result=await sb.from("podcast_community_circle_event_rsvps").select("event_id,user_id,response").in("event_id",events.map(e=>e.id));if(!result.error)rsvps=result.data||[]}
+  const counts=new Map(),mine=new Map();
+  rsvps.forEach(r=>{const c=counts.get(r.event_id)||{going:0,interested:0};if(r.response==="going"||r.response==="interested")c[r.response]++;counts.set(r.event_id,c);if(r.user_id===user?.id)mine.set(r.event_id,r.response)});
+  root.innerHTML=events.map(ev=>{
+   const role=roles.get(ev.circle_id),canManage=["owner","moderator"].includes(role),response=mine.get(ev.id),count=counts.get(ev.id)||{going:0,interested:0},meeting=safeEventUrl(ev.meeting_url),episode=safeEventUrl(ev.episode_url),cancelled=ev.status==="cancelled";
+   return '<article class="gp-event-card '+(cancelled?'is-cancelled':'')+'"><div class="gp-event-date"><b>'+esc(new Intl.DateTimeFormat(undefined,{month:"short",day:"2-digit"}).format(new Date(ev.starts_at)))+'</b><small>'+esc(new Intl.DateTimeFormat(undefined,{weekday:"short"}).format(new Date(ev.starts_at)))+'</small></div><div class="gp-event-body"><div class="gp-event-meta"><span>'+esc(eventTypeLabel(ev.event_type))+'</span><span>'+esc(groupNames.get(ev.circle_id)||"Group event")+'</span><span class="gp-event-status">'+(cancelled?"Cancelled":"Scheduled")+'</span></div><h2>'+esc(ev.title)+'</h2><p class="gp-event-description">'+esc(ev.description||"Join your group for this community event.")+'</p><div class="gp-event-facts"><span>◷ '+esc(eventDate(ev.starts_at))+(ev.ends_at?' – '+esc(eventDate(ev.ends_at,{dateStyle:"short"})):"")+'</span><span>⌖ '+esc(ev.location_type==="online"?"Online":ev.location_type==="hybrid"?"Hybrid · "+(ev.location_text||"Details to follow"):ev.location_text||"In person")+'</span></div>'+(meeting?'<a class="gp-link gp-event-link" href="'+esc(meeting)+'" target="_blank" rel="noopener noreferrer">Open meeting link ↗</a>':"")+(episode?'<a class="gp-link gp-event-link" href="'+esc(episode)+'" target="_blank" rel="noopener noreferrer">Related episode ↗</a>':"")+'<div class="gp-event-actions">'+(cancelled?'<span class="gp-muted">This event has been cancelled.</span>':!user?'<a class="gp-button ghost" href="'+SITE_BASE+'login.html">Sign in to RSVP</a>':!role?'<span class="gp-muted">Join this group to RSVP.</span>':'<button class="gp-button '+(response==="going"?"":"ghost")+'" data-rsvp="going" data-event="'+esc(ev.id)+'">'+(response==="going"?"✓ Going":"Going")+'</button><button class="gp-button '+(response==="interested"?"":"ghost")+'" data-rsvp="interested" data-event="'+esc(ev.id)+'">'+(response==="interested"?"✓ Interested":"Interested")+'</button><button class="gp-button ghost" data-rsvp="declined" data-event="'+esc(ev.id)+'">'+(response==="declined"?"✓ Not attending":"Can’t attend")+'</button>')+'<span class="gp-event-counts">'+count.going+' going · '+count.interested+' interested</span>'+(canManage&&!cancelled?'<button class="gp-button ghost gp-event-cancel" data-cancel="'+esc(ev.id)+'">Cancel event</button>':"")+'</div></div></article>';
+  }).join("");
+  root.querySelectorAll("[data-rsvp]").forEach(button=>button.addEventListener("click",async()=>{
+   if(!user){signIn();return}const eventId=button.dataset.event,response=button.dataset.rsvp;button.disabled=true;
+   try{const {error}=await sb.from("podcast_community_circle_event_rsvps").upsert({event_id:eventId,user_id:user.id,response},{onConflict:"event_id,user_id"});if(error)throw error;status.textContent=response==="declined"?"Your RSVP was updated.":"Your RSVP is saved.";await drawEvents()}catch(error){status.textContent=error.message||"Your RSVP could not be saved.";button.disabled=false}
+  }));
+  root.querySelectorAll("[data-cancel]").forEach(button=>button.addEventListener("click",async()=>{
+   if(!confirm("Cancel this group event? Existing RSVPs will be retained."))return;button.disabled=true;
+   try{const {error}=await sb.from("podcast_community_circle_events").update({status:"cancelled"}).eq("id",button.dataset.cancel);if(error)throw error;status.textContent="Event cancelled. Existing RSVPs were retained.";await drawEvents()}catch(error){status.textContent=error.message||"The event could not be cancelled.";button.disabled=false}
+  }));
+ }
+ await drawEvents();
+}
+
+async function start(){const page=document.body.dataset.groupsPage;if(!page)return;decoratePreviewLinks();if(launchGate(page))return;try{if(page==="home"){mountCountdown();const root=$("#gp-featured"),all=await loadGroups(),user=await currentUser().catch(()=>null),visible=all.filter(g=>(g.visibility||(g.is_public?"public":"hidden"))!=="hidden"||g.owner_id===user?.id);renderCards(root,visible.slice(0,9),"Preview group");if(!visible.length)root.innerHTML='<div class="gp-notice">No groups have been created yet. Sign in and start the first community, then return here to preview it.</div>'}else if(page==="discover")await discover();else if(page==="mine")await mine();else if(page==="feed")await feed();else if(page==="create")await create();else if(page==="community")await community();else if(page==="members")await members();else if(page==="settings")await settings();else if(page==="events")await eventsPage()}catch(error){const status=$("#gp-status");if(status)status.textContent=error.message||"Groups could not load."}}
 start();
