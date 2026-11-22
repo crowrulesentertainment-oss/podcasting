@@ -112,3 +112,29 @@ The migration ledger confirms that these migrations were recorded, but the origi
 ## Safety boundary
 
 This report is documentation only. No production SQL, schema, RLS policies, storage policies, application code, merges, or deployments were changed. The existing recovery draft remains a non-deployable draft.
+
+
+## Additional production catalog findings (read-only, 2026-11-22)
+
+A follow-up catalog search for all objects whose names contain `crplus` found only two objects in the `public` schema:
+
+- `public.crplus_universal_membership` (view)
+- `public.crplus_universal_membership_health` (view)
+
+The view definitions show that the current CR+ membership-facing integration is backed by the shared `members` and `membership_plans` tables:
+
+- `crplus_universal_membership` selects `user_id`, `membership_type`, `role`, `status`, and plan level/key/name. It joins `members.membership_type` to `membership_plans.plan_key` case-insensitively and excludes rows with a null `user_id`.
+- `crplus_universal_membership_health` reports counts of member rows, rows without auth users, members without matching plans, CROW members, and active/inactive members.
+
+The current `membership_plans` records are:
+
+| Plan key | Display name | Level | Description |
+|---|---|---:|---|
+| `crow` | CROW | 1 | Free CrowRules membership. Join the community and follow the CrowRules universe. |
+| `crowner` | CROWNER | 2 | Help build CrowRules from the ground floor. |
+| `creator` | CREATOR | 3 | Get closer to how CrowRules productions are made. |
+| `founder` | FOUNDER | 4 | Help build CrowRules Entertainment from the ground up. |
+
+These findings establish a real shared membership/entitlement vocabulary and an existing view-level integration point. They do **not** establish the missing CrowRules+ catalog, episode, creator-studio, playback, ratings, follows, or live/schedule schema. The two views are not substitutes for the original migration bodies.
+
+The catalog query was read-only. No view, membership row, plan, table, policy, or grant was changed.
