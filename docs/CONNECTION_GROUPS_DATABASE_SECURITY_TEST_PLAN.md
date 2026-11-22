@@ -61,10 +61,16 @@ No real CrowRules member accounts should be used.
 | Request uniqueness | One pending request per member/group |
 | Request approval | Owner/moderator approval updates request and membership atomically |
 | Unauthorized approval | Ordinary member cannot approve or decline |
-| Hidden invitations | Accepted invitation authorizes only the exact invited group |
+| Hidden invitations | Pending invitee can view only invited group metadata; atomic acceptance authorizes only the exact invited group and creates membership |
 | Roster | Members can see only their own circle's roster |
 | Post creation | Active member can post in own group, not another group |
 | Replies | Same-circle membership and parent-post relationship required |
+| Invitation acceptance | Only the intended invitee can accept; invite status and membership are updated atomically |
+| Invitation cancellation | Only inviter/group owner can cancel a pending invitation |
+| Event creation | Group owner/moderator can create an event in their own group |
+| Event visibility | Public group events are discoverable; private group events are visible only to members |
+| Event RSVP | Active group members can create/update their own RSVP; nonmembers cannot RSVP |
+| Event moderation | Group moderators can update/cancel events; only the owner can delete |
 | Chat read | Only members of the exact enabled group can read |
 | Chat write | Sender must be the authenticated member of the exact enabled group |
 | Chat disabled | Disabled group chat denies reads and writes |
