@@ -41,7 +41,7 @@ function addStylesheet() {
   const link = document.createElement("link");
   link.id = "crg-style";
   link.rel = "stylesheet";
-  link.href = SITE_BASE + "assets/css/groups.css?v=phase1b-discovery-1";
+  link.href = SITE_BASE + "assets/css/groups.css?v=phase1c-membership-1";
   document.head.appendChild(link);
 }
 function groupUrl(id) {
@@ -134,6 +134,95 @@ async function loadCircle(id) {
   if (result.error) throw result.error;
   return result.data;
 }
+async function loadCurrentUser() {
+  const result = await sb.auth.getUser();
+  if (result.error) throw result.error;
+  return result.data?.user || null;
+}
+async function loadMyMembership(circleId, userId) {
+  const result = await sb.from("podcast_community_circle_members")
+    .select("circle_id,member_id,role,joined_at")
+    .eq("circle_id", circleId)
+    .eq("member_id", userId)
+    .maybeSingle();
+  if (result.error) throw result.error;
+  return result.data;
+}
+async function renderMembership(group, container) {
+  if (group.owner_id) {
+    // Owner identity is known from the circle row; do not offer owner self-removal.
+  }
+  let user;
+  try {
+    user = await loadCurrentUser();
+  } catch (error) {
+    status(container, "We couldn't verify your sign-in. Refresh the page or sign in again.", "error");
+    return;
+  }
+  if (!user) {
+    container.innerHTML = '<p class="crg-membership-copy">Sign in to join this public community and participate.</p>' +
+      '<a class="crg-btn" href="' + esc(SITE_BASE + "login.html") + '">Sign in to join</a>';
+    return;
+  }
+  if (user.id === group.owner_id) {
+    container.innerHTML = '<span class="crg-membership-state">You own this community.</span>';
+    return;
+  }
+  let membership;
+  try {
+    membership = await loadMyMembership(group.id, user.id);
+  } catch (error) {
+    status(container, "Membership status is temporarily unavailable. Please try again.", "error");
+    return;
+  }
+  const paint = () => {
+    if (membership) {
+      container.innerHTML = '<p class="crg-membership-state">You are a member of this community.</p>' +
+        '<button class="crg-btn secondary" type="button" id="crg-leave">Leave community</button>';
+    } else {
+      container.innerHTML = '<p class="crg-membership-copy">Join this public community to take part in the conversation.</p>' +
+        '<button class="crg-btn" type="button" id="crg-join">Join community</button>';
+    }
+  };
+  paint();
+  container.addEventListener("click", async event => {
+    const join = event.target.closest("#crg-join");
+    const leave = event.target.closest("#crg-leave");
+    if (!join && !leave) return;
+    const button = join || leave;
+    button.disabled = true;
+    button.textContent = join ? "Joining…" : "Leaving…";
+    try {
+      if (join) {
+        const result = await sb.from("podcast_community_circle_members").insert({
+          circle_id: group.id, member_id: user.id, role: "member"
+        });
+        if (result.error) throw result.error;
+        membership = { circle_id: group.id, member_id: user.id, role: "member" };
+      } else {
+        const result = await sb.from("podcast_community_circle_members").delete()
+          .eq("circle_id", group.id)
+          .eq("member_id", user.id)
+          .neq("role", "owner");
+        if (result.error) throw result.error;
+        membership = null;
+      }
+      paint();
+    } catch (error) {
+      console.error("CrowRules circle membership action failed:", error);
+      paint();
+      const message = join
+        ? "We couldn't join this community. You may already be a member, or your access may have changed. Refresh and try again."
+        : "We couldn't leave this community. Refresh and try again.";
+      const notice = document.createElement("p");
+      notice.className = "crg-status";
+      notice.setAttribute("role", "alert");
+      notice.textContent = message;
+      container.appendChild(notice);
+    }
+  });
+}
+
 async function loadPosts(circleId) {
   const result = await sb.from(POSTS).select(POST_FIELDS)
     .eq("circle_id", circleId)
@@ -180,9 +269,8 @@ async function renderDetail(root, id) {
     '<div class="crg-kicker">CROWRULES GROUP · ' + esc(group.category || "COMMUNITY") + '</div>' +
     '<h1>' + esc(group.name) + '</h1><p>' + esc(group.description || "A place to connect and build together.") + '</p>' +
     '<div class="crg-meta"><span>PUBLIC COMMUNITY</span>' + (group.is_featured ? '<span>FEATURED</span>' : "") + '</div>' +
-    '<div class="crg-actions"><a class="crg-btn secondary" href="' + esc(SITE_BASE + "groups.html" + (preview ? "?preview=1" : "")) + '">← All communities</a>' +
-    '<a class="crg-btn" href="' + esc(SITE_BASE + "login.html") + '">Sign in to participate</a></div></div></section>' +
-    '<section class="crg-section crg-wrap"><div class="crg-detail-layout"><div><section class="crg-panel">' +
+    '<div class="crg-actions"><a class="crg-btn secondary" href="' + esc(SITE_BASE + "groups.html" + (preview ? "?preview=1" : "")) + '">← All communities</a></div></div></section>' +
+    '<section class="crg-section crg-wrap"><div class="crg-detail-layout"><div><section class="crg-panel"><h2>Membership</h2><div id="crg-membership" aria-live="polite"><div class="crg-empty">Checking membership…</div></div></section><section class="crg-panel">' +
     '<h2>Community conversations</h2><p class="crg-panel-intro">Recent public posts from this group.</p>' +
     '<div id="crg-posts" aria-live="polite"><div class="crg-empty">Loading conversations…</div></div></section></div>' +
     '<aside><section class="crg-panel"><h3>About this community</h3><p class="crg-rules">' +
@@ -191,6 +279,8 @@ async function renderDetail(root, id) {
     (group.branch_key ? '<p class="crg-branch-label">Community area: ' + esc(group.branch_key) + '</p>' : "") +
     '<p class="crg-branch-label">Created ' + esc(dateLabel(group.created_at)) + '</p></section></aside></div></section>';
   const postsRoot = $("#crg-posts", root);
+  const membershipRoot = $("#crg-membership", root);
+  await renderMembership(group, membershipRoot);
   try {
     const posts = await loadPosts(group.id);
     const labels = await loadAuthorLabels(posts.map(post => post.author_id));
