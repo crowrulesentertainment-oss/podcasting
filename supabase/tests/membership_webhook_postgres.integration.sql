@@ -110,7 +110,7 @@ BEGIN
   END IF;
 END $$;
 
-DO $
+DO $model$
 DECLARE v text; ok boolean; m members%ROWTYPE;
 BEGIN
   -- Event claim / duplicate / retry / finish guards.
@@ -177,11 +177,11 @@ BEGIN
     THEN RAISE EXCEPTION 'global active/pending priority or site isolation failed'; END IF;
 
   RAISE NOTICE 'PASS: webhook PostgreSQL integration assertions';
-END $$;
+END $model$;
 
 
 -- Exercise the actual candidate SQL migration functions in this disposable DB.
-DO $
+DO $candidate$
 DECLARE v text; m record;
 BEGIN
   v := public.claim_membership_stripe_event('evt-candidate-1','customer.subscription.updated',700);
@@ -219,6 +219,6 @@ BEGIN
     THEN RAISE EXCEPTION 'candidate site-only subscription granted global membership'; END IF;
 
   RAISE NOTICE 'PASS: candidate migration event-ledger and global-sync assertions';
-END $$;
+END $candidate$;
 
 ROLLBACK;
