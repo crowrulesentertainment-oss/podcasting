@@ -289,7 +289,16 @@ create policy "podcasting_discoverable_community_groups"
 on public.podcast_community_circles
 for select
 to anon, authenticated
-using (visibility in ('public', 'private'));
+using (
+  visibility in ('public', 'private')
+  or exists (
+    select 1
+    from public.podcast_community_circle_invites i
+    where i.circle_id = public.podcast_community_circles.id
+      and i.invitee_id = (select auth.uid())
+      and i.status in ('pending', 'accepted')
+  )
+);
 
 -- ---------------------------------------------------------------------------
 -- 2. Private-group join requests.
@@ -501,6 +510,71 @@ with check (
       and i.status = 'accepted'
   )
 );
+
+-- Invite recipients can see only the group metadata needed to review an
+-- invitation. The invitation row itself remains visible only to its parties.
+create or replace function private.accept_podcast_circle_invite(p_invite_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = pg_catalog
+as $function$
+declare
+  v_circle_id uuid;
+  v_status text;
+begin
+  if auth.uid() is null then
+    raise exception 'Authentication required' using errcode = '28000';
+  end if;
+
+  select i.circle_id, i.status
+    into v_circle_id, v_status
+  from public.podcast_community_circle_invites i
+  where i.id = p_invite_id
+    and i.invitee_id = auth.uid()
+  for update;
+
+  if not found then
+    raise exception 'Invitation not found' using errcode = 'P0002';
+  end if;
+
+  if v_status not in ('pending', 'accepted') then
+    raise exception 'This invitation is no longer active' using errcode = '22023';
+  end if;
+
+  if v_status = 'pending' then
+    update public.podcast_community_circle_invites
+    set status = 'accepted',
+        responded_at = now()
+    where id = p_invite_id;
+  end if;
+
+  insert into public.podcast_community_circle_members (circle_id, member_id, role)
+  values (v_circle_id, auth.uid(), 'member')
+  on conflict (circle_id, member_id) do nothing;
+end;
+$function$;
+
+revoke all on function private.accept_podcast_circle_invite(uuid)
+  from public, anon, authenticated;
+grant execute on function private.accept_podcast_circle_invite(uuid)
+  to authenticated;
+
+-- PostgREST exposes only the invoker wrapper; the privileged implementation
+-- remains inside the non-exposed private schema.
+create or replace function public.accept_podcast_circle_invite(p_invite_id uuid)
+returns void
+language sql
+security invoker
+set search_path = ''
+as $function$
+  select private.accept_podcast_circle_invite($1);
+$function$;
+
+revoke all on function public.accept_podcast_circle_invite(uuid)
+  from public, anon, authenticated;
+grant execute on function public.accept_podcast_circle_invite(uuid)
+  to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 3. Real-time group chat. Direct messages continue to use the existing
