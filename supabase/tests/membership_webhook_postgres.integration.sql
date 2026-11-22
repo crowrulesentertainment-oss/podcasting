@@ -110,7 +110,7 @@ BEGIN
   END IF;
 END $$;
 
-DO $$
+DO $candidate$$
 DECLARE v text; ok boolean; m members%ROWTYPE;
 BEGIN
   -- Event claim / duplicate / retry / finish guards.
@@ -219,6 +219,6 @@ BEGIN
     THEN RAISE EXCEPTION 'candidate site-only subscription granted global membership'; END IF;
 
   RAISE NOTICE 'PASS: candidate migration event-ledger and global-sync assertions';
-END $;
+END $candidate$;
 
 ROLLBACK;
