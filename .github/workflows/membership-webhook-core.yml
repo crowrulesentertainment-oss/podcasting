@@ -8,6 +8,7 @@ on:
       - 'supabase/functions/_shared/stripe-webhook-verification.ts'
       - 'supabase/functions/membership-stripe-webhook/index.ts'
       - 'supabase/tests/membership-webhook-core.test.ts'
+      - 'supabase/tests/membership-stripe-webhook-entrypoint.test.ts'
       - '.github/workflows/membership-webhook-core.yml'
   pull_request:
     branches: [main]
@@ -32,5 +33,5 @@ jobs:
           deno-version: v2.x
       - name: Type-check Stripe SDK verification helper and shared webhook entrypoint
         run: deno check supabase/functions/_shared/stripe-webhook-verification.ts supabase/functions/membership-stripe-webhook/index.ts
-      - name: Run membership webhook core tests
-        run: deno test supabase/tests/membership-webhook-core.test.ts
+      - name: Run membership and shared webhook entrypoint tests
+        run: deno test supabase/tests/membership-webhook-core.test.ts supabase/tests/membership-stripe-webhook-entrypoint.test.ts
