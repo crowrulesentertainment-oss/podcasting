@@ -15,6 +15,9 @@ begin
   ) then
     raise exception 'Phase 1 migration is missing: podcast_community_circles.visibility';
   end if;
+  if to_regclass('public.podcast_community_circle_categories') is null then
+    raise exception 'Phase 1 migration is missing: dynamic categories table';
+  end if;
   if to_regclass('public.podcast_community_circle_join_requests') is null then
     raise exception 'Phase 1 migration is missing: join requests table';
   end if;
@@ -86,13 +89,17 @@ insert into public.podcast_community_circle_invites (
   'accepted'
 );
 
--- Anonymous discovery: public and private metadata are discoverable; hidden is not.
+-- Anonymous discovery: active categories and public/private metadata are visible; hidden is not.
 set local role anon;
 select set_config('request.jwt.claim.sub','',true);
 select set_config('request.jwt.claims','{"role":"anon"}',true);
 do $anon_tests$
 declare v_count integer;
 begin
+  if not exists (select 1 from public.podcast_community_circle_categories where is_active=true) then
+    raise exception 'Active categories should be publicly readable';
+  end if;
+
   select count(*) into v_count
   from public.podcast_community_circles
   where id in (
@@ -183,6 +190,14 @@ begin
     insert into public.podcast_community_circle_messages (circle_id, sender_id, body)
     values ('10000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000003','Cross-circle chat must fail');
     raise exception 'Expected cross-circle chat insert to be rejected';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  begin
+    insert into public.podcast_community_circle_categories (name,slug)
+    values ('CRG Member Category','crg-member-category');
+    raise exception 'Regular member created a platform category';
   exception when insufficient_privilege then
     null;
   end;
@@ -334,6 +349,13 @@ select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000009'
 select set_config('request.jwt.claims','{"sub":"00000000-0000-4000-8000-000000000009","role":"authenticated","app_metadata":{"role":"admin"}}',true);
 do $admin_tests$
 begin
+  insert into public.podcast_community_circle_categories (name,slug,display_order)
+  values ('CRG Admin Category','crg-admin-category',999);
+
+  if not exists (select 1 from public.podcast_community_circle_categories where slug='crg-admin-category') then
+    raise exception 'Platform admin cannot create a dynamic category';
+  end if;
+
   if not exists (
     select 1 from public.podcast_community_circle_posts
     where id='20000000-0000-4000-8000-000000000001'
