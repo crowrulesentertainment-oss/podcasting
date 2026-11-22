@@ -172,7 +172,7 @@ create table if not exists public.podcast_community_circle_join_requests (
     check (status in ('pending', 'approved', 'declined')),
   created_at timestamptz not null default now(),
   reviewed_at timestamptz,
-  reviewed_by uuid references auth.users(id) on delete set null,
+  reviewed_by uuid references auth.users(id) on delete set null
 );
 
 -- Keep one pending request per user/group while retaining declined history.
@@ -204,7 +204,7 @@ for select
 to authenticated
 using (
   user_id = (select auth.uid())
-  or private.crowspace_is_circle_moderator_or_owner(circle_id)
+  or private.crowspace_is_circle_moderator_or_owner(public.podcast_community_circle_join_requests.circle_id)
   or private.crowrules_is_admin_impl()
 );
 
@@ -219,13 +219,13 @@ with check (
   and exists (
     select 1
     from public.podcast_community_circles c
-    where c.id = circle_id
+    where c.id = public.podcast_community_circle_join_requests.circle_id
       and c.visibility = 'private'
   )
   and not exists (
     select 1
     from public.podcast_community_circle_members m
-    where m.circle_id = circle_id
+    where m.circle_id = public.podcast_community_circle_join_requests.circle_id
       and m.member_id = (select auth.uid())
   )
 );
@@ -260,7 +260,7 @@ for delete
 to authenticated
 using (
   (user_id = (select auth.uid()) and status = 'pending')
-  or private.crowspace_is_circle_moderator_or_owner(circle_id)
+  or private.crowspace_is_circle_moderator_or_owner(public.podcast_community_circle_join_requests.circle_id)
   or private.crowrules_is_admin_impl()
 );
 
@@ -320,9 +320,27 @@ begin
 end;
 $function$;
 
-revoke all on function private.review_podcast_circle_join_request(uuid, text) from public;
-revoke all on function private.review_podcast_circle_join_request(uuid, text) from anon;
+revoke all on function private.review_podcast_circle_join_request(uuid, text) from public, anon, authenticated;
 grant execute on function private.review_podcast_circle_join_request(uuid, text) to authenticated;
+
+-- PostgREST can invoke the public SECURITY INVOKER wrapper; the privileged
+-- implementation remains in the non-exposed private schema.
+create or replace function public.review_podcast_circle_join_request(
+  p_request_id uuid,
+  p_decision text
+)
+returns void
+language sql
+security invoker
+set search_path = ''
+as $function$
+  select private.review_podcast_circle_join_request($1, $2);
+$function$;
+
+revoke all on function public.review_podcast_circle_join_request(uuid, text)
+  from public, anon, authenticated;
+grant execute on function public.review_podcast_circle_join_request(uuid, text)
+  to authenticated;
 
 -- Invitees may join hidden groups only after accepting an existing invitation.
 drop policy if exists "Accepted invitees may join hidden circles" on public.podcast_community_circle_members;
