@@ -27,6 +27,15 @@ begin
   if to_regprocedure('public.review_podcast_circle_join_request(uuid,text)') is null then
     raise exception 'Phase 1 migration is missing the public approval wrapper';
   end if;
+  if to_regprocedure('public.accept_podcast_circle_invite(uuid)') is null then
+    raise exception 'Phase 1 migration is missing the public invitation acceptance wrapper';
+  end if;
+  if has_function_privilege('anon','public.accept_podcast_circle_invite(uuid)','EXECUTE') then
+    raise exception 'Anonymous execution of invitation acceptance wrapper must remain revoked';
+  end if;
+  if not has_function_privilege('authenticated','public.accept_podcast_circle_invite(uuid)','EXECUTE') then
+    raise exception 'Authenticated execution grant missing for invitation acceptance wrapper';
+  end if;
   if not (select relrowsecurity from pg_class where oid='public.podcast_community_circle_join_requests'::regclass) then
     raise exception 'RLS is not enabled on join requests';
   end if;
@@ -110,6 +119,17 @@ insert into public.podcast_community_circle_invites (
   '00000000-0000-4000-8000-000000000004',
   '00000000-0000-4000-8000-000000000008',
   'accepted'
+);
+
+-- A separate pending invitation exercises atomic acceptance for a hidden group.
+insert into public.podcast_community_circle_invites (
+  id, circle_id, inviter_id, invitee_id, status
+) values (
+  '30000000-0000-4000-8000-000000000001',
+  '10000000-0000-4000-8000-000000000004',
+  '00000000-0000-4000-8000-000000000001',
+  '00000000-0000-4000-8000-000000000007',
+  'pending'
 );
 
 -- Anonymous discovery: active categories and public/private metadata are visible; hidden is not.
@@ -329,6 +349,34 @@ begin
   end;
 end
 $wrong_hidden_invite$;
+
+-- A pending invitation grants metadata visibility and atomic hidden-group acceptance.
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000007',true);
+select set_config('request.jwt.claims','{"sub":"00000000-0000-4000-8000-000000000007","role":"authenticated","app_metadata":{}}',true);
+do $invite_acceptance$
+begin
+  if not exists (
+    select 1 from public.podcast_community_circles
+    where id='10000000-0000-4000-8000-000000000004'
+  ) then raise exception 'Invitee cannot view hidden group metadata'; end if;
+
+  perform public.accept_podcast_circle_invite('30000000-0000-4000-8000-000000000001');
+
+  if not exists (
+    select 1 from public.podcast_community_circle_invites
+    where id='30000000-0000-4000-8000-000000000001'
+      and status='accepted'
+      and responded_at is not null
+  ) then raise exception 'Invitation was not accepted'; end if;
+
+  if not exists (
+    select 1 from public.podcast_community_circle_members
+    where circle_id='10000000-0000-4000-8000-000000000004'
+      and member_id='00000000-0000-4000-8000-000000000007'
+      and role='member'
+  ) then raise exception 'Invitation acceptance did not create membership atomically'; end if;
+end
+$invite_acceptance$;
 
 -- Member B must not read or write messages belonging to circle A.
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000005',true);
