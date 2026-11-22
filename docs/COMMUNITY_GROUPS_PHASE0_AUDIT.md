@@ -241,3 +241,64 @@ Not completed:
 - Final production release review.
 
 **Safety boundary:** This audit branch contains documentation only. No production schema, data, policies, grants, functions, Storage configuration, Stripe configuration, or deployed code was changed.
+
+
+## Phase 1 — Community Groups foundation plan (2026-11-22)
+
+### Scope
+
+Phase 1 is a UI/application foundation using the existing production schema as a reference. This plan does not authorize production SQL, migrations, synthetic-user tests, or deployment.
+
+In-scope user experience:
+1. **Group discovery:** browse public circles, show name/description/category, public/private status, and membership count only where a safe count source exists. Use existing `podcast_community_circles` and existing category values; do not add a category table for this slice.
+2. **Group detail:** show group description and rules, owner/moderator identity through a safe profile projection, and existing posts visible under the circle's current access rules.
+3. **Membership:** join/leave public groups using existing membership semantics; use existing invitation workflow for private groups. Do not implement join requests because `podcast_community_circle_join_requests` is absent.
+4. **Community feed:** reuse `podcast_community_circle_posts`, `podcast_community_circle_replies`, and existing activity/report/helpful-vote features where their current policies support the operation. Support discussion, question, episode, announcement, and media post types in the data model, but initially expose text-only post composition until media policy review is complete.
+5. **Moderation basics:** surface existing report workflow and owner/moderator controls only after verifying each operation's current policy and column grants. No broad policy replacement.
+6. **Member identity:** render only an explicit safe profile projection. Do not select all columns from `podcast_member_profiles`; privacy flags exist but do not by themselves provide column-level privacy.
+
+### Out of scope for this slice
+
+- New SQL objects, migrations, production DDL, policy/grant/function changes, or deployment.
+- Private-group join requests (table absent).
+- New group chat (circle chat tables absent; CrowSpace chat uses a separate group ID domain and must not be joined by assumption).
+- Group media upload/public delivery (Storage policy defect below).
+- New polls/events/episode playback/awards implementations; existing related tables may be considered in later slices after their lifecycle and entitlement rules are documented.
+- Local replay, synthetic-user testing, and production rollout until the user explicitly reopens those gates.
+
+### Live-schema review findings
+
+- Existing core tables: `podcast_community_circles`, `podcast_community_circle_members`, `podcast_community_circle_posts`, `podcast_community_circle_replies`, `podcast_community_circle_reports`, and `podcast_community_circle_image_suggestions`.
+- The live circles table already includes `avatar_image_path` and `banner_image_path`; posts already include the Groups 2.0 post-type, episode, media-path, edit/delete, pin, and lock columns.
+- The live post-type constraint allows `discussion`, `episode`, `question`, `announcement`, and `media`.
+- Existing RLS policies include public-circle discovery, self-join of public circles, membership visibility, member post creation, public/member post visibility, reply creation with a parent-post/same-circle correlation check, and moderator report review.
+- Circle categories are constrained to the current production list. Phase 1 must use those exact values rather than inventing new categories.
+- Profile table `podcast_member_profiles` contains privacy flags and additional profile fields. Application queries must use an explicit allowlist and respect profile visibility; avoid `select(*)`.
+- The Groups 2.0 SQL draft is not safe to apply as-is. Its Storage policy block contains an incomplete SQL expression in the draft text. The live `Public group media is viewable` policy also correlates the circle using `storage.foldername(c.name)` rather than the object's `name` path. Keep the bucket private and omit public media delivery until a separately reviewed correction and test matrix exist.
+- Existing Storage policies also allow member upload/read and owner/moderator deletion; these need a separate path/authorization review before enabling media UI.
+- The Groups 2.0 draft's use of `create or replace`, policy drops/recreates, grants, and trigger/function definitions must not be treated as an idempotent safe patch without migration replay and role-based testing.
+
+### Acceptance criteria for the Phase 1 application slice
+
+1. Public groups can be listed without exposing private groups or private metadata.
+2. Group detail pages resolve only circles visible to the current viewer.
+3. A signed-in user can join and leave a public group without changing another user's membership or the owner role.
+4. Private groups remain inaccessible to non-members; invitations remain the only supported entry path in this slice.
+5. Feed queries are scoped to one circle and never mix posts/replies across circles.
+6. Post creation/edit/delete and reply creation follow existing author/member/moderator rules; locked posts reject new replies.
+7. Reports are visible to the reporting user only as currently allowed and to the correct circle moderators/admins for review; one circle's moderators cannot review another circle's reports.
+8. Member cards use an explicit safe profile projection and do not leak location, interests, social links, or other fields when not public.
+9. Text-only feed operation does not require Storage access.
+10. No database or production changes are made as part of this plan.
+
+### Implementation sequence
+
+- **1A — UI contract and data adapters:** document the exact select/insert/update operations, safe profile fields, and visibility states. No schema writes.
+- **1B — Discovery and group detail:** build the browse/detail experience against the existing supported data contract.
+- **1C — Membership controls:** wire public join/leave and existing private invitations without changing RLS.
+- **1D — Text feed and replies:** wire feed pagination, post composer, replies, locked-post state, and reports using current tables/policies.
+- **1E — Review checkpoint:** inspect code diff and verify no production SQL, secrets, broad RLS changes, or unrelated features were introduced. Testing/deployment remain gated pending an agreed test environment and schema baseline.
+
+### Phase 1 status
+
+Planning and read-only schema review completed. No application code, SQL, migration, test data, or production configuration was changed by this Phase 1 review. The next safe implementation artifact is a frontend-only contract/component plan or a code-only branch proposal; it must remain unmerged and undeployed until reviewed.
