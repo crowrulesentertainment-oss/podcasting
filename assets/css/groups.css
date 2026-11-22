@@ -65,3 +65,23 @@
 @media(max-width:900px){.crg-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.crg-detail-layout{grid-template-columns:1fr}}
 @media(max-width:620px){.crg-wrap{width:calc(100% - 28px)}.crg-hero{min-height:400px}.crg-hero-copy{padding:55px 0 48px}.crg-grid{grid-template-columns:1fr}.crg-cover{height:190px}.crg-section-head{align-items:stretch;flex-direction:column}.crg-search{width:100%}.crg-group-head{min-height:280px}.crg-panel{padding:14px}}
 @media(prefers-reduced-motion:reduce){.crg-card{transition:none}.crg-card:hover{transform:none}}
+
+/* Group roster and owner/moderator join-request tools */
+.crg-tool-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.crg-tool-heading h3{margin:5px 0 0;font-size:17px}
+.crg-tool-count{display:inline-flex;min-width:30px;height:30px;align-items:center;justify-content:center;border:1px solid #ffffff28;border-radius:50%;color:#e9c36a;font-size:11px;font-weight:900}
+.crg-roster-list{display:grid;gap:8px}
+.crg-roster-person{display:flex;align-items:center;gap:9px;min-width:0;padding:8px 0;border-bottom:1px solid #ffffff12}
+.crg-roster-avatar{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:50%;background:#292020;border:1px solid #ffffff20;color:#fff;font-size:11px;font-weight:900}
+.crg-roster-name{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#eee;font-size:11px;font-weight:750}
+.crg-roster-role{color:#d9b66d;font-size:9px;text-transform:uppercase;letter-spacing:.08em}
+.crg-tool-status{margin:8px 0;color:#aaa;font-size:11px;line-height:1.5}
+.crg-tool-status.error{color:#ff9a9a}
+.crg-request-row{padding:11px 0;border-bottom:1px solid #ffffff18}
+.crg-request-copy{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.crg-request-copy strong{color:#eee;font-size:11px}
+.crg-request-copy small{color:#888;font-size:9px}
+.crg-request-actions{display:flex;gap:7px;margin-top:9px}
+.crg-request-actions .crg-btn{padding:7px 10px;font-size:10px}
+.crg-request-actions button:disabled{opacity:.45;cursor:wait}
+@media(max-width:760px){.crg-tool-heading h3{font-size:15px}.crg-request-copy{align-items:flex-start;flex-direction:column;gap:3px}}
