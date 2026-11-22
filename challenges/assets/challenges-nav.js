@@ -8,6 +8,7 @@
   const groups = [
     { label: "Explore", links: [
       ["Challenge Headquarters", "index.html"],
+      ["Community Voting", "vote/index.html"],
       ["Annual Calendar", "calendar/index.html"],
       ["Challenge History", "history/index.html"],
       ["Challenge Episodes", "episodes/index.html"]
