@@ -84,3 +84,26 @@
 .crg-membership-state{color:var(--crg-gold);font-weight:800}
 #crg-membership .crg-status{margin:12px 0 0}
 #crg-membership .crg-btn:disabled{opacity:.55;cursor:wait}
+
+
+/* Phase 1D — text posts and replies */
+.crg-post-composer{display:grid;gap:10px;margin:0 0 22px;padding:16px;background:#ffffff08;border:1px solid #ffffff1c;border-radius:7px}
+.crg-post-composer>label{color:#f4f0e8;font-size:13px;font-weight:800}
+.crg-post-composer textarea,.crg-reply-form textarea{width:100%;min-height:96px;resize:vertical;padding:12px;border:1px solid #ffffff28;border-radius:5px;background:#101010;color:#fff;font:inherit;font-size:13px;line-height:1.6}
+.crg-post-composer textarea:focus,.crg-reply-form textarea:focus{outline:2px solid var(--crg-gold);outline-offset:2px}
+.crg-form-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#888;font-size:10px}
+.crg-post-list{display:grid;gap:14px}
+.crg-post-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.75}
+.crg-replies{margin-top:18px;padding:14px 0 0 14px;border-top:1px solid #ffffff18;border-left:2px solid #ffffff16}
+.crg-replies h4{display:flex;align-items:center;gap:8px;margin:0 0 12px;color:#ddd;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.crg-replies h4 span{color:var(--crg-gold)}
+.crg-reply{padding:10px 0;border-bottom:1px solid #ffffff12}
+.crg-reply-head{display:flex;justify-content:space-between;gap:10px;color:#bbb;font-size:10px}
+.crg-reply-head time{color:#888}
+.crg-reply p{margin:7px 0 0;color:#ddd;font-size:12px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
+.crg-reply-form{display:grid;justify-items:end;gap:8px;margin-top:12px}
+.crg-reply-form textarea{min-height:68px}
+.crg-feed-hint{margin:10px 0;color:#888;font-size:11px;line-height:1.6}
+.crg-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.crg-post-composer button:disabled,.crg-reply-form button:disabled{opacity:.55;cursor:wait}
+@media(max-width:620px){.crg-form-footer{align-items:flex-start;flex-direction:column}.crg-replies{padding-left:10px}}
