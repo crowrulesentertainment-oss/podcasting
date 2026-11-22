@@ -426,26 +426,6 @@ create index if not exists idx_crplus_content_workflow
 create index if not exists idx_crplus_comments_moderation
   on public.crplus_comments(is_hidden,created_at desc);
 
--- Historical admin resolver: admin membership or an active platform member
--- with admin/owner role. No privileged user is inserted by this draft.
-create or replace function public.crplus_is_admin()
-returns boolean
-language sql stable security definer
-set search_path=public,pg_temp
-as $
-  select exists(
-    select 1 from public.crplus_admins a
-    where a.user_id=(select auth.uid()) and a.is_active
-  ) or exists(
-    select 1 from public.members m
-    where m.user_id=(select auth.uid())
-      and lower(m.role) in ('admin','owner')
-      and lower(m.status)='active'
-  );
-$;
-revoke all on function public.crplus_is_admin() from public,anon;
-grant execute on function public.crplus_is_admin() to authenticated;
-
 alter table public.crplus_project_submissions enable row level security;
 alter table public.crplus_project_tasks enable row level security;
 alter table public.crplus_project_credits enable row level security;
