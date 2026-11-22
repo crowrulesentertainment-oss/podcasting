@@ -391,6 +391,20 @@ begin
 end
 $invite_acceptance$;
 
+-- Another invited user cannot accept an invitation addressed to someone else.
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000008',true);
+select set_config('request.jwt.claims','{"sub":"00000000-0000-4000-8000-000000000008","role":"authenticated","app_metadata":{}}',true);
+do $wrong_invitee_accept$
+begin
+  begin
+    perform public.accept_podcast_circle_invite('30000000-0000-4000-8000-000000000001');
+    raise exception 'A different invitee accepted someone else’s invitation';
+  exception when no_data_found then
+    null;
+  end;
+end
+$wrong_invitee_accept$;
+
 -- Existing group events are created by moderators and RSVPs are member-only.
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000002',true);
 select set_config('request.jwt.claims','{"sub":"00000000-0000-4000-8000-000000000002","role":"authenticated","app_metadata":{}}',true);
@@ -442,6 +456,24 @@ begin
     select 1 from public.podcast_community_circle_events
     where id='40000000-0000-4000-8000-000000000001'
   ) then raise exception 'Non-member can read a private group event'; end if;
+
+  begin
+    insert into public.podcast_community_circle_events (
+      circle_id,creator_id,title,description,event_type,starts_at,
+      location_type,location_text,meeting_url,episode_url,status,branch_key
+    ) values (
+      '10000000-0000-4000-8000-000000000001',
+      '00000000-0000-4000-8000-000000000007',
+      'Unauthorized event',
+      'A non-member must not create this event.',
+      'meetup',
+      now() + interval '2 days',
+      'online','','','','scheduled','community'
+    );
+    raise exception 'Expected non-moderator event creation to be rejected';
+  exception when insufficient_privilege then
+    null;
+  end;
 
   begin
     insert into public.podcast_community_circle_event_rsvps (event_id,user_id,response)
