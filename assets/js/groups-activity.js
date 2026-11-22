@@ -78,7 +78,7 @@ const notificationTypes = [
 ];
 const notificationIdentity = row => {
   const meta = row.metadata || {};
-  const entity = meta.invitation_id ? "invite:" + meta.invitation_id :
+  const entity = ["circle_invitation", "community_invite"].includes(row.type) ? "invite:" + (meta.invitation_id || meta.circle_id || row.id) :
     meta.post_id ? "post:" + meta.post_id :
     meta.event_id ? "event:" + meta.event_id :
     meta.circle_id ? "circle:" + meta.circle_id + ":" + row.type : row.id;
@@ -103,7 +103,7 @@ export async function mountGroupNotifications(root, user) {
   const list = section.querySelector(".crg-notification-list");
   const count = section.querySelector("[data-notification-count]");
   const prefs = section.querySelector(".crg-notification-preferences");
-  let rows = [];
+  let rows = [], allRows = [];
 
   async function refresh() {
     const { data, error } = await sb.from("crowrules_notifications")
@@ -111,8 +111,9 @@ export async function mountGroupNotifications(root, user) {
       .eq("user_id", user.id).in("type", notificationTypes)
       .order("created_at", { ascending: false }).limit(60);
     if (error) throw error;
+    allRows = data || [];
     const seen = new Set();
-    rows = (data || []).filter(row => {
+    rows = allRows.filter(row => {
       const key = notificationIdentity(row);
       if (seen.has(key)) return false;
       seen.add(key);
@@ -173,7 +174,7 @@ export async function mountGroupNotifications(root, user) {
   section.querySelector("[data-mark-all]").addEventListener("click", async event => {
     const button = event.currentTarget;
     button.disabled = true;
-    const unread = rows.filter(row => !row.is_read).map(row => row.id);
+    const unread = allRows.filter(row => !row.is_read).map(row => row.id);
     if (unread.length) {
       const { error } = await sb.from("crowrules_notifications")
         .update({ is_read: true, read_at: new Date().toISOString() })
