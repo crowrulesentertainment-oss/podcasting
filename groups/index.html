@@ -56,7 +56,19 @@
     @media(max-width:900px){.gp-hub .gp-feature-grid{grid-template-columns:1fr 1fr}}
     @media(max-width:620px){.gp-hub .topbar{height:70px}.gp-hub .gp-feature-grid{grid-template-columns:1fr}.gp-hub .crg-hero{min-height:510px}.gp-hub .crg-hero-copy{padding:50px 0 44px}.gp-hub .gp-countdown{padding:14px}.gp-hub .gp-countdown-grid{gap:5px}.gp-hub .gp-countdown-grid>div{padding:11px 4px}.gp-hub .gp-countdown-grid strong{font-size:25px}.gp-hub .gp-section-title{align-items:start;flex-direction:column}}
     @media(prefers-reduced-motion:reduce){.gp-hub .gp-feature{transition:none}.gp-hub .gp-feature:hover{transform:none}}
-  </style>
+  
+    .gp-hub .topbar .nav{display:flex;flex:1;min-width:0;gap:clamp(5px,1vw,14px);align-items:center;justify-content:center;flex-wrap:nowrap}
+    .gp-hub .topbar .nav-group{position:relative}
+    .gp-hub .topbar .nav-group>summary{list-style:none;cursor:pointer;white-space:nowrap;padding:10px 11px;border-radius:10px;color:#d6d9e0;font-size:12px;font-weight:800}
+    .gp-hub .topbar .nav-group>summary::-webkit-details-marker{display:none}
+    .gp-hub .topbar .nav-group>summary:after{content:"⌄";margin-left:7px;color:#13d8ff}
+    .gp-hub .topbar .nav-group[open]>summary{background:#13d8ff16;color:#fff}
+    .gp-hub .topbar .nav-menu{position:absolute;top:calc(100% + 10px);left:0;z-index:60;min-width:205px;padding:8px;background:#0c111b;border:1px solid #13d8ff44;border-radius:14px;box-shadow:0 18px 45px #000b;display:grid;gap:3px}
+    .gp-hub .topbar .nav-menu a{display:block;padding:10px 12px;border-radius:9px;color:#d5d9e2;font-size:12px;font-weight:700;white-space:nowrap}
+    .gp-hub .topbar .nav-menu a:hover{background:#13d8ff18;color:#fff}
+    .gp-hub .topbar .header-actions{flex-shrink:0}
+    @media(max-width:900px){.gp-hub .topbar .nav{display:none;position:absolute;top:70px;left:0;right:0;max-height:calc(100vh - 70px);overflow-y:auto;padding:12px 16px 18px;background:#070a12fa;border-bottom:1px solid #13d8ff33;backdrop-filter:blur(18px);flex-direction:column;align-items:stretch;justify-content:flex-start;gap:5px}.gp-hub .topbar .nav.nav-open{display:flex}.gp-hub .topbar .nav-group{width:100%;border:1px solid #ffffff12;border-radius:12px;background:#ffffff05}.gp-hub .topbar .nav-group>summary{padding:13px 14px;font-size:13px}.gp-hub .topbar .nav-menu{position:static;min-width:0;padding:0 8px 8px;border:0;box-shadow:none;background:transparent}.gp-hub .topbar .nav-menu a{padding:11px 14px;white-space:normal}.gp-hub .topbar .nav-group>summary:after{float:right}}
+</style>
 </head>
 <body data-groups-page="home">
 <div class="gp-hub">
