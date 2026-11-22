@@ -490,7 +490,7 @@ with check (
   and exists (
     select 1
     from public.podcast_community_circles c
-    where c.id = circle_id
+    where c.id = public.podcast_community_circle_members.circle_id
       and c.visibility = 'hidden'
   )
   and exists (
