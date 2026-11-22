@@ -32,7 +32,8 @@ async function load(){
   if(!creatorLink.error)creatorProfileId=creatorLink.data?.id||null;
  }
  const used=new Set(entries.map(e=>e.challenge_id));
- const options=events.map(e=>'<option value="'+esc(e.id)+'">'+esc(e.title)+(used.has(e.id)?" · Entry already submitted":"")+'</option>').join("");
+ const now=Date.now(),activeEvent=events.find(e=>e.status==="published"&&!used.has(e.id)&&now>=new Date(e.submission_opens_at).getTime()&&now<=new Date(e.submission_closes_at).getTime())||events.find(e=>e.status==="published"&&!used.has(e.id)&&now<=new Date(e.submission_closes_at).getTime())||events[0];
+ const options=events.map(e=>'<option value="'+esc(e.id)+'"'+(e.id===activeEvent?.id?" selected":"")+'>'+esc(e.title)+(used.has(e.id)?" · Entry already submitted":"")+'</option>').join("");
  const rows=entries.map(e=>{
   const event=events.find(x=>x.id===e.challenge_id);
   return '<article class="entry-row"><div><strong>'+esc(e.episode_title)+'</strong><small>'+esc(event?.title||"Holiday challenge")+' · '+new Date(e.submitted_at).toLocaleDateString()+'</small></div><span class="entry-state">'+esc(e.status)+'</span></article>';
