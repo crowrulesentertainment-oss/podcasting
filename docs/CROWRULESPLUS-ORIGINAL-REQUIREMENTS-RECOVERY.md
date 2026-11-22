@@ -191,3 +191,66 @@ No policies, grants, subscriptions, membership rows, site registrations, or enti
 ## Updated CR+ recovery decision
 
 Do not create CR+ entitlement rows yet. First establish whether CrowRules+ should participate in the existing universal cross-site membership model, and whether the shared plan's features are intended to unlock CR+ catalog/playback features or only general community/supporter benefits. The original CR+ migrations and frontend contract are still missing, and the production site is explicitly inactive today.
+
+
+## Stripe membership lifecycle trace (read-only, 2026-11-22)
+
+### Deployed membership checkout and webhook functions
+
+Production Edge Function inspection (no invocation or mutation) found:
+
+- `membership-checkout` — ACTIVE, version 81, JWT verification enabled. Authenticates the caller with Supabase, restricts global paid plans to `crowner`, `creator`, and `founder`, reads the active plan's Stripe price, and creates a Stripe subscription Checkout Session. It supports embedded and hosted Checkout. For an existing global subscription, it allows upgrades to a higher `sort_order` by changing the Stripe subscription item's price with prorations.
+- `membership-stripe-webhook` — ACTIVE, version 77, JWT verification disabled as expected for a Stripe webhook. It verifies the Stripe signature using `STRIPE_WEBHOOK_SECRET`, processes checkout completion, subscription create/update/delete, and invoice paid/payment-failed events, then upserts `membership_subscriptions` and calls `sync_member_membership_from_subscription` for global (null-site) plans.
+- `membership-status` — ACTIVE, version 75, JWT verification enabled. Calls `get_my_membership`, lists active sites, returns global entitlements and website-specific membership/entitlement data.
+- `membership-portal` — ACTIVE, version 76, JWT verification enabled. Uses the authenticated user's own membership or podcast subscription customer ID to create a Stripe Billing Portal session.
+
+### Checkout-to-entitlement path
+
+1. An authenticated member selects a paid global plan.
+2. `membership-checkout` reads the active `membership_plans` row and its `stripe_price_id`.
+3. Stripe Checkout creates a subscription with `metadata.user_id` and `metadata.plan_key` (and `client_reference_id` on hosted Checkout).
+4. `membership-stripe-webhook` verifies the signed event and resolves the member and plan from the subscription metadata / Stripe price ID.
+5. The webhook upserts `membership_subscriptions` by `stripe_subscription_id`.
+6. For global plans (`site_key IS NULL`), it calls `sync_member_membership_from_subscription` to update the legacy `members.membership_type` and `members.status`.
+7. `membership-status` reads the resulting membership and entitlements.
+
+### Verified lifecycle mapping
+
+The membership webhook currently maps Stripe subscription statuses as follows:
+
+| Stripe status/event | Stored membership status |
+|---|---|
+| `active`, `trialing` | `active` |
+| `past_due`, `incomplete`, `incomplete_expired`, `unpaid` | `pending` |
+| `paused` | `paused` |
+| `canceled` or subscription-deleted event | `cancelled` |
+| Other statuses | `expired` |
+
+Invoice paid changes the membership subscription to `active`; invoice payment failed changes it to `pending`. The database status constraint accepts `pending`, `active`, `paused`, `cancelled`, and `expired`.
+
+### Important implementation risks to resolve before activating CrowRules+
+
+These are code-level observations, not evidence of a currently exploited vulnerability:
+
+1. **Webhook persistence errors are not consistently checked.** In `membership-stripe-webhook`, membership upsert and `sync_member_membership_from_subscription` RPC errors are not checked before returning HTTP 200. A database failure could therefore be acknowledged to Stripe as successfully processed, preventing a retry.
+2. **The membership webhook has no event ledger / duplicate-event state machine.** The subscription upsert is keyed by Stripe subscription ID, which helps with duplicate delivery, but the webhook does not persist event IDs or guard against older events arriving after newer events. An out-of-order event could overwrite a newer subscription state.
+3. **The custom signature verifier does not enforce a timestamp tolerance.** It checks the HMAC signature but does not reject old signed payloads. Stripe's standard SDK verifier in the separate `stripe-billing-webhook` does perform the standard verification flow. Review whether the membership webhook should use the same SDK verification approach and a bounded tolerance.
+4. **Global member synchronization does not filter to global subscriptions.** `sync_member_membership_from_subscription(p_user_id)` selects the user's membership subscription without `site_key IS NULL`. It can therefore choose a site-scoped subscription if one exists. It also maps only `founder`, `creator`, and `crowner` to legacy member types; every other plan maps to `Free`. The function maps only `active` and `pending` to member status `Active`; `trialing`, `past_due`, and `paused` can become `Suspended`, despite the membership read/entitlement paths treating some of those statuses as eligible. This is a potential cross-product/status consistency defect to review against the intended model.
+5. **Webhook plan resolution depends on the current Stripe price mapping.** Subscription events resolve the plan from the first subscription item's price ID. If no plan matches, the current code does not update the stored membership row for that event. Ensure cancellation/price-change cases cannot leave stale access if a price mapping is removed or changed.
+6. **Site-specific checkout is not ready for CrowRules+.** The checkout function requires an active `membership_sites` row and a matching active plan with that `site_key`; the CR+ site is currently inactive and has no entitlements. No activation or plan mapping was performed.
+
+### Separate Stripe billing webhook
+
+A second active Edge Function, `stripe-billing-webhook` (version 82), uses the Stripe SDK's webhook signature verification and writes to `stripe_billing_webhook_events` and `stripe_billing_subscriptions`, with podcast creator revenue handling. Its observed code does not write to `membership_subscriptions` or `membership_entitlements`. It should not be mistaken for the shared membership entitlement webhook.
+
+### Production data limitation
+
+The earlier privacy-preserving aggregate showed only two `membership_subscriptions` rows, both `active`, with a plan ID but no site key and no Stripe subscription ID. Thus the deployed integration code is present, but the current production rows do not demonstrate a populated Stripe-linked membership lifecycle. No Stripe account objects, customer records, emails, or individual member identities were queried.
+
+### No changes made
+
+No Edge Functions were invoked, redeployed, or modified. No Stripe API writes were made. No production database records, policies, grants, or schema were changed.
+
+## Recommended next review checkpoint
+
+Before enabling CrowRules+, make a narrowly scoped design decision on whether CR+ uses the global shared plans or a separate site-scoped plan. Then prepare (but do not apply) a minimal webhook reliability patch proposal covering: checked database writes and non-200 failure responses, Stripe event-ID idempotency / ordering, standard timestamp-tolerant signature verification, and global-only membership synchronization. Preserve current plan prices and member entitlements while doing this review.
