@@ -254,3 +254,16 @@ No Edge Functions were invoked, redeployed, or modified. No Stripe API writes we
 ## Recommended next review checkpoint
 
 Before enabling CrowRules+, make a narrowly scoped design decision on whether CR+ uses the global shared plans or a separate site-scoped plan. Then prepare (but do not apply) a minimal webhook reliability patch proposal covering: checked database writes and non-200 failure responses, Stripe event-ID idempotency / ordering, standard timestamp-tolerant signature verification, and global-only membership synchronization. Preserve current plan prices and member entitlements while doing this review.
+
+
+## Webhook reliability proposal prepared (review-only, 2026-11-22)
+
+A separate, non-deployable patch proposal is now recorded at:
+
+`docs/MEMBERSHIP-STRIPE-WEBHOOK-RELIABILITY-PATCH-PROPOSAL.md`
+
+It specifies standard Stripe timestamp-tolerant signature verification, a dedicated membership webhook event ledger (not the separate podcast billing ledger), atomic event claims and retry handling, canonical subscription retrieval and event-order protection, checked database writes, and global-only membership synchronization. It includes a regression matrix covering duplicate/concurrent events, invalid/expired signatures, failed writes, out-of-order/equal-timestamp events, price changes, and global-versus-site-scoped subscription combinations.
+
+The production `sync_member_membership_from_subscription(uuid)` definition was inspected and confirms it currently selects a user's subscription without filtering `site_key IS NULL`. The proposal preserves current plan mappings and status/grace-period semantics; those require a separate product decision.
+
+**No implementation or deployment was performed.** The proposal contains no executable migration and no production changes were made.
