@@ -235,6 +235,7 @@ create policy crplus_schedule_admin_manage on public.crplus_schedule
 grant select on public.crplus_creators, public.crplus_content,
   public.crplus_live_channels, public.crplus_schedule to anon, authenticated;
 grant select on public.crplus_projects, public.crplus_admins to authenticated;
+grant select on public.members to authenticated;
 grant insert, update, delete on public.crplus_projects, public.crplus_content,
   public.crplus_creators, public.crplus_live_channels, public.crplus_schedule
   to authenticated;
