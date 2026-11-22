@@ -392,9 +392,12 @@ on public.podcast_community_circle_join_requests
 for delete
 to authenticated
 using (
-  (user_id = (select auth.uid()) and status = 'pending')
-  or private.crowspace_is_circle_moderator_or_owner(public.podcast_community_circle_join_requests.circle_id)
-  or private.crowrules_is_admin_impl()
+  status = 'pending'
+  and (
+    user_id = (select auth.uid())
+    or private.crowspace_is_circle_moderator_or_owner(public.podcast_community_circle_join_requests.circle_id)
+    or private.crowrules_is_admin_impl()
+  )
 );
 
 -- Approval is atomic: update the request and create membership together.
