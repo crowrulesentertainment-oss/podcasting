@@ -179,4 +179,46 @@ BEGIN
   RAISE NOTICE 'PASS: webhook PostgreSQL integration assertions';
 END $$;
 
+
+-- Exercise the actual candidate SQL migration functions in this disposable DB.
+DO $
+DECLARE v text; m record;
+BEGIN
+  v := public.claim_membership_stripe_event('evt-candidate-1','customer.subscription.updated',700);
+  IF v <> 'claimed' THEN RAISE EXCEPTION 'candidate initial claim expected claimed, got %',v; END IF;
+  v := public.claim_membership_stripe_event('evt-candidate-1','customer.subscription.updated',700);
+  IF v <> 'busy' THEN RAISE EXCEPTION 'candidate in-flight duplicate expected busy, got %',v; END IF;
+  PERFORM public.finish_membership_stripe_event('evt-candidate-1','processed',NULL);
+  v := public.claim_membership_stripe_event('evt-candidate-1','customer.subscription.updated',700);
+  IF v <> 'processed' THEN RAISE EXCEPTION 'candidate processed duplicate expected processed, got %',v; END IF;
+
+  v := public.claim_membership_stripe_event('evt-candidate-retry','invoice.payment_failed',701);
+  PERFORM public.finish_membership_stripe_event('evt-candidate-retry','failed','synthetic failure');
+  v := public.claim_membership_stripe_event('evt-candidate-retry','invoice.payment_failed',701);
+  IF v <> 'claimed' THEN RAISE EXCEPTION 'candidate failed event did not become retryable'; END IF;
+
+  INSERT INTO public.members(user_id) VALUES
+    ('00000000-0000-0000-0000-0000000000b1'),
+    ('00000000-0000-0000-0000-0000000000c1');
+  INSERT INTO public.membership_plans(id,plan_key) VALUES
+    ('10000000-0000-0000-0000-000000000001','crowner'),
+    ('10000000-0000-0000-0000-000000000002','founder');
+  INSERT INTO public.membership_subscriptions(id,user_id,plan_id,status,created_at,site_key) VALUES
+    ('20000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-0000000000b1','10000000-0000-0000-0000-000000000001','active',now(),''),
+    ('20000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-0000000000b1','10000000-0000-0000-0000-000000000002','active',now()+interval '1 day','crowrules-plus'),
+    ('20000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-0000000000c1','10000000-0000-0000-0000-000000000002','active',now(),'crowrules-plus');
+
+  PERFORM public.sync_member_membership_from_subscription('00000000-0000-0000-0000-0000000000b1');
+  SELECT membership_type,status INTO m FROM public.members WHERE user_id='00000000-0000-0000-0000-0000000000b1';
+  IF m.membership_type <> 'Pro' OR m.status <> 'Active'
+    THEN RAISE EXCEPTION 'candidate global sync selected a site-scoped subscription'; END IF;
+
+  PERFORM public.sync_member_membership_from_subscription('00000000-0000-0000-0000-0000000000c1');
+  SELECT membership_type,status INTO m FROM public.members WHERE user_id='00000000-0000-0000-0000-0000000000c1';
+  IF m.membership_type <> 'Free' OR m.status <> 'Active'
+    THEN RAISE EXCEPTION 'candidate site-only subscription granted global membership'; END IF;
+
+  RAISE NOTICE 'PASS: candidate migration event-ledger and global-sync assertions';
+END $;
+
 ROLLBACK;
