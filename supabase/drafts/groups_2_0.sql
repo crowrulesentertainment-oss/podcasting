@@ -193,7 +193,7 @@ drop policy if exists "Owners and moderators delete group media" on storage.obje
 create policy "Group members upload their own group media"
 on storage.objects for insert to authenticated
 with check (bucket_id='podcast-group-media'
-  and (storage.foldername(name))[1] ~* '^[0-9a-f-]{36}$'
+  and (storage.foldername(name))[1] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
   and (storage.foldername(name))[2]=(select auth.uid())::text
   and (private.crowspace_is_circle_member(((storage.foldername(name))[1])::uuid)
        or private.crowspace_is_circle_moderator_or_owner(((storage.foldername(name))[1])::uuid)));
