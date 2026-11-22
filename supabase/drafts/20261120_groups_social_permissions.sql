@@ -31,7 +31,7 @@ on public.podcast_community_circle_replies;
 create policy "Replies visible wherever the parent post is visible"
 on public.podcast_community_circle_replies
 for select
-to anon, authenticated
+to authenticated
 using (
   exists (
     select 1
