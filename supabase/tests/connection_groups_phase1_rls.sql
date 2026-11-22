@@ -24,6 +24,11 @@ begin
   if to_regclass('public.podcast_community_circle_messages') is null then
     raise exception 'Phase 1 migration is missing: group messages table';
   end if;
+  if to_regclass('public.podcast_community_circle_invites') is null
+     or to_regclass('public.podcast_community_circle_events') is null
+     or to_regclass('public.podcast_community_circle_event_rsvps') is null then
+    raise exception 'Existing invitation or group event tables are missing';
+  end if;
   if to_regprocedure('public.review_podcast_circle_join_request(uuid,text)') is null then
     raise exception 'Phase 1 migration is missing the public approval wrapper';
   end if;
@@ -377,6 +382,68 @@ begin
   ) then raise exception 'Invitation acceptance did not create membership atomically'; end if;
 end
 $invite_acceptance$;
+
+-- Existing group events are created by moderators and RSVPs are member-only.
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000002',true);
+select set_config('request.jwt.claims','{"sub":"00000000-0000-4000-8000-000000000002","role":"authenticated","app_metadata":{}}',true);
+insert into public.podcast_community_circle_events (
+  id,circle_id,creator_id,title,description,event_type,starts_at,
+  location_type,location_text,meeting_url,episode_url,status,branch_key
+) values (
+  '40000000-0000-4000-8000-000000000001',
+  '10000000-0000-4000-8000-000000000001',
+  '00000000-0000-4000-8000-000000000002',
+  'CRG Local Meetup',
+  'Synthetic event fixture for local RLS validation.',
+  'meetup',
+  now() + interval '1 day',
+  'online',
+  '',
+  '',
+  '',
+  'scheduled',
+  'community'
+);
+
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000003',true);
+select set_config('request.jwt.claims','{"sub":"00000000-0000-4000-8000-000000000003","role":"authenticated","app_metadata":{}}',true);
+insert into public.podcast_community_circle_event_rsvps (event_id,user_id,response)
+values ('40000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000003','going');
+
+do $event_member_tests$
+begin
+  if not exists (
+    select 1 from public.podcast_community_circle_events
+    where id='40000000-0000-4000-8000-000000000001'
+  ) then raise exception 'Circle member cannot read private group event'; end if;
+
+  if not exists (
+    select 1 from public.podcast_community_circle_event_rsvps
+    where event_id='40000000-0000-4000-8000-000000000001'
+      and user_id='00000000-0000-4000-8000-000000000003'
+      and response='going'
+  ) then raise exception 'Circle member RSVP was not saved'; end if;
+end
+$event_member_tests$;
+
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000007',true);
+select set_config('request.jwt.claims','{"sub":"00000000-0000-4000-8000-000000000007","role":"authenticated","app_metadata":{}}',true);
+do $event_outsider_tests$
+begin
+  if exists (
+    select 1 from public.podcast_community_circle_events
+    where id='40000000-0000-4000-8000-000000000001'
+  ) then raise exception 'Non-member can read a private group event'; end if;
+
+  begin
+    insert into public.podcast_community_circle_event_rsvps (event_id,user_id,response)
+    values ('40000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000007','going');
+    raise exception 'Expected non-member RSVP to be rejected';
+  exception when insufficient_privilege then
+    null;
+  end;
+end
+$event_outsider_tests$;
 
 -- Member B must not read or write messages belonging to circle A.
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000005',true);
