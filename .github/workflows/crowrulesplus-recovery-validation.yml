@@ -52,6 +52,7 @@ jobs:
             status text NOT NULL DEFAULT 'Active'
           );
           CREATE TABLE public.ds_projects (id uuid PRIMARY KEY DEFAULT gen_random_uuid());
+          GRANT SELECT ON public.members TO authenticated;
           SQL
       - name: Apply recovery draft to disposable PostgreSQL
         env:
