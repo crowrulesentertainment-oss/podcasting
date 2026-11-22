@@ -61,7 +61,7 @@ using (submitted_by=(select auth.uid()) or private.crowspace_is_circle_moderator
 create policy "Moderators review group image suggestions"
 on public.podcast_community_circle_image_suggestions for update to authenticated
 using (private.crowspace_is_circle_moderator_or_owner(circle_id) or private.crowrules_is_admin_impl())
-with check (status in ('approved','rejected') and reviewed_by=(select auth.uid()) and (private.crowspace_is_circle_moderator_or_owner(circle_id) or private.crowrules_is_admin_impl()));
+with check (status='rejected' and reviewed_by=(select auth.uid()) and (private.crowspace_is_circle_moderator_or_owner(circle_id) or private.crowrules_is_admin_impl()));
 create policy "Submitters withdraw pending suggestions"
 on public.podcast_community_circle_image_suggestions for delete to authenticated
 using ((submitted_by=(select auth.uid()) and status='pending') or private.crowspace_is_circle_moderator_or_owner(circle_id) or private.crowrules_is_admin_impl());
@@ -171,6 +171,34 @@ on storage.objects for delete to authenticated
 using (bucket_id='podcast-group-media'
   and (private.crowspace_is_circle_moderator_or_owner(((storage.foldername(name))[1])::uuid)
        or owner_id=(select auth.uid())::text));
+
+-- Apply approved member artwork through a narrowly scoped private RPC.
+create or replace function private.apply_podcast_circle_image_suggestion(p_suggestion_id uuid)
+returns void language plpgsql security definer set search_path = pg_catalog
+as $function$
+declare v_circle_id uuid; v_kind text; v_path text;
+begin
+  if auth.uid() is null then raise exception 'Authentication required' using errcode='28000'; end if;
+  select s.circle_id,s.image_kind,s.object_path into v_circle_id,v_kind,v_path
+  from public.podcast_community_circle_image_suggestions s
+  where s.id=p_suggestion_id and s.status='pending' for update;
+  if not found then raise exception 'Pending image suggestion not found' using errcode='P0002'; end if;
+  if not (private.crowspace_is_circle_moderator_or_owner(v_circle_id) or private.crowrules_is_admin_impl()) then
+    raise exception 'Not authorized to approve group artwork' using errcode='42501';
+  end if;
+  if v_kind='avatar' then update public.podcast_community_circles set avatar_image_path=v_path where id=v_circle_id;
+  elsif v_kind='banner' then update public.podcast_community_circles set banner_image_path=v_path where id=v_circle_id;
+  else raise exception 'Unsupported group image kind' using errcode='22023'; end if;
+  update public.podcast_community_circle_image_suggestions set status='approved',reviewed_by=auth.uid(),reviewed_at=now() where id=p_suggestion_id;
+end;
+$function$;
+revoke all on function private.apply_podcast_circle_image_suggestion(uuid) from public,anon,authenticated;
+grant execute on function private.apply_podcast_circle_image_suggestion(uuid) to authenticated;
+create or replace function public.apply_podcast_circle_image_suggestion(p_suggestion_id uuid)
+returns void language sql security invoker set search_path = ''
+as $function$ select private.apply_podcast_circle_image_suggestion($1); $function$;
+revoke all on function public.apply_podcast_circle_image_suggestion(uuid) from public,anon,authenticated;
+grant execute on function public.apply_podcast_circle_image_suggestion(uuid) to authenticated;
 
 comment on table public.podcast_community_circle_image_suggestions is
   'Member-submitted group avatars and banners awaiting owner or moderator review.';
