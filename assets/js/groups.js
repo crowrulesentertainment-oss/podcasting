@@ -41,7 +41,7 @@ function addStylesheet() {
   const link = document.createElement("link");
   link.id = "crg-style";
   link.rel = "stylesheet";
-  link.href = SITE_BASE + "assets/css/groups.css?v=phase1c-membership-1";
+  link.href = SITE_BASE + "assets/css/groups.css?v=phase1d-conversations-1";
   document.head.appendChild(link);
 }
 function groupUrl(id) {
@@ -157,12 +157,12 @@ async function renderMembership(group, container) {
     user = await loadCurrentUser();
   } catch (error) {
     status(container, "We couldn't verify your sign-in. Refresh the page or sign in again.", "error");
-    return;
+    return false;
   }
   if (!user) {
     container.innerHTML = '<p class="crg-membership-copy">Sign in to join this public community and participate.</p>' +
       '<a class="crg-btn" href="' + esc(SITE_BASE + "login.html") + '">Sign in to join</a>';
-    return;
+    return false;
   }
   if (user.id === group.owner_id) {
     container.innerHTML = '<span class="crg-membership-state">You own this community.</span>';
@@ -173,7 +173,7 @@ async function renderMembership(group, container) {
     membership = await loadMyMembership(group.id, user.id);
   } catch (error) {
     status(container, "Membership status is temporarily unavailable. Please try again.", "error");
-    return;
+    return false;
   }
   const paint = () => {
     if (membership) {
@@ -221,6 +221,7 @@ async function renderMembership(group, container) {
       container.appendChild(notice);
     }
   });
+  return Boolean(membership);
 }
 
 async function loadPosts(circleId) {
@@ -246,17 +247,103 @@ async function loadAuthorLabels(authorIds) {
   }
   return labels;
 }
-function renderPosts(posts, labels) {
-  if (!posts.length) return '<div class="crg-empty">No conversations yet. This community is ready for its first post.</div>';
-  return posts.map(post => {
+const REPLIES = "podcast_community_circle_replies";
+const REPLY_FIELDS = "id,post_id,circle_id,author_id,body,created_at";
+
+async function loadReplies(circleId, posts, signedIn) {
+  if (!signedIn) return { replies: [], unavailable: true };
+  if (!posts.length) return { replies: [], unavailable: false };
+  const postIds = posts.map(post => post.id);
+  const result = await sb.from(REPLIES).select(REPLY_FIELDS)
+    .eq("circle_id", circleId)
+    .in("post_id", postIds)
+    .order("created_at", { ascending: true })
+    .limit(150);
+  if (result.error) throw result.error;
+  return { replies: result.data || [], unavailable: false };
+}
+function renderPosts(posts, labels, replies, canReply, signedIn) {
+  const composer = canReply
+    ? '<form class="crg-post-composer" data-action="create-post"><label for="crg-new-post">Start a conversation</label><textarea id="crg-new-post" name="body" maxlength="3000" minlength="1" required placeholder="Share something with this community…"></textarea><div class="crg-form-footer"><span>Up to 3,000 characters</span><button class="crg-btn" type="submit">Publish post</button></div></form>'
+    : (signedIn ? '<p class="crg-feed-hint">Join this community to publish posts and reply.</p>' : '<p class="crg-feed-hint">Sign in and join this community to publish posts and reply.</p>');
+  const cards = posts.length ? posts.map(post => {
     const author = labels.get(post.author_id) || "Community member";
     const locked = post.is_locked ? '<span class="crg-post-flag">Replies closed</span>' : "";
     const pinned = post.is_pinned ? '<span class="crg-post-flag">Pinned</span>' : "";
-    return '<article class="crg-post"><div class="crg-post-head"><strong>' + esc(author) + '</strong>' +
-      '<time datetime="' + esc(post.created_at) + '">' + esc(dateLabel(post.created_at)) + '</time></div>' +
-      '<div class="crg-post-flags">' + pinned + locked + '</div>' +
-      '<p>' + esc(post.body || "") + '</p></article>';
-  }).join("");
+    const postReplies = replies.filter(reply => reply.post_id === post.id);
+    const replyMarkup = postReplies.length
+      ? postReplies.map(reply => '<div class="crg-reply"><div class="crg-reply-head"><strong>' +
+          esc(labels.get(reply.author_id) || "Community member") + '</strong><time datetime="' +
+          esc(reply.created_at) + '">' + esc(dateLabel(reply.created_at)) + '</time></div><p>' +
+          esc(reply.body) + '</p></div>').join("")
+      : '<p class="crg-feed-hint">No replies yet.</p>';
+    const replyForm = post.is_locked
+      ? '<p class="crg-feed-hint">Replies are closed for this post.</p>'
+      : (canReply
+        ? '<form class="crg-reply-form" data-action="create-reply" data-post-id="' + esc(post.id) + '"><label class="crg-sr-only" for="crg-reply-' + esc(post.id) + '">Write a reply</label><textarea id="crg-reply-' + esc(post.id) + '" name="body" maxlength="1500" minlength="1" required placeholder="Write a reply…"></textarea><button class="crg-btn secondary" type="submit">Reply</button></form>'
+        : '<p class="crg-feed-hint">' + (signedIn ? "Join this community to reply." : "Sign in to view and join the conversation.") + '</p>');
+    return '<article class="crg-post" id="post-' + esc(post.id) + '"><div class="crg-post-head"><strong>' +
+      esc(author) + '</strong><time datetime="' + esc(post.created_at) + '">' +
+      esc(dateLabel(post.created_at)) + '</time></div><div class="crg-post-flags">' + pinned + locked +
+      '</div><p class="crg-post-body">' + esc(post.body || "") + '</p><section class="crg-replies" aria-label="Replies">' +
+      '<h4>Replies <span>' + postReplies.length + '</span></h4>' + replyMarkup + replyForm + '</section></article>';
+  }).join("") : '<div class="crg-empty">No conversations yet. Be the first to start one.</div>';
+  return composer + '<div class="crg-post-list">' + cards + '</div>';
+}
+async function renderConversation(group, postsRoot, canReply, user) {
+  try {
+    const posts = await loadPosts(group.id);
+    const repliesResult = user
+      ? await loadReplies(group.id, posts, true)
+      : { replies: [], unavailable: false };
+    const labels = await loadAuthorLabels([
+      ...posts.map(post => post.author_id),
+      ...repliesResult.replies.map(reply => reply.author_id)
+    ]);
+    postsRoot.innerHTML = renderPosts(posts, labels, repliesResult.replies, canReply, Boolean(user));
+    if (!user && posts.length) {
+      postsRoot.querySelectorAll(".crg-replies").forEach(section => {
+        const hint = document.createElement("p");
+        hint.className = "crg-feed-hint";
+        hint.textContent = "Sign in to view replies.";
+        section.querySelectorAll(".crg-reply, .crg-reply-form").forEach(node => node.remove());
+        section.appendChild(hint);
+      });
+    }
+  } catch (error) {
+    console.error("CrowRules conversation load failed:", error);
+    status(postsRoot, "Conversations or replies are temporarily unavailable. Please try again later.", "error");
+  }
+  postsRoot.onsubmit = async event => {
+    const form = event.target.closest('form[data-action]');
+    if (!form) return;
+    event.preventDefault();
+    if (!user || !canReply) return;
+    const body = String(new FormData(form).get("body") || "").trim();
+    const action = form.dataset.action;
+    const postId = form.dataset.postId;
+    const max = action === "create-post" ? 3000 : 1500;
+    if (!body || body.length > max) return;
+    const button = form.querySelector('button[type="submit"]');
+    if (button) { button.disabled = true; button.textContent = action === "create-post" ? "Publishing…" : "Sending…"; }
+    try {
+      const payload = action === "create-post"
+        ? { circle_id: group.id, author_id: user.id, body, post_type: "discussion" }
+        : { circle_id: group.id, post_id: postId, author_id: user.id, body };
+      const table = action === "create-post" ? POSTS : REPLIES;
+      const result = await sb.from(table).insert(payload);
+      if (result.error) throw result.error;
+      await renderConversation(group, postsRoot, canReply, user);
+    } catch (error) {
+      console.error("CrowRules conversation submit failed:", error);
+      if (button) { button.disabled = false; button.textContent = action === "create-post" ? "Publish post" : "Reply"; }
+      const notice = document.createElement("p");
+      notice.className = "crg-status";
+      notice.setAttribute("role", "alert");
+      notice.textContent = "Your message could not be submitted. Please check your connection and try again.";
+      form.appendChild(notice);
+    }
+  };
 }
 async function renderDetail(root, id) {
   status(root, "Loading community…");
@@ -280,14 +367,10 @@ async function renderDetail(root, id) {
     '<p class="crg-branch-label">Created ' + esc(dateLabel(group.created_at)) + '</p></section></aside></div></section>';
   const postsRoot = $("#crg-posts", root);
   const membershipRoot = $("#crg-membership", root);
-  await renderMembership(group, membershipRoot);
-  try {
-    const posts = await loadPosts(group.id);
-    const labels = await loadAuthorLabels(posts.map(post => post.author_id));
-    postsRoot.innerHTML = renderPosts(posts, labels);
-  } catch (error) {
-    status(postsRoot, "Conversations are temporarily unavailable. Please try again later.", "error");
-  }
+  let currentUser = null;
+  try { currentUser = await loadCurrentUser(); } catch (error) { currentUser = null; }
+  const canParticipate = await renderMembership(group, membershipRoot);
+  await renderConversation(group, postsRoot, canParticipate, currentUser);
 }
 
 export async function renderGroups() {
