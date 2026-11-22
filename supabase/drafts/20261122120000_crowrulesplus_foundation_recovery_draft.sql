@@ -90,14 +90,9 @@ create table if not exists public.crplus_content (
   updated_at timestamptz not null default now()
 );
 
--- Resolve the circular project/content references after both base tables exist.
-alter table public.crplus_projects
-  add constraint crplus_projects_source_submission_fk
-    foreign key (source_submission_id)
-    references public.crplus_project_submissions(id) on delete set null;
--- Project-submission/task/credit tables are created by the subsequent
--- recovery section; the FK above is deliberately deferred to that section
--- in the final reviewed migration. It is not active in this draft.
+-- source_submission_id remains an unconstrained UUID in this draft because
+-- the referenced project-submission table is not yet reconstructed. Add its
+-- foreign key only after that table is created and validated.
 
 -- Reconstructed live-channel catalog. is_live and sort_order are confirmed by
 -- historical index/view references; stream_type is confirmed by 20260920044543.
