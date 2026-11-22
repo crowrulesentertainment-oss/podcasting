@@ -139,11 +139,11 @@ try {
     await page.waitForSelector("#crg-join");
     await page.locator("#crg-join").click();
     await page.waitForSelector("#crg-new-post");
-    assert.equal(state.members.length, 1);
+    assert.equal(await page.evaluate(() => window.__GROUPS_TEST_STATE.members.length), 1);
     await page.locator("#crg-new-post").fill("A new member post");
     await page.getByRole("button", { name: "Publish post" }).click();
     await page.getByText("A new member post").waitFor();
-    assert.equal(state.posts[0].body, "A new member post");
+    assert.equal(await page.evaluate(() => window.__GROUPS_TEST_STATE.posts[0].body), "A new member post");
     passed.push("nonmember join and member post submission");
     await page.close();
   }
@@ -153,10 +153,10 @@ try {
     await page.locator(".crg-reply-form textarea").fill("A member reply");
     await page.getByRole("button", { name: "Reply" }).click();
     await page.getByText("A member reply").waitFor();
-    assert.equal(state.replies.at(-1).body, "A member reply");
+    assert.equal(await page.evaluate(() => window.__GROUPS_TEST_STATE.replies.at(-1).body), "A member reply");
     await page.getByRole("button", { name: "Leave community" }).click();
     await page.getByRole("button", { name: "Join community" }).waitFor();
-    assert.equal(state.members.length, 0);
+    assert.equal(await page.evaluate(() => window.__GROUPS_TEST_STATE.members.length), 0);
     passed.push("member reply submission and leave flow");
     await page.close();
   }
