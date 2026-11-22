@@ -10,7 +10,7 @@ const mockClient = `
 const state = window.__GROUPS_TEST_STATE;
 const matches = (row, filters) => filters.every(([kind, key, value]) => {
   if (kind === "eq") return row?.[key] === value;
-  if (kind === "is") return row?.[key] === value;
+  if (kind === "is") return value === null ? row?.[key] == null : row?.[key] === value;
   if (kind === "in") return value.includes(row?.[key]);
   if (kind === "neq") return row?.[key] !== value;
   return true;
