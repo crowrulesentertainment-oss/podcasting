@@ -324,3 +324,27 @@ Verified CI:
 - Candidate SQL applied to ephemeral PostgreSQL 16, actual SQL assertions passed, and concurrent claim test passed in run #45080719130. https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/45080719130
 
 Integration boundary / not deployable yet: the candidate processor and verifier are shared modules, not a replacement Edge Function entrypoint. The existing deployed webhook also handles podcast monetization. A follow-up integration must merge these helpers into the existing handler while preserving its podcast subscription and entitlement behavior, route busy outcomes to a retryable non-2xx response, and test the complete handler with Stripe test events before deployment. The candidate SQL draft was applied only to an ephemeral CI database. No production SQL, Edge Function, Stripe object, or membership data was changed.
+
+
+## Shared Stripe webhook entrypoint integration candidate (2026-11-22)
+
+The deployed version 77 source was retrieved directly from Supabase because the repository previously had no tracked `membership-stripe-webhook` entrypoint. It confirms the endpoint handles both membership billing and podcast monetization. A source candidate was added at:
+
+- `supabase/functions/membership-stripe-webhook/index.ts`
+
+The candidate:
+- Verifies the raw request body exactly once with the official Stripe SDK helper.
+- Runs membership event processing first; an in-flight event returns HTTP 503 for Stripe retry.
+- Preserves podcast checkout, subscription lifecycle, and invoice update paths.
+- Checks podcast database lookup/write errors so failures are not acknowledged as successful.
+- Uses the existing shared modules and service-role client only within the server-side Edge Function.
+
+CI now type-checks the complete candidate entrypoint together with the Stripe verifier. Successful run **#45081225954**:
+https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/45081225954
+
+The entrypoint integration is tracked in draft PR **#104**:
+https://github.com/crowrulesentertainment-oss/podcasting/pull/104
+
+The prior shared-module candidate PR **#103** is now merged to the repository's main branch; it contained only review code, tests, docs, and a SQL file under `supabase/drafts`. It did not apply that SQL or deploy an Edge Function.
+
+**Remaining blockers:** the new entrypoint still needs behavioral tests with mocked Stripe/Supabase dependencies, explicit podcast regression coverage, and review of invoice payload compatibility with the deployed Stripe API version and database schema. It has not been deployed. No production Supabase function, database object, Stripe setting, or live subscription was changed.
