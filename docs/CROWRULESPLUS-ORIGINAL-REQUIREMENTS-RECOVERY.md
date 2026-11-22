@@ -145,3 +145,49 @@ The catalog query was read-only. No view, membership row, plan, table, policy, o
 The two membership views both have `security_invoker=true`. The read-only privilege check found that neither `anon` nor `authenticated` currently has SELECT privilege on either view. This means they are not presently exposed through those roles as direct client-readable views. No access grants were changed.
 
 This narrows the confirmed integration to an existing internal/database-side membership reporting surface; it does not demonstrate a client-facing CrowRules+ entitlement API.
+
+
+## Shared membership and entitlement integration trace (read-only, 2026-11-22)
+
+### Confirmed shared membership architecture
+
+The production database has a shared membership model beyond the two CR+ views:
+
+- `members` stores the user's shared `membership_type`, role, status, points, watch minutes, and profile/suspension fields.
+- `membership_plans` defines four shared plans: CROW (free), CROWNER ($5/month), CREATOR ($10/month), and FOUNDER ($25/month). The paid plans have Stripe product/price identifiers configured. Public active-plan reads are enabled by RLS.
+- `membership_sites` registers product/site keys.
+- `membership_entitlements` maps a plan to a site key, access level, and feature list.
+- `membership_subscriptions` records user, plan, status, Stripe identifiers, billing period, cancellation flag, and optional site key.
+- `crplus_universal_membership` is a view over `members` joined to `membership_plans`, not a separate CR+ subscriber ledger.
+
+### CrowRules+ site registration is not active
+
+The `membership_sites` row for `crowrules-plus` is present but `is_active=false`. It has **no matching entitlement rows**. By contrast, the existing `creators`, `crowspace`, `dreamscapes`, `entertainment`, `holidays`, `members`, `memorials`, `podcasting`, `sports`, and `yearbooks` site keys have plan entitlement mappings. Some other registered sites are inactive.
+
+This is the strongest recovered current-state fact about the CR+ membership connection: CrowRules+ is registered in the shared site directory but is not presently activated or mapped to plan entitlements.
+
+### Current subscription data shape
+
+A privacy-preserving aggregate query found two rows in `membership_subscriptions`, both `active`, both with a `plan_id`, neither with a `site_key`, and neither with a `stripe_subscription_id`. No user IDs, customer IDs, or payment identifiers were retrieved for this check.
+
+### Important policy-review finding — site scoping
+
+The current `membership_entitlements_authenticated_read` policy allows an authenticated user to read an entitlement row when a row exists in `membership_subscriptions` for that user with the same `plan_id` and a status of `active`, `trialing`, or `past_due`.
+
+The policy does **not** compare `membership_subscriptions.site_key` with `membership_entitlements.site_key`. Since the subscription rows currently have null `site_key` values and entitlements are replicated across many sites, the policy as written appears to authorize all site entitlement rows for a user who holds a matching plan, rather than limiting the read to one site. This may be intentional for universal cross-site membership, but it is not proven by the missing CR+ app contract. Record this as a **scope decision / potential overexposure**, not as a confirmed vulnerability, until the intended universal-membership model is confirmed.
+
+The same policy accepts `past_due` as entitlement-bearing. That may be an intentional grace-period rule; do not remove it without the billing and product requirements.
+
+### Existing access controls observed
+
+- `membership_sites` has public SELECT limited to active sites.
+- `membership_entitlements` has an authenticated SELECT policy based on the user's subscription/plan.
+- `membership_subscriptions` has authenticated self-read policies.
+- `members` has owner/admin write policies and a self-read policy; its admin policies rely on trusted JWT app-metadata role claims and/or the existing hub-admin/admin helper paths.
+- `membership_plans` has public SELECT for active plans. Its table-level grants are broader than SELECT, but RLS exposes only a SELECT policy; no insert/update/delete policy was observed in the current policy listing.
+
+No policies, grants, subscriptions, membership rows, site registrations, or entitlements were changed.
+
+## Updated CR+ recovery decision
+
+Do not create CR+ entitlement rows yet. First establish whether CrowRules+ should participate in the existing universal cross-site membership model, and whether the shared plan's features are intended to unlock CR+ catalog/playback features or only general community/supporter benefits. The original CR+ migrations and frontend contract are still missing, and the production site is explicitly inactive today.
