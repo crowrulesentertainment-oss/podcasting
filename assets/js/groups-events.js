@@ -119,10 +119,12 @@ export async function mountGroupInvitations({ aside, groupId, group, user }) {
         sb.from("podcast_member_profiles").select("user_id,display_name,username,avatar_url").eq("is_public", true).ilike("display_name", pattern).limit(12),
         sb.from("podcast_member_profiles").select("user_id,display_name,username,avatar_url").eq("is_public", true).ilike("username", pattern).limit(12),
         sb.from("podcast_community_circle_members").select("member_id").eq("circle_id", groupId),
-        sb.from("podcast_community_circle_invites").select("invitee_id").eq("circle_id", groupId).eq("status", "pending")
+        sb.from("podcast_community_circle_invites").select("invitee_id,status").eq("circle_id", groupId)
       ]);
       if (byName.error) throw byName.error;
       if (byUsername.error) throw byUsername.error;
+      if (memberships.error) throw memberships.error;
+      if (invitations.error) throw invitations.error;
       const existing = new Set([user.id, ...(memberships.data || []).map(row => row.member_id), ...(invitations.data || []).map(row => row.invitee_id)]);
       const merged = new Map();
       [...(byName.data || []), ...(byUsername.data || [])].forEach(profile => {
