@@ -11,6 +11,7 @@ This implementation extends the existing `crowrulesentertainment-oss/podcasting`
 - `groups/create.html` — create multiple groups using existing Podcasting account
 - `groups/community.html?group=<uuid>` — group detail, join/request, posts
 - `groups/members.html?group=<uuid>` — member directory, membership-gated
+- `groups/settings.html?group=<uuid>` — owner/moderator settings workflow
 - `groups/events.html` — integration placeholder pending event schema audit
 - `groups/admin.html` — admin navigation shell; server-side authorization required
 
