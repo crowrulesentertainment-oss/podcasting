@@ -1,0 +1,188 @@
+# Community Groups Phase 0 — Production Schema & Authorization Audit
+
+**Repository:** `crowrulesentertainment-oss/podcasting`  
+**Audit branch:** `feature/community-groups-phase0-audit`  
+**Audit date:** 2026-11-22  
+**Scope:** Read-only inspection of the live Supabase catalog, RLS policies, constraints, Realtime publication, repository source, and existing Groups drafts.  
+**Production changes:** None. No migrations, policies, grants, functions, or deployments were changed.
+
+## Executive result
+
+Community Groups should extend the existing Podcasting circle model. The production database already contains a useful feed, membership, event, RSVP, collaboration/poll-like, episode, profile, and badge foundation. It does **not** yet contain the circle-specific category directory, private join-request table, or circle chat table described in the Phase 1 draft.
+
+The separate `crowspace_group_messages` system is not a drop-in replacement: it uses `crowspace_group_members` and `group_id`, not `podcast_community_circle_members` and `circle_id`. Its RLS and Realtime publication are real, but those do not prove access to Podcasting circles.
+
+**Phase 0 is not cleared for migrations or production implementation.** The largest blocker is migration-history recovery: production records 1,445 migration versions while the default repository branch contains only 61 SQL migration files. Full local replay has not been demonstrated.
+
+## 1. Production inventory
+
+### Existing circle model
+
+Confirmed production tables include:
+
+- `podcast_community_circles`
+- `podcast_community_circle_members`
+- `podcast_community_circle_posts`
+- `podcast_community_circle_replies`
+- `podcast_community_circle_invites`
+- `podcast_community_circle_events`
+- `podcast_community_circle_event_rsvps`
+- `podcast_community_circle_collaborations`
+- `podcast_community_circle_collaboration_votes`
+- `podcast_community_circle_activity`
+- `podcast_community_circle_recognitions`
+- `podcast_community_circle_reports`
+- `podcast_community_circle_helpful_votes`
+- `podcast_community_circle_notification_preferences`
+- `podcast_community_circle_image_suggestions`
+
+The live circle table currently has the original identity and visibility fields, including `owner_id`, `name`, `description`, `category`, and `is_public`. The newer `visibility`, `slug`, `category_id`, `group_chat_enabled`, and group image URL fields in the Phase 1 draft were not present in the inspected production schema.
+
+### Missing Phase 1 objects
+
+These objects described by `supabase/drafts/community_groups_phase1.sql` were not present in production at audit time:
+
+- `podcast_community_circle_categories`
+- `podcast_community_circle_join_requests`
+- `podcast_community_circle_messages`
+
+The draft proposes a circle-specific message table keyed by `circle_id`, with authenticated membership checks and a Realtime publication addition. This is a candidate design only; it has not been applied or locally replayed.
+
+### Separate CrowSpace chat model
+
+Production also has:
+
+- `crowspace_group_conversations`
+- `crowspace_group_members`
+- `crowspace_group_messages`
+- `crowspace_group_message_attachments`
+
+The chat RLS helpers check `crowspace_group_members` using `group_id`. These are separate from Podcasting circle membership. The message and attachment tables are in `supabase_realtime`; no `podcast_community_circle_*` table was in the inspected Realtime publication.
+
+**Decision:** Do not point Community Groups chat at CrowSpace group messages. Use the reviewed circle-specific chat draft as a design input, then test its policies, grants, triggers, and Realtime behavior in a recovered local database.
+
+## 2. Feature-by-feature assessment
+
+| Feature | Production foundation | Required next work |
+|---|---|---|
+| Feed | Circle posts, replies, activity, reports, helpful votes | Reuse existing tables; run two-circle authorization and reply-lock regression tests |
+| Profiles | `podcast_member_profiles` with public/activity/network/follower/following flags | Review field-level privacy before exposing profile rows in group cards or directories |
+| Polls | Collaborations with `content_type='poll'`, JSON options, and vote table | Define poll open/closed lifecycle, edit rules, vote-change rules, and results visibility |
+| Events | Circle events and RSVP table | Reuse after validating visibility, owner/moderator actions, and RSVP lifecycle |
+| Episodes | `podcast_episodes`; collaboration has `episode_id`; posts store episode URL/title/artwork | Prefer catalog-backed episode references and preserve existing playback entitlements |
+| Chat | Separate CrowSpace chat plus an unapplied circle-specific chat draft | Do not integrate the separate group chat IDs; validate and locally test circle chat design |
+| Badges | 40 active/inactive catalog records and public/private assignment rows | Existing assignment target types are only profile/show/episode; define community awards without weakening existing constraints |
+
+## 3. Authorization findings
+
+### Existing RLS coverage
+
+RLS was enabled on the inspected circle tables, member profiles, episode catalog, and badge catalog/assignment tables. Existing policies distinguish anonymous discovery, authenticated participation, group membership, post ownership, and owner/moderator operations.
+
+Important existing protections include:
+
+- Circle membership inserts require the authenticated user to join as a member of a public circle, or as owner of a circle they own.
+- Post creation requires the authenticated author to be a member of the exact circle.
+- Reply insertion checks the authenticated author, circle membership, matching parent-post circle, and that the post is not locked.
+- Event creation is restricted to circle owners/moderators.
+- RSVP rows are unique per event/user and constrained to `going`, `interested`, or `declined`.
+- Collaboration votes are unique per collaboration/voter and validate the circle, poll option, voter identity, membership, and that the voter is not the poll author.
+- Badge catalog management and badge assignment writes are restricted to platform administrators; public assignment reads are limited to rows marked public.
+
+### Profile privacy needs a dedicated correction design
+
+`podcast_member_profiles` has row-level SELECT policy:
+
+`is_public = true OR auth.uid() = user_id`
+
+The same table contains more than basic public identity fields, including location, interests, favorite media, social links, creator portfolio, and separate activity/network/follower/following visibility flags.
+
+A row-level SELECT policy does not hide individual columns. Therefore, the flags must not be treated as database-enforced column privacy. A group profile card or member directory must not simply select every column from this table. Before profile UI work, define an explicit safe public projection (or equivalent column-level access design) and separate owner-only fields. Do not change the current policy as part of this audit.
+
+The object `podcast_public_member_profiles` is a view over `creator_profiles`, not a base table. It has `security_barrier=true`, but is not marked `security_invoker=true`. It is a creator-discovery projection, not a confirmed Podcasting member profile API. Do not substitute it for the circle member profile contract without a separate view-owner/grant review.
+
+### Poll lifecycle gap
+
+The current collaboration poll model supports 2–8 JSON options and one vote per voter per collaboration. The vote table has a composite primary key on `(collaboration_id, voter_id)`.
+
+The inspected poll schema has no dedicated `closes_at`/closed timestamp or explicit poll lifecycle state. Collaboration status values are workflow states (`submitted`, `under_review`, `approved`, `in_production`, `published`, `declined`), not a clearly defined voting lifecycle. Vote insertion policy validates membership/options/author identity but does not establish a poll closing-time rule.
+
+**Decision:** Existing collaboration polls can be a foundation for basic polls, but must not be presented as a complete polls feature until open/close semantics, edit/delete vote behavior, results visibility, and concurrent voting tests are specified.
+
+### Event model
+
+The circle event schema already supports title, description, type, start/end times, location type/text, meeting URL, episode URL, status, and branch key. The database checks that end time follows start time and constrains event type/location/status values.
+
+RSVP uniqueness is enforced by primary key `(event_id, user_id)`. RSVP insertion requires the caller's own user ID and membership in the event's circle while the event is scheduled. Existing event visibility is based on public circle status or membership.
+
+**Decision:** Reuse this event model. Before extending it, test the behavior of RSVP updates after a member leaves, event cancellation, time zones, and public/private/hidden visibility.
+
+### Badge model
+
+The catalog contains 40 records. Assignment uniqueness is enforced by `(target_type, target_id, badge_key)`. Current target types are limited by a database check to `profile`, `show`, and `episode`. Assignment writes are administrator-only.
+
+**Decision:** Do not add a new target type or allow client self-awards by weakening these constraints. Design community recognition as a verified award operation, with an explicit decision on whether it belongs in this catalog or a separate community achievement model.
+
+## 4. Data integrity snapshot
+
+The following read-only checks returned zero rows/counts at audit time:
+
+- Replies whose parent post is missing or belongs to a different circle: **0**
+- Collaboration votes whose collaboration/circle parent does not match: **0**
+- Event RSVPs whose event is missing: **0**
+
+These are point-in-time checks, not a substitute for ongoing constraints and automated tests.
+
+## 5. Migration recovery blocker
+
+Production migration ledger snapshot:
+
+- Recorded migration versions: **1,445**
+- Latest recorded version: **20261122192634**
+- Latest recorded migration name: `create_student_hub_private_foundation`
+- SQL migration files on repository `main` at audit time: **61**
+
+Repository Groups documentation itself says migration recovery and full local replay are release gates. The current draft SQL files are under `supabase/drafts/`, not production migration history.
+
+**Required before migration work:**
+
+1. Recover the full remote migration history with the Supabase CLI in a controlled local environment.
+2. Reconcile repository and remote migration versions; resolve every mismatch.
+3. Replay the complete database locally with `supabase db reset`.
+4. Apply the Phase 1 draft and social-permissions patch only to the local disposable database.
+5. Inspect actual grants, RLS, triggers, helper function privileges, Storage policies, and Realtime publication.
+6. Run synthetic multi-identity security tests.
+7. Save the local replay and test outputs for review.
+
+No migration fetch, reset, or DDL was performed as part of this read-only audit.
+
+## 6. Phase 1 implementation sequence after recovery
+
+1. Reconcile migration history and obtain a successful local replay.
+2. Run the existing two-circle data-integrity checks.
+3. Validate the existing post/reply/roster policies with synthetic anonymous, member, author, moderator, owner, and admin identities.
+4. Validate the Phase 1 categories, visibility compatibility, private join requests, and atomic approval RPC.
+5. Validate the circle-specific chat draft, including exact-circle isolation, disabled chat, membership revocation, sender identity, edit/delete rules, and Realtime.
+6. Run existing UI regression checks against the local database.
+7. Only then prepare a reviewed migration and front-end implementation plan.
+
+## 7. Release decision
+
+**Status: BLOCKED — Phase 0 migration recovery and privacy review incomplete.**
+
+Completed:
+- Read-only production schema inventory for Community Groups resources.
+- Read-only inspection of relevant RLS policies and constraints.
+- Read-only inspection of Realtime publication membership.
+- Repository review of Groups 2.0, multi-page workspace, Phase 1 SQL draft, and security test plans.
+- Three point-in-time referential-integrity checks.
+
+Not completed:
+- Full migration-history recovery and local replay.
+- Local execution of Phase 1 and social-permissions SQL.
+- Synthetic multi-identity RLS/Realtime integration tests.
+- Profile column-privacy design.
+- Poll lifecycle design.
+- Final production release review.
+
+**Safety boundary:** This audit branch contains documentation only. No production schema, data, policies, grants, functions, Storage configuration, Stripe configuration, or deployed code was changed.
