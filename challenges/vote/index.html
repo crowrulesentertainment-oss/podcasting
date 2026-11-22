@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080a0e">
+<meta name="description" content="Vote for eligible creator entries in CrowRules Podcasting challenges.">
+<meta name="robots" content="index,follow">
+<title>Challenge Voting | CrowRules Podcasting</title>
+<link rel="stylesheet" href="../assets/challenges.css">
+<style>
+.vote-hero{position:relative;isolation:isolate;overflow:hidden;padding:clamp(58px,9vw,104px) 0 58px;background:#0b1015}.vote-hero:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#080a0ef2,#080a0eb8 62%,#080a0e55),url('https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=2100&q=88') center/cover}
+.vote-hero h1{max-width:850px;margin:10px 0;font-size:clamp(40px,6vw,72px);line-height:1;letter-spacing:-.055em}.vote-hero p{max-width:700px;color:#dedbd4}
+.vote-shell{width:min(1100px,calc(100% - 36px));margin:auto}.vote-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end;padding:18px;border:1px solid #ffffff20;border-radius:16px;background:#11161d}
+.vote-toolbar label{display:grid;gap:7px;color:#e8dfcf;font-size:12px;font-weight:850}.vote-toolbar select{min-height:46px;padding:10px 12px;border:1px solid #ffffff30;border-radius:10px;background:#090d12;color:#fff;font:inherit}
+.vote-window{padding:12px 15px;border:1px solid #ffffff20;border-radius:12px;background:#ffffff08;color:#d5d0c6;font-size:12px;line-height:1.6}.vote-window strong{display:block;color:#e8c47c}.vote-window[data-open="true"]{border-color:#75c69488;background:#75c6940c}.vote-window[data-open="true"] strong{color:#9de0b0}
+.vote-status{min-height:22px;margin:15px 0;color:#e8c47c;font-size:13px}.vote-status[data-type="error"]{color:#ffaaa5}.vote-status[data-type="success"]{color:#9de0b0}
+.vote-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;margin-top:20px}
+.vote-entry{overflow:hidden;border:1px solid #ffffff22;border-radius:17px;background:linear-gradient(145deg,#171c23,#0d1117);box-shadow:0 16px 42px #0005}
+.vote-art{height:210px;background:#090d12;display:grid;place-items:center;overflow:hidden}.vote-art img{width:100%;height:100%;object-fit:cover}.vote-art .no-art{color:#a99b7d;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.vote-copy{padding:18px}.vote-copy h3{margin:5px 0;font-size:20px}.vote-show{color:#e8c47c;font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.vote-copy p{color:#bbb8b1;font-size:12px;line-height:1.65;white-space:pre-wrap}
+.vote-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}.vote-actions .btn:disabled{opacity:.55;filter:grayscale(.5);cursor:not-allowed;transform:none}.vote-chosen{display:inline-flex;padding:8px 11px;border:1px solid #77c99788;border-radius:99px;color:#9de0b0;font-size:11px;font-weight:900}
+.vote-empty{padding:28px;border:1px dashed #ffffff35;border-radius:16px;color:#bbb;text-align:center;grid-column:1/-1}
+.vote-rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:24px}.vote-rule{padding:17px;border:1px solid #ffffff1d;border-radius:13px;background:#12171e}.vote-rule b{display:block;margin-bottom:5px}.vote-rule p{margin:0;color:#aaa;font-size:11px;line-height:1.6}
+@media(max-width:760px){.vote-toolbar{grid-template-columns:1fr}.vote-grid{grid-template-columns:1fr}.vote-rules{grid-template-columns:1fr}}
+</style>
+</head>
+<body data-theme="hub">
+<header class="head"><a class="brand" href="../index.html">CROWRULES PODCASTING<small>CREATOR CHALLENGE CENTER</small></a><nav class="nav" aria-label="Challenge navigation"><a href="../index.html">Challenge Hub</a><a href="../submissions/index.html">Submit Your Work</a><a href="../calendar/index.html">Annual Calendar</a><a href="../rules/index.html">Rules</a><a href="../../index.html">Podcasting Home</a></nav></header>
+<main>
+<section class="vote-hero"><div class="vote-shell"><div class="eyebrow">Community recognition · Member voting</div><h1>YOUR VOICE.<br><em style="color:#e8c47c">YOUR VOTE.</em></h1><p>Discover approved creator entries and help recognize original work from the CrowRules Podcasting community. One ballot per eligible member for each challenge.</p><div class="meta"><span class="pill">Free member voting</span><span class="pill">One vote per challenge</span><span class="pill">Creator self-voting prohibited</span></div></div></section>
+<section class="section"><div class="vote-shell">
+<div class="vote-toolbar"><label for="vote-challenge">Choose a challenge<select id="vote-challenge"><option value="">Loading challenges…</option></select></label><div class="vote-window" id="vote-window"><strong>Checking voting schedule…</strong>Challenge times are shown in Pacific Time.</div></div>
+<div class="vote-status" id="vote-status" role="status" aria-live="polite">Loading challenge voting…</div>
+<div id="vote-entries" class="vote-grid"><div class="vote-empty">Loading approved creator entries…</div></div>
+<div class="vote-rules"><article class="vote-rule"><b>One ballot</b><p>Each signed-in member can cast one ballot per challenge. Your ballot cannot be changed after submission.</p></article><article class="vote-rule"><b>Fair competition</b><p>You cannot vote for your own entry. The database independently checks eligibility and voting dates.</p></article><article class="vote-rule"><b>Creator ownership</b><p>Creators retain ownership of their original work. Only entries with explicit public-display permission are shown.</p></article></div>
+</div></section>
+</main>
+<footer class="footer"><div class="wrap footerin"><span><b>CrowRules Podcasting</b><br>Your Voice. Your Story. Your Podcast.</span><span>CrowRules Entertainment · One company. One universe.</span><span>© <i data-year>2026</i> CrowRules Entertainment</span></div></footer>
+<script src="../assets/challenges.js" defer></script><script type="module" src="../assets/challenge-voting.js?v=20261121-v1"></script><script src="../assets/nav-enhancer.js" defer></script><script src="../assets/challenges-nav.js?v=20261116-absolute-nav-v2" defer></script>
+</body></html>
