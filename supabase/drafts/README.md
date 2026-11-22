@@ -107,3 +107,24 @@ No SQL from this draft has been applied to production.
 - Reuse existing circle posts/replies, events/RSVPs, invitations, polls/collaborations, activity, recognition, member profiles, and direct messaging.
 
 Media bucket provisioning, front-end routes, group media uploads, voice provider integration, Watch Together, badge catalog expansion, analytics dashboards, and admin UI remain later implementation work.
+
+
+## Connection Groups security package update — 2026-11-21
+
+The follow-up feature branch `feature/connection-groups-db-security-2026-11-21` contains additional source corrections and local-only security tests.
+
+- Added `podcast_community_circle_categories` as a dynamic, admin-managed category directory. Existing `category` text is retained, with a nullable `category_id` reference and synchronization trigger for compatibility.
+- Fixed the join-request table definition's trailing comma.
+- Qualified the join-request membership correlation so it checks the outer request's circle rather than comparing the inner membership column to itself.
+- Corrected accepted-invitation validation to bind an invitation to the exact hidden circle being joined.
+- Corrected group-chat SELECT and INSERT policies to bind membership to the message row's exact circle. Without this correlation, a member of one circle could satisfy a membership check for another circle.
+- Added a public SECURITY INVOKER approval wrapper for the private atomic join-request implementation. The browser calls the public wrapper; the implementation remains in the non-exposed private schema.
+- Kept anonymous reply reads unavailable. The social-permissions patch remains separate and only fixes the two identified reply policy predicates and adds same-circle roster visibility.
+
+### Local security test package
+
+- `supabase/tests/connection_groups_phase1_rls.sql` creates synthetic identities and circles A/B/C/D, validates discovery, roster, join-request, invite, post, reply, chat, category, and legacy-visibility boundaries, then rolls back all fixtures.
+- `supabase/tests/README.md` documents safe migration-history recovery, local replay, migration generation, and the test command.
+- `docs/CONNECTION_GROUPS_DATABASE_SECURITY_TEST_PLAN.md` records the test matrix and release gates.
+
+**Validation status remains pending.** The SQL source and test package are committed to the feature branch, but this environment does not have the recovered 1,428-file migration chain, Supabase CLI, Docker, or a local PostgreSQL client. No PostgreSQL parser, local replay, or integration test run has been claimed. Do not generate a timestamped migration or apply anything to the hosted project until the documented recovery and local replay steps succeed.

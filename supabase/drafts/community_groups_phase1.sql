@@ -14,6 +14,82 @@
 begin;
 
 -- ---------------------------------------------------------------------------
+-- 0. Dynamic category directory. Existing category text remains for backwards
+-- compatibility; category_id is the normalized reference used by new UI.
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.podcast_community_circle_categories (
+  id uuid primary key default gen_random_uuid(),
+  name text not null check (char_length(btrim(name)) between 2 and 80),
+  slug text not null,
+  description text not null default '',
+  cover_image_url text,
+  icon_name text,
+  display_order integer not null default 0,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create unique index if not exists podcast_circle_categories_slug_uidx
+  on public.podcast_community_circle_categories (slug);
+create unique index if not exists podcast_circle_categories_name_lower_uidx
+  on public.podcast_community_circle_categories (lower(name));
+
+alter table public.podcast_community_circle_categories enable row level security;
+revoke all on table public.podcast_community_circle_categories from public, anon, authenticated;
+grant select on table public.podcast_community_circle_categories to anon, authenticated;
+grant insert, update, delete on table public.podcast_community_circle_categories to authenticated;
+
+drop policy if exists "Active community group categories are readable"
+  on public.podcast_community_circle_categories;
+create policy "Active community group categories are readable"
+on public.podcast_community_circle_categories
+for select
+to anon, authenticated
+using (is_active = true);
+
+drop policy if exists "CrowRules admins manage community group categories"
+  on public.podcast_community_circle_categories;
+create policy "CrowRules admins manage community group categories"
+on public.podcast_community_circle_categories
+for all
+to authenticated
+using (private.crowrules_is_admin_impl())
+with check (private.crowrules_is_admin_impl());
+
+-- Preserve every existing category label before adding the curated defaults.
+insert into public.podcast_community_circle_categories (name, slug)
+select distinct
+  btrim(c.category),
+  coalesce(
+    nullif(trim(both '-' from regexp_replace(lower(btrim(c.category)), '[^a-z0-9]+', '-', 'g')), ''),
+    'community'
+  ) || '-' || left(md5(lower(btrim(c.category))), 8)
+from public.podcast_community_circles c
+where nullif(btrim(c.category), '') is not null
+on conflict do nothing;
+
+insert into public.podcast_community_circle_categories (name, slug, display_order)
+values
+  ('Podcasting & Creators','podcasting-creators',10),
+  ('Business & Entrepreneurship','business-entrepreneurship',20),
+  ('Sports & Entertainment','sports-entertainment',30),
+  ('Local Communities','local-communities',40),
+  ('Movies & Television','movies-television',50),
+  ('Gaming & Technology','gaming-technology',60),
+  ('Arts & Creativity','arts-creativity',70),
+  ('Travel & Outdoors','travel-outdoors',80),
+  ('Education & Learning','education-learning',90),
+  ('Food & Cooking','food-cooking',100),
+  ('Family & Generations','family-generations',110),
+  ('News & Current Events','news-current-events',120),
+  ('Hobbies & Lifestyle','hobbies-lifestyle',130),
+  ('Social & General','social-general',140),
+  ('Other','other',150)
+on conflict do nothing;
+
+-- ---------------------------------------------------------------------------
 -- 1. Extend existing circle records into the Community Groups product.
 -- ---------------------------------------------------------------------------
 
@@ -22,7 +98,8 @@ alter table public.podcast_community_circles
   add column if not exists cover_image_url text,
   add column if not exists avatar_image_url text,
   add column if not exists visibility text not null default 'public',
-  add column if not exists group_chat_enabled boolean not null default true;
+  add column if not exists group_chat_enabled boolean not null default true,
+  add column if not exists category_id uuid references public.podcast_community_circle_categories(id) on delete restrict;
 
 -- Existing non-public circles were previously not discoverable. Preserve that
 -- behavior by classifying them as hidden, not newly discoverable private groups.
@@ -40,6 +117,62 @@ set slug =
     'community'
   ) || '-' || left(replace(id::text, '-', ''), 8)
 where slug is null or btrim(slug) = '';
+
+update public.podcast_community_circles c
+set category_id = cat.id
+from public.podcast_community_circle_categories cat
+where c.category_id is null
+  and lower(btrim(c.category)) = lower(cat.name);
+
+create or replace function public.podcasting_sync_community_circle_category()
+returns trigger
+language plpgsql
+set search_path = pg_catalog, public
+as $function$
+begin
+  if new.category_id is not null then
+    select cat.name into new.category
+    from public.podcast_community_circle_categories cat
+    where cat.id = new.category_id;
+
+    if not found then
+      raise exception 'Unknown community group category' using errcode = '23503';
+    end if;
+  elsif new.category is not null then
+    select cat.id into new.category_id
+    from public.podcast_community_circle_categories cat
+    where lower(cat.name) = lower(btrim(new.category))
+      and cat.is_active = true
+    order by cat.display_order, cat.name
+    limit 1;
+  end if;
+
+  return new;
+end;
+$function$;
+
+revoke all on function public.podcasting_sync_community_circle_category()
+  from public, anon, authenticated;
+
+do $
+begin
+  if not exists (
+    select 1 from pg_trigger
+    where tgname = 'podcasting_sync_community_circle_category'
+      and tgrelid = 'public.podcast_community_circles'::regclass
+      and not tgisinternal
+  ) then
+    create trigger podcasting_sync_community_circle_category
+      before insert or update of category_id, category
+      on public.podcast_community_circles
+      for each row
+      execute function public.podcasting_sync_community_circle_category();
+  end if;
+end
+$;
+
+create index if not exists podcast_community_circles_category_id_idx
+  on public.podcast_community_circles (category_id);
 
 alter table public.podcast_community_circles
   alter column slug set not null;
@@ -172,7 +305,7 @@ create table if not exists public.podcast_community_circle_join_requests (
     check (status in ('pending', 'approved', 'declined')),
   created_at timestamptz not null default now(),
   reviewed_at timestamptz,
-  reviewed_by uuid references auth.users(id) on delete set null,
+  reviewed_by uuid references auth.users(id) on delete set null
 );
 
 -- Keep one pending request per user/group while retaining declined history.
@@ -204,7 +337,7 @@ for select
 to authenticated
 using (
   user_id = (select auth.uid())
-  or private.crowspace_is_circle_moderator_or_owner(circle_id)
+  or private.crowspace_is_circle_moderator_or_owner(public.podcast_community_circle_join_requests.circle_id)
   or private.crowrules_is_admin_impl()
 );
 
@@ -219,13 +352,13 @@ with check (
   and exists (
     select 1
     from public.podcast_community_circles c
-    where c.id = circle_id
+    where c.id = public.podcast_community_circle_join_requests.circle_id
       and c.visibility = 'private'
   )
   and not exists (
     select 1
     from public.podcast_community_circle_members m
-    where m.circle_id = circle_id
+    where m.circle_id = public.podcast_community_circle_join_requests.circle_id
       and m.member_id = (select auth.uid())
   )
 );
@@ -259,9 +392,12 @@ on public.podcast_community_circle_join_requests
 for delete
 to authenticated
 using (
-  (user_id = (select auth.uid()) and status = 'pending')
-  or private.crowspace_is_circle_moderator_or_owner(circle_id)
-  or private.crowrules_is_admin_impl()
+  status = 'pending'
+  and (
+    user_id = (select auth.uid())
+    or private.crowspace_is_circle_moderator_or_owner(public.podcast_community_circle_join_requests.circle_id)
+    or private.crowrules_is_admin_impl()
+  )
 );
 
 -- Approval is atomic: update the request and create membership together.
@@ -320,9 +456,27 @@ begin
 end;
 $function$;
 
-revoke all on function private.review_podcast_circle_join_request(uuid, text) from public;
-revoke all on function private.review_podcast_circle_join_request(uuid, text) from anon;
+revoke all on function private.review_podcast_circle_join_request(uuid, text) from public, anon, authenticated;
 grant execute on function private.review_podcast_circle_join_request(uuid, text) to authenticated;
+
+-- PostgREST can invoke the public SECURITY INVOKER wrapper; the privileged
+-- implementation remains in the non-exposed private schema.
+create or replace function public.review_podcast_circle_join_request(
+  p_request_id uuid,
+  p_decision text
+)
+returns void
+language sql
+security invoker
+set search_path = ''
+as $function$
+  select private.review_podcast_circle_join_request($1, $2);
+$function$;
+
+revoke all on function public.review_podcast_circle_join_request(uuid, text)
+  from public, anon, authenticated;
+grant execute on function public.review_podcast_circle_join_request(uuid, text)
+  to authenticated;
 
 -- Invitees may join hidden groups only after accepting an existing invitation.
 drop policy if exists "Accepted invitees may join hidden circles" on public.podcast_community_circle_members;
@@ -336,13 +490,13 @@ with check (
   and exists (
     select 1
     from public.podcast_community_circles c
-    where c.id = circle_id
+    where c.id = public.podcast_community_circle_members.circle_id
       and c.visibility = 'hidden'
   )
   and exists (
     select 1
     from public.podcast_community_circle_invites i
-    where i.circle_id = circle_id
+    where i.circle_id = public.podcast_community_circle_members.circle_id
       and i.invitee_id = (select auth.uid())
       and i.status = 'accepted'
   )
@@ -391,7 +545,7 @@ using (
     select 1
     from public.podcast_community_circles c
     join public.podcast_community_circle_members m on m.circle_id = c.id
-    where c.id = circle_id
+    where c.id = public.podcast_community_circle_messages.circle_id
       and c.group_chat_enabled = true
       and m.member_id = (select auth.uid())
   )
@@ -408,7 +562,7 @@ with check (
     select 1
     from public.podcast_community_circles c
     join public.podcast_community_circle_members m on m.circle_id = c.id
-    where c.id = circle_id
+    where c.id = public.podcast_community_circle_messages.circle_id
       and c.group_chat_enabled = true
       and m.member_id = (select auth.uid())
   )
