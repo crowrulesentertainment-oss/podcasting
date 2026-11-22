@@ -218,6 +218,353 @@ grant insert, update, delete on public.crplus_projects, public.crplus_content,
   public.crplus_creators, public.crplus_live_channels, public.crplus_schedule
   to authenticated;
 
+
+-- ---------------------------------------------------------------------------
+-- Recovered dependent tables: exact table columns are taken from the recorded
+-- historical migrations 20260920043558, 20260920044352, 20260920045059,
+-- 20260920045544 and 20260920045722.
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.crplus_project_submissions (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid references public.crplus_projects(id) on delete cascade,
+  submitter_user_id uuid references auth.users(id) on delete set null,
+  submission_type text not null default 'dream'
+    check (submission_type in ('dream','idea','pitch','episode','podcast','other')),
+  message text,
+  status text not null default 'submitted'
+    check (status in ('submitted','review','accepted','declined','converted')),
+  created_at timestamptz not null default now(),
+  reviewed_at timestamptz,
+  reviewed_by uuid references auth.users(id) on delete set null
+);
+
+alter table public.crplus_projects
+  add constraint crplus_projects_source_submission_fk
+  foreign key (source_submission_id)
+  references public.crplus_project_submissions(id) on delete set null;
+create unique index if not exists crplus_projects_source_submission_uidx
+  on public.crplus_projects(source_submission_id)
+  where source_submission_id is not null;
+create unique index if not exists crplus_projects_dreamscapes_project_uidx
+  on public.crplus_projects(dreamscapes_project_id)
+  where dreamscapes_project_id is not null;
+create index if not exists crplus_projects_content_idx
+  on public.crplus_projects(content_id);
+create index if not exists crplus_projects_parent_content_idx
+  on public.crplus_projects(parent_content_id);
+
+create table if not exists public.crplus_project_tasks (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid references public.crplus_projects(id) on delete cascade,
+  title text not null,
+  description text,
+  assigned_user_id uuid references auth.users(id) on delete set null,
+  status text not null default 'todo'
+    check (status in ('todo','in_progress','blocked','done')),
+  priority text not null default 'normal'
+    check (priority in ('low','normal','high','urgent')),
+  due_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.crplus_project_credits (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid references public.crplus_projects(id) on delete cascade,
+  user_id uuid references auth.users(id) on delete set null,
+  creator_id uuid references public.crplus_creators(id) on delete set null,
+  credit_role text not null,
+  credit_name text not null,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.crplus_project_status_history (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.crplus_projects(id) on delete cascade,
+  from_status text,
+  to_status text not null,
+  changed_by uuid references auth.users(id) on delete set null,
+  note text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.crplus_entitlements (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  membership_level integer not null default 0,
+  status text not null default 'active',
+  current_period_end timestamptz,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.crplus_comments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  content_id uuid not null references public.crplus_content(id) on delete cascade,
+  body text not null check (length(body) between 1 and 2000),
+  is_hidden boolean not null default false,
+  moderated_at timestamptz,
+  moderated_by uuid references auth.users(id),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.crplus_follows (
+  follower_id uuid not null references auth.users(id) on delete cascade,
+  creator_id uuid not null references public.crplus_creators(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (follower_id,creator_id)
+);
+
+create table if not exists public.crplus_play_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  content_id uuid references public.crplus_content(id) on delete set null,
+  event_type text not null
+    check (event_type in ('start','progress','complete','pause','stop')),
+  position_seconds integer not null default 0,
+  session_id uuid,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.crplus_ratings (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  content_id uuid not null references public.crplus_content(id) on delete cascade,
+  rating smallint not null check (rating between 1 and 5),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (user_id,content_id)
+);
+
+create table if not exists public.crplus_notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  notification_type text not null default 'system',
+  title text not null,
+  body text,
+  content_id uuid references public.crplus_content(id) on delete set null,
+  is_read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.crplus_collections (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  slug text not null unique,
+  description text,
+  cover_url text,
+  is_published boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.crplus_collection_items (
+  collection_id uuid not null references public.crplus_collections(id) on delete cascade,
+  content_id uuid not null references public.crplus_content(id) on delete cascade,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now(),
+  primary key (collection_id,content_id)
+);
+
+create table if not exists public.crplus_content_sources (
+  id uuid primary key default gen_random_uuid(),
+  content_id uuid not null references public.crplus_content(id) on delete cascade,
+  source_type text not null
+    check (source_type in ('youtube','youtube_live','storage','hls','external')),
+  source_url text,
+  storage_path text,
+  is_primary boolean not null default false,
+  is_active boolean not null default true,
+  sort_order integer not null default 0,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists crplus_project_submissions_status_idx
+  on public.crplus_project_submissions(status,created_at desc);
+create index if not exists crplus_project_tasks_project_idx
+  on public.crplus_project_tasks(project_id,status);
+create index if not exists crplus_project_credits_project_idx
+  on public.crplus_project_credits(project_id,sort_order);
+create index if not exists crplus_comments_content_idx
+  on public.crplus_comments(content_id,created_at desc);
+create index if not exists crplus_events_content_idx
+  on public.crplus_play_events(content_id,created_at desc);
+create index if not exists crplus_events_user_idx
+  on public.crplus_play_events(user_id,created_at desc);
+create index if not exists crplus_ratings_content_idx
+  on public.crplus_ratings(content_id);
+create index if not exists crplus_notifications_user_idx
+  on public.crplus_notifications(user_id,is_read,created_at desc);
+create index if not exists crplus_collection_items_order_idx
+  on public.crplus_collection_items(collection_id,sort_order);
+create index if not exists idx_crplus_sources_content
+  on public.crplus_content_sources(content_id,is_active,sort_order);
+create index if not exists idx_crplus_sources_primary
+  on public.crplus_content_sources(content_id,is_primary,is_active,sort_order);
+create index if not exists idx_crplus_content_workflow
+  on public.crplus_content(workflow_status,created_at desc);
+create index if not exists idx_crplus_comments_moderation
+  on public.crplus_comments(is_hidden,created_at desc);
+
+-- Historical admin resolver: admin membership or an active platform member
+-- with admin/owner role. No privileged user is inserted by this draft.
+create or replace function public.crplus_is_admin()
+returns boolean
+language sql stable security definer
+set search_path=public,pg_temp
+as $
+  select exists(
+    select 1 from public.crplus_admins a
+    where a.user_id=(select auth.uid()) and a.is_active
+  ) or exists(
+    select 1 from public.members m
+    where m.user_id=(select auth.uid())
+      and lower(m.role) in ('admin','owner')
+      and lower(m.status)='active'
+  );
+$;
+revoke all on function public.crplus_is_admin() from public,anon;
+grant execute on function public.crplus_is_admin() to authenticated;
+
+alter table public.crplus_project_submissions enable row level security;
+alter table public.crplus_project_tasks enable row level security;
+alter table public.crplus_project_credits enable row level security;
+alter table public.crplus_project_status_history enable row level security;
+alter table public.crplus_entitlements enable row level security;
+alter table public.crplus_comments enable row level security;
+alter table public.crplus_follows enable row level security;
+alter table public.crplus_play_events enable row level security;
+alter table public.crplus_ratings enable row level security;
+alter table public.crplus_notifications enable row level security;
+alter table public.crplus_collections enable row level security;
+alter table public.crplus_collection_items enable row level security;
+alter table public.crplus_content_sources enable row level security;
+
+create policy crplus_project_submissions_admin_all
+  on public.crplus_project_submissions for all to authenticated
+  using ((select public.crplus_is_admin()))
+  with check ((select public.crplus_is_admin()));
+create policy crplus_project_submissions_owner_read
+  on public.crplus_project_submissions for select to authenticated
+  using (submitter_user_id=(select auth.uid()) or (select public.crplus_is_admin()));
+create policy crplus_project_tasks_admin_all
+  on public.crplus_project_tasks for all to authenticated
+  using ((select public.crplus_is_admin()))
+  with check ((select public.crplus_is_admin()));
+create policy crplus_project_credits_admin_all
+  on public.crplus_project_credits for all to authenticated
+  using ((select public.crplus_is_admin()))
+  with check ((select public.crplus_is_admin()));
+create policy crplus_project_status_history_admin_all
+  on public.crplus_project_status_history for all to authenticated
+  using ((select public.crplus_is_admin()))
+  with check ((select public.crplus_is_admin()));
+create policy crplus_project_status_history_owner_read
+  on public.crplus_project_status_history for select to authenticated
+  using (exists (
+    select 1 from public.crplus_projects p
+    where p.id=crplus_project_status_history.project_id
+      and p.owner_user_id=(select auth.uid())
+  ));
+
+create policy crplus_entitlement_own
+  on public.crplus_entitlements for select to authenticated
+  using ((select auth.uid())=user_id);
+
+create policy crplus_comments_public_read
+  on public.crplus_comments for select to anon,authenticated
+  using (is_hidden=false);
+create policy crplus_comments_own_insert
+  on public.crplus_comments for insert to authenticated
+  with check ((select auth.uid())=user_id);
+create policy crplus_comments_own_delete
+  on public.crplus_comments for delete to authenticated
+  using ((select auth.uid())=user_id);
+create policy crplus_comments_admin_all
+  on public.crplus_comments for all to authenticated
+  using ((select public.crplus_is_admin()))
+  with check ((select public.crplus_is_admin()));
+
+create policy crplus_follows_public_read
+  on public.crplus_follows for select to anon,authenticated using (true);
+create policy crplus_follows_own
+  on public.crplus_follows for all to authenticated
+  using ((select auth.uid())=follower_id)
+  with check ((select auth.uid())=follower_id);
+
+create policy crplus_events_own
+  on public.crplus_play_events for all to authenticated
+  using ((select auth.uid())=user_id)
+  with check ((select auth.uid())=user_id);
+
+create policy crplus_ratings_public_read
+  on public.crplus_ratings for select to anon,authenticated using (true);
+create policy crplus_ratings_own_insert
+  on public.crplus_ratings for insert to authenticated
+  with check ((select auth.uid())=user_id);
+create policy crplus_ratings_own_update
+  on public.crplus_ratings for update to authenticated
+  using ((select auth.uid())=user_id)
+  with check ((select auth.uid())=user_id);
+create policy crplus_ratings_own_delete
+  on public.crplus_ratings for delete to authenticated
+  using ((select auth.uid())=user_id);
+
+create policy crplus_notifications_own_read
+  on public.crplus_notifications for select to authenticated
+  using ((select auth.uid())=user_id);
+create policy crplus_notifications_own_update
+  on public.crplus_notifications for update to authenticated
+  using ((select auth.uid())=user_id)
+  with check ((select auth.uid())=user_id);
+
+create policy crplus_collections_published_read
+  on public.crplus_collections for select to anon,authenticated
+  using (is_published=true);
+create policy crplus_collection_items_published_read
+  on public.crplus_collection_items for select to anon,authenticated
+  using (exists (
+    select 1 from public.crplus_collections c
+    where c.id=collection_id and c.is_published=true
+  ));
+create policy crplus_content_sources_published_read
+  on public.crplus_content_sources for select to anon,authenticated
+  using (exists (
+    select 1 from public.crplus_content c
+    where c.id=content_id and c.is_published=true
+  ));
+
+create policy crplus_admin_collections_all
+  on public.crplus_collections for all to authenticated
+  using ((select public.crplus_is_admin()))
+  with check ((select public.crplus_is_admin()));
+create policy crplus_admin_collection_items_all
+  on public.crplus_collection_items for all to authenticated
+  using ((select public.crplus_is_admin()))
+  with check ((select public.crplus_is_admin()));
+create policy crplus_admin_sources_all
+  on public.crplus_content_sources for all to authenticated
+  using ((select public.crplus_is_admin()))
+  with check ((select public.crplus_is_admin()));
+
+grant select on public.crplus_comments,public.crplus_follows,
+  public.crplus_ratings,public.crplus_collections,
+  public.crplus_collection_items,public.crplus_content_sources
+  to anon,authenticated;
+grant insert,delete on public.crplus_comments to authenticated;
+grant select,insert,update,delete on public.crplus_follows,
+  public.crplus_play_events,public.crplus_ratings to authenticated;
+grant select,update on public.crplus_notifications to authenticated;
+grant select on public.crplus_entitlements to authenticated;
+grant select,insert,update,delete on public.crplus_project_submissions,
+  public.crplus_project_tasks,public.crplus_project_credits,
+  public.crplus_project_status_history to authenticated;
+grant insert,update,delete on public.crplus_collections,
+  public.crplus_collection_items,public.crplus_content_sources to authenticated;
+
+
 commit;
 
 -- REVIEW BLOCKERS BEFORE THIS CAN BECOME A DEPLOYABLE MIGRATION:
