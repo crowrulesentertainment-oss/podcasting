@@ -91,6 +91,11 @@ BEGIN
            created_at DESC
   LIMIT 1;
 
+  IF v_plan IS NULL THEN
+    UPDATE members SET membership_type='Free',status='Active' WHERE user_id=p_user;
+    RETURN;
+  END IF;
+
   UPDATE members SET
     membership_type=CASE v_plan
       WHEN 'founder' THEN 'Owner'
