@@ -41,7 +41,7 @@ function addStylesheet() {
   const link = document.createElement("link");
   link.id = "crg-style";
   link.rel = "stylesheet";
-  link.href = SITE_BASE + "assets/css/groups.css?v=phase1d-conversations-1";
+  link.href = SITE_BASE + "assets/css/groups.css?v=phase1e-groups-review-1";
   document.head.appendChild(link);
 }
 function groupUrl(id) {
