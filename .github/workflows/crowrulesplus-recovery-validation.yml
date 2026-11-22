@@ -1,6 +1,8 @@
 name: CrowRules+ recovery SQL validation
 
 on:
+  push:
+    branches: [security/crowrulesplus-rls-review]
   pull_request:
     branches: [main]
     paths:
@@ -53,6 +55,9 @@ jobs:
           );
           CREATE TABLE public.ds_projects (id uuid PRIMARY KEY DEFAULT gen_random_uuid());
           GRANT SELECT ON public.members TO authenticated;
+          ALTER TABLE public.members ENABLE ROW LEVEL SECURITY;
+          CREATE POLICY members_select_own ON public.members
+            FOR SELECT TO authenticated USING (user_id = (SELECT auth.uid()));
           SQL
       - name: Apply recovery draft to disposable PostgreSQL
         env:
@@ -120,5 +125,60 @@ jobs:
               RAISE EXCEPTION 'Existing members-based super_admin authorization was not preserved';
             END IF;
           END $$;
+          RESET ROLE;
+
+          -- Seed one published and one unpublished content item, each with a comment.
+          INSERT INTO public.crplus_content(id,title,is_published)
+          VALUES
+            ('10000000-0000-0000-0000-000000000001','Published test',true),
+            ('10000000-0000-0000-0000-000000000002','Unpublished test',false);
+          INSERT INTO public.crplus_comments(id,user_id,content_id,body)
+          VALUES
+            ('20000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000001','Public comment'),
+            ('20000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002','Private comment');
+          INSERT INTO public.crplus_notifications(id,user_id,title)
+          VALUES ('30000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','Server notification');
+
+          SET ROLE anon;
+          DO $
+          DECLARE visible_count integer;
+          BEGIN
+            SELECT count(*) INTO visible_count FROM public.crplus_comments;
+            IF visible_count <> 1 THEN
+              RAISE EXCEPTION 'Anonymous users must see comments only on published content; saw %', visible_count;
+            END IF;
+          END $;
+          RESET ROLE;
+
+          SET ROLE authenticated;
+          DO $
+          BEGIN
+            BEGIN
+              INSERT INTO public.crplus_comments(user_id,content_id,body,is_hidden,moderated_at,moderated_by)
+              VALUES (
+                (SELECT auth.uid()),
+                '10000000-0000-0000-0000-000000000001',
+                'Forged moderation',
+                true,
+                now(),
+                (SELECT auth.uid())
+              );
+              RAISE EXCEPTION 'Comment insert accepted forged moderation fields';
+            EXCEPTION WHEN insufficient_privilege THEN
+              NULL;
+            END;
+
+            BEGIN
+              UPDATE public.crplus_notifications
+              SET title='Forged notification'
+              WHERE id='30000000-0000-0000-0000-000000000001';
+              RAISE EXCEPTION 'Notification title update unexpectedly succeeded';
+            EXCEPTION WHEN insufficient_privilege THEN
+              NULL;
+            END;
+          END $;
+          UPDATE public.crplus_notifications
+          SET is_read=true
+          WHERE id='30000000-0000-0000-0000-000000000001';
           RESET ROLE;
           SQL
