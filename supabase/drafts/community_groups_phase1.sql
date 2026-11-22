@@ -360,7 +360,7 @@ with check (
   and exists (
     select 1
     from public.podcast_community_circle_invites i
-    where i.circle_id = circle_id
+    where i.circle_id = public.podcast_community_circle_members.circle_id
       and i.invitee_id = (select auth.uid())
       and i.status = 'accepted'
   )
@@ -409,7 +409,7 @@ using (
     select 1
     from public.podcast_community_circles c
     join public.podcast_community_circle_members m on m.circle_id = c.id
-    where c.id = circle_id
+    where c.id = public.podcast_community_circle_messages.circle_id
       and c.group_chat_enabled = true
       and m.member_id = (select auth.uid())
   )
