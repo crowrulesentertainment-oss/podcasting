@@ -478,10 +478,21 @@ create policy crplus_entitlement_own
 
 create policy crplus_comments_public_read
   on public.crplus_comments for select to anon,authenticated
-  using (is_hidden=false);
+  using (
+    is_hidden=false
+    and exists (
+      select 1 from public.crplus_content c
+      where c.id=crplus_comments.content_id and c.is_published=true
+    )
+  );
 create policy crplus_comments_own_insert
   on public.crplus_comments for insert to authenticated
-  with check ((select auth.uid())=user_id);
+  with check (
+    (select auth.uid())=user_id
+    and is_hidden=false
+    and moderated_at is null
+    and moderated_by is null
+  );
 create policy crplus_comments_own_delete
   on public.crplus_comments for delete to authenticated
   using ((select auth.uid())=user_id);
@@ -559,7 +570,11 @@ grant select on public.crplus_comments,public.crplus_follows,
 grant insert,delete on public.crplus_comments to authenticated;
 grant select,insert,update,delete on public.crplus_follows,
   public.crplus_play_events,public.crplus_ratings to authenticated;
-grant select,update on public.crplus_notifications to authenticated;
+grant select on public.crplus_notifications to authenticated;
+-- Members may mark their own notifications read, but cannot rewrite
+-- server-generated notification content or ownership.
+revoke update on public.crplus_notifications from authenticated;
+grant update(is_read) on public.crplus_notifications to authenticated;
 grant select on public.crplus_entitlements to authenticated;
 grant select,insert,update,delete on public.crplus_project_submissions,
   public.crplus_project_tasks,public.crplus_project_credits,
