@@ -102,23 +102,17 @@ async function syncPodcastSubscription(admin: any, subscription: any): Promise<v
   }
 }
 
-async function handlePodcastEvent(admin: any, event: any): Promise<void> {
+export async function handlePodcastEvent(admin: any, event: any, stripe: any): Promise<void> {
   const object = event.data?.object;
 
   if (event.type === "checkout.session.completed" &&
     object?.metadata?.podcast_id && object?.metadata?.product_id && object.subscription) {
-    await syncPodcastSubscription(admin, {
-      id: typeof object.subscription === "string" ? object.subscription : object.subscription.id,
-      customer: object.customer,
-      status: "active",
-      metadata: object.subscription_data?.metadata ?? object.metadata,
-      items: { data: [{ price: { id: object.metadata.price_id ?? null } }] },
-      start_date: event.created,
-      current_period_start: null,
-      current_period_end: null,
-      cancel_at_period_end: false,
-      canceled_at: null,
-    });
+    const subscriptionId = typeof object.subscription === "string"
+      ? object.subscription
+      : object.subscription.id;
+    // Stripe's subscription object is canonical for periods, status, price and metadata.
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    await syncPodcastSubscription(admin, subscription);
     return;
   }
 
@@ -180,60 +174,82 @@ async function handlePodcastEvent(admin: any, event: any): Promise<void> {
   }
 }
 
-Deno.serve(async (request: Request) => {
-  if (request.method !== "POST") {
-    return new Response("Method not allowed", { status: 405 });
-  }
+export interface WebhookDependencies {
+  getEnv: (name: string) => string | undefined;
+  createStripe: (secret: string) => any;
+  verify: (stripe: any, rawBody: string, signature: string | null, secret: string) => Promise<any>;
+  createAdmin: (url: string, serviceRoleKey: string) => any;
+  processMembership: (admin: any, stripe: any, event: any) => Promise<{ outcome: string }>;
+  processPodcast: (admin: any, event: any, stripe: any) => Promise<void>;
+}
 
-  try {
-    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
-    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    if (!webhookSecret || !stripeSecretKey || !supabaseUrl || !serviceRoleKey) {
-      console.error("Webhook environment is missing a required secret or URL");
-      return new Response("Webhook is not configured", { status: 500 });
+export function createWebhookHandler(deps: WebhookDependencies) {
+  return async (request: Request): Promise<Response> => {
+    if (request.method !== "POST") {
+      return new Response("Method not allowed", { status: 405 });
     }
 
-    // Verify the exact raw body once, before parsing or performing side effects.
-    const rawBody = await request.text();
-    const stripe = createStripeClient(stripeSecretKey);
-    const event = await verifyStripeWebhookRequest(
-      stripe,
-      rawBody,
-      request.headers.get("Stripe-Signature"),
-      webhookSecret,
-    );
+    try {
+      const webhookSecret = deps.getEnv("STRIPE_WEBHOOK_SECRET");
+      const stripeSecretKey = deps.getEnv("STRIPE_SECRET_KEY");
+      const supabaseUrl = deps.getEnv("SUPABASE_URL");
+      const serviceRoleKey = deps.getEnv("SUPABASE_SERVICE_ROLE_KEY");
+      if (!webhookSecret || !stripeSecretKey || !supabaseUrl || !serviceRoleKey) {
+        console.error("Webhook environment is missing a required secret or URL");
+        return new Response("Webhook is not configured", { status: 500 });
+      }
 
-    const admin = createClient(supabaseUrl, serviceRoleKey, {
+      // Verify the exact raw body once, before parsing or performing side effects.
+      const rawBody = await request.text();
+      const stripe = deps.createStripe(stripeSecretKey);
+      const event = await deps.verify(
+        stripe,
+        rawBody,
+        request.headers.get("Stripe-Signature"),
+        webhookSecret,
+      );
+
+      const admin = deps.createAdmin(supabaseUrl, serviceRoleKey);
+
+      // Membership processing is idempotent and runs first. A busy claim returns
+      // 503 so Stripe retries before podcast side effects are attempted.
+      const membership = await deps.processMembership(admin, stripe, event);
+      if (membership.outcome === "busy") {
+        return new Response("Membership webhook event is already processing", { status: 503 });
+      }
+
+      // Preserve the podcast monetization path in this shared endpoint.
+      await deps.processPodcast(admin, event, stripe);
+
+      return new Response(JSON.stringify({
+        received: true,
+        type: event.type,
+        membership_outcome: membership.outcome,
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (error) {
+      console.error("Stripe webhook processing failed", error);
+      const isSignatureError = error instanceof Error &&
+        /signature|timestamp|no signatures found/i.test(error.message);
+      return new Response(
+        isSignatureError ? "Invalid Stripe signature" : "Webhook processing failed",
+        { status: isSignatureError ? 400 : 500 },
+      );
+    }
+  };
+}
+
+if (import.meta.main) {
+  Deno.serve(createWebhookHandler({
+    getEnv: (name) => Deno.env.get(name),
+    createStripe: createStripeClient,
+    verify: verifyStripeWebhookRequest,
+    createAdmin: (url, key) => createClient(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },
-    });
-
-    // Membership processing is idempotent and runs first. A busy claim returns
-    // 503 so Stripe retries before podcast side effects are attempted.
-    const membership = await processMembershipStripeEvent(admin, stripe, event);
-    if (membership.outcome === "busy") {
-      return new Response("Membership webhook event is already processing", { status: 503 });
-    }
-
-    // Preserve the podcast monetization path in this shared deployed endpoint.
-    await handlePodcastEvent(admin, event);
-
-    return new Response(JSON.stringify({
-      received: true,
-      type: event.type,
-      membership_outcome: membership.outcome,
-    }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    console.error("Stripe webhook processing failed", error);
-    const isSignatureError = error instanceof Error &&
-      /signature|timestamp|no signatures found/i.test(error.message);
-    return new Response(
-      isSignatureError ? "Invalid Stripe signature" : "Webhook processing failed",
-      { status: isSignatureError ? 400 : 500 },
-    );
-  }
-});
+    }),
+    processMembership: processMembershipStripeEvent,
+    processPodcast: handlePodcastEvent,
+  }));
+}
