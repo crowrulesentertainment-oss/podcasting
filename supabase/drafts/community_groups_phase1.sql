@@ -281,6 +281,29 @@ begin
 end
 $$;
 
+-- A private-schema SECURITY DEFINER predicate avoids a circular RLS
+-- dependency: invite SELECT policies also inspect the circle owner.
+create or replace function private.crowspace_user_has_circle_invite(p_circle_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = pg_catalog
+as $function$
+  select auth.uid() is not null and exists (
+    select 1
+    from public.podcast_community_circle_invites i
+    where i.circle_id = p_circle_id
+      and i.invitee_id = auth.uid()
+      and i.status in ('pending', 'accepted')
+  );
+$function$;
+
+revoke all on function private.crowspace_user_has_circle_invite(uuid)
+  from public, anon, authenticated;
+grant execute on function private.crowspace_user_has_circle_invite(uuid)
+  to anon, authenticated;
+
 -- Private groups may appear in discovery, but their posts, events, and chat
 -- remain member-only. Hidden groups remain visible only under the existing
 -- owner/member policy. This is additive; existing SELECT policies are retained.
@@ -291,13 +314,7 @@ for select
 to anon, authenticated
 using (
   visibility in ('public', 'private')
-  or exists (
-    select 1
-    from public.podcast_community_circle_invites i
-    where i.circle_id = public.podcast_community_circles.id
-      and i.invitee_id = (select auth.uid())
-      and i.status in ('pending', 'accepted')
-  )
+  or (select private.crowspace_user_has_circle_invite(public.podcast_community_circles.id))
 );
 
 -- ---------------------------------------------------------------------------
