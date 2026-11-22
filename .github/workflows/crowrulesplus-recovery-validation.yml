@@ -140,18 +140,18 @@ jobs:
           VALUES ('30000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','Server notification');
 
           SET ROLE anon;
-          DO $
+          DO $crtest$
           DECLARE visible_count integer;
           BEGIN
             SELECT count(*) INTO visible_count FROM public.crplus_comments;
             IF visible_count <> 1 THEN
               RAISE EXCEPTION 'Anonymous users must see comments only on published content; saw %', visible_count;
             END IF;
-          END $;
+          END $crtest$;
           RESET ROLE;
 
           SET ROLE authenticated;
-          DO $
+          DO $crtest$
           BEGIN
             BEGIN
               INSERT INTO public.crplus_comments(user_id,content_id,body,is_hidden,moderated_at,moderated_by)
@@ -176,7 +176,7 @@ jobs:
             EXCEPTION WHEN insufficient_privilege THEN
               NULL;
             END;
-          END $;
+          END $crtest$;
           UPDATE public.crplus_notifications
           SET is_read=true
           WHERE id='30000000-0000-0000-0000-000000000001';
