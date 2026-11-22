@@ -203,7 +203,12 @@ jobs:
             IF n <> 0 THEN RAISE EXCEPTION 'User deleted another user comment'; END IF;
             SELECT count(*) INTO n FROM public.crplus_notifications
             WHERE user_id='00000000-0000-0000-0000-000000000002';
-            IF n <> 1 THEN RAISE EXCEPTION 'User cannot read own notification'; END IF;
+            IF n <> 1 THEN
+              RAISE EXCEPTION 'User cannot read own notification: auth.uid=%, visible_total=%, matching_rows=%',
+                auth.uid(),
+                (SELECT count(*) FROM public.crplus_notifications),
+                (SELECT count(*) FROM public.crplus_notifications WHERE user_id=auth.uid());
+            END IF;
             SELECT count(*) INTO n FROM public.crplus_notifications
             WHERE user_id='00000000-0000-0000-0000-000000000003';
             IF n <> 0 THEN RAISE EXCEPTION 'User can read another user notification'; END IF;
