@@ -99,7 +99,7 @@ The same table contains more than basic public identity fields, including locati
 
 A row-level SELECT policy does not hide individual columns. Therefore, the flags must not be treated as database-enforced column privacy. A group profile card or member directory must not simply select every column from this table. Before profile UI work, define an explicit safe public projection (or equivalent column-level access design) and separate owner-only fields. Do not change the current policy as part of this audit.
 
-The object `podcast_public_member_profiles` is a view over `creator_profiles`, not a base table. It has `security_barrier=true`, but is not marked `security_invoker=true`. It is a creator-discovery projection, not a confirmed Podcasting member profile API. Do not substitute it for the circle member profile contract without a separate view-owner/grant review.
+The object `podcast_public_member_profiles` is a view over `creator_profiles`, not a base table. It has `security_barrier=true`, but is not marked `security_invoker=true`. The Supabase Security Advisor reports this view under the `security_definer_view` ERROR lint. It is a creator-discovery projection, not a confirmed Podcasting member profile API. Do not substitute it for the circle member profile contract without a separate view-owner/grant review. Remediation reference: https://supabase.com/docs/guides/database/database-linter?lint=0010_security_definer_view.
 
 ### Poll lifecycle gap
 
@@ -157,7 +157,13 @@ Repository Groups documentation itself says migration recovery and full local re
 
 No migration fetch, reset, or DDL was performed as part of this read-only audit.
 
-## 6. Phase 1 implementation sequence after recovery
+## 6. Supabase advisor snapshot
+
+The read-only Security Advisor run returned four lint categories. The relevant Community Groups finding was `public.podcast_public_member_profiles` under `security_definer_view` at ERROR level. The advisor also reported 73 RLS-enabled tables without policies and multiple executable SECURITY DEFINER functions across the wider project; the filtered results did not identify the inspected Podcasting circle tables or CrowSpace group chat tables among those no-policy findings. These project-wide counts are not attributed to Community Groups without table-by-table verification.
+
+The Performance Advisor returned six duplicate-index findings elsewhere in the project; none of the filtered findings referenced the inspected circle tables. No performance changes were made.
+
+## 7. Phase 1 implementation sequence after recovery
 
 1. Reconcile migration history and obtain a successful local replay.
 2. Run the existing two-circle data-integrity checks.
@@ -167,7 +173,7 @@ No migration fetch, reset, or DDL was performed as part of this read-only audit.
 6. Run existing UI regression checks against the local database.
 7. Only then prepare a reviewed migration and front-end implementation plan.
 
-## 7. Release decision
+## 8. Release decision
 
 **Status: BLOCKED — Phase 0 migration recovery and privacy review incomplete.**
 
