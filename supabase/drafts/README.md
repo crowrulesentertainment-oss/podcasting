@@ -128,3 +128,15 @@ The follow-up feature branch `feature/connection-groups-db-security-2026-11-21` 
 - `docs/CONNECTION_GROUPS_DATABASE_SECURITY_TEST_PLAN.md` records the test matrix and release gates.
 
 **Validation status remains pending.** The SQL source and test package are committed to the feature branch, but this environment does not have the recovered 1,428-file migration chain, Supabase CLI, Docker, or a local PostgreSQL client. No PostgreSQL parser, local replay, or integration test run has been claimed. Do not generate a timestamped migration or apply anything to the hosted project until the documented recovery and local replay steps succeed.
+
+
+## Groups experience follow-up — invitations and events
+
+The feature branch now includes browser UI for the existing group invitation and event tables:
+
+- `assets/js/groups-events.js` adds an invitation inbox, owner-only public-profile search and invite sending, pending-invitation cancellation, event creation for group owners/moderators, event listings, and member RSVPs.
+- `podcast_community_circle_invites`, `podcast_community_circle_events`, and `podcast_community_circle_event_rsvps` are reused. No parallel invitation or event tables are introduced.
+- The Phase 1 draft adds an invitation-recipient-only group metadata policy and a private atomic invitation acceptance function with a public SECURITY INVOKER wrapper. Accepting an invite updates its status and creates membership in one transaction.
+- The local RLS test script now covers invitation acceptance, hidden-group metadata visibility for invitees, moderator event creation, member RSVPs, and denial of private-event access/RSVPs to nonmembers.
+
+The new UI and SQL remain feature-branch work only. The draft migration has not been applied to the hosted database, and local PostgreSQL validation is still required before release.
