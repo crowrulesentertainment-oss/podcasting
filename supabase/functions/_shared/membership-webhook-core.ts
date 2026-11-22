@@ -104,20 +104,40 @@ export async function processMembershipStripeEvent(
       ?? event.data?.object?.client_reference_id
       ?? existing?.user_id
       ?? null;
+    const explicitPlanKey = subscriptionMetadata.plan_key ?? checkoutMetadata.plan_key ?? null;
 
-    let planQuery = admin.from("membership_plans").select("id,plan_key,site_key,stripe_price_id");
-    let planResult: any;
+    let plan: any = null;
     if (priceId) {
-      planResult = await planQuery.eq("stripe_price_id", priceId).maybeSingle();
-    } else {
-      const planKey = subscriptionMetadata.plan_key ?? checkoutMetadata.plan_key;
-      if (!planKey) throw new Error("Membership subscription has no Stripe price or plan_key mapping");
-      planResult = await planQuery.eq("plan_key", planKey).maybeSingle();
+      const { data, error } = await admin.from("membership_plans")
+        .select("id,plan_key,site_key,stripe_price_id")
+        .eq("stripe_price_id", priceId)
+        .maybeSingle();
+      throwIfError(error, "resolve membership plan by Stripe price");
+      plan = data;
     }
-    throwIfError(planResult?.error, "resolve membership plan");
-    const plan = planResult?.data;
-    if (!plan) throw new Error("No active membership plan maps to Stripe subscription " + subscriptionId);
+    if (!plan && explicitPlanKey) {
+      const { data, error } = await admin.from("membership_plans")
+        .select("id,plan_key,site_key,stripe_price_id")
+        .eq("plan_key", explicitPlanKey)
+        .maybeSingle();
+      throwIfError(error, "resolve membership plan by plan_key");
+      plan = data;
+    }
+
+    // This endpoint also receives podcast-monetization events. Do not treat
+    // unrelated podcast subscriptions as broken membership purchases.
+    const isInvoiceEvent = event.type.startsWith("invoice.");
+    const isExplicitMembership = Boolean(explicitPlanKey);
+    if (!plan && !existing && !isExplicitMembership) {
+      await finishEvent(admin, event.id, "processed");
+      return { outcome: "ignored" };
+    }
+    if (!plan) throw new Error("No membership plan maps to Stripe subscription " + subscriptionId);
     if (!userId) throw new Error("Membership subscription has no resolvable user_id");
+    if (isInvoiceEvent && !existing) {
+      await finishEvent(admin, event.id, "processed");
+      return { outcome: "ignored" };
+    }
 
     const previousEventCreated = Number(existing?.last_stripe_event_created ?? 0);
     if (previousEventCreated >= event.created) {
