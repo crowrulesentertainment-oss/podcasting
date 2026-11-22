@@ -132,7 +132,7 @@ Deno.test("podcast subscription update refreshes existing entitlement", async ()
     } },
   }, stripe);
   assertEquals(h.calls.some((c) => c.op === "upsert" && c.table === "podcast_subscriptions"), true);
-  assertEquals(h.calls.some((c) => c.op === "update" && c.table === "cr_podcast_entitlements" && c.row.status === "inactive"), true);
+  assertEquals(h.calls.some((c) => c.op === "update" && c.table === "cr_podcast_entitlements" && c.row.status === "active"), true);
 });
 
 Deno.test("podcast invoice paid and failed events update subscription state", async () => {
