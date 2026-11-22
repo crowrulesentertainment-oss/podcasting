@@ -2770,7 +2770,8 @@ if(tab==="securityAccess"){
       }
       previewButton.disabled=true;previewStatus.className="crcd-status";previewStatus.textContent="Loading published content and this creator's private, recipient-scoped data…";previewOutput.textContent="Generating preview…";
       try{
-        const templateKey=$("#crcdPreviewTemplate")?.value||"daily_digest";\n        const result=await fn("podcast-creator-daily",{action:"preview_digest",preview_user_id:userId,template_key:templateKey});
+        const templateKey=$("#crcdPreviewTemplate")?.value||"daily_digest";
+        const result=await fn("podcast-creator-daily",{action:"preview_digest",preview_user_id:userId,template_key:templateKey});
         previewStatus.className="crcd-status good";
         previewStatus.textContent=(result.template_name||"Email template")+" rendered for "+result.edition_date+". "+(result.sections?.length||0)+" populated sections; "+(result.omitted_sections?.length||0)+" empty sections omitted. Preview only; no email was delivered.";
         renderNewsletterPreview(result);
