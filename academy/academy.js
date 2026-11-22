@@ -14,7 +14,7 @@ const lessonDetails=[
 const state={user:null,courses:[],lessons:[],progress:new Set(),attempts:new Map(),certificates:[],activeCourse:null,activeLesson:0,quizQuestions:[],localKey:"crp_academy_v2_guest_progress"};
 const slugify=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const youtubeEmbed=url=>{try{const u=new URL(url),host=u.hostname.toLowerCase().replace(/^www\\./,"");let id=null;if(host==="youtu.be")id=u.pathname.split("/").filter(Boolean)[0];else if(["youtube.com","m.youtube.com","youtube-nocookie.com"].includes(host))id=u.searchParams.get("v")||u.pathname.split("/").filter(Boolean).pop();return id&&/^[A-Za-z0-9_-]{11}$/.test(id)?"https://www.youtube-nocookie.com/embed/"+id:null}catch{return null}};
+const youtubeEmbed=url=>{try{const u=new URL(url),host=u.hostname.toLowerCase().replace(/^www\./,"");let id=null;if(host==="youtu.be")id=u.pathname.split("/").filter(Boolean)[0];else if(["youtube.com","m.youtube.com","youtube-nocookie.com"].includes(host))id=u.searchParams.get("v")||u.pathname.split("/").filter(Boolean).pop();return id&&/^[A-Za-z0-9_-]{11}$/.test(id)?"https://www.youtube-nocookie.com/embed/"+id:null}catch{return null}};
 
 const toast=m=>{let t=$("#toast");if(!t){t=document.createElement("div");t.id="toast";t.className="toast";document.body.append(t)}t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3500)};
 const key=(course,lesson)=>course+"::"+lesson;
