@@ -1,4 +1,5 @@
 -- CrowRules+ foundational schema recovery draft
+-- Validation trigger: exercise the disposable PostgreSQL CI harness.
 -- Status: DRAFT ONLY. Do not apply until reviewed against the CrowRules+ application
 -- contract and tested in an isolated Supabase project.
 -- Recovery basis: production supabase_migrations.schema_migrations records
