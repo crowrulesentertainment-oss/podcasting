@@ -78,7 +78,7 @@ async function load(){
    $("#thumbnail-url").value=episode.thumbnail_url||"";
    audioFile.required=false;episodeInput.required=false;
   }else if(!fromStudio){
-   showNameInput.value="";episodeTitleInput.value="";
+   showNameInput.value="";episodeTitleInput.value="";episodeInput.value="";$("#thumbnail-url").value="";
    audioFile.required=mediaSelect.value==="audio";episodeInput.required=mediaSelect.value!=="audio";
   }
   previewMedia();
@@ -87,7 +87,7 @@ async function load(){
  studioEpisodeSelect.addEventListener("change",applyEntrySource);
 
  function youtubeId(value){try{const u=new URL(value),host=u.hostname.replace(/^www\./,"");if(host==="youtu.be")return u.pathname.split("/").filter(Boolean)[0]||null;if(["youtube.com","m.youtube.com","music.youtube.com"].includes(host)){if(u.pathname==="/watch")return u.searchParams.get("v");const m=u.pathname.match(/^\/(?:embed|shorts|live)\/([A-Za-z0-9_-]{11})/);return m?.[1]||null}}catch{}return null}
- function previewMedia(){const mode=mediaSelect.value;audioField.hidden=mode!=="audio";$("#episode-url-field").hidden=mode==="audio";episodeInput.required=mode!=="audio";audioFile.required=mode==="audio";youtubePreview.innerHTML="";if(mode==="video"&&episodeInput.value.trim()){const id=youtubeId(episodeInput.value.trim());if(id)youtubePreview.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+esc(id)+'" title="YouTube episode preview" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';}}
+ function previewMedia(){const mode=mediaSelect.value,fromStudio=sourceSelect.value==="studio";audioField.hidden=fromStudio||mode!=="audio";$("#episode-url-field").hidden=fromStudio||mode==="audio";episodeInput.required=!fromStudio&&mode!=="audio";audioFile.required=!fromStudio&&mode==="audio";youtubePreview.innerHTML="";if(!fromStudio&&mode==="video"&&episodeInput.value.trim()){const id=youtubeId(episodeInput.value.trim());if(id)youtubePreview.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+esc(id)+'" title="YouTube episode preview" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';}}
  mediaSelect.addEventListener("change",previewMedia);episodeInput.addEventListener("input",previewMedia);
  audioFile.addEventListener("change",()=>{const f=audioFile.files?.[0];audioPreview.innerHTML="";if(f){const u=URL.createObjectURL(f);audioPreview.innerHTML='<audio controls preload="metadata" src="'+u+'"></audio>'}});
  coverFile.addEventListener("change",()=>{const f=coverFile.files?.[0];coverPreview.innerHTML="";if(f){const u=URL.createObjectURL(f);coverPreview.innerHTML='<img alt="Episode cover preview" src="'+u+'">'}});
