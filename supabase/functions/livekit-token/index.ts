@@ -1,0 +1,90 @@
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { AccessToken } from "npm:livekit-server-sdk@2.20.1";
+
+const cors = {
+  "Access-Control-Allow-Origin": "https://crowrulesentertainment-oss.github.io",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Content-Type": "application/json",
+};
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: cors });
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  if (req.method !== "POST") return json({ error: "POST required." }, 405);
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const livekitUrl = Deno.env.get("LIVEKIT_URL");
+  const livekitKey = Deno.env.get("LIVEKIT_API_KEY");
+  const livekitSecret = Deno.env.get("LIVEKIT_API_SECRET");
+  const authorization = req.headers.get("Authorization");
+
+  if (!supabaseUrl || !anonKey || !serviceKey || !authorization) {
+    return json({ error: "Sign in to CrowRules Podcasting before joining a live room." }, 401);
+  }
+  if (!livekitUrl || !livekitKey || !livekitSecret) {
+    return json({
+      error: "LiveKit is not configured yet. Add LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET to Supabase Edge Function secrets before connecting hosts.",
+      code: "LIVEKIT_NOT_CONFIGURED"
+    }, 503);
+  }
+
+  const authClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authorization } },
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+  const { data: authData, error: authError } = await authClient.auth.getUser();
+  const user = authData?.user;
+  if (authError || !user) return json({ error: "Your session is invalid or expired. Sign in again." }, 401);
+
+  let body: { schedule_id?: string; display_name?: string };
+  try { body = await req.json(); } catch { return json({ error: "Invalid request body." }, 400); }
+  const scheduleId = String(body.schedule_id || "").trim();
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(scheduleId)) {
+    return json({ error: "A valid schedule_id is required." }, 400);
+  }
+
+  const admin = createClient(supabaseUrl, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+  const { data: slot, error: slotError } = await admin
+    .from("live_network_schedule")
+    .select("id,owner_id,host_user_id,starts_at,ends_at,status,live_network_programs(title)")
+    .eq("id", scheduleId)
+    .maybeSingle();
+  if (slotError || !slot) return json({ error: "Scheduled live appearance not found." }, 404);
+
+  const isProducer = slot.owner_id === user.id;
+  const isAssignedHost = slot.host_user_id === user.id;
+  if (!isProducer && !isAssignedHost) return json({ error: "You are not assigned to this live appearance." }, 403);
+  if (["completed", "skipped"].includes(slot.status)) return json({ error: "This scheduled appearance is no longer active." }, 409);
+
+  const roomName = "crlive-" + slot.id;
+  const cleanName = String(body.display_name || user.user_metadata?.display_name || user.email || "CrowRules Host")
+    .replace(/[<>\u0000-\u001f]/g, "").trim().slice(0, 80) || "CrowRules Host";
+  const token = new AccessToken(livekitKey, livekitSecret, {
+    identity: user.id,
+    name: cleanName,
+    ttl: "15m",
+    metadata: JSON.stringify({ role: isProducer ? "producer" : "host", schedule_id: slot.id })
+  });
+  token.addGrant({
+    roomJoin: true,
+    room: roomName,
+    canPublish: true,
+    canSubscribe: true,
+    canPublishData: true
+  });
+  const jwt = await token.toJwt();
+
+  return json({
+    url: livekitUrl,
+    token: jwt,
+    room_name: roomName,
+    identity: user.id,
+    role: isProducer ? "producer" : "host",
+    program_title: slot.live_network_programs?.title || "CrowRules Live"
+  });
+});
