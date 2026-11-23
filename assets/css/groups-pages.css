@@ -128,3 +128,32 @@ body[data-groups-page]:not(.gp-hub) .gp-site-footer p,body[data-groups-page]:not
 .gp-notification-option small{color:#aeb5c1;font-size:12px;line-height:1.5}
 .gp-notification-option input{width:20px;height:20px;accent-color:#13d8ff;flex:0 0 auto}
 #gp-notification-form .gp-button{margin-top:18px}
+
+
+/* Groups 2.0 collaboration workspace */
+.gp-collaborations-main{max-width:1120px}
+.gp-collaboration-create-panel,.gp-collaboration-list-section{margin:28px 0}
+.gp-collaboration-create-panel{padding:clamp(18px,3vw,28px);border:1px solid #ffffff18;border-radius:18px;background:linear-gradient(145deg,#171a22,#0e1016)}
+.gp-collaboration-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.gp-collaboration-form label{display:grid;gap:8px}
+.gp-collaboration-form label:nth-child(4),.gp-collaboration-form label:nth-child(5),.gp-collaboration-form button,.gp-collaboration-form .gp-help{grid-column:1/-1}
+.gp-collaboration-form input,.gp-collaboration-form select,.gp-collaboration-form textarea,.gp-collaboration-review select,.gp-collaboration-review textarea{width:100%;min-width:0;padding:12px 14px;border:1px solid #ffffff25;border-radius:10px;background:#ffffff0b;color:inherit}
+.gp-collaboration-form select option,.gp-collaboration-review select option{background:#151821;color:#fff}
+.gp-collaboration-form textarea{min-height:110px;resize:vertical}
+.gp-collaboration-form [hidden]{display:none!important}
+.gp-collaboration-list{display:grid;gap:16px}
+.gp-collaboration-card{padding:20px;border:1px solid #ffffff1c;border-radius:16px;background:#11141b}
+.gp-collaboration-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.gp-collaboration-status{padding:5px 10px;border-radius:99px;background:#ffffff12;color:#dce5ef;font-size:12px}
+.gp-collaboration-card h3{margin:12px 0 8px;font-size:20px}
+.gp-collaboration-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
+.gp-collaboration-meta{display:flex;justify-content:space-between;gap:12px;margin-top:14px;color:#aeb7c5;font-size:12px}
+.gp-collaboration-tallies{display:grid;gap:7px;margin:14px 0}
+.gp-collaboration-tally{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;border-radius:9px;background:#ffffff0a}
+.gp-collaboration-vote-actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.gp-collaboration-response{margin-top:14px;padding:14px;border-left:3px solid #d6a84b;border-radius:0 10px 10px 0;background:#ffffff0a}
+.gp-collaboration-response p{margin:8px 0 0;white-space:pre-wrap}
+.gp-collaboration-review{display:grid;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid #ffffff18}
+.gp-collaboration-review label{display:grid;gap:7px}
+.gp-collaboration-review textarea{min-height:80px;resize:vertical}
+@media(max-width:650px){.gp-collaboration-form{grid-template-columns:1fr}.gp-collaboration-form label,.gp-collaboration-form button,.gp-collaboration-form .gp-help{grid-column:1}.gp-collaboration-card{padding:15px}.gp-collaboration-card-head{align-items:flex-start;flex-direction:column}.gp-collaboration-vote-actions .gp-button{width:100%}}
