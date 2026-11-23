@@ -81,7 +81,7 @@
           <div class="crta-field"><label for="crtaScheduleTheme">THEME</label><select id="crtaScheduleTheme"></select></div>
           <div class="crta-field"><label for="crtaStart">START DATE</label><input id="crtaStart" type="date"></div>
           <div class="crta-field"><label for="crtaEnd">END DATE</label><input id="crtaEnd" type="date"></div>
-        </div><div class="crta-actions"><button class="crta-btn" id="crtaAddSchedule" type="button">Add scheduled window</button><button class="crta-btn" id="crtaExportSchedule" type="button">Export calendar (.ics)</button><button class="crta-btn" id="crtaExportScheduleCsv" type="button">Export schedule (.csv)</button><button class="crta-btn" id="crtaRemovePastSchedule" type="button">Remove past windows</button></div><div class="crta-controls" style="margin-top:10px"><div class="crta-field"><label for="crtaCalendarReminderTiming">CALENDAR REMINDER LEAD TIME</label><select id="crtaCalendarReminderTiming"><option value="-PT15M">15 minutes before</option><option value="-PT1H">1 hour before</option><option value="-P1D" selected>1 day before</option><option value="-P7D">1 week before</option></select></div></div><label class="crta-note" style="display:flex;align-items:center;gap:8px;margin-top:9px"><input id="crtaCalendarReminders" type="checkbox" checked> Include a reminder for each scheduled theme window</label><div class="crta-image-audit" id="crtaScheduleStatus" role="status" aria-live="polite">Schedule preview will appear after settings load.</div><div class="crta-controls" style="margin-top:10px"><div class="crta-field"><label for="crtaScheduleFilter">SHOW SCHEDULE WINDOWS</label><select id="crtaScheduleFilter"><option value="all">All windows</option><option value="active">Active</option><option value="upcoming">Upcoming</option><option value="past">Past</option><option value="invalid">Invalid</option><option value="overlap">Overlapping only</option></select></div><div class="crta-field"><label>SCHEDULE OVERVIEW</label><div class="crta-image-audit" id="crtaScheduleCounts" aria-live="polite">Loading schedule totals…</div></div></div><div class="crta-schedule-list" id="crtaScheduleList"></div></div>
+        </div><div class="crta-actions"><button class="crta-btn" id="crtaAddSchedule" type="button">Add scheduled window</button><button class="crta-btn" id="crtaExportSchedule" type="button">Export calendar (.ics)</button><button class="crta-btn" id="crtaExportScheduleCsv" type="button">Export schedule (.csv)</button><button class="crta-btn" id="crtaRemovePastSchedule" type="button">Remove past windows</button><button class="crta-btn" id="crtaCopyAllNextYear" type="button">Copy all windows to next year</button></div><div class="crta-controls" style="margin-top:10px"><div class="crta-field"><label for="crtaCalendarReminderTiming">CALENDAR REMINDER LEAD TIME</label><select id="crtaCalendarReminderTiming"><option value="-PT15M">15 minutes before</option><option value="-PT1H">1 hour before</option><option value="-P1D" selected>1 day before</option><option value="-P7D">1 week before</option></select></div></div><label class="crta-note" style="display:flex;align-items:center;gap:8px;margin-top:9px"><input id="crtaCalendarReminders" type="checkbox" checked> Include a reminder for each scheduled theme window</label><div class="crta-image-audit" id="crtaScheduleStatus" role="status" aria-live="polite">Schedule preview will appear after settings load.</div><div class="crta-controls" style="margin-top:10px"><div class="crta-field"><label for="crtaScheduleFilter">SHOW SCHEDULE WINDOWS</label><select id="crtaScheduleFilter"><option value="all">All windows</option><option value="active">Active</option><option value="upcoming">Upcoming</option><option value="past">Past</option><option value="invalid">Invalid</option><option value="overlap">Overlapping only</option></select></div><div class="crta-field"><label>SCHEDULE OVERVIEW</label><div class="crta-image-audit" id="crtaScheduleCounts" aria-live="polite">Loading schedule totals…</div></div></div><div class="crta-schedule-list" id="crtaScheduleList"></div></div>
         <div class="crta-block" id="crtaImageManager">
           <h3>Theme image manager</h3>
           <p>Upload replacement photography or assign a hosted image URL. Images are stored in the dedicated CrowRules theme bucket; only active platform administrators can upload or remove files.</p>
@@ -310,6 +310,23 @@
       finally{button.disabled=false}
     });
 
+    $("crtaCopyAllNextYear").addEventListener("click",()=>{
+      const valid=schedule.filter(item=>item&&item.start&&item.end&&item.end>=item.start&&THEMES.some(theme=>theme.id===item.theme_id));
+      if(!valid.length){$("crtaStatus").textContent="There are no valid schedule windows to copy.";return}
+      const shiftYear=value=>{const [year,month,day]=value.split("-").map(Number),targetYear=year+1,lastDay=new Date(targetYear,month,0).getDate();return targetYear+"-"+String(month).padStart(2,"0")+"-"+String(Math.min(day,lastDay)).padStart(2,"0")};
+      const additions=[],blocked=[];
+      valid.forEach(item=>{
+        const start=shiftYear(item.start),end=shiftYear(item.end);
+        if(scheduleOverlap(start,end)||additions.some(other=>start<=other.end&&end>=other.start)){blocked.push(item);return}
+        additions.push({theme_id:item.theme_id,start,end});
+      });
+      if(!additions.length){$("crtaStatus").textContent="No next-year windows could be copied: all valid windows conflict with existing or newly copied dates.";return}
+      const message="Copy "+additions.length+" of "+valid.length+" valid schedule window"+(valid.length===1?"":"s")+" to next year?"+(blocked.length?" "+blocked.length+" conflicting window"+(blocked.length===1?" was":"s were")+" skipped.":"")+" This changes only the local draft; publish platform settings to save.";
+      if(!window.confirm(message))return;
+      schedule.push(...additions);schedule.sort((a,b)=>String(a.start||"").localeCompare(String(b.start||"")));
+      renderSchedule();
+      $("crtaStatus").textContent="Copied "+additions.length+" window"+(additions.length===1?"":"s")+" to next year; skipped "+blocked.length+" conflicting window"+(blocked.length===1?"":"s")+". Publish platform settings to save the draft.";
+    });
     $("crtaScheduleFilter").addEventListener("change",renderSchedule);
     $("crtaRemovePastSchedule").addEventListener("click",()=>{
       const today=localDateKey();
