@@ -20,7 +20,7 @@ async function connect(){
   localTracks=await createLocalTracks({audio:true,video:true});
   for(const track of localTracks){await room.localParticipant.publishTrack(track);if(track.kind==="video"){$("videoStage").replaceChildren(track.attach())}}
   connected=true;$("leave").disabled=false;status("Connected to "+(data.program_title||"CrowRules Live")+" · waiting for producer.");
- }catch(error){status(error.message||"Could not connect to the LiveKit room.",true)}
+ }catch(error){try{for(const track of localTracks){track.stop();track.detach().forEach(node=>node.remove())}if(room)await room.disconnect()}catch{}room=null;localTracks=[];connected=false;status(error.message||"Could not connect to the LiveKit room.",true)}
  finally{$("connect").disabled=connected}
 }
 async function leave(){try{for(const track of localTracks){track.stop();track.detach().forEach(node=>node.remove())}if(room)await room.disconnect()}catch(e){console.warn(e)}finally{room=null;localTracks=[];connected=false;$("connect").disabled=false;$("leave").disabled=true;clearStage();status("You have left the room.")}}
