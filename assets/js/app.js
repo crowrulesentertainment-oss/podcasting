@@ -1,4 +1,4 @@
-import{initLiveBroadcastStudio}from"./live-broadcast-studio.js?v=20261123-live-network-v2";import{initNetworkCommandCenter}from"./live-network-command-center.js?v=20261123-live-network-v1";
+import{initLiveBroadcastStudio}from"./live-broadcast-studio.js?v=20261123-live-network-v2";import{initNetworkCommandCenter}from"./live-network-command-center.js?v=20261123-live-network-v2";
 import "./theme-catalog.js?v=20261123-cinematic-theme-image-manager-v1";
 import "./platform-reviews-home.js?v=20261118-platform-reviews-home-v1";
 import "./site-theme.js?v=20261123-cinematic-atmosphere-v1";
