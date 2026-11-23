@@ -315,7 +315,7 @@
         const overlap=!!(valid&&scheduleOverlap(item.start,item.end,schedule.indexOf(item)));
         rows.push([theme?.label||"Unknown theme",item?.theme_id||"",item?.start||"",item?.end||"",status,overlap?"Yes":"No"]);
       });
-      const csv="\\uFEFF"+rows.map(row=>row.map(quote).join(",")).join("\\r\\n");
+      const csv="\uFEFF"+rows.map(row=>row.map(quote).join(",")).join("\r\n");
       const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
       const link=document.createElement("a");link.href=url;link.download="crowrules-cinematic-theme-schedule.csv";document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
       $("crtaStatus").textContent="Exported "+schedule.length+" scheduled window"+(schedule.length===1?"":"s")+" to CSV. The export includes invalid entries for review and does not publish changes.";
