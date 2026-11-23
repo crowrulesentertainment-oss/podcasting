@@ -147,3 +147,23 @@ body[data-groups-page] .groups-auth-actions[data-auth-state="checking"]{min-widt
 .gp-member-profile-link:hover{text-decoration:underline;text-underline-offset:3px}
 .gp-member-profile-muted{color:var(--gp-muted,#92929b);font-weight:600;letter-spacing:0}
 .gp-member-bio{margin:6px 0 2px;color:var(--gp-muted,#a7a7b0);font-size:.86rem;line-height:1.45}
+
+
+/* Unified public-profile styling for Groups member cards */
+body[data-groups-page] .gp-member-directory-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:16px}
+body[data-groups-page] .gp-member-directory-grid .gp-member-card{display:block;min-width:0;padding:0;overflow:hidden;border:1px solid #ffffff18;border-radius:16px;background:linear-gradient(145deg,#171c26,#0d1118);box-shadow:0 12px 30px #0003;transition:transform .2s,border-color .2s}
+body[data-groups-page] .gp-member-directory-grid .gp-member-card:hover{transform:translateY(-3px);border-color:#d8ad6270}
+body[data-groups-page] .gp-member-card .social-person-cover{height:104px;background:linear-gradient(120deg,#4a111b,#171d2b 60%,#80613b)}
+body[data-groups-page] .gp-member-card .social-person-avatar{width:82px;height:82px;margin:-42px 18px 0;position:relative;display:grid;place-items:center;overflow:hidden;border:4px solid #11151d;border-radius:50%;background:#252b37;color:#f1d7a6;font-size:30px;font-weight:900}
+body[data-groups-page] .gp-member-card .social-person-avatar img{width:100%;height:100%;object-fit:cover}
+body[data-groups-page] .gp-member-card .social-person-copy{padding:10px 18px 20px}
+body[data-groups-page] .gp-member-card .social-person-copy>b{display:block;font-size:17px;color:#f7f7f5}
+body[data-groups-page] .gp-member-card .social-person-copy>span{display:block;color:#d6b46e;font-size:12px;margin-top:3px}
+body[data-groups-page] .gp-member-card .social-person-copy>small{display:block;color:#9da6b5;margin-top:8px;text-transform:uppercase;letter-spacing:.1em;font-size:9px}
+body[data-groups-page] .gp-member-card .social-person-copy>p{min-height:38px;margin:10px 0;color:#b5bdc9;font-size:12px;line-height:1.55}
+body[data-groups-page] .gp-member-card .social-person-copy>.gp-member-empty-bio{color:#858e9c;font-style:italic}
+body[data-groups-page] .gp-member-card .gp-member-card-meta{padding-top:10px;border-top:1px solid #ffffff12;color:#929cab;font-size:10px}
+body[data-groups-page] .gp-member-profile-cta{display:inline-flex;align-items:center;gap:7px;margin-top:13px;padding:9px 13px;border:1px solid #e50914;border-radius:999px;background:linear-gradient(110deg,#c90d17,#ed2934);color:#fff;text-decoration:none;font-size:11px;font-weight:850}
+body[data-groups-page] .gp-member-profile-cta:hover{filter:brightness(1.12);color:#fff}
+body[data-groups-page] .gp-member-profile-muted{display:inline-flex;margin-top:13px;color:#92929b;font-size:11px}
+@media(max-width:560px){body[data-groups-page] .gp-member-directory-grid{grid-template-columns:1fr}}
