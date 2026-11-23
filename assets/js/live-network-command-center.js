@@ -96,7 +96,7 @@ export async function initNetworkCommandCenter({sb,user,notify=()=>{}}={}){
   const list=$("lncSchedule");list.replaceChildren();if(!state.schedule.length){list.innerHTML='<div class="empty">No programming scheduled yet.</div>';return}
   state.schedule.forEach(x=>{
    const row=document.createElement("div");row.className="row";const info=document.createElement("div"),title=document.createElement("strong"),detail=document.createElement("small");
-   title.textContent=x.live_network_programs?.title||"Program";detail.textContent=pretty(x.starts_at)+" → "+pretty(x.ends_at)+" · "+(x.host_name||"Host TBD")+" · "+x.status.replaceAll("_"," ");info.append(title,detail);
+   title.textContent=x.live_network_programs?.title||"Program";detail.textContent=pretty(x.starts_at)+" → "+pretty(x.ends_at)+" · "+(x.host_name||"Host TBD")+" · "+x.status.replaceAll("_"," ")+" · ID "+x.id;info.append(title,detail);
    const actions=document.createElement("div");actions.className="actions";
    if(x.status==="scheduled"){const ready=document.createElement("button");ready.className="secondary";ready.textContent="Mark ready";ready.addEventListener("click",()=>updateSlot(x.id,{status:"ready"}));actions.append(ready)}
    const del=document.createElement("button");del.className="danger";del.textContent="Remove";del.addEventListener("click",()=>removeSlot(x.id));actions.append(del);row.append(info,actions);list.append(row);
