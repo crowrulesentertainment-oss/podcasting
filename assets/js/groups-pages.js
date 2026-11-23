@@ -121,19 +121,26 @@ async function members(){
  if(!mine){status.textContent="Join this group to access its member directory.";return}
  if(!["owner","moderator"].includes(mine.role)){
   status.textContent="The full member roster is available to group owners and moderators. Your membership is confirmed, but the existing privacy rules do not allow member-wide roster access.";
-  root.innerHTML='<div class="gp-notice">You can still participate in the group community, discussions, events and collaborations.</div>';
+  root.innerHTML='<div class="gp-notice">You can still participate in the group community, discussions, events and collaborations. Public member profiles are available through the <a class="gp-link" href="'+SITE_BASE+'profiles.html">People & creators directory</a>.</div>';
   return;
  }
  const {data,error}=await sb.from("podcast_community_circle_members").select("member_id,role,joined_at").eq("circle_id",id).order("joined_at",{ascending:true}).limit(100);
  if(error){status.textContent="The member roster could not be loaded: "+error.message;return}
  const ids=(data||[]).map(x=>x.member_id);
  let profiles=[],profileError=null;
- if(ids.length){const result=await sb.from("crowrules_public_profiles").select("user_id,display_name,username,avatar_url").in("user_id",ids);profiles=result.data||[];profileError=result.error}
+ if(ids.length){const result=await sb.from("crowrules_public_profiles").select("user_id,display_name,username,avatar_url,role,bio").in("user_id",ids);profiles=result.data||[];profileError=result.error}
  if(profileError){status.textContent="Roster loaded, but public profile details are unavailable: "+profileError.message}
  const map=new Map(profiles.map(p=>[p.user_id,p]));
- const cards=(data||[]).map(m=>{const p=map.get(m.member_id)||{};const name=p.display_name||p.username||"Private member";const safeAvatar=/^https:\/\//i.test(String(p.avatar_url||""))?p.avatar_url:"";const avatar=safeAvatar?'<img src="'+esc(safeAvatar)+'" alt="" loading="lazy">':'<span class="gp-member-avatar-fallback" aria-hidden="true">'+esc(name.slice(0,1).toUpperCase())+'</span>';return '<article class="gp-member"><div class="gp-member-avatar">'+avatar+'</div><div class="gp-member-details"><b>'+esc(name)+'</b>'+(p.username?'<small>@'+esc(p.username)+'</small>':'')+'<small>'+esc(m.role||"member")+' · Joined '+esc(m.joined_at?new Date(m.joined_at).toLocaleDateString():"date unavailable")+'</small></div></article>'}).join("");
- root.innerHTML='<div class="gp-member-directory-note">Roster access is limited to this group’s owners and moderators. Private or unavailable profiles are not exposed.</div>'+(cards?'<div class="gp-member-directory-grid">'+cards+'</div>':'<div class="gp-notice">No members to display.</div>');
- status.textContent="Showing up to 100 members. Member roles and profile visibility follow existing database policies.";
+ const cards=(data||[]).map(m=>{
+  const p=map.get(m.member_id)||{},name=p.display_name||p.username||"Member";
+  const safeAvatar=/^https:\/\//i.test(String(p.avatar_url||""))?p.avatar_url:"";
+  const avatar=safeAvatar?'<img src="'+esc(safeAvatar)+'" alt="" loading="lazy">':'<span class="gp-member-avatar-fallback" aria-hidden="true">'+esc(name.slice(0,1).toUpperCase())+'</span>';
+  const profileLink=p.username?'<a class="gp-member-profile-link" href="'+SITE_BASE+'profile.html?username='+encodeURIComponent(p.username)+'">View profile <span aria-hidden="true">↗</span></a>':'<span class="gp-member-profile-muted">Profile not published</span>';
+  const bio=p.bio?'<p class="gp-member-bio">'+esc(p.bio.slice(0,150))+'</p>':'';
+  return '<article class="gp-member"><div class="gp-member-avatar">'+avatar+'</div><div class="gp-member-details"><b>'+esc(name)+'</b>'+(p.username?'<small>@'+esc(p.username)+'</small>':'')+(p.role?'<small>'+esc(p.role)+'</small>':'')+bio+'<small>'+esc(m.role||"member")+' · Joined '+esc(m.joined_at?new Date(m.joined_at).toLocaleDateString():"date unavailable")+'</small>'+profileLink+'</div></article>';
+ }).join("");
+ root.innerHTML='<div class="gp-member-directory-note">Open a member profile to see their public bio, creator details and community presence. Roster access and profile visibility follow existing database policies.</div>'+(cards?'<div class="gp-member-directory-grid">'+cards+'</div>':'<div class="gp-notice">No members to display.</div>');
+ status.textContent="Showing up to 100 members. Public profiles are linked when a member has published a username.";
 }
 function pacificToday(){const parts=new Intl.DateTimeFormat("en-US",{timeZone:"America/Los_Angeles",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());const v=Object.fromEntries(parts.map(x=>[x.type,x.value]));return v.year+"-"+v.month+"-"+v.day}
 function launchGate(){return false}
