@@ -201,6 +201,51 @@ async function notifications(){
  status.textContent="Manage the group updates you want to receive.";
 }
 
+async function reportsPage(){
+ const root=$("#gp-reports"),status=$("#gp-status");
+ if(!root)return;
+ const user=await currentUser().catch(()=>null);
+ if(!user){status.textContent="Sign in to review group reports.";root.innerHTML='<a class="gp-button" href="'+SITE_BASE+'login.html">Sign in to continue</a>';return}
+ const {data:members,error:mError}=await sb.from("podcast_community_circle_members").select("circle_id,role").eq("member_id",user.id).in("role",["owner","moderator"]);
+ if(mError){status.textContent="Your moderation access could not be checked: "+mError.message;return}
+ const memberships=members||[],ids=memberships.map(x=>x.circle_id);
+ if(!ids.length){status.textContent="No groups with moderator or owner access were found for this account.";root.innerHTML='<div class="gp-notice">Group report queues are available to group owners and moderators.</div>';return}
+ const {data:groups,error:gError}=await sb.from("podcast_community_circles").select("id,name").in("id",ids).order("name");
+ if(gError){status.textContent=gError.message;return}
+ const list=groups||[],requested=params.get("group"),initial=ids.includes(requested)?requested:(list[0]?.id||"");
+ root.innerHTML='<div class="gp-report-toolbar"><label>Moderate group<select id="gp-report-group">'+list.map(g=>'<option value="'+esc(g.id)+'" '+(g.id===initial?'selected':'')+'>'+esc(g.name)+'</option>').join("")+'</select></label><label>Queue<select id="gp-report-status"><option value="open">Open reports</option><option value="closed">Closed reports</option><option value="all">All reports</option></select></label></div><div id="gp-report-list" class="gp-report-list"></div>';
+ const groupSelect=$("#gp-report-group"),filter=$("#gp-report-status"),listRoot=$("#gp-report-list");
+ if(requested&&requested===initial)filter.value=params.get("status")==="closed"?"closed":params.get("status")==="all"?"all":"open";
+ async function draw(){
+  const circleId=groupSelect.value,queue=filter.value;status.textContent="Loading report queue…";listRoot.innerHTML="";
+  let query=sb.from("podcast_community_circle_reports").select("id,circle_id,post_id,reported_by,reason,status,created_at,reviewed_by,reviewed_at").eq("circle_id",circleId).order("created_at",{ascending:false}).limit(100);
+  if(queue!=="all")query=query.eq("status",queue);
+  const {data:reports,error}=await query;
+  if(error){status.textContent="Reports could not be loaded: "+error.message;return}
+  const rows=reports||[],postIds=[...new Set(rows.map(x=>x.post_id).filter(Boolean))],profileIds=[...new Set(rows.map(x=>x.reported_by).filter(Boolean))];
+  const [{data:posts},{data:profiles}]=await Promise.all([
+   postIds.length?sb.from("podcast_community_circle_posts").select("id,body,post_type,deleted_at,created_at").in("id",postIds):Promise.resolve({data:[]}),
+   profileIds.length?sb.from("crowrules_public_profiles").select("user_id,display_name,username").in("user_id",profileIds):Promise.resolve({data:[]})
+  ]);
+  const postMap=new Map((posts||[]).map(x=>[x.id,x])),profileMap=new Map((profiles||[]).map(x=>[x.user_id,x]));
+  listRoot.innerHTML=rows.map(report=>{
+   const post=postMap.get(report.post_id),person=profileMap.get(report.reported_by)||{},reporter=person.display_name||person.username||"Member";
+   const postText=!report.post_id?"The reported post is no longer available.":!post||post.deleted_at?"The reported post has been deleted or is unavailable.":post.body;
+   return '<article class="gp-report-card"><div class="gp-report-head"><span class="gp-kicker">REPORTED '+esc(new Date(report.created_at).toLocaleString())+'</span><span class="gp-report-state state-'+esc(report.status)+'">'+esc(report.status)+'</span></div><p class="gp-report-reason">'+esc(report.reason)+'</p><div class="gp-report-post"><b>Reported content</b><p>'+esc(postText||"No post text was available.")+'</p></div><p class="gp-muted">Reported by '+esc(reporter)+'</p>'+(report.status==="open"?'<button class="gp-button gp-report-close" type="button" data-id="'+esc(report.id)+'">Close report</button>':'<p class="gp-muted">Reviewed '+(report.reviewed_at?esc(new Date(report.reviewed_at).toLocaleString()):"")+'</p>')+'</article>';
+  }).join("")||'<div class="gp-notice">No '+(queue==="all"?"":queue+" ")+'reports in this group.</div>';
+  status.textContent=rows.length+" report(s) in this queue.";
+  listRoot.querySelectorAll(".gp-report-close").forEach(button=>button.addEventListener("click",async()=>{
+   if(!confirm("Close this report? This records the moderation review; it does not delete or edit the reported post."))return;
+   button.disabled=true;status.textContent="Closing report…";
+   const {error}=await sb.from("podcast_community_circle_reports").update({status:"closed",reviewed_by:user.id,reviewed_at:new Date().toISOString()}).eq("id",button.dataset.id).eq("circle_id",circleId).eq("status","open");
+   if(error){status.textContent="The report could not be closed: "+error.message;button.disabled=false;return}
+   status.textContent="Report closed.";await draw();
+  }));
+ }
+ groupSelect.addEventListener("change",draw);filter.addEventListener("change",draw);await draw();
+}
+
+
 async function invitationsPage(){
  const root=$("#gp-invitations"),status=$("#gp-status");
  if(!root)return;
@@ -289,5 +334,5 @@ async function collaborationsPage(){
  createForm.elements.circle_id.addEventListener("change",draw);
  await draw();
 }
-async function start(){const page=document.body.dataset.groupsPage;if(!page)return;decoratePreviewLinks();if(launchGate(page))return;try{if(page==="home"){mountCountdown();const root=$("#gp-featured"),all=await loadGroups(),user=await currentUser().catch(()=>null),visible=all.filter(g=>(g.visibility||(g.is_public?"public":"hidden"))!=="hidden"||g.owner_id===user?.id);renderCards(root,visible.slice(0,9),"Preview group");if(!visible.length)root.innerHTML='<div class="gp-notice">No groups have been created yet. Sign in and start the first community, then return here to preview it.</div>'}else if(page==="discover")await discover();else if(page==="mine")await mine();else if(page==="feed")await feed();else if(page==="activity")await activityPage();else if(page==="recognitions")await recognitionsPage();else if(page==="create")await create();else if(page==="community")await community();else if(page==="members")await members();else if(page==="settings")await settings();else if(page==="events")await eventsPage();else if(page==="notifications")await notifications();else if(page==="invitations")await invitationsPage();else if(page==="collaborations")await collaborationsPage()}catch(error){const status=$("#gp-status");if(status)status.textContent=error.message||"Groups could not load."}}
+async function start(){const page=document.body.dataset.groupsPage;if(!page)return;decoratePreviewLinks();if(launchGate(page))return;try{if(page==="home"){mountCountdown();const root=$("#gp-featured"),all=await loadGroups(),user=await currentUser().catch(()=>null),visible=all.filter(g=>(g.visibility||(g.is_public?"public":"hidden"))!=="hidden"||g.owner_id===user?.id);renderCards(root,visible.slice(0,9),"Preview group");if(!visible.length)root.innerHTML='<div class="gp-notice">No groups have been created yet. Sign in and start the first community, then return here to preview it.</div>'}else if(page==="discover")await discover();else if(page==="mine")await mine();else if(page==="feed")await feed();else if(page==="activity")await activityPage();else if(page==="recognitions")await recognitionsPage();else if(page==="create")await create();else if(page==="community")await community();else if(page==="members")await members();else if(page==="settings")await settings();else if(page==="events")await eventsPage();else if(page==="notifications")await notifications();else if(page==="invitations")await invitationsPage();else if(page==="reports")await reportsPage();else if(page==="collaborations")await collaborationsPage()}catch(error){const status=$("#gp-status");if(status)status.textContent=error.message||"Groups could not load."}}
 start();
