@@ -1,12 +1,8 @@
 name: Deploy CrowRules RTMP Server
 
 on:
+  # Manual deployment only: do not attempt a deploy until VPS and Actions secrets are configured.
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "streaming/mediamtx/**"
-      - ".github/workflows/deploy-rtmp-server.yml"
 
 permissions:
   contents: read
