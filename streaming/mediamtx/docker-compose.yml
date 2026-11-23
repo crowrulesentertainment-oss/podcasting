@@ -1,0 +1,10 @@
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:1
+    container_name: crowrules-mediamtx
+    restart: unless-stopped
+    ports:
+      - "1935:1935/tcp"
+      - "8888:8888/tcp"
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml:ro
