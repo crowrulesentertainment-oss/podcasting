@@ -51,11 +51,12 @@
     const mobile=window.matchMedia?.("(max-width: 760px)")?.matches===true;
     const customDesktop=theme.heroCustom===true&&theme.hero?theme.hero:"";
     const customMobile=theme.mobileHero||customDesktop;
-    if(mobile&&customMobile)return customMobile;
-    if(customDesktop)return customDesktop;
+    if(mobile&&theme.mobileHero)return theme.mobileHero;
     const hour=new Date().getHours(),period=hour>=6&&hour<16?"day":hour>=16&&hour<20?"evening":"night";
     const timedScene=theme.timeOfDay&&theme.timeOfDay[period];
     if(typeof timedScene==="string"&&/^https:\/\//i.test(timedScene))return timedScene;
+    if(mobile&&customMobile)return customMobile;
+    if(customDesktop)return customDesktop;
     const ids=SEASONAL_SCENES[theme.id]||SEASONAL_SCENES.original;
     const index=PAGE_SCENE_INDEX[pageKey]??0;
     return ids[index%ids.length]||theme.photo||theme.hero||"";
