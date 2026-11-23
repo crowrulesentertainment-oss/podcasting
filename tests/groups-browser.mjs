@@ -95,7 +95,8 @@ function initialState(role = "member", options = {}) {
 }
 
 async function openPage(browser, role, options = {}, query = "?preview=1&group=" + GROUP_ID) {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
   const state = initialState(role, options);
   await page.addInitScript((value) => {
     window.__GROUPS_TEST_STATE = value;
@@ -114,7 +115,7 @@ async function openPage(browser, role, options = {}, query = "?preview=1&group="
   }));
   await page.goto(BASE + query);
   await page.waitForSelector("#crg-root");
-  return { page, state };
+  return { page, state, context };
 }
 
 const browser = await chromium.launch({ headless: true });
