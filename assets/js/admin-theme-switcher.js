@@ -81,7 +81,7 @@
           <div class="crta-field"><label for="crtaScheduleTheme">THEME</label><select id="crtaScheduleTheme"></select></div>
           <div class="crta-field"><label for="crtaStart">START DATE</label><input id="crtaStart" type="date"></div>
           <div class="crta-field"><label for="crtaEnd">END DATE</label><input id="crtaEnd" type="date"></div>
-        </div><div class="crta-actions"><button class="crta-btn" id="crtaAddSchedule" type="button">Add scheduled window</button></div><div class="crta-schedule-list" id="crtaScheduleList"></div></div>
+        </div><div class="crta-actions"><button class="crta-btn" id="crtaAddSchedule" type="button">Add scheduled window</button></div><div class="crta-image-audit" id="crtaScheduleStatus" role="status" aria-live="polite">Schedule preview will appear after settings load.</div><div class="crta-schedule-list" id="crtaScheduleList"></div></div>
         <div class="crta-block" id="crtaImageManager">
           <h3>Theme image manager</h3>
           <p>Upload replacement photography or assign a hosted image URL. Images are stored in the dedicated CrowRules theme bucket; only active platform administrators can upload or remove files.</p>
@@ -115,7 +115,26 @@
     toggle.addEventListener("click",()=>{panel.hidden=!panel.hidden;toggle.setAttribute("aria-expanded",String(!panel.hidden))});
     $("crtaClose").addEventListener("click",close);
     document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden){close();toggle.focus()}});
-    const renderSchedule=()=>{$("crtaScheduleList").innerHTML=schedule.length?schedule.map((item,i)=>'<div class="crta-schedule-item"><span>'+esc(byId(item.theme_id).label)+' · '+esc(item.start)+' → '+esc(item.end)+'</span><button type="button" class="crta-btn" data-remove-schedule="'+i+'">Remove</button></div>').join(""):'<p class="crta-note">No custom event windows scheduled. Automatic seasonal featuring remains available.</p>';};
+    const localDateKey=()=>{const now=new Date();return now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0")};
+    const scheduleOverlap=(start,end,ignoreIndex=-1)=>schedule.some((item,index)=>index!==ignoreIndex&&item&&item.start&&item.end&&start<=item.end&&end>=item.start);
+    const renderSchedule=()=>{
+      const today=localDateKey();
+      const validWindows=schedule.map((item,index)=>({...item,index})).filter(item=>item&&item.start&&item.end&&item.end>=item.start&&THEMES.some(theme=>theme.id===item.theme_id)).sort((a,b)=>a.start.localeCompare(b.start));
+      const active=validWindows.find(item=>item.start<=today&&item.end>=today);
+      const next=validWindows.find(item=>item.start>today);
+      const conflicts=validWindows.filter((item,index)=>validWindows.slice(index+1).some(other=>item.start<=other.end&&item.end>=other.start));
+      const status=$("crtaScheduleStatus");
+      if(status)status.innerHTML=active
+        ?'<strong>Scheduled now:</strong> '+esc(byId(active.theme_id).label)+' · through '+esc(active.end)+(conflicts.length?' · Overlapping windows need attention.':'')
+        :next?'<strong>Next scheduled:</strong> '+esc(byId(next.theme_id).label)+' · '+esc(next.start)+' to '+esc(next.end)+(conflicts.length?' · Overlapping windows need attention.':'')
+        :'No active or upcoming custom window.'+(conflicts.length?' · Overlapping windows need attention.':'');
+      $("crtaScheduleList").innerHTML=schedule.length?schedule.map((item,i)=>{
+        const valid=item&&item.start&&item.end&&item.end>=item.start&&THEMES.some(theme=>theme.id===item.theme_id);
+        const state=!valid?"Invalid":item.start<=today&&item.end>=today?"Active":item.end<today?"Past":"Upcoming";
+        const overlap=valid&&scheduleOverlap(item.start,item.end,i);
+        return '<div class="crta-schedule-item"><span><strong>'+esc(state)+(overlap?' · OVERLAP':'')+'</strong> · '+esc(byId(item.theme_id).label)+' · '+esc(item.start)+' → '+esc(item.end)+'</span><button type="button" class="crta-btn" data-remove-schedule="'+i+'">Remove</button></div>';
+      }).join(""):'<p class="crta-note">No custom event windows scheduled. Automatic seasonal featuring remains available.</p>';
+    };
     const renderGrid=()=>{
       const q=$("crtaSearch").value.trim().toLowerCase(),collection=$("crtaCollection").value;
       const list=THEMES.filter(t=>(collection==="all"||t.collection===collection)&&(!q||(t.label+" "+t.desc).toLowerCase().includes(q)));
@@ -284,7 +303,12 @@
     });
 
     $("crtaScheduleList").addEventListener("click",e=>{const b=e.target.closest("[data-remove-schedule]");if(!b)return;schedule.splice(Number(b.dataset.removeSchedule),1);renderSchedule()});
-    $("crtaAddSchedule").addEventListener("click",()=>{const theme_id=$("crtaScheduleTheme").value,start=$("crtaStart").value,end=$("crtaEnd").value;if(!start||!end||end<start){$("crtaStatus").textContent="Choose a valid start and end date.";return}schedule.push({theme_id,start,end});schedule.sort((a,b)=>a.start.localeCompare(b.start));renderSchedule();$("crtaStatus").textContent="Schedule window added. Publish platform settings to save it."});
+    $("crtaAddSchedule").addEventListener("click",()=>{
+      const theme_id=$("crtaScheduleTheme").value,start=$("crtaStart").value,end=$("crtaEnd").value;
+      if(!THEMES.some(theme=>theme.id===theme_id)||!start||!end||end<start){$("crtaStatus").textContent="Choose a valid theme, start date and end date.";return}
+      if(scheduleOverlap(start,end)){$("crtaStatus").textContent="This date range overlaps an existing scheduled window. Adjust the dates or remove the conflicting window first.";return}
+      schedule.push({theme_id,start,end});schedule.sort((a,b)=>a.start.localeCompare(b.start));renderSchedule();$("crtaStatus").textContent="Schedule window added. Publish platform settings to save it.";
+    });
     $("crtaPreview").addEventListener("click",()=>{window.dispatchEvent(new CustomEvent("cr:site-theme-change",{detail:previewId}));$("crtaStatus").textContent=byId(previewId).label+" preview is active on this admin screen only."});
     $("crtaOriginal").addEventListener("click",()=>{previewId="original";renderGrid();window.dispatchEvent(new CustomEvent("cr:site-theme-change",{detail:"original"}))});
     $("crtaRefresh").addEventListener("click",loadSettings);
