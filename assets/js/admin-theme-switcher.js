@@ -74,7 +74,7 @@
           <div class="crta-field"><label for="crtaStart">START DATE</label><input id="crtaStart" type="date"></div>
           <div class="crta-field"><label for="crtaEnd">END DATE</label><input id="crtaEnd" type="date"></div>
         </div><div class="crta-actions"><button class="crta-btn" id="crtaAddSchedule" type="button">Add scheduled window</button></div><div class="crta-schedule-list" id="crtaScheduleList"></div></div>
-        <div class="crta-gallery-head"><div><h3 style="margin:0;font-size:13px">Theme library · <span id="crtaCount"></span></h3><p>Photorealistic, cinematic real-life environments.</p></div><input id="crtaSearch" type="search" placeholder="Search themes…" aria-label="Search themes"></div>
+        <div class="crta-gallery-head"><div><h3 style="margin:0;font-size:13px">Theme library · <span id="crtaCount"></span></h3><p>Photorealistic, cinematic real-life environments · <span id="crtaImageIntegrity" aria-live="polite"></span></p></div><input id="crtaSearch" type="search" placeholder="Search themes…" aria-label="Search themes"></div>
         <div class="crta-field"><label for="crtaCollection">COLLECTION</label><select id="crtaCollection"><option value="all">All collections</option>${CATALOG.collections.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.label)+'</option>').join("")}</select></div>
         <div class="crta-grid" id="crtaGrid"></div>
         <div class="crta-actions"><button class="crta-btn" id="crtaPreview" type="button">Preview selected in admin</button><button class="crta-btn" id="crtaOriginal" type="button">Preview CrowRules Original</button></div>
@@ -92,8 +92,8 @@
     const renderGrid=()=>{
       const q=$("crtaSearch").value.trim().toLowerCase(),collection=$("crtaCollection").value;
       const list=THEMES.filter(t=>(collection==="all"||t.collection===collection)&&(!q||(t.label+" "+t.desc).toLowerCase().includes(q)));
-      $("crtaCount").textContent=list.length+" themes";
-      $("crtaGrid").innerHTML=list.map(t=>'<button type="button" class="crta-card" data-theme="'+esc(t.id)+'" aria-pressed="'+(previewId===t.id)+'"><img loading="lazy" src="'+esc(t.photo||"")+'" alt=""><span class="crta-card-copy"><b>'+esc(t.icon+" "+t.label)+'</b><small>'+esc(t.desc)+'</small><em>'+esc(t.collection||"collection")+'</em></span></button>').join("");
+      $("crtaCount").textContent=list.length+" themes";\n      const uniqueImageCount=new Set(THEMES.map(theme=>theme.photo).filter(Boolean)).size;\n      const integrity=$("crtaImageIntegrity");if(integrity)integrity.textContent=uniqueImageCount+" unique images across "+THEMES.length+" themes";
+      $("crtaGrid").innerHTML=list.map(t=>'<button type="button" class="crta-card" data-theme="'+esc(t.id)+'" aria-pressed="'+(previewId===t.id)+'"><img loading="lazy" src="'+esc(t.photo||"")+'" alt="'+esc(t.imageAlt||t.label)+'"><span class="crta-card-copy"><b>'+esc(t.icon+" "+t.label)+'</b><small>'+esc(t.desc)+'</small><em>'+esc(t.collection||"collection")+'</em></span></button>').join("");
     };
     $("crtaGrid").addEventListener("click",e=>{const card=e.target.closest("[data-theme]");if(!card)return;previewId=card.dataset.theme;renderGrid()});
     $("crtaCollection").addEventListener("change",renderGrid);$("crtaSearch").addEventListener("input",renderGrid);
