@@ -8,7 +8,7 @@
   const MEMBER_KEY = "crp_member_theme";
   const themeById = id => THEMES.find(t => t.id === id) || THEMES.find(t => t.id === "original") || THEMES[0];
   const valid = id => THEMES.some(t => t.id === id);
-  let sb = null, currentUser = null, selectedId = "original", savedId = "original", draftId = "original", featuredId = "original";
+  let sb = null, currentUser = null, selectedId = "original", savedId = "original", draftId = "original", featuredId = "original", refreshMemberGallery = null;
   const esc = v => String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const easterDate = year => {const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;return new Date(year,month-1,day)};
   const sameDayRange=(now,start,end)=>now>=start&&now<=end;
@@ -167,7 +167,7 @@
     const collectionNames=new Map((CATALOG.collections||[]).map(c=>[c.id,c.label]));
     collection.innerHTML+=[...new Set(THEMES.map(t=>t.collection).filter(Boolean))].map(id=>'<option value="'+esc(id)+'">'+esc(collectionNames.get(id)||id)+'</option>').join("");
     const updatePreview=()=>{const t=themeById(draftId);if(!t)return;document.getElementById("crMemberThemePreviewName").textContent=t.icon+" "+t.label;document.getElementById("crMemberThemePreviewDesc").textContent=t.desc||"A cinematic CrowRules environment.";document.getElementById("crMemberThemeDesktopPreview").src=t.hero||t.photo||"";document.getElementById("crMemberThemeDesktopPreview").alt=t.imageAlt||t.label+" desktop preview";document.getElementById("crMemberThemeMobilePreview").src=t.mobileHero||t.hero||t.photo||"";document.getElementById("crMemberThemeMobilePreview").alt=t.imageAlt||t.label+" mobile preview";document.getElementById("crMemberThemePreviewCollection").textContent=collectionNames.get(t.collection)||"Cinematic world";document.getElementById("crMemberThemePreviewCard").style.setProperty("--cr-preview-accent",t.accent||"#d84b55")};
-    const render=()=>{const q=search.value.trim().toLowerCase(),group=collection.value;const list=THEMES.filter(t=>(group==="all"||t.collection===group)&&(t.label+" "+t.desc+" "+(t.collection||"")).toLowerCase().includes(q));grid.innerHTML=list.map(t=>'<button type="button" class="cr-member-theme-card" data-member-theme="'+esc(t.id)+'" aria-pressed="'+(draftId===t.id)+'"><img loading="lazy" src="'+esc(t.photo||"")+'" alt="'+esc(t.imageAlt||t.label)+'"><span>'+esc(t.icon+" "+t.label)+'</span><small>'+esc((t.desc||"").slice(0,78))+'</small>'+(t.id===featuredId?'<i class="cr-member-theme-tag">FEATURED</i>':'')+(t.id===savedId?'<i class="cr-member-theme-tag" style="left:auto;right:7px">YOUR THEME</i>':'')+'</button>').join("")||'<p style="grid-column:1/-1;color:#aeb9c8;font-size:11px">No environments match that search.</p>';const save=document.getElementById("crMemberThemeSave");if(save)save.disabled=draftId===savedId;document.getElementById("crMemberThemeFeaturedName").textContent=themeById(featuredId).label;updatePreview()};
+    const render=()=>{const q=search.value.trim().toLowerCase(),group=collection.value;const list=THEMES.filter(t=>(group==="all"||t.collection===group)&&(t.label+" "+t.desc+" "+(t.collection||"")).toLowerCase().includes(q));grid.innerHTML=list.map(t=>'<button type="button" class="cr-member-theme-card" data-member-theme="'+esc(t.id)+'" aria-pressed="'+(draftId===t.id)+'"><img loading="lazy" src="'+esc(t.photo||"")+'" alt="'+esc(t.imageAlt||t.label)+'"><span>'+esc(t.icon+" "+t.label)+'</span><small>'+esc((t.desc||"").slice(0,78))+'</small>'+(t.id===featuredId?'<i class="cr-member-theme-tag">FEATURED</i>':'')+(t.id===savedId?'<i class="cr-member-theme-tag" style="left:auto;right:7px">YOUR THEME</i>':'')+'</button>').join("")||'<p style="grid-column:1/-1;color:#aeb9c8;font-size:11px">No environments match that search.</p>';const save=document.getElementById("crMemberThemeSave");if(save)save.disabled=draftId===savedId;document.getElementById("crMemberThemeFeaturedName").textContent=themeById(featuredId).label;updatePreview()};refreshMemberGallery=render;
     toggle.addEventListener("click",()=>{panel.hidden=!panel.hidden;if(!panel.hidden){draftId=savedId;render()}toggle.setAttribute("aria-expanded",String(!panel.hidden))});
     grid.addEventListener("click",e=>{const card=e.target.closest("[data-member-theme]");if(!card)return;draftId=card.dataset.memberTheme;const status=document.getElementById("crMemberThemeStatus");if(status)status.textContent="Selected "+themeById(draftId).label+". Preview or save to apply it.";render()});
     document.getElementById("crMemberThemePreview").addEventListener("click",()=>{applyTheme(draftId);const status=document.getElementById("crMemberThemeStatus");if(status)status.textContent="Previewing "+themeById(draftId).label+". Save my theme to keep this choice."});
@@ -185,6 +185,7 @@
       const {data:{user}}=await sb.auth.getUser();currentUser=user||null;
     }catch(error){console.warn("[CrowRules themes] Auth client unavailable:",error.message)}
     await loadSettings();
+    if(refreshMemberGallery)refreshMemberGallery();
     const preference=await loadPreference();
     savedId=preference;draftId=preference;applyTheme(preference);
     const status=document.getElementById("crMemberThemeStatus");
@@ -192,7 +193,7 @@
   }
   window.addEventListener("cr:site-theme-change",e=>{if(e.detail&&valid(e.detail))applyTheme(e.detail)});
   window.addEventListener("cr:page-changed",()=>applyTheme(selectedId));
-  window.addEventListener("cr:featured-theme-published",async()=>{await loadSettings();if(!currentUser){applyTheme(featuredId)}else{const pref=await loadPreference();applyTheme(pref)}});
+  window.addEventListener("cr:featured-theme-published",async()=>{await loadSettings();if(refreshMemberGallery)refreshMemberGallery();if(!currentUser){applyTheme(featuredId)}else{const pref=await loadPreference();applyTheme(pref)}});
   window.addEventListener("storage",e=>{if(e.key===MEMBER_KEY&&valid(e.newValue))applyTheme(e.newValue)});
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
   const style=document.createElement("style");style.id="cr-site-theme-styles";style.textContent=`
