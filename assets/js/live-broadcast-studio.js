@@ -345,5 +345,14 @@ export function initLiveBroadcastStudio({ sb, user, shows = [], notify = () => {
     if(data)await loadBroadcast(data.id);
   }catch(error){message("Broadcast history is not available yet: "+(error.message||"Check your connection."))}
   renderStatus();
-  return () => { clearInterval(state.timer);clearInterval(state.refresh);if(state.realtime)sb.removeChannel(state.realtime);state.keys.clear(); };
+  const cleanup = () => {
+    clearInterval(state.timer);clearInterval(state.refresh);clearInterval(obs.timer);
+    if(state.realtime)sb.removeChannel(state.realtime);
+    if(obs.socket)try{obs.socket.close()}catch{}
+    for(const pending of obs.pending.values()){clearTimeout(pending.timeout);pending.reject(new Error("Studio closed."))}
+    obs.pending.clear();state.keys.clear();window.removeEventListener("cr:page-changed",onPageChanged);
+  };
+  const onPageChanged = () => { if(!document.getElementById("crBroadcastNetwork"))cleanup(); };
+  window.addEventListener("cr:page-changed",onPageChanged);
+  return cleanup;
 }
