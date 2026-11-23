@@ -53,6 +53,9 @@
     const customMobile=theme.mobileHero||customDesktop;
     if(mobile&&customMobile)return customMobile;
     if(customDesktop)return customDesktop;
+    const hour=new Date().getHours(),period=hour>=6&&hour<16?"day":hour>=16&&hour<20?"evening":"night";
+    const timedScene=theme.timeOfDay&&theme.timeOfDay[period];
+    if(typeof timedScene==="string"&&/^https:\/\//i.test(timedScene))return timedScene;
     const ids=SEASONAL_SCENES[theme.id]||SEASONAL_SCENES.original;
     const index=PAGE_SCENE_INDEX[pageKey]??0;
     return ids[index%ids.length]||theme.photo||theme.hero||"";
@@ -73,10 +76,13 @@
     const status=document.getElementById("crMemberThemeStatus");if(status)status.textContent=theme.icon+" "+theme.label+" selected";
   }
   function applyCatalogOverrides(raw){
-    const map=raw&&typeof raw==="object"&&!Array.isArray(raw)?(raw.themes||raw):{};
+    const data=raw&&typeof raw==="object"&&!Array.isArray(raw)?raw:{};
+    (Array.isArray(data.collections)?data.collections:[]).forEach(collection=>{if(collection&&/^[a-z0-9][a-z0-9-]{1,39}$/.test(collection.id||"")&&collection.label&&!CATALOG.collections.some(c=>c.id===collection.id))CATALOG.collections.push({id:collection.id,label:String(collection.label).slice(0,60)})});
+    (Array.isArray(data.customThemes)?data.customThemes:[]).forEach(theme=>{if(!theme||!/^([a-z0-9][a-z0-9-]{1,47})$/.test(theme.id||"")||THEMES.some(t=>t.id===theme.id)||!theme.label||!theme.photo)return;THEMES.push(theme)});
+    const map=data.themes||data;
     THEMES.forEach(theme=>{
       const entry=map[theme.id];if(!entry||typeof entry!=="object")return;
-      ["photo","hero","mobileHero","imageAlt"].forEach(key=>{if(typeof entry[key]==="string"&&entry[key])theme[key]=entry[key]});if(entry.heroCustom===true)theme.heroCustom=true;
+      ["photo","hero","mobileHero","imageAlt"].forEach(key=>{if(typeof entry[key]==="string"&&entry[key])theme[key]=entry[key]});if(entry.heroCustom===true)theme.heroCustom=true;if(entry.timeOfDay&&typeof entry.timeOfDay==="object")theme.timeOfDay={...(theme.timeOfDay||{}),...entry.timeOfDay};
     });
   }
   async function loadSettings(){
