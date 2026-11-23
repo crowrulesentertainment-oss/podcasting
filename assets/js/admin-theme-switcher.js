@@ -309,9 +309,9 @@
       const escapeICS=value=>String(value).replace(/\\/g,"\\\\").replace(/\r?\n/g,"\\n").replace(/,/g,"\\,").replace(/;/g,"\\;");
       const dateKey=value=>value.replace(/-/g,"");
       const plusOne=value=>{const [y,m,d]=value.split("-").map(Number),next=new Date(Date.UTC(y,m-1,d+1));return next.toISOString().slice(0,10).replace(/-/g,"")};
-      const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\\.\\d{3}/,"");
-      const events=valid.map((item,index)=>{const theme=byId(item.theme_id);return ["BEGIN:VEVENT","UID:"+escapeICS(item.theme_id+"-"+item.start+"-"+index+"@crowrules-podcasting"),"DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+dateKey(item.start),"DTEND;VALUE=DATE:"+plusOne(item.end),"SUMMARY:"+escapeICS("CrowRules Podcasting — "+theme.label),"DESCRIPTION:"+escapeICS("Scheduled cinematic environment: "+theme.label),"END:VEVENT"].join("\\r\\n")});
-      const calendar=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//CrowRules Entertainment//Podcasting Theme Schedule//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH",...events,"END:VCALENDAR"].join("\\r\\n")+"\\r\\n";
+      const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+      const events=valid.map((item,index)=>{const theme=byId(item.theme_id);return ["BEGIN:VEVENT","UID:"+escapeICS(item.theme_id+"-"+item.start+"-"+index+"@crowrules-podcasting"),"DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+dateKey(item.start),"DTEND;VALUE=DATE:"+plusOne(item.end),"SUMMARY:"+escapeICS("CrowRules Podcasting — "+theme.label),"DESCRIPTION:"+escapeICS("Scheduled cinematic environment: "+theme.label),"END:VEVENT"].join("\r\n")});
+      const calendar=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//CrowRules Entertainment//Podcasting Theme Schedule//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH",...events,"END:VCALENDAR"].join("\\r\\n")+"\r\n";
       const url=URL.createObjectURL(new Blob([calendar],{type:"text/calendar;charset=utf-8"}));const link=document.createElement("a");link.href=url;link.download="crowrules-cinematic-theme-schedule.ics";document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
       $("crtaStatus").textContent="Exported "+valid.length+" scheduled theme window"+(valid.length===1?"":"s")+". Import the .ics file into your calendar app.";
     });
