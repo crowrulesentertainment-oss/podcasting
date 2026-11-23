@@ -2,7 +2,7 @@ const PLATFORMS = [
   ["youtube", "YouTube Live"], ["twitch", "Twitch"], ["facebook", "Facebook Live"],
   ["kick", "Kick"], ["custom", "Custom RTMP"]
 ];
-const $ = selector => section.querySelector(selector);
+const $ = selector => document.querySelector(selector);
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmt = seconds => {
   const n = Math.max(0, Math.floor(Number(seconds) || 0));
