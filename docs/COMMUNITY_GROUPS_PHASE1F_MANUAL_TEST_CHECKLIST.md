@@ -12,6 +12,25 @@
 - [ ] Record browser, OS, viewport dimensions, date/time, account role, expected result, actual result, and any screenshot or console/network error for each failure.
 - [ ] Keep the launch gate in place. The `?preview=1` parameter is for preview access only; it does not grant permission to create production test data.
 
+
+
+## Automated browser verification completed
+
+The Phase 1F Playwright suite ran successfully in Chromium on GitHub Actions for PR #111 (commit `602019fd046bedd911d06148a693cb3312688add`).
+
+- [x] Public directory, search, and private-group exclusion (mocked Supabase data).
+- [x] Signed-out visitor guidance and reply restrictions.
+- [x] Nonmember join and member post submission (in-memory mock).
+- [x] Member reply submission and leave flow (in-memory mock).
+- [x] Owner self-leave protection.
+- [x] Locked-post reply form suppression.
+- [x] Untrusted post text renders as text.
+- [x] Preview launch gate and 320px viewport overflow check.
+
+Run: https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/45086272081
+
+These are frontend browser tests against an isolated in-memory Supabase client stub. They do **not** verify production authentication, database persistence, actual RLS enforcement, or screen-reader behavior. The manual checklist below remains open for those release checks.
+
 ## Test matrix
 
 ### A. Public directory and group details
