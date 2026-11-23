@@ -142,7 +142,7 @@ async function eventsPage(){
   if(selectedGroup)query=query.eq("circle_id",selectedGroup);
   const {data:events,error}=await query;
   if(error){root.innerHTML='<div class="gp-notice">Events could not be loaded: '+esc(error.message)+'</div>';return}
-  if(!events?.length){root.innerHTML=viewNav()+'<div class="gp-event-empty"><span class="gp-event-empty-icon">◷</span><h2>No group events scheduled yet</h2><p>When a group owner or moderator schedules a meetup, listening party, livestream or community event, it will appear here.</p><a class="gp-button ghost" href="discover.html">Explore groups</a></div>';return}
+  if(!events?.length){root.innerHTML=viewNav()+'<div class="gp-event-empty"><span class="gp-event-empty-icon">◷</span><h2>'+(archiveView?"No past group events yet":"No group events scheduled yet")+'</h2><p>'+(archiveView?"Completed community events will appear here after your groups have hosted them.":"When a group owner or moderator schedules a meetup, listening party, livestream or community event, it will appear here.")+'</p><a class="gp-button ghost" href="discover.html">Explore groups</a></div>';return}
   const circleIds=[...new Set(events.map(e=>e.circle_id))];
   const [{data:groups},{data:members}]=await Promise.all([
    sb.from("podcast_community_circles").select("id,name").in("id",circleIds),
