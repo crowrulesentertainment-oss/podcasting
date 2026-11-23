@@ -177,7 +177,11 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
     byId("crBnHostState").textContent=active?"REMOTE HOST: "+(active.name||"ON AIR"):"YOUR SHIFT";
     byId("crBnTakeBack").disabled=!active;
     byId("crBnHandoff").disabled=!!active||!getConnectedHostsSafe().length;
-    if(active)hostMessage((active.name||"Remote host")+" is marked as the active presenter. Your microphone and camera are muted.");
+    if(active){
+      const connected=getConnectedHostsSafe().some(h=>h.identity===active.identity);
+      byId("crBnHostState").textContent=connected?"REMOTE HOST ON AIR":"HOST DISCONNECTED";
+      hostMessage(connected?(active.name||"Remote host")+" is presenting. Your microphone and camera are muted.":"Your remote host disconnected. The stream may still be live, but no presenter is connected. Take back the host role or invite a backup.");
+    }
   };
   byId("crBnAddHostShift").addEventListener("click",async()=>{
     const name=byId("crBnHostName").value.trim(),start=byId("crBnHostStart").value,end=byId("crBnHostEnd").value;
