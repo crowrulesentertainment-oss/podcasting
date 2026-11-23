@@ -1,4 +1,5 @@
 import { chromium } from "playwright";
+import AxeBuilder from "@axe-core/playwright";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
@@ -94,7 +95,8 @@ function initialState(role = "member", options = {}) {
 }
 
 async function openPage(browser, role, options = {}, query = "?preview=1&group=" + GROUP_ID) {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
   const state = initialState(role, options);
   await page.addInitScript((value) => {
     window.__GROUPS_TEST_STATE = value;
@@ -113,7 +115,7 @@ async function openPage(browser, role, options = {}, query = "?preview=1&group="
   }));
   await page.goto(BASE + query);
   await page.waitForSelector("#crg-root");
-  return { page, state };
+  return { page, state, context };
 }
 
 const browser = await chromium.launch({ headless: true });
@@ -222,6 +224,24 @@ try {
     await page.setViewportSize({ width: 320, height: 800 });
     assert.equal(await page.locator("body").evaluate(el => el.scrollWidth <= window.innerWidth), true, "320px layout should not overflow horizontally");
     passed.push("preview launch gate and narrow mobile viewport");
+    await page.close();
+  }
+  {
+    const { page } = await openPage(browser, "signed-out", {}, "?preview=1");
+    await page.waitForSelector("#crg-root");
+    const accessibility = await new AxeBuilder({ page })
+      .include("#crg-root")
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze();
+    const violations = accessibility.violations.map(item => ({
+      id: item.id,
+      impact: item.impact,
+      description: item.description,
+      nodes: item.nodes.map(node => ({ target: node.target, summary: node.failureSummary }))
+    }));
+    if (violations.length) console.error("AXE VIOLATIONS: " + JSON.stringify(violations, null, 2));
+    assert.equal(violations.length, 0, "Groups interface should have no WCAG 2.1 A/AA axe violations");
+    passed.push("axe-core WCAG 2.1 A/AA scan of Groups interface");
     await page.close();
   }
   console.log("PASS: " + passed.length + " Groups browser scenarios");
