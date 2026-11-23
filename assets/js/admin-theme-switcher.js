@@ -132,7 +132,7 @@
         const valid=item&&item.start&&item.end&&item.end>=item.start&&THEMES.some(theme=>theme.id===item.theme_id);
         const state=!valid?"Invalid":item.start<=today&&item.end>=today?"Active":item.end<today?"Past":"Upcoming";
         const overlap=valid&&scheduleOverlap(item.start,item.end,i);
-        return '<div class="crta-schedule-item"><span><strong>'+esc(state)+(overlap?' · OVERLAP':'')+'</strong> · '+esc(byId(item.theme_id).label)+' · '+esc(item.start)+' → '+esc(item.end)+'</span><span style="display:flex;gap:6px;flex-shrink:0"><button type="button" class="crta-btn" data-copy-schedule="'+i+'">Copy to next year</button><button type="button" class="crta-btn" data-remove-schedule="'+i+'">Remove</button></span></div>';
+        return '<div class="crta-schedule-item"><span><strong>'+esc(state)+(overlap?' · OVERLAP':'')+'</strong> · '+esc(byId(item.theme_id).label)+' · '+esc(item.start)+' → '+esc(item.end)+'</span><span style="display:flex;gap:6px;flex-shrink:0">'+(valid?'<button type="button" class="crta-btn" data-copy-schedule="'+i+'">Copy to next year</button>':'')+'<button type="button" class="crta-btn" data-remove-schedule="'+i+'">Remove</button></span></div>';
       }).join(""):'<p class="crta-note">No custom event windows scheduled. Automatic seasonal featuring remains available.</p>';
     };
     const renderGrid=()=>{
