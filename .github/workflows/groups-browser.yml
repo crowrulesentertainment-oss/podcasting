@@ -17,7 +17,7 @@ jobs:
           node-version: 20
       - name: Install Playwright
         run: |
-          npm install --no-save playwright
+          npm install --no-save playwright @axe-core/playwright
           npx playwright install --with-deps chromium
       - name: Start local site
         run: |
