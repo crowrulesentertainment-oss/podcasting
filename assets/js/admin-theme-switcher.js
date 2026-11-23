@@ -146,6 +146,9 @@
       $("crtaImageStatus").textContent=theme.label+" · "+role+" image selected.";
     }
     async function persistThemeImage(themeId,role,url){
+      const identity=imageIdentity(url),duplicates=[];
+      THEMES.forEach(other=>{if(other.id===themeId)return;["photo","hero","mobileHero"].forEach(key=>{if(other[key]&&imageIdentity(other[key])===identity)duplicates.push(other.label)})});
+      if(duplicates.length)throw new Error("This image is already assigned to: "+[...new Set(duplicates)].join(", ")+". Choose a different photograph.");
       const next=catalogOverrideState(),existing=next.themes[themeId]||{};
       const patch=role==="hero"?{hero:url,heroCustom:true}:role==="gallery"?{photo:url}:{mobileHero:url};
       next.version=1;next.themes[themeId]={...existing,...patch};
