@@ -9,7 +9,7 @@ const fmt = seconds => {
   return [Math.floor(n / 3600), Math.floor(n % 3600 / 60), n % 60].map(x => String(x).padStart(2, "0")).join(":");
 };
 const safeUrl = value => {
-  try { const u = new URL(String(value || "").trim()); return ["rtmp:", "rtmps:", "https:"].includes(u.protocol) ? u.href : ""; }
+  try { const u = new URL(String(value || "").trim()); return ["rtmp:", "rtmps:"].includes(u.protocol) ? u.href : ""; }
   catch { return ""; }
 };
 export function initLiveBroadcastStudio({ sb, user, shows = [], notify = () => {} } = {}) {
@@ -174,7 +174,7 @@ export function initLiveBroadcastStudio({ sb, user, shows = [], notify = () => {
     byId("crBnStatus").textContent=live?"ON AIR":status.toUpperCase();
     byId("crBnStatus").classList.toggle("live",live);
     byId("crBnMarkLive").disabled=!b||!["scheduled","preparing"].includes(status);
-    byId("crBnEnd").disabled=!b||!["live","preparing","scheduled"].includes(status);
+    byId("crBnEnd").disabled=!b||status!=="live";
     if(live&&b.started_at){
       const elapsed=Math.max(0,Math.floor((Date.now()-new Date(b.started_at).getTime())/1000));
       byId("crBnTimer").textContent=fmt(Math.max(0,86400-elapsed));
