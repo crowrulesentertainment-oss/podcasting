@@ -103,5 +103,33 @@ async function eventsPage(){
  await drawEvents();
 }
 
-async function start(){const page=document.body.dataset.groupsPage;if(!page)return;decoratePreviewLinks();if(launchGate(page))return;try{if(page==="home"){mountCountdown();const root=$("#gp-featured"),all=await loadGroups(),user=await currentUser().catch(()=>null),visible=all.filter(g=>(g.visibility||(g.is_public?"public":"hidden"))!=="hidden"||g.owner_id===user?.id);renderCards(root,visible.slice(0,9),"Preview group");if(!visible.length)root.innerHTML='<div class="gp-notice">No groups have been created yet. Sign in and start the first community, then return here to preview it.</div>'}else if(page==="discover")await discover();else if(page==="mine")await mine();else if(page==="feed")await feed();else if(page==="create")await create();else if(page==="community")await community();else if(page==="members")await members();else if(page==="settings")await settings();else if(page==="events")await eventsPage()}catch(error){const status=$("#gp-status");if(status)status.textContent=error.message||"Groups could not load."}}
+
+async function notifications(){
+ const root=$("#gp-notification-settings"),status=$("#gp-status");
+ if(!root)return;
+ const user=await currentUser().catch(()=>null);
+ if(!user){status.textContent="Sign in to manage your group notification preferences.";root.innerHTML='<a class="gp-button" href="'+SITE_BASE+'login.html">Sign in to continue</a>';return}
+ status.textContent="Loading your notification preferences…";
+ const fields=["invitation_alerts","discussion_alerts","reply_alerts","moderation_alerts"];
+ const labels={invitation_alerts:["Group invitations","When someone invites you to join a group."],discussion_alerts:["Group discussions","Updates about new discussions in your groups."],reply_alerts:["Replies and conversations","When someone replies to your posts or conversations."],moderation_alerts:["Moderation updates","Updates about moderation activity in groups you manage."]};
+ let result=await sb.from("podcast_community_circle_notification_preferences").select("user_id,invitation_alerts,discussion_alerts,reply_alerts,moderation_alerts").eq("user_id",user.id).maybeSingle();
+ if(result.error){status.textContent="Notification preferences are unavailable: "+result.error.message;return}
+ const values=Object.fromEntries(fields.map(key=>[key,result.data?!!result.data[key]:true]));
+ root.innerHTML='<form id="gp-notification-form" class="gp-panel gp-form"><h2>Choose your group updates</h2><p class="gp-muted">These settings control your group notification preferences. They do not create an in-app notification inbox or change email marketing subscriptions.</p>'+fields.map(key=>'<label class="gp-notification-option"><span><b>'+labels[key][0]+'</b><small>'+labels[key][1]+'</small></span><input type="checkbox" name="'+key+'" '+(values[key]?"checked":"")+'></label>').join("")+'<button class="gp-button" type="submit">Save preferences</button><p class="gp-help" id="gp-notification-save" role="status" aria-live="polite"></p></form>';
+ const form=$("#gp-notification-form");
+ form.addEventListener("submit",async event=>{
+  event.preventDefault();const button=form.querySelector('button[type="submit"]');button.disabled=true;const patch=Object.fromEntries(fields.map(key=>[key,form.elements[key].checked]));patch.user_id=user.id;patch.updated_at=new Date().toISOString();
+  try{
+   const write=result.data
+    ? await sb.from("podcast_community_circle_notification_preferences").update(patch).eq("user_id",user.id)
+    : await sb.from("podcast_community_circle_notification_preferences").insert(patch);
+   if(write.error)throw write.error;
+   result.data={...patch};$("#gp-notification-save").textContent="Your preferences have been saved.";status.textContent="Preferences updated.";
+  }catch(error){$("#gp-notification-save").textContent=error.message||"Preferences could not be saved."}
+  finally{button.disabled=false}
+ });
+ status.textContent="Manage the group updates you want to receive.";
+}
+
+async function start(){const page=document.body.dataset.groupsPage;if(!page)return;decoratePreviewLinks();if(launchGate(page))return;try{if(page==="home"){mountCountdown();const root=$("#gp-featured"),all=await loadGroups(),user=await currentUser().catch(()=>null),visible=all.filter(g=>(g.visibility||(g.is_public?"public":"hidden"))!=="hidden"||g.owner_id===user?.id);renderCards(root,visible.slice(0,9),"Preview group");if(!visible.length)root.innerHTML='<div class="gp-notice">No groups have been created yet. Sign in and start the first community, then return here to preview it.</div>'}else if(page==="discover")await discover();else if(page==="mine")await mine();else if(page==="feed")await feed();else if(page==="create")await create();else if(page==="community")await community();else if(page==="members")await members();else if(page==="settings")await settings();else if(page==="events")await eventsPage();else if(page==="notifications")await notifications()}catch(error){const status=$("#gp-status");if(status)status.textContent=error.message||"Groups could not load."}}
 start();
