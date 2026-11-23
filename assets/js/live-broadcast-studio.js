@@ -12,7 +12,7 @@ const safeUrl = value => {
   try { const u = new URL(String(value || "").trim()); return ["rtmp:", "rtmps:"].includes(u.protocol) ? u.href : ""; }
   catch { return ""; }
 };
-export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = () => {}, createRemoteHostInvite, getConnectedHosts, onRemoteHandoff, onTakeBack } = {}) {
+export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = () => {} } = {}) {
   const livePanel = document.getElementById("studioLivePanel");
   if (!livePanel || !sb || !user?.id || document.getElementById("crBroadcastNetwork")) return;
   const section = document.createElement("section");
@@ -103,21 +103,24 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
         <p class="cr-bn-muted" id="crBnObsMessage" role="status">Enable the OBS WebSocket server in OBS Studio. The password is used only for this connection and is not saved.</p>
       </div>
       <div class="cr-bn-card full" id="crBnHostHandoff">
-        <div class="cr-bn-row" style="justify-content:space-between"><div><h4>Remote host handoff & break schedule</h4><div class="cr-bn-muted">Invite a remote presenter into your LiveKit studio, schedule their shift, then mute your own mic/camera while the show continues.</div></div><span class="cr-bn-pill" id="crBnHostState">YOUR SHIFT</span></div>
-        <div class="cr-bn-warning">For a break, keep this Creator Studio room open on the broadcasting computer and keep OBS / Streamlabs running. If OBS captures this studio window, keep it visible in the captured scene. Do not shut down or sleep the computer.</div>
+        <div class="cr-bn-row" style="justify-content:space-between"><div><h4>Remote host desk · encoder-only workflow</h4><div class="cr-bn-muted">Remote presenters join through a private browser link. Their camera feed is added to OBS or Streamlabs as a Browser Source. Guests cannot control your encoder or stream keys.</div></div><span class="cr-bn-pill" id="crBnHostState">YOUR SHIFT</span></div>
+        <div class="cr-bn-warning">No LiveKit is used for this remote-host workflow. VDO.Ninja carries the guest audio/video directly to a browser source in your production encoder. Keep the production computer, encoder and internet connection running throughout the broadcast.</div>
         <div class="cr-bn-destination-grid">
           <div class="cr-bn-field"><label for="crBnHostName">Remote host name</label><input id="crBnHostName" maxlength="100" placeholder="Host display name"></div>
+          <div class="cr-bn-field"><label for="crBnHostScene">Guest scene name</label><input id="crBnHostScene" maxlength="100" placeholder="Remote Host - Guest Name"></div>
           <div class="cr-bn-field"><label for="crBnHostStart">Shift starts</label><input id="crBnHostStart" type="datetime-local"></div>
           <div class="cr-bn-field"><label for="crBnHostEnd">Shift ends</label><input id="crBnHostEnd" type="datetime-local"></div>
           <div class="cr-bn-field"><label for="crBnHostNotes">Show / handoff notes</label><input id="crBnHostNotes" maxlength="240" placeholder="Topics, links, segment notes"></div>
+          <div class="cr-bn-field"><label for="crBnReturnScene">Your return scene</label><input id="crBnReturnScene" maxlength="100" value="Main Host" placeholder="Main Host"></div>
         </div>
-        <div class="cr-bn-actions"><button id="crBnAddHostShift" type="button">Add host shift</button><button id="crBnInviteHost" class="secondary" type="button">Create remote host invite</button></div>
+        <div class="cr-bn-actions"><button id="crBnAddHostShift" type="button">Save host shift</button><button id="crBnInviteHost" class="secondary" type="button">Generate guest link</button></div>
         <div id="crBnHostShifts" class="cr-bn-list cr-bn-muted">Create a broadcast record to schedule remote host shifts.</div>
+        <div class="cr-bn-destination" id="crBnGuestLinks"><b>Guest connections</b><p class="cr-bn-small">Generate a guest link to create a private video input and a matching encoder Browser Source URL.</p><div id="crBnGuestList" class="cr-bn-list cr-bn-muted"></div></div>
         <div class="cr-bn-destination-grid" style="margin-top:12px">
-          <div class="cr-bn-field"><label for="crBnConnectedHost">Connected remote presenter</label><select id="crBnConnectedHost"><option value="">No connected presenters detected</option></select></div>
-          <div class="cr-bn-field"><label>Live handoff</label><div class="cr-bn-actions" style="margin-top:0"><button id="crBnHandoff" type="button" disabled>Hand off to host</button><button id="crBnTakeBack" class="secondary" type="button" disabled>Take back host</button></div></div>
+          <div class="cr-bn-field"><label for="crBnGuestSelect">Guest feed</label><select id="crBnGuestSelect"><option value="">Generate a guest link first</option></select></div>
+          <div class="cr-bn-field"><label>Production handoff</label><div class="cr-bn-actions" style="margin-top:0"><button id="crBnHandoff" type="button" disabled>Switch to guest scene</button><button id="crBnTakeBack" class="secondary" type="button" disabled>Return to my scene</button></div></div>
         </div>
-        <p id="crBnHostMessage" class="cr-bn-muted" role="status" aria-live="polite">Create or join the LiveKit room in the Live Studio panel, then invite your remote presenter.</p>
+        <p id="crBnHostMessage" class="cr-bn-muted" role="status" aria-live="polite">Generate a guest link, add its Browser Source URL to a scene in OBS or Streamlabs, then use the scene controls to hand off.</p>
       </div>
       <div class="cr-bn-card full">
         <h4>Encoder setup checklist</h4>
@@ -137,28 +140,17 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
     </div>`;
   livePanel.insertBefore(section, livePanel.firstChild);
   const byId = id => document.getElementById(id);
-  const state = { broadcast: null, timer: null, refresh: null, realtime: null, destinationCount: 0, keys: new Map(), shifts: [], activeHost: null };
+  const state = { broadcast: null, timer: null, refresh: null, realtime: null, destinationCount: 0, keys: new Map(), shifts: [], guests: [], activeHost: null };
   const hostMessage = text => { byId("crBnHostMessage").textContent=text; };
-  const getConnectedHostsSafe = () => { try { return getConnectedHosts ? (getConnectedHosts()||[]) : []; } catch { return []; } };
-  const refreshConnectedHosts = () => {
-    const select=byId("crBnConnectedHost"),previous=select.value,hosts=getConnectedHostsSafe();
-    select.replaceChildren();
-    if(!hosts.length){const o=document.createElement("option");o.value="";o.textContent="No connected presenters detected";select.append(o)}
-    else hosts.forEach(host=>{const o=document.createElement("option");o.value=host.identity;o.textContent=host.name||host.identity;select.append(o)});
-    if(hosts.some(h=>h.identity===previous))select.value=previous;
-    byId("crBnHandoff").disabled=!hosts.length||!!state.activeHost;
-  };
   const renderHostShifts = () => {
     const list=byId("crBnHostShifts");list.replaceChildren();
     if(!state.shifts.length){list.textContent="No remote host shifts scheduled yet.";return}
     state.shifts.forEach((shift,index)=>{
       const item=document.createElement("div");item.className="cr-bn-history";
       const left=document.createElement("div"),name=document.createElement("b"),detail=document.createElement("div");
-      name.textContent=shift.name||"Remote host";
-      detail.className="cr-bn-small";
-      detail.textContent=(shift.start_at?new Date(shift.start_at).toLocaleString():"Start time TBD")+" → "+(shift.end_at?new Date(shift.end_at).toLocaleString():"End time TBD")+(shift.notes?" · "+shift.notes:"");
-      left.append(name,detail);
-      const remove=document.createElement("button");remove.className="secondary";remove.type="button";remove.textContent="Remove";
+      name.textContent=shift.name||"Remote host";detail.className="cr-bn-small";
+      detail.textContent=(shift.start_at?new Date(shift.start_at).toLocaleString():"Start TBD")+" → "+(shift.end_at?new Date(shift.end_at).toLocaleString():"End TBD")+(shift.notes?" · "+shift.notes:"");
+      left.append(name,detail);const remove=document.createElement("button");remove.className="secondary";remove.type="button";remove.textContent="Remove";
       remove.addEventListener("click",()=>saveHostShifts(state.shifts.filter((_,i)=>i!==index)).catch(e=>hostMessage(e.message)));
       item.append(left,remove);list.append(item);
     });
@@ -167,64 +159,77 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
     if(!state.broadcast?.id)throw new Error("Create a broadcast record before scheduling host shifts.");
     const metadata={...(state.broadcast.metadata||{}),remote_host_shifts:shifts};
     const {data,error}=await sb.from("podcast_live_broadcasts").update({metadata}).eq("id",state.broadcast.id).eq("user_id",user.id).select("*").single();
-    if(error)throw error;
-    state.broadcast=data;state.shifts=shifts;renderHostShifts();hostMessage("Remote host schedule saved to this broadcast.");
+    if(error)throw error;state.broadcast=data;state.shifts=shifts;renderHostShifts();hostMessage("Remote host schedule saved.");
   };
-  const refreshHostHandoff = () => {
-    refreshConnectedHosts();
-    const active=state.broadcast?.metadata?.active_remote_host||null;
-    state.activeHost=active;
-    byId("crBnHostState").textContent=active?"REMOTE HOST: "+(active.name||"ON AIR"):"YOUR SHIFT";
-    byId("crBnTakeBack").disabled=!active;
-    byId("crBnHandoff").disabled=!!active||!getConnectedHostsSafe().length;
-    if(active){
-      const connected=getConnectedHostsSafe().some(h=>h.identity===active.identity);
-      byId("crBnHostState").textContent=connected?"REMOTE HOST ON AIR":"HOST DISCONNECTED";
-      hostMessage(connected?(active.name||"Remote host")+" is presenting. Your microphone and camera are muted.":"Your remote host disconnected. The stream may still be live, but no presenter is connected. Take back the host role or invite a backup.");
-    }
+  const saveGuests = async guests => {
+    if(!state.broadcast?.id)throw new Error("Create a broadcast record before generating guest links.");
+    const metadata={...(state.broadcast.metadata||{}),remote_host_guests:guests};
+    const {data,error}=await sb.from("podcast_live_broadcasts").update({metadata}).eq("id",state.broadcast.id).eq("user_id",user.id).select("*").single();
+    if(error)throw error;state.broadcast=data;state.guests=guests;renderGuests();
   };
+  const renderGuests = () => {
+    const list=byId("crBnGuestList"),select=byId("crBnGuestSelect"),previous=select.value;list.replaceChildren();select.replaceChildren();
+    if(!state.guests.length){list.textContent="No guest feeds generated.";const opt=document.createElement("option");opt.value="";opt.textContent="Generate a guest link first";select.append(opt);byId("crBnHandoff").disabled=true;return}
+    state.guests.forEach((guest,index)=>{
+      const opt=document.createElement("option");opt.value=guest.id;opt.textContent=guest.name+" · "+(guest.scene||"Guest scene");select.append(opt);
+      const row=document.createElement("div");row.className="cr-bn-history";
+      const info=document.createElement("div"),title=document.createElement("b"),detail=document.createElement("div");title.textContent=guest.name;detail.className="cr-bn-small";detail.textContent="Scene: "+guest.scene+" · Add browser source: "+guest.view_url;info.append(title,detail);
+      const actions=document.createElement("div");actions.className="cr-bn-actions";
+      [["Copy guest link",guest.guest_url],["Copy source URL",guest.view_url]].forEach(([label,value])=>{const button=document.createElement("button");button.className="secondary";button.type="button";button.textContent=label;button.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(value);hostMessage(label+" copied. Share or paste it in the correct place.");}catch{hostMessage("Clipboard unavailable. Copy the URL from the details.");}});actions.append(button)});
+      const remove=document.createElement("button");remove.className="secondary";remove.type="button";remove.textContent="Remove";remove.addEventListener("click",()=>saveGuests(state.guests.filter((_,i)=>i!==index)).catch(e=>hostMessage(e.message)));
+      row.append(info,actions,remove);list.append(row);
+    });
+    if(state.guests.some(g=>g.id===previous))select.value=previous;
+    byId("crBnHandoff").disabled=!select.value;
+    byId("crBnTakeBack").disabled=!state.activeHost;
+  };
+  const makeGuestId = () => Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>b.toString(16).padStart(2,"0")).join("");
   byId("crBnAddHostShift").addEventListener("click",async()=>{
     const name=byId("crBnHostName").value.trim(),start=byId("crBnHostStart").value,end=byId("crBnHostEnd").value;
     if(!name||!start||!end){hostMessage("Enter the host name and both shift times.");return}
     if(new Date(end)<=new Date(start)){hostMessage("The shift end must be later than its start.");return}
-    try{await saveHostShifts([...state.shifts,{id:crypto.randomUUID(),name,start_at:new Date(start).toISOString(),end_at:new Date(end).toISOString(),notes:byId("crBnHostNotes").value.trim()}]);byId("crBnHostName").value="";byId("crBnHostNotes").value=""}
+    try{await saveHostShifts([...state.shifts,{id:crypto.randomUUID(),name,start_at:new Date(start).toISOString(),end_at:new Date(end).toISOString(),notes:byId("crBnHostNotes").value.trim()}]);hostMessage("Host shift saved to your broadcast schedule.");}
     catch(error){hostMessage(error.message||"Could not save this host shift.")}
   });
   byId("crBnInviteHost").addEventListener("click",async()=>{
+    const name=byId("crBnHostName").value.trim();
+    if(!name){hostMessage("Enter the remote host name first.");return}
+    if(!state.broadcast?.id){hostMessage("Create a broadcast record before generating a guest link.");return}
     try{
-      if(!createRemoteHostInvite)throw new Error("Remote host invitations are not connected to this LiveKit room.");
-      const url=await createRemoteHostInvite();
-      await navigator.clipboard.writeText(url);
-      hostMessage("Secure remote host invitation copied. Send it privately to the presenter; the link expires after 60 minutes.");
-    }catch(error){hostMessage(error.message||"Could not create a remote host invitation.")}
+      const id=makeGuestId(),scene=byId("crBnHostScene").value.trim()||("Remote Host - "+name);
+      const guestUrl=new URL("https://vdo.ninja/");guestUrl.searchParams.set("push",id);guestUrl.searchParams.set("label",name);guestUrl.searchParams.set("autostart","");guestUrl.searchParams.set("webcam","");guestUrl.searchParams.set("room","cr-"+state.broadcast.id.slice(0,8));
+      const viewUrl=new URL("https://vdo.ninja/");viewUrl.searchParams.set("view",id);viewUrl.searchParams.set("cleanoutput","");viewUrl.searchParams.set("room","cr-"+state.broadcast.id.slice(0,8));
+      const guest={id,name,scene,guest_url:guestUrl.href,view_url:viewUrl.href,created_at:new Date().toISOString(),permission:"guest"};
+      await saveGuests([...state.guests,guest]);await navigator.clipboard.writeText(guestUrl.href);
+      hostMessage("Guest link generated and copied. Send it privately to "+name+". Add the matching source URL to a Browser Source in your encoder.");
+    }catch(error){hostMessage(error.message||"Could not generate the guest link.")}
   });
+  byId("crBnGuestSelect").addEventListener("change",()=>{byId("crBnHandoff").disabled=!byId("crBnGuestSelect").value;});
+  const switchObsScene = async sceneName => {
+    if(!obs.connected)throw new Error("Connect OBS WebSocket first to switch scenes from CrowRules.");
+    if(!sceneName)throw new Error("Enter the target scene name in OBS.");
+    await obsRequest("SetCurrentProgramScene",{sceneName});
+  };
   byId("crBnHandoff").addEventListener("click",async()=>{
-    const identity=byId("crBnConnectedHost").value,host=getConnectedHostsSafe().find(h=>h.identity===identity);
-    if(!host){hostMessage("The selected remote host is no longer connected. Refresh the presenter list.");return}
-    if(!state.broadcast?.id){hostMessage("Create a broadcast record first.");return}
+    const guest=state.guests.find(g=>g.id===byId("crBnGuestSelect").value);if(!guest)return;
     try{
-      if(!onRemoteHandoff)throw new Error("Remote presenter controls are unavailable.");
-      await onRemoteHandoff(host);
-      const active={name:host.name||host.identity,identity:host.identity,started_at:new Date().toISOString()};
-      const metadata={...(state.broadcast.metadata||{}),active_remote_host:active};
+      if(byId("crBnEncoder").value==="obs")await switchObsScene(guest.scene);
+      else throw new Error("For Streamlabs, switch to the guest scene in Streamlabs Desktop. The guest has no encoder-control permissions.");
+      state.activeHost=guest;byId("crBnHostState").textContent="REMOTE HOST · "+guest.name;byId("crBnTakeBack").disabled=false;
+      const metadata={...(state.broadcast.metadata||{}),active_remote_host:{id:guest.id,name:guest.name,scene:guest.scene,started_at:new Date().toISOString()}};
       const {data,error}=await sb.from("podcast_live_broadcasts").update({metadata}).eq("id",state.broadcast.id).eq("user_id",user.id).select("*").single();
-      if(error)throw error;state.broadcast=data;state.activeHost=active;refreshHostHandoff();
-      hostMessage("Handoff complete. "+active.name+" is presenting; your microphone and camera are muted. Leave the studio and encoder running.");
-    }catch(error){hostMessage(error.message||"Could not hand off to the remote host.")}
+      if(error)throw error;state.broadcast=data;hostMessage(guest.name+" scene is now on air. Your encoder remains under your control.");
+    }catch(error){hostMessage(error.message||"Could not switch to the guest scene.")}
   });
   byId("crBnTakeBack").addEventListener("click",async()=>{
     try{
-      if(onTakeBack)await onTakeBack();
-      if(state.broadcast?.id){
-        const metadata={...(state.broadcast.metadata||{})};delete metadata.active_remote_host;
-        const {data,error}=await sb.from("podcast_live_broadcasts").update({metadata}).eq("id",state.broadcast.id).eq("user_id",user.id).select("*").single();
-        if(error)throw error;state.broadcast=data;
-      }
-      state.activeHost=null;refreshHostHandoff();hostMessage("You have taken back the presenter role. Your microphone and camera are enabled.");
-    }catch(error){hostMessage(error.message||"Could not take back the host role.")}
+      if(byId("crBnEncoder").value==="obs")await switchObsScene(byId("crBnReturnScene").value.trim()||"Main Host");
+      else hostMessage("Switch back to your host scene in Streamlabs Desktop.");
+      const metadata={...(state.broadcast?.metadata||{})};delete metadata.active_remote_host;
+      if(state.broadcast?.id){const {data,error}=await sb.from("podcast_live_broadcasts").update({metadata}).eq("id",state.broadcast.id).eq("user_id",user.id).select("*").single();if(error)throw error;state.broadcast=data}
+      state.activeHost=null;byId("crBnHostState").textContent="YOUR SHIFT";byId("crBnTakeBack").disabled=true;hostMessage("Your host scene is selected. Continue the broadcast.");
+    }catch(error){hostMessage(error.message||"Could not return to your scene.")}
   });
-  byId("crBnConnectedHost").addEventListener("focus",refreshConnectedHosts);
-  const hostPresenceTimer=setInterval(refreshHostHandoff,5000);
   const message = text => { byId("crBnMessage").textContent = text; };
   const setBusy = busy => { ["crBnPrepare","crBnMarkLive","crBnEnd","crBnRefresh","crBnAddDestination"].forEach(id => { const el=byId(id); if(el)el.disabled=busy; }); };
   const addDestination = (platform="youtube", values={}) => {
@@ -274,7 +279,7 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
   };
   const loadBroadcast = async id => {
     const {data,error}=await sb.from("podcast_live_broadcasts").select("*").eq("id",id).eq("user_id",user.id).single();
-    if(error)throw error;state.broadcast=data;state.shifts=Array.isArray(data.metadata?.remote_host_shifts)?data.metadata.remote_host_shifts:[];renderHostShifts();refreshHostHandoff();renderStatus();
+    if(error)throw error;state.broadcast=data;state.shifts=Array.isArray(data.metadata?.remote_host_shifts)?data.metadata.remote_host_shifts:[];state.guests=Array.isArray(data.metadata?.remote_host_guests)?data.metadata.remote_host_guests:[];state.activeHost=data.metadata?.active_remote_host||null;renderHostShifts();renderGuests();byId("crBnHostState").textContent=state.activeHost?"REMOTE HOST · "+(state.activeHost.name||"ON AIR"):"YOUR SHIFT";byId("crBnTakeBack").disabled=!state.activeHost;renderStatus();
     byId("crBnTitle").value=data.title||"";
     byId("crBnDescription").value=data.description||"";
     if(data.podcast_id)byId("crBnShow").value=data.podcast_id;
@@ -312,7 +317,7 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
       const created=await invoke({action:"create",title,description:byId("crBnDescription").value.trim(),podcast_id:showId,metadata});
       if(!created.broadcast?.id)throw new Error("The broadcast record was not returned.");
       const {data:updated,error}=await sb.from("podcast_live_broadcasts").update({provider:encoder,metadata}).eq("id",created.broadcast.id).eq("user_id",user.id).select("*").single();
-      if(error)throw error;state.broadcast=updated;state.shifts=Array.isArray(updated.metadata?.remote_host_shifts)?updated.metadata.remote_host_shifts:[];renderHostShifts();refreshHostHandoff();
+      if(error)throw error;state.broadcast=updated;state.shifts=Array.isArray(updated.metadata?.remote_host_shifts)?updated.metadata.remote_host_shifts:[];state.guests=Array.isArray(updated.metadata?.remote_host_guests)?updated.metadata.remote_host_guests:[];renderHostShifts();renderGuests();
       if(!planned||new Date(planned)<=new Date()){
         const prepared=await invoke({action:"start",broadcast_id:updated.id});state.broadcast=prepared.broadcast||state.broadcast;
       }
@@ -426,6 +431,7 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
     return active;
   };
   byId("crBnObsConnect").addEventListener("click",()=>connectObs().catch(error=>obsMessage(error.message)));
+  byId("crBnEncoder").addEventListener("change",()=>{const obsMode=byId("crBnEncoder").value==="obs";byId("crBnObsConnect").disabled=!obsMode;byId("crBnObsStart").disabled=!obsMode||!obs.connected;byId("crBnObsStop").disabled=!obsMode||!obs.connected;byId("crBnObsCheck").disabled=!obsMode||!obs.connected;hostMessage(obsMode?"OBS scene switching is available after connecting OBS WebSocket.":"Streamlabs scene switching is performed inside Streamlabs Desktop. Add the guest Browser Source there.");});
   byId("crBnObsCheck").addEventListener("click",()=>refreshObsStatus().catch(error=>obsMessage(error.message)));
   byId("crBnObsStart").addEventListener("click",async()=>{
     try{
@@ -450,7 +456,7 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
   }catch(error){message("Broadcast history is not available yet: "+(error.message||"Check your connection."))}
   renderStatus();
   const cleanup = () => {
-    clearInterval(state.timer);clearInterval(state.refresh);clearInterval(obs.timer);clearInterval(hostPresenceTimer);
+    clearInterval(state.timer);clearInterval(state.refresh);clearInterval(obs.timer);
     if(state.realtime)sb.removeChannel(state.realtime);
     if(obs.socket)try{obs.socket.close()}catch{}
     for(const pending of obs.pending.values()){clearTimeout(pending.timeout);pending.reject(new Error("Studio closed."))}
