@@ -1,0 +1,73 @@
+name: Deploy CrowRules RTMP Server
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "streaming/mediamtx/**"
+      - ".github/workflows/deploy-rtmp-server.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy MediaMTX to VPS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build authenticated MediaMTX configuration
+        env:
+          RTMP_PUBLISH_USER: ${{ secrets.RTMP_PUBLISH_USER }}
+          RTMP_PUBLISH_PASSWORD: ${{ secrets.RTMP_PUBLISH_PASSWORD }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          template = Path("streaming/mediamtx/mediamtx.yml.template").read_text()
+          user = os.environ.get("RTMP_PUBLISH_USER", "")
+          password = os.environ.get("RTMP_PUBLISH_PASSWORD", "")
+          if not user or not password:
+              raise SystemExit("Missing RTMP_PUBLISH_USER or RTMP_PUBLISH_PASSWORD repository secret.")
+          config = template.replace("__RTMP_PUBLISH_USER__", json.dumps(user))
+          config = config.replace("__RTMP_PUBLISH_PASSWORD__", json.dumps(password))
+          Path("streaming/mediamtx/mediamtx.yml").write_text(config)
+          PY
+
+      - name: Configure SSH
+        env:
+          RTMP_SSH_KEY: ${{ secrets.RTMP_SSH_KEY }}
+          RTMP_KNOWN_HOSTS: ${{ secrets.RTMP_KNOWN_HOSTS }}
+        run: |
+          test -n "$RTMP_SSH_KEY" || (echo "Missing RTMP_SSH_KEY secret." && exit 1)
+          test -n "$RTMP_KNOWN_HOSTS" || (echo "Missing RTMP_KNOWN_HOSTS secret." && exit 1)
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$RTMP_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$RTMP_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Copy server files
+        env:
+          RTMP_HOST: ${{ secrets.RTMP_HOST }}
+          RTMP_PORT: ${{ secrets.RTMP_SSH_PORT }}
+          RTMP_USER: ${{ secrets.RTMP_SSH_USER }}
+        run: |
+          test -n "$RTMP_HOST" || (echo "Missing RTMP_HOST secret." && exit 1)
+          test -n "$RTMP_USER" || (echo "Missing RTMP_SSH_USER secret." && exit 1)
+          PORT="${RTMP_PORT:-22}"
+          ssh -p "$PORT" "$RTMP_USER@$RTMP_HOST" "mkdir -p ~/crowrules-rtmp"
+          scp -P "$PORT" streaming/mediamtx/docker-compose.yml streaming/mediamtx/mediamtx.yml "$RTMP_USER@$RTMP_HOST:~/crowrules-rtmp/"
+
+      - name: Restart MediaMTX
+        env:
+          RTMP_HOST: ${{ secrets.RTMP_HOST }}
+          RTMP_PORT: ${{ secrets.RTMP_SSH_PORT }}
+          RTMP_USER: ${{ secrets.RTMP_SSH_USER }}
+        run: |
+          PORT="${RTMP_PORT:-22}"
+          ssh -p "$PORT" "$RTMP_USER@$RTMP_HOST" "cd ~/crowrules-rtmp && docker compose pull && docker compose up -d && docker compose ps"
