@@ -1,5 +1,8 @@
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+
+const groupsCss = await readFile(new URL("../assets/css/groups.css", import.meta.url), "utf8");
 
 const BASE = "http://127.0.0.1:4173/tests/groups-browser.html";
 const GROUP_ID = "test-circle";
@@ -102,6 +105,9 @@ async function openPage(browser, role, options = {}, query = "?preview=1&group="
     }
     window.Date = FixedDate;
   }, state);
+  await page.route("**/podcasting/assets/css/groups.css*", route => route.fulfill({
+    status: 200, contentType: "text/css", body: groupsCss
+  }));
   await page.route("**/assets/js/client.js", route => route.fulfill({
     status: 200, contentType: "text/javascript", body: mockClient
   }));
@@ -186,7 +192,7 @@ try {
     await page.close();
   }
   {
-    const { page } = await openPage(browser, "signed-out", {}, "");
+    const { page } = await openPage(browser, "signed-out", {}, "?preview=1");
     await page.waitForSelector(".crg-preview-bar");
     assert.match(await page.locator(".crg-preview-bar").innerText(), /December 1, 2026/);
     await page.setViewportSize({ width: 320, height: 800 });
