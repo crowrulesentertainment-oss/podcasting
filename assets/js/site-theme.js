@@ -48,6 +48,11 @@
     const path=String(location.pathname||"").toLowerCase();
     const key=page+" "+path;
     const pageKey=/admin|control-room|moderation/.test(key)?"admin":/discover|search|explore|directory/.test(key)?"discover":/episode|listen|player/.test(key)?"episode":/show|podcast|series/.test(key)?"show":/creator/.test(key)?"creator":/studio|record|upload/.test(key)?"studio":/community|group|member|hub/.test(key)?"community":/message|inbox|chat/.test(key)?"messages":/account|setting|login|signup|auth/.test(key)?"account":/profile|people|host/.test(key)?"profile":/review|feedback|rating/.test(key)?"reviews":/event|calendar|live/.test(key)?"events":/rank/.test(key)?"rankings":/search/.test(key)?"search":/notification/.test(key)?"notifications":(page==="home"||path.endsWith("/podcasting/")||path.endsWith("/index.html"))?"home":"show";
+    const mobile=window.matchMedia?.("(max-width: 760px)")?.matches===true;
+    const customDesktop=theme.hero&&theme.hero!==theme.photo?theme.hero:"";
+    const customMobile=theme.mobileHero||customDesktop;
+    if(mobile&&customMobile)return customMobile;
+    if(customDesktop)return customDesktop;
     const ids=SEASONAL_SCENES[theme.id]||SEASONAL_SCENES.original;
     const index=PAGE_SCENE_INDEX[pageKey]??0;
     return ids[index%ids.length]||theme.photo||theme.hero||"";
@@ -67,10 +72,17 @@
     selectedId=theme.id;
     const status=document.getElementById("crMemberThemeStatus");if(status)status.textContent=theme.icon+" "+theme.label+" selected";
   }
+  function applyCatalogOverrides(raw){
+    const map=raw&&typeof raw==="object"&&!Array.isArray(raw)?(raw.themes||raw):{};
+    THEMES.forEach(theme=>{
+      const entry=map[theme.id];if(!entry||typeof entry!=="object")return;
+      ["photo","hero","mobileHero","imageAlt"].forEach(key=>{if(typeof entry[key]==="string"&&entry[key])theme[key]=entry[key]});
+    });
+  }
   async function loadSettings(){
     try{
-      const {data,error}=await sb.from("crp_site_settings").select("featured_theme,theme_mode,seasonal_auto,theme_schedule").eq("site_key","podcasting").maybeSingle();
-      if(error)throw error;featuredId=resolveFeatured(data);return data;
+      const {data,error}=await sb.from("crp_site_settings").select("featured_theme,theme_mode,seasonal_auto,theme_schedule,theme_catalog").eq("site_key","podcasting").maybeSingle();
+      if(error)throw error;applyCatalogOverrides(data?.theme_catalog);featuredId=resolveFeatured(data);return data;
     }catch(error){console.warn("[CrowRules themes] Featured theme unavailable:",error.message);featuredId=automaticTheme();return null}
   }
   async function loadPreference(){
