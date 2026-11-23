@@ -47,6 +47,30 @@ async function activityPage(){
 }
 
 
+
+async function dashboard(){
+ const root=$("#gp-dashboard"),status=$("#gp-status"),user=await currentUser().catch(()=>null);
+ if(!user){status.textContent="Sign in to see your Groups dashboard.";root.innerHTML='<div class="gp-notice"><a class="gp-link" href="'+SITE_BASE+'login.html">Sign in</a> to continue.</div>';return}
+ status.textContent="Loading your communities…";
+ const {data:members,error:mError}=await sb.from("podcast_community_circle_members").select("circle_id,role").eq("member_id",user.id);
+ if(mError){status.textContent="Your memberships could not be loaded: "+mError.message;return}
+ const roles=new Map((members||[]).map(x=>[x.circle_id,x.role||"member"])),ids=[...roles.keys()];
+ if(!ids.length){status.textContent="Your community dashboard is ready when you join a group.";root.innerHTML='<div class="gp-notice">You have not joined a group yet. <a class="gp-link" href="discover.html">Discover groups →</a></div>';return}
+ const [{data:groups,error:gError},{data:activity,error:aError}]=await Promise.all([
+  sb.from("podcast_community_circles").select("id,name,description,category,created_at").in("id",ids).order("name",{ascending:true}),
+  sb.from("podcast_community_circle_activity").select("id,circle_id,activity_type,summary,created_at").in("circle_id",ids).order("created_at",{ascending:false}).limit(12)
+ ]);
+ if(gError){status.textContent="Your groups could not be loaded: "+gError.message;return}
+ if(aError){status.textContent="Your groups loaded, but recent activity could not be retrieved: "+aError.message}
+ const groupMap=new Map((groups||[]).map(g=>[g.id,g]));
+ const managed=ids.filter(id=>["owner","moderator"].includes(roles.get(id))).length;
+ const labels={discussion_created:"New discussion",reply_created:"New reply",event_created:"Event created",event_updated:"Event updated",event_cancelled:"Event cancelled",member_joined:"New member"};
+ const recent=(activity||[]).filter(x=>groupMap.has(x.circle_id));
+ root.innerHTML='<section class="gp-dashboard-stats"><article><strong>'+ids.length+'</strong><span>Groups you belong to</span></article><article><strong>'+managed+'</strong><span>Groups you help manage</span></article><article><strong>'+recent.length+'</strong><span>Recent group updates</span></article></section><div class="gp-dashboard-columns"><section class="gp-dashboard-panel"><div class="gp-dashboard-heading"><div><span class="gp-kicker">YOUR COMMUNITIES</span><h2>My groups</h2></div><a class="gp-link" href="my-groups.html">Manage list →</a></div><div class="gp-dashboard-groups">'+(groups||[]).map(g=>'<a class="gp-dashboard-group" href="'+groupUrl(g.id)+'"><span><strong>'+esc(g.name)+'</strong><small>'+esc(g.category||"Community")+'</small></span><em>'+esc(roles.get(g.id)||"member")+'</em></a>').join("")+'</div></section><section class="gp-dashboard-panel"><div class="gp-dashboard-heading"><div><span class="gp-kicker">THE LATEST</span><h2>Recent activity</h2></div><a class="gp-link" href="activity.html">Full activity →</a></div><div class="gp-dashboard-activity">'+(recent.length?recent.map(item=>'<article><span>'+esc(labels[item.activity_type]||"Group update")+'</span><p>'+esc(item.summary||"There is a new update in your group.")+'</p><small>'+esc(groupMap.get(item.circle_id)?.name||"Your group")+' · '+esc(new Date(item.created_at).toLocaleString())+'</small></article>').join(""):'<div class="gp-notice">No recent activity is available yet. Start a conversation in one of your groups.</div>')+'</div></section></div><nav class="gp-dashboard-quicklinks" aria-label="Groups shortcuts"><a href="discover.html">Discover groups</a><a href="feed.html">Community feed</a><a href="events.html">Events</a><a href="collaborations.html">Collaborations & polls</a><a href="invitations.html">Invitations</a><a href="notifications.html">Notification preferences</a></nav>';
+ status.textContent="Your Groups dashboard · activity is shown only for groups you belong to.";
+}
+
+
 async function recognitionsPage(){
  const root=$("#gp-recognitions"),status=$("#gp-status"),user=await currentUser().catch(()=>null),selected=params.get("group");
  if(!user){status.textContent="Sign in to recognize members of your groups.";root.innerHTML='<div class="gp-notice"><a class="gp-link" href="'+SITE_BASE+'login.html">Sign in</a> to continue.</div>';return}
@@ -334,5 +358,5 @@ async function collaborationsPage(){
  createForm.elements.circle_id.addEventListener("change",draw);
  await draw();
 }
-async function start(){const page=document.body.dataset.groupsPage;if(!page)return;decoratePreviewLinks();if(launchGate(page))return;try{if(page==="home"){mountCountdown();const root=$("#gp-featured"),all=await loadGroups(),user=await currentUser().catch(()=>null),visible=all.filter(g=>(g.visibility||(g.is_public?"public":"hidden"))!=="hidden"||g.owner_id===user?.id);renderCards(root,visible.slice(0,9),"Preview group");if(!visible.length)root.innerHTML='<div class="gp-notice">No groups have been created yet. Sign in and start the first community, then return here to preview it.</div>'}else if(page==="discover")await discover();else if(page==="mine")await mine();else if(page==="feed")await feed();else if(page==="activity")await activityPage();else if(page==="recognitions")await recognitionsPage();else if(page==="create")await create();else if(page==="community")await community();else if(page==="members")await members();else if(page==="settings")await settings();else if(page==="events")await eventsPage();else if(page==="notifications")await notifications();else if(page==="invitations")await invitationsPage();else if(page==="reports")await reportsPage();else if(page==="collaborations")await collaborationsPage()}catch(error){const status=$("#gp-status");if(status)status.textContent=error.message||"Groups could not load."}}
+async function start(){const page=document.body.dataset.groupsPage;if(!page)return;decoratePreviewLinks();if(launchGate(page))return;try{if(page==="home"){mountCountdown();const root=$("#gp-featured"),all=await loadGroups(),user=await currentUser().catch(()=>null),visible=all.filter(g=>(g.visibility||(g.is_public?"public":"hidden"))!=="hidden"||g.owner_id===user?.id);renderCards(root,visible.slice(0,9),"Preview group");if(!visible.length)root.innerHTML='<div class="gp-notice">No groups have been created yet. Sign in and start the first community, then return here to preview it.</div>'}else if(page==="discover")await discover();else if(page==="mine")await mine();else if(page==="dashboard")await dashboard();else if(page==="feed")await feed();else if(page==="activity")await activityPage();else if(page==="recognitions")await recognitionsPage();else if(page==="create")await create();else if(page==="community")await community();else if(page==="members")await members();else if(page==="settings")await settings();else if(page==="events")await eventsPage();else if(page==="notifications")await notifications();else if(page==="invitations")await invitationsPage();else if(page==="reports")await reportsPage();else if(page==="collaborations")await collaborationsPage()}catch(error){const status=$("#gp-status");if(status)status.textContent=error.message||"Groups could not load."}}
 start();
