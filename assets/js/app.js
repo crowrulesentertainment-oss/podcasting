@@ -1493,13 +1493,13 @@ async function episode(){
       if(!liveRoom||!liveRoom.remoteParticipants.has(host.identity))throw Error("That remote host is no longer connected to the live room.");
       await liveRoom.localParticipant.setMicrophoneEnabled(false);
       if(liveMode==="video")await liveRoom.localParticipant.setCameraEnabled(false);
-      $("#liveMic").textContent="Unmute microphone";$("#liveCamera").textContent="Turn camera on";
+      $("#liveMic").textContent="Unmute microphone";$("#liveCamera").textContent="Turn camera on";$("#liveStatus").textContent="REMOTE HOST ON AIR · "+(host.name||host.identity);
      },
      onTakeBack:async()=>{
       if(!liveRoom)throw Error("Reconnect to your LiveKit room before taking back the host role.");
       await liveRoom.localParticipant.setMicrophoneEnabled(true);
       if(liveMode==="video")await liveRoom.localParticipant.setCameraEnabled(true);
-      $("#liveMic").textContent="Mute microphone";$("#liveCamera").textContent="Turn camera off";
+      $("#liveMic").textContent="Mute microphone";$("#liveCamera").textContent="Turn camera off";$("#liveStatus").textContent="CONNECTED · "+liveMode.toUpperCase();
      }
     }).catch(error=>console.error("Live broadcast studio failed:",error));
    const incomingParams=new URLSearchParams(location.search),incomingRoom=incomingParams.get("room"),incomingMode=incomingParams.get("mode");if(incomingMode&&["audio","video"].includes(incomingMode))$("#liveMode").value=incomingMode;if(incomingRoom){$("#liveRoomName").value=incomingRoom;studioTab("live")}
