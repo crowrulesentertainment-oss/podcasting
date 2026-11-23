@@ -76,7 +76,7 @@
     const map=raw&&typeof raw==="object"&&!Array.isArray(raw)?(raw.themes||raw):{};
     THEMES.forEach(theme=>{
       const entry=map[theme.id];if(!entry||typeof entry!=="object")return;
-      ["photo","hero","heroCustom","mobileHero","imageAlt"].forEach(key=>{if(typeof entry[key]==="string"&&entry[key])theme[key]=entry[key]});
+      ["photo","hero","mobileHero","imageAlt"].forEach(key=>{if(typeof entry[key]==="string"&&entry[key])theme[key]=entry[key]});if(entry.heroCustom===true)theme.heroCustom=true;
     });
   }
   async function loadSettings(){
