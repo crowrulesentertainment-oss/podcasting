@@ -81,7 +81,7 @@
           <div class="crta-field"><label for="crtaScheduleTheme">THEME</label><select id="crtaScheduleTheme"></select></div>
           <div class="crta-field"><label for="crtaStart">START DATE</label><input id="crtaStart" type="date"></div>
           <div class="crta-field"><label for="crtaEnd">END DATE</label><input id="crtaEnd" type="date"></div>
-        </div><div class="crta-actions"><button class="crta-btn" id="crtaAddSchedule" type="button">Add scheduled window</button></div><div class="crta-image-audit" id="crtaScheduleStatus" role="status" aria-live="polite">Schedule preview will appear after settings load.</div><div class="crta-schedule-list" id="crtaScheduleList"></div></div>
+        </div><div class="crta-actions"><button class="crta-btn" id="crtaAddSchedule" type="button">Add scheduled window</button><button class="crta-btn" id="crtaExportSchedule" type="button">Export calendar (.ics)</button></div><div class="crta-image-audit" id="crtaScheduleStatus" role="status" aria-live="polite">Schedule preview will appear after settings load.</div><div class="crta-schedule-list" id="crtaScheduleList"></div></div>
         <div class="crta-block" id="crtaImageManager">
           <h3>Theme image manager</h3>
           <p>Upload replacement photography or assign a hosted image URL. Images are stored in the dedicated CrowRules theme bucket; only active platform administrators can upload or remove files.</p>
@@ -303,6 +303,18 @@
     });
 
     $("crtaScheduleList").addEventListener("click",e=>{const copy=e.target.closest("[data-copy-schedule]");if(copy){const index=Number(copy.dataset.copySchedule),item=schedule[index];if(!item)return;const shiftYear=value=>{const [year,month,day]=value.split("-").map(Number),targetYear=year+1,lastDay=new Date(targetYear,month,0).getDate();return targetYear+"-"+String(month).padStart(2,"0")+"-"+String(Math.min(day,lastDay)).padStart(2,"0")};const start=shiftYear(item.start),end=shiftYear(item.end);if(scheduleOverlap(start,end)){$("crtaStatus").textContent="Cannot copy: next year's dates overlap another scheduled window.";return}schedule.push({theme_id:item.theme_id,start,end});schedule.sort((a,b)=>a.start.localeCompare(b.start));renderSchedule();$("crtaStatus").textContent="Copied "+byId(item.theme_id).label+" to "+start+"–"+end+". Publish platform settings to save it.";return}const remove=e.target.closest("[data-remove-schedule]");if(!remove)return;schedule.splice(Number(remove.dataset.removeSchedule),1);renderSchedule()});
+    $("crtaExportSchedule").addEventListener("click",()=>{
+      const valid=schedule.filter(item=>item&&item.start&&item.end&&item.end>=item.start&&THEMES.some(theme=>theme.id===item.theme_id));
+      if(!valid.length){$("crtaStatus").textContent="There are no valid scheduled windows to export.";return}
+      const escapeICS=value=>String(value).replace(/\\/g,"\\\\").replace(/\r?\n/g,"\\n").replace(/,/g,"\\,").replace(/;/g,"\\;");
+      const dateKey=value=>value.replace(/-/g,"");
+      const plusOne=value=>{const [y,m,d]=value.split("-").map(Number),next=new Date(Date.UTC(y,m-1,d+1));return next.toISOString().slice(0,10).replace(/-/g,"")};
+      const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+      const events=valid.map((item,index)=>{const theme=byId(item.theme_id);return ["BEGIN:VEVENT","UID:"+escapeICS(item.theme_id+"-"+item.start+"-"+index+"@crowrules-podcasting"),"DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+dateKey(item.start),"DTEND;VALUE=DATE:"+plusOne(item.end),"SUMMARY:"+escapeICS("CrowRules Podcasting — "+theme.label),"DESCRIPTION:"+escapeICS("Scheduled cinematic environment: "+theme.label),"END:VEVENT"].join("\r\n")});
+      const calendar=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//CrowRules Entertainment//Podcasting Theme Schedule//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH",...events,"END:VCALENDAR"].join("\\r\\n")+"\r\n";
+      const url=URL.createObjectURL(new Blob([calendar],{type:"text/calendar;charset=utf-8"}));const link=document.createElement("a");link.href=url;link.download="crowrules-cinematic-theme-schedule.ics";document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+      $("crtaStatus").textContent="Exported "+valid.length+" scheduled theme window"+(valid.length===1?"":"s")+". Import the .ics file into your calendar app.";
+    });
     $("crtaAddSchedule").addEventListener("click",()=>{
       const theme_id=$("crtaScheduleTheme").value,start=$("crtaStart").value,end=$("crtaEnd").value;
       if(!THEMES.some(theme=>theme.id===theme_id)||!start||!end||end<start){$("crtaStatus").textContent="Choose a valid theme, start date and end date.";return}
