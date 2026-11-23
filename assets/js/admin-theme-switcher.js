@@ -176,7 +176,7 @@
       try{const u=new URL(value);return u.origin+u.pathname}catch{return String(value||"").trim()}
     }
     function checkImageDuplicates(){
-      const theme=byId($("crtaImageTheme").value||previewId),role=$("crtaImageRole").value,url=$("crtaImageUrl").value.trim()||(role==="hero"?theme.hero:role==="gallery"?theme.photo:theme.mobileHero);
+      const theme=byId($("crtaImageTheme").value||previewId),role=$("crtaImageRole").value,url=$("crtaImageUrl").value.trim()||(role==="hero"?theme.hero:role==="gallery"?theme.photo:role==="mobile"?theme.mobileHero:theme.timeOfDay?.[role]);
       if(!url){$("crtaImageStatus").textContent="No image URL is assigned to this slot yet.";return}
       const identity=imageIdentity(url),matches=[];
       THEMES.forEach(other=>{if(other.id===theme.id)return;["hero","photo","mobileHero"].forEach(key=>{if(other[key]&&imageIdentity(other[key])===identity)matches.push(other.label+" ("+key+")")});Object.entries(other.timeOfDay||{}).forEach(([period,value])=>{if(value&&imageIdentity(value)===identity)matches.push(other.label+" ("+period+")")})});
