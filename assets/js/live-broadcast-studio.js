@@ -12,7 +12,7 @@ const safeUrl = value => {
   try { const u = new URL(String(value || "").trim()); return ["rtmp:", "rtmps:"].includes(u.protocol) ? u.href : ""; }
   catch { return ""; }
 };
-export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = () => {} } = {}) {
+export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = () => {}, createRemoteHostInvite, getConnectedHosts, onRemoteHandoff, onTakeBack } = {}) {
   const livePanel = document.getElementById("studioLivePanel");
   if (!livePanel || !sb || !user?.id || document.getElementById("crBroadcastNetwork")) return;
   const section = document.createElement("section");
