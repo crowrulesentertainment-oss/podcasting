@@ -47,3 +47,11 @@ Existing event, collaboration, invitation, recognition, and report pages remain 
 - User content is HTML-escaped before insertion into the page.
 - Queries are bounded (50 posts and 150 replies per feed load).
 - This UI fallback is not a substitute for server-side authorization or a full cross-role security test.
+
+
+### Group collaboration workspace (no migration)
+- Added `groups/collaborations.html` for member topic, guest, question, feedback, and poll submissions.
+- Uses the existing `podcast_community_circle_collaborations` and `podcast_community_circle_collaboration_votes` tables.
+- Members can vote once per submission; poll choices are limited to 2–8 options and constrained by existing table checks/RLS.
+- Owners and moderators can review submissions using existing allowed statuses and creator response fields.
+- No database, policy, grant, or production configuration changes were made.
