@@ -222,3 +222,17 @@ body[data-groups-page]:not(.gp-hub) .gp-site-footer p,body[data-groups-page]:not
 .gp-event-filters input:focus,.gp-event-filters select:focus{outline:2px solid #13d8ff;outline-offset:2px}
 .gp-event-filters .gp-button{min-height:42px;white-space:nowrap}
 @media(max-width:600px){.gp-event-filters{align-items:stretch}.gp-event-filters label,.gp-event-filters .gp-event-search-label{min-width:100%;flex-basis:100%}.gp-event-filters .gp-button{width:100%}}
+
+
+/* Groups invitation center */
+.gp-invitations{display:grid;gap:26px}
+.gp-invite-section{display:grid;gap:12px}
+.gp-invite-section h2{margin:0;font-size:20px}
+.gp-invite-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 16px;align-items:center;padding:18px;border:1px solid #ffffff1c;border-radius:16px;background:#ffffff08}
+.gp-invite-card h3{margin:5px 0;font-size:17px}
+.gp-invite-card .gp-muted{margin:5px 0 0;font-size:12px}
+.gp-invite-status{padding:6px 10px;border:1px solid #ffffff24;border-radius:999px;color:#c8ced8;font-size:11px;font-weight:800;text-transform:capitalize}
+.gp-invite-status.status-accepted{border-color:#35c98b66;color:#7de3b5}
+.gp-invite-status.status-declined,.gp-invite-status.status-cancelled{opacity:.65}
+.gp-invite-actions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
+@media(max-width:560px){.gp-invite-card{grid-template-columns:1fr}.gp-invite-status{justify-self:start}.gp-invite-actions{display:grid;grid-template-columns:1fr}.gp-invite-actions .gp-button{width:100%}}

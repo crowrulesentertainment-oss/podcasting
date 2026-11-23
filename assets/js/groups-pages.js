@@ -201,6 +201,29 @@ async function notifications(){
  status.textContent="Manage the group updates you want to receive.";
 }
 
+async function invitationsPage(){
+ const root=$("#gp-invitations"),status=$("#gp-status");
+ if(!root)return;
+ const user=await currentUser().catch(()=>null);
+ if(!user){status.textContent="Sign in to manage group invitations.";root.innerHTML='<div class="gp-notice"><a class="gp-link" href="'+SITE_BASE+'login.html">Sign in</a> to view invitations sent to you or by you.</div>';return}
+ status.textContent="Loading your invitations…";
+ const {data:rows,error}=await sb.from("podcast_community_circle_invites").select("id,circle_id,inviter_id,invitee_id,status,created_at,responded_at").or("invitee_id.eq."+user.id+",inviter_id.eq."+user.id).order("created_at",{ascending:false}).limit(100);
+ if(error){status.textContent="Invitations could not be loaded: "+error.message;return}
+ const invites=rows||[],groupIds=[...new Set(invites.map(x=>x.circle_id))],profileIds=[...new Set(invites.flatMap(x=>[x.inviter_id,x.invitee_id]))];
+ const [{data:groups},{data:profiles}]=await Promise.all([
+  groupIds.length?sb.from("podcast_community_circles").select("id,name").in("id",groupIds):Promise.resolve({data:[]}),
+  profileIds.length?sb.from("crowrules_public_profiles").select("user_id,display_name,username,avatar_url").in("user_id",profileIds):Promise.resolve({data:[]})
+ ]);
+ const groupNames=new Map((groups||[]).map(x=>[x.id,x.name])),profileMap=new Map((profiles||[]).map(x=>[x.user_id,x]));
+ const person=id=>{const p=profileMap.get(id)||{};return p.display_name||p.username||"CrowRules member"};
+ const renderSection=(title,items,kind)=>'<section class="gp-invite-section"><h2>'+title+'</h2>'+(!items.length?'<p class="gp-muted">Nothing here right now.</p>':items.map(inv=>{const incoming=kind==="incoming",pending=inv.status==="pending",other=incoming?inv.inviter_id:inv.invitee_id;return '<article class="gp-invite-card"><div><span class="gp-kicker">'+(incoming?"Invited by ":"Sent to ")+esc(person(other))+'</span><h3>'+esc(groupNames.get(inv.circle_id)||"Group invitation")+'</h3><p class="gp-muted">'+esc(new Date(inv.created_at).toLocaleString())+'</p></div><span class="gp-invite-status status-'+esc(inv.status)+'">'+esc(inv.status)+'</span>'+(pending&&incoming?'<div class="gp-invite-actions"><button type="button" class="gp-button gp-invite-respond" data-id="'+esc(inv.id)+'" data-response="accepted">Accept invitation</button><button type="button" class="gp-button ghost gp-invite-respond" data-id="'+esc(inv.id)+'" data-response="declined">Decline</button></div>':pending&&!incoming?'<div class="gp-invite-actions"><button type="button" class="gp-button ghost gp-invite-cancel" data-id="'+esc(inv.id)+'">Cancel invitation</button></div>':"")+'</article>'}).join(""))+'</section>';
+ root.innerHTML=renderSection("Invitations to you",invites.filter(x=>x.invitee_id===user.id),"incoming")+renderSection("Invitations you sent",invites.filter(x=>x.inviter_id===user.id),"outgoing");
+ root.querySelectorAll(".gp-invite-respond").forEach(button=>button.addEventListener("click",async()=>{button.disabled=true;status.textContent="Updating invitation…";const {error}=await sb.from("podcast_community_circle_invites").update({status:button.dataset.response,responded_at:new Date().toISOString()}).eq("id",button.dataset.id).eq("invitee_id",user.id).eq("status","pending");if(error){status.textContent=error.message||"Your response could not be saved.";button.disabled=false;return}status.textContent=button.dataset.response==="accepted"?"Your acceptance was recorded. Group membership access is managed separately.":"Invitation declined.";await invitationsPage()}));
+ root.querySelectorAll(".gp-invite-cancel").forEach(button=>button.addEventListener("click",async()=>{if(!confirm("Cancel this invitation?"))return;button.disabled=true;const {error}=await sb.from("podcast_community_circle_invites").delete().eq("id",button.dataset.id).eq("inviter_id",user.id).eq("status","pending");if(error){status.textContent=error.message||"The invitation could not be cancelled.";button.disabled=false;return}status.textContent="Invitation cancelled.";await invitationsPage()}));
+ status.textContent=invites.length?invites.length+" invitation record(s) loaded.":"No group invitations yet.";
+}
+
+
 async function collaborationsPage(){
  const root=$("#gp-collaborations"),status=$("#gp-status"),formRoot=$("#gp-collaboration-create");
  const user=await currentUser().catch(()=>null);
@@ -266,5 +289,5 @@ async function collaborationsPage(){
  createForm.elements.circle_id.addEventListener("change",draw);
  await draw();
 }
-async function start(){const page=document.body.dataset.groupsPage;if(!page)return;decoratePreviewLinks();if(launchGate(page))return;try{if(page==="home"){mountCountdown();const root=$("#gp-featured"),all=await loadGroups(),user=await currentUser().catch(()=>null),visible=all.filter(g=>(g.visibility||(g.is_public?"public":"hidden"))!=="hidden"||g.owner_id===user?.id);renderCards(root,visible.slice(0,9),"Preview group");if(!visible.length)root.innerHTML='<div class="gp-notice">No groups have been created yet. Sign in and start the first community, then return here to preview it.</div>'}else if(page==="discover")await discover();else if(page==="mine")await mine();else if(page==="feed")await feed();else if(page==="activity")await activityPage();else if(page==="recognitions")await recognitionsPage();else if(page==="create")await create();else if(page==="community")await community();else if(page==="members")await members();else if(page==="settings")await settings();else if(page==="events")await eventsPage();else if(page==="notifications")await notifications();else if(page==="collaborations")await collaborationsPage()}catch(error){const status=$("#gp-status");if(status)status.textContent=error.message||"Groups could not load."}}
+async function start(){const page=document.body.dataset.groupsPage;if(!page)return;decoratePreviewLinks();if(launchGate(page))return;try{if(page==="home"){mountCountdown();const root=$("#gp-featured"),all=await loadGroups(),user=await currentUser().catch(()=>null),visible=all.filter(g=>(g.visibility||(g.is_public?"public":"hidden"))!=="hidden"||g.owner_id===user?.id);renderCards(root,visible.slice(0,9),"Preview group");if(!visible.length)root.innerHTML='<div class="gp-notice">No groups have been created yet. Sign in and start the first community, then return here to preview it.</div>'}else if(page==="discover")await discover();else if(page==="mine")await mine();else if(page==="feed")await feed();else if(page==="activity")await activityPage();else if(page==="recognitions")await recognitionsPage();else if(page==="create")await create();else if(page==="community")await community();else if(page==="members")await members();else if(page==="settings")await settings();else if(page==="events")await eventsPage();else if(page==="notifications")await notifications();else if(page==="invitations")await invitationsPage();else if(page==="collaborations")await collaborationsPage()}catch(error){const status=$("#gp-status");if(status)status.textContent=error.message||"Groups could not load."}}
 start();
