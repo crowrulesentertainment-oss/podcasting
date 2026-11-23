@@ -92,7 +92,8 @@
     const renderGrid=()=>{
       const q=$("crtaSearch").value.trim().toLowerCase(),collection=$("crtaCollection").value;
       const list=THEMES.filter(t=>(collection==="all"||t.collection===collection)&&(!q||(t.label+" "+t.desc).toLowerCase().includes(q)));
-      $("crtaCount").textContent=list.length+" themes";\n      const uniqueImageCount=new Set(THEMES.map(theme=>theme.photo).filter(Boolean)).size;\n      const integrity=$("crtaImageIntegrity");if(integrity)integrity.textContent=uniqueImageCount+" unique images across "+THEMES.length+" themes";
+      $("crtaCount").textContent=list.length+" themes";
+      const uniqueImageCount=new Set(THEMES.map(theme=>theme.photo).filter(Boolean)).size;\n      const integrity=$("crtaImageIntegrity");if(integrity)integrity.textContent=uniqueImageCount+" unique images across "+THEMES.length+" themes";
       $("crtaGrid").innerHTML=list.map(t=>'<button type="button" class="crta-card" data-theme="'+esc(t.id)+'" aria-pressed="'+(previewId===t.id)+'"><img loading="lazy" src="'+esc(t.photo||"")+'" alt="'+esc(t.imageAlt||t.label)+'"><span class="crta-card-copy"><b>'+esc(t.icon+" "+t.label)+'</b><small>'+esc(t.desc)+'</small><em>'+esc(t.collection||"collection")+'</em></span></button>').join("");
     };
     $("crtaGrid").addEventListener("click",e=>{const card=e.target.closest("[data-theme]");if(!card)return;previewId=card.dataset.theme;renderGrid()});
