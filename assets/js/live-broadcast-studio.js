@@ -94,6 +94,15 @@ export function initLiveBroadcastStudio({ sb, user, shows = [], notify = () => {
         <p class="cr-bn-muted" id="crBnMessage" role="status" aria-live="polite">Create a broadcast record, configure the destinations in OBS or Streamlabs, then confirm when the encoder is actually live.</p>
       </div>
       <div class="cr-bn-card full">
+        <div class="cr-bn-row" style="justify-content:space-between"><div><h4>OBS remote controls</h4><div class="cr-bn-muted">Optional local control for OBS Studio. Streamlabs creators use the Streamlabs desktop controls.</div></div><span class="cr-bn-pill" id="crBnObsState">NOT CONNECTED</span></div>
+        <div class="cr-bn-destination-grid">
+          <div class="cr-bn-field"><label for="crBnObsAddress">OBS WebSocket address</label><input id="crBnObsAddress" value="ws://127.0.0.1:4455" autocomplete="off"></div>
+          <div class="cr-bn-field"><label for="crBnObsPassword">OBS WebSocket password</label><input id="crBnObsPassword" type="password" autocomplete="off" placeholder="Set in OBS → Tools → WebSocket Server Settings"></div>
+        </div>
+        <div class="cr-bn-actions"><button id="crBnObsConnect" class="secondary" type="button">Connect to OBS</button><button id="crBnObsStart" type="button" disabled>Start OBS stream</button><button id="crBnObsStop" class="secondary" type="button" disabled>Stop OBS stream</button><button id="crBnObsCheck" class="secondary" type="button" disabled>Check stream status</button></div>
+        <p class="cr-bn-muted" id="crBnObsMessage" role="status">Enable the OBS WebSocket server in OBS Studio. The password is used only for this connection and is not saved.</p>
+      </div>
+      <div class="cr-bn-card full">
         <h4>Encoder setup checklist</h4>
         <div class="cr-bn-list cr-bn-small">
           <label><input type="checkbox" data-cr-bn-check="1" style="width:auto;margin-right:7px">Set the primary destination in OBS / Streamlabs</label>
@@ -244,6 +253,88 @@ export function initLiveBroadcastStudio({ sb, user, shows = [], notify = () => {
     });
     try{await navigator.clipboard.writeText(lines.join("\n\n"));notify("Destination settings copied. Keep the clipboard private.")}catch{message("Clipboard access was blocked.")}
   });
+  const obs = { socket:null, connected:false, pending:new Map(), timer:null };
+  const obsMessage = text => { byId("crBnObsMessage").textContent=text; };
+  const obsState = text => { byId("crBnObsState").textContent=text; };
+  const obsButtons = connected => {
+    byId("crBnObsStart").disabled=!connected;
+    byId("crBnObsStop").disabled=!connected;
+    byId("crBnObsCheck").disabled=!connected;
+    byId("crBnObsConnect").textContent=connected?"Reconnect OBS":"Connect to OBS";
+  };
+  const obsRequest = (requestType,requestData={}) => new Promise((resolve,reject)=>{
+    if(!obs.connected||!obs.socket||obs.socket.readyState!==WebSocket.OPEN)return reject(new Error("OBS is not connected."));
+    const requestId=crypto.randomUUID();
+    const timeout=setTimeout(()=>{obs.pending.delete(requestId);reject(new Error("OBS request timed out."))},8000);
+    obs.pending.set(requestId,{resolve,reject,timeout,requestType});
+    obs.socket.send(JSON.stringify({op:6,d:{requestType,requestId,requestData}}));
+  });
+  const hashBase64 = async value => {
+    const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value));
+    return btoa(String.fromCharCode(...new Uint8Array(digest)));
+  };
+  const connectObs = async () => {
+    const address=byId("crBnObsAddress").value.trim(),password=byId("crBnObsPassword").value;
+    if(!/^wss?:\/\//i.test(address))throw new Error("Enter a valid ws:// or wss:// OBS WebSocket address.");
+    if(obs.socket)try{obs.socket.close()}catch{}
+    obs.connected=false;obsButtons(false);obsState("CONNECTING");obsMessage("Connecting to OBS on this computer…");
+    return new Promise((resolve,reject)=>{
+      let settled=false;
+      const fail=error=>{if(settled)return;settled=true;obs.connected=false;obsButtons(false);obsState("NOT CONNECTED");obsMessage(error.message||"Could not connect to OBS.");reject(error)};
+      try{obs.socket=new WebSocket(address)}catch(error){fail(error);return}
+      const timeout=setTimeout(()=>fail(new Error("OBS connection timed out. Confirm OBS is open and its WebSocket server is enabled.")),9000);
+      obs.socket.onmessage=async event=>{
+        let packet;try{packet=JSON.parse(event.data)}catch{return}
+        if(packet.op===0){
+          try{
+            const auth=packet.d?.authentication;
+            const identify={rpcVersion:packet.d?.rpcVersion||1,eventSubscriptions:0};
+            if(auth){
+              if(!password)throw new Error("Enter your OBS WebSocket password.");
+              identify.authentication=await hashBase64(await hashBase64(password+auth.salt)+auth.challenge);
+            }
+            obs.socket.send(JSON.stringify({op:1,d:identify}));
+          }catch(error){clearTimeout(timeout);fail(error)}
+          return;
+        }
+        if(packet.op===2){
+          clearTimeout(timeout);obs.connected=true;obsButtons(true);obsState("CONNECTED");obsMessage("OBS connected. Start/stop controls and stream-status checks are available.");if(!settled){settled=true;resolve(true)}
+          try{await refreshObsStatus()}catch{}
+          return;
+        }
+        if(packet.op===7){
+          const request=obs.pending.get(packet.d?.requestId);if(!request)return;
+          clearTimeout(request.timeout);obs.pending.delete(packet.d.requestId);
+          if(packet.d?.requestStatus?.result)request.resolve(packet.d.responseData||{});
+          else request.reject(new Error(packet.d?.requestStatus?.comment||"OBS rejected "+request.requestType+"."));
+        }
+      };
+      obs.socket.onerror=()=>{if(!settled)fail(new Error("Browser could not reach OBS WebSocket. Check the address, port 4455 and local-network permissions."))};
+      obs.socket.onclose=()=>{obs.connected=false;obsButtons(false);obsState("DISCONNECTED");if(!settled)fail(new Error("OBS WebSocket closed before authentication completed."));for(const p of obs.pending.values()){clearTimeout(p.timeout);p.reject(new Error("OBS disconnected."))}obs.pending.clear()};
+    });
+  };
+  const refreshObsStatus = async () => {
+    const status=await obsRequest("GetStreamStatus");
+    const active=!!status.outputActive;
+    obsMessage(active?"OBS reports that streaming is active. Verify each destination in the platform dashboards.":"OBS is connected but the stream is not active.");
+    byId("crBnObsStart").disabled=active;
+    byId("crBnObsStop").disabled=!active;
+    return active;
+  };
+  byId("crBnObsConnect").addEventListener("click",()=>connectObs().catch(error=>obsMessage(error.message)));
+  byId("crBnObsCheck").addEventListener("click",()=>refreshObsStatus().catch(error=>obsMessage(error.message)));
+  byId("crBnObsStart").addEventListener("click",async()=>{
+    try{
+      await obsRequest("StartStream");
+      const active=await refreshObsStatus();
+      if(active){if(state.broadcast&&["preparing","scheduled"].includes(state.broadcast.status))await markLive();obsMessage("OBS streaming is active. Confirm all configured destinations are receiving the feed.")}
+    }catch(error){obsMessage(error.message)}
+  });
+  byId("crBnObsStop").addEventListener("click",async()=>{
+    try{await obsRequest("StopStream");await refreshObsStatus();obsMessage("OBS stream stopped. Check that every extra output has also stopped, then use End broadcast record.");}
+    catch(error){obsMessage(error.message)}
+  });
+  obs.timer=setInterval(()=>{if(obs.connected)refreshObsStatus().catch(()=>{})},15000);
   const tick=()=>renderStatus();
   state.timer=setInterval(tick,1000);
   state.refresh=setInterval(()=>refresh().catch(()=>{}),20000);
