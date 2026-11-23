@@ -26,7 +26,7 @@ The Phase 1F Playwright suite ran successfully in Chromium on GitHub Actions aft
 - [x] Locked-post reply form suppression.
 - [x] Untrusted post text renders as text.
 - [x] Preview launch gate and 320px viewport overflow check.
-- [x] Keyboard navigation through category filters, `aria-pressed` state, visible focus outline, and Enter activation of category/join controls.
+- [ ] Keyboard navigation through category filters, `aria-pressed` state, visible focus outline, and Enter activation of category/join controls (added in PR #112; awaiting its browser CI run).
 
 Run: https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/45086504898
 
