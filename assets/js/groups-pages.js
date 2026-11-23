@@ -131,5 +131,70 @@ async function notifications(){
  status.textContent="Manage the group updates you want to receive.";
 }
 
-async function start(){const page=document.body.dataset.groupsPage;if(!page)return;decoratePreviewLinks();if(launchGate(page))return;try{if(page==="home"){mountCountdown();const root=$("#gp-featured"),all=await loadGroups(),user=await currentUser().catch(()=>null),visible=all.filter(g=>(g.visibility||(g.is_public?"public":"hidden"))!=="hidden"||g.owner_id===user?.id);renderCards(root,visible.slice(0,9),"Preview group");if(!visible.length)root.innerHTML='<div class="gp-notice">No groups have been created yet. Sign in and start the first community, then return here to preview it.</div>'}else if(page==="discover")await discover();else if(page==="mine")await mine();else if(page==="feed")await feed();else if(page==="create")await create();else if(page==="community")await community();else if(page==="members")await members();else if(page==="settings")await settings();else if(page==="events")await eventsPage();else if(page==="notifications")await notifications()}catch(error){const status=$("#gp-status");if(status)status.textContent=error.message||"Groups could not load."}}
+async function collaborationsPage(){
+ const root=$("#gp-collaborations"),status=$("#gp-status"),formRoot=$("#gp-collaboration-create");
+ const user=await currentUser().catch(()=>null);
+ if(!user){status.textContent="Sign in to take part in group collaborations.";root.innerHTML='<div class="gp-notice"><a class="gp-link" href="'+SITE_BASE+'login.html">Sign in</a> to view your group collaboration workspace.</div>';formRoot.innerHTML="";return}
+ const {data:members,error:mError}=await sb.from("podcast_community_circle_members").select("circle_id,role").eq("member_id",user.id);
+ if(mError){status.textContent=mError.message;return}
+ const memberships=members||[],ids=memberships.map(m=>m.circle_id);
+ if(!ids.length){root.innerHTML='<div class="gp-notice">Join a group to suggest topics, guests, questions, feedback, and polls. <a class="gp-link" href="discover.html">Discover groups →</a></div>';formRoot.innerHTML="";return}
+ const {data:groups,error:gError}=await sb.from("podcast_community_circles").select("id,name").in("id",ids).order("name",{ascending:true});
+ if(gError){status.textContent=gError.message;return}
+ const groupList=groups||[],roleMap=new Map(memberships.map(m=>[m.circle_id,m.role]));
+ const requested=params.get("group"),initial=ids.includes(requested)?requested:(groupList[0]?.id||"");
+ if(!initial){root.innerHTML='<div class="gp-notice">Your group list is unavailable.</div>';return}
+ formRoot.innerHTML='<form id="gp-collaboration-form" class="gp-form gp-collaboration-form"><label>Group<select name="circle_id" required>'+groupList.map(g=>'<option value="'+esc(g.id)+'" '+(g.id===initial?'selected':'')+'>'+esc(g.name)+'</option>').join("")+'</select></label><label>Submission type<select name="content_type"><option value="topic">Episode or discussion topic</option><option value="guest">Guest suggestion</option><option value="question">Question for the creator</option><option value="feedback">Show or group feedback</option><option value="poll">Community poll</option></select></label><label>Title<input name="title" minlength="4" maxlength="140" required placeholder="Give your idea a clear title"></label><label>Details<textarea name="body" minlength="4" maxlength="3000" required placeholder="Share the idea and why it would matter to the group…"></textarea></label><label id="gp-poll-options-wrap" hidden>Poll choices<textarea name="poll_options" maxlength="1200" placeholder="One choice per line (2–8 choices)"></textarea><small class="gp-help">Each choice can be up to 140 characters.</small></label><button class="gp-button" type="submit">Submit to group</button><p class="gp-help">Submissions are visible to members of the selected group. Owners and moderators can review them.</p></form>';
+ const createForm=$("#gp-collaboration-form"),typeSelect=createForm.elements.content_type,optionsWrap=$("#gp-poll-options-wrap");
+ const syncOptions=()=>{optionsWrap.hidden=typeSelect.value!=="poll";createForm.elements.poll_options.required=typeSelect.value==="poll"};
+ typeSelect.addEventListener("change",syncOptions);syncOptions();
+ const draw=async()=>{
+  const circleId=createForm.elements.circle_id.value;
+  root.innerHTML='<p class="gp-muted">Loading collaboration ideas…</p>';
+  const {data:items,error}=await sb.from("podcast_community_circle_collaborations").select("id,circle_id,author_id,content_type,title,body,poll_options,status,creator_response,responded_by,responded_at,episode_id,created_at,updated_at").eq("circle_id",circleId).order("created_at",{ascending:false}).limit(60);
+  if(error){root.innerHTML='<div class="gp-notice">Collaborations could not be loaded: '+esc(error.message)+'</div>';return}
+  if(!items?.length){root.innerHTML='<div class="gp-notice">No collaboration ideas yet. Be the first to suggest something.</div>';return}
+  const itemIds=items.map(x=>x.id);
+  const {data:votes,error:vError}=await sb.from("podcast_community_circle_collaboration_votes").select("collaboration_id,voter_id,choice").in("collaboration_id",itemIds);
+  const voteRows=votes||[],voteMap=new Map(),mine=new Map();
+  voteRows.forEach(v=>{if(!voteMap.has(v.collaboration_id))voteMap.set(v.collaboration_id,[]);voteMap.get(v.collaboration_id).push(v);if(v.voter_id===user.id)mine.set(v.collaboration_id,v.choice)});
+  const role=roleMap.get(circleId),canModerate=["owner","moderator"].includes(role);
+  const labels={topic:"Topic idea",guest:"Guest suggestion",question:"Creator question",feedback:"Feedback",poll:"Community poll"};
+  const statuses={submitted:"Submitted",under_review:"Under review",approved:"Approved",in_production:"In production",published:"Published",declined:"Declined"};
+  root.innerHTML=items.map(item=>{
+   const own=item.author_id===user.id,rows=voteMap.get(item.id)||[],myChoice=mine.get(item.id),opts=Array.isArray(item.poll_options)?item.poll_options:[];
+   const choices=item.content_type==="poll"?opts:["support"];
+   const choiceMarkup=(!own&&!myChoice)?'<div class="gp-collaboration-vote-actions">'+choices.map(choice=>'<button type="button" class="gp-button ghost gp-collaboration-vote" data-id="'+esc(item.id)+'" data-choice="'+esc(choice)+'">'+(item.content_type==="poll"?"Vote: ":"Support") +esc(choice==="support"?"this idea":choice)+'</button>').join("")+'</div>':(myChoice?'<p class="gp-help">Your vote: '+esc(myChoice==="support"?"Supported":myChoice)+'</p>':"");
+   const tally=choices.map(choice=>{const count=rows.filter(v=>v.choice===choice).length;return '<div class="gp-collaboration-tally"><span>'+esc(choice==="support"?"Support":choice)+'</span><b>'+count+'</b></div>'}).join("");
+   const review=canModerate?'<form class="gp-collaboration-review" data-id="'+esc(item.id)+'"><label>Status<select name="status">'+Object.entries(statuses).map(([v,l])=>'<option value="'+v+'" '+(item.status===v?'selected':'')+'>'+l+'</option>').join("")+'</select></label><label>Response<textarea name="creator_response" maxlength="2000" placeholder="Optional response to the member">'+esc(item.creator_response||"")+'</textarea></label><button class="gp-button ghost" type="submit">Save review</button></form>':"";
+   return '<article class="gp-collaboration-card"><div class="gp-collaboration-card-head"><span class="gp-kicker">'+esc(labels[item.content_type]||"Collaboration")+'</span><span class="gp-collaboration-status">'+esc(statuses[item.status]||item.status)+'</span></div><h3>'+esc(item.title)+'</h3><p class="gp-collaboration-body">'+esc(item.body)+'</p><div class="gp-collaboration-meta"><span>'+esc(new Date(item.created_at).toLocaleString())+'</span><span>'+rows.length+' '+(rows.length===1?"vote":"votes")+'</span></div>'+(item.content_type==="poll"||rows.length?'<div class="gp-collaboration-tallies">'+tally+'</div>':"")+choiceMarkup+(item.creator_response?'<div class="gp-collaboration-response"><b>Creator / moderator response</b><p>'+esc(item.creator_response)+'</p></div>':"")+review+'</article>';
+  }).join("");
+  if(vError)status.textContent="Ideas loaded, but vote totals are unavailable: "+vError.message;
+  root.querySelectorAll(".gp-collaboration-vote").forEach(button=>button.addEventListener("click",async()=>{
+   button.disabled=true;status.textContent="Recording your vote…";
+   const {error}=await sb.from("podcast_community_circle_collaboration_votes").insert({collaboration_id:button.dataset.id,circle_id:circleId,voter_id:user.id,choice:button.dataset.choice});
+   if(error){status.textContent=error.code==="23505"?"You have already voted on this idea.":(error.message||"Your vote could not be recorded.");button.disabled=false;return}
+   status.textContent="Your vote was recorded.";await draw();
+  }));
+  root.querySelectorAll(".gp-collaboration-review").forEach(reviewForm=>reviewForm.addEventListener("submit",async event=>{
+   event.preventDefault();const d=new FormData(reviewForm),button=reviewForm.querySelector("button");button.disabled=true;status.textContent="Saving the review…";
+   const {error}=await sb.from("podcast_community_circle_collaborations").update({status:String(d.get("status")),creator_response:String(d.get("creator_response")||"").trim(),responded_by:user.id,responded_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",reviewForm.dataset.id).eq("circle_id",circleId);
+   if(error){status.textContent=error.message||"The review could not be saved.";button.disabled=false;return}
+   status.textContent="Review saved.";await draw();
+  }));
+ };
+ createForm.addEventListener("submit",async event=>{
+  event.preventDefault();const d=new FormData(createForm),title=String(d.get("title")||"").trim(),body=String(d.get("body")||"").trim(),contentType=String(d.get("content_type")),circleId=String(d.get("circle_id"));
+  const pollOptions=String(d.get("poll_options")||"").split("\n").map(x=>x.trim()).filter(Boolean);
+  if(title.length<4||title.length>140||body.length<4||body.length>3000){status.textContent="Please check the title and details lengths.";return}
+  if(contentType==="poll"&&(pollOptions.length<2||pollOptions.length>8||pollOptions.some(x=>x.length>140))){status.textContent="A poll needs 2–8 choices, each no longer than 140 characters.";return}
+  const button=createForm.querySelector("button[type=submit]");button.disabled=true;status.textContent="Submitting your idea…";
+  const {error}=await sb.from("podcast_community_circle_collaborations").insert({circle_id:circleId,author_id:user.id,content_type:contentType,title,body,poll_options:contentType==="poll"?pollOptions:[],status:"submitted",creator_response:"",responded_by:null});
+  if(error){status.textContent=error.message||"Your submission could not be saved.";button.disabled=false;return}
+  createForm.elements.title.value="";createForm.elements.body.value="";createForm.elements.poll_options.value="";status.textContent="Your idea was submitted.";button.disabled=false;await draw();
+ });
+ createForm.elements.circle_id.addEventListener("change",draw);
+ await draw();
+}
+async function start(){const page=document.body.dataset.groupsPage;if(!page)return;decoratePreviewLinks();if(launchGate(page))return;try{if(page==="home"){mountCountdown();const root=$("#gp-featured"),all=await loadGroups(),user=await currentUser().catch(()=>null),visible=all.filter(g=>(g.visibility||(g.is_public?"public":"hidden"))!=="hidden"||g.owner_id===user?.id);renderCards(root,visible.slice(0,9),"Preview group");if(!visible.length)root.innerHTML='<div class="gp-notice">No groups have been created yet. Sign in and start the first community, then return here to preview it.</div>'}else if(page==="discover")await discover();else if(page==="mine")await mine();else if(page==="feed")await feed();else if(page==="create")await create();else if(page==="community")await community();else if(page==="members")await members();else if(page==="settings")await settings();else if(page==="events")await eventsPage();else if(page==="notifications")await notifications();else if(page==="collaborations")await collaborationsPage()}catch(error){const status=$("#gp-status");if(status)status.textContent=error.message||"Groups could not load."}}
 start();
