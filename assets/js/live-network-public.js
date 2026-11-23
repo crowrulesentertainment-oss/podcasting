@@ -1,0 +1,11 @@
+import {sb} from "./client.js";
+const el=id=>document.getElementById(id),txt=(id,v)=>{el(id).textContent=v||""},validId=v=>/^[A-Za-z0-9_-]{11}$/.test(String(v||""))?v:"";
+async function load(){
+ const {data,error}=await sb.from("live_network_public_state").select("network_name,timezone,public_status,youtube_video_id,youtube_channel_id,current_program_title,current_host,description,next_program_title,next_program_starts_at,updated_at").eq("is_published",true).order("updated_at",{ascending:false}).limit(1).maybeSingle();
+ if(error)throw error;if(!data)return;
+ txt("networkName",data.network_name||"CROWRULES LIVE");const status=(data.public_status||"offline").toUpperCase();txt("networkStatus",status==="LIVE"?"LIVE NOW":status==="STANDBY"?"STANDBY PROGRAMMING":"NETWORK SCHEDULE");el("statusDot").classList.toggle("live",status==="LIVE");
+ txt("currentProgram",data.current_program_title||"CrowRules Live");txt("currentHost",data.current_host?"On air with "+data.current_host:"CrowRules Entertainment");txt("description",data.description||"Continuous programming from CrowRules Entertainment.");txt("nextProgram",data.next_program_title||"More programming coming soon");txt("nextStart",data.next_program_starts_at?new Date(data.next_program_starts_at).toLocaleString([],{dateStyle:"full",timeStyle:"short",timeZone:data.timezone||"America/Los_Angeles"}):"The network schedule will be updated here.");
+ const id=validId(data.youtube_video_id),channel=data.youtube_channel_id;let src=id?"https://www.youtube-nocookie.com/embed/"+id+"?autoplay=0&rel=0":channel&&/^UC[A-Za-z0-9_-]{20,}$/.test(channel)?"https://www.youtube-nocookie.com/embed/live_stream?channel="+encodeURIComponent(channel):"";
+ if(src){const f=document.createElement("iframe");f.src=src;f.title="CrowRules Live broadcast";f.allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";f.allowFullscreen=true;el("player").replaceChildren(f)}
+}
+load().catch(e=>console.warn("CrowRules Live public status unavailable:",e));
