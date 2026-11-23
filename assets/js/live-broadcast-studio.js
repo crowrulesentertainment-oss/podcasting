@@ -55,20 +55,20 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
     </style>
     <div class="cr-bn-head">
       <div><div class="cr-bn-kicker">CROWRULES BROADCAST NETWORK · 24-HOUR LIVE</div><h3>Broadcast control room</h3>
-      <p class="cr-bn-muted">Use OBS Studio or Streamlabs to encode your show, then send it to one or more destinations. Manage the CrowRules broadcast record and monitor its planned 24-hour run here.</p></div>
-      <span class="cr-bn-pill">OBS + STREAMLABS</span>
+      <p class="cr-bn-muted">Use Streamlabs Desktop as the primary encoder for the continuous CrowRules network. Manage the network broadcast record and destination checklist here.</p></div>
+      <span class="cr-bn-pill">STREAMLABS PRIMARY</span>
     </div>
     <div class="cr-bn-grid">
       <div class="cr-bn-card">
         <div class="cr-bn-status" id="crBnStatus">STANDBY</div>
-        <div class="cr-bn-stat" id="crBnTimer">24:00:00</div>
-        <div class="cr-bn-muted" id="crBnTimerLabel">24-hour target · waiting for broadcast</div>
+        <div class="cr-bn-stat" id="crBnTimer">24/7</div>
+        <div class="cr-bn-muted" id="crBnTimerLabel">Continuous network · waiting for broadcast</div>
       </div>
       <div class="cr-bn-card">
         <h4>Encoder & schedule</h4>
-        <div class="cr-bn-field"><label for="crBnEncoder">Broadcast software</label><select id="crBnEncoder"><option value="obs">OBS Studio</option><option value="streamlabs">Streamlabs Desktop</option></select></div>
+        <div class="cr-bn-field"><label for="crBnEncoder">Broadcast software</label><select id="crBnEncoder"><option value="streamlabs" selected>Streamlabs Desktop</option><option value="obs">OBS Studio (optional fallback)</option></select></div>
         <div class="cr-bn-field"><label for="crBnStartAt">Schedule start (optional)</label><input id="crBnStartAt" type="datetime-local"></div>
-        <div class="cr-bn-muted">The 24-hour target is a production timer, not an automatic shutdown. Keep the encoder running on the broadcasting computer.</div>
+        <div class="cr-bn-muted">Continuous network mode: this record has no 24-hour shutdown timer. Keep Streamlabs running and use backup production coverage.</div>
       </div>
       <div class="cr-bn-card full">
         <h4>Broadcast details</h4>
@@ -94,7 +94,7 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
         <p class="cr-bn-muted" id="crBnMessage" role="status" aria-live="polite">Create a broadcast record, configure the destinations in OBS or Streamlabs, then confirm when the encoder is actually live.</p>
       </div>
       <div class="cr-bn-card full">
-        <div class="cr-bn-row" style="justify-content:space-between"><div><h4>OBS remote controls</h4><div class="cr-bn-muted">Optional local control for OBS Studio. Streamlabs creators use the Streamlabs desktop controls.</div></div><span class="cr-bn-pill" id="crBnObsState">NOT CONNECTED</span></div>
+        <div class="cr-bn-row" style="justify-content:space-between"><div><h4>Optional OBS remote controls · legacy fallback</h4><div class="cr-bn-muted">Optional local control for OBS Studio. Streamlabs creators use the Streamlabs desktop controls.</div></div><span class="cr-bn-pill" id="crBnObsState">NOT CONNECTED</span></div>
         <div class="cr-bn-destination-grid">
           <div class="cr-bn-field"><label for="crBnObsAddress">OBS WebSocket address</label><input id="crBnObsAddress" value="ws://127.0.0.1:4455" autocomplete="off"></div>
           <div class="cr-bn-field"><label for="crBnObsPassword">OBS WebSocket password</label><input id="crBnObsPassword" type="password" autocomplete="off" placeholder="Set in OBS → Tools → WebSocket Server Settings"></div>
@@ -103,8 +103,8 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
         <p class="cr-bn-muted" id="crBnObsMessage" role="status">Enable the OBS WebSocket server in OBS Studio. The password is used only for this connection and is not saved.</p>
       </div>
       <div class="cr-bn-card full" id="crBnHostHandoff">
-        <div class="cr-bn-row" style="justify-content:space-between"><div><h4>Remote host desk · encoder-only workflow</h4><div class="cr-bn-muted">Remote presenters join through a private browser link. Their camera feed is added to OBS or Streamlabs as a Browser Source. Guests cannot control your encoder or stream keys.</div></div><span class="cr-bn-pill" id="crBnHostState">YOUR SHIFT</span></div>
-        <div class="cr-bn-warning">No LiveKit is used for this remote-host workflow. VDO.Ninja carries the guest audio/video directly to a browser source in your production encoder. Keep the production computer, encoder and internet connection running throughout the broadcast.</div>
+        <div class="cr-bn-row" style="justify-content:space-between"><div><h4>Legacy guest-link desk · VDO.Ninja fallback</h4><div class="cr-bn-muted">This older guest-link workflow is retained as a fallback. The preferred remote-host route is the LiveKit Host Lounge. Guests cannot control your encoder or stream keys.</div></div><span class="cr-bn-pill" id="crBnHostState">YOUR SHIFT</span></div>
+        <div class="cr-bn-warning">Preferred route: use the LiveKit Host Lounge for scheduled remote presenters. This legacy VDO.Ninja guest-link tool remains optional and does not control the public encoder.</div>
         <div class="cr-bn-destination-grid">
           <div class="cr-bn-field"><label for="crBnHostName">Remote host name</label><input id="crBnHostName" maxlength="100" placeholder="Host display name"></div>
           <div class="cr-bn-field"><label for="crBnHostScene">Guest scene name</label><input id="crBnHostScene" maxlength="100" placeholder="Remote Host - Guest Name"></div>
@@ -113,7 +113,7 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
           <div class="cr-bn-field"><label for="crBnHostNotes">Show / handoff notes</label><input id="crBnHostNotes" maxlength="240" placeholder="Topics, links, segment notes"></div>
           <div class="cr-bn-field"><label for="crBnReturnScene">Your return scene</label><input id="crBnReturnScene" maxlength="100" value="Main Host" placeholder="Main Host"></div>
         </div>
-        <div class="cr-bn-actions"><button id="crBnAddHostShift" type="button">Save host shift</button><button id="crBnInviteHost" class="secondary" type="button">Generate guest link</button></div>
+        <div class="cr-bn-actions"><button id="crBnAddHostShift" type="button">Save host shift</button><button id="crBnInviteHost" class="secondary" type="button">Generate legacy guest link</button><a href="/podcasting/live/host.html" target="_blank" rel="noopener" class="cr-bn-pill">Open LiveKit Host Lounge ↗</a></div>
         <div id="crBnHostShifts" class="cr-bn-list cr-bn-muted">Create a broadcast record to schedule remote host shifts.</div>
         <div class="cr-bn-destination" id="crBnGuestLinks"><b>Guest connections</b><p class="cr-bn-small">Generate a guest link to create a private video input and a matching encoder Browser Source URL.</p><div id="crBnGuestList" class="cr-bn-list cr-bn-muted"></div></div>
         <div class="cr-bn-destination-grid" style="margin-top:12px">
@@ -284,7 +284,7 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
     byId("crBnDescription").value=data.description||"";
     if(data.podcast_id)byId("crBnShow").value=data.podcast_id;
     if(data.metadata?.planned_start_at)byId("crBnStartAt").value=data.metadata.planned_start_at.slice(0,16);
-    byId("crBnEncoder").value=data.metadata?.encoder==="streamlabs"?"streamlabs":"obs";
+    byId("crBnEncoder").value=data.metadata?.encoder==="obs"?"obs":"streamlabs";
     message("Loaded “"+(data.title||"broadcast")+"”. Resume the encoder in OBS / Streamlabs if it is still running.");
   };
   const renderStatus = () => {
@@ -294,12 +294,11 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
     byId("crBnMarkLive").disabled=!b||!["scheduled","preparing"].includes(status);
     byId("crBnEnd").disabled=!b||status!=="live";
     if(live&&b.started_at){
-      const elapsed=Math.max(0,Math.floor((Date.now()-new Date(b.started_at).getTime())/1000));
-      byId("crBnTimer").textContent=fmt(Math.max(0,86400-elapsed));
-      byId("crBnTimerLabel").textContent=elapsed>=86400?"24-hour target reached · stop the encoder in OBS / Streamlabs":"Time remaining in 24-hour target";
+      byId("crBnTimer").textContent="24/7";
+      byId("crBnTimerLabel").textContent="Continuous network · on air since "+new Date(b.started_at).toLocaleString();
     }else if(b?.metadata?.planned_start_at){
-      byId("crBnTimer").textContent="24:00:00";byId("crBnTimerLabel").textContent="Scheduled for "+new Date(b.metadata.planned_start_at).toLocaleString();
-    }else{byId("crBnTimer").textContent="24:00:00";byId("crBnTimerLabel").textContent="24-hour target · waiting for broadcast"}
+      byId("crBnTimer").textContent="24/7";byId("crBnTimerLabel").textContent="Scheduled start · "+new Date(b.metadata.planned_start_at).toLocaleString();
+    }else{byId("crBnTimer").textContent="24/7";byId("crBnTimerLabel").textContent="Continuous network · waiting for broadcast"}
     byId("crBnPrepare").disabled=!!b&&["preparing","live"].includes(status);
   };
   const prepare = async () => {
@@ -313,7 +312,7 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
     if(!destinations.length){message("Add at least one valid RTMP server URL. Stream keys are entered into the encoder, not stored here.");return}
     setBusy(true);
     try{
-      const metadata={encoder,planned_start_at:planned?new Date(planned).toISOString():null,target_duration_seconds:86400,destinations,control_mode:"external_encoder",stream_keys_stored:false};
+      const metadata={encoder,planned_start_at:planned?new Date(planned).toISOString():null,operating_mode:"continuous_24_7",target_duration_seconds:null,destinations,control_mode:"external_encoder",stream_keys_stored:false};
       const created=await invoke({action:"create",title,description:byId("crBnDescription").value.trim(),podcast_id:showId,metadata});
       if(!created.broadcast?.id)throw new Error("The broadcast record was not returned.");
       const {data:updated,error}=await sb.from("podcast_live_broadcasts").update({provider:encoder,metadata}).eq("id",created.broadcast.id).eq("user_id",user.id).select("*").single();
