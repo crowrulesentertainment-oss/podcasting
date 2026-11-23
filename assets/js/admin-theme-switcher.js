@@ -86,7 +86,7 @@
           <p>Upload replacement photography or assign a hosted image URL. Images are stored in the dedicated CrowRules theme bucket; only active platform administrators can upload or remove files.</p>
           <div class="crta-controls">
             <div class="crta-field"><label for="crtaImageTheme">THEME</label><select id="crtaImageTheme"></select></div>
-            <div class="crta-field"><label for="crtaImageRole">IMAGE SLOT</label><select id="crtaImageRole"><option value="hero">Hero background</option><option value="gallery">Gallery thumbnail</option><option value="mobile">Mobile background</option></select></div>
+            <div class="crta-field"><label for="crtaImageRole">IMAGE SLOT</label><select id="crtaImageRole"><option value="hero">Hero background</option><option value="gallery">Gallery thumbnail</option><option value="mobile">Mobile background</option><option value="day">Daytime scene</option><option value="evening">Evening scene</option><option value="night">Night scene</option></select></div>
             <div class="crta-field"><label for="crtaImageFile">UPLOAD IMAGE</label><input id="crtaImageFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif"></div>
           </div>
           <div class="crta-field" style="margin-top:10px"><label for="crtaImageUrl">OR IMAGE URL (HTTPS)</label><input class="crta-image-url" id="crtaImageUrl" type="url" placeholder="https://…"></div>
@@ -153,17 +153,18 @@
     }
     function renderImageManager(){
       const theme=byId($("crtaImageTheme").value||previewId),role=$("crtaImageRole").value;
-      const desktop=theme.hero||theme.photo||"",mobile=theme.mobileHero||theme.hero||theme.photo||"";
+      const timed=theme.timeOfDay&&theme.timeOfDay[role]||"";
+      const desktop=timed||theme.hero||theme.photo||"",mobile=theme.mobileHero||timed||theme.hero||theme.photo||"";
       $("crtaDesktopImagePreview").src=desktop;$("crtaMobileImagePreview").src=mobile;
-      $("crtaImageUrl").value=role==="hero"?(theme.hero||""):role==="gallery"?(theme.photo||""):(theme.mobileHero||"");
-      $("crtaImageStatus").textContent=theme.label+" · "+role+" image selected.";
+      $("crtaImageUrl").value=role==="hero"?(theme.hero||""):role==="gallery"?(theme.photo||""):role==="mobile"?(theme.mobileHero||""):timed;
+      $("crtaImageStatus").textContent=theme.label+" · "+({day:"daytime",evening:"evening",night:"nighttime"}[role]||role)+" image selected.";
     }
     async function persistThemeImage(themeId,role,url){
       const identity=imageIdentity(url),duplicates=[];
-      THEMES.forEach(other=>{if(other.id===themeId)return;["photo","hero","mobileHero"].forEach(key=>{if(other[key]&&imageIdentity(other[key])===identity)duplicates.push(other.label)})});
+      THEMES.forEach(other=>{if(other.id===themeId)return;["photo","hero","mobileHero"].forEach(key=>{if(other[key]&&imageIdentity(other[key])===identity)duplicates.push(other.label)});Object.entries(other.timeOfDay||{}).forEach(([period,value])=>{if(value&&imageIdentity(value)===identity)duplicates.push(other.label+" ("+period+")")})});
       if(duplicates.length)throw new Error("This image is already assigned to: "+[...new Set(duplicates)].join(", ")+". Choose a different photograph.");
       const next=catalogOverrideState(),existing=next.themes[themeId]||{};
-      const patch=role==="hero"?{hero:url,heroCustom:true}:role==="gallery"?{photo:url}:{mobileHero:url};
+      const patch=role==="hero"?{hero:url,heroCustom:true}:role==="gallery"?{photo:url}:role==="mobile"?{mobileHero:url}:{timeOfDay:{...(existing.timeOfDay||{}),[role]:url}};
       next.version=2;next.themes[themeId]={...existing,...patch};
       $("crtaImageStatus").textContent="Saving image assignment…";
       const {error}=await sb.from("crp_site_settings").update({theme_catalog:next,updated_at:new Date().toISOString()}).eq("site_key","podcasting");
@@ -178,7 +179,7 @@
       const theme=byId($("crtaImageTheme").value||previewId),role=$("crtaImageRole").value,url=$("crtaImageUrl").value.trim()||(role==="hero"?theme.hero:role==="gallery"?theme.photo:theme.mobileHero);
       if(!url){$("crtaImageStatus").textContent="No image URL is assigned to this slot yet.";return}
       const identity=imageIdentity(url),matches=[];
-      THEMES.forEach(other=>{if(other.id===theme.id)return;["hero","photo","mobileHero"].forEach(key=>{if(other[key]&&imageIdentity(other[key])===identity)matches.push(other.label+" ("+key+")")})});
+      THEMES.forEach(other=>{if(other.id===theme.id)return;["hero","photo","mobileHero"].forEach(key=>{if(other[key]&&imageIdentity(other[key])===identity)matches.push(other.label+" ("+key+")")});Object.entries(other.timeOfDay||{}).forEach(([period,value])=>{if(value&&imageIdentity(value)===identity)matches.push(other.label+" ("+period+")")})});
       $("crtaImageStatus").textContent=matches.length?"Duplicate image source found: "+matches.join(", "):"No duplicate image source found in the other "+(THEMES.length-1)+" themes.";
     }
     $("crtaCreateTheme").addEventListener("click",async()=>{
