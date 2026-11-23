@@ -134,10 +134,11 @@ async function members(){
  const cards=(data||[]).map(m=>{
   const p=map.get(m.member_id)||{},name=p.display_name||p.username||"Member";
   const safeAvatar=/^https:\/\//i.test(String(p.avatar_url||""))?p.avatar_url:"";
-  const avatar=safeAvatar?'<img src="'+esc(safeAvatar)+'" alt="" loading="lazy">':'<span class="gp-member-avatar-fallback" aria-hidden="true">'+esc(name.slice(0,1).toUpperCase())+'</span>';
-  const profileLink=p.username?'<a class="gp-member-profile-link" href="'+SITE_BASE+'profile.html?username='+encodeURIComponent(p.username)+'">View profile <span aria-hidden="true">↗</span></a>':'<span class="gp-member-profile-muted">Profile not published</span>';
-  const bio=p.bio?'<p class="gp-member-bio">'+esc(p.bio.slice(0,150))+'</p>':'';
-  return '<article class="gp-member"><div class="gp-member-avatar">'+avatar+'</div><div class="gp-member-details"><b>'+esc(name)+'</b>'+(p.username?'<small>@'+esc(p.username)+'</small>':'')+(p.role?'<small>'+esc(p.role)+'</small>':'')+bio+'<small>'+esc(m.role||"member")+' · Joined '+esc(m.joined_at?new Date(m.joined_at).toLocaleDateString():"date unavailable")+'</small>'+profileLink+'</div></article>';
+  const avatar=safeAvatar?'<img src="'+esc(safeAvatar)+'" alt="'+esc(name)+'" loading="lazy">':'<span aria-hidden="true">'+esc(name.slice(0,1).toUpperCase())+'</span>';
+  const profileLink=p.username?'<a class="gp-member-profile-cta" href="'+SITE_BASE+'profile.html?username='+encodeURIComponent(p.username)+'">View full profile <span aria-hidden="true">↗</span></a>':'<span class="gp-member-profile-muted">Profile not published</span>';
+  const bio=p.bio?'<p>'+esc(p.bio.slice(0,150))+'</p>':'<p class="gp-member-empty-bio">This member has not added a public bio yet.</p>';
+  const identity=p.username?'<span>@'+esc(p.username)+'</span>':'<span>Community member</span>';
+  return '<article class="gp-member gp-member-card social-person-card"><div class="social-person-cover" aria-hidden="true"></div><div class="social-person-avatar">'+avatar+'</div><div class="social-person-copy"><b>'+esc(name)+'</b>'+identity+'<small>'+esc(p.role||"COMMUNITY MEMBER")+'</small>'+bio+'<div class="gp-member-card-meta">'+esc(m.role||"member")+' · Joined '+esc(m.joined_at?new Date(m.joined_at).toLocaleDateString():"date unavailable")+'</div>'+profileLink+'</div></article>';
  }).join("");
  root.innerHTML='<div class="gp-member-directory-note">Open a member profile to see their public bio, creator details and community presence. Roster access and profile visibility follow existing database policies.</div>'+(cards?'<div class="gp-member-directory-grid">'+cards+'</div>':'<div class="gp-notice">No members to display.</div>');
  status.textContent="Showing up to 100 members. Public profiles are linked when a member has published a username.";
