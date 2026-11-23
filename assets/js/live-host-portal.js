@@ -12,12 +12,12 @@ async function connect(){
   const scheduleId=$("scheduleId").value.trim();if(!scheduleId)throw new Error("Enter the scheduled appearance ID supplied by the producer.");
   const {data,error}=await sb.functions.invoke("livekit-token",{body:{schedule_id:scheduleId,display_name:$("displayName").value.trim()||undefined}});
   if(error)throw error;if(data?.error)throw new Error(data.error);
-  const {Room,RoomEvent,Track}=await import("https://esm.sh/livekit-client@2.25.0");
+  const {Room,RoomEvent,createLocalTracks}=await import("https://esm.sh/livekit-client@2.25.0");
   room=new Room({adaptiveStream:true,dynacast:true});
   room.on(RoomEvent.TrackSubscribed,(track)=>{const el=track.attach();if(track.kind==="video"){$("videoStage").replaceChildren(el)}else document.body.append(el)});
   room.on(RoomEvent.Disconnected,()=>{connected=false;$("connect").disabled=false;$("leave").disabled=true;status("Disconnected from the room.",true);localTracks=[];room=null;clearStage()});
   await room.connect(data.url,data.token);
-  localTracks=await room.localParticipant.createTracks({audio:true,video:true});
+  localTracks=await createLocalTracks({audio:true,video:true});
   for(const track of localTracks){await room.localParticipant.publishTrack(track);if(track.kind==="video"){$("videoStage").replaceChildren(track.attach())}}
   connected=true;$("leave").disabled=false;status("Connected to "+(data.program_title||"CrowRules Live")+" · waiting for producer.");
  }catch(error){status(error.message||"Could not connect to the LiveKit room.",true)}
