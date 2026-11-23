@@ -16,7 +16,7 @@
 
 ## Automated browser verification completed
 
-The Phase 1F Playwright suite ran successfully in Chromium on GitHub Actions for PR #111 (commit `602019fd046bedd911d06148a693cb3312688add`).
+The Phase 1F Playwright suite ran successfully in Chromium on GitHub Actions after PR #111 was merged (merge commit `a11cf2321d88934d5d0a752b3fcd0b5e7da2a176`).
 
 - [x] Public directory, search, and private-group exclusion (mocked Supabase data).
 - [x] Signed-out visitor guidance and reply restrictions.
@@ -26,8 +26,9 @@ The Phase 1F Playwright suite ran successfully in Chromium on GitHub Actions for
 - [x] Locked-post reply form suppression.
 - [x] Untrusted post text renders as text.
 - [x] Preview launch gate and 320px viewport overflow check.
+- [ ] Keyboard navigation through category filters, `aria-pressed` state, visible focus outline, and Enter activation of category/join controls (added in PR #112; awaiting its browser CI run).
 
-Run: https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/45086272081
+Run: https://github.com/crowrulesentertainment-oss/podcasting/actions/runs/45086504898
 
 These are frontend browser tests against an isolated in-memory Supabase client stub. They do **not** verify production authentication, database persistence, actual RLS enforcement, or screen-reader behavior. The manual checklist below remains open for those release checks.
 

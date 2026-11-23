@@ -167,6 +167,30 @@ try {
     await page.close();
   }
   {
+    const { page } = await openPage(browser, "signed-out", {}, "?preview=1");
+    await page.waitForSelector("#crg-search");
+    await page.locator("#crg-search").focus();
+    await page.keyboard.press("Tab");
+    assert.equal(await page.locator(":focus").getAttribute("data-category"), "all", "keyboard tab should reach the first category filter");
+    assert.equal(await page.locator(":focus").getAttribute("aria-pressed"), "true", "active filter state should be exposed");
+    await page.keyboard.press("Tab");
+    assert.equal(await page.locator(":focus").getAttribute("data-category"), "General", "keyboard tab should reach the next category filter");
+    const focusOutline = await page.locator(":focus").evaluate(el => getComputedStyle(el).outlineWidth);
+    assert.equal(focusOutline, "2px", "focused category filter should have a visible focus outline");
+    await page.keyboard.press("Enter");
+    assert.equal(await page.locator("[data-category='General']").getAttribute("aria-pressed"), "true", "Enter should activate the focused category filter");
+    await page.close();
+
+    const memberPage = await openPage(browser, "nonmember");
+    await memberPage.page.waitForSelector("#crg-join");
+    await memberPage.page.locator("#crg-join").focus();
+    await memberPage.page.keyboard.press("Enter");
+    await memberPage.page.waitForSelector("#crg-new-post");
+    assert.equal(await memberPage.page.evaluate(() => window.__GROUPS_TEST_STATE.members.length), 1, "Enter should activate join");
+    passed.push("keyboard navigation, visible focus, filter state, and join activation");
+    await memberPage.page.close();
+  }
+  {
     const { page } = await openPage(browser, "owner");
     await page.waitForSelector("#crg-membership");
     assert.match(await page.locator("#crg-membership").innerText(), /You own this community/);
