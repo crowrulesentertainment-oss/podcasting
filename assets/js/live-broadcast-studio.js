@@ -102,6 +102,23 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
         <div class="cr-bn-actions"><button id="crBnObsConnect" class="secondary" type="button">Connect to OBS</button><button id="crBnObsStart" type="button" disabled>Start OBS stream</button><button id="crBnObsStop" class="secondary" type="button" disabled>Stop OBS stream</button><button id="crBnObsCheck" class="secondary" type="button" disabled>Check stream status</button></div>
         <p class="cr-bn-muted" id="crBnObsMessage" role="status">Enable the OBS WebSocket server in OBS Studio. The password is used only for this connection and is not saved.</p>
       </div>
+      <div class="cr-bn-card full" id="crBnHostHandoff">
+        <div class="cr-bn-row" style="justify-content:space-between"><div><h4>Remote host handoff & break schedule</h4><div class="cr-bn-muted">Invite a remote presenter into your LiveKit studio, schedule their shift, then mute your own mic/camera while the show continues.</div></div><span class="cr-bn-pill" id="crBnHostState">YOUR SHIFT</span></div>
+        <div class="cr-bn-warning">For a break, keep this Creator Studio room open on the broadcasting computer and keep OBS / Streamlabs running. If OBS captures this studio window, keep it visible in the captured scene. Do not shut down or sleep the computer.</div>
+        <div class="cr-bn-destination-grid">
+          <div class="cr-bn-field"><label for="crBnHostName">Remote host name</label><input id="crBnHostName" maxlength="100" placeholder="Host display name"></div>
+          <div class="cr-bn-field"><label for="crBnHostStart">Shift starts</label><input id="crBnHostStart" type="datetime-local"></div>
+          <div class="cr-bn-field"><label for="crBnHostEnd">Shift ends</label><input id="crBnHostEnd" type="datetime-local"></div>
+          <div class="cr-bn-field"><label for="crBnHostNotes">Show / handoff notes</label><input id="crBnHostNotes" maxlength="240" placeholder="Topics, links, segment notes"></div>
+        </div>
+        <div class="cr-bn-actions"><button id="crBnAddHostShift" type="button">Add host shift</button><button id="crBnInviteHost" class="secondary" type="button">Create remote host invite</button></div>
+        <div id="crBnHostShifts" class="cr-bn-list cr-bn-muted">Create a broadcast record to schedule remote host shifts.</div>
+        <div class="cr-bn-destination-grid" style="margin-top:12px">
+          <div class="cr-bn-field"><label for="crBnConnectedHost">Connected remote presenter</label><select id="crBnConnectedHost"><option value="">No connected presenters detected</option></select></div>
+          <div class="cr-bn-field"><label>Live handoff</label><div class="cr-bn-actions" style="margin-top:0"><button id="crBnHandoff" type="button" disabled>Hand off to host</button><button id="crBnTakeBack" class="secondary" type="button" disabled>Take back host</button></div></div>
+        </div>
+        <p id="crBnHostMessage" class="cr-bn-muted" role="status" aria-live="polite">Create or join the LiveKit room in the Live Studio panel, then invite your remote presenter.</p>
+      </div>
       <div class="cr-bn-card full">
         <h4>Encoder setup checklist</h4>
         <div class="cr-bn-list cr-bn-small">
@@ -120,7 +137,90 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
     </div>`;
   livePanel.insertBefore(section, livePanel.firstChild);
   const byId = id => document.getElementById(id);
-  const state = { broadcast: null, timer: null, refresh: null, realtime: null, destinationCount: 0, keys: new Map() };
+  const state = { broadcast: null, timer: null, refresh: null, realtime: null, destinationCount: 0, keys: new Map(), shifts: [], activeHost: null };
+  const hostMessage = text => { byId("crBnHostMessage").textContent=text; };
+  const getConnectedHostsSafe = () => { try { return getConnectedHosts ? (getConnectedHosts()||[]) : []; } catch { return []; } };
+  const refreshConnectedHosts = () => {
+    const select=byId("crBnConnectedHost"),previous=select.value,hosts=getConnectedHostsSafe();
+    select.replaceChildren();
+    if(!hosts.length){const o=document.createElement("option");o.value="";o.textContent="No connected presenters detected";select.append(o)}
+    else hosts.forEach(host=>{const o=document.createElement("option");o.value=host.identity;o.textContent=host.name||host.identity;select.append(o)});
+    if(hosts.some(h=>h.identity===previous))select.value=previous;
+    byId("crBnHandoff").disabled=!hosts.length||!!state.activeHost;
+  };
+  const renderHostShifts = () => {
+    const list=byId("crBnHostShifts");list.replaceChildren();
+    if(!state.shifts.length){list.textContent="No remote host shifts scheduled yet.";return}
+    state.shifts.forEach((shift,index)=>{
+      const item=document.createElement("div");item.className="cr-bn-history";
+      const left=document.createElement("div"),name=document.createElement("b"),detail=document.createElement("div");
+      name.textContent=shift.name||"Remote host";
+      detail.className="cr-bn-small";
+      detail.textContent=(shift.start_at?new Date(shift.start_at).toLocaleString():"Start time TBD")+" → "+(shift.end_at?new Date(shift.end_at).toLocaleString():"End time TBD")+(shift.notes?" · "+shift.notes:"");
+      left.append(name,detail);
+      const remove=document.createElement("button");remove.className="secondary";remove.type="button";remove.textContent="Remove";
+      remove.addEventListener("click",()=>saveHostShifts(state.shifts.filter((_,i)=>i!==index)).catch(e=>hostMessage(e.message)));
+      item.append(left,remove);list.append(item);
+    });
+  };
+  const saveHostShifts = async shifts => {
+    if(!state.broadcast?.id)throw new Error("Create a broadcast record before scheduling host shifts.");
+    const metadata={...(state.broadcast.metadata||{}),remote_host_shifts:shifts};
+    const {data,error}=await sb.from("podcast_live_broadcasts").update({metadata}).eq("id",state.broadcast.id).eq("user_id",user.id).select("*").single();
+    if(error)throw error;
+    state.broadcast=data;state.shifts=shifts;renderHostShifts();hostMessage("Remote host schedule saved to this broadcast.");
+  };
+  const refreshHostHandoff = () => {
+    refreshConnectedHosts();
+    const active=state.broadcast?.metadata?.active_remote_host||null;
+    state.activeHost=active;
+    byId("crBnHostState").textContent=active?"REMOTE HOST: "+(active.name||"ON AIR"):"YOUR SHIFT";
+    byId("crBnTakeBack").disabled=!active;
+    byId("crBnHandoff").disabled=!!active||!getConnectedHostsSafe().length;
+    if(active)hostMessage((active.name||"Remote host")+" is marked as the active presenter. Your microphone and camera are muted.");
+  };
+  byId("crBnAddHostShift").addEventListener("click",async()=>{
+    const name=byId("crBnHostName").value.trim(),start=byId("crBnHostStart").value,end=byId("crBnHostEnd").value;
+    if(!name||!start||!end){hostMessage("Enter the host name and both shift times.");return}
+    if(new Date(end)<=new Date(start)){hostMessage("The shift end must be later than its start.");return}
+    try{await saveHostShifts([...state.shifts,{id:crypto.randomUUID(),name,start_at:new Date(start).toISOString(),end_at:new Date(end).toISOString(),notes:byId("crBnHostNotes").value.trim()}]);byId("crBnHostName").value="";byId("crBnHostNotes").value=""}
+    catch(error){hostMessage(error.message||"Could not save this host shift.")}
+  });
+  byId("crBnInviteHost").addEventListener("click",async()=>{
+    try{
+      if(!createRemoteHostInvite)throw new Error("Remote host invitations are not connected to this LiveKit room.");
+      const url=await createRemoteHostInvite();
+      await navigator.clipboard.writeText(url);
+      hostMessage("Secure remote host invitation copied. Send it privately to the presenter; the link expires after 60 minutes.");
+    }catch(error){hostMessage(error.message||"Could not create a remote host invitation.")}
+  });
+  byId("crBnHandoff").addEventListener("click",async()=>{
+    const identity=byId("crBnConnectedHost").value,host=getConnectedHostsSafe().find(h=>h.identity===identity);
+    if(!host){hostMessage("The selected remote host is no longer connected. Refresh the presenter list.");return}
+    if(!state.broadcast?.id){hostMessage("Create a broadcast record first.");return}
+    try{
+      if(!onRemoteHandoff)throw new Error("Remote presenter controls are unavailable.");
+      await onRemoteHandoff(host);
+      const active={name:host.name||host.identity,identity:host.identity,started_at:new Date().toISOString()};
+      const metadata={...(state.broadcast.metadata||{}),active_remote_host:active};
+      const {data,error}=await sb.from("podcast_live_broadcasts").update({metadata}).eq("id",state.broadcast.id).eq("user_id",user.id).select("*").single();
+      if(error)throw error;state.broadcast=data;state.activeHost=active;refreshHostHandoff();
+      hostMessage("Handoff complete. "+active.name+" is presenting; your microphone and camera are muted. Leave the studio and encoder running.");
+    }catch(error){hostMessage(error.message||"Could not hand off to the remote host.")}
+  });
+  byId("crBnTakeBack").addEventListener("click",async()=>{
+    try{
+      if(onTakeBack)await onTakeBack();
+      if(state.broadcast?.id){
+        const metadata={...(state.broadcast.metadata||{})};delete metadata.active_remote_host;
+        const {data,error}=await sb.from("podcast_live_broadcasts").update({metadata}).eq("id",state.broadcast.id).eq("user_id",user.id).select("*").single();
+        if(error)throw error;state.broadcast=data;
+      }
+      state.activeHost=null;refreshHostHandoff();hostMessage("You have taken back the presenter role. Your microphone and camera are enabled.");
+    }catch(error){hostMessage(error.message||"Could not take back the host role.")}
+  });
+  byId("crBnConnectedHost").addEventListener("focus",refreshConnectedHosts);
+  const hostPresenceTimer=setInterval(refreshHostHandoff,5000);
   const message = text => { byId("crBnMessage").textContent = text; };
   const setBusy = busy => { ["crBnPrepare","crBnMarkLive","crBnEnd","crBnRefresh","crBnAddDestination"].forEach(id => { const el=byId(id); if(el)el.disabled=busy; }); };
   const addDestination = (platform="youtube", values={}) => {
@@ -170,7 +270,7 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
   };
   const loadBroadcast = async id => {
     const {data,error}=await sb.from("podcast_live_broadcasts").select("*").eq("id",id).eq("user_id",user.id).single();
-    if(error)throw error;state.broadcast=data;renderStatus();
+    if(error)throw error;state.broadcast=data;state.shifts=Array.isArray(data.metadata?.remote_host_shifts)?data.metadata.remote_host_shifts:[];renderHostShifts();refreshHostHandoff();renderStatus();
     byId("crBnTitle").value=data.title||"";
     byId("crBnDescription").value=data.description||"";
     if(data.podcast_id)byId("crBnShow").value=data.podcast_id;
@@ -208,7 +308,7 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
       const created=await invoke({action:"create",title,description:byId("crBnDescription").value.trim(),podcast_id:showId,metadata});
       if(!created.broadcast?.id)throw new Error("The broadcast record was not returned.");
       const {data:updated,error}=await sb.from("podcast_live_broadcasts").update({provider:encoder,metadata}).eq("id",created.broadcast.id).eq("user_id",user.id).select("*").single();
-      if(error)throw error;state.broadcast=updated;
+      if(error)throw error;state.broadcast=updated;state.shifts=Array.isArray(updated.metadata?.remote_host_shifts)?updated.metadata.remote_host_shifts:[];renderHostShifts();refreshHostHandoff();
       if(!planned||new Date(planned)<=new Date()){
         const prepared=await invoke({action:"start",broadcast_id:updated.id});state.broadcast=prepared.broadcast||state.broadcast;
       }
@@ -346,7 +446,7 @@ export async function initLiveBroadcastStudio({ sb, user, shows = [], notify = (
   }catch(error){message("Broadcast history is not available yet: "+(error.message||"Check your connection."))}
   renderStatus();
   const cleanup = () => {
-    clearInterval(state.timer);clearInterval(state.refresh);clearInterval(obs.timer);
+    clearInterval(state.timer);clearInterval(state.refresh);clearInterval(obs.timer);clearInterval(hostPresenceTimer);
     if(state.realtime)sb.removeChannel(state.realtime);
     if(obs.socket)try{obs.socket.close()}catch{}
     for(const pending of obs.pending.values()){clearTimeout(pending.timeout);pending.reject(new Error("Studio closed."))}
