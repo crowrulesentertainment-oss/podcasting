@@ -54,6 +54,7 @@
     .crta-image-preview.mobile img{height:190px;max-width:130px;margin:auto}
     .crta-image-url{width:100%;min-height:38px;padding:8px 10px;border:1px solid #ffffff25;border-radius:9px;background:#080c12;color:#fff;font:inherit;font-size:11px}
     .crta-image-status{display:block;min-height:18px;margin-top:9px;color:#b9c7d5;font-size:11px}
+    .crta-image-audit{margin-top:10px;padding:10px;border:1px solid #ffffff18;border-radius:10px;background:#ffffff06;font-size:11px;line-height:1.5}.crta-image-audit ul{margin:7px 0 0;padding-left:18px}.crta-image-audit li{margin:4px 0;color:#f0c1bd}.crta-image-audit .ok{color:#a8dfbd}
     @media(max-width:680px){#crThemeAdmin{top:8px;right:8px}#crThemeAdminToggle{min-height:36px;padding:8px 10px;font-size:11px}#crThemeAdminPanel{right:-2px;padding:13px}.crta-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.crta-controls{grid-template-columns:1fr 1fr}.crta-card img{height:90px}.crta-head h2{font-size:18px}.crta-image-previews{grid-template-columns:1fr 110px}.crta-image-preview img{height:115px}.crta-image-preview.mobile img{height:155px;max-width:100px}}
     @media(prefers-reduced-motion:reduce){#crThemeAdminPanel *{scroll-behavior:auto!important;transition:none!important}}
   `;
@@ -94,8 +95,8 @@
             <div class="crta-image-preview"><b>DESKTOP PREVIEW · WIDE CROP</b><img id="crtaDesktopImagePreview" alt="Desktop theme image preview"></div>
             <div class="crta-image-preview mobile"><b>MOBILE PREVIEW</b><img id="crtaMobileImagePreview" alt="Mobile theme image preview"></div>
           </div>
-          <div class="crta-actions"><button class="crta-btn primary" id="crtaUploadImage" type="button">Upload & assign image</button><button class="crta-btn" id="crtaSaveImageUrl" type="button">Save image URL</button><button class="crta-btn" id="crtaCheckDuplicates" type="button">Check duplicates</button></div>
-          <small class="crta-image-status" id="crtaImageStatus" role="status" aria-live="polite">Select a theme to manage its photography.</small>
+          <div class="crta-actions"><button class="crta-btn primary" id="crtaUploadImage" type="button">Upload & assign image</button><button class="crta-btn" id="crtaSaveImageUrl" type="button">Save image URL</button><button class="crta-btn" id="crtaCheckDuplicates" type="button">Check duplicates</button><button class="crta-btn" id="crtaAuditImages" type="button">Audit image links</button></div>
+          <small class="crta-image-status" id="crtaImageStatus" role="status" aria-live="polite">Select a theme to manage its photography.</small><div class="crta-image-audit" id="crtaImageAudit" role="status" aria-live="polite">Run an audit to verify assigned image links load successfully.</div>
           <p class="crta-note">Accepted: JPEG, PNG, WebP or AVIF · Maximum 15 MB per image. Hero, gallery and mobile images can be managed independently.</p>
         </div>
         <div class="crta-block" id="crtaCreateEnvironment"><h3>Add a cinematic environment</h3><p>Create new themes and collections from Design Control. New entries are saved to the existing theme settings record and appear in the member gallery after refresh.</p><div class="crta-controls"><div class="crta-field"><label for="crtaNewId">THEME ID</label><input id="crtaNewId" maxlength="48" placeholder="coastal-evening"></div><div class="crta-field"><label for="crtaNewLabel">DISPLAY NAME</label><input id="crtaNewLabel" maxlength="64" placeholder="Coastal Evening"></div><div class="crta-field"><label for="crtaNewCollection">COLLECTION</label><select id="crtaNewCollection"></select></div></div><div class="crta-controls" style="margin-top:10px"><div class="crta-field"><label for="crtaNewCollectionId">NEW COLLECTION ID (OPTIONAL)</label><input id="crtaNewCollectionId" maxlength="40" placeholder="coastal-worlds"></div><div class="crta-field"><label for="crtaNewCollectionLabel">NEW COLLECTION NAME</label><input id="crtaNewCollectionLabel" maxlength="60" placeholder="Coastal Worlds"></div><div class="crta-field"><label for="crtaNewImage">PRIMARY IMAGE URL (HTTPS)</label><input id="crtaNewImage" type="url" placeholder="https://…"></div></div><div class="crta-field" style="margin-top:10px"><label for="crtaNewDescription">DESCRIPTION</label><input id="crtaNewDescription" maxlength="180" placeholder="Describe this cinematic environment"></div><div class="crta-controls" style="margin-top:10px"><div class="crta-field"><label for="crtaNewDay">DAY VARIANT URL (OPTIONAL)</label><input id="crtaNewDay" type="url" placeholder="https://…"></div><div class="crta-field"><label for="crtaNewEvening">EVENING VARIANT URL (OPTIONAL)</label><input id="crtaNewEvening" type="url" placeholder="https://…"></div><div class="crta-field"><label for="crtaNewNight">NIGHT VARIANT URL (OPTIONAL)</label><input id="crtaNewNight" type="url" placeholder="https://…"></div></div><div class="crta-actions"><button class="crta-btn primary" id="crtaCreateTheme" type="button">Create environment</button></div><small class="crta-status" id="crtaCreateStatus" role="status" aria-live="polite">Use a unique theme ID and a secure image URL.</small></div>
@@ -214,6 +215,34 @@
     $("crtaImageRole").addEventListener("change",renderImageManager);
     $("crtaImageUrl").addEventListener("input",()=>{const url=$("crtaImageUrl").value.trim();if(url){$("crtaDesktopImagePreview").src=url;$("crtaMobileImagePreview").src=url}});
     $("crtaCheckDuplicates").addEventListener("click",checkImageDuplicates);
+    async function auditThemeImages(){
+      const button=$("crtaAuditImages"),report=$("crtaImageAudit");
+      const slots=[];
+      THEMES.forEach(theme=>{
+        [["hero","hero"],["gallery","photo"],["mobile","mobileHero"]].forEach(([label,key])=>{if(theme[key])slots.push({theme:theme.label,slot:label,url:theme[key]})});
+        Object.entries(theme.timeOfDay||{}).forEach(([period,url])=>{if(url)slots.push({theme:theme.label,slot:period,url})});
+      });
+      if(!slots.length){report.textContent="No assigned image URLs were found.";return}
+      button.disabled=true;report.textContent="Checking "+slots.length+" assigned image links…";
+      let cursor=0,finished=0;const results=[];
+      const check=entry=>new Promise(resolve=>{
+        let done=false;const img=new Image();const timer=setTimeout(()=>finish(false,"Timed out"),12000);
+        const finish=(ok,reason)=>{if(done)return;done=true;clearTimeout(timer);img.onload=null;img.onerror=null;resolve({...entry,ok,reason:reason||""})};
+        try{const parsed=new URL(entry.url);if(parsed.protocol!=="https:"){finish(false,"Not HTTPS");return}}catch{finish(false,"Invalid URL");return}
+        img.onload=()=>finish(true,"");img.onerror=()=>finish(false,"Image could not be loaded");img.src=entry.url;
+      });
+      const worker=async()=>{while(cursor<slots.length){const index=cursor++;results[index]=await check(slots[index]);finished++;if(finished%10===0||finished===slots.length)report.textContent="Checking image links… "+finished+" of "+slots.length;}};
+      try{
+        await Promise.all(Array.from({length:Math.min(6,slots.length)},worker));
+        const failed=results.filter(item=>!item.ok),passed=results.length-failed.length;
+        const summary='<strong>'+passed+' of '+results.length+' image links loaded successfully.</strong> '+(failed.length?failed.length+' need attention.':'All assigned links passed.');
+        const details=failed.length?'<ul>'+failed.map(item=>'<li><strong>'+esc(item.theme)+'</strong> · '+esc(item.slot)+': '+esc(item.reason)+'<br><span>'+esc(item.url)+'</span></li>').join("")+'</ul>':'<p class="ok">No broken or non-HTTPS image links detected.</p>';
+        report.innerHTML=summary+details;
+        $("crtaImageStatus").textContent="Image link audit complete: "+passed+" passed, "+failed.length+" need attention.";
+      }catch(error){report.textContent="Image audit could not finish: "+error.message}
+      finally{button.disabled=false}
+    }
+    $("crtaAuditImages").addEventListener("click",auditThemeImages);
     $("crtaSaveImageUrl").addEventListener("click",async()=>{
       const theme=byId($("crtaImageTheme").value||previewId),role=$("crtaImageRole").value,url=$("crtaImageUrl").value.trim();
       try{const parsed=new URL(url);if(parsed.protocol!=="https:")throw new Error("Use a secure HTTPS image URL.");if(url.length>2048)throw new Error("Image URL is too long.");await persistThemeImage(theme.id,role,url)}
