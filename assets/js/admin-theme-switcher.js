@@ -139,7 +139,7 @@
       $("crtaScheduleCounts").innerHTML='<strong>'+rows.length+' total</strong> · '+counts.Active+' active · '+counts.Upcoming+' upcoming · '+counts.Past+' past · '+counts.Invalid+' invalid · '+counts.Overlapping+' overlapping';
       const filter=$("crtaScheduleFilter")?.value||"all";
       const visible=rows.filter(row=>filter==="all"||(filter==="overlap"?row.overlap:row.state.toLowerCase()===filter));
-      $("crtaScheduleList").innerHTML=rows.length?visible.map(({item,index,valid,state,overlap})=>{
+      $("crtaScheduleList").innerHTML=visible.length?visible.map(({item,index,valid,state,overlap})=>{
         return '<div class="crta-schedule-item"><span><strong>'+esc(state)+(overlap?' · OVERLAP':'')+'</strong> · '+esc(valid?byId(item.theme_id).label:"Unknown theme")+' · '+esc(item?.start||"No start date")+' → '+esc(item?.end||"No end date")+'</span><span style="display:flex;gap:6px;flex-shrink:0">'+(valid?'<button type="button" class="crta-btn" data-copy-schedule="'+index+'">Copy to next year</button>':'')+'<button type="button" class="crta-btn" data-remove-schedule="'+index+'">Remove</button></span></div>';
       }).join(""):(rows.length?'<p class="crta-note">No schedule windows match this filter.</p>':'<p class="crta-note">No custom event windows scheduled. Automatic seasonal featuring remains available.</p>');
     };
