@@ -135,7 +135,7 @@
       const map=raw&&typeof raw==="object"&&!Array.isArray(raw)?(raw.themes||raw):{};
       THEMES.forEach(theme=>{
         const entry=map[theme.id];if(!entry||typeof entry!=="object")return;
-        ["photo","hero","mobileHero","imageAlt"].forEach(key=>{if(typeof entry[key]==="string"&&entry[key])theme[key]=entry[key]});
+        ["photo","hero","heroCustom","mobileHero","imageAlt"].forEach(key=>{if(typeof entry[key]==="string"&&entry[key])theme[key]=entry[key]});
       });
     }
     function renderImageManager(){
@@ -147,7 +147,7 @@
     }
     async function persistThemeImage(themeId,role,url){
       const next=catalogOverrideState(),existing=next.themes[themeId]||{};
-      const patch=role==="hero"?{hero:url}:role==="gallery"?{photo:url}:{mobileHero:url};
+      const patch=role==="hero"?{hero:url,heroCustom:true}:role==="gallery"?{photo:url}:{mobileHero:url};
       next.version=1;next.themes[themeId]={...existing,...patch};
       $("crtaImageStatus").textContent="Saving image assignment…";
       const {error}=await sb.from("crp_site_settings").update({theme_catalog:next,updated_at:new Date().toISOString()}).eq("site_key","podcasting");
