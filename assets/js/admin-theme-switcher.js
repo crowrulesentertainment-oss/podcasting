@@ -47,7 +47,14 @@
     .crta-schedule-list{display:grid;gap:6px;margin-top:10px}
     .crta-schedule-item{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:8px;background:#ffffff09;font-size:10px;color:#d7deea}
     .crta-note{font-size:10px!important;color:#8f9bac!important}
-    @media(max-width:680px){#crThemeAdmin{top:8px;right:8px}#crThemeAdminToggle{min-height:36px;padding:8px 10px;font-size:11px}#crThemeAdminPanel{right:-2px;padding:13px}.crta-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.crta-controls{grid-template-columns:1fr 1fr}.crta-card img{height:90px}.crta-head h2{font-size:18px}}
+    .crta-image-previews{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(120px,.7fr);gap:12px;margin-top:12px}
+    .crta-image-preview{min-width:0;padding:9px;border:1px solid #ffffff18;border-radius:11px;background:#05080d}
+    .crta-image-preview b{display:block;margin-bottom:7px;font-size:10px;color:#d5dbe5}
+    .crta-image-preview img{display:block;width:100%;height:145px;object-fit:cover;border-radius:7px;background:#171e29}
+    .crta-image-preview.mobile img{height:190px;max-width:130px;margin:auto}
+    .crta-image-url{width:100%;min-height:38px;padding:8px 10px;border:1px solid #ffffff25;border-radius:9px;background:#080c12;color:#fff;font:inherit;font-size:11px}
+    .crta-image-status{display:block;min-height:18px;margin-top:9px;color:#b9c7d5;font-size:11px}
+    @media(max-width:680px){#crThemeAdmin{top:8px;right:8px}#crThemeAdminToggle{min-height:36px;padding:8px 10px;font-size:11px}#crThemeAdminPanel{right:-2px;padding:13px}.crta-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.crta-controls{grid-template-columns:1fr 1fr}.crta-card img{height:90px}.crta-head h2{font-size:18px}.crta-image-previews{grid-template-columns:1fr 110px}.crta-image-preview img{height:115px}.crta-image-preview.mobile img{height:155px;max-width:100px}}
     @media(prefers-reduced-motion:reduce){#crThemeAdminPanel *{scroll-behavior:auto!important;transition:none!important}}
   `;
   document.head.appendChild(style);
@@ -74,6 +81,23 @@
           <div class="crta-field"><label for="crtaStart">START DATE</label><input id="crtaStart" type="date"></div>
           <div class="crta-field"><label for="crtaEnd">END DATE</label><input id="crtaEnd" type="date"></div>
         </div><div class="crta-actions"><button class="crta-btn" id="crtaAddSchedule" type="button">Add scheduled window</button></div><div class="crta-schedule-list" id="crtaScheduleList"></div></div>
+        <div class="crta-block" id="crtaImageManager">
+          <h3>Theme image manager</h3>
+          <p>Upload replacement photography or assign a hosted image URL. Images are stored in the dedicated CrowRules theme bucket; only active platform administrators can upload or remove files.</p>
+          <div class="crta-controls">
+            <div class="crta-field"><label for="crtaImageTheme">THEME</label><select id="crtaImageTheme"></select></div>
+            <div class="crta-field"><label for="crtaImageRole">IMAGE SLOT</label><select id="crtaImageRole"><option value="hero">Hero background</option><option value="gallery">Gallery thumbnail</option><option value="mobile">Mobile background</option></select></div>
+            <div class="crta-field"><label for="crtaImageFile">UPLOAD IMAGE</label><input id="crtaImageFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif"></div>
+          </div>
+          <div class="crta-field" style="margin-top:10px"><label for="crtaImageUrl">OR IMAGE URL (HTTPS)</label><input class="crta-image-url" id="crtaImageUrl" type="url" placeholder="https://…"></div>
+          <div class="crta-image-previews">
+            <div class="crta-image-preview"><b>DESKTOP PREVIEW · WIDE CROP</b><img id="crtaDesktopImagePreview" alt="Desktop theme image preview"></div>
+            <div class="crta-image-preview mobile"><b>MOBILE PREVIEW</b><img id="crtaMobileImagePreview" alt="Mobile theme image preview"></div>
+          </div>
+          <div class="crta-actions"><button class="crta-btn primary" id="crtaUploadImage" type="button">Upload & assign image</button><button class="crta-btn" id="crtaSaveImageUrl" type="button">Save image URL</button><button class="crta-btn" id="crtaCheckDuplicates" type="button">Check duplicates</button></div>
+          <small class="crta-image-status" id="crtaImageStatus" role="status" aria-live="polite">Select a theme to manage its photography.</small>
+          <p class="crta-note">Accepted: JPEG, PNG, WebP or AVIF · Maximum 15 MB per image. Hero, gallery and mobile images can be managed independently.</p>
+        </div>
         <div class="crta-gallery-head"><div><h3 style="margin:0;font-size:13px">Theme library · <span id="crtaCount"></span></h3><p>Photorealistic, cinematic real-life environments · <span id="crtaImageIntegrity" aria-live="polite"></span></p></div><input id="crtaSearch" type="search" placeholder="Search themes…" aria-label="Search themes"></div>
         <div class="crta-field"><label for="crtaCollection">COLLECTION</label><select id="crtaCollection"><option value="all">All collections</option>${CATALOG.collections.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.label)+'</option>').join("")}</select></div>
         <div class="crta-grid" id="crtaGrid"></div>
@@ -81,6 +105,7 @@
       </section>`;
     document.body.appendChild(host);
     const $ = id => document.getElementById(id);
+    $("crtaImageTheme").innerHTML = THEMES.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.icon+" "+t.label)+'</option>').join("");
     $("crtaFeatured").innerHTML = THEMES.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.icon+' '+t.label)+'</option>').join("");
     $("crtaScheduleTheme").innerHTML = THEMES.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.icon+' '+t.label)+'</option>').join("");
     const panel=$("crThemeAdminPanel"),toggle=$("crThemeAdminToggle");
@@ -97,15 +122,89 @@
       const integrity=$("crtaImageIntegrity");if(integrity)integrity.textContent=uniqueImageCount+" unique images across "+THEMES.length+" themes";
       $("crtaGrid").innerHTML=list.map(t=>'<button type="button" class="crta-card" data-theme="'+esc(t.id)+'" aria-pressed="'+(previewId===t.id)+'"><img loading="lazy" src="'+esc(t.photo||"")+'" alt="'+esc(t.imageAlt||t.label)+'"><span class="crta-card-copy"><b>'+esc(t.icon+" "+t.label)+'</b><small>'+esc(t.desc)+'</small><em>'+esc(t.collection||"collection")+'</em></span></button>').join("");
     };
-    $("crtaGrid").addEventListener("click",e=>{const card=e.target.closest("[data-theme]");if(!card)return;previewId=card.dataset.theme;renderGrid()});
+    $("crtaGrid").addEventListener("click",e=>{const card=e.target.closest("[data-theme]");if(!card)return;previewId=card.dataset.theme;$("crtaImageTheme").value=previewId;renderGrid();renderImageManager()});
     $("crtaCollection").addEventListener("change",renderGrid);$("crtaSearch").addEventListener("input",renderGrid);
+    const IMAGE_BUCKET="crp-theme-environments";
+    function catalogOverrideState(){
+      const raw=settings?.theme_catalog;
+      const state=raw&&typeof raw==="object"&&!Array.isArray(raw)?JSON.parse(JSON.stringify(raw)):{version:1,themes:{}};
+      if(!state.themes||typeof state.themes!=="object"||Array.isArray(state.themes))state.themes={};
+      return state;
+    }
+    function applyImageOverrides(raw){
+      const map=raw&&typeof raw==="object"&&!Array.isArray(raw)?(raw.themes||raw):{};
+      THEMES.forEach(theme=>{
+        const entry=map[theme.id];if(!entry||typeof entry!=="object")return;
+        ["photo","hero","mobileHero","imageAlt"].forEach(key=>{if(typeof entry[key]==="string"&&entry[key])theme[key]=entry[key]});if(entry.heroCustom===true)theme.heroCustom=true;
+      });
+    }
+    function renderImageManager(){
+      const theme=byId($("crtaImageTheme").value||previewId),role=$("crtaImageRole").value;
+      const desktop=theme.hero||theme.photo||"",mobile=theme.mobileHero||theme.hero||theme.photo||"";
+      $("crtaDesktopImagePreview").src=desktop;$("crtaMobileImagePreview").src=mobile;
+      $("crtaImageUrl").value=role==="hero"?(theme.hero||""):role==="gallery"?(theme.photo||""):(theme.mobileHero||"");
+      $("crtaImageStatus").textContent=theme.label+" · "+role+" image selected.";
+    }
+    async function persistThemeImage(themeId,role,url){
+      const identity=imageIdentity(url),duplicates=[];
+      THEMES.forEach(other=>{if(other.id===themeId)return;["photo","hero","mobileHero"].forEach(key=>{if(other[key]&&imageIdentity(other[key])===identity)duplicates.push(other.label)})});
+      if(duplicates.length)throw new Error("This image is already assigned to: "+[...new Set(duplicates)].join(", ")+". Choose a different photograph.");
+      const next=catalogOverrideState(),existing=next.themes[themeId]||{};
+      const patch=role==="hero"?{hero:url,heroCustom:true}:role==="gallery"?{photo:url}:{mobileHero:url};
+      next.version=1;next.themes[themeId]={...existing,...patch};
+      $("crtaImageStatus").textContent="Saving image assignment…";
+      const {error}=await sb.from("crp_site_settings").update({theme_catalog:next,updated_at:new Date().toISOString()}).eq("site_key","podcasting");
+      if(error)throw error;
+      settings={...settings,theme_catalog:next};applyImageOverrides(next);renderGrid();renderImageManager();
+      $("crtaImageStatus").textContent=themeId+" "+role+" image saved to platform theme settings.";
+    }
+    function imageIdentity(value){
+      try{const u=new URL(value);return u.origin+u.pathname}catch{return String(value||"").trim()}
+    }
+    function checkImageDuplicates(){
+      const theme=byId($("crtaImageTheme").value||previewId),role=$("crtaImageRole").value,url=$("crtaImageUrl").value.trim()||(role==="hero"?theme.hero:role==="gallery"?theme.photo:theme.mobileHero);
+      if(!url){$("crtaImageStatus").textContent="No image URL is assigned to this slot yet.";return}
+      const identity=imageIdentity(url),matches=[];
+      THEMES.forEach(other=>{if(other.id===theme.id)return;["hero","photo","mobileHero"].forEach(key=>{if(other[key]&&imageIdentity(other[key])===identity)matches.push(other.label+" ("+key+")")})});
+      $("crtaImageStatus").textContent=matches.length?"Duplicate image source found: "+matches.join(", "):"No duplicate image source found in the other "+(THEMES.length-1)+" themes.";
+    }
+    $("crtaImageTheme").addEventListener("change",renderImageManager);
+    $("crtaImageRole").addEventListener("change",renderImageManager);
+    $("crtaImageUrl").addEventListener("input",()=>{const url=$("crtaImageUrl").value.trim();if(url){$("crtaDesktopImagePreview").src=url;$("crtaMobileImagePreview").src=url}});
+    $("crtaCheckDuplicates").addEventListener("click",checkImageDuplicates);
+    $("crtaSaveImageUrl").addEventListener("click",async()=>{
+      const theme=byId($("crtaImageTheme").value||previewId),role=$("crtaImageRole").value,url=$("crtaImageUrl").value.trim();
+      try{const parsed=new URL(url);if(parsed.protocol!=="https:")throw new Error("Use a secure HTTPS image URL.");if(url.length>2048)throw new Error("Image URL is too long.");await persistThemeImage(theme.id,role,url)}
+      catch(error){$("crtaImageStatus").textContent="Could not save image URL: "+error.message}
+    });
+    $("crtaUploadImage").addEventListener("click",async()=>{
+      const theme=byId($("crtaImageTheme").value||previewId),role=$("crtaImageRole").value,file=$("crtaImageFile").files?.[0],button=$("crtaUploadImage");
+      if(!file){$("crtaImageStatus").textContent="Choose an image file first.";return}
+      if(!["image/jpeg","image/png","image/webp","image/avif"].includes(file.type)){$("crtaImageStatus").textContent="Choose a JPEG, PNG, WebP or AVIF image.";return}
+      if(file.size>15*1024*1024){$("crtaImageStatus").textContent="Image exceeds the 15 MB upload limit.";return}
+      if(!sb){$("crtaImageStatus").textContent="Supabase is not connected.";return}
+      button.disabled=true;$("crtaImageStatus").textContent="Uploading image…";
+      try{
+        const ext=({"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/avif":"avif"})[file.type];
+        const token=window.crypto?.randomUUID?.()||String(Date.now())+"-"+Math.random().toString(36).slice(2);
+        const path="themes/"+theme.id+"/"+role+"-"+token+"."+ext;
+        const {error}=await sb.storage.from(IMAGE_BUCKET).upload(path,file,{cacheControl:"31536000",upsert:false,contentType:file.type});
+        if(error)throw error;
+        const {data}=sb.storage.from(IMAGE_BUCKET).getPublicUrl(path);
+        if(!data?.publicUrl)throw new Error("Storage did not return a public image URL.");
+        await persistThemeImage(theme.id,role,data.publicUrl);
+        $("crtaImageFile").value="";
+      }catch(error){$("crtaImageStatus").textContent="Image upload failed: "+error.message}
+      finally{button.disabled=false}
+    });
+
     $("crtaScheduleList").addEventListener("click",e=>{const b=e.target.closest("[data-remove-schedule]");if(!b)return;schedule.splice(Number(b.dataset.removeSchedule),1);renderSchedule()});
     $("crtaAddSchedule").addEventListener("click",()=>{const theme_id=$("crtaScheduleTheme").value,start=$("crtaStart").value,end=$("crtaEnd").value;if(!start||!end||end<start){$("crtaStatus").textContent="Choose a valid start and end date.";return}schedule.push({theme_id,start,end});schedule.sort((a,b)=>a.start.localeCompare(b.start));renderSchedule();$("crtaStatus").textContent="Schedule window added. Publish platform settings to save it."});
     $("crtaPreview").addEventListener("click",()=>{window.dispatchEvent(new CustomEvent("cr:site-theme-change",{detail:previewId}));$("crtaStatus").textContent=byId(previewId).label+" preview is active on this admin screen only."});
     $("crtaOriginal").addEventListener("click",()=>{previewId="original";renderGrid();window.dispatchEvent(new CustomEvent("cr:site-theme-change",{detail:"original"}))});
     $("crtaRefresh").addEventListener("click",loadSettings);
     $("crtaSave").addEventListener("click",saveSettings);
-    renderGrid();renderSchedule();
+    renderGrid();renderSchedule();renderImageManager();
     async function connect(){
       try{
         const mod=await import("./client.js");sb=mod.sb;
@@ -120,9 +219,9 @@
       $("crtaStatus").textContent="Loading platform theme settings…";
       const {data,error}=await sb.from("crp_site_settings").select("featured_theme,theme_mode,seasonal_auto,featured_starts_at,featured_ends_at,theme_schedule,theme_catalog,holiday_theme,holiday_enabled").eq("site_key","podcasting").maybeSingle();
       if(error)throw error;if(!data)throw new Error("The podcasting theme settings row was not found.");
-      settings=data;schedule=Array.isArray(data.theme_schedule)?data.theme_schedule:[];
+      settings=data;applyImageOverrides(data.theme_catalog);schedule=Array.isArray(data.theme_schedule)?data.theme_schedule:[];
       $("crtaMode").value=data.theme_mode||"seasonal";$("crtaFeatured").value=byId(data.featured_theme||"original").id;$("crtaAuto").value=String(data.seasonal_auto!==false);
-      renderSchedule();$("crtaStatus").textContent="Connected. "+THEMES.length+" cinematic themes available. Personal member themes remain independent.";
+      renderSchedule();renderGrid();renderImageManager();$("crtaStatus").textContent="Connected. "+THEMES.length+" cinematic themes available. Personal member themes remain independent.";
     }
     async function saveSettings(){
       if(!sb||!settings)return;
