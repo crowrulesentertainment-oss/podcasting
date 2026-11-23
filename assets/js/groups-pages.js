@@ -248,6 +248,57 @@ async function notifications(){
  status.textContent="Manage the group updates you want to receive.";
 }
 
+
+async function imageModerationPage(){
+ const root=$("#gp-image-moderation"),status=$("#gp-status");
+ if(!root)return;
+ const user=await currentUser().catch(()=>null);
+ if(!user){status.textContent="Sign in to review group image suggestions.";root.innerHTML='<a class="gp-button" href="'+SITE_BASE+'login.html">Sign in to continue</a>';return}
+ const {data:members,error:mError}=await sb.from("podcast_community_circle_members").select("circle_id,role").eq("member_id",user.id).in("role",["owner","moderator"]);
+ if(mError){status.textContent="Your moderation access could not be checked: "+mError.message;return}
+ const ids=(members||[]).map(x=>x.circle_id);
+ if(!ids.length){status.textContent="No groups with moderator or owner access were found.";root.innerHTML='<div class="gp-notice">Image suggestions can be reviewed by group owners and moderators.</div>';return}
+ const [{data:groups,error:gError},{data:suggestions,error:sError}]=await Promise.all([
+  sb.from("podcast_community_circles").select("id,name").in("id",ids).order("name"),
+  sb.from("podcast_community_circle_image_suggestions").select("id,circle_id,submitted_by,image_kind,object_path,status,created_at,reviewed_at").in("circle_id",ids).order("created_at",{ascending:false}).limit(100)
+ ]);
+ if(gError){status.textContent="Groups could not be loaded: "+gError.message;return}
+ if(sError){status.textContent="Image suggestions could not be loaded: "+sError.message;return}
+ const groupMap=new Map((groups||[]).map(g=>[g.id,g]));
+ const requested=params.get("group"),initial=ids.includes(requested)?requested:"all";
+ root.innerHTML='<div class="gp-image-mod-toolbar"><label>Group<select id="gp-image-group"><option value="all">All groups</option>'+(groups||[]).map(g=>'<option value="'+esc(g.id)+'" '+(g.id===initial?'selected':'')+'>'+esc(g.name)+'</option>').join("")+'</select></label><label>Status<select id="gp-image-status"><option value="pending">Pending review</option><option value="rejected">Rejected</option><option value="withdrawn">Withdrawn</option><option value="all">All suggestions</option></select></label></div><div id="gp-image-list" class="gp-image-list"></div>';
+ const groupSelect=$("#gp-image-group"),statusSelect=$("#gp-image-status"),list=$("#gp-image-list");
+ const draw=async()=>{
+  const groupId=groupSelect.value,filter=statusSelect.value;
+  const rows=(suggestions||[]).filter(x=>(groupId==="all"||x.circle_id===groupId)&&(filter==="all"||x.status===filter));
+  if(!rows.length){list.innerHTML='<div class="gp-notice">No image suggestions match this filter.</div>';return}
+  list.innerHTML="";
+  for(const item of rows){
+   const card=document.createElement("article");card.className="gp-image-suggestion";
+   const title=document.createElement("div");title.className="gp-image-suggestion-heading";
+   const heading=document.createElement("strong");heading.textContent=(item.image_kind==="avatar"?"Group avatar":"Group banner")+" · "+(groupMap.get(item.circle_id)?.name||"Group");
+   const state=document.createElement("span");state.className="gp-image-state";state.textContent=item.status;
+   title.append(heading,state);card.append(title);
+   const meta=document.createElement("p");meta.className="gp-image-meta";meta.textContent="Submitted "+new Date(item.created_at).toLocaleString();card.append(meta);
+   if(typeof item.object_path==="string"&&item.object_path.startsWith(item.circle_id+"/"+item.submitted_by+"/")){
+    const {data:signed,error:signedError}=await sb.storage.from("podcast-group-media").createSignedUrl(item.object_path,300);
+    if(!signedError&&signed?.signedUrl){const img=document.createElement("img");img.className="gp-image-preview";img.src=signed.signedUrl;img.alt=item.image_kind==="avatar"?"Suggested group avatar":"Suggested group banner";img.loading="lazy";card.append(img)}
+    else{const note=document.createElement("p");note.className="gp-image-meta";note.textContent="Preview is unavailable under the current storage access rules.";card.append(note)}
+   }else{const note=document.createElement("p");note.className="gp-image-meta";note.textContent="The stored image path did not match the expected group/member path; preview withheld.";card.append(note)}
+   if(item.status==="pending"){
+    const actions=document.createElement("div");actions.className="gp-image-actions";
+    const reject=document.createElement("button");reject.type="button";reject.className="gp-button danger";reject.textContent="Reject suggestion";
+    reject.addEventListener("click",async()=>{reject.disabled=true;status.textContent="Recording moderation decision…";const {error}=await sb.from("podcast_community_circle_image_suggestions").update({status:"rejected",reviewed_by:user.id,reviewed_at:new Date().toISOString()}).eq("id",item.id).eq("status","pending");if(error){status.textContent="The suggestion could not be rejected: "+error.message;reject.disabled=false;return}item.status="rejected";item.reviewed_by=user.id;item.reviewed_at=new Date().toISOString();status.textContent="Suggestion marked rejected. The current group image was not changed.";await draw()});
+    actions.append(reject);card.append(actions);
+   }
+   list.append(card);
+  }
+ };
+ groupSelect.addEventListener("change",draw);statusSelect.addEventListener("change",draw);
+ await draw();
+ status.textContent="Reviewing image suggestions for groups you moderate. Rejection is supported; approval and applying images are not available under the current database policies.";
+}
+
 async function reportsPage(){
  const root=$("#gp-reports"),status=$("#gp-status");
  if(!root)return;
@@ -381,5 +432,5 @@ async function collaborationsPage(){
  createForm.elements.circle_id.addEventListener("change",draw);
  await draw();
 }
-async function start(){const page=document.body.dataset.groupsPage;if(!page)return;decoratePreviewLinks();if(launchGate(page))return;try{if(page==="home"){mountCountdown();const root=$("#gp-featured"),all=await loadGroups(),user=await currentUser().catch(()=>null),visible=all.filter(g=>(g.visibility||(g.is_public?"public":"hidden"))!=="hidden"||g.owner_id===user?.id);renderCards(root,visible.slice(0,9),"Preview group");if(!visible.length)root.innerHTML='<div class="gp-notice">No groups have been created yet. Sign in and start the first community, then return here to preview it.</div>'}else if(page==="discover")await discover();else if(page==="mine")await mine();else if(page==="dashboard")await dashboard();else if(page==="feed")await feed();else if(page==="activity")await activityPage();else if(page==="recognitions")await recognitionsPage();else if(page==="create")await create();else if(page==="community")await community();else if(page==="members")await members();else if(page==="settings")await settings();else if(page==="events")await eventsPage();else if(page==="notifications")await notifications();else if(page==="invitations")await invitationsPage();else if(page==="reports")await reportsPage();else if(page==="collaborations")await collaborationsPage()}catch(error){const status=$("#gp-status");if(status)status.textContent=error.message||"Groups could not load."}}
+async function start(){const page=document.body.dataset.groupsPage;if(!page)return;decoratePreviewLinks();if(launchGate(page))return;try{if(page==="home"){mountCountdown();const root=$("#gp-featured"),all=await loadGroups(),user=await currentUser().catch(()=>null),visible=all.filter(g=>(g.visibility||(g.is_public?"public":"hidden"))!=="hidden"||g.owner_id===user?.id);renderCards(root,visible.slice(0,9),"Preview group");if(!visible.length)root.innerHTML='<div class="gp-notice">No groups have been created yet. Sign in and start the first community, then return here to preview it.</div>'}else if(page==="discover")await discover();else if(page==="mine")await mine();else if(page==="dashboard")await dashboard();else if(page==="feed")await feed();else if(page==="activity")await activityPage();else if(page==="recognitions")await recognitionsPage();else if(page==="create")await create();else if(page==="community")await community();else if(page==="members")await members();else if(page==="settings")await settings();else if(page==="events")await eventsPage();else if(page==="notifications")await notifications();else if(page==="invitations")await invitationsPage();else if(page==="reports")await reportsPage();else if(page==="image-moderation")await imageModerationPage();else if(page==="collaborations")await collaborationsPage()}catch(error){const status=$("#gp-status");if(status)status.textContent=error.message||"Groups could not load."}}
 start();
