@@ -64,8 +64,8 @@ export async function initNetworkCommandCenter({sb,user,notify=()=>{}}={}){
    <div class="fields"><div><label>Available scenes</label><select id="lncSlScenes"><option value="">Connect to load scenes</option></select></div><div class="actions" style="align-items:end"><button id="lncSlSwitch" disabled>Switch Streamlabs scene</button></div></div>
   </div>
   <div class="card full"><h4>Production readiness</h4>
-   <div class="notice"><b>Central production:</b> Streamlabs Desktop stays on your production computer. Remote scene control will require a separately installed local Production Bridge. Keep stream keys and software passwords out of browser storage and Supabase metadata.</div>
-   <div class="notice"><b>LiveKit:</b> This first foundation prepares the schedule and access model. LiveKit rooms cannot be activated until API credentials are securely configured and the host connection portal is deployed.</div>
+   <div class="notice"><b>Central production:</b> Streamlabs Desktop stays on your production computer. Use the Streamlabs Remote Control connection above for scene switching. Keep the Streamlabs token in the page session only; do not save it to Supabase metadata.</div>
+   <div class="notice"><b>LiveKit:</b> The host portal and read-only Streamlabs Browser Source feed are deployed. LiveKit rooms still require secure API credentials before hosts can connect.</div>
    <div class="notice"><b>24/7 reliability:</b> A real always-on network needs a tested backup encoder, power and internet contingency, operator coverage and a verified playout/recording workflow.</div>
   </div>
  </div>`;
@@ -98,13 +98,23 @@ export async function initNetworkCommandCenter({sb,user,notify=()=>{}}={}){
    const del=document.createElement("button");del.className="danger";del.textContent="Remove";del.addEventListener("click",async()=>{if(!confirm("Remove this program and its scheduled entries?"))return;try{const {error}=await sb.from("live_network_programs").delete().eq("id",x.id).eq("owner_id",user.id);if(error)throw error;await loadPrograms();await loadSchedule()}catch(e){notify(e.message)}});row.append(info,del);list.append(row);
   });
  };
+ const makeStreamlabsFeed=async scheduleId=>{
+  try{
+   const {data,error}=await sb.functions.invoke("livekit-token",{body:{schedule_id:scheduleId,mode:"viewer"}});
+   if(error)throw error;if(data?.error)throw Error(data.error);
+   const url=new URL("/podcasting/live/producer-feed.html",location.origin);
+   url.hash=new URLSearchParams({server:data.url,token:data.token}).toString();
+   await navigator.clipboard.writeText(url.href);
+   notify("Read-only LiveKit feed URL copied. Add it as a Browser Source in the matching Streamlabs scene. Generate a fresh URL when its six-hour token expires.");
+  }catch(error){notify(error.message||"Could not generate the Streamlabs feed URL.")}
+ };
  const loadSchedule=async()=>{
   const {data,error}=await sb.from("live_network_schedule").select("id,program_id,starts_at,ends_at,host_name,status,handoff_mode,live_network_programs(title)").eq("owner_id",user.id).order("starts_at").limit(50);if(error)throw error;state.schedule=data||[];
   const list=$("lncSchedule");list.replaceChildren();if(!state.schedule.length){list.innerHTML='<div class="empty">No programming scheduled yet.</div>';return}
   state.schedule.forEach(x=>{
    const row=document.createElement("div");row.className="row";const info=document.createElement("div"),title=document.createElement("strong"),detail=document.createElement("small");
    title.textContent=x.live_network_programs?.title||"Program";detail.textContent=pretty(x.starts_at)+" → "+pretty(x.ends_at)+" · "+(x.host_name||"Host TBD")+" · "+x.status.replaceAll("_"," ")+" · ID "+x.id;info.append(title,detail);
-   const actions=document.createElement("div");actions.className="actions";
+   const actions=document.createElement("div");actions.className="actions";const feed=document.createElement("button");feed.className="secondary";feed.textContent="Copy Streamlabs feed";feed.addEventListener("click",()=>makeStreamlabsFeed(x.id));actions.append(feed);const copy=document.createElement("button");copy.className="secondary";copy.textContent="Copy host access ID";copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(x.id);notify("Scheduled appearance ID copied for the assigned host.")}catch{notify("Copy unavailable; use the schedule ID shown in the details.")}});actions.append(copy);
    if(x.status==="scheduled"){const ready=document.createElement("button");ready.className="secondary";ready.textContent="Mark ready";ready.addEventListener("click",()=>updateSlot(x.id,{status:"ready"}));actions.append(ready)}
    const del=document.createElement("button");del.className="danger";del.textContent="Remove";del.addEventListener("click",()=>removeSlot(x.id));actions.append(del);row.append(info,actions);list.append(row);
   });
