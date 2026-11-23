@@ -56,6 +56,13 @@ export async function initNetworkCommandCenter({sb,user,notify=()=>{}}={}){
    <label>Producer notes</label><textarea id="lncNotes" maxlength="800"></textarea><div class="actions"><button id="lncAddSchedule">Add to rundown</button></div>
    <div class="list" id="lncSchedule"><div class="empty">Loading rundown…</div></div>
   </div>
+  <div class="card full"><h4>Streamlabs Desktop remote control</h4>
+   <p class="muted">Connect this browser to Streamlabs Desktop on your production computer. Enable Settings → Remote Control in Streamlabs and copy its local API token. The token is kept in memory for this page session only.</p>
+   <div class="fields"><div><label>Local API port</label><input id="lncSlPort" type="number" min="1" max="65535" value="59650"></div><div><label>Streamlabs Remote Control token</label><input id="lncSlToken" type="password" autocomplete="off" placeholder="Paste local token (not saved)"></div></div>
+   <div class="actions"><button id="lncSlConnect">Connect Streamlabs</button><button id="lncSlDisconnect" class="secondary" disabled>Disconnect</button></div>
+   <p class="muted" id="lncSlStatus" role="status">Not connected to Streamlabs Desktop.</p>
+   <div class="fields"><div><label>Available scenes</label><select id="lncSlScenes"><option value="">Connect to load scenes</option></select></div><div class="actions" style="align-items:end"><button id="lncSlSwitch" disabled>Switch Streamlabs scene</button></div></div>
+  </div>
   <div class="card full"><h4>Production readiness</h4>
    <div class="notice"><b>Central production:</b> Streamlabs Desktop stays on your production computer. Remote scene control will require a separately installed local Production Bridge. Keep stream keys and software passwords out of browser storage and Supabase metadata.</div>
    <div class="notice"><b>LiveKit:</b> This first foundation prepares the schedule and access model. LiveKit rooms cannot be activated until API credentials are securely configured and the host connection portal is deployed.</div>
@@ -102,6 +109,49 @@ export async function initNetworkCommandCenter({sb,user,notify=()=>{}}={}){
    const del=document.createElement("button");del.className="danger";del.textContent="Remove";del.addEventListener("click",()=>removeSlot(x.id));actions.append(del);row.append(info,actions);list.append(row);
   });
  };
+ let slSocket=null,slId=0,slPending=new Map(),slConnected=false;
+ const slStatus=text=>msg("lncSlStatus",text);
+ const slLoadLibrary=()=>new Promise((resolve,reject)=>{
+  if(window.SockJS){resolve(window.SockJS);return}
+  const existing=document.querySelector('script[data-cr-sockjs]');
+  if(existing){existing.addEventListener("load",()=>resolve(window.SockJS),{once:true});existing.addEventListener("error",()=>reject(Error("Could not load Streamlabs connection library.")),{once:true});return}
+  const script=document.createElement("script");script.src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js";script.async=true;script.dataset.crSockjs="true";
+  script.onload=()=>window.SockJS?resolve(window.SockJS):reject(Error("Streamlabs connection library did not initialize."));
+  script.onerror=()=>reject(Error("Could not load Streamlabs connection library."));document.head.append(script);
+ });
+ const slRequest=(resource,method,args=[])=>new Promise((resolve,reject)=>{
+  if(!slSocket||slSocket.readyState!==1){reject(Error("Streamlabs is not connected."));return}
+  const id=++slId,timer=setTimeout(()=>{slPending.delete(id);reject(Error("Streamlabs request timed out."))},9000);
+  slPending.set(id,{resolve,reject,timer});
+  slSocket.send(JSON.stringify({jsonrpc:"2.0",id,method,params:{resource,args}}));
+ });
+ const slDisconnect=()=>{
+  slConnected=false;for(const [id,pending] of slPending){clearTimeout(pending.timer);pending.reject(Error("Streamlabs disconnected."));slPending.delete(id)}
+  if(slSocket){try{slSocket.close()}catch{}slSocket=null}
+  $("lncSlDisconnect").disabled=true;$("lncSlConnect").disabled=false;$("lncSlSwitch").disabled=true;
+  $("lncSlScenes").replaceChildren(new Option("Connect to load scenes",""));slStatus("Disconnected from Streamlabs Desktop.");
+ };
+ const slConnect=async()=>{
+  const port=Number($("lncSlPort").value),token=$("lncSlToken").value.trim();
+  if(!Number.isInteger(port)||port<1||port>65535||!token){slStatus("Enter the local API port and Streamlabs Remote Control token.");return}
+  $("lncSlConnect").disabled=true;slStatus("Loading Streamlabs connection…");
+  try{
+   const SockJS=await slLoadLibrary();if(slSocket)slDisconnect();
+   slSocket=new SockJS("http://127.0.0.1:"+port+"/api");
+   slSocket.onmessage=event=>{let packet;try{packet=JSON.parse(event.data)}catch{return}if(packet.id&&slPending.has(packet.id)){const pending=slPending.get(packet.id);slPending.delete(packet.id);clearTimeout(pending.timer);packet.error?pending.reject(Error(packet.error.message||"Streamlabs API error.")):pending.resolve(packet.result)}};
+   slSocket.onclose=()=>{if(slConnected||slSocket){slConnected=false;$("lncSlDisconnect").disabled=true;$("lncSlConnect").disabled=false;$("lncSlSwitch").disabled=true;slStatus("Streamlabs connection closed. Check that Streamlabs Desktop is open.")}};
+   await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(Error("Timed out connecting to Streamlabs on this computer.")),9000);slSocket.onopen=()=>{clearTimeout(timeout);resolve()};const prior=slSocket.onclose;slSocket.onclose=e=>{clearTimeout(timeout);prior?.(e);reject(Error("Could not connect. Enable Settings → Remote Control in Streamlabs Desktop."))}});
+   await slRequest("TcpServerService","auth",[token]);
+   const scenes=await slRequest("ScenesService","getScenes",[]);
+   if(!Array.isArray(scenes))throw Error("Streamlabs did not return a scene list.");
+   const select=$("lncSlScenes");select.replaceChildren(new Option("Choose a scene",""));
+   scenes.forEach(scene=>select.add(new Option(scene.name,scene.id)));
+   slConnected=true;$("lncSlDisconnect").disabled=false;$("lncSlSwitch").disabled=false;slStatus("Connected to Streamlabs · "+scenes.length+" scene(s) available. Token remains in memory only.");
+  }catch(error){slDisconnect();slStatus(error.message||"Could not connect to Streamlabs.");}
+ };
+ $("lncSlConnect").addEventListener("click",slConnect);
+ $("lncSlDisconnect").addEventListener("click",slDisconnect);
+ $("lncSlSwitch").addEventListener("click",async()=>{const id=$("lncSlScenes").value;if(!slConnected||!id){slStatus("Choose a scene first.");return}try{await slRequest("ScenesService","makeSceneActive",[id]);slStatus("Streamlabs scene switched successfully.")}catch(e){slStatus(e.message||"Scene switch failed.")}});
  const updateSlot=async(id,patch)=>{try{const {error}=await sb.from("live_network_schedule").update({...patch,updated_at:new Date().toISOString()}).eq("id",id).eq("owner_id",user.id);if(error)throw error;await loadSchedule()}catch(e){notify(e.message)}};
  const removeSlot=async id=>{try{const {error}=await sb.from("live_network_schedule").delete().eq("id",id).eq("owner_id",user.id);if(error)throw error;await loadSchedule()}catch(e){notify(e.message)}};
  $("lncSave").addEventListener("click",async()=>{const b=$("lncSave");b.disabled=true;try{await savePublic()}catch(e){msg("lncPublicMsg",e.message);notify(e.message)}finally{b.disabled=false}});
