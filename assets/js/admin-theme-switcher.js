@@ -132,7 +132,7 @@
         const valid=item&&item.start&&item.end&&item.end>=item.start&&THEMES.some(theme=>theme.id===item.theme_id);
         const state=!valid?"Invalid":item.start<=today&&item.end>=today?"Active":item.end<today?"Past":"Upcoming";
         const overlap=valid&&scheduleOverlap(item.start,item.end,i);
-        return '<div class="crta-schedule-item"><span><strong>'+esc(state)+(overlap?' · OVERLAP':'')+'</strong> · '+esc(byId(item.theme_id).label)+' · '+esc(item.start)+' → '+esc(item.end)+'</span><button type="button" class="crta-btn" data-remove-schedule="'+i+'">Remove</button></div>';
+        return '<div class="crta-schedule-item"><span><strong>'+esc(state)+(overlap?' · OVERLAP':'')+'</strong> · '+esc(byId(item.theme_id).label)+' · '+esc(item.start)+' → '+esc(item.end)+'</span><span style="display:flex;gap:6px;flex-shrink:0"><button type="button" class="crta-btn" data-copy-schedule="'+i+'">Copy to next year</button><button type="button" class="crta-btn" data-remove-schedule="'+i+'">Remove</button></span></div>';
       }).join(""):'<p class="crta-note">No custom event windows scheduled. Automatic seasonal featuring remains available.</p>';
     };
     const renderGrid=()=>{
@@ -302,7 +302,7 @@
       finally{button.disabled=false}
     });
 
-    $("crtaScheduleList").addEventListener("click",e=>{const b=e.target.closest("[data-remove-schedule]");if(!b)return;schedule.splice(Number(b.dataset.removeSchedule),1);renderSchedule()});
+    $("crtaScheduleList").addEventListener("click",e=>{const copy=e.target.closest("[data-copy-schedule]");if(copy){const index=Number(copy.dataset.copySchedule),item=schedule[index];if(!item)return;const shiftYear=value=>{const [year,month,day]=value.split("-").map(Number),targetYear=year+1,lastDay=new Date(targetYear,month,0).getDate();return targetYear+"-"+String(month).padStart(2,"0")+"-"+String(Math.min(day,lastDay)).padStart(2,"0")};const start=shiftYear(item.start),end=shiftYear(item.end);if(scheduleOverlap(start,end)){$("crtaStatus").textContent="Cannot copy: next year's dates overlap another scheduled window.";return}schedule.push({theme_id:item.theme_id,start,end});schedule.sort((a,b)=>a.start.localeCompare(b.start));renderSchedule();$("crtaStatus").textContent="Copied "+byId(item.theme_id).label+" to "+start+"–"+end+". Publish platform settings to save it.";return}const remove=e.target.closest("[data-remove-schedule]");if(!remove)return;schedule.splice(Number(remove.dataset.removeSchedule),1);renderSchedule()});
     $("crtaAddSchedule").addEventListener("click",()=>{
       const theme_id=$("crtaScheduleTheme").value,start=$("crtaStart").value,end=$("crtaEnd").value;
       if(!THEMES.some(theme=>theme.id===theme_id)||!start||!end||end<start){$("crtaStatus").textContent="Choose a valid theme, start date and end date.";return}
