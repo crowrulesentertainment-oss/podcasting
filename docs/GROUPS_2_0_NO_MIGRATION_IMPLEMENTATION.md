@@ -18,6 +18,10 @@ This implementation is designed to run against the existing CrowRules Podcasting
 
 When the newer optional Groups 2.0 columns are not present, the community page uses this compatibility view rather than displaying a read-only migration-blocked screen.
 
+## Additional existing-schema feature enabled
+
+- Notification preference controls use the verified `podcast_community_circle_notification_preferences` table: invitations, discussions, replies, and moderation alerts. The existing RLS policies scope reads and writes to the signed-in user's own `user_id`. This is a preference page, not a notification inbox; no notification records or email campaigns are created.
+
 ## Intentionally unavailable until separately authorized and secured
 
 No browser-only imitation is provided for capabilities that require new durable records, provider credentials, or server authorization:
