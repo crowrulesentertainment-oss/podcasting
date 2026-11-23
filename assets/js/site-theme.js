@@ -53,6 +53,9 @@
     const customMobile=theme.mobileHero||customDesktop;
     if(mobile&&customMobile)return customMobile;
     if(customDesktop)return customDesktop;
+    const hour=new Date().getHours(),period=hour>=6&&hour<16?"day":hour>=16&&hour<20?"evening":"night";
+    const timedScene=theme.timeOfDay&&theme.timeOfDay[period];
+    if(typeof timedScene==="string"&&/^https:\/\//i.test(timedScene))return timedScene;
     const ids=SEASONAL_SCENES[theme.id]||SEASONAL_SCENES.original;
     const index=PAGE_SCENE_INDEX[pageKey]??0;
     return ids[index%ids.length]||theme.photo||theme.hero||"";
@@ -73,10 +76,13 @@
     const status=document.getElementById("crMemberThemeStatus");if(status)status.textContent=theme.icon+" "+theme.label+" selected";
   }
   function applyCatalogOverrides(raw){
-    const map=raw&&typeof raw==="object"&&!Array.isArray(raw)?(raw.themes||raw):{};
+    const data=raw&&typeof raw==="object"&&!Array.isArray(raw)?raw:{};
+    (Array.isArray(data.collections)?data.collections:[]).forEach(collection=>{if(collection&&/^[a-z0-9][a-z0-9-]{1,39}$/.test(collection.id||"")&&collection.label&&!CATALOG.collections.some(c=>c.id===collection.id))CATALOG.collections.push({id:collection.id,label:String(collection.label).slice(0,60)})});
+    (Array.isArray(data.customThemes)?data.customThemes:[]).forEach(theme=>{if(!theme||!/^([a-z0-9][a-z0-9-]{1,47})$/.test(theme.id||"")||THEMES.some(t=>t.id===theme.id)||!theme.label||!theme.photo)return;THEMES.push(theme)});
+    const map=data.themes||data;
     THEMES.forEach(theme=>{
       const entry=map[theme.id];if(!entry||typeof entry!=="object")return;
-      ["photo","hero","mobileHero","imageAlt"].forEach(key=>{if(typeof entry[key]==="string"&&entry[key])theme[key]=entry[key]});if(entry.heroCustom===true)theme.heroCustom=true;
+      ["photo","hero","mobileHero","imageAlt"].forEach(key=>{if(typeof entry[key]==="string"&&entry[key])theme[key]=entry[key]});if(entry.heroCustom===true)theme.heroCustom=true;if(entry.timeOfDay&&typeof entry.timeOfDay==="object")theme.timeOfDay={...(theme.timeOfDay||{}),...entry.timeOfDay};
     });
   }
   async function loadSettings(){
@@ -165,9 +171,10 @@
     document.body.appendChild(host);
     const panel=document.getElementById("crMemberThemePanel"),toggle=document.getElementById("crMemberThemeToggle"),grid=document.getElementById("crMemberThemeGrid"),search=document.getElementById("crMemberThemeSearch"),collection=document.getElementById("crMemberThemeCollection");
     const collectionNames=new Map((CATALOG.collections||[]).map(c=>[c.id,c.label]));
-    collection.innerHTML+=[...new Set(THEMES.map(t=>t.collection).filter(Boolean))].map(id=>'<option value="'+esc(id)+'">'+esc(collectionNames.get(id)||id)+'</option>').join("");
+    const syncCollections=()=>{(CATALOG.collections||[]).forEach(c=>collectionNames.set(c.id,c.label));const selected=collection.value;collection.innerHTML='<option value="all">All collections</option>'+[...collectionNames].map(([id,label])=>'<option value="'+esc(id)+'">'+esc(label)+'</option>').join("");if([...collection.options].some(option=>option.value===selected))collection.value=selected};
+    syncCollections();
     const updatePreview=()=>{const t=themeById(draftId);if(!t)return;document.getElementById("crMemberThemePreviewName").textContent=t.icon+" "+t.label;document.getElementById("crMemberThemePreviewDesc").textContent=t.desc||"A cinematic CrowRules environment.";document.getElementById("crMemberThemeDesktopPreview").src=t.hero||t.photo||"";document.getElementById("crMemberThemeDesktopPreview").alt=t.imageAlt||t.label+" desktop preview";document.getElementById("crMemberThemeMobilePreview").src=t.mobileHero||t.hero||t.photo||"";document.getElementById("crMemberThemeMobilePreview").alt=t.imageAlt||t.label+" mobile preview";document.getElementById("crMemberThemePreviewCollection").textContent=collectionNames.get(t.collection)||"Cinematic world";document.getElementById("crMemberThemePreviewCard").style.setProperty("--cr-preview-accent",t.accent||"#d84b55")};
-    const render=()=>{const q=search.value.trim().toLowerCase(),group=collection.value;const list=THEMES.filter(t=>(group==="all"||t.collection===group)&&(t.label+" "+t.desc+" "+(t.collection||"")).toLowerCase().includes(q));grid.innerHTML=list.map(t=>'<button type="button" class="cr-member-theme-card" data-member-theme="'+esc(t.id)+'" aria-pressed="'+(draftId===t.id)+'"><img loading="lazy" src="'+esc(t.photo||"")+'" alt="'+esc(t.imageAlt||t.label)+'"><span>'+esc(t.icon+" "+t.label)+'</span><small>'+esc((t.desc||"").slice(0,78))+'</small>'+(t.id===featuredId?'<i class="cr-member-theme-tag">FEATURED</i>':'')+(t.id===savedId?'<i class="cr-member-theme-tag" style="left:auto;right:7px">YOUR THEME</i>':'')+'</button>').join("")||'<p style="grid-column:1/-1;color:#aeb9c8;font-size:11px">No environments match that search.</p>';const save=document.getElementById("crMemberThemeSave");if(save)save.disabled=draftId===savedId;document.getElementById("crMemberThemeFeaturedName").textContent=themeById(featuredId).label;updatePreview()};refreshMemberGallery=render;
+    const render=()=>{syncCollections();const q=search.value.trim().toLowerCase(),group=collection.value;const list=THEMES.filter(t=>(group==="all"||t.collection===group)&&(t.label+" "+t.desc+" "+(t.collection||"")).toLowerCase().includes(q));grid.innerHTML=list.map(t=>'<button type="button" class="cr-member-theme-card" data-member-theme="'+esc(t.id)+'" aria-pressed="'+(draftId===t.id)+'"><img loading="lazy" src="'+esc(t.photo||"")+'" alt="'+esc(t.imageAlt||t.label)+'"><span>'+esc(t.icon+" "+t.label)+'</span><small>'+esc((t.desc||"").slice(0,78))+'</small>'+(t.id===featuredId?'<i class="cr-member-theme-tag">FEATURED</i>':'')+(t.id===savedId?'<i class="cr-member-theme-tag" style="left:auto;right:7px">YOUR THEME</i>':'')+'</button>').join("")||'<p style="grid-column:1/-1;color:#aeb9c8;font-size:11px">No environments match that search.</p>';const save=document.getElementById("crMemberThemeSave");if(save)save.disabled=draftId===savedId;document.getElementById("crMemberThemeFeaturedName").textContent=themeById(featuredId).label;updatePreview()};refreshMemberGallery=render;
     toggle.addEventListener("click",()=>{panel.hidden=!panel.hidden;if(!panel.hidden){draftId=savedId;render()}toggle.setAttribute("aria-expanded",String(!panel.hidden))});
     grid.addEventListener("click",e=>{const card=e.target.closest("[data-member-theme]");if(!card)return;draftId=card.dataset.memberTheme;const status=document.getElementById("crMemberThemeStatus");if(status)status.textContent="Selected "+themeById(draftId).label+". Preview or save to apply it.";render()});
     document.getElementById("crMemberThemePreview").addEventListener("click",()=>{applyTheme(draftId);const status=document.getElementById("crMemberThemeStatus");if(status)status.textContent="Previewing "+themeById(draftId).label+". Save my theme to keep this choice."});

@@ -98,6 +98,7 @@
           <small class="crta-image-status" id="crtaImageStatus" role="status" aria-live="polite">Select a theme to manage its photography.</small>
           <p class="crta-note">Accepted: JPEG, PNG, WebP or AVIF · Maximum 15 MB per image. Hero, gallery and mobile images can be managed independently.</p>
         </div>
+        <div class="crta-block" id="crtaCreateEnvironment"><h3>Add a cinematic environment</h3><p>Create new themes and collections from Design Control. New entries are saved to the existing theme settings record and appear in the member gallery after refresh.</p><div class="crta-controls"><div class="crta-field"><label for="crtaNewId">THEME ID</label><input id="crtaNewId" maxlength="48" placeholder="coastal-evening"></div><div class="crta-field"><label for="crtaNewLabel">DISPLAY NAME</label><input id="crtaNewLabel" maxlength="64" placeholder="Coastal Evening"></div><div class="crta-field"><label for="crtaNewCollection">COLLECTION</label><select id="crtaNewCollection"></select></div></div><div class="crta-controls" style="margin-top:10px"><div class="crta-field"><label for="crtaNewCollectionId">NEW COLLECTION ID (OPTIONAL)</label><input id="crtaNewCollectionId" maxlength="40" placeholder="coastal-worlds"></div><div class="crta-field"><label for="crtaNewCollectionLabel">NEW COLLECTION NAME</label><input id="crtaNewCollectionLabel" maxlength="60" placeholder="Coastal Worlds"></div><div class="crta-field"><label for="crtaNewImage">PRIMARY IMAGE URL (HTTPS)</label><input id="crtaNewImage" type="url" placeholder="https://…"></div></div><div class="crta-field" style="margin-top:10px"><label for="crtaNewDescription">DESCRIPTION</label><input id="crtaNewDescription" maxlength="180" placeholder="Describe this cinematic environment"></div><div class="crta-controls" style="margin-top:10px"><div class="crta-field"><label for="crtaNewDay">DAY VARIANT URL (OPTIONAL)</label><input id="crtaNewDay" type="url" placeholder="https://…"></div><div class="crta-field"><label for="crtaNewEvening">EVENING VARIANT URL (OPTIONAL)</label><input id="crtaNewEvening" type="url" placeholder="https://…"></div><div class="crta-field"><label for="crtaNewNight">NIGHT VARIANT URL (OPTIONAL)</label><input id="crtaNewNight" type="url" placeholder="https://…"></div></div><div class="crta-actions"><button class="crta-btn primary" id="crtaCreateTheme" type="button">Create environment</button></div><small class="crta-status" id="crtaCreateStatus" role="status" aria-live="polite">Use a unique theme ID and a secure image URL.</small></div>
         <div class="crta-gallery-head"><div><h3 style="margin:0;font-size:13px">Theme library · <span id="crtaCount"></span></h3><p>Photorealistic, cinematic real-life environments · <span id="crtaImageIntegrity" aria-live="polite"></span></p></div><input id="crtaSearch" type="search" placeholder="Search themes…" aria-label="Search themes"></div>
         <div class="crta-field"><label for="crtaCollection">COLLECTION</label><select id="crtaCollection"><option value="all">All collections</option>${CATALOG.collections.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.label)+'</option>').join("")}</select></div>
         <div class="crta-grid" id="crtaGrid"></div>
@@ -127,15 +128,27 @@
     const IMAGE_BUCKET="crp-theme-environments";
     function catalogOverrideState(){
       const raw=settings?.theme_catalog;
-      const state=raw&&typeof raw==="object"&&!Array.isArray(raw)?JSON.parse(JSON.stringify(raw)):{version:1,themes:{}};
+      const state=raw&&typeof raw==="object"&&!Array.isArray(raw)?JSON.parse(JSON.stringify(raw)):{version:2,themes:{},collections:[],customThemes:[]};
       if(!state.themes||typeof state.themes!=="object"||Array.isArray(state.themes))state.themes={};
+      if(!Array.isArray(state.collections))state.collections=[];
+      if(!Array.isArray(state.customThemes))state.customThemes=[];
       return state;
     }
+    function syncThemeOptions(){
+      const options=THEMES.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.icon+' '+t.label)+'</option>').join("");
+      ["crtaImageTheme","crtaFeatured","crtaScheduleTheme"].forEach(id=>{const el=$(id),value=el.value;el.innerHTML=options;if(THEMES.some(t=>t.id===value))el.value=value});
+      const collectionOptions=CATALOG.collections.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.label)+'</option>').join("");
+      $("crtaNewCollection").innerHTML=collectionOptions;
+      $("crtaCollection").innerHTML='<option value="all">All collections</option>'+collectionOptions;
+    }
     function applyImageOverrides(raw){
-      const map=raw&&typeof raw==="object"&&!Array.isArray(raw)?(raw.themes||raw):{};
+      const data=raw&&typeof raw==="object"&&!Array.isArray(raw)?raw:{};
+      (Array.isArray(data.collections)?data.collections:[]).forEach(collection=>{if(collection&&/^[a-z0-9][a-z0-9-]{1,39}$/.test(collection.id||"")&&collection.label&&!CATALOG.collections.some(c=>c.id===collection.id))CATALOG.collections.push({id:collection.id,label:String(collection.label).slice(0,60)})});
+      (Array.isArray(data.customThemes)?data.customThemes:[]).forEach(theme=>{if(!theme||!/^([a-z0-9][a-z0-9-]{1,47})$/.test(theme.id||"")||THEMES.some(t=>t.id===theme.id)||!theme.label||!theme.photo)return;THEMES.push(theme)});
+      const map=data.themes||data;
       THEMES.forEach(theme=>{
         const entry=map[theme.id];if(!entry||typeof entry!=="object")return;
-        ["photo","hero","mobileHero","imageAlt"].forEach(key=>{if(typeof entry[key]==="string"&&entry[key])theme[key]=entry[key]});if(entry.heroCustom===true)theme.heroCustom=true;
+        ["photo","hero","mobileHero","imageAlt"].forEach(key=>{if(typeof entry[key]==="string"&&entry[key])theme[key]=entry[key]});if(entry.heroCustom===true)theme.heroCustom=true;if(entry.timeOfDay&&typeof entry.timeOfDay==="object")theme.timeOfDay={...(theme.timeOfDay||{}),...entry.timeOfDay};
       });
     }
     function renderImageManager(){
@@ -151,7 +164,7 @@
       if(duplicates.length)throw new Error("This image is already assigned to: "+[...new Set(duplicates)].join(", ")+". Choose a different photograph.");
       const next=catalogOverrideState(),existing=next.themes[themeId]||{};
       const patch=role==="hero"?{hero:url,heroCustom:true}:role==="gallery"?{photo:url}:{mobileHero:url};
-      next.version=1;next.themes[themeId]={...existing,...patch};
+      next.version=2;next.themes[themeId]={...existing,...patch};
       $("crtaImageStatus").textContent="Saving image assignment…";
       const {error}=await sb.from("crp_site_settings").update({theme_catalog:next,updated_at:new Date().toISOString()}).eq("site_key","podcasting");
       if(error)throw error;
@@ -168,6 +181,34 @@
       THEMES.forEach(other=>{if(other.id===theme.id)return;["hero","photo","mobileHero"].forEach(key=>{if(other[key]&&imageIdentity(other[key])===identity)matches.push(other.label+" ("+key+")")})});
       $("crtaImageStatus").textContent=matches.length?"Duplicate image source found: "+matches.join(", "):"No duplicate image source found in the other "+(THEMES.length-1)+" themes.";
     }
+    $("crtaCreateTheme").addEventListener("click",async()=>{
+      const status=$("crtaCreateStatus"),button=$("crtaCreateTheme");
+      const id=$("crtaNewId").value.trim().toLowerCase(),label=$("crtaNewLabel").value.trim(),image=$("crtaNewImage").value.trim(),desc=$("crtaNewDescription").value.trim();
+      const newCollectionId=$("crtaNewCollectionId").value.trim().toLowerCase(),newCollectionLabel=$("crtaNewCollectionLabel").value.trim();
+      const collection=newCollectionId||$("crtaNewCollection").value;
+      const urls={day:$("crtaNewDay").value.trim(),evening:$("crtaNewEvening").value.trim(),night:$("crtaNewNight").value.trim()};
+      try{
+        if(!/^[a-z0-9][a-z0-9-]{1,47}$/.test(id))throw new Error("Theme ID must be 2–48 lowercase letters, numbers or hyphens.");
+        if(THEMES.some(t=>t.id===id))throw new Error("That theme ID already exists.");
+        if(!label||!image||!desc)throw new Error("Enter a name, primary image URL and description.");
+        const secure=url=>{if(!url)return true;const parsed=new URL(url);return parsed.protocol==="https:"};
+        if(!secure(image)||!Object.values(urls).every(secure))throw new Error("All image URLs must use HTTPS.");
+        if(newCollectionId&&(!/^[a-z0-9][a-z0-9-]{1,39}$/.test(newCollectionId)||!newCollectionLabel))throw new Error("Enter a valid new collection ID and collection name.");
+        if(newCollectionId&&CATALOG.collections.some(c=>c.id===newCollectionId))throw new Error("That collection ID already exists.");
+        if(!newCollectionId&&!CATALOG.collections.some(c=>c.id===collection))throw new Error("Choose an existing collection or define a new one.");
+        button.disabled=true;status.textContent="Saving new cinematic environment…";
+        const next=catalogOverrideState();
+        if(newCollectionId)next.collections.push({id:newCollectionId,label:newCollectionLabel});
+        const theme={id,label,icon:"✦",desc,accent:"#d8ad61",glow:"rgba(216,173,97,.22)",panel:"rgba(10,13,19,.94)",ink:"#fff",muted:"#c5c8d0",photo:image,hero:image,collection,imageAlt:label+" cinematic environment"};
+        if(Object.values(urls).some(Boolean))theme.timeOfDay=Object.fromEntries(Object.entries(urls).filter(([,url])=>url));
+        next.customThemes=next.customThemes.filter(t=>t.id!==id);next.customThemes.push(theme);next.version=2;
+        const {error}=await sb.from("crp_site_settings").update({theme_catalog:next,updated_at:new Date().toISOString()}).eq("site_key","podcasting");if(error)throw error;
+        settings={...settings,theme_catalog:next};applyImageOverrides(next);syncThemeOptions();renderGrid();renderImageManager();
+        status.textContent="Created "+label+". Refresh the public site to load the new environment in member galleries.";
+        ["crtaNewId","crtaNewLabel","crtaNewImage","crtaNewDescription","crtaNewCollectionId","crtaNewCollectionLabel","crtaNewDay","crtaNewEvening","crtaNewNight"].forEach(id=>$(id).value="");
+      }catch(error){status.textContent="Could not create environment: "+error.message}
+      finally{button.disabled=false}
+    });
     $("crtaImageTheme").addEventListener("change",renderImageManager);
     $("crtaImageRole").addEventListener("change",renderImageManager);
     $("crtaImageUrl").addEventListener("input",()=>{const url=$("crtaImageUrl").value.trim();if(url){$("crtaDesktopImagePreview").src=url;$("crtaMobileImagePreview").src=url}});
@@ -219,7 +260,7 @@
       $("crtaStatus").textContent="Loading platform theme settings…";
       const {data,error}=await sb.from("crp_site_settings").select("featured_theme,theme_mode,seasonal_auto,featured_starts_at,featured_ends_at,theme_schedule,theme_catalog,holiday_theme,holiday_enabled").eq("site_key","podcasting").maybeSingle();
       if(error)throw error;if(!data)throw new Error("The podcasting theme settings row was not found.");
-      settings=data;applyImageOverrides(data.theme_catalog);schedule=Array.isArray(data.theme_schedule)?data.theme_schedule:[];
+      settings=data;applyImageOverrides(data.theme_catalog);syncThemeOptions();schedule=Array.isArray(data.theme_schedule)?data.theme_schedule:[];
       $("crtaMode").value=data.theme_mode||"seasonal";$("crtaFeatured").value=byId(data.featured_theme||"original").id;$("crtaAuto").value=String(data.seasonal_auto!==false);
       renderSchedule();renderGrid();renderImageManager();$("crtaStatus").textContent="Connected. "+THEMES.length+" cinematic themes available. Personal member themes remain independent.";
     }
