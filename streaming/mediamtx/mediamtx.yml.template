@@ -1,0 +1,34 @@
+# CrowRules Podcasting MediaMTX configuration
+# The GitHub Actions deployment replaces the two quoted placeholders
+# with repository Actions secrets before copying this file to the VPS.
+
+logLevel: info
+logDestinations: [stdout]
+
+rtmp: yes
+rtmpAddress: :1935
+
+hls: yes
+hlsAddress: :8888
+hlsVariant: lowLatency
+
+authMethod: internal
+authInternalUsers:
+  # Public playback is allowed for the single live path.
+  - user: any
+    pass:
+    ips: []
+    permissions:
+      - action: read
+        path: live
+
+  # Only the configured publisher can send the live stream.
+  - user: __RTMP_PUBLISH_USER__
+    pass: __RTMP_PUBLISH_PASSWORD__
+    ips: []
+    permissions:
+      - action: publish
+        path: live
+
+paths:
+  live:
