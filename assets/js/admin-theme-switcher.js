@@ -81,7 +81,7 @@
           <div class="crta-field"><label for="crtaScheduleTheme">THEME</label><select id="crtaScheduleTheme"></select></div>
           <div class="crta-field"><label for="crtaStart">START DATE</label><input id="crtaStart" type="date"></div>
           <div class="crta-field"><label for="crtaEnd">END DATE</label><input id="crtaEnd" type="date"></div>
-        </div><div class="crta-actions"><button class="crta-btn" id="crtaAddSchedule" type="button">Add scheduled window</button><button class="crta-btn" id="crtaExportSchedule" type="button">Export calendar (.ics)</button></div><div class="crta-controls" style="margin-top:10px"><div class="crta-field"><label for="crtaCalendarReminderTiming">CALENDAR REMINDER LEAD TIME</label><select id="crtaCalendarReminderTiming"><option value="-PT15M">15 minutes before</option><option value="-PT1H">1 hour before</option><option value="-P1D" selected>1 day before</option><option value="-P7D">1 week before</option></select></div></div><label class="crta-note" style="display:flex;align-items:center;gap:8px;margin-top:9px"><input id="crtaCalendarReminders" type="checkbox" checked> Include a reminder for each scheduled theme window</label><div class="crta-image-audit" id="crtaScheduleStatus" role="status" aria-live="polite">Schedule preview will appear after settings load.</div><div class="crta-schedule-list" id="crtaScheduleList"></div></div>
+        </div><div class="crta-actions"><button class="crta-btn" id="crtaAddSchedule" type="button">Add scheduled window</button><button class="crta-btn" id="crtaExportSchedule" type="button">Export calendar (.ics)</button><button class="crta-btn" id="crtaExportScheduleCsv" type="button">Export schedule (.csv)</button></div><div class="crta-controls" style="margin-top:10px"><div class="crta-field"><label for="crtaCalendarReminderTiming">CALENDAR REMINDER LEAD TIME</label><select id="crtaCalendarReminderTiming"><option value="-PT15M">15 minutes before</option><option value="-PT1H">1 hour before</option><option value="-P1D" selected>1 day before</option><option value="-P7D">1 week before</option></select></div></div><label class="crta-note" style="display:flex;align-items:center;gap:8px;margin-top:9px"><input id="crtaCalendarReminders" type="checkbox" checked> Include a reminder for each scheduled theme window</label><div class="crta-image-audit" id="crtaScheduleStatus" role="status" aria-live="polite">Schedule preview will appear after settings load.</div><div class="crta-schedule-list" id="crtaScheduleList"></div></div>
         <div class="crta-block" id="crtaImageManager">
           <h3>Theme image manager</h3>
           <p>Upload replacement photography or assign a hosted image URL. Images are stored in the dedicated CrowRules theme bucket; only active platform administrators can upload or remove files.</p>
@@ -303,6 +303,23 @@
     });
 
     $("crtaScheduleList").addEventListener("click",e=>{const copy=e.target.closest("[data-copy-schedule]");if(copy){const index=Number(copy.dataset.copySchedule),item=schedule[index];if(!item)return;const shiftYear=value=>{const [year,month,day]=value.split("-").map(Number),targetYear=year+1,lastDay=new Date(targetYear,month,0).getDate();return targetYear+"-"+String(month).padStart(2,"0")+"-"+String(Math.min(day,lastDay)).padStart(2,"0")};const start=shiftYear(item.start),end=shiftYear(item.end);if(scheduleOverlap(start,end)){$("crtaStatus").textContent="Cannot copy: next year's dates overlap another scheduled window.";return}schedule.push({theme_id:item.theme_id,start,end});schedule.sort((a,b)=>a.start.localeCompare(b.start));renderSchedule();$("crtaStatus").textContent="Copied "+byId(item.theme_id).label+" to "+start+"–"+end+". Publish platform settings to save it.";return}const remove=e.target.closest("[data-remove-schedule]");if(!remove)return;schedule.splice(Number(remove.dataset.removeSchedule),1);renderSchedule()});
+    $("crtaExportScheduleCsv").addEventListener("click",()=>{
+      if(!schedule.length){$("crtaStatus").textContent="There are no scheduled windows to export.";return}
+      const today=localDateKey();
+      const quote=value=>'"'+String(value??"").replace(/"/g,'""')+'"';
+      const rows=[["Theme","Theme ID","Start date","End date","Schedule status","Overlapping window"]];
+      schedule.forEach(item=>{
+        const valid=item&&item.start&&item.end&&item.end>=item.start&&THEMES.some(theme=>theme.id===item.theme_id);
+        const theme=valid?byId(item.theme_id):null;
+        const status=!valid?"Invalid":item.start<=today&&item.end>=today?"Active":item.end<today?"Past":"Upcoming";
+        const overlap=!!(valid&&scheduleOverlap(item.start,item.end,schedule.indexOf(item)));
+        rows.push([theme?.label||"Unknown theme",item?.theme_id||"",item?.start||"",item?.end||"",status,overlap?"Yes":"No"]);
+      });
+      const csv="\\uFEFF"+rows.map(row=>row.map(quote).join(",")).join("\\r\\n");
+      const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+      const link=document.createElement("a");link.href=url;link.download="crowrules-cinematic-theme-schedule.csv";document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+      $("crtaStatus").textContent="Exported "+schedule.length+" scheduled window"+(schedule.length===1?"":"s")+" to CSV. The export includes invalid entries for review and does not publish changes.";
+    });
     $("crtaExportSchedule").addEventListener("click",()=>{
       const valid=schedule.filter(item=>item&&item.start&&item.end&&item.end>=item.start&&THEMES.some(theme=>theme.id===item.theme_id));
       if(!valid.length){$("crtaStatus").textContent="There are no valid scheduled windows to export.";return}
