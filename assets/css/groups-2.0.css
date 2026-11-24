@@ -1,0 +1,130 @@
+/* CrowRules Groups 2.0 — cinematic + community foundation
+   Additive homepage layer. Existing Groups data and application logic remain untouched. */
+:root{
+  --crg2-bg:#08090c;
+  --crg2-panel:#11151d;
+  --crg2-panel-raised:#171d27;
+  --crg2-line:rgba(255,255,255,.12);
+  --crg2-text:#f7f7f5;
+  --crg2-muted:#aeb5c0;
+  --crg2-red:#e50914;
+  --crg2-gold:#e9c36a;
+  --crg2-radius:18px;
+}
+body[data-groups-page="home"]{background:var(--crg2-bg);color:var(--crg2-text)}
+body[data-groups-page="home"] .gp-hub{background:var(--crg2-bg);color:var(--crg2-text)}
+body[data-groups-page="home"] .gp-hub .topbar{
+  min-height:76px;height:auto;padding:12px clamp(16px,3.5vw,48px);
+  background:rgba(7,9,13,.94);border-bottom:1px solid var(--crg2-line);
+  box-shadow:0 10px 32px #0005;backdrop-filter:blur(18px)
+}
+body[data-groups-page="home"] .gp-hub .topbar .nav-group>summary{color:#e4e5e8}
+body[data-groups-page="home"] .gp-hub .topbar .nav-group>summary:after{color:var(--crg2-gold)}
+body[data-groups-page="home"] .gp-hub .topbar .nav-group[open]>summary{background:#e509141b;color:#fff}
+body[data-groups-page="home"] .gp-hub .topbar .nav-menu{background:#111720;border:1px solid #ffffff20}
+body[data-groups-page="home"] .gp-hub .topbar .nav-menu a:hover{background:#e5091420}
+body[data-groups-page="home"] .gp-hub .crg-hero{
+  min-height:590px;position:relative;isolation:isolate;display:flex;align-items:center;
+  padding:clamp(72px,10vw,132px) 24px;
+  background:radial-gradient(ellipse at 82% 30%,#e5091425,transparent 42%),#08090c
+}
+body[data-groups-page="home"] .gp-hub .crg-hero:before{
+  background:
+    linear-gradient(90deg,#05070df7 0%,#05070ddc 40%,#05070d70 74%,#05070d35 100%),
+    linear-gradient(0deg,#08090c 0%,transparent 30%),
+    url("https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=2200&q=88") center 43%/cover;
+  opacity:.95
+}
+body[data-groups-page="home"] .gp-hub .crg-hero-copy{width:min(1320px,100%);max-width:1320px;margin:0 auto;padding:0}
+body[data-groups-page="home"] .gp-hub .crg-kicker{color:var(--crg2-gold);letter-spacing:.2em}
+body[data-groups-page="home"] .gp-hub .crg-kicker i{background:var(--crg2-red);box-shadow:0 0 18px #e5091480}
+body[data-groups-page="home"] .gp-hub .crg-hero h1{
+  max-width:850px;font-size:clamp(48px,7.5vw,92px);line-height:.98;
+  letter-spacing:-.065em;text-wrap:balance
+}
+body[data-groups-page="home"] .gp-hub .crg-hero h1 em{
+  background:linear-gradient(90deg,#fff 0%,#e9c36a 52%,#e50914 100%);
+  background-clip:text;-webkit-background-clip:text;color:transparent
+}
+body[data-groups-page="home"] .gp-hub .crg-hero-copy>p{
+  max-width:690px;color:#d1d4da;font-size:clamp(15px,1.5vw,18px);line-height:1.75
+}
+body[data-groups-page="home"] .gp-hub .crg-actions{gap:12px;margin-top:28px}
+body[data-groups-page="home"] .gp-hub .crg-btn{
+  min-height:46px;padding:13px 21px;border:1px solid var(--crg2-red);
+  border-radius:999px;background:linear-gradient(110deg,#c90d17,#ed2934);
+  color:#fff;font-weight:850;box-shadow:0 10px 28px #e5091428
+}
+body[data-groups-page="home"] .gp-hub .crg-btn.secondary{
+  background:#08090c88;border:1px solid #ffffff48;color:#fff;box-shadow:none
+}
+body[data-groups-page="home"] .gp-hub .crg-btn:hover{filter:brightness(1.1);transform:translateY(-2px)}
+body[data-groups-page="home"] .gp-hub .crg-section{width:min(1320px,calc(100% - 40px));padding:clamp(42px,6vw,76px) 0}
+body[data-groups-page="home"] .gp-hub .gp-section-title{align-items:end;gap:20px;margin-bottom:24px}
+body[data-groups-page="home"] .gp-hub .gp-section-title h2{
+  color:#fff;font-size:clamp(27px,4vw,42px);line-height:1.08;letter-spacing:-.04em
+}
+body[data-groups-page="home"] .gp-hub .gp-muted{color:var(--crg2-muted);line-height:1.7}
+body[data-groups-page="home"] .gp-hub .gp-section-title>a{color:var(--crg2-gold);font-weight:850}
+body[data-groups-page="home"] .gp-hub .gp-feature-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+body[data-groups-page="home"] .gp-hub .gp-feature{
+  position:relative;isolation:isolate;min-height:220px;padding:26px;
+  overflow:hidden;border:1px solid var(--crg2-line);border-radius:var(--crg2-radius);
+  background:linear-gradient(145deg,#1b2029,#10141b 78%);
+  box-shadow:0 18px 42px #0003
+}
+body[data-groups-page="home"] .gp-hub .gp-feature:after{
+  content:"";position:absolute;z-index:-1;inset:0;
+  background:radial-gradient(circle at 90% 8%,#e5091422,transparent 42%);
+  pointer-events:none
+}
+body[data-groups-page="home"] .gp-hub .gp-feature:nth-child(2):after{background:radial-gradient(circle at 90% 8%,#e9c36a20,transparent 42%)}
+body[data-groups-page="home"] .gp-hub .gp-feature:nth-child(3):after{background:radial-gradient(circle at 90% 8%,#ffffff18,transparent 42%)}
+body[data-groups-page="home"] .gp-hub .gp-feature span{color:var(--crg2-gold);font-size:10px}
+body[data-groups-page="home"] .gp-hub .gp-feature h3{font-size:clamp(20px,2.2vw,26px);line-height:1.18;letter-spacing:-.025em}
+body[data-groups-page="home"] .gp-hub .gp-feature:hover{border-color:#e9c36a88;transform:translateY(-4px);box-shadow:0 24px 55px #0006}
+body[data-groups-page="home"] .gp-hub #gp-preview{padding-top:26px}
+body[data-groups-page="home"] .gp-hub .gp-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+body[data-groups-page="home"] .gp-hub .gp-card{
+  overflow:hidden;border:1px solid var(--crg2-line);border-radius:var(--crg2-radius);
+  background:linear-gradient(150deg,#171d27,#10141b 80%);
+  box-shadow:0 12px 34px #0003;transition:transform .2s,border-color .2s,box-shadow .2s
+}
+body[data-groups-page="home"] .gp-hub .gp-card:hover{transform:translateY(-4px);border-color:#e9c36a70;box-shadow:0 22px 48px #0006}
+body[data-groups-page="home"] .gp-hub .gp-card-cover{height:205px;background-color:#202632}
+body[data-groups-page="home"] .gp-hub .gp-card-content{padding:21px}
+body[data-groups-page="home"] .gp-hub .gp-card-content small{color:var(--crg2-gold);letter-spacing:.12em}
+body[data-groups-page="home"] .gp-hub .gp-card-content h3{font-size:21px;letter-spacing:-.025em}
+body[data-groups-page="home"] .gp-hub .gp-card-content p{color:var(--crg2-muted);line-height:1.65}
+body[data-groups-page="home"] .gp-hub .gp-card-actions .gp-button{
+  min-height:40px;padding:10px 17px;border-radius:999px;
+  background:linear-gradient(110deg,#c90d17,#ed2934);color:#fff
+}
+body[data-groups-page="home"] .gp-hub .gp-status{color:var(--crg2-gold)}
+body[data-groups-page="home"] .gp-hub .gp-notice{background:#141922;border:1px solid #e9c36a55;color:#e6e8eb;border-radius:14px}
+body[data-groups-page="home"] .gp-hub .footer{border-top:1px solid var(--crg2-line);background:#07080b}
+body[data-groups-page="home"] .gp-hub a:focus-visible,
+body[data-groups-page="home"] .gp-hub button:focus-visible{outline:2px solid var(--crg2-gold);outline-offset:3px}
+@media(max-width:900px){
+  body[data-groups-page="home"] .gp-hub .gp-feature-grid,
+  body[data-groups-page="home"] .gp-hub .gp-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  body[data-groups-page="home"] .gp-hub .crg-hero{min-height:540px}
+}
+@media(max-width:620px){
+  body[data-groups-page="home"] .gp-hub .topbar{min-height:70px}
+  body[data-groups-page="home"] .gp-hub .crg-hero{min-height:500px;padding:65px 20px}
+  body[data-groups-page="home"] .gp-hub .crg-hero-copy{padding:28px 0}
+  body[data-groups-page="home"] .gp-hub .crg-hero h1{font-size:clamp(44px,13vw,64px)}
+  body[data-groups-page="home"] .gp-hub .crg-section{width:calc(100% - 30px);padding:42px 0}
+  body[data-groups-page="home"] .gp-hub .gp-feature-grid,
+  body[data-groups-page="home"] .gp-hub .gp-card-grid{grid-template-columns:1fr}
+  body[data-groups-page="home"] .gp-hub .gp-feature{min-height:175px}
+  body[data-groups-page="home"] .gp-hub .gp-section-title{align-items:start;flex-direction:column}
+  body[data-groups-page="home"] .gp-hub .crg-actions{align-items:stretch;flex-direction:column}
+  body[data-groups-page="home"] .gp-hub .crg-btn{text-align:center}
+}
+@media(prefers-reduced-motion:reduce){
+  body[data-groups-page="home"] .gp-hub *{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+  body[data-groups-page="home"] .gp-hub .gp-feature:hover,
+  body[data-groups-page="home"] .gp-hub .gp-card:hover{transform:none}
+}
