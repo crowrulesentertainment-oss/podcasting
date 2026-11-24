@@ -136,7 +136,7 @@ async function getGroupRoom(roomId) {
 }
 
 async function canHostGroupRoom(room, userId) {
-  if (!room || !userId) return false;
+  if (!room || !userId || room.group_id) return false;
   if (room.visibility === "public" && room.created_by === userId) return true;
   if (room.circle_id) {
     const circles = await dbRequest("podcast_community_circles?id=eq." + encodeURIComponent(room.circle_id) + "&select=owner_id&limit=1");
@@ -147,18 +147,11 @@ async function canHostGroupRoom(room, userId) {
     );
     return Array.isArray(members) && members.some((item) => item.role === "moderator");
   }
-  if (room.group_id) {
-    const members = await dbRequest(
-      "crowspace_group_members?group_id=eq." + encodeURIComponent(room.group_id) +
-      "&user_id=eq." + encodeURIComponent(userId) + "&select=role&limit=1"
-    );
-    return Array.isArray(members) && members.some((item) => ["owner", "admin"].includes(item.role));
-  }
   return false;
 }
 
 async function canViewGroupRoom(room, userId) {
-  if (!room || !userId) return false;
+  if (!room || !userId || room.group_id) return false;
   if (room.visibility === "public") return true;
   if (room.circle_id) {
     const circles = await dbRequest("podcast_community_circles?id=eq." + encodeURIComponent(room.circle_id) + "&select=owner_id&limit=1");
@@ -166,13 +159,6 @@ async function canViewGroupRoom(room, userId) {
     const rows = await dbRequest(
       "podcast_community_circle_members?circle_id=eq." + encodeURIComponent(room.circle_id) +
       "&member_id=eq." + encodeURIComponent(userId) + "&select=member_id&limit=1"
-    );
-    return Array.isArray(rows) && rows.length > 0;
-  }
-  if (room.group_id) {
-    const rows = await dbRequest(
-      "crowspace_group_members?group_id=eq." + encodeURIComponent(room.group_id) +
-      "&user_id=eq." + encodeURIComponent(userId) + "&select=user_id&limit=1"
     );
     return Array.isArray(rows) && rows.length > 0;
   }
