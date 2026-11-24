@@ -105,7 +105,14 @@ A branch-only implementation now adds a dedicated bridge from existing `crowspac
 ### Not yet complete / not deployed
 
 - This backend branch has not been deployed to Render. The new database migration has not been applied to staging or production.
-- A Groups browser interface still needs to be wired to the group-room endpoints and the actual Render token-service URL.
+- Added `groups/live-rooms.html` and `assets/js/groups-live-rooms.js`: room record creation (through existing RLS), host start/reconnect/end, public/member audience join, invitation join/create/revoke, audio/video stage, and a Groups navigation entry. The frontend reads `LIVEKIT_TOKEN_SERVICE_URL` from `assets/js/config.js`; it is intentionally blank until the correct deployed Render HTTPS URL is confirmed and configured.
 - The bridge has syntax-level checks only so far. It still requires staging database/RLS tests and end-to-end LiveKit tests with synthetic identities.
 - The service uses an in-memory IP rate limiter; shared rate limiting is needed before horizontal scaling.
 - The earlier creator LiveKit migration `20261114000200_livekit_session_authorization.sql` is still absent from the connected production project; the group bridge uses its own tables and does not depend on that migration.
+
+
+### Browser interface verification
+
+- The new live-room browser module parses successfully, and all 26 static DOM IDs referenced by the module exist in the new HTML page.
+- The Render service module parses successfully after stripping its static import declarations for parser-only validation. A dedicated GitHub Actions syntax workflow was added; no successful run is yet recorded for the latest commit.
+- These checks do not replace real-browser, LiveKit, staging RLS, or end-to-end media tests.
