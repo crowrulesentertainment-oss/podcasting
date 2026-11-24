@@ -284,7 +284,7 @@ const server = createServer(async (req, res) => {
     if (url.pathname === "/api/groups/invitations") {
       const session = await getOwnedGroupSession(body.sessionId, user.id);
       const linkedRoom = session ? await getGroupRoom(session.room_id) : null;
-      if (!session || !linkedRoom || !await canHostGroupRoom(linkedRoom, user.id)) return send(res, 404, { error: "Active group session not found or you are not currently authorized to host it.", requestId }, corsOrigin);
+      if (!session || !linkedRoom || linkedRoom.status !== "live" || !await canHostGroupRoom(linkedRoom, user.id)) return send(res, 404, { error: "Active group session not found, the room is no longer live, or you are not currently authorized to host it.", requestId }, corsOrigin);
       const role = body.role === "listener" ? "listener" : body.role === "guest" ? "guest" : null;
       if (!role) return send(res, 400, { error: "Invitation role must be guest or listener.", requestId }, corsOrigin);
       const expiresInMinutes = Math.max(5, Math.min(1440, Number(body.expiresInMinutes) || 60));
