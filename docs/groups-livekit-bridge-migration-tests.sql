@@ -7,16 +7,17 @@ insert into auth.users (id, email) values
 
 insert into public.crowspace_live_rooms (id, status) values
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'live'),
-  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'ended');
+  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'live'),
+  ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'ended');
 
 insert into public.crowspace_live_room_sessions
   (id, room_id, room_name, owner_user_id, mode, status, expires_at)
 values
   ('11111111-1111-4111-8111-111111111111', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
    'cr-group-test-active', '10000000-0000-0000-0000-000000000001', 'audio', 'active', now() + interval '1 hour'),
-  ('22222222-2222-4222-8222-222222222222', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  ('22222222-2222-4222-8222-222222222222', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
    'cr-group-test-expired', '10000000-0000-0000-0000-000000000001', 'audio', 'active', now() - interval '1 hour'),
-  ('33333333-3333-4333-8333-333333333333', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+  ('33333333-3333-4333-8333-333333333333', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
    'cr-group-test-ended-room', '10000000-0000-0000-0000-000000000001', 'audio', 'active', now() + interval '1 hour');
 
 insert into public.crowspace_live_room_invitations
