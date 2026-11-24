@@ -4,3 +4,6 @@ export const SUPABASE_PUBLISHABLE_KEY="sb_publishable_AdfM5y6RqvF3tbvEVzDZSg_JuG
 export const SITE_BASE="/podcasting/";
 export const FUNCTIONS={showCheckout:"create-podcast-checkout",createProduct:"create-podcast-product",platformCheckout:"membership-checkout",billingPortal:"membership-portal",adminBootstrap:"podcasting-admin-bootstrap",premiumPlayback:"premium-media-playback",premiumUpload:"premium-media-upload",subscriptionCenter:"podcast-subscription-center",creatorConnect:"creator-connect-onboarding",creatorPayoutTransfer:"creator-payout-transfer"};
 export const STORAGE_BUCKET="crowrules-podcast-published";
+
+// Set this to the deployed CrowRules LiveKit token-service HTTPS origin before enabling group rooms.
+export const LIVEKIT_TOKEN_SERVICE_URL = "";
