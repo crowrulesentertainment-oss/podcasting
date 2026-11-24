@@ -278,7 +278,7 @@ const server = createServer(async (req, res) => {
       const invitedUserId = body.invitedUserId ? String(body.invitedUserId) : null;
       const invitedEmail = body.invitedEmail ? String(body.invitedEmail).trim().toLowerCase().slice(0, 254) : null;
       if (invitedUserId && !/^[0-9a-f-]{36}$/i.test(invitedUserId)) return send(res, 400, { error: "Invalid invited user.", requestId }, corsOrigin);
-      if (invitedEmail && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(invitedEmail)) return send(res, 400, { error: "Invalid invited email.", requestId }, corsOrigin);
+      if (invitedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(invitedEmail)) return send(res, 400, { error: "Invalid invited email.", requestId }, corsOrigin);
       const invitationToken = randomBytes(32).toString("base64url");
       const expiresAt = new Date(Date.now() + expiresInMinutes * 60_000).toISOString();
       const rows = await dbRequest("crowspace_live_room_invitations", {
