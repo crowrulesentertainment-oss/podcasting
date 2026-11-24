@@ -60,6 +60,18 @@
   </section>
 
   <section class="glr-panel">
+    <h2>Create a group live room</h2>
+    <p class="glr-small">Room creation is checked by the existing Supabase policies. Public rooms can be created by signed-in members; community and group rooms require the appropriate owner/moderator permissions.</p>
+    <div class="glr-grid">
+      <div class="glr-field"><label for="newRoomTitle">Room title</label><input id="newRoomTitle" maxlength="120" minlength="3" placeholder="Community conversation" autocomplete="off"></div>
+      <div class="glr-field"><label for="newRoomVisibility">Audience</label><select id="newRoomVisibility"><option value="public">Public · signed-in listeners</option><option value="community">Community circle · members only</option><option value="group">Group conversation · members only</option></select></div>
+    </div>
+    <div class="glr-field"><label for="newRoomDescription">Description</label><input id="newRoomDescription" maxlength="2000" placeholder="What are we talking about?"></div>
+    <div class="glr-field" id="newRoomScopeField" hidden><label id="newRoomScopeLabel" for="newRoomScopeId">Community circle ID</label><input id="newRoomScopeId" autocomplete="off" placeholder="Paste the circle or group conversation UUID"></div>
+    <div class="glr-actions"><button class="glr-button secondary" id="createRoomRecord" type="button">Create room record</button></div>
+  </section>
+
+  <section class="glr-panel">
     <h2>Choose a group room</h2>
     <div class="glr-grid">
       <div class="glr-field"><label for="roomId">Existing group live-room ID</label><input id="roomId" autocomplete="off" placeholder="Paste the room UUID"></div>
@@ -95,7 +107,10 @@
     <div class="glr-actions"><button class="glr-button gold" id="createInvite" type="button" disabled>Create private invitation</button></div>
     <div class="glr-invite-result" id="inviteResult" hidden>
       <div class="glr-field"><label for="inviteLink">Private invitation link</label><input id="inviteLink" readonly></div>
-      <button class="glr-button secondary" id="copyInvite" type="button">Copy invitation link</button>
+      <div class="glr-actions">
+        <button class="glr-button secondary" id="copyInvite" type="button">Copy invitation link</button>
+        <button class="glr-button secondary" id="revokeInvite" type="button" disabled>Revoke last invitation</button>
+      </div>
     </div>
   </section>
 </main>
