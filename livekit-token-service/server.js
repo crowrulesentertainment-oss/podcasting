@@ -126,6 +126,68 @@ async function getOwnedSession(sessionId, userId) {
   return Array.isArray(rows) ? rows[0] || null : null;
 }
 
+async function getGroupRoom(roomId) {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(roomId || ""))) return null;
+  const rows = await dbRequest(
+    "crowspace_live_rooms?id=eq." + encodeURIComponent(roomId) +
+    "&select=id,created_by,title,visibility,circle_id,group_id,status,room_type&limit=1"
+  );
+  return Array.isArray(rows) ? rows[0] || null : null;
+}
+
+async function canHostGroupRoom(room, userId) {
+  if (!room || !userId) return false;
+  if (room.created_by === userId) return true;
+  if (room.circle_id) {
+    const circles = await dbRequest("podcast_community_circles?id=eq." + encodeURIComponent(room.circle_id) + "&select=owner_id&limit=1");
+    if (Array.isArray(circles) && circles[0]?.owner_id === userId) return true;
+    const members = await dbRequest(
+      "podcast_community_circle_members?circle_id=eq." + encodeURIComponent(room.circle_id) +
+      "&member_id=eq." + encodeURIComponent(userId) + "&select=role&limit=1"
+    );
+    return Array.isArray(members) && members.some((item) => item.role === "moderator");
+  }
+  if (room.group_id) {
+    const members = await dbRequest(
+      "crowspace_group_members?group_id=eq." + encodeURIComponent(room.group_id) +
+      "&user_id=eq." + encodeURIComponent(userId) + "&select=role&limit=1"
+    );
+    return Array.isArray(members) && members.some((item) => ["owner", "admin"].includes(item.role));
+  }
+  return false;
+}
+
+async function canViewGroupRoom(room, userId) {
+  if (!room || !userId) return false;
+  if (room.visibility === "public") return true;
+  if (room.circle_id) {
+    const rows = await dbRequest(
+      "podcast_community_circle_members?circle_id=eq." + encodeURIComponent(room.circle_id) +
+      "&member_id=eq." + encodeURIComponent(userId) + "&select=member_id&limit=1"
+    );
+    return Array.isArray(rows) && rows.length > 0;
+  }
+  if (room.group_id) {
+    const rows = await dbRequest(
+      "crowspace_group_members?group_id=eq." + encodeURIComponent(room.group_id) +
+      "&user_id=eq." + encodeURIComponent(userId) + "&select=user_id&limit=1"
+    );
+    return Array.isArray(rows) && rows.length > 0;
+  }
+  return false;
+}
+
+async function getOwnedGroupSession(sessionId, userId) {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(sessionId || ""))) return null;
+  const rows = await dbRequest(
+    "crowspace_live_room_sessions?id=eq." + encodeURIComponent(sessionId) +
+    "&owner_user_id=eq." + encodeURIComponent(userId) +
+    "&status=eq.active&expires_at=gt." + encodeURIComponent(new Date().toISOString()) +
+    "&select=id,room_id,room_name,mode,expires_at&limit=1"
+  );
+  return Array.isArray(rows) ? rows[0] || null : null;
+}
+
 function hashInvite(token) {
   return createHash("sha256").update(token).digest("hex");
 }
@@ -159,7 +221,7 @@ const server = createServer(async (req, res) => {
     }, corsOrigin);
   }
 
-  if (!["/api/token", "/api/sessions", "/api/invitations", "/api/invitations/revoke"].includes(url.pathname) || req.method !== "POST") {
+  if (!["/api/token", "/api/sessions", "/api/invitations", "/api/invitations/revoke", "/api/groups/sessions", "/api/groups/sessions/end", "/api/groups/invitations", "/api/groups/invitations/revoke"].includes(url.pathname) || req.method !== "POST") {
     return send(res, 404, { error: "Route not found.", requestId }, corsOrigin);
   }
   if (!rateLimit(req)) return send(res, 429, { error: "Too many requests. Try again shortly.", requestId }, corsOrigin);
@@ -171,6 +233,71 @@ const server = createServer(async (req, res) => {
       return send(res, 503, { error: "LiveKit server credentials are not configured on this service.", requestId }, corsOrigin);
     }
     const body = await readJson(req);
+
+    if (url.pathname === "/api/groups/sessions") {
+      const room = await getGroupRoom(body.roomId);
+      if (!room || room.status === "ended") return send(res, 404, { error: "An active group live-room record was not found.", requestId }, corsOrigin);
+      if (!await canHostGroupRoom(room, user.id)) return send(res, 403, { error: "Only this room's creator or an authorized group owner/moderator can start it.", requestId }, corsOrigin);
+      const mode = body.mode === "video" ? "video" : body.mode === "audio" ? "audio" : null;
+      if (!mode) return send(res, 400, { error: "Choose audio or video for this group room.", requestId }, corsOrigin);
+      const existing = await dbRequest("crowspace_live_room_sessions?room_id=eq." + encodeURIComponent(room.id) + "&status=eq.active&expires_at=gt." + encodeURIComponent(new Date().toISOString()) + "&select=id&limit=1");
+      if (Array.isArray(existing) && existing.length) return send(res, 409, { error: "This group room already has an active LiveKit session.", requestId }, corsOrigin);
+      const roomName = "cr-group-" + randomBytes(18).toString("hex");
+      const expiresAt = new Date(Date.now() + SESSION_TTL_MINUTES * 60_000).toISOString();
+      const rows = await dbRequest("crowspace_live_room_sessions", {
+        method: "POST", prefer: "return=representation",
+        body: [{ room_id: room.id, room_name: roomName, owner_user_id: user.id, mode, status: "active", expires_at: expiresAt }]
+      });
+      if (!Array.isArray(rows) || !rows[0]) throw new Error("The group LiveKit session could not be created.");
+      await dbRequest("crowspace_live_rooms?id=eq." + encodeURIComponent(room.id) + "&status=neq.ended", {
+        method: "PATCH", prefer: "return=representation",
+        body: { status: "live", started_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+      });
+      return send(res, 201, { sessionId: rows[0].id, roomId: room.id, roomName, title: room.title, mode, expiresAt, maxParticipants: MAX_ROOM_PARTICIPANTS }, corsOrigin);
+    }
+
+    if (url.pathname === "/api/groups/sessions/end") {
+      const session = await getOwnedGroupSession(body.sessionId, user.id);
+      if (!session) return send(res, 404, { error: "Active group session not found or you are not its host.", requestId }, corsOrigin);
+      await dbRequest("crowspace_live_room_sessions?id=eq." + encodeURIComponent(session.id), {
+        method: "PATCH", body: { status: "ended", ended_at: new Date().toISOString() }
+      });
+      await dbRequest("crowspace_live_rooms?id=eq." + encodeURIComponent(session.room_id), {
+        method: "PATCH", body: { status: "ended", ended_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+      });
+      return send(res, 200, { ok: true, roomId: session.room_id }, corsOrigin);
+    }
+
+    if (url.pathname === "/api/groups/invitations") {
+      const session = await getOwnedGroupSession(body.sessionId, user.id);
+      if (!session) return send(res, 404, { error: "Active group session not found or you are not its host.", requestId }, corsOrigin);
+      const role = body.role === "listener" ? "listener" : body.role === "guest" ? "guest" : null;
+      if (!role) return send(res, 400, { error: "Invitation role must be guest or listener.", requestId }, corsOrigin);
+      const expiresInMinutes = Math.max(5, Math.min(1440, Number(body.expiresInMinutes) || 60));
+      const maxUses = Math.max(1, Math.min(10, Number(body.maxUses) || 1));
+      const invitedUserId = body.invitedUserId ? String(body.invitedUserId) : null;
+      const invitedEmail = body.invitedEmail ? String(body.invitedEmail).trim().toLowerCase().slice(0, 254) : null;
+      if (invitedUserId && !/^[0-9a-f-]{36}$/i.test(invitedUserId)) return send(res, 400, { error: "Invalid invited user.", requestId }, corsOrigin);
+      if (invitedEmail && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(invitedEmail)) return send(res, 400, { error: "Invalid invited email.", requestId }, corsOrigin);
+      const invitationToken = randomBytes(32).toString("base64url");
+      const expiresAt = new Date(Date.now() + expiresInMinutes * 60_000).toISOString();
+      const rows = await dbRequest("crowspace_live_room_invitations", {
+        method: "POST", prefer: "return=representation",
+        body: [{ session_id: session.id, token_hash: hashInvite(invitationToken), role, invited_user_id: invitedUserId, invited_email: invitedEmail, max_uses: maxUses, expires_at: expiresAt, created_by: user.id }]
+      });
+      if (!Array.isArray(rows) || !rows[0]) throw new Error("The group room invitation could not be created.");
+      return send(res, 201, { invitationToken, invitationId: rows[0].id, expiresAt, role }, corsOrigin);
+    }
+
+    if (url.pathname === "/api/groups/invitations/revoke") {
+      const session = await getOwnedGroupSession(body.sessionId, user.id);
+      if (!session) return send(res, 404, { error: "Active group session not found or you are not its host.", requestId }, corsOrigin);
+      if (!/^[0-9a-f-]{36}$/i.test(String(body.invitationId || ""))) return send(res, 400, { error: "Invalid invitation.", requestId }, corsOrigin);
+      await dbRequest("crowspace_live_room_invitations?id=eq." + encodeURIComponent(body.invitationId) + "&session_id=eq." + encodeURIComponent(session.id) + "&revoked_at=is.null", {
+        method: "PATCH", body: { revoked_at: new Date().toISOString() }
+      });
+      return send(res, 200, { ok: true }, corsOrigin);
+    }
 
     if (url.pathname === "/api/sessions") {
       const creator = await getCreatorForUser(user.id);
@@ -261,7 +388,21 @@ const server = createServer(async (req, res) => {
 
     let session = null;
     let role = null;
-    if (body.sessionId) {
+    if (body.groupSessionId) {
+      session = await getOwnedGroupSession(body.groupSessionId, user.id);
+      if (!session) return send(res, 403, { error: "You are not the host of this active group room.", requestId }, corsOrigin);
+      role = "group_host";
+    } else if (body.groupInvitationToken && typeof body.groupInvitationToken === "string" && body.groupInvitationToken.length >= 40 && body.groupInvitationToken.length <= 100) {
+      const redeemed = await dbRequest("rpc/crowspace_livekit_redeem_room_invitation", {
+        method: "POST",
+        body: { p_token_hash: hashInvite(body.groupInvitationToken), p_user_id: user.id }
+      });
+      if (!redeemed?.session_id || !redeemed?.room_name || !["guest", "listener"].includes(redeemed.role)) {
+        return send(res, 403, { error: "This group-room invitation is invalid, expired, revoked, exhausted, or not assigned to your account.", requestId }, corsOrigin);
+      }
+      session = { id: redeemed.session_id, room_name: redeemed.room_name, mode: redeemed.mode };
+      role = redeemed.role;
+    } else if (body.sessionId) {
       session = await getOwnedSession(body.sessionId, user.id);
       if (!session) return send(res, 403, { error: "You are not the host of this active session.", requestId }, corsOrigin);
       role = "creator";
@@ -298,13 +439,13 @@ const server = createServer(async (req, res) => {
       identity: String(user.id),
       name: displayName,
       ttl: TOKEN_TTL_SECONDS,
-      metadata: JSON.stringify({ role, sessionId: session.id, provider: "crowrules-podcasting" })
+      metadata: JSON.stringify({ role, sessionId: session.id, provider: role === "group_host" || (session.room_name || "").startsWith("cr-group-") ? "crowspace-groups" : "crowrules-podcasting" })
     });
     token.addGrant({
       roomJoin: true,
       room: session.room_name,
       canSubscribe: true,
-      canPublish: role === "creator" || role === "guest",
+      canPublish: role === "creator" || role === "group_host" || role === "guest",
       canPublishData: true
     });
     const jwt = await token.toJwt();
