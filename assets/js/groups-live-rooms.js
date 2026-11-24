@@ -89,10 +89,11 @@ async function startRoom() {
   try {
     const roomId = $("roomId").value.trim();
     if (!roomId) throw new Error("Enter the group live-room ID first.");
-    const started = await api("/api/groups/sessions", { roomId, mode: $("roomMode").value });
-    session = started;
-    const token = await api("/api/token", { groupSessionId: started.sessionId });
-    await connectToLiveKit({ ...token, title: started.title });
+    if (!session?.sessionId) {
+      session = await api("/api/groups/sessions", { roomId, mode: $("roomMode").value });
+    }
+    const token = await api("/api/token", { groupSessionId: session.sessionId });
+    await connectToLiveKit({ ...token, title: session.title });
   } catch (error) {
     $("startRoom").disabled = false;
     status(error.message || "Could not start the group live room.", true);
