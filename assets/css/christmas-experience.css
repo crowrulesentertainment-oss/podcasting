@@ -1,0 +1,84 @@
+/* CrowRules Podcasting — Christmas 2026 seasonal layer.
+   Additive only: this stylesheet decorates existing components and does not replace app layouts. */
+:root{--cr-xmas-red:#a52b35;--cr-xmas-green:#153d32;--cr-xmas-gold:#e8c77b;--cr-xmas-ice:#eaf5fb}
+body[data-site-theme="christmas"]{--cr-site-accent:#e8c77b!important;--cr-site-glow:rgba(83,190,158,.26)!important;--cr-site-panel:rgba(7,24,29,.94)!important;--cr-site-ink:#f8fbff!important;--cr-site-muted:#c8d9df!important}
+.cr-xmas-ribbon{position:relative;z-index:30;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:9px 16px;background:linear-gradient(100deg,#102c26,#182a32 48%,#3b1820);border-block:1px solid rgba(232,199,123,.42);color:#f8f1df;font-size:11px;letter-spacing:.045em;box-shadow:0 8px 26px rgba(0,0,0,.2)}
+.cr-xmas-ribbon strong{color:#f2d68f;letter-spacing:.11em}
+.cr-xmas-ribbon a{color:#fff4d8;text-decoration:none;font-weight:900;border-bottom:1px solid rgba(232,199,123,.65)}
+.cr-xmas-ribbon a:hover{color:#fff}
+.cr-xmas-ribbon .cr-xmas-raven{font-size:17px;filter:drop-shadow(0 0 8px rgba(232,199,123,.2))}
+.cr-xmas-home-hero{position:relative;isolation:isolate;overflow:hidden;min-height:clamp(360px,48vw,590px);display:grid;align-items:center;margin:0 0 26px;padding:clamp(30px,6vw,78px);border:1px solid rgba(232,199,123,.34);border-radius:22px;background:#0a171b url("https://images.unsplash.com/photo-1512389142860-9c449e58a543?auto=format&fit=crop&w=2400&q=90") center 46%/cover no-repeat;box-shadow:0 24px 70px rgba(0,0,0,.35)}
+.cr-xmas-home-hero:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(4,12,17,.94),rgba(4,12,17,.76) 45%,rgba(4,12,17,.18)),linear-gradient(0deg,rgba(4,10,13,.74),transparent 65%)}
+.cr-xmas-home-copy{max-width:680px}
+.cr-xmas-kicker{color:#f0d58f;font-size:10px;font-weight:950;letter-spacing:.2em;text-transform:uppercase}
+.cr-xmas-home-hero h1{margin:14px 0 12px;color:#fff;font-size:clamp(38px,6.5vw,76px);line-height:.98;letter-spacing:-.045em;text-wrap:balance}
+.cr-xmas-home-hero h1 em{color:#f1d58f;font-style:normal}
+.cr-xmas-home-hero p{max-width:590px;color:#e1e8e8;font-size:clamp(14px,1.5vw,17px);line-height:1.7}
+.cr-xmas-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.cr-xmas-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 17px;border-radius:999px;text-decoration:none;font-size:11px;font-weight:950;letter-spacing:.05em}
+.cr-xmas-primary{background:linear-gradient(135deg,#f2d991,#c69a4b);color:#172019!important;box-shadow:0 8px 24px rgba(205,163,82,.2)}
+.cr-xmas-secondary{border:1px solid rgba(255,255,255,.4);background:rgba(7,17,22,.55);color:#fff!important;backdrop-filter:blur(10px)}
+.cr-xmas-home-hero .cr-xmas-scene-note{position:absolute;right:clamp(16px,4vw,42px);bottom:20px;color:#f2e5c6;font-size:10px;letter-spacing:.08em;text-shadow:0 2px 10px #000}
+body.cr-christmas-lodge[data-site-theme="christmas"]{background-image:linear-gradient(180deg,rgba(8,14,14,.72),rgba(8,14,14,.9)),url("https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=2400&q=90"),var(--cr-site-scene)!important;background-position:center,center 45%,center 38%!important;background-size:cover!important}
+body.cr-christmas-lodge[data-site-theme="christmas"] .card,body.cr-christmas-lodge[data-site-theme="christmas"] .panel,body.cr-christmas-lodge[data-site-theme="christmas"] .studio-panel{border-color:rgba(232,199,123,.32)!important;box-shadow:0 16px 42px rgba(0,0,0,.32),inset 0 1px rgba(255,255,255,.04)!important}
+.cr-xmas-world{max-width:1180px;margin:0 auto;padding:28px 18px 76px;color:#f6f7f4}
+.cr-xmas-world-hero{position:relative;overflow:hidden;min-height:430px;display:flex;align-items:end;padding:clamp(24px,5vw,58px);border:1px solid rgba(232,199,123,.35);border-radius:24px;background:linear-gradient(0deg,rgba(3,10,14,.94),rgba(3,10,14,.08) 78%),url("https://images.unsplash.com/photo-1512389142860-9c449e58a543?auto=format&fit=crop&w=2400&q=92") center/cover no-repeat}
+.cr-xmas-world-hero h1{max-width:780px;margin:12px 0;font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.05em}
+.cr-xmas-world-hero h1 span{color:#f0d58f}
+.cr-xmas-world-hero p{max-width:620px;color:#e1e7e8;line-height:1.7}
+.cr-xmas-world-hero .cr-xmas-kicker{color:#f2d68f}
+.cr-xmas-section{margin-top:36px}
+.cr-xmas-section-head{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.cr-xmas-section-head h2{margin:0;color:#f4e5bf;font-size:clamp(23px,3vw,34px)}
+.cr-xmas-section-head p{margin:6px 0 0;color:#b9c8c8;font-size:13px}
+.cr-xmas-destinations{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.cr-xmas-destination{min-height:180px;display:flex;flex-direction:column;justify-content:space-between;padding:20px;border:1px solid rgba(232,199,123,.24);border-radius:17px;background:linear-gradient(145deg,rgba(18,50,43,.94),rgba(9,19,25,.96));text-decoration:none;color:#fff;transition:transform .2s ease,border-color .2s ease}
+.cr-xmas-destination:hover{transform:translateY(-3px);border-color:rgba(232,199,123,.7)}
+.cr-xmas-destination .icon{font-size:28px}
+.cr-xmas-destination strong{display:block;margin-top:18px;color:#f2d991;font-size:16px}
+.cr-xmas-destination small{display:block;margin-top:6px;color:#c6d2d0;line-height:1.5}
+.cr-xmas-calendar{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.cr-xmas-day{position:relative;min-height:118px;padding:14px 10px;border:1px solid rgba(232,199,123,.27);border-radius:13px;background:linear-gradient(145deg,rgba(28,57,49,.95),rgba(11,22,28,.98));color:#fff;text-align:left;cursor:pointer}
+.cr-xmas-day:not(:disabled):hover{border-color:#f0d58f;transform:translateY(-2px)}
+.cr-xmas-day:disabled{opacity:.48;cursor:not-allowed;filter:saturate(.55)}
+.cr-xmas-day b{display:block;color:#f0d58f;font-size:25px}
+.cr-xmas-day span{display:block;margin-top:7px;font-size:10px;font-weight:850;line-height:1.35}
+.cr-xmas-day small{display:block;margin-top:7px;color:#b8c9c7;font-size:9px}
+.cr-xmas-day.is-open{background:linear-gradient(145deg,rgba(92,36,40,.92),rgba(17,24,29,.98))}
+.cr-xmas-dialog{width:min(520px,calc(100% - 28px));padding:26px;border:1px solid rgba(232,199,123,.55);border-radius:20px;background:#101d20;color:#f7f4eb;box-shadow:0 30px 90px #000a}
+.cr-xmas-dialog::backdrop{background:rgba(0,0,0,.72);backdrop-filter:blur(6px)}
+.cr-xmas-dialog h3{color:#f0d58f;font-size:25px}
+.cr-xmas-dialog p{color:#d2ddda;line-height:1.7}
+.cr-xmas-dialog button{padding:10px 16px;border:1px solid #e8c77b;border-radius:999px;background:#e8c77b;color:#132019;font-weight:900;cursor:pointer}
+.cr-xmas-footnote{margin-top:20px;color:#aabbb8;font-size:11px;line-height:1.6}
+@media(max-width:760px){.cr-xmas-home-hero{min-height:470px;padding:25px 20px;border-radius:16px;background-position:58% center}.cr-xmas-home-hero:before{background:linear-gradient(90deg,rgba(4,12,17,.92),rgba(4,12,17,.7)),linear-gradient(0deg,rgba(4,10,13,.8),transparent 70%)}.cr-xmas-destinations{grid-template-columns:1fr 1fr}.cr-xmas-calendar{grid-template-columns:repeat(3,minmax(0,1fr))}.cr-xmas-day{min-height:105px}.cr-xmas-world-hero{min-height:400px;padding:25px 20px}}
+@media(max-width:440px){.cr-xmas-destinations{grid-template-columns:1fr}.cr-xmas-calendar{grid-template-columns:repeat(2,minmax(0,1fr))}.cr-xmas-ribbon{font-size:10px;gap:7px}.cr-xmas-home-hero h1{font-size:43px}}
+@media(prefers-reduced-motion:reduce){.cr-xmas-destination,.cr-xmas-day{transition:none}.cr-xmas-destination:hover,.cr-xmas-day:not(:disabled):hover{transform:none}}
+
+/* Seasonal release override: visually featured sitewide for December without changing saved member themes. */
+body.cr-xmas-season{background-color:#071216!important;background-image:linear-gradient(180deg,rgba(4,12,16,.62),rgba(4,12,16,.88)),url("https://images.unsplash.com/photo-1512389142860-9c449e58a543?auto=format&fit=crop&w=2400&q=90")!important;background-position:center,center 38%!important;background-size:cover!important;background-attachment:fixed!important;color:#f8fbff!important}
+body.cr-xmas-season .topbar,body.cr-xmas-season .crp-nav,body.cr-xmas-season nav{background:linear-gradient(100deg,rgba(8,32,27,.97),rgba(8,15,23,.97))!important;border-bottom:1px solid rgba(232,199,123,.42)!important;box-shadow:0 8px 34px rgba(0,0,0,.36)!important}
+body.cr-xmas-season .card,body.cr-xmas-season .panel,body.cr-xmas-season .stat,body.cr-xmas-season .tile,body.cr-xmas-season .sidebar,body.cr-xmas-season .auth-card{background:linear-gradient(145deg,rgba(12,37,32,.96),rgba(8,17,23,.97))!important;border-color:rgba(232,199,123,.26)!important}
+body.cr-xmas-season .section-head h2,body.cr-xmas-season .page-title,body.cr-xmas-season .eyebrow{color:#f0d58f!important}
+body.cr-xmas-season .btn:not(.secondary),body.cr-xmas-season button:not(.secondary):not(.menu-toggle){border-color:#e8c77b!important}
+body.cr-xmas-season .hero,body.cr-xmas-season .page-hero{border-color:rgba(232,199,123,.32)!important}
+body.cr-xmas-season.cr-christmas-lodge{background-image:linear-gradient(180deg,rgba(8,14,14,.66),rgba(8,14,14,.9)),url("https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=2400&q=90")!important}
+body.cr-xmas-season.cr-christmas-lodge .card,body.cr-xmas-season.cr-christmas-lodge .panel,body.cr-xmas-season.cr-christmas-lodge .studio-panel{border-color:rgba(232,199,123,.36)!important;box-shadow:0 16px 42px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.04)!important}
+
+.cr-xmas-feature-art{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.cr-xmas-feature-art figure{position:relative;min-width:0;overflow:hidden;margin:0;border:1px solid rgba(232,199,123,.28);border-radius:17px;background:#0b191d}
+.cr-xmas-feature-art img{display:block;width:100%;height:clamp(190px,28vw,330px);object-fit:cover}
+.cr-xmas-feature-art figcaption{display:grid;gap:5px;padding:14px 16px}
+.cr-xmas-feature-art figcaption strong{color:#f0d58f;font-size:14px}
+.cr-xmas-feature-art figcaption span{color:#c7d4d1;font-size:11px}
+.cr-xmas-feature-art figcaption a{width:max-content;color:#d9c28d;font-size:10px;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:640px){.cr-xmas-feature-art{grid-template-columns:1fr}.cr-xmas-feature-art img{height:230px}}
+
+/* Standalone pages use the same snow treatment without requiring the full theme engine. */
+.cr-christmas-snow{position:fixed;inset:0;z-index:9988;overflow:hidden;pointer-events:none;opacity:.48}
+.cr-christmas-snow:before,.cr-christmas-snow:after{content:"";position:absolute;inset:-100vh 0 0;background-repeat:repeat;background-size:320px 320px;background-image:radial-gradient(2px 2px at 24px 38px,rgba(255,255,255,.95) 98%,transparent),radial-gradient(1.5px 1.5px at 116px 92px,rgba(255,255,255,.82) 98%,transparent),radial-gradient(2.5px 2.5px at 218px 164px,rgba(226,244,255,.88) 98%,transparent);animation:crXmasFall 22s linear infinite}
+.cr-christmas-snow:after{background-size:460px 460px;background-position:90px 40px;opacity:.45;filter:blur(1px);animation:crXmasFall 32s linear infinite}
+@keyframes crXmasFall{from{transform:translate3d(0,-15vh,0)}to{transform:translate3d(-5vw,100vh,0)}}
+@media(prefers-reduced-motion:reduce){.cr-christmas-snow{display:none!important}}
+
+@media(max-width:760px){body.cr-xmas-season{background-attachment:scroll!important}}
