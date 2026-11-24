@@ -8,6 +8,7 @@ let session = null;
 let room = null;
 let localTracks = [];
 let connected = false;
+let lastInvitationId = null;
 
 function status(message, bad = false) {
   $("roomStatus").textContent = message;
@@ -82,19 +83,66 @@ async function connectToLiveKit(data) {
   setConnected(true);
   status("Connected to " + (data.title || $("roomId").value || "the group live room") + " as " + data.role + ".");
 }
+async function createRoomRecord() {
+  const title = $("newRoomTitle").value.trim();
+  const description = $("newRoomDescription").value.trim();
+  const visibility = $("newRoomVisibility").value;
+  const scopeId = $("newRoomScopeId").value.trim();
+  if (title.length < 3 || title.length > 120) throw new Error("Room title must be between 3 and 120 characters.");
+  if (description.length > 2000) throw new Error("Room description must be 2,000 characters or fewer.");
+  if (visibility !== "public" && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(scopeId)) {
+    throw new Error("Enter the circle or group conversation ID for this audience.");
+  }
+  const { data: userData, error: userError } = await sb.auth.getUser();
+  if (userError || !userData.user) throw new Error("Sign in before creating a group live room.");
+  const record = {
+    created_by: userData.user.id,
+    title,
+    description,
+    room_type: "live_room",
+    visibility,
+    circle_id: visibility === "community" ? scopeId : null,
+    group_id: visibility === "group" ? scopeId : null,
+    status: "scheduled",
+    stream_url: ""
+  };
+  const { data, error } = await sb.from("crowspace_live_rooms").insert(record).select("id").single();
+  if (error) throw new Error(error.message || "The group live-room record could not be created.");
+  $("roomId").value = data.id;
+  history.replaceState(null, "", "?room=" + encodeURIComponent(data.id));
+  status("Group live room created. Its database policies verified your room-creation permissions.");
+}
+
+async function resetFailedConnection() {
+  try {
+    for (const track of localTracks) { track.stop(); track.detach().forEach((element) => element.remove()); }
+    if (room) await room.disconnect();
+  } catch {}
+  room = null;
+  localTracks = [];
+  connected = false;
+  setConnected(false);
+  clearMedia();
+}
+
 async function startRoom() {
   if (connected) return;
   $("startRoom").disabled = true;
   status("Checking group permissions and starting the LiveKit session…");
   try {
-    const roomId = $("roomId").value.trim();
-    if (!roomId) throw new Error("Enter the group live-room ID first.");
+    let roomId = $("roomId").value.trim();
+    if (!roomId && $("newRoomTitle").value.trim()) {
+      await createRoomRecord();
+      roomId = $("roomId").value.trim();
+    }
+    if (!roomId) throw new Error("Enter an existing room ID or create a new group room below.");
     if (!session?.sessionId) {
       session = await api("/api/groups/sessions", { roomId, mode: $("roomMode").value });
     }
     const token = await api("/api/token", { groupSessionId: session.sessionId });
     await connectToLiveKit({ ...token, title: session.title });
   } catch (error) {
+    await resetFailedConnection();
     $("startRoom").disabled = false;
     status(error.message || "Could not start the group live room.", true);
   }
@@ -109,6 +157,7 @@ async function joinAudience() {
     const token = await api("/api/token", { groupRoomId: roomId });
     await connectToLiveKit({ ...token, title: roomId });
   } catch (error) {
+    await resetFailedConnection();
     $("joinAudience").disabled = false;
     status(error.message || "Could not join this room.", true);
   }
@@ -121,6 +170,7 @@ async function joinInvitation() {
     const token = await api("/api/token", { groupInvitationToken: invitationToken });
     await connectToLiveKit({ ...token, title: $("roomId").value.trim() || "Private group room" });
   } catch (error) {
+    await resetFailedConnection();
     $("joinInvite").disabled = false;
     status(error.message || "This invitation could not be used.", true);
   }
@@ -175,12 +225,28 @@ async function createInvitation() {
     url.searchParams.set("room", $("roomId").value.trim());
     url.hash = "invite=" + encodeURIComponent(result.invitationToken);
     $("inviteLink").value = url.toString();
+    lastInvitationId = result.invitationId;
     $("inviteResult").hidden = false;
+    $("revokeInvite").disabled = false;
     status("Invitation created. Share the link privately; it expires " + new Date(result.expiresAt).toLocaleString() + ".");
   } catch (error) {
     status(error.message || "Could not create an invitation.", true);
   } finally {
     $("createInvite").disabled = false;
+  }
+}
+async function revokeInvitation() {
+  if (!session?.sessionId || !lastInvitationId) return;
+  $("revokeInvite").disabled = true;
+  try {
+    await api("/api/groups/invitations/revoke", { sessionId: session.sessionId, invitationId: lastInvitationId });
+    lastInvitationId = null;
+    $("inviteResult").hidden = true;
+    $("inviteLink").value = "";
+    status("The last invitation was revoked.");
+  } catch (error) {
+    $("revokeInvite").disabled = false;
+    status(error.message || "Could not revoke the invitation.", true);
   }
 }
 async function copyInvitation() {
@@ -203,6 +269,12 @@ function init() {
   $("endRoom").addEventListener("click", endRoom);
   $("createInvite").addEventListener("click", createInvitation);
   $("copyInvite").addEventListener("click", copyInvitation);
+  $("revokeInvite").addEventListener("click", revokeInvitation);
+  $("newRoomVisibility").addEventListener("change", () => {
+    const visibility = $("newRoomVisibility").value;
+    $("newRoomScopeField").hidden = visibility === "public";
+    $("newRoomScopeLabel").textContent = visibility === "community" ? "Community circle ID" : "Group conversation ID";
+  });
   clearMedia();
   if (!apiBase()) status("The Groups live-room interface is ready, but the token-service HTTPS URL must be set in assets/js/config.js after the backend is deployed.");
   else status("Sign in, enter a room ID, then start or join according to your group permissions.");
