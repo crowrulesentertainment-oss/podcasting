@@ -28,3 +28,5 @@ jobs:
       - name: Check LiveKit token service syntax
         working-directory: livekit-token-service
         run: npm run check
+      - name: Check Groups live-room browser module syntax
+        run: node --input-type=module --check < assets/js/groups-live-rooms.js
