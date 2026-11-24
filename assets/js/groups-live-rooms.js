@@ -1,5 +1,5 @@
-import { sb } from "../assets/js/client.js";
-import { LIVEKIT_TOKEN_SERVICE_URL } from "../assets/js/config.js";
+import { sb } from "./client.js";
+import { LIVEKIT_TOKEN_SERVICE_URL } from "./config.js";
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
