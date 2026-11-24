@@ -19,8 +19,8 @@
   }
   function previewTheme() {
     if (!PREVIEW || !document.body) return;
-    document.documentElement.dataset.siteTheme = "christmas";
-    document.body.dataset.siteTheme = "christmas";
+    if (document.documentElement.dataset.siteTheme !== "christmas") document.documentElement.dataset.siteTheme = "christmas";
+    if (document.body.dataset.siteTheme !== "christmas") document.body.dataset.siteTheme = "christmas";
     document.documentElement.style.setProperty("--cr-site-accent", "#e8c77b");
     document.documentElement.style.setProperty("--cr-site-glow", "rgba(83,190,158,.26)");
     document.documentElement.style.setProperty("--cr-site-panel", "rgba(7,24,29,.94)");
