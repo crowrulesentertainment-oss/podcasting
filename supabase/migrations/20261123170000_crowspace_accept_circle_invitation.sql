@@ -83,3 +83,22 @@ grant execute on function public.crowspace_accept_circle_invite(uuid) to authent
 
 comment on function public.crowspace_accept_circle_invite(uuid) is
   'Atomically accepts an invitation addressed to auth.uid() and creates member access, including for non-public circles.';
+
+
+-- Public media is visible only when stored beneath the UUID folder of a public circle.
+-- The previous policy used the circle text name instead of the Storage object path.
+drop policy if exists "Public group media is viewable" on storage.objects;
+
+create policy "Public group media is viewable"
+on storage.objects
+for select
+to anon, authenticated
+using (
+  bucket_id = 'podcast-group-media'
+  and (storage.foldername(name))[1] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+  and exists (
+    select 1 from public.podcast_community_circles c
+    where c.id = ((storage.foldername(objects.name))[1])::uuid
+      and c.is_public = true
+  )
+);
