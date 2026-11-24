@@ -41,8 +41,8 @@ create index if not exists crowspace_live_room_invites_session_idx
 
 alter table public.crowspace_live_room_sessions enable row level security;
 alter table public.crowspace_live_room_invitations enable row level security;
-revoke all on public.crowspace_live_room_sessions from anon, authenticated;
-revoke all on public.crowspace_live_room_invitations from anon, authenticated;
+revoke all on public.crowspace_live_room_sessions from public, anon, authenticated;
+revoke all on public.crowspace_live_room_invitations from public, anon, authenticated;
 grant all on public.crowspace_live_room_sessions to service_role;
 grant all on public.crowspace_live_room_invitations to service_role;
 
