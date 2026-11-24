@@ -28,7 +28,7 @@
     document.documentElement.style.setProperty("--cr-site-muted", "#c8d9df");
   }
   function active() {
-    return PREVIEW || document.body?.dataset.siteTheme === "christmas" || (isLivePage && christmasWindow);
+    return PREVIEW || isWorldPage || christmasWindow || document.body?.dataset.siteTheme === "christmas";
   }
   function mountRibbon() {
     if (!active() || document.getElementById("crChristmasRibbon") || isWorldPage) return;
@@ -57,6 +57,8 @@
   }
   function applyPageAtmosphere() {
     if (!active()) return;
+    document.body.classList.add("cr-xmas-season");
+    if (!document.getElementById("crChristmasSnow")) { const snow=document.createElement("div"); snow.id="crChristmasSnow"; snow.className="cr-christmas-snow"; snow.setAttribute("aria-hidden","true"); document.body.appendChild(snow); }
     const page = String(document.body.dataset.page || "").toLowerCase();
     if (page === "creator" || /creator|studio/.test(location.pathname)) document.body.classList.add("cr-christmas-lodge");
   }
