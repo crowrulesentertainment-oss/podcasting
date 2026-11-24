@@ -287,11 +287,11 @@ const server = createServer(async (req, res) => {
       if (!session || !linkedRoom || linkedRoom.status !== "live" || !await canHostGroupRoom(linkedRoom, user.id)) return send(res, 404, { error: "Active group session not found, the room is no longer live, or you are not currently authorized to host it.", requestId }, corsOrigin);
       const role = body.role === "listener" ? "listener" : body.role === "guest" ? "guest" : null;
       if (!role) return send(res, 400, { error: "Invitation role must be guest or listener.", requestId }, corsOrigin);
-      const expiresInMinutes = Math.max(5, Math.min(1440, Number(body.expiresInMinutes) || 60));
-      const maxUses = Math.max(1, Math.min(10, Number(body.maxUses) || 1));
+      const expiresInMinutes = Math.floor(Math.max(5, Math.min(1440, Number(body.expiresInMinutes) || 60)));
+      const maxUses = Math.floor(Math.max(1, Math.min(10, Number(body.maxUses) || 1)));
       const invitedUserId = body.invitedUserId ? String(body.invitedUserId) : null;
       const invitedEmail = body.invitedEmail ? String(body.invitedEmail).trim().toLowerCase().slice(0, 254) : null;
-      if (invitedUserId && !/^[0-9a-f-]{36}$/i.test(invitedUserId)) return send(res, 400, { error: "Invalid invited user.", requestId }, corsOrigin);
+      if (invitedUserId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(invitedUserId)) return send(res, 400, { error: "Invalid invited user.", requestId }, corsOrigin);
       if (invitedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(invitedEmail)) return send(res, 400, { error: "Invalid invited email.", requestId }, corsOrigin);
       const invitationToken = randomBytes(32).toString("base64url");
       const expiresAt = new Date(Date.now() + expiresInMinutes * 60_000).toISOString();
