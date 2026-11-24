@@ -34,7 +34,7 @@ All listed public-schema Groups tables inspected in the audit had RLS enabled.
 
 1. `podcast_community_circles` currently has `is_public`, `is_featured`, `branch_key`, `avatar_image_path`, and `banner_image_path`. It does not currently expose `visibility`, `slug`, or `cover_image_url` columns.
 2. The current `groups-pages.js` rich group query requests some of those absent columns and has a fallback query. Keep the fallback until the schema and frontend are deliberately migrated together.
-3. The current group model distinguishes public versus non-public through a boolean. It does not yet provide a distinct persisted `invite_only` visibility value. Invitation rows exist, but the membership policies and invite acceptance flow need to be reconciled before adding that mode.
+3. The current group model distinguishes public versus non-public through `is_public`; it does not persist a distinct `invite_only` visibility value. Invitation rows are user-bound and RLS-protected, but the old browser acceptance flow only updated the status to accepted and did not create membership. The ordinary self-join policy only allows public circles. A new draft RPC locks and verifies the invite for `auth.uid()`, inserts the member role, and marks the invitation accepted in one transaction; it is in the branch migration and has not been applied to the database.
 4. Posts already support post types, episode links/artwork, media paths, edited/deleted timestamps, pinning, and locking. Replies already exist separately.
 5. `crowspace_live_rooms` already stores title, description, room type, visibility, circle/event/group references, schedule, stream URL, status, and lifecycle timestamps. It does not itself prove that a LiveKit room lifecycle, participant model, or secure token flow is fully wired.
 6. `podcast_production_projects` already supports podcast-scoped production projects and a `source_collaboration_id`; it is not yet a complete group collaboration workspace with project membership, tasks, and resource permissions.
@@ -45,7 +45,9 @@ All listed public-schema Groups tables inspected in the audit had RLS enabled.
 - Group posts have multiple SELECT policies and multiple UPDATE policies. These must be compared for equivalence and unintended access before any cleanup.
 - Circle discovery has separate anonymous and authenticated SELECT policies, which is expected to support public discovery.
 - The current `crowspace_live_rooms` public visibility SELECT policy is scoped to the `authenticated` role. Confirm whether anonymous visitors should be allowed to discover public rooms before changing it.
-- The Storage policy named `Public group media is viewable` appears to compare a circle ID against `storage.foldername(c.name)`. Since `c.name` is the circle's text name, this expression appears inconsistent with the other policies that inspect the storage object's folder path. Verify the exact intended folder convention and policy behavior before relying on public media reads. No policy was changed.
+- The `podcast-group-media` bucket is private, limited to 8 MiB and image MIME types. Upload paths are `<circle-uuid>/<uploader-user-uuid>/<filename>`; upload authorization checks the first folder as the circle UUID and the second as the uploader ID.
+- The existing `Public group media is viewable` SELECT policy used `storage.foldername(c.name)` (the circle's text name) instead of the Storage object path. This is inconsistent with the upload/member policies and prevents reliable public-object authorization. The branch migration replaces that policy with a check against `storage.foldername(objects.name)` and `c.id`; this policy change is draft-only and has not been applied to production.
+- Private group media reads remain membership-gated through the existing member/moderator policy. The frontend uses short-lived signed URLs; those URLs should be treated as temporary access credentials and never persisted in the database.
 
 ## Implementation decisions
 
@@ -64,3 +66,26 @@ All listed public-schema Groups tables inspected in the audit had RLS enabled.
 3. Verify Storage bucket configuration and test public/private media access.
 4. Trace all current page queries against actual column names.
 5. Produce a minimal additive schema proposal only after these checks.
+
+
+## Follow-up audit — invitations, media, and live rooms
+
+### Invitation acceptance
+
+- The invite table contains `id`, `circle_id`, `inviter_id`, `invitee_id`, `status`, `created_at`, and `responded_at`; status is constrained to pending/accepted/declined/cancelled.
+- RLS allows only the addressed invitee to respond while pending; the response check permits accepted or declined. The old frontend's direct UPDATE to accepted was allowed but did not create a membership row.
+- Membership has a composite primary key `(circle_id, member_id)` and role check limited to owner/moderator/member. The normal self-join policy allows only public circles.
+- The branch now calls `crowspace_accept_circle_invite(p_invite_id)` for acceptance. Its draft migration creates a locked, atomic implementation that derives the member from `auth.uid()`, requires the pending invite to be addressed to that user, inserts only the member role, and updates the invite. Declines remain a narrowly scoped direct update. The migration is not applied to production and still requires staging/RLS testing.
+
+### Live audio/video
+
+- The repository includes a LiveKit token service that creates server-generated room names, validates the authenticated Supabase user, checks that the caller owns the active session, and supports hashed, expiring, revocable invitations for guest/listener roles. The token service limits sessions to 10 participants and issues 10-minute tokens.
+- This service uses the `podcasting_livekit_sessions` and `podcasting_livekit_invitations` model; it is not automatically integrated with the separate `crowspace_live_rooms` group/event room records. Group live rooms need a deliberate bridge from a group room record to an authorized LiveKit session, not a browser-generated room name or an untrusted role.
+- The token service has a process-local IP rate limiter. Durable shared rate limiting remains a hardening item. Its host/guest/listener authorization path and invitation redemption should be covered by tests before group-room integration is enabled.
+
+### Remaining validation
+
+- Apply the branch migration only to an isolated staging Supabase project; test accepted invite → membership, wrong-user invite, duplicate membership, expired/non-pending invite, public/private group access, and anonymous/member public media reads.
+- Validate signed URL generation for public and private group assets after the policy fix.
+- Test LiveKit host, guest, and listener flows against the existing service; then design the group-room binding to the existing session model.
+- Run the existing Groups Playwright/Axe suite plus invitation-specific browser and SQL/RLS tests before marking the PR ready.
