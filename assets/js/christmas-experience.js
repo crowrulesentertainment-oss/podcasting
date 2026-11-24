@@ -79,6 +79,7 @@
     observer.observe(document.documentElement, {subtree:true,attributes:true,attributeFilter:["data-site-theme","data-page"]});
     window.addEventListener("cr:site-theme-change", refresh);
     window.addEventListener("cr:page-changed", refresh);
+    window.addEventListener("cr:page-rendered", refresh);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, {once:true});
   else init();
