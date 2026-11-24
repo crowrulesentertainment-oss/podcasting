@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#08090c">
+  <meta name="description" content="Host or join a CrowRules community group live audio or video room.">
+  <title>Group Live Rooms | CrowRules Podcasting</title>
+  <link rel="icon" type="image/png" href="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png">
+  <link rel="stylesheet" href="../assets/css/site.css?v=20261123-groups-2-0-active-v1">
+  <link rel="stylesheet" href="../assets/css/groups-pages.css?v=20261122-groups-workspace-v2">
+  <link rel="stylesheet" href="../assets/css/groups-2.0.css?v=20261123-groups-2-0-foundation-v1">
+  <style>
+    body{background:#08090c;color:#f7f7f5}
+    .glr-main{width:min(1120px,calc(100% - 32px));margin:42px auto 80px}
+    .glr-hero{padding:clamp(28px,5vw,54px);border:1px solid #ffffff20;border-radius:24px;background:radial-gradient(circle at 90% 5%,#e509142d,transparent 38%),linear-gradient(145deg,#171d27,#0d1016);box-shadow:0 25px 70px #0006}
+    .glr-kicker{color:#e9c36a;font-size:11px;font-weight:900;letter-spacing:.2em;text-transform:uppercase}
+    .glr-hero h1{font-size:clamp(32px,5vw,58px);line-height:1.02;letter-spacing:-.05em;margin:12px 0}
+    .glr-hero p{max-width:700px;color:#b9c0cb;line-height:1.7}
+    .glr-panel{margin-top:20px;padding:24px;border:1px solid #ffffff1e;border-radius:18px;background:#11151d}
+    .glr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .glr-field{display:grid;gap:7px;margin:0 0 14px}
+    .glr-field label{font-size:12px;font-weight:800;color:#dce0e7}
+    .glr-field input,.glr-field select{width:100%;min-height:44px;padding:11px 13px;border:1px solid #ffffff25;border-radius:10px;background:#090c12;color:#fff}
+    .glr-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .glr-button{min-height:43px;padding:11px 17px;border:1px solid #e50914;border-radius:999px;background:linear-gradient(110deg,#bd1019,#e50914);color:#fff;font-weight:850;cursor:pointer}
+    .glr-button.secondary{border-color:#ffffff35;background:#ffffff0b;color:#f7f7f5}
+    .glr-button.gold{border-color:#e9c36a;background:#e9c36a;color:#17120a}
+    .glr-button:disabled{opacity:.45;cursor:not-allowed}
+    .glr-status{margin-top:16px;padding:13px 15px;border:1px solid #e9c36a44;border-radius:12px;background:#e9c36a0d;color:#e9c36a;font-size:13px;line-height:1.55}
+    .glr-status.is-error{border-color:#ff5a644d;background:#ff5a6410;color:#ff9299}
+    .glr-stage{min-height:260px;display:grid;place-items:center;gap:10px;padding:12px;border:1px solid #ffffff20;border-radius:16px;background:radial-gradient(circle at 50% 0%,#222b39,#07090d 72%);overflow:hidden}
+    .glr-stage video{width:100%;max-height:560px;object-fit:contain;border-radius:10px}
+    .glr-stage-note{color:#8f98a7;text-align:center}
+    .glr-audio{display:grid;gap:8px}
+    .glr-audio audio{width:100%}
+    .glr-meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap;color:#9ea7b5;font-size:12px}
+    .glr-invite-result{margin-top:14px}
+    .glr-invite-result input{width:100%;min-height:42px;padding:10px;border-radius:9px;border:1px solid #ffffff25;background:#080b10;color:#fff}
+    .glr-small{font-size:12px;color:#9ea7b5;line-height:1.6}
+    @media(max-width:680px){.glr-grid{grid-template-columns:1fr}.glr-panel{padding:17px}.glr-main{margin-top:24px}.glr-stage{min-height:190px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+  <script type="module" src="../assets/js/groups-live-rooms.js?v=20261123-groups-livekit-v1"></script>
+</head>
+<body data-groups-page="live-rooms" data-groups-version="2.0">
+<header class="topbar gp-site-topbar">
+  <a class="brand" href="../" aria-label="CrowRules Podcasting home"><img class="brand-logo" src="https://cevylpnoexugwgygvtgu.supabase.co/storage/v1/object/public/images/podcastinglogo.png" alt="CrowRules Podcasting"></a>
+  <nav class="nav" aria-label="Groups navigation">
+    <a href="index.html">Groups home</a><a href="discover.html">Discover</a><a href="my-groups.html">My groups</a><a href="events.html">Events</a><a href="live-rooms.html" aria-current="page">Live rooms</a>
+  </nav>
+  <div class="actions header-actions"><a class="btn secondary" href="../login.html">Sign in</a><a class="btn" href="../signup.html">Join free</a></div>
+</header>
+<main class="glr-main">
+  <section class="glr-hero">
+    <span class="glr-kicker">CrowSpace · Live</span>
+    <h1>Bring your group into the room.</h1>
+    <p>Host a live audio or video conversation, let members join as listeners, and invite guests privately. Room access is checked by the CrowRules server against the room's current group permissions.</p>
+    <div class="glr-meta"><span id="authState">Checking sign-in…</span><span>Up to 10 participants per room</span><span>Short-lived access tokens</span></div>
+  </section>
+
+  <section class="glr-panel">
+    <h2>Choose a group room</h2>
+    <div class="glr-grid">
+      <div class="glr-field"><label for="roomId">Existing group live-room ID</label><input id="roomId" autocomplete="off" placeholder="Paste the room UUID"></div>
+      <div class="glr-field"><label for="roomMode">Host format</label><select id="roomMode"><option value="audio">Live audio</option><option value="video">Live video</option></select></div>
+    </div>
+    <p class="glr-small">The room must already exist in CrowSpace. Public rooms are listener-accessible to signed-in users; community and group rooms require current membership. A private invitation can grant limited guest or listener access.</p>
+    <div class="glr-actions">
+      <button class="glr-button" id="startRoom" type="button">Start as authorized host</button>
+      <button class="glr-button secondary" id="joinAudience" type="button">Join as audience</button>
+      <button class="glr-button gold" id="joinInvite" type="button" hidden>Join from private invitation</button>
+    </div>
+    <div class="glr-status" id="roomStatus" role="status" aria-live="polite">Checking connection…</div>
+  </section>
+
+  <section class="glr-panel">
+    <h2>Live stage</h2>
+    <div class="glr-stage" id="videoStage"><p class="glr-stage-note">Live video appears here after you connect.</p></div>
+    <div class="glr-audio" id="audioStage" aria-label="Live audio participants"></div>
+    <div class="glr-actions">
+      <button class="glr-button secondary" id="leaveRoom" type="button" disabled>Leave room</button>
+      <button class="glr-button" id="endRoom" type="button" disabled>End live room</button>
+    </div>
+  </section>
+
+  <section class="glr-panel">
+    <h2>Invite a guest or listener</h2>
+    <p class="glr-small">Only an active, authorized host can create or revoke invitations. Share invitation links privately. Guest links allow audio/video publishing; listener links are receive-only.</p>
+    <div class="glr-grid">
+      <div class="glr-field"><label for="inviteRole">Invitation access</label><select id="inviteRole"><option value="guest">Guest · can speak / appear on camera</option><option value="listener">Listener · can only watch / listen</option></select></div>
+      <div class="glr-field"><label for="inviteExpiry">Link expires</label><select id="inviteExpiry"><option value="60">In 1 hour</option><option value="240">In 4 hours</option><option value="1440">In 24 hours</option></select></div>
+    </div>
+    <div class="glr-field"><label for="inviteEmail">Optional invited email restriction</label><input id="inviteEmail" type="email" autocomplete="email" placeholder="person@example.com"></div>
+    <div class="glr-actions"><button class="glr-button gold" id="createInvite" type="button" disabled>Create private invitation</button></div>
+    <div class="glr-invite-result" id="inviteResult" hidden>
+      <div class="glr-field"><label for="inviteLink">Private invitation link</label><input id="inviteLink" readonly></div>
+      <button class="glr-button secondary" id="copyInvite" type="button">Copy invitation link</button>
+    </div>
+  </section>
+</main>
+<footer class="footer gp-site-footer"><div class="container"><p>A CrowRules Entertainment community experience. <a href="index.html">Back to Groups</a></p></div></footer>
+</body>
+</html>
