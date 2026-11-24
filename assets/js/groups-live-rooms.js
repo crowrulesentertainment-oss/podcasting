@@ -37,11 +37,11 @@ async function api(path, body) {
 function setConnected(value) {
   connected = value;
   $("leaveRoom").disabled = !value;
-  $("endRoom").disabled = !value || !session?.sessionId;
+  $("endRoom").disabled = !session?.sessionId;
   $("startRoom").disabled = value;
   $("joinAudience").disabled = value;
   $("joinInvite").disabled = value || !invitationToken;
-  $("createInvite").disabled = !value || !session?.sessionId;
+  $("createInvite").disabled = !session?.sessionId;
 }
 function clearMedia() {
   $("videoStage").replaceChildren();
