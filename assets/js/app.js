@@ -243,19 +243,10 @@ async function syncLivePresence(user){
    if(error){console.warn("Could not resolve member role for live presence:",error.message);isMember=true;accountRole="Listener"}
    else{isMember=!!data;accountRole=data?.role||""}
   }
-  // Never include CrowRules owner/administrator browsing in audience analytics.
-  // This check uses the authenticated member role, not a client-supplied flag,
-  // visitor ID, IP address, or browser fingerprint.
-  const isCrowRulesAdmin=isCrowRulesOperator(livePresenceUserId,accountRole);
-  if(isCrowRulesAdmin){
-   livePresenceRole="operator";
-   // Count the owner's page visits in permanent page-view and daily visitor analytics,
-   // while keeping the owner out of public live-audience presence and geolocation.
-   await recordDailyVisitor();
-   await recordPermanentPageView();
-   await renderLiveCounts();
-   return;
-  }
+  // Owner/administrator browsing is included in public live-audience,
+  // daily visitor, and approximate visitor-location analytics.
+  // Treat the owner/admin as a listener unless their member role identifies
+  // them as a creator/host, so the live-presence RPC accepts the role.
   livePresenceRole=liveRole(accountRole,isMember);
   const touchNow=Date.now();if(touchNow-livePresenceLastTouchAt>=25000){livePresenceLastTouchAt=touchNow;try{const{error}=await sb.rpc("podcasting_touch_live_presence",{p_session_id:getLivePresenceSessionId(),p_role:livePresenceRole,p_page_path:location.pathname||"/",p_country_code:browserCountryCode()});if(error)throw error}catch(error){livePresenceLastTouchAt=0;console.warn("24/7 audience heartbeat could not be recorded:",error?.message||error)}}if(touchNow-(Number(window.__crpGeoLookupAt)||0)>=21600000){const geoSession=getLivePresenceSessionId();let geoDue=true;try{const marker="crp_geo_lookup_"+geoSession,last=Number(localStorage.getItem(marker)||0);geoDue=!last||touchNow-last>=21600000;if(geoDue)localStorage.setItem(marker,String(touchNow))}catch{}if(geoDue){window.__crpGeoLookupAt=touchNow;try{const{data:geoData,error:geoError}=await sb.functions.invoke("podcasting-live-visitor-geolocation",{body:{session_id:geoSession}});if(geoError||geoData?.ok!==true){const retryAt=touchNow-21600000+900000;try{localStorage.setItem("crp_geo_lookup_"+geoSession,String(retryAt))}catch{}window.__crpGeoLookupAt=retryAt;console.warn("Approximate visitor geolocation unavailable:",geoError?.message||geoData?.reason||"unavailable")}}catch(geoError){const retryAt=touchNow-21600000+900000;try{localStorage.setItem("crp_geo_lookup_"+geoSession,String(retryAt))}catch{}window.__crpGeoLookupAt=retryAt;console.warn("Approximate visitor geolocation unavailable:",geoError?.message||geoError)}}}
   await recordDailyVisitor();
