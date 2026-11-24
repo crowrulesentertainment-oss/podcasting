@@ -240,7 +240,11 @@ const server = createServer(async (req, res) => {
       if (!await canHostGroupRoom(room, user.id)) return send(res, 403, { error: "Only this room's creator or an authorized group owner/moderator can start it.", requestId }, corsOrigin);
       const mode = body.mode === "video" ? "video" : body.mode === "audio" ? "audio" : null;
       if (!mode) return send(res, 400, { error: "Choose audio or video for this group room.", requestId }, corsOrigin);
-      const existing = await dbRequest("crowspace_live_room_sessions?room_id=eq." + encodeURIComponent(room.id) + "&status=eq.active&expires_at=gt." + encodeURIComponent(new Date().toISOString()) + "&select=id&limit=1");
+      const nowIso = new Date().toISOString();
+      await dbRequest("crowspace_live_room_sessions?room_id=eq." + encodeURIComponent(room.id) + "&status=eq.active&expires_at=lte." + encodeURIComponent(nowIso), {
+        method: "PATCH", body: { status: "ended", ended_at: nowIso }
+      });
+      const existing = await dbRequest("crowspace_live_room_sessions?room_id=eq." + encodeURIComponent(room.id) + "&status=eq.active&expires_at=gt." + encodeURIComponent(nowIso) + "&select=id&limit=1");
       if (Array.isArray(existing) && existing.length) return send(res, 409, { error: "This group room already has an active LiveKit session.", requestId }, corsOrigin);
       const roomName = "cr-group-" + randomBytes(18).toString("hex");
       const expiresAt = new Date(Date.now() + SESSION_TTL_MINUTES * 60_000).toISOString();
@@ -249,16 +253,23 @@ const server = createServer(async (req, res) => {
         body: [{ room_id: room.id, room_name: roomName, owner_user_id: user.id, mode, status: "active", expires_at: expiresAt }]
       });
       if (!Array.isArray(rows) || !rows[0]) throw new Error("The group LiveKit session could not be created.");
-      await dbRequest("crowspace_live_rooms?id=eq." + encodeURIComponent(room.id) + "&status=neq.ended", {
+      const roomUpdate = await dbRequest("crowspace_live_rooms?id=eq." + encodeURIComponent(room.id) + "&status=neq.ended", {
         method: "PATCH", prefer: "return=representation",
         body: { status: "live", started_at: new Date().toISOString(), updated_at: new Date().toISOString() }
       });
+      if (!Array.isArray(roomUpdate) || !roomUpdate.length) {
+        await dbRequest("crowspace_live_room_sessions?id=eq." + encodeURIComponent(rows[0].id), {
+          method: "PATCH", body: { status: "ended", ended_at: new Date().toISOString() }
+        });
+        return send(res, 409, { error: "The group room was ended before its LiveKit session could start.", requestId }, corsOrigin);
+      }
       return send(res, 201, { sessionId: rows[0].id, roomId: room.id, roomName, title: room.title, mode, expiresAt, maxParticipants: MAX_ROOM_PARTICIPANTS }, corsOrigin);
     }
 
     if (url.pathname === "/api/groups/sessions/end") {
       const session = await getOwnedGroupSession(body.sessionId, user.id);
-      if (!session) return send(res, 404, { error: "Active group session not found or you are not its host.", requestId }, corsOrigin);
+      const linkedRoom = session ? await getGroupRoom(session.room_id) : null;
+      if (!session || !linkedRoom || !await canHostGroupRoom(linkedRoom, user.id)) return send(res, 404, { error: "Active group session not found or you are not currently authorized to host it.", requestId }, corsOrigin);
       await dbRequest("crowspace_live_room_sessions?id=eq." + encodeURIComponent(session.id), {
         method: "PATCH", body: { status: "ended", ended_at: new Date().toISOString() }
       });
@@ -270,7 +281,8 @@ const server = createServer(async (req, res) => {
 
     if (url.pathname === "/api/groups/invitations") {
       const session = await getOwnedGroupSession(body.sessionId, user.id);
-      if (!session) return send(res, 404, { error: "Active group session not found or you are not its host.", requestId }, corsOrigin);
+      const linkedRoom = session ? await getGroupRoom(session.room_id) : null;
+      if (!session || !linkedRoom || !await canHostGroupRoom(linkedRoom, user.id)) return send(res, 404, { error: "Active group session not found or you are not currently authorized to host it.", requestId }, corsOrigin);
       const role = body.role === "listener" ? "listener" : body.role === "guest" ? "guest" : null;
       if (!role) return send(res, 400, { error: "Invitation role must be guest or listener.", requestId }, corsOrigin);
       const expiresInMinutes = Math.max(5, Math.min(1440, Number(body.expiresInMinutes) || 60));
@@ -291,7 +303,8 @@ const server = createServer(async (req, res) => {
 
     if (url.pathname === "/api/groups/invitations/revoke") {
       const session = await getOwnedGroupSession(body.sessionId, user.id);
-      if (!session) return send(res, 404, { error: "Active group session not found or you are not its host.", requestId }, corsOrigin);
+      const linkedRoom = session ? await getGroupRoom(session.room_id) : null;
+      if (!session || !linkedRoom || !await canHostGroupRoom(linkedRoom, user.id)) return send(res, 404, { error: "Active group session not found or you are not currently authorized to host it.", requestId }, corsOrigin);
       if (!/^[0-9a-f-]{36}$/i.test(String(body.invitationId || ""))) return send(res, 400, { error: "Invalid invitation.", requestId }, corsOrigin);
       await dbRequest("crowspace_live_room_invitations?id=eq." + encodeURIComponent(body.invitationId) + "&session_id=eq." + encodeURIComponent(session.id) + "&revoked_at=is.null", {
         method: "PATCH", body: { revoked_at: new Date().toISOString() }
@@ -390,7 +403,8 @@ const server = createServer(async (req, res) => {
     let role = null;
     if (body.groupSessionId) {
       session = await getOwnedGroupSession(body.groupSessionId, user.id);
-      if (!session) return send(res, 403, { error: "You are not the host of this active group room.", requestId }, corsOrigin);
+      const linkedRoom = session ? await getGroupRoom(session.room_id) : null;
+      if (!session || !linkedRoom || linkedRoom.status !== "live" || !await canHostGroupRoom(linkedRoom, user.id)) return send(res, 403, { error: "You are not currently authorized to host this active group room.", requestId }, corsOrigin);
       role = "group_host";
     } else if (body.groupRoomId) {
       const room = await getGroupRoom(body.groupRoomId);
