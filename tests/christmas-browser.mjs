@@ -39,12 +39,14 @@ try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   let mutationCount = 0;
   await page.goto(`${base}/?seasonalPreview=christmas`, { waitUntil: "domcontentloaded" });
-  await page.evaluate(() => new Promise(resolve => {
-    const observer = new MutationObserver(() => {});
+  const mutations = await page.evaluate(() => new Promise(resolve => {
+    let count = 0;
+    const observer = new MutationObserver(records => { count += records.length; });
     observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["data-site-theme", "data-page"] });
-    setTimeout(() => { observer.disconnect(); resolve(); }, 1200);
+    setTimeout(() => { observer.disconnect(); resolve(count); }, 1200);
   }));
-  await page.waitForTimeout(250);
+  assert.ok(mutations < 50, `Preview theme should settle without an observer loop (observed ${mutations} mutations)`);
+  await page.waitForSelector("#crChristmasHomeHero", { timeout: 10000 });
   assert.equal(await page.locator("#crChristmasRibbon").count(), 1, "Sitewide Christmas ribbon should mount once");
   assert.equal(await page.locator("#crChristmasHomeHero").count(), 1, "Home Christmas feature should mount once");
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
