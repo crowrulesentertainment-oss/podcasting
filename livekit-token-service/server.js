@@ -137,7 +137,7 @@ async function getGroupRoom(roomId) {
 
 async function canHostGroupRoom(room, userId) {
   if (!room || !userId) return false;
-  if (room.created_by === userId) return true;
+  if (room.visibility === "public" && room.created_by === userId) return true;
   if (room.circle_id) {
     const circles = await dbRequest("podcast_community_circles?id=eq." + encodeURIComponent(room.circle_id) + "&select=owner_id&limit=1");
     if (Array.isArray(circles) && circles[0]?.owner_id === userId) return true;
@@ -392,6 +392,15 @@ const server = createServer(async (req, res) => {
       session = await getOwnedGroupSession(body.groupSessionId, user.id);
       if (!session) return send(res, 403, { error: "You are not the host of this active group room.", requestId }, corsOrigin);
       role = "group_host";
+    } else if (body.groupRoomId) {
+      const room = await getGroupRoom(body.groupRoomId);
+      if (!room || room.status !== "live" || !await canViewGroupRoom(room, user.id)) {
+        return send(res, 403, { error: "This live room is not available to your account or group membership.", requestId }, corsOrigin);
+      }
+      const active = await dbRequest("crowspace_live_room_sessions?room_id=eq." + encodeURIComponent(room.id) + "&status=eq.active&expires_at=gt." + encodeURIComponent(new Date().toISOString()) + "&select=id,room_id,room_name,mode&limit=1");
+      if (!Array.isArray(active) || !active[0]) return send(res, 404, { error: "This group room does not have an active LiveKit session.", requestId }, corsOrigin);
+      session = active[0];
+      role = "listener";
     } else if (body.groupInvitationToken && typeof body.groupInvitationToken === "string" && body.groupInvitationToken.length >= 40 && body.groupInvitationToken.length <= 100) {
       const redeemed = await dbRequest("rpc/crowspace_livekit_redeem_room_invitation", {
         method: "POST",
