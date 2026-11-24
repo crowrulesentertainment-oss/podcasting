@@ -128,3 +128,27 @@ body[data-groups-page="home"] .gp-hub button:focus-visible{outline:2px solid var
   body[data-groups-page="home"] .gp-hub .gp-feature:hover,
   body[data-groups-page="home"] .gp-hub .gp-card:hover{transform:none}
 }
+
+/* Shared 2.0 visual language for every Groups workspace page. */
+body[data-groups-page]{--gp-accent:var(--crg2-red);--gp-highlight:var(--crg2-gold);--gp-panel:var(--crg2-panel);--gp-line:var(--crg2-line);background:var(--crg2-bg)!important;color:var(--crg2-text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body[data-groups-page] .gp-header,body[data-groups-page] header.gp-header{background:rgba(7,9,13,.96);border-bottom:1px solid var(--crg2-line);backdrop-filter:blur(18px)}
+body[data-groups-page] .gp-brand{letter-spacing:.1em}
+body[data-groups-page] .gp-brand b{color:var(--crg2-red)}
+body[data-groups-page] .gp-header nav a{color:#c8cbd2}
+body[data-groups-page] .gp-header nav a:hover,body[data-groups-page] .gp-header nav a.active{color:#fff}
+body[data-groups-page] .gp-main{width:min(1320px,calc(100% - 40px));max-width:1320px;padding:clamp(30px,5vw,64px) 0 76px}
+body[data-groups-page] .gp-main h1{color:#fff;letter-spacing:-.05em}
+body[data-groups-page] .gp-kicker{color:var(--crg2-gold)}
+body[data-groups-page] .gp-lead,body[data-groups-page] .gp-muted{color:var(--crg2-muted)}
+body[data-groups-page] .gp-panel,body[data-groups-page] .gp-post,body[data-groups-page] .gp-activity-card,body[data-groups-page] .gp-invite-card,body[data-groups-page] .gp-image-suggestion,body[data-groups-page] .gp-event-card,body[data-groups-page] .gp-recognition-card,body[data-groups-page] .gp-member{border:1px solid var(--crg2-line);border-radius:var(--crg2-radius);background:linear-gradient(150deg,#171d27,#10141b 80%);box-shadow:0 12px 34px #0003}
+body[data-groups-page] .gp-button,body[data-groups-page] .gp-cta,body[data-groups-page] .gp2-button{border:1px solid #c90d17;border-radius:999px;background:linear-gradient(110deg,#c90d17,#ed2934);color:#fff;min-height:42px;padding:11px 18px;font-weight:850}
+body[data-groups-page] .gp-button.ghost,body[data-groups-page] .gp2-button.ghost{background:#ffffff09;border-color:#ffffff35;color:#f2f2f2}
+body[data-groups-page] .gp-button.danger{background:#5b2027;border-color:#a84b53}
+body[data-groups-page] .gp-notice{border:1px solid #e9c36a55;border-radius:14px;background:#141922;color:#e6e8eb}
+body[data-groups-page] .gp-status{color:var(--crg2-gold)}
+body[data-groups-page] .gp-toolbar,body[data-groups-page] .gp-event-filters,body[data-groups-page] .gp-image-mod-toolbar,body[data-groups-page] .gp-activity-toolbar{border:1px solid var(--crg2-line);border-radius:var(--crg2-radius);background:linear-gradient(145deg,#151b25,#10141b)}
+body[data-groups-page] .gp-form,body[data-groups-page] .gp2-composer{border:1px solid var(--crg2-line);border-radius:var(--crg2-radius);background:linear-gradient(150deg,#171d27,#10141b)}
+body[data-groups-page] input,body[data-groups-page] select,body[data-groups-page] textarea{accent-color:var(--crg2-red)}
+body[data-groups-page] input:focus-visible,body[data-groups-page] select:focus-visible,body[data-groups-page] textarea:focus-visible,body[data-groups-page] button:focus-visible,body[data-groups-page] a:focus-visible{outline:2px solid var(--crg2-gold);outline-offset:3px}
+body[data-groups-page] a{ text-underline-offset:3px }
+@media(max-width:620px){body[data-groups-page] .gp-main{width:calc(100% - 30px);padding:36px 0 56px}}
