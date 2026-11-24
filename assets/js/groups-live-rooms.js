@@ -94,8 +94,11 @@ async function createRoomRecord() {
   const scopeId = $("newRoomScopeId").value.trim();
   if (title.length < 3 || title.length > 120) throw new Error("Room title must be between 3 and 120 characters.");
   if (description.length > 2000) throw new Error("Room description must be 2,000 characters or fewer.");
-  if (visibility !== "public" && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(scopeId)) {
-    throw new Error("Enter the circle or group conversation ID for this audience.");
+  if (!["public", "community"].includes(visibility)) {
+    throw new Error("Choose Public or an existing CrowRules community group.");
+  }
+  if (visibility === "community" && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(scopeId)) {
+    throw new Error("Enter the ID of an existing CrowRules community group.");
   }
   const { data: userData, error: userError } = await sb.auth.getUser();
   if (userError || !userData.user) throw new Error("Sign in before creating a group live room.");
@@ -106,7 +109,7 @@ async function createRoomRecord() {
     room_type: "live_room",
     visibility,
     circle_id: visibility === "community" ? scopeId : null,
-    group_id: visibility === "group" ? scopeId : null,
+    group_id: null,
     status: "scheduled",
     stream_url: ""
   };
@@ -283,7 +286,7 @@ function init() {
   $("newRoomVisibility").addEventListener("change", () => {
     const visibility = $("newRoomVisibility").value;
     $("newRoomScopeField").hidden = visibility === "public";
-    $("newRoomScopeLabel").textContent = visibility === "community" ? "Community circle ID" : "Group conversation ID";
+    $("newRoomScopeLabel").textContent = "Existing CrowRules community group ID";
   });
   clearMedia();
   if (!apiBase()) status("The Groups live-room interface is ready, but the token-service HTTPS URL must be set in assets/js/config.js after the backend is deployed.");
