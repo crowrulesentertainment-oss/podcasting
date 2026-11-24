@@ -76,7 +76,7 @@
     if (PREVIEW || isWorldPage || (isLivePage && christmasWindow)) loadCss();
     refresh();
     const observer = new MutationObserver(() => refresh());
-    observer.observe(document.body, {subtree:true,childList:true,attributes:true,attributeFilter:["data-site-theme","data-page"]});
+    observer.observe(document.documentElement, {subtree:true,attributes:true,attributeFilter:["data-site-theme","data-page"]});
     window.addEventListener("cr:site-theme-change", refresh);
     window.addEventListener("cr:page-changed", refresh);
   }
