@@ -1,0 +1,65 @@
+name: Groups LiveKit bridge migration tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/*crowspace_group_livekit_bridge.sql"
+      - "docs/groups-livekit-bridge-migration-tests.sql"
+      - ".github/workflows/groups-livekit-migration.yml"
+  push:
+    branches: [groups-2.0]
+    paths:
+      - "supabase/migrations/*crowspace_group_livekit_bridge.sql"
+      - "docs/groups-livekit-bridge-migration-tests.sql"
+      - ".github/workflows/groups-livekit-migration.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  migration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: groups_livekit_test
+          POSTGRES_USER: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d groups_livekit_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: groups_livekit_test
+      PGUSER: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create isolated Supabase-compatible base schema
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 <<'SQL'
+          create role anon nologin;
+          create role authenticated nologin;
+          create role service_role nologin bypassrls;
+          create schema auth;
+          create table auth.users (id uuid primary key, email text);
+          create table public.crowspace_live_rooms (
+            id uuid primary key,
+            status text not null
+          );
+          SQL
+      - name: Apply Groups LiveKit bridge migration
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261123230000_crowspace_group_livekit_bridge.sql
+      - name: Test invitation redemption and authorization boundaries
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f docs/groups-livekit-bridge-migration-tests.sql
