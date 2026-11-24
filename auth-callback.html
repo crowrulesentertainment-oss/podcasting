@@ -45,7 +45,14 @@ const allowedTypes = new Set(["signup","invite","magiclink","recovery","email_ch
 const safeLogin = suffix => location.replace("./login.html" + suffix);
 function fail(message) {
   title.textContent = "We couldn't complete verification";
-  description.textContent = message;
+  const provider = params.get("provider") || "";
+  const safeMessage = String(message || "An unexpected verification error occurred.");
+  if (/unable to exchange external code/i.test(safeMessage)) {
+    const label = provider === "azure" ? "Microsoft" : provider === "discord" ? "Discord" : provider === "twitch" ? "Twitch" : provider === "google" ? "Google" : "Your sign-in provider";
+    description.textContent = label + " could not complete its secure code exchange. This usually means the provider credentials or callback configuration need attention. For Microsoft, check the Entra application Client ID and replace an expired/incorrect secret in Supabase with the secret VALUE, not the Secret ID. No password or account data was changed.";
+  } else {
+    description.textContent = safeMessage;
+  }
   status.textContent = "Your account and existing data have not been changed by this page.";
   const link = document.createElement("a");
   link.href = "./login.html";
