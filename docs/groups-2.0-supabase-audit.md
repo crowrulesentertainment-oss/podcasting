@@ -124,3 +124,16 @@ A branch-only implementation now adds a dedicated bridge from existing `crowspac
 - Follow-up branch `groups-live-rooms-circle-authorization` updates backend host/view authorization to use `podcast_community_circles.owner_id` and `podcast_community_circle_members(circle_id, member_id, role)` only.
 - The live-room creation UI now offers Public or Existing community group; new room records write `circle_id` and leave `group_id` null. Legacy records with a non-null `group_id` are denied by the LiveKit authorization layer until their relationship is explicitly migrated and verified.
 - No database migration, production data change, Render configuration, LiveKit credential, or deployment is included.
+
+## Groups 2.1 — invitation workflow follow-up
+
+A read-only production check confirmed that `podcast_community_circle_invites` exists, but `public.crowspace_accept_circle_invite(uuid)` is not currently installed in the connected production database. The existing invitations page calls that RPC for acceptance, so the end-to-end invite flow requires this function before invitees can join private circles safely.
+
+The Groups 2.1 draft adds `20261124210000_crowspace_accept_circle_invite.sql` to the development branch only. The function:
+- derives the accepting member exclusively from `auth.uid()`;
+- locks and verifies a pending invitation addressed to that user;
+- inserts the member with the ordinary `member` role (never owner or moderator);
+- accepts the invitation in the same transaction;
+- is executable by authenticated users only.
+
+This migration has **not** been applied to production. No production schema, policies, or data were changed for this follow-up. Apply only after separate explicit approval and staging validation.
