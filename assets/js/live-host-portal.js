@@ -15,7 +15,8 @@ async function connect(){
   const {Room,RoomEvent,Track,createLocalTracks}=await import("https://esm.sh/livekit-client@2.25.0");
   room=new Room({adaptiveStream:true,dynacast:true});
   room.on(RoomEvent.TrackSubscribed,(track)=>{const el=track.attach();if(track.kind==="video"){$("videoStage").replaceChildren(el)}else document.body.append(el)});
-  room.on(RoomEvent.LocalTrackUnpublished,(publication)=>{if(publication.source===Track.Source.ScreenShare){sharingScreen=false;$("shareScreen").textContent="Share screen / PS5 gameplay"}});\n  room.on(RoomEvent.Disconnected,()=>{connected=false;sharingScreen=false;$("connect").disabled=false;$("shareScreen").disabled=true;$("shareScreen").textContent="Share screen / PS5 gameplay";$("leave").disabled=true;status("Disconnected from the room.",true);localTracks=[];room=null;clearStage()});
+  room.on(RoomEvent.LocalTrackUnpublished,(publication)=>{if(publication.source===Track.Source.ScreenShare){sharingScreen=false;$("shareScreen").textContent="Share screen / PS5 gameplay"}});
+  room.on(RoomEvent.Disconnected,()=>{connected=false;sharingScreen=false;$("connect").disabled=false;$("shareScreen").disabled=true;$("shareScreen").textContent="Share screen / PS5 gameplay";$("leave").disabled=true;status("Disconnected from the room.",true);localTracks=[];room=null;clearStage()});
   await room.connect(data.url,data.token);
   localTracks=await createLocalTracks({audio:true,video:true});
   for(const track of localTracks){await room.localParticipant.publishTrack(track);if(track.kind==="video"){$("videoStage").replaceChildren(track.attach())}}
