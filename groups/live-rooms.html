@@ -61,13 +61,13 @@
 
   <section class="glr-panel">
     <h2>Create a group live room</h2>
-    <p class="glr-small">Room creation is checked by the existing Supabase policies. Public rooms can be created by signed-in members; community and group rooms require the appropriate owner/moderator permissions.</p>
+    <p class="glr-small">Room creation is checked by the existing Supabase policies. Public rooms can be created by signed-in members; private community rooms use your existing CrowRules group membership and owner/moderator permissions.</p>
     <div class="glr-grid">
       <div class="glr-field"><label for="newRoomTitle">Room title</label><input id="newRoomTitle" maxlength="120" minlength="3" placeholder="Community conversation" autocomplete="off"></div>
-      <div class="glr-field"><label for="newRoomVisibility">Audience</label><select id="newRoomVisibility"><option value="public">Public · signed-in listeners</option><option value="community">Community circle · members only</option><option value="group">Group conversation · members only</option></select></div>
+      <div class="glr-field"><label for="newRoomVisibility">Audience</label><select id="newRoomVisibility"><option value="public">Public · signed-in listeners</option><option value="community">Existing community group · members only</option></select></div>
     </div>
     <div class="glr-field"><label for="newRoomDescription">Description</label><input id="newRoomDescription" maxlength="2000" placeholder="What are we talking about?"></div>
-    <div class="glr-field" id="newRoomScopeField" hidden><label id="newRoomScopeLabel" for="newRoomScopeId">Community circle ID</label><input id="newRoomScopeId" autocomplete="off" placeholder="Paste the circle or group conversation UUID"></div>
+    <div class="glr-field" id="newRoomScopeField" hidden><label id="newRoomScopeLabel" for="newRoomScopeId">Existing CrowRules community group ID</label><input id="newRoomScopeId" autocomplete="off" placeholder="Paste the ID from your existing CrowRules group"></div>
     <div class="glr-actions"><button class="glr-button secondary" id="createRoomRecord" type="button">Create room record</button></div>
   </section>
 
