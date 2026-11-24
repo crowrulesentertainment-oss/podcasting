@@ -61,6 +61,10 @@ async function connectToLiveKit(data) {
   });
   room.on(RoomEvent.TrackUnsubscribed, (track) => track.detach().forEach((element) => element.remove()));
   room.on(RoomEvent.Disconnected, () => {
+    for (const track of localTracks) {
+      track.stop();
+      track.detach().forEach((element) => element.remove());
+    }
     connected = false;
     localTracks = [];
     room = null;
