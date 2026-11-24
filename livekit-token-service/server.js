@@ -287,11 +287,16 @@ const server = createServer(async (req, res) => {
       const session = await getOwnedGroupSession(body.sessionId, user.id);
       const linkedRoom = session ? await getGroupRoom(session.room_id) : null;
       if (!session || !linkedRoom || !await canHostGroupRoom(linkedRoom, user.id)) return send(res, 404, { error: "Active group session not found or you are not currently authorized to host it.", requestId }, corsOrigin);
+      const liveRooms = await roomService.listRooms([session.room_name]);
+      if (Array.isArray(liveRooms) && liveRooms.length) {
+        await roomService.deleteRoom(session.room_name);
+      }
+      const endedAt = new Date().toISOString();
       await dbRequest("crowspace_live_room_sessions?id=eq." + encodeURIComponent(session.id), {
-        method: "PATCH", body: { status: "ended", ended_at: new Date().toISOString() }
+        method: "PATCH", body: { status: "ended", ended_at: endedAt }
       });
       await dbRequest("crowspace_live_rooms?id=eq." + encodeURIComponent(session.room_id), {
-        method: "PATCH", body: { status: "ended", ended_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+        method: "PATCH", body: { status: "ended", ended_at: endedAt, updated_at: endedAt }
       });
       return send(res, 200, { ok: true, roomId: session.room_id }, corsOrigin);
     }
