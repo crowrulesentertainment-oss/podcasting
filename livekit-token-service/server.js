@@ -267,10 +267,21 @@ const server = createServer(async (req, res) => {
         throw error;
       }
 
-      const roomUpdate = await dbRequest("crowspace_live_rooms?id=eq." + encodeURIComponent(room.id) + "&status=neq.ended", {
-        method: "PATCH", prefer: "return=representation",
-        body: { status: "live", started_at: new Date().toISOString(), updated_at: new Date().toISOString() }
-      });
+      let roomUpdate = null;
+      try {
+        roomUpdate = await dbRequest("crowspace_live_rooms?id=eq." + encodeURIComponent(room.id) + "&status=neq.ended", {
+          method: "PATCH", prefer: "return=representation",
+          body: { status: "live", started_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+        });
+      } catch (error) {
+        await roomService.deleteRoom(roomName).catch((cleanupError) => {
+          console.error(JSON.stringify({ event: "livekit_room_cleanup_failed", roomName, message: cleanupError?.message || "unknown" }));
+        });
+        await dbRequest("crowspace_live_room_sessions?id=eq." + encodeURIComponent(rows[0].id), {
+          method: "PATCH", body: { status: "ended", ended_at: new Date().toISOString() }
+        });
+        throw error;
+      }
       if (!Array.isArray(roomUpdate) || !roomUpdate.length) {
         await roomService.deleteRoom(roomName).catch((error) => {
           console.error(JSON.stringify({ event: "livekit_room_cleanup_failed", roomName, message: error?.message || "unknown" }));
