@@ -59,7 +59,7 @@ Use a staging Supabase project and staging LiveKit credentials for integration t
 
 ## CrowSpace group live-room bridge (Groups 2.0)
 
-The group bridge is additive and separate from the existing creator/podcast sessions and the Live Network Edge Function. It attaches a private LiveKit session to an existing `crowspace_live_rooms` row.
+The group bridge is additive and separate from the existing creator/podcast sessions and the Live Network Edge Function. It attaches a private LiveKit session to an existing `crowspace_live_rooms` row. The browser UI is `groups/live-rooms.html` with `assets/js/groups-live-rooms.js`; add the deployed Render service HTTPS origin to `LIVEKIT_TOKEN_SERVICE_URL` in `assets/js/config.js` after the backend is deployed.
 
 Apply `supabase/migrations/20261123230000_crowspace_group_livekit_bridge.sql` to a dedicated staging Supabase project before testing these endpoints. Do not apply it to production until the migration and RLS checks have been reviewed and approved.
 
