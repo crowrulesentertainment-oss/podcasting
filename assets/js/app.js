@@ -81,6 +81,9 @@ async function navigateTo(input,{history=true,scroll=true}={}){
   if(description){let meta=document.querySelector('meta[name="description"]');if(!meta){meta=document.createElement("meta");meta.name="description";document.head.appendChild(meta)}meta.content=description}
   if(history)window.history.pushState({crowrules:true},"",target.href);
   await renderCurrentPage();syncPrimaryNavigation();closePrimaryNavigation();
+  // Each seamless route transition is a new page view, even in the same tab.
+  window.__crpPermanentPageViewFor=null;window.__crpPermanentPageViewPromise=null;window.__crpPermanentPageViewPromisePath=null;
+  recordPermanentPageView();
   if(scroll)window.scrollTo({top:0,behavior:"instant"});
  }catch(error){console.error("Seamless navigation failed:",error);location.assign(target.href)}
 }
@@ -198,7 +201,6 @@ async function refreshAdminLivePeak(){
 }
 async function recordDailyVisitor(){
  try{
-  if(isCrowRulesOperator())return;
   const visitorKey=liveVisitorId();if(!visitorKey)return;
   const visitDay=new Date().toISOString().slice(0,10),marker="crp_visitor_recorded_"+visitDay;
   try{if(localStorage.getItem(marker)===visitorKey)return}catch{}
@@ -208,25 +210,24 @@ async function recordDailyVisitor(){
  }catch(error){console.warn("Daily visitor analytics could not be recorded:",error?.message||error)}
 }
 async function recordPermanentPageView(){
- if(isCrowRulesOperator())return true;
- if(window.__crpPermanentPageViewRecorded)return true;
- if(window.__crpPermanentPageViewPromise)return window.__crpPermanentPageViewPromise;
- // The page-view Edge Function validates the public API key and writes through
- // its server-side service role. Anonymous visitors must be included too.
- // Never send or persist visitor IP addresses from this browser code.
- const idempotencyKey=window.__crpPermanentPageViewKey||(window.__crpPermanentPageViewKey=crpUuid());
  const pageUrl=new URL(location.href),pagePath=pageUrl.pathname.slice(0,300)||"/";
+ if(window.__crpPermanentPageViewFor===pagePath)return true;
+ if(window.__crpPermanentPageViewPromise&&window.__crpPermanentPageViewPromisePath===pagePath)return window.__crpPermanentPageViewPromise;
+ // Public page-view ingestion validates the publishable key and writes server-side.
+ // No visitor IP address is sent or stored by this browser code.
+ const idempotencyKey=crpUuid();
  let referrerDomain=null;try{if(document.referrer)referrerDomain=new URL(document.referrer).hostname.toLowerCase()}catch{}
  const width=Math.max(document.documentElement?.clientWidth||0,window.innerWidth||0);
  const deviceType=width<=767?"mobile":width<=1024?"tablet":"desktop";
+ window.__crpPermanentPageViewPromisePath=pagePath;
  window.__crpPermanentPageViewPromise=(async()=>{
   const{data,error}=await sb.functions.invoke("podcasting-record-page-view",{body:{
    idempotency_key:idempotencyKey,visitor_id:liveVisitorId(),session_id:getLivePresenceSessionId(),
    page_path:pagePath,page_title:(document.title||"").slice(0,180),referrer_domain:referrerDomain,device_type:deviceType
   }});
   if(error||data?.ok!==true)throw(error||new Error(data?.reason||"Page view was not recorded"));
-  window.__crpPermanentPageViewRecorded=true;return true;
- })().catch(error=>{window.__crpPermanentPageViewPromise=null;console.warn("Permanent page-view analytics unavailable:",error?.message||error);return false});
+  window.__crpPermanentPageViewFor=pagePath;return true;
+ })().catch(error=>{if(window.__crpPermanentPageViewPromisePath===pagePath){window.__crpPermanentPageViewPromise=null;window.__crpPermanentPageViewPromisePath=null}console.warn("Permanent page-view analytics unavailable:",error?.message||error);return false});
  return window.__crpPermanentPageViewPromise;
 }
 async function syncLivePresence(user){
@@ -248,8 +249,10 @@ async function syncLivePresence(user){
   const isCrowRulesAdmin=isCrowRulesOperator(livePresenceUserId,accountRole);
   if(isCrowRulesAdmin){
    livePresenceRole="operator";
-   // Keep the public live-count display current, but do not create a heartbeat,
-   // geolocation record, daily visitor event, or permanent page-view event.
+   // Count the owner's page visits in permanent page-view and daily visitor analytics,
+   // while keeping the owner out of public live-audience presence and geolocation.
+   await recordDailyVisitor();
+   await recordPermanentPageView();
    await renderLiveCounts();
    return;
   }
