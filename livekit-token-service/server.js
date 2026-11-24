@@ -161,6 +161,8 @@ async function canViewGroupRoom(room, userId) {
   if (!room || !userId) return false;
   if (room.visibility === "public") return true;
   if (room.circle_id) {
+    const circles = await dbRequest("podcast_community_circles?id=eq." + encodeURIComponent(room.circle_id) + "&select=owner_id&limit=1");
+    if (Array.isArray(circles) && circles[0]?.owner_id === userId) return true;
     const rows = await dbRequest(
       "podcast_community_circle_members?circle_id=eq." + encodeURIComponent(room.circle_id) +
       "&member_id=eq." + encodeURIComponent(userId) + "&select=member_id&limit=1"
