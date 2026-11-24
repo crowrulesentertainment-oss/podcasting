@@ -255,11 +255,26 @@ const server = createServer(async (req, res) => {
         body: [{ room_id: room.id, room_name: roomName, owner_user_id: user.id, mode, status: "active", expires_at: expiresAt }]
       });
       if (!Array.isArray(rows) || !rows[0]) throw new Error("The group LiveKit session could not be created.");
+
+      // Set the participant limit on the LiveKit room itself. Returning this
+      // number in the API response alone would not enforce a capacity limit.
+      try {
+        await roomService.createRoom({ name: roomName, maxParticipants: MAX_ROOM_PARTICIPANTS });
+      } catch (error) {
+        await dbRequest("crowspace_live_room_sessions?id=eq." + encodeURIComponent(rows[0].id), {
+          method: "PATCH", body: { status: "ended", ended_at: new Date().toISOString() }
+        });
+        throw error;
+      }
+
       const roomUpdate = await dbRequest("crowspace_live_rooms?id=eq." + encodeURIComponent(room.id) + "&status=neq.ended", {
         method: "PATCH", prefer: "return=representation",
         body: { status: "live", started_at: new Date().toISOString(), updated_at: new Date().toISOString() }
       });
       if (!Array.isArray(roomUpdate) || !roomUpdate.length) {
+        await roomService.deleteRoom(roomName).catch((error) => {
+          console.error(JSON.stringify({ event: "livekit_room_cleanup_failed", roomName, message: error?.message || "unknown" }));
+        });
         await dbRequest("crowspace_live_room_sessions?id=eq." + encodeURIComponent(rows[0].id), {
           method: "PATCH", body: { status: "ended", ended_at: new Date().toISOString() }
         });
