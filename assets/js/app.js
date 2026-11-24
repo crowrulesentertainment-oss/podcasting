@@ -81,7 +81,7 @@ async function navigateTo(input,{history=true,scroll=true}={}){
   const description=parsed.querySelector('meta[name="description"]')?.content;
   if(description){let meta=document.querySelector('meta[name="description"]');if(!meta){meta=document.createElement("meta");meta.name="description";document.head.appendChild(meta)}meta.content=description}
   if(history)window.history.pushState({crowrules:true},"",target.href);
-  await renderCurrentPage();syncPrimaryNavigation();closePrimaryNavigation();
+  await renderCurrentPage();window.dispatchEvent(new CustomEvent("cr:page-rendered",{detail:{page,url:target.href}}));syncPrimaryNavigation();closePrimaryNavigation();
   // Each seamless route transition is a new page view, even in the same tab.
   window.__crpPermanentPageViewFor=null;window.__crpPermanentPageViewPromise=null;window.__crpPermanentPageViewPromisePath=null;
   recordPermanentPageView();
@@ -4197,4 +4197,4 @@ async function challenges2027(){
  function closeModal(){modal?.classList.remove("open");document.body.style.overflow=""}
  $("#cr27-modal-close")?.addEventListener("click",closeModal);modal?.addEventListener("click",e=>{if(e.target===modal)closeModal()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&modal?.classList.contains("open"))closeModal()});
  const countdown=$("#cr27-countdown");function tick(){if(!countdown)return;const delta=Math.max(0,Date.UTC(2027,0,1)-Date.now()),days=Math.floor(delta/86400000),hours=Math.floor(delta%86400000/3600000),mins=Math.floor(delta%3600000/60000);const values=[days,hours,mins];countdown.innerHTML=values.map((v,i)=>'<div class="cr27-time"><b>'+String(v).padStart(2,"0")+'</b><small>'+["Days","Hours","Mins"][i]+'</small></div>').join("")}tick();const timer=setInterval(()=>{if(!document.getElementById("cr27-countdown")){clearInterval(timer);return}tick()},60000);
-}if(page==="subscriptions")return subs();return home()}async function init(){shell();enableSeamlessNavigation();const result=await renderCurrentPage();syncPrimaryNavigation();return result}init().catch(e=>{console.error(e);$("#app").innerHTML='<div class="container section notice">'+esc(e.message)+'</div>'});
+}if(page==="subscriptions")return subs();return home()}async function init(){shell();enableSeamlessNavigation();const result=await renderCurrentPage();window.dispatchEvent(new CustomEvent("cr:page-rendered",{detail:{page,url:location.href}}));syncPrimaryNavigation();return result}init().catch(e=>{console.error(e);$("#app").innerHTML='<div class="container section notice">'+esc(e.message)+'</div>'});
