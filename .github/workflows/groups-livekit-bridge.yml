@@ -1,0 +1,30 @@
+name: Groups LiveKit bridge checks
+
+on:
+  push:
+    branches: [groups-2.0]
+    paths:
+      - "livekit-token-service/**"
+      - "supabase/migrations/*crowspace_group_livekit_bridge.sql"
+      - ".github/workflows/groups-livekit-bridge.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "livekit-token-service/**"
+      - "supabase/migrations/*crowspace_group_livekit_bridge.sql"
+      - ".github/workflows/groups-livekit-bridge.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check LiveKit token service syntax
+        working-directory: livekit-token-service
+        run: npm run check
