@@ -31,12 +31,14 @@
     return PREVIEW || isWorldPage || christmasWindow || document.body?.dataset.siteTheme === "christmas";
   }
   function mountRibbon() {
-    if (!active() || document.getElementById("crChristmasRibbon") || isWorldPage) return;
+    if (!active() || isWorldPage) return;
+    const existing = document.getElementById("crChristmasRibbon");
+    const nav = document.querySelector(".crp-nav,.topbar,nav[aria-label='Main navigation'],#globalNav");
+    if (existing) { if (nav?.parentNode && existing.previousElementSibling !== nav) nav.insertAdjacentElement("afterend", existing); return; }
     const ribbon = document.createElement("div");
     ribbon.id = "crChristmasRibbon";
     ribbon.className = "cr-xmas-ribbon";
     ribbon.innerHTML = '<span class="cr-xmas-raven" aria-hidden="true">🐦‍⬛</span><strong>CROWRULES CHRISTMAS 2026</strong><span>A world of stories. A season of wonder.</span><a href="/podcasting/christmas/">ENTER CHRISTMAS WORLD ↗</a>';
-    const nav = document.querySelector(".crp-nav,.topbar,nav[aria-label='Main navigation'],#globalNav");
     if (nav?.parentNode) nav.insertAdjacentElement("afterend", ribbon);
     else {
       const app = document.getElementById("app");
