@@ -42,7 +42,7 @@ try {
   const mutations = await page.evaluate(() => new Promise(resolve => {
     let count = 0;
     const observer = new MutationObserver(records => { count += records.length; });
-    observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["data-site-theme", "data-page"] });
+    observer.observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ["data-site-theme", "data-page"] });
     setTimeout(() => { observer.disconnect(); resolve(count); }, 1200);
   }));
   assert.ok(mutations < 50, `Preview theme should settle without an observer loop (observed ${mutations} mutations)`);
