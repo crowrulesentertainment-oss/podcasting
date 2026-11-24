@@ -262,6 +262,12 @@ function init() {
   $("roomId").value = params.get("room") || "";
   $("joinInvite").hidden = !invitationToken;
   $("joinInvite").disabled = !invitationToken;
+  $("createRoomRecord").addEventListener("click", async () => {
+    $("createRoomRecord").disabled = true;
+    try { await createRoomRecord(); }
+    catch (error) { status(error.message || "Could not create the group live room.", true); }
+    finally { $("createRoomRecord").disabled = false; }
+  });
   $("startRoom").addEventListener("click", startRoom);
   $("joinAudience").addEventListener("click", joinAudience);
   $("joinInvite").addEventListener("click", joinInvitation);
