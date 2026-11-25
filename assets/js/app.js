@@ -1491,7 +1491,7 @@ async function episode(){
     for(const item of growthResult.settings||[])growthSettingsByShow[item.podcast_id]=item;
    }catch(error){console.warn("RSS Growth preferences could not be loaded:",error)}
    await Promise.all(showsList.map(async show=>{
-    try{growthHistoryByShow[show.id]=await fn("podcast-rss-growth-engine",{action:"history",podcast_id:show.id)}
+    try{growthHistoryByShow[show.id]=await fn("podcast-rss-growth-engine",{action:"history",podcast_id:show.id});
     catch(error){console.warn("RSS Growth history could not be loaded:",error)}
    }));
    const hostingRows=showsList.map(p=>{
