@@ -2379,7 +2379,7 @@ async function rankings(){
    if(period!=="all_time"&&period!=="daily"&&period!=="weekly"&&period!=="monthly"&&period!=="yearly")return[];
    if(period!=="all_time"){
     const since=periodStart(period);
-    const [metrics]=await Promise.all([getSnapshot({type:"podcasts"})]);const showMap=new Map(catalog.shows.map(show=>[show.id,show]));const grouped=new Map();
+    const [metrics]=await Promise.all([getSnapshot({type:"podcasts"})]);if(metrics.some(metric=>metric.source==="lifetime-fallback"))return[];const showMap=new Map(catalog.shows.map(show=>[show.id,show]));const grouped=new Map();
     for(const metric of metrics){const show=showMap.get(metric.podcast_id);const name=String(show?.category||"Uncategorized").trim()||"Uncategorized",key=name.toLowerCase(),row=grouped.get(key)||{id:key,title:name,category:name,description:"Explore published shows in "+name+".",shows:0,plays:0,followers:0,episodes:0};row.shows++;row.plays+=Number(metric.listens||0);row.followers+=Number(metric.followers||0);row.episodes+=Number(metric.episodes||0);grouped.set(key,row)}
     return Array.from(grouped.values()).map(item=>({kind:"category",item,plays:item.plays,shows:item.shows,followers:item.followers,source:"live-category-metrics"})).sort((a,b)=>b.plays-a.plays||b.followers-a.followers||b.shows-a.shows);
    }
