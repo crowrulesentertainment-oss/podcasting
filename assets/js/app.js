@@ -530,12 +530,15 @@ const a=$("#app");
  ];
  if(holidayCountdownSlots.every(slot=>slot.days&&slot.hours&&slot.minutes&&slot.seconds)){
   let activeHolidayKeys="";
+  let holidayCountdownTimer=null;
   const updateUpcomingHolidays=()=>{
    const now=new Date();
+   // Each holiday remains featured through its local calendar day. At the
+   // next local midnight it automatically drops out and the next holiday moves up.
    const upcoming=holidaysForYear(now.getFullYear()).concat(holidaysForYear(now.getFullYear()+1),holidaysForYear(now.getFullYear()+2))
-    .map(item=>({...item,target:new Date(item.date.getFullYear(),item.date.getMonth(),item.date.getDate()+1).getTime()-1}))
-    .filter(item=>item.target>now.getTime()).sort((a,b)=>a.target-b.target).slice(0,2);
-   const keys=upcoming.map(item=>item.name+"-"+item.target).join("|");
+    .map(item=>({...item,endExclusive:new Date(item.date.getFullYear(),item.date.getMonth(),item.date.getDate()+1).getTime()}))
+    .filter(item=>item.endExclusive>now.getTime()).sort((a,b)=>a.date-b.date).slice(0,2);
+   const keys=upcoming.map(item=>item.name+"-"+item.endExclusive).join("|");
    if(keys!==activeHolidayKeys){
     activeHolidayKeys=keys;
     holidayCountdownSlots.forEach((nodes,index)=>{
@@ -543,16 +546,27 @@ const a=$("#app");
      nodes.emoji.textContent=holiday.emoji;
      nodes.name.textContent=holiday.name.toUpperCase();
      nodes.date.textContent=new Intl.DateTimeFormat(undefined,{weekday:"short",month:"short",day:"numeric",year:"numeric"}).format(holiday.date);
+     nodes.days.closest(".holiday-countdown-card")?.setAttribute("aria-label",holiday.name+" countdown");
     });
    }
    holidayCountdownSlots.forEach((nodes,index)=>{
     const holiday=upcoming[index];if(!holiday)return;
-    const totalSeconds=Math.max(0,Math.floor((holiday.target-now.getTime())/1000));
+    // Ceiling avoids displaying 00:00:00 while a fraction of a second remains.
+    const totalSeconds=Math.max(0,Math.ceil((holiday.endExclusive-now.getTime())/1000));
     const values={days:Math.floor(totalSeconds/86400),hours:Math.floor(totalSeconds%86400/3600),minutes:Math.floor(totalSeconds%3600/60),seconds:totalSeconds%60};
     Object.entries(values).forEach(([unit,value])=>{nodes[unit].textContent=String(value).padStart(2,"0")});
    });
+   if(upcoming.length<2)holidayCountdownSlots.forEach((nodes,index)=>{if(!upcoming[index]){nodes.name.textContent="COMING SOON";nodes.date.textContent="More celebrations ahead";["days","hours","minutes","seconds"].forEach(unit=>nodes[unit].textContent="—")}});
   };
-  updateUpcomingHolidays();window.setInterval(updateUpcomingHolidays,1000);
+  const scheduleHolidayTick=()=>{
+   updateUpcomingHolidays();
+   // Align updates to the next second and recalculate after tab suspension.
+   const delay=1000-(Date.now()%1000)+15;
+   holidayCountdownTimer=window.setTimeout(scheduleHolidayTick,delay);
+  };
+  scheduleHolidayTick();
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden){if(holidayCountdownTimer)clearTimeout(holidayCountdownTimer);scheduleHolidayTick()}});
+
  }
  const holidayEpisodeList=$("#holidayChallengeEpisodes");
  if(holidayEpisodeList){
