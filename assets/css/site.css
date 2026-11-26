@@ -2571,3 +2571,15 @@ body[data-page="admin"] .badge-console .table-wrap{max-width:100%;overflow-x:aut
 .home-group-spotlight-live span{color:#67d9a2;margin-right:5px}
 @media(max-width:900px){.home-group-spotlight-grid{grid-template-columns:1fr 1fr}.home-hero-carousel .home-hero-ninth .home-groups-preview{max-width:640px;margin:18px auto 0}}
 @media(max-width:560px){.home-group-spotlight-grid{grid-template-columns:1fr}.home-group-spotlight-card{padding:11px}.home-hero-carousel .home-hero-ninth .home-groups-preview{padding:14px!important}}
+
+
+/* Rankings: true streaming-service horizontal rails and responsive artwork cards */
+.rankings-categories{position:sticky;top:78px;z-index:6;display:flex;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding:10px 2px;background:rgba(8,9,12,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.rankings-categories::-webkit-scrollbar,.rankings-grid::-webkit-scrollbar{display:none}
+.rankings-grid{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;gap:16px;padding:8px 2px 22px;scrollbar-width:none}
+.rankings-grid .ranking-tile{flex:0 0 clamp(172px,19vw,224px);scroll-snap-align:start}
+.ranking-tile:focus-visible,.ranking-category:focus-visible{outline:3px solid #f0c66e;outline-offset:3px}
+.ranking-tile-art{aspect-ratio:3/4}
+.rankings-rail-wrap{position:relative}
+@media(max-width:700px){.rankings-categories{top:66px}.rankings-grid{gap:12px}.rankings-grid .ranking-tile{flex-basis:154px}.rankings-hero{min-height:500px}.rankings-hero-meta{margin-top:38px}.rankings-featured{grid-template-columns:1fr}.rankings-featured-art,.rankings-featured-art img{min-height:230px}.rankings-featured-copy{padding:22px}.rankings-list-head{align-items:flex-start;flex-direction:column}.rankings-data-note{white-space:normal}}
+@media(prefers-reduced-motion:reduce){.rankings-grid{scroll-behavior:auto}.ranking-tile,.ranking-tile-art img{transition:none}}
