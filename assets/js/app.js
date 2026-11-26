@@ -1490,10 +1490,7 @@ async function episode(){
     const growthResult=await fn("podcast-rss-growth-settings",{action:"list"});
     for(const item of growthResult.settings||[])growthSettingsByShow[item.podcast_id]=item;
    }catch(error){console.warn("RSS Growth preferences could not be loaded:",error)}
-   await Promise.all(showsList.map(async show=>{
-    try{growthHistoryByShow[show.id]=await fn("podcast-rss-growth-engine",{action:"history",podcast_id:show.id});}
-    catch(error){console.warn("RSS Growth history could not be loaded:",error)}
-   }));
+   await Promise.all(showsList.map(show=>fn("podcast-rss-growth-engine",{action:"history",podcast_id:show.id}).then(result=>{growthHistoryByShow[show.id]=result;}).catch(error=>{console.warn("RSS Growth history could not be loaded:",error);})));
    const hostingRows=showsList.map(p=>{
     const published=episodes.filter(e=>e.podcast_id===p.id&&e.status==="published"&&e.is_published===true&&e.access_level!=="premium");
     const audio=published.filter(e=>!!e.audio_url||episodes.some(x=>x.id===e.id&&!!x.audio_url));
