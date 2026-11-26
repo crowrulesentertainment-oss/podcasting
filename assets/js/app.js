@@ -2346,7 +2346,8 @@ async function rankings(){
  };
  const buildRows=async category=>{
   const snapshot=await getSnapshot(category);
-  if(snapshot?.length){
+  if(Array.isArray(snapshot)){
+   if(!snapshot.length)return[];
    return snapshot.map(row=>{
     const item=row.episode_id?catalog.episodes.find(x=>x.id===row.episode_id):catalog.shows.find(x=>x.id===row.podcast_id);
     if(!item)return null;
